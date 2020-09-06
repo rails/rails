@@ -28,7 +28,7 @@
 #
 # ---------------------------------------------------------------------------
 
-require "w3c_validators"
+require 'w3c_validators'
 include W3CValidators
 
 module RailsGuides
@@ -48,10 +48,10 @@ module RailsGuides
         end
 
         if results.errors.length > 0
-          print "E"
+          print 'E'
           errors_on_guides[f] = results.errors
         else
-          print "."
+          print '.'
         end
       end
 
@@ -60,15 +60,15 @@ module RailsGuides
 
     private
       def guides_to_validate
-        guides = Dir["./output/*.html"]
-        guides.delete("./output/layout.html")
-        guides.delete("./output/_license.html")
-        guides.delete("./output/_welcome.html")
-        ENV.key?("ONLY") ? select_only(guides) : guides
+        guides = Dir['./output/*.html']
+        guides.delete('./output/layout.html')
+        guides.delete('./output/_license.html')
+        guides.delete('./output/_welcome.html')
+        ENV.key?('ONLY') ? select_only(guides) : guides
       end
 
       def select_only(guides)
-        prefixes = ENV["ONLY"].split(",").map(&:strip)
+        prefixes = ENV['ONLY'].split(',').map(&:strip)
         guides.select do |guide|
           prefixes.any? { |p| guide.start_with?("./output/#{p}") }
         end
@@ -78,7 +78,7 @@ module RailsGuides
         if error_list.size == 0
           puts "\n\nAll checked guides validate OK!"
         else
-          error_summary = error_detail = ""
+          error_summary = error_detail = ''
 
           error_list.each_pair do |name, errors|
             error_summary += "\n  #{name}"

@@ -23,15 +23,15 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require "active_support"
-require "active_support/rails"
-require "active_model"
-require "arel"
-require "yaml"
+require 'active_support'
+require 'active_support/rails'
+require 'active_model'
+require 'arel'
+require 'yaml'
 
-require "active_record/version"
-require "active_model/attribute_set"
-require "active_record/errors"
+require 'active_record/version'
+require 'active_model/attribute_set'
+require 'active_record/errors'
 
 module ActiveRecord
   extend ActiveSupport::Autoload
@@ -49,7 +49,7 @@ module ActiveRecord
   autoload :Inheritance
   autoload :Integration
   autoload :Migration
-  autoload :Migrator, "active_record/migration"
+  autoload :Migrator, 'active_record/migration'
   autoload :ModelSchema
   autoload :NestedAttributes
   autoload :NoTouching
@@ -58,7 +58,7 @@ module ActiveRecord
   autoload :QueryCache
   autoload :Querying
   autoload :ReadonlyAttributes
-  autoload :RecordInvalid, "active_record/validations"
+  autoload :RecordInvalid, 'active_record/validations'
   autoload :Reflection
   autoload :RuntimeRegistry
   autoload :Sanitization
@@ -92,7 +92,7 @@ module ActiveRecord
     autoload :AssociationRelation
     autoload :NullRelation
 
-    autoload_under "relation" do
+    autoload_under 'relation' do
       autoload :QueryMethods
       autoload :FinderMethods
       autoload :Calculations
@@ -108,8 +108,8 @@ module ActiveRecord
   end
 
   module Coders
-    autoload :YAMLColumn, "active_record/coders/yaml_column"
-    autoload :JSON, "active_record/coders/json"
+    autoload :YAMLColumn, 'active_record/coders/yaml_column'
+    autoload :JSON, 'active_record/coders/json'
   end
 
   module AttributeMethods
@@ -148,21 +148,21 @@ module ActiveRecord
   module Middleware
     extend ActiveSupport::Autoload
 
-    autoload :DatabaseSelector, "active_record/middleware/database_selector"
+    autoload :DatabaseSelector, 'active_record/middleware/database_selector'
   end
 
   module Tasks
     extend ActiveSupport::Autoload
 
     autoload :DatabaseTasks
-    autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
-    autoload :MySQLDatabaseTasks,  "active_record/tasks/mysql_database_tasks"
+    autoload :SQLiteDatabaseTasks, 'active_record/tasks/sqlite_database_tasks'
+    autoload :MySQLDatabaseTasks,  'active_record/tasks/mysql_database_tasks'
     autoload :PostgreSQLDatabaseTasks,
-      "active_record/tasks/postgresql_database_tasks"
+      'active_record/tasks/postgresql_database_tasks'
   end
 
-  autoload :TestDatabases, "active_record/test_databases"
-  autoload :TestFixtures, "active_record/fixtures"
+  autoload :TestDatabases, 'active_record/test_databases'
+  autoload :TestFixtures, 'active_record/fixtures'
 
   def self.eager_load!
     super
@@ -179,10 +179,10 @@ ActiveSupport.on_load(:active_record) do
 end
 
 ActiveSupport.on_load(:i18n) do
-  I18n.load_path << File.expand_path("active_record/locale/en.yml", __dir__)
+  I18n.load_path << File.expand_path('active_record/locale/en.yml', __dir__)
 end
 
-YAML.load_tags["!ruby/object:ActiveRecord::AttributeSet"] = "ActiveModel::AttributeSet"
-YAML.load_tags["!ruby/object:ActiveRecord::Attribute::FromDatabase"] = "ActiveModel::Attribute::FromDatabase"
-YAML.load_tags["!ruby/object:ActiveRecord::LazyAttributeHash"] = "ActiveModel::LazyAttributeHash"
-YAML.load_tags["!ruby/object:ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::MysqlString"] = "ActiveRecord::Type::String"
+YAML.load_tags['!ruby/object:ActiveRecord::AttributeSet'] = 'ActiveModel::AttributeSet'
+YAML.load_tags['!ruby/object:ActiveRecord::Attribute::FromDatabase'] = 'ActiveModel::Attribute::FromDatabase'
+YAML.load_tags['!ruby/object:ActiveRecord::LazyAttributeHash'] = 'ActiveModel::LazyAttributeHash'
+YAML.load_tags['!ruby/object:ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::MysqlString'] = 'ActiveRecord::Type::String'

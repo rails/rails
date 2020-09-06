@@ -1,26 +1,26 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 class Mysql2DatetimePrecisionQuotingTest < ActiveRecord::Mysql2TestCase
   setup do
     @connection = ActiveRecord::Base.connection
   end
 
-  test "microsecond precision for MySQL gte 5.6.4" do
-    stub_version "5.6.4" do
+  test 'microsecond precision for MySQL gte 5.6.4' do
+    stub_version '5.6.4' do
       assert_microsecond_precision
     end
   end
 
-  test "no microsecond precision for MySQL lt 5.6.4" do
-    stub_version "5.6.3" do
+  test 'no microsecond precision for MySQL lt 5.6.4' do
+    stub_version '5.6.3' do
       assert_no_microsecond_precision
     end
   end
 
-  test "microsecond precision for MariaDB gte 5.3.0" do
-    stub_version "5.5.5-10.1.8-MariaDB-log" do
+  test 'microsecond precision for MariaDB gte 5.3.0' do
+    stub_version '5.5.5-10.1.8-MariaDB-log' do
       assert_microsecond_precision
     end
   end

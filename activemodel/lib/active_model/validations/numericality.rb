@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "bigdecimal/util"
+require 'bigdecimal/util'
 
 module ActiveModel
   module Validations

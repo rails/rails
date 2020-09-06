@@ -30,7 +30,7 @@ module ActiveStorage
     private
       def read_image
         download_blob_to_tempfile do |file|
-          require "mini_magick"
+          require 'mini_magick'
           image = MiniMagick::Image.new(file.path)
 
           if image.valid?
@@ -49,7 +49,7 @@ module ActiveStorage
       end
 
       def rotated_image?(image)
-        %w[ RightTop LeftBottom ].include?(image["%[orientation]"])
+        %w[ RightTop LeftBottom ].include?(image['%[orientation]'])
       end
   end
 end

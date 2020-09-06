@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require "active_support/test_case"
-require "rails-dom-testing"
+require 'active_support/test_case'
+require 'rails-dom-testing'
 
 module ActionMailer
   class NonInferrableMailerError < ::StandardError
     def initialize(name)
       super "Unable to determine the mailer to test from #{name}. " \
         "You'll need to specify it using tests YourMailer in your " \
-        "test case definition"
+        'test case definition'
     end
   end
 
@@ -99,12 +99,12 @@ module ActionMailer
 
         def set_expected_mail
           @expected = Mail.new
-          @expected.content_type ["text", "plain", { "charset" => charset }]
-          @expected.mime_version = "1.0"
+          @expected.content_type ['text', 'plain', { 'charset' => charset }]
+          @expected.mime_version = '1.0'
         end
 
         def charset
-          "UTF-8"
+          'UTF-8'
         end
 
         def encode(subject)
@@ -112,7 +112,7 @@ module ActionMailer
         end
 
         def read_fixture(action)
-          IO.readlines(File.join(Rails.root, "test", "fixtures", self.class.mailer_class.name.underscore, action))
+          IO.readlines(File.join(Rails.root, 'test', 'fixtures', self.class.mailer_class.name.underscore, action))
         end
     end
 

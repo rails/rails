@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "securerandom"
+require 'securerandom'
 
 module Digest
   module UUID
@@ -28,11 +28,11 @@ module Digest
       hash.update(uuid_namespace)
       hash.update(name)
 
-      ary = hash.digest.unpack("NnnnnN")
+      ary = hash.digest.unpack('NnnnnN')
       ary[2] = (ary[2] & 0x0FFF) | (version << 12)
       ary[3] = (ary[3] & 0x3FFF) | 0x8000
 
-      "%08x-%04x-%04x-%04x-%04x%08x" % ary
+      '%08x-%04x-%04x-%04x-%04x%08x' % ary
     end
 
     # Convenience method for uuid_from_hash using Digest::MD5.

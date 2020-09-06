@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/except"
-require "rails/generators/rails/app/app_generator"
-require "date"
+require 'active_support/core_ext/hash/except'
+require 'rails/generators/rails/app/app_generator'
+require 'date'
 
 module Rails
   # The plugin builder allows you to override elements of the plugin
@@ -14,86 +14,86 @@ module Rails
   # what those operations do so you can create another template action.
   class PluginBuilder
     def rakefile
-      template "Rakefile"
+      template 'Rakefile'
     end
 
     def app
       if mountable?
         if api?
-          directory "app", exclude_pattern: %r{app/(views|helpers)}
+          directory 'app', exclude_pattern: %r{app/(views|helpers)}
         else
-          directory "app"
+          directory 'app'
           empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
         end
 
-        remove_dir "app/mailers" if options[:skip_action_mailer]
-        remove_dir "app/jobs" if options[:skip_active_job]
+        remove_dir 'app/mailers' if options[:skip_action_mailer]
+        remove_dir 'app/jobs' if options[:skip_active_job]
       elsif full?
-        empty_directory_with_keep_file "app/models"
-        empty_directory_with_keep_file "app/controllers"
-        empty_directory_with_keep_file "app/mailers" unless options[:skip_action_mailer]
-        empty_directory_with_keep_file "app/jobs" unless options[:skip_active_job]
+        empty_directory_with_keep_file 'app/models'
+        empty_directory_with_keep_file 'app/controllers'
+        empty_directory_with_keep_file 'app/mailers' unless options[:skip_action_mailer]
+        empty_directory_with_keep_file 'app/jobs' unless options[:skip_active_job]
 
         unless api?
           empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
-          empty_directory_with_keep_file "app/helpers"
-          empty_directory_with_keep_file "app/views"
+          empty_directory_with_keep_file 'app/helpers'
+          empty_directory_with_keep_file 'app/views'
         end
       end
     end
 
     def readme
-      template "README.md"
+      template 'README.md'
     end
 
     def gemfile
-      template "Gemfile"
+      template 'Gemfile'
     end
 
     def license
-      template "MIT-LICENSE"
+      template 'MIT-LICENSE'
     end
 
     def gemspec
-      template "%name%.gemspec"
+      template '%name%.gemspec'
     end
 
     def gitignore
-      template "gitignore", ".gitignore"
+      template 'gitignore', '.gitignore'
     end
 
     def version_control
       if !options[:skip_git] && !options[:pretend]
-        run "git init", capture: options[:quiet], abort_on_failure: false
+        run 'git init', capture: options[:quiet], abort_on_failure: false
       end
     end
 
     def lib
-      template "lib/%namespaced_name%.rb"
-      template "lib/tasks/%namespaced_name%_tasks.rake"
-      template "lib/%namespaced_name%/version.rb"
+      template 'lib/%namespaced_name%.rb'
+      template 'lib/tasks/%namespaced_name%_tasks.rake'
+      template 'lib/%namespaced_name%/version.rb'
 
       if engine?
-        template "lib/%namespaced_name%/engine.rb"
+        template 'lib/%namespaced_name%/engine.rb'
       else
-        template "lib/%namespaced_name%/railtie.rb"
+        template 'lib/%namespaced_name%/railtie.rb'
       end
     end
 
     def config
-      template "config/routes.rb" if engine?
+      template 'config/routes.rb' if engine?
     end
 
     def test
-      template "test/test_helper.rb"
-      template "test/%namespaced_name%_test.rb"
-      append_file "Rakefile", <<-EOF
+      template 'test/test_helper.rb'
+      template 'test/%namespaced_name%_test.rb'
+      append_file 'Rakefile', <<-EOF
 
 #{rakefile_test_tasks}
 task default: :test
       EOF
       if engine?
-        template "test/integration/navigation_test.rb"
+        template 'test/integration/navigation_test.rb'
       end
     end
 
@@ -114,43 +114,43 @@ task default: :test
     end
 
     def test_dummy_config
-      template "rails/boot.rb", "#{dummy_path}/config/boot.rb", force: true
+      template 'rails/boot.rb', "#{dummy_path}/config/boot.rb", force: true
 
       insert_into_file "#{dummy_path}/config/application.rb", <<~RUBY, after: /^Bundler\.require.+\n/
         require #{namespaced_name.inspect}
       RUBY
 
       if mountable?
-        template "rails/routes.rb", "#{dummy_path}/config/routes.rb", force: true
+        template 'rails/routes.rb', "#{dummy_path}/config/routes.rb", force: true
       end
     end
 
     def test_dummy_assets
-      template "rails/javascripts.js",    "#{dummy_path}/app/javascript/packs/application.js", force: true
-      template "rails/stylesheets.css",   "#{dummy_path}/app/assets/stylesheets/application.css", force: true
-      template "rails/dummy_manifest.js", "#{dummy_path}/app/assets/config/manifest.js", force: true
+      template 'rails/javascripts.js',    "#{dummy_path}/app/javascript/packs/application.js", force: true
+      template 'rails/stylesheets.css',   "#{dummy_path}/app/assets/stylesheets/application.css", force: true
+      template 'rails/dummy_manifest.js', "#{dummy_path}/app/assets/config/manifest.js", force: true
     end
 
     def test_dummy_clean
       inside dummy_path do
-        remove_file ".ruby-version"
-        remove_file "db/seeds.rb"
-        remove_file "Gemfile"
-        remove_file "lib/tasks"
-        remove_file "public/robots.txt"
-        remove_file "README.md"
-        remove_file "test"
-        remove_file "vendor"
+        remove_file '.ruby-version'
+        remove_file 'db/seeds.rb'
+        remove_file 'Gemfile'
+        remove_file 'lib/tasks'
+        remove_file 'public/robots.txt'
+        remove_file 'README.md'
+        remove_file 'test'
+        remove_file 'vendor'
       end
     end
 
     def assets_manifest
-      template "rails/engine_manifest.js", "app/assets/config/#{underscored_name}_manifest.js"
+      template 'rails/engine_manifest.js', "app/assets/config/#{underscored_name}_manifest.js"
     end
 
     def stylesheets
       if mountable?
-        copy_file "rails/stylesheets.css",
+        copy_file 'rails/stylesheets.css',
                   "app/assets/stylesheets/#{namespaced_name}/application.css"
       elsif full?
         empty_directory_with_keep_file "app/assets/stylesheets/#{namespaced_name}"
@@ -158,17 +158,17 @@ task default: :test
     end
 
     def bin(force = false)
-      bin_file = engine? ? "bin/rails.tt" : "bin/test.tt"
+      bin_file = engine? ? 'bin/rails.tt' : 'bin/test.tt'
       template bin_file, force: force do |content|
         "#{shebang}\n" + content
       end
-      chmod "bin", 0755, verbose: false
+      chmod 'bin', 0755, verbose: false
     end
 
     def gemfile_entry
       return unless inside_application?
 
-      gemfile_in_app_path = File.join(rails_app_path, "Gemfile")
+      gemfile_in_app_path = File.join(rails_app_path, 'Gemfile')
       if File.exist? gemfile_in_app_path
         entry = "\ngem '#{name}', path: '#{relative_path}'"
         append_file gemfile_in_app_path, entry
@@ -178,28 +178,28 @@ task default: :test
 
   module Generators
     class PluginGenerator < AppBase # :nodoc:
-      add_shared_options_for "plugin"
+      add_shared_options_for 'plugin'
 
       alias_method :plugin_path, :app_path
 
-      class_option :dummy_path,   type: :string, default: "test/dummy",
-                                  desc: "Create dummy application at given path"
+      class_option :dummy_path,   type: :string, default: 'test/dummy',
+                                  desc: 'Create dummy application at given path'
 
       class_option :full,         type: :boolean, default: false,
-                                  desc: "Generate a rails engine with bundled Rails application for testing"
+                                  desc: 'Generate a rails engine with bundled Rails application for testing'
 
       class_option :mountable,    type: :boolean, default: false,
-                                  desc: "Generate mountable isolated engine"
+                                  desc: 'Generate mountable isolated engine'
 
       class_option :skip_gemspec, type: :boolean, default: false,
-                                  desc: "Skip gemspec file"
+                                  desc: 'Skip gemspec file'
 
       class_option :skip_gemfile_entry, type: :boolean, default: false,
                                         desc: "If creating plugin in application's directory " \
-                                                 "skip adding entry to Gemfile"
+                                                 'skip adding entry to Gemfile'
 
       class_option :api,          type: :boolean, default: false,
-                                  desc: "Generate a smaller stack for API application plugins"
+                                  desc: 'Generate a smaller stack for API application plugins'
 
       def initialize(*args)
         @dummy_path = nil
@@ -279,7 +279,7 @@ task default: :test
       end
 
       def namespaced_name
-        @namespaced_name ||= name.tr("-", "/")
+        @namespaced_name ||= name.tr('-', '/')
       end
 
     private
@@ -314,7 +314,7 @@ task default: :test
       end
 
       def with_dummy_app?
-        options[:skip_test].blank? || options[:dummy_path] != "test/dummy"
+        options[:skip_test].blank? || options[:dummy_path] != 'test/dummy'
       end
 
       def api?
@@ -330,15 +330,15 @@ task default: :test
       end
 
       def modules
-        @modules ||= namespaced_name.camelize.split("::")
+        @modules ||= namespaced_name.camelize.split('::')
       end
 
       def wrap_in_modules(unwrapped_code)
-        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\s$\n/, "")
+        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\s$\n/, '')
         modules.reverse.inject(unwrapped_code) do |content, mod|
           str = +"module #{mod}\n"
           str << content.lines.map { |line| "  #{line}" }.join
-          str << (content.present? ? "\nend" : "end")
+          str << (content.present? ? "\nend" : 'end')
         end
       end
 
@@ -351,11 +351,11 @@ task default: :test
       end
 
       def camelized
-        @camelized ||= name.gsub(/\W/, "_").squeeze("_").camelize
+        @camelized ||= name.gsub(/\W/, '_').squeeze('_').camelize
       end
 
       def author
-        default = "TODO: Write your name"
+        default = 'TODO: Write your name'
         if skip_git?
           @author = default
         else
@@ -364,7 +364,7 @@ task default: :test
       end
 
       def email
-        default = "TODO: Write your email address"
+        default = 'TODO: Write your email address'
         if skip_git?
           @email = default
         else
@@ -381,7 +381,7 @@ task default: :test
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(name)
           raise Error, "Invalid plugin name #{original_name}. Please give a " \
-                       "name which does not match one of the reserved rails " \
+                       'name which does not match one of the reserved rails ' \
                        "words: #{RESERVED_NAMES.join(", ")}"
         elsif Object.const_defined?(camelized)
           raise Error, "Invalid plugin name #{original_name}, constant #{camelized} is already in use. Please choose another plugin name."
@@ -414,7 +414,7 @@ end
       end
 
       def rails_app_path
-        APP_PATH.sub("/config/application", "") if defined?(APP_PATH)
+        APP_PATH.sub('/config/application', '') if defined?(APP_PATH)
       end
 
       def inside_application?

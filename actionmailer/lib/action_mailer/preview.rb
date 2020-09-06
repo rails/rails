@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/descendants_tracker"
+require 'active_support/descendants_tracker'
 
 module ActionMailer
   module Previews #:nodoc:
@@ -114,7 +114,7 @@ module ActionMailer
 
       # Returns the underscored name of the mailer preview without the suffix.
       def preview_name
-        name.delete_suffix("Preview").underscore
+        name.delete_suffix('Preview').underscore
       end
 
       private

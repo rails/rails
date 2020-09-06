@@ -14,10 +14,10 @@ module ActiveRecord
           def cast(value)
             case value
             when ::String
-              if value.start_with?("(") && value.end_with?(")")
+              if value.start_with?('(') && value.end_with?(')')
                 value = value[1...-1]
               end
-              cast(value.split(","))
+              cast(value.split(','))
             when ::Array
               value.map { |v| Float(v) }
             else
@@ -35,7 +35,7 @@ module ActiveRecord
 
           private
             def number_for_point(number)
-              number.to_s.delete_suffix(".0")
+              number.to_s.delete_suffix('.0')
             end
         end
       end

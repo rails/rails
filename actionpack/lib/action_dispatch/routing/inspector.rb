@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "delegate"
-require "io/console/size"
+require 'delegate'
+require 'io/console/size'
 
 module ActionDispatch
   module Routing
@@ -35,11 +35,11 @@ module ActionDispatch
       end
 
       def controller
-        parts.include?(:controller) ? ":controller" : requirements[:controller]
+        parts.include?(:controller) ? ':controller' : requirements[:controller]
       end
 
       def action
-        parts.include?(:action) ? ":action" : requirements[:action]
+        parts.include?(:action) ? ':action' : requirements[:action]
       end
 
       def internal?
@@ -154,12 +154,12 @@ module ActionDispatch
                 Please add some routes in config/routes.rb.
               MESSAGE
             elsif filter.key?(:controller)
-              "No routes were found for this controller."
+              'No routes were found for this controller.'
             elsif filter.key?(:grep)
-              "No routes were found for this grep pattern."
+              'No routes were found for this grep pattern.'
             end
 
-          @buffer << "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
+          @buffer << 'For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.'
         end
       end
 
@@ -178,7 +178,7 @@ module ActionDispatch
 
         private
           def draw_section(routes)
-            header_lengths = ["Prefix", "Verb", "URI Pattern"].map(&:length)
+            header_lengths = ['Prefix', 'Verb', 'URI Pattern'].map(&:length)
             name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
 
             routes.map do |r|
@@ -227,7 +227,7 @@ module ActionDispatch
           end
 
           def route_header(index:)
-            "--[ Route #{index} ]".ljust(@width, "-")
+            "--[ Route #{index} ]".ljust(@width, '-')
           end
       end
     end
@@ -243,7 +243,7 @@ module ActionDispatch
       end
 
       def section(routes)
-        @buffer << @view.render(partial: "routes/route", collection: routes)
+        @buffer << @view.render(partial: 'routes/route', collection: routes)
       end
 
       # The header is part of the HTML page, so we don't construct it here.
@@ -264,7 +264,7 @@ module ActionDispatch
       end
 
       def result
-        @view.raw @view.render(layout: "routes/table") {
+        @view.raw @view.render(layout: 'routes/table') {
           @view.raw @buffer.join("\n")
         }
       end

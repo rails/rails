@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/post"
-require "models/author"
-require "models/project"
-require "models/developer"
-require "models/computer"
-require "models/company"
+require 'cases/helper'
+require 'models/post'
+require 'models/author'
+require 'models/project'
+require 'models/developer'
+require 'models/computer'
+require 'models/company'
 
 class AssociationCallbacksTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :author_addresses, :projects, :developers
@@ -63,16 +63,16 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_has_many_callbacks_halt_execution_when_abort_is_trown_when_adding_to_association
-    author = Author.create!(name: "Roger")
-    post = Post.create!(title: "hello", body: "abc")
+    author = Author.create!(name: 'Roger')
+    post = Post.create!(title: 'hello', body: 'abc')
     author.posts_with_thrown_callbacks << post
 
     assert_empty(author.posts_with_callbacks)
   end
 
   def test_has_many_callbacks_halt_execution_when_abort_is_trown_when_removing_from_association
-    author = Author.create!(name: "Roger")
-    post = Post.create!(title: "hello", body: "abc", author: author)
+    author = Author.create!(name: 'Roger')
+    post = Post.create!(title: 'hello', body: 'abc', author: author)
 
     assert_equal(1, author.posts_with_thrown_callbacks.size)
     author.posts_with_thrown_callbacks.destroy(post.id)
@@ -80,22 +80,22 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_has_many_callbacks_with_create
-    morten = Author.create name: "Morten"
-    post = morten.posts_with_proc_callbacks.create! title: "Hello", body: "How are you doing?"
-    assert_equal ["before_adding<new>", "after_adding#{post.id}"], morten.post_log
+    morten = Author.create name: 'Morten'
+    post = morten.posts_with_proc_callbacks.create! title: 'Hello', body: 'How are you doing?'
+    assert_equal ['before_adding<new>', "after_adding#{post.id}"], morten.post_log
   end
 
   def test_has_many_callbacks_with_create!
-    morten = Author.create! name: "Morten"
-    post = morten.posts_with_proc_callbacks.create title: "Hello", body: "How are you doing?"
-    assert_equal ["before_adding<new>", "after_adding#{post.id}"], morten.post_log
+    morten = Author.create! name: 'Morten'
+    post = morten.posts_with_proc_callbacks.create title: 'Hello', body: 'How are you doing?'
+    assert_equal ['before_adding<new>', "after_adding#{post.id}"], morten.post_log
   end
 
   def test_has_many_callbacks_for_save_on_parent
-    jack = Author.new name: "Jack"
-    jack.posts_with_callbacks.build title: "Call me back!", body: "Before you wake up and after you sleep"
+    jack = Author.new name: 'Jack'
+    jack.posts_with_callbacks.build title: 'Call me back!', body: 'Before you wake up and after you sleep'
 
-    callback_log = ["before_adding<new>", "after_adding#{jack.posts_with_callbacks.first.id}"]
+    callback_log = ['before_adding<new>', "after_adding#{jack.posts_with_callbacks.first.id}"]
     assert_equal callback_log, jack.post_log
     assert jack.save
     assert_equal 1, jack.posts_with_callbacks.count
@@ -103,8 +103,8 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_has_many_callbacks_for_destroy_on_parent
-    firm = Firm.create! name: "Firm"
-    client = firm.clients.create! name: "Client"
+    firm = Firm.create! name: 'Firm'
+    client = firm.clients.create! name: 'Client'
     firm.destroy
 
     assert_equal ["before_remove#{client.id}", "after_remove#{client.id}"], firm.log
@@ -127,33 +127,33 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
     klass = Class.new(Project) do
       def self.name; Project.name; end
       has_and_belongs_to_many :developers_with_callbacks,
-                                class_name: "Developer",
+                                class_name: 'Developer',
                                 before_add: lambda { |o, r|
         dev     = r
         new_dev = r.new_record?
       }
     end
     rec = klass.create!
-    alice = Developer.new(name: "alice")
+    alice = Developer.new(name: 'alice')
     rec.developers_with_callbacks << alice
     assert_equal alice, dev
     assert_not_nil new_dev
-    assert new_dev, "record should not have been saved"
+    assert new_dev, 'record should not have been saved'
     assert_not_predicate alice, :new_record?
   end
 
   def test_has_and_belongs_to_many_after_add_called_after_save
     ar = projects(:active_record)
     assert_empty ar.developers_log
-    alice = Developer.new(name: "alice")
+    alice = Developer.new(name: 'alice')
     ar.developers_with_callbacks << alice
     assert_equal "after_adding#{alice.id}", ar.developers_log.last
 
-    bob = ar.developers_with_callbacks.create(name: "bob")
+    bob = ar.developers_with_callbacks.create(name: 'bob')
     assert_equal "after_adding#{bob.id}", ar.developers_log.last
 
-    ar.developers_with_callbacks.build(name: "charlie")
-    assert_equal "after_adding<new>", ar.developers_log.last
+    ar.developers_with_callbacks.build(name: 'charlie')
+    assert_equal 'after_adding<new>', ar.developers_log.last
   end
 
   def test_has_and_belongs_to_many_remove_callback
@@ -184,10 +184,10 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_has_and_belongs_to_many_callbacks_for_save_on_parent
-    project = Project.new name: "Callbacks"
-    project.developers_with_callbacks.build name: "Jack", salary: 95000
+    project = Project.new name: 'Callbacks'
+    project.developers_with_callbacks.build name: 'Jack', salary: 95000
 
-    callback_log = ["before_adding<new>", "after_adding<new>"]
+    callback_log = ['before_adding<new>', 'after_adding<new>']
     assert_equal callback_log, project.developers_log
     assert project.save
     assert_equal 1, project.developers_with_callbacks.size

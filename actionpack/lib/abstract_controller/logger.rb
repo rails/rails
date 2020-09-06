@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/benchmarkable"
+require 'active_support/benchmarkable'
 
 module AbstractController
   module Logger #:nodoc:

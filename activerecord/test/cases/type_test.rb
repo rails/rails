@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 class TypeTest < ActiveRecord::TestCase
   setup do
@@ -12,14 +12,14 @@ class TypeTest < ActiveRecord::TestCase
     ActiveRecord::Type.registry = @old_registry
   end
 
-  test "registering a new type" do
+  test 'registering a new type' do
     type = Struct.new(:args)
     ActiveRecord::Type.register(:foo, type)
 
     assert_equal type.new(:arg), ActiveRecord::Type.lookup(:foo, :arg)
   end
 
-  test "looking up a type for a specific adapter" do
+  test 'looking up a type for a specific adapter' do
     type = Struct.new(:args)
     pgtype = Struct.new(:args)
     ActiveRecord::Type.register(:foo, type, override: false)
@@ -29,7 +29,7 @@ class TypeTest < ActiveRecord::TestCase
     assert_equal pgtype.new, ActiveRecord::Type.lookup(:foo, adapter: :postgresql)
   end
 
-  test "lookup defaults to the current adapter" do
+  test 'lookup defaults to the current adapter' do
     current_adapter = ActiveRecord::Base.connection.adapter_name.downcase.to_sym
     type = Struct.new(:args)
     adapter_type = Struct.new(:args)

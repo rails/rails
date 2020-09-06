@@ -129,7 +129,7 @@ module ActiveSupport
       end
 
       def initialize(old_const, new_const, deprecator = ActiveSupport::Deprecation.instance, message: "#{old_const} is deprecated! Use #{new_const} instead.")
-        Kernel.require "active_support/inflector/methods"
+        Kernel.require 'active_support/inflector/methods'
 
         @old_const = old_const
         @new_const = new_const

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 class SchemaThing < ActiveRecord::Base
 end
@@ -8,12 +8,12 @@ end
 class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
   self.use_transactional_tests = false
 
-  TABLE_NAME = "schema_things"
+  TABLE_NAME = 'schema_things'
   COLUMNS = [
-    "id serial primary key",
-    "name character varying(50)"
+    'id serial primary key',
+    'name character varying(50)'
   ]
-  USERS = ["rails_pg_schema_user1", "rails_pg_schema_user2"]
+  USERS = ['rails_pg_schema_user1', 'rails_pg_schema_user2']
 
   def setup
     @connection = ActiveRecord::Base.connection
@@ -31,7 +31,7 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
 
   teardown do
     set_session_auth
-    @connection.execute "RESET search_path"
+    @connection.execute 'RESET search_path'
     USERS.each do |u|
       @connection.drop_schema u
       @connection.execute "DROP USER #{u}"
@@ -47,7 +47,7 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
 
   def test_session_auth=
     assert_raise(ActiveRecord::StatementInvalid) do
-      @connection.session_auth = "DEFAULT"
+      @connection.session_auth = 'DEFAULT'
       @connection.execute "SELECT * FROM #{TABLE_NAME}"
     end
   end
@@ -70,7 +70,7 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
         USERS.each do |u|
           @connection.clear_cache!
           set_session_auth u
-          assert_equal u, @connection.select_value("SELECT name FROM #{TABLE_NAME} WHERE id = $1", "SQL", [bind_param(1)])
+          assert_equal u, @connection.select_value("SELECT name FROM #{TABLE_NAME} WHERE id = $1", 'SQL', [bind_param(1)])
           set_session_auth
         end
       end
@@ -81,9 +81,9 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
     assert_nothing_raised do
       USERS.each do |u|
         set_session_auth u
-        st = SchemaThing.new name: "TEST1"
+        st = SchemaThing.new name: 'TEST1'
         st.save!
-        st = SchemaThing.new id: 5, name: "TEST2"
+        st = SchemaThing.new id: 5, name: 'TEST2'
         st.save!
         set_session_auth
       end
@@ -101,7 +101,7 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
 
   private
     def set_session_auth(auth = nil)
-      @connection.session_auth = auth || "default"
+      @connection.session_auth = auth || 'default'
     end
 
     def bind_param(value)

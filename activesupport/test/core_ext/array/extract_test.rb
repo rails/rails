@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../abstract_unit"
-require "active_support/core_ext/array"
+require_relative '../../abstract_unit'
+require 'active_support/core_ext/array'
 
 class ExtractTest < ActiveSupport::TestCase
   def test_extract

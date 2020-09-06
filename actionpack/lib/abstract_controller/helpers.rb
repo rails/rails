@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/dependencies"
+require 'active_support/dependencies'
 
 module AbstractController
   module Helpers
@@ -18,7 +18,7 @@ module AbstractController
         set_backtrace error.backtrace
 
         if /^#{path}(\.rb)?$/.match?(error.path)
-          super("Missing helper file helpers/%s.rb" % path)
+          super('Missing helper file helpers/%s.rb' % path)
         else
           raise error
         end
@@ -156,7 +156,7 @@ module AbstractController
             helper_prefix = helper_prefix.camelize unless helper_prefix.start_with?(/[A-Z]/)
             "#{helper_prefix}Helper".constantize
           else
-            raise ArgumentError, "helper must be a String, Symbol, or Module"
+            raise ArgumentError, 'helper must be a String, Symbol, or Module'
           end
         end
       end
@@ -174,7 +174,7 @@ module AbstractController
         end
 
         def default_helper_module!
-          helper_prefix = name.delete_suffix("Controller")
+          helper_prefix = name.delete_suffix('Controller')
           helper(helper_prefix)
         rescue NameError => e
           raise unless e.missing_name?("#{helper_prefix}Helper")

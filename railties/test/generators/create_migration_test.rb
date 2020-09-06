@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "generators/generators_test_helper"
-require "rails/generators/rails/migration/migration_generator"
+require 'generators/generators_test_helper'
+require 'rails/generators/rails/migration/migration_generator'
 
 class CreateMigrationTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -17,18 +17,18 @@ class CreateMigrationTest < Rails::Generators::TestCase
   tests Migrator
 
   def default_destination_path
-    "db/migrate/create_articles.rb"
+    'db/migrate/create_articles.rb'
   end
 
   def create_migration(destination_path = default_destination_path, config = {}, generator_options = {}, &block)
-    migration_name = File.basename(destination_path, ".rb")
+    migration_name = File.basename(destination_path, '.rb')
     generator([migration_name], generator_options)
     generator.set_migration_assigns!(destination_path)
 
     dir, base = File.split(destination_path)
-    timestamped_destination_path = File.join(dir, ["%migration_number%", base].join("_"))
+    timestamped_destination_path = File.join(dir, ['%migration_number%', base].join('_'))
 
-    @migration = Rails::Generators::Actions::CreateMigration.new(generator, timestamped_destination_path, block || "contents", config)
+    @migration = Rails::Generators::Actions::CreateMigration.new(generator, timestamped_destination_path, block || 'contents', config)
   end
 
   def migration_exists!(*args)
@@ -84,15 +84,15 @@ class CreateMigrationTest < Rails::Generators::TestCase
 
   def test_invoke_when_exists_not_identical
     migration_exists!
-    create_migration { "different content" }
+    create_migration { 'different content' }
 
     assert_raise(Rails::Generators::Error) { invoke! }
   end
 
   def test_invoke_forced_when_exists_not_identical
-    dest = "db/migrate/migration.rb"
+    dest = 'db/migrate/migration.rb'
     migration_exists!(dest)
-    create_migration(dest, force: true) { "different content" }
+    create_migration(dest, force: true) { 'different content' }
 
     stdout = invoke!
     assert_match(/remove  db\/migrate\/1_migration\.rb\n/, stdout)
@@ -104,7 +104,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
   def test_invoke_forced_pretended_when_exists_not_identical
     migration_exists!
     create_migration(default_destination_path, { force: true }, { pretend: true }) do
-      "different content"
+      'different content'
     end
 
     stdout = invoke!
@@ -115,7 +115,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
 
   def test_invoke_skipped_when_exists_not_identical
     migration_exists!
-    create_migration(default_destination_path, {}, { skip: true }) { "different content" }
+    create_migration(default_destination_path, {}, { skip: true }) { 'different content' }
 
     assert_match(/skip  db\/migrate\/2_create_articles\.rb\n/, invoke!)
     assert_no_file @migration.destination

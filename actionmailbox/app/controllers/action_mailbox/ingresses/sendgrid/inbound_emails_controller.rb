@@ -57,7 +57,7 @@ module ActionMailbox
     private
       def mail
         params.require(:email).tap do |raw_email|
-          envelope["to"].each { |to| raw_email.prepend("X-Original-To: ", to, "\n") } if params.key?(:envelope)
+          envelope['to'].each { |to| raw_email.prepend('X-Original-To: ', to, "\n") } if params.key?(:envelope)
         end
       end
 

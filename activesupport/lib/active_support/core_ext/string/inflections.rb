@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/inflector/methods"
-require "active_support/inflector/transliterate"
+require 'active_support/inflector/methods'
+require 'active_support/inflector/transliterate'
 
 # String inflections define new methods on the String class to transform names for different purposes.
 # For instance, you can figure out the name of a table from the name of a class.
@@ -107,7 +107,7 @@ class String
     when :lower
       ActiveSupport::Inflector.camelize(self, false)
     else
-      raise ArgumentError, "Invalid option, use either :upper or :lower."
+      raise ArgumentError, 'Invalid option, use either :upper or :lower.'
     end
   end
   alias_method :camelcase, :camelize
@@ -216,7 +216,7 @@ class String
   #   # => <a href="/person/1-Donald-E-Knuth">Donald E. Knuth</a>
   #
   # See ActiveSupport::Inflector.parameterize.
-  def parameterize(separator: "-", preserve_case: false, locale: nil)
+  def parameterize(separator: '-', preserve_case: false, locale: nil)
     ActiveSupport::Inflector.parameterize(self, separator: separator, preserve_case: preserve_case, locale: locale)
   end
 

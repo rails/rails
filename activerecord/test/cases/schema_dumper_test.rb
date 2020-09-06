@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/schema_dumping_helper"
+require 'cases/helper'
+require 'support/schema_dumping_helper'
 
 class SchemaDumperTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
@@ -33,7 +33,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     schema_info = ActiveRecord::Base.connection.dump_schema_information
     assert_match(/20100201010101.*20100301010101/m, schema_info)
-    assert_includes schema_info, "20100101010101"
+    assert_includes schema_info, '20100101010101'
   ensure
     ActiveRecord::SchemaMigration.delete_all
   end
@@ -48,7 +48,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_uses_force_cascade_on_create_table
-    output = dump_table_schema "authors"
+    output = dump_table_schema 'authors'
     assert_match %r{create_table "authors",.* force: :cascade}, output
   end
 
@@ -70,7 +70,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     line_matches = lines.map { |line| [line, line.match(pattern)] }.select { |line, match| match }
     assert line_matches.all? { |line, match|
       start = match.offset(0).first
-      line[start - 2..start - 1] == ", "
+      line[start - 2..start - 1] == ', '
     }
   end
 
@@ -143,7 +143,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_with_string_ignored_table
-    output = dump_all_table_schema(["accounts"])
+    output = dump_all_table_schema(['accounts'])
     assert_no_match %r{create_table "accounts"}, output
     assert_match %r{create_table "authors"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
@@ -159,7 +159,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dumps_index_columns_in_right_order
-    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_index/).first.strip
+    index_definition = dump_table_schema('companies').split(/\n/).grep(/t\.index.*company_index/).first.strip
     if current_adapter?(:Mysql2Adapter)
       if ActiveRecord::Base.connection.supports_index_sort_order?
         assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }, order: { rating: :desc }', index_definition
@@ -174,7 +174,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dumps_partial_indices
-    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_partial_index/).first.strip
+    index_definition = dump_table_schema('companies').split(/\n/).grep(/t\.index.*company_partial_index/).first.strip
     if ActiveRecord::Base.connection.supports_partial_index?
       assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)"', index_definition
     else
@@ -183,7 +183,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dumps_index_sort_order
-    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*_name_and_rating/).first.strip
+    index_definition = dump_table_schema('companies').split(/\n/).grep(/t\.index.*_name_and_rating/).first.strip
     if ActiveRecord::Base.connection.supports_index_sort_order?
       assert_equal 't.index ["name", "rating"], name: "index_companies_on_name_and_rating", order: :desc', index_definition
     else
@@ -192,7 +192,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dumps_index_length
-    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*_name_and_description/).first.strip
+    index_definition = dump_table_schema('companies').split(/\n/).grep(/t\.index.*_name_and_description/).first.strip
     if current_adapter?(:Mysql2Adapter)
       assert_equal 't.index ["name", "description"], name: "index_companies_on_name_and_description", length: 10', index_definition
     else
@@ -202,7 +202,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   if ActiveRecord::Base.connection.supports_check_constraints?
     def test_schema_dumps_check_constraints
-      constraint_definition = dump_table_schema("products").split(/\n/).grep(/t.check_constraint.*products_price_check/).first.strip
+      constraint_definition = dump_table_schema('products').split(/\n/).grep(/t.check_constraint.*products_price_check/).first.strip
       if current_adapter?(:Mysql2Adapter)
         assert_equal 't.check_constraint "`price` > `discounted_price`", name: "products_price_check"', constraint_definition
       else
@@ -214,34 +214,34 @@ class SchemaDumperTest < ActiveRecord::TestCase
   def test_schema_dump_should_honor_nonstandard_primary_keys
     output = standard_dump
     match = output.match(%r{create_table "movies"(.*)do})
-    assert_not_nil(match, "nonstandardpk table not found")
-    assert_match %r(primary_key: "movieid"), match[1], "non-standard primary key not preserved"
+    assert_not_nil(match, 'nonstandardpk table not found')
+    assert_match %r(primary_key: "movieid"), match[1], 'non-standard primary key not preserved'
   end
 
   def test_schema_dump_should_use_false_as_default
-    output = dump_table_schema "booleans"
+    output = dump_table_schema 'booleans'
     assert_match %r{t\.boolean\s+"has_fun",.+default: false}, output
   end
 
   def test_schema_dump_does_not_include_limit_for_text_field
-    output = dump_table_schema "admin_users"
+    output = dump_table_schema 'admin_users'
     assert_match %r{t\.text\s+"params"$}, output
   end
 
   def test_schema_dump_does_not_include_limit_for_binary_field
-    output = dump_table_schema "binaries"
+    output = dump_table_schema 'binaries'
     assert_match %r{t\.binary\s+"data"$}, output
   end
 
   def test_schema_dump_does_not_include_limit_for_float_field
-    output = dump_table_schema "numeric_data"
+    output = dump_table_schema 'numeric_data'
     assert_match %r{t\.float\s+"temperature"$}, output
   end
 
   if ActiveRecord::Base.connection.supports_expression_index?
     def test_schema_dump_expression_indices
-      index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
-      index_definition.sub!(/, name: "company_expression_index"\z/, "")
+      index_definition = dump_table_schema('companies').split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
+      index_definition.sub!(/, name: "company_expression_index"\z/, '')
 
       if current_adapter?(:PostgreSQLAdapter)
         assert_match %r{CASE.+lower\(\(name\)::text\).+END\) DESC"\z}i, index_definition
@@ -257,13 +257,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   if current_adapter?(:Mysql2Adapter)
     def test_schema_dump_includes_length_for_mysql_binary_fields
-      output = dump_table_schema "binary_fields"
+      output = dump_table_schema 'binary_fields'
       assert_match %r{t\.binary\s+"var_binary",\s+limit: 255$}, output
       assert_match %r{t\.binary\s+"var_binary_large",\s+limit: 4095$}, output
     end
 
     def test_schema_dump_includes_length_for_mysql_blob_and_text_fields
-      output = dump_table_schema "binary_fields"
+      output = dump_table_schema 'binary_fields'
       assert_match %r{t\.binary\s+"tiny_blob",\s+size: :tiny$}, output
       assert_match %r{t\.binary\s+"normal_blob"$}, output
       assert_match %r{t\.binary\s+"medium_blob",\s+size: :medium$}, output
@@ -281,12 +281,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
 
     def test_schema_does_not_include_limit_for_emulated_mysql_boolean_fields
-      output = dump_table_schema "booleans"
+      output = dump_table_schema 'booleans'
       assert_no_match %r{t\.boolean\s+"has_fun",.+limit: 1}, output
     end
 
     def test_schema_dumps_index_type
-      output = dump_table_schema "key_tests"
+      output = dump_table_schema 'key_tests'
       assert_match %r{t\.index \["awesome"\], name: "index_key_tests_on_awesome", type: :fulltext$}, output
       assert_match %r{t\.index \["pizza"\], name: "index_key_tests_on_pizza"$}, output
     end
@@ -299,43 +299,43 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   if current_adapter?(:PostgreSQLAdapter)
     def test_schema_dump_includes_bigint_default
-      output = dump_table_schema "defaults"
+      output = dump_table_schema 'defaults'
       assert_match %r{t\.bigint\s+"bigint_default",\s+default: 0}, output
     end
 
     def test_schema_dump_includes_limit_on_array_type
-      output = dump_table_schema "bigint_array"
+      output = dump_table_schema 'bigint_array'
       assert_match %r{t\.bigint\s+"big_int_data_points\",\s+array: true}, output
     end
 
     def test_schema_dump_allows_array_of_decimal_defaults
-      output = dump_table_schema "bigint_array"
+      output = dump_table_schema 'bigint_array'
       assert_match %r{t\.decimal\s+"decimal_array_default",\s+default: \["1.23", "3.45"\],\s+array: true}, output
     end
 
     def test_schema_dump_interval_type
-      output = dump_table_schema "postgresql_times"
+      output = dump_table_schema 'postgresql_times'
       assert_match %r{t\.interval\s+"time_interval"$}, output
       assert_match %r{t\.interval\s+"scaled_time_interval",\s+precision: 6$}, output
     end
 
     def test_schema_dump_oid_type
-      output = dump_table_schema "postgresql_oids"
+      output = dump_table_schema 'postgresql_oids'
       assert_match %r{t\.oid\s+"obj_id"$}, output
     end
 
     def test_schema_dump_includes_extensions
       connection = ActiveRecord::Base.connection
 
-      connection.stub(:extensions, ["hstore"]) do
+      connection.stub(:extensions, ['hstore']) do
         output = perform_schema_dump
-        assert_match "# These are extensions that must be enabled", output
+        assert_match '# These are extensions that must be enabled', output
         assert_match %r{enable_extension "hstore"}, output
       end
 
       connection.stub(:extensions, []) do
         output = perform_schema_dump
-        assert_no_match "# These are extensions that must be enabled", output
+        assert_no_match '# These are extensions that must be enabled', output
         assert_no_match %r{enable_extension}, output
       end
     end
@@ -343,16 +343,16 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_includes_extensions_in_alphabetic_order
       connection = ActiveRecord::Base.connection
 
-      connection.stub(:extensions, ["hstore", "uuid-ossp", "xml2"]) do
+      connection.stub(:extensions, ['hstore', 'uuid-ossp', 'xml2']) do
         output = perform_schema_dump
         enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
-        assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
+        assert_equal ['hstore', 'uuid-ossp', 'xml2'], enabled_extensions
       end
 
-      connection.stub(:extensions, ["uuid-ossp", "xml2", "hstore"]) do
+      connection.stub(:extensions, ['uuid-ossp', 'xml2', 'hstore']) do
         output = perform_schema_dump
         enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
-        assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
+        assert_equal ['hstore', 'uuid-ossp', 'xml2'], enabled_extensions
       end
     end
   end
@@ -370,9 +370,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
   def test_schema_dump_keeps_id_column_when_id_is_false_and_id_column_added
     output = standard_dump
     match = output.match(%r{create_table "goofy_string_id"(.*)do.*\n(.*)\n})
-    assert_not_nil(match, "goofy_string_id table not found")
-    assert_match %r(id: false), match[1], "no table id not preserved"
-    assert_match %r{t\.string\s+"id",.*?null: false$}, match[2], "non-primary key id column not preserved"
+    assert_not_nil(match, 'goofy_string_id table not found')
+    assert_match %r(id: false), match[1], 'no table id not preserved'
+    assert_match %r{t\.string\s+"id",.*?null: false$}, match[2], 'non-primary key id column not preserved'
   end
 
   def test_schema_dump_keeps_id_false_when_id_is_false_and_unique_not_null_column_added
@@ -387,33 +387,33 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
 
     def test_do_not_dump_foreign_keys_for_ignored_tables
-      output = dump_table_schema "authors"
-      assert_equal ["authors"], output.scan(/^\s*add_foreign_key "([^"]+)".+$/).flatten
+      output = dump_table_schema 'authors'
+      assert_equal ['authors'], output.scan(/^\s*add_foreign_key "([^"]+)".+$/).flatten
     end
   end
 
   class CreateDogMigration < ActiveRecord::Migration::Current
     def up
-      create_table("dog_owners") do |t|
+      create_table('dog_owners') do |t|
       end
 
-      create_table("dogs") do |t|
+      create_table('dogs') do |t|
         t.column :name, :string
         t.references :owner
         t.index [:name]
-        t.foreign_key :dog_owners, column: "owner_id"
+        t.foreign_key :dog_owners, column: 'owner_id'
       end
     end
     def down
-      drop_table("dogs")
-      drop_table("dog_owners")
+      drop_table('dogs')
+      drop_table('dog_owners')
     end
   end
 
   def test_schema_dump_with_table_name_prefix_and_suffix
     original, $stdout = $stdout, StringIO.new
-    ActiveRecord::Base.table_name_prefix = "foo_"
-    ActiveRecord::Base.table_name_suffix = "_bar"
+    ActiveRecord::Base.table_name_prefix = 'foo_'
+    ActiveRecord::Base.table_name_suffix = '_bar'
 
     migration = CreateDogMigration.new
     migration.migrate(:up)
@@ -431,14 +431,14 @@ class SchemaDumperTest < ActiveRecord::TestCase
   ensure
     migration.migrate(:down)
 
-    ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ""
+    ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ''
     $stdout = original
   end
 
   def test_schema_dump_with_table_name_prefix_and_suffix_regexp_escape
     original, $stdout = $stdout, StringIO.new
-    ActiveRecord::Base.table_name_prefix = "foo$"
-    ActiveRecord::Base.table_name_suffix = "$bar"
+    ActiveRecord::Base.table_name_prefix = 'foo$'
+    ActiveRecord::Base.table_name_suffix = '$bar'
 
     migration = CreateDogMigration.new
     migration.migrate(:up)
@@ -456,7 +456,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   ensure
     migration.migrate(:down)
 
-    ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ""
+    ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ''
     $stdout = original
   end
 
@@ -465,17 +465,17 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     create_cat_migration = Class.new(ActiveRecord::Migration::Current) do
       def change
-        create_table("cats") do |t|
+        create_table('cats') do |t|
         end
-        create_table("omg_cats") do |t|
+        create_table('omg_cats') do |t|
         end
       end
     end
 
     original_table_name_prefix = ActiveRecord::Base.table_name_prefix
     original_schema_dumper_ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
-    ActiveRecord::Base.table_name_prefix = "omg_"
-    ActiveRecord::SchemaDumper.ignore_tables = ["cats"]
+    ActiveRecord::Base.table_name_prefix = 'omg_'
+    ActiveRecord::SchemaDumper.ignore_tables = ['cats']
     migration = create_cat_migration.new
     migration.migrate(:up)
 
@@ -499,11 +499,11 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
   setup do
     @connection = ActiveRecord::Base.connection
     @connection.create_table :dump_defaults, force: true do |t|
-      t.string   :string_with_default,   default: "Hello!"
-      t.date     :date_with_default,     default: "2014-06-05"
-      t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
-      t.time     :time_with_default,     default: "07:17:04"
-      t.decimal  :decimal_with_default,  default: "1234567890.0123456789", precision: 20, scale: 10
+      t.string   :string_with_default,   default: 'Hello!'
+      t.date     :date_with_default,     default: '2014-06-05'
+      t.datetime :datetime_with_default, default: '2014-06-05 07:17:04'
+      t.time     :time_with_default,     default: '07:17:04'
+      t.decimal  :decimal_with_default,  default: '1234567890.0123456789', precision: 20, scale: 10
     end
 
     if current_adapter?(:PostgreSQLAdapter)
@@ -515,11 +515,11 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.drop_table "dump_defaults", if_exists: true
+    @connection.drop_table 'dump_defaults', if_exists: true
   end
 
   def test_schema_dump_defaults_with_universally_supported_types
-    output = dump_table_schema("dump_defaults")
+    output = dump_table_schema('dump_defaults')
 
     assert_match %r{t\.string\s+"string_with_default",.*?default: "Hello!"}, output
     assert_match %r{t\.date\s+"date_with_default",\s+default: "2014-06-05"}, output
@@ -530,7 +530,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
   def test_schema_dump_with_float_column_infinity_default
     skip unless current_adapter?(:PostgreSQLAdapter)
-    output = dump_table_schema("infinity_defaults")
+    output = dump_table_schema('infinity_defaults')
     assert_match %r{t\.float\s+"float_with_inf_default",\s+default: ::Float::INFINITY}, output
     assert_match %r{t\.float\s+"float_with_nan_default",\s+default: ::Float::NAN}, output
   end

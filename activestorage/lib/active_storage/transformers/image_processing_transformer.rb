@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "image_processing"
+require 'image_processing'
 
 module ActiveStorage
   module Transformers
@@ -21,7 +21,7 @@ module ActiveStorage
 
         def operations
           transformations.each_with_object([]) do |(name, argument), list|
-            if name.to_s == "combine_options"
+            if name.to_s == 'combine_options'
               ActiveSupport::Deprecation.warn <<~WARNING.squish
                 Active Storage's ImageProcessing transformer doesn't support :combine_options,
                 as it always generates a single ImageMagick command. Passing :combine_options will

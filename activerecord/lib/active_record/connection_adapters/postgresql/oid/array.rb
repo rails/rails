@@ -12,7 +12,7 @@ module ActiveRecord
           attr_reader :subtype, :delimiter
           delegate :type, :user_input_in_time_zone, :limit, :precision, :scale, to: :subtype
 
-          def initialize(subtype, delimiter = ",")
+          def initialize(subtype, delimiter = ',')
             @subtype = subtype
             @delimiter = delimiter
 
@@ -61,7 +61,7 @@ module ActiveRecord
 
           def type_cast_for_schema(value)
             return super unless value.is_a?(::Array)
-            "[" + value.map { |v| subtype.type_cast_for_schema(v) }.join(", ") + "]"
+            '[' + value.map { |v| subtype.type_cast_for_schema(v) }.join(', ') + ']'
           end
 
           def map(value, &block)

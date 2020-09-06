@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "active_support/concern"
+require_relative 'abstract_unit'
+require 'active_support/concern'
 
 class ConcernTest < ActiveSupport::TestCase
   module Baz
@@ -11,7 +11,7 @@ class ConcernTest < ActiveSupport::TestCase
       attr_accessor :included_ran, :prepended_ran
 
       def baz
-        "baz"
+        'baz'
       end
     end
 
@@ -24,7 +24,7 @@ class ConcernTest < ActiveSupport::TestCase
     end
 
     def baz
-      "baz"
+      'baz'
     end
   end
 
@@ -40,11 +40,11 @@ class ConcernTest < ActiveSupport::TestCase
     end
 
     def bar
-      "bar"
+      'bar'
     end
 
     def baz
-      "bar+" + super
+      'bar+' + super
     end
   end
 
@@ -65,25 +65,25 @@ class ConcernTest < ActiveSupport::TestCase
 
   def test_module_is_included_normally
     @klass.include(Baz)
-    assert_equal "baz", @klass.new.baz
+    assert_equal 'baz', @klass.new.baz
     assert_includes @klass.included_modules, ConcernTest::Baz
   end
 
   def test_module_is_prepended_normally
     @klass.prepend(Baz)
-    assert_equal "baz", @klass.new.baz
+    assert_equal 'baz', @klass.new.baz
     assert_includes @klass.included_modules, ConcernTest::Baz
   end
 
   def test_class_methods_are_extended
     @klass.include(Baz)
-    assert_equal "baz", @klass.baz
+    assert_equal 'baz', @klass.baz
     assert_equal ConcernTest::Baz::ClassMethods, (class << @klass; included_modules; end)[0]
   end
 
   def test_class_methods_are_extended_when_prepended
     @klass.prepend(Baz)
-    assert_equal "baz", @klass.baz
+    assert_equal 'baz', @klass.baz
     assert_equal ConcernTest::Baz::ClassMethods, (class << @klass; included_modules; end)[0]
   end
 
@@ -129,8 +129,8 @@ class ConcernTest < ActiveSupport::TestCase
 
   def test_modules_dependencies_are_met
     @klass.include(Bar)
-    assert_equal "bar", @klass.new.bar
-    assert_equal "bar+baz", @klass.new.baz
+    assert_equal 'bar', @klass.new.bar
+    assert_equal 'bar+baz', @klass.new.baz
     assert_equal "bar's baz + baz", @klass.baz
     assert_includes @klass.included_modules, ConcernTest::Bar
   end
@@ -176,7 +176,7 @@ class ConcernTest < ActiveSupport::TestCase
   def test_no_raise_on_same_included_or_prepended_call
     assert_nothing_raised do
       2.times do
-        load File.expand_path("../fixtures/concern/some_concern.rb", __FILE__)
+        load File.expand_path('../fixtures/concern/some_concern.rb', __FILE__)
       end
     end
   end

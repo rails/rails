@@ -4,7 +4,7 @@ module Arel # :nodoc: all
   module Collectors
     class PlainString
       def initialize
-        @str = +""
+        @str = +''
       end
 
       def value

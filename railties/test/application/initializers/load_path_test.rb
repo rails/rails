@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
+require 'isolation/abstract_unit'
 
 module ApplicationTests
   class LoadPathTest < ActiveSupport::TestCase
@@ -15,7 +15,7 @@ module ApplicationTests
       teardown_app
     end
 
-    test "initializing an application adds the application paths to the load path" do
+    test 'initializing an application adds the application paths to the load path' do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
       RUBY
@@ -24,8 +24,8 @@ module ApplicationTests
       assert_includes $:, "#{app_path}/app/models"
     end
 
-    test "initializing an application allows to load code on lib path inside application class definition" do
-      app_file "lib/foo.rb", <<-RUBY
+    test 'initializing an application allows to load code on lib path inside application class definition' do
+      app_file 'lib/foo.rb', <<-RUBY
         module Foo; end
       RUBY
 
@@ -41,8 +41,8 @@ module ApplicationTests
       assert_includes $:, "#{app_path}/lib"
     end
 
-    test "initializing an application eager load any path under app" do
-      app_file "app/anything/foo.rb", <<-RUBY
+    test 'initializing an application eager load any path under app' do
+      app_file 'app/anything/foo.rb', <<-RUBY
         module Foo; end
       RUBY
 
@@ -54,12 +54,12 @@ module ApplicationTests
       assert Foo
     end
 
-    test "eager loading loads parent classes before children" do
-      app_file "lib/zoo.rb", <<-ZOO
+    test 'eager loading loads parent classes before children' do
+      app_file 'lib/zoo.rb', <<-ZOO
         class Zoo ; include ReptileHouse ; end
       ZOO
 
-      app_file "lib/zoo/reptile_house.rb", <<-ZOO
+      app_file 'lib/zoo/reptile_house.rb', <<-ZOO
         module Zoo::ReptileHouse ; end
       ZOO
 
@@ -72,8 +72,8 @@ module ApplicationTests
       assert Zoo
     end
 
-    test "eager loading accepts Pathnames" do
-      app_file "lib/foo.rb", <<-RUBY
+    test 'eager loading accepts Pathnames' do
+      app_file 'lib/foo.rb', <<-RUBY
         module Foo; end
       RUBY
 
@@ -86,9 +86,9 @@ module ApplicationTests
       assert Foo
     end
 
-    test "load environment with global" do
+    test 'load environment with global' do
       $initialize_test_set_from_env = nil
-      app_file "config/environments/development.rb", <<-RUBY
+      app_file 'config/environments/development.rb', <<-RUBY
         $initialize_test_set_from_env = 'success'
         Rails.application.configure do
           config.cache_classes = true
@@ -103,9 +103,9 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      assert_equal "success", $initialize_test_set_from_env
+      assert_equal 'success', $initialize_test_set_from_env
       assert Rails.application.config.cache_classes
-      assert_equal "Brasilia", Rails.application.config.time_zone
+      assert_equal 'Brasilia', Rails.application.config.time_zone
     end
   end
 end

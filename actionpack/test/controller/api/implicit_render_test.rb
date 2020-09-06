@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 class ImplicitRenderAPITestController < ActionController::API
   def empty_action

@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/contact"
-require "models/post"
-require "models/author"
-require "models/tagging"
-require "models/tag"
-require "models/comment"
+require 'cases/helper'
+require 'models/contact'
+require 'models/post'
+require 'models/author'
+require 'models/tagging'
+require 'models/tag'
+require 'models/comment'
 
 module JsonSerializationHelpers
   private
@@ -23,23 +23,23 @@ class JsonSerializationTest < ActiveRecord::TestCase
   include JsonSerializationHelpers
 
   class NamespacedContact < Contact
-    column :name, "string"
+    column :name, 'string'
   end
 
   def setup
     @contact = Contact.new(
-      name: "Konata Izumi",
+      name: 'Konata Izumi',
       age: 16,
-      avatar: "binarydata",
+      avatar: 'binarydata',
       created_at: Time.utc(2006, 8, 1),
       awesome: true,
-      preferences: { shows: "anime" }
+      preferences: { shows: 'anime' }
     )
   end
 
   def test_should_demodulize_root_in_json
     set_include_root_in_json(true) do
-      @contact = NamespacedContact.new name: "whatever"
+      @contact = NamespacedContact.new name: 'whatever'
       json = @contact.to_json
       assert_match %r{^\{"namespaced_contact":\{}, json
     end
@@ -90,8 +90,8 @@ class JsonSerializationTest < ActiveRecord::TestCase
 
   def test_methods_are_called_on_object
     # Define methods on fixture.
-    def @contact.label; "Has cheezburger"; end
-    def @contact.favorite_quote; "Constraints are liberating"; end
+    def @contact.label; 'Has cheezburger'; end
+    def @contact.favorite_quote; 'Constraints are liberating'; end
 
     # Single method.
     assert_match %r{"label":"Has cheezburger"}, @contact.to_json(only: :name, methods: :label)
@@ -137,7 +137,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
 
   def test_does_not_include_inheritance_column_from_sti
     @contact = ContactSti.new(@contact.attributes)
-    assert_equal "ContactSti", @contact.type
+    assert_equal 'ContactSti', @contact.type
 
     json = @contact.to_json
     assert_match %r{"name":"Konata Izumi"}, json
@@ -147,7 +147,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
 
   def test_serializable_hash_with_default_except_option_and_excluding_inheritance_column_from_sti
     @contact = ContactSti.new(@contact.attributes)
-    assert_equal "ContactSti", @contact.type
+    assert_equal 'ContactSti', @contact.type
 
     def @contact.serializable_hash(options = {})
       super({ except: %w(age) }.merge!(options))
@@ -248,7 +248,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
   end
 
   def test_should_not_call_methods_on_associations_that_dont_respond
-    def @david.favorite_quote; "Constraints are liberating"; end
+    def @david.favorite_quote; 'Constraints are liberating'; end
     json = @david.to_json(include: :posts, methods: :favorite_quote)
 
     assert_not_respond_to @david.posts.first, :favorite_quote

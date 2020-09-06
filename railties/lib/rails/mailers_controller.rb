@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rails/application_controller"
+require 'rails/application_controller'
 
 class Rails::MailersController < Rails::ApplicationController # :nodoc:
   prepend_view_path ActionDispatch::DebugView::RESCUES_TEMPLATE_PATH
@@ -15,13 +15,13 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
 
   def index
     @previews = ActionMailer::Preview.all
-    @page_title = "Mailer Previews"
+    @page_title = 'Mailer Previews'
   end
 
   def preview
     if params[:path] == @preview.preview_name
       @page_title = "Mailer Previews for #{@preview.preview_name}"
-      render action: "mailer"
+      render action: 'mailer'
     else
       @email_action = File.basename(params[:path])
 
@@ -40,7 +40,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
           end
         else
           @part = find_preferred_part(request.format, Mime[:html], Mime[:text])
-          render action: "email", layout: false, formats: [:html]
+          render action: 'email', layout: false, formats: [:html]
         end
       else
         raise AbstractController::ActionNotFound, "Email '#{@email_action}' not found in #{@preview.name}"

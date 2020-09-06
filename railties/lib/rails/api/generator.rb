@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "sdoc"
-require "active_support/core_ext/array/extract"
+require 'sdoc'
+require 'active_support/core_ext/array/extract'
 
 class RDoc::Generator::API < RDoc::Generator::SDoc # :nodoc:
   RDoc::RDoc.add_generator self
@@ -14,7 +14,7 @@ class RDoc::Generator::API < RDoc::Generator::SDoc # :nodoc:
       classes = classes.reject { |klass| active_storage?(klass) }
       core_exts = classes.extract! { |klass| core_extension?(klass) }
 
-      super.unshift([ "Core extensions", "", "", build_core_ext_subtree(core_exts, visited) ])
+      super.unshift([ 'Core extensions', '', '', build_core_ext_subtree(core_exts, visited) ])
     else
       super
     end
@@ -23,16 +23,16 @@ class RDoc::Generator::API < RDoc::Generator::SDoc # :nodoc:
   private
     def build_core_ext_subtree(classes, visited)
       classes.map do |klass|
-        [ klass.name, klass.document_self_or_methods ? klass.path : "", "",
+        [ klass.name, klass.document_self_or_methods ? klass.path : '', '',
             generate_class_tree_level(klass.classes_and_modules, visited) ]
       end
     end
 
     def core_extension?(klass)
-      klass.name != "ActiveSupport" && klass.in_files.any? { |file| file.absolute_name.include?("core_ext") }
+      klass.name != 'ActiveSupport' && klass.in_files.any? { |file| file.absolute_name.include?('core_ext') }
     end
 
     def active_storage?(klass)
-      klass.name != "ActiveStorage" && klass.in_files.all? { |file| file.absolute_name.include?("active_storage") }
+      klass.name != 'ActiveStorage' && klass.in_files.all? { |file| file.absolute_name.include?('active_storage') }
     end
 end

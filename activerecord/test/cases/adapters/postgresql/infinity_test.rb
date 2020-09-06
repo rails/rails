@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
   include InTimeZone
@@ -18,33 +18,33 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
   end
 
   teardown do
-    @connection.drop_table "postgresql_infinities", if_exists: true
+    @connection.drop_table 'postgresql_infinities', if_exists: true
   end
 
-  test "type casting infinity on a float column" do
+  test 'type casting infinity on a float column' do
     record = PostgresqlInfinity.create!(float: Float::INFINITY)
     record.reload
     assert_equal Float::INFINITY, record.float
   end
 
-  test "type casting string on a float column" do
-    record = PostgresqlInfinity.new(float: "Infinity")
+  test 'type casting string on a float column' do
+    record = PostgresqlInfinity.new(float: 'Infinity')
     assert_equal Float::INFINITY, record.float
-    record = PostgresqlInfinity.new(float: "-Infinity")
+    record = PostgresqlInfinity.new(float: '-Infinity')
     assert_equal(-Float::INFINITY, record.float)
-    record = PostgresqlInfinity.new(float: "NaN")
+    record = PostgresqlInfinity.new(float: 'NaN')
     assert record.float.nan?, "Expected #{record.float} to be NaN"
   end
 
-  test "update_all with infinity on a float column" do
+  test 'update_all with infinity on a float column' do
     record = PostgresqlInfinity.create!
     PostgresqlInfinity.update_all(float: Float::INFINITY)
     record.reload
     assert_equal Float::INFINITY, record.float
   end
 
-  test "type casting infinity on a datetime column" do
-    record = PostgresqlInfinity.create!(datetime: "infinity")
+  test 'type casting infinity on a datetime column' do
+    record = PostgresqlInfinity.create!(datetime: 'infinity')
     record.reload
     assert_equal Float::INFINITY, record.datetime
 
@@ -53,8 +53,8 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
     assert_equal Float::INFINITY, record.datetime
   end
 
-  test "type casting infinity on a date column" do
-    record = PostgresqlInfinity.create!(date: "infinity")
+  test 'type casting infinity on a date column' do
+    record = PostgresqlInfinity.create!(date: 'infinity')
     record.reload
     assert_equal Float::INFINITY, record.date
 
@@ -63,7 +63,7 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
     assert_equal Float::INFINITY, record.date
   end
 
-  test "update_all with infinity on a datetime column" do
+  test 'update_all with infinity on a datetime column' do
     record = PostgresqlInfinity.create!
     PostgresqlInfinity.update_all(datetime: Float::INFINITY)
     record.reload
@@ -71,8 +71,8 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
   end
 
   test "assigning 'infinity' on a datetime column with TZ aware attributes" do
-    in_time_zone "Pacific Time (US & Canada)" do
-      record = PostgresqlInfinity.create!(datetime: "infinity")
+    in_time_zone 'Pacific Time (US & Canada)' do
+      record = PostgresqlInfinity.create!(datetime: 'infinity')
       assert_equal Float::INFINITY, record.datetime
       assert_equal record.datetime, record.reload.datetime
     end
@@ -82,10 +82,10 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
     PostgresqlInfinity.reset_column_information
   end
 
-  test "where clause with infinite range on a datetime column" do
+  test 'where clause with infinite range on a datetime column' do
     record = PostgresqlInfinity.create!(datetime: Time.current)
 
-    string = PostgresqlInfinity.where(datetime: "-infinity".."infinity")
+    string = PostgresqlInfinity.where(datetime: '-infinity'..'infinity')
     assert_equal record, string.take
 
     infinity = PostgresqlInfinity.where(datetime: -::Float::INFINITY..::Float::INFINITY)
@@ -94,10 +94,10 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
     assert_equal infinity.to_sql, string.to_sql
   end
 
-  test "where clause with infinite range on a date column" do
+  test 'where clause with infinite range on a date column' do
     record = PostgresqlInfinity.create!(date: Date.current)
 
-    string = PostgresqlInfinity.where(date: "-infinity".."infinity")
+    string = PostgresqlInfinity.where(date: '-infinity'..'infinity')
     assert_equal record, string.take
 
     infinity = PostgresqlInfinity.where(date: -::Float::INFINITY..::Float::INFINITY)

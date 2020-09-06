@@ -15,7 +15,7 @@ module ActiveRecord
 
         def explain(arel, binds = [])
           sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
-          SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
+          SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', []))
         end
 
         def execute(sql, name = nil) #:nodoc:
@@ -70,38 +70,38 @@ module ActiveRecord
           end
         end
 
-        def exec_delete(sql, name = "SQL", binds = [])
+        def exec_delete(sql, name = 'SQL', binds = [])
           exec_query(sql, name, binds)
           @connection.changes
         end
         alias :exec_update :exec_delete
 
         def begin_isolated_db_transaction(isolation) #:nodoc
-          raise TransactionIsolationError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted
-          raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
+          raise TransactionIsolationError, 'SQLite3 only supports the `read_uncommitted` transaction isolation level' if isolation != :read_uncommitted
+          raise StandardError, 'You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level' unless shared_cache?
 
-          Thread.current.thread_variable_set("read_uncommitted", @connection.get_first_value("PRAGMA read_uncommitted"))
+          Thread.current.thread_variable_set('read_uncommitted', @connection.get_first_value('PRAGMA read_uncommitted'))
           @connection.read_uncommitted = true
           begin_db_transaction
         end
 
         def begin_db_transaction #:nodoc:
-          log("begin transaction", "TRANSACTION") { @connection.transaction }
+          log('begin transaction', 'TRANSACTION') { @connection.transaction }
         end
 
         def commit_db_transaction #:nodoc:
-          log("commit transaction", "TRANSACTION") { @connection.commit }
+          log('commit transaction', 'TRANSACTION') { @connection.commit }
           reset_read_uncommitted
         end
 
         def exec_rollback_db_transaction #:nodoc:
-          log("rollback transaction", "TRANSACTION") { @connection.rollback }
+          log('rollback transaction', 'TRANSACTION') { @connection.rollback }
           reset_read_uncommitted
         end
 
         private
           def reset_read_uncommitted
-            read_uncommitted = Thread.current.thread_variable_get("read_uncommitted")
+            read_uncommitted = Thread.current.thread_variable_get('read_uncommitted')
             return unless read_uncommitted
 
             @connection.read_uncommitted = read_uncommitted

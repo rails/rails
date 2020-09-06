@@ -6,7 +6,7 @@ module ActionDispatch
       module SetupAndTeardown # :nodoc:
         def host!(host)
           ActiveSupport::Deprecation.warn \
-            "ActionDispatch::SystemTestCase#host! is deprecated with no replacement. " \
+            'ActionDispatch::SystemTestCase#host! is deprecated with no replacement. ' \
             "Set Capybara.app_host directly or rely on Capybara's default host."
 
           Capybara.app_host = host

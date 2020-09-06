@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/enumerable"
+require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
   module TestFixtures
@@ -42,9 +42,9 @@ module ActiveRecord
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
           raise StandardError, "No fixture path found. Please set `#{self}.fixture_path`." if fixture_path.blank?
-          fixture_set_names = Dir[::File.join(fixture_path, "{**,*}/*.{yml}")].uniq
+          fixture_set_names = Dir[::File.join(fixture_path, '{**,*}/*.{yml}')].uniq
           fixture_set_names.reject! { |f| f.start_with?(file_fixture_path.to_s) } if defined?(file_fixture_path) && file_fixture_path
-          fixture_set_names.map! { |f| f[fixture_path.to_s.size..-5].delete_prefix("/") }
+          fixture_set_names.map! { |f| f[fixture_path.to_s.size..-5].delete_prefix('/') }
         else
           fixture_set_names = fixture_set_names.flatten.map(&:to_s)
         end
@@ -58,7 +58,7 @@ module ActiveRecord
         methods = Module.new do
           fixture_set_names.each do |fs_name|
             fs_name = fs_name.to_s
-            accessor_name = fs_name.tr("/", "_").to_sym
+            accessor_name = fs_name.tr('/', '_').to_sym
 
             define_method(accessor_name) do |*fixture_names|
               force_reload = fixture_names.pop if fixture_names.last == true || fixture_names.last == :reload
@@ -104,7 +104,7 @@ module ActiveRecord
 
     def setup_fixtures(config = ActiveRecord::Base)
       if pre_loaded_fixtures && !use_transactional_tests
-        raise RuntimeError, "pre_loaded_fixtures requires use_transactional_tests"
+        raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_tests'
       end
 
       @fixture_cache = {}
@@ -129,7 +129,7 @@ module ActiveRecord
         end
 
         # When connections are established in the future, begin a transaction too
-        @connection_subscriber = ActiveSupport::Notifications.subscribe("!connection.active_record") do |_, _, _, _, payload|
+        @connection_subscriber = ActiveSupport::Notifications.subscribe('!connection.active_record') do |_, _, _, _, payload|
           spec_name = payload[:spec_name] if payload.key?(:spec_name)
           setup_shared_connection_pool
 
@@ -212,10 +212,10 @@ module ActiveRecord
 
       def instantiate_fixtures
         if pre_loaded_fixtures
-          raise RuntimeError, "Load fixtures before instantiating them." if ActiveRecord::FixtureSet.all_loaded_fixtures.empty?
+          raise RuntimeError, 'Load fixtures before instantiating them.' if ActiveRecord::FixtureSet.all_loaded_fixtures.empty?
           ActiveRecord::FixtureSet.instantiate_all_loaded_fixtures(self, load_instances?)
         else
-          raise RuntimeError, "Load fixtures before instantiating them." if @loaded_fixtures.nil?
+          raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
           @loaded_fixtures.each_value do |fixture_set|
             ActiveRecord::FixtureSet.instantiate_fixtures(self, fixture_set, load_instances?)
           end

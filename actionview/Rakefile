@@ -1,66 +1,66 @@
 # frozen_string_literal: true
 
-require "rake/testtask"
-require "fileutils"
-require "open3"
+require 'rake/testtask'
+require 'fileutils'
+require 'open3'
 
-desc "Default Task"
+desc 'Default Task'
 task default: :test
 
 task package: %w( assets:compile assets:verify )
 
 # Run the unit tests
 
-desc "Run all unit tests"
-task test: ["test:template", "test:integration:action_pack", "test:integration:active_record"]
+desc 'Run all unit tests'
+task test: ['test:template', 'test:integration:action_pack', 'test:integration:active_record']
 
 namespace :test do
   task :isolated do
-    Dir.glob("test/{actionpack,activerecord,template}/**/*_test.rb").all? do |file|
-      sh(Gem.ruby, "-w", "-Ilib:test", file)
-    end || raise("Failures")
+    Dir.glob('test/{actionpack,activerecord,template}/**/*_test.rb').all? do |file|
+      sh(Gem.ruby, '-w', '-Ilib:test', file)
+    end || raise('Failures')
   end
 
   Rake::TestTask.new(:template) do |t|
-    t.libs << "test"
-    t.test_files = FileList["test/template/**/*_test.rb"]
+    t.libs << 'test'
+    t.test_files = FileList['test/template/**/*_test.rb']
     t.warning = true
     t.verbose = true
-    t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+    t.ruby_opts = ['--dev'] if defined?(JRUBY_VERSION)
   end
 
-  desc "Run tests for rails-ujs"
+  desc 'Run tests for rails-ujs'
   task :ujs do
-    system("npm run lint")
+    system('npm run lint')
     exit $?.exitstatus unless $?.success?
 
     begin
-      listen_host = "localhost"
-      listen_port = "4567"
+      listen_host = 'localhost'
+      listen_port = '4567'
 
       runner_command = %w(ruby ../ci/qunit-selenium-runner.rb)
-      if ENV["SELENIUM_DRIVER_URL"]
-        require "socket"
+      if ENV['SELENIUM_DRIVER_URL']
+        require 'socket'
         runner_command += %W(http://#{Socket.gethostname}:#{listen_port}/ #{ENV["SELENIUM_DRIVER_URL"]})
-        listen_host = "0.0.0.0"
+        listen_host = '0.0.0.0'
       else
         runner_command += %W(http://localhost:#{listen_port}/)
       end
 
-      Dir.mkdir("log")
-      pid = File.open("log/test.log", "w") do |f|
+      Dir.mkdir('log')
+      pid = File.open('log/test.log', 'w') do |f|
         spawn(*%W(rackup test/ujs/config.ru -o #{listen_host} -p #{listen_port} -s puma), out: f, err: f, pgroup: true)
       end
 
       start_time = Time.now
 
       loop do
-        break if system("lsof -i :4567", 1 => File::NULL)
+        break if system('lsof -i :4567', 1 => File::NULL)
 
         if Time.now - start_time > 5
-          puts "Failed to start puma after 5 seconds"
+          puts 'Failed to start puma after 5 seconds'
           puts
-          puts File.read("log/test.log")
+          puts File.read('log/test.log')
           exit 1
         end
 
@@ -70,8 +70,8 @@ namespace :test do
       system(*runner_command)
       status = $?.exitstatus
     ensure
-      Process.kill("KILL", -pid) if pid
-      FileUtils.rm_rf("log")
+      Process.kill('KILL', -pid) if pid
+      FileUtils.rm_rf('log')
     end
 
     exit status
@@ -80,58 +80,58 @@ namespace :test do
   namespace :integration do
     # Active Record Integration Tests
     Rake::TestTask.new(:active_record) do |t|
-      t.libs << "test"
-      t.test_files = FileList["test/activerecord/*_test.rb"]
+      t.libs << 'test'
+      t.test_files = FileList['test/activerecord/*_test.rb']
       t.warning = true
       t.verbose = true
-      t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+      t.ruby_opts = ['--dev'] if defined?(JRUBY_VERSION)
     end
 
     # Action Pack Integration Tests
     Rake::TestTask.new(:action_pack) do |t|
-      t.libs << "test"
-      t.test_files = FileList["test/actionpack/**/*_test.rb"]
+      t.libs << 'test'
+      t.test_files = FileList['test/actionpack/**/*_test.rb']
       t.warning = true
       t.verbose = true
-      t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+      t.ruby_opts = ['--dev'] if defined?(JRUBY_VERSION)
     end
   end
 end
 
 namespace :ujs do
-  desc "Starts the test server"
+  desc 'Starts the test server'
   task :server do
-    system "bundle exec rackup test/ujs/config.ru -p 4567 -s puma"
+    system 'bundle exec rackup test/ujs/config.ru -p 4567 -s puma'
   end
 end
 
 namespace :assets do
-  desc "Compile Action View assets"
+  desc 'Compile Action View assets'
   task :compile do
-    require "blade"
-    require "sprockets"
-    require "sprockets/export"
+    require 'blade'
+    require 'sprockets'
+    require 'sprockets/export'
     Blade.build
   end
 
-  desc "Verify compiled Action View assets"
+  desc 'Verify compiled Action View assets'
   task :verify do
-    file = "lib/assets/compiled/rails-ujs.js"
+    file = 'lib/assets/compiled/rails-ujs.js'
     pathname = Pathname.new("#{__dir__}/#{file}")
 
     print "[verify] #{file} exists "
     if pathname.exist?
-      puts "[OK]"
+      puts '[OK]'
     else
-      $stderr.puts "[FAIL]"
+      $stderr.puts '[FAIL]'
       fail
     end
 
     print "[verify] #{file} is a UMD module "
     if /module\.exports.*define\.amd/m.match?(pathname.read)
-      puts "[OK]"
+      puts '[OK]'
     else
-      $stderr.puts "[FAIL]"
+      $stderr.puts '[FAIL]'
       fail
     end
 
@@ -141,9 +141,9 @@ namespace :assets do
       class Element {}
       require('#{__dir__}')
     JS
-    _, stderr, status = Open3.capture3("node", "--print", js)
+    _, stderr, status = Open3.capture3('node', '--print', js)
     if status.success?
-      puts "[OK]"
+      puts '[OK]'
     else
       $stderr.puts "[FAIL]\n#{stderr}"
       fail
@@ -152,7 +152,7 @@ namespace :assets do
 end
 
 task :lines do
-  load File.expand_path("../tools/line_statistics", __dir__)
-  files = FileList["lib/**/*.rb"]
+  load File.expand_path('../tools/line_statistics', __dir__)
+  files = FileList['lib/**/*.rb']
   CodeTools::LineStatistics.new(files).print_loc
 end

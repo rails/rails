@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
-require "env_helpers"
+require 'isolation/abstract_unit'
+require 'env_helpers'
 
 module ApplicationTests
   class MultiDbRakeTest < ActiveSupport::TestCase
@@ -9,7 +9,7 @@ module ApplicationTests
 
     def setup
       build_app(multi_db: true)
-      @output = rails("generate", "scaffold", "Pet", "name:string", "--database=animals")
+      @output = rails('generate', 'scaffold', 'Pet', 'name:string', '--database=animals')
     end
 
     def teardown
@@ -22,7 +22,7 @@ module ApplicationTests
     end
 
     def test_destroy_scaffold_doesnt_remove_abstract_model
-      output = rails("destroy", "scaffold", "Pet", "--database=animals")
+      output = rails('destroy', 'scaffold', 'Pet', '--database=animals')
 
       assert_match %r{app/models/pet\.rb}, output
       assert_no_match %r{app/models/animals_record\.rb}, output

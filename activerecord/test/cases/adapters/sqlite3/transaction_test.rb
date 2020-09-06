@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
-  test "shared_cached? is true when cache-mode is enabled" do
+  test 'shared_cached? is true when cache-mode is enabled' do
     with_connection(flags: shared_cache_flags) do |conn|
       assert_predicate(conn, :shared_cache?)
     end
   end
 
-  test "shared_cached? is false when cache-mode is disabled" do
+  test 'shared_cached? is false when cache-mode is disabled' do
     flags = ::SQLite3::Constants::Open::READWRITE | SQLite3::Constants::Open::CREATE
 
     with_connection(flags: flags) do |conn|
@@ -17,7 +17,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
     end
   end
 
-  test "raises when trying to open a transaction in a isolation level other than `read_uncommitted`" do
+  test 'raises when trying to open a transaction in a isolation level other than `read_uncommitted`' do
     with_connection do |conn|
       assert_raises(ActiveRecord::TransactionIsolationError) do
         conn.transaction(requires_new: true, isolation: :something) do
@@ -27,7 +27,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
     end
   end
 
-  test "raises when trying to open a read_uncommitted transaction but shared-cache mode is turned off" do
+  test 'raises when trying to open a read_uncommitted transaction but shared-cache mode is turned off' do
     with_connection do |conn|
       error = assert_raises(StandardError) do
         conn.transaction(requires_new: true, isolation: :read_uncommitted) do
@@ -35,11 +35,11 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
         end
       end
 
-      assert_match("You need to enable the shared-cache mode", error.message)
+      assert_match('You need to enable the shared-cache mode', error.message)
     end
   end
 
-  test "opens a `read_uncommitted` transaction" do
+  test 'opens a `read_uncommitted` transaction' do
     with_connection(flags: shared_cache_flags) do |conn1|
       conn1.create_table(:zines) { |t| t.column(:title, :string) } if in_memory_db?
       conn1.transaction do
@@ -57,7 +57,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
     end
   end
 
-  test "reset the read_uncommitted PRAGMA when a transaction is rolled back" do
+  test 'reset the read_uncommitted PRAGMA when a transaction is rolled back' do
     with_connection(flags: shared_cache_flags) do |conn|
       conn.transaction(joinable: false, isolation: :read_uncommitted) do
         assert_not(read_uncommitted?(conn))
@@ -71,7 +71,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
     end
   end
 
-  test "reset the read_uncommitted PRAGMA when a transaction is committed" do
+  test 'reset the read_uncommitted PRAGMA when a transaction is committed' do
     with_connection(flags: shared_cache_flags) do |conn|
       conn.transaction(joinable: false, isolation: :read_uncommitted) do
         assert_not(read_uncommitted?(conn))
@@ -83,7 +83,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
     end
   end
 
-  test "set the read_uncommitted PRAGMA to its previous value" do
+  test 'set the read_uncommitted PRAGMA to its previous value' do
     with_connection(flags: shared_cache_flags) do |conn|
       conn.transaction(joinable: false, isolation: :read_uncommitted) do
         conn.instance_variable_get(:@connection).read_uncommitted = true
@@ -98,7 +98,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
 
   private
     def read_uncommitted?(conn)
-      conn.instance_variable_get(:@connection).get_first_value("PRAGMA read_uncommitted") != 0
+      conn.instance_variable_get(:@connection).get_first_value('PRAGMA read_uncommitted') != 0
     end
 
     def shared_cache_flags
@@ -108,10 +108,10 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
     def with_connection(options = {})
       options = options.dup
       if in_memory_db?
-        options[:database] ||= "file::memory:"
+        options[:database] ||= 'file::memory:'
         options[:flags] = options[:flags].to_i | ::SQLite3::Constants::Open::URI | ::SQLite3::Constants::Open::READWRITE
       else
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: 'arunit', name: 'primary')
         options[:database] ||= db_config.database
       end
       conn = ActiveRecord::Base.sqlite3_connection(options)

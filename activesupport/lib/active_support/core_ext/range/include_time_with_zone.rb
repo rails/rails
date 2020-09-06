@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/time_with_zone"
-require "active_support/deprecation"
+require 'active_support/time_with_zone'
+require 'active_support/deprecation'
 
 module ActiveSupport
   module IncludeTimeWithZone #:nodoc:

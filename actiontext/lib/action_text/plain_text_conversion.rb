@@ -65,14 +65,14 @@ module ActionText
       end
 
       def remove_trailing_newlines(text)
-        text.chomp("")
+        text.chomp('')
       end
 
       def bullet_for_li_node(node, index)
-        if list_node_name_for_li_node(node) == "ol"
+        if list_node_name_for_li_node(node) == 'ol'
           "#{index + 1}."
         else
-          "•"
+          '•'
         end
       end
 

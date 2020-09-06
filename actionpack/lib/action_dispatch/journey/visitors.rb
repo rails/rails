@@ -40,7 +40,7 @@ module ActionDispatch
         @parameters.each do |index|
           param = parts[index]
           value = hash[param.name]
-          return "" unless value
+          return '' unless value
           parts[index] = param.escape value
         end
 
@@ -175,7 +175,7 @@ module ActionDispatch
             last_child = node.children.last
             node.children.inject(seed) { |s, c|
               string = visit(c, s)
-              string << "|" unless last_child == c
+              string << '|' unless last_child == c
               string
             }
           end
@@ -185,7 +185,7 @@ module ActionDispatch
           end
 
           def visit_GROUP(node, seed)
-            visit(node.left, seed.dup << "(") << ")"
+            visit(node.left, seed.dup << '(') << ')'
           end
 
           INSTANCE = new

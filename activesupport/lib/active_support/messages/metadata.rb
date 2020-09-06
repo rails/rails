@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "time"
+require 'time'
 
 module ActiveSupport
   module Messages #:nodoc:
@@ -39,8 +39,8 @@ module ActiveSupport
           def extract_metadata(message)
             data = JSON.decode(message) rescue nil
 
-            if data.is_a?(Hash) && data.key?("_rails")
-              new(decode(data["_rails"]["message"]), data["_rails"]["exp"], data["_rails"]["pur"])
+            if data.is_a?(Hash) && data.key?('_rails')
+              new(decode(data['_rails']['message']), data['_rails']['exp'], data['_rails']['pur'])
             else
               new(message)
             end

@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "active_support/core_ext/array"
+require_relative 'abstract_unit'
+require 'active_support/core_ext/array'
 
 class ArrayInquirerTest < ActiveSupport::TestCase
   def setup
-    @array_inquirer = ActiveSupport::ArrayInquirer.new([:mobile, :tablet, "api"])
+    @array_inquirer = ActiveSupport::ArrayInquirer.new([:mobile, :tablet, 'api'])
   end
 
   def test_individual
@@ -21,7 +21,7 @@ class ArrayInquirerTest < ActiveSupport::TestCase
   end
 
   def test_any_string_symbol_mismatch
-    assert @array_inquirer.any?("mobile")
+    assert @array_inquirer.any?('mobile')
     assert @array_inquirer.any?(:api)
   end
 
@@ -35,7 +35,7 @@ class ArrayInquirerTest < ActiveSupport::TestCase
   end
 
   def test_inquiry
-    result = [:mobile, :tablet, "api"].inquiry
+    result = [:mobile, :tablet, 'api'].inquiry
 
     assert_instance_of ActiveSupport::ArrayInquirer, result
     assert_equal @array_inquirer, result

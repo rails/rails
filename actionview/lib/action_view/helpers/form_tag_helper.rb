@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "cgi"
-require "action_view/helpers/tag_helper"
-require "active_support/core_ext/string/output_safety"
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/symbol/starts_ends_with"
+require 'cgi'
+require 'action_view/helpers/tag_helper'
+require 'active_support/core_ext/string/output_safety'
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/symbol/starts_ends_with'
 
 module ActionView
   # = Action View Form Tag Helpers
@@ -134,29 +134,29 @@ module ActionView
       #   # => <select id="credit_card" name="credit_card"><option>VISA</option>
       #   #    <option selected="selected">MasterCard</option></select>
       def select_tag(name, option_tags = nil, options = {})
-        option_tags ||= ""
-        html_name = (options[:multiple] == true && !name.end_with?("[]")) ? "#{name}[]" : name
+        option_tags ||= ''
+        html_name = (options[:multiple] == true && !name.end_with?('[]')) ? "#{name}[]" : name
 
         if options.include?(:include_blank)
           include_blank = options[:include_blank]
           options = options.except(:include_blank)
-          options_for_blank_options_tag = { value: "" }
+          options_for_blank_options_tag = { value: '' }
 
           if include_blank == true
-            include_blank = ""
-            options_for_blank_options_tag[:label] = " "
+            include_blank = ''
+            options_for_blank_options_tag[:label] = ' '
           end
 
           if include_blank
-            option_tags = content_tag("option", include_blank, options_for_blank_options_tag).safe_concat(option_tags)
+            option_tags = content_tag('option', include_blank, options_for_blank_options_tag).safe_concat(option_tags)
           end
         end
 
         if prompt = options.delete(:prompt)
-          option_tags = content_tag("option", prompt, value: "").safe_concat(option_tags)
+          option_tags = content_tag('option', prompt, value: '').safe_concat(option_tags)
         end
 
-        content_tag "select", option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
+        content_tag 'select', option_tags, { 'name' => html_name, 'id' => sanitize_to_id(name) }.update(options.stringify_keys)
       end
 
       # Creates a standard text field; use these text fields to input smaller chunks of text like a username
@@ -196,7 +196,7 @@ module ActionView
       #   text_field_tag 'ip', '0.0.0.0', maxlength: 15, size: 20, class: "ip-input"
       #   # => <input class="ip-input" id="ip" maxlength="15" name="ip" size="20" type="text" value="0.0.0.0" />
       def text_field_tag(name, value = nil, options = {})
-        tag :input, { "type" => "text", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
+        tag :input, { 'type' => 'text', 'name' => name, 'id' => sanitize_to_id(name), 'value' => value }.update(options.stringify_keys)
       end
 
       # Creates a label element. Accepts a block.
@@ -220,7 +220,7 @@ module ActionView
           options ||= {}
           options = options.stringify_keys
         end
-        options["for"] = sanitize_to_id(name) unless name.blank? || options.has_key?("for")
+        options['for'] = sanitize_to_id(name) unless name.blank? || options.has_key?('for')
         content_tag :label, content_or_options || name.to_s.humanize, options, &block
       end
 
@@ -312,7 +312,7 @@ module ActionView
       #
       #   password_field_tag 'pin', '1234', maxlength: 4, size: 6, class: "pin_input"
       #   # => <input class="pin_input" id="pin" maxlength="4" name="pin" size="6" type="password" value="1234" />
-      def password_field_tag(name = "password", value = nil, options = {})
+      def password_field_tag(name = 'password', value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :password))
       end
 
@@ -348,14 +348,14 @@ module ActionView
       def text_area_tag(name, content = nil, options = {})
         options = options.stringify_keys
 
-        if size = options.delete("size")
-          options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
+        if size = options.delete('size')
+          options['cols'], options['rows'] = size.split('x') if size.respond_to?(:split)
         end
 
-        escape = options.delete("escape") { true }
+        escape = options.delete('escape') { true }
         content = ERB::Util.html_escape(content) if escape
 
-        content_tag :textarea, content.to_s.html_safe, { "name" => name, "id" => sanitize_to_id(name) }.update(options)
+        content_tag :textarea, content.to_s.html_safe, { 'name' => name, 'id' => sanitize_to_id(name) }.update(options)
       end
 
       # Creates a check box form input tag.
@@ -379,9 +379,9 @@ module ActionView
       #
       #   check_box_tag 'eula', 'accepted', false, disabled: true
       #   # => <input disabled="disabled" id="eula" name="eula" type="checkbox" value="accepted" />
-      def check_box_tag(name, value = "1", checked = false, options = {})
-        html_options = { "type" => "checkbox", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
-        html_options["checked"] = "checked" if checked
+      def check_box_tag(name, value = '1', checked = false, options = {})
+        html_options = { 'type' => 'checkbox', 'name' => name, 'id' => sanitize_to_id(name), 'value' => value }.update(options.stringify_keys)
+        html_options['checked'] = 'checked' if checked
         tag :input, html_options
       end
 
@@ -405,8 +405,8 @@ module ActionView
       #   radio_button_tag 'color', "green", true, class: "color_input"
       #   # => <input checked="checked" class="color_input" id="color_green" name="color" type="radio" value="green" />
       def radio_button_tag(name, value, checked = false, options = {})
-        html_options = { "type" => "radio", "name" => name, "id" => "#{sanitize_to_id(name)}_#{sanitize_to_id(value)}", "value" => value }.update(options.stringify_keys)
-        html_options["checked"] = "checked" if checked
+        html_options = { 'type' => 'radio', 'name' => name, 'id' => "#{sanitize_to_id(name)}_#{sanitize_to_id(value)}", 'value' => value }.update(options.stringify_keys)
+        html_options['checked'] = 'checked' if checked
         tag :input, html_options
       end
 
@@ -449,9 +449,9 @@ module ActionView
       #   submit_tag "Save", data: { confirm: "Are you sure?" }
       #   # => <input name='commit' type='submit' value='Save' data-disable-with="Save" data-confirm="Are you sure?" />
       #
-      def submit_tag(value = "Save changes", options = {})
+      def submit_tag(value = 'Save changes', options = {})
         options = options.deep_stringify_keys
-        tag_options = { "type" => "submit", "name" => "commit", "value" => value }.update(options)
+        tag_options = { 'type' => 'submit', 'name' => 'commit', 'value' => value }.update(options)
         set_default_disable_with value, tag_options
         tag :input, tag_options
       end
@@ -514,12 +514,12 @@ module ActionView
           options ||= {}
         end
 
-        options = { "name" => "button", "type" => "submit" }.merge!(options.stringify_keys)
+        options = { 'name' => 'button', 'type' => 'submit' }.merge!(options.stringify_keys)
 
         if block_given?
           content_tag :button, options, &block
         else
-          content_tag :button, content_or_options || "Button", options
+          content_tag :button, content_or_options || 'Button', options
         end
       end
 
@@ -555,8 +555,8 @@ module ActionView
       #   # => <input src="/assets/save.png" data-confirm="Are you sure?" type="image" />
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
-        src = path_to_image(source, skip_pipeline: options.delete("skip_pipeline"))
-        tag :input, { "type" => "image", "src" => src }.update(options)
+        src = path_to_image(source, skip_pipeline: options.delete('skip_pipeline'))
+        tag :input, { 'type' => 'image', 'src' => src }.update(options)
       end
 
       # Creates a field set for grouping HTML form elements.
@@ -581,9 +581,9 @@ module ActionView
       #   # => <fieldset class="format"><p><input id="name" name="name" type="text" /></p></fieldset>
       def field_set_tag(legend = nil, options = nil, &block)
         output = tag(:fieldset, options, true)
-        output.safe_concat(content_tag("legend", legend)) unless legend.blank?
+        output.safe_concat(content_tag('legend', legend)) unless legend.blank?
         output.concat(capture(&block)) if block_given?
-        output.safe_concat("</fieldset>")
+        output.safe_concat('</fieldset>')
       end
 
       # Creates a text field of type "color".
@@ -690,7 +690,7 @@ module ActionView
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
       def datetime_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.merge(type: "datetime-local"))
+        text_field_tag(name, value, options.merge(type: 'datetime-local'))
       end
 
       alias datetime_local_field_tag datetime_field_tag
@@ -802,9 +802,9 @@ module ActionView
       #   # => <input disabled="disabled" class="special_input" id="quantity" name="quantity" type="number" value="1" />
       def number_field_tag(name, value = nil, options = {})
         options = options.stringify_keys
-        options["type"] ||= "number"
-        if range = options.delete("in") || options.delete("within")
-          options.update("min" => range.min, "max" => range.max)
+        options['type'] ||= 'number'
+        if range = options.delete('in') || options.delete('within')
+          options.update('min' => range.min, 'max' => range.max)
         end
         text_field_tag(name, value, options)
       end
@@ -829,51 +829,51 @@ module ActionView
       private
         def html_options_for_form(url_for_options, options)
           options.stringify_keys.tap do |html_options|
-            html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
+            html_options['enctype'] = 'multipart/form-data' if html_options.delete('multipart')
             # The following URL is unescaped, this is just a hash of options, and it is the
             # responsibility of the caller to escape all the values.
-            html_options["action"]  = url_for(url_for_options)
-            html_options["accept-charset"] = "UTF-8"
+            html_options['action']  = url_for(url_for_options)
+            html_options['accept-charset'] = 'UTF-8'
 
-            html_options["data-remote"] = true if html_options.delete("remote")
+            html_options['data-remote'] = true if html_options.delete('remote')
 
-            if html_options["data-remote"] &&
+            if html_options['data-remote'] &&
                !embed_authenticity_token_in_remote_forms &&
-               html_options["authenticity_token"].blank?
+               html_options['authenticity_token'].blank?
               # The authenticity token is taken from the meta tag in this case
-              html_options["authenticity_token"] = false
-            elsif html_options["authenticity_token"] == true
+              html_options['authenticity_token'] = false
+            elsif html_options['authenticity_token'] == true
               # Include the default authenticity_token, which is only generated when its set to nil,
               # but we needed the true value to override the default of no authenticity_token on data-remote.
-              html_options["authenticity_token"] = nil
+              html_options['authenticity_token'] = nil
             end
           end
         end
 
         def extra_tags_for_form(html_options)
-          authenticity_token = html_options.delete("authenticity_token")
-          method = html_options.delete("method").to_s.downcase
+          authenticity_token = html_options.delete('authenticity_token')
+          method = html_options.delete('method').to_s.downcase
 
           method_tag = \
             case method
-            when "get"
-              html_options["method"] = "get"
-              ""
-            when "post", ""
-              html_options["method"] = "post"
+            when 'get'
+              html_options['method'] = 'get'
+              ''
+            when 'post', ''
+              html_options['method'] = 'post'
               token_tag(authenticity_token, form_options: {
-                action: html_options["action"],
-                method: "post"
+                action: html_options['action'],
+                method: 'post'
               })
             else
-              html_options["method"] = "post"
+              html_options['method'] = 'post'
               method_tag(method) + token_tag(authenticity_token, form_options: {
-                action: html_options["action"],
+                action: html_options['action'],
                 method: method
               })
             end
 
-          if html_options.delete("enforce_utf8") { default_enforce_utf8 }
+          if html_options.delete('enforce_utf8') { default_enforce_utf8 }
             utf8_enforcer_tag + method_tag
           else
             method_tag
@@ -888,33 +888,33 @@ module ActionView
         def form_tag_with_body(html_options, content)
           output = form_tag_html(html_options)
           output << content
-          output.safe_concat("</form>")
+          output.safe_concat('</form>')
         end
 
         # see http://www.w3.org/TR/html4/types.html#type-name
         def sanitize_to_id(name)
-          name.to_s.delete("]").tr("^-a-zA-Z0-9:.", "_")
+          name.to_s.delete(']').tr('^-a-zA-Z0-9:.', '_')
         end
 
         def set_default_disable_with(value, tag_options)
           return unless ActionView::Base.automatically_disable_submit_tag
-          data = tag_options["data"]
+          data = tag_options['data']
 
-          unless tag_options["data-disable-with"] == false || (data && data["disable_with"] == false)
-            disable_with_text = tag_options["data-disable-with"]
-            disable_with_text ||= data["disable_with"] if data
+          unless tag_options['data-disable-with'] == false || (data && data['disable_with'] == false)
+            disable_with_text = tag_options['data-disable-with']
+            disable_with_text ||= data['disable_with'] if data
             disable_with_text ||= value.to_s.clone
-            tag_options.deep_merge!("data" => { "disable_with" => disable_with_text })
+            tag_options.deep_merge!('data' => { 'disable_with' => disable_with_text })
           else
-            data.delete("disable_with") if data
+            data.delete('disable_with') if data
           end
 
-          tag_options.delete("data-disable-with")
+          tag_options.delete('data-disable-with')
         end
 
         def convert_direct_upload_option_to_url(options)
           if options.delete(:direct_upload) && respond_to?(:rails_direct_uploads_url)
-            options["data-direct-upload-url"] = rails_direct_uploads_url
+            options['data-direct-upload-url'] = rails_direct_uploads_url
           end
           options
         end

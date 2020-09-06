@@ -11,8 +11,8 @@ module ActiveStorage::FileServer # :nodoc:
           response.headers[name] = value
         end
 
-        response.headers["Content-Type"] = content_type || DEFAULT_SEND_FILE_TYPE
-        response.headers["Content-Disposition"] = disposition || DEFAULT_SEND_FILE_DISPOSITION
+        response.headers['Content-Type'] = content_type || DEFAULT_SEND_FILE_TYPE
+        response.headers['Content-Disposition'] = disposition || DEFAULT_SEND_FILE_DISPOSITION
       end
     end
 end

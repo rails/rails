@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_record/insert_all"
+require 'active_record/insert_all'
 
 module ActiveRecord
   # = Active Record \Persistence
@@ -294,8 +294,8 @@ module ActiveRecord
         else
           if ActiveRecord::Base === id
             raise ArgumentError,
-              "You are passing an instance of ActiveRecord::Base to `update`. " \
-              "Please pass the id of the object by calling `.id`."
+              'You are passing an instance of ActiveRecord::Base to `update`. ' \
+              'Please pass the id of the object by calling `.id`.'
           end
           object = find(id)
           object.update(attributes)
@@ -504,7 +504,7 @@ module ActiveRecord
     #
     # Unless an error is raised, returns true.
     def save!(**options, &block)
-      create_or_update(**options, &block) || raise(RecordNotSaved.new("Failed to save the record", self))
+      create_or_update(**options, &block) || raise(RecordNotSaved.new('Failed to save the record', self))
     end
 
     # Deletes the record in the database and freezes this instance to
@@ -627,7 +627,7 @@ module ActiveRecord
     end
 
     alias update_attributes update
-    deprecate update_attributes: "please, use update instead"
+    deprecate update_attributes: 'please, use update instead'
 
     # Updates its receiver just like #update but calls #save! instead
     # of +save+, so an exception is raised if the record is invalid and saving will fail.
@@ -641,7 +641,7 @@ module ActiveRecord
     end
 
     alias update_attributes! update!
-    deprecate update_attributes!: "please, use update! instead"
+    deprecate update_attributes!: 'please, use update! instead'
 
     # Equivalent to <code>update_columns(name => value)</code>.
     def update_column(name, value)
@@ -665,8 +665,8 @@ module ActiveRecord
     # This method raises an ActiveRecord::ActiveRecordError when called on new
     # objects, or when at least one of the attributes is marked as readonly.
     def update_columns(attributes)
-      raise ActiveRecordError, "cannot update a new record" if new_record?
-      raise ActiveRecordError, "cannot update a destroyed record" if destroyed?
+      raise ActiveRecordError, 'cannot update a new record' if new_record?
+      raise ActiveRecordError, 'cannot update a destroyed record' if destroyed?
 
       attributes = attributes.transform_keys do |key|
         name = key.to_s
@@ -887,10 +887,10 @@ module ActiveRecord
         _write_attribute(attr_name, time)
       end
 
-      _update_row(attribute_names, "touch")
+      _update_row(attribute_names, 'touch')
     end
 
-    def _update_row(attribute_names, attempted_action = "update")
+    def _update_row(attribute_names, attempted_action = 'update')
       self.class._update_record(
         attributes_with_values(attribute_names),
         @primary_key => id_in_database
@@ -949,7 +949,7 @@ module ActiveRecord
 
     def _raise_record_not_destroyed
       @_association_destroy_exception ||= nil
-      raise @_association_destroy_exception || RecordNotDestroyed.new("Failed to destroy the record", self)
+      raise @_association_destroy_exception || RecordNotDestroyed.new('Failed to destroy the record', self)
     ensure
       @_association_destroy_exception = nil
     end

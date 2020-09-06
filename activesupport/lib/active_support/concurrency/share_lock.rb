@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "thread"
-require "monitor"
+require 'thread'
+require 'monitor'
 
 module ActiveSupport
   module Concurrency
@@ -95,7 +95,7 @@ module ActiveSupport
       # that called start_exclusive (and currently holds the lock).
       def stop_exclusive(compatible: [])
         synchronize do
-          raise "invalid unlock" if @exclusive_thread != Thread.current
+          raise 'invalid unlock' if @exclusive_thread != Thread.current
 
           @exclusive_depth -= 1
           if @exclusive_depth == 0

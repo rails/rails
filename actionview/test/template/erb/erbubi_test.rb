@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "action_view/template/handlers/erb/erubi"
+require 'abstract_unit'
+require 'action_view/template/handlers/erb/erubi'
 
 class ErubiTest < ActiveSupport::TestCase
-  test "can configure bufvar" do
+  test 'can configure bufvar' do
     template = <<~ERB
       foo
 
@@ -14,8 +14,8 @@ class ErubiTest < ActiveSupport::TestCase
     ERB
 
     baseline = ActionView::Template::Handlers::ERB::Erubi.new(template)
-    erubi = ActionView::Template::Handlers::ERB::Erubi.new(template, bufvar: "boofer")
+    erubi = ActionView::Template::Handlers::ERB::Erubi.new(template, bufvar: 'boofer')
 
-    assert_equal baseline.src.gsub("#{baseline.bufvar}.", "boofer."), erubi.src
+    assert_equal baseline.src.gsub("#{baseline.bufvar}.", 'boofer.'), erubi.src
   end
 end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/per_thread_registry"
-require "active_support/notifications"
+require 'active_support/per_thread_registry'
+require 'active_support/notifications'
 
 module ActiveSupport
   # ActiveSupport::Subscriber is an object set to consume
@@ -122,7 +122,7 @@ module ActiveSupport
     attr_reader :patterns # :nodoc:
 
     def initialize
-      @queue_key = [self.class.name, object_id].join "-"
+      @queue_key = [self.class.name, object_id].join '-'
       @patterns  = {}
       super
     end
@@ -141,7 +141,7 @@ module ActiveSupport
       event.finish!
       event.payload.merge!(payload)
 
-      method = name.split(".").first
+      method = name.split('.').first
       send(method, event)
     end
 

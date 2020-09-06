@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require "rails/generators/active_record"
+require 'rails/generators/active_record'
 
 module ActiveRecord
   module Generators # :nodoc:
     class MigrationGenerator < Base # :nodoc:
-      argument :attributes, type: :array, default: [], banner: "field[:type][:index] field[:type][:index]"
+      argument :attributes, type: :array, default: [], banner: 'field[:type][:index] field[:type][:index]'
 
       class_option :timestamps, type: :boolean
-      class_option :primary_key_type, type: :string, desc: "The type for primary key"
+      class_option :primary_key_type, type: :string, desc: 'The type for primary key'
       class_option :database, type: :string, aliases: %i(--db), desc: "The database for your migration. By default, the current environment's primary database is used."
 
       def create_migration_file
@@ -24,21 +24,21 @@ module ActiveRecord
         # Depending on command line arguments, the migration template and the table name instance
         # variables are set up.
         def set_local_assigns!
-          @migration_template = "migration.rb"
+          @migration_template = 'migration.rb'
           case file_name
           when /^(add)_.*_to_(.*)/, /^(remove)_.*?_from_(.*)/
             @migration_action = $1
             @table_name       = normalize_table_name($2)
           when /join_table/
             if attributes.length == 2
-              @migration_action = "join"
+              @migration_action = 'join'
               @join_tables      = pluralize_table_names? ? attributes.map(&:plural_name) : attributes.map(&:singular_name)
 
               set_index_names
             end
           when /^create_(.+)/
             @table_name = normalize_table_name($1)
-            @migration_template = "create_table_migration.rb"
+            @migration_template = 'create_table_migration.rb'
           end
         end
 

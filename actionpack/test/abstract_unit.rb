@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-$:.unshift File.expand_path("lib", __dir__)
+$:.unshift File.expand_path('lib', __dir__)
 
-require "active_support/core_ext/kernel/reporting"
+require 'active_support/core_ext/kernel/reporting'
 
 # These are the normal settings that will be set up by Railties
 # TODO: Have these tests support other combinations of these values
@@ -11,22 +11,22 @@ silence_warnings do
   Encoding.default_external = Encoding::UTF_8
 end
 
-PROCESS_COUNT = (ENV["MT_CPU"] || 4).to_i
+PROCESS_COUNT = (ENV['MT_CPU'] || 4).to_i
 
-require "active_support/testing/autorun"
-require "abstract_controller"
-require "abstract_controller/railties/routes_helpers"
-require "action_controller"
-require "action_view"
-require "action_view/testing/resolvers"
-require "action_dispatch"
-require "active_support/dependencies"
-require "active_model"
+require 'active_support/testing/autorun'
+require 'abstract_controller'
+require 'abstract_controller/railties/routes_helpers'
+require 'action_controller'
+require 'action_view'
+require 'action_view/testing/resolvers'
+require 'action_dispatch'
+require 'active_support/dependencies'
+require 'active_model'
 
 module Rails
   class << self
     def env
-      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
+      @_env ||= ActiveSupport::StringInquirer.new(ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'test')
     end
 
     def root; end
@@ -56,13 +56,13 @@ ActiveSupport::Deprecation.debug = true
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
-FIXTURE_LOAD_PATH = File.join(__dir__, "fixtures")
+FIXTURE_LOAD_PATH = File.join(__dir__, 'fixtures')
 
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
 SharedTestRoutes.draw do
   ActiveSupport::Deprecation.silence do
-    get ":controller(/:action)"
+    get ':controller(/:action)'
   end
 end
 
@@ -71,7 +71,7 @@ module ActionDispatch
     def before_setup
       @routes = Routing::RouteSet.new
       ActiveSupport::Deprecation.silence do
-        @routes.draw { get ":controller(/:action)" }
+        @routes.draw { get ':controller(/:action)' }
       end
       super
     end
@@ -80,7 +80,7 @@ end
 
 module ActiveSupport
   class TestCase
-    if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0
+    if RUBY_ENGINE == 'ruby' && PROCESS_COUNT > 0
       parallelize(workers: PROCESS_COUNT)
     end
   end
@@ -118,7 +118,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   app.routes.draw do
     ActiveSupport::Deprecation.silence do
-      get ":controller(/:action)"
+      get ':controller(/:action)'
     end
   end
 
@@ -127,7 +127,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     # simply return the controller#action as Rack::Body.
     class NullController < ::ActionController::Metal
       def self.dispatch(action, req, res)
-        [200, { "Content-Type" => "text/html" }, ["#{req.params[:controller]}##{action}"]]
+        [200, { 'Content-Type' => 'text/html' }, ["#{req.params[:controller]}##{action}"]]
       end
     end
 
@@ -160,7 +160,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   end
 
   def with_autoload_path(path)
-    path = File.join(__dir__, "fixtures", path)
+    path = File.join(__dir__, 'fixtures', path)
     if ActiveSupport::Dependencies.autoload_paths.include?(path)
       yield
     else
@@ -179,7 +179,7 @@ end
 class Rack::TestCase < ActionDispatch::IntegrationTest
   def self.testing(klass = nil)
     if klass
-      @testing = "/#{klass.name.underscore}".delete_suffix("_controller")
+      @testing = "/#{klass.name.underscore}".delete_suffix('_controller')
     else
       @testing
     end
@@ -210,7 +210,7 @@ class Rack::TestCase < ActionDispatch::IntegrationTest
   end
 
   def assert_content_type(type)
-    assert_equal type, response.headers["Content-Type"]
+    assert_equal type, response.headers['Content-Type']
   end
 
   def assert_header(name, value)
@@ -264,16 +264,16 @@ module ActionDispatch
       host = uri_or_host.host unless path
       path ||= uri_or_host.path
 
-      params = { "PATH_INFO" => path,
-                 "REQUEST_METHOD" => method,
-                 "HTTP_HOST" => host }
+      params = { 'PATH_INFO' => path,
+                 'REQUEST_METHOD' => method,
+                 'HTTP_HOST' => host }
 
       routes.call(params)
     end
 
     def request_path_params(path, options = {})
-      method = options[:method] || "GET"
-      resp = send_request URI("http://localhost" + path), method.to_s.upcase, nil
+      method = options[:method] || 'GET'
+      resp = send_request URI('http://localhost' + path), method.to_s.upcase, nil
       status = resp.first
       if status == 404
         raise ActionController::RoutingError, "No route matches #{path.inspect}"
@@ -282,23 +282,23 @@ module ActionDispatch
     end
 
     def get(uri_or_host, path = nil)
-      send_request(uri_or_host, "GET", path)[2].join
+      send_request(uri_or_host, 'GET', path)[2].join
     end
 
     def post(uri_or_host, path = nil)
-      send_request(uri_or_host, "POST", path)[2].join
+      send_request(uri_or_host, 'POST', path)[2].join
     end
 
     def put(uri_or_host, path = nil)
-      send_request(uri_or_host, "PUT", path)[2].join
+      send_request(uri_or_host, 'PUT', path)[2].join
     end
 
     def delete(uri_or_host, path = nil)
-      send_request(uri_or_host, "DELETE", path)[2].join
+      send_request(uri_or_host, 'DELETE', path)[2].join
     end
 
     def patch(uri_or_host, path = nil)
-      send_request(uri_or_host, "PATCH", path)[2].join
+      send_request(uri_or_host, 'PATCH', path)[2].join
     end
   end
 end
@@ -358,19 +358,19 @@ class CommentsController < ResourcesController; end
 class AccountsController < ResourcesController; end
 class ImagesController < ResourcesController; end
 
-require "active_support/testing/method_call_assertions"
+require 'active_support/testing/method_call_assertions'
 
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 
   private
     # Skips the current run on Rubinius using Minitest::Assertions#skip
-    def rubinius_skip(message = "")
-      skip message if RUBY_ENGINE == "rbx"
+    def rubinius_skip(message = '')
+      skip message if RUBY_ENGINE == 'rbx'
     end
 
     # Skips the current run on JRuby using Minitest::Assertions#skip
-    def jruby_skip(message = "")
+    def jruby_skip(message = '')
       skip message if defined?(JRUBY_VERSION)
     end
 end
@@ -391,4 +391,4 @@ class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :headless_firefox
 end
 
-require_relative "../../tools/test_common"
+require_relative '../../tools/test_common'

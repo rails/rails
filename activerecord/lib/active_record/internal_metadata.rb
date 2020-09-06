@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_record/scoping/default"
-require "active_record/scoping/named"
+require 'active_record/scoping/default'
+require 'active_record/scoping/named'
 
 module ActiveRecord
   # This class is used to create a table that keeps track of values and keys such
@@ -20,7 +20,7 @@ module ActiveRecord
       end
 
       def primary_key
-        "key"
+        'key'
       end
 
       def table_name

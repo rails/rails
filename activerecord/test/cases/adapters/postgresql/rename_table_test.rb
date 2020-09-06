@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 class PostgresqlRenameTableTest < ActiveRecord::PostgreSQLTestCase
   def setup
@@ -9,19 +9,19 @@ class PostgresqlRenameTableTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def teardown
-    @connection.drop_table "before_rename", if_exists: true
-    @connection.drop_table "after_rename", if_exists: true
+    @connection.drop_table 'before_rename', if_exists: true
+    @connection.drop_table 'after_rename', if_exists: true
   end
 
-  test "renaming a table also renames the primary key index" do
+  test 'renaming a table also renames the primary key index' do
     # sanity check
-    assert_equal 1, num_indices_named("before_rename_pkey")
-    assert_equal 0, num_indices_named("after_rename_pkey")
+    assert_equal 1, num_indices_named('before_rename_pkey')
+    assert_equal 0, num_indices_named('after_rename_pkey')
 
     @connection.rename_table :before_rename, :after_rename
 
-    assert_equal 0, num_indices_named("before_rename_pkey")
-    assert_equal 1, num_indices_named("after_rename_pkey")
+    assert_equal 0, num_indices_named('before_rename_pkey')
+    assert_equal 1, num_indices_named('after_rename_pkey')
   end
 
   private

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "concurrent/map"
+require 'concurrent/map'
 
 module ActionView
   # This class defines the interface for a renderer. Each class that
@@ -46,19 +46,19 @@ module ActionView
             as.to_sym
           else
             begin
-              base = path.end_with?("/") ? "" : File.basename(path)
+              base = path.end_with?('/') ? '' : File.basename(path)
               raise_invalid_identifier(path) unless base =~ /\A_?(.*?)(?:\.\w+)*\z/
               $1.to_sym
             end
           end
         end
 
-        IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " \
-                                   "make sure your partial name starts with underscore."
+        IDENTIFIER_ERROR_MESSAGE = 'The partial name (%s) is not a valid Ruby identifier; ' \
+                                   'make sure your partial name starts with underscore.'
 
-        OPTION_AS_ERROR_MESSAGE  = "The value (%s) of the option `as` is not a valid Ruby identifier; " \
-                                   "make sure it starts with lowercase letter, " \
-                                   "and is followed by any combination of letters, numbers and underscores."
+        OPTION_AS_ERROR_MESSAGE  = 'The value (%s) of the option `as` is not a valid Ruby identifier; ' \
+                                   'make sure it starts with lowercase letter, ' \
+                                   'and is followed by any combination of letters, numbers and underscores.'
 
         def raise_invalid_identifier(path)
           raise ArgumentError, IDENTIFIER_ERROR_MESSAGE % path
@@ -94,15 +94,15 @@ module ActionView
         def merge_prefix_into_object_path(prefix, object_path)
           if prefix.include?(?/) && object_path.include?(?/)
             prefixes = []
-            prefix_array = File.dirname(prefix).split("/")
-            object_path_array = object_path.split("/")[0..-3] # skip model dir & partial
+            prefix_array = File.dirname(prefix).split('/')
+            object_path_array = object_path.split('/')[0..-3] # skip model dir & partial
 
             prefix_array.each_with_index do |dir, index|
               break if dir == object_path_array[index]
               prefixes << dir
             end
 
-            (prefixes << object_path).join("/")
+            (prefixes << object_path).join('/')
           else
             object_path
           end

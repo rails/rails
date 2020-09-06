@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../helper"
-require "concurrent"
+require_relative '../helper'
+require 'concurrent'
 
 module Arel
   module Visitors
@@ -44,9 +44,9 @@ module Arel
         @table = Table.new(:users)
       end
 
-      it "dispatches properly after failing upwards" do
+      it 'dispatches properly after failing upwards' do
         node = Nodes::Union.new(Nodes::True.new, Nodes::False.new)
-        assert_equal "( TRUE UNION FALSE )", node.to_sql
+        assert_equal '( TRUE UNION FALSE )', node.to_sql
 
         visitor = Class.new(Visitor) {
           def visit_Arel_Nodes_Union(o); end
@@ -56,10 +56,10 @@ module Arel
 
         visitor.accept(node)
 
-        assert_equal "( TRUE UNION FALSE )", node.to_sql
+        assert_equal '( TRUE UNION FALSE )', node.to_sql
       end
 
-      it "is threadsafe when implementing superclass fallback" do
+      it 'is threadsafe when implementing superclass fallback' do
         visitor = DummyVisitor.new
         main_thread_finished = Concurrent::Event.new
 

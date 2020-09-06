@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-require "helper"
-require "active_support/log_subscriber/test_helper"
-require "active_support/core_ext/numeric/time"
-require "jobs/hello_job"
-require "jobs/logging_job"
-require "jobs/overridden_logging_job"
-require "jobs/nested_job"
-require "jobs/rescue_job"
-require "jobs/retry_job"
-require "jobs/disable_log_job"
-require "jobs/abort_before_enqueue_job"
-require "models/person"
+require 'helper'
+require 'active_support/log_subscriber/test_helper'
+require 'active_support/core_ext/numeric/time'
+require 'jobs/hello_job'
+require 'jobs/logging_job'
+require 'jobs/overridden_logging_job'
+require 'jobs/nested_job'
+require 'jobs/rescue_job'
+require 'jobs/retry_job'
+require 'jobs/disable_log_job'
+require 'jobs/abort_before_enqueue_job'
+require 'models/person'
 
 class LoggingTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -58,20 +58,20 @@ class LoggingTest < ActiveSupport::TestCase
   end
 
   def test_uses_active_job_as_tag
-    HelloJob.perform_later "Cristian"
+    HelloJob.perform_later 'Cristian'
     assert_match(/\[ActiveJob\]/, @logger.messages)
   end
 
   def test_uses_job_name_as_tag
     perform_enqueued_jobs do
-      LoggingJob.perform_later "Dummy"
+      LoggingJob.perform_later 'Dummy'
       assert_match(/\[LoggingJob\]/, @logger.messages)
     end
   end
 
   def test_uses_job_id_as_tag
     perform_enqueued_jobs do
-      LoggingJob.perform_later "Dummy"
+      LoggingJob.perform_later 'Dummy'
       assert_match(/\[LOGGING-JOB-ID\]/, @logger.messages)
     end
   end
@@ -79,7 +79,7 @@ class LoggingTest < ActiveSupport::TestCase
   def test_logs_correct_queue_name
     original_queue_name = LoggingJob.queue_name
     LoggingJob.queue_as :php_jobs
-    LoggingJob.perform_later("Dummy")
+    LoggingJob.perform_later('Dummy')
     assert_match(/to .*?\(php_jobs\).*/, @logger.messages)
   ensure
     LoggingJob.queue_name = original_queue_name
@@ -106,11 +106,11 @@ class LoggingTest < ActiveSupport::TestCase
   end
 
   def test_enqueue_job_logging
-    events = subscribed { HelloJob.perform_later "Cristian" }
+    events = subscribed { HelloJob.perform_later 'Cristian' }
     assert_match(/Enqueued HelloJob \(Job ID: .*?\) to .*?:.*Cristian/, @logger.messages)
     assert_equal(events.count, 1)
     key, * = events.first
-    assert_equal(key, "enqueue.active_job")
+    assert_equal(key, 'enqueue.active_job')
   end
 
   def test_enqueue_job_log_error_when_callback_chain_is_halted
@@ -118,7 +118,7 @@ class LoggingTest < ActiveSupport::TestCase
     assert_match(/Failed enqueuing AbortBeforeEnqueueJob.* a before_enqueue callback halted/, @logger.messages)
     assert_equal(events.count, 1)
     key, * = events.first
-    assert_equal(key, "enqueue.active_job")
+    assert_equal(key, 'enqueue.active_job')
   end
 
   def test_enqueue_job_log_error_when_error_is_raised_during_callback_chain
@@ -131,12 +131,12 @@ class LoggingTest < ActiveSupport::TestCase
     assert_match(/Failed enqueuing AbortBeforeEnqueueJob/, @logger.messages)
     assert_equal(events.count, 1)
     key, * = events.first
-    assert_equal(key, "enqueue.active_job")
+    assert_equal(key, 'enqueue.active_job')
   end
 
   def test_perform_job_logging
     perform_enqueued_jobs do
-      LoggingJob.perform_later "Dummy"
+      LoggingJob.perform_later 'Dummy'
       assert_match(/Performing LoggingJob \(Job ID: .*?\) from .*? with arguments:.*Dummy/, @logger.messages)
 
       assert_match(/enqueued at /, @logger.messages)
@@ -181,7 +181,7 @@ class LoggingTest < ActiveSupport::TestCase
 
   def test_perform_disabled_job_logging
     perform_enqueued_jobs do
-      DisableLogJob.perform_later "Dummy"
+      DisableLogJob.perform_later 'Dummy'
       assert_no_match(/Enqueued DisableLogJob \(Job ID: .*?\) from .*? with arguments:.*Dummy/, @logger.messages)
       assert_no_match(/Performing DisableLogJob \(Job ID: .*?\) from .*? with arguments:.*Dummy/, @logger.messages)
 
@@ -206,11 +206,11 @@ class LoggingTest < ActiveSupport::TestCase
   end
 
   def test_enqueue_at_job_logging
-    events = subscribed { HelloJob.set(wait_until: 24.hours.from_now).perform_later "Cristian" }
+    events = subscribed { HelloJob.set(wait_until: 24.hours.from_now).perform_later 'Cristian' }
     assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
     assert_equal(events.count, 1)
     key, * = events.first
-    assert_equal(key, "enqueue_at.active_job")
+    assert_equal(key, 'enqueue_at.active_job')
   rescue NotImplementedError
     skip
   end
@@ -220,7 +220,7 @@ class LoggingTest < ActiveSupport::TestCase
     assert_match(/Failed enqueuing AbortBeforeEnqueueJob.* a before_enqueue callback halted/, @logger.messages)
     assert_equal(events.count, 1)
     key, * = events.first
-    assert_equal(key, "enqueue_at.active_job")
+    assert_equal(key, 'enqueue_at.active_job')
   end
 
   def test_enqueue_at_job_log_error_when_error_is_raised_during_callback_chain
@@ -233,27 +233,27 @@ class LoggingTest < ActiveSupport::TestCase
     assert_match(/Failed enqueuing AbortBeforeEnqueueJob/, @logger.messages)
     assert_equal(events.count, 1)
     key, * = events.first
-    assert_equal(key, "enqueue_at.active_job")
+    assert_equal(key, 'enqueue_at.active_job')
   end
 
   def test_enqueue_in_job_logging
-    events = subscribed { HelloJob.set(wait: 2.seconds).perform_later "Cristian" }
+    events = subscribed { HelloJob.set(wait: 2.seconds).perform_later 'Cristian' }
     assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
     assert_equal(events.count, 1)
     key, * = events.first
-    assert_equal(key, "enqueue_at.active_job")
+    assert_equal(key, 'enqueue_at.active_job')
   rescue NotImplementedError
     skip
   end
 
   def test_for_tagged_logger_support_is_consistent
     set_logger ::Logger.new(nil)
-    OverriddenLoggingJob.perform_later "Dummy"
+    OverriddenLoggingJob.perform_later 'Dummy'
   end
 
   def test_job_error_logging
     perform_enqueued_jobs do
-      RescueJob.perform_later "other"
+      RescueJob.perform_later 'other'
     rescue RescueJob::OtherError
       assert_match(/Performing RescueJob \(Job ID: .*?\) from .*? with arguments:.*other/, @logger.messages)
       assert_match(/Error performing RescueJob \(Job ID: .*?\) from .*? in .*ms: RescueJob::OtherError \(Bad hair\):\n.*\brescue_job\.rb:\d+:in `perform'/, @logger.messages)
@@ -262,26 +262,26 @@ class LoggingTest < ActiveSupport::TestCase
 
   def test_enqueue_retry_logging
     perform_enqueued_jobs do
-      RetryJob.perform_later "DefaultsError", 2
+      RetryJob.perform_later 'DefaultsError', 2
       assert_match(/Retrying RetryJob in 3 seconds, due to a DefaultsError\./, @logger.messages)
     end
   end
 
   def test_enqueue_retry_logging_on_retry_job
-    perform_enqueued_jobs { RescueJob.perform_later "david" }
+    perform_enqueued_jobs { RescueJob.perform_later 'david' }
     assert_match(/Retrying RescueJob in 0 seconds\./, @logger.messages)
   end
 
   def test_retry_stopped_logging
     perform_enqueued_jobs do
-      RetryJob.perform_later "CustomCatchError", 6
+      RetryJob.perform_later 'CustomCatchError', 6
       assert_match(/Stopped retrying RetryJob due to a CustomCatchError, which reoccurred on \d+ attempts\./, @logger.messages)
     end
   end
 
   def test_retry_stopped_logging_without_block
     perform_enqueued_jobs do
-      RetryJob.perform_later "DefaultsError", 6
+      RetryJob.perform_later 'DefaultsError', 6
     rescue DefaultsError
       assert_match(/Stopped retrying RetryJob due to a DefaultsError, which reoccurred on \d+ attempts\./, @logger.messages)
     end
@@ -289,7 +289,7 @@ class LoggingTest < ActiveSupport::TestCase
 
   def test_discard_logging
     perform_enqueued_jobs do
-      RetryJob.perform_later "DiscardableError", 2
+      RetryJob.perform_later 'DiscardableError', 2
       assert_match(/Discarded RetryJob due to a DiscardableError\./, @logger.messages)
     end
   end

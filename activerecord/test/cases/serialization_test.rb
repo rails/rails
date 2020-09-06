@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/contact"
-require "models/topic"
-require "models/book"
-require "models/author"
-require "models/post"
+require 'cases/helper'
+require 'models/contact'
+require 'models/topic'
+require 'models/book'
+require 'models/author'
+require 'models/post'
 
 class SerializationTest < ActiveRecord::TestCase
   fixtures :books
@@ -14,19 +14,19 @@ class SerializationTest < ActiveRecord::TestCase
 
   def setup
     @contact_attributes = {
-      name: "aaron stack",
+      name: 'aaron stack',
       age: 25,
-      avatar: "binarydata",
+      avatar: 'binarydata',
       created_at: Time.utc(2006, 8, 1),
       awesome: false,
-      preferences: { gem: "<strong>ruby</strong>" },
+      preferences: { gem: '<strong>ruby</strong>' },
       alternative_id: nil,
       id: nil
     }
   end
 
   def test_include_root_in_json_is_false_by_default
-    assert_equal false, ActiveRecord::Base.include_root_in_json, "include_root_in_json should be false by default but was not"
+    assert_equal false, ActiveRecord::Base.include_root_in_json, 'include_root_in_json should be false by default but was not'
   end
 
   def test_serialize_should_be_reversible
@@ -62,7 +62,7 @@ class SerializationTest < ActiveRecord::TestCase
     ActiveRecord::Base.include_root_in_json = true
 
     klazz = Class.new(ActiveRecord::Base)
-    klazz.table_name = "topics"
+    klazz.table_name = 'topics'
     assert klazz.include_root_in_json
 
     klazz.include_root_in_json = false
@@ -75,7 +75,7 @@ class SerializationTest < ActiveRecord::TestCase
 
   def test_read_attribute_for_serialization_with_format_without_method_missing
     klazz = Class.new(ActiveRecord::Base)
-    klazz.table_name = "books"
+    klazz.table_name = 'books'
 
     book = klazz.new
     assert_nil book.read_attribute_for_serialization(:format)
@@ -83,24 +83,24 @@ class SerializationTest < ActiveRecord::TestCase
 
   def test_read_attribute_for_serialization_with_format_after_init
     klazz = Class.new(ActiveRecord::Base)
-    klazz.table_name = "books"
+    klazz.table_name = 'books'
 
-    book = klazz.new(format: "paperback")
-    assert_equal "paperback", book.read_attribute_for_serialization(:format)
+    book = klazz.new(format: 'paperback')
+    assert_equal 'paperback', book.read_attribute_for_serialization(:format)
   end
 
   def test_read_attribute_for_serialization_with_format_after_find
     klazz = Class.new(ActiveRecord::Base)
-    klazz.table_name = "books"
+    klazz.table_name = 'books'
 
     book = klazz.find(books(:awdr).id)
-    assert_equal "paperback", book.read_attribute_for_serialization(:format)
+    assert_equal 'paperback', book.read_attribute_for_serialization(:format)
   end
 
   def test_find_records_by_serialized_attributes_through_join
-    author = Author.create!(name: "David")
-    author.serialized_posts.create!(title: "Hello")
+    author = Author.create!(name: 'David')
+    author.serialized_posts.create!(title: 'Hello')
 
-    assert_equal 1, Author.joins(:serialized_posts).where(name: "David", serialized_posts: { title: "Hello" }).length
+    assert_equal 1, Author.joins(:serialized_posts).where(name: 'David', serialized_posts: { title: 'Hello' }).length
   end
 end

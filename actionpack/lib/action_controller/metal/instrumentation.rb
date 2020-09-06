@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "benchmark"
-require "abstract_controller/logger"
+require 'benchmark'
+require 'abstract_controller/logger'
 
 module ActionController
   # Adds instrumentation to several ends in ActionController::Base. It also provides
@@ -28,9 +28,9 @@ module ActionController
         path: request.fullpath
       }
 
-      ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload)
+      ActiveSupport::Notifications.instrument('start_processing.action_controller', raw_payload)
 
-      ActiveSupport::Notifications.instrument("process_action.action_controller", raw_payload) do |payload|
+      ActiveSupport::Notifications.instrument('process_action.action_controller', raw_payload) do |payload|
         result = super
         payload[:response] = response
         payload[:status]   = response.status
@@ -49,20 +49,20 @@ module ActionController
     end
 
     def send_file(path, options = {})
-      ActiveSupport::Notifications.instrument("send_file.action_controller",
+      ActiveSupport::Notifications.instrument('send_file.action_controller',
         options.merge(path: path)) do
         super
       end
     end
 
     def send_data(data, options = {})
-      ActiveSupport::Notifications.instrument("send_data.action_controller", options) do
+      ActiveSupport::Notifications.instrument('send_data.action_controller', options) do
         super
       end
     end
 
     def redirect_to(*)
-      ActiveSupport::Notifications.instrument("redirect_to.action_controller", request: request) do |payload|
+      ActiveSupport::Notifications.instrument('redirect_to.action_controller', request: request) do |payload|
         result = super
         payload[:status]   = response.status
         payload[:location] = response.filtered_location
@@ -73,7 +73,7 @@ module ActionController
   private
     # A hook invoked every time a before callback is halted.
     def halted_callback_hook(filter, _)
-      ActiveSupport::Notifications.instrument("halted_callback.action_controller", filter: filter)
+      ActiveSupport::Notifications.instrument('halted_callback.action_controller', filter: filter)
     end
 
     # A hook which allows you to clean up any time, wrongly taken into account in
@@ -98,7 +98,7 @@ module ActionController
       # with the messages to be added.
       def log_process_action(payload) #:nodoc:
         messages, view_runtime = [], payload[:view_runtime]
-        messages << ("Views: %.1fms" % view_runtime.to_f) if view_runtime
+        messages << ('Views: %.1fms' % view_runtime.to_f) if view_runtime
         messages
       end
     end

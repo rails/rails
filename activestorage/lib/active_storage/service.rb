@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "active_storage/log_subscriber"
-require "active_storage/downloader"
-require "action_dispatch"
-require "action_dispatch/http/content_disposition"
+require 'active_storage/log_subscriber'
+require 'active_storage/downloader'
+require 'action_dispatch'
+require 'action_dispatch/http/content_disposition'
 
 module ActiveStorage
   # Abstract class serving as an interface for concrete services.
@@ -159,11 +159,11 @@ module ActiveStorage
 
       def service_name
         # ActiveStorage::Service::DiskService => Disk
-        self.class.name.split("::").third.remove("Service")
+        self.class.name.split('::').third.remove('Service')
       end
 
-      def content_disposition_with(type: "inline", filename:)
-        disposition = (type.to_s.presence_in(%w( attachment inline )) || "inline")
+      def content_disposition_with(type: 'inline', filename:)
+        disposition = (type.to_s.presence_in(%w( attachment inline )) || 'inline')
         ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized)
       end
   end

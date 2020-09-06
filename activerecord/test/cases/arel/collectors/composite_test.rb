@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "../helper"
+require_relative '../helper'
 
-require "arel/collectors/bind"
-require "arel/collectors/composite"
+require 'arel/collectors/bind'
+require 'arel/collectors/composite'
 
 module Arel
   module Collectors
@@ -34,13 +34,13 @@ module Arel
       end
 
       def test_composite_collector_performs_multiple_collections_at_once
-        sql, binds = compile(ast_with_binds(["hello", "world"]))
+        sql, binds = compile(ast_with_binds(['hello', 'world']))
         assert_equal 'SELECT FROM "users" WHERE "users"."age" = ? AND "users"."name" = ?', sql
-        assert_equal ["hello", "world"], binds
+        assert_equal ['hello', 'world'], binds
 
-        sql, binds = compile(ast_with_binds(["hello2", "world3"]))
+        sql, binds = compile(ast_with_binds(['hello2', 'world3']))
         assert_equal 'SELECT FROM "users" WHERE "users"."age" = ? AND "users"."name" = ?', sql
-        assert_equal ["hello2", "world3"], binds
+        assert_equal ['hello2', 'world3'], binds
       end
     end
   end

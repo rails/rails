@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -29,7 +29,7 @@ module ActiveRecord
         end
 
         def test_quote_range
-          range = "1,2]'; SELECT * FROM users; --".."a"
+          range = "1,2]'; SELECT * FROM users; --"..'a'
           type = OID::Range.new(Type::Integer.new, :int8range)
           assert_equal "'[1,0]'", @conn.quote(type.serialize(range))
         end
@@ -41,8 +41,8 @@ module ActiveRecord
         end
 
         def test_quote_table_name_with_spaces
-          value = "user posts"
-          assert_equal "\"user posts\"", @conn.quote_table_name(value)
+          value = 'user posts'
+          assert_equal '"user posts"', @conn.quote_table_name(value)
         end
       end
     end

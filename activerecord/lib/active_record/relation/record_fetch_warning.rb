@@ -26,7 +26,7 @@ module ActiveRecord
       end
 
       # :stopdoc:
-      ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
         QueryRegistry.queries << payload[:sql]
       end
       # :startdoc:

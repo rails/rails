@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/notification"
-require "models/user"
+require 'cases/helper'
+require 'models/notification'
+require 'models/user'
 
 class SuppressorTest < ActiveRecord::TestCase
   def test_suppresses_create
@@ -17,22 +17,22 @@ class SuppressorTest < ActiveRecord::TestCase
   end
 
   def test_suppresses_update
-    user = User.create! token: "asdf"
+    user = User.create! token: 'asdf'
 
     User.suppress do
-      user.update token: "ghjkl"
-      assert_equal "asdf", user.reload.token
+      user.update token: 'ghjkl'
+      assert_equal 'asdf', user.reload.token
 
-      user.update! token: "zxcvbnm"
-      assert_equal "asdf", user.reload.token
+      user.update! token: 'zxcvbnm'
+      assert_equal 'asdf', user.reload.token
 
-      user.token = "qwerty"
+      user.token = 'qwerty'
       user.save
-      assert_equal "asdf", user.reload.token
+      assert_equal 'asdf', user.reload.token
 
-      user.token = "uiop"
+      user.token = 'uiop'
       user.save!
-      assert_equal "asdf", user.reload.token
+      assert_equal 'asdf', user.reload.token
     end
   end
 
@@ -48,7 +48,7 @@ class SuppressorTest < ActiveRecord::TestCase
     Notification.suppress { UserWithNotification.create! }
 
     assert_difference -> { Notification.count } do
-      Notification.create!(message: "New Comment")
+      Notification.create!(message: 'New Comment')
     end
   end
 

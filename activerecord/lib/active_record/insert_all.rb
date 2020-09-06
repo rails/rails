@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/enumerable"
+require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
   class InsertAll # :nodoc:
@@ -8,7 +8,7 @@ module ActiveRecord
     attr_reader :on_duplicate, :returning, :unique_by
 
     def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
-      raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
+      raise ArgumentError, 'Empty list of attributes passed' if inserts.blank?
 
       @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s)
       @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
@@ -30,8 +30,8 @@ module ActiveRecord
 
     def execute
       message = +"#{model} "
-      message << "Bulk " if inserts.many?
-      message << (on_duplicate == :update ? "Upsert" : "Insert")
+      message << 'Bulk ' if inserts.many?
+      message << (on_duplicate == :update ? 'Upsert' : 'Insert')
       connection.exec_insert_all to_sql, message
     end
 
@@ -121,7 +121,7 @@ module ActiveRecord
 
       def verify_attributes(attributes)
         if keys != attributes.keys.to_set
-          raise ArgumentError, "All objects being inserted must have the same keys"
+          raise ArgumentError, 'All objects being inserted must have the same keys'
         end
       end
 
@@ -195,7 +195,7 @@ module ActiveRecord
           end
 
           def format_columns(columns)
-            columns.respond_to?(:map) ? quote_columns(columns).join(",") : columns
+            columns.respond_to?(:map) ? quote_columns(columns).join(',') : columns
           end
 
           def quote_columns(columns)

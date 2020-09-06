@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 module ActiveModel
   module Type
@@ -8,19 +8,19 @@ module ActiveModel
       def test_type_cast_datetime_and_timestamp
         type = Type::DateTime.new
         assert_nil type.cast(nil)
-        assert_nil type.cast("")
-        assert_nil type.cast("  ")
-        assert_nil type.cast("ABC")
+        assert_nil type.cast('')
+        assert_nil type.cast('  ')
+        assert_nil type.cast('ABC')
 
-        datetime_string = ::Time.now.utc.strftime("%FT%T")
-        assert_equal datetime_string, type.cast(datetime_string).strftime("%FT%T")
+        datetime_string = ::Time.now.utc.strftime('%FT%T')
+        assert_equal datetime_string, type.cast(datetime_string).strftime('%FT%T')
       end
 
       def test_string_to_time_with_timezone
-        ["UTC", "US/Eastern"].each do |zone|
+        ['UTC', 'US/Eastern'].each do |zone|
           with_timezone_config default: zone do
             type = Type::DateTime.new
-            assert_equal ::Time.utc(2013, 9, 4, 0, 0, 0), type.cast("Wed, 04 Sep 2013 03:00:00 EAT")
+            assert_equal ::Time.utc(2013, 9, 4, 0, 0, 0), type.cast('Wed, 04 Sep 2013 03:00:00 EAT')
           end
         end
       end

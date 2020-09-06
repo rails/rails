@@ -18,7 +18,7 @@ module ActiveRecord
       def spec_name
         @name
       end
-      deprecate spec_name: "please use name instead"
+      deprecate spec_name: 'please use name instead'
 
       def config
         raise NotImplementedError

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "weakref"
+require 'weakref'
 
 module ActiveSupport
   # This module provides an internal implementation to track descendants

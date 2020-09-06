@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../abstract_unit"
-require "active_support/core_ext/module/concerning"
+require_relative '../../abstract_unit'
+require 'active_support/core_ext/module/concerning'
 
 class ModuleConcerningTest < ActiveSupport::TestCase
   def test_concerning_declares_a_concern_and_includes_it_immediately
@@ -14,14 +14,14 @@ class ModuleConcerningTest < ActiveSupport::TestCase
 
   def test_concerning_can_prepend_concern
     klass = Class.new do
-      def hi; "self"; end
+      def hi; 'self'; end
 
       concerning(:Foo, prepend: true) do
         def hi; "hello, #{super}"; end
       end
     end
 
-    assert_equal "hello, self", klass.new.hi
+    assert_equal 'hello, self', klass.new.hi
   end
 end
 
@@ -42,13 +42,13 @@ class ModuleConcernTest < ActiveSupport::TestCase
     assert_not_includes klass.ancestors, klass::Baz, klass.ancestors.inspect
 
     # Public method visibility by default
-    assert_includes klass::Baz.public_instance_methods.map(&:to_s), "should_be_public"
+    assert_includes klass::Baz.public_instance_methods.map(&:to_s), 'should_be_public'
 
     # Calls included hook
-    assert_equal 1, Class.new { include klass::Baz }.instance_variable_get("@foo")
+    assert_equal 1, Class.new { include klass::Baz }.instance_variable_get('@foo')
 
     # Calls prepended hook
-    assert_equal 2, Class.new { prepend klass::Baz }.instance_variable_get("@foo")
+    assert_equal 2, Class.new { prepend klass::Baz }.instance_variable_get('@foo')
   end
 
   class Foo

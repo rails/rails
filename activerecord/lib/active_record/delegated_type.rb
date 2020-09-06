@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/inquiry"
+require 'active_support/core_ext/string/inquiry'
 
 module ActiveRecord
   # == Delegated types
@@ -186,7 +186,7 @@ module ActiveRecord
         end
 
         types.each do |type|
-          scope_name = type.tableize.gsub("/", "_")
+          scope_name = type.tableize.gsub('/', '_')
           singular   = scope_name.singularize
           query      = "#{singular}?"
 

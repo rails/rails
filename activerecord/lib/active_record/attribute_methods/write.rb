@@ -6,7 +6,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        attribute_method_suffix "="
+        attribute_method_suffix '='
       end
 
       module ClassMethods # :nodoc:
@@ -18,7 +18,7 @@ module ActiveRecord
               owner <<
                 "def #{temp_method_name}(value)" <<
                 "  _write_attribute(#{attr_name_expr}, value)" <<
-                "end"
+                'end'
             end
           end
       end
@@ -30,7 +30,7 @@ module ActiveRecord
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
 
-        name = @primary_key if name == "id" && @primary_key
+        name = @primary_key if name == 'id' && @primary_key
         @attributes.write_from_user(name, value)
       end
 

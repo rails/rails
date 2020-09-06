@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../helper"
-require "active_model/attribute"
+require_relative '../helper'
+require 'active_model/attribute'
 
 module Arel
   module Visitors
@@ -19,13 +19,13 @@ module Arel
         Nodes::Avg,
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
-          op = klass.new(:a, "z")
+          op = klass.new(:a, 'z')
           @visitor.accept op, Collectors::PlainString.new
         end
       end
 
       def test_named_function
-        func = Nodes::NamedFunction.new "omg", "omg"
+        func = Nodes::NamedFunction.new 'omg', 'omg'
         @visitor.accept func, Collectors::PlainString.new
       end
 
@@ -81,7 +81,7 @@ module Arel
       end
 
       def test_ActiveModel_Attribute
-        node = ActiveModel::Attribute.with_cast_value("LIMIT", 1, nil)
+        node = ActiveModel::Attribute.with_cast_value('LIMIT', 1, nil)
         collector = Collectors::PlainString.new
         assert_match '[label="<f0>ActiveModel::Attribute::WithCastValue"]', @visitor.accept(node, collector).value
       end

@@ -3,7 +3,7 @@
 class Room
   attr_reader :id, :name
 
-  def initialize(id, name = "Campfire")
+  def initialize(id, name = 'Campfire')
     @id = id
     @name = name
   end

@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require_relative "../../abstract_unit"
-require "active_support/core_ext/array"
+require_relative '../../abstract_unit'
+require 'active_support/core_ext/array'
 
 class WrapTest < ActiveSupport::TestCase
   class FakeCollection
     def to_ary
-      ["foo", "bar"]
+      ['foo', 'bar']
     end
   end
 
@@ -42,7 +42,7 @@ class WrapTest < ActiveSupport::TestCase
   end
 
   def test_string
-    assert_equal ["foo"], Array.wrap("foo")
+    assert_equal ['foo'], Array.wrap('foo')
   end
 
   def test_string_with_newline
@@ -50,7 +50,7 @@ class WrapTest < ActiveSupport::TestCase
   end
 
   def test_object_with_to_ary
-    assert_equal ["foo", "bar"], Array.wrap(FakeCollection.new)
+    assert_equal ['foo', 'bar'], Array.wrap(FakeCollection.new)
   end
 
   def test_proxy_object

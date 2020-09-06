@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "action_view/helpers/tag_helper"
-require "active_support/core_ext/string/access"
-require "i18n/exceptions"
+require 'action_view/helpers/tag_helper'
+require 'active_support/core_ext/string/access'
+require 'i18n/exceptions'
 
 module ActionView
   # = Action View Translation Helpers
@@ -124,12 +124,12 @@ module ActionView
           interpolations = options.except(:default, :scope)
 
           if interpolations.any?
-            title << ", " << interpolations.map { |k, v| "#{k}: #{ERB::Util.html_escape(v)}" }.join(", ")
+            title << ', ' << interpolations.map { |k, v| "#{k}: #{ERB::Util.html_escape(v)}" }.join(', ')
           end
 
           return title unless ActionView::Base.debug_missing_translation
 
-          translated_fallback = content_tag("span", keys.last.to_s.titleize, class: "translation_missing", title: title)
+          translated_fallback = content_tag('span', keys.last.to_s.titleize, class: 'translation_missing', title: title)
 
           if block_given?
             yield(translated_fallback, scope_key_by_partial(key))
@@ -152,10 +152,10 @@ module ActionView
       private
         def scope_key_by_partial(key)
           stringified_key = key.to_s
-          if stringified_key.start_with?(".")
+          if stringified_key.start_with?('.')
             if @current_template&.virtual_path
               @_scope_key_by_partial_cache ||= {}
-              @_scope_key_by_partial_cache[@current_template.virtual_path] ||= @current_template.virtual_path.gsub(%r{/_?}, ".")
+              @_scope_key_by_partial_cache[@current_template.virtual_path] ||= @current_template.virtual_path.gsub(%r{/_?}, '.')
               "#{@_scope_key_by_partial_cache[@current_template.virtual_path]}#{stringified_key}"
             else
               raise "Cannot use t(#{key.inspect}) shortcut because path is not available"

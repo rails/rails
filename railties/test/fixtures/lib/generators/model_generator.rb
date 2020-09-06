@@ -1,3 +1,3 @@
 # frozen_string_literal: true
 
-raise "I should never be loaded"
+raise 'I should never be loaded'

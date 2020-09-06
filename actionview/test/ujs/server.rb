@@ -1,25 +1,25 @@
 # frozen_string_literal: true
 
-require "rack"
-require "rails"
-require "action_controller/railtie"
-require "action_view/railtie"
-require "blade"
-require "json"
+require 'rack'
+require 'rails'
+require 'action_controller/railtie'
+require 'action_view/railtie'
+require 'blade'
+require 'json'
 
 module UJS
   class Server < Rails::Application
     routes.append do
-      get "/rails-ujs.js" => Blade::Assets.environment
-      get "/" => "tests#index"
-      match "/echo" => "tests#echo", via: :all
-      get "/error" => proc { |env| [403, {}, []] }
+      get '/rails-ujs.js' => Blade::Assets.environment
+      get '/' => 'tests#index'
+      match '/echo' => 'tests#echo', via: :all
+      get '/error' => proc { |env| [403, {}, []] }
     end
 
     config.cache_classes = false
     config.eager_load = false
-    config.secret_key_base = "59d7a4dbd349fa3838d79e330e39690fc22b931e7dc17d9162f03d633d526fbb92dfdb2dc9804c8be3e199631b9c1fbe43fc3e4fc75730b515851849c728d5c7"
-    config.paths["app/views"].unshift("#{Rails.root}/views")
+    config.secret_key_base = '59d7a4dbd349fa3838d79e330e39690fc22b931e7dc17d9162f03d633d526fbb92dfdb2dc9804c8be3e199631b9c1fbe43fc3e4fc75730b515851849c728d5c7'
+    config.paths['app/views'].unshift("#{Rails.root}/views")
     config.public_file_server.enabled = true
     config.logger = Logger.new(STDOUT)
     config.log_level = :error
@@ -53,7 +53,7 @@ end
 
 class TestsController < ActionController::Base
   helper TestsHelper
-  layout "application"
+  layout 'application'
 
   def index
     render :index
@@ -66,13 +66,13 @@ class TestsController < ActionController::Base
       render inline: params[:content], content_type: params[:content_type]
     elsif request.xhr?
       if params[:with_xhr_redirect]
-        response.set_header("X-Xhr-Redirect", "http://example.com/")
+        response.set_header('X-Xhr-Redirect', 'http://example.com/')
         render inline: %{Turbolinks.clearCache()\nTurbolinks.visit("http://example.com/", {"action":"replace"})}
       else
         render json: JSON.generate(data)
       end
     elsif params[:iframe]
-      payload = JSON.generate(data).gsub("<", "&lt;").gsub(">", "&gt;")
+      payload = JSON.generate(data).gsub('<', '&lt;').gsub('>', '&gt;')
       html = <<-HTML
         <script nonce="#{request.content_security_policy_nonce}">
           if (window.top && window.top !== window)

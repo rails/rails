@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "singleton"
-require "active_support/core_ext/symbol/starts_ends_with"
+require 'singleton'
+require 'active_support/core_ext/symbol/starts_ends_with'
 
 module Mime
   class Mimes
@@ -75,7 +75,7 @@ module Mime
       def initialize(index, name, q = nil)
         @index = index
         @name = name
-        q ||= 0.0 if @name == "*/*" # Default wildcard match to end of list.
+        q ||= 0.0 if @name == '*/*' # Default wildcard match to end of list.
         @q = ((q || 1.0).to_f * 100).to_i
       end
 
@@ -90,7 +90,7 @@ module Mime
       def self.sort!(list)
         list.sort!
 
-        text_xml_idx = find_item_by_name list, "text/xml"
+        text_xml_idx = find_item_by_name list, 'text/xml'
         app_xml_idx = find_item_by_name list, Mime[:xml].to_s
 
         # Take care of the broken text/xml entry by renaming or deleting it.
@@ -117,7 +117,7 @@ module Mime
             type = list[idx]
             break if type.q < app_xml.q
 
-            if type.name.end_with? "+xml"
+            if type.name.end_with? '+xml'
               list[app_xml_idx], list[idx] = list[idx], app_xml
               app_xml_idx = idx
             end
@@ -171,13 +171,13 @@ module Mime
       end
 
       def parse(accept_header)
-        if !accept_header.include?(",")
+        if !accept_header.include?(',')
           accept_header = accept_header.split(PARAMETER_SEPARATOR_REGEXP).first
           return [] unless accept_header
           parse_trailing_star(accept_header) || [Mime::Type.lookup(accept_header)].compact
         else
           list, index = [], 0
-          accept_header.split(",").each do |header|
+          accept_header.split(',').each do |header|
             params, q = header.split(PARAMETER_SEPARATOR_REGEXP)
 
             next unless params
@@ -306,7 +306,7 @@ module Mime
       def to_a; end
 
       def method_missing(method, *args)
-        if method.end_with?("?")
+        if method.end_with?('?')
           method[0..-2].downcase.to_sym == to_sym
         else
           super
@@ -314,7 +314,7 @@ module Mime
       end
 
       def respond_to_missing?(method, include_private = false)
-        method.end_with?("?") || super
+        method.end_with?('?') || super
       end
   end
 
@@ -322,7 +322,7 @@ module Mime
     include Singleton
 
     def initialize
-      super "*/*", nil
+      super '*/*', nil
     end
 
     def all?; true; end
@@ -342,20 +342,20 @@ module Mime
     end
 
     def to_s
-      ""
+      ''
     end
 
     def ref; end
 
     private
       def respond_to_missing?(method, _)
-        method.end_with?("?")
+        method.end_with?('?')
       end
 
       def method_missing(method, *args)
-        false if method.end_with?("?")
+        false if method.end_with?('?')
       end
   end
 end
 
-require "action_dispatch/http/mime_types"
+require 'action_dispatch/http/mime_types'

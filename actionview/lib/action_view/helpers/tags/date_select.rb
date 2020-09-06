@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/time/calculations"
+require 'active_support/core_ext/time/calculations'
 
 module ActionView
   module Helpers
@@ -18,7 +18,7 @@ module ActionView
 
         class << self
           def select_type
-            @select_type ||= name.split("::").last.sub("Select", "").downcase
+            @select_type ||= name.split('::').last.sub('Select', '').downcase
           end
         end
 

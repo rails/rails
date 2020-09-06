@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_job/arguments"
+require 'active_job/arguments'
 
 module ActiveJob
   # Provides behavior for enqueuing jobs.
@@ -70,8 +70,8 @@ module ActiveJob
         else
           ActiveSupport::Deprecation.warn(
             "Rails 6.1 will return false when the enqueuing is aborted. Make sure your code doesn't depend on it" \
-            " returning the instance of the job and set `config.active_job.return_false_on_aborted_enqueue = true`" \
-            " to remove the deprecations."
+            ' returning the instance of the job and set `config.active_job.return_false_on_aborted_enqueue = true`' \
+            ' to remove the deprecations.'
           )
 
           self

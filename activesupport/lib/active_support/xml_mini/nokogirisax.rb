@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 begin
-  require "nokogiri"
+  require 'nokogiri'
 rescue LoadError => e
   $stderr.puts "You don't have nokogiri installed in your application. Please add it to your Gemfile and run bundle install"
   raise e
 end
-require "active_support/core_ext/object/blank"
-require "stringio"
+require 'active_support/core_ext/object/blank'
+require 'stringio'
 
 module ActiveSupport
   module XmlMini_NokogiriSAX #:nodoc:
@@ -16,8 +16,8 @@ module ActiveSupport
     # Class that will build the hash while the XML document
     # is being parsed using SAX events.
     class HashBuilder < Nokogiri::XML::SAX::Document
-      CONTENT_KEY   = "__content__"
-      HASH_SIZE_KEY = "__hash_size__"
+      CONTENT_KEY   = '__content__'
+      HASH_SIZE_KEY = '__hash_size__'
 
       attr_reader :hash
 
@@ -31,7 +31,7 @@ module ActiveSupport
       end
 
       def end_document
-        raise "Parse stack not empty!" if @hash_stack.size > 1
+        raise 'Parse stack not empty!' if @hash_stack.size > 1
       end
 
       def error(error_message)
@@ -39,7 +39,7 @@ module ActiveSupport
       end
 
       def start_element(name, attrs = [])
-        new_hash = { CONTENT_KEY => +"" }.merge!(Hash[attrs])
+        new_hash = { CONTENT_KEY => +'' }.merge!(Hash[attrs])
         new_hash[HASH_SIZE_KEY] = new_hash.size + 1
 
         case current_hash[name]
@@ -52,7 +52,7 @@ module ActiveSupport
       end
 
       def end_element(name)
-        if current_hash.length > current_hash.delete(HASH_SIZE_KEY) && current_hash[CONTENT_KEY].blank? || current_hash[CONTENT_KEY] == ""
+        if current_hash.length > current_hash.delete(HASH_SIZE_KEY) && current_hash[CONTENT_KEY].blank? || current_hash[CONTENT_KEY] == ''
           current_hash.delete(CONTENT_KEY)
         end
         @hash_stack.pop
@@ -70,7 +70,7 @@ module ActiveSupport
 
     def parse(data)
       if !data.respond_to?(:read)
-        data = StringIO.new(data || "")
+        data = StringIO.new(data || '')
       end
 
       if data.eof?

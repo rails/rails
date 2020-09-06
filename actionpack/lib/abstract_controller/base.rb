@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_controller/error"
-require "active_support/configurable"
-require "active_support/descendants_tracker"
-require "active_support/core_ext/module/anonymous"
-require "active_support/core_ext/module/attr_internal"
+require 'abstract_controller/error'
+require 'active_support/configurable'
+require 'active_support/descendants_tracker'
+require 'active_support/core_ext/module/anonymous'
+require 'active_support/core_ext/module/attr_internal'
 
 module AbstractController
   # Raised when a non-existing controller action is triggered.
@@ -133,7 +133,7 @@ module AbstractController
       # ==== Returns
       # * <tt>String</tt>
       def controller_path
-        @controller_path ||= name.delete_suffix("Controller").underscore unless anonymous?
+        @controller_path ||= name.delete_suffix('Controller').underscore unless anonymous?
       end
 
       # Refresh the cached action_methods when a new action_method is added.
@@ -287,7 +287,7 @@ module AbstractController
         if action_method?(action_name)
           action_name
         elsif respond_to?(:action_missing, true)
-          "_handle_action_missing"
+          '_handle_action_missing'
         end
       end
 

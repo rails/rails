@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "stubs/user"
+require 'stubs/user'
 
 class TestConnection
   attr_reader :identifiers, :logger, :current_user, :server, :subscriptions, :transmissions
 
   delegate :pubsub, to: :server
 
-  def initialize(user = User.new("lifo"), coder: ActiveSupport::JSON, subscription_adapter: SuccessAdapter)
+  def initialize(user = User.new('lifo'), coder: ActiveSupport::JSON, subscription_adapter: SuccessAdapter)
     @coder = coder
     @identifiers = [ :current_user ]
 

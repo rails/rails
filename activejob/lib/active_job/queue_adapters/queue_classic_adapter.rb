@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "queue_classic"
+require 'queue_classic'
 
 module ActiveJob
   module QueueAdapters
@@ -21,19 +21,19 @@ module ActiveJob
     class QueueClassicAdapter
       def enqueue(job) #:nodoc:
         qc_job = build_queue(job.queue_name).enqueue("#{JobWrapper.name}.perform", job.serialize)
-        job.provider_job_id = qc_job["id"] if qc_job.is_a?(Hash)
+        job.provider_job_id = qc_job['id'] if qc_job.is_a?(Hash)
         qc_job
       end
 
       def enqueue_at(job, timestamp) #:nodoc:
         queue = build_queue(job.queue_name)
         unless queue.respond_to?(:enqueue_at)
-          raise NotImplementedError, "To be able to schedule jobs with queue_classic " \
-            "the QC::Queue needs to respond to `enqueue_at(timestamp, method, *args)`. " \
-            "You can implement this yourself or you can use the queue_classic-later gem."
+          raise NotImplementedError, 'To be able to schedule jobs with queue_classic ' \
+            'the QC::Queue needs to respond to `enqueue_at(timestamp, method, *args)`. ' \
+            'You can implement this yourself or you can use the queue_classic-later gem.'
         end
         qc_job = queue.enqueue_at(timestamp, "#{JobWrapper.name}.perform", job.serialize)
-        job.provider_job_id = qc_job["id"] if qc_job.is_a?(Hash)
+        job.provider_job_id = qc_job['id'] if qc_job.is_a?(Hash)
         qc_job
       end
 

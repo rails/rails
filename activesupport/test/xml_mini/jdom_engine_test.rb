@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative "xml_mini_engine_test"
+require_relative 'xml_mini_engine_test'
 
-XMLMiniEngineTest.run_with_platform("java") do
+XMLMiniEngineTest.run_with_platform('java') do
   class JDOMEngineTest < XMLMiniEngineTest
-    FILES_DIR = File.expand_path("../fixtures/xml", __dir__)
+    FILES_DIR = File.expand_path('../fixtures/xml', __dir__)
 
     def test_not_allowed_to_expand_entities_to_files
       attack_xml = <<-EOT
@@ -13,7 +13,7 @@ XMLMiniEngineTest.run_with_platform("java") do
       ]>
       <member>x&a;</member>
       EOT
-      assert_equal "x", Hash.from_xml(attack_xml)["member"]
+      assert_equal 'x', Hash.from_xml(attack_xml)['member']
     end
 
     def test_not_allowed_to_expand_parameter_entities_to_files
@@ -25,7 +25,7 @@ XMLMiniEngineTest.run_with_platform("java") do
       <member>x&a;</member>
       EOT
       assert_raise Java::OrgXmlSax::SAXParseException do
-        assert_equal "x", Hash.from_xml(attack_xml)["member"]
+        assert_equal 'x', Hash.from_xml(attack_xml)['member']
       end
     end
 
@@ -34,12 +34,12 @@ XMLMiniEngineTest.run_with_platform("java") do
       <!DOCTYPE member SYSTEM "file://#{FILES_DIR}/jdom_doctype.dtd">
       <member>x&a;</member>
       EOT
-      assert_equal "x", Hash.from_xml(attack_xml)["member"]
+      assert_equal 'x', Hash.from_xml(attack_xml)['member']
     end
 
     private
       def engine
-        "JDOM"
+        'JDOM'
       end
 
       def expansion_attack_error

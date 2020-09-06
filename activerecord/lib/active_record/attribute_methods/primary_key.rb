@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "set"
+require 'set'
 
 module ActiveRecord
   module AttributeMethods
@@ -50,7 +50,7 @@ module ActiveRecord
 
       private
         def attribute_method?(attr_name)
-          attr_name == "id" || super
+          attr_name == 'id' || super
         end
 
         module ClassMethods
@@ -96,7 +96,7 @@ module ActiveRecord
                 pk = connection.schema_cache.primary_keys(table_name)
                 suppress_composite_primary_key(pk)
               else
-                "id"
+                'id'
               end
             end
           end

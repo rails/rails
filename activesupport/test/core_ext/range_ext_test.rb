@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
-require "active_support/time"
-require "active_support/core_ext/numeric"
-require "active_support/core_ext/range"
+require_relative '../abstract_unit'
+require 'active_support/time'
+require 'active_support/core_ext/numeric'
+require 'active_support/core_ext/range'
 
 class RangeTest < ActiveSupport::TestCase
   def test_to_s_from_dates
@@ -17,7 +17,7 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_to_s_with_alphabets
-    alphabet_range = ("a".."z")
+    alphabet_range = ('a'..'z')
     assert_equal "BETWEEN 'a' AND 'z'", alphabet_range.to_s(:db)
   end
 
@@ -69,31 +69,31 @@ class RangeTest < ActiveSupport::TestCase
     assert_not((1..5).include?(3...3))
   end
 
-  if RUBY_VERSION >= "2.6"
+  if RUBY_VERSION >= '2.6'
     def test_include_with_endless_range
-      assert(eval("1..").include?(2))
+      assert(eval('1..').include?(2))
     end
 
     def test_should_include_range_with_endless_range
-      assert(eval("1..").include?(2..4))
+      assert(eval('1..').include?(2..4))
     end
 
     def test_should_not_include_range_with_endless_range
-      assert_not(eval("1..").include?(0..4))
+      assert_not(eval('1..').include?(0..4))
     end
   end
 
-  if RUBY_VERSION >= "2.7"
+  if RUBY_VERSION >= '2.7'
     def test_include_with_beginless_range
-      assert(eval("..2").include?(1))
+      assert(eval('..2').include?(1))
     end
 
     def test_should_include_range_with_beginless_range
-      assert(eval("..2").include?(-1..1))
+      assert(eval('..2').include?(-1..1))
     end
 
     def test_should_not_include_range_with_beginless_range
-      assert_not(eval("..2").include?(-1..3))
+      assert_not(eval('..2').include?(-1..3))
     end
   end
 
@@ -118,23 +118,23 @@ class RangeTest < ActiveSupport::TestCase
     assert_not((1..5) === (3...3))
   end
 
-  if RUBY_VERSION >= "2.6"
+  if RUBY_VERSION >= '2.6'
     def test_should_compare_range_with_endless_range
-      assert(eval("1..") === (2..4))
+      assert(eval('1..') === (2..4))
     end
 
     def test_should_not_compare_range_with_endless_range
-      assert_not(eval("1..") === (0..4))
+      assert_not(eval('1..') === (0..4))
     end
   end
 
-  if RUBY_VERSION >= "2.7"
+  if RUBY_VERSION >= '2.7'
     def test_should_compare_range_with_beginless_range
-      assert(eval("..2") === (-1..1))
+      assert(eval('..2') === (-1..1))
     end
 
     def test_should_not_compare_range_with_beginless_range
-      assert_not(eval("..2") === (-1..3))
+      assert_not(eval('..2') === (-1..3))
     end
   end
 
@@ -172,23 +172,23 @@ class RangeTest < ActiveSupport::TestCase
     assert_not((1..5).cover?(3...3))
   end
 
-  if RUBY_VERSION >= "2.6"
+  if RUBY_VERSION >= '2.6'
     def test_should_cover_range_with_endless_range
-      assert(eval("1..").cover?(2..4))
+      assert(eval('1..').cover?(2..4))
     end
 
     def test_should_not_cover_range_with_endless_range
-      assert_not(eval("1..").cover?(0..4))
+      assert_not(eval('1..').cover?(0..4))
     end
   end
 
-  if RUBY_VERSION >= "2.7"
+  if RUBY_VERSION >= '2.7'
     def test_should_cover_range_with_beginless_range
-      assert(eval("..2").cover?(-1..1))
+      assert(eval('..2').cover?(-1..1))
     end
 
     def test_should_not_cover_range_with_beginless_range
-      assert_not(eval("..2").cover?(-1..3))
+      assert_not(eval('..2').cover?(-1..3))
     end
   end
 
@@ -205,34 +205,34 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_each_on_time_with_zone
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Eastern Time (US & Canada)'], Time.utc(2006, 11, 28, 10, 30))
     assert_raises TypeError do
       ((twz - 1.hour)..twz).each { }
     end
   end
 
   def test_step_on_time_with_zone
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Eastern Time (US & Canada)'], Time.utc(2006, 11, 28, 10, 30))
     assert_raises TypeError do
       ((twz - 1.hour)..twz).step(1) { }
     end
   end
 
   def test_cover_on_time_with_zone
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Eastern Time (US & Canada)'], Time.utc(2006, 11, 28, 10, 30))
     assert ((twz - 1.hour)..twz).cover?(twz)
   end
 
   def test_include_on_time_with_zone
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Eastern Time (US & Canada)'], Time.utc(2006, 11, 28, 10, 30))
     assert_deprecated do
       ((twz - 1.hour)..twz).include?(twz)
     end
   end
 
   def test_case_equals_on_time_with_zone
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
-    if RUBY_VERSION >= "2.6" # https://bugs.ruby-lang.org/issues/14575
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Eastern Time (US & Canada)'], Time.utc(2006, 11, 28, 10, 30))
+    if RUBY_VERSION >= '2.6' # https://bugs.ruby-lang.org/issues/14575
       assert ((twz - 1.hour)..twz) === twz
     else
       assert_deprecated do

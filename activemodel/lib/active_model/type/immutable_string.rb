@@ -4,8 +4,8 @@ module ActiveModel
   module Type
     class ImmutableString < Value # :nodoc:
       def initialize(**args)
-        @true  = -(args.delete(:true)&.to_s  || "t")
-        @false = -(args.delete(:false)&.to_s || "f")
+        @true  = -(args.delete(:true)&.to_s  || 't')
+        @false = -(args.delete(:false)&.to_s || 'f')
         super
       end
 

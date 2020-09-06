@@ -31,7 +31,7 @@ module ActiveRecord
         def explain(arel, binds = [])
           sql     = "EXPLAIN #{to_sql(arel, binds)}"
           start   = Concurrent.monotonic_time
-          result  = exec_query(sql, "EXPLAIN", binds)
+          result  = exec_query(sql, 'EXPLAIN', binds)
           elapsed = Concurrent.monotonic_time - start
 
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
@@ -50,7 +50,7 @@ module ActiveRecord
           super
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false)
+        def exec_query(sql, name = 'SQL', binds = [], prepare: false)
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) do |result|
               if result
@@ -101,7 +101,7 @@ module ActiveRecord
             flags = @config[:flags]
 
             if flags.is_a?(Array)
-              flags.include?("MULTI_STATEMENTS")
+              flags.include?('MULTI_STATEMENTS')
             else
               flags.anybits?(Mysql2::Client::MULTI_STATEMENTS)
             end
@@ -145,7 +145,7 @@ module ActiveRecord
           end
 
           def max_allowed_packet
-            @max_allowed_packet ||= show_variable("max_allowed_packet")
+            @max_allowed_packet ||= show_variable('max_allowed_packet')
           end
 
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false)

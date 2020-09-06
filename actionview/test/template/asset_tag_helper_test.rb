@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "active_support/ordered_options"
+require 'abstract_unit'
+require 'active_support/ordered_options'
 
-require "action_dispatch"
+require 'action_dispatch'
 ActionView::Template::Types.delegate_to Mime
 
 class AssetTagHelperTest < ActionView::TestCase
@@ -13,10 +13,10 @@ class AssetTagHelperTest < ActionView::TestCase
 
   class FakeRequest
     attr_accessor :script_name
-    def protocol() "http://" end
+    def protocol() 'http://' end
     def ssl?() false end
-    def host_with_port() "localhost" end
-    def base_url() "http://www.example.com" end
+    def host_with_port() 'localhost' end
+    def base_url() 'http://www.example.com' end
     def send_early_hints(links) end
   end
 
@@ -39,11 +39,11 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def url_for(*args)
-    "http://www.example.com"
+    'http://www.example.com'
   end
 
   def content_security_policy_nonce
-    "iyhD0Yc0W+c="
+    'iyhD0Yc0W+c='
   end
 
   AssetPathToTag = {
@@ -359,7 +359,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_autodiscovery_link_tag_with_unknown_type
-    result = auto_discovery_link_tag(:xml, "/feed.xml", type: "application/xml")
+    result = auto_discovery_link_tag(:xml, '/feed.xml', type: 'application/xml')
     expected = %(<link href="/feed.xml" rel="alternate" title="XML" type="application/xml" />)
     assert_dom_equal expected, result
   end
@@ -370,23 +370,23 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_asset_path_tag_raises_an_error_for_nil_source
     e = assert_raise(ArgumentError) { asset_path(nil) }
-    assert_equal("nil is not a valid asset source", e.message)
+    assert_equal('nil is not a valid asset source', e.message)
   end
 
   def test_asset_path_tag_to_not_create_duplicate_slashes
-    @controller.config.asset_host = "host/"
-    assert_dom_equal("http://host/foo", asset_path("foo"))
+    @controller.config.asset_host = 'host/'
+    assert_dom_equal('http://host/foo', asset_path('foo'))
 
-    @controller.config.relative_url_root = "/some/root/"
-    assert_dom_equal("http://host/some/root/foo", asset_path("foo"))
+    @controller.config.relative_url_root = '/some/root/'
+    assert_dom_equal('http://host/some/root/foo', asset_path('foo'))
   end
 
   def test_compute_asset_public_path
-    assert_equal "/robots.txt", compute_asset_path("robots.txt")
-    assert_equal "/robots.txt", compute_asset_path("/robots.txt")
-    assert_equal "/javascripts/foo.js", compute_asset_path("foo.js", type: :javascript)
-    assert_equal "/javascripts/foo.js", compute_asset_path("/foo.js", type: :javascript)
-    assert_equal "/stylesheets/foo.css", compute_asset_path("foo.css", type: :stylesheet)
+    assert_equal '/robots.txt', compute_asset_path('robots.txt')
+    assert_equal '/robots.txt', compute_asset_path('/robots.txt')
+    assert_equal '/javascripts/foo.js', compute_asset_path('foo.js', type: :javascript)
+    assert_equal '/javascripts/foo.js', compute_asset_path('/foo.js', type: :javascript)
+    assert_equal '/stylesheets/foo.css', compute_asset_path('foo.css', type: :stylesheet)
   end
 
   def test_auto_discovery_link_tag
@@ -415,31 +415,31 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_javascript_include_tag_with_missing_source
     assert_nothing_raised {
-      javascript_include_tag("missing_security_guard")
+      javascript_include_tag('missing_security_guard')
     }
 
     assert_nothing_raised {
-      javascript_include_tag("http://example.com/css/missing_security_guard")
+      javascript_include_tag('http://example.com/css/missing_security_guard')
     }
   end
 
   def test_javascript_include_tag_is_html_safe
-    assert_predicate javascript_include_tag("prototype"), :html_safe?
+    assert_predicate javascript_include_tag('prototype'), :html_safe?
   end
 
   def test_javascript_include_tag_relative_protocol
-    @controller.config.asset_host = "assets.example.com"
-    assert_dom_equal %(<script src="//assets.example.com/javascripts/prototype.js"></script>), javascript_include_tag("prototype", protocol: :relative)
+    @controller.config.asset_host = 'assets.example.com'
+    assert_dom_equal %(<script src="//assets.example.com/javascripts/prototype.js"></script>), javascript_include_tag('prototype', protocol: :relative)
   end
 
   def test_javascript_include_tag_default_protocol
-    @controller.config.asset_host = "assets.example.com"
+    @controller.config.asset_host = 'assets.example.com'
     @controller.config.default_asset_host_protocol = :relative
-    assert_dom_equal %(<script src="//assets.example.com/javascripts/prototype.js"></script>), javascript_include_tag("prototype")
+    assert_dom_equal %(<script src="//assets.example.com/javascripts/prototype.js"></script>), javascript_include_tag('prototype')
   end
 
   def test_javascript_include_tag_nonce
-    assert_dom_equal %(<script src="/javascripts/bank.js" nonce="iyhD0Yc0W+c="></script>), javascript_include_tag("bank", nonce: true)
+    assert_dom_equal %(<script src="/javascripts/bank.js" nonce="iyhD0Yc0W+c="></script>), javascript_include_tag('bank', nonce: true)
   end
 
   def test_stylesheet_path
@@ -464,11 +464,11 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_stylesheet_link_tag_with_missing_source
     assert_nothing_raised {
-      stylesheet_link_tag("missing_security_guard")
+      stylesheet_link_tag('missing_security_guard')
     }
 
     assert_nothing_raised {
-      stylesheet_link_tag("http://example.com/css/missing_security_guard")
+      stylesheet_link_tag('http://example.com/css/missing_security_guard')
     }
   end
 
@@ -476,57 +476,57 @@ class AssetTagHelperTest < ActionView::TestCase
     @request = nil
     assert_dom_equal(
       %(<link rel="stylesheet" media="screen" href="/stylesheets/foo.css" />),
-      stylesheet_link_tag("foo.css")
+      stylesheet_link_tag('foo.css')
     )
   end
 
   def test_stylesheet_link_tag_is_html_safe
-    assert_predicate stylesheet_link_tag("dir/file"), :html_safe?
-    assert_predicate stylesheet_link_tag("dir/other/file", "dir/file2"), :html_safe?
+    assert_predicate stylesheet_link_tag('dir/file'), :html_safe?
+    assert_predicate stylesheet_link_tag('dir/other/file', 'dir/file2'), :html_safe?
   end
 
   def test_stylesheet_link_tag_escapes_options
-    assert_dom_equal %(<link href="/file.css" media="&lt;script&gt;" rel="stylesheet" />), stylesheet_link_tag("/file", media: "<script>")
+    assert_dom_equal %(<link href="/file.css" media="&lt;script&gt;" rel="stylesheet" />), stylesheet_link_tag('/file', media: '<script>')
   end
 
   def test_stylesheet_link_tag_should_not_output_the_same_asset_twice
-    assert_dom_equal %(<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("wellington", "wellington", "amsterdam")
+    assert_dom_equal %(<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" />), stylesheet_link_tag('wellington', 'wellington', 'amsterdam')
   end
 
   def test_stylesheet_link_tag_with_relative_protocol
-    @controller.config.asset_host = "assets.example.com"
-    assert_dom_equal %(<link href="//assets.example.com/stylesheets/wellington.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("wellington", protocol: :relative)
+    @controller.config.asset_host = 'assets.example.com'
+    assert_dom_equal %(<link href="//assets.example.com/stylesheets/wellington.css" media="screen" rel="stylesheet" />), stylesheet_link_tag('wellington', protocol: :relative)
   end
 
   def test_stylesheet_link_tag_with_default_protocol
-    @controller.config.asset_host = "assets.example.com"
+    @controller.config.asset_host = 'assets.example.com'
     @controller.config.default_asset_host_protocol = :relative
-    assert_dom_equal %(<link href="//assets.example.com/stylesheets/wellington.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("wellington")
+    assert_dom_equal %(<link href="//assets.example.com/stylesheets/wellington.css" media="screen" rel="stylesheet" />), stylesheet_link_tag('wellington')
   end
 
   def test_javascript_include_tag_without_request
     @request = nil
-    assert_dom_equal %(<script src="/javascripts/foo.js"></script>), javascript_include_tag("foo.js")
+    assert_dom_equal %(<script src="/javascripts/foo.js"></script>), javascript_include_tag('foo.js')
   end
 
 
   def test_should_set_preload_links
-    stylesheet_link_tag("http://example.com/style.css")
-    javascript_include_tag("http://example.com/all.js")
-    expected = "<http://example.com/style.css>; rel=preload; as=style; nopush,<http://example.com/all.js>; rel=preload; as=script; nopush"
-    assert_equal expected, @response.headers["Link"]
+    stylesheet_link_tag('http://example.com/style.css')
+    javascript_include_tag('http://example.com/all.js')
+    expected = '<http://example.com/style.css>; rel=preload; as=style; nopush,<http://example.com/all.js>; rel=preload; as=script; nopush'
+    assert_equal expected, @response.headers['Link']
   end
 
   def test_should_not_preload_links_with_defer
-    javascript_include_tag("http://example.com/all.js", defer: true)
-    assert_equal "", @response.headers["Link"]
+    javascript_include_tag('http://example.com/all.js', defer: true)
+    assert_equal '', @response.headers['Link']
   end
 
   def test_should_allow_caller_to_remove_nopush
-    stylesheet_link_tag("http://example.com/style.css", nopush: false)
-    javascript_include_tag("http://example.com/all.js", nopush: false)
-    expected = "<http://example.com/style.css>; rel=preload; as=style,<http://example.com/all.js>; rel=preload; as=script"
-    assert_equal expected, @response.headers["Link"]
+    stylesheet_link_tag('http://example.com/style.css', nopush: false)
+    javascript_include_tag('http://example.com/all.js', nopush: false)
+    expected = '<http://example.com/style.css>; rel=preload; as=style,<http://example.com/all.js>; rel=preload; as=script'
+    assert_equal expected, @response.headers['Link']
   end
 
   def test_image_path
@@ -550,17 +550,17 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_image_tag_does_not_modify_options
-    options = { size: "16x10" }
-    image_tag("icon", options)
-    assert_equal({ size: "16x10" }, options)
+    options = { size: '16x10' }
+    image_tag('icon', options)
+    assert_equal({ size: '16x10' }, options)
   end
 
   def test_image_tag_raises_an_error_for_competing_size_arguments
     exception = assert_raise(ArgumentError) do
-      image_tag("gold.png", height: "100", width: "200", size: "45x70")
+      image_tag('gold.png', height: '100', width: '200', size: '45x70')
     end
 
-    assert_equal("Cannot pass a :size option with a :height or :width option", exception.message)
+    assert_equal('Cannot pass a :size option with a :height or :width option', exception.message)
   end
 
   def test_favicon_link_tag
@@ -625,23 +625,23 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_video_audio_tag_does_not_modify_options
     options = { autoplay: true }
-    video_tag("video", options)
+    video_tag('video', options)
     assert_equal({ autoplay: true }, options)
-    audio_tag("audio", options)
+    audio_tag('audio', options)
     assert_equal({ autoplay: true }, options)
   end
 
   def test_image_tag_interpreting_email_cid_correctly
     # An inline image has no need for an alt tag to be automatically generated from the cid:
-    assert_equal '<img src="cid:thi%25%25sis@acontentid" />', image_tag("cid:thi%25%25sis@acontentid")
+    assert_equal '<img src="cid:thi%25%25sis@acontentid" />', image_tag('cid:thi%25%25sis@acontentid')
   end
 
   def test_image_tag_interpreting_email_adding_optional_alt_tag
-    assert_equal '<img alt="Image" src="cid:thi%25%25sis@acontentid" />', image_tag("cid:thi%25%25sis@acontentid", alt: "Image")
+    assert_equal '<img alt="Image" src="cid:thi%25%25sis@acontentid" />', image_tag('cid:thi%25%25sis@acontentid', alt: 'Image')
   end
 
   def test_should_not_modify_source_string
-    source = "/images/rails.png"
+    source = '/images/rails.png'
     copy = source.dup
     image_tag(source)
     assert_equal copy, source
@@ -649,29 +649,29 @@ class AssetTagHelperTest < ActionView::TestCase
 
   class PlaceholderImage
     def blank?; true; end
-    def to_s; "no-image-yet.png"; end
+    def to_s; 'no-image-yet.png'; end
   end
   def test_image_path_with_blank_placeholder
-    assert_equal "/images/no-image-yet.png", image_path(PlaceholderImage.new)
+    assert_equal '/images/no-image-yet.png', image_path(PlaceholderImage.new)
   end
 
   def test_image_path_with_asset_host_proc_returning_nil
     @controller.config.asset_host = Proc.new do |source|
-      unless source.end_with?("tiff")
-        "cdn.example.com"
+      unless source.end_with?('tiff')
+        'cdn.example.com'
       end
     end
 
-    assert_equal "/images/file.tiff", image_path("file.tiff")
-    assert_equal "http://cdn.example.com/images/file.png", image_path("file.png")
+    assert_equal '/images/file.tiff', image_path('file.tiff')
+    assert_equal 'http://cdn.example.com/images/file.png', image_path('file.png')
   end
 
   def test_image_url_with_asset_host_proc_returning_nil
     @controller.config.asset_host = Proc.new { nil }
-    @controller.request = Struct.new(:base_url, :script_name).new("http://www.example.com", nil)
+    @controller.request = Struct.new(:base_url, :script_name).new('http://www.example.com', nil)
 
-    assert_equal "/images/rails.png", image_path("rails.png")
-    assert_equal "http://www.example.com/images/rails.png", image_url("rails.png")
+    assert_equal '/images/rails.png', image_path('rails.png')
+    assert_equal 'http://www.example.com/images/rails.png', image_url('rails.png')
   end
 
   def test_caching_image_path_with_caching_and_proc_asset_host_using_request
@@ -684,11 +684,11 @@ class AssetTagHelperTest < ActionView::TestCase
     end
 
     @controller.request.stub(:ssl?, false) do
-      assert_equal "http://assets15.example.com/images/xml.png", image_path("xml.png")
+      assert_equal 'http://assets15.example.com/images/xml.png', image_path('xml.png')
     end
 
     @controller.request.stub(:ssl?, true) do
-      assert_equal "http://localhost/images/xml.png", image_path("xml.png")
+      assert_equal 'http://localhost/images/xml.png', image_path('xml.png')
     end
   end
 end
@@ -701,129 +701,129 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   def setup
     super
     @controller = BasicController.new
-    @controller.config.relative_url_root = "/collaboration/hieraki"
+    @controller.config.relative_url_root = '/collaboration/hieraki'
 
     @request = Struct.new(:protocol, :base_url) do
       def send_early_hints(links); end
-    end.new("gopher://", "gopher://www.example.com")
+    end.new('gopher://', 'gopher://www.example.com')
     @controller.request = @request
   end
 
   def url_for(options)
-    "http://www.example.com/collaboration/hieraki"
+    'http://www.example.com/collaboration/hieraki'
   end
 
   def test_should_compute_proper_path
     assert_dom_equal(%(<link href="http://www.example.com/collaboration/hieraki" rel="alternate" title="RSS" type="application/rss+xml" />), auto_discovery_link_tag)
-    assert_dom_equal(%(/collaboration/hieraki/javascripts/xmlhr.js), javascript_path("xmlhr"))
-    assert_dom_equal(%(/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
-    assert_dom_equal(%(/collaboration/hieraki/images/xml.png), image_path("xml.png"))
+    assert_dom_equal(%(/collaboration/hieraki/javascripts/xmlhr.js), javascript_path('xmlhr'))
+    assert_dom_equal(%(/collaboration/hieraki/stylesheets/style.css), stylesheet_path('style'))
+    assert_dom_equal(%(/collaboration/hieraki/images/xml.png), image_path('xml.png'))
   end
 
   def test_should_return_nothing_if_asset_host_isnt_configured
-    assert_nil compute_asset_host("foo")
+    assert_nil compute_asset_host('foo')
   end
 
   def test_should_current_request_host_is_always_returned_for_request
-    assert_equal "gopher://www.example.com", compute_asset_host("foo", protocol: :request)
+    assert_equal 'gopher://www.example.com', compute_asset_host('foo', protocol: :request)
   end
 
   def test_should_return_custom_host_if_passed_in_options
-    assert_equal "http://custom.example.com", compute_asset_host("foo", host: "http://custom.example.com")
+    assert_equal 'http://custom.example.com', compute_asset_host('foo', host: 'http://custom.example.com')
   end
 
   def test_should_ignore_relative_root_path_on_complete_url
-    assert_dom_equal(%(http://www.example.com/images/xml.png), image_path("http://www.example.com/images/xml.png"))
+    assert_dom_equal(%(http://www.example.com/images/xml.png), image_path('http://www.example.com/images/xml.png'))
   end
 
   def test_should_return_simple_string_asset_host
-    @controller.config.asset_host = "assets.example.com"
-    assert_equal "gopher://assets.example.com", compute_asset_host("foo")
+    @controller.config.asset_host = 'assets.example.com'
+    assert_equal 'gopher://assets.example.com', compute_asset_host('foo')
   end
 
   def test_should_return_relative_asset_host
-    @controller.config.asset_host = "assets.example.com"
-    assert_equal "//assets.example.com", compute_asset_host("foo", protocol: :relative)
+    @controller.config.asset_host = 'assets.example.com'
+    assert_equal '//assets.example.com', compute_asset_host('foo', protocol: :relative)
   end
 
   def test_should_return_custom_protocol_asset_host
-    @controller.config.asset_host = "assets.example.com"
-    assert_equal "ftp://assets.example.com", compute_asset_host("foo", protocol: "ftp")
+    @controller.config.asset_host = 'assets.example.com'
+    assert_equal 'ftp://assets.example.com', compute_asset_host('foo', protocol: 'ftp')
   end
 
   def test_should_compute_proper_path_with_asset_host
-    @controller.config.asset_host = "assets.example.com"
+    @controller.config.asset_host = 'assets.example.com'
     assert_dom_equal(%(<link href="http://www.example.com/collaboration/hieraki" rel="alternate" title="RSS" type="application/rss+xml" />), auto_discovery_link_tag)
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_path("xmlhr"))
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_path('xmlhr'))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_path('style'))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_path('xml.png'))
   end
 
   def test_should_compute_proper_path_with_asset_host_and_default_protocol
-    @controller.config.asset_host = "assets.example.com"
+    @controller.config.asset_host = 'assets.example.com'
     @controller.config.default_asset_host_protocol = :request
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_path("xmlhr"))
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_path('xmlhr'))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_path('style'))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_path('xml.png'))
   end
 
   def test_should_compute_proper_url_with_asset_host
-    @controller.config.asset_host = "assets.example.com"
+    @controller.config.asset_host = 'assets.example.com'
     assert_dom_equal(%(<link href="http://www.example.com/collaboration/hieraki" rel="alternate" title="RSS" type="application/rss+xml" />), auto_discovery_link_tag)
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_url("xmlhr"))
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_url("style"))
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_url("xml.png"))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_url('xmlhr'))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_url('style'))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_url('xml.png'))
   end
 
   def test_should_compute_proper_url_with_asset_host_and_default_protocol
-    @controller.config.asset_host = "assets.example.com"
+    @controller.config.asset_host = 'assets.example.com'
     @controller.config.default_asset_host_protocol = :request
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_url("xmlhr"))
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_url("style"))
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_url("xml.png"))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_url('xmlhr'))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_url('style'))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_url('xml.png'))
   end
 
   def test_should_return_asset_host_with_protocol
-    @controller.config.asset_host = "http://assets.example.com"
-    assert_equal "http://assets.example.com", compute_asset_host("foo")
+    @controller.config.asset_host = 'http://assets.example.com'
+    assert_equal 'http://assets.example.com', compute_asset_host('foo')
   end
 
   def test_should_ignore_asset_host_on_complete_url
-    @controller.config.asset_host = "http://assets.example.com"
-    assert_dom_equal(%(<link href="http://bar.example.com/stylesheets/style.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("http://bar.example.com/stylesheets/style.css"))
+    @controller.config.asset_host = 'http://assets.example.com'
+    assert_dom_equal(%(<link href="http://bar.example.com/stylesheets/style.css" media="screen" rel="stylesheet" />), stylesheet_link_tag('http://bar.example.com/stylesheets/style.css'))
   end
 
   def test_should_ignore_asset_host_on_scheme_relative_url
-    @controller.config.asset_host = "http://assets.example.com"
-    assert_dom_equal(%(<link href="//bar.example.com/stylesheets/style.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("//bar.example.com/stylesheets/style.css"))
+    @controller.config.asset_host = 'http://assets.example.com'
+    assert_dom_equal(%(<link href="//bar.example.com/stylesheets/style.css" media="screen" rel="stylesheet" />), stylesheet_link_tag('//bar.example.com/stylesheets/style.css'))
   end
 
   def test_should_wildcard_asset_host
-    @controller.config.asset_host = "http://a%d.example.com"
-    assert_match(%r(http://a[0123]\.example\.com), compute_asset_host("foo"))
+    @controller.config.asset_host = 'http://a%d.example.com'
+    assert_match(%r(http://a[0123]\.example\.com), compute_asset_host('foo'))
   end
 
   def test_should_wildcard_asset_host_between_zero_and_four
-    @controller.config.asset_host = "http://a%d.example.com"
-    assert_match(%r(http://a[0123]\.example\.com/collaboration/hieraki/images/xml\.png), image_path("xml.png"))
-    assert_match(%r(http://a[0123]\.example\.com/collaboration/hieraki/images/xml\.png), image_url("xml.png"))
+    @controller.config.asset_host = 'http://a%d.example.com'
+    assert_match(%r(http://a[0123]\.example\.com/collaboration/hieraki/images/xml\.png), image_path('xml.png'))
+    assert_match(%r(http://a[0123]\.example\.com/collaboration/hieraki/images/xml\.png), image_url('xml.png'))
   end
 
   def test_asset_host_without_protocol_should_be_protocol_relative
-    @controller.config.asset_host = "a.example.com"
-    assert_equal "gopher://a.example.com/collaboration/hieraki/images/xml.png", image_path("xml.png")
-    assert_equal "gopher://a.example.com/collaboration/hieraki/images/xml.png", image_url("xml.png")
+    @controller.config.asset_host = 'a.example.com'
+    assert_equal 'gopher://a.example.com/collaboration/hieraki/images/xml.png', image_path('xml.png')
+    assert_equal 'gopher://a.example.com/collaboration/hieraki/images/xml.png', image_url('xml.png')
   end
 
   def test_asset_host_without_protocol_should_be_protocol_relative_even_if_path_present
-    @controller.config.asset_host = "a.example.com/files/go/here"
-    assert_equal "gopher://a.example.com/files/go/here/collaboration/hieraki/images/xml.png", image_path("xml.png")
-    assert_equal "gopher://a.example.com/files/go/here/collaboration/hieraki/images/xml.png", image_url("xml.png")
+    @controller.config.asset_host = 'a.example.com/files/go/here'
+    assert_equal 'gopher://a.example.com/files/go/here/collaboration/hieraki/images/xml.png', image_path('xml.png')
+    assert_equal 'gopher://a.example.com/files/go/here/collaboration/hieraki/images/xml.png', image_url('xml.png')
   end
 
   def test_assert_css_and_js_of_the_same_name_return_correct_extension
-    assert_dom_equal(%(/collaboration/hieraki/javascripts/foo.js), javascript_path("foo"))
-    assert_dom_equal(%(/collaboration/hieraki/stylesheets/foo.css), stylesheet_path("foo"))
+    assert_dom_equal(%(/collaboration/hieraki/javascripts/foo.js), javascript_path('foo'))
+    assert_dom_equal(%(/collaboration/hieraki/stylesheets/foo.css), stylesheet_path('foo'))
   end
 end
 
@@ -835,12 +835,12 @@ class AssetTagHelperWithoutRequestTest < ActionView::TestCase
   def test_stylesheet_link_tag_without_request
     assert_dom_equal(
       %(<link rel="stylesheet" media="screen" href="/stylesheets/foo.css" />),
-      stylesheet_link_tag("foo.css")
+      stylesheet_link_tag('foo.css')
     )
   end
 
   def test_javascript_include_tag_without_request
-    assert_dom_equal %(<script src="/javascripts/foo.js"></script>), javascript_include_tag("foo.js")
+    assert_dom_equal %(<script src="/javascripts/foo.js"></script>), javascript_include_tag('foo.js')
   end
 end
 
@@ -855,21 +855,21 @@ class AssetUrlHelperControllerTest < ActionView::TestCase
 
     @request = Class.new do
       attr_accessor :script_name
-      def protocol() "http://" end
+      def protocol() 'http://' end
       def ssl?() false end
-      def host_with_port() "www.example.com" end
-      def base_url() "http://www.example.com" end
+      def host_with_port() 'www.example.com' end
+      def base_url() 'http://www.example.com' end
     end.new
 
     @controller.request = @request
   end
 
   def test_asset_path
-    assert_equal "/foo", @controller.asset_path("foo")
+    assert_equal '/foo', @controller.asset_path('foo')
   end
 
   def test_asset_url
-    assert_equal "http://www.example.com/foo", @controller.asset_url("foo")
+    assert_equal 'http://www.example.com/foo', @controller.asset_url('foo')
   end
 end
 
@@ -884,43 +884,43 @@ class AssetUrlHelperEmptyModuleTest < ActionView::TestCase
   end
 
   def test_asset_path
-    assert_equal "/foo", @module.asset_path("foo")
+    assert_equal '/foo', @module.asset_path('foo')
   end
 
   def test_asset_url
-    assert_equal "/foo", @module.asset_url("foo")
+    assert_equal '/foo', @module.asset_url('foo')
   end
 
   def test_asset_url_with_request
     @module.instance_eval do
       def request
-        Struct.new(:base_url, :script_name).new("http://www.example.com", nil)
+        Struct.new(:base_url, :script_name).new('http://www.example.com', nil)
       end
     end
 
     assert @module.request
-    assert_equal "http://www.example.com/foo", @module.asset_url("foo")
+    assert_equal 'http://www.example.com/foo', @module.asset_url('foo')
   end
 
   def test_asset_url_with_config_asset_host
     @module.instance_eval do
       def config
-        Struct.new(:asset_host).new("http://www.example.com")
+        Struct.new(:asset_host).new('http://www.example.com')
       end
     end
 
     assert @module.config.asset_host
-    assert_equal "http://www.example.com/foo", @module.asset_url("foo")
+    assert_equal 'http://www.example.com/foo', @module.asset_url('foo')
   end
 
   def test_asset_url_with_custom_asset_host
     @module.instance_eval do
       def config
-        Struct.new(:asset_host).new("http://www.example.com")
+        Struct.new(:asset_host).new('http://www.example.com')
       end
     end
 
     assert @module.config.asset_host
-    assert_equal "http://custom.example.com/foo", @module.asset_url("foo", host: "http://custom.example.com")
+    assert_equal 'http://custom.example.com/foo', @module.asset_url('foo', host: 'http://custom.example.com')
   end
 end

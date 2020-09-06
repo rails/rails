@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_model/forbidden_attributes_protection"
+require 'active_model/forbidden_attributes_protection'
 
 module ActiveRecord
   module AttributeAssignment
@@ -13,7 +13,7 @@ module ActiveRecord
         attributes.each do |k, v|
           key = k.to_s
 
-          if key.include?("(")
+          if key.include?('(')
             (multi_parameter_attributes ||= {})[key] = v
           elsif v.is_a?(Hash)
             (nested_parameter_attributes ||= {})[key] = v
@@ -56,7 +56,7 @@ module ActiveRecord
           errors << AttributeAssignmentError.new("error on assignment #{values_with_empty_parameters.values.inspect} to #{name} (#{ex.message})", ex, name)
         end
         unless errors.empty?
-          error_descriptions = errors.map(&:message).join(",")
+          error_descriptions = errors.map(&:message).join(',')
           raise MultiparameterAssignmentErrors.new(errors), "#{errors.size} error(s) on assignment of multiparameter attributes [#{error_descriptions}]"
         end
       end
@@ -65,7 +65,7 @@ module ActiveRecord
         attributes = {}
 
         pairs.each do |(multiparameter_name, value)|
-          attribute_name = multiparameter_name.split("(").first
+          attribute_name = multiparameter_name.split('(').first
           attributes[attribute_name] ||= {}
 
           parameter_value = value.empty? ? nil : type_cast_attribute_value(multiparameter_name, value)
@@ -76,7 +76,7 @@ module ActiveRecord
       end
 
       def type_cast_attribute_value(multiparameter_name, value)
-        multiparameter_name =~ /\([0-9]*([if])\)/ ? value.send("to_" + $1) : value
+        multiparameter_name =~ /\([0-9]*([if])\)/ ? value.send('to_' + $1) : value
       end
 
       def find_parameter_position(multiparameter_name)

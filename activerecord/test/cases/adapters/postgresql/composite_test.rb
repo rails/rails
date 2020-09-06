@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/connection_helper"
+require 'cases/helper'
+require 'support/connection_helper'
 
 module PostgresqlCompositeBehavior
   include ConnectionHelper
 
   class PostgresqlComposite < ActiveRecord::Base
-    self.table_name = "postgresql_composites"
+    self.table_name = 'postgresql_composites'
   end
 
   def setup
@@ -22,7 +22,7 @@ module PostgresqlCompositeBehavior
           street VARCHAR(90)
         );
       SQL
-      @connection.create_table("postgresql_composites") do |t|
+      @connection.create_table('postgresql_composites') do |t|
         t.column :address, :full_address
       end
     end
@@ -31,8 +31,8 @@ module PostgresqlCompositeBehavior
   def teardown
     super
 
-    @connection.drop_table "postgresql_composites", if_exists: true
-    @connection.execute "DROP TYPE IF EXISTS full_address"
+    @connection.drop_table 'postgresql_composites', if_exists: true
+    @connection.execute 'DROP TYPE IF EXISTS full_address'
     reset_connection
     PostgresqlComposite.reset_column_information
   end
@@ -48,12 +48,12 @@ class PostgresqlCompositeTest < ActiveRecord::PostgreSQLTestCase
   def test_column
     ensure_warning_is_issued
 
-    column = PostgresqlComposite.columns_hash["address"]
+    column = PostgresqlComposite.columns_hash['address']
     assert_nil column.type
-    assert_equal "full_address", column.sql_type
+    assert_equal 'full_address', column.sql_type
     assert_not_predicate column, :array?
 
-    type = PostgresqlComposite.type_for_attribute("address")
+    type = PostgresqlComposite.type_for_attribute('address')
     assert_not_predicate type, :binary?
   end
 
@@ -62,9 +62,9 @@ class PostgresqlCompositeTest < ActiveRecord::PostgreSQLTestCase
 
     @connection.execute "INSERT INTO postgresql_composites VALUES (1, ROW('Paris', 'Champs-Élysées'));"
     composite = PostgresqlComposite.first
-    assert_equal "(Paris,Champs-Élysées)", composite.address
+    assert_equal '(Paris,Champs-Élysées)', composite.address
 
-    composite.address = "(Paris,Rue Basse)"
+    composite.address = '(Paris,Rue Basse)'
     composite.save!
 
     assert_equal '(Paris,"Rue Basse")', composite.reload.address
@@ -106,29 +106,29 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::PostgreSQLTestCase
   def setup
     super
 
-    @connection.send(:type_map).register_type "full_address", FullAddressType.new
+    @connection.send(:type_map).register_type 'full_address', FullAddressType.new
   end
 
   def test_column
-    column = PostgresqlComposite.columns_hash["address"]
+    column = PostgresqlComposite.columns_hash['address']
     assert_equal :full_address, column.type
-    assert_equal "full_address", column.sql_type
+    assert_equal 'full_address', column.sql_type
     assert_not_predicate column, :array?
 
-    type = PostgresqlComposite.type_for_attribute("address")
+    type = PostgresqlComposite.type_for_attribute('address')
     assert_not_predicate type, :binary?
   end
 
   def test_composite_mapping
     @connection.execute "INSERT INTO postgresql_composites VALUES (1, ROW('Paris', 'Champs-Élysées'));"
     composite = PostgresqlComposite.first
-    assert_equal "Paris", composite.address.city
-    assert_equal "Champs-Élysées", composite.address.street
+    assert_equal 'Paris', composite.address.city
+    assert_equal 'Champs-Élysées', composite.address.street
 
-    composite.address = FullAddress.new("Paris", "Rue Basse")
+    composite.address = FullAddress.new('Paris', 'Rue Basse')
     composite.save!
 
-    assert_equal "Paris", composite.reload.address.city
-    assert_equal "Rue Basse", composite.reload.address.street
+    assert_equal 'Paris', composite.reload.address.city
+    assert_equal 'Rue Basse', composite.reload.address.street
   end
 end

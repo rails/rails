@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "active_support"
-require "active_support/test_case"
-require "active_support/core_ext/hash/indifferent_access"
-require "json"
+require 'active_support'
+require 'active_support/test_case'
+require 'active_support/core_ext/hash/indifferent_access'
+require 'json'
 
 module ActionCable
   module Channel
@@ -11,7 +11,7 @@ module ActionCable
       def initialize(name)
         super "Unable to determine the channel to test from #{name}. " +
           "You'll need to specify it using `tests YourChannel` in your " +
-          "test case definition."
+          'test case definition.'
       end
     end
 
@@ -170,7 +170,7 @@ module ActionCable
         include ActiveSupport::Testing::ConstantLookup
         include ActionCable::TestHelper
 
-        CHANNEL_IDENTIFIER = "test_stub"
+        CHANNEL_IDENTIFIER = 'test_stub'
 
         included do
           class_attribute :_channel_class
@@ -240,13 +240,13 @@ module ActionCable
         # NOTE: Must be subscribed.
         def perform(action, data = {})
           check_subscribed!
-          subscription.perform_action(data.stringify_keys.merge("action" => action.to_s))
+          subscription.perform_action(data.stringify_keys.merge('action' => action.to_s))
         end
 
         # Returns messages transmitted into channel
         def transmissions
           # Return only directly sent message (via #transmit)
-          connection.transmissions.map { |data| data["message"] }.compact
+          connection.transmissions.map { |data| data['message'] }.compact
         end
 
         # Enhance TestHelper assertions to handle non-String
@@ -294,7 +294,7 @@ module ActionCable
 
         private
           def check_subscribed!
-            raise "Must be subscribed!" if subscription.nil? || subscription.rejected?
+            raise 'Must be subscribed!' if subscription.nil? || subscription.rejected?
           end
 
           def broadcasting_for(stream_or_object)

@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/deep_dup"
+require 'active_support/core_ext/object/deep_dup'
 
 module ActionDispatch #:nodoc:
   class ContentSecurityPolicy
     class Middleware
-      CONTENT_TYPE = "Content-Type"
-      POLICY = "Content-Security-Policy"
-      POLICY_REPORT_ONLY = "Content-Security-Policy-Report-Only"
+      CONTENT_TYPE = 'Content-Type'
+      POLICY = 'Content-Security-Policy'
+      POLICY_REPORT_ONLY = 'Content-Security-Policy-Report-Only'
 
       def initialize(app)
         @app = app
@@ -51,11 +51,11 @@ module ActionDispatch #:nodoc:
     end
 
     module Request
-      POLICY = "action_dispatch.content_security_policy"
-      POLICY_REPORT_ONLY = "action_dispatch.content_security_policy_report_only"
-      NONCE_GENERATOR = "action_dispatch.content_security_policy_nonce_generator"
-      NONCE = "action_dispatch.content_security_policy_nonce"
-      NONCE_DIRECTIVES = "action_dispatch.content_security_policy_nonce_directives"
+      POLICY = 'action_dispatch.content_security_policy'
+      POLICY_REPORT_ONLY = 'action_dispatch.content_security_policy_report_only'
+      NONCE_GENERATOR = 'action_dispatch.content_security_policy_nonce_generator'
+      NONCE = 'action_dispatch.content_security_policy_nonce'
+      NONCE_DIRECTIVES = 'action_dispatch.content_security_policy_nonce_directives'
 
       def content_security_policy
         get_header(POLICY)
@@ -110,39 +110,39 @@ module ActionDispatch #:nodoc:
       unsafe_eval:    "'unsafe-eval'",
       unsafe_inline:  "'unsafe-inline'",
       none:           "'none'",
-      http:           "http:",
-      https:          "https:",
-      data:           "data:",
-      mediastream:    "mediastream:",
-      blob:           "blob:",
-      filesystem:     "filesystem:",
+      http:           'http:',
+      https:          'https:',
+      data:           'data:',
+      mediastream:    'mediastream:',
+      blob:           'blob:',
+      filesystem:     'filesystem:',
       report_sample:  "'report-sample'",
       strict_dynamic: "'strict-dynamic'",
-      ws:             "ws:",
-      wss:            "wss:"
+      ws:             'ws:',
+      wss:            'wss:'
     }.freeze
 
     DIRECTIVES = {
-      base_uri:        "base-uri",
-      child_src:       "child-src",
-      connect_src:     "connect-src",
-      default_src:     "default-src",
-      font_src:        "font-src",
-      form_action:     "form-action",
-      frame_ancestors: "frame-ancestors",
-      frame_src:       "frame-src",
-      img_src:         "img-src",
-      manifest_src:    "manifest-src",
-      media_src:       "media-src",
-      object_src:      "object-src",
-      prefetch_src:    "prefetch-src",
-      script_src:      "script-src",
-      script_src_attr: "script-src-attr",
-      script_src_elem: "script-src-elem",
-      style_src:       "style-src",
-      style_src_attr:  "style-src-attr",
-      style_src_elem:  "style-src-elem",
-      worker_src:      "worker-src"
+      base_uri:        'base-uri',
+      child_src:       'child-src',
+      connect_src:     'connect-src',
+      default_src:     'default-src',
+      font_src:        'font-src',
+      form_action:     'form-action',
+      frame_ancestors: 'frame-ancestors',
+      frame_src:       'frame-src',
+      img_src:         'img-src',
+      manifest_src:    'manifest-src',
+      media_src:       'media-src',
+      object_src:      'object-src',
+      prefetch_src:    'prefetch-src',
+      script_src:      'script-src',
+      script_src_attr: 'script-src-attr',
+      script_src_elem: 'script-src-elem',
+      style_src:       'style-src',
+      style_src_attr:  'style-src-attr',
+      style_src_elem:  'style-src-elem',
+      worker_src:      'worker-src'
     }.freeze
 
     DEFAULT_NONCE_DIRECTIVES = %w[script-src style-src].freeze
@@ -172,53 +172,53 @@ module ActionDispatch #:nodoc:
 
     def block_all_mixed_content(enabled = true)
       if enabled
-        @directives["block-all-mixed-content"] = true
+        @directives['block-all-mixed-content'] = true
       else
-        @directives.delete("block-all-mixed-content")
+        @directives.delete('block-all-mixed-content')
       end
     end
 
     def plugin_types(*types)
       if types.first
-        @directives["plugin-types"] = types
+        @directives['plugin-types'] = types
       else
-        @directives.delete("plugin-types")
+        @directives.delete('plugin-types')
       end
     end
 
     def report_uri(uri)
-      @directives["report-uri"] = [uri]
+      @directives['report-uri'] = [uri]
     end
 
     def require_sri_for(*types)
       if types.first
-        @directives["require-sri-for"] = types
+        @directives['require-sri-for'] = types
       else
-        @directives.delete("require-sri-for")
+        @directives.delete('require-sri-for')
       end
     end
 
     def sandbox(*values)
       if values.empty?
-        @directives["sandbox"] = true
+        @directives['sandbox'] = true
       elsif values.first
-        @directives["sandbox"] = values
+        @directives['sandbox'] = values
       else
-        @directives.delete("sandbox")
+        @directives.delete('sandbox')
       end
     end
 
     def upgrade_insecure_requests(enabled = true)
       if enabled
-        @directives["upgrade-insecure-requests"] = true
+        @directives['upgrade-insecure-requests'] = true
       else
-        @directives.delete("upgrade-insecure-requests")
+        @directives.delete('upgrade-insecure-requests')
       end
     end
 
     def build(context = nil, nonce = nil, nonce_directives = nil)
       nonce_directives = DEFAULT_NONCE_DIRECTIVES if nonce_directives.nil?
-      build_directives(context, nonce, nonce_directives).compact.join("; ")
+      build_directives(context, nonce, nonce_directives).compact.join('; ')
     end
 
     private

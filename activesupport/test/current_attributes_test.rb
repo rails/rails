@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "active_support/current_attributes/test_helper"
+require_relative 'abstract_unit'
+require 'active_support/current_attributes/test_helper'
 
 class CurrentAttributesTest < ActiveSupport::TestCase
   # Automatically included in Rails apps via railtie but that dodn't run here.
@@ -16,7 +16,7 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     before_reset { Session.previous = person&.id }
 
     resets do
-      Time.zone = "UTC"
+      Time.zone = 'UTC'
       Session.current = nil
     end
 
@@ -59,42 +59,42 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     Time.zone = @original_time_zone
   end
 
-  setup { assert_nil Session.previous, "Expected Session to not have leaked state" }
+  setup { assert_nil Session.previous, 'Expected Session to not have leaked state' }
 
-  test "read and write attribute" do
-    Current.world = "world/1"
-    assert_equal "world/1", Current.world
+  test 'read and write attribute' do
+    Current.world = 'world/1'
+    assert_equal 'world/1', Current.world
   end
 
-  test "read overwritten attribute method" do
-    Current.request = "request/1"
-    assert_equal "request/1 something", Current.request
+  test 'read overwritten attribute method' do
+    Current.request = 'request/1'
+    assert_equal 'request/1 something', Current.request
   end
 
-  test "set attribute via overwritten method" do
-    Current.account = "account/1"
-    assert_equal "account/1", Current.account
+  test 'set attribute via overwritten method' do
+    Current.account = 'account/1'
+    assert_equal 'account/1', Current.account
     assert_equal "account/1's person", Current.person.name
   end
 
-  test "set auxiliary class via overwritten method" do
-    Current.person = Person.new(42, "David", "Central Time (US & Canada)")
-    assert_equal "Central Time (US & Canada)", Time.zone.name
+  test 'set auxiliary class via overwritten method' do
+    Current.person = Person.new(42, 'David', 'Central Time (US & Canada)')
+    assert_equal 'Central Time (US & Canada)', Time.zone.name
     assert_equal 42, Session.current
   end
 
-  test "resets auxiliary classes via callback" do
-    Current.person = Person.new(42, "David", "Central Time (US & Canada)")
-    assert_equal "Central Time (US & Canada)", Time.zone.name
+  test 'resets auxiliary classes via callback' do
+    Current.person = Person.new(42, 'David', 'Central Time (US & Canada)')
+    assert_equal 'Central Time (US & Canada)', Time.zone.name
 
     Current.reset
-    assert_equal "UTC", Time.zone.name
+    assert_equal 'UTC', Time.zone.name
     assert_equal 42, Session.previous
     assert_nil Session.current
   end
 
-  test "set auxiliary class based on current attributes via before callback" do
-    Current.person = Person.new(42, "David", "Central Time (US & Canada)")
+  test 'set auxiliary class based on current attributes via before callback' do
+    Current.person = Person.new(42, 'David', 'Central Time (US & Canada)')
     assert_nil Session.previous
     assert_equal 42, Session.current
 
@@ -103,38 +103,38 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     assert_nil Session.current
   end
 
-  test "set attribute only via scope" do
-    Current.world = "world/1"
+  test 'set attribute only via scope' do
+    Current.world = 'world/1'
 
-    Current.set(world: "world/2") do
-      assert_equal "world/2", Current.world
+    Current.set(world: 'world/2') do
+      assert_equal 'world/2', Current.world
     end
 
-    assert_equal "world/1", Current.world
+    assert_equal 'world/1', Current.world
   end
 
-  test "set multiple attributes" do
-    Current.world = "world/1"
-    Current.account = "account/1"
+  test 'set multiple attributes' do
+    Current.world = 'world/1'
+    Current.account = 'account/1'
 
-    Current.set(world: "world/2", account: "account/2") do
-      assert_equal "world/2", Current.world
-      assert_equal "account/2", Current.account
+    Current.set(world: 'world/2', account: 'account/2') do
+      assert_equal 'world/2', Current.world
+      assert_equal 'account/2', Current.account
     end
 
-    assert_equal "world/1", Current.world
-    assert_equal "account/1", Current.account
+    assert_equal 'world/1', Current.world
+    assert_equal 'account/1', Current.account
   end
 
-  test "delegation" do
-    Current.person = Person.new(42, "David", "Central Time (US & Canada)")
-    assert_equal "Central Time (US & Canada)", Current.time_zone
-    assert_equal "Central Time (US & Canada)", Current.instance.time_zone
+  test 'delegation' do
+    Current.person = Person.new(42, 'David', 'Central Time (US & Canada)')
+    assert_equal 'Central Time (US & Canada)', Current.time_zone
+    assert_equal 'Central Time (US & Canada)', Current.instance.time_zone
   end
 
-  test "all methods forward to the instance" do
-    Current.person = Person.new(42, "David", "Central Time (US & Canada)")
-    assert_equal "David, in Central Time (US & Canada)", Current.intro
-    assert_equal "David, in Central Time (US & Canada)", Current.instance.intro
+  test 'all methods forward to the instance' do
+    Current.person = Person.new(42, 'David', 'Central Time (US & Canada)')
+    assert_equal 'David, in Central Time (US & Canada)', Current.intro
+    assert_equal 'David, in Central Time (US & Canada)', Current.instance.intro
   end
 end

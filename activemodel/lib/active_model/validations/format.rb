@@ -15,7 +15,7 @@ module ActiveModel
 
       def check_validity!
         unless options.include?(:with) ^ options.include?(:without)  # ^ == xor, or "exclusive or"
-          raise ArgumentError, "Either :with or :without must be supplied (but not both)"
+          raise ArgumentError, 'Either :with or :without must be supplied (but not both)'
         end
 
         check_options_validity :with
@@ -36,9 +36,9 @@ module ActiveModel
           if option = options[name]
             if option.is_a?(Regexp)
               if options[:multiline] != true && regexp_using_multiline_anchors?(option)
-                raise ArgumentError, "The provided regular expression is using multiline anchors (^ or $), " \
-                "which may present a security risk. Did you mean to use \\A and \\z, or forgot to add the " \
-                ":multiline => true option?"
+                raise ArgumentError, 'The provided regular expression is using multiline anchors (^ or $), ' \
+                'which may present a security risk. Did you mean to use \\A and \\z, or forgot to add the ' \
+                ':multiline => true option?'
               end
             elsif !option.respond_to?(:call)
               raise ArgumentError, "A regular expression or a proc or lambda must be supplied as :#{name}"
@@ -48,7 +48,7 @@ module ActiveModel
 
         def regexp_using_multiline_anchors?(regexp)
           source = regexp.source
-          source.start_with?("^") || (source.end_with?("$") && !source.end_with?("\\$"))
+          source.start_with?('^') || (source.end_with?('$') && !source.end_with?('\\$'))
         end
     end
 

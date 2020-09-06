@@ -27,7 +27,7 @@ module ActiveSupport
     #        ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"]
     module DeprecatedConstantAccessor
       def self.included(base)
-        require "active_support/inflector/methods"
+        require 'active_support/inflector/methods'
 
         extension = Module.new do
           def const_missing(missing_const_name)

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "zlib"
-require "stringio"
+require 'zlib'
+require 'stringio'
 
 module ActiveSupport
   # A convenient wrapper for the zlib standard library that allows
@@ -16,7 +16,7 @@ module ActiveSupport
     class Stream < StringIO
       def initialize(*)
         super
-        set_encoding "BINARY"
+        set_encoding 'BINARY'
       end
       def close; rewind; end
     end

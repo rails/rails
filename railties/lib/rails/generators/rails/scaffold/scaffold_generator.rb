@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rails/generators/rails/resource/resource_generator"
+require 'rails/generators/rails/resource/resource_generator'
 
 module Rails
   module Generators
@@ -9,8 +9,8 @@ module Rails
       remove_class_option :actions
 
       class_option :api, type: :boolean
-      class_option :stylesheets, type: :boolean, desc: "Generate Stylesheets"
-      class_option :stylesheet_engine, desc: "Engine for Stylesheets"
+      class_option :stylesheets, type: :boolean, desc: 'Generate Stylesheets'
+      class_option :stylesheet_engine, desc: 'Engine for Stylesheets'
       class_option :assets, type: :boolean
       class_option :resource_route, type: :boolean
       class_option :scaffold_stylesheet, type: :boolean

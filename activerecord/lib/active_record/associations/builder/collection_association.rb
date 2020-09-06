@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_record/associations"
+require 'active_record/associations'
 
 module ActiveRecord::Associations::Builder # :nodoc:
   class CollectionAssociation < Association #:nodoc:

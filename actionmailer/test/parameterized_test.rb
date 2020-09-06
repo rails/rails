@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "active_job"
-require "mailers/params_mailer"
+require 'abstract_unit'
+require 'active_job'
+require 'mailers/params_mailer'
 
 class ParameterizedTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -20,7 +20,7 @@ class ParameterizedTest < ActiveSupport::TestCase
     @previous_deliver_later_queue_name = ActionMailer::Base.deliver_later_queue_name
     ActionMailer::Base.deliver_later_queue_name = :test_queue
 
-    @mail = ParamsMailer.with(inviter: "david@basecamp.com", invitee: "jason@basecamp.com").invitation
+    @mail = ParamsMailer.with(inviter: 'david@basecamp.com', invitee: 'jason@basecamp.com').invitation
   end
 
   teardown do
@@ -31,18 +31,18 @@ class ParameterizedTest < ActiveSupport::TestCase
     ActionMailer::Base.deliver_later_queue_name = @previous_deliver_later_queue_name
   end
 
-  test "parameterized headers" do
-    assert_equal(["jason@basecamp.com"], @mail.to)
-    assert_equal(["david@basecamp.com"], @mail.from)
-    assert_equal("So says david@basecamp.com", @mail.body.encoded)
+  test 'parameterized headers' do
+    assert_equal(['jason@basecamp.com'], @mail.to)
+    assert_equal(['david@basecamp.com'], @mail.from)
+    assert_equal('So says david@basecamp.com', @mail.body.encoded)
   end
 
-  test "enqueue the email with params" do
+  test 'enqueue the email with params' do
     args = [
-      "ParamsMailer",
-      "invitation",
-      "deliver_now",
-      params: { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" },
+      'ParamsMailer',
+      'invitation',
+      'deliver_now',
+      params: { inviter: 'david@basecamp.com', invitee: 'jason@basecamp.com' },
       args: [],
     ]
     assert_performed_with(job: ActionMailer::MailDeliveryJob, args: args) do
@@ -50,8 +50,8 @@ class ParameterizedTest < ActiveSupport::TestCase
     end
   end
 
-  test "respond_to?" do
-    mailer = ParamsMailer.with(inviter: "david@basecamp.com", invitee: "jason@basecamp.com")
+  test 'respond_to?' do
+    mailer = ParamsMailer.with(inviter: 'david@basecamp.com', invitee: 'jason@basecamp.com')
 
     assert_respond_to mailer, :invitation
     assert_not_respond_to mailer, :anything
@@ -64,12 +64,12 @@ class ParameterizedTest < ActiveSupport::TestCase
     end
   end
 
-  test "should enqueue a parameterized request with the correct delivery job" do
+  test 'should enqueue a parameterized request with the correct delivery job' do
     args = [
-      "ParamsMailer",
-      "invitation",
-      "deliver_now",
-      params: { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" },
+      'ParamsMailer',
+      'invitation',
+      'deliver_now',
+      params: { inviter: 'david@basecamp.com', invitee: 'jason@basecamp.com' },
       args: [],
     ]
 

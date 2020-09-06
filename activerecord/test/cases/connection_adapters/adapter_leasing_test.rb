@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -19,28 +19,28 @@ module ActiveRecord
       end
 
       def test_in_use?
-        assert_not @adapter.in_use?, "adapter is not in use"
-        assert @adapter.lease, "lease adapter"
-        assert @adapter.in_use?, "adapter is in use"
+        assert_not @adapter.in_use?, 'adapter is not in use'
+        assert @adapter.lease, 'lease adapter'
+        assert @adapter.in_use?, 'adapter is in use'
       end
 
       def test_lease_twice
-        assert @adapter.lease, "should lease adapter"
+        assert @adapter.lease, 'should lease adapter'
         assert_raises(ActiveRecordError) do
           @adapter.lease
         end
       end
 
       def test_expire_mutates_in_use
-        assert @adapter.lease, "lease adapter"
-        assert @adapter.in_use?, "adapter is in use"
+        assert @adapter.lease, 'lease adapter'
+        assert @adapter.in_use?, 'adapter is in use'
         @adapter.expire
-        assert_not @adapter.in_use?, "adapter is in use"
+        assert_not @adapter.in_use?, 'adapter is in use'
       end
 
       def test_close
-        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", {})
-        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new('test', 'primary', {})
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new('primary', db_config)
         pool = Pool.new(pool_config)
         pool.insert_connection_for_test! @adapter
         @adapter.pool = pool

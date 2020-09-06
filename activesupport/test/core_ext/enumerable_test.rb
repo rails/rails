@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
-require "active_support/core_ext/array"
-require "active_support/core_ext/enumerable"
+require_relative '../abstract_unit'
+require 'active_support/core_ext/array'
+require 'active_support/core_ext/enumerable'
 
 Payment = Struct.new(:price)
 ExpandedPayment = Struct.new(:dollars, :cents)
@@ -35,8 +35,8 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 60, enum.sum { |i| i * 2 }
 
     enum = GenericEnumerable.new(%w(a b c))
-    assert_equal "abc", enum.sum
-    assert_equal "aabbcc", enum.sum { |i| i * 2 }
+    assert_equal 'abc', enum.sum
+    assert_equal 'aabbcc', enum.sum { |i| i * 2 }
 
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
     assert_equal 30, payments.sum(&:price)
@@ -104,7 +104,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 10, (1..4).sum
     assert_equal 10, (1..4.5).sum
     assert_equal 6, (1...4).sum
-    assert_equal "abc", ("a".."c").sum
+    assert_equal 'abc', ('a'..'c').sum
     assert_equal 50_000_005_000_000, (0..10_000_000).sum
     assert_equal 0, (10..0).sum
     assert_equal 5, (10..0).sum(5)
@@ -122,8 +122,8 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 60, enum.sum { |i| i * 2 }
 
     enum = %w(a b c)
-    assert_equal "abc", enum.sum
-    assert_equal "aabbcc", enum.sum { |i| i * 2 }
+    assert_equal 'abc', enum.sum
+    assert_equal 'aabbcc', enum.sum { |i| i * 2 }
 
     payments = [ Payment.new(5), Payment.new(15), Payment.new(10) ]
     assert_equal 30, payments.sum(&:price)
@@ -262,25 +262,25 @@ class EnumerableTests < ActiveSupport::TestCase
   end
 
   def test_compact_blank
-    values = GenericEnumerable.new([1, "", nil, 2, " ", [], {}, false, true])
+    values = GenericEnumerable.new([1, '', nil, 2, ' ', [], {}, false, true])
 
     assert_equal [1, 2, true], values.compact_blank
   end
 
   def test_array_compact_blank!
-    values = [1, "", nil, 2, " ", [], {}, false, true]
+    values = [1, '', nil, 2, ' ', [], {}, false, true]
     values.compact_blank!
 
     assert_equal [1, 2, true], values
   end
 
   def test_hash_compact_blank
-    values = { a: "", b: 1, c: nil, d: [], e: false, f: true }
+    values = { a: '', b: 1, c: nil, d: [], e: false, f: true }
     assert_equal({ b: 1, f: true }, values.compact_blank)
   end
 
   def test_hash_compact_blank!
-    values = { a: "", b: 1, c: nil, d: [], e: false, f: true }
+    values = { a: '', b: 1, c: nil, d: [], e: false, f: true }
     values.compact_blank!
     assert_equal({ b: 1, f: true }, values)
   end

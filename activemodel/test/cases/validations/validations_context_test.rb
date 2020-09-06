@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
-require "models/topic"
+require 'models/topic'
 
 class ValidationsContextTest < ActiveModel::TestCase
   def teardown
     Topic.clear_validators!
   end
 
-  ERROR_MESSAGE = "Validation error from validator"
-  ANOTHER_ERROR_MESSAGE = "Another validation error from validator"
+  ERROR_MESSAGE = 'Validation error from validator'
+  ANOTHER_ERROR_MESSAGE = 'Another validation error from validator'
 
   class ValidatorThatAddsErrors < ActiveModel::Validator
     def validate(record)
@@ -24,26 +24,26 @@ class ValidationsContextTest < ActiveModel::TestCase
     end
   end
 
-  test "with a class that adds errors on create and validating a new model with no arguments" do
+  test 'with a class that adds errors on create and validating a new model with no arguments' do
     Topic.validates_with(ValidatorThatAddsErrors, on: :create)
     topic = Topic.new
     assert topic.valid?, "Validation doesn't run on valid? if 'on' is set to create"
   end
 
-  test "with a class that adds errors on update and validating a new model" do
+  test 'with a class that adds errors on update and validating a new model' do
     Topic.validates_with(ValidatorThatAddsErrors, on: :update)
     topic = Topic.new
     assert topic.valid?(:create), "Validation doesn't run on create if 'on' is set to update"
   end
 
-  test "with a class that adds errors on create and validating a new model" do
+  test 'with a class that adds errors on create and validating a new model' do
     Topic.validates_with(ValidatorThatAddsErrors, on: :create)
     topic = Topic.new
     assert topic.invalid?(:create), "Validation does run on create if 'on' is set to create"
     assert_includes topic.errors[:base], ERROR_MESSAGE
   end
 
-  test "with a class that adds errors on multiple contexts and validating a new model" do
+  test 'with a class that adds errors on multiple contexts and validating a new model' do
     Topic.validates_with(ValidatorThatAddsErrors, on: [:context1, :context2])
 
     topic = Topic.new
@@ -56,7 +56,7 @@ class ValidationsContextTest < ActiveModel::TestCase
     assert_includes topic.errors[:base], ERROR_MESSAGE
   end
 
-  test "with a class that validating a model for a multiple contexts" do
+  test 'with a class that validating a model for a multiple contexts' do
     Topic.validates_with(ValidatorThatAddsErrors, on: :context1)
     Topic.validates_with(AnotherValidatorThatAddsErrors, on: :context2)
 

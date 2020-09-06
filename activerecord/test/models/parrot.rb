@@ -22,8 +22,8 @@ class Parrot < ActiveRecord::Base
   end
 
   def self.delete_all(*)
-    connection.delete("DELETE FROM parrots_pirates")
-    connection.delete("DELETE FROM parrots_treasures")
+    connection.delete('DELETE FROM parrots_pirates')
+    connection.delete('DELETE FROM parrots_treasures')
     super
   end
 end
@@ -32,5 +32,5 @@ class LiveParrot < Parrot
 end
 
 class DeadParrot < Parrot
-  belongs_to :killer, class_name: "Pirate", foreign_key: :killer_id
+  belongs_to :killer, class_name: 'Pirate', foreign_key: :killer_id
 end

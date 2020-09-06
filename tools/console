@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require "bundler"
+require 'bundler'
 Bundler.setup
 
-require "rails/all"
-require "active_support/all"
-require "irb"
-require "irb/completion"
+require 'rails/all'
+require 'active_support/all'
+require 'irb'
+require 'irb/completion'
 IRB.start

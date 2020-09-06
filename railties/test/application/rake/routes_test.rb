@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
+require 'isolation/abstract_unit'
 
 module ApplicationTests
   module RakeTests
@@ -10,8 +10,8 @@ module ApplicationTests
       setup :build_app
       teardown :teardown_app
 
-      test "`rake routes` outputs routes" do
-        app_file "config/routes.rb", <<-RUBY
+      test '`rake routes` outputs routes' do
+        app_file 'config/routes.rb', <<-RUBY
           Rails.application.routes.draw do
             get '/cart', to: 'cart#show'
           end
@@ -49,8 +49,8 @@ module ApplicationTests
         MESSAGE
       end
 
-      test "`rake routes` outputs a deprecation warning" do
-        add_to_env_config("development", "config.active_support.deprecation = :stderr")
+      test '`rake routes` outputs a deprecation warning' do
+        add_to_env_config('development', 'config.active_support.deprecation = :stderr')
 
         stderr = capture(:stderr) { run_rake_routes }
         assert_match(/DEPRECATION WARNING: Using `bin\/rake routes` is deprecated and will be removed in Rails 6.1/, stderr)

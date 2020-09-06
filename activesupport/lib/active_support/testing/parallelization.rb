@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "drb"
-require "drb/unix" unless Gem.win_platform?
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/testing/parallelization/server"
-require "active_support/testing/parallelization/worker"
+require 'drb'
+require 'drb/unix' unless Gem.win_platform?
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/testing/parallelization/server'
+require 'active_support/testing/parallelization/worker'
 
 module ActiveSupport
   module Testing
@@ -29,7 +29,7 @@ module ActiveSupport
         @worker_count = worker_count
         @queue_server = Server.new
         @worker_pool = []
-        @url = DRb.start_service("drbunix:", @queue_server).uri
+        @url = DRb.start_service('drbunix:', @queue_server).uri
       end
 
       def start

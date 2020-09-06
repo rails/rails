@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_model/attribute_mutation_tracker"
+require 'active_model/attribute_mutation_tracker'
 
 module ActiveModel
   # == Active \Model \Dirty
@@ -123,10 +123,10 @@ module ActiveModel
     include ActiveModel::AttributeMethods
 
     included do
-      attribute_method_suffix "_changed?", "_change", "_will_change!", "_was"
-      attribute_method_suffix "_previously_changed?", "_previous_change", "_previously_was"
-      attribute_method_affix prefix: "restore_", suffix: "!"
-      attribute_method_affix prefix: "clear_", suffix: "_change"
+      attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
+      attribute_method_suffix '_previously_changed?', '_previous_change', '_previously_was'
+      attribute_method_affix prefix: 'restore_', suffix: '!'
+      attribute_method_affix prefix: 'clear_', suffix: '_change'
     end
 
     def initialize_dup(other) # :nodoc:

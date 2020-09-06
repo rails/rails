@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "active_support/concern"
-require "active_support/descendants_tracker"
-require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/class/attribute"
-require "active_support/core_ext/string/filters"
-require "thread"
+require 'active_support/concern'
+require 'active_support/descendants_tracker'
+require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/string/filters'
+require 'thread'
 
 module ActiveSupport
   # Callbacks are code hooks that are run at key points in an object's life cycle.
@@ -460,7 +460,7 @@ module ActiveSupport
               new(nil, :instance_exec, [], filter)
             end
           else
-            method_to_call = callback.current_scopes.join("_")
+            method_to_call = callback.current_scopes.join('_')
 
             new(filter, method_to_call, [:target], nil)
           end

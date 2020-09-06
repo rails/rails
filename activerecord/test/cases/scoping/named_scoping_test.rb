@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/post"
-require "models/topic"
-require "models/comment"
-require "models/reply"
-require "models/author"
-require "models/developer"
-require "models/computer"
+require 'cases/helper'
+require 'models/post'
+require 'models/topic'
+require 'models/comment'
+require 'models/reply'
+require 'models/author'
+require 'models/developer'
+require 'models/computer'
 
 class NamedScopingTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses
@@ -57,16 +57,16 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_method_missing_priority_when_delegating
     klazz = Class.new(ActiveRecord::Base) do
-      self.table_name = "topics"
-      scope :since, Proc.new { where("written_on >= ?", Time.now - 1.day) }
-      scope :to,    Proc.new { where("written_on <= ?", Time.now) }
+      self.table_name = 'topics'
+      scope :since, Proc.new { where('written_on >= ?', Time.now - 1.day) }
+      scope :to,    Proc.new { where('written_on <= ?', Time.now) }
     end
     assert_equal klazz.to.since.to_a, klazz.since.to.to_a
   end
 
   def test_define_scope_for_reserved_words
-    assert Topic.true.all?(&:approved?), "all objects should be approved"
-    assert Topic.false.none?(&:approved?), "all objects should not be approved"
+    assert Topic.true.all?(&:approved?), 'all objects should be approved'
+    assert Topic.false.none?(&:approved?), 'all objects should not be approved'
   end
 
   def test_scope_should_respond_to_own_methods_and_methods_of_the_proxy
@@ -90,7 +90,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_scopes_are_composable
     assert_equal((approved = Topic.all.merge!(where: { approved: true }).to_a), Topic.approved)
-    assert_equal((replied = Topic.all.merge!(where: "replies_count > 0").to_a), Topic.replied)
+    assert_equal((replied = Topic.all.merge!(where: 'replies_count > 0').to_a), Topic.replied)
     assert_not (approved == replied)
     assert_not_empty (approved & replied)
 
@@ -98,8 +98,8 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_procedural_scopes
-    topics_written_before_the_third = Topic.where("written_on < ?", topics(:third).written_on)
-    topics_written_before_the_second = Topic.where("written_on < ?", topics(:second).written_on)
+    topics_written_before_the_third = Topic.where('written_on < ?', topics(:third).written_on)
+    topics_written_before_the_second = Topic.where('written_on < ?', topics(:second).written_on)
     assert_not_equal topics_written_before_the_second, topics_written_before_the_third
 
     assert_equal topics_written_before_the_third, Topic.written_before(topics(:third).written_on)
@@ -129,19 +129,19 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_scope_with_object
     objects = Topic.with_object
     assert_operator objects.length, :>, 0
-    assert objects.all?(&:approved?), "all objects should be approved"
+    assert objects.all?(&:approved?), 'all objects should be approved'
   end
 
   def test_scope_with_kwargs
     # Explicit true
     topics = Topic.with_kwargs(approved: true)
     assert_operator topics.length, :>, 0
-    assert topics.all?(&:approved?), "all objects should be approved"
+    assert topics.all?(&:approved?), 'all objects should be approved'
 
     # No arguments
     topics = Topic.with_kwargs()
     assert_operator topics.length, :>, 0
-    assert topics.none?(&:approved?), "all objects should not be approved"
+    assert topics.none?(&:approved?), 'all objects should not be approved'
   end
 
   def test_has_many_associations_have_access_to_scopes
@@ -179,7 +179,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     e = assert_raises ArgumentError do
       Class.new(Post).class_eval { scope :containing_the_letter_z, where("body LIKE '%z%'") }
     end
-    assert_equal "The scope body needs to be callable.", e.message
+    assert_equal 'The scope body needs to be callable.', e.message
   end
 
   def test_scopes_name_is_relation_method
@@ -212,8 +212,8 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_first_and_last_should_allow_integers_for_limit
-    assert_equal Topic.base.first(2), Topic.base.order("id").to_a.first(2)
-    assert_equal Topic.base.last(2), Topic.base.order("id").to_a.last(2)
+    assert_equal Topic.base.first(2), Topic.base.order('id').to_a.first(2)
+    assert_equal Topic.base.last(2), Topic.base.order('id').to_a.last(2)
   end
 
   def test_first_and_last_should_not_use_query_when_results_are_loaded
@@ -331,12 +331,12 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_should_build_on_top_of_chained_scopes
     topic = Topic.approved.by_lifo.build({})
     assert topic.approved
-    assert_equal "lifo", topic.author_name
+    assert_equal 'lifo', topic.author_name
   end
 
   def test_reserved_scope_names
     klass = Class.new(ActiveRecord::Base) do
-      self.table_name = "topics"
+      self.table_name = 'topics'
 
       scope :approved, -> { where(approved: true) }
 
@@ -406,12 +406,12 @@ class NamedScopingTest < ActiveRecord::TestCase
   # names which contain spaces this approach doesn't work.
   def test_spaces_in_scope_names
     klass = Class.new(ActiveRecord::Base) do
-      self.table_name = "topics"
-      scope :"title containing space", ->(space: " ") { where("title LIKE '%#{space}%'") }
+      self.table_name = 'topics'
+      scope :"title containing space", ->(space: ' ') { where("title LIKE '%#{space}%'") }
       scope :approved, -> { where(approved: true) }
     end
-    assert_equal klass.where("title LIKE '% %'"), klass.send(:"title containing space", space: " ")
-    assert_equal klass.approved.where("title LIKE '% %'"), klass.approved.send(:"title containing space", space: " ")
+    assert_equal klass.where("title LIKE '% %'"), klass.send(:"title containing space", space: ' ')
+    assert_equal klass.approved.where("title LIKE '% %'"), klass.approved.send(:"title containing space", space: ' ')
   end
 
   def test_find_all_should_behave_like_select
@@ -423,7 +423,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_should_use_where_in_query_for_scope
-    assert_equal Developer.where(name: "Jamis").to_set, Developer.where(id: Developer.jamises).to_set
+    assert_equal Developer.where(name: 'Jamis').to_set, Developer.where(id: Developer.jamises).to_set
   end
 
   def test_size_should_use_count_when_results_are_not_loaded
@@ -442,12 +442,12 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_should_not_duplicates_where_values
-    relation = Topic.where("1=1")
+    relation = Topic.where('1=1')
     assert_equal relation.where_clause, relation.scope_with_lambda.where_clause
   end
 
   def test_chaining_with_duplicate_joins
-    join = "INNER JOIN comments ON comments.post_id = posts.id"
+    join = 'INNER JOIN comments ON comments.post_id = posts.id'
     post = Post.find(1)
     assert_equal post.comments.size, Post.joins(join).joins(join).where("posts.id = #{post.id}").size
   end
@@ -531,7 +531,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_scopes_on_relations
     # Topic.replied
-    approved_topics = Topic.all.approved.order("id DESC")
+    approved_topics = Topic.all.approved.order('id DESC')
     assert_equal topics(:fifth), approved_topics.first
 
     replied_approved_topics = approved_topics.replied
@@ -539,7 +539,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_index_on_scope
-    approved = Topic.approved.order("id ASC")
+    approved = Topic.approved.order('id ASC')
     assert_equal topics(:second), approved[0]
     assert_predicate approved, :loaded?
   end
@@ -580,7 +580,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_scopes_to_get_newest
     post = posts(:welcome)
     old_last_comment = post.comments.newest
-    new_comment = post.comments.create(body: "My new comment")
+    new_comment = post.comments.create(body: 'My new comment')
     assert_equal new_comment, post.comments.newest
     assert_not_equal old_last_comment, post.comments.newest
   end
@@ -597,13 +597,13 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_scoped_are_lazy_loaded_if_table_still_does_not_exist
     assert_nothing_raised do
-      require "models/without_table"
+      require 'models/without_table'
     end
   end
 
   def test_eager_default_scope_relations_are_remove
     klass = Class.new(ActiveRecord::Base)
-    klass.table_name = "posts"
+    klass.table_name = 'posts'
 
     assert_raises(ArgumentError) do
       klass.send(:default_scope, klass.where(id: posts(:welcome).id))
@@ -611,7 +611,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_subclass_merges_scopes_properly
-    assert_equal 1, SpecialComment.where(body: "go crazy").created.count
+    assert_equal 1, SpecialComment.where(body: 'go crazy').created.count
   end
 
   def test_model_class_should_respond_to_extending
@@ -636,7 +636,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_scope_with_annotation
     Topic.class_eval do
-      scope :including_annotate_in_scope, Proc.new { annotate("from-scope") }
+      scope :including_annotate_in_scope, Proc.new { annotate('from-scope') }
     end
 
     assert_sql(%r{/\* from-scope \*/}) do

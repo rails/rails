@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "fileutils"
-require "digest/md5"
-require "rails/version" unless defined?(Rails::VERSION)
-require "open-uri"
-require "uri"
-require "rails/generators"
-require "active_support/core_ext/array/extract_options"
+require 'fileutils'
+require 'digest/md5'
+require 'rails/version' unless defined?(Rails::VERSION)
+require 'open-uri'
+require 'uri'
+require 'rails/generators'
+require 'active_support/core_ext/array/extract_options'
 
 module Rails
   module Generators
@@ -24,48 +24,48 @@ module Rails
       end
 
       def self.add_shared_options_for(name)
-        class_option :template,            type: :string, aliases: "-m",
+        class_option :template,            type: :string, aliases: '-m',
                                            desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
-        class_option :database,            type: :string, aliases: "-d", default: "sqlite3",
+        class_option :database,            type: :string, aliases: '-d', default: 'sqlite3',
                                            desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
         class_option :skip_gemfile,        type: :boolean, default: false,
                                            desc: "Don't create a Gemfile"
 
-        class_option :skip_git,            type: :boolean, aliases: "-G", default: false,
-                                           desc: "Skip .gitignore file"
+        class_option :skip_git,            type: :boolean, aliases: '-G', default: false,
+                                           desc: 'Skip .gitignore file'
 
         class_option :skip_keeps,          type: :boolean, default: false,
-                                           desc: "Skip source control .keep files"
+                                           desc: 'Skip source control .keep files'
 
-        class_option :skip_action_mailer,  type: :boolean, aliases: "-M",
+        class_option :skip_action_mailer,  type: :boolean, aliases: '-M',
                                            default: false,
-                                           desc: "Skip Action Mailer files"
+                                           desc: 'Skip Action Mailer files'
 
         class_option :skip_action_mailbox, type: :boolean, default: false,
-                                           desc: "Skip Action Mailbox gem"
+                                           desc: 'Skip Action Mailbox gem'
 
         class_option :skip_action_text,    type: :boolean, default: false,
-                                           desc: "Skip Action Text gem"
+                                           desc: 'Skip Action Text gem'
 
-        class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
-                                           desc: "Skip Active Record files"
+        class_option :skip_active_record,  type: :boolean, aliases: '-O', default: false,
+                                           desc: 'Skip Active Record files'
 
         class_option :skip_active_job,     type: :boolean, default: false,
-                                           desc: "Skip Active Job"
+                                           desc: 'Skip Active Job'
 
         class_option :skip_active_storage, type: :boolean, default: false,
-                                           desc: "Skip Active Storage files"
+                                           desc: 'Skip Active Storage files'
 
-        class_option :skip_puma,           type: :boolean, aliases: "-P", default: false,
-                                           desc: "Skip Puma related files"
+        class_option :skip_puma,           type: :boolean, aliases: '-P', default: false,
+                                           desc: 'Skip Puma related files'
 
-        class_option :skip_action_cable,   type: :boolean, aliases: "-C", default: false,
-                                           desc: "Skip Action Cable files"
+        class_option :skip_action_cable,   type: :boolean, aliases: '-C', default: false,
+                                           desc: 'Skip Action Cable files'
 
-        class_option :skip_sprockets,      type: :boolean, aliases: "-S", default: false,
-                                           desc: "Skip Sprockets files"
+        class_option :skip_sprockets,      type: :boolean, aliases: '-S', default: false,
+                                           desc: 'Skip Sprockets files'
 
         class_option :skip_spring,         type: :boolean, default: false,
                                            desc: "Don't install Spring application preloader"
@@ -73,23 +73,23 @@ module Rails
         class_option :skip_listen,         type: :boolean, default: false,
                                            desc: "Don't generate configuration that depends on the listen gem"
 
-        class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
-                                           desc: "Skip JavaScript files"
+        class_option :skip_javascript,     type: :boolean, aliases: '-J', default: name == 'plugin',
+                                           desc: 'Skip JavaScript files'
 
         class_option :skip_turbolinks,     type: :boolean, default: false,
-                                           desc: "Skip turbolinks gem"
+                                           desc: 'Skip turbolinks gem'
 
         class_option :skip_jbuilder,       type: :boolean, default: false,
-                                           desc: "Skip jbuilder gem"
+                                           desc: 'Skip jbuilder gem'
 
-        class_option :skip_test,           type: :boolean, aliases: "-T", default: false,
-                                           desc: "Skip test files"
+        class_option :skip_test,           type: :boolean, aliases: '-T', default: false,
+                                           desc: 'Skip test files'
 
         class_option :skip_system_test,    type: :boolean, default: false,
-                                           desc: "Skip system test files"
+                                           desc: 'Skip system test files'
 
         class_option :skip_bootsnap,       type: :boolean, default: false,
-                                           desc: "Skip bootsnap gem"
+                                           desc: 'Skip bootsnap gem'
 
         class_option :dev,                 type: :boolean, default: false,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
@@ -101,13 +101,13 @@ module Rails
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository master branch"
 
         class_option :rc,                  type: :string, default: nil,
-                                           desc: "Path to file containing extra configuration options for rails command"
+                                           desc: 'Path to file containing extra configuration options for rails command'
 
         class_option :no_rc,               type: :boolean, default: false,
-                                           desc: "Skip loading of extra configuration options from .railsrc file"
+                                           desc: 'Skip loading of extra configuration options from .railsrc file'
 
-        class_option :help,                type: :boolean, aliases: "-h", group: :rails,
-                                           desc: "Show this help message and quit"
+        class_option :help,                type: :boolean, aliases: '-h', group: :rails,
+                                           desc: 'Show this help message and quit'
       end
 
       def initialize(*args)
@@ -167,7 +167,7 @@ module Rails
       def create_root # :doc:
         valid_const?
 
-        empty_directory "."
+        empty_directory '.'
         FileUtils.cd(destination_root) unless options[:pretend]
       end
 
@@ -199,8 +199,8 @@ module Rails
 
       def web_server_gemfile_entry # :doc:
         return [] if options[:skip_puma]
-        comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 4.1", comment)
+        comment = 'Use Puma as the app server'
+        GemfileEntry.new('puma', '~> 4.1', comment)
       end
 
       def include_all_railties? # :doc:
@@ -229,7 +229,7 @@ module Rails
             options[value]
           end
 
-        comment ? "# " : ""
+        comment ? '# ' : ''
       end
 
       def keeps? # :doc:
@@ -237,7 +237,7 @@ module Rails
       end
 
       def sqlite3? # :doc:
-        !options[:skip_active_record] && options[:database] == "sqlite3"
+        !options[:skip_active_record] && options[:database] == 'sqlite3'
       end
 
       def skip_active_storage? # :doc:
@@ -291,18 +291,18 @@ module Rails
       def rails_gemfile_entry
         if options.dev?
           [
-            GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
+            GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH)
           ]
         elsif options.edge?
           [
-            GemfileEntry.github("rails", "rails/rails")
+            GemfileEntry.github('rails', 'rails/rails')
           ]
         elsif options.master?
           [
-            GemfileEntry.github("rails", "rails/rails", "master")
+            GemfileEntry.github('rails', 'rails/rails', 'master')
           ]
         else
-          [GemfileEntry.version("rails",
+          [GemfileEntry.version('rails',
                             rails_version_specifier,
                             "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'")]
         end
@@ -316,7 +316,7 @@ module Rails
         else
           # ~> 1.2.3, >= 1.2.3.4
           # ~> 1.2.3, >= 1.2.3.4.pre5
-          patch = gem_version.segments[0, 3].join(".")
+          patch = gem_version.segments[0, 3].join('.')
           ["~> #{patch}", ">= #{gem_version}"]
         end
       end
@@ -324,47 +324,47 @@ module Rails
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
-        GemfileEntry.version("sass-rails", ">= 6", "Use SCSS for stylesheets")
+        GemfileEntry.version('sass-rails', '>= 6', 'Use SCSS for stylesheets')
       end
 
       def webpacker_gemfile_entry
         return [] if options[:skip_javascript]
 
         if options.dev? || options.edge? || options.master?
-          GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
+          GemfileEntry.github 'webpacker', 'rails/webpacker', nil, 'Use development version of Webpacker'
         else
-          GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+          GemfileEntry.version 'webpacker', '~> 5.0', 'Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker'
         end
       end
 
       def jbuilder_gemfile_entry
         return [] if options[:skip_jbuilder]
-        comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
-        GemfileEntry.new "jbuilder", "~> 2.7", comment, {}, options[:api]
+        comment = 'Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder'
+        GemfileEntry.new 'jbuilder', '~> 2.7', comment, {}, options[:api]
       end
 
       def javascript_gemfile_entry
         if options[:skip_javascript] || options[:skip_turbolinks]
           []
         else
-          [ GemfileEntry.version("turbolinks", "~> 5",
-             "Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks") ]
+          [ GemfileEntry.version('turbolinks', '~> 5',
+             'Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks') ]
         end
       end
 
       def psych_gemfile_entry
         return [] unless defined?(Rubinius)
 
-        comment = "Use Psych as the YAML engine, instead of Syck, so serialized " \
-                  "data can be read safely from different rubies (see http://git.io/uuLVag)"
-        GemfileEntry.new("psych", "~> 2.0", comment, platforms: :rbx)
+        comment = 'Use Psych as the YAML engine, instead of Syck, so serialized ' \
+                  'data can be read safely from different rubies (see http://git.io/uuLVag)'
+        GemfileEntry.new('psych', '~> 2.0', comment, platforms: :rbx)
       end
 
       def cable_gemfile_entry
         return [] if options[:skip_action_cable]
-        comment = "Use Redis adapter to run Action Cable in production"
+        comment = 'Use Redis adapter to run Action Cable in production'
         gems = []
-        gems << GemfileEntry.new("redis", "~> 4.0", comment, {}, true)
+        gems << GemfileEntry.new('redis', '~> 4.0', comment, {}, true)
         gems
       end
 
@@ -377,9 +377,9 @@ module Rails
         # things in the same process is a recipe for a night with paracetamol.
         #
         # Thanks to James Tucker for the Gem tricks involved in this call.
-        _bundle_command = Gem.bin_path("bundler", "bundle")
+        _bundle_command = Gem.bin_path('bundler', 'bundle')
 
-        require "bundler"
+        require 'bundler'
         Bundler.with_original_env do
           exec_bundle_command(_bundle_command, command, env)
         end
@@ -399,7 +399,7 @@ module Rails
       end
 
       def spring_install?
-        !options[:skip_spring] && !options.dev? && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?("cygwin")
+        !options[:skip_spring] && !options.dev? && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?('cygwin')
       end
 
       def webpack_install?
@@ -419,17 +419,17 @@ module Rails
       end
 
       def os_supports_listen_out_of_the_box?
-        /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
+        /darwin|linux/.match?(RbConfig::CONFIG['host_os'])
       end
 
       def run_bundle
-        bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
+        bundle_command('install', 'BUNDLE_IGNORE_MESSAGES' => '1') if bundle_install?
       end
 
       def run_webpack
         if webpack_install?
-          rails_command "webpacker:install"
-          if options[:webpack] && options[:webpack] != "webpack"
+          rails_command 'webpacker:install'
+          if options[:webpack] && options[:webpack] != 'webpack'
             rails_command "webpacker:install:#{options[:webpack]}"
           end
         end
@@ -437,13 +437,13 @@ module Rails
 
       def generate_bundler_binstub
         if bundle_install?
-          bundle_command("binstubs bundler")
+          bundle_command('binstubs bundler')
         end
       end
 
       def generate_spring_binstub
         if bundle_install? && spring_install?
-          bundle_command("exec spring binstub")
+          bundle_command('exec spring binstub')
         end
       end
 

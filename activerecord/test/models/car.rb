@@ -2,14 +2,14 @@
 
 class Car < ActiveRecord::Base
   has_many :bulbs
-  has_many :all_bulbs, -> { unscope(where: :name) }, class_name: "Bulb"
-  has_many :all_bulbs2, -> { unscope(:where) }, class_name: "Bulb"
-  has_many :other_bulbs, -> { unscope(where: :name).where(name: "other") }, class_name: "Bulb"
-  has_many :old_bulbs, -> { rewhere(name: "old") }, class_name: "Bulb"
-  has_many :funky_bulbs, class_name: "FunkyBulb", dependent: :destroy
-  has_many :failed_bulbs, class_name: "FailedBulb", dependent: :destroy
-  has_many :foo_bulbs, -> { where(name: "foo") }, class_name: "Bulb"
-  has_many :awesome_bulbs, -> { awesome }, class_name: "Bulb"
+  has_many :all_bulbs, -> { unscope(where: :name) }, class_name: 'Bulb'
+  has_many :all_bulbs2, -> { unscope(:where) }, class_name: 'Bulb'
+  has_many :other_bulbs, -> { unscope(where: :name).where(name: 'other') }, class_name: 'Bulb'
+  has_many :old_bulbs, -> { rewhere(name: 'old') }, class_name: 'Bulb'
+  has_many :funky_bulbs, class_name: 'FunkyBulb', dependent: :destroy
+  has_many :failed_bulbs, class_name: 'FailedBulb', dependent: :destroy
+  has_many :foo_bulbs, -> { where(name: 'foo') }, class_name: 'Bulb'
+  has_many :awesome_bulbs, -> { awesome }, class_name: 'Bulb'
 
   has_one :bulb
 
@@ -22,15 +22,15 @@ class Car < ActiveRecord::Base
   scope :incl_tyres, -> { includes(:tyres) }
   scope :incl_engines, -> { includes(:engines) }
 
-  scope :order_using_new_style,  -> { order("name asc") }
+  scope :order_using_new_style,  -> { order('name asc') }
 
   attribute :wheels_owned_at, :datetime, default: -> { Time.now }
 end
 
 class CoolCar < Car
-  default_scope { order("name desc") }
+  default_scope { order('name desc') }
 end
 
 class FastCar < Car
-  default_scope { order("name desc") }
+  default_scope { order('name desc') }
 end

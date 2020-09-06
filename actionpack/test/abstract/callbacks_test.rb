@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 module AbstractController
   module Testing
@@ -12,7 +12,7 @@ module AbstractController
       set_callback :process_action, :before, :first
 
       def first
-        @text = "Hello world"
+        @text = 'Hello world'
       end
 
       def index
@@ -21,10 +21,10 @@ module AbstractController
     end
 
     class TestCallbacks1 < ActiveSupport::TestCase
-      test "basic callbacks work" do
+      test 'basic callbacks work' do
         controller = Callback1.new
         controller.process(:index)
-        assert_equal "Hello world", controller.response_body
+        assert_equal 'Hello world', controller.response_body
       end
     end
 
@@ -34,17 +34,17 @@ module AbstractController
       around_action :aroundz
 
       def first
-        @text = "Hello world"
+        @text = 'Hello world'
       end
 
       def second
-        @second = "Goodbye"
+        @second = 'Goodbye'
       end
 
       def aroundz
-        @aroundz = "FIRST"
+        @aroundz = 'FIRST'
         yield
-        @aroundz += "SECOND"
+        @aroundz += 'SECOND'
       end
 
       def index
@@ -62,35 +62,35 @@ module AbstractController
         @controller = Callback2.new
       end
 
-      test "before_action works" do
+      test 'before_action works' do
         @controller.process(:index)
-        assert_equal "Hello world", @controller.response_body
+        assert_equal 'Hello world', @controller.response_body
       end
 
-      test "after_action works" do
+      test 'after_action works' do
         @controller.process(:index)
-        assert_equal "Goodbye", @controller.instance_variable_get("@second")
+        assert_equal 'Goodbye', @controller.instance_variable_get('@second')
       end
 
-      test "around_action works" do
+      test 'around_action works' do
         @controller.process(:index)
-        assert_equal "FIRSTSECOND", @controller.instance_variable_get("@aroundz")
+        assert_equal 'FIRSTSECOND', @controller.instance_variable_get('@aroundz')
       end
 
-      test "before_action with overwritten condition" do
+      test 'before_action with overwritten condition' do
         @controller = Callback2Overwrite.new
         @controller.process(:index)
-        assert_equal "", @controller.response_body
+        assert_equal '', @controller.response_body
       end
     end
 
     class Callback3 < ControllerWithCallbacks
       before_action do |c|
-        c.instance_variable_set("@text", "Hello world")
+        c.instance_variable_set('@text', 'Hello world')
       end
 
       after_action do |c|
-        c.instance_variable_set("@second", "Goodbye")
+        c.instance_variable_set('@second', 'Goodbye')
       end
 
       def index
@@ -103,14 +103,14 @@ module AbstractController
         @controller = Callback3.new
       end
 
-      test "before_action works with procs" do
+      test 'before_action works with procs' do
         @controller.process(:index)
-        assert_equal "Hello world", @controller.response_body
+        assert_equal 'Hello world', @controller.response_body
       end
 
-      test "after_action works with procs" do
+      test 'after_action works with procs' do
         @controller.process(:index)
-        assert_equal "Goodbye", @controller.instance_variable_get("@second")
+        assert_equal 'Goodbye', @controller.instance_variable_get('@second')
       end
     end
 
@@ -119,21 +119,21 @@ module AbstractController
       before_action :authenticate, except: :index
 
       def index
-        self.response_body = @list.join(", ")
+        self.response_body = @list.join(', ')
       end
 
       def sekrit_data
-        self.response_body = (@list + [@authenticated]).join(", ")
+        self.response_body = (@list + [@authenticated]).join(', ')
       end
 
       private
         def list
-          @list = ["Hello", "World"]
+          @list = ['Hello', 'World']
         end
 
         def authenticate
           @list ||= []
-          @authenticated = "true"
+          @authenticated = 'true'
         end
     end
 
@@ -142,19 +142,19 @@ module AbstractController
         @controller = CallbacksWithConditions.new
       end
 
-      test "when :only is specified, a before action is triggered on that action" do
+      test 'when :only is specified, a before action is triggered on that action' do
         @controller.process(:index)
-        assert_equal "Hello, World", @controller.response_body
+        assert_equal 'Hello, World', @controller.response_body
       end
 
-      test "when :only is specified, a before action is not triggered on other actions" do
+      test 'when :only is specified, a before action is not triggered on other actions' do
         @controller.process(:sekrit_data)
-        assert_equal "true", @controller.response_body
+        assert_equal 'true', @controller.response_body
       end
 
-      test "when :except is specified, an after action is not triggered on that action" do
+      test 'when :except is specified, an after action is not triggered on that action' do
         @controller.process(:index)
-        assert_not @controller.instance_variable_defined?("@authenticated")
+        assert_not @controller.instance_variable_defined?('@authenticated')
       end
     end
 
@@ -164,22 +164,22 @@ module AbstractController
       before_action :authenticate, options
 
       def index
-        self.response_body = @list.join(", ")
+        self.response_body = @list.join(', ')
       end
 
       def public_data
-        @authenticated = "false"
+        @authenticated = 'false'
         self.response_body = @authenticated
       end
 
       private
         def list
-          @list = ["Hello", "World"]
+          @list = ['Hello', 'World']
         end
 
         def authenticate
           @list ||= []
-          @authenticated = "true"
+          @authenticated = 'true'
         end
     end
 
@@ -188,15 +188,15 @@ module AbstractController
         @controller = CallbacksWithReusedConditions.new
       end
 
-      test "when :only is specified, both actions triggered on that action" do
+      test 'when :only is specified, both actions triggered on that action' do
         @controller.process(:index)
-        assert_equal "Hello, World", @controller.response_body
-        assert_equal "true", @controller.instance_variable_get("@authenticated")
+        assert_equal 'Hello, World', @controller.response_body
+        assert_equal 'true', @controller.instance_variable_get('@authenticated')
       end
 
-      test "when :only is specified, both actions are not triggered on other actions" do
+      test 'when :only is specified, both actions are not triggered on other actions' do
         @controller.process(:public_data)
-        assert_equal "false", @controller.response_body
+        assert_equal 'false', @controller.response_body
       end
     end
 
@@ -205,21 +205,21 @@ module AbstractController
       before_action :authenticate, except: [:index, :listy]
 
       def index
-        self.response_body = @list.join(", ")
+        self.response_body = @list.join(', ')
       end
 
       def sekrit_data
-        self.response_body = (@list + [@authenticated]).join(", ")
+        self.response_body = (@list + [@authenticated]).join(', ')
       end
 
       private
         def list
-          @list = ["Hello", "World"]
+          @list = ['Hello', 'World']
         end
 
         def authenticate
           @list = []
-          @authenticated = "true"
+          @authenticated = 'true'
         end
     end
 
@@ -228,19 +228,19 @@ module AbstractController
         @controller = CallbacksWithArrayConditions.new
       end
 
-      test "when :only is specified with an array, a before action is triggered on that action" do
+      test 'when :only is specified with an array, a before action is triggered on that action' do
         @controller.process(:index)
-        assert_equal "Hello, World", @controller.response_body
+        assert_equal 'Hello, World', @controller.response_body
       end
 
-      test "when :only is specified with an array, a before action is not triggered on other actions" do
+      test 'when :only is specified with an array, a before action is not triggered on other actions' do
         @controller.process(:sekrit_data)
-        assert_equal "true", @controller.response_body
+        assert_equal 'true', @controller.response_body
       end
 
-      test "when :except is specified with an array, an after action is not triggered on that action" do
+      test 'when :except is specified with an array, an after action is not triggered on that action' do
         @controller.process(:index)
-        assert_not @controller.instance_variable_defined?("@authenticated")
+        assert_not @controller.instance_variable_defined?('@authenticated')
       end
     end
 
@@ -258,14 +258,14 @@ module AbstractController
         @controller = ChangedConditions.new
       end
 
-      test "when a callback is modified in a child with :only, it works for the :only action" do
+      test 'when a callback is modified in a child with :only, it works for the :only action' do
         @controller.process(:index)
-        assert_equal "Hello world", @controller.response_body
+        assert_equal 'Hello world', @controller.response_body
       end
 
-      test "when a callback is modified in a child with :only, it does not work for other actions" do
+      test 'when a callback is modified in a child with :only, it does not work for other actions' do
         @controller.process(:not_index)
-        assert_equal "", @controller.response_body
+        assert_equal '', @controller.response_body
       end
     end
 
@@ -273,19 +273,19 @@ module AbstractController
       before_action :set_body
 
       def index
-        self.response_body = "Fail"
+        self.response_body = 'Fail'
       end
 
       def set_body
-        self.response_body = "Success"
+        self.response_body = 'Success'
       end
     end
 
     class TestHalting < ActiveSupport::TestCase
-      test "when a callback sets the response body, the action should not be invoked" do
+      test 'when a callback sets the response body, the action should not be invoked' do
         controller = SetsResponseBody.new
         controller.process(:index)
-        assert_equal "Success", controller.response_body
+        assert_equal 'Success', controller.response_body
       end
     end
 
@@ -293,7 +293,7 @@ module AbstractController
       set_callback :process_action, :before, :first
 
       def first
-        @text = "Hello world"
+        @text = 'Hello world'
       end
 
       def index(text)
@@ -302,10 +302,10 @@ module AbstractController
     end
 
     class TestCallbacksWithArgs < ActiveSupport::TestCase
-      test "callbacks still work when invoking process with multiple arguments" do
+      test 'callbacks still work when invoking process with multiple arguments' do
         controller = CallbacksWithArgs.new
-        controller.process(:index, " Howdy!")
-        assert_equal "Hello world Howdy!", controller.response_body
+        controller.process(:index, ' Howdy!')
+        assert_equal 'Hello world Howdy!', controller.response_body
       end
     end
   end

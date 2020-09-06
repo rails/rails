@@ -1,18 +1,18 @@
 # frozen_string_literal: true
 
-require "active_support/inflector/methods"
-require "active_support/values/time_zone"
+require 'active_support/inflector/methods'
+require 'active_support/values/time_zone'
 
 class Time
   DATE_FORMATS = {
-    db: "%Y-%m-%d %H:%M:%S",
-    inspect: "%Y-%m-%d %H:%M:%S.%9N %z",
-    number: "%Y%m%d%H%M%S",
-    nsec: "%Y%m%d%H%M%S%9N",
-    usec: "%Y%m%d%H%M%S%6N",
-    time: "%H:%M",
-    short: "%d %b %H:%M",
-    long: "%B %d, %Y %H:%M",
+    db: '%Y-%m-%d %H:%M:%S',
+    inspect: '%Y-%m-%d %H:%M:%S.%9N %z',
+    number: '%Y%m%d%H%M%S',
+    nsec: '%Y%m%d%H%M%S%9N',
+    usec: '%Y%m%d%H%M%S%6N',
+    time: '%H:%M',
+    short: '%d %b %H:%M',
+    long: '%B %d, %Y %H:%M',
     long_ordinal: lambda { |time|
       day_format = ActiveSupport::Inflector.ordinalize(time.day)
       time.strftime("%B #{day_format}, %Y %H:%M")

@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
-ActionController::Base.helpers_path = File.expand_path("../fixtures/helpers", __dir__)
+ActionController::Base.helpers_path = File.expand_path('../fixtures/helpers', __dir__)
 
 module Fun
   class GamesController < ActionController::Base
     def render_hello_world
-      render inline: "hello: <%= stratego %>"
+      render inline: 'hello: <%= stratego %>'
     end
   end
 
   class PdfController < ActionController::Base
     def test
-      render inline: "test: <%= foobar %>"
+      render inline: 'test: <%= foobar %>'
     end
   end
 end
@@ -37,11 +37,11 @@ class JustMeController < ActionController::Base
   clear_helpers
 
   def flash
-    render inline: "<h1><%= notice %></h1>"
+    render inline: '<h1><%= notice %></h1>'
   end
 
   def lib
-    render inline: "<%= useful_function %>"
+    render inline: '<%= useful_function %>'
   end
 end
 
@@ -49,8 +49,8 @@ class MeTooController < JustMeController
 end
 
 class HelpersPathsController < ActionController::Base
-  paths = ["helpers2_pack", "helpers1_pack"].map do |path|
-    File.join(File.expand_path("../fixtures", __dir__), path)
+  paths = ['helpers2_pack', 'helpers1_pack'].map do |path|
+    File.join(File.expand_path('../fixtures', __dir__), path)
   end
 
   self.helpers_path = paths
@@ -59,12 +59,12 @@ class HelpersPathsController < ActionController::Base
   helper :all
 
   def index
-    render inline: "<%= conflicting_helper %>"
+    render inline: '<%= conflicting_helper %>'
   end
 end
 
 class HelpersTypoController < ActionController::Base
-  self.helpers_path = File.expand_path("../fixtures/helpers_typo", __dir__)
+  self.helpers_path = File.expand_path('../fixtures/helpers_typo', __dir__)
   ActionPackTestSuiteUtils.require_helpers(helpers_path)
 end
 
@@ -80,18 +80,18 @@ class HelperPathsTest < ActiveSupport::TestCase
 
     # helpers1_pack was given as a second path, so pack1_helper should be
     # included as the second one
-    assert_equal "pack1", responses.last.body
+    assert_equal 'pack1', responses.last.body
   end
 end
 
 class HelpersTypoControllerTest < ActiveSupport::TestCase
   def test_helper_typo_error_message
-    e = assert_raise(NameError) { HelpersTypoController.helper "admin/users" }
+    e = assert_raise(NameError) { HelpersTypoController.helper 'admin/users' }
     # This message is better if autoloading.
-    if RUBY_VERSION >= "2.6"
+    if RUBY_VERSION >= '2.6'
       assert_equal "uninitialized constant Admin::UsersHelper\nDid you mean?  Admin::UsersHelpeR", e.message
     else
-      assert_equal "uninitialized constant Admin::UsersHelper", e.message
+      assert_equal 'uninitialized constant Admin::UsersHelper', e.message
     end
   end
 end
@@ -106,7 +106,7 @@ class HelperTest < ActiveSupport::TestCase
 
   def setup
     # Increment symbol counter.
-    @symbol = (@@counter ||= "A0").succ.dup
+    @symbol = (@@counter ||= 'A0').succ.dup
 
     # Generate new controller class.
     @controller_class = Class.new(TestController)
@@ -160,12 +160,12 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def test_helper_for_nested_controller
-    assert_equal "hello: Iz guuut!",
-      call_controller(Fun::GamesController, "render_hello_world").last.body
+    assert_equal 'hello: Iz guuut!',
+      call_controller(Fun::GamesController, 'render_hello_world').last.body
   end
 
   def test_helper_for_acronym_controller
-    assert_equal "test: baz", call_controller(Fun::PdfController, "test").last.body
+    assert_equal 'test: baz', call_controller(Fun::PdfController, 'test').last.body
   end
 
   def test_default_helpers_only
@@ -175,13 +175,13 @@ class HelperTest < ActiveSupport::TestCase
 
   def test_base_helper_methods_after_clear_helpers
     assert_nothing_raised do
-      call_controller(JustMeController, "flash")
+      call_controller(JustMeController, 'flash')
     end
   end
 
   def test_lib_helper_methods_after_clear_helpers
     assert_nothing_raised do
-      call_controller(JustMeController, "lib")
+      call_controller(JustMeController, 'lib')
     end
   end
 
@@ -199,7 +199,7 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def test_all_helpers_with_alternate_helper_dir
-    @controller_class.helpers_path = File.expand_path("../fixtures/alternate_helpers", __dir__)
+    @controller_class.helpers_path = File.expand_path('../fixtures/alternate_helpers', __dir__)
     ActionPackTestSuiteUtils.require_helpers(@controller_class.helpers_path)
 
     # Reload helpers
@@ -246,9 +246,9 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def test_helper_proxy_config
-    AllHelpersController.config.my_var = "smth"
+    AllHelpersController.config.my_var = 'smth'
 
-    assert_equal "smth", AllHelpersController.helpers.config.my_var
+    assert_equal 'smth', AllHelpersController.helpers.config.my_var
   end
 
   private
@@ -265,30 +265,30 @@ class HelperTest < ActiveSupport::TestCase
     end
 
     def test_helper=(helper_module)
-      silence_warnings { self.class.const_set("TestHelper", helper_module) }
+      silence_warnings { self.class.const_set('TestHelper', helper_module) }
     end
 end
 
 class IsolatedHelpersTest < ActionController::TestCase
   class A < ActionController::Base
     def index
-      render inline: "<%= shout %>"
+      render inline: '<%= shout %>'
     end
   end
 
   class B < A
-    helper { def shout; "B" end }
+    helper { def shout; 'B' end }
 
     def index
-      render inline: "<%= shout %>"
+      render inline: '<%= shout %>'
     end
   end
 
   class C < A
-    helper { def shout; "C" end }
+    helper { def shout; 'C' end }
 
     def index
-      render inline: "<%= shout %>"
+      render inline: '<%= shout %>'
     end
   end
 
@@ -298,18 +298,18 @@ class IsolatedHelpersTest < ActionController::TestCase
 
   def setup
     super
-    @request.action = "index"
+    @request.action = 'index'
   end
 
   def test_helper_in_a
-    assert_raise(ActionView::Template::Error) { call_controller(A, "index") }
+    assert_raise(ActionView::Template::Error) { call_controller(A, 'index') }
   end
 
   def test_helper_in_b
-    assert_equal "B", call_controller(B, "index").last.body
+    assert_equal 'B', call_controller(B, 'index').last.body
   end
 
   def test_helper_in_c
-    assert_equal "C", call_controller(C, "index").last.body
+    assert_equal 'C', call_controller(C, 'index').last.body
   end
 end

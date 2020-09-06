@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
-require "active_support/log_subscriber/test_helper"
-require "rack/test"
+require 'isolation/abstract_unit'
+require 'active_support/log_subscriber/test_helper'
+require 'rack/test'
 
 module ApplicationTests
   module RackTests
@@ -30,32 +30,32 @@ module ApplicationTests
         @logs ||= Rails.logger.logged(:info).join("\n")
       end
 
-      test "logger logs proper HTTP GET verb and path" do
-        get "/blah"
+      test 'logger logs proper HTTP GET verb and path' do
+        get '/blah'
         wait
         assert_match 'Started GET "/blah"', logs
       end
 
-      test "logger logs proper HTTP HEAD verb and path" do
-        head "/blah"
+      test 'logger logs proper HTTP HEAD verb and path' do
+        head '/blah'
         wait
         assert_match 'Started HEAD "/blah"', logs
       end
 
-      test "logger logs HTTP verb override" do
-        post "/", _method: "put"
+      test 'logger logs HTTP verb override' do
+        post '/', _method: 'put'
         wait
         assert_match 'Started PUT "/"', logs
       end
 
-      test "logger logs HEAD requests" do
-        post "/", _method: "head"
+      test 'logger logs HEAD requests' do
+        post '/', _method: 'head'
         wait
         assert_match 'Started HEAD "/"', logs
       end
 
-      test "logger logs correct remote IP address" do
-        get "/", {}, { "REMOTE_ADDR" => "127.0.0.1", "HTTP_X_FORWARDED_FOR" => "1.2.3.4" }
+      test 'logger logs correct remote IP address' do
+        get '/', {}, { 'REMOTE_ADDR' => '127.0.0.1', 'HTTP_X_FORWARDED_FOR' => '1.2.3.4' }
         wait
         assert_match 'Started GET "/" for 1.2.3.4', logs
       end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/to_param"
+require 'active_support/core_ext/object/to_param'
 
 module ActionCable
   module Channel
@@ -28,7 +28,7 @@ module ActionCable
         def serialize_broadcasting(object) #:nodoc:
           case
           when object.is_a?(Array)
-            object.map { |m| serialize_broadcasting(m) }.join(":")
+            object.map { |m| serialize_broadcasting(m) }.join(':')
           when object.respond_to?(:to_gid_param)
             object.to_gid_param
           else

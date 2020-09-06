@@ -67,7 +67,7 @@ module ActiveRecord
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
     def new(attributes = nil, &block)
-      block = _deprecated_scope_block("new", &block)
+      block = _deprecated_scope_block('new', &block)
       scoping { klass.new(attributes, &block) }
     end
 
@@ -96,7 +96,7 @@ module ActiveRecord
       if attributes.is_a?(Array)
         attributes.collect { |attr| create(attr, &block) }
       else
-        block = _deprecated_scope_block("create", &block)
+        block = _deprecated_scope_block('create', &block)
         scoping { klass.create(attributes, &block) }
       end
     end
@@ -111,7 +111,7 @@ module ActiveRecord
       if attributes.is_a?(Array)
         attributes.collect { |attr| create!(attr, &block) }
       else
-        block = _deprecated_scope_block("create!", &block)
+        block = _deprecated_scope_block('create!', &block)
         scoping { klass.create!(attributes, &block) }
       end
     end
@@ -308,7 +308,7 @@ module ActiveRecord
     # last updated record.
     #
     #   Product.where("name like ?", "%Game%").cache_key(:last_reviewed_at)
-    def cache_key(timestamp_column = "updated_at")
+    def cache_key(timestamp_column = 'updated_at')
       @cache_keys ||= {}
       @cache_keys[timestamp_column] ||= klass.collection_cache_key(self, timestamp_column)
     end
@@ -358,7 +358,7 @@ module ActiveRecord
 
         if collection.has_limit_or_offset?
           query = collection.select("#{column} AS collection_cache_key_timestamp")
-          subquery_alias = "subquery_for_cache_key"
+          subquery_alias = 'subquery_for_cache_key'
           subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
           arel = query.build_subquery(subquery_alias, select_values % subquery_column)
         else
@@ -439,7 +439,7 @@ module ActiveRecord
     #   # Update all invoices and set the number column to its id value.
     #   Invoice.update_all('number = id')
     def update_all(updates)
-      raise ArgumentError, "Empty list of attributes to change" if updates.blank?
+      raise ArgumentError, 'Empty list of attributes to change' if updates.blank?
 
       if eager_loading?
         relation = apply_join_dependency
@@ -736,7 +736,7 @@ module ActiveRecord
       subject = loaded? ? records : self
       entries = subject.take([limit_value, 11].compact.min).map!(&:inspect)
 
-      entries[10] = "..." if entries.size == 11
+      entries[10] = '...' if entries.size == 11
 
       "#<#{self.class.name} [#{entries.join(', ')}]>"
     end
@@ -843,7 +843,7 @@ module ActiveRecord
                   []
                 else
                   relation = join_dependency.apply_column_aliases(relation)
-                  rows = connection.select_all(relation.arel, "SQL")
+                  rows = connection.select_all(relation.arel, 'SQL')
                   join_dependency.instantiate(rows, strict_loading_value, &block)
                 end.freeze
               end
@@ -895,7 +895,7 @@ module ActiveRecord
         return [] if string.blank?
         # always convert table names to downcase as in Oracle quoted table names are in uppercase
         # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
-        string.scan(/[a-zA-Z_][.\w]+(?=.?\.)/).map!(&:downcase) - ["raw_sql_"]
+        string.scan(/[a-zA-Z_][.\w]+(?=.?\.)/).map!(&:downcase) - ['raw_sql_']
       end
   end
 end

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "active_support/core_ext/object/with_options"
-require "active_support/core_ext/object/json"
+require 'abstract_unit'
+require 'active_support/core_ext/object/with_options'
+require 'active_support/core_ext/object/json'
 
 class PathGenerationTest < ActiveSupport::TestCase
   attr_reader :app
@@ -40,11 +40,11 @@ class PathGenerationTest < ActiveSupport::TestCase
     host = uri_or_host.host unless path
     path ||= uri_or_host.path
 
-    params = { "PATH_INFO" => path,
-              "REQUEST_METHOD" => method,
-              "HTTP_HOST"      => host }
+    params = { 'PATH_INFO' => path,
+              'REQUEST_METHOD' => method,
+              'HTTP_HOST'      => host }
 
-    params["SCRIPT_NAME"] = script_name if script_name
+    params['SCRIPT_NAME'] = script_name if script_name
 
     status, headers, body = app.call(params)
     new_body = []
@@ -58,7 +58,7 @@ class PathGenerationTest < ActiveSupport::TestCase
     Rails.logger    = Logger.new nil
 
     app = Class.new(Rails::Application) {
-      def self.name; "ScriptNameTestApp"; end
+      def self.name; 'ScriptNameTestApp'; end
 
       attr_accessor :controller
 
@@ -66,7 +66,7 @@ class PathGenerationTest < ActiveSupport::TestCase
         super
         app = self
         @routes = TestSet.new ->(c) { app.controller = c }
-        secrets.secret_key_base = "foo"
+        secrets.secret_key_base = 'foo'
       end
       def app; routes; end
     }
@@ -74,13 +74,13 @@ class PathGenerationTest < ActiveSupport::TestCase
     @app = app
     app.routes.draw { resource :blogs }
 
-    url = URI("http://example.org/blogs")
+    url = URI('http://example.org/blogs')
 
-    send_request(url, "GET", nil, "/FOO")
-    assert_equal "/FOO/blogs", app.instance.controller.blogs_path
+    send_request(url, 'GET', nil, '/FOO')
+    assert_equal '/FOO/blogs', app.instance.controller.blogs_path
 
-    send_request(url, "GET", nil)
-    assert_equal "/blogs", app.instance.controller.blogs_path
+    send_request(url, 'GET', nil)
+    assert_equal '/blogs', app.instance.controller.blogs_path
   ensure
     Rails.logger = original_logger
   end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "action_view/renderer/partial_renderer/collection_caching"
+require 'action_view/renderer/partial_renderer/collection_caching'
 
 module ActionView
   # = Action View Partials
@@ -278,7 +278,7 @@ module ActionView
 
       def render_partial_template(view, locals, template, layout, block)
         ActiveSupport::Notifications.instrument(
-          "render_partial.action_view",
+          'render_partial.action_view',
           identifier: template.identifier,
           layout: layout && layout.virtual_path
         ) do |payload|

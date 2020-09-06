@@ -151,7 +151,7 @@ module ActiveRecord
       # See delete for more info.
       def delete_all(dependent = nil)
         if dependent && ![:nullify, :delete_all].include?(dependent)
-          raise ArgumentError, "Valid values are :nullify or :delete_all"
+          raise ArgumentError, 'Valid values are :nullify or :delete_all'
         end
 
         dependent = if dependent
@@ -347,7 +347,7 @@ module ActiveRecord
 
         def _create_record(attributes, raise = false, &block)
           unless owner.persisted?
-            raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
+            raise ActiveRecord::RecordNotSaved, 'You cannot call create unless the parent is saved'
           end
 
           if attributes.is_a?(Array)
@@ -415,7 +415,7 @@ module ActiveRecord
           unless concat(difference(new_target, target))
             @target = original_target
             raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
-                                  "new records could not be saved."
+                                  'new records could not be saved.'
           end
 
           target

@@ -5,9 +5,9 @@ module ActionView
     module Tags # :nodoc:
       module Checkable # :nodoc:
         def input_checked?(options)
-          if options.has_key?("checked")
-            checked = options.delete "checked"
-            checked == true || checked == "checked"
+          if options.has_key?('checked')
+            checked = options.delete 'checked'
+            checked == true || checked == 'checked'
           else
             checked?(value)
           end

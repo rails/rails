@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "action_view/dependency_tracker"
+require 'abstract_unit'
+require 'action_view/dependency_tracker'
 
 class NeckbeardTracker
   def self.call(name, template)
@@ -36,14 +36,14 @@ class DependencyTrackerTest < ActionView::TestCase
   end
 
   def test_finds_tracker_by_template_handler
-    template = FakeTemplate.new("boo/hoo")
-    dependencies = tracker.find_dependencies("boo/hoo", template)
-    assert_equal ["foo/boo/hoo"], dependencies
+    template = FakeTemplate.new('boo/hoo')
+    dependencies = tracker.find_dependencies('boo/hoo', template)
+    assert_equal ['foo/boo/hoo'], dependencies
   end
 
   def test_returns_empty_array_if_no_tracker_is_found
-    template = FakeTemplate.new("boo/hoo", Bowtie)
-    dependencies = tracker.find_dependencies("boo/hoo", template)
+    template = FakeTemplate.new('boo/hoo', Bowtie)
+    dependencies = tracker.find_dependencies('boo/hoo', template)
     assert_equal [], dependencies
   end
 end
@@ -55,56 +55,56 @@ class ERBTrackerTest < Minitest::Test
 
   def test_dependency_of_erb_template_with_number_in_filename
     template = FakeTemplate.new("<%# render 'messages/message123' %>", :erb)
-    tracker = make_tracker("messages/_message123", template)
+    tracker = make_tracker('messages/_message123', template)
 
-    assert_equal ["messages/message123"], tracker.dependencies
+    assert_equal ['messages/message123'], tracker.dependencies
   end
 
   def test_dependency_of_template_partial_with_layout
     template = FakeTemplate.new("<%# render partial: 'messages/show', layout: 'messages/layout' %>", :erb)
-    tracker = make_tracker("multiple/_dependencies", template)
+    tracker = make_tracker('multiple/_dependencies', template)
 
-    assert_equal ["messages/layout", "messages/show"], tracker.dependencies
+    assert_equal ['messages/layout', 'messages/show'], tracker.dependencies
   end
 
   def test_dependency_of_template_layout_standalone
     template = FakeTemplate.new("<%# render layout: 'messages/layout' do %>", :erb)
-    tracker = make_tracker("messages/layout", template)
+    tracker = make_tracker('messages/layout', template)
 
-    assert_equal ["messages/layout"], tracker.dependencies
+    assert_equal ['messages/layout'], tracker.dependencies
   end
 
   def test_finds_dependency_in_correct_directory
-    template = FakeTemplate.new("<%# render(message.topic) %>", :erb)
-    tracker = make_tracker("messages/_message", template)
+    template = FakeTemplate.new('<%# render(message.topic) %>', :erb)
+    tracker = make_tracker('messages/_message', template)
 
-    assert_equal ["topics/topic"], tracker.dependencies
+    assert_equal ['topics/topic'], tracker.dependencies
   end
 
   def test_finds_dependency_in_correct_directory_with_underscore
-    template = FakeTemplate.new("<%# render(message_type.messages) %>", :erb)
-    tracker = make_tracker("message_types/_message_type", template)
+    template = FakeTemplate.new('<%# render(message_type.messages) %>', :erb)
+    tracker = make_tracker('message_types/_message_type', template)
 
-    assert_equal ["messages/message"], tracker.dependencies
+    assert_equal ['messages/message'], tracker.dependencies
   end
 
   def test_dependency_of_erb_template_with_no_spaces_after_render
     template = FakeTemplate.new("<%# render'messages/message' %>", :erb)
-    tracker = make_tracker("messages/_message", template)
+    tracker = make_tracker('messages/_message', template)
 
-    assert_equal ["messages/message"], tracker.dependencies
+    assert_equal ['messages/message'], tracker.dependencies
   end
 
   def test_finds_no_dependency_when_render_begins_the_name_of_an_identifier
     template = FakeTemplate.new("<%# rendering 'it useless' %>", :erb)
-    tracker = make_tracker("resources/_resource", template)
+    tracker = make_tracker('resources/_resource', template)
 
     assert_equal [], tracker.dependencies
   end
 
   def test_finds_no_dependency_when_render_ends_the_name_of_another_method
     template = FakeTemplate.new("<%# surrender 'to reason' %>", :erb)
-    tracker = make_tracker("resources/_resource", template)
+    tracker = make_tracker('resources/_resource', template)
 
     assert_equal [], tracker.dependencies
   end
@@ -114,9 +114,9 @@ class ERBTrackerTest < Minitest::Test
       render :object => @all_posts,
              :partial => 'posts' %>", :erb)
 
-    tracker = make_tracker("some/_little_posts", template)
+    tracker = make_tracker('some/_little_posts', template)
 
-    assert_equal ["some/posts"], tracker.dependencies
+    assert_equal ['some/posts'], tracker.dependencies
   end
 
   def test_finds_multiple_unrelated_odd_dependencies
@@ -126,9 +126,9 @@ class ERBTrackerTest < Minitest::Test
       <%# render@section %>
     ", :erb)
 
-    tracker = make_tracker("multiple/_dependencies", template)
+    tracker = make_tracker('multiple/_dependencies', template)
 
-    assert_equal ["shared/header", "sections/section"], tracker.dependencies
+    assert_equal ['shared/header', 'sections/section'], tracker.dependencies
   end
 
   def test_finds_dependencies_for_all_kinds_of_identifiers
@@ -138,27 +138,27 @@ class ERBTrackerTest < Minitest::Test
       <%# render @@class_variables %>
     ", :erb)
 
-    tracker = make_tracker("identifiers/_all", template)
+    tracker = make_tracker('identifiers/_all', template)
 
     assert_equal [
-      "globals/global",
-      "instance_variables/instance_variable",
-      "class_variables/class_variable"
+      'globals/global',
+      'instance_variables/instance_variable',
+      'class_variables/class_variable'
     ], tracker.dependencies
   end
 
   def test_finds_dependencies_on_method_chains
-    template = FakeTemplate.new("<%# render @parent.child.grandchildren %>", :erb)
-    tracker = make_tracker("method/_chains", template)
+    template = FakeTemplate.new('<%# render @parent.child.grandchildren %>', :erb)
+    tracker = make_tracker('method/_chains', template)
 
-    assert_equal ["grandchildren/grandchild"], tracker.dependencies
+    assert_equal ['grandchildren/grandchild'], tracker.dependencies
   end
 
   def test_finds_dependencies_with_special_characters
     template = FakeTemplate.new("<%# render @pokémon, partial: 'ピカチュウ' %>", :erb)
-    tracker = make_tracker("special/_characters", template)
+    tracker = make_tracker('special/_characters', template)
 
-    assert_equal ["special/ピカチュウ"], tracker.dependencies
+    assert_equal ['special/ピカチュウ'], tracker.dependencies
   end
 
   def test_finds_dependencies_with_quotes_within
@@ -167,7 +167,7 @@ class ERBTrackerTest < Minitest::Test
       <%# render 'double/quote"s' %>
     }, :erb)
 
-    tracker = make_tracker("quotes/_single_and_double", template)
+    tracker = make_tracker('quotes/_single_and_double', template)
 
     assert_equal ["single/quote's", 'double/quote"s'], tracker.dependencies
   end
@@ -182,14 +182,14 @@ class ERBTrackerTest < Minitest::Test
                     :partial =>    "comments/comment" %>
     }, :erb)
 
-    tracker = make_tracker("spaces/_extra", template)
+    tracker = make_tracker('spaces/_extra', template)
 
     assert_equal [
-      "spaces/header",
-      "spaces/form",
-      "messages/message",
-      "events/event",
-      "comments/comment"
+      'spaces/header',
+      'spaces/form',
+      'messages/message',
+      'events/event',
+      'comments/comment'
     ], tracker.dependencies
   end
 
@@ -198,7 +198,7 @@ class ERBTrackerTest < Minitest::Test
       <%# render "double/#{quote}" %>
       <%# render 'single/#{quote}' %>
     }, :erb)
-    tracker = make_tracker("interpolation/_string", template)
+    tracker = make_tracker('interpolation/_string', template)
 
     assert_equal ["single/\#{quote}"], tracker.dependencies
   end

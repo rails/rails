@@ -44,23 +44,23 @@ module ActiveRecord
       end
 
       def init_with(coder)
-        @name = coder["name"]
-        @sql_type_metadata = coder["sql_type_metadata"]
-        @null = coder["null"]
-        @default = coder["default"]
-        @default_function = coder["default_function"]
-        @collation = coder["collation"]
-        @comment = coder["comment"]
+        @name = coder['name']
+        @sql_type_metadata = coder['sql_type_metadata']
+        @null = coder['null']
+        @default = coder['default']
+        @default_function = coder['default_function']
+        @collation = coder['collation']
+        @comment = coder['comment']
       end
 
       def encode_with(coder)
-        coder["name"] = @name
-        coder["sql_type_metadata"] = @sql_type_metadata
-        coder["null"] = @null
-        coder["default"] = @default
-        coder["default_function"] = @default_function
-        coder["collation"] = @collation
-        coder["comment"] = @comment
+        coder['name'] = @name
+        coder['sql_type_metadata'] = @sql_type_metadata
+        coder['null'] = @null
+        coder['default'] = @default
+        coder['default_function'] = @default_function
+        coder['collation'] = @collation
+        coder['comment'] = @comment
       end
 
       def ==(other)

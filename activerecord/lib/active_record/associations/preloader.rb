@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/enumerable"
+require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
   module Associations
@@ -46,8 +46,8 @@ module ActiveRecord
       extend ActiveSupport::Autoload
 
       eager_autoload do
-        autoload :Association,        "active_record/associations/preloader/association"
-        autoload :ThroughAssociation, "active_record/associations/preloader/through_association"
+        autoload :Association,        'active_record/associations/preloader/association'
+        autoload :ThroughAssociation, 'active_record/associations/preloader/through_association'
       end
 
       # Eager loads the named associations for the given Active Record record(s).

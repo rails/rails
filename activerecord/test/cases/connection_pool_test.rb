@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "concurrent/atomic/count_down_latch"
+require 'cases/helper'
+require 'concurrent/atomic/count_down_latch'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -13,7 +13,7 @@ module ActiveRecord
 
         # Keep a duplicate pool so we do not bother others
         @db_config = ActiveRecord::Base.connection_pool.db_config
-        @pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", @db_config)
+        @pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new('primary', @db_config)
         @pool = ConnectionPool.new(@pool_config)
 
         if in_memory_db?
@@ -201,10 +201,10 @@ module ActiveRecord
       def test_idle_timeout_configuration
         @pool.disconnect!
 
-        config = @db_config.configuration_hash.merge(idle_timeout: "0.02")
+        config = @db_config.configuration_hash.merge(idle_timeout: '0.02')
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
 
-        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new('primary', db_config)
         @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
@@ -231,7 +231,7 @@ module ActiveRecord
 
         config = @db_config.configuration_hash.merge(idle_timeout: -5)
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
-        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new('primary', db_config)
         @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
@@ -496,13 +496,13 @@ module ActiveRecord
 
       def test_connection_notification_is_called
         payloads = []
-        subscription = ActiveSupport::Notifications.subscribe("!connection.active_record") do |name, started, finished, unique_id, payload|
+        subscription = ActiveSupport::Notifications.subscribe('!connection.active_record') do |name, started, finished, unique_id, payload|
           payloads << payload
         end
         ConnectionTestModel.establish_connection :arunit
 
         assert_equal [:config, :spec_name], payloads[0].keys.sort
-        assert_equal "ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel", payloads[0][:spec_name]
+        assert_equal 'ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel', payloads[0][:spec_name]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end
@@ -548,8 +548,8 @@ module ActiveRecord
             all_threads_in_new_connection.wait
           end
         rescue Timeout::Error
-          flunk "pool unable to establish connections concurrently or implementation has " \
-                "changed, this test then needs to patch a different :new_connection method"
+          flunk 'pool unable to establish connections concurrently or implementation has ' \
+                'changed, this test then needs to patch a different :new_connection method'
         ensure
           # clean up the threads
           all_go.count_down
@@ -650,8 +650,8 @@ module ActiveRecord
                 second_thread.join(2)
               end
 
-              first_thread.join(10) || raise("first_thread got stuck")
-              second_thread.join(10) || raise("second_thread got stuck")
+              first_thread.join(10) || raise('first_thread got stuck')
+              second_thread.join(10) || raise('second_thread got stuck')
             end
           end
         end
@@ -674,7 +674,7 @@ module ActiveRecord
           pool.clear_reloadable_connections
 
           unless stuck_thread.join(2)
-            flunk "clear_reloadable_connections must not let other connection waiting threads get stuck in queue"
+            flunk 'clear_reloadable_connections must not let other connection waiting threads get stuck in queue'
           end
 
           assert_equal 0, pool.num_waiting_in_queue
@@ -726,8 +726,8 @@ module ActiveRecord
       private
         def with_single_connection_pool
           config = @db_config.configuration_hash.merge(pool: 1)
-          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", config)
-          pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new('arunit', 'primary', config)
+          pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new('primary', db_config)
 
           yield(pool = ConnectionPool.new(pool_config))
         ensure

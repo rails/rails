@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "active_support/duration"
-require "active_support/core_ext/time/conversions"
-require "active_support/time_with_zone"
-require "active_support/core_ext/time/zones"
-require "active_support/core_ext/date_and_time/calculations"
-require "active_support/core_ext/date/calculations"
+require 'active_support/duration'
+require 'active_support/core_ext/time/conversions'
+require 'active_support/time_with_zone'
+require 'active_support/core_ext/time/zones'
+require 'active_support/core_ext/date_and_time/calculations'
+require 'active_support/core_ext/date/calculations'
 
 class Time
   include DateAndTime::Calculations
@@ -66,7 +66,7 @@ class Time
     def rfc3339(str)
       parts = Date._rfc3339(str)
 
-      raise ArgumentError, "invalid date" if parts.empty?
+      raise ArgumentError, 'invalid date' if parts.empty?
 
       Time.new(
         parts.fetch(:year),
@@ -133,7 +133,7 @@ class Time
       new_usec = options.fetch(:usec, (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
     end
 
-    raise ArgumentError, "argument out of range" if new_usec >= 1000000
+    raise ArgumentError, 'argument out of range' if new_usec >= 1000000
 
     new_sec += Rational(new_usec, 1000000)
 

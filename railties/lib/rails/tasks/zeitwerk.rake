@@ -2,12 +2,12 @@
 
 ensure_zeitwerk_mode = ->() do
   unless Rails.autoloaders.zeitwerk_enabled?
-    abort "Please, enable :zeitwerk mode in config/application.rb and try again."
+    abort 'Please, enable :zeitwerk mode in config/application.rb and try again.'
   end
 end
 
 eager_load = ->() do
-  puts "Hold on, I am eager loading the application."
+  puts 'Hold on, I am eager loading the application.'
   Zeitwerk::Loader.eager_load_all
 end
 
@@ -32,14 +32,14 @@ end
 report = ->(not_checked) do
   if not_checked.any?
     report_not_checked[not_checked]
-    puts "Otherwise, all is good!"
+    puts 'Otherwise, all is good!'
   else
-    puts "All is good!"
+    puts 'All is good!'
   end
 end
 
 namespace :zeitwerk do
-  desc "Checks project structure for Zeitwerk compatibility"
+  desc 'Checks project structure for Zeitwerk compatibility'
   task check: :environment do
     ensure_zeitwerk_mode[]
 
@@ -47,13 +47,13 @@ namespace :zeitwerk do
       eager_load[]
     rescue NameError => e
       if e.message =~ /expected file .*? to define constant [\w:]+/
-        abort $&.sub(/expected file #{Regexp.escape(Rails.root.to_s)}./, "expected file ")
+        abort $&.sub(/expected file #{Regexp.escape(Rails.root.to_s)}./, 'expected file ')
       else
         raise
       end
     end
 
-    require "active_support/core_ext/object/try"
+    require 'active_support/core_ext/object/try'
     eager_load_paths = Rails.configuration.eager_load_namespaces.map do |eln|
       # Quick regression fix for 6.0.3 to support namespaces that do not have
       # eager load paths, like the recently added i18n. I'll rewrite this task.

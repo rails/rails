@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-gem "google-cloud-storage", "~> 1.11"
-require "google/cloud/storage"
+gem 'google-cloud-storage', '~> 1.11'
+require 'google/cloud/storage'
 
 module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
@@ -84,7 +84,7 @@ module ActiveStorage
 
     def url_for_direct_upload(key, expires_in:, checksum:, **)
       instrument :url, key: key do |payload|
-        generated_url = bucket.signed_url key, method: "PUT", expires: expires_in, content_md5: checksum
+        generated_url = bucket.signed_url key, method: 'PUT', expires: expires_in, content_md5: checksum
 
         payload[:url] = generated_url
 
@@ -95,14 +95,14 @@ module ActiveStorage
     def headers_for_direct_upload(key, checksum:, filename: nil, disposition: nil, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      { "Content-MD5" => checksum, "Content-Disposition" => content_disposition }
+      { 'Content-MD5' => checksum, 'Content-Disposition' => content_disposition }
     end
 
     private
       def private_url(key, expires_in:, filename:, content_type:, disposition:, **)
         file_for(key).signed_url expires: expires_in, query: {
-          "response-content-disposition" => content_disposition_with(type: disposition, filename: filename),
-          "response-content-type" => content_type
+          'response-content-disposition' => content_disposition_with(type: disposition, filename: filename),
+          'response-content-type' => content_type
         }
       end
 

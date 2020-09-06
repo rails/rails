@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "support/integration/jobs_manager"
+require 'support/integration/jobs_manager'
 
 module TestCaseHelpers
   extend ActiveSupport::Concern
@@ -53,14 +53,14 @@ module TestCaseHelpers
     end
 
     def job_executed_at(id = @id)
-      job_data(id)["executed_at"]
+      job_data(id)['executed_at']
     end
 
     def job_executed_in_locale(id = @id)
-      job_data(id)["locale"]
+      job_data(id)['locale']
     end
 
     def job_executed_in_timezone(id = @id)
-      job_data(id)["timezone"]
+      job_data(id)['timezone']
     end
 end

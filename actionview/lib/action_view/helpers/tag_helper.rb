@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/output_safety"
-require "set"
+require 'active_support/core_ext/string/output_safety'
+require 'set'
 
 module ActionView
   # = Action View Tag Helpers
@@ -26,16 +26,16 @@ module ActionView
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
       BOOLEAN_ATTRIBUTES.freeze
 
-      TAG_PREFIXES = ["aria", "data", :aria, :data].to_set.freeze
+      TAG_PREFIXES = ['aria', 'data', :aria, :data].to_set.freeze
 
       TAG_TYPES = {}
       TAG_TYPES.merge! BOOLEAN_ATTRIBUTES.index_with(:boolean)
       TAG_TYPES.merge! TAG_PREFIXES.index_with(:prefix)
       TAG_TYPES.freeze
 
-      PRE_CONTENT_STRINGS             = Hash.new { "" }
+      PRE_CONTENT_STRINGS             = Hash.new { '' }
       PRE_CONTENT_STRINGS[:textarea]  = "\n"
-      PRE_CONTENT_STRINGS["textarea"] = "\n"
+      PRE_CONTENT_STRINGS['textarea'] = "\n"
 
       class TagBuilder #:nodoc:
         include CaptureHelper
@@ -52,7 +52,7 @@ module ActionView
           if VOID_ELEMENTS.include?(name) && content.nil?
             "<#{name.to_s.dasherize}#{tag_options(options, escape_attributes)}>".html_safe
           else
-            content_tag_string(name.to_s.dasherize, content || "", options, escape_attributes)
+            content_tag_string(name.to_s.dasherize, content || '', options, escape_attributes)
           end
         end
 
@@ -64,8 +64,8 @@ module ActionView
 
         def tag_options(options, escape = true)
           return if options.blank?
-          output = +""
-          sep    = " "
+          output = +''
+          sep    = ' '
           options.each_pair do |key, value|
             type = TAG_TYPES[key]
             if type == :prefix && value.is_a?(Hash)
@@ -94,12 +94,12 @@ module ActionView
         def tag_option(key, value, escape)
           case value
           when Array, Hash
-            value = TagHelper.build_tag_values(value) if key.to_s == "class"
-            value = escape ? safe_join(value, " ") : value.join(" ")
+            value = TagHelper.build_tag_values(value) if key.to_s == 'class'
+            value = escape ? safe_join(value, ' ') : value.join(' ')
           else
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
           end
-          value = value.gsub('"', "&quot;") if value.include?('"')
+          value = value.gsub('"', '&quot;') if value.include?('"')
           %(#{key}="#{value}")
         end
 
@@ -300,7 +300,7 @@ module ActionView
       #   class_names(nil, false, 123, "", "foo", { bar: true })
       #    # => "123 foo bar"
       def class_names(*args)
-        safe_join(build_tag_values(*args), " ")
+        safe_join(build_tag_values(*args), ' ')
       end
 
       # Returns a CDATA section with the given +content+. CDATA sections
@@ -317,7 +317,7 @@ module ActionView
       #   cdata_section("hello]]>world")
       #   # => <![CDATA[hello]]]]><![CDATA[>world]]>
       def cdata_section(content)
-        splitted = content.to_s.gsub(/\]\]\>/, "]]]]><![CDATA[>")
+        splitted = content.to_s.gsub(/\]\]\>/, ']]]]><![CDATA[>')
         "<![CDATA[#{splitted}]]>".html_safe
       end
 

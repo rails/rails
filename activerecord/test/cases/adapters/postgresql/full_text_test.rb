@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/schema_dumping_helper"
+require 'cases/helper'
+require 'support/schema_dumping_helper'
 
 class PostgresqlFullTextTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
@@ -9,22 +9,22 @@ class PostgresqlFullTextTest < ActiveRecord::PostgreSQLTestCase
 
   setup do
     @connection = ActiveRecord::Base.connection
-    @connection.create_table("tsvectors") do |t|
-      t.tsvector "text_vector"
+    @connection.create_table('tsvectors') do |t|
+      t.tsvector 'text_vector'
     end
   end
 
   teardown do
-    @connection.drop_table "tsvectors", if_exists: true
+    @connection.drop_table 'tsvectors', if_exists: true
   end
 
   def test_tsvector_column
-    column = Tsvector.columns_hash["text_vector"]
+    column = Tsvector.columns_hash['text_vector']
     assert_equal :tsvector, column.type
-    assert_equal "tsvector", column.sql_type
+    assert_equal 'tsvector', column.sql_type
     assert_not_predicate column, :array?
 
-    type = Tsvector.type_for_attribute("text_vector")
+    type = Tsvector.type_for_attribute('text_vector')
     assert_not_predicate type, :binary?
   end
 
@@ -40,7 +40,7 @@ class PostgresqlFullTextTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_dump_with_shorthand
-    output = dump_table_schema("tsvectors")
+    output = dump_table_schema('tsvectors')
     assert_match %r{t\.tsvector "text_vector"}, output
   end
 end

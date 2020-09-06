@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/enumerable"
+require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
   class DatabaseConfigurations
@@ -21,13 +21,13 @@ module ActiveRecord
       #     timeout:  "3000"
       #   }
       def initialize(url)
-        raise "Database URL cannot be empty" if url.blank?
+        raise 'Database URL cannot be empty' if url.blank?
         @uri     = uri_parser.parse(url)
-        @adapter = @uri.scheme && @uri.scheme.tr("-", "_")
-        @adapter = "postgresql" if @adapter == "postgres"
+        @adapter = @uri.scheme && @uri.scheme.tr('-', '_')
+        @adapter = 'postgresql' if @adapter == 'postgres'
 
         if @uri.opaque
-          @uri.opaque, @query = @uri.opaque.split("?", 2)
+          @uri.opaque, @query = @uri.opaque.split('?', 2)
         else
           @query = @uri.query
         end
@@ -57,7 +57,7 @@ module ActiveRecord
         #   "localhost"
         #   # => {}
         def query_hash
-          Hash[(@query || "").split("&").map { |pair| pair.split("=", 2) }].symbolize_keys
+          Hash[(@query || '').split('&').map { |pair| pair.split('=', 2) }].symbolize_keys
         end
 
         def raw_config
@@ -80,7 +80,7 @@ module ActiveRecord
 
         # Returns name of the database.
         def database_from_path
-          if @adapter == "sqlite3"
+          if @adapter == 'sqlite3'
             # 'sqlite3:/foo' is absolute, because that makes sense. The
             # corresponding relative version, 'sqlite3:foo', is handled
             # elsewhere, as an "opaque".
@@ -90,7 +90,7 @@ module ActiveRecord
             # Only SQLite uses a filename as the "database" name; for
             # anything else, a leading slash would be silly.
 
-            uri.path.delete_prefix("/")
+            uri.path.delete_prefix('/')
           end
         end
     end

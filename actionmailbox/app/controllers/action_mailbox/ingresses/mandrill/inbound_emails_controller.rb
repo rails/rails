@@ -31,7 +31,7 @@ module ActionMailbox
 
     private
       def raw_emails
-        events.select { |event| event["event"] == "inbound" }.collect { |event| event.dig("msg", "raw_msg") }
+        events.select { |event| event['event'] == 'inbound' }.collect { |event| event.dig('msg', 'raw_msg') }
       end
 
       def events
@@ -55,7 +55,7 @@ module ActionMailbox
       end
 
       def key
-        Rails.application.credentials.dig(:action_mailbox, :mandrill_api_key) || ENV["MANDRILL_INGRESS_API_KEY"]
+        Rails.application.credentials.dig(:action_mailbox, :mandrill_api_key) || ENV['MANDRILL_INGRESS_API_KEY']
       end
 
       class Authenticator
@@ -71,7 +71,7 @@ module ActionMailbox
 
         private
           def given_signature
-            request.headers["X-Mandrill-Signature"]
+            request.headers['X-Mandrill-Signature']
           end
 
           def expected_signature

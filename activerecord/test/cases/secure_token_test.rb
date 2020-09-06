@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/user"
+require 'cases/helper'
+require 'models/user'
 
 class SecureTokenTest < ActiveRecord::TestCase
   setup do
@@ -31,10 +31,10 @@ class SecureTokenTest < ActiveRecord::TestCase
   end
 
   def test_token_value_not_overwritten_when_present
-    @user.token = "custom-secure-token"
+    @user.token = 'custom-secure-token'
     @user.save
 
-    assert_equal "custom-secure-token", @user.token
+    assert_equal 'custom-secure-token', @user.token
   end
 
   def test_token_length_cannot_be_less_than_24_characters

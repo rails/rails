@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/post"
-require "models/comment"
-require "models/rating"
-require "models/author"
-require "models/essay"
-require "models/category"
-require "models/categorization"
-require "models/person"
+require 'cases/helper'
+require 'models/post'
+require 'models/comment'
+require 'models/rating'
+require 'models/author'
+require 'models/essay'
+require 'models/category'
+require 'models/categorization'
+require 'models/person'
 
 class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :essays, :posts, :comments, :ratings, :categorizations, :people
@@ -80,7 +80,7 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_left_outer_joins_with_string_join
-    assert_equal 16, Author.left_outer_joins(:posts).joins("LEFT OUTER JOIN comments ON comments.post_id = posts.id").count
+    assert_equal 16, Author.left_outer_joins(:posts).joins('LEFT OUTER JOIN comments ON comments.post_id = posts.id').count
   end
 
   def test_left_outer_joins_with_arel_join
@@ -102,9 +102,9 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     scope = Post.left_outer_joins(:special_comments).where(id: posts(:sti_comments).id)
 
     # The join should match SpecialComment and its subclasses only
-    assert_empty scope.where("comments.type" => "Comment")
-    assert_not_empty scope.where("comments.type" => "SpecialComment")
-    assert_not_empty scope.where("comments.type" => "SubSpecialComment")
+    assert_empty scope.where('comments.type' => 'Comment')
+    assert_not_empty scope.where('comments.type' => 'SpecialComment')
+    assert_not_empty scope.where('comments.type' => 'SubSpecialComment')
   end
 
   def test_does_not_override_select
@@ -113,8 +113,8 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     assert_respond_to authors.first, :addr_id
   end
 
-  test "the default scope of the target is applied when joining associations" do
-    author = Author.create! name: "Jon"
+  test 'the default scope of the target is applied when joining associations' do
+    author = Author.create! name: 'Jon'
     author.categorizations.create!
     author.categorizations.create! special: true
 

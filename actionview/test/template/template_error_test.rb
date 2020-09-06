@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 class TemplateErrorTest < ActiveSupport::TestCase
   def test_provides_original_message
     error = begin
-      raise Exception.new("original")
+      raise Exception.new('original')
     rescue Exception
-      raise ActionView::Template::Error.new("test") rescue $!
+      raise ActionView::Template::Error.new('test') rescue $!
     end
 
-    assert_equal "original", error.message
+    assert_equal 'original', error.message
   end
 
   def test_provides_original_backtrace
@@ -19,7 +19,7 @@ class TemplateErrorTest < ActiveSupport::TestCase
       original_exception.set_backtrace(%W[ foo bar baz ])
       raise original_exception
     rescue Exception
-      raise ActionView::Template::Error.new("test") rescue $!
+      raise ActionView::Template::Error.new('test') rescue $!
     end
 
     assert_equal %W[ foo bar baz ], error.backtrace
@@ -27,18 +27,18 @@ class TemplateErrorTest < ActiveSupport::TestCase
 
   def test_provides_useful_inspect
     error = begin
-      raise Exception.new("original")
+      raise Exception.new('original')
     rescue Exception
-      raise ActionView::Template::Error.new("test") rescue $!
+      raise ActionView::Template::Error.new('test') rescue $!
     end
 
-    assert_equal "#<ActionView::Template::Error: original>", error.inspect
+    assert_equal '#<ActionView::Template::Error: original>', error.inspect
   end
 
   def test_annotated_source_code_returns_empty_array_if_source_cant_be_found
     template = Class.new do
       def identifier
-        "something"
+        'something'
       end
     end.new
 

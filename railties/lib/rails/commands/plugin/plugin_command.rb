@@ -13,15 +13,15 @@ module Rails
         "#{executable} new [options]"
       end
 
-      class_option :rc, type: :string, default: File.join("~", ".railsrc"),
-        desc: "Initialize the plugin command with previous defaults. Uses .railsrc in your home directory by default."
+      class_option :rc, type: :string, default: File.join('~', '.railsrc'),
+        desc: 'Initialize the plugin command with previous defaults. Uses .railsrc in your home directory by default.'
 
-      class_option :no_rc, desc: "Skip evaluating .railsrc."
+      class_option :no_rc, desc: 'Skip evaluating .railsrc.'
 
       def perform(type = nil, *plugin_args)
-        plugin_args << "--help" unless type == "new"
+        plugin_args << '--help' unless type == 'new'
 
-        unless options.key?("no_rc") # Thor's not so indifferent access hash.
+        unless options.key?('no_rc') # Thor's not so indifferent access hash.
           railsrc = File.expand_path(options[:rc])
 
           if File.exist?(railsrc)
@@ -36,8 +36,8 @@ module Rails
 
       private
         def run_plugin_generator(plugin_args)
-          require "rails/generators"
-          require "rails/generators/rails/plugin/plugin_generator"
+          require 'rails/generators'
+          require 'rails/generators/rails/plugin/plugin_generator'
           Rails::Generators::PluginGenerator.start plugin_args
         end
     end

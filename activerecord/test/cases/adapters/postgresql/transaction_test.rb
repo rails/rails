@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/connection_helper"
-require "concurrent/atomic/cyclic_barrier"
+require 'cases/helper'
+require 'support/connection_helper'
+require 'concurrent/atomic/cyclic_barrier'
 
 module ActiveRecord
   class PostgresqlTransactionTest < ActiveRecord::PostgreSQLTestCase
     self.use_transactional_tests = false
 
     class Sample < ActiveRecord::Base
-      self.table_name = "samples"
+      self.table_name = 'samples'
     end
 
     setup do
@@ -19,9 +19,9 @@ module ActiveRecord
       @connection = ActiveRecord::Base.connection
 
       @connection.transaction do
-        @connection.drop_table "samples", if_exists: true
-        @connection.create_table("samples") do |t|
-          t.integer "value"
+        @connection.drop_table 'samples', if_exists: true
+        @connection.create_table('samples') do |t|
+          t.integer 'value'
         end
       end
 
@@ -29,13 +29,13 @@ module ActiveRecord
     end
 
     teardown do
-      @connection.drop_table "samples", if_exists: true
+      @connection.drop_table 'samples', if_exists: true
 
       Thread.abort_on_exception = @abort
       Thread.report_on_exception = @original_report_on_exception
     end
 
-    test "raises SerializationFailure when a serialization failure occurs" do
+    test 'raises SerializationFailure when a serialization failure occurs' do
       assert_raises(ActiveRecord::SerializationFailure) do
         before = Concurrent::CyclicBarrier.new(2)
         after = Concurrent::CyclicBarrier.new(2)
@@ -64,7 +64,7 @@ module ActiveRecord
       end
     end
 
-    test "raises Deadlocked when a deadlock is encountered" do
+    test 'raises Deadlocked when a deadlock is encountered' do
       with_warning_suppression do
         assert_raises(ActiveRecord::Deadlocked) do
           barrier = Concurrent::CyclicBarrier.new(2)
@@ -93,7 +93,7 @@ module ActiveRecord
       end
     end
 
-    test "raises LockWaitTimeout when lock wait timeout exceeded" do
+    test 'raises LockWaitTimeout when lock wait timeout exceeded' do
       assert_raises(ActiveRecord::LockWaitTimeout) do
         s = Sample.create!(value: 1)
         latch1 = Concurrent::CountDownLatch.new
@@ -110,18 +110,18 @@ module ActiveRecord
         begin
           Sample.transaction do
             latch1.wait
-            Sample.connection.execute("SET lock_timeout = 1")
+            Sample.connection.execute('SET lock_timeout = 1')
             Sample.lock.find(s.id)
           end
         ensure
-          Sample.connection.execute("SET lock_timeout = DEFAULT")
+          Sample.connection.execute('SET lock_timeout = DEFAULT')
           latch2.count_down
           thread.join
         end
       end
     end
 
-    test "raises QueryCanceled when statement timeout exceeded" do
+    test 'raises QueryCanceled when statement timeout exceeded' do
       assert_raises(ActiveRecord::QueryCanceled) do
         s = Sample.create!(value: 1)
         latch1 = Concurrent::CountDownLatch.new
@@ -138,18 +138,18 @@ module ActiveRecord
         begin
           Sample.transaction do
             latch1.wait
-            Sample.connection.execute("SET statement_timeout = 1")
+            Sample.connection.execute('SET statement_timeout = 1')
             Sample.lock.find(s.id)
           end
         ensure
-          Sample.connection.execute("SET statement_timeout = DEFAULT")
+          Sample.connection.execute('SET statement_timeout = DEFAULT')
           latch2.count_down
           thread.join
         end
       end
     end
 
-    test "raises QueryCanceled when canceling statement due to user request" do
+    test 'raises QueryCanceled when canceling statement due to user request' do
       assert_raises(ActiveRecord::QueryCanceled) do
         s = Sample.create!(value: 1)
         latch = Concurrent::CountDownLatch.new
@@ -179,7 +179,7 @@ module ActiveRecord
     private
       def with_warning_suppression
         log_level = ActiveRecord::Base.connection.client_min_messages
-        ActiveRecord::Base.connection.client_min_messages = "error"
+        ActiveRecord::Base.connection.client_min_messages = 'error'
         yield
       ensure
         ActiveRecord::Base.connection.client_min_messages = log_level

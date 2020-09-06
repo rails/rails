@@ -2,35 +2,35 @@
 
 namespace :guides do
   desc 'Generate guides (for authors), use ONLY=foo to process just "foo.md"'
-  task generate: "generate:html"
+  task generate: 'generate:html'
 
   namespace :generate do
-    desc "Generate HTML guides"
+    desc 'Generate HTML guides'
     task :html do
-      ruby "-Eutf-8:utf-8", "rails_guides.rb"
+      ruby '-Eutf-8:utf-8', 'rails_guides.rb'
     end
 
-    desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/gp/feature.html?docId=1000765211"
+    desc 'Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/gp/feature.html?docId=1000765211'
     task :kindle do
-      require "kindlerb"
+      require 'kindlerb'
       unless Kindlerb.kindlegen_available?
-        abort "Please run `setupkindlerb` to install kindlegen"
+        abort 'Please run `setupkindlerb` to install kindlegen'
       end
       unless /convert/.match?(`convert`)
-        abort "Please install ImageMagick"
+        abort 'Please install ImageMagick'
       end
-      ENV["KINDLE"] = "1"
-      Rake::Task["guides:generate:html"].invoke
+      ENV['KINDLE'] = '1'
+      Rake::Task['guides:generate:html'].invoke
     end
   end
 
   # Validate guides -------------------------------------------------------------------------
   desc 'Validate guides, use ONLY=foo to process just "foo.html"'
   task validate: :encoding do
-    ruby "w3c_validator.rb"
+    ruby 'w3c_validator.rb'
   end
 
-  desc "Show help"
+  desc 'Show help'
   task :help do
     puts <<HELP
 
@@ -75,14 +75,14 @@ HELP
 end
 
 task :test do
-  templates = Dir.glob("bug_report_templates/*.rb")
+  templates = Dir.glob('bug_report_templates/*.rb')
   counter = templates.count do |file|
     puts "--- Running #{file}"
-    Bundler.clean_system(Gem.ruby, "-w", file) ||
+    Bundler.clean_system(Gem.ruby, '-w', file) ||
       puts("+++ 💥 FAILED (exit #{$?.exitstatus})")
   end
   puts "+++ #{counter} / #{templates.size} templates executed successfully"
   exit 1 if counter < templates.size
 end
 
-task default: "guides:help"
+task default: 'guides:help'

@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
-require "test_helper"
-require_relative "common"
-require_relative "channel_prefix"
+require 'test_helper'
+require_relative 'common'
+require_relative 'channel_prefix'
 
-require "active_record"
+require 'active_record'
 
 class PostgresqlAdapterTest < ActionCable::TestCase
   include CommonSubscriptionAdapterTest
   include ChannelPrefixTest
 
   def setup
-    database_config = { "adapter" => "postgresql", "database" => "activerecord_unittest" }
-    ar_tests = File.expand_path("../../../activerecord/test", __dir__)
+    database_config = { 'adapter' => 'postgresql', 'database' => 'activerecord_unittest' }
+    ar_tests = File.expand_path('../../../activerecord/test', __dir__)
     if Dir.exist?(ar_tests)
-      require File.join(ar_tests, "config")
-      require File.join(ar_tests, "support/config")
-      local_config = ARTest.config["connections"]["postgresql"]["arunit"]
+      require File.join(ar_tests, 'config')
+      require File.join(ar_tests, 'support/config')
+      local_config = ARTest.config['connections']['postgresql']['arunit']
       database_config.update local_config if local_config
     end
 
@@ -39,7 +39,7 @@ class PostgresqlAdapterTest < ActionCable::TestCase
   end
 
   def cable_config
-    { adapter: "postgresql" }
+    { adapter: 'postgresql' }
   end
 
   def test_clear_active_record_connections_adapter_still_works
@@ -55,9 +55,9 @@ class PostgresqlAdapterTest < ActionCable::TestCase
 
     adapter = adapter_klass.new(server)
 
-    subscribe_as_queue("channel", adapter) do |queue|
-      adapter.broadcast("channel", "hello world")
-      assert_equal "hello world", queue.pop
+    subscribe_as_queue('channel', adapter) do |queue|
+      adapter.broadcast('channel', 'hello world')
+      assert_equal 'hello world', queue.pop
     end
 
     ActiveRecord::Base.clear_reloadable_connections!
@@ -66,22 +66,22 @@ class PostgresqlAdapterTest < ActionCable::TestCase
   end
 
   def test_default_subscription_connection_identifier
-    subscribe_as_queue("channel") { }
+    subscribe_as_queue('channel') { }
 
-    identifiers = ActiveRecord::Base.connection.exec_query("SELECT application_name FROM pg_stat_activity").rows
+    identifiers = ActiveRecord::Base.connection.exec_query('SELECT application_name FROM pg_stat_activity').rows
     assert_includes identifiers, ["ActionCable-PID-#{$$}"]
   end
 
   def test_custom_subscription_connection_identifier
     server = ActionCable::Server::Base.new
-    server.config.cable = cable_config.merge(id: "hello-world-42").with_indifferent_access
+    server.config.cable = cable_config.merge(id: 'hello-world-42').with_indifferent_access
     server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
     adapter = server.config.pubsub_adapter.new(server)
 
-    subscribe_as_queue("channel", adapter) { }
+    subscribe_as_queue('channel', adapter) { }
 
-    identifiers = ActiveRecord::Base.connection.exec_query("SELECT application_name FROM pg_stat_activity").rows
-    assert_includes identifiers, ["hello-world-42"]
+    identifiers = ActiveRecord::Base.connection.exec_query('SELECT application_name FROM pg_stat_activity').rows
+    assert_includes identifiers, ['hello-world-42']
   end
 end

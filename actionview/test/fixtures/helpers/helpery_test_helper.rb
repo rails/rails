@@ -2,6 +2,6 @@
 
 module HelperyTestHelper
   def helpery_test
-    "Default"
+    'Default'
   end
 end

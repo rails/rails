@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/schema_dumping_helper"
-require "models/default"
-require "models/entrant"
+require 'cases/helper'
+require 'support/schema_dumping_helper'
+require 'models/default'
+require 'models/entrant'
 
 class DefaultTest < ActiveRecord::TestCase
   def test_nil_defaults_for_not_null_columns
@@ -18,7 +18,7 @@ class DefaultTest < ActiveRecord::TestCase
     def test_multiline_default_text
       record = Default.new
       # older postgres versions represent the default with escapes ("\\012" for a newline)
-      assert("--- []\n\n" == record.multiline_default || "--- []\\012\\012" == record.multiline_default)
+      assert("--- []\n\n" == record.multiline_default || '--- []\\012\\012' == record.multiline_default)
     end
   end
 end
@@ -31,7 +31,7 @@ class DefaultNumbersTest < ActiveRecord::TestCase
     @connection.create_table :default_numbers do |t|
       t.integer :positive_integer, default: 7
       t.integer :negative_integer, default: -5
-      t.decimal :decimal_number, default: "2.78", precision: 5, scale: 2
+      t.decimal :decimal_number, default: '2.78', precision: 5, scale: 2
     end
   end
 
@@ -42,19 +42,19 @@ class DefaultNumbersTest < ActiveRecord::TestCase
   def test_default_positive_integer
     record = DefaultNumber.new
     assert_equal 7, record.positive_integer
-    assert_equal "7", record.positive_integer_before_type_cast
+    assert_equal '7', record.positive_integer_before_type_cast
   end
 
   def test_default_negative_integer
     record = DefaultNumber.new
     assert_equal (-5), record.negative_integer
-    assert_equal "-5", record.negative_integer_before_type_cast
+    assert_equal '-5', record.negative_integer_before_type_cast
   end
 
   def test_default_decimal_number
     record = DefaultNumber.new
-    assert_equal BigDecimal("2.78"), record.decimal_number
-    assert_equal "2.78", record.decimal_number_before_type_cast
+    assert_equal BigDecimal('2.78'), record.decimal_number
+    assert_equal '2.78', record.decimal_number_before_type_cast
   end
 end
 
@@ -64,14 +64,14 @@ class DefaultStringsTest < ActiveRecord::TestCase
   setup do
     @connection = ActiveRecord::Base.connection
     @connection.create_table :default_strings do |t|
-      t.string :string_col, default: "Smith"
+      t.string :string_col, default: 'Smith'
       t.string :string_col_with_quotes, default: "O'Connor"
     end
     DefaultString.reset_column_information
   end
 
   def test_default_strings
-    assert_equal "Smith", DefaultString.new.string_col
+    assert_equal 'Smith', DefaultString.new.string_col
   end
 
   def test_default_strings_containing_single_quotes
@@ -87,8 +87,8 @@ if current_adapter?(:PostgreSQLAdapter)
   class PostgresqlDefaultExpressionTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
 
-    test "schema dump includes default expression" do
-      output = dump_table_schema("defaults")
+    test 'schema dump includes default expression' do
+      output = dump_table_schema('defaults')
       if ActiveRecord::Base.connection.database_version >= 100000
         assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
         assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
@@ -107,35 +107,35 @@ if current_adapter?(:Mysql2Adapter)
     include SchemaDumpingHelper
 
     if supports_default_expression?
-      test "schema dump includes default expression" do
-        output = dump_table_schema("defaults")
+      test 'schema dump includes default expression' do
+        output = dump_table_schema('defaults')
         assert_match %r/t\.binary\s+"uuid",\s+limit: 36,\s+default: -> { "\(uuid\(\)\)" }/i, output
       end
     end
 
     if supports_datetime_with_precision?
-      test "schema dump datetime includes default expression" do
-        output = dump_table_schema("datetime_defaults")
+      test 'schema dump datetime includes default expression' do
+        output = dump_table_schema('datetime_defaults')
         assert_match %r/t\.datetime\s+"modified_datetime",\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
       end
 
-      test "schema dump datetime includes precise default expression" do
-        output = dump_table_schema("datetime_defaults")
+      test 'schema dump datetime includes precise default expression' do
+        output = dump_table_schema('datetime_defaults')
         assert_match %r/t\.datetime\s+"precise_datetime",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
       end
 
-      test "schema dump timestamp includes default expression" do
-        output = dump_table_schema("timestamp_defaults")
+      test 'schema dump timestamp includes default expression' do
+        output = dump_table_schema('timestamp_defaults')
         assert_match %r/t\.timestamp\s+"modified_timestamp",\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
       end
 
-      test "schema dump timestamp includes precise default expression" do
-        output = dump_table_schema("timestamp_defaults")
+      test 'schema dump timestamp includes precise default expression' do
+        output = dump_table_schema('timestamp_defaults')
         assert_match %r/t\.timestamp\s+"precise_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
       end
 
-      test "schema dump timestamp without default expression" do
-        output = dump_table_schema("timestamp_defaults")
+      test 'schema dump timestamp without default expression' do
+        output = dump_table_schema('timestamp_defaults')
         assert_match %r/t\.timestamp\s+"nullable_timestamp"$/, output
       end
     end
@@ -188,9 +188,9 @@ if current_adapter?(:Mysql2Adapter)
           record.reload
 
           assert_equal 0,  record.non_null_integer
-          assert_equal "", record.non_null_string
-          assert_equal "", record.non_null_text
-          assert_equal "", record.non_null_blob
+          assert_equal '', record.non_null_string
+          assert_equal '', record.non_null_text
+          assert_equal '', record.non_null_blob
         end
       end
     end
@@ -211,7 +211,7 @@ if current_adapter?(:Mysql2Adapter)
 
     def with_mysql_not_null_table
       klass = Class.new(ActiveRecord::Base)
-      klass.table_name = "test_mysql_not_null_defaults"
+      klass.table_name = 'test_mysql_not_null_defaults'
       klass.connection.create_table klass.table_name do |t|
         t.integer :non_null_integer, null: false
         t.string  :non_null_string,  null: false

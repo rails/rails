@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "yaml"
-require "active_support/message_encryptor"
+require 'yaml'
+require 'active_support/message_encryptor'
 
 module Rails
   # Greatly inspired by Ara T. Howard's magnificent sekrets gem. 😘
@@ -15,7 +15,7 @@ module Rails
       end
     end
 
-    @cipher = "aes-128-gcm"
+    @cipher = 'aes-128-gcm'
     @root = File # Wonky, but ensures `join` uses the current directory.
 
     class << self
@@ -23,16 +23,16 @@ module Rails
 
       def parse(paths, env:)
         paths.each_with_object(Hash.new) do |path, all_secrets|
-          require "erb"
+          require 'erb'
 
           secrets = YAML.load(ERB.new(preprocess(path)).result) || {}
-          all_secrets.merge!(secrets["shared"].deep_symbolize_keys) if secrets["shared"]
+          all_secrets.merge!(secrets['shared'].deep_symbolize_keys) if secrets['shared']
           all_secrets.merge!(secrets[env].deep_symbolize_keys) if secrets[env]
         end
       end
 
       def key
-        ENV["RAILS_MASTER_KEY"] || read_key_file || handle_missing_key
+        ENV['RAILS_MASTER_KEY'] || read_key_file || handle_missing_key
       end
 
       def encrypt(data)
@@ -68,15 +68,15 @@ module Rails
         end
 
         def key_path
-          @root.join("config", "secrets.yml.key")
+          @root.join('config', 'secrets.yml.key')
         end
 
         def path
-          @root.join("config", "secrets.yml.enc").to_s
+          @root.join('config', 'secrets.yml.enc').to_s
         end
 
         def preprocess(path)
-          if path.end_with?(".enc")
+          if path.end_with?('.enc')
             decrypt(IO.binread(path))
           else
             IO.read(path)
@@ -98,7 +98,7 @@ module Rails
         end
 
         def encryptor
-          @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack("H*"), cipher: @cipher)
+          @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack('H*'), cipher: @cipher)
         end
     end
   end

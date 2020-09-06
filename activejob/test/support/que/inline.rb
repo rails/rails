@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "que"
+require 'que'
 
 Que::Job.class_eval do
   class << self; alias_method :original_enqueue, :enqueue; end

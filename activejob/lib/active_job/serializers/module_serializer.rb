@@ -4,11 +4,11 @@ module ActiveJob
   module Serializers
     class ModuleSerializer < ObjectSerializer # :nodoc:
       def serialize(constant)
-        super("value" => constant.name)
+        super('value' => constant.name)
       end
 
       def deserialize(hash)
-        hash["value"].constantize
+        hash['value'].constantize
       end
 
       private

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "concurrent/map"
+require 'concurrent/map'
 
 module ActiveModel
   # Raised when an attribute is not defined.
@@ -366,7 +366,7 @@ module ActiveModel
           end
 
           def execute
-            @owner.module_eval(@sources.join(";"), @path, @line - 1)
+            @owner.module_eval(@sources.join(';'), @path, @line - 1)
             @renames.each do |old_name, new_name|
               @owner.alias_method new_name, old_name
               @owner.undef_method old_name
@@ -412,7 +412,7 @@ module ActiveModel
             "define_method(:'#{name}') do |*args|"
           end
 
-          extra = (extra.map!(&:inspect) << "*args").join(", ")
+          extra = (extra.map!(&:inspect) << '*args').join(', ')
 
           body = if CALL_COMPILABLE_REGEXP.match?(target)
             "#{"self." unless include_private}#{target}(#{extra})"
@@ -423,7 +423,7 @@ module ActiveModel
           code_generator <<
             defn <<
             body <<
-            "end" <<
+            'end' <<
             "ruby2_keywords(:'#{name}') if respond_to?(:ruby2_keywords, true)"
         end
 
@@ -433,7 +433,7 @@ module ActiveModel
           AttributeMethodMatch = Struct.new(:target, :attr_name)
 
           def initialize(options = {})
-            @prefix, @suffix = options.fetch(:prefix, ""), options.fetch(:suffix, "")
+            @prefix, @suffix = options.fetch(:prefix, ''), options.fetch(:suffix, '')
             @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
             @target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
@@ -541,7 +541,7 @@ module ActiveModel
           if attr_name.ascii_only? && DEF_SAFE_NAME.match?(attr_name)
             yield method_name, "'#{attr_name}'"
           else
-            safe_name = attr_name.unpack1("h*")
+            safe_name = attr_name.unpack1('h*')
             const_name = "ATTR_#{safe_name}"
             const_set(const_name, attr_name) unless const_defined?(const_name)
             temp_method_name = "__temp__#{safe_name}#{'=' if writer}"

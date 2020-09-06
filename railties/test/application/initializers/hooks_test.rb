@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
+require 'isolation/abstract_unit'
 
 module ApplicationTests
   class HooksTest < ActiveSupport::TestCase
@@ -15,13 +15,13 @@ module ApplicationTests
       teardown_app
     end
 
-    test "load initializers" do
-      app_file "config/initializers/foo.rb", "$foo = true"
+    test 'load initializers' do
+      app_file 'config/initializers/foo.rb', '$foo = true'
       require "#{app_path}/config/environment"
       assert $foo
     end
 
-    test "hooks block works correctly without eager_load (before_eager_load is not called)" do
+    test 'hooks block works correctly without eager_load (before_eager_load is not called)' do
       add_to_config <<-RUBY
         $initialization_callbacks = []
         config.root = "#{app_path}"
@@ -36,7 +36,7 @@ module ApplicationTests
       assert_equal [1, 2, 3], $initialization_callbacks
     end
 
-    test "hooks block works correctly with eager_load" do
+    test 'hooks block works correctly with eager_load' do
       add_to_config <<-RUBY
         $initialization_callbacks = []
         config.root = "#{app_path}"
@@ -51,7 +51,7 @@ module ApplicationTests
       assert_equal [1, 2, 3, 4], $initialization_callbacks
     end
 
-    test "after_initialize runs after frameworks have been initialized" do
+    test 'after_initialize runs after frameworks have been initialized' do
       $activerecord_configuration = nil
       add_to_config <<-RUBY
         config.after_initialize { $activerecord_configuration = ActiveRecord::Base.configurations.configs_for(env_name: "development", name: "primary") }
@@ -61,7 +61,7 @@ module ApplicationTests
       assert $activerecord_configuration
     end
 
-    test "after_initialize happens after to_prepare in development" do
+    test 'after_initialize happens after to_prepare in development' do
       $order = []
       add_to_config <<-RUBY
         config.cache_classes = false
@@ -73,7 +73,7 @@ module ApplicationTests
       assert_equal [:to_prepare, :after_initialize], $order
     end
 
-    test "after_initialize happens after to_prepare in production" do
+    test 'after_initialize happens after to_prepare in production' do
       $order = []
       add_to_config <<-RUBY
         config.cache_classes = true
@@ -82,7 +82,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/application"
-      Rails.env.replace "production"
+      Rails.env.replace 'production'
       require "#{app_path}/config/environment"
       assert_equal [:to_prepare, :after_initialize], $order
     end

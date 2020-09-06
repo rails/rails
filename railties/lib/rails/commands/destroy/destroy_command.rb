@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rails/generators"
+require 'rails/generators'
 
 module Rails
   module Command

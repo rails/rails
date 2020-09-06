@@ -10,7 +10,7 @@ ActiveRecord::Schema.define do
 
   case_sensitive_options =
     if current_adapter?(:Mysql2Adapter)
-      { collation: "utf8mb4_bin" }
+      { collation: 'utf8mb4_bin' }
     else
       {}
     end
@@ -19,7 +19,7 @@ ActiveRecord::Schema.define do
     t.references :firm, index: false
     t.string  :firm_name
     t.integer :credit_limit
-    t.integer "a" * max_identifier_length
+    t.integer 'a' * max_identifier_length
   end
 
   create_table :admin_accounts, force: true do |t|
@@ -34,9 +34,9 @@ ActiveRecord::Schema.define do
     t.string :configs, null: true, limit: 1024
     # MySQL does not allow default values for blobs. Fake it out with a
     # big varchar below.
-    t.string :preferences, null: true, default: "", limit: 1024
+    t.string :preferences, null: true, default: '', limit: 1024
     t.string :json_data, null: true, limit: 1024
-    t.string :json_data_empty, null: true, default: "", limit: 1024
+    t.string :json_data_empty, null: true, default: '', limit: 1024
     t.text :params
     t.references :account
   end
@@ -114,14 +114,14 @@ ActiveRecord::Schema.define do
     t.column :illustrator_visibility, :integer, **default_zero
     t.column :font_size, :integer, **default_zero
     t.column :difficulty, :integer, **default_zero
-    t.column :cover, :string, default: "hard"
+    t.column :cover, :string, default: 'hard'
     t.string :isbn, **case_sensitive_options
     t.string :external_id
     t.datetime :published_on
     t.boolean :boolean_status
     t.index [:author_id, :name], unique: true
-    t.index :isbn, where: "published_on IS NOT NULL", unique: true
-    t.index "(lower(external_id))", unique: true if supports_expression_index?
+    t.index :isbn, where: 'published_on IS NOT NULL', unique: true
+    t.index '(lower(external_id))', unique: true if supports_expression_index?
 
     t.datetime :created_at
     t.datetime :updated_at
@@ -133,14 +133,14 @@ ActiveRecord::Schema.define do
     t.boolean :has_fun, null: false, default: false
   end
 
-  create_table :bulbs, primary_key: "ID", force: true do |t|
+  create_table :bulbs, primary_key: 'ID', force: true do |t|
     t.integer :car_id
     t.string  :name
     t.boolean :frickinawesome, default: false
     t.string :color
   end
 
-  create_table "CamelCase", force: true do |t|
+  create_table 'CamelCase', force: true do |t|
     t.string :name
   end
 
@@ -231,13 +231,13 @@ ActiveRecord::Schema.define do
     t.bigint :client_of
     t.bigint :rating, default: 1
     t.integer :account_id
-    t.string :description, default: ""
+    t.string :description, default: ''
     t.index [:name, :rating], order: :desc
     t.index [:name, :description], length: 10
-    t.index [:firm_id, :type, :rating], name: "company_index", length: { type: 10 }, order: { rating: :desc }
-    t.index [:firm_id, :type], name: "company_partial_index", where: "(rating > 10)"
-    t.index :name, name: "company_name_index", using: :btree
-    t.index "(CASE WHEN rating > 0 THEN lower(name) END) DESC", name: "company_expression_index" if supports_expression_index?
+    t.index [:firm_id, :type, :rating], name: 'company_index', length: { type: 10 }, order: { rating: :desc }
+    t.index [:firm_id, :type], name: 'company_partial_index', where: '(rating > 10)'
+    t.index :name, name: 'company_name_index', using: :btree
+    t.index '(CASE WHEN rating > 0 THEN lower(name) END) DESC', name: 'company_expression_index' if supports_expression_index?
   end
 
   create_table :content, force: true do |t|
@@ -338,7 +338,7 @@ ActiveRecord::Schema.define do
   create_table :edges, force: true, id: false do |t|
     t.column :source_id, :integer, null: false
     t.column :sink_id,   :integer, null: false
-    t.index [:source_id, :sink_id], unique: true, name: "unique_edge_index"
+    t.index [:source_id, :sink_id], unique: true, name: 'unique_edge_index'
   end
 
   create_table :engines, force: true do |t|
@@ -775,7 +775,7 @@ ActiveRecord::Schema.define do
     t.decimal :discounted_price
   end
 
-  add_check_constraint :products, "price > discounted_price", name: "products_price_check"
+  add_check_constraint :products, 'price > discounted_price', name: 'products_price_check'
 
   create_table :product_types, force: true do |t|
     t.string :name
@@ -1002,7 +1002,7 @@ ActiveRecord::Schema.define do
     t.column :label, :string
   end
 
-  create_table "warehouse-things", force: true do |t|
+  create_table 'warehouse-things', force: true do |t|
     t.integer :value
   end
 
@@ -1070,9 +1070,9 @@ ActiveRecord::Schema.define do
     t.string :name
   end
   create_table :weirds, force: true do |t|
-    t.string "a$b"
-    t.string "なまえ"
-    t.string "from"
+    t.string 'a$b'
+    t.string 'なまえ'
+    t.string 'from'
   end
 
   create_table :nodes, force: true do |t|
@@ -1113,12 +1113,12 @@ ActiveRecord::Schema.define do
   end
 
   disable_referential_integrity do
-    create_table :fk_test_has_pk, primary_key: "pk_id", force: :cascade do |t|
+    create_table :fk_test_has_pk, primary_key: 'pk_id', force: :cascade do |t|
     end
 
     create_table :fk_test_has_fk, force: true do |t|
       t.references :fk, null: false
-      t.foreign_key :fk_test_has_pk, column: "fk_id", name: "fk_name", primary_key: "pk_id"
+      t.foreign_key :fk_test_has_pk, column: 'fk_id', name: 'fk_name', primary_key: 'pk_id'
     end
   end
 
@@ -1126,7 +1126,7 @@ ActiveRecord::Schema.define do
     t.float :overloaded_float, default: 500
     t.float :unoverloaded_float
     t.string :overloaded_string_with_limit, limit: 255
-    t.string :string_with_default, default: "the original default"
+    t.string :string_with_default, default: 'the original default'
     t.string :inferred_string, limit: 255
     t.datetime :starts_at, :ends_at
   end

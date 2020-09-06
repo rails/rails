@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "concurrent/map"
+require 'concurrent/map'
 
 class Object
   # An object is blank if it's false, empty, or a whitespace string.

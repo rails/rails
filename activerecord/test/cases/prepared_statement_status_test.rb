@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/course"
-require "models/entrant"
+require 'cases/helper'
+require 'models/course'
+require 'models/entrant'
 
 module ActiveRecord
   class PreparedStatementStatusTest < ActiveRecord::TestCase

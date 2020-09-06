@@ -3,7 +3,7 @@
 class Book < ActiveRecord::Base
   belongs_to :author
 
-  has_many :citations, foreign_key: "book1_id"
+  has_many :citations, foreign_key: 'book1_id'
   has_many :references, -> { distinct }, through: :citations, source: :reference_of
 
   has_many :subscriptions
@@ -17,17 +17,17 @@ class Book < ActiveRecord::Base
   enum illustrator_visibility: [:visible, :invisible], _prefix: true
   enum font_size: [:small, :medium, :large], _prefix: :with, _suffix: true
   enum difficulty: [:easy, :medium, :hard], _suffix: :to_read
-  enum cover: { hard: "hard", soft: "soft" }
+  enum cover: { hard: 'hard', soft: 'soft' }
   enum boolean_status: { enabled: true, disabled: false }
 
   def published!
     super
-    "do publish work..."
+    'do publish work...'
   end
 end
 
 class PublishedBook < ActiveRecord::Base
-  self.table_name = "books"
+  self.table_name = 'books'
 
   validates_uniqueness_of :isbn
 end

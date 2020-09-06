@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
+require_relative 'abstract_unit'
 
 class AssertionsTest < ActiveSupport::TestCase
   def setup
@@ -22,21 +22,21 @@ class AssertionsTest < ActiveSupport::TestCase
     assert_equal true, assert_not(false)
 
     e = assert_raises(Minitest::Assertion) { assert_not true }
-    assert_equal "Expected true to be nil or false", e.message
+    assert_equal 'Expected true to be nil or false', e.message
 
-    e = assert_raises(Minitest::Assertion) { assert_not true, "custom" }
-    assert_equal "custom", e.message
+    e = assert_raises(Minitest::Assertion) { assert_not true, 'custom' }
+    assert_equal 'custom', e.message
   end
 
   def test_assert_no_difference_pass
-    assert_no_difference "@object.num" do
+    assert_no_difference '@object.num' do
       # ...
     end
   end
 
   def test_assert_no_difference_fail
     error = assert_raises(Minitest::Assertion) do
-      assert_no_difference "@object.num" do
+      assert_no_difference '@object.num' do
         @object.increment
       end
     end
@@ -45,7 +45,7 @@ class AssertionsTest < ActiveSupport::TestCase
 
   def test_assert_no_difference_with_message_fail
     error = assert_raises(Minitest::Assertion) do
-      assert_no_difference "@object.num", "Object Changed" do
+      assert_no_difference '@object.num', 'Object Changed' do
         @object.increment
       end
     end
@@ -54,7 +54,7 @@ class AssertionsTest < ActiveSupport::TestCase
 
   def test_assert_no_difference_with_multiple_expressions_pass
     another_object = @object.dup
-    assert_no_difference ["@object.num", -> { another_object.num }] do
+    assert_no_difference ['@object.num', -> { another_object.num }] do
       # ...
     end
   end
@@ -62,20 +62,20 @@ class AssertionsTest < ActiveSupport::TestCase
   def test_assert_no_difference_with_multiple_expressions_fail
     another_object = @object.dup
     assert_raises(Minitest::Assertion) do
-      assert_no_difference ["@object.num", -> { another_object.num }], "Another Object Changed" do
+      assert_no_difference ['@object.num', -> { another_object.num }], 'Another Object Changed' do
         another_object.increment
       end
     end
   end
 
   def test_assert_difference
-    assert_difference "@object.num", +1 do
+    assert_difference '@object.num', +1 do
       @object.increment
     end
   end
 
   def test_assert_difference_retval
-    incremented = assert_difference "@object.num", +1 do
+    incremented = assert_difference '@object.num', +1 do
       @object.increment
     end
 
@@ -83,41 +83,41 @@ class AssertionsTest < ActiveSupport::TestCase
   end
 
   def test_assert_difference_with_implicit_difference
-    assert_difference "@object.num" do
+    assert_difference '@object.num' do
       @object.increment
     end
   end
 
   def test_arbitrary_expression
-    assert_difference "@object.num + 1", +2 do
+    assert_difference '@object.num + 1', +2 do
       @object.increment
       @object.increment
     end
   end
 
   def test_negative_differences
-    assert_difference "@object.num", -1 do
+    assert_difference '@object.num', -1 do
       @object.decrement
     end
   end
 
   def test_expression_is_evaluated_in_the_appropriate_scope
     silence_warnings do
-      local_scope = "foo"
+      local_scope = 'foo'
       _ = local_scope  # to suppress unused variable warning
-      assert_difference("local_scope; @object.num") { @object.increment }
+      assert_difference('local_scope; @object.num') { @object.increment }
     end
   end
 
   def test_array_of_expressions
-    assert_difference [ "@object.num", "@object.num + 1" ], +1 do
+    assert_difference [ '@object.num', '@object.num + 1' ], +1 do
       @object.increment
     end
   end
 
   def test_array_of_expressions_identify_failure
     assert_raises(Minitest::Assertion) do
-      assert_difference ["@object.num", "1 + 1"] do
+      assert_difference ['@object.num', '1 + 1'] do
         @object.increment
       end
     end
@@ -125,21 +125,21 @@ class AssertionsTest < ActiveSupport::TestCase
 
   def test_array_of_expressions_identify_failure_when_message_provided
     assert_raises(Minitest::Assertion) do
-      assert_difference ["@object.num", "1 + 1"], 1, "something went wrong" do
+      assert_difference ['@object.num', '1 + 1'], 1, 'something went wrong' do
         @object.increment
       end
     end
   end
 
   def test_hash_of_expressions
-    assert_difference "@object.num" => 1, "@object.num + 1" => 1 do
+    assert_difference '@object.num' => 1, '@object.num + 1' => 1 do
       @object.increment
     end
   end
 
   def test_hash_of_expressions_with_message
     error = assert_raises Minitest::Assertion do
-      assert_difference({ "@object.num" => 0 }, "Object Changed") do
+      assert_difference({ '@object.num' => 0 }, 'Object Changed') do
         @object.increment
       end
     end
@@ -154,14 +154,14 @@ class AssertionsTest < ActiveSupport::TestCase
 
   def test_hash_of_expressions_identify_failure
     assert_raises(Minitest::Assertion) do
-      assert_difference "@object.num" => 1, "1 + 1" => 1 do
+      assert_difference '@object.num' => 1, '1 + 1' => 1 do
         @object.increment
       end
     end
   end
 
   def test_assert_changes_pass
-    assert_changes "@object.num" do
+    assert_changes '@object.num' do
       @object.increment
     end
   end
@@ -173,14 +173,14 @@ class AssertionsTest < ActiveSupport::TestCase
   end
 
   def test_assert_changes_with_from_option
-    assert_changes "@object.num", from: 0 do
+    assert_changes '@object.num', from: 0 do
       @object.increment
     end
   end
 
   def test_assert_changes_with_from_option_with_wrong_value
     assert_raises Minitest::Assertion do
-      assert_changes "@object.num", from: -1 do
+      assert_changes '@object.num', from: -1 do
         @object.increment
       end
     end
@@ -188,22 +188,22 @@ class AssertionsTest < ActiveSupport::TestCase
 
   def test_assert_changes_with_from_option_with_nil
     error = assert_raises Minitest::Assertion do
-      assert_changes "@object.num", from: nil do
+      assert_changes '@object.num', from: nil do
         @object.increment
       end
     end
-    assert_equal "Expected change from nil", error.message
+    assert_equal 'Expected change from nil', error.message
   end
 
   def test_assert_changes_with_to_option
-    assert_changes "@object.num", to: 1 do
+    assert_changes '@object.num', to: 1 do
       @object.increment
     end
   end
 
   def test_assert_changes_with_to_option_but_no_change_has_special_message
     error = assert_raises Minitest::Assertion do
-      assert_changes "@object.num", to: 0 do
+      assert_changes '@object.num', to: 0 do
         # no changes
       end
     end
@@ -213,21 +213,21 @@ class AssertionsTest < ActiveSupport::TestCase
 
   def test_assert_changes_with_wrong_to_option
     assert_raises Minitest::Assertion do
-      assert_changes "@object.num", to: 2 do
+      assert_changes '@object.num', to: 2 do
         @object.increment
       end
     end
   end
 
   def test_assert_changes_with_from_option_and_to_option
-    assert_changes "@object.num", from: 0, to: 1 do
+    assert_changes '@object.num', from: 0, to: 1 do
       @object.increment
     end
   end
 
   def test_assert_changes_with_from_and_to_options_and_wrong_to_value
     assert_raises Minitest::Assertion do
-      assert_changes "@object.num", from: 0, to: 2 do
+      assert_changes '@object.num', from: 0, to: 2 do
         @object.increment
       end
     end
@@ -272,7 +272,7 @@ class AssertionsTest < ActiveSupport::TestCase
 
   def test_assert_changes_with_message
     error = assert_raises Minitest::Assertion do
-      assert_changes "@object.num", "@object.num should be 1", to: 1 do
+      assert_changes '@object.num', '@object.num should be 1', to: 1 do
         @object.decrement
       end
     end
@@ -281,14 +281,14 @@ class AssertionsTest < ActiveSupport::TestCase
   end
 
   def test_assert_no_changes_pass
-    assert_no_changes "@object.num" do
+    assert_no_changes '@object.num' do
       # ...
     end
   end
 
   def test_assert_no_changes_with_message
     error = assert_raises Minitest::Assertion do
-      assert_no_changes "@object.num", "@object.num should not change" do
+      assert_no_changes '@object.num', '@object.num should not change' do
         @object.increment
       end
     end
@@ -300,7 +300,7 @@ class AssertionsTest < ActiveSupport::TestCase
     lines = "HEY\n" * 12
 
     error = assert_raises Minitest::Assertion do
-      assert_no_changes "lines" do
+      assert_no_changes 'lines' do
         lines += "HEY ALSO\n"
       end
     end
@@ -372,7 +372,7 @@ end
 
 class TestCaseTaggedLoggingTest < ActiveSupport::TestCase
   def before_setup
-    require "stringio"
+    require 'stringio'
     @out = StringIO.new
     self.tagged_logger = ActiveSupport::TaggedLogging.new(Logger.new(@out))
     super

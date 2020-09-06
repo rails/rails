@@ -6,7 +6,7 @@ module ActionView
       class ColorField < TextField # :nodoc:
         def render
           options = @options.stringify_keys
-          options["value"] ||= validate_color_string(value)
+          options['value'] ||= validate_color_string(value)
           @options = options
           super
         end
@@ -17,7 +17,7 @@ module ActionView
             if regex.match?(string)
               string.downcase
             else
-              "#000000"
+              '#000000'
             end
           end
       end

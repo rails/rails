@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "fileutils"
-require "action_dispatch"
-require "rails"
-require "active_support/deprecation"
-require "active_support/core_ext/string/filters"
-require "active_support/core_ext/symbol/starts_ends_with"
-require "rails/dev_caching"
-require "rails/command/environment_argument"
+require 'fileutils'
+require 'action_dispatch'
+require 'rails'
+require 'active_support/deprecation'
+require 'active_support/core_ext/string/filters'
+require 'active_support/core_ext/symbol/starts_ends_with'
+require 'rails/dev_caching'
+require 'rails/command/environment_argument'
 
 module Rails
   class Server < ::Rack::Server
@@ -28,7 +28,7 @@ module Rails
     end
 
     def set_environment
-      ENV["RAILS_ENV"] ||= options[:environment]
+      ENV['RAILS_ENV'] ||= options[:environment]
     end
 
     def start(after_stop_callback = nil)
@@ -63,14 +63,14 @@ module Rails
 
     private
       def setup_dev_caching
-        if options[:environment] == "development"
+        if options[:environment] == 'development'
           Rails::DevCaching.enable_by_argument(options[:caching])
         end
       end
 
       def create_tmp_directories
         %w(cache pids sockets).each do |dir_to_make|
-          FileUtils.mkdir_p(File.join(Rails.root, "tmp", dir_to_make))
+          FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
         end
       end
 
@@ -87,7 +87,7 @@ module Rails
       end
 
       def use_puma?
-        server.to_s == "Rack::Handler::Puma"
+        server.to_s == 'Rack::Handler::Puma'
       end
   end
 
@@ -100,29 +100,29 @@ module Rails
       RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn falcon)
 
       DEFAULT_PORT = 3000
-      DEFAULT_PIDFILE = "tmp/pids/server.pid"
+      DEFAULT_PIDFILE = 'tmp/pids/server.pid'
 
       argument :using, optional: true
 
-      class_option :port, aliases: "-p", type: :numeric,
-        desc: "Runs Rails on the specified port - defaults to 3000.", banner: :port
-      class_option :binding, aliases: "-b", type: :string,
+      class_option :port, aliases: '-p', type: :numeric,
+        desc: 'Runs Rails on the specified port - defaults to 3000.', banner: :port
+      class_option :binding, aliases: '-b', type: :string,
         desc: "Binds Rails to the specified IP - defaults to 'localhost' in development and '0.0.0.0' in other environments'.",
         banner: :IP
-      class_option :config, aliases: "-c", type: :string, default: "config.ru",
-        desc: "Uses a custom rackup configuration.", banner: :file
-      class_option :daemon, aliases: "-d", type: :boolean, default: false,
-        desc: "Runs server as a Daemon."
-      class_option :using, aliases: "-u", type: :string,
-        desc: "Specifies the Rack server used to run the application (thin/puma/webrick).", banner: :name
-      class_option :pid, aliases: "-P", type: :string,
+      class_option :config, aliases: '-c', type: :string, default: 'config.ru',
+        desc: 'Uses a custom rackup configuration.', banner: :file
+      class_option :daemon, aliases: '-d', type: :boolean, default: false,
+        desc: 'Runs server as a Daemon.'
+      class_option :using, aliases: '-u', type: :string,
+        desc: 'Specifies the Rack server used to run the application (thin/puma/webrick).', banner: :name
+      class_option :pid, aliases: '-P', type: :string,
         desc: "Specifies the PID file - defaults to #{DEFAULT_PIDFILE}."
-      class_option :dev_caching, aliases: "-C", type: :boolean, default: nil,
-        desc: "Specifies whether to perform caching in development."
+      class_option :dev_caching, aliases: '-C', type: :boolean, default: nil,
+        desc: 'Specifies whether to perform caching in development.'
       class_option :restart, type: :boolean, default: nil, hide: true
-      class_option :early_hints, type: :boolean, default: nil, desc: "Enables HTTP/2 early hints."
+      class_option :early_hints, type: :boolean, default: nil, desc: 'Enables HTTP/2 early hints.'
       class_option :log_to_stdout, type: :boolean, default: nil, optional: true,
-        desc: "Whether to log to stdout. Enabled by default in development when not daemonized."
+        desc: 'Whether to log to stdout. Enabled by default in development when not daemonized.'
 
       def initialize(args, local_options, *)
         super
@@ -144,7 +144,7 @@ module Rails
 
           if server.serveable?
             print_boot_information(server.server, server.served_url)
-            after_stop_callback = -> { say "Exiting" unless options[:daemon] }
+            after_stop_callback = -> { say 'Exiting' unless options[:daemon] }
             server.start(after_stop_callback)
           else
             say rack_server_suggestion(using)
@@ -179,8 +179,8 @@ module Rails
             #   ["-p3001", "-C", "--binding", "127.0.0.1"] # => {"-p"=>true, "-C"=>true, "--binding"=>true}
             user_flag = {}
             @original_options.each do |command|
-              if command.start_with?("--")
-                option = command.split("=")[0]
+              if command.start_with?('--')
+                option = command.split('=')[0]
                 user_flag[option] = true
               elsif command =~ /\A(-.)/
                 user_flag[Regexp.last_match[0]] = true
@@ -206,33 +206,33 @@ module Rails
                 user_supplied_options << name
               end
             end
-            user_supplied_options << :Host if ENV["HOST"] || ENV["BINDING"]
-            user_supplied_options << :Port if ENV["PORT"]
-            user_supplied_options << :pid if ENV["PIDFILE"]
+            user_supplied_options << :Host if ENV['HOST'] || ENV['BINDING']
+            user_supplied_options << :Port if ENV['PORT']
+            user_supplied_options << :pid if ENV['PIDFILE']
             user_supplied_options.uniq
           end
         end
 
         def port
-          options[:port] || ENV.fetch("PORT", DEFAULT_PORT).to_i
+          options[:port] || ENV.fetch('PORT', DEFAULT_PORT).to_i
         end
 
         def host
           if options[:binding]
             options[:binding]
           else
-            default_host = environment == "development" ? "localhost" : "0.0.0.0"
+            default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
 
-            if ENV["HOST"] && !ENV["BINDING"]
+            if ENV['HOST'] && !ENV['BINDING']
               ActiveSupport::Deprecation.warn(<<-MSG.squish)
                 Using the `HOST` environment variable to specify the IP is deprecated and will be removed in Rails 6.1.
                 Please use `BINDING` environment variable instead.
               MSG
 
-              return ENV["HOST"]
+              return ENV['HOST']
             end
 
-            ENV.fetch("BINDING", default_host)
+            ENV.fetch('BINDING', default_host)
           end
         end
 
@@ -250,16 +250,16 @@ module Rails
 
         def log_to_stdout?
           options.fetch(:log_to_stdout) do
-            options[:daemon].blank? && environment == "development"
+            options[:daemon].blank? && environment == 'development'
           end
         end
 
         def pid
-          File.expand_path(options[:pid] || ENV.fetch("PIDFILE", DEFAULT_PIDFILE))
+          File.expand_path(options[:pid] || ENV.fetch('PIDFILE', DEFAULT_PIDFILE))
         end
 
         def self.banner(*)
-          "rails server -u [thin/puma/webrick] [options]"
+          'rails server -u [thin/puma/webrick] [options]'
         end
 
         def prepare_restart
@@ -274,7 +274,7 @@ module Rails
               option instead.
             MSG
 
-            original_options.concat [ "-u", using ]
+            original_options.concat [ '-u', using ]
           else
             # Use positional internally to get around Thor's immutable options.
             # TODO: Replace `using` occurrences with `options[:using]` after deprecation removal.

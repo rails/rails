@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "generators/generators_test_helper"
-require "rails/generators/rails/app/app_generator"
+require 'generators/generators_test_helper'
+require 'rails/generators/rails/app/app_generator'
 
 class ApiAppGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   tests Rails::Generators::AppGenerator
 
-  arguments [destination_root, "--api"]
+  arguments [destination_root, '--api']
 
   def setup
     Rails.application = TestApp::Application
@@ -35,11 +35,11 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
   def test_api_modified_files
     run_generator
 
-    assert_file ".gitignore" do |content|
+    assert_file '.gitignore' do |content|
       assert_no_match(/\/public\/assets/, content)
     end
 
-    assert_file "Gemfile" do |content|
+    assert_file 'Gemfile' do |content|
       assert_no_match(/gem 'sass-rails'/, content)
       assert_no_match(/gem 'web-console'/, content)
       assert_no_match(/gem 'capybara'/, content)
@@ -48,65 +48,65 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       assert_match(/# gem 'rack-cors'/, content)
     end
 
-    assert_file "config/application.rb", /config\.api_only = true/
-    assert_file "app/controllers/application_controller.rb", /ActionController::API/
+    assert_file 'config/application.rb', /config\.api_only = true/
+    assert_file 'app/controllers/application_controller.rb', /ActionController::API/
 
-    assert_file "config/environments/development.rb" do |content|
+    assert_file 'config/environments/development.rb' do |content|
       assert_no_match(/action_controller\.perform_caching = true/, content)
     end
-    assert_file "config/environments/production.rb" do |content|
+    assert_file 'config/environments/production.rb' do |content|
       assert_no_match(/action_controller\.perform_caching = true/, content)
     end
   end
 
   def test_generator_if_skip_action_cable_is_given
-    run_generator [destination_root, "--api", "--skip-action-cable"]
-    assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
-    assert_no_file "config/cable.yml"
-    assert_no_file "app/channels"
-    assert_file "Gemfile" do |content|
+    run_generator [destination_root, '--api', '--skip-action-cable']
+    assert_file 'config/application.rb', /#\s+require\s+["']action_cable\/engine["']/
+    assert_no_file 'config/cable.yml'
+    assert_no_file 'app/channels'
+    assert_file 'Gemfile' do |content|
       assert_no_match(/redis/, content)
     end
   end
 
   def test_generator_if_skip_action_mailer_is_given
-    run_generator [destination_root, "--api", "--skip-action-mailer"]
-    assert_file "config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/
-    assert_file "config/environments/development.rb" do |content|
+    run_generator [destination_root, '--api', '--skip-action-mailer']
+    assert_file 'config/application.rb', /#\s+require\s+["']action_mailer\/railtie["']/
+    assert_file 'config/environments/development.rb' do |content|
       assert_no_match(/config\.action_mailer/, content)
     end
-    assert_file "config/environments/test.rb" do |content|
+    assert_file 'config/environments/test.rb' do |content|
       assert_no_match(/config\.action_mailer/, content)
     end
-    assert_file "config/environments/production.rb" do |content|
+    assert_file 'config/environments/production.rb' do |content|
       assert_no_match(/config\.action_mailer/, content)
     end
-    assert_no_directory "app/mailers"
-    assert_no_directory "test/mailers"
-    assert_no_directory "app/views"
+    assert_no_directory 'app/mailers'
+    assert_no_directory 'test/mailers'
+    assert_no_directory 'app/views'
   end
 
   def test_app_update_does_not_generate_unnecessary_config_files
     run_generator
 
-    generator = Rails::Generators::AppGenerator.new ["rails"],
+    generator = Rails::Generators::AppGenerator.new ['rails'],
       { api: true, update: true }, { destination_root: destination_root, shell: @shell }
     quietly { generator.send(:update_config_files) }
 
-    assert_no_file "config/initializers/cookies_serializer.rb"
-    assert_no_file "config/initializers/assets.rb"
-    assert_no_file "config/initializers/content_security_policy.rb"
-    assert_no_file "config/initializers/feature_policy.rb"
+    assert_no_file 'config/initializers/cookies_serializer.rb'
+    assert_no_file 'config/initializers/assets.rb'
+    assert_no_file 'config/initializers/content_security_policy.rb'
+    assert_no_file 'config/initializers/feature_policy.rb'
   end
 
   def test_app_update_does_not_generate_unnecessary_bin_files
     run_generator
 
-    generator = Rails::Generators::AppGenerator.new ["rails"],
+    generator = Rails::Generators::AppGenerator.new ['rails'],
       { api: true, update: true }, { destination_root: destination_root, shell: @shell }
     quietly { generator.send(:update_bin_files) }
 
-    assert_no_file "bin/yarn"
+    assert_no_file 'bin/yarn'
   end
 
   private

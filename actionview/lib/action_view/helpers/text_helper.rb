@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/filters"
-require "active_support/core_ext/array/extract_options"
+require 'active_support/core_ext/string/filters'
+require 'active_support/core_ext/array/extract_options'
 
 module ActionView
   # = Action View Text Helpers
@@ -133,11 +133,11 @@ module ActionView
         text = sanitize(text) if options.fetch(:sanitize, true)
 
         if text.blank? || phrases.blank?
-          text || ""
+          text || ''
         else
           match = Array(phrases).map do |p|
             Regexp === p ? p.to_s : Regexp.escape(p)
-          end.join("|")
+          end.join('|')
 
           if block_given?
             text.gsub(/(#{match})(?![^<]*?>)/i) { |found| yield found }
@@ -175,7 +175,7 @@ module ActionView
       def excerpt(text, phrase, options = {})
         return unless text && phrase
 
-        separator = options.fetch(:separator, nil) || ""
+        separator = options.fetch(:separator, nil) || ''
         case phrase
         when Regexp
           regex = phrase
@@ -353,7 +353,7 @@ module ActionView
       #  <% end %>
       def cycle(first_value, *values)
         options = values.extract_options!
-        name = options.fetch(:name, "default")
+        name = options.fetch(:name, 'default')
 
         values.unshift(*first_value)
 
@@ -375,7 +375,7 @@ module ActionView
       #       <span style="background-color:<%= current_cycle %>"><%= item %></span>
       #     </div>
       #   <% end %>
-      def current_cycle(name = "default")
+      def current_cycle(name = 'default')
         cycle = get_cycle(name)
         cycle.current_value if cycle
       end
@@ -398,7 +398,7 @@ module ActionView
       #     </tr>
       #   <% end %>
       #   </table>
-      def reset_cycle(name = "default")
+      def reset_cycle(name = 'default')
         cycle = get_cycle(name)
         cycle.reset if cycle
       end
@@ -462,14 +462,14 @@ module ActionView
         end
 
         def cut_excerpt_part(part_position, part, separator, options)
-          return "", "" unless part
+          return '', '' unless part
 
           radius   = options.fetch(:radius, 100)
-          omission = options.fetch(:omission, "...")
+          omission = options.fetch(:omission, '...')
 
           part = part.split(separator)
-          part.delete("")
-          affix = part.size > radius ? omission : ""
+          part.delete('')
+          affix = part.size > radius ? omission : ''
 
           part = if part_position == :first
             drop_index = [part.length - radius, 0].max

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "action_view/helpers/tags/checkable"
+require 'action_view/helpers/tags/checkable'
 
 module ActionView
   module Helpers
@@ -15,11 +15,11 @@ module ActionView
 
         def render
           options = @options.stringify_keys
-          options["type"]     = "radio"
-          options["value"]    = @tag_value
-          options["checked"] = "checked" if input_checked?(options)
+          options['type']     = 'radio'
+          options['value']    = @tag_value
+          options['checked'] = 'checked' if input_checked?(options)
           add_default_name_and_id_for_value(@tag_value, options)
-          tag("input", options)
+          tag('input', options)
         end
 
         private

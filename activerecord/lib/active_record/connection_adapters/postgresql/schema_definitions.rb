@@ -47,7 +47,7 @@ module ActiveRecord
         # +SecureRandom.uuid+ method and a +before_save+ callback, for instance.
         def primary_key(name, type = :primary_key, **options)
           if type == :uuid
-            options[:default] = options.fetch(:default, "gen_random_uuid()")
+            options[:default] = options.fetch(:default, 'gen_random_uuid()')
           end
 
           super

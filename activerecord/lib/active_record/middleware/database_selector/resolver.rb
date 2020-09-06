@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_record/middleware/database_selector/resolver/session"
-require "active_support/core_ext/numeric/time"
+require 'active_record/middleware/database_selector/resolver/session'
+require 'active_support/core_ext/numeric/time'
 
 module ActiveRecord
   module Middleware
@@ -51,7 +51,7 @@ module ActiveRecord
         private
           def read_from_primary(&blk)
             ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role, prevent_writes: true) do
-              instrumenter.instrument("database_selector.active_record.read_from_primary") do
+              instrumenter.instrument('database_selector.active_record.read_from_primary') do
                 yield
               end
             end
@@ -59,7 +59,7 @@ module ActiveRecord
 
           def read_from_replica(&blk)
             ActiveRecord::Base.connected_to(role: ActiveRecord::Base.reading_role, prevent_writes: true) do
-              instrumenter.instrument("database_selector.active_record.read_from_replica") do
+              instrumenter.instrument('database_selector.active_record.read_from_replica') do
                 yield
               end
             end
@@ -67,7 +67,7 @@ module ActiveRecord
 
           def write_to_primary(&blk)
             ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role, prevent_writes: false) do
-              instrumenter.instrument("database_selector.active_record.wrote_to_primary") do
+              instrumenter.instrument('database_selector.active_record.wrote_to_primary') do
                 yield
               ensure
                 context.update_last_write_timestamp

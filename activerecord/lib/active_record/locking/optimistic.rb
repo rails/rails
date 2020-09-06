@@ -84,7 +84,7 @@ module ActiveRecord
           super
         end
 
-        def _update_row(attribute_names, attempted_action = "update")
+        def _update_row(attribute_names, attempted_action = 'update')
           return super unless locking_enabled?
 
           begin
@@ -125,14 +125,14 @@ module ActiveRecord
           )
 
           if affected_rows != 1
-            raise ActiveRecord::StaleObjectError.new(self, "destroy")
+            raise ActiveRecord::StaleObjectError.new(self, 'destroy')
           end
 
           affected_rows
         end
 
         module ClassMethods
-          DEFAULT_LOCKING_COLUMN = "lock_version"
+          DEFAULT_LOCKING_COLUMN = 'lock_version'
 
           # Returns true if the +lock_optimistically+ flag is set to true
           # (which it is, by default) and the table includes the
@@ -191,11 +191,11 @@ module ActiveRecord
       end
 
       def init_with(coder)
-        __setobj__(coder["subtype"])
+        __setobj__(coder['subtype'])
       end
 
       def encode_with(coder)
-        coder["subtype"] = __getobj__
+        coder['subtype'] = __getobj__
       end
     end
   end

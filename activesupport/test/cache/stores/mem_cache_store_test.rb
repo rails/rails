@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "../../abstract_unit"
-require "active_support/cache"
-require_relative "../behaviors"
-require "dalli"
+require_relative '../../abstract_unit'
+require 'active_support/cache'
+require_relative '../behaviors'
+require 'dalli'
 
 # Emulates a latency on Dalli's back-end for the key latency to facilitate
 # connection pool testing.
@@ -25,13 +25,13 @@ end
 
 class MemCacheStoreTest < ActiveSupport::TestCase
   begin
-    servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
+    servers = ENV['MEMCACHE_SERVERS'] || 'localhost:11211'
     ss = Dalli::Client.new(servers).stats
     raise Dalli::DalliError unless ss[servers]
 
     MEMCACHE_UP = true
   rescue Dalli::DalliError
-    $stderr.puts "Skipping memcached tests. Start memcached and try again."
+    $stderr.puts 'Skipping memcached tests. Start memcached and try again.'
     MEMCACHE_UP = false
   end
 
@@ -40,7 +40,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def setup
-    skip "memcache server is not up" unless MEMCACHE_UP
+    skip 'memcache server is not up' unless MEMCACHE_UP
 
     @namespace = "test-#{SecureRandom.hex}"
     @cache = lookup_store(expires_in: 60)
@@ -72,61 +72,61 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_raw_values
     cache = lookup_store(raw: true)
-    cache.write("foo", 2)
-    assert_equal "2", cache.read("foo")
+    cache.write('foo', 2)
+    assert_equal '2', cache.read('foo')
   end
 
   def test_raw_read_entry_compression
     cache = lookup_store(raw: true)
-    cache.write("foo", 2)
+    cache.write('foo', 2)
 
     assert_not_called_on_instance_of ActiveSupport::Cache::Entry, :compress! do
-      cache.read("foo")
+      cache.read('foo')
     end
   end
 
   def test_raw_values_with_marshal
     cache = lookup_store(raw: true)
-    cache.write("foo", Marshal.dump([]))
-    assert_equal Marshal.dump([]), cache.read("foo")
+    cache.write('foo', Marshal.dump([]))
+    assert_equal Marshal.dump([]), cache.read('foo')
   end
 
   def test_local_cache_raw_values
     cache = lookup_store(raw: true)
     cache.with_local_cache do
-      cache.write("foo", 2)
-      assert_equal "2", cache.read("foo")
+      cache.write('foo', 2)
+      assert_equal '2', cache.read('foo')
     end
   end
 
   def test_increment_expires_in
     cache = lookup_store(raw: true, namespace: nil)
-    assert_called_with cache.instance_variable_get(:@data), :incr, [ "foo", 1, 60 ] do
-      cache.increment("foo", 1, expires_in: 60)
+    assert_called_with cache.instance_variable_get(:@data), :incr, [ 'foo', 1, 60 ] do
+      cache.increment('foo', 1, expires_in: 60)
     end
   end
 
   def test_decrement_expires_in
     cache = lookup_store(raw: true, namespace: nil)
-    assert_called_with cache.instance_variable_get(:@data), :decr, [ "foo", 1, 60 ] do
-      cache.decrement("foo", 1, expires_in: 60)
+    assert_called_with cache.instance_variable_get(:@data), :decr, [ 'foo', 1, 60 ] do
+      cache.decrement('foo', 1, expires_in: 60)
     end
   end
 
   def test_local_cache_raw_values_with_marshal
     cache = lookup_store(raw: true)
     cache.with_local_cache do
-      cache.write("foo", Marshal.dump([]))
-      assert_equal Marshal.dump([]), cache.read("foo")
+      cache.write('foo', Marshal.dump([]))
+      assert_equal Marshal.dump([]), cache.read('foo')
     end
   end
 
   def test_read_should_return_a_different_object_id_each_time_it_is_called
-    @cache.write("foo", "bar")
-    value = @cache.read("foo")
-    assert_not_equal value.object_id, @cache.read("foo").object_id
-    value << "bingo"
-    assert_not_equal value, @cache.read("foo")
+    @cache.write('foo', 'bar')
+    value = @cache.read('foo')
+    assert_not_equal value.object_id, @cache.read('foo').object_id
+    value << 'bingo'
+    assert_not_equal value, @cache.read('foo')
   end
 
   def test_no_compress_when_below_threshold
@@ -137,11 +137,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_called(
       Zlib::Deflate,
       :deflate,
-      "Memcached writes should not compress when below compress threshold.",
+      'Memcached writes should not compress when below compress threshold.',
       times: 0,
       returns: compressed
     ) do
-      cache.write("foo", val)
+      cache.write('foo', val)
     end
   end
 
@@ -153,11 +153,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_called(
       Zlib::Deflate,
       :deflate,
-      "Memcached writes should not perform duplicate compression.",
+      'Memcached writes should not perform duplicate compression.',
       times: 1,
       returns: compressed
     ) do
-      cache.write("foo", val)
+      cache.write('foo', val)
     end
   end
 
@@ -167,7 +167,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
 
     def store
-      [:mem_cache_store, ENV["MEMCACHE_SERVERS"] || "localhost:11211"]
+      [:mem_cache_store, ENV['MEMCACHE_SERVERS'] || 'localhost:11211']
     end
 
     def emulating_latency

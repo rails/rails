@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "zlib"
+require 'zlib'
 
 module ActionView
   # = Action View Asset URL Helpers
@@ -184,13 +184,13 @@ module ActionView
       #     asset_path("foo", skip_pipeline: true, extname: ".js")     # => "/foo.js"
       #     asset_path("foo.css", skip_pipeline: true, extname: ".js") # => "/foo.css.js"
       def asset_path(source, options = {})
-        raise ArgumentError, "nil is not a valid asset source" if source.nil?
+        raise ArgumentError, 'nil is not a valid asset source' if source.nil?
 
         source = source.to_s
-        return "" if source.blank?
+        return '' if source.blank?
         return source if URI_REGEXP.match?(source)
 
-        tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, "")
+        tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, '')
 
         if extname = compute_asset_extname(source, options)
           source = "#{source}#{extname}"
@@ -233,8 +233,8 @@ module ActionView
       alias_method :url_to_asset, :asset_url # aliased to avoid conflicts with an asset_url named route
 
       ASSET_EXTENSIONS = {
-        javascript: ".js",
-        stylesheet: ".css"
+        javascript: '.js',
+        stylesheet: '.css'
       }
 
       # Compute extname to append to asset path. Returns +nil+ if
@@ -251,19 +251,19 @@ module ActionView
 
       # Maps asset types to public directory.
       ASSET_PUBLIC_DIRECTORIES = {
-        audio:      "/audios",
-        font:       "/fonts",
-        image:      "/images",
-        javascript: "/javascripts",
-        stylesheet: "/stylesheets",
-        video:      "/videos"
+        audio:      '/audios',
+        font:       '/fonts',
+        image:      '/images',
+        javascript: '/javascripts',
+        stylesheet: '/stylesheets',
+        video:      '/videos'
       }
 
       # Computes asset path to public directory. Plugins and
       # extensions can override this method to point to custom assets
       # or generate digested paths or query strings.
       def compute_asset_path(source, options = {})
-        dir = ASSET_PUBLIC_DIRECTORIES[options[:type]] || ""
+        dir = ASSET_PUBLIC_DIRECTORIES[options[:type]] || ''
         File.join(dir, source)
       end
       alias :public_compute_asset_path :compute_asset_path
@@ -273,7 +273,7 @@ module ActionView
       # numbers 0-3 if it contains <tt>%d</tt> (the number is the source hash mod 4),
       # or the value returned from invoking call on an object responding to call
       # (proc or otherwise).
-      def compute_asset_host(source = "", options = {})
+      def compute_asset_host(source = '', options = {})
         request = self.request if respond_to?(:request)
         host = options[:host]
         host ||= config.asset_host if defined? config.asset_host
@@ -284,7 +284,7 @@ module ActionView
             args = [source]
             args << request if request && (arity > 1 || arity < 0)
             host = host.call(*args)
-          elsif host.include?("%d")
+          elsif host.include?('%d')
             host = host % (Zlib.crc32(source) % 4)
           end
         end

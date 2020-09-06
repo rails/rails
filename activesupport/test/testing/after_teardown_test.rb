@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
+require_relative '../abstract_unit'
 
 module OtherAfterTeardown
   def after_teardown
@@ -18,7 +18,7 @@ class AfterTeardownTest < ActiveSupport::TestCase
   MyError = Class.new(StandardError)
 
   teardown do
-    raise MyError, "Test raises an error, all after_teardown should still get called"
+    raise MyError, 'Test raises an error, all after_teardown should still get called'
   end
 
   def after_teardown

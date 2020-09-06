@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 class ReviewsController < ResourcesController; end
 
@@ -33,7 +33,7 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
         resources :posts, concerns: :commentable
       end
 
-      scope "/videos" do
+      scope '/videos' do
         concerns :commentable, except: :destroy
       end
     end
@@ -44,60 +44,60 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
   def app; APP end
 
   def test_accessing_concern_from_resources
-    get "/posts/1/comments"
-    assert_equal "200", @response.code
-    assert_equal "/posts/1/comments", post_comments_path(post_id: 1)
+    get '/posts/1/comments'
+    assert_equal '200', @response.code
+    assert_equal '/posts/1/comments', post_comments_path(post_id: 1)
   end
 
   def test_accessing_concern_from_resource
-    get "/picture/comments"
-    assert_equal "200", @response.code
-    assert_equal "/picture/comments", picture_comments_path
+    get '/picture/comments'
+    assert_equal '200', @response.code
+    assert_equal '/picture/comments', picture_comments_path
   end
 
   def test_accessing_concern_from_nested_resource
-    get "/posts/1/video/comments"
-    assert_equal "200", @response.code
-    assert_equal "/posts/1/video/comments", post_video_comments_path(post_id: 1)
+    get '/posts/1/video/comments'
+    assert_equal '200', @response.code
+    assert_equal '/posts/1/video/comments', post_video_comments_path(post_id: 1)
   end
 
   def test_accessing_concern_from_nested_resources
-    get "/picture/posts/1/comments"
-    assert_equal "200", @response.code
-    assert_equal "/picture/posts/1/comments", picture_post_comments_path(post_id: 1)
+    get '/picture/posts/1/comments'
+    assert_equal '200', @response.code
+    assert_equal '/picture/posts/1/comments', picture_post_comments_path(post_id: 1)
   end
 
   def test_accessing_concern_from_resources_with_more_than_one_concern
-    get "/posts/1/images"
-    assert_equal "200", @response.code
-    assert_equal "/posts/1/images", post_images_path(post_id: 1)
+    get '/posts/1/images'
+    assert_equal '200', @response.code
+    assert_equal '/posts/1/images', post_images_path(post_id: 1)
   end
 
   def test_accessing_concern_from_resources_using_only_option
-    get "/posts/1/image/1"
-    assert_equal "404", @response.code
+    get '/posts/1/image/1'
+    assert_equal '404', @response.code
   end
 
   def test_accessing_callable_concern_
-    get "/posts/1/reviews/1"
-    assert_equal "200", @response.code
-    assert_equal "/posts/1/reviews/1", post_review_path(post_id: 1, id: 1)
+    get '/posts/1/reviews/1'
+    assert_equal '200', @response.code
+    assert_equal '/posts/1/reviews/1', post_review_path(post_id: 1, id: 1)
   end
 
   def test_callable_concerns_accept_options
-    get "/posts/1/video/reviews/1"
-    assert_equal "200", @response.code
-    assert_equal "/posts/1/video/reviews/1", post_video_video_review_path(post_id: 1, id: 1)
+    get '/posts/1/video/reviews/1'
+    assert_equal '200', @response.code
+    assert_equal '/posts/1/video/reviews/1', post_video_video_review_path(post_id: 1, id: 1)
   end
 
   def test_accessing_concern_from_a_scope
-    get "/videos/comments"
-    assert_equal "200", @response.code
+    get '/videos/comments'
+    assert_equal '200', @response.code
   end
 
   def test_concerns_accept_options
-    delete "/videos/comments/1"
-    assert_equal "404", @response.code
+    delete '/videos/comments/1'
+    assert_equal '404', @response.code
   end
 
   def test_with_an_invalid_concern_name
@@ -109,7 +109,7 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
       end
     end
 
-    assert_equal "No concern named foo was found!", e.message
+    assert_equal 'No concern named foo was found!', e.message
   end
 
   def test_concerns_executes_block_in_context_of_current_mapper

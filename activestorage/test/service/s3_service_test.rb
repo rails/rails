@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "service/shared_service_tests"
-require "net/http"
-require "database/setup"
+require 'service/shared_service_tests'
+require 'net/http'
+require 'database/setup'
 
 if SERVICE_CONFIGURATIONS[:s3]
   class ActiveStorage::Service::S3ServiceTest < ActiveSupport::TestCase
@@ -10,21 +10,21 @@ if SERVICE_CONFIGURATIONS[:s3]
 
     include ActiveStorage::Service::SharedServiceTests
 
-    test "name" do
+    test 'name' do
       assert_equal :s3, @service.name
     end
 
-    test "direct upload" do
+    test 'direct upload' do
       key      = SecureRandom.base58(24)
-      data     = "Something else entirely!"
+      data     = 'Something else entirely!'
       checksum = Digest::MD5.base64digest(data)
-      url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+      url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: 'text/plain', content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
-      request.add_field "Content-Type", "text/plain"
-      request.add_field "Content-MD5", checksum
+      request.add_field 'Content-Type', 'text/plain'
+      request.add_field 'Content-MD5', checksum
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end
@@ -34,16 +34,16 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.delete key
     end
 
-    test "direct upload with content disposition" do
+    test 'direct upload with content disposition' do
       key      = SecureRandom.base58(24)
-      data     = "Something else entirely!"
+      data     = 'Something else entirely!'
       checksum = Digest::MD5.base64digest(data)
-      url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+      url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: 'text/plain', content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
-      @service.headers_for_direct_upload(key, checksum: checksum, content_type: "text/plain", filename: ActiveStorage::Filename.new("test.txt"), disposition: :attachment).each do |k, v|
+      @service.headers_for_direct_upload(key, checksum: checksum, content_type: 'text/plain', filename: ActiveStorage::Filename.new('test.txt'), disposition: :attachment).each do |k, v|
         request.add_field k, v
       end
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
@@ -55,22 +55,22 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.delete key
     end
 
-    test "directly uploading file larger than the provided content-length does not work" do
+    test 'directly uploading file larger than the provided content-length does not work' do
       key      = SecureRandom.base58(24)
-      data     = "Some text that is longer than the specified content length"
+      data     = 'Some text that is longer than the specified content length'
       checksum = Digest::MD5.base64digest(data)
-      url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size - 1, checksum: checksum)
+      url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: 'text/plain', content_length: data.size - 1, checksum: checksum)
 
       uri = URI.parse url
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
-      request.add_field "Content-Type", "text/plain"
-      request.add_field "Content-MD5", checksum
+      request.add_field 'Content-Type', 'text/plain'
+      request.add_field 'Content-MD5', checksum
       upload_result = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end
 
-      assert_equal "403", upload_result.code
+      assert_equal '403', upload_result.code
       assert_raises ActiveStorage::FileNotFoundError do
         @service.download(key)
       end
@@ -78,45 +78,45 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.delete key
     end
 
-    test "upload a zero byte file" do
-      blob = directly_upload_file_blob filename: "empty_file.txt", content_type: nil
-      user = User.create! name: "DHH", avatar: blob
+    test 'upload a zero byte file' do
+      blob = directly_upload_file_blob filename: 'empty_file.txt', content_type: nil
+      user = User.create! name: 'DHH', avatar: blob
 
       assert_equal user.avatar.blob, blob
     end
 
-    test "signed URL generation" do
+    test 'signed URL generation' do
       url = @service.url(@key, expires_in: 5.minutes,
-        disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
+        disposition: :inline, filename: ActiveStorage::Filename.new('avatar.png'), content_type: 'image/png')
 
       assert_match(/s3(-[-a-z0-9]+)?\.(\S+)?amazonaws.com.*response-content-disposition=inline.*avatar\.png.*response-content-type=image%2Fpng/, url)
       assert_match SERVICE_CONFIGURATIONS[:s3][:bucket], url
     end
 
-    test "uploading with server-side encryption" do
-      service = build_service(upload: { server_side_encryption: "AES256" })
+    test 'uploading with server-side encryption' do
+      service = build_service(upload: { server_side_encryption: 'AES256' })
 
       begin
         key  = SecureRandom.base58(24)
-        data = "Something else entirely!"
+        data = 'Something else entirely!'
         service.upload key, StringIO.new(data), checksum: Digest::MD5.base64digest(data)
 
-        assert_equal "AES256", service.bucket.object(key).server_side_encryption
+        assert_equal 'AES256', service.bucket.object(key).server_side_encryption
       ensure
         service.delete key
       end
     end
 
-    test "upload with content type" do
+    test 'upload with content type' do
       key          = SecureRandom.base58(24)
-      data         = "Something else entirely!"
-      content_type = "text/plain"
+      data         = 'Something else entirely!'
+      content_type = 'text/plain'
 
       @service.upload(
         key,
         StringIO.new(data),
         checksum: Digest::MD5.base64digest(data),
-        filename: "cool_data.txt",
+        filename: 'cool_data.txt',
         content_type: content_type
       )
 
@@ -125,15 +125,15 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.delete key
     end
 
-    test "upload with content disposition" do
+    test 'upload with content disposition' do
       key  = SecureRandom.base58(24)
-      data = "Something else entirely!"
+      data = 'Something else entirely!'
 
       @service.upload(
         key,
         StringIO.new(data),
         checksum: Digest::MD5.base64digest(data),
-        filename: ActiveStorage::Filename.new("cool_data.txt"),
+        filename: ActiveStorage::Filename.new('cool_data.txt'),
         disposition: :attachment
       )
 
@@ -142,7 +142,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.delete key
     end
 
-    test "uploading a large object in multiple parts" do
+    test 'uploading a large object in multiple parts' do
       service = build_service(upload: { multipart_threshold: 5.megabytes })
 
       begin
@@ -162,5 +162,5 @@ if SERVICE_CONFIGURATIONS[:s3]
       end
   end
 else
-  puts "Skipping S3 Service tests because no S3 configuration was supplied"
+  puts 'Skipping S3 Service tests because no S3 configuration was supplied'
 end

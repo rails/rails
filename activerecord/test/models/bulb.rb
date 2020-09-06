@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Bulb < ActiveRecord::Base
-  default_scope { where(name: "defaulty") }
+  default_scope { where(name: 'defaulty') }
   belongs_to :car, touch: true
   scope :awesome, -> { where(frickinawesome: true) }
 
@@ -25,7 +25,7 @@ class Bulb < ActiveRecord::Base
   end
 
   def color=(color)
-    self[:color] = color.upcase + "!"
+    self[:color] = color.upcase + '!'
   end
 
   def self.new(attributes = {}, &block)
@@ -44,13 +44,13 @@ class CustomBulb < Bulb
   after_initialize :set_awesomeness
 
   def set_awesomeness
-    self.frickinawesome = true if name == "Dude"
+    self.frickinawesome = true if name == 'Dude'
   end
 end
 
 class FunkyBulb < Bulb
   before_destroy do
-    raise "before_destroy was called"
+    raise 'before_destroy was called'
   end
 end
 

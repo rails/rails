@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_model"
+require 'active_model'
 
 Customer = Struct.new(:name, :id) do
   extend ActiveModel::Naming
@@ -160,7 +160,7 @@ class HashBackedAuthor < Hash
   def persisted?; false; end
 
   def name
-    "hash backed author"
+    'hash backed author'
   end
 end
 
@@ -195,7 +195,7 @@ class Plane
   attr_reader :to_key
 
   def model_name
-    OpenStruct.new param_key: "airplane"
+    OpenStruct.new param_key: 'airplane'
   end
 
   def save

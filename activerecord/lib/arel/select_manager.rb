@@ -51,10 +51,10 @@ module Arel # :nodoc: all
       create_table_alias grouping(@ast), Nodes::SqlLiteral.new(other)
     end
 
-    def lock(locking = Arel.sql("FOR UPDATE"))
+    def lock(locking = Arel.sql('FOR UPDATE'))
       case locking
       when true
-        locking = Arel.sql("FOR UPDATE")
+        locking = Arel.sql('FOR UPDATE')
       when Arel::Nodes::SqlLiteral
       when String
         locking = Arel.sql locking

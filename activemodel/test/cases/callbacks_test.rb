@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 class CallbacksTest < ActiveModel::TestCase
   class CallbackValidator
@@ -52,51 +52,51 @@ class CallbacksTest < ActiveModel::TestCase
     end
   end
 
-  test "complete callback chain" do
+  test 'complete callback chain' do
     model = ModelCallbacks.new
     model.create
     assert_equal model.callbacks, [ :before_create, :before_around_create, :create,
                                     :after_around_create, :after_create, :final_callback]
   end
 
-  test "the callback chain is not halted when around or after callbacks return false" do
+  test 'the callback chain is not halted when around or after callbacks return false' do
     model = ModelCallbacks.new
     model.create
     assert_equal model.callbacks.last, :final_callback
   end
 
-  test "the callback chain is not halted when a before callback returns false)" do
+  test 'the callback chain is not halted when a before callback returns false)' do
     model = ModelCallbacks.new(before_create_returns: false)
     model.create
     assert_equal model.callbacks.last, :final_callback
   end
 
-  test "the callback chain is halted when a callback throws :abort" do
+  test 'the callback chain is halted when a callback throws :abort' do
     model = ModelCallbacks.new(before_create_throws: :abort)
     model.create
     assert_equal model.callbacks, [:before_create]
   end
 
-  test "after callbacks are not executed if the block returns false" do
+  test 'after callbacks are not executed if the block returns false' do
     model = ModelCallbacks.new(valid: false)
     model.create
     assert_equal model.callbacks, [ :before_create, :before_around_create,
                                     :create, :after_around_create]
   end
 
-  test "only selects which types of callbacks should be created" do
+  test 'only selects which types of callbacks should be created' do
     assert_not_respond_to ModelCallbacks, :before_initialize
     assert_not_respond_to ModelCallbacks, :around_initialize
     assert_respond_to ModelCallbacks, :after_initialize
   end
 
-  test "only selects which types of callbacks should be created from an array list" do
+  test 'only selects which types of callbacks should be created from an array list' do
     assert_respond_to ModelCallbacks, :before_multiple
     assert_respond_to ModelCallbacks, :around_multiple
     assert_not_respond_to ModelCallbacks, :after_multiple
   end
 
-  test "no callbacks should be created" do
+  test 'no callbacks should be created' do
     assert_not_respond_to ModelCallbacks, :before_empty
     assert_not_respond_to ModelCallbacks, :around_empty
     assert_not_respond_to ModelCallbacks, :after_empty
@@ -109,8 +109,8 @@ class CallbacksTest < ActiveModel::TestCase
     end
     extend ActiveModel::Callbacks
     define_model_callbacks :create
-    def callback1; history << "callback1"; end
-    def callback2; history << "callback2"; end
+    def callback1; history << 'callback1'; end
+    def callback2; history << 'callback2'; end
     def create
       run_callbacks(:create) { }
       self
@@ -124,11 +124,11 @@ class CallbacksTest < ActiveModel::TestCase
     after_create :callback2
   end
 
-  test "after_create callbacks with both callbacks declared in one line" do
-    assert_equal ["callback1", "callback2"], Violin1.new.create.history
+  test 'after_create callbacks with both callbacks declared in one line' do
+    assert_equal ['callback1', 'callback2'], Violin1.new.create.history
   end
 
-  test "after_create callbacks with both callbacks declared in different lines" do
-    assert_equal ["callback1", "callback2"], Violin2.new.create.history
+  test 'after_create callbacks with both callbacks declared in different lines' do
+    assert_equal ['callback1', 'callback2'], Violin2.new.create.history
   end
 end

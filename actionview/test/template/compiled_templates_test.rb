@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 class CompiledTemplatesTest < ActiveSupport::TestCase
   attr_reader :view_class
@@ -19,45 +19,45 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
   end
 
   def test_template_with_nil_erb_return
-    assert_equal "This is nil: \n", render(template: "test/nil_return")
+    assert_equal "This is nil: \n", render(template: 'test/nil_return')
   end
 
   def test_template_with_ruby_keyword_locals
-    assert_equal "The class is foo",
-      render(template: "test/render_file_with_ruby_keyword_locals", locals: { class: "foo" })
+    assert_equal 'The class is foo',
+      render(template: 'test/render_file_with_ruby_keyword_locals', locals: { class: 'foo' })
   end
 
   def test_template_with_invalid_identifier_locals
     locals = {
-      foo: "bar",
-      Foo: "bar",
-      "d-a-s-h-e-s": "",
-      "white space": "",
+      foo: 'bar',
+      Foo: 'bar',
+      "d-a-s-h-e-s": '',
+      "white space": '',
     }
-    assert_equal locals.inspect, render(template: "test/render_file_inspect_local_assigns", locals: locals)
+    assert_equal locals.inspect, render(template: 'test/render_file_inspect_local_assigns', locals: locals)
   end
 
   def test_template_with_delegation_reserved_keywords
     locals = {
-      _: "one",
-      arg: "two",
-      args: "three",
-      block: "four",
+      _: 'one',
+      arg: 'two',
+      args: 'three',
+      block: 'four',
     }
-    assert_equal "one two three four", render(template: "test/test_template_with_delegation_reserved_keywords", locals: locals)
+    assert_equal 'one two three four', render(template: 'test/test_template_with_delegation_reserved_keywords', locals: locals)
   end
 
   def test_template_with_unicode_identifier
-    assert_equal "🎂", render(template: "test/render_file_unicode_local", locals: { 🎃: "🎂" })
+    assert_equal '🎂', render(template: 'test/render_file_unicode_local', locals: { 🎃: '🎂' })
   end
 
   def test_template_with_instance_variable_identifier
-    assert_equal "bar", render(template: "test/render_file_instance_variable", locals: { "@foo": "bar" })
+    assert_equal 'bar', render(template: 'test/render_file_instance_variable', locals: { "@foo": 'bar' })
   end
 
   def test_template_gets_recompiled_when_using_different_keys_in_local_assigns
-    assert_equal "one", render(template: "test/render_file_with_locals_and_default")
-    assert_equal "two", render(template: "test/render_file_with_locals_and_default", locals: { secret: "two" })
+    assert_equal 'one', render(template: 'test/render_file_with_locals_and_default')
+    assert_equal 'two', render(template: 'test/render_file_with_locals_and_default', locals: { secret: 'two' })
   end
 
   private

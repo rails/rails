@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
-require "models/topic"
-require "models/reply"
-require "models/person"
+require 'models/topic'
+require 'models/reply'
+require 'models/person'
 
 class AcceptanceValidationTest < ActiveModel::TestCase
   teardown do
@@ -15,7 +15,7 @@ class AcceptanceValidationTest < ActiveModel::TestCase
     klass = define_test_class(Topic)
     klass.validates_acceptance_of(:terms_of_service)
 
-    t = klass.new("title" => "We should not be confirmed")
+    t = klass.new('title' => 'We should not be confirmed')
     assert_predicate t, :valid?
   end
 
@@ -23,50 +23,50 @@ class AcceptanceValidationTest < ActiveModel::TestCase
     klass = define_test_class(Topic)
     klass.validates_acceptance_of(:terms_of_service)
 
-    t = klass.new("title" => "We should be confirmed", "terms_of_service" => "")
+    t = klass.new('title' => 'We should be confirmed', 'terms_of_service' => '')
     assert_predicate t, :invalid?
-    assert_equal ["must be accepted"], t.errors[:terms_of_service]
+    assert_equal ['must be accepted'], t.errors[:terms_of_service]
 
-    t.terms_of_service = "1"
+    t.terms_of_service = '1'
     assert_predicate t, :valid?
   end
 
   def test_eula
     klass = define_test_class(Topic)
-    klass.validates_acceptance_of(:eula, message: "must be abided")
+    klass.validates_acceptance_of(:eula, message: 'must be abided')
 
-    t = klass.new("title" => "We should be confirmed", "eula" => "")
+    t = klass.new('title' => 'We should be confirmed', 'eula' => '')
     assert_predicate t, :invalid?
-    assert_equal ["must be abided"], t.errors[:eula]
+    assert_equal ['must be abided'], t.errors[:eula]
 
-    t.eula = "1"
+    t.eula = '1'
     assert_predicate t, :valid?
   end
 
   def test_terms_of_service_agreement_with_accept_value
     klass = define_test_class(Topic)
-    klass.validates_acceptance_of(:terms_of_service, accept: "I agree.")
+    klass.validates_acceptance_of(:terms_of_service, accept: 'I agree.')
 
-    t = klass.new("title" => "We should be confirmed", "terms_of_service" => "")
+    t = klass.new('title' => 'We should be confirmed', 'terms_of_service' => '')
     assert_predicate t, :invalid?
-    assert_equal ["must be accepted"], t.errors[:terms_of_service]
+    assert_equal ['must be accepted'], t.errors[:terms_of_service]
 
-    t.terms_of_service = "I agree."
+    t.terms_of_service = 'I agree.'
     assert_predicate t, :valid?
   end
 
   def test_terms_of_service_agreement_with_multiple_accept_values
     klass = define_test_class(Topic)
-    klass.validates_acceptance_of(:terms_of_service, accept: [1, "I concur."])
+    klass.validates_acceptance_of(:terms_of_service, accept: [1, 'I concur.'])
 
-    t = klass.new("title" => "We should be confirmed", "terms_of_service" => "")
+    t = klass.new('title' => 'We should be confirmed', 'terms_of_service' => '')
     assert_predicate t, :invalid?
-    assert_equal ["must be accepted"], t.errors[:terms_of_service]
+    assert_equal ['must be accepted'], t.errors[:terms_of_service]
 
     t.terms_of_service = 1
     assert_predicate t, :valid?
 
-    t.terms_of_service = "I concur."
+    t.terms_of_service = 'I concur.'
     assert_predicate t, :valid?
   end
 
@@ -75,12 +75,12 @@ class AcceptanceValidationTest < ActiveModel::TestCase
     klass.validates_acceptance_of :karma
 
     p = klass.new
-    p.karma = ""
+    p.karma = ''
 
     assert_predicate p, :invalid?
-    assert_equal ["must be accepted"], p.errors[:karma]
+    assert_equal ['must be accepted'], p.errors[:karma]
 
-    p.karma = "1"
+    p.karma = '1'
     assert_predicate p, :valid?
   end
 

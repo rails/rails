@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
-require "set"
-require "fileutils"
+require 'set'
+require 'fileutils'
 
-require "active_support/core_ext/string/output_safety"
-require "active_support/core_ext/object/blank"
-require "action_controller"
-require "action_view"
+require 'active_support/core_ext/string/output_safety'
+require 'active_support/core_ext/object/blank'
+require 'action_controller'
+require 'action_view'
 
-require "rails_guides/markdown"
-require "rails_guides/helpers"
-require "rails_guides/levenshtein"
+require 'rails_guides/markdown'
+require 'rails_guides/helpers'
+require 'rails_guides/levenshtein'
 
 module RailsGuides
   class Generator
     GUIDES_RE = /\.(?:erb|md)\z/
 
-    def initialize(edge:, version:, all:, only:, kindle:, language:, direction: "ltr")
+    def initialize(edge:, version:, all:, only:, kindle:, language:, direction: 'ltr')
       @edge      = edge
       @version   = version
       @all       = all
@@ -43,8 +43,8 @@ module RailsGuides
 
     private
       def register_kindle_mime_types
-        Mime::Type.register_alias("application/xml", :opf, %w(opf))
-        Mime::Type.register_alias("application/xml", :ncx, %w(ncx))
+        Mime::Type.register_alias('application/xml', :opf, %w(opf))
+        Mime::Type.register_alias('application/xml', :ncx, %w(ncx))
       end
 
       def check_for_kindlegen
@@ -54,7 +54,7 @@ module RailsGuides
       end
 
       def generate_mobi
-        require "rails_guides/kindle"
+        require 'rails_guides/kindle'
         out = "#{@output_dir}/kindlegen.out"
         Kindle.generate(@output_dir, mobi, out)
         puts "(kindlegen log at #{out})."
@@ -63,17 +63,17 @@ module RailsGuides
       def mobi
         mobi = +"ruby_on_rails_guides_#{@version || @edge[0, 7]}"
         mobi << ".#{@language}" if @language
-        mobi << ".mobi"
+        mobi << '.mobi'
       end
 
       def initialize_dirs
-        @guides_dir = File.expand_path("..", __dir__)
+        @guides_dir = File.expand_path('..', __dir__)
 
         @source_dir  = "#{@guides_dir}/source"
         @source_dir += "/#{@language}" if @language
 
         @output_dir  = "#{@guides_dir}/output"
-        @output_dir += "/kindle"       if @kindle
+        @output_dir += '/kindle'       if @kindle
         @output_dir += "/#{@language}" if @language
       end
 
@@ -98,7 +98,7 @@ module RailsGuides
 
         if @kindle
           Dir.entries("#{@source_dir}/kindle").grep(GUIDES_RE).map do |entry|
-            next if entry == "KINDLE.md"
+            next if entry == 'KINDLE.md'
             guides << "kindle/#{entry}"
           end
         end
@@ -107,16 +107,16 @@ module RailsGuides
       end
 
       def select_only(guides)
-        prefixes = @only.split(",").map(&:strip)
+        prefixes = @only.split(',').map(&:strip)
         guides.select do |guide|
-          guide.start_with?("kindle", *prefixes)
+          guide.start_with?('kindle', *prefixes)
         end
       end
 
       def copy_assets
         FileUtils.cp_r(Dir.glob("#{@guides_dir}/assets/*"), @output_dir)
 
-        if @direction == "rtl"
+        if @direction == 'rtl'
           overwrite_css_with_right_to_left_direction
         end
       end
@@ -126,10 +126,10 @@ module RailsGuides
       end
 
       def output_file_for(guide)
-        if guide.end_with?(".md")
-          guide.sub(/md\z/, "html")
+        if guide.end_with?('.md')
+          guide.sub(/md\z/, 'html')
         else
-          guide.delete_suffix(".erb")
+          guide.delete_suffix('.erb')
         end
       end
 
@@ -146,7 +146,7 @@ module RailsGuides
       def generate_guide(guide, output_file)
         output_path = output_path_for(output_file)
         puts "Generating #{guide} as #{output_file}"
-        layout = @kindle ? "kindle/layout" : "layout"
+        layout = @kindle ? 'kindle/layout' : 'layout'
 
         view = ActionView::Base.with_empty_template_cache.with_view_paths(
           [@source_dir],
@@ -175,7 +175,7 @@ module RailsGuides
           warn_about_broken_links(result)
         end
 
-        File.open(output_path, "w") do |f|
+        File.open(output_path, 'w') do |f|
           f.write(result)
         end
       end
@@ -204,7 +204,7 @@ module RailsGuides
 
       def check_fragment_identifiers(html, anchors)
         html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
-          next if fragment_identifier == "mainCol" # in layout, jumps to some DIV
+          next if fragment_identifier == 'mainCol' # in layout, jumps to some DIV
           unless anchors.member?(CGI.unescape(fragment_identifier))
             guess = anchors.min { |a, b|
               Levenshtein.distance(fragment_identifier, a) <=> Levenshtein.distance(fragment_identifier, b)

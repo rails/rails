@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "thor"
-require "erb"
+require 'thor'
+require 'erb'
 
-require "active_support/core_ext/string/filters"
-require "active_support/core_ext/string/inflections"
+require 'active_support/core_ext/string/filters'
+require 'active_support/core_ext/string/inflections'
 
-require "rails/command/actions"
+require 'rails/command/actions'
 
 module Rails
   module Command
@@ -43,7 +43,7 @@ module Rails
           if name
             super
           else
-            @namespace ||= super.chomp("_command").sub(/:command:/, ":")
+            @namespace ||= super.chomp('_command').sub(/:command:/, ':')
           end
         end
 
@@ -56,14 +56,14 @@ module Rails
         def inherited(base) #:nodoc:
           super
 
-          if base.name && !base.name.end_with?("Base")
+          if base.name && !base.name.end_with?('Base')
             Rails::Command.subclasses << base
           end
         end
 
         def perform(command, args, config) # :nodoc:
           if Rails::Command::HELP_MAPPINGS.include?(args.first)
-            command, args = "help", []
+            command, args = 'help', []
           end
 
           dispatch(command, args.dup, nil, config)
@@ -87,7 +87,7 @@ module Rails
         #   Rails::Command::TestCommand.base_name # => 'rails'
         def base_name
           @base_name ||= begin
-            if base = name.to_s.split("::").first
+            if base = name.to_s.split('::').first
               base.underscore
             end
           end
@@ -98,8 +98,8 @@ module Rails
         #   Rails::Command::TestCommand.command_name # => 'test'
         def command_name
           @command_name ||= begin
-            if command = name.to_s.split("::").last
-              command.chomp!("Command")
+            if command = name.to_s.split('::').last
+              command.chomp!('Command')
               command.underscore
             end
           end
@@ -108,7 +108,7 @@ module Rails
         # Path to lookup a USAGE description in a file.
         def usage_path
           if default_command_root
-            path = File.join(default_command_root, "USAGE")
+            path = File.join(default_command_root, 'USAGE')
             path if File.exist?(path)
           end
         end
@@ -126,24 +126,24 @@ module Rails
         private
           # Allow the command method to be called perform.
           def create_command(meth)
-            if meth == "perform"
+            if meth == 'perform'
               alias_method command_name, meth
             else
               # Prevent exception about command without usage.
               # Some commands define their documentation differently.
-              @usage ||= ""
-              @desc  ||= ""
+              @usage ||= ''
+              @desc  ||= ''
 
               super
             end
           end
 
           def command_root_namespace
-            (namespace.split(":") - %w(rails)).join(":")
+            (namespace.split(':') - %w(rails)).join(':')
           end
 
           def relative_command_path
-            File.join("../commands", *command_root_namespace.split(":"))
+            File.join('../commands', *command_root_namespace.split(':'))
           end
 
           def namespaced_commands

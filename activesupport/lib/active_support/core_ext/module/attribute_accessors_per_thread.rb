@@ -53,7 +53,7 @@ class Module
         EOS
       end
 
-      Thread.current["attr_" + name + "_#{sym}"] = default unless default.nil?
+      Thread.current['attr_' + name + "_#{sym}"] = default unless default.nil?
     end
   end
   alias :thread_cattr_reader :thread_mattr_reader

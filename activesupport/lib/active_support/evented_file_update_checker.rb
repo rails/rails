@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "set"
-require "pathname"
-require "concurrent/atomic/atomic_boolean"
-require "listen"
+require 'set'
+require 'pathname'
+require 'concurrent/atomic/atomic_boolean'
+require 'listen'
 
 module ActiveSupport
   # Allows you to "listen" to changes in a file system.
@@ -36,7 +36,7 @@ module ActiveSupport
   class EventedFileUpdateChecker #:nodoc: all
     def initialize(files, dirs = {}, &block)
       unless block
-        raise ArgumentError, "A block is required to initialize an EventedFileUpdateChecker"
+        raise ArgumentError, 'A block is required to initialize an EventedFileUpdateChecker'
       end
 
       @ph    = PathHelper.new
@@ -146,7 +146,7 @@ module ActiveSupport
         dtw.compact!
         dtw.uniq!
 
-        normalized_gem_paths = Gem.path.map { |path| File.join path, "" }
+        normalized_gem_paths = Gem.path.map { |path| File.join path, '' }
         dtw = dtw.reject do |path|
           normalized_gem_paths.any? { |gem_path| path.to_path.start_with?(gem_path) }
         end
@@ -160,7 +160,7 @@ module ActiveSupport
         end
 
         def normalize_extension(ext)
-          ext.to_s.delete_prefix(".")
+          ext.to_s.delete_prefix('.')
         end
 
         # Given a collection of Pathname objects returns the longest subpath

@@ -1,41 +1,41 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/post"
-require "models/person"
-require "models/reference"
-require "models/job"
-require "models/reader"
-require "models/comment"
-require "models/rating"
-require "models/tag"
-require "models/tagging"
-require "models/author"
-require "models/owner"
-require "models/pet"
-require "models/pet_treasure"
-require "models/toy"
-require "models/treasure"
-require "models/contract"
-require "models/company"
-require "models/developer"
-require "models/computer"
-require "models/subscriber"
-require "models/book"
-require "models/subscription"
-require "models/essay"
-require "models/category"
-require "models/categorization"
-require "models/member"
-require "models/membership"
-require "models/club"
-require "models/organization"
-require "models/user"
-require "models/family"
-require "models/family_tree"
-require "models/section"
-require "models/seminar"
-require "models/session"
+require 'cases/helper'
+require 'models/post'
+require 'models/person'
+require 'models/reference'
+require 'models/job'
+require 'models/reader'
+require 'models/comment'
+require 'models/rating'
+require 'models/tag'
+require 'models/tagging'
+require 'models/author'
+require 'models/owner'
+require 'models/pet'
+require 'models/pet_treasure'
+require 'models/toy'
+require 'models/treasure'
+require 'models/contract'
+require 'models/company'
+require 'models/developer'
+require 'models/computer'
+require 'models/subscriber'
+require 'models/book'
+require 'models/subscription'
+require 'models/essay'
+require 'models/category'
+require 'models/categorization'
+require 'models/member'
+require 'models/membership'
+require 'models/club'
+require 'models/organization'
+require 'models/user'
+require 'models/family'
+require 'models/family_tree'
+require 'models/section'
+require 'models/seminar'
+require 'models/session'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
@@ -45,12 +45,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   # Dummies to force column loads so query counts are clean.
   def setup
-    Person.create first_name: "gummy"
+    Person.create first_name: 'gummy'
     Reader.create person_id: 0, post_id: 0
   end
 
   def test_has_many_through_create_record
-    assert books(:awdr).subscribers.create!(nick: "bob")
+    assert books(:awdr).subscribers.create!(nick: 'bob')
   end
 
   def test_marshal_dump
@@ -85,9 +85,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_preload_sti_middle_relation
-    club = Club.create!(name: "Aaron cool banana club")
-    member1 = Member.create!(name: "Aaron")
-    member2 = Member.create!(name: "Cat")
+    club = Club.create!(name: 'Aaron cool banana club')
+    member1 = Member.create!(name: 'Aaron')
+    member2 = Member.create!(name: 'Cat')
 
     SuperMembership.create! club: club, member: member1
     CurrentMembership.create! club: club, member: member2
@@ -98,9 +98,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_preload_multiple_instances_of_the_same_record
-    club = Club.create!(name: "Aaron cool banana club")
-    Membership.create! club: club, member: Member.create!(name: "Aaron")
-    Membership.create! club: club, member: Member.create!(name: "Bob")
+    club = Club.create!(name: 'Aaron cool banana club')
+    Membership.create! club: club, member: Member.create!(name: 'Aaron')
+    Membership.create! club: club, member: Member.create!(name: 'Bob')
 
     preloaded_clubs = Club.joins(:memberships).preload(:membership).to_a
     assert_no_queries { preloaded_clubs.each(&:membership) }
@@ -108,10 +108,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_ordered_has_many_through
     person_prime = Class.new(ActiveRecord::Base) do
-      def self.name; "Person"; end
+      def self.name; 'Person'; end
 
       has_many :readers
-      has_many :posts, -> { order("posts.id DESC") }, through: :readers
+      has_many :posts, -> { order('posts.id DESC') }, through: :readers
     end
     posts = person_prime.includes(:posts).first.posts
 
@@ -122,11 +122,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_singleton_has_many_through
-    book         = make_model "Book"
-    subscription = make_model "Subscription"
-    subscriber   = make_model "Subscriber"
+    book         = make_model 'Book'
+    subscription = make_model 'Subscription'
+    subscriber   = make_model 'Subscriber'
 
-    subscriber.primary_key = "nick"
+    subscriber.primary_key = 'nick'
     subscription.belongs_to :book,       anonymous_class: book
     subscription.belongs_to :subscriber, anonymous_class: subscriber
 
@@ -147,8 +147,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_no_pk_join_table_append
     lesson, _, student = make_no_pk_hm_t
 
-    sicp = lesson.new(name: "SICP")
-    ben = student.new(name: "Ben Bitdiddle")
+    sicp = lesson.new(name: 'SICP')
+    ben = student.new(name: 'Ben Bitdiddle')
     sicp.students << ben
     assert sicp.save!
   end
@@ -156,17 +156,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_no_pk_join_table_delete
     lesson, lesson_student, student = make_no_pk_hm_t
 
-    sicp = lesson.new(name: "SICP")
-    ben = student.new(name: "Ben Bitdiddle")
-    louis = student.new(name: "Louis Reasoner")
+    sicp = lesson.new(name: 'SICP')
+    ben = student.new(name: 'Ben Bitdiddle')
+    louis = student.new(name: 'Louis Reasoner')
     sicp.students << ben
     sicp.students << louis
     assert sicp.save!
 
     sicp.students.reload
     assert_operator lesson_student.count, :>=, 2
-    assert_no_difference("student.count") do
-      assert_difference("lesson_student.count", -2) do
+    assert_no_difference('student.count') do
+      assert_difference('lesson_student.count', -2) do
         sicp.students.destroy(*student.all.to_a)
       end
     end
@@ -180,14 +180,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       after_destroy_called = true
     end
 
-    sicp = lesson.new(name: "SICP")
-    ben = student.new(name: "Ben Bitdiddle")
+    sicp = lesson.new(name: 'SICP')
+    ben = student.new(name: 'Ben Bitdiddle')
     sicp.students << ben
     assert sicp.save!
 
     sicp.students.reload
     sicp.students.destroy(*student.all.to_a)
-    assert after_destroy_called, "after destroy should be called"
+    assert after_destroy_called, 'after destroy should be called'
   end
 
   def test_pk_is_not_required_for_join
@@ -224,8 +224,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     person = people(:david)
     assert_equal 1, person.jobs_with_dependent_destroy.count
 
-    assert_no_difference "Job.count" do
-      assert_difference "Reference.count", -1 do
+    assert_no_difference 'Job.count' do
+      assert_difference 'Reference.count', -1 do
         assert_equal 1, person.reload.jobs_with_dependent_destroy.delete_all
       end
     end
@@ -235,8 +235,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     person = people(:david)
     assert_equal 1, person.jobs_with_dependent_nullify.count
 
-    assert_no_difference "Job.count" do
-      assert_no_difference "Reference.count" do
+    assert_no_difference 'Job.count' do
+      assert_no_difference 'Reference.count' do
         assert_equal 1, person.reload.jobs_with_dependent_nullify.delete_all
       end
     end
@@ -246,17 +246,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     person = people(:david)
     assert_equal 1, person.jobs_with_dependent_delete_all.count
 
-    assert_no_difference "Job.count" do
-      assert_difference "Reference.count", -1 do
+    assert_no_difference 'Job.count' do
+      assert_difference 'Reference.count', -1 do
         assert_equal 1, person.reload.jobs_with_dependent_delete_all.delete_all
       end
     end
   end
 
   def test_delete_all_on_association_clears_scope
-    post = Post.create!(title: "Rails 6", body: "")
+    post = Post.create!(title: 'Rails 6', body: '')
     people = post.people
-    people.create!(first_name: "Jeb")
+    people.create!(first_name: 'Jeb')
     people.delete_all
     assert_nil people.first
   end
@@ -274,7 +274,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post   = posts(:thinking)
     person = people(:david)
 
-    assert_difference "post.people.to_a.count", 2 do
+    assert_difference 'post.people.to_a.count', 2 do
       post.people << person
       post.people << person
     end
@@ -284,7 +284,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post   = posts(:thinking)
     person = people(:david)
 
-    assert_difference "post.people.count", 2 do
+    assert_difference 'post.people.count', 2 do
       post.people << person
       post.people << person
     end
@@ -297,7 +297,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post.people << person
     post.people << person
 
-    counts = ["post.people.count", "post.people.to_a.count", "post.readers.count", "post.readers.to_a.count"]
+    counts = ['post.people.count', 'post.people.to_a.count', 'post.readers.count', 'post.readers.to_a.count']
     assert_difference counts, -2 do
       post.people.delete(person)
     end
@@ -310,7 +310,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     new_person = nil # so block binding catches it
 
     assert_queries(0) do
-      new_person = Person.new first_name: "bob"
+      new_person = Person.new first_name: 'bob'
     end
 
     # Associating new records always saves them
@@ -330,31 +330,31 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { posts(:thinking) }
 
     assert_queries(0) do
-      posts(:thinking).people.build(first_name: "Bob")
-      posts(:thinking).people.new(first_name: "Ted")
+      posts(:thinking).people.build(first_name: 'Bob')
+      posts(:thinking).people.new(first_name: 'Ted')
     end
 
     # Should only need to load the association once
     assert_queries(1) do
-      assert_includes posts(:thinking).people.collect(&:first_name), "Bob"
-      assert_includes posts(:thinking).people.collect(&:first_name), "Ted"
+      assert_includes posts(:thinking).people.collect(&:first_name), 'Bob'
+      assert_includes posts(:thinking).people.collect(&:first_name), 'Ted'
     end
 
     # 2 queries for each new record (1 to save the record itself, 1 for the join model)
     #    * 2 new records = 4
     # + 1 query to save the actual post = 5
     assert_queries(5) do
-      posts(:thinking).body += "-changed"
+      posts(:thinking).body += '-changed'
       posts(:thinking).save
     end
 
-    assert_includes posts(:thinking).reload.people.reload.collect(&:first_name), "Bob"
-    assert_includes posts(:thinking).reload.people.reload.collect(&:first_name), "Ted"
+    assert_includes posts(:thinking).reload.people.reload.collect(&:first_name), 'Bob'
+    assert_includes posts(:thinking).reload.people.reload.collect(&:first_name), 'Ted'
   end
 
   def test_build_then_save_with_has_many_inverse
     post   = posts(:thinking)
-    person = post.people.build(first_name: "Bob")
+    person = post.people.build(first_name: 'Bob')
     person.save
     post.reload
 
@@ -363,7 +363,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_build_then_save_with_has_one_inverse
     post   = posts(:thinking)
-    person = post.single_people.build(first_name: "Bob")
+    person = post.single_people.build(first_name: 'Bob')
     person.save
     post.reload
 
@@ -372,18 +372,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_build_then_remove_then_save
     post = posts(:thinking)
-    post.people.build(first_name: "Bob")
-    ted = post.people.build(first_name: "Ted")
+    post.people.build(first_name: 'Bob')
+    ted = post.people.build(first_name: 'Ted')
     post.people.delete(ted)
     post.save!
     post.reload
 
-    assert_equal ["Bob"], post.people.collect(&:first_name)
+    assert_equal ['Bob'], post.people.collect(&:first_name)
   end
 
   def test_both_parent_ids_set_when_saving_new
-    post = Post.new(title: "Hello", body: "world")
-    person = Person.new(first_name: "Sean")
+    post = Post.new(title: 'Hello', body: 'world')
+    person = Person.new(first_name: 'Sean')
 
     post.people = [person]
     post.save
@@ -409,8 +409,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_association
-    assert_no_difference "Person.count" do
-      assert_difference "Reader.count", -1 do
+    assert_no_difference 'Person.count' do
+      assert_difference 'Reader.count', -1 do
         posts(:welcome).people.destroy(people(:michael))
       end
     end
@@ -420,8 +420,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_all
-    assert_no_difference "Person.count" do
-      assert_difference "Reader.count", -1 do
+    assert_no_difference 'Person.count' do
+      assert_difference 'Reader.count', -1 do
         posts(:welcome).people.destroy_all
       end
     end
@@ -431,31 +431,31 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_all_on_association_clears_scope
-    post = Post.create!(title: "Rails 6", body: "")
+    post = Post.create!(title: 'Rails 6', body: '')
     people = post.people
-    people.create!(first_name: "Jeb")
+    people.create!(first_name: 'Jeb')
     people.destroy_all
     assert_nil people.first
   end
 
   def test_destroy_on_association_clears_scope
-    post = Post.create!(title: "Rails 6", body: "")
+    post = Post.create!(title: 'Rails 6', body: '')
     people = post.people
-    person = people.create!(first_name: "Jeb")
+    person = people.create!(first_name: 'Jeb')
     people.destroy(person)
     assert_nil people.first
   end
 
   def test_delete_on_association_clears_scope
-    post = Post.create!(title: "Rails 6", body: "")
+    post = Post.create!(title: 'Rails 6', body: '')
     people = post.people
-    person = people.create!(first_name: "Jeb")
+    person = people.create!(first_name: 'Jeb')
     people.delete(person)
     assert_nil people.first
   end
 
   def test_should_raise_exception_for_destroying_mismatching_records
-    assert_no_difference ["Person.count", "Reader.count"] do
+    assert_no_difference ['Person.count', 'Reader.count'] do
       assert_raise(ActiveRecord::AssociationTypeMismatch) { posts(:welcome).people.destroy(posts(:thinking)) }
     end
   end
@@ -467,8 +467,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     job       = jobs(:magician)
     reference = Reference.where(job_id: job.id, person_id: person.id).first
 
-    assert_no_difference ["Job.count", "Reference.count"] do
-      assert_difference "person.jobs.count", -1 do
+    assert_no_difference ['Job.count', 'Reference.count'] do
+      assert_difference 'person.jobs.count', -1 do
         person.jobs_with_dependent_nullify.delete(job)
       end
     end
@@ -487,8 +487,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     # Make sure we're not deleting everything
     assert person.jobs.count >= 2
 
-    assert_no_difference "Job.count" do
-      assert_difference ["person.jobs.count", "Reference.count"], -1 do
+    assert_no_difference 'Job.count' do
+      assert_difference ['person.jobs.count', 'Reference.count'], -1 do
         person.jobs_with_dependent_delete_all.delete(job)
       end
     end
@@ -508,14 +508,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     # Make sure we're not deleting everything
     assert person.jobs.count >= 2
 
-    assert_no_difference "Job.count" do
-      assert_difference ["person.jobs.count", "Reference.count"], -1 do
+    assert_no_difference 'Job.count' do
+      assert_difference ['person.jobs.count', 'Reference.count'], -1 do
         person.jobs_with_dependent_destroy.delete(job)
       end
     end
 
     # Check that the destroy callback on Reference ran
-    assert_equal "Reference destroyed", person.reload.comments
+    assert_equal 'Reference destroyed', person.reload.comments
   ensure
     Reference.make_comments = false
   end
@@ -526,8 +526,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     # Create a reference which is not linked to a job. This should not be destroyed.
     person.references.create!
 
-    assert_no_difference "Job.count" do
-      assert_difference "Reference.count", -person.jobs.count do
+    assert_no_difference 'Job.count' do
+      assert_difference 'Reference.count', -person.jobs.count do
         person.destroy
       end
     end
@@ -539,8 +539,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     # Create a reference which is not linked to a job. This should not be destroyed.
     person.references.create!
 
-    assert_no_difference "Job.count" do
-      assert_difference "Reference.count", -person.jobs.count do
+    assert_no_difference 'Job.count' do
+      assert_difference 'Reference.count', -person.jobs.count do
         person.destroy
       end
     end
@@ -551,7 +551,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     references = person.references.to_a
 
-    assert_no_difference ["Reference.count", "Job.count"] do
+    assert_no_difference ['Reference.count', 'Job.count'] do
       person.destroy
     end
 
@@ -562,30 +562,30 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_update_counter_caches_on_delete
     post = posts(:welcome)
-    tag  = post.tags.create!(name: "doomed")
+    tag  = post.tags.create!(name: 'doomed')
 
-    assert_difference ["post.reload.tags_count"], -1 do
+    assert_difference ['post.reload.tags_count'], -1 do
       posts(:welcome).tags.delete(tag)
     end
   end
 
   def test_update_counter_caches_on_delete_with_dependent_destroy
     post = posts(:welcome)
-    tag  = post.tags.create!(name: "doomed")
+    tag  = post.tags.create!(name: 'doomed')
     post.update_columns(tags_with_destroy_count: post.tags.count)
 
-    assert_difference ["post.reload.tags_with_destroy_count"], -1 do
+    assert_difference ['post.reload.tags_with_destroy_count'], -1 do
       posts(:welcome).tags_with_destroy.delete(tag)
     end
   end
 
   def test_update_counter_caches_on_delete_with_dependent_nullify
     post = posts(:welcome)
-    tag  = post.tags.create!(name: "doomed")
+    tag  = post.tags.create!(name: 'doomed')
     post.update_columns(tags_with_nullify_count: post.tags.count)
 
-    assert_no_difference "post.reload.tags_count" do
-      assert_difference "post.reload.tags_with_nullify_count", -1 do
+    assert_no_difference 'post.reload.tags_count' do
+      assert_difference 'post.reload.tags_with_nullify_count', -1 do
         posts(:welcome).tags_with_nullify.delete(tag)
       end
     end
@@ -593,7 +593,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_update_counter_caches_on_replace_association
     post = posts(:welcome)
-    tag  = post.tags.create!(name: "doomed")
+    tag  = post.tags.create!(name: 'doomed')
     tag.tagged_posts << posts(:thinking)
 
     tag.tagged_posts = []
@@ -604,19 +604,19 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_update_counter_caches_on_destroy
     post = posts(:welcome)
-    tag  = post.tags.create!(name: "doomed")
+    tag  = post.tags.create!(name: 'doomed')
 
-    assert_difference "post.reload.tags_count", -1 do
+    assert_difference 'post.reload.tags_count', -1 do
       tag.tagged_posts.destroy(post)
     end
   end
 
   def test_update_counter_caches_on_destroy_with_indestructible_through_record
     post = posts(:welcome)
-    tag  = post.indestructible_tags.create!(name: "doomed")
+    tag  = post.indestructible_tags.create!(name: 'doomed')
     post.update_columns(indestructible_tags_count: post.indestructible_tags.count)
 
-    assert_no_difference "post.reload.indestructible_tags_count" do
+    assert_no_difference 'post.reload.indestructible_tags_count' do
       posts(:welcome).indestructible_tags.destroy(tag)
     end
   end
@@ -643,7 +643,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post   = posts(:thinking)
     person = people(:david)
 
-    assert_difference "post.people.count", 2 do
+    assert_difference 'post.people.count', 2 do
       post.people = [person]
       post.people = [person, person]
     end
@@ -652,23 +652,23 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_replace_order_is_preserved
     posts(:welcome).people.clear
     posts(:welcome).people = [people(:david), people(:michael)]
-    assert_equal [people(:david).id, people(:michael).id], posts(:welcome).readers.order("id").map(&:person_id)
+    assert_equal [people(:david).id, people(:michael).id], posts(:welcome).readers.order('id').map(&:person_id)
 
     # Test the inverse order in case the first success was a coincidence
     posts(:welcome).people.clear
     posts(:welcome).people = [people(:michael), people(:david)]
-    assert_equal [people(:michael).id, people(:david).id], posts(:welcome).readers.order("id").map(&:person_id)
+    assert_equal [people(:michael).id, people(:david).id], posts(:welcome).readers.order('id').map(&:person_id)
   end
 
   def test_replace_by_id_order_is_preserved
     posts(:welcome).people.clear
     posts(:welcome).person_ids = [people(:david).id, people(:michael).id]
-    assert_equal [people(:david).id, people(:michael).id], posts(:welcome).readers.order("id").map(&:person_id)
+    assert_equal [people(:david).id, people(:michael).id], posts(:welcome).readers.order('id').map(&:person_id)
 
     # Test the inverse order in case the first success was a coincidence
     posts(:welcome).people.clear
     posts(:welcome).person_ids = [people(:michael).id, people(:david).id]
-    assert_equal [people(:michael).id, people(:david).id], posts(:welcome).readers.order("id").map(&:person_id)
+    assert_equal [people(:michael).id, people(:david).id], posts(:welcome).readers.order('id').map(&:person_id)
   end
 
   def test_associate_with_create
@@ -677,20 +677,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     # 1 query for the new record, 1 for the join table record
     # No need to update the actual collection yet!
     assert_queries(2) do
-      posts(:thinking).people.create(first_name: "Jeb")
+      posts(:thinking).people.create(first_name: 'Jeb')
     end
 
     # *Now* we actually need the collection so it's loaded
     assert_queries(1) do
-      assert_includes posts(:thinking).people.collect(&:first_name), "Jeb"
+      assert_includes posts(:thinking).people.collect(&:first_name), 'Jeb'
     end
 
-    assert_includes posts(:thinking).reload.people.reload.collect(&:first_name), "Jeb"
+    assert_includes posts(:thinking).reload.people.reload.collect(&:first_name), 'Jeb'
   end
 
   def test_through_record_is_built_when_created_with_where
-    assert_difference("posts(:thinking).readers.count", 1) do
-      posts(:thinking).people.where(readers: { skimmer: true }).create(first_name: "Jeb")
+    assert_difference('posts(:thinking).readers.count', 1) do
+      posts(:thinking).people.where(readers: { skimmer: true }).create(first_name: 'Jeb')
     end
     reader = posts(:thinking).readers.last
     assert_equal true, reader.skimmer
@@ -698,68 +698,68 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_associate_with_create_and_no_options
     peeps = posts(:thinking).people.count
-    posts(:thinking).people.create(first_name: "foo")
+    posts(:thinking).people.create(first_name: 'foo')
     assert_equal peeps + 1, posts(:thinking).people.count
   end
 
   def test_associate_with_create_with_through_having_conditions
     impatient_people = posts(:thinking).impatient_people.count
-    posts(:thinking).impatient_people.create!(first_name: "foo")
+    posts(:thinking).impatient_people.create!(first_name: 'foo')
     assert_equal impatient_people + 1, posts(:thinking).impatient_people.count
   end
 
   def test_associate_with_create_exclamation_and_no_options
     peeps = posts(:thinking).people.count
-    posts(:thinking).people.create!(first_name: "foo")
+    posts(:thinking).people.create!(first_name: 'foo')
     assert_equal peeps + 1, posts(:thinking).people.count
   end
 
   def test_create_on_new_record
     p = Post.new
 
-    error = assert_raises(ActiveRecord::RecordNotSaved) { p.people.create(first_name: "mew") }
-    assert_equal "You cannot call create unless the parent is saved", error.message
+    error = assert_raises(ActiveRecord::RecordNotSaved) { p.people.create(first_name: 'mew') }
+    assert_equal 'You cannot call create unless the parent is saved', error.message
 
-    error = assert_raises(ActiveRecord::RecordNotSaved) { p.people.create!(first_name: "snow") }
-    assert_equal "You cannot call create unless the parent is saved", error.message
+    error = assert_raises(ActiveRecord::RecordNotSaved) { p.people.create!(first_name: 'snow') }
+    assert_equal 'You cannot call create unless the parent is saved', error.message
   end
 
   def test_associate_with_create_and_invalid_options
     firm = companies(:first_firm)
-    assert_no_difference("firm.developers.count") { assert_nothing_raised { firm.developers.create(name: "0") } }
+    assert_no_difference('firm.developers.count') { assert_nothing_raised { firm.developers.create(name: '0') } }
   end
 
   def test_associate_with_create_and_valid_options
     firm = companies(:first_firm)
-    assert_difference("firm.developers.count", 1) { firm.developers.create(name: "developer") }
+    assert_difference('firm.developers.count', 1) { firm.developers.create(name: 'developer') }
   end
 
   def test_associate_with_create_bang_and_invalid_options
     firm = companies(:first_firm)
-    assert_no_difference("firm.developers.count") { assert_raises(ActiveRecord::RecordInvalid) { firm.developers.create!(name: "0") } }
+    assert_no_difference('firm.developers.count') { assert_raises(ActiveRecord::RecordInvalid) { firm.developers.create!(name: '0') } }
   end
 
   def test_associate_with_create_bang_and_valid_options
     firm = companies(:first_firm)
-    assert_difference("firm.developers.count", 1) { firm.developers.create!(name: "developer") }
+    assert_difference('firm.developers.count', 1) { firm.developers.create!(name: 'developer') }
   end
 
   def test_push_with_invalid_record
     firm = companies(:first_firm)
-    assert_raises(ActiveRecord::RecordInvalid) { firm.developers << Developer.new(name: "0") }
+    assert_raises(ActiveRecord::RecordInvalid) { firm.developers << Developer.new(name: '0') }
   end
 
   def test_push_with_invalid_join_record
     repair_validations(Contract) do
-      Contract.validate { |r| r.errors[:base] << "Invalid Contract" }
+      Contract.validate { |r| r.errors[:base] << 'Invalid Contract' }
 
       firm = companies(:first_firm)
-      lifo = Developer.new(name: "lifo")
+      lifo = Developer.new(name: 'lifo')
       assert_raises(ActiveRecord::RecordInvalid) do
         assert_deprecated { firm.developers << lifo }
       end
 
-      lifo = Developer.create!(name: "lifo")
+      lifo = Developer.create!(name: 'lifo')
       assert_raises(ActiveRecord::RecordInvalid) do
         assert_deprecated { firm.developers << lifo }
       end
@@ -787,58 +787,58 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     post.people_with_callbacks << people(:michael)
     assert_equal [
-      [:added, :before, "Michael"],
-      [:added, :after, "Michael"]
+      [:added, :before, 'Michael'],
+      [:added, :after, 'Michael']
     ], log.last(2)
 
-    post.people_with_callbacks.push(people(:david), Person.create!(first_name: "Bob"), Person.new(first_name: "Lary"))
+    post.people_with_callbacks.push(people(:david), Person.create!(first_name: 'Bob'), Person.new(first_name: 'Lary'))
     assert_equal [
-      [:added, :before, "David"],
-      [:added, :after, "David"],
-      [:added, :before, "Bob"],
-      [:added, :after, "Bob"],
-      [:added, :before, "Lary"],
-      [:added, :after, "Lary"]
+      [:added, :before, 'David'],
+      [:added, :after, 'David'],
+      [:added, :before, 'Bob'],
+      [:added, :after, 'Bob'],
+      [:added, :before, 'Lary'],
+      [:added, :after, 'Lary']
     ], log.last(6)
 
-    post.people_with_callbacks.build(first_name: "Ted")
+    post.people_with_callbacks.build(first_name: 'Ted')
     assert_equal [
-      [:added, :before, "Ted"],
-      [:added, :after, "Ted"]
+      [:added, :before, 'Ted'],
+      [:added, :after, 'Ted']
     ], log.last(2)
 
-    post.people_with_callbacks.create(first_name: "Sam")
+    post.people_with_callbacks.create(first_name: 'Sam')
     assert_equal [
-      [:added, :before, "Sam"],
-      [:added, :after, "Sam"]
+      [:added, :before, 'Sam'],
+      [:added, :after, 'Sam']
     ], log.last(2)
 
-    post.people_with_callbacks = [people(:michael), people(:david), Person.new(first_name: "Julian"), Person.create!(first_name: "Roger")]
+    post.people_with_callbacks = [people(:michael), people(:david), Person.new(first_name: 'Julian'), Person.create!(first_name: 'Roger')]
     assert_equal((%w(Ted Bob Sam Lary) * 2).sort, log[-12..-5].collect(&:last).sort)
     assert_equal [
-      [:added, :before, "Julian"],
-      [:added, :after, "Julian"],
-      [:added, :before, "Roger"],
-      [:added, :after, "Roger"]
+      [:added, :before, 'Julian'],
+      [:added, :after, 'Julian'],
+      [:added, :before, 'Roger'],
+      [:added, :after, 'Roger']
     ], log.last(4)
 
-    post.people_with_callbacks.build { |person| person.first_name = "Ted" }
+    post.people_with_callbacks.build { |person| person.first_name = 'Ted' }
     assert_equal [
-      [:added, :before, "Ted"],
-      [:added, :after, "Ted"]
+      [:added, :before, 'Ted'],
+      [:added, :after, 'Ted']
     ], log.last(2)
 
-    post.people_with_callbacks.create { |person| person.first_name = "Sam" }
+    post.people_with_callbacks.create { |person| person.first_name = 'Sam' }
     assert_equal [
-      [:added, :before, "Sam"],
-      [:added, :after, "Sam"]
+      [:added, :before, 'Sam'],
+      [:added, :after, 'Sam']
     ], log.last(2)
   end
 
   def test_dynamic_find_should_respect_association_include
     # SQL error in sort clause if :include is not included
     # due to Unknown column 'comments.id'
-    assert Person.find(1).posts_with_comments_sorted_by_comment_id.find_by_title("Welcome to the weblog")
+    assert Person.find(1).posts_with_comments_sorted_by_comment_id.find_by_title('Welcome to the weblog')
   end
 
   def test_count_with_include_should_alias_join_table
@@ -854,7 +854,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_get_ids_for_has_many_through_with_conditions_should_not_preload
-    Tagging.create!(taggable_type: "Post", taggable_id: posts(:welcome).id, tag: tags(:misc))
+    Tagging.create!(taggable_type: 'Post', taggable_id: posts(:welcome).id, tag: tags(:misc))
     assert_not_called(ActiveRecord::Associations::Preloader, :new) do
       posts(:welcome).misc_tag_ids
     end
@@ -885,13 +885,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_association_through_a_belongs_to_association_where_the_association_doesnt_exist
-    post = Post.create!(title: "TITLE", body: "BODY")
+    post = Post.create!(title: 'TITLE', body: 'BODY')
     assert_equal [], post.author_favorites
   end
 
   def test_has_many_association_through_a_belongs_to_association
     author = authors(:mary)
-    post = Post.create!(author: author, title: "TITLE", body: "BODY")
+    post = Post.create!(author: author, title: 'TITLE', body: 'BODY')
     author.author_favorites.create(favorite_author_id: 1)
     author.author_favorites.create(favorite_author_id: 2)
     author.author_favorites.create(favorite_author_id: 3)
@@ -918,15 +918,15 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_modifying_has_many_through_has_one_reflection_should_raise
     [
-      lambda { authors(:david).very_special_comments = [VerySpecialComment.create!(body: "Gorp!", post_id: 1011), VerySpecialComment.create!(body: "Eep!", post_id: 1012)] },
-      lambda { authors(:david).very_special_comments << VerySpecialComment.create!(body: "Hoohah!", post_id: 1013) },
+      lambda { authors(:david).very_special_comments = [VerySpecialComment.create!(body: 'Gorp!', post_id: 1011), VerySpecialComment.create!(body: 'Eep!', post_id: 1012)] },
+      lambda { authors(:david).very_special_comments << VerySpecialComment.create!(body: 'Hoohah!', post_id: 1013) },
       lambda { authors(:david).very_special_comments.delete(authors(:david).very_special_comments.first) },
     ].each { |block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
   end
 
   def test_has_many_association_through_a_has_many_association_to_self
-    sarah = Person.create!(first_name: "Sarah", primary_contact_id: people(:susan).id, gender: "F", number1_fan_id: 1)
-    john = Person.create!(first_name: "John", primary_contact_id: sarah.id, gender: "M", number1_fan_id: 1)
+    sarah = Person.create!(first_name: 'Sarah', primary_contact_id: people(:susan).id, gender: 'F', number1_fan_id: 1)
+    john = Person.create!(first_name: 'John', primary_contact_id: sarah.id, gender: 'M', number1_fan_id: 1)
     assert_equal sarah.agents, [john]
     assert_equal people(:susan).agents.flat_map(&:agents).sort, people(:susan).agents_of_agents.sort
   end
@@ -938,7 +938,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_collection_build_with_nonstandard_primary_key_on_belongs_to
     author   = authors(:mary)
-    category = author.named_categories.build(name: "Primary")
+    category = author.named_categories.build(name: 'Primary')
     author.save
     assert Categorization.exists?(author_id: author.id, named_category_name: category.name)
     assert_includes author.named_categories.reload, category
@@ -946,21 +946,21 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_collection_create_with_nonstandard_primary_key_on_belongs_to
     author   = authors(:mary)
-    category = author.named_categories.create(name: "Primary")
+    category = author.named_categories.create(name: 'Primary')
     assert Categorization.exists?(author_id: author.id, named_category_name: category.name)
     assert_includes author.named_categories.reload, category
   end
 
   def test_collection_exists
     author   = authors(:mary)
-    category = Category.create!(author_ids: [author.id], name: "Primary")
+    category = Category.create!(author_ids: [author.id], name: 'Primary')
     assert category.authors.exists?(id: author.id)
     assert category.reload.authors.exists?(id: author.id)
   end
 
   def test_collection_delete_with_nonstandard_primary_key_on_belongs_to
     author   = authors(:mary)
-    category = author.named_categories.create(name: "Primary")
+    category = author.named_categories.create(name: 'Primary')
     author.named_categories.delete(category)
     assert_not Categorization.exists?(author_id: author.id, named_category_name: category.name)
     assert_empty author.named_categories.reload
@@ -1009,25 +1009,25 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_collection_singular_ids_through_setter_raises_exception_when_invalid_ids_set
     author = authors(:david)
-    ids = [categories(:general).name, "Unknown"]
+    ids = [categories(:general).name, 'Unknown']
     e = assert_raises(ActiveRecord::RecordNotFound) { author.essay_category_ids = ids }
     msg = "Couldn't find all Categories with 'name': (General, Unknown) (found 1 results, but was looking for 2). Couldn't find Category with name Unknown."
     assert_equal msg, e.message
   end
 
   def test_build_a_model_from_hm_through_association_with_where_clause
-    assert_nothing_raised { books(:awdr).subscribers.where(nick: "marklazz").build }
+    assert_nothing_raised { books(:awdr).subscribers.where(nick: 'marklazz').build }
   end
 
   def test_attributes_are_being_set_when_initialized_from_hm_through_association_with_where_clause
-    new_subscriber = books(:awdr).subscribers.where(nick: "marklazz").build
-    assert_equal new_subscriber.nick, "marklazz"
+    new_subscriber = books(:awdr).subscribers.where(nick: 'marklazz').build
+    assert_equal new_subscriber.nick, 'marklazz'
   end
 
   def test_attributes_are_being_set_when_initialized_from_hm_through_association_with_multiple_where_clauses
-    new_subscriber = books(:awdr).subscribers.where(nick: "marklazz").where(name: "Marcelo Giorgi").build
-    assert_equal new_subscriber.nick, "marklazz"
-    assert_equal new_subscriber.name, "Marcelo Giorgi"
+    new_subscriber = books(:awdr).subscribers.where(nick: 'marklazz').where(name: 'Marcelo Giorgi').build
+    assert_equal new_subscriber.nick, 'marklazz'
+    assert_equal new_subscriber.name, 'Marcelo Giorgi'
   end
 
   def test_include_method_in_association_through_should_return_true_for_instance_added_with_build
@@ -1051,7 +1051,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_can_update_through_association
     assert_nothing_raised do
-      people(:michael).posts.first.update!(title: "Can write")
+      people(:michael).posts.first.update!(title: 'Can write')
     end
   end
 
@@ -1082,8 +1082,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_polymorphic_with_rewhere
-    post = TaggedPost.create!(title: "Tagged", body: "Post")
-    tag = post.tags.create!(name: "Tag")
+    post = TaggedPost.create!(title: 'Tagged', body: 'Post')
+    tag = post.tags.create!(name: 'Tag')
     assert_equal [tag], TaggedPost.preload(:tags).last.tags
     assert_equal [tag], TaggedPost.eager_load(:tags).last.tags
   end
@@ -1091,7 +1091,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_polymorphic_with_primary_key_option
     assert_equal [categories(:general)], authors(:david).essay_categories
 
-    authors = Author.joins(:essay_categories).where("categories.id" => categories(:general).id)
+    authors = Author.joins(:essay_categories).where('categories.id' => categories(:general).id)
     assert_equal authors(:david), authors.first
 
     assert_equal [owners(:blackbeard)], authors(:david).essay_owners
@@ -1103,7 +1103,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_with_primary_key_option
     assert_equal [categories(:general)], authors(:david).essay_categories_2
 
-    authors = Author.joins(:essay_categories_2).where("categories.id" => categories(:general).id)
+    authors = Author.joins(:essay_categories_2).where('categories.id' => categories(:general).id)
     assert_equal authors(:david), authors.first
   end
 
@@ -1115,11 +1115,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_default_scope_on_join_model
-    assert_equal posts(:welcome).comments.order("id").to_a, authors(:david).comments_on_first_posts
+    assert_equal posts(:welcome).comments.order('id').to_a, authors(:david).comments_on_first_posts
   end
 
   def test_create_has_many_through_with_default_scope_on_join_model
-    category = authors(:david).special_categories.create(name: "Foo")
+    category = authors(:david).special_categories.create(name: 'Foo')
     assert_equal 1, category.categorizations.where(special: true).count
   end
 
@@ -1130,15 +1130,15 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_joining_has_many_through_belongs_to
-    posts = Post.joins(:author_categorizations).order("posts.id").
-                 where("categorizations.id" => categorizations(:mary_thinking_sti).id)
+    posts = Post.joins(:author_categorizations).order('posts.id').
+                 where('categorizations.id' => categorizations(:mary_thinking_sti).id)
 
     assert_equal [posts(:eager_other), posts(:misc_by_mary), posts(:other_by_mary)], posts
   end
 
   def test_select_chosen_fields_only
     author = authors(:david)
-    assert_equal ["body", "id"].sort, author.comments.select("comments.body").first.attributes.keys.sort
+    assert_equal ['body', 'id'].sort, author.comments.select('comments.body').first.attributes.keys.sort
   end
 
   def test_get_has_many_through_belongs_to_ids_with_conditions
@@ -1198,29 +1198,29 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_create_should_not_raise_exception_when_join_record_has_errors
     repair_validations(Categorization) do
-      Categorization.validate { |r| r.errors[:base] << "Invalid Categorization" }
-      assert_deprecated { Category.create(name: "Fishing", authors: [Author.first]) }
+      Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
+      assert_deprecated { Category.create(name: 'Fishing', authors: [Author.first]) }
     end
   end
 
   def test_assign_array_to_new_record_builds_join_records
-    c = Category.new(name: "Fishing", authors: [Author.first])
+    c = Category.new(name: 'Fishing', authors: [Author.first])
     assert_equal 1, c.categorizations.size
   end
 
   def test_create_bang_should_raise_exception_when_join_record_has_errors
     repair_validations(Categorization) do
-      Categorization.validate { |r| r.errors[:base] << "Invalid Categorization" }
+      Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
       assert_raises(ActiveRecord::RecordInvalid) do
-        assert_deprecated { Category.create!(name: "Fishing", authors: [Author.first]) }
+        assert_deprecated { Category.create!(name: 'Fishing', authors: [Author.first]) }
       end
     end
   end
 
   def test_save_bang_should_raise_exception_when_join_record_has_errors
     repair_validations(Categorization) do
-      Categorization.validate { |r| r.errors[:base] << "Invalid Categorization" }
-      c = Category.new(name: "Fishing", authors: [Author.first])
+      Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
+      c = Category.new(name: 'Fishing', authors: [Author.first])
       assert_raises(ActiveRecord::RecordInvalid) do
         assert_deprecated { c.save! }
       end
@@ -1229,30 +1229,30 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_save_returns_falsy_when_join_record_has_errors
     repair_validations(Categorization) do
-      Categorization.validate { |r| r.errors[:base] << "Invalid Categorization" }
-      c = Category.new(name: "Fishing", authors: [Author.first])
+      Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
+      c = Category.new(name: 'Fishing', authors: [Author.first])
       assert_deprecated { assert_not c.save }
     end
   end
 
   def test_preloading_empty_through_association_via_joins
-    person = Person.create!(first_name: "Gaga")
-    person = Person.where(id: person.id).where("readers.id = 1 or 1=1").references(:readers).includes(:posts).to_a.first
+    person = Person.create!(first_name: 'Gaga')
+    person = Person.where(id: person.id).where('readers.id = 1 or 1=1').references(:readers).includes(:posts).to_a.first
 
-    assert person.posts.loaded?, "person.posts should be loaded"
+    assert person.posts.loaded?, 'person.posts should be loaded'
     assert_equal [], person.posts
   end
 
   def test_preloading_empty_through_with_polymorphic_source_association
-    owner = Owner.create!(name: "Rainbow Unicat")
+    owner = Owner.create!(name: 'Rainbow Unicat')
     pet = Pet.create!(owner: owner)
-    person = Person.create!(first_name: "Gaga")
+    person = Person.create!(first_name: 'Gaga')
     treasure = Treasure.create!(looter: person)
     non_looted_treasure = Treasure.create!()
-    PetTreasure.create!(pet: pet, treasure: treasure, rainbow_color: "Ultra violet indigo")
-    PetTreasure.create!(pet: pet, treasure: non_looted_treasure, rainbow_color: "Ultra violet indigo")
+    PetTreasure.create!(pet: pet, treasure: treasure, rainbow_color: 'Ultra violet indigo')
+    PetTreasure.create!(pet: pet, treasure: non_looted_treasure, rainbow_color: 'Ultra violet indigo')
 
-    assert_equal [person], Owner.where(name: "Rainbow Unicat").includes(pets: :persons).first.persons.to_a
+    assert_equal [person], Owner.where(name: 'Rainbow Unicat').includes(pets: :persons).first.persons.to_a
   end
 
   def test_explicitly_joining_join_table
@@ -1260,24 +1260,24 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_polymorphic_source
-    post = tags(:general).tagged_posts.create! title: "foo", body: "bar"
+    post = tags(:general).tagged_posts.create! title: 'foo', body: 'bar'
     assert_equal [tags(:general)], post.reload.tags
   end
 
   def test_has_many_through_obeys_order_on_through_association
     owner = owners(:blackbeard)
-    assert_includes owner.toys.to_sql, "pets.name desc"
-    assert_equal ["parrot", "bulbul"], owner.toys.map { |r| r.pet.name }
+    assert_includes owner.toys.to_sql, 'pets.name desc'
+    assert_equal ['parrot', 'bulbul'], owner.toys.map { |r| r.pet.name }
   end
 
   def test_has_many_through_associations_sum_on_columns
-    post1 = Post.create(title: "active", body: "sample")
-    post2 = Post.create(title: "inactive", body: "sample")
+    post1 = Post.create(title: 'active', body: 'sample')
+    post2 = Post.create(title: 'inactive', body: 'sample')
 
-    person1 = Person.create(first_name: "aaron", followers_count: 1)
-    person2 = Person.create(first_name: "schmit", followers_count: 2)
-    person3 = Person.create(first_name: "bill", followers_count: 3)
-    person4 = Person.create(first_name: "cal", followers_count: 4)
+    person1 = Person.create(first_name: 'aaron', followers_count: 1)
+    person2 = Person.create(first_name: 'schmit', followers_count: 2)
+    person3 = Person.create(first_name: 'bill', followers_count: 3)
+    person4 = Person.create(first_name: 'cal', followers_count: 4)
 
     Reader.create(post_id: post1.id, person_id: person1.id)
     Reader.create(post_id: post1.id, person_id: person2.id)
@@ -1289,7 +1289,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     Reader.create(post_id: post2.id, person_id: person3.id)
     Reader.create(post_id: post2.id, person_id: person4.id)
 
-    active_persons = Person.joins(:readers).joins(:posts).distinct(true).where("posts.title" => "active")
+    active_persons = Person.joins(:readers).joins(:posts).distinct(true).where('posts.title' => 'active')
 
     assert_equal active_persons.map(&:followers_count).reduce(:+), 10
     assert_equal active_persons.sum(:followers_count), 10
@@ -1301,7 +1301,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_no_queries do
       assert_equal [], person.posts
-      assert_equal [], person.posts.where(body: "omg")
+      assert_equal [], person.posts.where(body: 'omg')
       assert_equal [], person.posts.pluck(:body)
       assert_equal 0,  person.posts.sum(:tags_count)
       assert_equal 0,  person.posts.count
@@ -1333,7 +1333,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_unscope_default_scope
-    post = Post.create!(title: "Beaches", body: "I like beaches!")
+    post = Post.create!(title: 'Beaches', body: 'I like beaches!')
     Reader.create! person: people(:david), post: post
     LazyReader.create! person: people(:susan), post: post
 
@@ -1345,8 +1345,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_add_with_sti_middle_relation
-    club = SuperClub.create!(name: "Fight Club")
-    member = Member.create!(name: "Tyler Durden")
+    club = SuperClub.create!(name: 'Fight Club')
+    member = Member.create!(name: 'Tyler Durden')
 
     club.members << member
     assert_equal 1, SuperMembership.where(member_id: member.id, club_id: club.id).count
@@ -1361,7 +1361,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_scope_that_should_not_be_fully_merged
-    Club.has_many :distinct_memberships, -> { distinct }, class_name: "Membership"
+    Club.has_many :distinct_memberships, -> { distinct }, class_name: 'Membership'
     Club.has_many :special_favourites, through: :distinct_memberships, source: :member
 
     assert_nil Club.new.special_favourites.distinct_value
@@ -1408,7 +1408,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_scope_should_accept_string_and_hash_join
-    assert_equal authors(:david), Author.joins({ comments_for_first_author: :post }, "inner join posts posts_alias on authors.id = posts_alias.author_id").eager_load(:categories).take
+    assert_equal authors(:david), Author.joins({ comments_for_first_author: :post }, 'inner join posts posts_alias on authors.id = posts_alias.author_id').eager_load(:categories).take
   end
 
   def test_has_many_through_with_scope_should_respect_table_alias
@@ -1416,7 +1416,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     users = 3.times.map { User.create! }
     FamilyTree.create!(member: users[0], family: family)
     FamilyTree.create!(member: users[1], family: family)
-    FamilyTree.create!(member: users[2], family: family, token: "wat")
+    FamilyTree.create!(member: users[2], family: family, token: 'wat')
 
     assert_equal 2, users[0].family_members.to_a.size
     assert_equal 0, users[2].family_members.to_a.size
@@ -1450,7 +1450,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_update_ids_with_conditions
-    author = Author.create!(name: "Bill")
+    author = Author.create!(name: 'Bill')
     category = categories(:general)
 
     author.update(
@@ -1470,20 +1470,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_single_has_many_through_association_with_unpersisted_parent_instance
     post_with_single_has_many_through = Class.new(Post) do
-      def self.name; "PostWithSingleHasManyThrough"; end
+      def self.name; 'PostWithSingleHasManyThrough'; end
       has_many :subscriptions, through: :author
     end
     post = post_with_single_has_many_through.new
 
     post.author = authors(:mary)
-    book1 = Book.create!(name: "essays on single has many through associations 1")
+    book1 = Book.create!(name: 'essays on single has many through associations 1')
     post.author.books << book1
     subscription1 = Subscription.first
     book1.subscriptions << subscription1
     assert_equal [subscription1], post.subscriptions.to_a
 
     post.author = authors(:bob)
-    book2 = Book.create!(name: "essays on single has many through associations 2")
+    book2 = Book.create!(name: 'essays on single has many through associations 2')
     post.author.books << book2
     subscription2 = Subscription.second
     book2.subscriptions << subscription2
@@ -1492,21 +1492,21 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_nested_has_many_through_association_with_unpersisted_parent_instance
     post_with_nested_has_many_through = Class.new(Post) do
-      def self.name; "PostWithNestedHasManyThrough"; end
+      def self.name; 'PostWithNestedHasManyThrough'; end
       has_many :books, through: :author
       has_many :subscriptions, through: :books
     end
     post = post_with_nested_has_many_through.new
 
     post.author = authors(:mary)
-    book1 = Book.create!(name: "essays on nested has many through associations 1")
+    book1 = Book.create!(name: 'essays on nested has many through associations 1')
     post.author.books << book1
     subscription1 = Subscription.first
     book1.subscriptions << subscription1
     assert_equal [subscription1], post.subscriptions.to_a
 
     post.author = authors(:bob)
-    book2 = Book.create!(name: "essays on nested has many through associations 2")
+    book2 = Book.create!(name: 'essays on nested has many through associations 2')
     post.author.books << book2
     subscription2 = Subscription.second
     book2.subscriptions << subscription2
@@ -1516,13 +1516,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_child_is_visible_to_join_model_in_add_association_callbacks
     [:before_add, :after_add].each do |callback_name|
       sentient_treasure = Class.new(Treasure) do
-        def self.name; "SentientTreasure"; end
+        def self.name; 'SentientTreasure'; end
 
         has_many :pet_treasures, foreign_key: :treasure_id, callback_name => :check_pet!
         has_many :pets, through: :pet_treasures
 
         def check_pet!(added)
-          raise "No pet!" if added.pet.nil?
+          raise 'No pet!' if added.pet.nil?
         end
       end
 
@@ -1532,11 +1532,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_circular_autosave_association_correctly_saves_multiple_records
-    cs180 = Seminar.new(name: "CS180")
-    fall = Session.new(name: "Fall")
+    cs180 = Seminar.new(name: 'CS180')
+    fall = Session.new(name: 'Fall')
     sections = [
-      cs180.sections.build(short_name: "A"),
-      cs180.sections.build(short_name: "B"),
+      cs180.sections.build(short_name: 'A'),
+      cs180.sections.build(short_name: 'B'),
     ]
     fall.sections << sections
     fall.save!
@@ -1550,11 +1550,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     def make_no_pk_hm_t
-      lesson = make_model "Lesson"
-      student = make_model "Student"
+      lesson = make_model 'Lesson'
+      student = make_model 'Student'
 
-      lesson_student = make_model "LessonStudent"
-      lesson_student.table_name = "lessons_students"
+      lesson_student = make_model 'LessonStudent'
+      lesson_student.table_name = 'lessons_students'
 
       lesson_student.belongs_to :lesson, anonymous_class: lesson
       lesson_student.belongs_to :student, anonymous_class: student

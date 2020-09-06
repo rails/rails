@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/conversions"
+require 'active_support/core_ext/string/conversions'
 
 module ActiveRecord
   module Associations
@@ -38,7 +38,7 @@ module ActiveRecord
           elsif join.is_a?(Arel::Nodes::Join)
             join.left.name == name ? 1 : 0
           else
-            raise ArgumentError, "joins list should be initialized by list of Arel::Nodes::Join"
+            raise ArgumentError, 'joins list should be initialized by list of Arel::Nodes::Join'
           end
         end
 

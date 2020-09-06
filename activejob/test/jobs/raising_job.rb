@@ -5,7 +5,7 @@ class RaisingJob < ActiveJob::Base
 
   retry_on(MyError, attempts: 2)
 
-  def perform(error = "RaisingJob::MyError")
+  def perform(error = 'RaisingJob::MyError')
     raise error.constantize
   end
 end

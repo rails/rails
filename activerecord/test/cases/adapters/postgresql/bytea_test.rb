@@ -1,31 +1,31 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/schema_dumping_helper"
+require 'cases/helper'
+require 'support/schema_dumping_helper'
 
 class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   class ByteaDataType < ActiveRecord::Base
-    self.table_name = "bytea_data_type"
+    self.table_name = 'bytea_data_type'
   end
 
   def setup
     @connection = ActiveRecord::Base.connection
     begin
       @connection.transaction do
-        @connection.create_table("bytea_data_type") do |t|
-          t.binary "payload"
-          t.binary "serialized"
+        @connection.create_table('bytea_data_type') do |t|
+          t.binary 'payload'
+          t.binary 'serialized'
         end
       end
     end
-    @column = ByteaDataType.columns_hash["payload"]
-    @type = ByteaDataType.type_for_attribute("payload")
+    @column = ByteaDataType.columns_hash['payload']
+    @type = ByteaDataType.type_for_attribute('payload')
   end
 
   teardown do
-    @connection.drop_table "bytea_data_type", if_exists: true
+    @connection.drop_table 'bytea_data_type', if_exists: true
   end
 
   def test_column
@@ -34,7 +34,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_binary_columns_are_limitless_the_upper_limit_is_one_GB
-    assert_equal "bytea", @connection.type_to_sql(:binary, limit: 100_000)
+    assert_equal 'bytea', @connection.type_to_sql(:binary, limit: 100_000)
     assert_raise ArgumentError do
       @connection.type_to_sql(:binary, limit: 4294967295)
     end
@@ -44,12 +44,12 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
     assert @column
 
     data = "\u001F\x8B"
-    assert_equal("UTF-8", data.encoding.name)
-    assert_equal("ASCII-8BIT", @type.deserialize(data).encoding.name)
+    assert_equal('UTF-8', data.encoding.name)
+    assert_equal('ASCII-8BIT', @type.deserialize(data).encoding.name)
   end
 
   def test_type_cast_binary_value
-    data = (+"\u001F\x8B").force_encoding("BINARY")
+    data = (+"\u001F\x8B").force_encoding('BINARY')
     assert_equal(data, @type.deserialize(data))
   end
 
@@ -66,7 +66,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_read_nil_value
-    @connection.execute "insert into bytea_data_type (payload) VALUES (null)"
+    @connection.execute 'insert into bytea_data_type (payload) VALUES (null)'
     record = ByteaDataType.first
     assert_nil(record.payload)
     record.delete
@@ -90,15 +90,15 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   def test_via_to_sql_with_complicating_connection
     Thread.new do
       other_conn = ActiveRecord::Base.connection
-      other_conn.execute("SET standard_conforming_strings = off")
-      other_conn.execute("SET escape_string_warning = off")
+      other_conn.execute('SET standard_conforming_strings = off')
+      other_conn.execute('SET escape_string_warning = off')
     end.join
 
     test_via_to_sql
   end
 
   def test_write_binary
-    data = File.read(File.join(__dir__, "..", "..", "..", "assets", "example.log"))
+    data = File.read(File.join(__dir__, '..', '..', '..', 'assets', 'example.log'))
     assert(data.size > 1)
     record = ByteaDataType.create(payload: data)
     assert_not_predicate record, :new_record?
@@ -123,14 +123,14 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
       serialize :serialized, Serializer.new
     }
     obj = klass.new
-    obj.serialized = "hello world"
+    obj.serialized = 'hello world'
     obj.save!
     obj.reload
-    assert_equal "hello world", obj.serialized
+    assert_equal 'hello world', obj.serialized
   end
 
   def test_schema_dumping
-    output = dump_table_schema("bytea_data_type")
+    output = dump_table_schema('bytea_data_type')
     assert_match %r{t\.binary\s+"payload"$}, output
     assert_match %r{t\.binary\s+"serialized"$}, output
   end

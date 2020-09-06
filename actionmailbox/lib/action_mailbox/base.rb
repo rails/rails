@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "active_support/rescuable"
+require 'active_support/rescuable'
 
-require "action_mailbox/callbacks"
-require "action_mailbox/routing"
+require 'action_mailbox/callbacks'
+require 'action_mailbox/routing'
 
 module ActionMailbox
   # The base class for all application mailboxes. Not intended to be inherited from directly. Inherit from

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "rails/generators"
-require "rails/generators/rails/app/app_generator"
+require 'rails/generators'
+require 'rails/generators/rails/app/app_generator'
 
 module Rails
   class AppUpdater # :nodoc:
@@ -12,8 +12,8 @@ module Rails
 
       def app_generator
         @app_generator ||= begin
-          gen = Rails::Generators::AppGenerator.new ["rails"], generator_options, destination_root: Rails.root
-          File.exist?(Rails.root.join("config", "application.rb")) ? gen.send(:app_const) : gen.send(:valid_const?)
+          gen = Rails::Generators::AppGenerator.new ['rails'], generator_options, destination_root: Rails.root
+          File.exist?(Rails.root.join('config', 'application.rb')) ? gen.send(:app_const) : gen.send(:valid_const?)
           gen
         end
       end
@@ -21,7 +21,7 @@ module Rails
       private
         def generator_options
           options = { api: !!Rails.application.config.api_only, update: true }
-          options[:skip_javascript] = !File.exist?(Rails.root.join("bin", "yarn"))
+          options[:skip_javascript] = !File.exist?(Rails.root.join('bin', 'yarn'))
           options[:skip_active_record]  = !defined?(ActiveRecord::Railtie)
           options[:skip_active_storage] = !defined?(ActiveStorage::Engine) || !defined?(ActiveRecord::Railtie)
           options[:skip_action_mailer]  = !defined?(ActionMailer::Railtie)

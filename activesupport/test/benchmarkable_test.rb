@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
+require_relative 'abstract_unit'
 
 class BenchmarkableTest < ActiveSupport::TestCase
   include ActiveSupport::Benchmarkable
@@ -38,41 +38,41 @@ class BenchmarkableTest < ActiveSupport::TestCase
 
   def test_with_message
     i_was_run = false
-    benchmark("test_run") { i_was_run = true }
+    benchmark('test_run') { i_was_run = true }
     assert i_was_run
-    assert_last_logged "test_run"
+    assert_last_logged 'test_run'
   end
 
   def test_with_silence
-    assert_difference "buffer.count", +2 do
-      benchmark("test_run") do
-        logger.info "SOMETHING"
+    assert_difference 'buffer.count', +2 do
+      benchmark('test_run') do
+        logger.info 'SOMETHING'
       end
     end
 
-    assert_difference "buffer.count", +1 do
-      benchmark("test_run", silence: true) do
-        logger.info "NOTHING"
+    assert_difference 'buffer.count', +1 do
+      benchmark('test_run', silence: true) do
+        logger.info 'NOTHING'
       end
     end
   end
 
   def test_within_level
     logger.level = ActiveSupport::Logger::DEBUG
-    benchmark("included_debug_run", level: :debug) { }
-    assert_last_logged "included_debug_run"
+    benchmark('included_debug_run', level: :debug) { }
+    assert_last_logged 'included_debug_run'
   end
 
   def test_outside_level
     logger.level = ActiveSupport::Logger::ERROR
-    benchmark("skipped_debug_run", level: :debug) { }
+    benchmark('skipped_debug_run', level: :debug) { }
     assert_no_match(/skipped_debug_run/, buffer.last)
   ensure
     logger.level = ActiveSupport::Logger::DEBUG
   end
 
   private
-    def assert_last_logged(message = "Benchmarking")
+    def assert_last_logged(message = 'Benchmarking')
       assert_match(/^#{message} \(.*\)$/, buffer.last)
     end
 end

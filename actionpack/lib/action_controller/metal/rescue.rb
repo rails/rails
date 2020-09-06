@@ -21,7 +21,7 @@ module ActionController #:nodoc:
       def process_action(*)
         super
       rescue Exception => exception
-        request.env["action_dispatch.show_detailed_exceptions"] ||= show_detailed_exceptions?
+        request.env['action_dispatch.show_detailed_exceptions'] ||= show_detailed_exceptions?
         rescue_with_handler(exception) || raise
       end
   end

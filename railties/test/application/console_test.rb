@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
-require "console_helpers"
+require 'isolation/abstract_unit'
+require 'console_helpers'
 
 class ConsoleTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
@@ -32,7 +32,7 @@ class ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_app_can_access_path_helper_method
-    app_file "config/routes.rb", <<-RUBY
+    app_file 'config/routes.rb', <<-RUBY
       Rails.application.routes.draw do
         get 'foo', to: 'foo#index'
       end
@@ -40,7 +40,7 @@ class ConsoleTest < ActiveSupport::TestCase
 
     load_environment
     console_session = irb_context.app
-    assert_equal "/foo", console_session.foo_path
+    assert_equal '/foo', console_session.foo_path
   end
 
   def test_new_session_should_return_integration_session
@@ -66,7 +66,7 @@ class ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_reload_should_reload_constants
-    app_file "app/models/user.rb", <<-MODEL
+    app_file 'app/models/user.rb', <<-MODEL
       class User
         attr_accessor :name
       end
@@ -75,7 +75,7 @@ class ConsoleTest < ActiveSupport::TestCase
     load_environment
     assert_respond_to User.new, :name
 
-    app_file "app/models/user.rb", <<-MODEL
+    app_file 'app/models/user.rb', <<-MODEL
       class User
         attr_accessor :name, :age
       end
@@ -91,8 +91,8 @@ class ConsoleTest < ActiveSupport::TestCase
     helper = irb_context.helper
     assert_not_nil helper
     assert_instance_of ActionView::Base, helper
-    assert_equal "Once upon a time in a world...",
-      helper.truncate("Once upon a time in a world far far away")
+    assert_equal 'Once upon a time in a world...',
+      helper.truncate('Once upon a time in a world far far away')
   end
 end
 
@@ -100,10 +100,10 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   include ConsoleHelpers
 
   def setup
-    skip "PTY unavailable" unless available_pty?
+    skip 'PTY unavailable' unless available_pty?
 
     build_app
-    app_file "app/models/post.rb", <<-CODE
+    app_file 'app/models/post.rb', <<-CODE
       class Post < ActiveRecord::Base
       end
     CODE
@@ -120,7 +120,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     @primary.puts command
     assert_output command, @primary
     assert_output expected_output, @primary if expected_output
-    assert_output "> ", @primary
+    assert_output '> ', @primary
   end
 
   def spawn_console(options, wait_for_prompt: true)
@@ -130,28 +130,28 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     )
 
     if wait_for_prompt
-      assert_output "> ", @primary, 30
+      assert_output '> ', @primary, 30
     end
 
     pid
   end
 
   def test_sandbox
-    options = "--sandbox"
-    options += " -- --singleline --nocolorize" if RUBY_VERSION >= "2.7"
+    options = '--sandbox'
+    options += ' -- --singleline --nocolorize' if RUBY_VERSION >= '2.7'
     spawn_console(options)
 
-    write_prompt "Post.count", "=> 0"
-    write_prompt "Post.create"
-    write_prompt "Post.count", "=> 1"
-    @primary.puts "quit"
+    write_prompt 'Post.count', '=> 0'
+    write_prompt 'Post.create'
+    write_prompt 'Post.count', '=> 1'
+    @primary.puts 'quit'
 
     spawn_console(options)
 
-    write_prompt "Post.count", "=> 0"
-    write_prompt "Post.transaction { Post.create; raise }"
-    write_prompt "Post.count", "=> 0"
-    @primary.puts "quit"
+    write_prompt 'Post.count', '=> 0'
+    write_prompt 'Post.transaction { Post.create; raise }'
+    write_prompt 'Post.count', '=> 0'
+    @primary.puts 'quit'
   end
 
   def test_sandbox_when_sandbox_is_disabled
@@ -161,17 +161,17 @@ class FullStackConsoleTest < ActiveSupport::TestCase
 
     output = `#{app_path}/bin/rails console --sandbox`
 
-    assert_includes output, "sandbox mode is disabled"
+    assert_includes output, 'sandbox mode is disabled'
     assert_equal 1, $?.exitstatus
   end
 
   def test_environment_option_and_irb_option
-    options = "-e test -- --verbose"
-    options += " --singleline --nocolorize" if RUBY_VERSION >= "2.7"
+    options = '-e test -- --verbose'
+    options += ' --singleline --nocolorize' if RUBY_VERSION >= '2.7'
     spawn_console(options)
 
-    write_prompt "a = 1", "a = 1"
-    write_prompt "puts Rails.env", "puts Rails.env\r\ntest"
-    @primary.puts "quit"
+    write_prompt 'a = 1', 'a = 1'
+    write_prompt 'puts Rails.env', "puts Rails.env\r\ntest"
+    @primary.puts 'quit'
   end
 end

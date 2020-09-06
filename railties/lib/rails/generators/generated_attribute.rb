@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/time"
-require "active_support/deprecation"
+require 'active_support/time'
+require 'active_support/deprecation'
 
 module Rails
   module Generators
@@ -15,7 +15,7 @@ module Rails
 
       class << self
         def parse(column_definition)
-          name, type, has_index = column_definition.split(":")
+          name, type, has_index = column_definition.split(':')
 
           # if user provided "name:index" instead of "name:string:index"
           # type should be set blank so GeneratedAttribute's constructor
@@ -92,26 +92,26 @@ module Rails
         @default ||= case type
                      when :integer                     then 1
                      when :float                       then 1.5
-                     when :decimal                     then "9.99"
+                     when :decimal                     then '9.99'
                      when :datetime, :timestamp, :time then Time.now.to_s(:db)
                      when :date                        then Date.today.to_s(:db)
-                     when :string                      then name == "type" ? "" : "MyString"
-                     when :text                        then "MyText"
+                     when :string                      then name == 'type' ? '' : 'MyString'
+                     when :text                        then 'MyText'
                      when :boolean                     then false
                      when :references, :belongs_to,
                           :attachment, :attachments,
                           :rich_text                   then nil
                      else
-                       ""
+                       ''
         end
       end
 
       def plural_name
-        name.delete_suffix("_id").pluralize
+        name.delete_suffix('_id').pluralize
       end
 
       def singular_name
-        name.delete_suffix("_id").singularize
+        name.delete_suffix('_id').singularize
       end
 
       def human_name
@@ -131,7 +131,7 @@ module Rails
       end
 
       def foreign_key?
-        name.end_with?("_id")
+        name.end_with?('_id')
       end
 
       def reference?
@@ -155,7 +155,7 @@ module Rails
       end
 
       def password_digest?
-        name == "password" && type == :digest
+        name == 'password' && type == :digest
       end
 
       def token?
@@ -179,11 +179,11 @@ module Rails
       end
 
       def inject_options
-        (+"").tap { |s| options_for_migration.each { |k, v| s << ", #{k}: #{v.inspect}" } }
+        (+'').tap { |s| options_for_migration.each { |k, v| s << ", #{k}: #{v.inspect}" } }
       end
 
       def inject_index_options
-        has_uniq_index? ? ", unique: true" : ""
+        has_uniq_index? ? ', unique: true' : ''
       end
 
       def options_for_migration

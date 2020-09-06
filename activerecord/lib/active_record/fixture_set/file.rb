@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/configuration_file"
+require 'active_support/configuration_file'
 
 module ActiveRecord
   class FixtureSet
@@ -25,21 +25,21 @@ module ActiveRecord
       end
 
       def model_class
-        config_row["model_class"]
+        config_row['model_class']
       end
 
       def ignored_fixtures
-        config_row["ignore"]
+        config_row['ignore']
       end
 
       private
         def rows
-          @rows ||= raw_rows.reject { |fixture_name, _| fixture_name == "_fixture" }
+          @rows ||= raw_rows.reject { |fixture_name, _| fixture_name == '_fixture' }
         end
 
         def config_row
           @config_row ||= begin
-            row = raw_rows.find { |fixture_name, _| fixture_name == "_fixture" }
+            row = raw_rows.find { |fixture_name, _| fixture_name == '_fixture' }
             if row
               row.last
             else

@@ -19,7 +19,7 @@ class String
   #   str.squish!                         # => "foo bar boo"
   #   str                                 # => "foo bar boo"
   def squish!
-    gsub!(/[[:space:]]+/, " ")
+    gsub!(/[[:space:]]+/, ' ')
     strip!
     self
   end
@@ -39,7 +39,7 @@ class String
   #   str                                 # => "foo "
   def remove!(*patterns)
     patterns.each do |pattern|
-      gsub! pattern, ""
+      gsub! pattern, ''
     end
 
     self
@@ -66,7 +66,7 @@ class String
   def truncate(truncate_at, options = {})
     return dup unless length > truncate_at
 
-    omission = options[:omission] || "..."
+    omission = options[:omission] || '...'
     length_with_room_for_omission = truncate_at - omission.length
     stop = \
       if options[:separator]
@@ -92,8 +92,8 @@ class String
   #
   # The truncated text ends with the <tt>:omission</tt> string, defaulting
   # to "…", for a total length not exceeding <tt>bytesize</tt>.
-  def truncate_bytes(truncate_at, omission: "…")
-    omission ||= ""
+  def truncate_bytes(truncate_at, omission: '…')
+    omission ||= ''
 
     case
     when bytesize <= truncate_at
@@ -137,7 +137,7 @@ class String
     sep = options[:separator] || /\s+/
     sep = Regexp.escape(sep.to_s) unless Regexp === sep
     if self =~ /\A((?>.+?#{sep}){#{words_count - 1}}.+?)#{sep}.*/m
-      $1 + (options[:omission] || "...")
+      $1 + (options[:omission] || '...')
     else
       dup
     end

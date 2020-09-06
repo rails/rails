@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/redefine_method"
+require 'active_support/core_ext/module/redefine_method'
 
 class Module
   # Removes the named method, if it exists.

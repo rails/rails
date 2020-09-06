@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/array/extract"
+require 'active_support/core_ext/array/extract'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -17,13 +17,13 @@ module ActiveRecord
           end
 
           def run(records)
-            nodes = records.reject { |row| @store.key? row["oid"].to_i }
-            mapped = nodes.extract! { |row| @store.key? row["typname"] }
-            ranges = nodes.extract! { |row| row["typtype"] == "r" }
-            enums = nodes.extract! { |row| row["typtype"] == "e" }
-            domains = nodes.extract! { |row| row["typtype"] == "d" }
-            arrays = nodes.extract! { |row| row["typinput"] == "array_in" }
-            composites = nodes.extract! { |row| row["typelem"].to_i != 0 }
+            nodes = records.reject { |row| @store.key? row['oid'].to_i }
+            mapped = nodes.extract! { |row| @store.key? row['typname'] }
+            ranges = nodes.extract! { |row| row['typtype'] == 'r' }
+            enums = nodes.extract! { |row| row['typtype'] == 'e' }
+            domains = nodes.extract! { |row| row['typtype'] == 'd' }
+            arrays = nodes.extract! { |row| row['typinput'] == 'array_in' }
+            composites = nodes.extract! { |row| row['typelem'].to_i != 0 }
 
             mapped.each     { |row| register_mapped_type(row)    }
             enums.each      { |row| register_enum_type(row)      }
@@ -36,7 +36,7 @@ module ActiveRecord
           def query_conditions_for_initial_load
             known_type_names = @store.keys.map { |n| "'#{n}'" }
             known_type_types = %w('r' 'e' 'd')
-            <<~SQL % [known_type_names.join(", "), known_type_types.join(", ")]
+            <<~SQL % [known_type_names.join(', '), known_type_types.join(', ')]
               WHERE
                 t.typname IN (%s)
                 OR t.typtype IN (%s)
@@ -47,36 +47,36 @@ module ActiveRecord
 
           private
             def register_mapped_type(row)
-              alias_type row["oid"], row["typname"]
+              alias_type row['oid'], row['typname']
             end
 
             def register_enum_type(row)
-              register row["oid"], OID::Enum.new
+              register row['oid'], OID::Enum.new
             end
 
             def register_array_type(row)
-              register_with_subtype(row["oid"], row["typelem"].to_i) do |subtype|
-                OID::Array.new(subtype, row["typdelim"])
+              register_with_subtype(row['oid'], row['typelem'].to_i) do |subtype|
+                OID::Array.new(subtype, row['typdelim'])
               end
             end
 
             def register_range_type(row)
-              register_with_subtype(row["oid"], row["rngsubtype"].to_i) do |subtype|
-                OID::Range.new(subtype, row["typname"].to_sym)
+              register_with_subtype(row['oid'], row['rngsubtype'].to_i) do |subtype|
+                OID::Range.new(subtype, row['typname'].to_sym)
               end
             end
 
             def register_domain_type(row)
-              if base_type = @store.lookup(row["typbasetype"].to_i)
-                register row["oid"], base_type
+              if base_type = @store.lookup(row['typbasetype'].to_i)
+                register row['oid'], base_type
               else
                 warn "unknown base type (OID: #{row["typbasetype"]}) for domain #{row["typname"]}."
               end
             end
 
             def register_composite_type(row)
-              if subtype = @store.lookup(row["typelem"].to_i)
-                register row["oid"], OID::Vector.new(row["typdelim"], subtype)
+              if subtype = @store.lookup(row['typelem'].to_i)
+                register row['oid'], OID::Vector.new(row['typdelim'], subtype)
               end
             end
 

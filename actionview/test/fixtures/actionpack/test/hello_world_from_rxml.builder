@@ -1,3 +1,3 @@
 xml.html do
-  xml.p "Hello"
+  xml.p 'Hello'
 end

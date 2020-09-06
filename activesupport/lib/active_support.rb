@@ -23,12 +23,12 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require "securerandom"
-require "active_support/dependencies/autoload"
-require "active_support/version"
-require "active_support/logger"
-require "active_support/lazy_load_hooks"
-require "active_support/core_ext/date_and_time/compatibility"
+require 'securerandom'
+require 'active_support/dependencies/autoload'
+require 'active_support/version'
+require 'active_support/logger'
+require 'active_support/lazy_load_hooks'
+require 'active_support/core_ext/date_and_time/compatibility'
 
 module ActiveSupport
   extend ActiveSupport::Autoload
@@ -77,7 +77,7 @@ module ActiveSupport
   end
 
   autoload :Rescuable
-  autoload :SafeBuffer, "active_support/core_ext/string/output_safety"
+  autoload :SafeBuffer, 'active_support/core_ext/string/output_safety'
   autoload :TestCase
 
   def self.eager_load!
@@ -105,4 +105,4 @@ module ActiveSupport
   end
 end
 
-autoload :I18n, "active_support/i18n"
+autoload :I18n, 'active_support/i18n'

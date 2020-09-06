@@ -4,10 +4,10 @@ module ActionView #:nodoc:
   # = Action View Template Handlers
   class Template #:nodoc:
     module Handlers #:nodoc:
-      autoload :Raw, "action_view/template/handlers/raw"
-      autoload :ERB, "action_view/template/handlers/erb"
-      autoload :Html, "action_view/template/handlers/html"
-      autoload :Builder, "action_view/template/handlers/builder"
+      autoload :Raw, 'action_view/template/handlers/raw'
+      autoload :ERB, 'action_view/template/handlers/erb'
+      autoload :Html, 'action_view/template/handlers/html'
+      autoload :Builder, 'action_view/template/handlers/builder'
 
       def self.extended(base)
         base.register_default_template_handler :raw, Raw.new
@@ -53,7 +53,7 @@ module ActionView #:nodoc:
           handler = LegacyHandlerWrapper.new(handler)
         end
 
-        raise(ArgumentError, "Extension is required") if extensions.empty?
+        raise(ArgumentError, 'Extension is required') if extensions.empty?
         extensions.each do |extension|
           @@template_handlers[extension.to_sym] = handler
         end

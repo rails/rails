@@ -57,7 +57,7 @@ module ActionMailbox
 
     private
       def require_valid_rfc822_message
-        unless request.content_type == "message/rfc822"
+        unless request.content_type == 'message/rfc822'
           head :unsupported_media_type
         end
       end

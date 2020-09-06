@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "cases/json_shared_test_cases"
+require 'cases/helper'
+require 'cases/json_shared_test_cases'
 
 if ActiveRecord::Base.connection.supports_json?
   class Mysql2JSONTest < ActiveRecord::Mysql2TestCase
@@ -10,9 +10,9 @@ if ActiveRecord::Base.connection.supports_json?
 
     def setup
       super
-      @connection.create_table("json_data_type") do |t|
-        t.json "payload"
-        t.json "settings"
+      @connection.create_table('json_data_type') do |t|
+        t.json 'payload'
+        t.json 'settings'
       end
     end
 

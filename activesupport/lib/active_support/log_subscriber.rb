@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/class/attribute"
-require "active_support/subscriber"
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/class/attribute'
+require 'active_support/subscriber'
 
 module ActiveSupport
   # <tt>ActiveSupport::LogSubscriber</tt> is an object set to consume
@@ -130,7 +130,7 @@ module ActiveSupport
     def color(text, color, bold = false) # :doc:
       return text unless colorize_logging
       color = self.class.const_get(color.upcase) if color.is_a?(Symbol)
-      bold  = bold ? BOLD : ""
+      bold  = bold ? BOLD : ''
       "#{bold}#{color}#{text}#{CLEAR}"
     end
   end

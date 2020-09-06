@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "action_view/dependency_tracker"
+require 'action_view/dependency_tracker'
 
 module ActionView
   class Digestor
@@ -17,14 +17,14 @@ module ActionView
         if dependencies.nil? || dependencies.empty?
           cache_key = "#{name}.#{format}"
         else
-          cache_key = [ name, format, dependencies ].flatten.compact.join(".")
+          cache_key = [ name, format, dependencies ].flatten.compact.join('.')
         end
 
         # this is a correctly done double-checked locking idiom
         # (Concurrent::Map's lookups have volatile semantics)
         finder.digest_cache[cache_key] || @@digest_mutex.synchronize do
           finder.digest_cache.fetch(cache_key) do # re-check under lock
-            partial = name.include?("/_")
+            partial = name.include?('/_')
             root = tree(name, finder, partial)
             dependencies.each do |injected_dep|
               root.children << Injected.new(injected_dep, nil, nil)
@@ -40,8 +40,8 @@ module ActionView
 
       # Create a dependency tree for template named +name+.
       def tree(name, finder, partial = false, seen = {})
-        logical_name = name.gsub(%r|/_|, "/")
-        interpolated = name.include?("#")
+        logical_name = name.gsub(%r|/_|, '/')
+        interpolated = name.include?('#')
 
         if !interpolated && (template = find_template(finder, logical_name, [], partial, []))
           if node = seen[template.identifier] # handle cycles in the tree
@@ -50,7 +50,7 @@ module ActionView
             node = seen[template.identifier] = Node.create(name, logical_name, template, partial)
 
             deps = DependencyTracker.find_dependencies(name, template, finder.view_paths)
-            deps.uniq { |n| n.gsub(%r|/_|, "/") }.each do |dep_file|
+            deps.uniq { |n| n.gsub(%r|/_|, '/') }.each do |dep_file|
               node.children << tree(dep_file, finder, true, seen)
             end
             node
@@ -101,7 +101,7 @@ module ActionView
                                                  node.digest(finder, stack).tap { stack.pop }
                                                end
           end
-        end.join("-")
+        end.join('-')
       end
 
       def to_dep_map
@@ -112,7 +112,7 @@ module ActionView
     class Partial < Node; end
 
     class Missing < Node
-      def digest(finder, _ = []) "" end
+      def digest(finder, _ = []) '' end
     end
 
     class Injected < Node

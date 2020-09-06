@@ -6,7 +6,7 @@ class ParamsMailer < ActionMailer::Base
   default to: Proc.new { @invitee }, from: -> { @inviter }
 
   def invitation
-    mail(subject: "Welcome to the project!") do |format|
+    mail(subject: 'Welcome to the project!') do |format|
       format.text { render plain: "So says #{@inviter}" }
     end
   end

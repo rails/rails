@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/enumerable"
+require 'active_support/core_ext/enumerable'
 
 module ActionView
   module CollectionCaching # :nodoc:

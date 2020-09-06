@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/inflector/methods"
-require "active_support/dependencies"
+require 'active_support/inflector/methods'
+require 'active_support/dependencies'
 
 module ActionDispatch
   class MiddlewareStack
@@ -46,7 +46,7 @@ module ActionDispatch
     # It proxies the `call` method transparently and instruments the method
     # call.
     class InstrumentationProxy
-      EVENT_NAME = "process_middleware.action_dispatch"
+      EVENT_NAME = 'process_middleware.action_dispatch'
 
       def initialize(middleware, class_name)
         @middleware = middleware

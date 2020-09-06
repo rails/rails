@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 class EngineTest < ActiveSupport::TestCase
   test "reports routes as available only if they're actually present" do
@@ -18,10 +18,10 @@ class EngineTest < ActiveSupport::TestCase
     klass = Class.new(Rails::Application) do
       attr_reader :hello
       def initialize
-        @hello = "world"
+        @hello = 'world'
         super
       end
     end
-    assert_equal "world", klass.instance.hello
+    assert_equal 'world', klass.instance.hello
   end
 end

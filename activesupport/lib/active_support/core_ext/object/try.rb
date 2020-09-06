@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "delegate"
+require 'delegate'
 
 module ActiveSupport
   module Tryable #:nodoc:

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../abstract_unit"
-require "active_support/core_ext/module/aliasing"
+require_relative '../../abstract_unit'
+require 'active_support/core_ext/module/aliasing'
 
 module AttributeAliasing
   class Content
@@ -32,12 +32,12 @@ class AttributeAliasingTest < ActiveSupport::TestCase
 
     assert_not_predicate e, :subject?
 
-    e.title = "Upgrade computer"
-    assert_equal "Upgrade computer", e.subject
+    e.title = 'Upgrade computer'
+    assert_equal 'Upgrade computer', e.subject
     assert_predicate e, :subject?
 
-    e.subject = "We got a long way to go"
-    assert_equal "We got a long way to go", e.title
+    e.subject = 'We got a long way to go'
+    assert_equal 'We got a long way to go', e.title
     assert_predicate e, :title?
   end
 
@@ -50,12 +50,12 @@ class AttributeAliasingTest < ActiveSupport::TestCase
     assert_not_predicate e, :body?
     assert_not_predicate e, :Data?
 
-    e.body = "No, really, this is not a joke."
-    assert_equal "No, really, this is not a joke.", e.Data
+    e.body = 'No, really, this is not a joke.'
+    assert_equal 'No, really, this is not a joke.', e.Data
     assert_predicate e, :Data?
 
-    e.Data = "Uppercased methods are the suck"
-    assert_equal "Uppercased methods are the suck", e.body
+    e.Data = 'Uppercased methods are the suck'
+    assert_equal 'Uppercased methods are the suck', e.body
     assert_predicate e, :body?
   end
 end

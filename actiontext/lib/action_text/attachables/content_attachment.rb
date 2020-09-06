@@ -6,8 +6,8 @@ module ActionText
       include ActiveModel::Model
 
       def self.from_node(node)
-        if node["content-type"]
-          if matches = node["content-type"].match(/vnd\.rubyonrails\.(.+)\.html/)
+        if node['content-type']
+          if matches = node['content-type'].match(/vnd\.rubyonrails\.(.+)\.html/)
             attachment = new(name: matches[1])
             attachment if attachment.valid?
           end
@@ -19,15 +19,15 @@ module ActionText
 
       def attachable_plain_text_representation(caption)
         case name
-        when "horizontal-rule"
-          " ┄ "
+        when 'horizontal-rule'
+          ' ┄ '
         else
-          " "
+          ' '
         end
       end
 
       def to_partial_path
-        "action_text/attachables/content_attachment"
+        'action_text/attachables/content_attachment'
       end
 
       def to_trix_content_attachment_partial_path

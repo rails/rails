@@ -1,24 +1,24 @@
 # frozen_string_literal: true
 
-require "action_view/helpers/tag_helper"
+require 'action_view/helpers/tag_helper'
 
 module ActionView
   module Helpers #:nodoc:
     module JavaScriptHelper
       JS_ESCAPE_MAP = {
         '\\'    => '\\\\',
-        "</"    => '<\/',
+        '</'    => '<\/',
         "\r\n"  => '\n',
         "\n"    => '\n',
         "\r"    => '\n',
         '"'     => '\\"',
         "'"     => "\\'",
-        "`"     => "\\`",
-        "$"     => "\\$"
+        '`'     => '\\`',
+        '$'     => '\\$'
       }
 
-      JS_ESCAPE_MAP[(+"\342\200\250").force_encoding(Encoding::UTF_8).encode!] = "&#x2028;"
-      JS_ESCAPE_MAP[(+"\342\200\251").force_encoding(Encoding::UTF_8).encode!] = "&#x2029;"
+      JS_ESCAPE_MAP[(+"\342\200\250").force_encoding(Encoding::UTF_8).encode!] = '&#x2028;'
+      JS_ESCAPE_MAP[(+"\342\200\251").force_encoding(Encoding::UTF_8).encode!] = '&#x2029;'
 
       # Escapes carriage returns and single and double quotes for JavaScript segments.
       #
@@ -29,7 +29,7 @@ module ActionView
       def escape_javascript(javascript)
         javascript = javascript.to_s
         if javascript.empty?
-          result = ""
+          result = ''
         else
           result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|\342\200\251|[\n\r"']|[`]|[$])/u, JS_ESCAPE_MAP)
         end
@@ -86,7 +86,7 @@ module ActionView
           html_options[:nonce] = content_security_policy_nonce
         end
 
-        content_tag("script", javascript_cdata_section(content), html_options)
+        content_tag('script', javascript_cdata_section(content), html_options)
       end
 
       def javascript_cdata_section(content) #:nodoc:

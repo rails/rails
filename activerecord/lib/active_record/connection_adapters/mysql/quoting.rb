@@ -9,7 +9,7 @@ module ActiveRecord
         end
 
         def quote_table_name(name)
-          self.class.quoted_table_names[name] ||= super.gsub(".", "`.`").freeze
+          self.class.quoted_table_names[name] ||= super.gsub('.', '`.`').freeze
         end
 
         def unquoted_true
@@ -24,7 +24,7 @@ module ActiveRecord
           if supports_datetime_with_precision?
             super
           else
-            super.sub(/\.\d{6}\z/, "")
+            super.sub(/\.\d{6}\z/, '')
           end
         end
 

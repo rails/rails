@@ -37,6 +37,6 @@ class Contact
   end
 
   def attributes
-    instance_values.except("address", "friends", "contact")
+    instance_values.except('address', 'friends', 'contact')
   end
 end

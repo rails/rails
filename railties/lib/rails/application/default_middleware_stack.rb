@@ -25,11 +25,11 @@ module Rails
           if config.public_file_server.enabled
             headers = config.public_file_server.headers || {}
 
-            middleware.use ::ActionDispatch::Static, paths["public"].first, index: config.public_file_server.index_name, headers: headers
+            middleware.use ::ActionDispatch::Static, paths['public'].first, index: config.public_file_server.index_name, headers: headers
           end
 
           if rack_cache = load_rack_cache
-            require "action_dispatch/http/rack_cache"
+            require 'action_dispatch/http/rack_cache'
             middleware.use ::Rack::Cache, rack_cache
           end
 
@@ -74,7 +74,7 @@ module Rails
 
           middleware.use ::Rack::Head
           middleware.use ::Rack::ConditionalGet
-          middleware.use ::Rack::ETag, "no-cache"
+          middleware.use ::Rack::ETag, 'no-cache'
 
           middleware.use ::Rack::TempfileReaper unless config.api_only
         end
@@ -86,16 +86,16 @@ module Rails
           return unless rack_cache
 
           begin
-            require "rack/cache"
+            require 'rack/cache'
           rescue LoadError => error
-            error.message << " Be sure to add rack-cache to your Gemfile"
+            error.message << ' Be sure to add rack-cache to your Gemfile'
             raise
           end
 
           if rack_cache == true
             {
-              metastore: "rails:/",
-              entitystore: "rails:/",
+              metastore: 'rails:/',
+              entitystore: 'rails:/',
               verbose: false
             }
           else

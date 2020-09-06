@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/book"
-require "support/schema_dumping_helper"
+require 'cases/helper'
+require 'models/book'
+require 'support/schema_dumping_helper'
 
 module ViewBehavior
   include SchemaDumpingHelper
@@ -14,7 +14,7 @@ module ViewBehavior
 
   class Ebook < ActiveRecord::Base
     self.table_name = "ebooks'"
-    self.primary_key = "id"
+    self.primary_key = 'id'
   end
 
   def setup
@@ -33,7 +33,7 @@ module ViewBehavior
   def test_reading
     books = Ebook.all
     assert_equal [books(:rfr).id], books.map(&:id)
-    assert_equal ["Ruby for Rails"], books.map(&:name)
+    assert_equal ['Ruby for Rails'], books.map(&:name)
   end
 
   def test_views
@@ -56,13 +56,13 @@ module ViewBehavior
   end
 
   def test_column_definitions
-    assert_equal([["id", :integer],
-                  ["name", :string],
-                  ["status", :integer]], Ebook.columns.map { |c| [c.name, c.type] })
+    assert_equal([['id', :integer],
+                  ['name', :string],
+                  ['status', :integer]], Ebook.columns.map { |c| [c.name, c.type] })
   end
 
   def test_attributes
-    assert_equal({ "id" => 2, "name" => "Ruby for Rails", "status" => 0 },
+    assert_equal({ 'id' => 2, 'name' => 'Ruby for Rails', 'status' => 0 },
                  Ebook.first.attributes)
   end
 
@@ -113,12 +113,12 @@ if ActiveRecord::Base.connection.supports_views?
     end
 
     teardown do
-      @connection.execute "DROP VIEW paperbacks" if @connection.view_exists? "paperbacks"
+      @connection.execute 'DROP VIEW paperbacks' if @connection.view_exists? 'paperbacks'
     end
 
     def test_reading
       books = Paperback.all
-      assert_equal ["Agile Web Development with Rails"], books.map(&:name)
+      assert_equal ['Agile Web Development with Rails'], books.map(&:name)
     end
 
     def test_views
@@ -136,12 +136,12 @@ if ActiveRecord::Base.connection.supports_views?
     end
 
     def test_column_definitions
-      assert_equal([["name", :string],
-                    ["status", :integer]], Paperback.columns.map { |c| [c.name, c.type] })
+      assert_equal([['name', :string],
+                    ['status', :integer]], Paperback.columns.map { |c| [c.name, c.type] })
     end
 
     def test_attributes
-      assert_equal({ "name" => "Agile Web Development with Rails", "status" => 2 },
+      assert_equal({ 'name' => 'Agile Web Development with Rails', 'status' => 2 },
                    Paperback.first.attributes)
     end
 
@@ -150,7 +150,7 @@ if ActiveRecord::Base.connection.supports_views?
     end
 
     def test_does_not_dump_view_as_table
-      schema = dump_table_schema "paperbacks"
+      schema = dump_table_schema 'paperbacks'
       assert_no_match %r{create_table "paperbacks"}, schema
     end
   end
@@ -163,7 +163,7 @@ if ActiveRecord::Base.connection.supports_views?
       fixtures :books
 
       class PrintedBook < ActiveRecord::Base
-        self.primary_key = "id"
+        self.primary_key = 'id'
       end
 
       setup do
@@ -175,27 +175,27 @@ if ActiveRecord::Base.connection.supports_views?
       end
 
       teardown do
-        @connection.execute "DROP VIEW printed_books" if @connection.view_exists? "printed_books"
+        @connection.execute 'DROP VIEW printed_books' if @connection.view_exists? 'printed_books'
       end
 
       def test_update_record
         book = PrintedBook.first
-        book.name = "AWDwR"
+        book.name = 'AWDwR'
         book.save!
         book.reload
-        assert_equal "AWDwR", book.name
+        assert_equal 'AWDwR', book.name
       end
 
       def test_insert_record
-        PrintedBook.create! name: "Rails in Action", status: 0, format: "paperback"
+        PrintedBook.create! name: 'Rails in Action', status: 0, format: 'paperback'
 
         new_book = PrintedBook.last
-        assert_equal "Rails in Action", new_book.name
+        assert_equal 'Rails in Action', new_book.name
       end
 
       def test_update_record_to_fail_view_conditions
         book = PrintedBook.first
-        book.format = "ebook"
+        book.format = 'ebook'
         book.save!
 
         assert_raises ActiveRecord::RecordNotFound do

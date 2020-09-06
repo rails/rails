@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/connection_helper"
+require 'cases/helper'
+require 'support/connection_helper'
 
 if current_adapter?(:Mysql2Adapter)
   module ActiveRecord
@@ -19,8 +19,8 @@ if current_adapter?(:Mysql2Adapter)
 
         def test_boolean_types
           emulate_booleans(true) do
-            assert_lookup_type :boolean, "tinyint(1)"
-            assert_lookup_type :boolean, "TINYINT(1)"
+            assert_lookup_type :boolean, 'tinyint(1)'
+            assert_lookup_type :boolean, 'TINYINT(1)'
           end
         end
 
@@ -44,16 +44,16 @@ if current_adapter?(:Mysql2Adapter)
         end
 
         def test_binary_types
-          assert_lookup_type :binary, "bit"
-          assert_lookup_type :binary, "BIT"
+          assert_lookup_type :binary, 'bit'
+          assert_lookup_type :binary, 'BIT'
         end
 
         def test_integer_types
           emulate_booleans(false) do
-            assert_lookup_type :integer, "tinyint(1)"
-            assert_lookup_type :integer, "TINYINT(1)"
-            assert_lookup_type :integer, "year"
-            assert_lookup_type :integer, "YEAR"
+            assert_lookup_type :integer, 'tinyint(1)'
+            assert_lookup_type :integer, 'TINYINT(1)'
+            assert_lookup_type :integer, 'year'
+            assert_lookup_type :integer, 'YEAR'
           end
         end
 

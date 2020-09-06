@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative "../helper"
+require_relative '../helper'
 
 describe Arel::Nodes::DeleteStatement do
-  describe "#clone" do
-    it "clones wheres" do
+  describe '#clone' do
+    it 'clones wheres' do
       statement = Arel::Nodes::DeleteStatement.new
       statement.wheres = %w[a b c]
 
@@ -14,8 +14,8 @@ describe Arel::Nodes::DeleteStatement do
     end
   end
 
-  describe "equality" do
-    it "is equal with equal ivars" do
+  describe 'equality' do
+    it 'is equal with equal ivars' do
       statement1 = Arel::Nodes::DeleteStatement.new
       statement1.wheres = %w[a b c]
       statement2 = Arel::Nodes::DeleteStatement.new
@@ -24,7 +24,7 @@ describe Arel::Nodes::DeleteStatement do
       assert_equal 1, array.uniq.size
     end
 
-    it "is not equal with different ivars" do
+    it 'is not equal with different ivars' do
       statement1 = Arel::Nodes::DeleteStatement.new
       statement1.wheres = %w[a b c]
       statement2 = Arel::Nodes::DeleteStatement.new

@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require "erb"
-require "yaml"
-require "zlib"
-require "set"
-require "active_support/dependencies"
-require "active_support/core_ext/digest/uuid"
-require "active_record/fixture_set/file"
-require "active_record/fixture_set/render_context"
-require "active_record/fixture_set/table_rows"
-require "active_record/test_fixtures"
+require 'erb'
+require 'yaml'
+require 'zlib'
+require 'set'
+require 'active_support/dependencies'
+require 'active_support/core_ext/digest/uuid'
+require 'active_record/fixture_set/file'
+require 'active_record/fixture_set/render_context'
+require 'active_record/fixture_set/table_rows'
+require 'active_record/test_fixtures'
 
 module ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
@@ -705,7 +705,7 @@ module ActiveRecord
               []
             end
 
-        @ignored_fixtures << "DEFAULTS" unless @ignored_fixtures.include?("DEFAULTS")
+        @ignored_fixtures << 'DEFAULTS' unless @ignored_fixtures.include?('DEFAULTS')
         @ignored_fixtures.compact
       end
 
@@ -764,7 +764,7 @@ module ActiveRecord
     alias :to_hash :fixture
 
     def find
-      raise FixtureClassNotFound, "No class attached to find." unless model_class
+      raise FixtureClassNotFound, 'No class attached to find.' unless model_class
       model_class.unscoped do
         model_class.find(fixture[model_class.primary_key])
       end

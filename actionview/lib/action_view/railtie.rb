@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "action_view"
-require "rails"
+require 'action_view'
+require 'rails'
 
 module ActionView
   # = Action View Railtie
@@ -45,30 +45,30 @@ module ActionView
         app.config.action_view.each do |k, v|
           if k == :raise_on_missing_translations
             ActiveSupport::Deprecation.warn \
-              "action_view.raise_on_missing_translations is deprecated and will be removed in Rails 6.2. " \
-              "Set i18n.raise_on_missing_translations instead. " \
-              "Note that this new setting also affects how missing translations are handled in controllers."
+              'action_view.raise_on_missing_translations is deprecated and will be removed in Rails 6.2. ' \
+              'Set i18n.raise_on_missing_translations instead. ' \
+              'Note that this new setting also affects how missing translations are handled in controllers.'
           end
           send "#{k}=", v
         end
       end
     end
 
-    initializer "action_view.finalize_compiled_template_methods" do |app|
+    initializer 'action_view.finalize_compiled_template_methods' do |app|
       ActiveSupport.on_load(:action_view) do
         option = app.config.action_view.delete(:finalize_compiled_template_methods)
 
         if option != NULL_OPTION
-          ActiveSupport::Deprecation.warn "action_view.finalize_compiled_template_methods is deprecated and has no effect"
+          ActiveSupport::Deprecation.warn 'action_view.finalize_compiled_template_methods is deprecated and has no effect'
         end
       end
     end
 
-    initializer "action_view.logger" do
+    initializer 'action_view.logger' do
       ActiveSupport.on_load(:action_view) { self.logger ||= Rails.logger }
     end
 
-    initializer "action_view.caching" do |app|
+    initializer 'action_view.caching' do |app|
       ActiveSupport.on_load(:action_view) do
         if app.config.action_view.cache_template_loading.nil?
           ActionView::Resolver.caching = app.config.cache_classes
@@ -76,13 +76,13 @@ module ActionView
       end
     end
 
-    initializer "action_view.setup_action_pack" do |app|
+    initializer 'action_view.setup_action_pack' do |app|
       ActiveSupport.on_load(:action_controller) do
         ActionView::RoutingUrlFor.include(ActionDispatch::Routing::UrlFor)
       end
     end
 
-    initializer "action_view.collection_caching", after: "action_controller.set_configs" do |app|
+    initializer 'action_view.collection_caching', after: 'action_controller.set_configs' do |app|
       PartialRenderer.collection_cache = app.config.action_controller.cache_store
     end
 
@@ -100,7 +100,7 @@ module ActionView
 
     rake_tasks do |app|
       unless app.config.api_only
-        load "action_view/tasks/cache_digests.rake"
+        load 'action_view/tasks/cache_digests.rake'
       end
     end
   end

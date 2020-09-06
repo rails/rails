@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 # The exhaustive tests are in the rails-html-sanitizer gem.
 # This tests that the helpers hook up correctly to the sanitizer classes.
@@ -8,15 +8,15 @@ class SanitizeHelperTest < ActionView::TestCase
   tests ActionView::Helpers::SanitizeHelper
 
   def test_strip_links
-    assert_equal "Dont touch me", strip_links("Dont touch me")
+    assert_equal 'Dont touch me', strip_links('Dont touch me')
     assert_equal "on my mind\nall day long", strip_links("<a href='almost'>on my mind</a>\n<A href='almost'>all day long</A>")
-    assert_equal "Magic", strip_links("<a href='http://www.rubyonrails.com/'>Mag<a href='http://www.ruby-lang.org/'>ic")
+    assert_equal 'Magic', strip_links("<a href='http://www.rubyonrails.com/'>Mag<a href='http://www.ruby-lang.org/'>ic")
     assert_equal "My mind\nall <b>day</b> long", strip_links("<a href='almost'>My mind</a>\n<A href='almost'>all <b>day</b> long</A>")
-    assert_equal "&lt;malformed &amp; link", strip_links('<<a href="https://example.org">malformed & link</a>')
+    assert_equal '&lt;malformed &amp; link', strip_links('<<a href="https://example.org">malformed & link</a>')
   end
 
   def test_sanitize_form
-    assert_equal "", sanitize("<form action=\"/foo/bar\" method=\"post\"><input></form>")
+    assert_equal '', sanitize('<form action="/foo/bar" method="post"><input></form>')
   end
 
   def test_should_sanitize_illegal_style_properties
@@ -26,11 +26,11 @@ class SanitizeHelperTest < ActionView::TestCase
   end
 
   def test_strip_tags
-    assert_equal("Dont touch me", strip_tags("Dont touch me"))
-    assert_equal("This is a test.", strip_tags("<p>This <u>is<u> a <a href='test.html'><strong>test</strong></a>.</p>"))
-    assert_equal "This has a  here.", strip_tags("This has a <!-- comment --> here.")
-    assert_equal("Jekyll &amp; Hyde", strip_tags("Jekyll & Hyde"))
-    assert_equal "", strip_tags("<script>")
+    assert_equal('Dont touch me', strip_tags('Dont touch me'))
+    assert_equal('This is a test.', strip_tags("<p>This <u>is<u> a <a href='test.html'><strong>test</strong></a>.</p>"))
+    assert_equal 'This has a  here.', strip_tags('This has a <!-- comment --> here.')
+    assert_equal('Jekyll &amp; Hyde', strip_tags('Jekyll & Hyde'))
+    assert_equal '', strip_tags('<script>')
   end
 
   def test_strip_tags_will_not_encode_special_characters
@@ -38,6 +38,6 @@ class SanitizeHelperTest < ActionView::TestCase
   end
 
   def test_sanitize_is_marked_safe
-    assert_predicate sanitize("<html><script></script></html>"), :html_safe?
+    assert_predicate sanitize('<html><script></script></html>'), :html_safe?
   end
 end

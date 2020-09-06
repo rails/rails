@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "active_support"
-require "active_support/core_ext/enumerable"
-require "active_support/core_ext/object/blank"
+require 'active_support'
+require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/object/blank'
 
-require "thor"
+require 'thor'
 
 module Rails
   module Command
@@ -24,7 +24,7 @@ module Rails
       end
 
       def environment # :nodoc:
-        ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence || "development"
+        ENV['RAILS_ENV'].presence || ENV['RACK_ENV'].presence || 'development'
       end
 
       # Receives a namespace, arguments and the behavior to invoke the command.
@@ -37,8 +37,8 @@ module Rails
           command_name = namespace
         end
 
-        command_name, namespace = "help", "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
-        command_name, namespace = "version", "version" if %w( -v --version ).include?(command_name)
+        command_name, namespace = 'help', 'help' if command_name.blank? || HELP_MAPPINGS.include?(command_name)
+        command_name, namespace = 'version', 'version' if %w( -v --version ).include?(command_name)
 
         # isolate ARGV to ensure that commands depend only on the args they are given
         args = args.dup # args might *be* ARGV so dup before clearing
@@ -49,7 +49,7 @@ module Rails
         if command && command.all_commands[command_name]
           command.perform(command_name, args, config)
         else
-          find_by_namespace("rake").perform(full_namespace, args, config)
+          find_by_namespace('rake').perform(full_namespace, args, config)
         end
       ensure
         ARGV.replace(old_argv)
@@ -84,7 +84,7 @@ module Rails
         if defined?(ENGINE_ROOT)
           Pathname.new(ENGINE_ROOT)
         elsif defined?(APP_PATH)
-          Pathname.new(File.expand_path("../..", APP_PATH))
+          Pathname.new(File.expand_path('../..', APP_PATH))
         end
       end
 
@@ -105,7 +105,7 @@ module Rails
         end
 
         def command_type # :doc:
-          @command_type ||= "command"
+          @command_type ||= 'command'
         end
 
         def lookup_paths # :doc:
@@ -113,7 +113,7 @@ module Rails
         end
 
         def file_lookup_paths # :doc:
-          @file_lookup_paths ||= [ "{#{lookup_paths.join(',')}}", "**", "*_command.rb" ]
+          @file_lookup_paths ||= [ "{#{lookup_paths.join(',')}}", '**', '*_command.rb' ]
         end
     end
   end

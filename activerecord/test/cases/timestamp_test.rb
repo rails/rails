@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/ddl_helper"
-require "models/developer"
-require "models/computer"
-require "models/owner"
-require "models/pet"
-require "models/toy"
-require "models/car"
-require "models/task"
+require 'cases/helper'
+require 'support/ddl_helper'
+require 'models/developer'
+require 'models/computer'
+require 'models/owner'
+require 'models/pet'
+require 'models/toy'
+require 'models/car'
+require 'models/task'
 
 class TimestampTest < ActiveRecord::TestCase
   fixtures :developers, :owners, :pets, :toys, :cars, :tasks
@@ -21,7 +21,7 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_saving_a_changed_record_updates_its_timestamp
-    @developer.name = "Jack Bauer"
+    @developer.name = 'Jack Bauer'
     @developer.save!
 
     assert_not_equal @previously_updated_at, @developer.updated_at
@@ -40,11 +40,11 @@ class TimestampTest < ActiveRecord::TestCase
 
     assert_not_equal @previously_updated_at, @developer.updated_at
     assert_equal previous_salary + 10000, @developer.salary
-    assert_predicate @developer, :salary_changed?, "developer salary should have changed"
-    assert_predicate @developer, :changed?, "developer should be marked as changed"
-    assert_equal ["salary"], @developer.changed
+    assert_predicate @developer, :salary_changed?, 'developer salary should have changed'
+    assert_predicate @developer, :changed?, 'developer should be marked as changed'
+    assert_equal ['salary'], @developer.changed
     assert_predicate @developer, :saved_changes?
-    assert_equal ["legacy_updated_at", "legacy_updated_on"], @developer.saved_changes.keys.sort
+    assert_equal ['legacy_updated_at', 'legacy_updated_on'], @developer.saved_changes.keys.sort
 
     @developer.reload
     assert_equal previous_salary, @developer.salary
@@ -57,7 +57,7 @@ class TimestampTest < ActiveRecord::TestCase
     assert_not_equal @previously_updated_at, developer.updated_at
     assert_not_predicate developer, :changed?
     assert_predicate developer, :saved_changes?
-    assert_equal ["legacy_updated_at", "legacy_updated_on"], developer.saved_changes.keys.sort
+    assert_equal ['legacy_updated_at', 'legacy_updated_on'], developer.saved_changes.keys.sort
 
     developer.reload
     assert_not_equal @previously_updated_at, developer.updated_at
@@ -65,7 +65,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_saving_when_record_timestamps_is_false_doesnt_update_its_timestamp
     Developer.record_timestamps = false
-    @developer.name = "John Smith"
+    @developer.name = 'John Smith'
     @developer.save!
 
     assert_equal @previously_updated_at, @developer.updated_at
@@ -77,7 +77,7 @@ class TimestampTest < ActiveRecord::TestCase
     @developer.record_timestamps = false
     assert Developer.record_timestamps
 
-    @developer.name = "John Smith"
+    @developer.name = 'John Smith'
     @developer.save!
 
     assert_equal @previously_updated_at, @developer.updated_at
@@ -98,8 +98,8 @@ class TimestampTest < ActiveRecord::TestCase
       @developer.touch(:created_at)
     end
 
-    assert_not @developer.created_at_changed?, "created_at should not be changed"
-    assert_not @developer.changed?, "record should not be changed"
+    assert_not @developer.created_at_changed?, 'created_at should not be changed'
+    assert_not @developer.changed?, 'record should not be changed'
     assert_not_equal previously_created_at, @developer.created_at
     assert_not_equal @previously_updated_at, @developer.updated_at
   end
@@ -204,7 +204,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_no_touching_with_callbacks
     klass = Class.new(ActiveRecord::Base) do
-      self.table_name = "developers"
+      self.table_name = 'developers'
 
       attr_accessor :after_touch_called
 
@@ -227,7 +227,7 @@ class TimestampTest < ActiveRecord::TestCase
     previously_owner_updated_at = owner.updated_at
 
     travel(1.second) do
-      pet.name = "Fluffy the Third"
+      pet.name = 'Fluffy the Third'
       pet.save
     end
 
@@ -248,7 +248,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_saving_a_new_record_belonging_to_invalid_parent_with_touch_should_not_raise_exception
     klass = Class.new(Owner) do
-      def self.name; "Owner"; end
+      def self.name; 'Owner'; end
       validate { errors.add(:base, :invalid) }
     end
 
@@ -260,7 +260,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_a_specific_attribute_the_parent_should_update_that_attribute
     klass = Class.new(ActiveRecord::Base) do
-      def self.name; "Pet"; end
+      def self.name; 'Pet'; end
       belongs_to :owner, touch: :happy_at
     end
 
@@ -268,7 +268,7 @@ class TimestampTest < ActiveRecord::TestCase
     owner = pet.owner
     previously_owner_happy_at = owner.happy_at
 
-    pet.name = "Fluffy the Third"
+    pet.name = 'Fluffy the Third'
     pet.save
 
     assert_not_equal previously_owner_happy_at, pet.owner.happy_at
@@ -276,7 +276,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_touching_a_record_with_a_belongs_to_that_uses_a_counter_cache_should_update_the_parent
     klass = Class.new(ActiveRecord::Base) do
-      def self.name; "Pet"; end
+      def self.name; 'Pet'; end
       belongs_to :owner, counter_cache: :use_count, touch: true
     end
 
@@ -295,7 +295,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_touching_a_record_touches_parent_record_and_grandparent_record
     klass = Class.new(ActiveRecord::Base) do
-      def self.name; "Toy"; end
+      def self.name; 'Toy'; end
       belongs_to :pet, touch: true
     end
 
@@ -313,11 +313,11 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_touching_a_record_touches_polymorphic_record
     klass = Class.new(ActiveRecord::Base) do
-      def self.name; "Toy"; end
+      def self.name; 'Toy'; end
     end
 
     wheel_klass = Class.new(ActiveRecord::Base) do
-      def self.name; "Wheel"; end
+      def self.name; 'Wheel'; end
       belongs_to :wheelable, polymorphic: true, touch: true
     end
 
@@ -335,7 +335,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_changing_parent_of_a_record_touches_both_new_and_old_parent_record
     klass = Class.new(ActiveRecord::Base) do
-      def self.name; "Toy"; end
+      def self.name; 'Toy'; end
       belongs_to :pet, touch: true
     end
 
@@ -361,11 +361,11 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_changing_parent_of_a_record_touches_both_new_and_old_polymorphic_parent_record_changes_within_same_class
     car_class = Class.new(ActiveRecord::Base) do
-      def self.name; "Car"; end
+      def self.name; 'Car'; end
     end
 
     wheel_class = Class.new(ActiveRecord::Base) do
-      def self.name; "Wheel"; end
+      def self.name; 'Wheel'; end
       belongs_to :wheelable, polymorphic: true, touch: true
     end
 
@@ -388,15 +388,15 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_changing_parent_of_a_record_touches_both_new_and_old_polymorphic_parent_record_changes_with_other_class
     car_class = Class.new(ActiveRecord::Base) do
-      def self.name; "Car"; end
+      def self.name; 'Car'; end
     end
 
     toy_class = Class.new(ActiveRecord::Base) do
-      def self.name; "Toy"; end
+      def self.name; 'Toy'; end
     end
 
     wheel_class = Class.new(ActiveRecord::Base) do
-      def self.name; "Wheel"; end
+      def self.name; 'Wheel'; end
       belongs_to :wheelable, polymorphic: true, touch: true
     end
 
@@ -419,7 +419,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_clearing_association_touches_the_old_record
     klass = Class.new(ActiveRecord::Base) do
-      def self.name; "Toy"; end
+      def self.name; 'Toy'; end
       belongs_to :pet, touch: true
     end
 
@@ -439,30 +439,30 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_timestamp_column_values_are_present_in_the_callbacks
     klass = Class.new(ActiveRecord::Base) do
-      self.table_name = "people"
+      self.table_name = 'people'
 
       before_create do
         self.born_at = created_at
       end
     end
 
-    person = klass.create first_name: "David"
+    person = klass.create first_name: 'David'
     assert_not_equal person.born_at, nil
   end
 
   def test_timestamp_attributes_for_create_in_model
     toy = Toy.first
-    assert_equal ["created_at"], toy.send(:timestamp_attributes_for_create_in_model)
+    assert_equal ['created_at'], toy.send(:timestamp_attributes_for_create_in_model)
   end
 
   def test_timestamp_attributes_for_update_in_model
     toy = Toy.first
-    assert_equal ["updated_at"], toy.send(:timestamp_attributes_for_update_in_model)
+    assert_equal ['updated_at'], toy.send(:timestamp_attributes_for_update_in_model)
   end
 
   def test_all_timestamp_attributes_in_model
     toy = Toy.first
-    assert_equal ["created_at", "updated_at"], toy.send(:all_timestamp_attributes_in_model)
+    assert_equal ['created_at', 'updated_at'], toy.send(:all_timestamp_attributes_in_model)
   end
 end
 
@@ -475,7 +475,7 @@ class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
   end
 
   def test_do_not_write_timestamps_on_save_if_they_are_not_attributes
-    with_example_table ActiveRecord::Base.connection, "timestamp_attribute_posts", "id integer primary key" do
+    with_example_table ActiveRecord::Base.connection, 'timestamp_attribute_posts', 'id integer primary key' do
       post = TimestampAttributePost.new(id: 1)
       post.save! # should not try to assign and persist created_at, updated_at
       assert_nil post.created_at
@@ -488,8 +488,8 @@ class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
       t.timestamps null: true, index: true
     end
 
-    indexes = ActiveRecord::Base.connection.indexes("foos")
-    assert_equal ["created_at", "updated_at"], indexes.flat_map(&:columns).sort
+    indexes = ActiveRecord::Base.connection.indexes('foos')
+    assert_equal ['created_at', 'updated_at'], indexes.flat_map(&:columns).sort
   ensure
     ActiveRecord::Base.connection.drop_table(:foos)
   end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rbconfig"
+require 'rbconfig'
 
 module ActiveSupport
   class Deprecation
@@ -109,7 +109,7 @@ module ActiveSupport
         end
 
         def deprecation_message(callstack, message = nil)
-          message ||= "You are using deprecated behavior which will be removed from the next major or minor release."
+          message ||= 'You are using deprecated behavior which will be removed from the next major or minor release.'
           "DEPRECATION WARNING: #{message} #{deprecation_caller_message(callstack)}"
         end
 
@@ -135,7 +135,7 @@ module ActiveSupport
         end
 
         def _extract_callstack(callstack)
-          warn "Please pass `caller_locations` to the deprecation API" if $VERBOSE
+          warn 'Please pass `caller_locations` to the deprecation API' if $VERBOSE
           offending_line = callstack.find { |line| !ignored_callstack(line) } || callstack.first
 
           if offending_line
@@ -147,10 +147,10 @@ module ActiveSupport
           end
         end
 
-        RAILS_GEM_ROOT = File.expand_path("../../../..", __dir__) + "/"
+        RAILS_GEM_ROOT = File.expand_path('../../../..', __dir__) + '/'
 
         def ignored_callstack(path)
-          path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG["rubylibdir"])
+          path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG['rubylibdir'])
         end
     end
   end

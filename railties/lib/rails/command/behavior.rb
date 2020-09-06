@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support"
+require 'active_support'
 
 module Rails
   module Command
@@ -70,8 +70,8 @@ module Rails
           def namespaces_to_paths(namespaces)
             paths = []
             namespaces.each do |namespace|
-              pieces = namespace.split(":")
-              path = pieces.join("/")
+              pieces = namespace.split(':')
+              path = pieces.join('/')
               paths << "#{path}/#{pieces.last}"
               paths << path
             end

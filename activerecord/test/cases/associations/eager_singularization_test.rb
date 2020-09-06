@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 class EagerSingularizationTest < ActiveRecord::TestCase
   class Virus < ActiveRecord::Base

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../test_helper"
+require_relative '../../test_helper'
 
 class BouncingWithReplyMailbox < ActionMailbox::Base
   def process
@@ -13,10 +13,10 @@ class ActionMailbox::Base::BouncingTest < ActiveSupport::TestCase
 
   setup do
     @inbound_email = create_inbound_email_from_mail \
-      from: "sender@example.com", to: "replies@example.com", subject: "Bounce me"
+      from: 'sender@example.com', to: 'replies@example.com', subject: 'Bounce me'
   end
 
-  test "bouncing with a reply" do
+  test 'bouncing with a reply' do
     perform_enqueued_jobs only: ActionMailer::MailDeliveryJob do
       BouncingWithReplyMailbox.receive @inbound_email
     end
@@ -26,6 +26,6 @@ class ActionMailbox::Base::BouncingTest < ActiveSupport::TestCase
 
     mail = ActionMailer::Base.deliveries.last
     assert_equal %w[ sender@example.com ], mail.to
-    assert_equal "Your email was not delivered", mail.subject
+    assert_equal 'Your email was not delivered', mail.subject
   end
 end

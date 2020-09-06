@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
-require "active_support/deprecation"
+require_relative '../abstract_unit'
+require 'active_support/deprecation'
 
 class ProxyWrappersTest < ActiveSupport::TestCase
   Waffles     = false
   NewWaffles  = :hamburgers
 
   def test_deprecated_object_proxy_doesnt_wrap_falsy_objects
-    proxy = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(nil, "message")
+    proxy = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(nil, 'message')
     assert_not proxy
   end
 

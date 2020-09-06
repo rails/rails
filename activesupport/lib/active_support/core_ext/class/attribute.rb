@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/redefine_method"
+require 'active_support/core_ext/module/redefine_method'
 
 class Class
   # Declare a class-level attribute whose value is inheritable by subclasses.
@@ -125,7 +125,7 @@ class Class
     end
 
     location = caller_locations(1, 1).first
-    class_eval(["class << self", *class_methods, "end", *methods].join(";").tr("\n", ";"), location.path, location.lineno)
+    class_eval(['class << self', *class_methods, 'end', *methods].join(';').tr("\n", ';'), location.path, location.lineno)
 
     attrs.each { |name| public_send("#{name}=", default) }
   end

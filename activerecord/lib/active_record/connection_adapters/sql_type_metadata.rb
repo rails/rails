@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_record/connection_adapters/deduplicable"
+require 'active_record/connection_adapters/deduplicable'
 
 module ActiveRecord
   # :stopdoc:

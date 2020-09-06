@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "action_view/renderer/partial_renderer"
+require 'action_view/renderer/partial_renderer'
 
 module ActionView
   class PartialIteration
@@ -124,7 +124,7 @@ module ActionView
         render_collection_with_partial(collection, paths.first, context, block)
       else
         if @options[:cached]
-          raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
+          raise NotImplementedError, 'render caching requires a template. Please specify a partial when rendering'
         end
 
         paths.map! { |path| retrieve_variable(path).unshift(path) }
@@ -142,7 +142,7 @@ module ActionView
       def render_collection(collection, view, path, template, layout, block)
         identifier = (template && template.identifier) || path
         ActiveSupport::Notifications.instrument(
-          "render_collection.action_view",
+          'render_collection.action_view',
           identifier: identifier,
           layout: layout && layout.virtual_path,
           count: collection.size

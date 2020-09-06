@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "rails/test_unit/line_filtering"
+require 'rails/test_unit/line_filtering'
 
 if defined?(Rake.application) && Rake.application.top_level_tasks.grep(/^(default$|test(:|$))/).any?
-  ENV["RAILS_ENV"] ||= Rake.application.options.show_tasks ? "development" : "test"
+  ENV['RAILS_ENV'] ||= Rake.application.options.show_tasks ? 'development' : 'test'
 end
 
 module Rails
@@ -16,14 +16,14 @@ module Rails
       c.system_tests :test_unit
     end
 
-    initializer "test_unit.line_filtering" do
+    initializer 'test_unit.line_filtering' do
       ActiveSupport.on_load(:active_support_test_case) {
         ActiveSupport::TestCase.extend Rails::LineFiltering
       }
     end
 
     rake_tasks do
-      load "rails/test_unit/testing.rake"
+      load 'rails/test_unit/testing.rake'
     end
   end
 end

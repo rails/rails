@@ -8,7 +8,7 @@ module ActiveRecord
       # schema qualified type names. +schema+ and +identifier+ are unquoted to prevent
       # double quoting.
       class Name # :nodoc:
-        SEPARATOR = "."
+        SEPARATOR = '.'
         attr_reader :schema, :identifier
 
         def initialize(schema, identifier)

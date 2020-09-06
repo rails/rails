@@ -4,24 +4,24 @@ module ActiveStorage
   class Previewer::PopplerPDFPreviewer < Previewer
     class << self
       def accept?(blob)
-        blob.content_type == "application/pdf" && pdftoppm_exists?
+        blob.content_type == 'application/pdf' && pdftoppm_exists?
       end
 
       def pdftoppm_path
-        ActiveStorage.paths[:pdftoppm] || "pdftoppm"
+        ActiveStorage.paths[:pdftoppm] || 'pdftoppm'
       end
 
       def pdftoppm_exists?
         return @pdftoppm_exists if defined?(@pdftoppm_exists)
 
-        @pdftoppm_exists = system(pdftoppm_path, "-v", out: File::NULL, err: File::NULL)
+        @pdftoppm_exists = system(pdftoppm_path, '-v', out: File::NULL, err: File::NULL)
       end
     end
 
     def preview(**options)
       download_blob_to_tempfile do |input|
         draw_first_page_from input do |output|
-          yield io: output, filename: "#{blob.filename.base}.png", content_type: "image/png", **options
+          yield io: output, filename: "#{blob.filename.base}.png", content_type: 'image/png', **options
         end
       end
     end
@@ -29,7 +29,7 @@ module ActiveStorage
     private
       def draw_first_page_from(file, &block)
         # use 72 dpi to match thumbnail dimensions of the PDF
-        draw self.class.pdftoppm_path, "-singlefile", "-r", "72", "-png", file.path, &block
+        draw self.class.pdftoppm_path, '-singlefile', '-r', '72', '-png', file.path, &block
       end
   end
 end

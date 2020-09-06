@@ -17,8 +17,8 @@ module ActiveRecord
       def to_sql_and_binds(arel_or_sql_string, binds = [], preparable = nil) # :nodoc:
         if arel_or_sql_string.respond_to?(:ast)
           unless binds.empty?
-            raise "Passing bind parameters with an arel AST is forbidden. " \
-              "The values must be stored on the AST directly"
+            raise 'Passing bind parameters with an arel AST is forbidden. ' \
+              'The values must be stored on the AST directly'
           end
 
           collector = collector()
@@ -124,7 +124,7 @@ module ActiveRecord
       # Executes +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_query(sql, name = "SQL", binds = [], prepare: false)
+      def exec_query(sql, name = 'SQL', binds = [], prepare: false)
         raise NotImplementedError
       end
 
@@ -198,7 +198,7 @@ module ActiveRecord
         with_multi_statements do
           disable_referential_integrity do
             statements = build_truncate_statements(table_names)
-            execute_batch(statements, "Truncate Tables")
+            execute_batch(statements, 'Truncate Tables')
           end
         end
       end
@@ -313,7 +313,7 @@ module ActiveRecord
       def transaction(requires_new: nil, isolation: nil, joinable: true)
         if !requires_new && current_transaction.joinable?
           if isolation
-            raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
+            raise ActiveRecord::TransactionIsolationError, 'cannot set isolation when joining a transaction'
           end
           yield
         else
@@ -355,10 +355,10 @@ module ActiveRecord
 
       def transaction_isolation_levels
         {
-          read_uncommitted: "READ UNCOMMITTED",
-          read_committed:   "READ COMMITTED",
-          repeatable_read:  "REPEATABLE READ",
-          serializable:     "SERIALIZABLE"
+          read_uncommitted: 'READ UNCOMMITTED',
+          read_committed:   'READ COMMITTED',
+          repeatable_read:  'REPEATABLE READ',
+          serializable:     'SERIALIZABLE'
         }
       end
 
@@ -366,7 +366,7 @@ module ActiveRecord
       # default; adapters that support setting the isolation level should implement
       # this method.
       def begin_isolated_db_transaction(isolation)
-        raise ActiveRecord::TransactionIsolationError, "adapter does not support setting transaction isolation"
+        raise ActiveRecord::TransactionIsolationError, 'adapter does not support setting transaction isolation'
       end
 
       # Commits the transaction (and turns on auto-committing).
@@ -399,7 +399,7 @@ module ActiveRecord
       # We keep this method to provide fallback
       # for databases like sqlite that do not support bulk inserts.
       def insert_fixture(fixture, table_name)
-        execute(build_fixture_sql(Array.wrap(fixture), table_name), "Fixture Insert")
+        execute(build_fixture_sql(Array.wrap(fixture), table_name), 'Fixture Insert')
       end
 
       def insert_fixtures_set(fixture_set, tables_to_delete = [])
@@ -410,14 +410,14 @@ module ActiveRecord
         with_multi_statements do
           disable_referential_integrity do
             transaction(requires_new: true) do
-              execute_batch(statements, "Fixtures Load")
+              execute_batch(statements, 'Fixtures Load')
             end
           end
         end
       end
 
       def empty_insert_statement_value(primary_key = nil)
-        "DEFAULT VALUES"
+        'DEFAULT VALUES'
       end
 
       # Sanitizes the given LIMIT parameter in order to prevent SQL injection.
@@ -452,7 +452,7 @@ module ActiveRecord
           end
         end
 
-        DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
+        DEFAULT_INSERT_VALUE = Arel.sql('DEFAULT').freeze
         private_constant :DEFAULT_INSERT_VALUE
 
         def default_insert_value(column)

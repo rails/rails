@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "ostruct"
+require 'ostruct'
 
 # Image blobs can have variants that are the result of a set of transformations applied to the original.
 # These variants are used to create thumbnails, fixed-size avatars, or any other derivative image from the
@@ -125,8 +125,8 @@ class ActiveStorage::Variant
         else
           Specification.new \
             filename: ActiveStorage::Filename.new("#{blob.filename.base}.png"),
-            content_type: "image/png",
-            format: "png"
+            content_type: 'image/png',
+            format: 'png'
         end
     end
 

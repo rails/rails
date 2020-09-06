@@ -5,7 +5,7 @@ module Arel # :nodoc: all
     class MySQL < Arel::Visitors::ToSql
       private
         def visit_Arel_Nodes_Bin(o, collector)
-          collector << "BINARY "
+          collector << 'BINARY '
           visit o.expr, collector
         end
 
@@ -26,36 +26,36 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_SelectCore(o, collector)
-          o.froms ||= Arel.sql("DUAL")
+          o.froms ||= Arel.sql('DUAL')
           super
         end
 
         def visit_Arel_Nodes_Concat(o, collector)
-          collector << " CONCAT("
+          collector << ' CONCAT('
           visit o.left, collector
-          collector << ", "
+          collector << ', '
           visit o.right, collector
-          collector << ") "
+          collector << ') '
           collector
         end
 
         def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
           collector = visit o.left, collector
-          collector << " <=> "
+          collector << ' <=> '
           visit o.right, collector
         end
 
         def visit_Arel_Nodes_IsDistinctFrom(o, collector)
-          collector << "NOT "
+          collector << 'NOT '
           visit_Arel_Nodes_IsNotDistinctFrom o, collector
         end
 
         def visit_Arel_Nodes_Regexp(o, collector)
-          infix_value o, collector, " REGEXP "
+          infix_value o, collector, ' REGEXP '
         end
 
         def visit_Arel_Nodes_NotRegexp(o, collector)
-          infix_value o, collector, " NOT REGEXP "
+          infix_value o, collector, ' NOT REGEXP '
         end
 
         # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
@@ -84,7 +84,7 @@ module Arel # :nodoc: all
 
           Nodes::SelectStatement.new.tap do |stmt|
             core = stmt.cores.last
-            core.froms = Nodes::Grouping.new(subselect).as("__active_record_temp")
+            core.froms = Nodes::Grouping.new(subselect).as('__active_record_temp')
             core.projections = [Arel.sql(quote_column_name(key.name))]
           end
         end

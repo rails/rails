@@ -3,7 +3,7 @@
 module ActiveSupport
   module Testing
     module Isolation
-      require "thread"
+      require 'thread'
 
       def self.included(klass) #:nodoc:
         klass.class_eval do
@@ -12,7 +12,7 @@ module ActiveSupport
       end
 
       def self.forking_env?
-        !ENV["NO_FORK"] && Process.respond_to?(:fork)
+        !ENV['NO_FORK'] && Process.respond_to?(:fork)
       end
 
       def run
@@ -49,14 +49,14 @@ module ActiveSupport
               result = Marshal.dump(test_result)
             end
 
-            write.puts [result].pack("m")
+            write.puts [result].pack('m')
             exit!
           end
 
           write.close
           result = read.read
           Process.wait2(pid)
-          result.unpack1("m")
+          result.unpack1('m')
         end
       end
 
@@ -66,27 +66,27 @@ module ActiveSupport
         # Crazy H4X to get this working in windows / jruby with
         # no forking.
         def run_in_isolation(&blk)
-          require "tempfile"
+          require 'tempfile'
 
-          if ENV["ISOLATION_TEST"]
+          if ENV['ISOLATION_TEST']
             yield
             test_result = defined?(Minitest::Result) ? Minitest::Result.from(self) : dup
-            File.open(ENV["ISOLATION_OUTPUT"], "w") do |file|
-              file.puts [Marshal.dump(test_result)].pack("m")
+            File.open(ENV['ISOLATION_OUTPUT'], 'w') do |file|
+              file.puts [Marshal.dump(test_result)].pack('m')
             end
             exit!
           else
-            Tempfile.open("isolation") do |tmpfile|
+            Tempfile.open('isolation') do |tmpfile|
               env = {
-                "ISOLATION_TEST" => self.class.name,
-                "ISOLATION_OUTPUT" => tmpfile.path
+                'ISOLATION_TEST' => self.class.name,
+                'ISOLATION_OUTPUT' => tmpfile.path
               }
 
               test_opts = "-n#{self.class.name}##{name}"
 
               load_path_args = []
               $-I.each do |p|
-                load_path_args << "-I"
+                load_path_args << '-I'
                 load_path_args << File.expand_path(p)
               end
 
@@ -98,7 +98,7 @@ module ActiveSupport
                 nil
               end
 
-              return tmpfile.read.unpack1("m")
+              return tmpfile.read.unpack1('m')
             end
           end
         end

@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-tap "homebrew/core"
-tap "homebrew/bundle"
-tap "homebrew/services"
-tap "homebrew/cask"
-brew "ffmpeg"
-brew "memcached"
-brew "mysql"
-brew "postgresql"
-brew "redis"
-brew "yarn"
-cask "xquartz"
-brew "mupdf"
-brew "poppler"
-brew "imagemagick"
+tap 'homebrew/core'
+tap 'homebrew/bundle'
+tap 'homebrew/services'
+tap 'homebrew/cask'
+brew 'ffmpeg'
+brew 'memcached'
+brew 'mysql'
+brew 'postgresql'
+brew 'redis'
+brew 'yarn'
+cask 'xquartz'
+brew 'mupdf'
+brew 'poppler'
+brew 'imagemagick'

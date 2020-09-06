@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/benchmarkable"
+require 'active_support/benchmarkable'
 
 module ActionView #:nodoc:
   module Helpers #:nodoc:
@@ -20,7 +20,7 @@ module ActionView #:nodoc:
     autoload :FormHelper
     autoload :FormOptionsHelper
     autoload :FormTagHelper
-    autoload :JavaScriptHelper, "action_view/helpers/javascript_helper"
+    autoload :JavaScriptHelper, 'action_view/helpers/javascript_helper'
     autoload :NumberHelper
     autoload :OutputSafetyHelper
     autoload :RenderingHelper

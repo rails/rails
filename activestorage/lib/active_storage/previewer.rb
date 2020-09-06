@@ -55,7 +55,7 @@ module ActiveStorage
       end
 
       def open_tempfile
-        tempfile = Tempfile.open("ActiveStorage-", tmpdir)
+        tempfile = Tempfile.open('ActiveStorage-', tmpdir)
 
         begin
           yield tempfile

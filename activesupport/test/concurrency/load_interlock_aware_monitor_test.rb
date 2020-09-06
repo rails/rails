@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
-require "concurrent/atomic/count_down_latch"
-require "active_support/concurrency/load_interlock_aware_monitor"
+require_relative '../abstract_unit'
+require 'concurrent/atomic/count_down_latch'
+require 'active_support/concurrency/load_interlock_aware_monitor'
 
 module ActiveSupport
   module Concurrency

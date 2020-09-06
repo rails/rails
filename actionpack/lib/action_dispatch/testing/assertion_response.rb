@@ -8,10 +8,10 @@ module ActionDispatch
     attr_reader :code, :name
 
     GENERIC_RESPONSE_CODES = { # :nodoc:
-      success: "2XX",
-      missing: "404",
-      redirect: "3XX",
-      error: "5XX"
+      success: '2XX',
+      missing: '404',
+      redirect: '3XX',
+      error: '5XX'
     }
 
     # Accepts a specific response status code as an Integer (404) or String

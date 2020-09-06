@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/topic"
-require "models/reply"
-require "models/author"
-require "models/post"
+require 'cases/helper'
+require 'models/topic'
+require 'models/reply'
+require 'models/author'
+require 'models/post'
 
 if ActiveRecord::Base.connection.prepared_statements
   module ActiveRecord
@@ -28,7 +28,7 @@ if ActiveRecord::Base.connection.prepared_statements
         @connection = ActiveRecord::Base.connection
         @subscriber = LogListener.new
         @pk = Topic.columns_hash[Topic.primary_key]
-        @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
+        @subscription = ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
       end
 
       def teardown
@@ -80,10 +80,10 @@ if ActiveRecord::Base.connection.prepared_statements
         assert_equal 1, Topic.find_by!(id: 1).id
         assert_raises(RecordNotFound) { SillyReply.find_by!(id: 2) }
 
-        topic_sql = cached_statement(Topic, ["id"])
+        topic_sql = cached_statement(Topic, ['id'])
         assert_includes statement_cache, to_sql_key(topic_sql)
 
-        reply_sql = cached_statement(SillyReply, ["id"])
+        reply_sql = cached_statement(SillyReply, ['id'])
         assert_includes statement_cache, to_sql_key(reply_sql)
 
         replies = SillyReply.where(id: 2).limit(1)
@@ -101,7 +101,7 @@ if ActiveRecord::Base.connection.prepared_statements
       def test_statement_cache_with_sql_string_literal
         @connection.clear_cache!
 
-        topics = Topic.where("topics.id = ?", 1)
+        topics = Topic.where('topics.id = ?', 1)
         assert_equal [1], topics.map(&:id)
         assert_not_includes statement_cache, to_sql_key(topics.arel)
       end
@@ -130,17 +130,17 @@ if ActiveRecord::Base.connection.prepared_statements
       end
 
       def test_bind_from_join_in_subquery
-        subquery = Author.joins(:thinking_posts).where(name: "David")
-        scope = Author.from(subquery, "authors").where(id: 1)
+        subquery = Author.joins(:thinking_posts).where(name: 'David')
+        scope = Author.from(subquery, 'authors').where(id: 1)
         assert_equal 1, scope.count
       end
 
       def test_binds_are_logged
         sub   = Arel::Nodes::BindParam.new(1)
-        binds = [Relation::QueryAttribute.new("id", 1, Type::Value.new)]
+        binds = [Relation::QueryAttribute.new('id', 1, Type::Value.new)]
         sql   = "select * from topics where id = #{sub.to_sql}"
 
-        @connection.exec_query(sql, "SQL", binds)
+        @connection.exec_query(sql, 'SQL', binds)
 
         message = @subscriber.calls.find { |args| args[4][:sql] == sql }
         assert_equal binds, message[4][:binds]
@@ -149,16 +149,16 @@ if ActiveRecord::Base.connection.prepared_statements
       def test_find_one_uses_binds
         Topic.find(1)
         message = @subscriber.calls.find { |args| args[4][:binds].any? { |attr| attr.value == 1 } }
-        assert message, "expected a message with binds"
+        assert message, 'expected a message with binds'
       end
 
       def test_logs_binds_after_type_cast
-        binds = [Relation::QueryAttribute.new("id", "10", Type::Integer.new)]
+        binds = [Relation::QueryAttribute.new('id', '10', Type::Integer.new)]
         assert_logs_binds(binds)
       end
 
       def test_logs_legacy_binds_after_type_cast
-        binds = [[@pk, "10"]]
+        binds = [[@pk, '10']]
         assert_deprecated do
           assert_logs_binds(binds)
         end
@@ -233,14 +233,14 @@ if ActiveRecord::Base.connection.prepared_statements
 
         def assert_logs_binds(binds)
           payload = {
-            name: "SQL",
-            sql: "select * from topics where id = ?",
+            name: 'SQL',
+            sql: 'select * from topics where id = ?',
             binds: binds,
             type_casted_binds: @connection.send(:type_casted_binds, binds)
           }
 
           event = ActiveSupport::Notifications::Event.new(
-            "foo",
+            'foo',
             Time.now,
             Time.now,
             123,

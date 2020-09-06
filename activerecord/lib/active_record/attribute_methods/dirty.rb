@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/attribute_accessors"
+require 'active_support/core_ext/module/attribute_accessors'
 
 module ActiveRecord
   module AttributeMethods
@@ -11,19 +11,19 @@ module ActiveRecord
 
       included do
         if self < ::ActiveRecord::Timestamp
-          raise "You cannot include Dirty after Timestamp"
+          raise 'You cannot include Dirty after Timestamp'
         end
 
         class_attribute :partial_writes, instance_writer: false, default: true
 
         # Attribute methods for "changed in last call to save?"
-        attribute_method_affix(prefix: "saved_change_to_", suffix: "?")
-        attribute_method_prefix("saved_change_to_")
-        attribute_method_suffix("_before_last_save")
+        attribute_method_affix(prefix: 'saved_change_to_', suffix: '?')
+        attribute_method_prefix('saved_change_to_')
+        attribute_method_suffix('_before_last_save')
 
         # Attribute methods for "will change if I call save?"
-        attribute_method_affix(prefix: "will_save_change_to_", suffix: "?")
-        attribute_method_suffix("_change_to_be_saved", "_in_database")
+        attribute_method_affix(prefix: 'will_save_change_to_', suffix: '?')
+        attribute_method_suffix('_change_to_be_saved', '_in_database')
       end
 
       # <tt>reload</tt> the record and clears changed attributes.

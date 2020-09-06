@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support"
-require "active_support/core_ext/array/wrap"
+require 'active_support'
+require 'active_support/core_ext/array/wrap'
 
 # :enddoc:
 

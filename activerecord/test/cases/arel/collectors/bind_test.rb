@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../helper"
-require "arel/collectors/bind"
+require_relative '../helper'
+require 'arel/collectors/bind'
 
 module Arel
   module Collectors
@@ -29,11 +29,11 @@ module Arel
       end
 
       def test_compile_gathers_all_bind_params
-        binds = compile(ast_with_binds(["hello", "world"]))
-        assert_equal ["hello", "world"], binds
+        binds = compile(ast_with_binds(['hello', 'world']))
+        assert_equal ['hello', 'world'], binds
 
-        binds = compile(ast_with_binds(["hello2", "world3"]))
-        assert_equal ["hello2", "world3"], binds
+        binds = compile(ast_with_binds(['hello2', 'world3']))
+        assert_equal ['hello2', 'world3'], binds
       end
     end
   end

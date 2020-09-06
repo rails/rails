@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
@@ -18,25 +18,25 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
     TestController.last_request_parameters = nil
   end
 
-  test "parses unbalanced query string with array" do
-    query    = "location[]=1&location[]=2&age_group[]=2"
-    expected = { "location" => ["1", "2"], "age_group" => ["2"] }
+  test 'parses unbalanced query string with array' do
+    query    = 'location[]=1&location[]=2&age_group[]=2'
+    expected = { 'location' => ['1', '2'], 'age_group' => ['2'] }
     assert_parses expected, query
   end
 
-  test "parses nested hash" do
+  test 'parses nested hash' do
     query = [
-      "note[viewers][viewer][][type]=User",
-      "note[viewers][viewer][][id]=1",
-      "note[viewers][viewer][][type]=Group",
-      "note[viewers][viewer][][id]=2"
-    ].join("&")
+      'note[viewers][viewer][][type]=User',
+      'note[viewers][viewer][][id]=1',
+      'note[viewers][viewer][][type]=Group',
+      'note[viewers][viewer][][id]=2'
+    ].join('&')
     expected = {
-      "note" => {
-        "viewers" => {
-          "viewer" => [
-            { "id" => "1", "type" => "User" },
-            { "type" => "Group", "id" => "2" }
+      'note' => {
+        'viewers' => {
+          'viewer' => [
+            { 'id' => '1', 'type' => 'User' },
+            { 'type' => 'Group', 'id' => '2' }
           ]
         }
       }
@@ -44,96 +44,96 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
     assert_parses expected, query
   end
 
-  test "parses more complex nesting" do
+  test 'parses more complex nesting' do
     query = [
-      "customers[boston][first][name]=David",
-      "customers[boston][first][url]=http://David",
-      "customers[boston][second][name]=Allan",
-      "customers[boston][second][url]=http://Allan",
-      "something_else=blah",
-      "something_nil=",
-      "something_empty=",
-      "products[first]=Apple Computer",
-      "products[second]=Pc",
-      "=Save"
-    ].join("&")
+      'customers[boston][first][name]=David',
+      'customers[boston][first][url]=http://David',
+      'customers[boston][second][name]=Allan',
+      'customers[boston][second][url]=http://Allan',
+      'something_else=blah',
+      'something_nil=',
+      'something_empty=',
+      'products[first]=Apple Computer',
+      'products[second]=Pc',
+      '=Save'
+    ].join('&')
     expected = {
-      "customers" => {
-        "boston" => {
-          "first" => {
-            "name" => "David",
-            "url" => "http://David"
+      'customers' => {
+        'boston' => {
+          'first' => {
+            'name' => 'David',
+            'url' => 'http://David'
           },
-          "second" => {
-            "name" => "Allan",
-            "url" => "http://Allan"
+          'second' => {
+            'name' => 'Allan',
+            'url' => 'http://Allan'
           }
         }
       },
-      "something_else" => "blah",
-      "something_empty" => "",
-      "something_nil" => "",
-      "products" => {
-        "first" => "Apple Computer",
-        "second" => "Pc"
+      'something_else' => 'blah',
+      'something_empty' => '',
+      'something_nil' => '',
+      'products' => {
+        'first' => 'Apple Computer',
+        'second' => 'Pc'
       }
     }
     assert_parses expected, query
   end
 
-  test "parses params with array" do
-    query    = "selected[]=1&selected[]=2&selected[]=3"
-    expected = { "selected" => ["1", "2", "3"] }
+  test 'parses params with array' do
+    query    = 'selected[]=1&selected[]=2&selected[]=3'
+    expected = { 'selected' => ['1', '2', '3'] }
     assert_parses expected, query
   end
 
-  test "parses params with nil key" do
-    query    = "=&test2=value1"
-    expected = { "test2" => "value1" }
+  test 'parses params with nil key' do
+    query    = '=&test2=value1'
+    expected = { 'test2' => 'value1' }
     assert_parses expected, query
   end
 
-  test "parses params with array prefix and hashes" do
-    query    = "a[][b][c]=d"
-    expected = { "a" => [{ "b" => { "c" => "d" } }] }
+  test 'parses params with array prefix and hashes' do
+    query    = 'a[][b][c]=d'
+    expected = { 'a' => [{ 'b' => { 'c' => 'd' } }] }
     assert_parses expected, query
   end
 
-  test "parses params with complex nesting" do
-    query    = "a[][b][c][][d][]=e"
-    expected = { "a" => [{ "b" => { "c" => [{ "d" => ["e"] }] } }] }
+  test 'parses params with complex nesting' do
+    query    = 'a[][b][c][][d][]=e'
+    expected = { 'a' => [{ 'b' => { 'c' => [{ 'd' => ['e'] }] } }] }
     assert_parses expected, query
   end
 
-  test "parses params with file path" do
+  test 'parses params with file path' do
     query = [
-      "customers[boston][first][name]=David",
-      "something_else=blah",
+      'customers[boston][first][name]=David',
+      'something_else=blah',
       "logo=#{__FILE__}"
-    ].join("&")
+    ].join('&')
     expected = {
-      "customers" => {
-        "boston" => {
-          "first" => {
-            "name" => "David"
+      'customers' => {
+        'boston' => {
+          'first' => {
+            'name' => 'David'
           }
         }
       },
-      "something_else" => "blah",
-      "logo" => __FILE__,
+      'something_else' => 'blah',
+      'logo' => __FILE__,
     }
     assert_parses expected, query
   end
 
-  test "parses params with Safari 2 trailing null character" do
+  test 'parses params with Safari 2 trailing null character' do
     query    = "selected[]=1&selected[]=2&selected[]=3\0"
-    expected = { "selected" => ["1", "2", "3"] }
+    expected = { 'selected' => ['1', '2', '3'] }
     assert_parses expected, query
   end
 
-  test "ambiguous params returns a bad request" do
+  test 'ambiguous params returns a bad request' do
     with_test_routing do
-      post "/parse", params: "foo[]=bar&foo[4]=bar"
+      post '/parse', params: 'foo[]=bar&foo[4]=bar'
       assert_response :bad_request
     end
   end
@@ -143,7 +143,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
-            post ":action", to: ::UrlEncodedParamsParsingTest::TestController
+            post ':action', to: ::UrlEncodedParamsParsingTest::TestController
           end
         end
         yield
@@ -152,7 +152,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
 
     def assert_parses(expected, actual)
       with_test_routing do
-        post "/parse", params: actual
+        post '/parse', params: actual
         assert_response :ok
         assert_equal expected, TestController.last_request_parameters
         assert_utf8 TestController.last_request_parameters

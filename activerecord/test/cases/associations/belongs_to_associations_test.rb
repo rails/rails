@@ -1,30 +1,30 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/developer"
-require "models/project"
-require "models/company"
-require "models/topic"
-require "models/reply"
-require "models/computer"
-require "models/post"
-require "models/author"
-require "models/tag"
-require "models/tagging"
-require "models/comment"
-require "models/sponsor"
-require "models/member"
-require "models/essay"
-require "models/toy"
-require "models/invoice"
-require "models/line_item"
-require "models/column"
-require "models/record"
-require "models/admin"
-require "models/admin/user"
-require "models/ship"
-require "models/treasure"
-require "models/parrot"
+require 'cases/helper'
+require 'models/developer'
+require 'models/project'
+require 'models/company'
+require 'models/topic'
+require 'models/reply'
+require 'models/computer'
+require 'models/post'
+require 'models/author'
+require 'models/tag'
+require 'models/tagging'
+require 'models/comment'
+require 'models/sponsor'
+require 'models/member'
+require 'models/essay'
+require 'models/toy'
+require 'models/invoice'
+require 'models/line_item'
+require 'models/column'
+require 'models/record'
+require 'models/admin'
+require 'models/admin/user'
+require 'models/ship'
+require 'models/treasure'
+require 'models/parrot'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -41,10 +41,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_assigning_belongs_to_on_destroyed_object
-    client = Client.create!(name: "Client")
+    client = Client.create!(name: 'Client')
     client.destroy!
     assert_raise(FrozenError) { client.firm = nil }
-    assert_raise(FrozenError) { client.firm = Firm.new(name: "Firm") }
+    assert_raise(FrozenError) { client.firm = Firm.new(name: 'Firm') }
   end
 
   def test_eager_loading_wont_mutate_owner_record
@@ -65,7 +65,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_with_primary_key
-    client = Client.create(name: "Primary key client", firm_name: companies(:first_firm).name)
+    client = Client.create(name: 'Primary key client', firm_name: companies(:first_firm).name)
     assert_equal companies(:first_firm).name, client.firm_with_primary_key.name
   end
 
@@ -86,24 +86,24 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_optional_relation_can_be_set_per_model
     model1 = Class.new(ActiveRecord::Base) do
-      self.table_name = "accounts"
+      self.table_name = 'accounts'
       self.belongs_to_required_by_default = false
 
       belongs_to :company
 
       def self.name
-        "FirstModel"
+        'FirstModel'
       end
     end.new
 
     model2 = Class.new(ActiveRecord::Base) do
-      self.table_name = "accounts"
+      self.table_name = 'accounts'
       self.belongs_to_required_by_default = true
 
       belongs_to :company
 
       def self.name
-        "SecondModel"
+        'SecondModel'
       end
     end.new
 
@@ -116,8 +116,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::Base.belongs_to_required_by_default = true
 
     model = Class.new(ActiveRecord::Base) do
-      self.table_name = "accounts"
-      def self.name; "Temp"; end
+      self.table_name = 'accounts'
+      def self.name; 'Temp'; end
       belongs_to :company, optional: true
     end
 
@@ -132,8 +132,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::Base.belongs_to_required_by_default = true
 
     model = Class.new(ActiveRecord::Base) do
-      self.table_name = "accounts"
-      def self.name; "Temp"; end
+      self.table_name = 'accounts'
+      def self.name; 'Temp'; end
       belongs_to :company, optional: false
     end
 
@@ -149,8 +149,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::Base.belongs_to_required_by_default = true
 
     model = Class.new(ActiveRecord::Base) do
-      self.table_name = "accounts"
-      def self.name; "Temp"; end
+      self.table_name = 'accounts'
+      def self.name; 'Temp'; end
       belongs_to :company
     end
 
@@ -166,8 +166,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     jamis = developers(:jamis)
 
     model = Class.new(ActiveRecord::Base) do
-      self.table_name = "ships"
-      def self.name; "Temp"; end
+      self.table_name = 'ships'
+      def self.name; 'Temp'; end
       belongs_to :developer, default: -> { david }
     end
 
@@ -183,8 +183,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_default_with_lambda
     model = Class.new(ActiveRecord::Base) do
-      self.table_name = "ships"
-      def self.name; "Temp"; end
+      self.table_name = 'ships'
+      def self.name; 'Temp'; end
       belongs_to :developer, default: -> { default_developer }
 
       def default_developer
@@ -203,16 +203,16 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     counter = 0
 
     comments = Class.new(ActiveRecord::Base) {
-      self.table_name = "comments"
-      self.inheritance_column = "not_there"
+      self.table_name = 'comments'
+      self.inheritance_column = 'not_there'
 
       posts = Class.new(ActiveRecord::Base) {
-        self.table_name = "posts"
-        self.inheritance_column = "not_there"
+        self.table_name = 'posts'
+        self.inheritance_column = 'not_there'
 
         default_scope -> {
           counter += 1
-          where("id = :inc", inc: counter)
+          where('id = :inc', inc: counter)
         }
 
         has_many :comments, anonymous_class: comments
@@ -239,22 +239,22 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_raises_type_mismatch_with_namespaced_class
-    assert_nil defined?(Region), "This test requires that there is no top-level Region class"
+    assert_nil defined?(Region), 'This test requires that there is no top-level Region class'
 
     ActiveRecord::Base.connection.instance_eval do
       create_table(:admin_regions, force: true) { |t| t.string :name }
       add_column :admin_users, :region_id, :integer
     end
-    Admin.const_set "RegionalUser", Class.new(Admin::User) { belongs_to(:region) }
-    Admin.const_set "Region", Class.new(ActiveRecord::Base)
+    Admin.const_set 'RegionalUser', Class.new(Admin::User) { belongs_to(:region) }
+    Admin.const_set 'Region', Class.new(ActiveRecord::Base)
 
     e = assert_raise(ActiveRecord::AssociationTypeMismatch) {
-      Admin::RegionalUser.new(region: "wrong value")
+      Admin::RegionalUser.new(region: 'wrong value')
     }
     assert_match(/^Region\([^)]+\) expected, got "wrong value" which is an instance of String\([^)]+\)$/, e.message)
   ensure
-    Admin.send :remove_const, "Region" if Admin.const_defined?("Region")
-    Admin.send :remove_const, "RegionalUser" if Admin.const_defined?("RegionalUser")
+    Admin.send :remove_const, 'Region' if Admin.const_defined?('Region')
+    Admin.send :remove_const, 'RegionalUser' if Admin.const_defined?('RegionalUser')
 
     ActiveRecord::Base.connection.instance_eval do
       remove_column :admin_users, :region_id if column_exists?(:admin_users, :region_id)
@@ -265,43 +265,43 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_natural_assignment
-    apple = Firm.create("name" => "Apple")
-    citibank = Account.create("credit_limit" => 10)
+    apple = Firm.create('name' => 'Apple')
+    citibank = Account.create('credit_limit' => 10)
     citibank.firm = apple
     assert_equal apple.id, citibank.firm_id
   end
 
   def test_id_assignment
-    apple = Firm.create("name" => "Apple")
-    citibank = Account.create("credit_limit" => 10)
+    apple = Firm.create('name' => 'Apple')
+    citibank = Account.create('credit_limit' => 10)
     citibank.firm_id = apple
     assert_nil citibank.firm_id
   end
 
   def test_natural_assignment_with_primary_key
-    apple = Firm.create("name" => "Apple")
-    citibank = Client.create("name" => "Primary key client")
+    apple = Firm.create('name' => 'Apple')
+    citibank = Client.create('name' => 'Primary key client')
     citibank.firm_with_primary_key = apple
     assert_equal apple.name, citibank.firm_name
   end
 
   def test_eager_loading_with_primary_key
-    Firm.create("name" => "Apple")
-    Client.create("name" => "Citibank", :firm_name => "Apple")
-    citibank_result = Client.all.merge!(where: { name: "Citibank" }, includes: :firm_with_primary_key).first
+    Firm.create('name' => 'Apple')
+    Client.create('name' => 'Citibank', :firm_name => 'Apple')
+    citibank_result = Client.all.merge!(where: { name: 'Citibank' }, includes: :firm_with_primary_key).first
     assert_predicate citibank_result.association(:firm_with_primary_key), :loaded?
   end
 
   def test_eager_loading_with_primary_key_as_symbol
-    Firm.create("name" => "Apple")
-    Client.create("name" => "Citibank", :firm_name => "Apple")
-    citibank_result = Client.all.merge!(where: { name: "Citibank" }, includes: :firm_with_primary_key_symbols).first
+    Firm.create('name' => 'Apple')
+    Client.create('name' => 'Citibank', :firm_name => 'Apple')
+    citibank_result = Client.all.merge!(where: { name: 'Citibank' }, includes: :firm_with_primary_key_symbols).first
     assert_predicate citibank_result.association(:firm_with_primary_key_symbols), :loaded?
   end
 
   def test_creating_the_belonging_object
-    citibank = Account.create("credit_limit" => 10)
-    apple    = citibank.create_firm("name" => "Apple")
+    citibank = Account.create('credit_limit' => 10)
+    apple    = citibank.create_firm('name' => 'Apple')
     assert_equal apple, citibank.firm
     citibank.save
     citibank.reload
@@ -309,8 +309,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_creating_the_belonging_object_from_new_record
-    citibank = Account.new("credit_limit" => 10)
-    apple    = citibank.create_firm("name" => "Apple")
+    citibank = Account.new('credit_limit' => 10)
+    apple    = citibank.create_firm('name' => 'Apple')
     assert_equal apple, citibank.firm
     citibank.save
     citibank.reload
@@ -318,8 +318,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_creating_the_belonging_object_with_primary_key
-    client = Client.create(name: "Primary key client")
-    apple  = client.create_firm_with_primary_key("name" => "Apple")
+    client = Client.create(name: 'Primary key client')
+    apple  = client.create_firm_with_primary_key('name' => 'Apple')
     assert_equal apple, client.firm_with_primary_key
     client.save
     client.reload
@@ -327,8 +327,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_building_the_belonging_object
-    citibank = Account.create("credit_limit" => 10)
-    apple    = citibank.build_firm("name" => "Apple")
+    citibank = Account.create('credit_limit' => 10)
+    apple    = citibank.build_firm('name' => 'Apple')
     citibank.save
     assert_equal apple.id, citibank.firm_id
   end
@@ -341,35 +341,35 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_building_the_belonging_object_with_explicit_sti_base_class
     account = Account.new
-    company = account.build_firm(type: "Company")
+    company = account.build_firm(type: 'Company')
     assert_kind_of Company, company, "Expected #{company.class} to be a Company"
   end
 
   def test_building_the_belonging_object_with_sti_subclass
     account = Account.new
-    company = account.build_firm(type: "Firm")
+    company = account.build_firm(type: 'Firm')
     assert_kind_of Firm, company, "Expected #{company.class} to be a Firm"
   end
 
   def test_building_the_belonging_object_with_an_invalid_type
     account = Account.new
-    assert_raise(ActiveRecord::SubclassNotFound) { account.build_firm(type: "InvalidType") }
+    assert_raise(ActiveRecord::SubclassNotFound) { account.build_firm(type: 'InvalidType') }
   end
 
   def test_building_the_belonging_object_with_an_unrelated_type
     account = Account.new
-    assert_raise(ActiveRecord::SubclassNotFound) { account.build_firm(type: "Account") }
+    assert_raise(ActiveRecord::SubclassNotFound) { account.build_firm(type: 'Account') }
   end
 
   def test_building_the_belonging_object_with_primary_key
-    client = Client.create(name: "Primary key client")
-    apple  = client.build_firm_with_primary_key("name" => "Apple")
+    client = Client.create(name: 'Primary key client')
+    apple  = client.build_firm_with_primary_key('name' => 'Apple')
     client.save
     assert_equal apple.name, client.firm_name
   end
 
   def test_create!
-    client  = Client.create!(name: "Jimmy")
+    client  = Client.create!(name: 'Jimmy')
     account = client.create_account!(credit_limit: 10)
     assert_equal account, client.account
     assert_predicate account, :persisted?
@@ -379,7 +379,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_failing_create!
-    client = Client.create!(name: "Jimmy")
+    client = Client.create!(name: 'Jimmy')
     assert_raise(ActiveRecord::RecordInvalid) { client.create_account! }
     assert_not_nil client.account
     assert_predicate client.account, :new_record?
@@ -388,11 +388,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_reloading_the_belonging_object
     odegy_account = accounts(:odegy_account)
 
-    assert_equal "Odegy", odegy_account.firm.name
-    Company.where(id: odegy_account.firm_id).update_all(name: "ODEGY")
-    assert_equal "Odegy", odegy_account.firm.name
+    assert_equal 'Odegy', odegy_account.firm.name
+    Company.where(id: odegy_account.firm_id).update_all(name: 'ODEGY')
+    assert_equal 'Odegy', odegy_account.firm.name
 
-    assert_equal "ODEGY", odegy_account.reload_firm.name
+    assert_equal 'ODEGY', odegy_account.reload_firm.name
   end
 
   def test_reload_the_belonging_object_with_query_cache
@@ -429,7 +429,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_natural_assignment_to_nil_with_primary_key
-    client = Client.create(name: "Primary key client", firm_name: companies(:first_firm).name)
+    client = Client.create(name: 'Primary key client', firm_name: companies(:first_firm).name)
     client.firm_with_primary_key = nil
     client.save
     client.association(:firm_with_primary_key).reload
@@ -439,12 +439,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_with_different_class_name
     assert_equal Company.find(1).name, Company.find(3).firm_with_other_name.name
-    assert_not_nil Company.find(3).firm_with_other_name, "Microsoft should have a firm"
+    assert_not_nil Company.find(3).firm_with_other_name, 'Microsoft should have a firm'
   end
 
   def test_with_condition
     assert_equal Company.find(1).name, Company.find(3).firm_with_condition.name
-    assert_not_nil Company.find(3).firm_with_condition, "Microsoft should have a firm"
+    assert_not_nil Company.find(3).firm_with_condition, 'Microsoft should have a firm'
   end
 
   def test_polymorphic_association_class
@@ -453,18 +453,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sponsor.association(:sponsorable).reload
     assert_nil sponsor.sponsorable
 
-    sponsor.sponsorable_type = "" # the column doesn't have to be declared NOT NULL
+    sponsor.sponsorable_type = '' # the column doesn't have to be declared NOT NULL
     assert_nil sponsor.association(:sponsorable).send(:klass)
     sponsor.association(:sponsorable).reload
     assert_nil sponsor.sponsorable
 
-    sponsor.sponsorable = Member.new name: "Bert"
+    sponsor.sponsorable = Member.new name: 'Bert'
     assert_equal Member, sponsor.association(:sponsorable).send(:klass)
   end
 
   def test_with_polymorphic_and_condition
     sponsor = Sponsor.create
-    member = Member.create name: "Bert"
+    member = Member.create name: 'Bert'
 
     sponsor.sponsorable = member
     sponsor.save!
@@ -491,33 +491,33 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to_without_counter_cache_option
     # Ship has a conventionally named `treasures_count` column, but the counter_cache
     # option is not given on the association.
-    ship = Ship.create(name: "Countless")
+    ship = Ship.create(name: 'Countless')
 
-    assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed unless counter_cache is given on the relation" do
-      treasure = Treasure.new(name: "Gold", ship: ship)
+    assert_no_difference lambda { ship.reload.treasures_count }, 'treasures_count should not be changed unless counter_cache is given on the relation' do
+      treasure = Treasure.new(name: 'Gold', ship: ship)
       treasure.save
     end
 
-    assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed unless counter_cache is given on the relation" do
+    assert_no_difference lambda { ship.reload.treasures_count }, 'treasures_count should not be changed unless counter_cache is given on the relation' do
       treasure = ship.treasures.first
       treasure.destroy
     end
   end
 
   def test_belongs_to_counter
-    debate = Topic.create("title" => "debate")
-    assert_equal 0, debate.read_attribute("replies_count"), "No replies yet"
+    debate = Topic.create('title' => 'debate')
+    assert_equal 0, debate.read_attribute('replies_count'), 'No replies yet'
 
-    trash = debate.replies.create("title" => "blah!", "content" => "world around!")
-    assert_equal 1, Topic.find(debate.id).read_attribute("replies_count"), "First reply created"
+    trash = debate.replies.create('title' => 'blah!', 'content' => 'world around!')
+    assert_equal 1, Topic.find(debate.id).read_attribute('replies_count'), 'First reply created'
 
     trash.destroy
-    assert_equal 0, Topic.find(debate.id).read_attribute("replies_count"), "First reply deleted"
+    assert_equal 0, Topic.find(debate.id).read_attribute('replies_count'), 'First reply deleted'
   end
 
   def test_belongs_to_counter_with_assigning_nil
-    topic = Topic.create!(title: "debate")
-    reply = Reply.create!(title: "blah!", content: "world around!", topic: topic)
+    topic = Topic.create!(title: 'debate')
+    reply = Reply.create!(title: 'blah!', content: 'world around!', topic: topic)
 
     assert_equal topic.id, reply.parent_id
     assert_equal 1, topic.reload.replies.size
@@ -535,13 +535,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_counter_with_assigning_new_object
-    topic = Topic.create!(title: "debate")
-    reply = Reply.create!(title: "blah!", content: "world around!", topic: topic)
+    topic = Topic.create!(title: 'debate')
+    reply = Reply.create!(title: 'blah!', content: 'world around!', topic: topic)
 
     assert_equal topic.id, reply.parent_id
     assert_equal 1, topic.reload.replies_count
 
-    topic2 = reply.build_topic(title: "debate2")
+    topic2 = reply.build_topic(title: 'debate2')
     reply.save!
 
     assert_not_equal topic.id, reply.parent_id
@@ -552,14 +552,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_with_primary_key_counter
-    debate  = Topic.create("title" => "debate")
-    debate2 = Topic.create("title" => "debate2")
-    reply   = Reply.create("title" => "blah!", "content" => "world around!", "parent_title" => "debate2")
+    debate  = Topic.create('title' => 'debate')
+    debate2 = Topic.create('title' => 'debate2')
+    reply   = Reply.create('title' => 'blah!', 'content' => 'world around!', 'parent_title' => 'debate2')
 
     assert_equal 0, debate.reload.replies_count
     assert_equal 1, debate2.reload.replies_count
 
-    reply.parent_title = "debate"
+    reply.parent_title = 'debate'
     reply.save!
 
     assert_equal 1, debate.reload.replies_count
@@ -586,9 +586,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_counter_with_reassigning
-    topic1 = Topic.create("title" => "t1")
-    topic2 = Topic.create("title" => "t2")
-    reply1 = Reply.new("title" => "r1", "content" => "r1")
+    topic1 = Topic.create('title' => 't1')
+    topic2 = Topic.create('title' => 't2')
+    reply1 = Reply.new('title' => 'r1', 'content' => 'r1')
     reply1.topic = topic1
 
     assert reply1.save
@@ -624,9 +624,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_reassign_with_namespaced_models_and_counters
-    topic1 = Web::Topic.create("title" => "t1")
-    topic2 = Web::Topic.create("title" => "t2")
-    reply1 = Web::Reply.new("title" => "r1", "content" => "r1")
+    topic1 = Web::Topic.create('title' => 't1')
+    topic2 = Web::Topic.create('title' => 't2')
+    reply1 = Web::Reply.new('title' => 'r1', 'content' => 'r1')
     reply1.topic = topic1
 
     assert reply1.save
@@ -641,10 +641,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_counter_after_save
-    topic = Topic.create!(title: "monday night")
+    topic = Topic.create!(title: 'monday night')
 
     assert_queries(2) do
-      topic.replies.create!(title: "re: monday night", content: "football")
+      topic.replies.create!(title: 're: monday night', content: 'football')
     end
 
     assert_equal 1, Topic.find(topic.id)[:replies_count]
@@ -654,12 +654,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_counter_after_touch
-    topic = Topic.create!(title: "topic")
+    topic = Topic.create!(title: 'topic')
 
     assert_equal 0, topic.replies_count
     assert_equal 0, topic.after_touch_called
 
-    reply = Reply.create!(title: "blah!", content: "world around!", topic_with_primary_key: topic)
+    reply = Reply.create!(title: 'blah!', content: 'world around!', topic_with_primary_key: topic)
 
     assert_equal 1, topic.replies_count
     assert_equal 1, topic.after_touch_called
@@ -671,9 +671,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_touch_with_reassigning
-    debate  = Topic.create!(title: "debate")
-    debate2 = Topic.create!(title: "debate2")
-    reply   = Reply.create!(title: "blah!", content: "world around!", parent_title: "debate2")
+    debate  = Topic.create!(title: 'debate')
+    debate2 = Topic.create!(title: 'debate2')
+    reply   = Reply.create!(title: 'blah!', content: 'world around!', parent_title: 'debate2')
 
     time = 1.day.ago
 
@@ -681,7 +681,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     debate2.touch(time: time)
 
     assert_queries(3) do
-      reply.parent_title = "debate"
+      reply.parent_title = 'debate'
       reply.save!
     end
 
@@ -726,7 +726,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_with_touch_option_on_touch_without_updated_at_attributes
-    assert_not LineItem.column_names.include?("updated_at")
+    assert_not LineItem.column_names.include?('updated_at')
 
     line_item = LineItem.create!
     invoice = Invoice.create!(line_items: [line_item])
@@ -786,25 +786,25 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_counter_after_update
-    topic = Topic.create!(title: "37s")
-    topic.replies.create!(title: "re: 37s", content: "rails")
+    topic = Topic.create!(title: '37s')
+    topic.replies.create!(title: 're: 37s', content: 'rails')
     assert_equal 1, Topic.find(topic.id)[:replies_count]
 
-    topic.update(title: "37signals")
+    topic.update(title: '37signals')
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 
   def test_belongs_to_counter_when_update_columns
-    topic = Topic.create!(title: "37s")
-    topic.replies.create!(title: "re: 37s", content: "rails")
+    topic = Topic.create!(title: '37s')
+    topic.replies.create!(title: 're: 37s', content: 'rails')
     assert_equal 1, Topic.find(topic.id)[:replies_count]
 
-    topic.update_columns(content: "rails is wonderful")
+    topic.update_columns(content: 'rails is wonderful')
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 
   def test_assignment_before_child_saved
-    final_cut = Client.new("name" => "Final Cut")
+    final_cut = Client.new('name' => 'Final Cut')
     firm = Firm.find(1)
     final_cut.firm = firm
     assert_not_predicate final_cut, :persisted?
@@ -817,7 +817,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_assignment_before_child_saved_with_primary_key
-    final_cut = Client.new("name" => "Final Cut")
+    final_cut = Client.new('name' => 'Final Cut')
     firm = Firm.find(1)
     final_cut.firm_with_primary_key = firm
     assert_not_predicate final_cut, :persisted?
@@ -830,7 +830,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_new_record_with_foreign_key_but_no_object
-    client = Client.new("firm_id" => 1)
+    client = Client.new('firm_id' => 1)
     assert_equal Firm.first, client.firm_with_basic_id
   end
 
@@ -846,7 +846,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sponsor = Sponsor.new
     sponsor.sponsorable
     sponsor.sponsorable_id = 1
-    sponsor.sponsorable_type = "Member"
+    sponsor.sponsorable_type = 'Member'
 
     assert_equal members(:groucho), sponsor.sponsorable
   end
@@ -857,8 +857,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_dont_find_target_when_saving_foreign_key_after_stale_association_loaded
-    client = Client.create!(name: "Test client", firm_with_basic_id: Firm.find(1))
-    client.firm_id = Firm.create!(name: "Test firm").id
+    client = Client.create!(name: 'Test client', firm_with_basic_id: Firm.find(1))
+    client.firm_id = Firm.create!(name: 'Test firm').id
     assert_queries(1) { client.save! }
   end
 
@@ -868,10 +868,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_counter_cache
-    topic = Topic.create title: "Zoom-zoom-zoom"
+    topic = Topic.create title: 'Zoom-zoom-zoom'
     assert_equal 0, topic[:replies_count]
 
-    reply = Reply.create(title: "re: zoom", content: "speedy quick!")
+    reply = Reply.create(title: 're: zoom', content: 'speedy quick!')
     reply.topic = topic
     reply.save!
 
@@ -883,10 +883,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_counter_cache_double_destroy
-    topic = Topic.create title: "Zoom-zoom-zoom"
+    topic = Topic.create title: 'Zoom-zoom-zoom'
 
     5.times do
-      topic.replies.create(title: "re: zoom", content: "speedy quick!")
+      topic.replies.create(title: 're: zoom', content: 'speedy quick!')
     end
 
     assert_equal 5, topic.reload[:replies_count]
@@ -903,10 +903,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_concurrent_counter_cache_double_destroy
-    topic = Topic.create title: "Zoom-zoom-zoom"
+    topic = Topic.create title: 'Zoom-zoom-zoom'
 
     5.times do
-      topic.replies.create(title: "re: zoom", content: "speedy quick!")
+      topic.replies.create(title: 're: zoom', content: 'speedy quick!')
     end
 
     assert_equal 5, topic.reload[:replies_count]
@@ -924,10 +924,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_custom_counter_cache
-    reply = Reply.create(title: "re: zoom", content: "speedy quick!")
+    reply = Reply.create(title: 're: zoom', content: 'speedy quick!')
     assert_equal 0, reply[:replies_count]
 
-    silly = SillyReply.create(title: "gaga", content: "boo-boo")
+    silly = SillyReply.create(title: 'gaga', content: 'boo-boo')
     silly.reply = reply
     silly.save!
 
@@ -939,8 +939,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_replace_counter_cache
-    topic = Topic.create(title: "Zoom-zoom-zoom")
-    reply = Reply.create(title: "re: zoom", content: "speedy quick!")
+    topic = Topic.create(title: 'Zoom-zoom-zoom')
+    reply = Reply.create(title: 're: zoom', content: 'speedy quick!')
 
     reply.topic = topic
     reply.save
@@ -993,27 +993,27 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sponsor = Sponsor.new
     member = Member.create
     sponsor.sponsorable = member
-    assert_equal "Member", sponsor.sponsorable_type
+    assert_equal 'Member', sponsor.sponsorable_type
 
     # should update when assigning a new record
     sponsor = Sponsor.new
     member = Member.new
     sponsor.sponsorable = member
-    assert_equal "Member", sponsor.sponsorable_type
+    assert_equal 'Member', sponsor.sponsorable_type
   end
 
   def test_polymorphic_assignment_with_primary_key_foreign_type_field_updating
     # should update when assigning a saved record
     essay = Essay.new
-    writer = Author.create(name: "David")
+    writer = Author.create(name: 'David')
     essay.writer = writer
-    assert_equal "Author", essay.writer_type
+    assert_equal 'Author', essay.writer_type
 
     # should update when assigning a new record
     essay = Essay.new
     writer = Author.new
     essay.writer = writer
-    assert_equal "Author", essay.writer_type
+    assert_equal 'Author', essay.writer_type
   end
 
   def test_polymorphic_assignment_updates_foreign_id_field_for_new_and_saved_records
@@ -1030,7 +1030,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_assignment_updates_foreign_id_field_for_new_and_saved_records
     client = Client.new
-    saved_firm = Firm.create name: "Saved"
+    saved_firm = Firm.create name: 'Saved'
     new_firm = Firm.new
 
     client.firm = saved_firm
@@ -1042,7 +1042,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_polymorphic_assignment_with_primary_key_updates_foreign_id_field_for_new_and_saved_records
     essay = Essay.new
-    saved_writer = Author.create(name: "David")
+    saved_writer = Author.create(name: 'David')
     new_writer = Author.new
 
     essay.writer = saved_writer
@@ -1058,7 +1058,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_nil essay.writer_type
 
     essay.writer_id = 1
-    essay.writer_type = "Author"
+    essay.writer_type = 'Author'
 
     essay.writer = nil
     assert_nil essay.writer_id
@@ -1098,7 +1098,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     author_address_extra = author_addresses(:david_address_extra)
     assert_equal [], AuthorAddress.destroyed_author_address_ids
 
-    assert_difference "AuthorAddress.count", -2 do
+    assert_difference 'AuthorAddress.count', -2 do
       authors(:david).destroy
     end
 
@@ -1110,17 +1110,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     error = assert_raise ArgumentError do
       Class.new(Author).belongs_to :special_author_address, dependent: :nullify
     end
-    assert_equal error.message, "The :dependent option must be one of [:destroy, :delete], but is :nullify"
+    assert_equal error.message, 'The :dependent option must be one of [:destroy, :delete], but is :nullify'
   end
 
   class DestroyableBook < ActiveRecord::Base
-    self.table_name = "books"
-    belongs_to :author, class_name: "UndestroyableAuthor", dependent: :destroy
+    self.table_name = 'books'
+    belongs_to :author, class_name: 'UndestroyableAuthor', dependent: :destroy
   end
 
   class UndestroyableAuthor < ActiveRecord::Base
-    self.table_name = "authors"
-    has_one :book, class_name: "DestroyableBook", foreign_key: "author_id"
+    self.table_name = 'authors'
+    has_one :book, class_name: 'DestroyableBook', foreign_key: 'author_id'
     before_destroy :dont
 
     def dont
@@ -1129,17 +1129,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_dependency_should_halt_parent_destruction
-    author = UndestroyableAuthor.create!(name: "Test")
+    author = UndestroyableAuthor.create!(name: 'Test')
     book = DestroyableBook.create!(author: author)
 
-    assert_no_difference ["UndestroyableAuthor.count", "DestroyableBook.count"] do
+    assert_no_difference ['UndestroyableAuthor.count', 'DestroyableBook.count'] do
       assert_not book.destroy
     end
   end
 
   def test_attributes_are_being_set_when_initialized_from_belongs_to_association_with_where_clause
-    new_firm = accounts(:signals37).build_firm(name: "Apple")
-    assert_equal new_firm.name, "Apple"
+    new_firm = accounts(:signals37).build_firm(name: 'Apple')
+    assert_equal new_firm.name, 'Apple'
   end
 
   def test_attributes_are_set_without_error_when_initialized_from_belongs_to_association_with_array_in_where_clause
@@ -1192,7 +1192,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate proxy, :stale_target?
     assert_equal members(:groucho), sponsor.sponsorable
 
-    sponsor.sponsorable_type = "Firm"
+    sponsor.sponsorable_type = 'Firm'
 
     assert_predicate proxy, :stale_target?
     assert_equal companies(:first_firm), sponsor.sponsorable
@@ -1218,15 +1218,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_equal post.id, comment.id
 
-    assert_difference "post.reload.tags_count", -1 do
-      assert_difference "comment.reload.tags_count", +1 do
+    assert_difference 'post.reload.tags_count', -1 do
+      assert_difference 'comment.reload.tags_count', +1 do
         tagging.taggable = comment
         tagging.save!
       end
     end
 
-    assert_difference "comment.reload.tags_count", -1 do
-      assert_difference "post.reload.tags_count", +1 do
+    assert_difference 'comment.reload.tags_count', -1 do
+      assert_difference 'post.reload.tags_count', +1 do
         tagging.taggable_type = post.class.polymorphic_name
         tagging.taggable_id = post.id
         tagging.save!
@@ -1257,60 +1257,60 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     client = companies(:second_client)
     firm   = client.build_bob_firm
 
-    assert_equal "Bob", firm.name
+    assert_equal 'Bob', firm.name
   end
 
   def test_create_with_conditions
     client = companies(:second_client)
     firm   = client.create_bob_firm
 
-    assert_equal "Bob", firm.name
+    assert_equal 'Bob', firm.name
   end
 
   def test_create_bang_with_conditions
     client = companies(:second_client)
     firm   = client.create_bob_firm!
 
-    assert_equal "Bob", firm.name
+    assert_equal 'Bob', firm.name
   end
 
   def test_build_with_block
-    client = Client.create(name: "Client Company")
+    client = Client.create(name: 'Client Company')
 
-    firm = client.build_firm { |f| f.name = "Agency Company" }
-    assert_equal "Agency Company", firm.name
+    firm = client.build_firm { |f| f.name = 'Agency Company' }
+    assert_equal 'Agency Company', firm.name
   end
 
   def test_create_with_block
-    client = Client.create(name: "Client Company")
+    client = Client.create(name: 'Client Company')
 
-    firm = client.create_firm { |f| f.name = "Agency Company" }
-    assert_equal "Agency Company", firm.name
+    firm = client.create_firm { |f| f.name = 'Agency Company' }
+    assert_equal 'Agency Company', firm.name
   end
 
   def test_create_bang_with_block
-    client = Client.create(name: "Client Company")
+    client = Client.create(name: 'Client Company')
 
-    firm = client.create_firm! { |f| f.name = "Agency Company" }
-    assert_equal "Agency Company", firm.name
+    firm = client.create_firm! { |f| f.name = 'Agency Company' }
+    assert_equal 'Agency Company', firm.name
   end
 
   def test_should_set_foreign_key_on_create_association
-    client = Client.create! name: "fuu"
+    client = Client.create! name: 'fuu'
 
-    firm = client.create_firm name: "baa"
+    firm = client.create_firm name: 'baa'
     assert_equal firm.id, client.client_of
   end
 
   def test_should_set_foreign_key_on_create_association!
-    client = Client.create! name: "fuu"
+    client = Client.create! name: 'fuu'
 
-    firm = client.create_firm! name: "baa"
+    firm = client.create_firm! name: 'baa'
     assert_equal firm.id, client.client_of
   end
 
   def test_self_referential_belongs_to_with_counter_cache_assigning_nil
-    comment = Comment.create! post: posts(:thinking), body: "fuu"
+    comment = Comment.create! post: posts(:thinking), body: 'fuu'
     comment.parent = nil
     comment.save!
 
@@ -1320,7 +1320,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_with_id_assigning
     post = posts(:welcome)
-    comment = Comment.create! body: "foo", post: post
+    comment = Comment.create! body: 'foo', post: post
     parent = comments(:greetings)
     assert_equal 0, parent.reload.children_count
     comment.parent_id = parent.id
@@ -1331,7 +1331,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_with_out_of_range_value_assigning
     model = Class.new(Author) do
-      def self.name; "Temp"; end
+      def self.name; 'Temp'; end
       validates :author_address, presence: true
     end
 
@@ -1351,8 +1351,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   test "stale tracking doesn't care about the type" do
-    apple = Firm.create("name" => "Apple")
-    citibank = Account.create("credit_limit" => 10)
+    apple = Firm.create('name' => 'Apple')
+    citibank = Account.create('credit_limit' => 10)
 
     citibank.firm_id = apple.id
     citibank.firm # load it
@@ -1364,7 +1364,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_reflect_the_most_recent_change
     author1, author2 = Author.limit(2)
-    post = Post.new(title: "foo", body: "bar")
+    post = Post.new(title: 'foo', body: 'bar')
 
     post.author    = author1
     post.author_id = author2.id
@@ -1373,8 +1373,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal post.author_id, author2.id
   end
 
-  test "dangerous association name raises ArgumentError" do
-    [:errors, "errors", :save, "save"].each do |name|
+  test 'dangerous association name raises ArgumentError' do
+    [:errors, 'errors', :save, 'save'].each do |name|
       assert_raises(ArgumentError, "Association #{name} should not be allowed") do
         Class.new(ActiveRecord::Base) do
           belongs_to name
@@ -1383,7 +1383,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  test "belongs_to works with model called Record" do
+  test 'belongs_to works with model called Record' do
     record = Record.create!
     Column.create! record: record
     assert_equal 1, Column.count
@@ -1393,9 +1393,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     post = posts(:welcome)
     parent = comments(:greetings)
 
-    assert_difference "parent.reload.children_count", +1 do
-      assert_difference "post.reload.comments_count", +1 do
-        CommentWithAfterCreateUpdate.create(body: "foo", post: post, parent: parent)
+    assert_difference 'parent.reload.children_count', +1 do
+      assert_difference 'post.reload.comments_count', +1 do
+        CommentWithAfterCreateUpdate.create(body: 'foo', post: post, parent: parent)
       end
     end
   end
@@ -1406,7 +1406,7 @@ class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
 
   def test_destroy_linked_models
     address = AuthorAddress.create!
-    author = Author.create! name: "Author", author_address_id: address.id
+    author = Author.create! name: 'Author', author_address_id: address.id
 
     author.destroy!
   end

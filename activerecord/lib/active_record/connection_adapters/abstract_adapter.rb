@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require "set"
-require "active_record/connection_adapters/schema_cache"
-require "active_record/connection_adapters/sql_type_metadata"
-require "active_record/connection_adapters/abstract/schema_dumper"
-require "active_record/connection_adapters/abstract/schema_creation"
-require "active_support/concurrency/load_interlock_aware_monitor"
-require "arel/collectors/bind"
-require "arel/collectors/composite"
-require "arel/collectors/sql_string"
-require "arel/collectors/substitute_binds"
+require 'set'
+require 'active_record/connection_adapters/schema_cache'
+require 'active_record/connection_adapters/sql_type_metadata'
+require 'active_record/connection_adapters/abstract/schema_dumper'
+require 'active_record/connection_adapters/abstract/schema_creation'
+require 'active_support/concurrency/load_interlock_aware_monitor'
+require 'arel/collectors/bind'
+require 'arel/collectors/composite'
+require 'arel/collectors/sql_string'
+require 'arel/collectors/substitute_binds'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -27,7 +27,7 @@ module ActiveRecord
     # Most of the methods in the adapter are useful during migrations. Most
     # notably, the instance methods provided by SchemaStatements are very useful.
     class AbstractAdapter
-      ADAPTER_NAME = "Abstract"
+      ADAPTER_NAME = 'Abstract'
       include ActiveSupport::Callbacks
       define_callbacks :checkout, :checkin
 
@@ -56,7 +56,7 @@ module ActiveRecord
       end
 
       def self.type_cast_config_to_boolean(config)
-        if config == "false"
+        if config == 'false'
           false
         else
           config
@@ -132,7 +132,7 @@ module ActiveRecord
                                 conn = self
                                 spec_name = conn.pool.pool_config.connection_specification_name
 
-                                return ActiveRecord::SchemaMigration if spec_name == "ActiveRecord::Base"
+                                return ActiveRecord::SchemaMigration if spec_name == 'ActiveRecord::Base'
 
                                 schema_migration_name = "#{spec_name}::SchemaMigration"
 
@@ -159,16 +159,16 @@ module ActiveRecord
         attr_reader :full_version_string
 
         def initialize(version_string, full_version_string = nil)
-          @version = version_string.split(".").map(&:to_i)
+          @version = version_string.split('.').map(&:to_i)
           @full_version_string = full_version_string
         end
 
         def <=>(version_string)
-          @version <=> version_string.split(".").map(&:to_i)
+          @version <=> version_string.split('.').map(&:to_i)
         end
 
         def to_s
-          @version.join(".")
+          @version.join('.')
         end
       end
 
@@ -179,9 +179,9 @@ module ActiveRecord
       # this method must only be called while holding connection pool's mutex
       def lease
         if in_use?
-          msg = +"Cannot lease connection, "
+          msg = +'Cannot lease connection, '
           if @owner == Thread.current
-            msg << "it is already leased by the current thread."
+            msg << 'it is already leased by the current thread.'
           else
             msg << "it is already in use by a different thread: #{@owner}. " \
                    "Current thread: #{Thread.current}."
@@ -205,7 +205,7 @@ module ActiveRecord
       def expire
         if in_use?
           if @owner != Thread.current
-            raise ActiveRecordError, "Cannot expire connection, " \
+            raise ActiveRecordError, 'Cannot expire connection, ' \
               "it is owned by a different thread: #{@owner}. " \
               "Current thread: #{Thread.current}."
           end
@@ -213,7 +213,7 @@ module ActiveRecord
           @idle_since = Concurrent.monotonic_time
           @owner = nil
         else
-          raise ActiveRecordError, "Cannot expire connection, it is not currently leased."
+          raise ActiveRecordError, 'Cannot expire connection, it is not currently leased.'
         end
       end
 
@@ -226,7 +226,7 @@ module ActiveRecord
             @owner = Thread.current
           end
         else
-          raise ActiveRecordError, "Cannot steal connection, it is not currently leased."
+          raise ActiveRecordError, 'Cannot steal connection, it is not currently leased.'
         end
       end
 
@@ -611,12 +611,12 @@ module ActiveRecord
           register_class_with_limit m, %r(float)i,         Type::Float
           register_class_with_limit m, %r(int)i,           Type::Integer
 
-          m.alias_type %r(blob)i,      "binary"
-          m.alias_type %r(clob)i,      "text"
-          m.alias_type %r(timestamp)i, "datetime"
-          m.alias_type %r(numeric)i,   "decimal"
-          m.alias_type %r(number)i,    "decimal"
-          m.alias_type %r(double)i,    "float"
+          m.alias_type %r(blob)i,      'binary'
+          m.alias_type %r(clob)i,      'text'
+          m.alias_type %r(timestamp)i, 'datetime'
+          m.alias_type %r(numeric)i,   'decimal'
+          m.alias_type %r(number)i,    'decimal'
+          m.alias_type %r(double)i,    'float'
 
           m.register_type %r(^json)i, Type::Json.new
 
@@ -677,9 +677,9 @@ module ActiveRecord
           exception
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
+        def log(sql, name = 'SQL', binds = [], type_casted_binds = [], statement_name = nil) # :doc:
           @instrumenter.instrument(
-            "sql.active_record",
+            'sql.active_record',
             sql:               sql,
             name:              name,
             binds:             binds,

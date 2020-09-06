@@ -1,1 +1,1 @@
-xml.p "Hello world!"
+xml.p 'Hello world!'

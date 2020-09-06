@@ -4,12 +4,12 @@ module BackburnerJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :backburner
     Backburner.configure do |config|
-      config.beanstalk_url = ENV["BEANSTALK_URL"] if ENV["BEANSTALK_URL"]
+      config.beanstalk_url = ENV['BEANSTALK_URL'] if ENV['BEANSTALK_URL']
       config.logger = Rails.logger
     end
     unless can_run?
       puts "Cannot run integration tests for backburner. To be able to run integration tests for backburner you need to install and start beanstalkd.\n"
-      status = ENV["CI"] ? false : true
+      status = ENV['CI'] ? false : true
       exit status
     end
   end
@@ -19,7 +19,7 @@ module BackburnerJobsManager
   end
 
   def start_workers
-    @thread = Thread.new { Backburner.work "integration-tests" } # backburner dasherizes the queue name
+    @thread = Thread.new { Backburner.work 'integration-tests' } # backburner dasherizes the queue name
   end
 
   def stop_workers
@@ -27,7 +27,7 @@ module BackburnerJobsManager
   end
 
   def tube
-    @tube ||= Beaneater::Tube.new(@worker.connection, "backburner.worker.queue.integration-tests") # backburner dasherizes the queue name
+    @tube ||= Beaneater::Tube.new(@worker.connection, 'backburner.worker.queue.integration-tests') # backburner dasherizes the queue name
   end
 
   def can_run?

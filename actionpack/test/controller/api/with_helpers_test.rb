@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 module ApiWithHelper
   def my_helper
-    "helper"
+    'helper'
   end
 end
 
@@ -29,7 +29,7 @@ class WithHelpersTest < ActionController::TestCase
   def test_with_helpers
     get :with_helpers
 
-    assert_equal "helper", response.body
+    assert_equal 'helper', response.body
   end
 end
 
@@ -39,6 +39,6 @@ class SubclassWithHelpersTest < ActionController::TestCase
   def test_with_helpers
     get :with_helpers
 
-    assert_equal "helper", response.body
+    assert_equal 'helper', response.body
   end
 end

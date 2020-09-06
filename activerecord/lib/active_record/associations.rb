@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/enumerable"
-require "active_support/core_ext/string/conversions"
+require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/string/conversions'
 
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
@@ -12,7 +12,7 @@ module ActiveRecord
       if record && association_name
         super("Association named '#{association_name}' was not found on #{record.class.name}; perhaps you misspelled it?")
       else
-        super("Association was not found.")
+        super('Association was not found.')
       end
     end
 
@@ -48,7 +48,7 @@ module ActiveRecord
         @associated_class = associated_class.nil? ? reflection.klass : associated_class
         super("Could not find the inverse association for #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{associated_class.nil? ? reflection.class_name : associated_class.name})")
       else
-        super("Could not find the inverse association.")
+        super('Could not find the inverse association.')
       end
     end
 
@@ -85,7 +85,7 @@ module ActiveRecord
         @reflection = reflection
         super("Could not find the association #{reflection.options[:through].inspect} in model #{owner_class.name}")
       else
-        super("Could not find the association.")
+        super('Could not find the association.')
       end
     end
 
@@ -119,7 +119,7 @@ module ActiveRecord
       if owner_class_name && reflection && source_reflection
         super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' on the polymorphic object '#{source_reflection.class_name}##{source_reflection.name}' without 'source_type'. Try adding 'source_type: \"#{reflection.name.to_s.classify}\"' to 'has_many :through' definition.")
       else
-        super("Cannot have a has_many :through association.")
+        super('Cannot have a has_many :through association.')
       end
     end
   end
@@ -129,7 +129,7 @@ module ActiveRecord
       if owner_class_name && reflection
         super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' which goes through the polymorphic association '#{owner_class_name}##{reflection.through_reflection.name}'.")
       else
-        super("Cannot have a has_many :through association.")
+        super('Cannot have a has_many :through association.')
       end
     end
   end
@@ -139,7 +139,7 @@ module ActiveRecord
       if owner_class_name && reflection && source_reflection
         super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' with a :source_type option if the '#{reflection.through_reflection.class_name}##{source_reflection.name}' is not polymorphic. Try removing :source_type on your association.")
       else
-        super("Cannot have a has_many :through association.")
+        super('Cannot have a has_many :through association.')
       end
     end
   end
@@ -149,7 +149,7 @@ module ActiveRecord
       if owner_class_name && reflection && through_reflection
         super("Cannot have a has_one :through association '#{owner_class_name}##{reflection.name}' where the :through association '#{owner_class_name}##{through_reflection.name}' is a collection. Specify a has_one or belongs_to association in the :through option instead.")
       else
-        super("Cannot have a has_one :through association.")
+        super('Cannot have a has_one :through association.')
       end
     end
   end
@@ -159,7 +159,7 @@ module ActiveRecord
       if owner_class_name && reflection
         super("Cannot have a has_one :through association '#{owner_class_name}##{reflection.name}' which goes through the polymorphic association '#{owner_class_name}##{reflection.through_reflection.name}'.")
       else
-        super("Cannot have a has_one :through association.")
+        super('Cannot have a has_one :through association.')
       end
     end
   end
@@ -172,7 +172,7 @@ module ActiveRecord
         source_associations     = reflection.through_reflection.klass._reflections.keys
         super("Could not find the source association(s) #{source_reflection_names.collect(&:inspect).to_sentence(two_words_connector: ' or ', last_word_connector: ', or ')} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(two_words_connector: ' or ', last_word_connector: ', or ')}?")
       else
-        super("Could not find the source association(s).")
+        super('Could not find the source association(s).')
       end
     end
   end
@@ -182,7 +182,7 @@ module ActiveRecord
       if owner_class_name && reflection && through_reflection
         super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' which goes through '#{owner_class_name}##{through_reflection.name}' before the through association is defined.")
       else
-        super("Cannot have a has_many :through association before the through association is defined.")
+        super('Cannot have a has_many :through association before the through association is defined.')
       end
     end
   end
@@ -192,7 +192,7 @@ module ActiveRecord
       if owner && reflection
         super("Cannot modify association '#{owner.class.name}##{reflection.name}' because the source reflection class '#{reflection.source_reflection.class_name}' is associated to '#{reflection.through_reflection.class_name}' via :#{reflection.source_reflection.macro}.")
       else
-        super("Cannot modify association.")
+        super('Cannot modify association.')
       end
     end
   end
@@ -202,12 +202,12 @@ module ActiveRecord
       example_options = options.dup
       example_options[:source] = possible_sources.first
 
-      super("Ambiguous source reflection for through association. Please " \
+      super('Ambiguous source reflection for through association. Please ' \
             "specify a :source directive on your declaration like:\n" \
             "\n" \
             "  class #{klass} < ActiveRecord::Base\n" \
             "    #{macro} :#{association_name}, #{example_options}\n" \
-            "  end"
+            '  end'
            )
     end
   end
@@ -223,7 +223,7 @@ module ActiveRecord
       if owner && reflection
         super("Cannot modify association '#{owner.class.name}##{reflection.name}' because it goes through more than one other association.")
       else
-        super("Through nested associations are read-only.")
+        super('Through nested associations are read-only.')
       end
     end
   end
@@ -242,7 +242,7 @@ module ActiveRecord
       if reflection
         super("Cannot eagerly load the polymorphic association #{reflection.name.inspect}")
       else
-        super("Eager load polymorphic error.")
+        super('Eager load polymorphic error.')
       end
     end
   end
@@ -255,7 +255,7 @@ module ActiveRecord
       if name
         super("Cannot delete record because of dependent #{name}")
       else
-        super("Delete restriction error.")
+        super('Delete restriction error.')
       end
     end
   end
@@ -275,14 +275,14 @@ module ActiveRecord
     autoload :ThroughAssociation
 
     module Builder #:nodoc:
-      autoload :Association,           "active_record/associations/builder/association"
-      autoload :SingularAssociation,   "active_record/associations/builder/singular_association"
-      autoload :CollectionAssociation, "active_record/associations/builder/collection_association"
+      autoload :Association,           'active_record/associations/builder/association'
+      autoload :SingularAssociation,   'active_record/associations/builder/singular_association'
+      autoload :CollectionAssociation, 'active_record/associations/builder/collection_association'
 
-      autoload :BelongsTo,           "active_record/associations/builder/belongs_to"
-      autoload :HasOne,              "active_record/associations/builder/has_one"
-      autoload :HasMany,             "active_record/associations/builder/has_many"
-      autoload :HasAndBelongsToMany, "active_record/associations/builder/has_and_belongs_to_many"
+      autoload :BelongsTo,           'active_record/associations/builder/belongs_to'
+      autoload :HasOne,              'active_record/associations/builder/has_one'
+      autoload :HasMany,             'active_record/associations/builder/has_many'
+      autoload :HasAndBelongsToMany, 'active_record/associations/builder/has_and_belongs_to_many'
     end
 
     eager_autoload do

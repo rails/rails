@@ -2,10 +2,10 @@
 
 class PeopleHaveHobbies < ActiveRecord::Migration::Current
   def self.up
-    add_column "people", "hobbies", :string
+    add_column 'people', 'hobbies', :string
   end
 
   def self.down
-    remove_column "people", "hobbies"
+    remove_column 'people', 'hobbies'
   end
 end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 module ActionDispatch
   module Journey
@@ -11,50 +11,50 @@ module ActionDispatch
         end
 
         CASES = [
-          ["/",       [[:SLASH, "/"]]],
-          ["*omg",    [[:STAR, "*omg"]]],
-          ["/page",   [[:SLASH, "/"], [:LITERAL, "page"]]],
-          ["/page!",  [[:SLASH, "/"], [:LITERAL, "page!"]]],
-          ["/page$",  [[:SLASH, "/"], [:LITERAL, "page$"]]],
-          ["/page&",  [[:SLASH, "/"], [:LITERAL, "page&"]]],
-          ["/page'",  [[:SLASH, "/"], [:LITERAL, "page'"]]],
-          ["/page*",  [[:SLASH, "/"], [:LITERAL, "page*"]]],
-          ["/page+",  [[:SLASH, "/"], [:LITERAL, "page+"]]],
-          ["/page,",  [[:SLASH, "/"], [:LITERAL, "page,"]]],
-          ["/page;",  [[:SLASH, "/"], [:LITERAL, "page;"]]],
-          ["/page=",  [[:SLASH, "/"], [:LITERAL, "page="]]],
-          ["/page@",  [[:SLASH, "/"], [:LITERAL, "page@"]]],
-          ['/page\:', [[:SLASH, "/"], [:LITERAL, "page:"]]],
-          ['/page\(', [[:SLASH, "/"], [:LITERAL, "page("]]],
-          ['/page\)', [[:SLASH, "/"], [:LITERAL, "page)"]]],
-          ["/~page",  [[:SLASH, "/"], [:LITERAL, "~page"]]],
-          ["/pa-ge",  [[:SLASH, "/"], [:LITERAL, "pa-ge"]]],
-          ["/:page",  [[:SLASH, "/"], [:SYMBOL, ":page"]]],
-          ["/:page|*foo", [
-                            [:SLASH, "/"],
-                            [:SYMBOL, ":page"],
-                            [:OR, "|"],
-                            [:STAR, "*foo"]
+          ['/',       [[:SLASH, '/']]],
+          ['*omg',    [[:STAR, '*omg']]],
+          ['/page',   [[:SLASH, '/'], [:LITERAL, 'page']]],
+          ['/page!',  [[:SLASH, '/'], [:LITERAL, 'page!']]],
+          ['/page$',  [[:SLASH, '/'], [:LITERAL, 'page$']]],
+          ['/page&',  [[:SLASH, '/'], [:LITERAL, 'page&']]],
+          ["/page'",  [[:SLASH, '/'], [:LITERAL, "page'"]]],
+          ['/page*',  [[:SLASH, '/'], [:LITERAL, 'page*']]],
+          ['/page+',  [[:SLASH, '/'], [:LITERAL, 'page+']]],
+          ['/page,',  [[:SLASH, '/'], [:LITERAL, 'page,']]],
+          ['/page;',  [[:SLASH, '/'], [:LITERAL, 'page;']]],
+          ['/page=',  [[:SLASH, '/'], [:LITERAL, 'page=']]],
+          ['/page@',  [[:SLASH, '/'], [:LITERAL, 'page@']]],
+          ['/page\:', [[:SLASH, '/'], [:LITERAL, 'page:']]],
+          ['/page\(', [[:SLASH, '/'], [:LITERAL, 'page(']]],
+          ['/page\)', [[:SLASH, '/'], [:LITERAL, 'page)']]],
+          ['/~page',  [[:SLASH, '/'], [:LITERAL, '~page']]],
+          ['/pa-ge',  [[:SLASH, '/'], [:LITERAL, 'pa-ge']]],
+          ['/:page',  [[:SLASH, '/'], [:SYMBOL, ':page']]],
+          ['/:page|*foo', [
+                            [:SLASH, '/'],
+                            [:SYMBOL, ':page'],
+                            [:OR, '|'],
+                            [:STAR, '*foo']
                           ]],
-          ["/(:page)", [
-                        [:SLASH, "/"],
-                        [:LPAREN, "("],
-                        [:SYMBOL, ":page"],
-                        [:RPAREN, ")"],
+          ['/(:page)', [
+                        [:SLASH, '/'],
+                        [:LPAREN, '('],
+                        [:SYMBOL, ':page'],
+                        [:RPAREN, ')'],
                       ]],
-          ["(/:action)", [
-                          [:LPAREN, "("],
-                          [:SLASH, "/"],
-                          [:SYMBOL, ":action"],
-                          [:RPAREN, ")"],
+          ['(/:action)', [
+                          [:LPAREN, '('],
+                          [:SLASH, '/'],
+                          [:SYMBOL, ':action'],
+                          [:RPAREN, ')'],
                          ]],
-          ["(())", [[:LPAREN, "("],
-                   [:LPAREN, "("], [:RPAREN, ")"], [:RPAREN, ")"]]],
-          ["(.:format)", [
-                          [:LPAREN, "("],
-                          [:DOT, "."],
-                          [:SYMBOL, ":format"],
-                          [:RPAREN, ")"],
+          ['(())', [[:LPAREN, '('],
+                   [:LPAREN, '('], [:RPAREN, ')'], [:RPAREN, ')']]],
+          ['(.:format)', [
+                          [:LPAREN, '('],
+                          [:DOT, '.'],
+                          [:SYMBOL, ':format'],
+                          [:RPAREN, ')'],
                         ]],
         ]
 

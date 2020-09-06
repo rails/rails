@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/indifferent_access"
+require 'active_support/core_ext/hash/indifferent_access'
 
 class ProtectedParams
   delegate :keys, :key?, :has_key?, :empty?, to: :@parameters

@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/author"
-require "models/binary"
-require "models/cake_designer"
-require "models/car"
-require "models/chef"
-require "models/post"
-require "models/comment"
-require "models/edge"
-require "models/essay"
-require "models/price_estimate"
-require "models/topic"
-require "models/treasure"
-require "models/vertex"
-require "support/stubs/strong_parameters"
+require 'cases/helper'
+require 'models/author'
+require 'models/binary'
+require 'models/cake_designer'
+require 'models/car'
+require 'models/chef'
+require 'models/post'
+require 'models/comment'
+require 'models/edge'
+require 'models/essay'
+require 'models/price_estimate'
+require 'models/topic'
+require 'models/treasure'
+require 'models/vertex'
+require 'support/stubs/strong_parameters'
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
@@ -22,7 +22,7 @@ module ActiveRecord
 
     def test_type_casting_nested_joins
       comment = comments(:eager_other_comment1)
-      assert_equal [comment], Comment.joins(post: :author).where(authors: { id: "2-foo" })
+      assert_equal [comment], Comment.joins(post: :author).where(authors: { id: '2-foo' })
     end
 
     def test_where_with_through_association
@@ -33,19 +33,19 @@ module ActiveRecord
       posts = nil
 
       assert_not_called_on_instance_of(Type::Value, :cast) do
-        posts = Post.where(id: "1-foo")
+        posts = Post.where(id: '1-foo')
       end
       assert_equal [posts(:welcome)], posts.to_a
 
       assert_not_called_on_instance_of(Type::Value, :cast) do
-        posts = Post.where(id: ["1-foo", "bar"])
+        posts = Post.where(id: ['1-foo', 'bar'])
       end
       assert_equal [posts(:welcome)], posts.to_a
     end
 
     def test_where_copies_bind_params
       author = authors(:david)
-      posts  = author.posts.where("posts.id != 1")
+      posts  = author.posts.where('posts.id != 1')
       joined = Post.where(id: posts)
 
       assert_operator joined.length, :>, 0
@@ -77,14 +77,14 @@ module ActiveRecord
     def test_where_with_invalid_value
       topics(:first).update!(parent_id: 0, written_on: nil, bonus_time: nil, last_read: nil)
       assert_empty Topic.where(parent_id: Object.new)
-      assert_empty Topic.where(parent_id: "not-a-number")
-      assert_empty Topic.where(written_on: "")
-      assert_empty Topic.where(bonus_time: "")
-      assert_empty Topic.where(last_read: "")
+      assert_empty Topic.where(parent_id: 'not-a-number')
+      assert_empty Topic.where(written_on: '')
+      assert_empty Topic.where(bonus_time: '')
+      assert_empty Topic.where(last_read: '')
     end
 
     def test_rewhere_on_root
-      assert_equal posts(:welcome), Post.rewhere(title: "Welcome to the weblog").first
+      assert_equal posts(:welcome), Post.rewhere(title: 'Welcome to the weblog').first
     end
 
     def test_belongs_to_shallow_where
@@ -132,7 +132,7 @@ module ActiveRecord
       treasure = Treasure.new
       treasure.id = 1
 
-      expected = PriceEstimate.where(estimate_of_type: "Treasure", estimate_of_id: 1)
+      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: 1)
       actual   = PriceEstimate.where(estimate_of: treasure)
 
       assert_equal expected.to_sql, actual.to_sql
@@ -193,9 +193,9 @@ module ActiveRecord
     end
 
     def test_where_not_association_as_nor_is_deprecated
-      treasure = Treasure.create!(name: "my_treasure")
-      PriceEstimate.create!(estimate_of: treasure, price: 2, currency: "USD")
-      PriceEstimate.create!(estimate_of: treasure, price: 2, currency: "EUR")
+      treasure = Treasure.create!(name: 'my_treasure')
+      PriceEstimate.create!(estimate_of: treasure, price: 2, currency: 'USD')
+      PriceEstimate.create!(estimate_of: treasure, price: 2, currency: 'EUR')
 
       message = <<~MSG.squish
         NOT conditions will no longer behave as NOR in Rails 6.1.
@@ -203,7 +203,7 @@ module ActiveRecord
         (`.where.not(:price_estimates => { :price => ... }).where.not(:price_estimates => { :currency => ... })`).
       MSG
       assert_deprecated(message) do
-        result = Treasure.joins(:price_estimates).where.not(price_estimates: { price: 2, currency: "USD" })
+        result = Treasure.joins(:price_estimates).where.not(price_estimates: { price: 2, currency: 'USD' })
 
         assert_predicate result, :empty?
       end
@@ -215,7 +215,7 @@ module ActiveRecord
       hidden = HiddenTreasure.new
       hidden.id = 2
 
-      expected = PriceEstimate.where(estimate_of_type: "Treasure", estimate_of_id: [treasure, hidden])
+      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: [treasure, hidden])
       actual   = PriceEstimate.where(estimate_of: [treasure, hidden])
 
       assert_equal expected.to_sql, actual.to_sql
@@ -243,7 +243,7 @@ module ActiveRecord
     end
 
     def test_polymorphic_nested_relation_where
-      expected = PriceEstimate.where(estimate_of_type: "Treasure", estimate_of_id: Treasure.where(id: [1, 2]))
+      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: Treasure.where(id: [1, 2]))
       actual   = PriceEstimate.where(estimate_of: Treasure.where(id: [1, 2]))
 
       assert_equal expected.to_sql, actual.to_sql
@@ -253,7 +253,7 @@ module ActiveRecord
       treasure = HiddenTreasure.new
       treasure.id = 1
 
-      expected = PriceEstimate.where(estimate_of_type: "Treasure", estimate_of_id: 1)
+      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: 1)
       actual   = PriceEstimate.where(estimate_of: treasure)
 
       assert_equal expected.to_sql, actual.to_sql
@@ -263,7 +263,7 @@ module ActiveRecord
       thing = Post.new
       thing.id = 1
 
-      expected = Treasure.where(price_estimates: { thing_type: "Post", thing_id: 1 }).joins(:price_estimates)
+      expected = Treasure.where(price_estimates: { thing_type: 'Post', thing_id: 1 }).joins(:price_estimates)
       actual   = Treasure.where(price_estimates: { thing: thing }).joins(:price_estimates)
 
       assert_equal expected.to_sql, actual.to_sql
@@ -273,7 +273,7 @@ module ActiveRecord
       treasure = HiddenTreasure.new
       treasure.id = 1
 
-      expected = Treasure.where(price_estimates: { estimate_of_type: "Treasure", estimate_of_id: 1 }).joins(:price_estimates)
+      expected = Treasure.where(price_estimates: { estimate_of_type: 'Treasure', estimate_of_id: 1 }).joins(:price_estimates)
       actual   = Treasure.where(price_estimates: { estimate_of: treasure }).joins(:price_estimates)
 
       assert_equal expected.to_sql, actual.to_sql
@@ -298,28 +298,28 @@ module ActiveRecord
       treasure.id = 1
       decorated_treasure = treasure_decorator.new(treasure)
 
-      expected = PriceEstimate.where(estimate_of_type: "Treasure", estimate_of_id: 1)
+      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: 1)
       actual   = PriceEstimate.where(estimate_of: decorated_treasure)
 
       assert_equal expected.to_sql, actual.to_sql
     end
 
     def test_aliased_attribute
-      expected = Topic.where(heading: "The First Topic")
-      actual   = Topic.where(title: "The First Topic")
+      expected = Topic.where(heading: 'The First Topic')
+      actual   = Topic.where(title: 'The First Topic')
 
       assert_equal expected.to_sql, actual.to_sql
     end
 
     def test_where_error
       assert_nothing_raised do
-        Post.where(id: { "posts.author_id" => 10 }).first
+        Post.where(id: { 'posts.author_id' => 10 }).first
       end
     end
 
     def test_where_with_table_name
       post = Post.first
-      assert_equal post, Post.where(posts: { "id" => post.id }).first
+      assert_equal post, Post.where(posts: { 'id' => post.id }).first
     end
 
     def test_where_with_table_name_and_empty_hash
@@ -335,8 +335,8 @@ module ActiveRecord
     end
 
     def test_where_with_blank_conditions
-      [[], {}, nil, ""].each do |blank|
-        assert_equal 4, Edge.where(blank).order("sink_id").to_a.size
+      [[], {}, nil, ''].each do |blank|
+        assert_equal 4, Edge.where(blank).order('sink_id').to_a.size
       end
     end
 
@@ -371,9 +371,9 @@ module ActiveRecord
     end
 
     def test_where_with_emoji_for_binary_column
-      Binary.create!(data: "🥦")
-      assert Binary.where(data: ["🥦", "🍦"]).to_sql.include?("f09fa5a6")
-      assert Binary.where(data: ["🥦", "🍦"]).to_sql.include?("f09f8da6")
+      Binary.create!(data: '🥦')
+      assert Binary.where(data: ['🥦', '🍦']).to_sql.include?('f09fa5a6')
+      assert Binary.where(data: ['🥦', '🍦']).to_sql.include?('f09f8da6')
     end
 
     def test_where_on_association_with_custom_primary_key
@@ -406,7 +406,7 @@ module ActiveRecord
     end
 
     def test_where_on_association_with_custom_primary_key_with_array_of_ids
-      essay = Essay.where(writer: ["David"]).first
+      essay = Essay.where(writer: ['David']).first
 
       assert_equal essays(:david_modest_proposal), essay
     end
@@ -425,7 +425,7 @@ module ActiveRecord
     end
 
     def test_where_on_association_with_select_relation
-      essay = Essay.where(author: Author.where(name: "David").select(:name)).take
+      essay = Essay.where(author: Author.where(name: 'David').select(:name)).take
       assert_equal essays(:david_modest_proposal), essay
     end
 

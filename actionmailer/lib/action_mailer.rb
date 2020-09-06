@@ -23,16 +23,16 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require "abstract_controller"
-require "action_mailer/version"
+require 'abstract_controller'
+require 'action_mailer/version'
 
 # Common Active Support usage in Action Mailer
-require "active_support"
-require "active_support/rails"
-require "active_support/core_ext/class"
-require "active_support/core_ext/module/attr_internal"
-require "active_support/core_ext/string/inflections"
-require "active_support/lazy_load_hooks"
+require 'active_support'
+require 'active_support/rails'
+require 'active_support/core_ext/class'
+require 'active_support/core_ext/module/attr_internal'
+require 'active_support/core_ext/string/inflections'
+require 'active_support/lazy_load_hooks'
 
 module ActionMailer
   extend ::ActiveSupport::Autoload
@@ -47,7 +47,7 @@ module ActionMailer
   autoload :MailHelper
   autoload :Parameterized
   autoload :Preview
-  autoload :Previews, "action_mailer/preview"
+  autoload :Previews, 'action_mailer/preview'
   autoload :TestCase
   autoload :TestHelper
   autoload :MessageDelivery
@@ -57,12 +57,12 @@ module ActionMailer
   def self.eager_load!
     super
 
-    require "mail"
+    require 'mail'
     Mail.eager_autoload!
   end
 end
 
-autoload :Mime, "action_dispatch/http/mime_type"
+autoload :Mime, 'action_dispatch/http/mime_type'
 
 ActiveSupport.on_load(:action_view) do
   ActionView::Base.default_formats ||= Mime::SET.symbols

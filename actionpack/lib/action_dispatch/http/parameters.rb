@@ -5,7 +5,7 @@ module ActionDispatch
     module Parameters
       extend ActiveSupport::Concern
 
-      PARAMETERS_KEY = "action_dispatch.request.path_parameters"
+      PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
       DEFAULT_PARSERS = {
         Mime[:json].symbol => -> (raw_post) {
@@ -48,7 +48,7 @@ module ActionDispatch
 
       # Returns both GET and POST \parameters in a single hash.
       def parameters
-        params = get_header("action_dispatch.request.parameters")
+        params = get_header('action_dispatch.request.parameters')
         return params if params
 
         params = begin
@@ -58,13 +58,13 @@ module ActionDispatch
                  end
         params.merge!(path_parameters)
         params = set_binary_encoding(params, params[:controller], params[:action])
-        set_header("action_dispatch.request.parameters", params)
+        set_header('action_dispatch.request.parameters', params)
         params
       end
       alias :params :parameters
 
       def path_parameters=(parameters) #:nodoc:
-        delete_header("action_dispatch.request.parameters")
+        delete_header('action_dispatch.request.parameters')
 
         parameters = set_binary_encoding(parameters, parameters[:controller], parameters[:action])
         # If any of the path parameters has an invalid encoding then

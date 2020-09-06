@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "thread"
-require "delegate"
+require 'thread'
+require 'delegate'
 
 module ActionView
   # = Action View Template
@@ -9,11 +9,11 @@ module ActionView
     extend ActiveSupport::Autoload
 
     def self.finalize_compiled_template_methods
-      ActiveSupport::Deprecation.warn "ActionView::Template.finalize_compiled_template_methods is deprecated and has no effect"
+      ActiveSupport::Deprecation.warn 'ActionView::Template.finalize_compiled_template_methods is deprecated and has no effect'
     end
 
     def self.finalize_compiled_template_methods=(_)
-      ActiveSupport::Deprecation.warn "ActionView::Template.finalize_compiled_template_methods= is deprecated and has no effect"
+      ActiveSupport::Deprecation.warn 'ActionView::Template.finalize_compiled_template_methods= is deprecated and has no effect'
     end
 
     # === Encodings in ActionView::Template
@@ -126,7 +126,7 @@ module ActionView
 
     def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, virtual_path: nil, updated_at: nil)
       unless locals
-        ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a locals parameter"
+        ActiveSupport::Deprecation.warn 'ActionView::Template#initialize requires a locals parameter'
         locals = []
       end
 
@@ -138,13 +138,13 @@ module ActionView
       @virtual_path      = virtual_path
 
       @variable = if @virtual_path
-        base = @virtual_path.end_with?("/") ? "" : ::File.basename(@virtual_path)
+        base = @virtual_path.end_with?('/') ? '' : ::File.basename(@virtual_path)
         base =~ /\A_?(.*?)(?:\.\w+)*\z/
         $1.to_sym
       end
 
       if updated_at
-        ActiveSupport::Deprecation.warn "ActionView::Template#updated_at is deprecated"
+        ActiveSupport::Deprecation.warn 'ActionView::Template#updated_at is deprecated'
         @updated_at        = updated_at
       else
         @updated_at        = Time.now
@@ -219,7 +219,7 @@ module ActionView
       # Look for # encoding: *. If we find one, we'll encode the
       # String in that encoding, otherwise, we'll use the
       # default external encoding.
-      if source.sub!(/\A#{ENCODING_FLAG}/, "")
+      if source.sub!(/\A#{ENCODING_FLAG}/, '')
         encoding = magic_encoding = $1
       else
         encoding = Encoding.default_external
@@ -277,7 +277,7 @@ module ActionView
 
           mod = view.compiled_method_container
 
-          instrument("!compile_template") do
+          instrument('!compile_template') do
             compile(mod)
           end
 
@@ -361,19 +361,19 @@ module ActionView
         locals = locals.grep(/\A@?(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
 
         # Assign for the same variable is to suppress unused variable warning
-        locals.each_with_object(+"") { |key, code| code << "#{key} = local_assigns[:#{key}]; #{key} = #{key};" }
+        locals.each_with_object(+'') { |key, code| code << "#{key} = local_assigns[:#{key}]; #{key} = #{key};" }
       end
 
       def method_name
         @method_name ||= begin
           m = +"_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
-          m.tr!("-", "_")
+          m.tr!('-', '_')
           m
         end
       end
 
       def identifier_method_name
-        short_identifier.tr("^a-z_", "_")
+        short_identifier.tr('^a-z_', '_')
       end
 
       def instrument(action, &block) # :doc:
@@ -381,7 +381,7 @@ module ActionView
       end
 
       def instrument_render_template(&block)
-        ActiveSupport::Notifications.instrument("!render_template.action_view", instrument_payload, &block)
+        ActiveSupport::Notifications.instrument('!render_template.action_view', instrument_payload, &block)
       end
 
       def instrument_payload

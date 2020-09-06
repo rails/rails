@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/numeric_data"
+require 'cases/helper'
+require 'models/numeric_data'
 
 class NumericalityValidationTest < ActiveRecord::TestCase
   def setup
@@ -69,11 +69,11 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     klass = Class.new(abstract_class) do
       def self.table_name
-        "numeric_data"
+        'numeric_data'
       end
 
       def self.name
-        "MyClass"
+        'MyClass'
       end
     end
     subject = klass.new(bank_balance: 10_000_000.12)

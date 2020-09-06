@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/array/extract_options"
-require "action_dispatch/middleware/stack"
-require "action_dispatch/http/request"
-require "action_dispatch/http/response"
+require 'active_support/core_ext/array/extract_options'
+require 'action_dispatch/middleware/stack'
+require 'action_dispatch/http/request'
+require 'action_dispatch/http/response'
 
 module ActionController
   # Extend ActionDispatch middleware stack to make it aware of options
@@ -126,7 +126,7 @@ module ActionController
     # ==== Returns
     # * <tt>string</tt>
     def self.controller_name
-      @controller_name ||= name.demodulize.delete_suffix("Controller").underscore
+      @controller_name ||= name.demodulize.delete_suffix('Controller').underscore
     end
 
     def self.make_response!(request)
@@ -145,9 +145,9 @@ module ActionController
     end
 
     attr_internal :response, :request
-    delegate :session, to: "@_request"
+    delegate :session, to: '@_request'
     delegate :headers, :status=, :location=, :content_type=,
-             :status, :location, :content_type, :media_type, to: "@_response"
+             :status, :location, :content_type, :media_type, to: '@_response'
 
     def initialize
       @_request = nil

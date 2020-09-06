@@ -12,7 +12,7 @@ module ActiveRecord
     autoload :PoolConfig
     autoload :PoolManager
 
-    autoload_at "active_record/connection_adapters/abstract/schema_definitions" do
+    autoload_at 'active_record/connection_adapters/abstract/schema_definitions' do
       autoload :IndexDefinition
       autoload :ColumnDefinition
       autoload :ChangeColumnDefinition
@@ -24,11 +24,11 @@ module ActiveRecord
       autoload :ReferenceDefinition
     end
 
-    autoload_at "active_record/connection_adapters/abstract/connection_pool" do
+    autoload_at 'active_record/connection_adapters/abstract/connection_pool' do
       autoload :ConnectionHandler
     end
 
-    autoload_under "abstract" do
+    autoload_under 'abstract' do
       autoload :SchemaStatements
       autoload :DatabaseStatements
       autoload :DatabaseLimits
@@ -38,7 +38,7 @@ module ActiveRecord
       autoload :Savepoints
     end
 
-    autoload_at "active_record/connection_adapters/abstract/transaction" do
+    autoload_at 'active_record/connection_adapters/abstract/transaction' do
       autoload :TransactionManager
       autoload :NullTransaction
       autoload :RealTransaction

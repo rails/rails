@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-if ENV["BUILDKITE"]
-  require "minitest/reporters"
-  require "fileutils"
+if ENV['BUILDKITE']
+  require 'minitest/reporters'
+  require 'fileutils'
 
   module Minitest
     def self.plugin_rails_ci_junit_format_test_report_for_buildkite_init(*)
@@ -13,5 +13,5 @@ if ENV["BUILDKITE"]
   end
 
   Minitest.load_plugins
-  Minitest.extensions.unshift "rails_ci_junit_format_test_report_for_buildkite"
+  Minitest.extensions.unshift 'rails_ci_junit_format_test_report_for_buildkite'
 end

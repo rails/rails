@@ -4,7 +4,7 @@ module ActiveModel
   module Validations
     class AcceptanceValidator < EachValidator # :nodoc:
       def initialize(options)
-        super({ allow_nil: true, accept: ["1", true] }.merge!(options))
+        super({ allow_nil: true, accept: ['1', true] }.merge!(options))
         setup!(options[:class])
       end
 
@@ -49,7 +49,7 @@ module ActiveModel
           end
 
           def matches?(method_name)
-            attr_name = method_name.to_s.chomp("=")
+            attr_name = method_name.to_s.chomp('=')
             attributes.any? { |name| name == attr_name }
           end
 

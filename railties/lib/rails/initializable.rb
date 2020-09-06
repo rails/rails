@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "tsort"
+require 'tsort'
 
 module Rails
   module Initializable
@@ -86,7 +86,7 @@ module Rails
       end
 
       def initializer(name, opts = {}, &blk)
-        raise ArgumentError, "A block must be passed when defining an initializer" unless blk
+        raise ArgumentError, 'A block must be passed when defining an initializer' unless blk
         opts[:after] ||= initializers.last.name unless initializers.empty? || initializers.find { |i| i.name == opts[:before] }
         initializers << Initializer.new(name, nil, opts, &blk)
       end

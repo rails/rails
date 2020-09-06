@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/enumerable"
-require "active_support/core_ext/hash/indifferent_access"
-require "active_support/core_ext/string/filters"
-require "active_support/parameter_filter"
-require "concurrent/map"
+require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/string/filters'
+require 'active_support/parameter_filter'
+require 'concurrent/map'
 
 module ActiveRecord
   module Core
@@ -271,7 +271,7 @@ module ActiveRecord
         elsif !connected?
           "#{super} (call '#{super}.connection' to establish a connection)"
         elsif table_exists?
-          attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ", "
+          attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ', '
           "#{super}(#{attr_list})"
         else
           "#{super}(Table doesn't exist)"
@@ -368,7 +368,7 @@ module ActiveRecord
     def init_with(coder, &block)
       coder = LegacyYamlAdapter.convert(self.class, coder)
       attributes = self.class.yaml_encoder.decode(coder)
-      init_with_attributes(attributes, coder["new_record"], &block)
+      init_with_attributes(attributes, coder['new_record'], &block)
     end
 
     ##
@@ -444,8 +444,8 @@ module ActiveRecord
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
       self.class.yaml_encoder.encode(@attributes, coder)
-      coder["new_record"] = new_record?
-      coder["active_record_yaml_version"] = 2
+      coder['new_record'] = new_record?
+      coder['active_record_yaml_version'] = 2
     end
 
     # Returns true if +comparison_object+ is the same exact object, or +comparison_object+
@@ -551,9 +551,9 @@ module ActiveRecord
             end
             "#{name}: #{value}"
           end
-        end.compact.join(", ")
+        end.compact.join(', ')
       else
-        "not initialized"
+        'not initialized'
       end
 
       "#<#{self.class} #{inspection}>"
@@ -566,11 +566,11 @@ module ActiveRecord
       pp.object_address_group(self) do
         if defined?(@attributes) && @attributes
           attr_names = self.class.attribute_names.select { |name| _has_attribute?(name) }
-          pp.seplist(attr_names, proc { pp.text "," }) do |attr_name|
-            pp.breakable " "
+          pp.seplist(attr_names, proc { pp.text ',' }) do |attr_name|
+            pp.breakable ' '
             pp.group(1) do
               pp.text attr_name
-              pp.text ":"
+              pp.text ':'
               pp.breakable
               value = _read_attribute(attr_name)
               value = inspection_filter.filter_param(attr_name, value) unless value.nil?
@@ -578,8 +578,8 @@ module ActiveRecord
             end
           end
         else
-          pp.breakable " "
-          pp.text "not initialized"
+          pp.breakable ' '
+          pp.text 'not initialized'
         end
       end
     end

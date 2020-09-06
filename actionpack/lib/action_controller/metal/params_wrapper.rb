@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/slice"
-require "active_support/core_ext/hash/except"
-require "active_support/core_ext/module/anonymous"
-require "action_dispatch/http/mime_type"
+require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/module/anonymous'
+require 'action_dispatch/http/mime_type'
 
 module ActionController
   # Wraps the parameters hash into a nested hash. This will allow clients to
@@ -73,7 +73,7 @@ module ActionController
 
     EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8)
 
-    require "mutex_m"
+    require 'mutex_m'
 
     class Options < Struct.new(:name, :format, :include, :exclude, :klass, :model) # :nodoc:
       include Mutex_m
@@ -115,7 +115,7 @@ module ActionController
 
               if m.respond_to?(:nested_attributes_options) && m.nested_attributes_options.keys.any?
                 self.include += m.nested_attributes_options.keys.map do |key|
-                  (+key.to_s).concat("_attributes")
+                  (+key.to_s).concat('_attributes')
                 end
               end
 
@@ -151,16 +151,16 @@ module ActionController
         # try to find Foo::Bar::User, Foo::User and finally User.
         def _default_wrap_model
           return nil if klass.anonymous?
-          model_name = klass.name.delete_suffix("Controller").classify
+          model_name = klass.name.delete_suffix('Controller').classify
 
           begin
             if model_klass = model_name.safe_constantize
               model_klass
             else
-              namespaces = model_name.split("::")
+              namespaces = model_name.split('::')
               namespaces.delete_at(-2)
               break if namespaces.last == model_name
-              model_name = namespaces.join("::")
+              model_name = namespaces.join('::')
             end
           end until model_klass
 

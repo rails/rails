@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/number_helper/number_converter"
+require 'active_support/number_helper/number_converter'
 
 module ActiveSupport
   module NumberHelper
@@ -11,13 +11,13 @@ module ActiveSupport
         number = self.number.to_s.strip
         format = options[:format]
 
-        if number.sub!(/^-/, "") &&
+        if number.sub!(/^-/, '') &&
            (options[:precision] != 0 || number.to_f > 0.5)
           format = options[:negative_format]
         end
 
         rounded_number = NumberToRoundedConverter.convert(number, options)
-        format.gsub("%n", rounded_number).gsub("%u", options[:unit])
+        format.gsub('%n', rounded_number).gsub('%u', options[:unit])
       end
 
       private

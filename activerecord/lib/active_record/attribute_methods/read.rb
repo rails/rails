@@ -14,7 +14,7 @@ module ActiveRecord
               owner <<
                 "def #{temp_method_name}" <<
                 "  _read_attribute(#{attr_name_expr}) { |n| missing_attribute(n, caller) }" <<
-                "end"
+                'end'
             end
           end
       end
@@ -26,7 +26,7 @@ module ActiveRecord
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
 
-        name = @primary_key if name == "id" && @primary_key
+        name = @primary_key if name == 'id' && @primary_key
         @attributes.fetch_value(name, &block)
       end
 

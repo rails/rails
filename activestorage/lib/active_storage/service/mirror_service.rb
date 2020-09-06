@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/delegation"
+require 'active_support/core_ext/module/delegation'
 
 module ActiveStorage
   # Wraps a set of mirror services and provides a single ActiveStorage::Service object that will all

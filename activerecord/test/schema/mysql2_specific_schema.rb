@@ -3,24 +3,24 @@
 ActiveRecord::Schema.define do
   if supports_datetime_with_precision?
     create_table :datetime_defaults, force: true do |t|
-      t.datetime :modified_datetime, default: -> { "CURRENT_TIMESTAMP" }
-      t.datetime :precise_datetime, precision: 6, default: -> { "CURRENT_TIMESTAMP(6)" }
+      t.datetime :modified_datetime, default: -> { 'CURRENT_TIMESTAMP' }
+      t.datetime :precise_datetime, precision: 6, default: -> { 'CURRENT_TIMESTAMP(6)' }
     end
 
     create_table :timestamp_defaults, force: true do |t|
       t.timestamp :nullable_timestamp
-      t.timestamp :modified_timestamp, default: -> { "CURRENT_TIMESTAMP" }
-      t.timestamp :precise_timestamp, precision: 6, default: -> { "CURRENT_TIMESTAMP(6)" }
+      t.timestamp :modified_timestamp, default: -> { 'CURRENT_TIMESTAMP' }
+      t.timestamp :precise_timestamp, precision: 6, default: -> { 'CURRENT_TIMESTAMP(6)' }
     end
   end
 
   create_table :defaults, force: true do |t|
-    t.date :fixed_date, default: "2004-01-01"
-    t.datetime :fixed_time, default: "2004-01-01 00:00:00"
-    t.column :char1, "char(1)", default: "Y"
-    t.string :char2, limit: 50, default: "a varchar field"
+    t.date :fixed_date, default: '2004-01-01'
+    t.datetime :fixed_time, default: '2004-01-01 00:00:00'
+    t.column :char1, 'char(1)', default: 'Y'
+    t.string :char2, limit: 50, default: 'a varchar field'
     if supports_default_expression?
-      t.binary :uuid, limit: 36, default: -> { "(uuid())" }
+      t.binary :uuid, limit: 36, default: -> { '(uuid())' }
     end
   end
 
@@ -51,18 +51,18 @@ ActiveRecord::Schema.define do
     t.string :awesome
     t.string :pizza
     t.string :snacks
-    t.index :awesome, type: :fulltext, name: "index_key_tests_on_awesome"
-    t.index :pizza, using: :btree, name: "index_key_tests_on_pizza"
-    t.index :snacks, name: "index_key_tests_on_snack"
+    t.index :awesome, type: :fulltext, name: 'index_key_tests_on_awesome'
+    t.index :pizza, using: :btree, name: 'index_key_tests_on_pizza'
+    t.index :snacks, name: 'index_key_tests_on_snack'
   end
 
   create_table :collation_tests, id: false, force: true do |t|
-    t.string :string_cs_column, limit: 1, collation: "utf8mb4_bin"
-    t.string :string_ci_column, limit: 1, collation: "utf8mb4_general_ci"
+    t.string :string_cs_column, limit: 1, collation: 'utf8mb4_bin'
+    t.string :string_ci_column, limit: 1, collation: 'utf8mb4_general_ci'
     t.binary :binary_column,    limit: 1
   end
 
-  execute "DROP PROCEDURE IF EXISTS ten"
+  execute 'DROP PROCEDURE IF EXISTS ten'
 
   execute <<~SQL
     CREATE PROCEDURE ten() SQL SECURITY INVOKER
@@ -71,7 +71,7 @@ ActiveRecord::Schema.define do
     END
   SQL
 
-  execute "DROP PROCEDURE IF EXISTS topics"
+  execute 'DROP PROCEDURE IF EXISTS topics'
 
   execute <<~SQL
     CREATE PROCEDURE topics(IN num INT) SQL SECURITY INVOKER

@@ -11,7 +11,7 @@ module ActionView #:nodoc:
       end
 
       def identifier
-        "text template"
+        'text template'
       end
 
       alias_method :inspect, :identifier

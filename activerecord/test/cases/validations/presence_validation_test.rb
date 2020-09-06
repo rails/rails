@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/human"
-require "models/face"
-require "models/interest"
-require "models/speedometer"
-require "models/dashboard"
+require 'cases/helper'
+require 'models/human'
+require 'models/face'
+require 'models/interest'
+require 'models/speedometer'
+require 'models/dashboard'
 
 class PresenceValidationTest < ActiveRecord::TestCase
   class Boy < Human; end
@@ -17,15 +17,15 @@ class PresenceValidationTest < ActiveRecord::TestCase
     b = Boy.new
     assert_predicate b, :invalid?
 
-    b.name = "Alex"
+    b.name = 'Alex'
     assert_predicate b, :valid?
   end
 
   def test_validates_presence_of_has_one
     Boy.validates_presence_of(:face)
     b = Boy.new
-    assert b.invalid?, "should not be valid if has_one association missing"
-    assert_equal 1, b.errors[:face].size, "validates_presence_of should only add one error"
+    assert b.invalid?, 'should not be valid if has_one association missing'
+    assert_equal 1, b.errors[:face].size, 'validates_presence_of should only add one error'
   end
 
   def test_validates_presence_of_has_one_marked_for_destruction
@@ -59,7 +59,7 @@ class PresenceValidationTest < ActiveRecord::TestCase
     dash = Dashboard.new
 
     # dashboard has to_a method
-    def dash.to_a; ["(/)", '(\)']; end
+    def dash.to_a; ['(/)', '(\)']; end
 
     s = speedometer.new
     s.dashboard = dash
@@ -73,10 +73,10 @@ class PresenceValidationTest < ActiveRecord::TestCase
       Interest.validates_presence_of(:topic)
       Interest.validates_presence_of(:abbreviation)
 
-      interest = Interest.create!(topic: "Thought Leadering", abbreviation: "tl")
+      interest = Interest.create!(topic: 'Thought Leadering', abbreviation: 'tl')
       assert_predicate interest, :valid?
 
-      interest.abbreviation = ""
+      interest.abbreviation = ''
 
       assert_predicate interest, :invalid?
     end

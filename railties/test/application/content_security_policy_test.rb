@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
-require "rack/test"
+require 'isolation/abstract_unit'
+require 'rack/test'
 
 module ApplicationTests
   class ContentSecurityPolicyTest < ActiveSupport::TestCase
@@ -16,7 +16,7 @@ module ApplicationTests
       teardown_app
     end
 
-    test "default content security policy is nil" do
+    test 'default content security policy is nil' do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
           def index
@@ -25,19 +25,19 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/routes.rb", <<-RUBY
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           root to: "pages#index"
         end
       RUBY
 
-      app("development")
+      app('development')
 
-      get "/"
-      assert_nil last_response.headers["Content-Security-Policy"]
+      get '/'
+      assert_nil last_response.headers['Content-Security-Policy']
     end
 
-    test "empty content security policy is generated" do
+    test 'empty content security policy is generated' do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
           def index
@@ -46,24 +46,24 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+      app_file 'config/initializers/content_security_policy.rb', <<-RUBY
         Rails.application.config.content_security_policy do |p|
         end
       RUBY
 
-      app_file "config/routes.rb", <<-RUBY
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           root to: "pages#index"
         end
       RUBY
 
-      app("development")
+      app('development')
 
-      get "/"
-      assert_policy ""
+      get '/'
+      assert_policy ''
     end
 
-    test "global content security policy in an initializer" do
+    test 'global content security policy in an initializer' do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
           def index
@@ -72,25 +72,25 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+      app_file 'config/initializers/content_security_policy.rb', <<-RUBY
         Rails.application.config.content_security_policy do |p|
           p.default_src :self, :https
         end
       RUBY
 
-      app_file "config/routes.rb", <<-RUBY
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           root to: "pages#index"
         end
       RUBY
 
-      app("development")
+      app('development')
 
-      get "/"
+      get '/'
       assert_policy "default-src 'self' https:"
     end
 
-    test "global report only content security policy in an initializer" do
+    test 'global report only content security policy in an initializer' do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
           def index
@@ -99,7 +99,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+      app_file 'config/initializers/content_security_policy.rb', <<-RUBY
         Rails.application.config.content_security_policy do |p|
           p.default_src :self, :https
         end
@@ -107,19 +107,19 @@ module ApplicationTests
         Rails.application.config.content_security_policy_report_only = true
       RUBY
 
-      app_file "config/routes.rb", <<-RUBY
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           root to: "pages#index"
         end
       RUBY
 
-      app("development")
+      app('development')
 
-      get "/"
+      get '/'
       assert_policy "default-src 'self' https:", report_only: true
     end
 
-    test "global content security policy nonce directives in an initializer" do
+    test 'global content security policy nonce directives in an initializer' do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
           def index
@@ -128,7 +128,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+      app_file 'config/initializers/content_security_policy.rb', <<-RUBY
         Rails.application.config.content_security_policy do |p|
           p.default_src :self, :https
           p.script_src  :self, :https
@@ -139,19 +139,19 @@ module ApplicationTests
         Rails.application.config.content_security_policy_nonce_directives = %w(script-src)
       RUBY
 
-      app_file "config/routes.rb", <<-RUBY
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           root to: "pages#index"
         end
       RUBY
 
-      app("development")
+      app('development')
 
-      get "/"
+      get '/'
       assert_policy "default-src 'self' https:; script-src 'self' https: 'nonce-iyhD0Yc0W+c='; style-src 'self' https:"
     end
 
-    test "override content security policy in a controller" do
+    test 'override content security policy in a controller' do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
           content_security_policy do |p|
@@ -164,25 +164,25 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+      app_file 'config/initializers/content_security_policy.rb', <<-RUBY
         Rails.application.config.content_security_policy do |p|
           p.default_src :self, :https
         end
       RUBY
 
-      app_file "config/routes.rb", <<-RUBY
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           root to: "pages#index"
         end
       RUBY
 
-      app("development")
+      app('development')
 
-      get "/"
-      assert_policy "default-src https://example.com"
+      get '/'
+      assert_policy 'default-src https://example.com'
     end
 
-    test "override content security policy to report only in a controller" do
+    test 'override content security policy to report only in a controller' do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
           content_security_policy_report_only
@@ -193,32 +193,32 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+      app_file 'config/initializers/content_security_policy.rb', <<-RUBY
         Rails.application.config.content_security_policy do |p|
           p.default_src :self, :https
         end
       RUBY
 
-      app_file "config/routes.rb", <<-RUBY
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           root to: "pages#index"
         end
       RUBY
 
-      app("development")
+      app('development')
 
-      get "/"
+      get '/'
       assert_policy "default-src 'self' https:", report_only: true
     end
 
-    test "global content security policy added to rack app" do
-      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+    test 'global content security policy added to rack app' do
+      app_file 'config/initializers/content_security_policy.rb', <<-RUBY
         Rails.application.config.content_security_policy do |p|
           p.default_src :self, :https
         end
       RUBY
 
-      app_file "config/routes.rb", <<-RUBY
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
 
           app = ->(env) {
@@ -229,9 +229,9 @@ module ApplicationTests
         end
       RUBY
 
-      app("development")
+      app('development')
 
-      get "/"
+      get '/'
       assert_policy "default-src 'self' https:"
     end
 
@@ -240,11 +240,11 @@ module ApplicationTests
         assert_equal 200, last_response.status
 
         if report_only
-          expected_header = "Content-Security-Policy-Report-Only"
-          unexpected_header = "Content-Security-Policy"
+          expected_header = 'Content-Security-Policy-Report-Only'
+          unexpected_header = 'Content-Security-Policy'
         else
-          expected_header = "Content-Security-Policy"
-          unexpected_header = "Content-Security-Policy-Report-Only"
+          expected_header = 'Content-Security-Policy'
+          unexpected_header = 'Content-Security-Policy-Report-Only'
         end
 
         assert_nil last_response.headers[unexpected_header]

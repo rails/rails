@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
-require "active_model/type/helpers"
-require "active_model/type/value"
+require 'active_model/type/helpers'
+require 'active_model/type/value'
 
-require "active_model/type/big_integer"
-require "active_model/type/binary"
-require "active_model/type/boolean"
-require "active_model/type/date"
-require "active_model/type/date_time"
-require "active_model/type/decimal"
-require "active_model/type/float"
-require "active_model/type/immutable_string"
-require "active_model/type/integer"
-require "active_model/type/string"
-require "active_model/type/time"
+require 'active_model/type/big_integer'
+require 'active_model/type/binary'
+require 'active_model/type/boolean'
+require 'active_model/type/date'
+require 'active_model/type/date_time'
+require 'active_model/type/decimal'
+require 'active_model/type/float'
+require 'active_model/type/immutable_string'
+require 'active_model/type/integer'
+require 'active_model/type/string'
+require 'active_model/type/time'
 
-require "active_model/type/registry"
+require 'active_model/type/registry'
 
 module ActiveModel
   module Type

@@ -11,11 +11,11 @@ module ActiveRecord
         end
 
         def case_sensitive?
-          collation && !collation.end_with?("_ci")
+          collation && !collation.end_with?('_ci')
         end
 
         def auto_increment?
-          extra == "auto_increment"
+          extra == 'auto_increment'
         end
 
         def virtual?

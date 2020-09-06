@@ -21,11 +21,11 @@ module ActiveRecord
       private
         def visit_AlterTable(o)
           sql = +"ALTER TABLE #{quote_table_name(o.name)} "
-          sql << o.adds.map { |col| accept col }.join(" ")
-          sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
-          sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
-          sql << o.check_constraint_adds.map { |con| visit_AddCheckConstraint con }.join(" ")
-          sql << o.check_constraint_drops.map { |con| visit_DropCheckConstraint con }.join(" ")
+          sql << o.adds.map { |col| accept col }.join(' ')
+          sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(' ')
+          sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(' ')
+          sql << o.check_constraint_adds.map { |con| visit_AddCheckConstraint con }.join(' ')
+          sql << o.check_constraint_drops.map { |con| visit_DropCheckConstraint con }.join(' ')
         end
 
         def visit_ColumnDefinition(o)
@@ -41,7 +41,7 @@ module ActiveRecord
 
         def visit_TableDefinition(o)
           create_sql = +"CREATE#{table_modifier_in_create(o)} TABLE "
-          create_sql << "IF NOT EXISTS " if o.if_not_exists
+          create_sql << 'IF NOT EXISTS ' if o.if_not_exists
           create_sql << "#{quote_table_name(o.name)} "
 
           statements = o.columns.map { |c| accept c }
@@ -91,10 +91,10 @@ module ActiveRecord
         def visit_CreateIndexDefinition(o)
           index = o.index
 
-          sql = ["CREATE"]
-          sql << "UNIQUE" if index.unique
-          sql << "INDEX"
-          sql << "IF NOT EXISTS" if o.if_not_exists
+          sql = ['CREATE']
+          sql << 'UNIQUE' if index.unique
+          sql << 'INDEX'
+          sql << 'IF NOT EXISTS' if o.if_not_exists
           sql << o.algorithm if o.algorithm
           sql << index.type if index.type
           sql << "#{quote_column_name(index.name)} ON #{quote_table_name(index.table)}"
@@ -102,7 +102,7 @@ module ActiveRecord
           sql << "(#{quoted_columns(index)})"
           sql << "WHERE #{index.where}" if supports_partial_index? && index.where
 
-          sql.join(" ")
+          sql.join(' ')
         end
 
         def visit_CheckConstraintDefinition(o)
@@ -138,13 +138,13 @@ module ActiveRecord
           sql << " DEFAULT #{quote_default_expression(options[:default], options[:column])}" if options_include_default?(options)
           # must explicitly check for :null to allow change_column to work on migrations
           if options[:null] == false
-            sql << " NOT NULL"
+            sql << ' NOT NULL'
           end
           if options[:auto_increment] == true
-            sql << " AUTO_INCREMENT"
+            sql << ' AUTO_INCREMENT'
           end
           if options[:primary_key] == true
-            sql << " PRIMARY KEY"
+            sql << ' PRIMARY KEY'
           end
           sql
         end
@@ -156,7 +156,7 @@ module ActiveRecord
 
         # Returns any SQL string to go between CREATE and TABLE. May be nil.
         def table_modifier_in_create(o)
-          " TEMPORARY" if o.temporary
+          ' TEMPORARY' if o.temporary
         end
 
         def foreign_key_in_create(from_table, to_table, options)

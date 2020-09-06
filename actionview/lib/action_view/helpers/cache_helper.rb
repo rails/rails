@@ -225,7 +225,7 @@ module ActionView
 
     private
       def fragment_name_with_digest(name, digest_path)
-        name = controller.url_for(name).split("://").last if name.is_a?(Hash)
+        name = controller.url_for(name).split('://').last if name.is_a?(Hash)
 
         if @current_template&.virtual_path || digest_path
           digest_path ||= digest_path_from_template(@current_template)

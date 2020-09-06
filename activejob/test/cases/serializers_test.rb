@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "helper"
-require "active_job/serializers"
+require 'helper'
+require 'active_job/serializers'
 
 class SerializersTest < ActiveSupport::TestCase
   class DummyValueObject
@@ -18,11 +18,11 @@ class SerializersTest < ActiveSupport::TestCase
 
   class DummySerializer < ActiveJob::Serializers::ObjectSerializer
     def serialize(object)
-      super({ "value" => object.value })
+      super({ 'value' => object.value })
     end
 
     def deserialize(hash)
-      DummyValueObject.new(hash["value"])
+      DummyValueObject.new(hash['value'])
     end
 
     private
@@ -46,17 +46,17 @@ class SerializersTest < ActiveSupport::TestCase
     end
   end
 
-  test "will serialize objects with serializers registered" do
+  test 'will serialize objects with serializers registered' do
     ActiveJob::Serializers.add_serializers DummySerializer
 
     assert_equal(
-      { "_aj_serialized" => "SerializersTest::DummySerializer", "value" => 123 },
+      { '_aj_serialized' => 'SerializersTest::DummySerializer', 'value' => 123 },
       ActiveJob::Serializers.serialize(@value_object)
     )
   end
 
   test "won't deserialize unknown hash" do
-    hash = { "_dummy_serializer" => 123, "_aj_symbol_keys" => [] }
+    hash = { '_dummy_serializer' => 123, '_aj_symbol_keys' => [] }
     error = assert_raises(ArgumentError) do
       ActiveJob::Serializers.deserialize(hash)
     end
@@ -67,23 +67,23 @@ class SerializersTest < ActiveSupport::TestCase
   end
 
   test "won't deserialize unknown serializer" do
-    hash = { "_aj_serialized" => "DoNotExist", "value" => 123 }
+    hash = { '_aj_serialized' => 'DoNotExist', 'value' => 123 }
     error = assert_raises(ArgumentError) do
       ActiveJob::Serializers.deserialize(hash)
     end
     assert_equal(
-      "Serializer DoNotExist is not known",
+      'Serializer DoNotExist is not known',
       error.message
     )
   end
 
-  test "will deserialize know serialized objects" do
+  test 'will deserialize know serialized objects' do
     ActiveJob::Serializers.add_serializers DummySerializer
-    hash = { "_aj_serialized" => "SerializersTest::DummySerializer", "value" => 123 }
+    hash = { '_aj_serialized' => 'SerializersTest::DummySerializer', 'value' => 123 }
     assert_equal DummyValueObject.new(123), ActiveJob::Serializers.deserialize(hash)
   end
 
-  test "adds new serializer" do
+  test 'adds new serializer' do
     ActiveJob::Serializers.add_serializers DummySerializer
     assert ActiveJob::Serializers.serializers.include?(DummySerializer)
   end

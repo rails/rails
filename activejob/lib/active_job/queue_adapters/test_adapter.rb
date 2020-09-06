@@ -39,8 +39,8 @@ module ActiveJob
         def job_to_hash(job, extras = {})
           job.serialize.tap do |job_data|
             job_data[:job] = job.class
-            job_data[:args] = job_data.fetch("arguments")
-            job_data[:queue] = job_data.fetch("queue_name")
+            job_data[:args] = job_data.fetch('arguments')
+            job_data[:queue] = job_data.fetch('queue_name')
           end.merge(extras)
         end
 

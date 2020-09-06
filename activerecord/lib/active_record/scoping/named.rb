@@ -161,19 +161,19 @@ module ActiveRecord
         #   Article.featured.titles
         def scope(name, body, &block)
           unless body.respond_to?(:call)
-            raise ArgumentError, "The scope body needs to be callable."
+            raise ArgumentError, 'The scope body needs to be callable.'
           end
 
           if dangerous_class_method?(name)
             raise ArgumentError, "You tried to define a scope named \"#{name}\" " \
               "on the model \"#{self.name}\", but Active Record already defined " \
-              "a class method with the same name."
+              'a class method with the same name.'
           end
 
           if method_defined_within?(name, Relation)
             raise ArgumentError, "You tried to define a scope named \"#{name}\" " \
               "on the model \"#{self.name}\", but ActiveRecord::Relation already defined " \
-              "an instance method with the same name."
+              'an instance method with the same name.'
           end
 
           valid_scope_name?(name)

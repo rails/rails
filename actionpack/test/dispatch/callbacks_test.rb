@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 class DispatcherTest < ActiveSupport::TestCase
   class Foo
@@ -9,7 +9,7 @@ class DispatcherTest < ActiveSupport::TestCase
 
   class DummyApp
     def call(env)
-      [200, {}, "response"]
+      [200, {}, 'response']
     end
   end
 
@@ -31,7 +31,7 @@ class DispatcherTest < ActiveSupport::TestCase
     assert_equal 4, Foo.b
 
     dispatch do
-      raise "error"
+      raise 'error'
     end rescue nil
     assert_equal 6, Foo.a
     assert_equal 6, Foo.b
@@ -40,7 +40,7 @@ class DispatcherTest < ActiveSupport::TestCase
   private
     def dispatch(&block)
       ActionDispatch::Callbacks.new(block || DummyApp.new).call(
-        "rack.input" => StringIO.new("")
+        'rack.input' => StringIO.new('')
       )
     end
 end

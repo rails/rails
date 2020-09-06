@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
-require "active_support/core_ext/module"
+require_relative '../abstract_unit'
+require 'active_support/core_ext/module'
 
 Somewhere = Struct.new(:street, :city) do
   attr_accessor :name
@@ -10,12 +10,12 @@ end
 Someone = Struct.new(:name, :place) do
   delegate :street, :city, :to_f, to: :place
   delegate :name=, to: :place, prefix: true
-  delegate :upcase, to: "place.city"
+  delegate :upcase, to: 'place.city'
   delegate :table_name, to: :class
   delegate :table_name, to: :class, prefix: true
 
   def self.table_name
-    "some_table"
+    'some_table'
   end
 
   self::FAILED_DELEGATE_LINE = __LINE__ + 1
@@ -30,7 +30,7 @@ Someone = Struct.new(:name, :place) do
 
   private
     def private_name
-      "Private"
+      'Private'
     end
 end
 
@@ -147,7 +147,7 @@ class ParameterSet
   delegate :[], :[]=, to: :@params
 
   def initialize
-    @params = { foo: "bar" }
+    @params = { foo: 'bar' }
   end
 end
 
@@ -176,42 +176,42 @@ end
 
 class ModuleTest < ActiveSupport::TestCase
   def setup
-    @david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
+    @david = Someone.new('David', Somewhere.new('Paulina', 'Chicago'))
   end
 
   def test_delegation_to_methods
-    assert_equal "Paulina", @david.street
-    assert_equal "Chicago", @david.city
+    assert_equal 'Paulina', @david.street
+    assert_equal 'Chicago', @david.city
   end
 
   def test_delegation_to_assignment_method
-    @david.place_name = "Fred"
-    assert_equal "Fred", @david.place.name
+    @david.place_name = 'Fred'
+    assert_equal 'Fred', @david.place.name
   end
 
   def test_delegation_to_index_get_method
     @params = ParameterSet.new
-    assert_equal "bar", @params[:foo]
+    assert_equal 'bar', @params[:foo]
   end
 
   def test_delegation_to_index_set_method
     @params = ParameterSet.new
-    @params[:foo] = "baz"
-    assert_equal "baz", @params[:foo]
+    @params[:foo] = 'baz'
+    assert_equal 'baz', @params[:foo]
   end
 
   def test_delegation_down_hierarchy
-    assert_equal "CHICAGO", @david.upcase
+    assert_equal 'CHICAGO', @david.upcase
   end
 
   def test_delegation_to_instance_variable
-    david = Name.new("David", "Hansson")
-    assert_equal "DAVID HANSSON", david.upcase
+    david = Name.new('David', 'Hansson')
+    assert_equal 'DAVID HANSSON', david.upcase
   end
 
   def test_delegation_to_class_method
-    assert_equal "some_table", @david.table_name
-    assert_equal "some_table", @david.class_table_name
+    assert_equal 'some_table', @david.table_name
+    assert_equal 'some_table', @david.class_table_name
   end
 
   def test_missing_delegation_target
@@ -240,21 +240,21 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegation_prefix
     invoice = Invoice.new(@david)
-    assert_equal "David", invoice.client_name
-    assert_equal "Paulina", invoice.client_street
-    assert_equal "Chicago", invoice.client_city
+    assert_equal 'David', invoice.client_name
+    assert_equal 'Paulina', invoice.client_street
+    assert_equal 'Chicago', invoice.client_city
   end
 
   def test_delegation_custom_prefix
     invoice = Invoice.new(@david)
-    assert_equal "David", invoice.customer_name
-    assert_equal "Paulina", invoice.customer_street
-    assert_equal "Chicago", invoice.customer_city
+    assert_equal 'David', invoice.customer_name
+    assert_equal 'Paulina', invoice.customer_street
+    assert_equal 'Chicago', invoice.customer_city
   end
 
   def test_delegation_prefix_with_nil_or_false
-    assert_equal "David", Developer.new(@david).name
-    assert_equal "David", Tester.new(@david).name
+    assert_equal 'David', Developer.new(@david).name
+    assert_equal 'David', Tester.new(@david).name
   end
 
   def test_delegation_prefix_with_instance_variable
@@ -269,12 +269,12 @@ class ModuleTest < ActiveSupport::TestCase
   end
 
   def test_delegation_with_allow_nil
-    rails = Project.new("Rails", Someone.new("David"))
-    assert_equal "David", rails.name
+    rails = Project.new('Rails', Someone.new('David'))
+    assert_equal 'David', rails.name
   end
 
   def test_delegation_with_allow_nil_and_nil_value
-    rails = Project.new("Rails")
+    rails = Project.new('Rails')
     assert_nil rails.name
   end
 
@@ -285,7 +285,7 @@ class ModuleTest < ActiveSupport::TestCase
   end
 
   def test_delegation_with_allow_nil_and_invalid_value
-    rails = Project.new("Rails", "David")
+    rails = Project.new('Rails', 'David')
     assert_raise(NoMethodError) { rails.name }
   end
 
@@ -293,12 +293,12 @@ class ModuleTest < ActiveSupport::TestCase
     Project.class_eval do
       delegate :name, to: :person, allow_nil: true, prefix: true
     end
-    rails = Project.new("Rails")
+    rails = Project.new('Rails')
     assert_nil rails.person_name
   end
 
   def test_delegation_without_allow_nil_and_nil_value
-    david = Someone.new("David")
+    david = Someone.new('David')
     assert_raise(Module::DelegationError) { david.street }
   end
 
@@ -337,7 +337,7 @@ class ModuleTest < ActiveSupport::TestCase
   end
 
   def test_delegation_exception_backtrace
-    someone = Someone.new("foo", "bar")
+    someone = Someone.new('foo', 'bar')
     someone.foo
   rescue NoMethodError => e
     file_and_line = "#{__FILE__}:#{Someone::FAILED_DELEGATE_LINE}"
@@ -347,7 +347,7 @@ class ModuleTest < ActiveSupport::TestCase
   end
 
   def test_delegation_exception_backtrace_with_allow_nil
-    someone = Someone.new("foo", "bar")
+    someone = Someone.new('foo', 'bar')
     someone.bar
   rescue NoMethodError => e
     file_and_line = "#{__FILE__}:#{Someone::FAILED_DELEGATE_LINE_2}"
@@ -362,12 +362,12 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal 1, se.to_i
     assert_equal [2, 3], se.ints
 
-    assert_equal "2", se.to_s
+    assert_equal '2', se.to_s
     assert_equal [3], se.ints
   end
 
   def test_delegation_doesnt_mask_nested_no_method_error_on_nil_receiver
-    product = Product.new("Widget")
+    product = Product.new('Widget')
 
     # Nested NoMethodError is a different name from the delegation
     assert_raise(NoMethodError) { product.manufacturer_name }
@@ -382,15 +382,15 @@ class ModuleTest < ActiveSupport::TestCase
   end
 
   def test_delegate_missing_to_with_method
-    assert_equal "David", DecoratedTester.new(@david).name
+    assert_equal 'David', DecoratedTester.new(@david).name
   end
 
   def test_delegate_missing_to_with_reserved_methods
-    assert_equal "David", DecoratedReserved.new(@david).name
+    assert_equal 'David', DecoratedReserved.new(@david).name
   end
 
   def test_delegate_missing_to_with_keyword_methods
-    assert_equal "David", DecoratedReserved.new(@david).kw_send(method: "name")
+    assert_equal 'David', DecoratedReserved.new(@david).kw_send(method: 'name')
   end
 
   def test_delegate_missing_to_does_not_delegate_to_private_methods
@@ -414,7 +414,7 @@ class ModuleTest < ActiveSupport::TestCase
       DecoratedTester.new(nil).name
     end
 
-    assert_equal "name delegated to client, but client is nil", e.message
+    assert_equal 'name delegated to client, but client is nil', e.message
   end
 
   def test_delegate_missing_to_returns_nil_if_allow_nil_and_nil_target
@@ -462,7 +462,7 @@ class ModuleTest < ActiveSupport::TestCase
       private(*delegate(:street, :city, to: :@place))
     end
 
-    place = location.new(Somewhere.new("Such street", "Sad city"))
+    place = location.new(Somewhere.new('Such street', 'Sad city'))
 
     assert_not_respond_to place, :street
     assert_not_respond_to place, :city
@@ -480,7 +480,7 @@ class ModuleTest < ActiveSupport::TestCase
       private(*delegate(:street, :city, to: :@place, prefix: :the))
     end
 
-    place = location.new(Somewhere.new("Such street", "Sad city"))
+    place = location.new(Somewhere.new('Such street', 'Sad city'))
 
     assert_not_respond_to place, :street
     assert_not_respond_to place, :city
@@ -500,7 +500,7 @@ class ModuleTest < ActiveSupport::TestCase
       delegate(:street, :city, to: :@place, private: true)
     end
 
-    place = location.new(Somewhere.new("Such street", "Sad city"))
+    place = location.new(Somewhere.new('Such street', 'Sad city'))
 
     assert_not_respond_to place, :street
     assert_not_respond_to place, :city
@@ -519,7 +519,7 @@ class ModuleTest < ActiveSupport::TestCase
       delegate(:city, to: :@place, private: true)
     end
 
-    place = location.new(Somewhere.new("Such street", "Sad city"))
+    place = location.new(Somewhere.new('Such street', 'Sad city'))
 
     assert_respond_to place, :street
     assert_not_respond_to place, :city
@@ -536,7 +536,7 @@ class ModuleTest < ActiveSupport::TestCase
       delegate(:street, :city, to: :@place, prefix: :the, private: true)
     end
 
-    place = location.new(Somewhere.new("Such street", "Sad city"))
+    place = location.new(Somewhere.new('Such street', 'Sad city'))
 
     assert_not_respond_to place, :the_street
     assert place.respond_to?(:the_street, true)

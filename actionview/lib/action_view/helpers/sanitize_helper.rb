@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rails-html-sanitizer"
+require 'rails-html-sanitizer'
 
 module ActionView
   # = Action View Sanitize Helpers

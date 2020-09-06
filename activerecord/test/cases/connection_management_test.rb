@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "rack"
+require 'cases/helper'
+require 'rack'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -16,7 +16,7 @@ module ActiveRecord
 
         def call(env)
           @calls << env
-          [200, {}, ["hi mom"]]
+          [200, {}, ['hi mom']]
         end
       end
 
@@ -41,7 +41,7 @@ module ActiveRecord
         _, _, body = @management.call(@env)
         bits = []
         body.each { |bit| bits << bit }
-        assert_equal ["hi mom"], bits
+        assert_equal ['hi mom'], bits
       end
 
       def test_connections_are_cleared_after_body_close
@@ -81,19 +81,19 @@ module ActiveRecord
         end
       end
 
-      test "proxy is polite to its body and responds to it" do
-        body = Class.new(String) { def to_path; "/path"; end }.new
+      test 'proxy is polite to its body and responds to it' do
+        body = Class.new(String) { def to_path; '/path'; end }.new
         app = lambda { |_| [200, {}, body] }
         response_body = middleware(app).call(@env)[2]
         assert_respond_to response_body, :to_path
-        assert_equal "/path", response_body.to_path
+        assert_equal '/path', response_body.to_path
       end
 
       test "doesn't mutate the original response" do
-        original_response = [200, {}, "hi"]
+        original_response = [200, {}, 'hi']
         app = lambda { |_| original_response }
         middleware(app).call(@env)[2]
-        assert_equal "hi", original_response.last
+        assert_equal 'hi', original_response.last
       end
 
       private

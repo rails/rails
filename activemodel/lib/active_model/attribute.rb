@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/duplicable"
+require 'active_support/core_ext/object/duplicable'
 
 module ActiveModel
   class Attribute # :nodoc:
@@ -118,19 +118,19 @@ module ActiveModel
     end
 
     def init_with(coder)
-      @name = coder["name"]
-      @value_before_type_cast = coder["value_before_type_cast"]
-      @type = coder["type"]
-      @original_attribute = coder["original_attribute"]
-      @value = coder["value"] if coder.map.key?("value")
+      @name = coder['name']
+      @value_before_type_cast = coder['value_before_type_cast']
+      @type = coder['type']
+      @original_attribute = coder['original_attribute']
+      @value = coder['value'] if coder.map.key?('value')
     end
 
     def encode_with(coder)
-      coder["name"] = name
-      coder["value_before_type_cast"] = value_before_type_cast unless value_before_type_cast.nil?
-      coder["type"] = type if type
-      coder["original_attribute"] = original_attribute if original_attribute
-      coder["value"] = value if defined?(@value)
+      coder['name'] = name
+      coder['value_before_type_cast'] = value_before_type_cast unless value_before_type_cast.nil?
+      coder['type'] = type if type
+      coder['original_attribute'] = original_attribute if original_attribute
+      coder['value'] = value if defined?(@value)
     end
 
     def original_value_for_database

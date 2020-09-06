@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require_relative "xml_mini_engine_test"
+require_relative 'xml_mini_engine_test'
 
-XMLMiniEngineTest.run_with_gem("nokogiri") do
+XMLMiniEngineTest.run_with_gem('nokogiri') do
   class NokogiriEngineTest < XMLMiniEngineTest
     private
       def engine
-        "Nokogiri"
+        'Nokogiri'
       end
 
       def expansion_attack_error

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
-require "uri"
-require "active_support/core_ext/uri"
+require_relative '../abstract_unit'
+require 'uri'
+require 'active_support/core_ext/uri'
 
 class URIExtTest < ActiveSupport::TestCase
   def test_uri_decode_handle_multibyte

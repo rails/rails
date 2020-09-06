@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "libxml"
-require "active_support/core_ext/object/blank"
-require "stringio"
+require 'libxml'
+require 'active_support/core_ext/object/blank'
+require 'stringio'
 
 module ActiveSupport
   module XmlMini_LibXML #:nodoc:
@@ -13,7 +13,7 @@ module ActiveSupport
     #   XML Document string or IO to parse
     def parse(data)
       if !data.respond_to?(:read)
-        data = StringIO.new(data || "")
+        data = StringIO.new(data || '')
       end
 
       if data.eof?
@@ -34,7 +34,7 @@ module LibXML #:nodoc:
     end
 
     module Node #:nodoc:
-      CONTENT_ROOT = "__content__"
+      CONTENT_ROOT = '__content__'
 
       # Convert XML document to hash.
       #
@@ -55,7 +55,7 @@ module LibXML #:nodoc:
           if c.element?
             c.to_hash(node_hash)
           elsif c.text? || c.cdata?
-            node_hash[CONTENT_ROOT] ||= +""
+            node_hash[CONTENT_ROOT] ||= +''
             node_hash[CONTENT_ROOT] << c.content
           end
         end

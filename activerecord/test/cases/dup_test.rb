@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/reply"
-require "models/topic"
-require "models/movie"
+require 'cases/helper'
+require 'models/reply'
+require 'models/topic'
+require 'models/movie'
 
 module ActiveRecord
   class DupTest < ActiveRecord::TestCase
@@ -17,7 +17,7 @@ module ActiveRecord
       topic = Topic.first
 
       duped = topic.dup
-      assert_not duped.readonly?, "should not be readonly"
+      assert_not duped.readonly?, 'should not be readonly'
     end
 
     def test_is_readonly
@@ -25,22 +25,22 @@ module ActiveRecord
       topic.readonly!
 
       duped = topic.dup
-      assert duped.readonly?, "should be readonly"
+      assert duped.readonly?, 'should be readonly'
     end
 
     def test_dup_not_persisted
       topic = Topic.first
       duped = topic.dup
 
-      assert_not duped.persisted?, "topic not persisted"
-      assert duped.new_record?, "topic is new"
+      assert_not duped.persisted?, 'topic not persisted'
+      assert duped.new_record?, 'topic is new'
     end
 
     def test_dup_not_previously_new_record
       topic = Topic.first
       duped = topic.dup
 
-      assert_not duped.previously_new_record?, "should not be a previously new record"
+      assert_not duped.previously_new_record?, 'should not be a previously new record'
     end
 
     def test_dup_not_destroyed
@@ -59,16 +59,16 @@ module ActiveRecord
 
     def test_dup_with_modified_attributes
       topic = Topic.first
-      topic.author_name = "Aaron"
+      topic.author_name = 'Aaron'
       duped = topic.dup
-      assert_equal "Aaron", duped.author_name
+      assert_equal 'Aaron', duped.author_name
     end
 
     def test_dup_with_changes
       dbtopic = Topic.first
       topic = Topic.new
 
-      topic.attributes = dbtopic.attributes.except("id")
+      topic.attributes = dbtopic.attributes.except('id')
 
       # duped has no timestamp values
       duped = dbtopic.dup
@@ -81,10 +81,10 @@ module ActiveRecord
 
     def test_dup_topics_are_independent
       topic = Topic.first
-      topic.author_name = "Aaron"
+      topic.author_name = 'Aaron'
       duped = topic.dup
 
-      duped.author_name = "meow"
+      duped.author_name = 'meow'
 
       assert_not_equal topic.changes, duped.changes
     end
@@ -93,11 +93,11 @@ module ActiveRecord
       topic = Topic.first
       duped = topic.dup
 
-      duped.author_name = "meow"
-      topic.author_name = "Aaron"
+      duped.author_name = 'meow'
+      topic.author_name = 'Aaron'
 
-      assert_equal "Aaron", topic.author_name
-      assert_equal "meow", duped.author_name
+      assert_equal 'Aaron', topic.author_name
+      assert_equal 'meow', duped.author_name
     end
 
     def test_dup_timestamps_are_cleared
@@ -129,7 +129,7 @@ module ActiveRecord
     def test_dup_validity_is_independent
       repair_validations(Topic) do
         Topic.validates_presence_of :title
-        topic = Topic.new("title" => "Literature")
+        topic = Topic.new('title' => 'Literature')
         topic.valid?
 
         duped = topic.dup
@@ -137,7 +137,7 @@ module ActiveRecord
         assert_predicate duped, :invalid?
 
         topic.title = nil
-        duped.title = "Mathematics"
+        duped.title = 'Mathematics'
         assert_predicate topic, :invalid?
         assert_predicate duped, :valid?
       end
@@ -147,7 +147,7 @@ module ActiveRecord
       prev_default_scopes = Topic.default_scopes
       Topic.default_scopes = [proc { Topic.where(approved: true) }]
       topic = Topic.new(approved: false)
-      assert_not topic.dup.approved?, "should not be overridden by default scopes"
+      assert_not topic.dup.approved?, 'should not be overridden by default scopes'
     ensure
       Topic.default_scopes = prev_default_scopes
     end
@@ -156,7 +156,7 @@ module ActiveRecord
       skip if current_adapter?(:OracleAdapter)
 
       klass = Class.new(ActiveRecord::Base) do
-        self.table_name = "parrots_pirates"
+        self.table_name = 'parrots_pirates'
       end
 
       record = klass.create!
@@ -167,7 +167,7 @@ module ActiveRecord
     end
 
     def test_dup_record_not_persisted_after_rollback_transaction
-      movie = Movie.new(name: "test")
+      movie = Movie.new(name: 'test')
 
       assert_raises(ActiveRecord::RecordInvalid) do
         Movie.transaction do

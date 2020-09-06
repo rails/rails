@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support"
-require "active_support/core_ext/class/attribute"
+require 'active_support'
+require 'active_support/core_ext/class/attribute'
 
 module Rails
   module Command
@@ -12,7 +12,7 @@ module Rails
         no_commands do
           class_attribute :environment_desc, default: "Specifies the environment to run this #{self.command_name} under (test/development/production)."
         end
-        class_option :environment, aliases: "-e", type: :string, desc: environment_desc
+        class_option :environment, aliases: '-e', type: :string, desc: environment_desc
       end
 
       private
@@ -33,7 +33,7 @@ module Rails
         end
 
         def available_environments
-          Dir["config/environments/*.rb"].map { |fname| File.basename(fname, ".*") }
+          Dir['config/environments/*.rb'].map { |fname| File.basename(fname, '.*') }
         end
     end
   end

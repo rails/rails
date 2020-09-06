@@ -22,18 +22,18 @@ module ActiveSupport
       YAML.load(render(context), **options) || {}
     rescue Psych::SyntaxError => error
       raise "YAML syntax error occurred while parsing #{@content_path}. " \
-            "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
+            'Please note that YAML must be consistently indented using spaces. Tabs are not allowed. ' \
             "Error: #{error.message}"
     end
 
     private
       def read(content_path)
-        require "yaml"
-        require "erb"
+        require 'yaml'
+        require 'erb'
 
         File.read(content_path).tap do |content|
           if content.include?("\u00A0")
-            warn "File contains invisible non-breaking spaces, you may want to remove those"
+            warn 'File contains invisible non-breaking spaces, you may want to remove those'
           end
         end
       end

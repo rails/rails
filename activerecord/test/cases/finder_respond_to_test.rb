@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/topic"
+require 'cases/helper'
+require 'models/topic'
 
 class FinderRespondToTest < ActiveRecord::TestCase
   fixtures :topics

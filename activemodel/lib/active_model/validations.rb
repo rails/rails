@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/array/extract_options"
+require 'active_support/core_ext/array/extract_options'
 
 module ActiveModel
   # == Active \Model \Validations
@@ -427,10 +427,10 @@ module ActiveModel
 
     def initialize(model)
       @model = model
-      errors = @model.errors.full_messages.join(", ")
+      errors = @model.errors.full_messages.join(', ')
       super(I18n.t(:"#{@model.class.i18n_scope}.errors.messages.model_invalid", errors: errors, default: :"errors.messages.model_invalid"))
     end
   end
 end
 
-Dir[File.expand_path("validations/*.rb", __dir__)].each { |file| require file }
+Dir[File.expand_path('validations/*.rb', __dir__)].each { |file| require file }

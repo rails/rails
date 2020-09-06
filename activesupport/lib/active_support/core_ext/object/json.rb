@@ -1,18 +1,18 @@
 # frozen_string_literal: true
 
 # Hack to load json gem first so we can overwrite its to_json.
-require "json"
-require "bigdecimal"
-require "uri/generic"
-require "pathname"
-require "active_support/core_ext/big_decimal/conversions" # for #to_s
-require "active_support/core_ext/hash/except"
-require "active_support/core_ext/hash/slice"
-require "active_support/core_ext/object/instance_variables"
-require "time"
-require "active_support/core_ext/time/conversions"
-require "active_support/core_ext/date_time/conversions"
-require "active_support/core_ext/date/conversions"
+require 'json'
+require 'bigdecimal'
+require 'uri/generic'
+require 'pathname'
+require 'active_support/core_ext/big_decimal/conversions' # for #to_s
+require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/object/instance_variables'
+require 'time'
+require 'active_support/core_ext/time/conversions'
+require 'active_support/core_ext/date_time/conversions'
+require 'active_support/core_ext/date/conversions'
 
 #--
 # The JSON gem adds a few modules to Ruby core classes containing :to_json definition, overwriting
@@ -190,9 +190,9 @@ end
 class Date
   def as_json(options = nil) #:nodoc:
     if ActiveSupport::JSON::Encoding.use_standard_json_time_format
-      strftime("%Y-%m-%d")
+      strftime('%Y-%m-%d')
     else
-      strftime("%Y/%m/%d")
+      strftime('%Y/%m/%d')
     end
   end
 end
@@ -202,7 +202,7 @@ class DateTime
     if ActiveSupport::JSON::Encoding.use_standard_json_time_format
       xmlschema(ActiveSupport::JSON::Encoding.time_precision)
     else
-      strftime("%Y/%m/%d %H:%M:%S %z")
+      strftime('%Y/%m/%d %H:%M:%S %z')
     end
   end
 end

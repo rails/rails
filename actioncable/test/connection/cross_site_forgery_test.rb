@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "test_helper"
-require "stubs/test_server"
+require 'test_helper'
+require 'stubs/test_server'
 
 class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
-  HOST = "rubyonrails.com"
+  HOST = 'rubyonrails.com'
 
   class Connection < ActionCable::Connection::Base
     def send_async(method, *args)
@@ -24,44 +24,44 @@ class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
     @server.config.allow_same_origin_as_host = true
   end
 
-  test "disable forgery protection" do
+  test 'disable forgery protection' do
     @server.config.disable_request_forgery_protection = true
-    assert_origin_allowed "http://rubyonrails.com"
-    assert_origin_allowed "http://hax.com"
+    assert_origin_allowed 'http://rubyonrails.com'
+    assert_origin_allowed 'http://hax.com'
   end
 
-  test "explicitly specified a single allowed origin" do
-    @server.config.allowed_request_origins = "http://hax.com"
-    assert_origin_not_allowed "http://rubyonrails.com"
-    assert_origin_allowed "http://hax.com"
+  test 'explicitly specified a single allowed origin' do
+    @server.config.allowed_request_origins = 'http://hax.com'
+    assert_origin_not_allowed 'http://rubyonrails.com'
+    assert_origin_allowed 'http://hax.com'
   end
 
-  test "explicitly specified multiple allowed origins" do
+  test 'explicitly specified multiple allowed origins' do
     @server.config.allowed_request_origins = %w( http://rubyonrails.com http://www.rubyonrails.com )
-    assert_origin_allowed "http://rubyonrails.com"
-    assert_origin_allowed "http://www.rubyonrails.com"
-    assert_origin_not_allowed "http://hax.com"
+    assert_origin_allowed 'http://rubyonrails.com'
+    assert_origin_allowed 'http://www.rubyonrails.com'
+    assert_origin_not_allowed 'http://hax.com'
   end
 
-  test "explicitly specified a single regexp allowed origin" do
+  test 'explicitly specified a single regexp allowed origin' do
     @server.config.allowed_request_origins = /.*ha.*/
-    assert_origin_not_allowed "http://rubyonrails.com"
-    assert_origin_allowed "http://hax.com"
+    assert_origin_not_allowed 'http://rubyonrails.com'
+    assert_origin_allowed 'http://hax.com'
   end
 
-  test "explicitly specified multiple regexp allowed origins" do
-    @server.config.allowed_request_origins = [/http:\/\/ruby.*/, /.*rai.s.*com/, "string" ]
-    assert_origin_allowed "http://rubyonrails.com"
-    assert_origin_allowed "http://www.rubyonrails.com"
-    assert_origin_not_allowed "http://hax.com"
-    assert_origin_not_allowed "http://rails.co.uk"
+  test 'explicitly specified multiple regexp allowed origins' do
+    @server.config.allowed_request_origins = [/http:\/\/ruby.*/, /.*rai.s.*com/, 'string' ]
+    assert_origin_allowed 'http://rubyonrails.com'
+    assert_origin_allowed 'http://www.rubyonrails.com'
+    assert_origin_not_allowed 'http://hax.com'
+    assert_origin_not_allowed 'http://rails.co.uk'
   end
 
-  test "allow same origin as host" do
+  test 'allow same origin as host' do
     @server.config.allow_same_origin_as_host = true
     assert_origin_allowed "http://#{HOST}"
-    assert_origin_not_allowed "http://hax.com"
-    assert_origin_not_allowed "http://rails.co.uk"
+    assert_origin_not_allowed 'http://hax.com'
+    assert_origin_not_allowed 'http://rails.co.uk'
   end
 
   private
@@ -86,7 +86,7 @@ class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
     end
 
     def env_for_origin(origin)
-      Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket", "SERVER_NAME" => HOST,
-        "HTTP_HOST" => HOST, "HTTP_ORIGIN" => origin
+      Rack::MockRequest.env_for '/test', 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket', 'SERVER_NAME' => HOST,
+        'HTTP_HOST' => HOST, 'HTTP_ORIGIN' => origin
     end
 end

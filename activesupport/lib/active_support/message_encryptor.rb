@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "openssl"
-require "base64"
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/message_verifier"
-require "active_support/messages/metadata"
+require 'openssl'
+require 'base64'
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/message_verifier'
+require 'active_support/messages/metadata'
 
 module ActiveSupport
   # MessageEncryptor is a simple way to encrypt values which get stored
@@ -86,9 +86,9 @@ module ActiveSupport
     class << self
       def default_cipher #:nodoc:
         if use_authenticated_message_encryption
-          "aes-256-gcm"
+          'aes-256-gcm'
         else
-          "aes-256-cbc"
+          'aes-256-cbc'
         end
       end
     end
@@ -137,7 +137,7 @@ module ActiveSupport
       @secret = secret
       @sign_secret = sign_secret
       @cipher = cipher || self.class.default_cipher
-      @digest = digest || "SHA1" unless aead_mode?
+      @digest = digest || 'SHA1' unless aead_mode?
       @verifier = resolve_verifier
       @serializer = serializer || Marshal
     end
@@ -167,7 +167,7 @@ module ActiveSupport
 
         # Rely on OpenSSL for the initialization vector
         iv = cipher.random_iv
-        cipher.auth_data = "" if aead_mode?
+        cipher.auth_data = '' if aead_mode?
 
         encrypted_data = cipher.update(Messages::Metadata.wrap(@serializer.dump(value), **metadata_options))
         encrypted_data << cipher.final
@@ -179,7 +179,7 @@ module ActiveSupport
 
       def _decrypt(encrypted_message, purpose)
         cipher = new_cipher
-        encrypted_data, iv, auth_tag = encrypted_message.split("--").map { |v| ::Base64.strict_decode64(v) }
+        encrypted_data, iv, auth_tag = encrypted_message.split('--').map { |v| ::Base64.strict_decode64(v) }
 
         # Currently the OpenSSL bindings do not raise an error if auth_tag is
         # truncated, which would allow an attacker to easily forge it. See
@@ -191,7 +191,7 @@ module ActiveSupport
         cipher.iv  = iv
         if aead_mode?
           cipher.auth_tag = auth_tag
-          cipher.auth_data = ""
+          cipher.auth_data = ''
         end
 
         decrypted_data = cipher.update(encrypted_data)

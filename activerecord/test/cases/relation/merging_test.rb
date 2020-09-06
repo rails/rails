@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/author"
-require "models/categorization"
-require "models/comment"
-require "models/developer"
-require "models/computer"
-require "models/post"
-require "models/project"
-require "models/rating"
+require 'cases/helper'
+require 'models/author'
+require 'models/categorization'
+require 'models/comment'
+require 'models/developer'
+require 'models/computer'
+require 'models/post'
+require 'models/project'
+require 'models/rating'
 
 class RelationMergingTest < ActiveRecord::TestCase
   fixtures :developers, :comments, :authors, :author_addresses, :posts
@@ -43,7 +43,7 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [mary], david_and_mary.and(mary_and_bob)
     assert_equal authors, david_and_mary.or(mary_and_bob)
 
-    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
+    david_and_bob = Author.where(id: david).or(Author.where(name: 'Bob'))
 
     assert_equal [david], david_and_mary.merge(david_and_bob)
     assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
@@ -60,7 +60,7 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [david, mary], david_and_mary
     assert_equal [mary, bob],   mary_and_bob
 
-    author_id = Regexp.escape(Author.connection.quote_table_name("authors.id"))
+    author_id = Regexp.escape(Author.connection.quote_table_name('authors.id'))
     message = %r/Merging \(#{author_id} BETWEEN (\?|\W?\w?\d) AND \g<1>\) and \(#{author_id} (?:= \g<1>|IN \(\g<1>, \g<1>\))\) no longer maintain both conditions, and will be replaced by the latter in Rails 6\.2\./
 
     assert_deprecated(message) do
@@ -96,7 +96,7 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [mary], david_and_mary.and(mary_and_bob)
     assert_equal authors, david_and_mary.or(mary_and_bob)
 
-    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
+    david_and_bob = Author.where(id: david).or(Author.where(name: 'Bob'))
 
     assert_equal [david], david_and_mary.merge(david_and_bob)
     assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
@@ -113,7 +113,7 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [david, mary], david_and_mary
     assert_equal [mary, bob],   mary_and_bob
 
-    author_id = Regexp.escape(Author.connection.quote_table_name("authors.id"))
+    author_id = Regexp.escape(Author.connection.quote_table_name('authors.id'))
     message = %r/Merging \(\(#{author_id} = (\?|\W?\w?\d) OR #{author_id} = \g<1>\)\) and \(#{author_id} (?:= \g<1>|IN \(\g<1>, \g<1>\))\) no longer maintain both conditions, and will be replaced by the latter in Rails 6\.2\./
 
     assert_deprecated(message) do
@@ -149,7 +149,7 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [mary], david_and_mary.and(mary_and_bob)
     assert_equal authors, david_and_mary.or(mary_and_bob)
 
-    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
+    david_and_bob = Author.where(id: david).or(Author.where(name: 'Bob'))
 
     assert_equal [david], david_and_mary.merge(david_and_bob)
     assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
@@ -198,7 +198,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     non_mary_and_bob = Author.where.not(id: [mary, bob])
 
-    author_id = Author.connection.quote_table_name("authors.id")
+    author_id = Author.connection.quote_table_name('authors.id')
     assert_sql(/WHERE #{Regexp.escape(author_id)} NOT IN \((\?|\W?\w?\d), \g<1>\)\z/) do
       assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
     end
@@ -211,10 +211,10 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging
-    devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order("id ASC").where("id < 3"))
+    devs = Developer.where('salary >= 80000').merge(Developer.limit(2)).merge(Developer.order('id ASC').where('id < 3'))
     assert_equal [developers(:david), developers(:jamis)], devs.to_a
 
-    dev_with_count = Developer.limit(1).merge(Developer.order("id DESC")).merge(Developer.select("developers.*"))
+    dev_with_count = Developer.limit(1).merge(Developer.order('id DESC')).merge(Developer.select('developers.*'))
     assert_equal [developers(:poor_jamis)], dev_with_count.to_a
   end
 
@@ -239,7 +239,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_arel_equalities_keeps_last_equality_with_non_attribute_left_hand
     salary_attr = Developer.arel_table[:salary]
-    abs_salary = Arel::Nodes::NamedFunction.new("abs", [salary_attr])
+    abs_salary = Arel::Nodes::NamedFunction.new('abs', [salary_attr])
 
     devs = Developer.where(abs_salary.eq(80000)).merge(Developer.where(abs_salary.eq(9000)))
     assert_equal [developers(:poor_jamis)], devs.to_a
@@ -253,8 +253,8 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_eager_load
     relations = []
-    relations << Post.order("comments.id DESC").merge(Post.eager_load(:last_comment)).merge(Post.all)
-    relations << Post.eager_load(:last_comment).merge(Post.order("comments.id DESC")).merge(Post.all)
+    relations << Post.order('comments.id DESC').merge(Post.eager_load(:last_comment)).merge(Post.all)
+    relations << Post.eager_load(:last_comment).merge(Post.order('comments.id DESC')).merge(Post.all)
 
     relations.each do |posts|
       post = posts.find { |p| p.id == 1 }
@@ -263,7 +263,7 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_locks
-    devs = Developer.lock.where("salary >= 80000").order("id DESC").merge(Developer.limit(2))
+    devs = Developer.lock.where('salary >= 80000').order('id DESC').merge(Developer.limit(2))
     assert_predicate devs, :locked?
   end
 
@@ -274,12 +274,12 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_joins
-    comments = Comment.joins(:post).where(body: "Thank you for the welcome").merge(Post.where(body: "Such a lovely day"))
+    comments = Comment.joins(:post).where(body: 'Thank you for the welcome').merge(Post.where(body: 'Such a lovely day'))
     assert_equal 1, comments.count
   end
 
   def test_relation_merging_with_left_outer_joins
-    comments = Comment.joins(:post).where(body: "Thank you for the welcome").merge(Post.left_outer_joins(:author).where(body: "Such a lovely day"))
+    comments = Comment.joins(:post).where(body: 'Thank you for the welcome').merge(Post.left_outer_joins(:author).where(body: 'Such a lovely day'))
 
     assert_equal 1, comments.count
   end
@@ -290,21 +290,21 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_association
     assert_queries(2) do  # one for loading post, and another one merged query
-      post = Post.where(body: "Such a lovely day").first
-      comments = Comment.where(body: "Thank you for the welcome").merge(post.comments)
+      post = Post.where(body: 'Such a lovely day').first
+      comments = Comment.where(body: 'Thank you for the welcome').merge(post.comments)
       assert_equal 1, comments.count
     end
   end
 
-  test "merge collapses wheres from the LHS only" do
-    left = Post.where(title: "omg").where(comments_count: 1)
-    right = Post.where(title: "wtf").where(title: "bbq")
+  test 'merge collapses wheres from the LHS only' do
+    left = Post.where(title: 'omg').where(comments_count: 1)
+    right = Post.where(title: 'wtf').where(title: 'bbq')
 
     merged = left.merge(right)
 
-    assert_not_includes merged.to_sql, "omg"
-    assert_includes merged.to_sql, "wtf"
-    assert_includes merged.to_sql, "bbq"
+    assert_not_includes merged.to_sql, 'omg'
+    assert_includes merged.to_sql, 'wtf'
+    assert_includes merged.to_sql, 'bbq'
   end
 
   def test_merging_reorders_bind_params
@@ -317,23 +317,23 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   def test_merging_compares_symbols_and_strings_as_equal
-    post = PostThatLoadsCommentsInAnAfterSaveHook.create!(title: "First Post", body: "Blah blah blah.")
-    assert_equal "First comment!", post.comments.where(body: "First comment!").first_or_create.body
+    post = PostThatLoadsCommentsInAnAfterSaveHook.create!(title: 'First Post', body: 'Blah blah blah.')
+    assert_equal 'First comment!', post.comments.where(body: 'First comment!').first_or_create.body
   end
 
   def test_merging_with_from_clause
     relation = Post.all
     assert_empty relation.from_clause
-    relation = relation.merge(Post.from("posts"))
+    relation = relation.merge(Post.from('posts'))
     assert_not_empty relation.from_clause
   end
 
   def test_merging_with_from_clause_on_different_class
-    assert Comment.joins(:post).merge(Post.from("posts")).first
+    assert Comment.joins(:post).merge(Post.from('posts')).first
   end
 
   def test_merging_with_order_with_binds
-    relation = Post.all.merge(Post.order([Arel.sql("title LIKE ?"), "%suffix"]))
+    relation = Post.all.merge(Post.order([Arel.sql('title LIKE ?'), '%suffix']))
     assert_equal ["title LIKE '%suffix'"], relation.order_values
   end
 
@@ -344,18 +344,18 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_merging_annotations_respects_merge_order
     assert_sql(%r{/\* foo \*/ /\* bar \*/}) do
-      Post.annotate("foo").merge(Post.annotate("bar")).first
+      Post.annotate('foo').merge(Post.annotate('bar')).first
     end
     assert_sql(%r{/\* bar \*/ /\* foo \*/}) do
-      Post.annotate("bar").merge(Post.annotate("foo")).first
+      Post.annotate('bar').merge(Post.annotate('foo')).first
     end
     assert_sql(%r{/\* foo \*/ /\* bar \*/ /\* baz \*/ /\* qux \*/}) do
-      Post.annotate("foo").annotate("bar").merge(Post.annotate("baz").annotate("qux")).first
+      Post.annotate('foo').annotate('bar').merge(Post.annotate('baz').annotate('qux')).first
     end
   end
 
   def test_merging_duplicated_annotations
-    posts = Post.annotate("foo")
+    posts = Post.annotate('foo')
     assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/\z}) do
       posts.merge(posts).uniq!(:annotate).to_a
     end
@@ -372,12 +372,12 @@ class RelationMergingTest < ActiveRecord::TestCase
     end
     assert_deprecated(message) do
       assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/ /\* bar \*/ /\* foo \*/\z}) do
-        Post.annotate("foo").merge(Post.annotate("bar")).merge(posts).to_a
+        Post.annotate('foo').merge(Post.annotate('bar')).merge(posts).to_a
       end
     end
     assert_deprecated(message) do
       assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* bar \*/ /\* foo \*/ /\* foo \*/\z}) do
-        Post.annotate("bar").merge(Post.annotate("foo")).merge(posts).to_a
+        Post.annotate('bar').merge(Post.annotate('foo')).merge(posts).to_a
       end
     end
   end
@@ -386,38 +386,38 @@ end
 class MergingDifferentRelationsTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :author_addresses, :developers
 
-  test "merging where relations" do
-    hello_by_bob = Post.where(body: "hello").joins(:author).
-      merge(Author.where(name: "Bob")).order("posts.id").pluck("posts.id")
+  test 'merging where relations' do
+    hello_by_bob = Post.where(body: 'hello').joins(:author).
+      merge(Author.where(name: 'Bob')).order('posts.id').pluck('posts.id')
 
     assert_equal [posts(:misc_by_bob).id,
                   posts(:other_by_bob).id], hello_by_bob
   end
 
-  test "merging order relations" do
+  test 'merging order relations' do
     posts_by_author_name = Post.limit(3).joins(:author).
-      where.not("authors.name": "David").
-      merge(Author.order(:name)).pluck("authors.name")
+      where.not("authors.name": 'David').
+      merge(Author.order(:name)).pluck('authors.name')
 
-    assert_equal ["Bob", "Bob", "Mary"], posts_by_author_name
+    assert_equal ['Bob', 'Bob', 'Mary'], posts_by_author_name
 
     posts_by_author_name = Post.limit(3).joins(:author).
-      where.not("authors.name": "David").
-      merge(Author.order("name")).pluck("authors.name")
+      where.not("authors.name": 'David').
+      merge(Author.order('name')).pluck('authors.name')
 
-    assert_equal ["Bob", "Bob", "Mary"], posts_by_author_name
+    assert_equal ['Bob', 'Bob', 'Mary'], posts_by_author_name
   end
 
-  test "merging order relations (using a hash argument)" do
+  test 'merging order relations (using a hash argument)' do
     posts_by_author_name = Post.limit(4).joins(:author).
-      where.not("authors.name": "David").
-      merge(Author.order(name: :desc)).pluck("authors.name")
+      where.not("authors.name": 'David').
+      merge(Author.order(name: :desc)).pluck('authors.name')
 
-    assert_equal ["Mary", "Mary", "Mary", "Bob"], posts_by_author_name
+    assert_equal ['Mary', 'Mary', 'Mary', 'Bob'], posts_by_author_name
   end
 
-  test "relation merging (using a proc argument)" do
-    dev = Developer.where(name: "Jamis").first
+  test 'relation merging (using a proc argument)' do
+    dev = Developer.where(name: 'Jamis').first
 
     comment_1 = dev.comments.create!(body: "I'm Jamis", post: Post.first)
     rating_1 = comment_1.ratings.create!

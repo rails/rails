@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-gem "azure-storage-blob", ">= 1.1"
+gem 'azure-storage-blob', '>= 1.1'
 
-require "active_support/core_ext/numeric/bytes"
-require "azure/storage/blob"
-require "azure/storage/common/core/auth/shared_access_signature"
+require 'active_support/core_ext/numeric/bytes'
+require 'azure/storage/blob'
+require 'azure/storage/common/core/auth/shared_access_signature'
 
 module ActiveStorage
   # Wraps the Microsoft Azure Storage Blob Service as an Active Storage service.
@@ -57,7 +57,7 @@ module ActiveStorage
       instrument :delete, key: key do
         client.delete_blob(container, key)
       rescue Azure::Core::Http::HTTPError => e
-        raise unless e.type == "BlobNotFound"
+        raise unless e.type == 'BlobNotFound'
         # Ignore files already deleted
       end
     end
@@ -90,8 +90,8 @@ module ActiveStorage
       instrument :url, key: key do |payload|
         generated_url = signer.signed_uri(
           uri_for(key), false,
-          service: "b",
-          permissions: "rw",
+          service: 'b',
+          permissions: 'rw',
           expiry: format_expiry(expires_in)
         ).to_s
 
@@ -104,15 +104,15 @@ module ActiveStorage
     def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      { "Content-Type" => content_type, "Content-MD5" => checksum, "x-ms-blob-content-disposition" => content_disposition, "x-ms-blob-type" => "BlockBlob" }
+      { 'Content-Type' => content_type, 'Content-MD5' => checksum, 'x-ms-blob-content-disposition' => content_disposition, 'x-ms-blob-type' => 'BlockBlob' }
     end
 
     private
       def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
         signer.signed_uri(
           uri_for(key), false,
-          service: "b",
-          permissions: "r",
+          service: 'b',
+          permissions: 'r',
           expiry: format_expiry(expires_in),
           content_disposition: content_disposition_with(type: disposition, filename: filename),
           content_type: content_type
@@ -158,9 +158,9 @@ module ActiveStorage
         yield
       rescue Azure::Core::Http::HTTPError => e
         case e.type
-        when "BlobNotFound"
+        when 'BlobNotFound'
           raise ActiveStorage::FileNotFoundError
-        when "Md5Mismatch"
+        when 'Md5Mismatch'
           raise ActiveStorage::IntegrityError
         else
           raise

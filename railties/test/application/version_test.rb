@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
-require "rails/gem_version"
+require 'isolation/abstract_unit'
+require 'rails/gem_version'
 
 class VersionTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
@@ -14,13 +14,13 @@ class VersionTest < ActiveSupport::TestCase
     teardown_app
   end
 
-  test "command works" do
-    output = rails("version")
+  test 'command works' do
+    output = rails('version')
     assert_equal "Rails #{Rails.gem_version}\n", output
   end
 
-  test "short-cut alias works" do
-    output = rails("-v")
+  test 'short-cut alias works' do
+    output = rails('-v')
     assert_equal "Rails #{Rails.gem_version}\n", output
   end
 end

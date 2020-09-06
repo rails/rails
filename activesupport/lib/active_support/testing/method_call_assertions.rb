@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "minitest/mock"
+require 'minitest/mock'
 
 module ActiveSupport
   module Testing

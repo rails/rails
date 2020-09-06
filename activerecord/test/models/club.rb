@@ -5,12 +5,12 @@ class Club < ActiveRecord::Base
   has_many :memberships, inverse_of: false
   has_many :members, through: :memberships
   has_one :sponsor
-  has_one :sponsored_member, through: :sponsor, source: :sponsorable, source_type: "Member"
+  has_one :sponsored_member, through: :sponsor, source: :sponsorable, source_type: 'Member'
   belongs_to :category
 
   has_many :favourites, -> { where(memberships: { favourite: true }) }, through: :memberships, source: :member
 
-  scope :general, -> { left_joins(:category).where(categories: { name: "General" }).unscope(:limit) }
+  scope :general, -> { left_joins(:category).where(categories: { name: 'General' }).unscope(:limit) }
 
   accepts_nested_attributes_for :membership
 
@@ -21,8 +21,8 @@ class Club < ActiveRecord::Base
 end
 
 class SuperClub < ActiveRecord::Base
-  self.table_name = "clubs"
+  self.table_name = 'clubs'
 
-  has_many :memberships, class_name: "SuperMembership", foreign_key: "club_id"
+  has_many :memberships, class_name: 'SuperMembership', foreign_key: 'club_id'
   has_many :members, through: :memberships
 end

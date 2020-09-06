@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "concurrent/map"
-require "openssl"
+require 'concurrent/map'
+require 'openssl'
 
 module ActiveSupport
   # KeyGenerator is a simple wrapper around OpenSSL's implementation of PBKDF2.
@@ -35,7 +35,7 @@ module ActiveSupport
 
     # Returns a derived key suitable for use.
     def generate_key(*args)
-      @cache_keys[args.join("|")] ||= @key_generator.generate_key(*args)
+      @cache_keys[args.join('|')] ||= @key_generator.generate_key(*args)
     end
   end
 end

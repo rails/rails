@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
-require "rails/source_annotation_extractor"
+require 'isolation/abstract_unit'
+require 'rails/source_annotation_extractor'
 
 module ApplicationTests
   module RakeTests
@@ -10,8 +10,8 @@ module ApplicationTests
 
       def setup
         build_app
-        add_to_env_config("development", "config.active_support.deprecation = :stderr")
-        require "rails/all"
+        add_to_env_config('development', 'config.active_support.deprecation = :stderr')
+        require 'rails/all'
         super
       end
 
@@ -20,16 +20,16 @@ module ApplicationTests
         teardown_app
       end
 
-      test "notes finds notes for certain file_types" do
-        app_file "app/views/home/index.html.erb", "<% # TODO: note in erb %>"
-        app_file "app/assets/javascripts/application.js", "// TODO: note in js"
-        app_file "app/assets/stylesheets/application.css", "// TODO: note in css"
-        app_file "app/controllers/application_controller.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in ruby"
-        app_file "lib/tasks/task.rake", "# TODO: note in rake"
-        app_file "app/views/home/index.html.builder", "# TODO: note in builder"
-        app_file "config/locales/en.yml", "# TODO: note in yml"
-        app_file "config/locales/en.yaml", "# TODO: note in yaml"
-        app_file "app/views/home/index.ruby", "# TODO: note in ruby"
+      test 'notes finds notes for certain file_types' do
+        app_file 'app/views/home/index.html.erb', '<% # TODO: note in erb %>'
+        app_file 'app/assets/javascripts/application.js', '// TODO: note in js'
+        app_file 'app/assets/stylesheets/application.css', '// TODO: note in css'
+        app_file 'app/controllers/application_controller.rb', 1000.times.map { '' }.join("\n") << '# TODO: note in ruby'
+        app_file 'lib/tasks/task.rake', '# TODO: note in rake'
+        app_file 'app/views/home/index.html.builder', '# TODO: note in builder'
+        app_file 'config/locales/en.yml', '# TODO: note in yml'
+        app_file 'config/locales/en.yaml', '# TODO: note in yaml'
+        app_file 'app/views/home/index.ruby', '# TODO: note in ruby'
 
         stderr = capture(:stderr) do
           run_rake_notes do |output, lines|
@@ -49,14 +49,14 @@ module ApplicationTests
         assert_match(/DEPRECATION WARNING: This rake task is deprecated and will be removed in Rails 6.1/, stderr)
       end
 
-      test "notes finds notes in default directories" do
-        app_file "app/controllers/some_controller.rb", "# TODO: note in app directory"
-        app_file "config/initializers/some_initializer.rb", "# TODO: note in config directory"
-        app_file "db/some_seeds.rb", "# TODO: note in db directory"
-        app_file "lib/some_file.rb", "# TODO: note in lib directory"
-        app_file "test/some_test.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in test directory"
+      test 'notes finds notes in default directories' do
+        app_file 'app/controllers/some_controller.rb', '# TODO: note in app directory'
+        app_file 'config/initializers/some_initializer.rb', '# TODO: note in config directory'
+        app_file 'db/some_seeds.rb', '# TODO: note in db directory'
+        app_file 'lib/some_file.rb', '# TODO: note in lib directory'
+        app_file 'test/some_test.rb', 1000.times.map { '' }.join("\n") << '# TODO: note in test directory'
 
-        app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
+        app_file 'some_other_dir/blah.rb', '# TODO: note in some_other directory'
 
         stderr = capture(:stderr) do
           run_rake_notes do |output, lines|
@@ -74,14 +74,14 @@ module ApplicationTests
         assert_match(/DEPRECATION WARNING: This rake task is deprecated and will be removed in Rails 6.1/, stderr)
       end
 
-      test "notes finds notes in custom directories" do
-        app_file "app/controllers/some_controller.rb", "# TODO: note in app directory"
-        app_file "config/initializers/some_initializer.rb", "# TODO: note in config directory"
-        app_file "db/some_seeds.rb", "# TODO: note in db directory"
-        app_file "lib/some_file.rb", "# TODO: note in lib directory"
-        app_file "test/some_test.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in test directory"
+      test 'notes finds notes in custom directories' do
+        app_file 'app/controllers/some_controller.rb', '# TODO: note in app directory'
+        app_file 'config/initializers/some_initializer.rb', '# TODO: note in config directory'
+        app_file 'db/some_seeds.rb', '# TODO: note in db directory'
+        app_file 'lib/some_file.rb', '# TODO: note in lib directory'
+        app_file 'test/some_test.rb', 1000.times.map { '' }.join("\n") << '# TODO: note in test directory'
 
-        app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
+        app_file 'some_other_dir/blah.rb', '# TODO: note in some_other directory'
 
         stderr = capture(:stderr) do
           run_rake_notes "SOURCE_ANNOTATION_DIRECTORIES='some_other_dir' bin/rake notes" do |output, lines|
@@ -101,13 +101,13 @@ module ApplicationTests
         assert_match(/DEPRECATION WARNING: `SOURCE_ANNOTATION_DIRECTORIES` is deprecated and will be removed in Rails 6.1/, stderr)
       end
 
-      test "custom rake task finds specific notes in specific directories" do
-        app_file "app/controllers/some_controller.rb", "# TODO: note in app directory"
-        app_file "lib/some_file.rb", "# OPTIMIZE: note in lib directory\n" \
-          "# FIXME: note in lib directory"
-        app_file "test/some_test.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in test directory"
+      test 'custom rake task finds specific notes in specific directories' do
+        app_file 'app/controllers/some_controller.rb', '# TODO: note in app directory'
+        app_file 'lib/some_file.rb', "# OPTIMIZE: note in lib directory\n" \
+          '# FIXME: note in lib directory'
+        app_file 'test/some_test.rb', 1000.times.map { '' }.join("\n") << '# TODO: note in test directory'
 
-        app_file "lib/tasks/notes_custom.rake", <<-EOS
+        app_file 'lib/tasks/notes_custom.rake', <<-EOS
           require "rails/source_annotation_extractor"
           task :notes_custom do
             tags = 'TODO|FIXME'
@@ -116,7 +116,7 @@ module ApplicationTests
           end
         EOS
 
-        run_rake_notes "bin/rails notes_custom" do |output, lines|
+        run_rake_notes 'bin/rails notes_custom' do |output, lines|
           assert_match(/\[FIXME\] note in lib directory/, output)
           assert_match(/\[TODO\] note in test directory/, output)
           assert_no_match(/OPTIMIZE/, output)
@@ -127,11 +127,11 @@ module ApplicationTests
         end
       end
 
-      test "register a new extension" do
-        add_to_config "config.assets.precompile = []"
+      test 'register a new extension' do
+        add_to_config 'config.assets.precompile = []'
         add_to_config %q{ config.annotations.register_extensions("scss", "sass") { |annotation| /\/\/\s*(#{annotation}):?\s*(.*)$/ } }
-        app_file "app/assets/stylesheets/application.css.scss", "// TODO: note in scss"
-        app_file "app/assets/stylesheets/application.css.sass", "// TODO: note in sass"
+        app_file 'app/assets/stylesheets/application.css.scss', '// TODO: note in scss'
+        app_file 'app/assets/stylesheets/application.css.sass', '// TODO: note in sass'
 
         stderr = capture(:stderr) do
           run_rake_notes do |output, lines|
@@ -143,9 +143,9 @@ module ApplicationTests
         assert_match(/DEPRECATION WARNING: This rake task is deprecated and will be removed in Rails 6.1/, stderr)
       end
 
-      test "register additional directories" do
-        app_file "spec/spec_helper.rb", "# TODO: note in spec"
-        app_file "spec/models/user_spec.rb", "# TODO: note in model spec"
+      test 'register additional directories' do
+        app_file 'spec/spec_helper.rb', '# TODO: note in spec'
+        app_file 'spec/models/user_spec.rb', '# TODO: note in model spec'
         add_to_config ' config.annotations.register_directories("spec") '
 
         stderr = capture(:stderr) do
@@ -159,7 +159,7 @@ module ApplicationTests
       end
 
       private
-        def run_rake_notes(command = "bin/rake notes")
+        def run_rake_notes(command = 'bin/rake notes')
           Dir.chdir(app_path) do
             output = `#{command}`
 

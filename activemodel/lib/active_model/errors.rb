@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/array/conversions"
-require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/object/deep_dup"
-require "active_support/core_ext/string/filters"
-require "active_model/error"
-require "active_model/nested_error"
-require "forwardable"
+require 'active_support/core_ext/array/conversions'
+require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/object/deep_dup'
+require 'active_support/core_ext/string/filters'
+require 'active_model/error'
+require 'active_model/nested_error'
+require 'forwardable'
 
 module ActiveModel
   # == Active \Model \Errors
@@ -262,7 +262,7 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.values   # => [["cannot be nil", "must be specified"]]
     def values
-      deprecation_removal_warning(:values, "errors.map { |error| error.message }")
+      deprecation_removal_warning(:values, 'errors.map { |error| error.message }')
       @errors.map(&:message).freeze
     end
 
@@ -271,7 +271,7 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.keys     # => [:name]
     def keys
-      deprecation_removal_warning(:keys, "errors.attribute_names")
+      deprecation_removal_warning(:keys, 'errors.attribute_names')
       keys = @errors.map(&:attribute)
       keys.uniq!
       keys.freeze
@@ -298,7 +298,7 @@ module ActiveModel
     #   #  </errors>
     def to_xml(options = {})
       deprecation_removal_warning(:to_xml)
-      to_a.to_xml({ root: "errors", skip_types: true }.merge!(options))
+      to_a.to_xml({ root: 'errors', skip_types: true }.merge!(options))
     end
 
     # Returns a Hash that can be used as the JSON representation for this
@@ -563,7 +563,7 @@ module ActiveModel
       @errors ||= []
 
       # Legacy support Rails 5.x details hash
-      add_from_legacy_details_hash(data["details"]) if data.key?("details")
+      add_from_legacy_details_hash(data['details']) if data.key?('details')
     end
 
     private
@@ -606,7 +606,7 @@ module ActiveModel
     end
 
     def []=(attribute, value)
-      ActiveSupport::Deprecation.warn("Calling `[]=` to an ActiveModel::Errors is deprecated. Please call `ActiveModel::Errors#add` instead.")
+      ActiveSupport::Deprecation.warn('Calling `[]=` to an ActiveModel::Errors is deprecated. Please call `ActiveModel::Errors#add` instead.')
 
       @errors.delete(attribute)
       Array(value).each do |message|
@@ -617,7 +617,7 @@ module ActiveModel
     end
 
     def delete(attribute)
-      ActiveSupport::Deprecation.warn("Calling `delete` to an ActiveModel::Errors messages hash is deprecated. Please call `ActiveModel::Errors#delete` instead.")
+      ActiveSupport::Deprecation.warn('Calling `delete` to an ActiveModel::Errors messages hash is deprecated. Please call `ActiveModel::Errors#delete` instead.')
 
       @errors.delete(attribute)
     end
@@ -646,7 +646,7 @@ module ActiveModel
     end
 
     def <<(message)
-      ActiveSupport::Deprecation.warn("Calling `<<` to an ActiveModel::Errors message array in order to add an error is deprecated. Please call `ActiveModel::Errors#add` instead.")
+      ActiveSupport::Deprecation.warn('Calling `<<` to an ActiveModel::Errors message array in order to add an error is deprecated. Please call `ActiveModel::Errors#add` instead.')
 
       @errors.add(@attribute, message)
       __setobj__ @errors.messages_for(@attribute)
@@ -654,7 +654,7 @@ module ActiveModel
     end
 
     def clear
-      ActiveSupport::Deprecation.warn("Calling `clear` to an ActiveModel::Errors message array in order to delete all errors is deprecated. Please call `ActiveModel::Errors#delete` instead.")
+      ActiveSupport::Deprecation.warn('Calling `clear` to an ActiveModel::Errors message array in order to delete all errors is deprecated. Please call `ActiveModel::Errors#delete` instead.')
 
       @errors.delete(@attribute)
     end

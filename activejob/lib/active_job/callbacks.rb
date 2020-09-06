@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/callbacks"
-require "active_support/core_ext/object/with_options"
-require "active_support/core_ext/module/attribute_accessors"
+require 'active_support/callbacks'
+require 'active_support/core_ext/object/with_options'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module ActiveJob
   # = Active Job Callbacks

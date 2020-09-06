@@ -10,7 +10,7 @@ module ActiveModel
       end
 
       def encode(attribute_set, coder)
-        coder["concise_attributes"] = attribute_set.each_value.map do |attr|
+        coder['concise_attributes'] = attribute_set.each_value.map do |attr|
           if attr.type.equal?(default_types[attr.name])
             attr.with_type(nil)
           else
@@ -20,10 +20,10 @@ module ActiveModel
       end
 
       def decode(coder)
-        if coder["attributes"]
-          coder["attributes"]
+        if coder['attributes']
+          coder['attributes']
         else
-          attributes_hash = Hash[coder["concise_attributes"].map do |attr|
+          attributes_hash = Hash[coder['concise_attributes'].map do |attr|
             if attr.type.nil?
               attr = attr.with_type(default_types[attr.name])
             end

@@ -93,7 +93,7 @@ module ActionDispatch
 
           def visit_STAR(node)
             re = @matchers[node.left.to_sym]
-            re ? "(#{re})" : "(.+)"
+            re ? "(#{re})" : '(.+)'
           end
 
           def visit_OR(node)
@@ -105,7 +105,7 @@ module ActionDispatch
         class UnanchoredRegexp < AnchoredRegexp # :nodoc:
           def accept(node)
             path = visit node
-            path == "/" ? %r{\A/} : %r{\A#{path}(?:\b|\Z|/)}
+            path == '/' ? %r{\A/} : %r{\A#{path}(?:\b|\Z|/)}
           end
         end
 
@@ -183,7 +183,7 @@ module ActionDispatch
 
               if @requirements.key?(node)
                 re = /#{Regexp.union(@requirements[node])}|/
-                @offsets.push((re.match("").length - 1) + @offsets.last)
+                @offsets.push((re.match('').length - 1) + @offsets.last)
               else
                 @offsets << @offsets.last
               end

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/keys"
-require "action_dispatch/middleware/session/abstract_store"
-require "rack/session/cookie"
+require 'active_support/core_ext/hash/keys'
+require 'action_dispatch/middleware/session/abstract_store'
+require 'rack/session/cookie'
 
 module ActionDispatch
   module Session
@@ -63,7 +63,7 @@ module ActionDispatch
       def delete_session(req, session_id, options)
         new_sid = generate_sid unless options[:drop]
         # Reset hash and Assign the new session id
-        req.set_header("action_dispatch.request.unsigned_session_cookie", new_sid ? { "session_id" => new_sid.public_id } : {})
+        req.set_header('action_dispatch.request.unsigned_session_cookie', new_sid ? { 'session_id' => new_sid.public_id } : {})
         new_sid
       end
 
@@ -71,20 +71,20 @@ module ActionDispatch
         stale_session_check! do
           data = unpacked_cookie_data(req)
           data = persistent_session_id!(data)
-          [Rack::Session::SessionId.new(data["session_id"]), data]
+          [Rack::Session::SessionId.new(data['session_id']), data]
         end
       end
 
       private
         def extract_session_id(req)
           stale_session_check! do
-            sid = unpacked_cookie_data(req)["session_id"]
+            sid = unpacked_cookie_data(req)['session_id']
             sid && Rack::Session::SessionId.new(sid)
           end
         end
 
         def unpacked_cookie_data(req)
-          req.fetch_header("action_dispatch.request.unsigned_session_cookie") do |k|
+          req.fetch_header('action_dispatch.request.unsigned_session_cookie') do |k|
             v = stale_session_check! do
               if data = get_cookie(req)
                 data.stringify_keys!
@@ -97,12 +97,12 @@ module ActionDispatch
 
         def persistent_session_id!(data, sid = nil)
           data ||= {}
-          data["session_id"] ||= sid || generate_sid.public_id
+          data['session_id'] ||= sid || generate_sid.public_id
           data
         end
 
         def write_session(req, sid, session_data, options)
-          session_data["session_id"] = sid.public_id
+          session_data['session_id'] = sid.public_id
           SessionId.new(sid, session_data)
         end
 

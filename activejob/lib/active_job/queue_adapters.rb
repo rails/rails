@@ -125,7 +125,7 @@ module ActiveJob
     autoload :SuckerPunchAdapter
     autoload :TestAdapter
 
-    ADAPTER = "Adapter"
+    ADAPTER = 'Adapter'
     private_constant :ADAPTER
 
     class << self

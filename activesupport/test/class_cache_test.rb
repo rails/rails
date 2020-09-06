@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "active_support/dependencies"
+require_relative 'abstract_unit'
+require 'active_support/dependencies'
 
 module ActiveSupport
   module Dependencies
@@ -47,7 +47,7 @@ module ActiveSupport
       def test_get_constantizes_fails_on_invalid_names
         assert_empty @cache
         assert_raise NameError do
-          @cache.get("OmgTotallyInvalidConstantName")
+          @cache.get('OmgTotallyInvalidConstantName')
         end
       end
 
@@ -63,7 +63,7 @@ module ActiveSupport
 
       def test_safe_get_constantizes_doesnt_fail_on_invalid_names
         assert_empty @cache
-        assert_nil @cache.safe_get("OmgTotallyInvalidConstantName")
+        assert_nil @cache.safe_get('OmgTotallyInvalidConstantName')
       end
 
       def test_new_rejects_strings

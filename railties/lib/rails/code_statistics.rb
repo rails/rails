@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
-require "rails/code_statistics_calculator"
-require "active_support/core_ext/enumerable"
+require 'rails/code_statistics_calculator'
+require 'active_support/core_ext/enumerable'
 
 class CodeStatistics #:nodoc:
-  TEST_TYPES = ["Controller tests",
-                "Helper tests",
-                "Model tests",
-                "Mailer tests",
-                "Mailbox tests",
-                "Channel tests",
-                "Job tests",
-                "Integration tests",
-                "System tests"]
+  TEST_TYPES = ['Controller tests',
+                'Helper tests',
+                'Model tests',
+                'Mailer tests',
+                'Mailbox tests',
+                'Channel tests',
+                'Job tests',
+                'Integration tests',
+                'System tests']
 
-  HEADERS = { lines: " Lines", code_lines: "   LOC", classes: "Classes", methods: "Methods" }
+  HEADERS = { lines: ' Lines', code_lines: '   LOC', classes: 'Classes', methods: 'Methods' }
 
   def initialize(*pairs)
     @pairs      = pairs
@@ -28,7 +28,7 @@ class CodeStatistics #:nodoc:
     print_splitter
 
     if @total
-      print_line("Total", @total)
+      print_line('Total', @total)
       print_splitter
     end
 
@@ -46,7 +46,7 @@ class CodeStatistics #:nodoc:
       Dir.foreach(directory) do |file_name|
         path = "#{directory}/#{file_name}"
 
-        if File.directory?(path) && !file_name.start_with?(".")
+        if File.directory?(path) && !file_name.start_with?('.')
           stats.add(calculate_directory_statistics(path, pattern))
         elsif file_name&.match?(pattern)
           stats.add_by_file_path(path)
@@ -80,20 +80,20 @@ class CodeStatistics #:nodoc:
 
     def print_header
       print_splitter
-      print "| Name                "
+      print '| Name                '
       HEADERS.each do |k, v|
         print " | #{v.rjust(width_for(k))}"
       end
-      puts " | M/C | LOC/M |"
+      puts ' | M/C | LOC/M |'
       print_splitter
     end
 
     def print_splitter
-      print "+----------------------"
+      print '+----------------------'
       HEADERS.each_key do |k|
         print "+#{'-' * (width_for(k) + 2)}"
       end
-      puts "+-----+-------+"
+      puts '+-----+-------+'
     end
 
     def print_line(name, statistics)
@@ -112,6 +112,6 @@ class CodeStatistics #:nodoc:
       tests = calculate_tests
 
       puts "  Code LOC: #{code}     Test LOC: #{tests}     Code to Test Ratio: 1:#{sprintf("%.1f", tests.to_f / code)}"
-      puts ""
+      puts ''
     end
 end

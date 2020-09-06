@@ -16,7 +16,7 @@ module ActiveRecord
           spec = {}
           spec[:id] = schema_type(column).inspect unless default_primary_key?(column)
           spec.merge!(prepare_column_options(column).except!(:null))
-          spec[:default] ||= "nil" if explicit_primary_key_default?(column)
+          spec[:default] ||= 'nil' if explicit_primary_key_default?(column)
           spec
         end
 
@@ -26,7 +26,7 @@ module ActiveRecord
           spec[:precision] = schema_precision(column)
           spec[:scale] = schema_scale(column)
           spec[:default] = schema_default(column)
-          spec[:null] = "false" unless column.null
+          spec[:null] = 'false' unless column.null
           spec[:collation] = schema_collation(column)
           spec[:comment] = column.comment.inspect if column.comment.present?
           spec.compact!

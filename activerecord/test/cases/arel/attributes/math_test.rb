@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../helper"
+require_relative '../helper'
 
 module Arel
   module Attributes

@@ -6,11 +6,11 @@ module ActiveRecord
       class SchemaCreation < SchemaCreation # :nodoc:
         private
           def visit_AlterTable(o)
-            super << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(" ")
+            super << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(' ')
           end
 
           def visit_AddForeignKey(o)
-            super.dup.tap { |sql| sql << " NOT VALID" unless o.validate? }
+            super.dup.tap { |sql| sql << ' NOT VALID' unless o.validate? }
           end
 
           def visit_ValidateConstraint(name)
@@ -65,9 +65,9 @@ module ActiveRecord
             # A table cannot be both TEMPORARY and UNLOGGED, since all TEMPORARY
             # tables are already UNLOGGED.
             if o.temporary
-              " TEMPORARY"
+              ' TEMPORARY'
             elsif o.unlogged
-              " UNLOGGED"
+              ' UNLOGGED'
             end
           end
       end

@@ -167,7 +167,7 @@ module ActiveRecord
 
         def invert_drop_table(args, &block)
           if args.size == 1 && block == nil
-            raise ActiveRecord::IrreversibleMigration, "To avoid mistakes, drop_table is only reversible if given options or a block (can be empty)."
+            raise ActiveRecord::IrreversibleMigration, 'To avoid mistakes, drop_table is only reversible if given options or a block (can be empty).'
           end
           super
         end
@@ -177,13 +177,13 @@ module ActiveRecord
         end
 
         def invert_remove_column(args)
-          raise ActiveRecord::IrreversibleMigration, "remove_column is only reversible if given a type." if args.size <= 2
+          raise ActiveRecord::IrreversibleMigration, 'remove_column is only reversible if given a type.' if args.size <= 2
           super
         end
 
         def invert_remove_columns(args)
           unless args[-1].is_a?(Hash) && args[-1].has_key?(:type)
-            raise ActiveRecord::IrreversibleMigration, "remove_columns is only reversible if given a type."
+            raise ActiveRecord::IrreversibleMigration, 'remove_columns is only reversible if given a type.'
           end
 
           [:add_columns, args]
@@ -206,7 +206,7 @@ module ActiveRecord
           columns ||= options.delete(:column)
 
           unless columns
-            raise ActiveRecord::IrreversibleMigration, "remove_index is only reversible if given a :column option."
+            raise ActiveRecord::IrreversibleMigration, 'remove_index is only reversible if given a :column option.'
           end
 
           options.delete(:if_exists)
@@ -224,7 +224,7 @@ module ActiveRecord
           table, column, options = args
 
           unless options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
-            raise ActiveRecord::IrreversibleMigration, "change_column_default is only reversible if given a :from and :to option."
+            raise ActiveRecord::IrreversibleMigration, 'change_column_default is only reversible if given a :from and :to option.'
           end
 
           [:change_column_default, [table, column, from: options[:to], to: options[:from]]]
@@ -241,7 +241,7 @@ module ActiveRecord
 
           to_table ||= options.delete(:to_table)
 
-          raise ActiveRecord::IrreversibleMigration, "remove_foreign_key is only reversible if given a second table" if to_table.nil?
+          raise ActiveRecord::IrreversibleMigration, 'remove_foreign_key is only reversible if given a second table' if to_table.nil?
 
           reversed_args = [from_table, to_table]
           reversed_args << options unless options.empty?
@@ -253,7 +253,7 @@ module ActiveRecord
           table, column, options = args
 
           unless options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
-            raise ActiveRecord::IrreversibleMigration, "change_column_comment is only reversible if given a :from and :to option."
+            raise ActiveRecord::IrreversibleMigration, 'change_column_comment is only reversible if given a :from and :to option.'
           end
 
           [:change_column_comment, [table, column, from: options[:to], to: options[:from]]]
@@ -263,14 +263,14 @@ module ActiveRecord
           table, options = args
 
           unless options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
-            raise ActiveRecord::IrreversibleMigration, "change_table_comment is only reversible if given a :from and :to option."
+            raise ActiveRecord::IrreversibleMigration, 'change_table_comment is only reversible if given a :from and :to option.'
           end
 
           [:change_table_comment, [table, from: options[:to], to: options[:from]]]
         end
 
         def invert_remove_check_constraint(args)
-          raise ActiveRecord::IrreversibleMigration, "remove_check_constraint is only reversible if given an expression." if args.size < 2
+          raise ActiveRecord::IrreversibleMigration, 'remove_check_constraint is only reversible if given an expression.' if args.size < 2
           super
         end
 

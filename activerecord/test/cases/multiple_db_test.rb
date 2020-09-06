@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/entrant"
-require "models/bird"
-require "models/course"
+require 'cases/helper'
+require 'models/entrant'
+require 'models/bird'
+require 'models/course'
 
 class MultipleDbTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   def setup
-    @courses  = create_fixtures("courses") { Course.retrieve_connection }
-    @colleges = create_fixtures("colleges") { College.retrieve_connection }
-    @entrants = create_fixtures("entrants")
+    @courses  = create_fixtures('courses') { Course.retrieve_connection }
+    @colleges = create_fixtures('colleges') { College.retrieve_connection }
+    @entrants = create_fixtures('entrants')
   end
 
   def test_connected
@@ -27,7 +27,7 @@ class MultipleDbTest < ActiveRecord::TestCase
   end
 
   def test_swapping_the_connection
-    old_spec_name, Course.connection_specification_name = Course.connection_specification_name, "ActiveRecord::Base"
+    old_spec_name, Course.connection_specification_name = Course.connection_specification_name, 'ActiveRecord::Base'
     assert_equal(Entrant.connection, Course.connection)
   ensure
     Course.connection_specification_name = old_spec_name
@@ -35,15 +35,15 @@ class MultipleDbTest < ActiveRecord::TestCase
 
   def test_find
     c1 = Course.find(1)
-    assert_equal "Ruby Development", c1.name
+    assert_equal 'Ruby Development', c1.name
     c2 = Course.find(2)
-    assert_equal "Java Development", c2.name
+    assert_equal 'Java Development', c2.name
     e1 = Entrant.find(1)
-    assert_equal "Ruby Developer", e1.name
+    assert_equal 'Ruby Developer', e1.name
     e2 = Entrant.find(2)
-    assert_equal "Ruby Guru", e2.name
+    assert_equal 'Ruby Guru', e2.name
     e3 = Entrant.find(3)
-    assert_equal "Java Lover", e3.name
+    assert_equal 'Java Lover', e3.name
   end
 
   def test_associations
@@ -61,7 +61,7 @@ class MultipleDbTest < ActiveRecord::TestCase
     assert Course.connection
 
     assert Object.send(:remove_const, :Course)
-    assert load("models/course.rb")
+    assert load('models/course.rb')
 
     assert Course.connection
   end
@@ -73,22 +73,22 @@ class MultipleDbTest < ActiveRecord::TestCase
     begin
       Course.transaction do
         Entrant.transaction do
-          c1.name = "Typo"
-          e1.name = "Typo"
+          c1.name = 'Typo'
+          e1.name = 'Typo'
           c1.save
           e1.save
-          raise "No I messed up."
+          raise 'No I messed up.'
         end
       end
     rescue
       # Yup caught it
     end
 
-    assert_equal "Typo", c1.name
-    assert_equal "Typo", e1.name
+    assert_equal 'Typo', c1.name
+    assert_equal 'Typo', e1.name
 
-    assert_equal "Ruby Development", Course.find(1).name
-    assert_equal "Ruby Developer", Entrant.find(1).name
+    assert_equal 'Ruby Development', Course.find(1).name
+    assert_equal 'Ruby Developer', Entrant.find(1).name
   end
 
   def test_connection

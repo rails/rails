@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/acts_like"
+require 'active_support/core_ext/object/acts_like'
 
 class Date
   # Duck-types as a Date-like class. See Object#acts_like?.

@@ -2,6 +2,6 @@
 
 class TestComponent
   def render_in(_view_context)
-    "Hello, World!"
+    'Hello, World!'
   end
 end

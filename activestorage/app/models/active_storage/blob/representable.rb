@@ -4,7 +4,7 @@ module ActiveStorage::Blob::Representable
   extend ActiveSupport::Concern
 
   included do
-    has_many :variant_records, class_name: "ActiveStorage::VariantRecord", dependent: false
+    has_many :variant_records, class_name: 'ActiveStorage::VariantRecord', dependent: false
     before_destroy { variant_records.destroy_all if ActiveStorage.track_variants }
 
     has_one_attached :preview_image

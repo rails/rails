@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
-require "bundler/inline"
+require 'bundler/inline'
 
 gemfile(true) do
-  source "https://rubygems.org"
+  source 'https://rubygems.org'
 
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-  gem "rails", github: "rails/rails"
+  gem 'rails', github: 'rails/rails'
 end
 
-require "active_job"
-require "minitest/autorun"
+require 'active_job'
+require 'minitest/autorun'
 
 class BuggyJob < ActiveJob::Base
   def perform
-    puts "performed"
+    puts 'performed'
   end
 end
 

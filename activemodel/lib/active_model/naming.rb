@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/except"
-require "active_support/core_ext/module/introspection"
-require "active_support/core_ext/module/redefine_method"
+require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/module/introspection'
+require 'active_support/core_ext/module/redefine_method'
 
 module ActiveModel
   class Name
@@ -164,7 +164,7 @@ module ActiveModel
     def initialize(klass, namespace = nil, name = nil)
       @name = name || klass.name
 
-      raise ArgumentError, "Class name cannot be blank. You need to supply a name argument when anonymous class given" if @name.blank?
+      raise ArgumentError, 'Class name cannot be blank. You need to supply a name argument when anonymous class given' if @name.blank?
 
       @unnamespaced = @name.delete_prefix("#{namespace.name}::") if namespace
       @klass        = klass
@@ -178,7 +178,7 @@ module ActiveModel
 
       @route_key          = (namespace ? ActiveSupport::Inflector.pluralize(@param_key) : @plural.dup)
       @singular_route_key = ActiveSupport::Inflector.singularize(@route_key)
-      @route_key << "_index" if @plural == @singular
+      @route_key << '_index' if @plural == @singular
     end
 
     # Transform the model name into a more human format, using I18n. By default,
@@ -208,7 +208,7 @@ module ActiveModel
 
     private
       def _singularize(string)
-        ActiveSupport::Inflector.underscore(string).tr("/", "_")
+        ActiveSupport::Inflector.underscore(string).tr('/', '_')
       end
   end
 

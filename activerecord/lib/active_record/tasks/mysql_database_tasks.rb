@@ -42,10 +42,10 @@ module ActiveRecord
 
       def structure_dump(filename, extra_flags)
         args = prepare_command_options
-        args.concat(["--result-file", "#{filename}"])
-        args.concat(["--no-data"])
-        args.concat(["--routines"])
-        args.concat(["--skip-comments"])
+        args.concat(['--result-file', "#{filename}"])
+        args.concat(['--no-data'])
+        args.concat(['--routines'])
+        args.concat(['--skip-comments'])
 
         ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
         if ignore_tables.any?
@@ -55,16 +55,16 @@ module ActiveRecord
         args.concat([db_config.database.to_s])
         args.unshift(*extra_flags) if extra_flags
 
-        run_cmd("mysqldump", args, "dumping")
+        run_cmd('mysqldump', args, 'dumping')
       end
 
       def structure_load(filename, extra_flags)
         args = prepare_command_options
-        args.concat(["--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
-        args.concat(["--database", db_config.database.to_s])
+        args.concat(['--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
+        args.concat(['--database', db_config.database.to_s])
         args.unshift(*extra_flags) if extra_flags
 
-        run_cmd("mysql", args, "loading")
+        run_cmd('mysql', args, 'loading')
       end
 
       private
@@ -83,17 +83,17 @@ module ActiveRecord
 
         def prepare_command_options
           args = {
-            host:      "--host",
-            port:      "--port",
-            socket:    "--socket",
-            username:  "--user",
-            password:  "--password",
-            encoding:  "--default-character-set",
-            sslca:     "--ssl-ca",
-            sslcert:   "--ssl-cert",
-            sslcapath: "--ssl-capath",
-            sslcipher: "--ssl-cipher",
-            sslkey:    "--ssl-key"
+            host:      '--host',
+            port:      '--port',
+            socket:    '--socket',
+            username:  '--user',
+            password:  '--password',
+            encoding:  '--default-character-set',
+            sslca:     '--ssl-ca',
+            sslcert:   '--ssl-cert',
+            sslcapath: '--ssl-capath',
+            sslcipher: '--ssl-cipher',
+            sslkey:    '--ssl-key'
           }.map { |opt, arg| "#{arg}=#{configuration_hash[opt]}" if configuration_hash[opt] }.compact
 
           args

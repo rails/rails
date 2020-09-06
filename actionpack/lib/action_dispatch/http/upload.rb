@@ -26,7 +26,7 @@ module ActionDispatch
 
       def initialize(hash) # :nodoc:
         @tempfile = hash[:tempfile]
-        raise(ArgumentError, ":tempfile is required") unless @tempfile
+        raise(ArgumentError, ':tempfile is required') unless @tempfile
 
         if hash[:filename]
           @original_filename = hash[:filename].dup

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "models/topic"
+require 'models/topic'
 
 class Reply < Topic
   validate :errors_on_empty_content
@@ -11,24 +11,24 @@ class Reply < Topic
   validate :check_wrong_update,     on: :update
 
   def check_empty_title
-    errors.add(:title, "is Empty") unless title && title.size > 0
+    errors.add(:title, 'is Empty') unless title && title.size > 0
   end
 
   def errors_on_empty_content
-    errors.add(:content, "is Empty") unless content && content.size > 0
+    errors.add(:content, 'is Empty') unless content && content.size > 0
   end
 
   def check_content_mismatch
-    if title && content && content == "Mismatch"
-      errors.add(:title, "is Content Mismatch")
+    if title && content && content == 'Mismatch'
+      errors.add(:title, 'is Content Mismatch')
     end
   end
 
   def title_is_wrong_create
-    errors.add(:title, "is Wrong Create") if title && title == "Wrong Create"
+    errors.add(:title, 'is Wrong Create') if title && title == 'Wrong Create'
   end
 
   def check_wrong_update
-    errors.add(:title, "is Wrong Update") if title && title == "Wrong Update"
+    errors.add(:title, 'is Wrong Update') if title && title == 'Wrong Update'
   end
 end

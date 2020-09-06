@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/topic"
-require "models/reply"
-require "models/developer"
-require "models/computer"
-require "models/parrot"
-require "models/company"
-require "models/price_estimate"
+require 'cases/helper'
+require 'models/topic'
+require 'models/reply'
+require 'models/developer'
+require 'models/computer'
+require 'models/parrot'
+require 'models/company'
+require 'models/price_estimate'
 
 class ValidationsTest < ActiveRecord::TestCase
   fixtures :topics, :developers
@@ -18,47 +18,47 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_valid_uses_create_context_when_new
     r = WrongReply.new
-    r.title = "Wrong Create"
+    r.title = 'Wrong Create'
     assert_not_predicate r, :valid?
-    assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
-    assert_equal ["is Wrong Create"], r.errors[:title], "A reply with a bad content should contain an error"
+    assert r.errors[:title].any?, 'A reply with a bad title should mark that attribute as invalid'
+    assert_equal ['is Wrong Create'], r.errors[:title], 'A reply with a bad content should contain an error'
   end
 
   def test_valid_uses_update_context_when_persisted
     r = WrongReply.new
-    r.title = "Bad"
-    r.content = "Good"
-    assert r.save, "First validation should be successful"
+    r.title = 'Bad'
+    r.content = 'Good'
+    assert r.save, 'First validation should be successful'
 
-    r.title = "Wrong Update"
-    assert_not r.valid?, "Second validation should fail"
+    r.title = 'Wrong Update'
+    assert_not r.valid?, 'Second validation should fail'
 
-    assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
-    assert_equal ["is Wrong Update"], r.errors[:title], "A reply with a bad content should contain an error"
+    assert r.errors[:title].any?, 'A reply with a bad title should mark that attribute as invalid'
+    assert_equal ['is Wrong Update'], r.errors[:title], 'A reply with a bad content should contain an error'
   end
 
   def test_valid_using_special_context
-    r = WrongReply.new(title: "Valid title")
+    r = WrongReply.new(title: 'Valid title')
     assert_not r.valid?(:special_case)
-    assert_equal "Invalid", r.errors[:author_name].join
+    assert_equal 'Invalid', r.errors[:author_name].join
 
-    r.author_name = "secret"
-    r.content = "Good"
+    r.author_name = 'secret'
+    r.content = 'Good'
     assert r.valid?(:special_case)
 
     r.author_name = nil
     assert_not r.valid?(:special_case)
-    assert_equal "Invalid", r.errors[:author_name].join
+    assert_equal 'Invalid', r.errors[:author_name].join
 
-    r.author_name = "secret"
+    r.author_name = 'secret'
     assert r.valid?(:special_case)
   end
 
   def test_invalid_using_multiple_contexts
-    r = WrongReply.new(title: "Wrong Create")
+    r = WrongReply.new(title: 'Wrong Create')
     assert r.invalid?([:special_case, :create])
-    assert_equal "Invalid", r.errors[:author_name].join
-    assert_equal "is Wrong Create", r.errors[:title].join
+    assert_equal 'Invalid', r.errors[:author_name].join
+    assert_equal 'is Wrong Create', r.errors[:title].join
   end
 
   def test_validate
@@ -70,7 +70,7 @@ class ValidationsTest < ActiveRecord::TestCase
     r.validate(:special_case)
     assert_not_empty r.errors[:author_name]
 
-    r.author_name = "secret"
+    r.author_name = 'secret'
 
     r.validate(:special_case)
     assert_empty r.errors[:author_name]
@@ -97,19 +97,19 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordInvalid) do
       WrongReply.new.validate!(:special_case)
     end
-    r = WrongReply.new(title: "Valid title", author_name: "secret", content: "Good")
+    r = WrongReply.new(title: 'Valid title', author_name: 'secret', content: 'Good')
     assert r.validate!(:special_case)
   end
 
   def test_exception_on_create_bang_many
     assert_raise(ActiveRecord::RecordInvalid) do
-      WrongReply.create!([ { "title" => "OK" }, { "title" => "Wrong Create" }])
+      WrongReply.create!([ { 'title' => 'OK' }, { 'title' => 'Wrong Create' }])
     end
   end
 
   def test_exception_on_create_bang_with_block
     assert_raise(ActiveRecord::RecordInvalid) do
-      WrongReply.create!("title" => "OK") do |r|
+      WrongReply.create!('title' => 'OK') do |r|
         r.content = nil
       end
     end
@@ -117,7 +117,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_exception_on_create_bang_many_with_block
     assert_raise(ActiveRecord::RecordInvalid) do
-      WrongReply.create!([{ "title" => "OK" }, { "title" => "Wrong Create" }]) do |r|
+      WrongReply.create!([{ 'title' => 'OK' }, { 'title' => 'Wrong Create' }]) do |r|
         r.content = nil
       end
     end
@@ -138,10 +138,10 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_throw_away_typing
-    d = Developer.new("name" => "David", "salary" => "100,000")
+    d = Developer.new('name' => 'David', 'salary' => '100,000')
     assert_not_predicate d, :valid?
     assert_equal 100, d.salary
-    assert_equal "100,000", d.salary_before_type_cast
+    assert_equal '100,000', d.salary_before_type_cast
   end
 
   def test_validates_acceptance_of_with_undefined_attribute_methods
@@ -155,8 +155,8 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_validates_acceptance_of_as_database_column
     klass = Class.new(Topic)
     klass.validates_acceptance_of(:approved)
-    topic = klass.create("approved" => true)
-    assert topic["approved"]
+    topic = klass.create('approved' => true)
+    assert topic['approved']
   end
 
   def test_validators
@@ -172,8 +172,8 @@ class ValidationsTest < ActiveRecord::TestCase
       validates_numericality_of :wibble, only_integer: true
     end
 
-    topic = klass.new(wibble: "123-4567")
-    topic.wibble.gsub!("-", "")
+    topic = klass.new(wibble: '123-4567')
+    topic.wibble.gsub!('-', '')
 
     assert_predicate topic, :valid?
   end
@@ -181,21 +181,21 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_numericality_validation_checks_against_raw_value
     klass = Class.new(Topic) do
       def self.model_name
-        ActiveModel::Name.new(self, nil, "Topic")
+        ActiveModel::Name.new(self, nil, 'Topic')
       end
       attribute :wibble, :decimal, scale: 2, precision: 9
-      validates_numericality_of :wibble, greater_than_or_equal_to: BigDecimal("97.18")
+      validates_numericality_of :wibble, greater_than_or_equal_to: BigDecimal('97.18')
     end
 
-    assert_not_predicate klass.new(wibble: "97.179"), :valid?
+    assert_not_predicate klass.new(wibble: '97.179'), :valid?
     assert_not_predicate klass.new(wibble: 97.179), :valid?
-    assert_not_predicate klass.new(wibble: BigDecimal("97.179")), :valid?
+    assert_not_predicate klass.new(wibble: BigDecimal('97.179')), :valid?
   end
 
   def test_numericality_validator_wont_be_affected_by_custom_getter
     price_estimate = PriceEstimate.new(price: 50)
 
-    assert_equal "$50.00", price_estimate.price
+    assert_equal '$50.00', price_estimate.price
     assert_equal 50, price_estimate.price_before_type_cast
     assert_equal 50, price_estimate.read_attribute(:price)
 
@@ -210,7 +210,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_acceptance_validator_doesnt_require_db_connection
     klass = Class.new(ActiveRecord::Base) do
-      self.table_name = "posts"
+      self.table_name = 'posts'
     end
     klass.reset_column_information
 

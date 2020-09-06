@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "active_record/database_configurations/database_config"
-require "active_record/database_configurations/hash_config"
-require "active_record/database_configurations/url_config"
-require "active_record/database_configurations/connection_url_resolver"
+require 'active_record/database_configurations/database_config'
+require 'active_record/database_configurations/hash_config'
+require 'active_record/database_configurations/url_config'
+require 'active_record/database_configurations/connection_url_resolver'
 
 module ActiveRecord
   # ActiveRecord::DatabaseConfigurations returns an array of DatabaseConfig
@@ -40,7 +40,7 @@ module ActiveRecord
     def configs_for(env_name: nil, spec_name: nil, name: nil, include_replicas: false)
       if spec_name
         name = spec_name
-        ActiveSupport::Deprecation.warn("The kwarg `spec_name` is deprecated in favor of `name`. `spec_name` will be removed in Rails 6.2")
+        ActiveSupport::Deprecation.warn('The kwarg `spec_name` is deprecated in favor of `name`. `spec_name` will be removed in Rails 6.2')
       end
 
       env_name ||= default_env if name
@@ -72,7 +72,7 @@ module ActiveRecord
       default.configuration_hash if default
     end
     alias :[] :default_hash
-    deprecate "[]": "Use configs_for", default_hash: "Use configs_for"
+    deprecate "[]": 'Use configs_for', default_hash: 'Use configs_for'
 
     # Returns a single DatabaseConfig object based on the requested environment.
     #
@@ -94,7 +94,7 @@ module ActiveRecord
     # example, when Rails dumps the schema, the primary configuration's schema
     # file will be named `schema.rb` instead of `primary_schema.rb`.
     def primary?(name) # :nodoc:
-      return true if name == "primary"
+      return true if name == 'primary'
 
       first_config = find_db_config(default_env)
       first_config && name == first_config.name
@@ -156,7 +156,7 @@ module ActiveRecord
       when Symbol
         resolve_symbol_connection(config)
       when Hash, String
-        build_db_config_from_raw_config(default_env, "primary", config)
+        build_db_config_from_raw_config(default_env, 'primary', config)
       else
         raise TypeError, "Invalid type for configuration. Expected Symbol, String, or Hash. Got #{config.inspect}"
       end
@@ -183,12 +183,12 @@ module ActiveRecord
           if config.is_a?(Hash) && config.all? { |_, v| v.is_a?(Hash) }
             walk_configs(env_name.to_s, config)
           else
-            build_db_config_from_raw_config(env_name.to_s, "primary", config)
+            build_db_config_from_raw_config(env_name.to_s, 'primary', config)
           end
         end
 
         unless db_configs.find(&:for_current_env?)
-          db_configs << environment_url_config(default_env, "primary", {})
+          db_configs << environment_url_config(default_env, 'primary', {})
         end
 
         merge_db_environment_variables(default_env, db_configs.compact)
@@ -279,7 +279,7 @@ module ActiveRecord
       def environment_value_for(name)
         name_env_key = "#{name.upcase}_DATABASE_URL"
         url = ENV[name_env_key]
-        url ||= ENV["DATABASE_URL"] if name == "primary"
+        url ||= ENV['DATABASE_URL'] if name == 'primary'
         url
       end
 

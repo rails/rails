@@ -1031,7 +1031,7 @@ module ActiveRecord
       alias_method :concat, :<<
 
       def prepend(*args) # :nodoc:
-        raise NoMethodError, "prepend on association is not defined. Please use <<, push or append"
+        raise NoMethodError, 'prepend on association is not defined. Please use <<, push or append'
       end
 
       # Equivalent to +delete_all+. The difference is that returns +self+, instead

@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/deep_dup"
+require 'active_support/core_ext/object/deep_dup'
 
 module ActionDispatch #:nodoc:
   class FeaturePolicy
     class Middleware
-      CONTENT_TYPE = "Content-Type"
-      POLICY       = "Feature-Policy"
+      CONTENT_TYPE = 'Content-Type'
+      POLICY       = 'Feature-Policy'
 
       def initialize(app)
         @app = app
@@ -47,7 +47,7 @@ module ActionDispatch #:nodoc:
     end
 
     module Request
-      POLICY = "action_dispatch.feature_policy"
+      POLICY = 'action_dispatch.feature_policy'
 
       def feature_policy
         get_header(POLICY)
@@ -66,23 +66,23 @@ module ActionDispatch #:nodoc:
     # List of available features can be found at
     # https://github.com/WICG/feature-policy/blob/master/features.md#policy-controlled-features
     DIRECTIVES = {
-      accelerometer:        "accelerometer",
-      ambient_light_sensor: "ambient-light-sensor",
-      autoplay:             "autoplay",
-      camera:               "camera",
-      encrypted_media:      "encrypted-media",
-      fullscreen:           "fullscreen",
-      geolocation:          "geolocation",
-      gyroscope:            "gyroscope",
-      magnetometer:         "magnetometer",
-      microphone:           "microphone",
-      midi:                 "midi",
-      payment:              "payment",
-      picture_in_picture:   "picture-in-picture",
-      speaker:              "speaker",
-      usb:                  "usb",
-      vibrate:              "vibrate",
-      vr:                   "vr",
+      accelerometer:        'accelerometer',
+      ambient_light_sensor: 'ambient-light-sensor',
+      autoplay:             'autoplay',
+      camera:               'camera',
+      encrypted_media:      'encrypted-media',
+      fullscreen:           'fullscreen',
+      geolocation:          'geolocation',
+      gyroscope:            'gyroscope',
+      magnetometer:         'magnetometer',
+      microphone:           'microphone',
+      midi:                 'midi',
+      payment:              'payment',
+      picture_in_picture:   'picture-in-picture',
+      speaker:              'speaker',
+      usb:                  'usb',
+      vibrate:              'vibrate',
+      vr:                   'vr',
     }.freeze
 
     private_constant :MAPPINGS, :DIRECTIVES
@@ -109,7 +109,7 @@ module ActionDispatch #:nodoc:
     end
 
     def build(context = nil)
-      build_directives(context).compact.join("; ")
+      build_directives(context).compact.join('; ')
     end
 
     private

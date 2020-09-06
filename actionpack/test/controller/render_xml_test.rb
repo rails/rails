@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "controller/fake_models"
+require 'abstract_unit'
+require 'controller/fake_models'
 
 class RenderXmlTest < ActionController::TestCase
   class XmlRenderable
     def to_xml(options)
-      options[:root] ||= "i-am-xml"
+      options[:root] ||= 'i-am-xml'
       "<#{options[:root]}/>"
     end
   end
@@ -15,16 +15,16 @@ class RenderXmlTest < ActionController::TestCase
     protect_from_forgery
 
     def self.controller_path
-      "test"
+      'test'
     end
 
     def render_with_location
-      render xml: "<hello/>", location: "http://example.com", status: 201
+      render xml: '<hello/>', location: 'http://example.com', status: 201
     end
 
     def render_with_object_location
-      customer = Customer.new("Some guy", 1)
-      render xml: "<customer/>", location: customer, status: :created
+      customer = Customer.new('Some guy', 1)
+      render xml: '<customer/>', location: customer, status: :created
     end
 
     def render_with_to_xml
@@ -35,11 +35,11 @@ class RenderXmlTest < ActionController::TestCase
     end
 
     def render_xml_with_custom_content_type
-      render xml: "<blah/>", content_type: "application/atomsvc+xml"
+      render xml: '<blah/>', content_type: 'application/atomsvc+xml'
     end
 
     def render_xml_with_custom_options
-      render xml: XmlRenderable.new, root: "i-am-THE-xml"
+      render xml: XmlRenderable.new, root: 'i-am-THE-xml'
     end
   end
 
@@ -51,22 +51,22 @@ class RenderXmlTest < ActionController::TestCase
     super
     @controller.logger = ActiveSupport::Logger.new(nil)
 
-    @request.host = "www.nextangle.com"
+    @request.host = 'www.nextangle.com'
   end
 
   def test_rendering_with_location_should_set_header
     get :render_with_location
-    assert_equal "http://example.com", @response.headers["Location"]
+    assert_equal 'http://example.com', @response.headers['Location']
   end
 
   def test_rendering_xml_should_call_to_xml_if_possible
     get :render_with_to_xml
-    assert_equal "<i-am-xml/>", @response.body
+    assert_equal '<i-am-xml/>', @response.body
   end
 
   def test_rendering_xml_should_call_to_xml_with_extra_options
     get :render_xml_with_custom_options
-    assert_equal "<i-am-THE-xml/>", @response.body
+    assert_equal '<i-am-THE-xml/>', @response.body
   end
 
   def test_rendering_with_object_location_should_set_header_with_url_for
@@ -75,27 +75,27 @@ class RenderXmlTest < ActionController::TestCase
         resources :customers
 
         ActiveSupport::Deprecation.silence do
-          get ":controller/:action"
+          get ':controller/:action'
         end
       end
 
       get :render_with_object_location
-      assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
+      assert_equal 'http://www.nextangle.com/customers/1', @response.headers['Location']
     end
   end
 
   def test_should_render_formatted_xml_erb_template
     get :formatted_xml_erb, format: :xml
-    assert_equal "<test>passed formatted xml erb</test>", @response.body
+    assert_equal '<test>passed formatted xml erb</test>', @response.body
   end
 
   def test_should_render_xml_but_keep_custom_content_type
     get :render_xml_with_custom_content_type
-    assert_equal "application/atomsvc+xml", @response.media_type
+    assert_equal 'application/atomsvc+xml', @response.media_type
   end
 
   def test_should_use_implicit_content_type
-    get :implicit_content_type, format: "atom"
+    get :implicit_content_type, format: 'atom'
     assert_equal Mime[:atom], @response.media_type
   end
 

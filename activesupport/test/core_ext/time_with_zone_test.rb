@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
-require "active_support/time"
-require_relative "../time_zone_test_helpers"
-require "yaml"
+require_relative '../abstract_unit'
+require 'active_support/time'
+require_relative '../time_zone_test_helpers'
+require 'yaml'
 
 class TimeWithZoneTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
 
   def setup
     @utc = Time.utc(2000, 1, 1, 0)
-    @time_zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    @time_zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     @twz = ActiveSupport::TimeWithZone.new(@utc, @time_zone)
     @dt_twz = ActiveSupport::TimeWithZone.new(@utc.to_datetime, @time_zone)
   end
@@ -30,28 +30,28 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_in_time_zone
-    Time.use_zone "Alaska" do
-      assert_equal ActiveSupport::TimeWithZone.new(@utc, ActiveSupport::TimeZone["Alaska"]), @twz.in_time_zone
+    Time.use_zone 'Alaska' do
+      assert_equal ActiveSupport::TimeWithZone.new(@utc, ActiveSupport::TimeZone['Alaska']), @twz.in_time_zone
     end
   end
 
   def test_in_time_zone_with_argument
-    assert_equal ActiveSupport::TimeWithZone.new(@utc, ActiveSupport::TimeZone["Alaska"]), @twz.in_time_zone("Alaska")
+    assert_equal ActiveSupport::TimeWithZone.new(@utc, ActiveSupport::TimeZone['Alaska']), @twz.in_time_zone('Alaska')
   end
 
   def test_in_time_zone_with_new_zone_equal_to_old_zone_does_not_create_new_object
-    assert_equal @twz.object_id, @twz.in_time_zone(ActiveSupport::TimeZone["Eastern Time (US & Canada)"]).object_id
+    assert_equal @twz.object_id, @twz.in_time_zone(ActiveSupport::TimeZone['Eastern Time (US & Canada)']).object_id
   end
 
   def test_in_time_zone_with_bad_argument
-    assert_raise(ArgumentError) { @twz.in_time_zone("No such timezone exists") }
+    assert_raise(ArgumentError) { @twz.in_time_zone('No such timezone exists') }
     assert_raise(ArgumentError) { @twz.in_time_zone(-15.hours) }
     assert_raise(ArgumentError) { @twz.in_time_zone(Object.new) }
   end
 
   def test_in_time_zone_with_ambiguous_time
-    with_env_tz "Europe/Moscow" do
-      assert_equal Time.utc(2014, 10, 25, 22, 0, 0), Time.local(2014, 10, 26, 1, 0, 0).in_time_zone("Moscow")
+    with_env_tz 'Europe/Moscow' do
+      assert_equal Time.utc(2014, 10, 25, 22, 0, 0), Time.local(2014, 10, 26, 1, 0, 0).in_time_zone('Moscow')
     end
   end
 
@@ -64,26 +64,26 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   def test_utc?
     assert_equal false, @twz.utc?
 
-    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["UTC"]).utc?
-    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Etc/UTC"]).utc?
-    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Universal"]).utc?
-    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["UCT"]).utc?
-    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Etc/UCT"]).utc?
-    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Etc/Universal"]).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UTC']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Etc/UTC']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Universal']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UCT']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Etc/UCT']).utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Etc/Universal']).utc?
 
-    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Africa/Abidjan"]).utc?
-    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Africa/Banjul"]).utc?
-    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Africa/Freetown"]).utc?
-    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["GMT"]).utc?
-    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["GMT0"]).utc?
-    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Greenwich"]).utc?
-    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Iceland"]).utc?
-    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Africa/Monrovia"]).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Africa/Abidjan']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Africa/Banjul']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Africa/Freetown']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['GMT']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['GMT0']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Greenwich']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Iceland']).utc?
+    assert_equal false, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Africa/Monrovia']).utc?
   end
 
   def test_formatted_offset
-    assert_equal "-05:00", @twz.formatted_offset
-    assert_equal "-04:00", ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).formatted_offset # dst
+    assert_equal '-05:00', @twz.formatted_offset
+    assert_equal '-04:00', ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).formatted_offset # dst
   end
 
   def test_dst?
@@ -92,89 +92,89 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_zone
-    assert_equal "EST", @twz.zone
-    assert_equal "EDT", ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).zone # dst
+    assert_equal 'EST', @twz.zone
+    assert_equal 'EDT', ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).zone # dst
   end
 
   def test_nsec
     local     = Time.local(2011, 6, 7, 23, 59, 59, Rational(999999999, 1000))
-    with_zone = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Hawaii"], local)
+    with_zone = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Hawaii'], local)
 
     assert_equal local.nsec, with_zone.nsec
     assert_equal with_zone.nsec, 999999999
   end
 
   def test_strftime
-    assert_equal "1999-12-31 19:00:00 EST -0500", @twz.strftime("%Y-%m-%d %H:%M:%S %Z %z")
+    assert_equal '1999-12-31 19:00:00 EST -0500', @twz.strftime('%Y-%m-%d %H:%M:%S %Z %z')
   end
 
   def test_strftime_with_escaping
-    assert_equal "%Z %z", @twz.strftime("%%Z %%z")
-    assert_equal "%EST %-0500", @twz.strftime("%%%Z %%%z")
+    assert_equal '%Z %z', @twz.strftime('%%Z %%z')
+    assert_equal '%EST %-0500', @twz.strftime('%%%Z %%%z')
   end
 
   def test_inspect
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00", @twz.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00', @twz.inspect
 
     nsec          = Time.utc(1986, 12, 12, 6, 23, 00, Rational(1, 1000))
     nsec          = ActiveSupport::TimeWithZone.new(nsec, @time_zone)
-    assert_equal "Fri, 12 Dec 1986 01:23:00.000000001 EST -05:00", nsec.inspect
+    assert_equal 'Fri, 12 Dec 1986 01:23:00.000000001 EST -05:00', nsec.inspect
 
     handred_nsec  = Time.utc(1986, 12, 12, 6, 23, 00, Rational(100, 1000))
     handred_nsec  = ActiveSupport::TimeWithZone.new(handred_nsec, @time_zone)
-    assert_equal "Fri, 12 Dec 1986 01:23:00.000000100 EST -05:00", handred_nsec.inspect
+    assert_equal 'Fri, 12 Dec 1986 01:23:00.000000100 EST -05:00', handred_nsec.inspect
 
     one_third_sec = Time.utc(1986, 12, 12, 6, 23, 00, Rational(1000000, 3))
     one_third_sec = ActiveSupport::TimeWithZone.new(one_third_sec, @time_zone)
-    assert_equal "Fri, 12 Dec 1986 01:23:00.333333333 EST -05:00", one_third_sec.inspect
+    assert_equal 'Fri, 12 Dec 1986 01:23:00.333333333 EST -05:00', one_third_sec.inspect
   end
 
   def test_to_s
-    assert_equal "1999-12-31 19:00:00 -0500", @twz.to_s
+    assert_equal '1999-12-31 19:00:00 -0500', @twz.to_s
   end
 
   def test_to_formatted_s
-    assert_equal "1999-12-31 19:00:00 -0500", @twz.to_formatted_s
+    assert_equal '1999-12-31 19:00:00 -0500', @twz.to_formatted_s
   end
 
   def test_to_s_db
-    assert_equal "2000-01-01 00:00:00", @twz.to_s(:db)
+    assert_equal '2000-01-01 00:00:00', @twz.to_s(:db)
   end
 
   def test_to_s_inspect
-    assert_equal "1999-12-31 19:00:00.000000000 -0500", @twz.to_s(:inspect)
+    assert_equal '1999-12-31 19:00:00.000000000 -0500', @twz.to_s(:inspect)
   end
 
   def test_xmlschema
-    assert_equal "1999-12-31T19:00:00-05:00", @twz.xmlschema
+    assert_equal '1999-12-31T19:00:00-05:00', @twz.xmlschema
   end
 
   def test_xmlschema_with_fractional_seconds
     @twz += 0.1234560001 # advance the time by a fraction of a second
-    assert_equal "1999-12-31T19:00:00.123-05:00", @twz.xmlschema(3)
-    assert_equal "1999-12-31T19:00:00.123456-05:00", @twz.xmlschema(6)
-    assert_equal "1999-12-31T19:00:00.123456000100-05:00", @twz.xmlschema(12)
+    assert_equal '1999-12-31T19:00:00.123-05:00', @twz.xmlschema(3)
+    assert_equal '1999-12-31T19:00:00.123456-05:00', @twz.xmlschema(6)
+    assert_equal '1999-12-31T19:00:00.123456000100-05:00', @twz.xmlschema(12)
   end
 
   def test_xmlschema_with_fractional_seconds_lower_than_hundred_thousand
     @twz += 0.001234 # advance the time by a fraction
-    assert_equal "1999-12-31T19:00:00.001-05:00", @twz.xmlschema(3)
-    assert_equal "1999-12-31T19:00:00.001234-05:00", @twz.xmlschema(6)
-    assert_equal "1999-12-31T19:00:00.001234000000-05:00", @twz.xmlschema(12)
+    assert_equal '1999-12-31T19:00:00.001-05:00', @twz.xmlschema(3)
+    assert_equal '1999-12-31T19:00:00.001234-05:00', @twz.xmlschema(6)
+    assert_equal '1999-12-31T19:00:00.001234000000-05:00', @twz.xmlschema(12)
   end
 
   def test_xmlschema_with_nil_fractional_seconds
-    assert_equal "1999-12-31T19:00:00-05:00", @twz.xmlschema(nil)
+    assert_equal '1999-12-31T19:00:00-05:00', @twz.xmlschema(nil)
   end
 
   def test_iso8601_with_fractional_seconds
     @twz += Rational(1, 8)
-    assert_equal "1999-12-31T19:00:00.125-05:00", @twz.iso8601(3)
+    assert_equal '1999-12-31T19:00:00.125-05:00', @twz.iso8601(3)
   end
 
   def test_rfc3339_with_fractional_seconds
     @twz += Rational(1, 8)
-    assert_equal "1999-12-31T19:00:00.125-05:00", @twz.rfc3339(3)
+    assert_equal '1999-12-31T19:00:00.125-05:00', @twz.rfc3339(3)
   end
 
   def test_to_yaml
@@ -199,7 +199,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
         time: 1999-12-31 19:00:00.000000000 Z
     EOF
 
-    assert_equal(yaml, { "twz" => @twz }.to_yaml)
+    assert_equal(yaml, { 'twz' => @twz }.to_yaml)
   end
 
   def test_yaml_load
@@ -224,15 +224,15 @@ class TimeWithZoneTest < ActiveSupport::TestCase
         time: 1999-12-31 19:00:00.000000000 Z
     EOF
 
-    assert_equal({ "twz" => @twz }, YAML.load(yaml))
+    assert_equal({ 'twz' => @twz }, YAML.load(yaml))
   end
 
   def test_httpdate
-    assert_equal "Sat, 01 Jan 2000 00:00:00 GMT", @twz.httpdate
+    assert_equal 'Sat, 01 Jan 2000 00:00:00 GMT', @twz.httpdate
   end
 
   def test_rfc2822
-    assert_equal "Fri, 31 Dec 1999 19:00:00 -0500", @twz.rfc2822
+    assert_equal 'Fri, 31 Dec 1999 19:00:00 -0500', @twz.rfc2822
   end
 
   def test_compare_with_time
@@ -248,9 +248,9 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_compare_with_time_with_zone
-    assert_equal 1, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone["UTC"])
-    assert_equal 0, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"])
-    assert_equal(-1, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone["UTC"]))
+    assert_equal 1, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone['UTC'])
+    assert_equal 0, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone['UTC'])
+    assert_equal(-1, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone['UTC']))
   end
 
   def test_between?
@@ -304,7 +304,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_past_with_time_current_as_time_local
-    with_env_tz "US/Eastern" do
+    with_env_tz 'US/Eastern' do
       Time.stub(:current, Time.local(2005, 2, 10, 15, 30, 45)) do
         assert_equal true, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 44)).past?
         assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 45)).past?
@@ -323,7 +323,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_future_with_time_current_as_time_local
-    with_env_tz "US/Eastern" do
+    with_env_tz 'US/Eastern' do
       Time.stub(:current, Time.local(2005, 2, 10, 15, 30, 45)) do
         assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 44)).future?
         assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 45)).future?
@@ -358,7 +358,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   def test_eql?
     assert_equal true, @twz.eql?(@twz.dup)
     assert_equal true, @twz.eql?(Time.utc(2000))
-    assert_equal true, @twz.eql?(ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Hawaii"]))
+    assert_equal true, @twz.eql?(ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Hawaii']))
     assert_equal false, @twz.eql?(Time.utc(2000, 1, 1, 0, 0, 1))
     assert_equal false, @twz.eql?(DateTime.civil(1999, 12, 31, 23, 59, 59))
 
@@ -368,7 +368,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_hash
     assert_equal Time.utc(2000).hash, @twz.hash
-    assert_equal Time.utc(2000).hash, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Hawaii"]).hash
+    assert_equal Time.utc(2000).hash, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['Hawaii']).hash
   end
 
   def test_plus_with_integer
@@ -405,38 +405,38 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_minus_with_time
-    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 1)
-    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["Hawaii"]) - Time.utc(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone['UTC']) - Time.utc(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone['Hawaii']) - Time.utc(2000, 1, 1)
   end
 
   def test_minus_with_time_precision
-    assert_equal 86_399.999999998,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 2, 0, 0, 0, Rational(1, 1000))
-    assert_equal 86_399.999999998,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["Hawaii"]) - Time.utc(2000, 1, 2, 0, 0, 0, Rational(1, 1000))
+    assert_equal 86_399.999999998,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone['UTC']) - Time.utc(2000, 1, 2, 0, 0, 0, Rational(1, 1000))
+    assert_equal 86_399.999999998,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone['Hawaii']) - Time.utc(2000, 1, 2, 0, 0, 0, Rational(1, 1000))
   end
 
   def test_minus_with_time_with_zone
-    twz1 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone["UTC"])
-    twz2 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"])
+    twz1 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone['UTC'])
+    twz2 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone['UTC'])
     assert_equal 86_400.0,  twz2 - twz1
   end
 
   def test_minus_with_time_with_zone_precision
-    twz1 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0, Rational(1, 1000)), ActiveSupport::TimeZone["UTC"])
-    twz2 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["UTC"])
+    twz1 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0, Rational(1, 1000)), ActiveSupport::TimeZone['UTC'])
+    twz2 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone['UTC'])
     assert_equal 86_399.999999998,  twz2 - twz1
   end
 
   def test_minus_with_datetime
-    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone['UTC']) - DateTime.civil(2000, 1, 1)
   end
 
   def test_minus_with_datetime_precision
-    assert_equal 86_399.999999999,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
+    assert_equal 86_399.999999999,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone['UTC']) - DateTime.civil(2000, 1, 1)
   end
 
   def test_minus_with_wrapped_datetime
-    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 1)
-    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 2), ActiveSupport::TimeZone['UTC']) - Time.utc(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 2), ActiveSupport::TimeZone['UTC']) - DateTime.civil(2000, 1, 1)
   end
 
   def test_plus_and_minus_enforce_spring_dst_rules
@@ -444,15 +444,15 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
     assert_equal Time.utc(2006, 4, 2, 1, 59, 59), twz.time
     assert_equal false, twz.dst?
-    assert_equal "EST", twz.zone
+    assert_equal 'EST', twz.zone
     twz = twz + 1
     assert_equal Time.utc(2006, 4, 2, 3), twz.time # adding 1 sec springs forward to 3:00AM EDT
     assert_equal true, twz.dst?
-    assert_equal "EDT", twz.zone
+    assert_equal 'EDT', twz.zone
     twz = twz - 1 # subtracting 1 second takes goes back to 1:59:59AM EST
     assert_equal Time.utc(2006, 4, 2, 1, 59, 59), twz.time
     assert_equal false, twz.dst?
-    assert_equal "EST", twz.zone
+    assert_equal 'EST', twz.zone
   end
 
   def test_plus_and_minus_enforce_fall_dst_rules
@@ -460,29 +460,29 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
     assert_equal Time.utc(2006, 10, 29, 1, 59, 59), twz.time
     assert_equal true, twz.dst?
-    assert_equal "EDT", twz.zone
+    assert_equal 'EDT', twz.zone
     twz = twz + 1
     assert_equal Time.utc(2006, 10, 29, 1), twz.time # adding 1 sec falls back from 1:59:59 EDT to 1:00AM EST
     assert_equal false, twz.dst?
-    assert_equal "EST", twz.zone
+    assert_equal 'EST', twz.zone
     twz = twz - 1
     assert_equal Time.utc(2006, 10, 29, 1, 59, 59), twz.time # subtracting 1 sec goes back to 1:59:59AM EDT
     assert_equal true, twz.dst?
-    assert_equal "EDT", twz.zone
+    assert_equal 'EDT', twz.zone
   end
 
   def test_to_a
-    assert_equal [45, 30, 5, 1, 2, 2000, 2, 32, false, "HST"], ActiveSupport::TimeWithZone.new(Time.utc(2000, 2, 1, 15, 30, 45), ActiveSupport::TimeZone["Hawaii"]).to_a
+    assert_equal [45, 30, 5, 1, 2, 2000, 2, 32, false, 'HST'], ActiveSupport::TimeWithZone.new(Time.utc(2000, 2, 1, 15, 30, 45), ActiveSupport::TimeZone['Hawaii']).to_a
   end
 
   def test_to_f
-    result = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone["Hawaii"]).to_f
+    result = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone['Hawaii']).to_f
     assert_equal 946684800.0, result
     assert_kind_of Float, result
   end
 
   def test_to_i
-    result = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone["Hawaii"]).to_i
+    result = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone['Hawaii']).to_i
     assert_equal 946684800, result
     assert_kind_of Integer, result
   end
@@ -494,19 +494,19 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_to_r
-    result = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone["Hawaii"]).to_r
+    result = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone['Hawaii']).to_r
     assert_equal Rational(946684800, 1), result
     assert_kind_of Rational, result
   end
 
   def test_time_at
-    time = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone["Hawaii"])
+    time = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone['Hawaii'])
     assert_equal time, Time.at(time)
   end
 
   def test_to_time_with_preserve_timezone
     with_preserve_timezone(true) do
-      with_env_tz "US/Eastern" do
+      with_env_tz 'US/Eastern' do
         time = @twz.to_time
 
         assert_equal Time, time.class
@@ -519,7 +519,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_to_time_without_preserve_timezone
     with_preserve_timezone(false) do
-      with_env_tz "US/Eastern" do
+      with_env_tz 'US/Eastern' do
         time = @twz.to_time
 
         assert_equal Time, time.class
@@ -532,13 +532,13 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_to_date
     # 1 sec before midnight Jan 1 EST
-    assert_equal Date.new(1999, 12, 31), ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 4, 59, 59), ActiveSupport::TimeZone["Eastern Time (US & Canada)"]).to_date
+    assert_equal Date.new(1999, 12, 31), ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 4, 59, 59), ActiveSupport::TimeZone['Eastern Time (US & Canada)']).to_date
     # midnight Jan 1 EST
-    assert_equal Date.new(2000,  1,  1), ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 5,  0,  0), ActiveSupport::TimeZone["Eastern Time (US & Canada)"]).to_date
+    assert_equal Date.new(2000,  1,  1), ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 5,  0,  0), ActiveSupport::TimeZone['Eastern Time (US & Canada)']).to_date
     # 1 sec before midnight Jan 2 EST
-    assert_equal Date.new(2000,  1,  1), ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 4, 59, 59), ActiveSupport::TimeZone["Eastern Time (US & Canada)"]).to_date
+    assert_equal Date.new(2000,  1,  1), ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 4, 59, 59), ActiveSupport::TimeZone['Eastern Time (US & Canada)']).to_date
     # midnight Jan 2 EST
-    assert_equal Date.new(2000,  1,  2), ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 5,  0,  0), ActiveSupport::TimeZone["Eastern Time (US & Canada)"]).to_date
+    assert_equal Date.new(2000,  1,  2), ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 5,  0,  0), ActiveSupport::TimeZone['Eastern Time (US & Canada)']).to_date
   end
 
   def test_to_datetime
@@ -567,7 +567,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_class_name
-    assert_equal "Time", ActiveSupport::TimeWithZone.name
+    assert_equal 'Time', ActiveSupport::TimeWithZone.name
   end
 
   def test_method_missing_with_time_return_value
@@ -580,19 +580,19 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     mtime = Marshal.load(marshal_str)
     assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
     assert_predicate mtime.utc, :utc?
-    assert_equal ActiveSupport::TimeZone["Eastern Time (US & Canada)"], mtime.time_zone
+    assert_equal ActiveSupport::TimeZone['Eastern Time (US & Canada)'], mtime.time_zone
     assert_equal Time.utc(1999, 12, 31, 19), mtime.time
     assert_predicate mtime.time, :utc?
     assert_equal @twz.inspect, mtime.inspect
   end
 
   def test_marshal_dump_and_load_with_tzinfo_identifier
-    twz = ActiveSupport::TimeWithZone.new(@utc, TZInfo::Timezone.get("America/New_York"))
+    twz = ActiveSupport::TimeWithZone.new(@utc, TZInfo::Timezone.get('America/New_York'))
     marshal_str = Marshal.dump(twz)
     mtime = Marshal.load(marshal_str)
     assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
     assert_predicate mtime.utc, :utc?
-    assert_equal "America/New_York", mtime.time_zone.name
+    assert_equal 'America/New_York', mtime.time_zone.name
     assert_equal Time.utc(1999, 12, 31, 19), mtime.time
     assert_predicate mtime.time, :utc?
     assert_equal @twz.inspect, mtime.inspect
@@ -615,8 +615,8 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_method_missing_with_non_time_return_value
     time = @twz.time
-    def time.foo; "bar"; end
-    assert_equal "bar", @twz.foo
+    def time.foo; 'bar'; end
+    assert_equal 'bar', @twz.foo
   end
 
   def test_date_part_value_methods
@@ -650,9 +650,9 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_utc_to_local_conversion_saves_period_in_instance_variable
-    assert_nil @twz.instance_variable_get("@period")
+    assert_nil @twz.instance_variable_get('@period')
     @twz.time
-    assert_kind_of TZInfo::TimezonePeriod, @twz.instance_variable_get("@period")
+    assert_kind_of TZInfo::TimezonePeriod, @twz.instance_variable_get('@period')
   end
 
   def test_instance_created_with_local_time_returns_correct_utc_time
@@ -664,14 +664,14 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 4, 2, 2)) # first second of DST
     assert_equal Time.utc(2006, 4, 2, 3), twz.time # springs forward to 3AM
     assert_equal true, twz.dst?
-    assert_equal "EDT", twz.zone
+    assert_equal 'EDT', twz.zone
   end
 
   def test_instance_created_with_local_time_enforces_fall_dst_rules
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 10, 29, 1)) # 1AM can be either DST or non-DST; we'll pick DST
     assert_equal Time.utc(2006, 10, 29, 1), twz.time
     assert_equal true, twz.dst?
-    assert_equal "EDT", twz.zone
+    assert_equal 'EDT', twz.zone
   end
 
   def test_ruby_19_weekday_name_query_methods
@@ -690,110 +690,110 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_change
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00", @twz.inspect
-    assert_equal "Mon, 31 Dec 2001 19:00:00.000000000 EST -05:00", @twz.change(year: 2001).inspect
-    assert_equal "Wed, 31 Mar 1999 19:00:00.000000000 EST -05:00", @twz.change(month: 3).inspect
-    assert_equal "Wed, 03 Mar 1999 19:00:00.000000000 EST -05:00", @twz.change(month: 2).inspect
-    assert_equal "Wed, 15 Dec 1999 19:00:00.000000000 EST -05:00", @twz.change(day: 15).inspect
-    assert_equal "Fri, 31 Dec 1999 06:00:00.000000000 EST -05:00", @twz.change(hour: 6).inspect
-    assert_equal "Fri, 31 Dec 1999 19:15:00.000000000 EST -05:00", @twz.change(min: 15).inspect
-    assert_equal "Fri, 31 Dec 1999 19:00:30.000000000 EST -05:00", @twz.change(sec: 30).inspect
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00", @twz.change(offset: "-10:00").inspect
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00", @twz.change(offset: -36000).inspect
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00", @twz.change(zone: "Hawaii").inspect
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00", @twz.change(zone: -10).inspect
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00", @twz.change(zone: -36000).inspect
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00", @twz.change(zone: "Pacific/Honolulu").inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00', @twz.inspect
+    assert_equal 'Mon, 31 Dec 2001 19:00:00.000000000 EST -05:00', @twz.change(year: 2001).inspect
+    assert_equal 'Wed, 31 Mar 1999 19:00:00.000000000 EST -05:00', @twz.change(month: 3).inspect
+    assert_equal 'Wed, 03 Mar 1999 19:00:00.000000000 EST -05:00', @twz.change(month: 2).inspect
+    assert_equal 'Wed, 15 Dec 1999 19:00:00.000000000 EST -05:00', @twz.change(day: 15).inspect
+    assert_equal 'Fri, 31 Dec 1999 06:00:00.000000000 EST -05:00', @twz.change(hour: 6).inspect
+    assert_equal 'Fri, 31 Dec 1999 19:15:00.000000000 EST -05:00', @twz.change(min: 15).inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:30.000000000 EST -05:00', @twz.change(sec: 30).inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00', @twz.change(offset: '-10:00').inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00', @twz.change(offset: -36000).inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00', @twz.change(zone: 'Hawaii').inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00', @twz.change(zone: -10).inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00', @twz.change(zone: -36000).inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00', @twz.change(zone: 'Pacific/Honolulu').inspect
   end
 
   def test_change_at_dst_boundary
-    twz = ActiveSupport::TimeWithZone.new(Time.at(1319936400).getutc, ActiveSupport::TimeZone["Madrid"])
+    twz = ActiveSupport::TimeWithZone.new(Time.at(1319936400).getutc, ActiveSupport::TimeZone['Madrid'])
     assert_equal twz, twz.change(min: 0)
   end
 
   def test_round_at_dst_boundary
-    twz = ActiveSupport::TimeWithZone.new(Time.at(1319936400).getutc, ActiveSupport::TimeZone["Madrid"])
+    twz = ActiveSupport::TimeWithZone.new(Time.at(1319936400).getutc, ActiveSupport::TimeZone['Madrid'])
     assert_equal twz, twz.round
   end
 
   def test_advance
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00", @twz.inspect
-    assert_equal "Mon, 31 Dec 2001 19:00:00.000000000 EST -05:00", @twz.advance(years: 2).inspect
-    assert_equal "Fri, 31 Mar 2000 19:00:00.000000000 EST -05:00", @twz.advance(months: 3).inspect
-    assert_equal "Tue, 04 Jan 2000 19:00:00.000000000 EST -05:00", @twz.advance(days: 4).inspect
-    assert_equal "Sat, 01 Jan 2000 01:00:00.000000000 EST -05:00", @twz.advance(hours: 6).inspect
-    assert_equal "Fri, 31 Dec 1999 19:15:00.000000000 EST -05:00", @twz.advance(minutes: 15).inspect
-    assert_equal "Fri, 31 Dec 1999 19:00:30.000000000 EST -05:00", @twz.advance(seconds: 30).inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00', @twz.inspect
+    assert_equal 'Mon, 31 Dec 2001 19:00:00.000000000 EST -05:00', @twz.advance(years: 2).inspect
+    assert_equal 'Fri, 31 Mar 2000 19:00:00.000000000 EST -05:00', @twz.advance(months: 3).inspect
+    assert_equal 'Tue, 04 Jan 2000 19:00:00.000000000 EST -05:00', @twz.advance(days: 4).inspect
+    assert_equal 'Sat, 01 Jan 2000 01:00:00.000000000 EST -05:00', @twz.advance(hours: 6).inspect
+    assert_equal 'Fri, 31 Dec 1999 19:15:00.000000000 EST -05:00', @twz.advance(minutes: 15).inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:30.000000000 EST -05:00', @twz.advance(seconds: 30).inspect
   end
 
   def test_beginning_of_year
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00", @twz.inspect
-    assert_equal "Fri, 01 Jan 1999 00:00:00.000000000 EST -05:00", @twz.beginning_of_year.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00', @twz.inspect
+    assert_equal 'Fri, 01 Jan 1999 00:00:00.000000000 EST -05:00', @twz.beginning_of_year.inspect
   end
 
   def test_end_of_year
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00", @twz.inspect
-    assert_equal "Fri, 31 Dec 1999 23:59:59.999999999 EST -05:00", @twz.end_of_year.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00', @twz.inspect
+    assert_equal 'Fri, 31 Dec 1999 23:59:59.999999999 EST -05:00', @twz.end_of_year.inspect
   end
 
   def test_beginning_of_month
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00", @twz.inspect
-    assert_equal "Wed, 01 Dec 1999 00:00:00.000000000 EST -05:00", @twz.beginning_of_month.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00', @twz.inspect
+    assert_equal 'Wed, 01 Dec 1999 00:00:00.000000000 EST -05:00', @twz.beginning_of_month.inspect
   end
 
   def test_end_of_month
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00", @twz.inspect
-    assert_equal "Fri, 31 Dec 1999 23:59:59.999999999 EST -05:00", @twz.end_of_month.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00', @twz.inspect
+    assert_equal 'Fri, 31 Dec 1999 23:59:59.999999999 EST -05:00', @twz.end_of_month.inspect
   end
 
   def test_beginning_of_day
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00", @twz.inspect
-    assert_equal "Fri, 31 Dec 1999 00:00:00.000000000 EST -05:00", @twz.beginning_of_day.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00', @twz.inspect
+    assert_equal 'Fri, 31 Dec 1999 00:00:00.000000000 EST -05:00', @twz.beginning_of_day.inspect
   end
 
   def test_end_of_day
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00", @twz.inspect
-    assert_equal "Fri, 31 Dec 1999 23:59:59.999999999 EST -05:00", @twz.end_of_day.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00', @twz.inspect
+    assert_equal 'Fri, 31 Dec 1999 23:59:59.999999999 EST -05:00', @twz.end_of_day.inspect
   end
 
   def test_beginning_of_hour
     utc = Time.utc(2000, 1, 1, 0, 30)
     twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
-    assert_equal "Fri, 31 Dec 1999 19:30:00.000000000 EST -05:00", twz.inspect
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00", twz.beginning_of_hour.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:30:00.000000000 EST -05:00', twz.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00', twz.beginning_of_hour.inspect
   end
 
   def test_end_of_hour
     utc = Time.utc(2000, 1, 1, 0, 30)
     twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
-    assert_equal "Fri, 31 Dec 1999 19:30:00.000000000 EST -05:00", twz.inspect
-    assert_equal "Fri, 31 Dec 1999 19:59:59.999999999 EST -05:00", twz.end_of_hour.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:30:00.000000000 EST -05:00', twz.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:59:59.999999999 EST -05:00', twz.end_of_hour.inspect
   end
 
   def test_beginning_of_minute
     utc = Time.utc(2000, 1, 1, 0, 30, 10)
     twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
-    assert_equal "Fri, 31 Dec 1999 19:30:10.000000000 EST -05:00", twz.inspect
-    assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00", twz.beginning_of_hour.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:30:10.000000000 EST -05:00', twz.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00', twz.beginning_of_hour.inspect
   end
 
   def test_end_of_minute
     utc = Time.utc(2000, 1, 1, 0, 30, 10)
     twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
-    assert_equal "Fri, 31 Dec 1999 19:30:10.000000000 EST -05:00", twz.inspect
-    assert_equal "Fri, 31 Dec 1999 19:30:59.999999999 EST -05:00", twz.end_of_minute.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:30:10.000000000 EST -05:00', twz.inspect
+    assert_equal 'Fri, 31 Dec 1999 19:30:59.999999999 EST -05:00', twz.end_of_minute.inspect
   end
 
   def test_since
-    assert_equal "Fri, 31 Dec 1999 19:00:01.000000000 EST -05:00", @twz.since(1).inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:01.000000000 EST -05:00', @twz.since(1).inspect
   end
 
   def test_in
-    assert_equal "Fri, 31 Dec 1999 19:00:01.000000000 EST -05:00", @twz.in(1).inspect
+    assert_equal 'Fri, 31 Dec 1999 19:00:01.000000000 EST -05:00', @twz.in(1).inspect
   end
 
   def test_ago
-    assert_equal "Fri, 31 Dec 1999 18:59:59.000000000 EST -05:00", @twz.ago(1).inspect
+    assert_equal 'Fri, 31 Dec 1999 18:59:59.000000000 EST -05:00', @twz.ago(1).inspect
   end
 
   def test_seconds_since_midnight
@@ -802,273 +802,273 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_advance_1_year_from_leap_day
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2004, 2, 29))
-    assert_equal "Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00", twz.advance(years: 1).inspect
-    assert_equal "Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00", twz.years_since(1).inspect
-    assert_equal "Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00", twz.since(1.year).inspect
-    assert_equal "Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00", twz.in(1.year).inspect
-    assert_equal "Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00", (twz + 1.year).inspect
+    assert_equal 'Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00', twz.advance(years: 1).inspect
+    assert_equal 'Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00', twz.years_since(1).inspect
+    assert_equal 'Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00', twz.since(1.year).inspect
+    assert_equal 'Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00', twz.in(1.year).inspect
+    assert_equal 'Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00', (twz + 1.year).inspect
   end
 
   def test_advance_1_month_from_last_day_of_january
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2005, 1, 31))
-    assert_equal "Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00", twz.advance(months: 1).inspect
-    assert_equal "Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00", twz.months_since(1).inspect
-    assert_equal "Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00", twz.since(1.month).inspect
-    assert_equal "Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00", twz.in(1.month).inspect
-    assert_equal "Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00", (twz + 1.month).inspect
+    assert_equal 'Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00', twz.advance(months: 1).inspect
+    assert_equal 'Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00', twz.months_since(1).inspect
+    assert_equal 'Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00', twz.since(1.month).inspect
+    assert_equal 'Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00', twz.in(1.month).inspect
+    assert_equal 'Mon, 28 Feb 2005 00:00:00.000000000 EST -05:00', (twz + 1.month).inspect
   end
 
   def test_advance_1_month_from_last_day_of_january_during_leap_year
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 31))
-    assert_equal "Tue, 29 Feb 2000 00:00:00.000000000 EST -05:00", twz.advance(months: 1).inspect
-    assert_equal "Tue, 29 Feb 2000 00:00:00.000000000 EST -05:00", twz.months_since(1).inspect
-    assert_equal "Tue, 29 Feb 2000 00:00:00.000000000 EST -05:00", twz.since(1.month).inspect
-    assert_equal "Tue, 29 Feb 2000 00:00:00.000000000 EST -05:00", twz.in(1.month).inspect
-    assert_equal "Tue, 29 Feb 2000 00:00:00.000000000 EST -05:00", (twz + 1.month).inspect
+    assert_equal 'Tue, 29 Feb 2000 00:00:00.000000000 EST -05:00', twz.advance(months: 1).inspect
+    assert_equal 'Tue, 29 Feb 2000 00:00:00.000000000 EST -05:00', twz.months_since(1).inspect
+    assert_equal 'Tue, 29 Feb 2000 00:00:00.000000000 EST -05:00', twz.since(1.month).inspect
+    assert_equal 'Tue, 29 Feb 2000 00:00:00.000000000 EST -05:00', twz.in(1.month).inspect
+    assert_equal 'Tue, 29 Feb 2000 00:00:00.000000000 EST -05:00', (twz + 1.month).inspect
   end
 
   def test_advance_1_month_into_spring_dst_gap
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 3, 2, 2))
-    assert_equal "Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00", twz.advance(months: 1).inspect
-    assert_equal "Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00", twz.months_since(1).inspect
-    assert_equal "Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00", twz.since(1.month).inspect
-    assert_equal "Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00", twz.in(1.month).inspect
-    assert_equal "Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00", (twz + 1.month).inspect
+    assert_equal 'Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00', twz.advance(months: 1).inspect
+    assert_equal 'Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00', twz.months_since(1).inspect
+    assert_equal 'Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00', twz.since(1.month).inspect
+    assert_equal 'Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00', twz.in(1.month).inspect
+    assert_equal 'Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00', (twz + 1.month).inspect
   end
 
   def test_advance_1_second_into_spring_dst_gap
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 4, 2, 1, 59, 59))
-    assert_equal "Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00", twz.advance(seconds: 1).inspect
-    assert_equal "Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00", (twz + 1).inspect
-    assert_equal "Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00", (twz + 1.second).inspect
-    assert_equal "Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00", twz.since(1).inspect
-    assert_equal "Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00", twz.since(1.second).inspect
-    assert_equal "Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00", twz.in(1).inspect
-    assert_equal "Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00", twz.in(1.second).inspect
+    assert_equal 'Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00', twz.advance(seconds: 1).inspect
+    assert_equal 'Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00', (twz + 1).inspect
+    assert_equal 'Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00', (twz + 1.second).inspect
+    assert_equal 'Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00', twz.since(1).inspect
+    assert_equal 'Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00', twz.since(1.second).inspect
+    assert_equal 'Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00', twz.in(1).inspect
+    assert_equal 'Sun, 02 Apr 2006 03:00:00.000000000 EDT -04:00', twz.in(1.second).inspect
   end
 
   def test_advance_1_day_across_spring_dst_transition
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 4, 1, 10, 30))
     # In 2006, spring DST transition occurred Apr 2 at 2AM; this day was only 23 hours long
     # When we advance 1 day, we want to end up at the same time on the next day
-    assert_equal "Sun, 02 Apr 2006 10:30:00.000000000 EDT -04:00", twz.advance(days: 1).inspect
-    assert_equal "Sun, 02 Apr 2006 10:30:00.000000000 EDT -04:00", twz.since(1.days).inspect
-    assert_equal "Sun, 02 Apr 2006 10:30:00.000000000 EDT -04:00", twz.in(1.days).inspect
-    assert_equal "Sun, 02 Apr 2006 10:30:00.000000000 EDT -04:00", (twz + 1.days).inspect
-    assert_equal "Sun, 02 Apr 2006 10:30:01.000000000 EDT -04:00", twz.since(1.days + 1.second).inspect
-    assert_equal "Sun, 02 Apr 2006 10:30:01.000000000 EDT -04:00", twz.in(1.days + 1.second).inspect
-    assert_equal "Sun, 02 Apr 2006 10:30:01.000000000 EDT -04:00", (twz + 1.days + 1.second).inspect
+    assert_equal 'Sun, 02 Apr 2006 10:30:00.000000000 EDT -04:00', twz.advance(days: 1).inspect
+    assert_equal 'Sun, 02 Apr 2006 10:30:00.000000000 EDT -04:00', twz.since(1.days).inspect
+    assert_equal 'Sun, 02 Apr 2006 10:30:00.000000000 EDT -04:00', twz.in(1.days).inspect
+    assert_equal 'Sun, 02 Apr 2006 10:30:00.000000000 EDT -04:00', (twz + 1.days).inspect
+    assert_equal 'Sun, 02 Apr 2006 10:30:01.000000000 EDT -04:00', twz.since(1.days + 1.second).inspect
+    assert_equal 'Sun, 02 Apr 2006 10:30:01.000000000 EDT -04:00', twz.in(1.days + 1.second).inspect
+    assert_equal 'Sun, 02 Apr 2006 10:30:01.000000000 EDT -04:00', (twz + 1.days + 1.second).inspect
   end
 
   def test_advance_1_day_across_spring_dst_transition_backwards
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 4, 2, 10, 30))
     # In 2006, spring DST transition occurred Apr 2 at 2AM; this day was only 23 hours long
     # When we advance back 1 day, we want to end up at the same time on the previous day
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.advance(days: -1).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.ago(1.days).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", (twz - 1.days).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:01.000000000 EST -05:00", twz.ago(1.days - 1.second).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.advance(days: -1).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.ago(1.days).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', (twz - 1.days).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:01.000000000 EST -05:00', twz.ago(1.days - 1.second).inspect
   end
 
   def test_advance_1_day_expressed_as_number_of_seconds_minutes_or_hours_across_spring_dst_transition
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 4, 1, 10, 30))
     # In 2006, spring DST transition occurred Apr 2 at 2AM; this day was only 23 hours long
     # When we advance a specific number of hours, minutes or seconds, we want to advance exactly that amount
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", (twz + 86400).inspect
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", (twz + 86400.seconds).inspect
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", twz.since(86400).inspect
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", twz.since(86400.seconds).inspect
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", twz.in(86400).inspect
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", twz.in(86400.seconds).inspect
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", twz.advance(seconds: 86400).inspect
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", (twz + 1440.minutes).inspect
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", twz.since(1440.minutes).inspect
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", twz.in(1440.minutes).inspect
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", twz.advance(minutes: 1440).inspect
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", (twz + 24.hours).inspect
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", twz.since(24.hours).inspect
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", twz.in(24.hours).inspect
-    assert_equal "Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00", twz.advance(hours: 24).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', (twz + 86400).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', (twz + 86400.seconds).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', twz.since(86400).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', twz.since(86400.seconds).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', twz.in(86400).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', twz.in(86400.seconds).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', twz.advance(seconds: 86400).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', (twz + 1440.minutes).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', twz.since(1440.minutes).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', twz.in(1440.minutes).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', twz.advance(minutes: 1440).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', (twz + 24.hours).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', twz.since(24.hours).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', twz.in(24.hours).inspect
+    assert_equal 'Sun, 02 Apr 2006 11:30:00.000000000 EDT -04:00', twz.advance(hours: 24).inspect
   end
 
   def test_advance_1_day_expressed_as_number_of_seconds_minutes_or_hours_across_spring_dst_transition_backwards
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 4, 2, 11, 30))
     # In 2006, spring DST transition occurred Apr 2 at 2AM; this day was only 23 hours long
     # When we advance a specific number of hours, minutes or seconds, we want to advance exactly that amount
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", (twz - 86400).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", (twz - 86400.seconds).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.ago(86400).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.ago(86400.seconds).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.advance(seconds: -86400).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", (twz - 1440.minutes).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.ago(1440.minutes).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.advance(minutes: -1440).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", (twz - 24.hours).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.ago(24.hours).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.advance(hours: -24).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', (twz - 86400).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', (twz - 86400.seconds).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.ago(86400).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.ago(86400.seconds).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.advance(seconds: -86400).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', (twz - 1440.minutes).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.ago(1440.minutes).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.advance(minutes: -1440).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', (twz - 24.hours).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.ago(24.hours).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.advance(hours: -24).inspect
   end
 
   def test_advance_1_day_across_fall_dst_transition
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 10, 28, 10, 30))
     # In 2006, fall DST transition occurred Oct 29 at 2AM; this day was 25 hours long
     # When we advance 1 day, we want to end up at the same time on the next day
-    assert_equal "Sun, 29 Oct 2006 10:30:00.000000000 EST -05:00", twz.advance(days: 1).inspect
-    assert_equal "Sun, 29 Oct 2006 10:30:00.000000000 EST -05:00", twz.since(1.days).inspect
-    assert_equal "Sun, 29 Oct 2006 10:30:00.000000000 EST -05:00", twz.in(1.days).inspect
-    assert_equal "Sun, 29 Oct 2006 10:30:00.000000000 EST -05:00", (twz + 1.days).inspect
-    assert_equal "Sun, 29 Oct 2006 10:30:01.000000000 EST -05:00", twz.since(1.days + 1.second).inspect
-    assert_equal "Sun, 29 Oct 2006 10:30:01.000000000 EST -05:00", twz.in(1.days + 1.second).inspect
-    assert_equal "Sun, 29 Oct 2006 10:30:01.000000000 EST -05:00", (twz + 1.days + 1.second).inspect
+    assert_equal 'Sun, 29 Oct 2006 10:30:00.000000000 EST -05:00', twz.advance(days: 1).inspect
+    assert_equal 'Sun, 29 Oct 2006 10:30:00.000000000 EST -05:00', twz.since(1.days).inspect
+    assert_equal 'Sun, 29 Oct 2006 10:30:00.000000000 EST -05:00', twz.in(1.days).inspect
+    assert_equal 'Sun, 29 Oct 2006 10:30:00.000000000 EST -05:00', (twz + 1.days).inspect
+    assert_equal 'Sun, 29 Oct 2006 10:30:01.000000000 EST -05:00', twz.since(1.days + 1.second).inspect
+    assert_equal 'Sun, 29 Oct 2006 10:30:01.000000000 EST -05:00', twz.in(1.days + 1.second).inspect
+    assert_equal 'Sun, 29 Oct 2006 10:30:01.000000000 EST -05:00', (twz + 1.days + 1.second).inspect
   end
 
   def test_advance_1_day_across_fall_dst_transition_backwards
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 10, 29, 10, 30))
     # In 2006, fall DST transition occurred Oct 29 at 2AM; this day was 25 hours long
     # When we advance backwards 1 day, we want to end up at the same time on the previous day
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.advance(days: -1).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.ago(1.days).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", (twz - 1.days).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:01.000000000 EDT -04:00", twz.ago(1.days - 1.second).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.advance(days: -1).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.ago(1.days).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', (twz - 1.days).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:01.000000000 EDT -04:00', twz.ago(1.days - 1.second).inspect
   end
 
   def test_advance_1_day_expressed_as_number_of_seconds_minutes_or_hours_across_fall_dst_transition
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 10, 28, 10, 30))
     # In 2006, fall DST transition occurred Oct 29 at 2AM; this day was 25 hours long
     # When we advance a specific number of hours, minutes or seconds, we want to advance exactly that amount
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", (twz + 86400).inspect
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", (twz + 86400.seconds).inspect
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", twz.since(86400).inspect
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", twz.since(86400.seconds).inspect
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", twz.in(86400).inspect
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", twz.in(86400.seconds).inspect
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", twz.advance(seconds: 86400).inspect
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", (twz + 1440.minutes).inspect
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", twz.since(1440.minutes).inspect
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", twz.in(1440.minutes).inspect
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", twz.advance(minutes: 1440).inspect
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", (twz + 24.hours).inspect
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", twz.since(24.hours).inspect
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", twz.in(24.hours).inspect
-    assert_equal "Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00", twz.advance(hours: 24).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', (twz + 86400).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', (twz + 86400.seconds).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', twz.since(86400).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', twz.since(86400.seconds).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', twz.in(86400).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', twz.in(86400.seconds).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', twz.advance(seconds: 86400).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', (twz + 1440.minutes).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', twz.since(1440.minutes).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', twz.in(1440.minutes).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', twz.advance(minutes: 1440).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', (twz + 24.hours).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', twz.since(24.hours).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', twz.in(24.hours).inspect
+    assert_equal 'Sun, 29 Oct 2006 09:30:00.000000000 EST -05:00', twz.advance(hours: 24).inspect
   end
 
   def test_advance_1_day_expressed_as_number_of_seconds_minutes_or_hours_across_fall_dst_transition_backwards
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 10, 29, 9, 30))
     # In 2006, fall DST transition occurred Oct 29 at 2AM; this day was 25 hours long
     # When we advance a specific number of hours, minutes or seconds, we want to advance exactly that amount
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", (twz - 86400).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", (twz - 86400.seconds).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.ago(86400).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.ago(86400.seconds).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.advance(seconds: -86400).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", (twz - 1440.minutes).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.ago(1440.minutes).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.advance(minutes: -1440).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", (twz - 24.hours).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.ago(24.hours).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.advance(hours: -24).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', (twz - 86400).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', (twz - 86400.seconds).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.ago(86400).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.ago(86400.seconds).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.advance(seconds: -86400).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', (twz - 1440.minutes).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.ago(1440.minutes).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.advance(minutes: -1440).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', (twz - 24.hours).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.ago(24.hours).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.advance(hours: -24).inspect
   end
 
   def test_advance_1_week_across_spring_dst_transition
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 4, 1, 10, 30))
-    assert_equal "Sat, 08 Apr 2006 10:30:00.000000000 EDT -04:00", twz.advance(weeks: 1).inspect
-    assert_equal "Sat, 08 Apr 2006 10:30:00.000000000 EDT -04:00", twz.weeks_since(1).inspect
-    assert_equal "Sat, 08 Apr 2006 10:30:00.000000000 EDT -04:00", twz.since(1.week).inspect
-    assert_equal "Sat, 08 Apr 2006 10:30:00.000000000 EDT -04:00", twz.in(1.week).inspect
-    assert_equal "Sat, 08 Apr 2006 10:30:00.000000000 EDT -04:00", (twz + 1.week).inspect
+    assert_equal 'Sat, 08 Apr 2006 10:30:00.000000000 EDT -04:00', twz.advance(weeks: 1).inspect
+    assert_equal 'Sat, 08 Apr 2006 10:30:00.000000000 EDT -04:00', twz.weeks_since(1).inspect
+    assert_equal 'Sat, 08 Apr 2006 10:30:00.000000000 EDT -04:00', twz.since(1.week).inspect
+    assert_equal 'Sat, 08 Apr 2006 10:30:00.000000000 EDT -04:00', twz.in(1.week).inspect
+    assert_equal 'Sat, 08 Apr 2006 10:30:00.000000000 EDT -04:00', (twz + 1.week).inspect
   end
 
   def test_advance_1_week_across_spring_dst_transition_backwards
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 4, 8, 10, 30))
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.advance(weeks: -1).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.weeks_ago(1).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.ago(1.week).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", (twz - 1.week).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.advance(weeks: -1).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.weeks_ago(1).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.ago(1.week).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', (twz - 1.week).inspect
   end
 
   def test_advance_1_week_across_fall_dst_transition
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 10, 28, 10, 30))
-    assert_equal "Sat, 04 Nov 2006 10:30:00.000000000 EST -05:00", twz.advance(weeks: 1).inspect
-    assert_equal "Sat, 04 Nov 2006 10:30:00.000000000 EST -05:00", twz.weeks_since(1).inspect
-    assert_equal "Sat, 04 Nov 2006 10:30:00.000000000 EST -05:00", twz.since(1.week).inspect
-    assert_equal "Sat, 04 Nov 2006 10:30:00.000000000 EST -05:00", twz.in(1.week).inspect
-    assert_equal "Sat, 04 Nov 2006 10:30:00.000000000 EST -05:00", (twz + 1.week).inspect
+    assert_equal 'Sat, 04 Nov 2006 10:30:00.000000000 EST -05:00', twz.advance(weeks: 1).inspect
+    assert_equal 'Sat, 04 Nov 2006 10:30:00.000000000 EST -05:00', twz.weeks_since(1).inspect
+    assert_equal 'Sat, 04 Nov 2006 10:30:00.000000000 EST -05:00', twz.since(1.week).inspect
+    assert_equal 'Sat, 04 Nov 2006 10:30:00.000000000 EST -05:00', twz.in(1.week).inspect
+    assert_equal 'Sat, 04 Nov 2006 10:30:00.000000000 EST -05:00', (twz + 1.week).inspect
   end
 
   def test_advance_1_week_across_fall_dst_transition_backwards
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 11, 4, 10, 30))
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.advance(weeks: -1).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.weeks_ago(1).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.ago(1.week).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", (twz - 1.week).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.advance(weeks: -1).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.weeks_ago(1).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.ago(1.week).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', (twz - 1.week).inspect
   end
 
   def test_advance_1_month_across_spring_dst_transition
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 4, 1, 10, 30))
-    assert_equal "Mon, 01 May 2006 10:30:00.000000000 EDT -04:00", twz.advance(months: 1).inspect
-    assert_equal "Mon, 01 May 2006 10:30:00.000000000 EDT -04:00", twz.months_since(1).inspect
-    assert_equal "Mon, 01 May 2006 10:30:00.000000000 EDT -04:00", twz.since(1.month).inspect
-    assert_equal "Mon, 01 May 2006 10:30:00.000000000 EDT -04:00", twz.in(1.month).inspect
-    assert_equal "Mon, 01 May 2006 10:30:00.000000000 EDT -04:00", (twz + 1.month).inspect
+    assert_equal 'Mon, 01 May 2006 10:30:00.000000000 EDT -04:00', twz.advance(months: 1).inspect
+    assert_equal 'Mon, 01 May 2006 10:30:00.000000000 EDT -04:00', twz.months_since(1).inspect
+    assert_equal 'Mon, 01 May 2006 10:30:00.000000000 EDT -04:00', twz.since(1.month).inspect
+    assert_equal 'Mon, 01 May 2006 10:30:00.000000000 EDT -04:00', twz.in(1.month).inspect
+    assert_equal 'Mon, 01 May 2006 10:30:00.000000000 EDT -04:00', (twz + 1.month).inspect
   end
 
   def test_advance_1_month_across_spring_dst_transition_backwards
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 5, 1, 10, 30))
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.advance(months: -1).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.months_ago(1).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", twz.ago(1.month).inspect
-    assert_equal "Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00", (twz - 1.month).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.advance(months: -1).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.months_ago(1).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', twz.ago(1.month).inspect
+    assert_equal 'Sat, 01 Apr 2006 10:30:00.000000000 EST -05:00', (twz - 1.month).inspect
   end
 
   def test_advance_1_month_across_fall_dst_transition
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 10, 28, 10, 30))
-    assert_equal "Tue, 28 Nov 2006 10:30:00.000000000 EST -05:00", twz.advance(months: 1).inspect
-    assert_equal "Tue, 28 Nov 2006 10:30:00.000000000 EST -05:00", twz.months_since(1).inspect
-    assert_equal "Tue, 28 Nov 2006 10:30:00.000000000 EST -05:00", twz.since(1.month).inspect
-    assert_equal "Tue, 28 Nov 2006 10:30:00.000000000 EST -05:00", twz.in(1.month).inspect
-    assert_equal "Tue, 28 Nov 2006 10:30:00.000000000 EST -05:00", (twz + 1.month).inspect
+    assert_equal 'Tue, 28 Nov 2006 10:30:00.000000000 EST -05:00', twz.advance(months: 1).inspect
+    assert_equal 'Tue, 28 Nov 2006 10:30:00.000000000 EST -05:00', twz.months_since(1).inspect
+    assert_equal 'Tue, 28 Nov 2006 10:30:00.000000000 EST -05:00', twz.since(1.month).inspect
+    assert_equal 'Tue, 28 Nov 2006 10:30:00.000000000 EST -05:00', twz.in(1.month).inspect
+    assert_equal 'Tue, 28 Nov 2006 10:30:00.000000000 EST -05:00', (twz + 1.month).inspect
   end
 
   def test_advance_1_month_across_fall_dst_transition_backwards
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006, 11, 28, 10, 30))
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.advance(months: -1).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.months_ago(1).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", twz.ago(1.month).inspect
-    assert_equal "Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00", (twz - 1.month).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.advance(months: -1).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.months_ago(1).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', twz.ago(1.month).inspect
+    assert_equal 'Sat, 28 Oct 2006 10:30:00.000000000 EDT -04:00', (twz - 1.month).inspect
   end
 
   def test_advance_1_year
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2008, 2, 15, 10, 30))
-    assert_equal "Sun, 15 Feb 2009 10:30:00.000000000 EST -05:00", twz.advance(years: 1).inspect
-    assert_equal "Sun, 15 Feb 2009 10:30:00.000000000 EST -05:00", twz.years_since(1).inspect
-    assert_equal "Sun, 15 Feb 2009 10:30:00.000000000 EST -05:00", twz.since(1.year).inspect
-    assert_equal "Sun, 15 Feb 2009 10:30:00.000000000 EST -05:00", twz.in(1.year).inspect
-    assert_equal "Sun, 15 Feb 2009 10:30:00.000000000 EST -05:00", (twz + 1.year).inspect
-    assert_equal "Thu, 15 Feb 2007 10:30:00.000000000 EST -05:00", twz.advance(years: -1).inspect
-    assert_equal "Thu, 15 Feb 2007 10:30:00.000000000 EST -05:00", twz.years_ago(1).inspect
-    assert_equal "Thu, 15 Feb 2007 10:30:00.000000000 EST -05:00", (twz - 1.year).inspect
+    assert_equal 'Sun, 15 Feb 2009 10:30:00.000000000 EST -05:00', twz.advance(years: 1).inspect
+    assert_equal 'Sun, 15 Feb 2009 10:30:00.000000000 EST -05:00', twz.years_since(1).inspect
+    assert_equal 'Sun, 15 Feb 2009 10:30:00.000000000 EST -05:00', twz.since(1.year).inspect
+    assert_equal 'Sun, 15 Feb 2009 10:30:00.000000000 EST -05:00', twz.in(1.year).inspect
+    assert_equal 'Sun, 15 Feb 2009 10:30:00.000000000 EST -05:00', (twz + 1.year).inspect
+    assert_equal 'Thu, 15 Feb 2007 10:30:00.000000000 EST -05:00', twz.advance(years: -1).inspect
+    assert_equal 'Thu, 15 Feb 2007 10:30:00.000000000 EST -05:00', twz.years_ago(1).inspect
+    assert_equal 'Thu, 15 Feb 2007 10:30:00.000000000 EST -05:00', (twz - 1.year).inspect
   end
 
   def test_advance_1_year_during_dst
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2008, 7, 15, 10, 30))
-    assert_equal "Wed, 15 Jul 2009 10:30:00.000000000 EDT -04:00", twz.advance(years: 1).inspect
-    assert_equal "Wed, 15 Jul 2009 10:30:00.000000000 EDT -04:00", twz.years_since(1).inspect
-    assert_equal "Wed, 15 Jul 2009 10:30:00.000000000 EDT -04:00", twz.since(1.year).inspect
-    assert_equal "Wed, 15 Jul 2009 10:30:00.000000000 EDT -04:00", twz.in(1.year).inspect
-    assert_equal "Wed, 15 Jul 2009 10:30:00.000000000 EDT -04:00", (twz + 1.year).inspect
-    assert_equal "Sun, 15 Jul 2007 10:30:00.000000000 EDT -04:00", twz.advance(years: -1).inspect
-    assert_equal "Sun, 15 Jul 2007 10:30:00.000000000 EDT -04:00", twz.years_ago(1).inspect
-    assert_equal "Sun, 15 Jul 2007 10:30:00.000000000 EDT -04:00", (twz - 1.year).inspect
+    assert_equal 'Wed, 15 Jul 2009 10:30:00.000000000 EDT -04:00', twz.advance(years: 1).inspect
+    assert_equal 'Wed, 15 Jul 2009 10:30:00.000000000 EDT -04:00', twz.years_since(1).inspect
+    assert_equal 'Wed, 15 Jul 2009 10:30:00.000000000 EDT -04:00', twz.since(1.year).inspect
+    assert_equal 'Wed, 15 Jul 2009 10:30:00.000000000 EDT -04:00', twz.in(1.year).inspect
+    assert_equal 'Wed, 15 Jul 2009 10:30:00.000000000 EDT -04:00', (twz + 1.year).inspect
+    assert_equal 'Sun, 15 Jul 2007 10:30:00.000000000 EDT -04:00', twz.advance(years: -1).inspect
+    assert_equal 'Sun, 15 Jul 2007 10:30:00.000000000 EDT -04:00', twz.years_ago(1).inspect
+    assert_equal 'Sun, 15 Jul 2007 10:30:00.000000000 EDT -04:00', (twz - 1.year).inspect
   end
 
   def test_no_method_error_has_proper_context
-    rubinius_skip "Error message inconsistency"
+    rubinius_skip 'Error message inconsistency'
 
     e = assert_raises(NoMethodError) {
       @twz.this_method_does_not_exist
     }
     assert_equal "undefined method `this_method_does_not_exist' for Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00:Time", e.message
-    assert_no_match "rescue", e.backtrace.first
+    assert_no_match 'rescue', e.backtrace.first
   end
 end
 
@@ -1084,13 +1084,13 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
   end
 
   def test_in_time_zone
-    Time.use_zone "Alaska" do
-      assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @t.in_time_zone.inspect
-      assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @dt.in_time_zone.inspect
+    Time.use_zone 'Alaska' do
+      assert_equal 'Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00', @t.in_time_zone.inspect
+      assert_equal 'Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00', @dt.in_time_zone.inspect
     end
-    Time.use_zone "Hawaii" do
-      assert_equal "Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00", @t.in_time_zone.inspect
-      assert_equal "Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00", @dt.in_time_zone.inspect
+    Time.use_zone 'Hawaii' do
+      assert_equal 'Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00', @t.in_time_zone.inspect
+      assert_equal 'Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00', @dt.in_time_zone.inspect
     end
     Time.use_zone nil do
       assert_equal @t, @t.in_time_zone
@@ -1100,26 +1100,26 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
 
   def test_nil_time_zone
     Time.use_zone nil do
-      assert_not_respond_to @t.in_time_zone, :period, "no period method"
-      assert_not_respond_to @dt.in_time_zone, :period, "no period method"
+      assert_not_respond_to @t.in_time_zone, :period, 'no period method'
+      assert_not_respond_to @dt.in_time_zone, :period, 'no period method'
     end
   end
 
   def test_in_time_zone_with_argument
-    Time.use_zone "Eastern Time (US & Canada)" do # Time.zone will not affect #in_time_zone(zone)
-      assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @t.in_time_zone("Alaska").inspect
-      assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @dt.in_time_zone("Alaska").inspect
-      assert_equal "Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00", @t.in_time_zone("Hawaii").inspect
-      assert_equal "Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00", @dt.in_time_zone("Hawaii").inspect
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 UTC +00:00", @t.in_time_zone("UTC").inspect
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 UTC +00:00", @dt.in_time_zone("UTC").inspect
-      assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @t.in_time_zone(-9.hours).inspect
+    Time.use_zone 'Eastern Time (US & Canada)' do # Time.zone will not affect #in_time_zone(zone)
+      assert_equal 'Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00', @t.in_time_zone('Alaska').inspect
+      assert_equal 'Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00', @dt.in_time_zone('Alaska').inspect
+      assert_equal 'Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00', @t.in_time_zone('Hawaii').inspect
+      assert_equal 'Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00', @dt.in_time_zone('Hawaii').inspect
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 UTC +00:00', @t.in_time_zone('UTC').inspect
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 UTC +00:00', @dt.in_time_zone('UTC').inspect
+      assert_equal 'Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00', @t.in_time_zone(-9.hours).inspect
     end
   end
 
   def test_in_time_zone_with_invalid_argument
-    assert_raise(ArgumentError) {  @t.in_time_zone("No such timezone exists") }
-    assert_raise(ArgumentError) { @dt.in_time_zone("No such timezone exists") }
+    assert_raise(ArgumentError) {  @t.in_time_zone('No such timezone exists') }
+    assert_raise(ArgumentError) { @dt.in_time_zone('No such timezone exists') }
     assert_raise(ArgumentError) {  @t.in_time_zone(-15.hours) }
     assert_raise(ArgumentError) { @dt.in_time_zone(-15.hours) }
     assert_raise(ArgumentError) {  @t.in_time_zone(Object.new) }
@@ -1127,119 +1127,119 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
   end
 
   def test_in_time_zone_with_time_local_instance
-    with_env_tz "US/Eastern" do
+    with_env_tz 'US/Eastern' do
       time = Time.local(1999, 12, 31, 19) # == Time.utc(2000)
-      assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", time.in_time_zone("Alaska").inspect
+      assert_equal 'Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00', time.in_time_zone('Alaska').inspect
     end
   end
 
   def test_localtime
-    Time.zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     assert_equal @dt.in_time_zone.localtime, @dt.in_time_zone.utc.to_time.getlocal
   end
 
   def test_use_zone
-    Time.zone = "Alaska"
-    Time.use_zone "Hawaii" do
-      assert_equal ActiveSupport::TimeZone["Hawaii"], Time.zone
+    Time.zone = 'Alaska'
+    Time.use_zone 'Hawaii' do
+      assert_equal ActiveSupport::TimeZone['Hawaii'], Time.zone
     end
-    assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
+    assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
   end
 
   def test_use_zone_with_exception_raised
-    Time.zone = "Alaska"
+    Time.zone = 'Alaska'
     assert_raise RuntimeError do
-      Time.use_zone("Hawaii") { raise RuntimeError }
+      Time.use_zone('Hawaii') { raise RuntimeError }
     end
-    assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
+    assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
   end
 
   def test_use_zone_raises_on_invalid_timezone
-    Time.zone = "Alaska"
+    Time.zone = 'Alaska'
     assert_raise ArgumentError do
-      Time.use_zone("No such timezone exists") { }
+      Time.use_zone('No such timezone exists') { }
     end
-    assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
+    assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
   end
 
   def test_time_zone_getter_and_setter
-    Time.zone = ActiveSupport::TimeZone["Alaska"]
-    assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
-    Time.zone = "Alaska"
-    assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
+    Time.zone = ActiveSupport::TimeZone['Alaska']
+    assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
+    Time.zone = 'Alaska'
+    assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
     Time.zone = -9.hours
-    assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
+    assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
     Time.zone = nil
     assert_nil Time.zone
   end
 
   def test_time_zone_getter_and_setter_with_zone_default_set
     old_zone_default = Time.zone_default
-    Time.zone_default = ActiveSupport::TimeZone["Alaska"]
-    assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
-    Time.zone = ActiveSupport::TimeZone["Hawaii"]
-    assert_equal ActiveSupport::TimeZone["Hawaii"], Time.zone
+    Time.zone_default = ActiveSupport::TimeZone['Alaska']
+    assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
+    Time.zone = ActiveSupport::TimeZone['Hawaii']
+    assert_equal ActiveSupport::TimeZone['Hawaii'], Time.zone
     Time.zone = nil
-    assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
+    assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
   ensure
     Time.zone_default = old_zone_default
   end
 
   def test_time_zone_setter_is_thread_safe
-    Time.use_zone "Paris" do
-      t1 = Thread.new { Time.zone = "Alaska" }.join
-      t2 = Thread.new { Time.zone = "Hawaii" }.join
-      assert t1.stop?, "Thread 1 did not finish running"
-      assert t2.stop?, "Thread 2 did not finish running"
-      assert_equal ActiveSupport::TimeZone["Paris"], Time.zone
-      assert_equal ActiveSupport::TimeZone["Alaska"], t1[:time_zone]
-      assert_equal ActiveSupport::TimeZone["Hawaii"], t2[:time_zone]
+    Time.use_zone 'Paris' do
+      t1 = Thread.new { Time.zone = 'Alaska' }.join
+      t2 = Thread.new { Time.zone = 'Hawaii' }.join
+      assert t1.stop?, 'Thread 1 did not finish running'
+      assert t2.stop?, 'Thread 2 did not finish running'
+      assert_equal ActiveSupport::TimeZone['Paris'], Time.zone
+      assert_equal ActiveSupport::TimeZone['Alaska'], t1[:time_zone]
+      assert_equal ActiveSupport::TimeZone['Hawaii'], t2[:time_zone]
     end
   end
 
   def test_time_zone_setter_with_tzinfo_timezone_object_wraps_in_rails_time_zone
-    tzinfo = TZInfo::Timezone.get("America/New_York")
+    tzinfo = TZInfo::Timezone.get('America/New_York')
     Time.zone = tzinfo
     assert_kind_of ActiveSupport::TimeZone, Time.zone
     assert_equal tzinfo, Time.zone.tzinfo
-    assert_equal "America/New_York", Time.zone.name
+    assert_equal 'America/New_York', Time.zone.name
     assert_equal(-18_000, Time.zone.utc_offset)
   end
 
   def test_time_zone_setter_with_tzinfo_timezone_identifier_does_lookup_and_wraps_in_rails_time_zone
-    Time.zone = "America/New_York"
+    Time.zone = 'America/New_York'
     assert_kind_of ActiveSupport::TimeZone, Time.zone
-    assert_equal "America/New_York", Time.zone.tzinfo.name
-    assert_equal "America/New_York", Time.zone.name
+    assert_equal 'America/New_York', Time.zone.tzinfo.name
+    assert_equal 'America/New_York', Time.zone.name
     assert_equal(-18_000, Time.zone.utc_offset)
   end
 
   def test_time_zone_setter_with_invalid_zone
-    assert_raise(ArgumentError) { Time.zone = "No such timezone exists" }
+    assert_raise(ArgumentError) { Time.zone = 'No such timezone exists' }
     assert_raise(ArgumentError) { Time.zone = -15.hours }
     assert_raise(ArgumentError) { Time.zone = Object.new }
   end
 
   def test_find_zone_without_bang_returns_nil_if_time_zone_can_not_be_found
-    assert_nil Time.find_zone("No such timezone exists")
+    assert_nil Time.find_zone('No such timezone exists')
     assert_nil Time.find_zone(-15.hours)
     assert_nil Time.find_zone(Object.new)
   end
 
   def test_find_zone_with_bang_raises_if_time_zone_can_not_be_found
-    assert_raise(ArgumentError) { Time.find_zone!("No such timezone exists") }
+    assert_raise(ArgumentError) { Time.find_zone!('No such timezone exists') }
     assert_raise(ArgumentError) { Time.find_zone!(-15.hours) }
     assert_raise(ArgumentError) { Time.find_zone!(Object.new) }
   end
 
   def test_time_zone_setter_with_find_zone_without_bang
-    assert_nil Time.zone = Time.find_zone("No such timezone exists")
+    assert_nil Time.zone = Time.find_zone('No such timezone exists')
     assert_nil Time.zone = Time.find_zone(-15.hours)
     assert_nil Time.zone = Time.find_zone(Object.new)
   end
 
   def test_current_returns_time_now_when_zone_not_set
-    with_env_tz "US/Eastern" do
+    with_env_tz 'US/Eastern' do
       Time.stub(:now, Time.local(2000)) do
         assert_equal false, Time.current.is_a?(ActiveSupport::TimeWithZone)
         assert_equal Time.local(2000), Time.current
@@ -1248,22 +1248,22 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
   end
 
   def test_current_returns_time_zone_now_when_zone_set
-    Time.zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    with_env_tz "US/Eastern" do
+    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    with_env_tz 'US/Eastern' do
       Time.stub(:now, Time.local(2000)) do
         assert_equal true, Time.current.is_a?(ActiveSupport::TimeWithZone)
-        assert_equal "Eastern Time (US & Canada)", Time.current.time_zone.name
+        assert_equal 'Eastern Time (US & Canada)', Time.current.time_zone.name
         assert_equal Time.utc(2000), Time.current.time
       end
     end
   end
 
   def test_time_in_time_zone_doesnt_affect_receiver
-    with_env_tz "Europe/London" do
+    with_env_tz 'Europe/London' do
       time = Time.local(2000, 7, 1)
-      time_with_zone = time.in_time_zone("Eastern Time (US & Canada)")
+      time_with_zone = time.in_time_zone('Eastern Time (US & Canada)')
       assert_equal Time.utc(2000, 6, 30, 23, 0, 0), time_with_zone
-      assert_not time.utc?, "time expected to be local, but is UTC"
+      assert_not time.utc?, 'time expected to be local, but is UTC'
     end
   end
 end
@@ -1276,11 +1276,11 @@ class TimeWithZoneMethodsForDate < ActiveSupport::TestCase
   end
 
   def test_in_time_zone
-    with_tz_default "Alaska" do
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 AKST -09:00", @d.in_time_zone.inspect
+    with_tz_default 'Alaska' do
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 AKST -09:00', @d.in_time_zone.inspect
     end
-    with_tz_default "Hawaii" do
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 HST -10:00", @d.in_time_zone.inspect
+    with_tz_default 'Hawaii' do
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 HST -10:00', @d.in_time_zone.inspect
     end
     with_tz_default nil do
       assert_equal @d.to_time, @d.in_time_zone
@@ -1289,21 +1289,21 @@ class TimeWithZoneMethodsForDate < ActiveSupport::TestCase
 
   def test_nil_time_zone
     with_tz_default nil do
-      assert_not_respond_to @d.in_time_zone, :period, "no period method"
+      assert_not_respond_to @d.in_time_zone, :period, 'no period method'
     end
   end
 
   def test_in_time_zone_with_argument
-    with_tz_default "Eastern Time (US & Canada)" do # Time.zone will not affect #in_time_zone(zone)
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 AKST -09:00", @d.in_time_zone("Alaska").inspect
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 HST -10:00", @d.in_time_zone("Hawaii").inspect
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 UTC +00:00", @d.in_time_zone("UTC").inspect
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 AKST -09:00", @d.in_time_zone(-9.hours).inspect
+    with_tz_default 'Eastern Time (US & Canada)' do # Time.zone will not affect #in_time_zone(zone)
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 AKST -09:00', @d.in_time_zone('Alaska').inspect
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 HST -10:00', @d.in_time_zone('Hawaii').inspect
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 UTC +00:00', @d.in_time_zone('UTC').inspect
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 AKST -09:00', @d.in_time_zone(-9.hours).inspect
     end
   end
 
   def test_in_time_zone_with_invalid_argument
-    assert_raise(ArgumentError) { @d.in_time_zone("No such timezone exists") }
+    assert_raise(ArgumentError) { @d.in_time_zone('No such timezone exists') }
     assert_raise(ArgumentError) { @d.in_time_zone(-15.hours) }
     assert_raise(ArgumentError) { @d.in_time_zone(Object.new) }
   end
@@ -1313,21 +1313,21 @@ class TimeWithZoneMethodsForString < ActiveSupport::TestCase
   include TimeZoneTestHelpers
 
   def setup
-    @s = "Sat, 01 Jan 2000 00:00:00"
-    @u = "Sat, 01 Jan 2000 00:00:00 UTC +00:00"
-    @z = "Fri, 31 Dec 1999 19:00:00 EST -05:00"
+    @s = 'Sat, 01 Jan 2000 00:00:00'
+    @u = 'Sat, 01 Jan 2000 00:00:00 UTC +00:00'
+    @z = 'Fri, 31 Dec 1999 19:00:00 EST -05:00'
   end
 
   def test_in_time_zone
-    with_tz_default "Alaska" do
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 AKST -09:00", @s.in_time_zone.inspect
-      assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @u.in_time_zone.inspect
-      assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @z.in_time_zone.inspect
+    with_tz_default 'Alaska' do
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 AKST -09:00', @s.in_time_zone.inspect
+      assert_equal 'Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00', @u.in_time_zone.inspect
+      assert_equal 'Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00', @z.in_time_zone.inspect
     end
-    with_tz_default "Hawaii" do
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 HST -10:00", @s.in_time_zone.inspect
-      assert_equal "Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00", @u.in_time_zone.inspect
-      assert_equal "Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00", @z.in_time_zone.inspect
+    with_tz_default 'Hawaii' do
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 HST -10:00', @s.in_time_zone.inspect
+      assert_equal 'Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00', @u.in_time_zone.inspect
+      assert_equal 'Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00', @z.in_time_zone.inspect
     end
     with_tz_default nil do
       assert_equal @s.to_time, @s.in_time_zone
@@ -1338,33 +1338,33 @@ class TimeWithZoneMethodsForString < ActiveSupport::TestCase
 
   def test_nil_time_zone
     with_tz_default nil do
-      assert_not_respond_to @s.in_time_zone, :period, "no period method"
-      assert_not_respond_to @u.in_time_zone, :period, "no period method"
-      assert_not_respond_to @z.in_time_zone, :period, "no period method"
+      assert_not_respond_to @s.in_time_zone, :period, 'no period method'
+      assert_not_respond_to @u.in_time_zone, :period, 'no period method'
+      assert_not_respond_to @z.in_time_zone, :period, 'no period method'
     end
   end
 
   def test_in_time_zone_with_argument
-    with_tz_default "Eastern Time (US & Canada)" do # Time.zone will not affect #in_time_zone(zone)
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 AKST -09:00", @s.in_time_zone("Alaska").inspect
-      assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @u.in_time_zone("Alaska").inspect
-      assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @z.in_time_zone("Alaska").inspect
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 HST -10:00", @s.in_time_zone("Hawaii").inspect
-      assert_equal "Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00", @u.in_time_zone("Hawaii").inspect
-      assert_equal "Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00", @z.in_time_zone("Hawaii").inspect
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 UTC +00:00", @s.in_time_zone("UTC").inspect
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 UTC +00:00", @u.in_time_zone("UTC").inspect
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 UTC +00:00", @z.in_time_zone("UTC").inspect
-      assert_equal "Sat, 01 Jan 2000 00:00:00.000000000 AKST -09:00", @s.in_time_zone(-9.hours).inspect
-      assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @u.in_time_zone(-9.hours).inspect
-      assert_equal "Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00", @z.in_time_zone(-9.hours).inspect
+    with_tz_default 'Eastern Time (US & Canada)' do # Time.zone will not affect #in_time_zone(zone)
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 AKST -09:00', @s.in_time_zone('Alaska').inspect
+      assert_equal 'Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00', @u.in_time_zone('Alaska').inspect
+      assert_equal 'Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00', @z.in_time_zone('Alaska').inspect
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 HST -10:00', @s.in_time_zone('Hawaii').inspect
+      assert_equal 'Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00', @u.in_time_zone('Hawaii').inspect
+      assert_equal 'Fri, 31 Dec 1999 14:00:00.000000000 HST -10:00', @z.in_time_zone('Hawaii').inspect
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 UTC +00:00', @s.in_time_zone('UTC').inspect
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 UTC +00:00', @u.in_time_zone('UTC').inspect
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 UTC +00:00', @z.in_time_zone('UTC').inspect
+      assert_equal 'Sat, 01 Jan 2000 00:00:00.000000000 AKST -09:00', @s.in_time_zone(-9.hours).inspect
+      assert_equal 'Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00', @u.in_time_zone(-9.hours).inspect
+      assert_equal 'Fri, 31 Dec 1999 15:00:00.000000000 AKST -09:00', @z.in_time_zone(-9.hours).inspect
     end
   end
 
   def test_in_time_zone_with_invalid_argument
-    assert_raise(ArgumentError) { @s.in_time_zone("No such timezone exists") }
-    assert_raise(ArgumentError) { @u.in_time_zone("No such timezone exists") }
-    assert_raise(ArgumentError) { @z.in_time_zone("No such timezone exists") }
+    assert_raise(ArgumentError) { @s.in_time_zone('No such timezone exists') }
+    assert_raise(ArgumentError) { @u.in_time_zone('No such timezone exists') }
+    assert_raise(ArgumentError) { @z.in_time_zone('No such timezone exists') }
     assert_raise(ArgumentError) { @s.in_time_zone(-15.hours) }
     assert_raise(ArgumentError) { @u.in_time_zone(-15.hours) }
     assert_raise(ArgumentError) { @z.in_time_zone(-15.hours) }
@@ -1374,8 +1374,8 @@ class TimeWithZoneMethodsForString < ActiveSupport::TestCase
   end
 
   def test_in_time_zone_with_ambiguous_time
-    with_tz_default "Moscow" do
-      assert_equal Time.utc(2014, 10, 25, 22, 0, 0), "2014-10-26 01:00:00".in_time_zone
+    with_tz_default 'Moscow' do
+      assert_equal Time.utc(2014, 10, 25, 22, 0, 0), '2014-10-26 01:00:00'.in_time_zone
     end
   end
 end

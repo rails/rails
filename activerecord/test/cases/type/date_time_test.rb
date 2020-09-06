@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/task"
+require 'cases/helper'
+require 'models/task'
 
 module ActiveRecord
   module Type

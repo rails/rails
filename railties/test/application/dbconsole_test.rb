@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
-require "console_helpers"
+require 'isolation/abstract_unit'
+require 'console_helpers'
 
 module ApplicationTests
   class DBConsoleTest < ActiveSupport::TestCase
@@ -9,7 +9,7 @@ module ApplicationTests
     include ConsoleHelpers
 
     def setup
-      skip "PTY unavailable" unless available_pty?
+      skip 'PTY unavailable' unless available_pty?
 
       build_app
     end
@@ -19,7 +19,7 @@ module ApplicationTests
     end
 
     def test_use_value_defined_in_environment_file_in_database_yml
-      app_file "config/database.yml", <<-YAML
+      app_file 'config/database.yml', <<-YAML
         development:
            database: <%= Rails.application.config.database %>
            adapter: sqlite3
@@ -27,7 +27,7 @@ module ApplicationTests
            timeout: 5000
       YAML
 
-      app_file "config/environments/development.rb", <<-RUBY
+      app_file 'config/environments/development.rb', <<-RUBY
         Rails.application.configure do
           config.database = "db/development.sqlite3"
         end
@@ -35,13 +35,13 @@ module ApplicationTests
 
       primary, replica = PTY.open
       spawn_dbconsole(replica)
-      assert_output("sqlite>", primary)
+      assert_output('sqlite>', primary)
     ensure
-      primary.puts ".exit"
+      primary.puts '.exit'
     end
 
     def test_respect_environment_option
-      app_file "config/database.yml", <<-YAML
+      app_file 'config/database.yml', <<-YAML
         default: &default
           adapter: sqlite3
           pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
@@ -57,13 +57,13 @@ module ApplicationTests
       YAML
 
       primary, replica = PTY.open
-      spawn_dbconsole(replica, "-e production")
-      assert_output("sqlite>", primary)
+      spawn_dbconsole(replica, '-e production')
+      assert_output('sqlite>', primary)
 
-      primary.puts "pragma database_list;"
-      assert_output("production.sqlite3", primary)
+      primary.puts 'pragma database_list;'
+      assert_output('production.sqlite3', primary)
     ensure
-      primary.puts ".exit"
+      primary.puts '.exit'
     end
 
     private

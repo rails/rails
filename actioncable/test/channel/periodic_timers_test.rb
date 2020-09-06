@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "test_helper"
-require "stubs/test_connection"
-require "stubs/room"
-require "active_support/time"
+require 'test_helper'
+require 'stubs/test_connection'
+require 'stubs/room'
+require 'active_support/time'
 
 class ActionCable::Channel::PeriodicTimersTest < ActionCable::TestCase
   class ChatChannel < ActionCable::Channel::Base
@@ -27,7 +27,7 @@ class ActionCable::Channel::PeriodicTimersTest < ActionCable::TestCase
     @connection = TestConnection.new
   end
 
-  test "periodic timers definition" do
+  test 'periodic timers definition' do
     timers = ChatChannel.periodic_timers
 
     assert_equal 3, timers.size
@@ -38,8 +38,8 @@ class ActionCable::Channel::PeriodicTimersTest < ActionCable::TestCase
     end
   end
 
-  test "disallow negative and zero periods" do
-    [ 0, 0.0, 0.seconds, -1, -1.seconds, "foo", :foo, Object.new ].each do |invalid|
+  test 'disallow negative and zero periods' do
+    [ 0, 0.0, 0.seconds, -1, -1.seconds, 'foo', :foo, Object.new ].each do |invalid|
       e = assert_raise ArgumentError do
         ChatChannel.periodically :send_updates, every: invalid
       end
@@ -47,15 +47,15 @@ class ActionCable::Channel::PeriodicTimersTest < ActionCable::TestCase
     end
   end
 
-  test "disallow block and arg together" do
+  test 'disallow block and arg together' do
     e = assert_raise ArgumentError do
       ChatChannel.periodically(:send_updates, every: 1) { ping }
     end
     assert_match(/not both/, e.message)
   end
 
-  test "disallow unknown args" do
-    [ "send_updates", Object.new, nil ].each do |invalid|
+  test 'disallow unknown args' do
+    [ 'send_updates', Object.new, nil ].each do |invalid|
       e = assert_raise ArgumentError do
         ChatChannel.periodically invalid, every: 1
       end
@@ -63,7 +63,7 @@ class ActionCable::Channel::PeriodicTimersTest < ActionCable::TestCase
     end
   end
 
-  test "timer start and stop" do
+  test 'timer start and stop' do
     mock = Minitest::Mock.new
     3.times { mock.expect(:shutdown, nil) }
 
@@ -73,7 +73,7 @@ class ActionCable::Channel::PeriodicTimersTest < ActionCable::TestCase
       times: 3,
       returns: mock
     ) do
-      channel = ChatChannel.new @connection, "{id: 1}", id: 1
+      channel = ChatChannel.new @connection, '{id: 1}', id: 1
 
       channel.subscribe_to_channel
       channel.unsubscribe_from_channel

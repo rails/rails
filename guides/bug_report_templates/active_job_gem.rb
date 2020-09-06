@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
-require "bundler/inline"
+require 'bundler/inline'
 
 gemfile(true) do
-  source "https://rubygems.org"
+  source 'https://rubygems.org'
 
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   # Activate the gem you are reporting the issue against.
-  gem "activejob", "6.0.3"
+  gem 'activejob', '6.0.3'
 end
 
-require "minitest/autorun"
-require "active_job"
+require 'minitest/autorun'
+require 'active_job'
 
 class BuggyJob < ActiveJob::Base
   def perform
-    puts "performed"
+    puts 'performed'
   end
 end
 

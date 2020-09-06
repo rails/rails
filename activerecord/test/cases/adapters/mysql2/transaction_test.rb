@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/connection_helper"
+require 'cases/helper'
+require 'support/connection_helper'
 
 module ActiveRecord
   class Mysql2TransactionTest < ActiveRecord::Mysql2TestCase
     self.use_transactional_tests = false
 
     class Sample < ActiveRecord::Base
-      self.table_name = "samples"
+      self.table_name = 'samples'
     end
 
     setup do
@@ -19,9 +19,9 @@ module ActiveRecord
       @connection.clear_cache!
 
       @connection.transaction do
-        @connection.drop_table "samples", if_exists: true
-        @connection.create_table("samples") do |t|
-          t.integer "value"
+        @connection.drop_table 'samples', if_exists: true
+        @connection.create_table('samples') do |t|
+          t.integer 'value'
         end
       end
 
@@ -29,13 +29,13 @@ module ActiveRecord
     end
 
     teardown do
-      @connection.drop_table "samples", if_exists: true
+      @connection.drop_table 'samples', if_exists: true
 
       Thread.abort_on_exception = @abort
       Thread.report_on_exception = @original_report_on_exception
     end
 
-    test "raises Deadlocked when a deadlock is encountered" do
+    test 'raises Deadlocked when a deadlock is encountered' do
       assert_raises(ActiveRecord::Deadlocked) do
         barrier = Concurrent::CyclicBarrier.new(2)
 
@@ -62,7 +62,7 @@ module ActiveRecord
       end
     end
 
-    test "raises LockWaitTimeout when lock wait timeout exceeded" do
+    test 'raises LockWaitTimeout when lock wait timeout exceeded' do
       assert_raises(ActiveRecord::LockWaitTimeout) do
         s = Sample.create!(value: 1)
         latch1 = Concurrent::CountDownLatch.new
@@ -79,19 +79,19 @@ module ActiveRecord
         begin
           Sample.transaction do
             latch1.wait
-            Sample.connection.execute("SET innodb_lock_wait_timeout = 1")
+            Sample.connection.execute('SET innodb_lock_wait_timeout = 1')
             Sample.lock.find(s.id)
           end
         ensure
-          Sample.connection.execute("SET innodb_lock_wait_timeout = DEFAULT")
+          Sample.connection.execute('SET innodb_lock_wait_timeout = DEFAULT')
           latch2.count_down
           thread.join
         end
       end
     end
 
-    test "raises StatementTimeout when statement timeout exceeded" do
-      skip unless ActiveRecord::Base.connection.show_variable("max_execution_time")
+    test 'raises StatementTimeout when statement timeout exceeded' do
+      skip unless ActiveRecord::Base.connection.show_variable('max_execution_time')
       error = assert_raises(ActiveRecord::StatementTimeout) do
         s = Sample.create!(value: 1)
         latch1 = Concurrent::CountDownLatch.new
@@ -108,11 +108,11 @@ module ActiveRecord
         begin
           Sample.transaction do
             latch1.wait
-            Sample.connection.execute("SET max_execution_time = 1")
+            Sample.connection.execute('SET max_execution_time = 1')
             Sample.lock.find(s.id)
           end
         ensure
-          Sample.connection.execute("SET max_execution_time = DEFAULT")
+          Sample.connection.execute('SET max_execution_time = DEFAULT')
           latch2.count_down
           thread.join
         end
@@ -120,7 +120,7 @@ module ActiveRecord
       assert_kind_of ActiveRecord::QueryAborted, error
     end
 
-    test "raises QueryCanceled when canceling statement due to user request" do
+    test 'raises QueryCanceled when canceling statement due to user request' do
       error = assert_raises(ActiveRecord::QueryCanceled) do
         s = Sample.create!(value: 1)
         latch = Concurrent::CountDownLatch.new

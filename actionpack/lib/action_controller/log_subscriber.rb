@@ -11,7 +11,7 @@ module ActionController
       params  = payload[:params].except(*INTERNAL_PARAMS)
       format  = payload[:format]
       format  = format.to_s.upcase if format.is_a?(Symbol)
-      format  = "*/*" if format.nil?
+      format  = '*/*' if format.nil?
 
       info "Processing by #{payload[:controller]}##{payload[:action]} as #{format}"
       info "  Parameters: #{params.inspect}" unless params.empty?

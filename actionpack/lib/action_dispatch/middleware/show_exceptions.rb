@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "action_dispatch/http/request"
-require "action_dispatch/middleware/exception_wrapper"
+require 'action_dispatch/http/request'
+require 'action_dispatch/middleware/exception_wrapper'
 
 module ActionDispatch
   # This middleware rescues any exception returned by the application
@@ -17,11 +17,11 @@ module ActionDispatch
   # If any exception happens inside the exceptions app, this middleware
   # catches the exceptions and returns a FAILSAFE_RESPONSE.
   class ShowExceptions
-    FAILSAFE_RESPONSE = [500, { "Content-Type" => "text/plain" },
+    FAILSAFE_RESPONSE = [500, { 'Content-Type' => 'text/plain' },
       ["500 Internal Server Error\n" \
-       "If you are the administrator of this website, then please read this web " \
+       'If you are the administrator of this website, then please read this web ' \
        "application's log file and/or the web server's log file to find out what " \
-       "went wrong."]]
+       'went wrong.']]
 
     def initialize(app, exceptions_app)
       @app = app
@@ -41,21 +41,21 @@ module ActionDispatch
 
     private
       def render_exception(request, exception)
-        backtrace_cleaner = request.get_header "action_dispatch.backtrace_cleaner"
+        backtrace_cleaner = request.get_header 'action_dispatch.backtrace_cleaner'
         wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
         status  = wrapper.status_code
-        request.set_header "action_dispatch.exception", wrapper.unwrapped_exception
-        request.set_header "action_dispatch.original_path", request.path_info
+        request.set_header 'action_dispatch.exception', wrapper.unwrapped_exception
+        request.set_header 'action_dispatch.original_path', request.path_info
         request.path_info = "/#{status}"
         response = @exceptions_app.call(request.env)
-        response[1]["X-Cascade"] == "pass" ? pass_response(status) : response
+        response[1]['X-Cascade'] == 'pass' ? pass_response(status) : response
       rescue Exception => failsafe_error
         $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
         FAILSAFE_RESPONSE
       end
 
       def pass_response(status)
-        [status, { "Content-Type" => "text/html; charset=#{Response.default_charset}", "Content-Length" => "0" }, []]
+        [status, { 'Content-Type' => "text/html; charset=#{Response.default_charset}", 'Content-Length' => '0' }, []]
       end
   end
 end

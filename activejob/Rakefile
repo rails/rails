@@ -1,64 +1,64 @@
 # frozen_string_literal: true
 
-require "rake/testtask"
+require 'rake/testtask'
 
 ACTIVEJOB_ADAPTERS = %w(async inline delayed_job que queue_classic resque sidekiq sneakers sucker_punch backburner test)
-ACTIVEJOB_ADAPTERS.delete("queue_classic") if defined?(JRUBY_VERSION)
+ACTIVEJOB_ADAPTERS.delete('queue_classic') if defined?(JRUBY_VERSION)
 
 task default: :test
-task test: "test:default"
+task test: 'test:default'
 
 task :package
 
 namespace :test do
-  desc "Run all adapter tests"
+  desc 'Run all adapter tests'
   task :default do
     run_without_aborting ACTIVEJOB_ADAPTERS.map { |a| "test:#{a}" }
   end
 
-  desc "Run all adapter tests in isolation"
+  desc 'Run all adapter tests in isolation'
   task :isolated do
     run_without_aborting ACTIVEJOB_ADAPTERS.map { |a| "test:isolated:#{a}" }
   end
 
-  desc "Run integration tests for all adapters"
+  desc 'Run integration tests for all adapters'
   task :integration do
-    run_without_aborting (ACTIVEJOB_ADAPTERS - ["test"]).map { |a| "test:integration:#{a}" }
+    run_without_aborting (ACTIVEJOB_ADAPTERS - ['test']).map { |a| "test:integration:#{a}" }
   end
 
-  task "env:integration" do
-    ENV["AJ_INTEGRATION_TESTS"] = "1"
-    ENV["SKIP_REQUIRE_WEBPACKER"] = "true"
+  task 'env:integration' do
+    ENV['AJ_INTEGRATION_TESTS'] = '1'
+    ENV['SKIP_REQUIRE_WEBPACKER'] = 'true'
   end
 
   ACTIVEJOB_ADAPTERS.each do |adapter|
-    task("env:#{adapter}") { ENV["AJ_ADAPTER"] = adapter }
+    task("env:#{adapter}") { ENV['AJ_ADAPTER'] = adapter }
 
     Rake::TestTask.new(adapter => "test:env:#{adapter}") do |t|
       t.description = "Run adapter tests for #{adapter}"
-      t.libs << "test"
-      t.test_files = FileList["test/cases/**/*_test.rb"]
+      t.libs << 'test'
+      t.test_files = FileList['test/cases/**/*_test.rb']
       t.verbose = true
       t.warning = true
-      t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+      t.ruby_opts = ['--dev'] if defined?(JRUBY_VERSION)
     end
 
     namespace :isolated do
       task adapter => "test:env:#{adapter}" do
         Dir.glob("#{__dir__}/test/cases/**/*_test.rb").all? do |file|
-          sh(Gem.ruby, "-w", "-I#{__dir__}/lib", "-I#{__dir__}/test", file)
-        end || raise("Failures")
+          sh(Gem.ruby, '-w', "-I#{__dir__}/lib", "-I#{__dir__}/test", file)
+        end || raise('Failures')
       end
     end
 
     namespace :integration do
-      Rake::TestTask.new(adapter => ["test:env:#{adapter}", "test:env:integration"]) do |t|
+      Rake::TestTask.new(adapter => ["test:env:#{adapter}", 'test:env:integration']) do |t|
         t.description = "Run integration tests for #{adapter}"
-        t.libs << "test"
-        t.test_files = FileList["test/integration/**/*_test.rb"]
+        t.libs << 'test'
+        t.test_files = FileList['test/integration/**/*_test.rb']
         t.verbose = true
         t.warning = true
-        t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+        t.ruby_opts = ['--dev'] if defined?(JRUBY_VERSION)
       end
     end
   end

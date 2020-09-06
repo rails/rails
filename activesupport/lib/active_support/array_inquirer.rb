@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/symbol/starts_ends_with"
+require 'active_support/core_ext/symbol/starts_ends_with'
 
 module ActiveSupport
   # Wrapping an array in an +ArrayInquirer+ gives a friendlier way to check
@@ -36,11 +36,11 @@ module ActiveSupport
 
     private
       def respond_to_missing?(name, include_private = false)
-        name.end_with?("?") || super
+        name.end_with?('?') || super
       end
 
       def method_missing(name, *args)
-        if name.end_with?("?")
+        if name.end_with?('?')
           any?(name[0..-2])
         else
           super

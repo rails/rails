@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "mail"
-require "action_mailer/collector"
-require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/hash/except"
-require "active_support/core_ext/module/anonymous"
+require 'mail'
+require 'action_mailer/collector'
+require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/module/anonymous'
 
-require "action_mailer/log_subscriber"
-require "action_mailer/rescuable"
+require 'action_mailer/log_subscriber'
+require 'action_mailer/rescuable'
 
 module ActionMailer
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -459,10 +459,10 @@ module ActionMailer
 
     class_attribute :delivery_job, default: ::ActionMailer::DeliveryJob
     class_attribute :default_params, default: {
-      mime_version: "1.0",
-      charset:      "UTF-8",
-      content_type: "text/plain",
-      parts_order:  [ "text/plain", "text/enriched", "text/html" ]
+      mime_version: '1.0',
+      charset:      'UTF-8',
+      content_type: 'text/plain',
+      parts_order:  [ 'text/plain', 'text/enriched', 'text/html' ]
     }.freeze
 
     class << self
@@ -527,7 +527,7 @@ module ActionMailer
       # Returns the name of the current mailer. This method is also being used as a path for a view lookup.
       # If this is an anonymous mailer, this method will return +anonymous+ instead.
       def mailer_name
-        @mailer_name ||= anonymous? ? "anonymous" : name.underscore
+        @mailer_name ||= anonymous? ? 'anonymous' : name.underscore
       end
       # Allows to set the name of current mailer.
       attr_writer :mailer_name
@@ -554,7 +554,7 @@ module ActionMailer
       # calling +deliver_mail+ directly and passing a <tt>Mail::Message</tt> will do
       # nothing except tell the logger you sent the email.
       def deliver_mail(mail) #:nodoc:
-        ActiveSupport::Notifications.instrument("deliver.action_mailer") do |payload|
+        ActiveSupport::Notifications.instrument('deliver.action_mailer') do |payload|
           set_payload_for_mail(payload, mail)
           yield # Let Mail do the delivery actions
         end
@@ -611,14 +611,14 @@ module ActionMailer
         args: args
       }
 
-      ActiveSupport::Notifications.instrument("process.action_mailer", payload) do
+      ActiveSupport::Notifications.instrument('process.action_mailer', payload) do
         super
         @_message = NullMail.new unless @_mail_was_called
       end
     end
 
     class NullMail #:nodoc:
-      def body; "" end
+      def body; '' end
       def header; {} end
 
       def respond_to?(string, include_all = false)
@@ -727,7 +727,7 @@ module ActionMailer
       private
         def _raise_error
           raise RuntimeError, "Can't add attachments after `mail` was called.\n" \
-                              "Make sure to use `attachments[]=` before calling `mail`."
+                              'Make sure to use `attachments[]=` before calling `mail`.'
         end
     end
 
@@ -873,12 +873,12 @@ module ActionMailer
           user_content_type
         when m.has_attachments?
           if m.attachments.all?(&:inline?)
-            ["multipart", "related", params]
+            ['multipart', 'related', params]
           else
-            ["multipart", "mixed", params]
+            ['multipart', 'mixed', params]
           end
         when m.multipart?
-          ["multipart", "alternative", params]
+          ['multipart', 'alternative', params]
         else
           m.content_type || class_default
         end
@@ -889,7 +889,7 @@ module ActionMailer
       # humanized version of the <tt>action_name</tt>.
       # If the subject has interpolations, you can pass them through the +interpolations+ parameter.
       def default_i18n_subject(interpolations = {}) # :doc:
-        mailer_scope = self.class.mailer_name.tr("/", ".")
+        mailer_scope = self.class.mailer_name.tr('/', '.')
         I18n.t(:subject, **interpolations.merge(scope: [mailer_scope, action_name], default: action_name.humanize))
       end
 
@@ -944,7 +944,7 @@ module ActionMailer
       def collect_responses_from_text(headers)
         [{
           body: headers.delete(:body),
-          content_type: headers[:content_type] || "text/plain"
+          content_type: headers[:content_type] || 'text/plain'
         }]
       end
 
@@ -964,7 +964,7 @@ module ActionMailer
       def each_template(paths, name, &block)
         templates = lookup_context.find_all(name, paths)
         if templates.empty?
-          raise ActionView::MissingTemplate.new(paths, name, paths, false, "mailer")
+          raise ActionView::MissingTemplate.new(paths, name, paths, false, 'mailer')
         else
           templates.uniq(&:format).each(&block)
         end
@@ -975,7 +975,7 @@ module ActionMailer
         # in multipart/related, but not the actual attachments
         if message.attachments.detect(&:inline?) && message.attachments.detect { |a| !a.inline? }
           related = Mail::Part.new
-          related.content_type = "multipart/related"
+          related.content_type = 'multipart/related'
           mixed = [ related ]
 
           message.parts.each do |p|
@@ -996,7 +996,7 @@ module ActionMailer
           responses[0].each { |k, v| m[k] = v }
         elsif responses.size > 1 && m.has_attachments?
           container = Mail::Part.new
-          container.content_type = "multipart/alternative"
+          container.content_type = 'multipart/alternative'
           responses.each { |r| insert_part(container, r, m.charset) }
           m.add_part(container)
         else
@@ -1019,7 +1019,7 @@ module ActionMailer
       end
 
       def instrument_name
-        "action_mailer"
+        'action_mailer'
       end
 
       def _protected_ivars

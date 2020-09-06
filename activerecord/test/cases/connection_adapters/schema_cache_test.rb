@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -12,14 +12,14 @@ module ActiveRecord
       end
 
       def test_primary_key
-        assert_equal "id", @cache.primary_keys("posts")
+        assert_equal 'id', @cache.primary_keys('posts')
       end
 
       def test_yaml_dump_and_load
         # Create an empty cache.
         cache = SchemaCache.new @connection
 
-        tempfile = Tempfile.new(["schema_cache-", ".yml"])
+        tempfile = Tempfile.new(['schema_cache-', '.yml'])
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile.path)
 
@@ -32,11 +32,11 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 12, cache.columns('posts').size
+          assert_equal 12, cache.columns_hash('posts').size
+          assert cache.data_sources('posts')
+          assert_equal 'id', cache.primary_keys('posts')
+          assert_equal 1, cache.indexes('posts').size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
@@ -47,7 +47,7 @@ module ActiveRecord
         # Create an empty cache.
         cache = SchemaCache.new @connection
 
-        tempfile = Tempfile.new(["schema_cache-", ".yml.gz"])
+        tempfile = Tempfile.new(['schema_cache-', '.yml.gz'])
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile.path)
 
@@ -60,11 +60,11 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 12, cache.columns('posts').size
+          assert_equal 12, cache.columns_hash('posts').size
+          assert cache.data_sources('posts')
+          assert_equal 'id', cache.primary_keys('posts')
+          assert_equal 1, cache.indexes('posts').size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
 
@@ -75,11 +75,11 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 12, cache.columns('posts').size
+          assert_equal 12, cache.columns_hash('posts').size
+          assert cache.data_sources('posts')
+          assert_equal 'id', cache.primary_keys('posts')
+          assert_equal 1, cache.indexes('posts').size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
@@ -91,10 +91,10 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 11, cache.columns("posts").size
-          assert_equal 11, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
+          assert_equal 11, cache.columns('posts').size
+          assert_equal 11, cache.columns_hash('posts').size
+          assert cache.data_sources('posts')
+          assert_equal 'id', cache.primary_keys('posts')
         end
       end
 
@@ -103,7 +103,7 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_queries :any, ignore_none: true do
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 1, cache.indexes('posts').size
         end
       end
 
@@ -118,22 +118,22 @@ module ActiveRecord
       end
 
       def test_primary_key_for_non_existent_table
-        assert_nil @cache.primary_keys("omgponies")
+        assert_nil @cache.primary_keys('omgponies')
       end
 
       def test_caches_columns
-        columns = @cache.columns("posts")
-        assert_equal columns, @cache.columns("posts")
+        columns = @cache.columns('posts')
+        assert_equal columns, @cache.columns('posts')
       end
 
       def test_caches_columns_hash
-        columns_hash = @cache.columns_hash("posts")
-        assert_equal columns_hash, @cache.columns_hash("posts")
+        columns_hash = @cache.columns_hash('posts')
+        assert_equal columns_hash, @cache.columns_hash('posts')
       end
 
       def test_caches_indexes
-        indexes = @cache.indexes("posts")
-        assert_equal indexes, @cache.indexes("posts")
+        indexes = @cache.indexes('posts')
+        assert_equal indexes, @cache.indexes('posts')
       end
 
       def test_caches_database_version
@@ -149,11 +149,11 @@ module ActiveRecord
       end
 
       def test_clearing
-        @cache.columns("posts")
-        @cache.columns_hash("posts")
-        @cache.data_sources("posts")
-        @cache.primary_keys("posts")
-        @cache.indexes("posts")
+        @cache.columns('posts')
+        @cache.columns_hash('posts')
+        @cache.data_sources('posts')
+        @cache.primary_keys('posts')
+        @cache.indexes('posts')
 
         @cache.clear!
 
@@ -166,17 +166,17 @@ module ActiveRecord
         cache = SchemaCache.new @connection
 
         # Populate it.
-        cache.add("posts")
+        cache.add('posts')
 
         # Create a new cache by marchal dumping / loading.
         cache = Marshal.load(Marshal.dump(cache))
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 12, cache.columns('posts').size
+          assert_equal 12, cache.columns_hash('posts').size
+          assert cache.data_sources('posts')
+          assert_equal 'id', cache.primary_keys('posts')
+          assert_equal 1, cache.indexes('posts').size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
       end
@@ -185,7 +185,7 @@ module ActiveRecord
         # Create an empty cache.
         cache = SchemaCache.new @connection
 
-        tempfile = Tempfile.new(["schema_cache-", ".dump"])
+        tempfile = Tempfile.new(['schema_cache-', '.dump'])
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile.path)
 
@@ -194,11 +194,11 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 12, cache.columns('posts').size
+          assert_equal 12, cache.columns_hash('posts').size
+          assert cache.data_sources('posts')
+          assert_equal 'id', cache.primary_keys('posts')
+          assert_equal 1, cache.indexes('posts').size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
@@ -209,7 +209,7 @@ module ActiveRecord
         # Create an empty cache.
         cache = SchemaCache.new @connection
 
-        tempfile = Tempfile.new(["schema_cache-", ".dump.gz"])
+        tempfile = Tempfile.new(['schema_cache-', '.dump.gz'])
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile.path)
 
@@ -218,11 +218,11 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 12, cache.columns('posts').size
+          assert_equal 12, cache.columns_hash('posts').size
+          assert cache.data_sources('posts')
+          assert_equal 'id', cache.primary_keys('posts')
+          assert_equal 1, cache.indexes('posts').size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
 
@@ -231,11 +231,11 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 12, cache.columns('posts').size
+          assert_equal 12, cache.columns_hash('posts').size
+          assert cache.data_sources('posts')
+          assert_equal 'id', cache.primary_keys('posts')
+          assert_equal 1, cache.indexes('posts').size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
@@ -243,28 +243,28 @@ module ActiveRecord
       end
 
       def test_data_source_exist
-        assert @cache.data_source_exists?("posts")
-        assert_not @cache.data_source_exists?("foo")
+        assert @cache.data_source_exists?('posts')
+        assert_not @cache.data_source_exists?('foo')
       end
 
       def test_clear_data_source_cache
-        @cache.clear_data_source_cache!("posts")
+        @cache.clear_data_source_cache!('posts')
       end
 
-      test "#columns_hash? is populated by #columns_hash" do
-        assert_not @cache.columns_hash?("posts")
+      test '#columns_hash? is populated by #columns_hash' do
+        assert_not @cache.columns_hash?('posts')
 
-        @cache.columns_hash("posts")
+        @cache.columns_hash('posts')
 
-        assert @cache.columns_hash?("posts")
+        assert @cache.columns_hash?('posts')
       end
 
-      test "#columns_hash? is not populated by #data_source_exists?" do
-        assert_not @cache.columns_hash?("posts")
+      test '#columns_hash? is not populated by #data_source_exists?' do
+        assert_not @cache.columns_hash?('posts')
 
-        @cache.data_source_exists?("posts")
+        @cache.data_source_exists?('posts')
 
-        assert_not @cache.columns_hash?("posts")
+        assert_not @cache.columns_hash?('posts')
       end
 
       private

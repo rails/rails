@@ -4,12 +4,12 @@ class Customer < ActiveRecord::Base
   cattr_accessor :gps_conversion_was_run
 
   composed_of :address, mapping: [ %w(address_street street), %w(address_city city), %w(address_country country) ], allow_nil: true
-  composed_of :balance, class_name: "Money", mapping: %w(balance amount)
+  composed_of :balance, class_name: 'Money', mapping: %w(balance amount)
   composed_of :gps_location, allow_nil: true
-  composed_of :non_blank_gps_location, class_name: "GpsLocation", allow_nil: true, mapping: %w(gps_location gps_location),
+  composed_of :non_blank_gps_location, class_name: 'GpsLocation', allow_nil: true, mapping: %w(gps_location gps_location),
               converter: lambda { |gps| self.gps_conversion_was_run = true; gps.blank? ? nil : GpsLocation.new(gps) }
   composed_of :fullname, mapping: %w(name to_s), constructor: Proc.new { |name| Fullname.parse(name) }, converter: :parse
-  composed_of :fullname_no_converter, mapping: %w(name to_s), class_name: "Fullname"
+  composed_of :fullname_no_converter, mapping: %w(name to_s), class_name: 'Fullname'
 end
 
 class Address
@@ -31,9 +31,9 @@ end
 class Money
   attr_reader :amount, :currency
 
-  EXCHANGE_RATES = { "USD_TO_DKK" => 6, "DKK_TO_USD" => 0.6 }
+  EXCHANGE_RATES = { 'USD_TO_DKK' => 6, 'DKK_TO_USD' => 0.6 }
 
-  def initialize(amount, currency = "USD")
+  def initialize(amount, currency = 'USD')
     @amount, @currency = amount, currency
   end
 
@@ -50,11 +50,11 @@ class GpsLocation
   end
 
   def latitude
-    gps_location.split("x").first
+    gps_location.split('x').first
   end
 
   def longitude
-    gps_location.split("x").last
+    gps_location.split('x').last
   end
 
   def ==(other)

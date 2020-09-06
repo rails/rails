@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/keys"
-require "active_support/key_generator"
-require "active_support/message_verifier"
-require "active_support/json"
-require "rack/utils"
+require 'active_support/core_ext/hash/keys'
+require 'active_support/key_generator'
+require 'active_support/message_verifier'
+require 'active_support/json'
+require 'rack/utils'
 
 module ActionDispatch
   class Request
     def cookie_jar
-      fetch_header("action_dispatch.cookies") do
+      fetch_header('action_dispatch.cookies') do
         self.cookie_jar = Cookies::CookieJar.build(self, cookies)
       end
     end
@@ -22,11 +22,11 @@ module ActionDispatch
     }
 
     def have_cookie_jar?
-      has_header? "action_dispatch.cookies"
+      has_header? 'action_dispatch.cookies'
     end
 
     def cookie_jar=(jar)
-      set_header "action_dispatch.cookies", jar
+      set_header 'action_dispatch.cookies', jar
     end
 
     def key_generator
@@ -173,21 +173,21 @@ module ActionDispatch
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
   class Cookies
-    HTTP_HEADER   = "Set-Cookie"
-    GENERATOR_KEY = "action_dispatch.key_generator"
-    SIGNED_COOKIE_SALT = "action_dispatch.signed_cookie_salt"
-    ENCRYPTED_COOKIE_SALT = "action_dispatch.encrypted_cookie_salt"
-    ENCRYPTED_SIGNED_COOKIE_SALT = "action_dispatch.encrypted_signed_cookie_salt"
-    AUTHENTICATED_ENCRYPTED_COOKIE_SALT = "action_dispatch.authenticated_encrypted_cookie_salt"
-    USE_AUTHENTICATED_COOKIE_ENCRYPTION = "action_dispatch.use_authenticated_cookie_encryption"
-    ENCRYPTED_COOKIE_CIPHER = "action_dispatch.encrypted_cookie_cipher"
-    SIGNED_COOKIE_DIGEST = "action_dispatch.signed_cookie_digest"
-    SECRET_KEY_BASE = "action_dispatch.secret_key_base"
-    COOKIES_SERIALIZER = "action_dispatch.cookies_serializer"
-    COOKIES_DIGEST = "action_dispatch.cookies_digest"
-    COOKIES_ROTATIONS = "action_dispatch.cookies_rotations"
-    COOKIES_SAME_SITE_PROTECTION = "action_dispatch.cookies_same_site_protection"
-    USE_COOKIES_WITH_METADATA = "action_dispatch.use_cookies_with_metadata"
+    HTTP_HEADER   = 'Set-Cookie'
+    GENERATOR_KEY = 'action_dispatch.key_generator'
+    SIGNED_COOKIE_SALT = 'action_dispatch.signed_cookie_salt'
+    ENCRYPTED_COOKIE_SALT = 'action_dispatch.encrypted_cookie_salt'
+    ENCRYPTED_SIGNED_COOKIE_SALT = 'action_dispatch.encrypted_signed_cookie_salt'
+    AUTHENTICATED_ENCRYPTED_COOKIE_SALT = 'action_dispatch.authenticated_encrypted_cookie_salt'
+    USE_AUTHENTICATED_COOKIE_ENCRYPTION = 'action_dispatch.use_authenticated_cookie_encryption'
+    ENCRYPTED_COOKIE_CIPHER = 'action_dispatch.encrypted_cookie_cipher'
+    SIGNED_COOKIE_DIGEST = 'action_dispatch.signed_cookie_digest'
+    SECRET_KEY_BASE = 'action_dispatch.secret_key_base'
+    COOKIES_SERIALIZER = 'action_dispatch.cookies_serializer'
+    COOKIES_DIGEST = 'action_dispatch.cookies_digest'
+    COOKIES_ROTATIONS = 'action_dispatch.cookies_rotations'
+    COOKIES_SAME_SITE_PROTECTION = 'action_dispatch.cookies_same_site_protection'
+    USE_COOKIES_WITH_METADATA = 'action_dispatch.use_cookies_with_metadata'
 
     # Cookies can typically store 4096 bytes.
     MAX_COOKIE_SIZE = 4096
@@ -272,11 +272,11 @@ module ActionDispatch
         end
 
         def encrypted_cookie_cipher
-          request.encrypted_cookie_cipher || "aes-256-gcm"
+          request.encrypted_cookie_cipher || 'aes-256-gcm'
         end
 
         def signed_cookie_digest
-          request.signed_cookie_digest || "SHA1"
+          request.signed_cookie_digest || 'SHA1'
         end
     end
 
@@ -355,7 +355,7 @@ module ActionDispatch
       end
 
       def to_header
-        @cookies.map { |k, v| "#{escape(k)}=#{escape(v)}" }.join "; "
+        @cookies.map { |k, v| "#{escape(k)}=#{escape(v)}" }.join '; '
       end
 
       # Sets the cookie named +name+. The second argument may be the cookie's
@@ -443,12 +443,12 @@ module ActionDispatch
             options[:expires] = options[:expires].from_now
           end
 
-          options[:path]      ||= "/"
+          options[:path]      ||= '/'
 
           cookies_same_site_protection = request.cookies_same_site_protection
           options[:same_site] ||= cookies_same_site_protection.call(request)
 
-          if options[:domain] == :all || options[:domain] == "all"
+          if options[:domain] == :all || options[:domain] == 'all'
             # If there is a provided tld length then we use it otherwise default domain regexp.
             domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
 
@@ -460,7 +460,7 @@ module ActionDispatch
           elsif options[:domain].is_a? Array
             # If host matches one of the supplied domains.
             options[:domain] = options[:domain].find do |domain|
-              domain = domain.delete_prefix(".")
+              domain = domain.delete_prefix('.')
               request.host == domain || request.host.end_with?(".#{domain}")
             end
           end
@@ -594,7 +594,7 @@ module ActionDispatch
         end
 
         def digest
-          request.cookies_digest || "SHA1"
+          request.cookies_digest || 'SHA1'
         end
     end
 
@@ -638,10 +638,10 @@ module ActionDispatch
           secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, key_len)
           @encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: encrypted_cookie_cipher, serializer: SERIALIZER)
         else
-          key_len = ActiveSupport::MessageEncryptor.key_len("aes-256-cbc")
+          key_len = ActiveSupport::MessageEncryptor.key_len('aes-256-cbc')
           secret = request.key_generator.generate_key(request.encrypted_cookie_salt, key_len)
           sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
-          @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", serializer: SERIALIZER)
+          @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: 'aes-256-cbc', serializer: SERIALIZER)
         end
 
         request.cookies_rotations.encrypted.each do |(*secrets)|
@@ -650,7 +650,7 @@ module ActionDispatch
         end
 
         if upgrade_legacy_hmac_aes_cbc_cookies?
-          legacy_cipher = "aes-256-cbc"
+          legacy_cipher = 'aes-256-cbc'
           secret = request.key_generator.generate_key(request.encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len(legacy_cipher))
           sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
 

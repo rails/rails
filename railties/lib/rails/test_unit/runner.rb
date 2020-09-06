@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "shellwords"
-require "method_source"
-require "rake/file_list"
-require "active_support/core_ext/module/attribute_accessors"
+require 'shellwords'
+require 'method_source'
+require 'rake/file_list'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module Rails
   module TestUnit
@@ -12,25 +12,25 @@ module Rails
 
       class << self
         def attach_before_load_options(opts)
-          opts.on("--warnings", "-w", "Run with Ruby warnings enabled") { }
-          opts.on("-e", "--environment ENV", "Run tests in the ENV environment") { }
+          opts.on('--warnings', '-w', 'Run with Ruby warnings enabled') { }
+          opts.on('-e', '--environment ENV', 'Run tests in the ENV environment') { }
         end
 
         def parse_options(argv)
           # Perform manual parsing and cleanup since option parser raises on unknown options.
-          env_index = argv.index("--environment") || argv.index("-e")
+          env_index = argv.index('--environment') || argv.index('-e')
           if env_index
             argv.delete_at(env_index)
             environment = argv.delete_at(env_index).strip
           end
-          ENV["RAILS_ENV"] = environment || "test"
+          ENV['RAILS_ENV'] = environment || 'test'
 
-          w_index = argv.index("--warnings") || argv.index("-w")
+          w_index = argv.index('--warnings') || argv.index('-w')
           $VERBOSE = argv.delete_at(w_index) if w_index
         end
 
         def rake_run(argv = [])
-          ARGV.replace Shellwords.split(ENV["TESTOPTS"] || "")
+          ARGV.replace Shellwords.split(ENV['TESTOPTS'] || '')
 
           run(argv)
         end
@@ -38,7 +38,7 @@ module Rails
         def run(argv = [])
           load_tests(argv)
 
-          require "active_support/testing/autorun"
+          require 'active_support/testing/autorun'
         end
 
         def load_tests(argv)
@@ -63,10 +63,10 @@ module Rails
           def extract_filters(argv)
             # Extract absolute and relative paths but skip -n /.*/ regexp filters.
             argv.select { |arg| path_argument?(arg) && !regexp_filter?(arg) }.map do |path|
-              path = path.tr("\\", "/")
+              path = path.tr('\\', '/')
               case
               when /(:\d+)+$/.match?(path)
-                file, *lines = path.split(":")
+                file, *lines = path.split(':')
                 filters << [ file, lines ]
                 file
               when Dir.exist?(path)
@@ -79,15 +79,15 @@ module Rails
           end
 
           def default_test_glob
-            ENV["DEFAULT_TEST"] || "test/**/*_test.rb"
+            ENV['DEFAULT_TEST'] || 'test/**/*_test.rb'
           end
 
           def default_test_exclude_glob
-            ENV["DEFAULT_TEST_EXCLUDE"] || "test/{system,dummy}/**/*_test.rb"
+            ENV['DEFAULT_TEST_EXCLUDE'] || 'test/{system,dummy}/**/*_test.rb'
           end
 
           def regexp_filter?(arg)
-            arg.start_with?("/") && arg.end_with?("/")
+            arg.start_with?('/') && arg.end_with?('/')
           end
 
           def path_argument?(arg)

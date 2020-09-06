@@ -18,10 +18,10 @@ module ActiveRecord
             when ::String
               return if value.blank?
 
-              if value.start_with?("(") && value.end_with?(")")
+              if value.start_with?('(') && value.end_with?(')')
                 value = value[1...-1]
               end
-              x, y = value.split(",")
+              x, y = value.split(',')
               build_point(x, y)
             when ::Array
               build_point(*value)
@@ -51,7 +51,7 @@ module ActiveRecord
 
           private
             def number_for_point(number)
-              number.to_s.delete_suffix(".0")
+              number.to_s.delete_suffix('.0')
             end
 
             def build_point(x, y)

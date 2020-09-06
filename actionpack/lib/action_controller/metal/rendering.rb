@@ -40,7 +40,7 @@ module ActionController
     def render_to_string(*)
       result = super
       if result.respond_to?(:each)
-        string = +""
+        string = +''
         result.each { |r| string << r }
         string
       else
@@ -49,7 +49,7 @@ module ActionController
     end
 
     def render_to_body(options = {})
-      super || _render_in_priorities(options) || " "
+      super || _render_in_priorities(options) || ' '
     end
 
     private
@@ -78,8 +78,8 @@ module ActionController
       end
 
       def _set_vary_header
-        if self.headers["Vary"].blank? && request.should_apply_vary_header?
-          self.headers["Vary"] = "Accept"
+        if self.headers['Vary'].blank? && request.should_apply_vary_header?
+          self.headers['Vary'] = 'Accept'
         end
       end
 
@@ -119,7 +119,7 @@ module ActionController
 
         self.status = status if status
         self.content_type = content_type if content_type
-        headers["Location"] = url_for(location) if location
+        headers['Location'] = url_for(location) if location
 
         super
       end

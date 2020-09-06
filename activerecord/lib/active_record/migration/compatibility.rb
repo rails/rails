@@ -7,7 +7,7 @@ module ActiveRecord
         version = version.to_s
         name = "V#{version.tr('.', '_')}"
         unless const_defined?(name)
-          versions = constants.grep(/\AV[0-9_]+\z/).map { |s| s.to_s.delete("V").tr("_", ".").inspect }
+          versions = constants.grep(/\AV[0-9_]+\z/).map { |s| s.to_s.delete('V').tr('_', '.').inspect }
           raise ArgumentError, "Unknown migration version #{version.inspect}; expected one of #{versions.sort.join(', ')}"
         end
         const_get(name)
@@ -88,7 +88,7 @@ module ActiveRecord
 
       class V5_1 < V5_2
         def change_column(table_name, column_name, type, **options)
-          if connection.adapter_name == "PostgreSQL"
+          if connection.adapter_name == 'PostgreSQL'
             super(table_name, column_name, type, **options.except(:default, :null, :comment))
             connection.change_column_default(table_name, column_name, options[:default]) if options.key?(:default)
             connection.change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
@@ -99,8 +99,8 @@ module ActiveRecord
         end
 
         def create_table(table_name, **options)
-          if connection.adapter_name == "Mysql2"
-            super(table_name, options: "ENGINE=InnoDB", **options)
+          if connection.adapter_name == 'Mysql2'
+            super(table_name, options: 'ENGINE=InnoDB', **options)
           else
             super
           end
@@ -121,13 +121,13 @@ module ActiveRecord
         end
 
         def create_table(table_name, **options)
-          if connection.adapter_name == "PostgreSQL"
+          if connection.adapter_name == 'PostgreSQL'
             if options[:id] == :uuid && !options.key?(:default)
-              options[:default] = "uuid_generate_v4()"
+              options[:default] = 'uuid_generate_v4()'
             end
           end
 
-          unless connection.adapter_name == "Mysql2" && options[:id] == :bigint
+          unless connection.adapter_name == 'Mysql2' && options[:id] == :bigint
             if [:integer, :bigint].include?(options[:id]) && !options.key?(:default)
               options[:default] = nil
             end

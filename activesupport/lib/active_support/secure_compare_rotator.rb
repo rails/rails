@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/security_utils"
-require "active_support/messages/rotator"
+require 'active_support/security_utils'
+require 'active_support/messages/rotator'
 
 module ActiveSupport
   # The ActiveSupport::SecureCompareRotator is a wrapper around +ActiveSupport::SecurityUtils.secure_compare+

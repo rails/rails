@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
-require "active_support/inflector"
-require "active_support/time"
-require "active_support/json"
-require_relative "../time_zone_test_helpers"
-require "yaml"
+require_relative '../abstract_unit'
+require 'active_support/inflector'
+require 'active_support/time'
+require 'active_support/json'
+require_relative '../time_zone_test_helpers'
+require 'yaml'
 
 class DurationTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
@@ -32,18 +32,18 @@ class DurationTest < ActiveSupport::TestCase
   def test_threequals
     assert ActiveSupport::Duration === 1.day
     assert_not (ActiveSupport::Duration === 1.day.to_i)
-    assert_not (ActiveSupport::Duration === "foo")
+    assert_not (ActiveSupport::Duration === 'foo')
   end
 
   def test_equals
     assert 1.day == 1.day
     assert 1.day == 1.day.to_i
     assert 1.day.to_i == 1.day
-    assert_not (1.day == "foo")
+    assert_not (1.day == 'foo')
   end
 
   def test_to_s
-    assert_equal "1", 1.second.to_s
+    assert_equal '1', 1.second.to_s
   end
 
   def test_in_seconds
@@ -83,7 +83,7 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_eql
     rubinius_skip "Rubinius' #eql? definition relies on #instance_of? " \
-                  "which behaves oddly for the sake of backward-compatibility."
+                  'which behaves oddly for the sake of backward-compatibility.'
 
     assert 1.minute.eql?(1.minute)
     assert 1.minute.eql?(60.seconds)
@@ -92,32 +92,32 @@ class DurationTest < ActiveSupport::TestCase
     assert_not 1.eql?(1.second)
     assert 1.minute.eql?(180.seconds - 2.minutes)
     assert_not 1.minute.eql?(60)
-    assert_not 1.minute.eql?("foo")
+    assert_not 1.minute.eql?('foo')
   end
 
   def test_inspect
-    assert_equal "0 seconds",                       0.seconds.inspect
-    assert_equal "0 days",                          0.days.inspect
-    assert_equal "1 month",                         1.month.inspect
-    assert_equal "1 month and 1 day",               (1.month + 1.day).inspect
-    assert_equal "6 months and -2 days",            (6.months - 2.days).inspect
-    assert_equal "10 seconds",                      10.seconds.inspect
-    assert_equal "10 years, 2 months, and 1 day",   (10.years + 2.months + 1.day).inspect
-    assert_equal "10 years, 2 months, and 1 day",   (10.years + 1.month  + 1.day + 1.month).inspect
-    assert_equal "10 years, 2 months, and 1 day",   (1.day + 10.years + 2.months).inspect
-    assert_equal "7 days",                          7.days.inspect
-    assert_equal "1 week",                          1.week.inspect
-    assert_equal "2 weeks",                         1.fortnight.inspect
-    assert_equal "0 seconds",                       (10 % 5.seconds).inspect
-    assert_equal "10 minutes",                      (10.minutes + 0.seconds).inspect
-    assert_equal "3600 seconds",                    (1.day / 24).inspect
+    assert_equal '0 seconds',                       0.seconds.inspect
+    assert_equal '0 days',                          0.days.inspect
+    assert_equal '1 month',                         1.month.inspect
+    assert_equal '1 month and 1 day',               (1.month + 1.day).inspect
+    assert_equal '6 months and -2 days',            (6.months - 2.days).inspect
+    assert_equal '10 seconds',                      10.seconds.inspect
+    assert_equal '10 years, 2 months, and 1 day',   (10.years + 2.months + 1.day).inspect
+    assert_equal '10 years, 2 months, and 1 day',   (10.years + 1.month  + 1.day + 1.month).inspect
+    assert_equal '10 years, 2 months, and 1 day',   (1.day + 10.years + 2.months).inspect
+    assert_equal '7 days',                          7.days.inspect
+    assert_equal '1 week',                          1.week.inspect
+    assert_equal '2 weeks',                         1.fortnight.inspect
+    assert_equal '0 seconds',                       (10 % 5.seconds).inspect
+    assert_equal '10 minutes',                      (10.minutes + 0.seconds).inspect
+    assert_equal '3600 seconds',                    (1.day / 24).inspect
   end
 
   def test_inspect_locale
     current_locale = I18n.default_locale
     I18n.default_locale = :de
-    I18n.backend.store_translations(:de, support: { array: { last_word_connector: " und " } })
-    assert_equal "10 years, 1 month und 1 day", (10.years + 1.month + 1.day).inspect
+    I18n.backend.store_translations(:de, support: { array: { last_word_connector: ' und ' } })
+    assert_equal '10 years, 1 month und 1 day', (10.years + 1.month + 1.day).inspect
   ensure
     I18n.default_locale = current_locale
   end
@@ -222,11 +222,11 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_plus_with_time
-    assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
+    assert_equal 1 + 1.second, 1.second + 1, 'Duration + Numeric should == Numeric + Duration'
   end
 
   def test_time_plus_duration_returns_same_time_datatype
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Moscow"], Time.utc(2016, 4, 28, 00, 45))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Moscow'], Time.utc(2016, 4, 28, 00, 45))
     now = Time.now.utc
     %w( second minute hour day week month year ).each do |unit|
       assert_equal((now + 1.send(unit)).class, Time, "Time + 1.#{unit} must be Time")
@@ -236,9 +236,9 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_argument_error
     e = assert_raise ArgumentError do
-      1.second.ago("")
+      1.second.ago('')
     end
-    assert_equal 'expected a time or date, got ""', e.message, "ensure ArgumentError is not being raised by dependencies.rb"
+    assert_equal 'expected a time or date, got ""', e.message, 'ensure ArgumentError is not being raised by dependencies.rb'
   end
 
   def test_fractional_weeks
@@ -288,7 +288,7 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_since_and_ago_anchored_to_time_now_when_time_zone_is_not_set
     Time.zone = nil
-    with_env_tz "US/Eastern" do
+    with_env_tz 'US/Eastern' do
       Time.stub(:now, Time.local(2000)) do
         # since
         assert_not_instance_of ActiveSupport::TimeWithZone, 5.seconds.since
@@ -301,17 +301,17 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_is_set
-    Time.zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    with_env_tz "US/Eastern" do
+    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    with_env_tz 'US/Eastern' do
       Time.stub(:now, Time.local(2000)) do
         # since
         assert_instance_of ActiveSupport::TimeWithZone, 5.seconds.since
         assert_equal Time.utc(2000, 1, 1, 0, 0, 5), 5.seconds.since.time
-        assert_equal "Eastern Time (US & Canada)", 5.seconds.since.time_zone.name
+        assert_equal 'Eastern Time (US & Canada)', 5.seconds.since.time_zone.name
         # ago
         assert_instance_of ActiveSupport::TimeWithZone, 5.seconds.ago
         assert_equal Time.utc(1999, 12, 31, 23, 59, 55), 5.seconds.ago.time
-        assert_equal "Eastern Time (US & Canada)", 5.seconds.ago.time_zone.name
+        assert_equal 'Eastern Time (US & Canada)', 5.seconds.ago.time_zone.name
       end
     end
   ensure
@@ -332,13 +332,13 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_adding_hours_across_dst_boundary
-    with_env_tz "CET" do
+    with_env_tz 'CET' do
       assert_equal Time.local(2009, 3, 29, 0, 0, 0) + 24.hours, Time.local(2009, 3, 30, 1, 0, 0)
     end
   end
 
   def test_adding_day_across_dst_boundary
-    with_env_tz "CET" do
+    with_env_tz 'CET' do
       assert_equal Time.local(2009, 3, 29, 0, 0, 0) + 1.day, Time.local(2009, 3, 30, 0, 0, 0)
     end
   end
@@ -356,16 +356,16 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_to_json
-    assert_equal "172800", 2.days.to_json
+    assert_equal '172800', 2.days.to_json
   end
 
   def test_case_when
     cased = \
       case 1.day
       when 1.day
-        "ok"
+        'ok'
       end
-    assert_equal "ok", cased
+    assert_equal 'ok', cased
   end
 
   def test_respond_to
@@ -422,7 +422,7 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal(1, scalar <=> 5)
     assert_equal(0, scalar <=> 10)
     assert_equal(-1, scalar <=> 15)
-    assert_nil(scalar <=> "foo")
+    assert_nil(scalar <=> 'foo')
   end
 
   def test_scalar_plus
@@ -438,10 +438,10 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration, scalar + 10.seconds
 
     exception = assert_raises(TypeError) do
-      scalar + "foo"
+      scalar + 'foo'
     end
 
-    assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
+    assert_equal 'no implicit conversion of String into ActiveSupport::Duration::Scalar', exception.message
   end
 
   def test_scalar_plus_parts
@@ -467,10 +467,10 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal({ days: 1, seconds: 10 }, (scalar - -1.day).parts)
 
     exception = assert_raises(TypeError) do
-      scalar - "foo"
+      scalar - 'foo'
     end
 
-    assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
+    assert_equal 'no implicit conversion of String into ActiveSupport::Duration::Scalar', exception.message
   end
 
   def test_scalar_minus_parts
@@ -493,10 +493,10 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration, scalar * 2.seconds
 
     exception = assert_raises(TypeError) do
-      scalar * "foo"
+      scalar * 'foo'
     end
 
-    assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
+    assert_equal 'no implicit conversion of String into ActiveSupport::Duration::Scalar', exception.message
   end
 
   def test_scalar_multiply_parts
@@ -520,10 +520,10 @@ class DurationTest < ActiveSupport::TestCase
     assert_kind_of Integer, scalar / 2.seconds
 
     exception = assert_raises(TypeError) do
-      scalar / "foo"
+      scalar / 'foo'
     end
 
-    assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
+    assert_equal 'no implicit conversion of String into ActiveSupport::Duration::Scalar', exception.message
   end
 
   def test_scalar_modulo
@@ -539,10 +539,10 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration, scalar % 3.seconds
 
     exception = assert_raises(TypeError) do
-      scalar % "foo"
+      scalar % 'foo'
     end
 
-    assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
+    assert_equal 'no implicit conversion of String into ActiveSupport::Duration::Scalar', exception.message
   end
 
   def test_scalar_modulo_parts
@@ -601,7 +601,7 @@ class DurationTest < ActiveSupport::TestCase
   # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
   def test_iso8601_parsing_wrong_patterns_with_raise
-    invalid_patterns = ["", "P", "PT", "P1YT", "T", "PW", "P1Y1W", "~P1Y", ".P1Y", "P1.5Y0.5M", "P1.5Y1M", "P1.5MT10.5S"]
+    invalid_patterns = ['', 'P', 'PT', 'P1YT', 'T', 'PW', 'P1Y1W', '~P1Y', '.P1Y', 'P1.5Y0.5M', 'P1.5Y1M', 'P1.5MT10.5S']
     invalid_patterns.each do |pattern|
       assert_raise ActiveSupport::Duration::ISO8601Parser::ParsingError, pattern.inspect do
         ActiveSupport::Duration.parse(pattern)
@@ -611,19 +611,19 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_iso8601_output
     expectations = [
-      ["P1Y",           1.year                           ],
-      ["P1W",           1.week                           ],
-      ["P4W",           4.week                           ],
-      ["P1Y7D",         1.year + 1.week                  ],
-      ["P1Y1M21D",      1.year + 1.month + 3.week        ],
-      ["P1Y1M",         1.year + 1.month                 ],
-      ["P1Y1M1D",       1.year + 1.month + 1.day         ],
-      ["-P1Y1D",        -1.year - 1.day                  ],
-      ["P1Y-1DT-1S",    1.year - 1.day - 1.second        ], # Parts with different signs are exists in PostgreSQL interval datatype.
-      ["PT1S",          1.second                         ],
-      ["PT1.4S",        (1.4).seconds                    ],
-      ["P1Y1M1DT1H",    1.year + 1.month + 1.day + 1.hour],
-      ["PT0S",          0.minutes                        ],
+      ['P1Y',           1.year                           ],
+      ['P1W',           1.week                           ],
+      ['P4W',           4.week                           ],
+      ['P1Y7D',         1.year + 1.week                  ],
+      ['P1Y1M21D',      1.year + 1.month + 3.week        ],
+      ['P1Y1M',         1.year + 1.month                 ],
+      ['P1Y1M1D',       1.year + 1.month + 1.day         ],
+      ['-P1Y1D',        -1.year - 1.day                  ],
+      ['P1Y-1DT-1S',    1.year - 1.day - 1.second        ], # Parts with different signs are exists in PostgreSQL interval datatype.
+      ['PT1S',          1.second                         ],
+      ['PT1.4S',        (1.4).seconds                    ],
+      ['P1Y1M1DT1H',    1.year + 1.month + 1.day + 1.hour],
+      ['PT0S',          0.minutes                        ],
     ]
     expectations.each do |expected_output, duration|
       assert_equal expected_output, duration.iso8601, expected_output.inspect
@@ -632,17 +632,17 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_iso8601_output_precision
     expectations = [
-        [nil, "P1Y1MT8.55S",  1.year + 1.month + (8.55).seconds ],
-        [0,   "P1Y1MT9S",     1.year + 1.month + (8.55).seconds ],
-        [1,   "P1Y1MT8.6S",   1.year + 1.month + (8.55).seconds ],
-        [2,   "P1Y1MT8.55S",  1.year + 1.month + (8.55).seconds ],
-        [3,   "P1Y1MT8.550S", 1.year + 1.month + (8.55).seconds ],
-        [nil, "PT1S",         1.second                          ],
-        [2,   "PT1.00S",      1.second                          ],
-        [nil, "PT1.4S",       (1.4).seconds                     ],
-        [0,   "PT1S",         (1.4).seconds                     ],
-        [1,   "PT1.4S",       (1.4).seconds                     ],
-        [5,   "PT1.40000S",   (1.4).seconds                     ],
+        [nil, 'P1Y1MT8.55S',  1.year + 1.month + (8.55).seconds ],
+        [0,   'P1Y1MT9S',     1.year + 1.month + (8.55).seconds ],
+        [1,   'P1Y1MT8.6S',   1.year + 1.month + (8.55).seconds ],
+        [2,   'P1Y1MT8.55S',  1.year + 1.month + (8.55).seconds ],
+        [3,   'P1Y1MT8.550S', 1.year + 1.month + (8.55).seconds ],
+        [nil, 'PT1S',         1.second                          ],
+        [2,   'PT1.00S',      1.second                          ],
+        [nil, 'PT1.4S',       (1.4).seconds                     ],
+        [0,   'PT1S',         (1.4).seconds                     ],
+        [1,   'PT1.4S',       (1.4).seconds                     ],
+        [5,   'PT1.40000S',   (1.4).seconds                     ],
     ]
     expectations.each do |precision, expected_output, duration|
       assert_equal expected_output, duration.iso8601(precision: precision), expected_output.inspect
@@ -665,10 +665,10 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_iso8601_parsing_across_spring_dst_boundary
     with_env_tz eastern_time_zone do
-      with_tz_default "Eastern Time (US & Canada)" do
+      with_tz_default 'Eastern Time (US & Canada)' do
         travel_to Time.utc(2016, 3, 11) do
-          assert_equal 604800, ActiveSupport::Duration.parse("P7D").to_i
-          assert_equal 604800, ActiveSupport::Duration.parse("P1W").to_i
+          assert_equal 604800, ActiveSupport::Duration.parse('P7D').to_i
+          assert_equal 604800, ActiveSupport::Duration.parse('P1W').to_i
         end
       end
     end
@@ -676,10 +676,10 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_iso8601_parsing_across_autumn_dst_boundary
     with_env_tz eastern_time_zone do
-      with_tz_default "Eastern Time (US & Canada)" do
+      with_tz_default 'Eastern Time (US & Canada)' do
         travel_to Time.utc(2016, 11, 4) do
-          assert_equal 604800, ActiveSupport::Duration.parse("P7D").to_i
-          assert_equal 604800, ActiveSupport::Duration.parse("P1W").to_i
+          assert_equal 604800, ActiveSupport::Duration.parse('P7D').to_i
+          assert_equal 604800, ActiveSupport::Duration.parse('P1W').to_i
         end
       end
     end
@@ -687,21 +687,21 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_iso8601_parsing_equivalence_with_numeric_extensions_over_long_periods
     with_env_tz eastern_time_zone do
-      with_tz_default "Eastern Time (US & Canada)" do
-        assert_equal 3.months, ActiveSupport::Duration.parse("P3M")
-        assert_equal 3.months.to_i, ActiveSupport::Duration.parse("P3M").to_i
-        assert_equal 10.months, ActiveSupport::Duration.parse("P10M")
-        assert_equal 10.months.to_i, ActiveSupport::Duration.parse("P10M").to_i
-        assert_equal 3.years, ActiveSupport::Duration.parse("P3Y")
-        assert_equal 3.years.to_i, ActiveSupport::Duration.parse("P3Y").to_i
-        assert_equal 10.years, ActiveSupport::Duration.parse("P10Y")
-        assert_equal 10.years.to_i, ActiveSupport::Duration.parse("P10Y").to_i
+      with_tz_default 'Eastern Time (US & Canada)' do
+        assert_equal 3.months, ActiveSupport::Duration.parse('P3M')
+        assert_equal 3.months.to_i, ActiveSupport::Duration.parse('P3M').to_i
+        assert_equal 10.months, ActiveSupport::Duration.parse('P10M')
+        assert_equal 10.months.to_i, ActiveSupport::Duration.parse('P10M').to_i
+        assert_equal 3.years, ActiveSupport::Duration.parse('P3Y')
+        assert_equal 3.years.to_i, ActiveSupport::Duration.parse('P3Y').to_i
+        assert_equal 10.years, ActiveSupport::Duration.parse('P10Y')
+        assert_equal 10.years.to_i, ActiveSupport::Duration.parse('P10Y').to_i
       end
     end
   end
 
   def test_adding_durations_do_not_hold_prior_states
-    time = Time.parse("Nov 29, 2016")
+    time = Time.parse('Nov 29, 2016')
     # If the implementation adds and subtracts 3 months, the
     # resulting date would have been in February so the day will
     # change to the 29th.
@@ -719,7 +719,7 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_string_build_raises_error
     error = assert_raises(TypeError) do
-      ActiveSupport::Duration.build("9")
+      ActiveSupport::Duration.build('9')
     end
 
     assert_equal "can't build an ActiveSupport::Duration from a String", error.message
@@ -736,9 +736,9 @@ class DurationTest < ActiveSupport::TestCase
   private
     def eastern_time_zone
       if Gem.win_platform?
-        "EST5EDT"
+        'EST5EDT'
       else
-        "America/New_York"
+        'America/New_York'
       end
     end
 end

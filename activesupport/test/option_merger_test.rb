@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "active_support/core_ext/object/with_options"
+require_relative 'abstract_unit'
+require 'active_support/core_ext/object/with_options'
 
 class OptionMergerTest < ActiveSupport::TestCase
   def setup
-    @options = { hello: "world" }
+    @options = { hello: 'world' }
   end
 
   def test_method_with_options_merges_string_options
-    local_options = { "cool" => true }
+    local_options = { 'cool' => true }
 
     with_options(@options) do |o|
       assert_equal local_options, method_with_options(local_options)
@@ -44,7 +44,7 @@ class OptionMergerTest < ActiveSupport::TestCase
   end
 
   def test_method_with_options_allows_to_overwrite_options
-    local_options = { hello: "moon" }
+    local_options = { hello: 'moon' }
     assert_equal @options.keys, local_options.keys
 
     with_options(@options) do |o|
@@ -59,26 +59,26 @@ class OptionMergerTest < ActiveSupport::TestCase
 
   def test_nested_method_with_options_containing_hashes_merge
     with_options conditions: { method: :get } do |outer|
-      outer.with_options conditions: { domain: "www" } do |inner|
-        expected = { conditions: { method: :get, domain: "www" } }
+      outer.with_options conditions: { domain: 'www' } do |inner|
+        expected = { conditions: { method: :get, domain: 'www' } }
         assert_equal expected, inner.method_with_options
       end
     end
   end
 
   def test_nested_method_with_options_containing_hashes_overwrite
-    with_options conditions: { method: :get, domain: "www" } do |outer|
+    with_options conditions: { method: :get, domain: 'www' } do |outer|
       outer.with_options conditions: { method: :post } do |inner|
-        expected = { conditions: { method: :post, domain: "www" } }
+        expected = { conditions: { method: :post, domain: 'www' } }
         assert_equal expected, inner.method_with_options
       end
     end
   end
 
   def test_nested_method_with_options_containing_hashes_going_deep
-    with_options html: { class: "foo", style: { margin: 0, display: "block" } } do |outer|
-      outer.with_options html: { title: "bar", style: { margin: "1em", color: "#fff" } } do |inner|
-        expected = { html: { class: "foo", title: "bar", style: { margin: "1em", display: "block", color: "#fff" } } }
+    with_options html: { class: 'foo', style: { margin: 0, display: 'block' } } do |outer|
+      outer.with_options html: { title: 'bar', style: { margin: '1em', color: '#fff' } } do |inner|
+        expected = { html: { class: 'foo', title: 'bar', style: { margin: '1em', display: 'block', color: '#fff' } } }
         assert_equal expected, inner.method_with_options
       end
     end
@@ -93,15 +93,15 @@ class OptionMergerTest < ActiveSupport::TestCase
 
   # Needed when counting objects with the ObjectSpace
   def test_option_merger_class_method
-    assert_equal ActiveSupport::OptionMerger, ActiveSupport::OptionMerger.new("", "").class
+    assert_equal ActiveSupport::OptionMerger, ActiveSupport::OptionMerger.new('', '').class
   end
 
   def test_option_merger_implicit_receiver
-    @options.with_options foo: "bar" do
-      merge! fizz: "buzz"
+    @options.with_options foo: 'bar' do
+      merge! fizz: 'buzz'
     end
 
-    expected = { hello: "world", foo: "bar", fizz: "buzz" }
+    expected = { hello: 'world', foo: 'bar', fizz: 'buzz' }
     assert_equal expected, @options
   end
 

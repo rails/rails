@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "active_support/log_subscriber/test_helper"
-require "action_controller/log_subscriber"
+require 'abstract_unit'
+require 'active_support/log_subscriber/test_helper'
+require 'action_controller/log_subscriber'
 
 module Another
   class LogSubscribersController < ActionController::Base
@@ -25,19 +25,19 @@ module Another
     end
 
     def redirector
-      redirect_to "http://foo.bar/"
+      redirect_to 'http://foo.bar/'
     end
 
     def filterable_redirector
-      redirect_to "http://secret.foo.bar/"
+      redirect_to 'http://secret.foo.bar/'
     end
 
     def data_sender
-      send_data "cool data", filename: "file.txt"
+      send_data 'cool data', filename: 'file.txt'
     end
 
     def file_sender
-      send_file File.expand_path("company.rb", FIXTURE_LOAD_PATH)
+      send_file File.expand_path('company.rb', FIXTURE_LOAD_PATH)
     end
 
     def with_fragment_cache
@@ -78,7 +78,7 @@ module Another
 
     def append_info_to_payload(payload)
       super
-      payload[:test_key] = "test_value"
+      payload[:test_key] = 'test_value'
       @last_payload = payload
     end
 
@@ -118,28 +118,28 @@ class ACLogSubscriberTest < ActionController::TestCase
     get :show
     wait
     assert_equal 2, logs.size
-    assert_equal "Processing by Another::LogSubscribersController#show as HTML", logs.first
+    assert_equal 'Processing by Another::LogSubscribersController#show as HTML', logs.first
   end
 
   def test_start_processing_as_json
-    get :show, format: "json"
+    get :show, format: 'json'
     wait
     assert_equal 2, logs.size
-    assert_equal "Processing by Another::LogSubscribersController#show as JSON", logs.first
+    assert_equal 'Processing by Another::LogSubscribersController#show as JSON', logs.first
   end
 
   def test_start_processing_as_non_exten
-    get :show, format: "noext"
+    get :show, format: 'noext'
     wait
     assert_equal 2, logs.size
-    assert_equal "Processing by Another::LogSubscribersController#show as */*", logs.first
+    assert_equal 'Processing by Another::LogSubscribersController#show as */*', logs.first
   end
 
   def test_halted_callback
     get :never_executed
     wait
     assert_equal 4, logs.size
-    assert_equal "Filter chain halted as :redirector rendered or redirected", logs.third
+    assert_equal 'Filter chain halted as :redirector rendered or redirected', logs.third
   end
 
   def test_process_action
@@ -157,7 +157,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_process_action_with_parameters
-    get :show, params: { id: "10" }
+    get :show, params: { id: '10' }
     wait
 
     assert_equal 3, logs.size
@@ -165,8 +165,8 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_multiple_process_with_parameters
-    get :show, params: { id: "10" }
-    get :show, params: { id: "20" }
+    get :show, params: { id: '10' }
+    get :show, params: { id: '20' }
 
     wait
 
@@ -176,8 +176,8 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_process_action_with_wrapped_parameters
-    @request.env["CONTENT_TYPE"] = "application/json"
-    post :show, params: { id: "10", name: "jose" }
+    @request.env['CONTENT_TYPE'] = 'application/json'
+    post :show, params: { id: '10', name: 'jose' }
     wait
 
     assert_equal 3, logs.size
@@ -197,20 +197,20 @@ class ACLogSubscriberTest < ActionController::TestCase
     rescue Exception
     end
 
-    assert_equal "test_value", @controller.last_payload[:test_key]
+    assert_equal 'test_value', @controller.last_payload[:test_key]
   end
 
   def test_process_action_headers
     get :show
     wait
-    assert_equal "Rails Testing", @controller.last_payload[:headers]["User-Agent"]
+    assert_equal 'Rails Testing', @controller.last_payload[:headers]['User-Agent']
   end
 
   def test_process_action_with_filter_parameters
-    @request.env["action_dispatch.parameter_filter"] = [:lifo, :amount]
+    @request.env['action_dispatch.parameter_filter'] = [:lifo, :amount]
 
     get :show, params: {
-      lifo: "Pratik", amount: "420", step: "1"
+      lifo: 'Pratik', amount: '420', step: '1'
     }
     wait
 
@@ -225,26 +225,26 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 3, logs.size
-    assert_equal "Redirected to http://foo.bar/", logs[1]
+    assert_equal 'Redirected to http://foo.bar/', logs[1]
     assert_match(/Completed 302/, logs.last)
   end
 
   def test_filter_redirect_url_by_string
-    @request.env["action_dispatch.redirect_filter"] = ["secret"]
+    @request.env['action_dispatch.redirect_filter'] = ['secret']
     get :filterable_redirector
     wait
 
     assert_equal 3, logs.size
-    assert_equal "Redirected to [FILTERED]", logs[1]
+    assert_equal 'Redirected to [FILTERED]', logs[1]
   end
 
   def test_filter_redirect_url_by_regexp
-    @request.env["action_dispatch.redirect_filter"] = [/secret\.foo.+/]
+    @request.env['action_dispatch.redirect_filter'] = [/secret\.foo.+/]
     get :filterable_redirector
     wait
 
     assert_equal 3, logs.size
-    assert_equal "Redirected to [FILTERED]", logs[1]
+    assert_equal 'Redirected to [FILTERED]', logs[1]
   end
 
   def test_send_data
@@ -279,7 +279,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 2, logs.size
-    assert_equal "Processing by Another::LogSubscribersController#with_fragment_cache as HTML", logs[0]
+    assert_equal 'Processing by Another::LogSubscribersController#with_fragment_cache as HTML', logs[0]
     assert_match(/Completed 200 OK in \d+ms/, logs[1])
     ActionController::Base.enable_fragment_cache_logging = true
   end

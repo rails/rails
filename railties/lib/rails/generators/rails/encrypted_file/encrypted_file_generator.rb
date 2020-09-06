@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "rails/generators/base"
-require "active_support/encrypted_file"
+require 'rails/generators/base'
+require 'active_support/encrypted_file'
 
 module Rails
   module Generators
@@ -11,7 +11,7 @@ module Rails
           ActiveSupport::EncryptedFile.new(
             content_path: file_path,
             key_path: key_path,
-            env_key: "RAILS_MASTER_KEY",
+            env_key: 'RAILS_MASTER_KEY',
             raise_if_missing_key: true
           ).write(template)
         end

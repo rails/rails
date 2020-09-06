@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/schema_dumping_helper"
+require 'cases/helper'
+require 'support/schema_dumping_helper'
 
 module ActiveRecord
   class Migration
@@ -29,7 +29,7 @@ module ActiveRecord
       end
 
       def test_migration_doesnt_remove_named_index
-        connection.add_index :testings, :foo, name: "custom_index_name"
+        connection.add_index :testings, :foo, name: 'custom_index_name'
 
         migration = Class.new(ActiveRecord::Migration[4.2]) {
           def version; 101 end
@@ -38,9 +38,9 @@ module ActiveRecord
           end
         }.new
 
-        assert connection.index_exists?(:testings, :foo, name: "custom_index_name")
+        assert connection.index_exists?(:testings, :foo, name: 'custom_index_name')
         assert_raise(StandardError) { ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate }
-        assert connection.index_exists?(:testings, :foo, name: "custom_index_name")
+        assert connection.index_exists?(:testings, :foo, name: 'custom_index_name')
       end
 
       def test_migration_does_remove_unnamed_index
@@ -202,7 +202,7 @@ module ActiveRecord
 
       def test_legacy_migrations_raises_exception_when_inherited
         e = assert_raises(StandardError) do
-          class_eval("class LegacyMigration < ActiveRecord::Migration; end")
+          class_eval('class LegacyMigration < ActiveRecord::Migration; end')
         end
         assert_match(/LegacyMigration < ActiveRecord::Migration\[4\.2\]/, e.message)
       end
@@ -211,7 +211,7 @@ module ActiveRecord
         migration = Class.new(ActiveRecord::Migration[5.2]) {
           def change
             transaction do
-              execute "select 1"
+              execute 'select 1'
             end
           end
         }.new
@@ -226,27 +226,27 @@ module ActiveRecord
           migration = Class.new(ActiveRecord::Migration[5.2]) {
             def migrate(x)
               revert do
-                change_column_comment(:testings, :foo, "comment")
+                change_column_comment(:testings, :foo, 'comment')
               end
             end
           }.new
 
           ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
-          assert connection.column_exists?(:testings, :foo, comment: "comment")
+          assert connection.column_exists?(:testings, :foo, comment: 'comment')
         end
 
         def test_change_table_comment_can_be_reverted
           migration = Class.new(ActiveRecord::Migration[5.2]) {
             def migrate(x)
               revert do
-                change_table_comment(:testings, "comment")
+                change_table_comment(:testings, 'comment')
               end
             end
           }.new
 
           ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
-          assert_equal "comment", connection.table_comment("testings")
+          assert_equal 'comment', connection.table_comment('testings')
         end
       end
 
@@ -257,13 +257,13 @@ module ActiveRecord
         def test_legacy_change_column_with_null_executes_update
           migration = Class.new(ActiveRecord::Migration[5.1]) {
             def migrate(x)
-              change_column :testings, :foo, :string, limit: 10, null: false, default: "foobar"
+              change_column :testings, :foo, :string, limit: 10, null: false, default: 'foobar'
             end
           }.new
 
           Testing.create!
           ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
-          assert_equal ["foobar"], Testing.all.map(&:foo)
+          assert_equal ['foobar'], Testing.all.map(&:foo)
         ensure
           ActiveRecord::Base.clear_cache!
         end
@@ -313,7 +313,7 @@ module LegacyPrimaryKeyTestCases
 
     assert_legacy_primary_key
 
-    legacy_ref = LegacyPrimaryKey.columns_hash["legacy_ref_id"]
+    legacy_ref = LegacyPrimaryKey.columns_hash['legacy_ref_id']
     assert_not_predicate legacy_ref, :bigint?
 
     record1 = LegacyPrimaryKey.create!
@@ -342,7 +342,7 @@ module LegacyPrimaryKeyTestCases
       LegacyPrimaryKey.create!
     end
 
-    schema = dump_table_schema "legacy_primary_keys"
+    schema = dump_table_schema 'legacy_primary_keys'
     assert_match %r{create_table "legacy_primary_keys", id: :integer, default: nil}, schema
   end
 
@@ -402,7 +402,7 @@ module LegacyPrimaryKeyTestCases
 
     @migration.migrate(:up)
 
-    schema = dump_table_schema "apples_bananas"
+    schema = dump_table_schema 'apples_bananas'
     assert_match %r{integer "apple_id", null: false}, schema
     assert_match %r{integer "banana_id", null: false}, schema
   end
@@ -417,7 +417,7 @@ module LegacyPrimaryKeyTestCases
 
     @migration.migrate(:up)
 
-    schema = dump_table_schema "apples_bananas"
+    schema = dump_table_schema 'apples_bananas'
     assert_match %r{bigint "apple_id", null: false}, schema
     assert_match %r{bigint "banana_id", null: false}, schema
   end
@@ -432,11 +432,11 @@ module LegacyPrimaryKeyTestCases
 
       @migration.migrate(:up)
 
-      legacy_pk = LegacyPrimaryKey.columns_hash["id"]
+      legacy_pk = LegacyPrimaryKey.columns_hash['id']
       assert_predicate legacy_pk, :bigint?
       assert_predicate legacy_pk, :auto_increment?
 
-      schema = dump_table_schema "legacy_primary_keys"
+      schema = dump_table_schema 'legacy_primary_keys'
       assert_match %r{create_table "legacy_primary_keys", (?!id: :bigint, default: nil)}, schema
     end
   else
@@ -454,23 +454,23 @@ module LegacyPrimaryKeyTestCases
         LegacyPrimaryKey.create!
       end
 
-      schema = dump_table_schema "legacy_primary_keys"
+      schema = dump_table_schema 'legacy_primary_keys'
       assert_match %r{create_table "legacy_primary_keys", id: :bigint, default: nil}, schema
     end
   end
 
   private
     def assert_legacy_primary_key
-      assert_equal "id", LegacyPrimaryKey.primary_key
+      assert_equal 'id', LegacyPrimaryKey.primary_key
 
-      legacy_pk = LegacyPrimaryKey.columns_hash["id"]
+      legacy_pk = LegacyPrimaryKey.columns_hash['id']
 
       assert_equal :integer, legacy_pk.type
       assert_not_predicate legacy_pk, :bigint?
       assert_not legacy_pk.null
 
       if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
-        schema = dump_table_schema "legacy_primary_keys"
+        schema = dump_table_schema 'legacy_primary_keys'
         assert_match %r{create_table "legacy_primary_keys", id: :(?:integer|serial), (?!default: nil)}, schema
       end
     end

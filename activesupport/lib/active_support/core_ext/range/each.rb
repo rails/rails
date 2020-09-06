@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/time_with_zone"
+require 'active_support/time_with_zone'
 
 module ActiveSupport
   module EachTimeWithZone #:nodoc:

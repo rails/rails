@@ -5,13 +5,13 @@ module Rails::Command::CredentialsCommand::Diffing # :nodoc:
     if enrolled?
       true
     else
-      gitattributes.write(<<~end_of_template, mode: "a")
+      gitattributes.write(<<~end_of_template, mode: 'a')
         config/credentials/*.yml.enc diff=rails_credentials
         config/credentials.yml.enc diff=rails_credentials
       end_of_template
 
-      say "Project successfully enrolled!"
-      say "Rails ensures the rails_credentials diff driver is set when running `credentials:edit`. See `credentials:help` for more."
+      say 'Project successfully enrolled!'
+      say 'Rails ensures the rails_credentials diff driver is set when running `credentials:edit`. See `credentials:help` for more.'
     end
   end
 
@@ -27,15 +27,15 @@ module Rails::Command::CredentialsCommand::Diffing # :nodoc:
     end
 
     def driver_configured?
-      system "git config --get diff.rails_credentials.textconv", out: File::NULL
+      system 'git config --get diff.rails_credentials.textconv', out: File::NULL
     end
 
     def set_driver
-      puts "running"
+      puts 'running'
       system "git config diff.rails_credentials.textconv 'bin/rails credentials:diff'"
     end
 
     def gitattributes
-      Rails.root.join(".gitattributes")
+      Rails.root.join('.gitattributes')
     end
 end

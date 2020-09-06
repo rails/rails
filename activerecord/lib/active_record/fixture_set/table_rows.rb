@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_record/fixture_set/table_row"
-require "active_record/fixture_set/model_metadata"
+require 'active_record/fixture_set/table_row'
+require 'active_record/fixture_set/model_metadata'
 
 module ActiveRecord
   class FixtureSet

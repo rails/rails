@@ -84,7 +84,7 @@ module ActionDispatch
 
     private
       def set_hsts_header!(headers)
-        headers["Strict-Transport-Security"] ||= @hsts_header
+        headers['Strict-Transport-Security'] ||= @hsts_header
       end
 
       def normalize_hsts_options(options)
@@ -104,16 +104,16 @@ module ActionDispatch
       # https://tools.ietf.org/html/rfc6797#section-6.1
       def build_hsts_header(hsts)
         value = +"max-age=#{hsts[:expires].to_i}"
-        value << "; includeSubDomains" if hsts[:subdomains]
-        value << "; preload" if hsts[:preload]
+        value << '; includeSubDomains' if hsts[:subdomains]
+        value << '; preload' if hsts[:preload]
         value
       end
 
       def flag_cookies_as_secure!(headers)
-        if cookies = headers["Set-Cookie"]
+        if cookies = headers['Set-Cookie']
           cookies = cookies.split("\n")
 
-          headers["Set-Cookie"] = cookies.map { |cookie|
+          headers['Set-Cookie'] = cookies.map { |cookie|
             if !/;\s*secure\s*(;|$)/i.match?(cookie)
               "#{cookie}; secure"
             else
@@ -125,8 +125,8 @@ module ActionDispatch
 
       def redirect_to_https(request)
         [ @redirect.fetch(:status, redirection_status(request)),
-          { "Content-Type" => "text/html",
-            "Location" => https_location_for(request) },
+          { 'Content-Type' => 'text/html',
+            'Location' => https_location_for(request) },
           (@redirect[:body] || []) ]
       end
 

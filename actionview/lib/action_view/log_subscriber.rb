@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/log_subscriber"
+require 'active_support/log_subscriber'
 
 module ActionView
   # = Action View Log Subscriber
@@ -40,7 +40,7 @@ module ActionView
     end
 
     def render_collection(event)
-      identifier = event.payload[:identifier] || "templates"
+      identifier = event.payload[:identifier] || 'templates'
 
       debug do
         message = +"  Rendered collection of #{from_rails_root(identifier)}"
@@ -61,7 +61,7 @@ module ActionView
     end
 
   private
-    EMPTY = ""
+    EMPTY = ''
     def from_rails_root(string) # :doc:
       string = string.sub(rails_root, EMPTY)
       string.sub!(VIEWS_PATTERN, EMPTY)
@@ -83,19 +83,19 @@ module ActionView
     def cache_message(payload) # :doc:
       case payload[:cache_hit]
       when :hit
-        "[cache hit]"
+        '[cache hit]'
       when :miss
-        "[cache miss]"
+        '[cache miss]'
       end
     end
 
     def log_rendering_start(payload, name)
       debug do
         qualifier =
-          if name == "render_template.action_view"
-            ""
-          elsif name == "render_layout.action_view"
-            "layout "
+          if name == 'render_template.action_view'
+            ''
+          elsif name == 'render_layout.action_view'
+            'layout '
           end
 
         return unless qualifier

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "tmpdir"
+require 'abstract_unit'
+require 'tmpdir'
 
 module PluginTestHelper
   def create_test_file(name, pass: true)
@@ -17,7 +17,7 @@ module PluginTestHelper
     RUBY
   end
 
-  def plugin_file(path, contents, mode: "w")
+  def plugin_file(path, contents, mode: 'w')
     FileUtils.mkdir_p File.dirname("#{plugin_path}/#{path}")
     File.open("#{plugin_path}/#{path}", mode) do |f|
       f.puts contents

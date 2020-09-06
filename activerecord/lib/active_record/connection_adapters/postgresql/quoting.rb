@@ -50,8 +50,8 @@ module ActiveRecord
         # Quote date/time values for use in SQL input.
         def quoted_date(value) #:nodoc:
           if value.year <= 0
-            bce_year = format("%04d", -value.year + 1)
-            super.sub(/^-?\d+/, bce_year) + " BC"
+            bce_year = format('%04d', -value.year + 1)
+            super.sub(/^-?\d+/, bce_year) + ' BC'
           else
             super
           end
@@ -117,7 +117,7 @@ module ActiveRecord
 
         private
           def lookup_cast_type(sql_type)
-            super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
+            super(query_value("SELECT #{quote(sql_type)}::regtype::oid", 'SCHEMA').to_i)
           end
 
           def _quote(value)
@@ -193,7 +193,7 @@ module ActiveRecord
           end
 
           def type_cast_range_value(value)
-            infinity?(value) ? "" : type_cast(value)
+            infinity?(value) ? '' : type_cast(value)
           end
 
           def infinity?(value)

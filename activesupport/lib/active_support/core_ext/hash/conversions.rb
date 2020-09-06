@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "active_support/xml_mini"
-require "active_support/core_ext/object/blank"
-require "active_support/core_ext/object/to_param"
-require "active_support/core_ext/object/to_query"
-require "active_support/core_ext/object/try"
-require "active_support/core_ext/array/wrap"
-require "active_support/core_ext/hash/reverse_merge"
-require "active_support/core_ext/string/inflections"
+require 'active_support/xml_mini'
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/object/to_param'
+require 'active_support/core_ext/object/to_query'
+require 'active_support/core_ext/object/try'
+require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/hash/reverse_merge'
+require 'active_support/core_ext/string/inflections'
 
 class Hash
   # Returns a string containing an XML representation of its receiver:
@@ -73,11 +73,11 @@ class Hash
   # configure your own builder with the <tt>:builder</tt> option. The method also accepts
   # options like <tt>:dasherize</tt> and friends, they are forwarded to the builder.
   def to_xml(options = {})
-    require "active_support/builder" unless defined?(Builder::XmlMarkup)
+    require 'active_support/builder' unless defined?(Builder::XmlMarkup)
 
     options = options.dup
     options[:indent]  ||= 2
-    options[:root]    ||= "hash"
+    options[:root]    ||= 'hash'
     options[:builder] ||= Builder::XmlMarkup.new(indent: options[:indent])
 
     builder = options[:builder]
@@ -162,7 +162,7 @@ module ActiveSupport
       def normalize_keys(params)
         case params
         when Hash
-          Hash[params.map { |k, v| [k.to_s.tr("-", "_"), normalize_keys(v)] } ]
+          Hash[params.map { |k, v| [k.to_s.tr('-', '_'), normalize_keys(v)] } ]
         when Array
           params.map { |v| normalize_keys(v) }
         else
@@ -184,13 +184,13 @@ module ActiveSupport
       end
 
       def process_hash(value)
-        if value.include?("type") && !value["type"].is_a?(Hash) && @disallowed_types.include?(value["type"])
-          raise DisallowedType, value["type"]
+        if value.include?('type') && !value['type'].is_a?(Hash) && @disallowed_types.include?(value['type'])
+          raise DisallowedType, value['type']
         end
 
         if become_array?(value)
           _, entries = Array.wrap(value.detect { |k, v| not v.is_a?(String) })
-          if entries.nil? || value["__content__"].try(:empty?)
+          if entries.nil? || value['__content__'].try(:empty?)
             []
           else
             case entries
@@ -206,28 +206,28 @@ module ActiveSupport
           process_content(value)
 
         elsif become_empty_string?(value)
-          ""
+          ''
         elsif become_hash?(value)
           xml_value = value.transform_values { |v| deep_to_h(v) }
 
           # Turn { files: { file: #<StringIO> } } into { files: #<StringIO> } so it is compatible with
           # how multipart uploaded files from HTML appear
-          xml_value["file"].is_a?(StringIO) ? xml_value["file"] : xml_value
+          xml_value['file'].is_a?(StringIO) ? xml_value['file'] : xml_value
         end
       end
 
       def become_content?(value)
-        value["type"] == "file" || (value["__content__"] && (value.keys.size == 1 || value["__content__"].present?))
+        value['type'] == 'file' || (value['__content__'] && (value.keys.size == 1 || value['__content__'].present?))
       end
 
       def become_array?(value)
-        value["type"] == "array"
+        value['type'] == 'array'
       end
 
       def become_empty_string?(value)
         # { "string" => true }
         # No tests fail when the second term is removed.
-        value["type"] == "string" && value["nil"] != "true"
+        value['type'] == 'string' && value['nil'] != 'true'
       end
 
       def become_hash?(value)
@@ -236,19 +236,19 @@ module ActiveSupport
 
       def nothing?(value)
         # blank or nil parsed values are represented by nil
-        value.blank? || value["nil"] == "true"
+        value.blank? || value['nil'] == 'true'
       end
 
       def garbage?(value)
         # If the type is the only element which makes it then
         # this still makes the value nil, except if type is
         # an XML node(where type['value'] is a Hash)
-        value["type"] && !value["type"].is_a?(::Hash) && value.size == 1
+        value['type'] && !value['type'].is_a?(::Hash) && value.size == 1
       end
 
       def process_content(value)
-        content = value["__content__"]
-        if parser = ActiveSupport::XmlMini::PARSING[value["type"]]
+        content = value['__content__']
+        if parser = ActiveSupport::XmlMini::PARSING[value['type']]
           parser.arity == 1 ? parser.call(content) : parser.call(content, value)
         else
           content

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/big_decimal/conversions"
-require "active_support/multibyte/chars"
+require 'active_support/core_ext/big_decimal/conversions'
+require 'active_support/multibyte/chars'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -94,7 +94,7 @@ module ActiveRecord
       end
 
       def quoted_true
-        "TRUE"
+        'TRUE'
       end
 
       def unquoted_true
@@ -102,7 +102,7 @@ module ActiveRecord
       end
 
       def quoted_false
-        "FALSE"
+        'FALSE'
       end
 
       def unquoted_false
@@ -122,7 +122,7 @@ module ActiveRecord
 
         result = value.to_s(:db)
         if value.respond_to?(:usec) && value.usec > 0
-          result << "." << sprintf("%06d", value.usec)
+          result << '.' << sprintf('%06d', value.usec)
         else
           result
         end
@@ -130,7 +130,7 @@ module ActiveRecord
 
       def quoted_time(value) # :nodoc:
         value = value.change(year: 2000, month: 1, day: 1)
-        quoted_date(value).sub(/\A\d\d\d\d-\d\d-\d\d /, "")
+        quoted_date(value).sub(/\A\d\d\d\d-\d\d-\d\d /, '')
       end
 
       def quoted_binary(value) # :nodoc:
@@ -138,7 +138,7 @@ module ActiveRecord
       end
 
       def sanitize_as_sql_comment(value) # :nodoc:
-        value.to_s.gsub(%r{ (/ (?: | \g<1>) \*) \+? \s* | \s* (\* (?: | \g<2>) /) }x, "")
+        value.to_s.gsub(%r{ (/ (?: | \g<1>) \*) \+? \s* | \s* (\* (?: | \g<2>) /) }x, '')
       end
 
       def column_name_matcher # :nodoc:
@@ -220,9 +220,9 @@ module ActiveRecord
             "'#{quote_string(value.to_s)}'"
           when true       then quoted_true
           when false      then quoted_false
-          when nil        then "NULL"
+          when nil        then 'NULL'
           # BigDecimals need to be put in a non-normalized form and quoted.
-          when BigDecimal then value.to_s("F")
+          when BigDecimal then value.to_s('F')
           when Numeric, ActiveSupport::Duration then value.to_s
           when Type::Binary::Data then quoted_binary(value)
           when Type::Time::Value then "'#{quoted_time(value)}'"
@@ -239,7 +239,7 @@ module ActiveRecord
           when true       then unquoted_true
           when false      then unquoted_false
           # BigDecimals need to be put in a non-normalized form and quoted.
-          when BigDecimal then value.to_s("F")
+          when BigDecimal then value.to_s('F')
           when nil, Numeric, String then value
           when Type::Time::Value then quoted_time(value)
           when Date, Time then quoted_date(value)

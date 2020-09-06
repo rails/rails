@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "test_helper"
-require "database/setup"
+require 'test_helper'
+require 'database/setup'
 
 class ActiveStorage::PurgeJobTest < ActiveJob::TestCase
   setup { @blob = create_blob }
 
-  test "purges" do
+  test 'purges' do
     assert_difference -> { ActiveStorage::Blob.count }, -1 do
       ActiveStorage::PurgeJob.perform_now @blob
     end
@@ -15,7 +15,7 @@ class ActiveStorage::PurgeJobTest < ActiveJob::TestCase
     assert_not ActiveStorage::Blob.service.exist?(@blob.key)
   end
 
-  test "ignores missing blob" do
+  test 'ignores missing blob' do
     @blob.purge
 
     perform_enqueued_jobs do

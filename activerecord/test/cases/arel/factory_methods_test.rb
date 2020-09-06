@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "helper"
+require_relative 'helper'
 
 module Arel
   module FactoryMethods
@@ -38,7 +38,7 @@ module Arel
       def test_lower
         lower = @factory.lower :one
         assert_instance_of Nodes::NamedFunction, lower
-        assert_equal "LOWER", lower.name
+        assert_equal 'LOWER', lower.name
         assert_equal [:one], lower.expressions.map(&:expr)
       end
     end

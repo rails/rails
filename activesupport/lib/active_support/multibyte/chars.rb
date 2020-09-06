@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "active_support/json"
-require "active_support/core_ext/string/access"
-require "active_support/core_ext/string/behavior"
-require "active_support/core_ext/symbol/starts_ends_with"
-require "active_support/core_ext/module/delegation"
+require 'active_support/json'
+require 'active_support/core_ext/string/access'
+require 'active_support/core_ext/string/behavior'
+require 'active_support/core_ext/symbol/starts_ends_with'
+require 'active_support/core_ext/module/delegation'
 
 module ActiveSupport #:nodoc:
   module Multibyte #:nodoc:
@@ -60,7 +60,7 @@ module ActiveSupport #:nodoc:
       # Forward all undefined methods to the wrapped string.
       def method_missing(method, *args, &block)
         result = @wrapped_string.__send__(method, *args, &block)
-        if method.end_with?("!")
+        if method.end_with?('!')
           self if result
         else
           result.kind_of?(String) ? chars(result) : result
@@ -168,7 +168,7 @@ module ActiveSupport #:nodoc:
       #   'é'.length                         # => 2
       #   'é'.mb_chars.decompose.to_s.length # => 3
       def decompose
-        chars(Unicode.decompose(:canonical, @wrapped_string.codepoints.to_a).pack("U*"))
+        chars(Unicode.decompose(:canonical, @wrapped_string.codepoints.to_a).pack('U*'))
       end
 
       # Performs composition on all the characters.
@@ -176,7 +176,7 @@ module ActiveSupport #:nodoc:
       #   'é'.length                       # => 3
       #   'é'.mb_chars.compose.to_s.length # => 2
       def compose
-        chars(Unicode.compose(@wrapped_string.codepoints.to_a).pack("U*"))
+        chars(Unicode.compose(@wrapped_string.codepoints.to_a).pack('U*'))
       end
 
       # Returns the number of grapheme clusters in the string.

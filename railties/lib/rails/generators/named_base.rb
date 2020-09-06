@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "rails/generators/base"
-require "rails/generators/generated_attribute"
+require 'rails/generators/base'
+require 'rails/generators/generated_attribute'
 
 module Rails
   module Generators
@@ -27,7 +27,7 @@ module Rails
         end
 
         def js_template(source, destination)
-          template(source + ".js", destination + ".js")
+          template(source + '.js', destination + '.js')
         end
       end
 
@@ -52,7 +52,7 @@ module Rails
         end
 
         def file_path # :doc:
-          @file_path ||= (class_path + [file_name]).join("/")
+          @file_path ||= (class_path + [file_name]).join('/')
         end
 
         def class_path # :doc:
@@ -68,7 +68,7 @@ module Rails
         end
 
         def class_name # :doc:
-          (class_path + [file_name]).map!(&:camelize).join("::")
+          (class_path + [file_name]).map!(&:camelize).join('::')
         end
 
         def human_name # :doc:
@@ -80,13 +80,13 @@ module Rails
         end
 
         def i18n_scope # :doc:
-          @i18n_scope ||= file_path.tr("/", ".")
+          @i18n_scope ||= file_path.tr('/', '.')
         end
 
         def table_name # :doc:
           @table_name ||= begin
             base = pluralize_table_names? ? plural_name : singular_name
-            (class_path + [base]).join("_")
+            (class_path + [base]).join('_')
           end
         end
 
@@ -127,27 +127,27 @@ module Rails
         end
 
         def route_url # :doc:
-          @route_url ||= class_path.collect { |dname| "/" + dname }.join + "/" + plural_file_name
+          @route_url ||= class_path.collect { |dname| '/' + dname }.join + '/' + plural_file_name
         end
 
         def url_helper_prefix # :doc:
-          @url_helper_prefix ||= (class_path + [file_name]).join("_")
+          @url_helper_prefix ||= (class_path + [file_name]).join('_')
         end
 
         # Tries to retrieve the application name or simply return application.
         def application_name # :doc:
           if defined?(Rails) && Rails.application
-            Rails.application.class.name.split("::").first.underscore
+            Rails.application.class.name.split('::').first.underscore
           else
-            "application"
+            'application'
           end
         end
 
         def redirect_resource_name # :doc:
-          model_resource_name(prefix: "@")
+          model_resource_name(prefix: '@')
         end
 
-        def model_resource_name(prefix: "") # :doc:
+        def model_resource_name(prefix: '') # :doc:
           resource_name = "#{prefix}#{singular_table_name}"
           if options[:model_name]
             "[#{controller_class_path.map { |name| ":" + name }.join(", ")}, #{resource_name}]"
@@ -173,7 +173,7 @@ module Rails
         end
 
         def assign_names!(name)
-          @class_path = name.include?("/") ? name.split("/") : name.split("::")
+          @class_path = name.include?('/') ? name.split('/') : name.split('::')
           @class_path.map!(&:underscore)
           @file_name = @class_path.pop
         end
@@ -188,7 +188,7 @@ module Rails
         def attributes_names # :doc:
           @attributes_names ||= attributes.each_with_object([]) do |a, names|
             names << a.column_name
-            names << "password_confirmation" if a.password_digest?
+            names << 'password_confirmation' if a.password_digest?
             names << "#{a.name}_type" if a.polymorphic?
           end
         end

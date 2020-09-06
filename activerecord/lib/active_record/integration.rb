@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/filters"
+require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
   module Integration
@@ -97,15 +97,15 @@ module ActiveRecord
     def cache_version
       return unless cache_versioning
 
-      if has_attribute?("updated_at")
+      if has_attribute?('updated_at')
         timestamp = updated_at_before_type_cast
         if can_use_fast_cache_version?(timestamp)
           raw_timestamp_to_cache_version(timestamp)
         elsif timestamp = updated_at
           timestamp.utc.to_s(cache_timestamp_format)
         end
-      elsif self.class.has_attribute?("updated_at")
-        raise ActiveModel::MissingAttributeError, "missing attribute: updated_at"
+      elsif self.class.has_attribute?('updated_at')
+        raise ActiveModel::MissingAttributeError, 'missing attribute: updated_at'
       end
     end
 
@@ -150,7 +150,7 @@ module ActiveRecord
           define_method :to_param do
             if (default = super()) &&
                  (result = send(method_name).to_s).present? &&
-                   (param = result.squish.parameterize.truncate(20, separator: /-/, omission: "")).present?
+                   (param = result.squish.parameterize.truncate(20, separator: /-/, omission: '')).present?
               "#{default}-#{param}"
             else
               default
@@ -194,9 +194,9 @@ module ActiveRecord
       # https://github.com/postgres/postgres/commit/3e1beda2cde3495f41290e1ece5d544525810214
       # to account for this we pad the output with zeros
       def raw_timestamp_to_cache_version(timestamp)
-        key = timestamp.delete("- :.")
+        key = timestamp.delete('- :.')
         if key.length < 20
-          key.ljust(20, "0")
+          key.ljust(20, '0')
         else
           key
         end

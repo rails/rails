@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "set"
+require 'set'
 
 module ActionCable
   module Connection
@@ -40,7 +40,7 @@ module ActionCable
             else
               o.to_s
             end
-          end.sort.join(":")
+          end.sort.join(':')
         end
     end
   end

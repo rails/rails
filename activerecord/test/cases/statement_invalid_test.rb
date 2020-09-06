@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/book"
+require 'cases/helper'
+require 'models/book'
 
 module ActiveRecord
   class StatementInvalidTest < ActiveRecord::TestCase
@@ -17,18 +17,18 @@ module ActiveRecord
       end
     end
 
-    test "message contains no sql" do
-      sql = Book.where(author_id: 96, cover: "hard").to_sql
+    test 'message contains no sql' do
+      sql = Book.where(author_id: 96, cover: 'hard').to_sql
       error = assert_raises(ActiveRecord::StatementInvalid) do
         Book.connection.send(:log, sql, Book.name) do
           raise MockDatabaseError
         end
       end
-      assert_not error.message.include?("SELECT")
+      assert_not error.message.include?('SELECT')
     end
 
-    test "statement and binds are set on select" do
-      sql = Book.where(author_id: 96, cover: "hard").to_sql
+    test 'statement and binds are set on select' do
+      sql = Book.where(author_id: 96, cover: 'hard').to_sql
       binds = [Minitest::Mock.new, Minitest::Mock.new]
       error = assert_raises(ActiveRecord::StatementInvalid) do
         Book.connection.send(:log, sql, Book.name, binds) do

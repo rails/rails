@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/array/extract"
+require 'active_support/core_ext/array/extract'
 
 module ActiveRecord
   class Relation
@@ -182,7 +182,7 @@ module ActiveRecord
         def invert_predicate(node)
           case node
           when NilClass
-            raise ArgumentError, "Invalid argument for .where.not(), got nil."
+            raise ArgumentError, 'Invalid argument for .where.not(), got nil.'
           when String
             Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new(node))
           else
@@ -213,7 +213,7 @@ module ActiveRecord
           end
         end
 
-        ARRAY_WITH_EMPTY_STRING = [""]
+        ARRAY_WITH_EMPTY_STRING = ['']
         def non_empty_predicates
           predicates - ARRAY_WITH_EMPTY_STRING
         end

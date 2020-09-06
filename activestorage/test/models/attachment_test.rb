@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
-require "test_helper"
-require "database/setup"
-require "active_support/testing/method_call_assertions"
+require 'test_helper'
+require 'database/setup'
+require 'active_support/testing/method_call_assertions'
 
 class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
   setup do
-    @user = User.create!(name: "Josh")
+    @user = User.create!(name: 'Josh')
   end
 
   teardown { ActiveStorage::Blob.all.each(&:delete) }
 
-  test "analyzing a directly-uploaded blob after attaching it" do
-    blob = directly_upload_file_blob(filename: "racecar.jpg")
+  test 'analyzing a directly-uploaded blob after attaching it' do
+    blob = directly_upload_file_blob(filename: 'racecar.jpg')
     assert_not blob.analyzed?
 
     perform_enqueued_jobs do
@@ -26,8 +26,8 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_equal 2736, blob.metadata[:height]
   end
 
-  test "attaching a un-analyzable blob" do
-    blob = create_blob(filename: "blank.txt")
+  test 'attaching a un-analyzable blob' do
+    blob = create_blob(filename: 'blank.txt')
 
     assert_not_predicate blob, :analyzed?
 
@@ -38,8 +38,8 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_predicate blob.reload, :analyzed?
   end
 
-  test "mirroring a directly-uploaded blob after attaching it" do
-    with_service("mirror") do
+  test 'mirroring a directly-uploaded blob after attaching it' do
+    with_service('mirror') do
       blob = directly_upload_file_blob
       assert_not ActiveStorage::Blob.service.mirrors.second.exist?(blob.key)
 
@@ -51,39 +51,39 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     end
   end
 
-  test "directly-uploaded blob identification for one attached occurs before validation" do
-    blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
+  test 'directly-uploaded blob identification for one attached occurs before validation' do
+    blob = directly_upload_file_blob(filename: 'racecar.jpg', content_type: 'application/octet-stream')
 
-    assert_blob_identified_before_owner_validated(@user, blob, "image/jpeg") do
+    assert_blob_identified_before_owner_validated(@user, blob, 'image/jpeg') do
       @user.avatar.attach(blob)
     end
   end
 
-  test "directly-uploaded blob identification for many attached occurs before validation" do
-    blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
+  test 'directly-uploaded blob identification for many attached occurs before validation' do
+    blob = directly_upload_file_blob(filename: 'racecar.jpg', content_type: 'application/octet-stream')
 
-    assert_blob_identified_before_owner_validated(@user, blob, "image/jpeg") do
+    assert_blob_identified_before_owner_validated(@user, blob, 'image/jpeg') do
       @user.highlights.attach(blob)
     end
   end
 
-  test "directly-uploaded blob identification for one attached occurs outside transaction" do
-    blob = directly_upload_file_blob(filename: "racecar.jpg")
+  test 'directly-uploaded blob identification for one attached occurs outside transaction' do
+    blob = directly_upload_file_blob(filename: 'racecar.jpg')
 
     assert_blob_identified_outside_transaction(blob) do
       @user.avatar.attach(blob)
     end
   end
 
-  test "directly-uploaded blob identification for many attached occurs outside transaction" do
-    blob = directly_upload_file_blob(filename: "racecar.jpg")
+  test 'directly-uploaded blob identification for many attached occurs outside transaction' do
+    blob = directly_upload_file_blob(filename: 'racecar.jpg')
 
     assert_blob_identified_outside_transaction(blob) do
       @user.highlights.attach(blob)
     end
   end
 
-  test "getting a signed blob ID from an attachment" do
+  test 'getting a signed blob ID from an attachment' do
     blob = create_blob
     @user.avatar.attach(blob)
 
@@ -91,7 +91,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_equal blob, ActiveStorage::Blob.find_signed!(signed_id)
   end
 
-  test "signed blob ID backwards compatibility" do
+  test 'signed blob ID backwards compatibility' do
     blob = create_blob
     @user.avatar.attach(blob)
 

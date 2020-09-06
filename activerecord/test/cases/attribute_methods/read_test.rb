@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "active_support/core_ext/enumerable"
+require 'cases/helper'
+require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
   module AttributeMethods

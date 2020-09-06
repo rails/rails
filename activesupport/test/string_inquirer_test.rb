@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
+require_relative 'abstract_unit'
 
 class StringInquirerTest < ActiveSupport::TestCase
   def setup
-    @string_inquirer = ActiveSupport::StringInquirer.new("production")
+    @string_inquirer = ActiveSupport::StringInquirer.new('production')
   end
 
   def test_match
@@ -29,7 +29,7 @@ class StringInquirerTest < ActiveSupport::TestCase
         (name == :bar) || super
       end
     end
-    str = ActiveSupport::StringInquirer.new("hello")
+    str = ActiveSupport::StringInquirer.new('hello')
 
     assert_respond_to str, :are_you_ready?
     assert_respond_to str, :bar

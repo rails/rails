@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-require "action_pack"
-require "active_support"
-require "active_support/rails"
-require "active_support/i18n"
+require 'action_pack'
+require 'active_support'
+require 'active_support/rails'
+require 'active_support/i18n'
 
 module AbstractController
   extend ActiveSupport::Autoload
 
-  autoload :ActionNotFound, "abstract_controller/base"
+  autoload :ActionNotFound, 'abstract_controller/base'
   autoload :Base
   autoload :Caching
   autoload :Callbacks
   autoload :Collector
-  autoload :DoubleRenderError, "abstract_controller/rendering"
+  autoload :DoubleRenderError, 'abstract_controller/rendering'
   autoload :Helpers
   autoload :Logger
   autoload :Rendering

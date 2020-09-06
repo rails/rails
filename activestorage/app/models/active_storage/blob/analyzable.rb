@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_storage/analyzer/null_analyzer"
+require 'active_storage/analyzer/null_analyzer'
 
 module ActiveStorage::Blob::Analyzable
   # Extracts and stores metadata from the file associated with this blob using a relevant analyzer. Active Storage comes

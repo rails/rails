@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "active_support/xml_mini"
-require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/object/to_param"
-require "active_support/core_ext/object/to_query"
+require 'active_support/xml_mini'
+require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/object/to_param'
+require 'active_support/core_ext/object/to_query'
 
 class Array
   # Converts the array to a comma-separated sentence where the last element is
@@ -62,9 +62,9 @@ class Array
     options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
 
     default_connectors = {
-      words_connector: ", ",
-      two_words_connector: " and ",
-      last_word_connector: ", and "
+      words_connector: ', ',
+      two_words_connector: ' and ',
+      last_word_connector: ', and '
     }
     if defined?(I18n)
       i18n_connectors = I18n.translate(:'support.array', locale: options[:locale], default: {})
@@ -74,7 +74,7 @@ class Array
 
     case length
     when 0
-      +""
+      +''
     when 1
       +"#{self[0]}"
     when 2
@@ -94,9 +94,9 @@ class Array
     case format
     when :db
       if empty?
-        "null"
+        'null'
       else
-        collect(&:id).join(",")
+        collect(&:id).join(',')
       end
     else
       to_default_s
@@ -181,7 +181,7 @@ class Array
   #   </messages>
   #
   def to_xml(options = {})
-    require "active_support/builder" unless defined?(Builder::XmlMarkup)
+    require 'active_support/builder' unless defined?(Builder::XmlMarkup)
 
     options = options.dup
     options[:indent]  ||= 2
@@ -189,9 +189,9 @@ class Array
     options[:root]    ||= \
       if first.class != Hash && all? { |e| e.is_a?(first.class) }
         underscored = ActiveSupport::Inflector.underscore(first.class.name)
-        ActiveSupport::Inflector.pluralize(underscored).tr("/", "_")
+        ActiveSupport::Inflector.pluralize(underscored).tr('/', '_')
       else
-        "objects"
+        'objects'
       end
 
     builder = options[:builder]
@@ -199,7 +199,7 @@ class Array
 
     root = ActiveSupport::XmlMini.rename_key(options[:root].to_s, options)
     children = options.delete(:children) || root.singularize
-    attributes = options[:skip_types] ? {} : { type: "array" }
+    attributes = options[:skip_types] ? {} : { type: 'array' }
 
     if empty?
       builder.tag!(root, attributes)

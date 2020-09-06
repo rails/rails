@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "test_helper"
-require "database/setup"
+require 'test_helper'
+require 'database/setup'
 
-require "active_storage/analyzer/video_analyzer"
+require 'active_storage/analyzer/video_analyzer'
 
 class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
-  test "analyzing a video" do
-    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+  test 'analyzing a video' do
+    blob = create_file_blob(filename: 'video.mp4', content_type: 'video/mp4')
     metadata = extract_metadata_from(blob)
 
     assert_equal 640, metadata[:width]
@@ -17,8 +17,8 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert_not_includes metadata, :angle
   end
 
-  test "analyzing a rotated video" do
-    blob = create_file_blob(filename: "rotated_video.mp4", content_type: "video/mp4")
+  test 'analyzing a rotated video' do
+    blob = create_file_blob(filename: 'rotated_video.mp4', content_type: 'video/mp4')
     metadata = extract_metadata_from(blob)
 
     assert_equal 480, metadata[:width]
@@ -27,8 +27,8 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert_equal 90, metadata[:angle]
   end
 
-  test "analyzing a video with rectangular samples" do
-    blob = create_file_blob(filename: "video_with_rectangular_samples.mp4", content_type: "video/mp4")
+  test 'analyzing a video with rectangular samples' do
+    blob = create_file_blob(filename: 'video_with_rectangular_samples.mp4', content_type: 'video/mp4')
     metadata = extract_metadata_from(blob)
 
     assert_equal 1280, metadata[:width]
@@ -36,8 +36,8 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert_equal [16, 9], metadata[:display_aspect_ratio]
   end
 
-  test "analyzing a video with an undefined display aspect ratio" do
-    blob = create_file_blob(filename: "video_with_undefined_display_aspect_ratio.mp4", content_type: "video/mp4")
+  test 'analyzing a video with an undefined display aspect ratio' do
+    blob = create_file_blob(filename: 'video_with_undefined_display_aspect_ratio.mp4', content_type: 'video/mp4')
     metadata = extract_metadata_from(blob)
 
     assert_equal 640, metadata[:width]
@@ -45,8 +45,8 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert_nil metadata[:display_aspect_ratio]
   end
 
-  test "analyzing a video with a container-specified duration" do
-    blob = create_file_blob(filename: "video.webm", content_type: "video/webm")
+  test 'analyzing a video with a container-specified duration' do
+    blob = create_file_blob(filename: 'video.webm', content_type: 'video/webm')
     metadata = extract_metadata_from(blob)
 
     assert_equal 640, metadata[:width]
@@ -54,8 +54,8 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert_equal 5.229000, metadata[:duration]
   end
 
-  test "analyzing a video without a video stream" do
-    blob = create_file_blob(filename: "video_without_video_stream.mp4", content_type: "video/mp4")
+  test 'analyzing a video without a video stream' do
+    blob = create_file_blob(filename: 'video_without_video_stream.mp4', content_type: 'video/mp4')
     metadata = extract_metadata_from(blob)
 
     assert_not_includes metadata, :width

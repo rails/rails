@@ -1,5 +1,5 @@
 cache do
-  xml.title "Hello!"
+  xml.title 'Hello!'
 end
 
-xml.body cdata_section(render("formatted_partial"))
+xml.body cdata_section(render('formatted_partial'))

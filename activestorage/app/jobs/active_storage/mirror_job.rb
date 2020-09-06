@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/try"
+require 'active_support/core_ext/object/try'
 
 # Provides asynchronous mirroring of directly-uploaded blobs.
 class ActiveStorage::MirrorJob < ActiveStorage::BaseJob

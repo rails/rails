@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_model/error"
-require "forwardable"
+require 'active_model/error'
+require 'forwardable'
 
 module ActiveModel
   class NestedError < Error

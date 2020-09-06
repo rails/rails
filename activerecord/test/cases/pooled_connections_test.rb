@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/project"
-require "timeout"
+require 'cases/helper'
+require 'models/project'
+require 'timeout'
 
 class PooledConnectionsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false

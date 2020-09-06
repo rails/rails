@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "pathname"
-require "rails/generators/base"
-require "active_support/encrypted_file"
+require 'pathname'
+require 'rails/generators/base'
+require 'active_support/encrypted_file'
 
 module Rails
   module Generators
@@ -14,14 +14,14 @@ module Rails
           key = ActiveSupport::EncryptedFile.generate_key
 
           log "Adding #{key_path} to store the encryption key: #{key}"
-          log ""
-          log "Save this in a password manager your team can access."
-          log ""
-          log "If you lose the key, no one, including you, can access anything encrypted with it."
+          log ''
+          log 'Save this in a password manager your team can access.'
+          log ''
+          log 'If you lose the key, no one, including you, can access anything encrypted with it.'
 
-          log ""
+          log ''
           add_key_file_silently(key_path, key)
-          log ""
+          log ''
         end
       end
 
@@ -31,27 +31,27 @@ module Rails
       end
 
       def ignore_key_file(key_path, ignore: key_ignore(key_path))
-        if File.exist?(".gitignore")
-          unless File.read(".gitignore").include?(ignore)
+        if File.exist?('.gitignore')
+          unless File.read('.gitignore').include?(ignore)
             log "Ignoring #{key_path} so it won't end up in Git history:"
-            log ""
-            append_to_file ".gitignore", ignore
-            log ""
+            log ''
+            append_to_file '.gitignore', ignore
+            log ''
           end
         else
           log "IMPORTANT: Don't commit #{key_path}. Add this to your ignore file:"
           log ignore, :on_green
-          log ""
+          log ''
         end
       end
 
       def ignore_key_file_silently(key_path, ignore: key_ignore(key_path))
-        append_to_file ".gitignore", ignore if File.exist?(".gitignore")
+        append_to_file '.gitignore', ignore if File.exist?('.gitignore')
       end
 
       private
         def key_ignore(key_path)
-          [ "", "/#{key_path}", "" ].join("\n")
+          [ '', "/#{key_path}", '' ].join("\n")
         end
     end
   end

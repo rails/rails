@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/class/attribute"
-require "minitest"
+require 'active_support/core_ext/class/attribute'
+require 'minitest'
 
 module Rails
   class TestUnitReporter < Minitest::StatisticsReporter
     class_attribute :app_root
-    class_attribute :executable, default: "rails test"
+    class_attribute :executable, default: 'rails test'
 
     def record(result)
       super
@@ -34,7 +34,7 @@ module Rails
     def report
       return if output_inline? || filtered_results.empty?
       io.puts
-      io.puts "Failed tests:"
+      io.puts 'Failed tests:'
       io.puts
       io.puts aggregated_results
     end
@@ -52,7 +52,7 @@ module Rails
     end
 
     def relative_path_for(file)
-      file.sub(/^#{app_root}\/?/, "")
+      file.sub(/^#{app_root}\/?/, '')
     end
 
     private
@@ -66,7 +66,7 @@ module Rails
 
       def format_line(result)
         klass = result.respond_to?(:klass) ? result.klass : result.class
-        "%s#%s = %.2f s = %s" % [klass, result.name, result.time, result.result_code]
+        '%s#%s = %.2f s = %s' % [klass, result.name, result.time, result.result_code]
       end
 
       def format_rerun_snippet(result)
@@ -94,10 +94,10 @@ module Rails
 
       codes = { red: 31, green: 32, yellow: 33 }
       COLOR_BY_RESULT_CODE = {
-        "." => codes[:green],
-        "E" => codes[:red],
-        "F" => codes[:red],
-        "S" => codes[:yellow]
+        '.' => codes[:green],
+        'E' => codes[:red],
+        'F' => codes[:red],
+        'S' => codes[:yellow]
       }
 
       def color_output(string, by:)

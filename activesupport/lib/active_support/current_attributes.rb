@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/callbacks"
-require "active_support/core_ext/enumerable"
+require 'active_support/callbacks'
+require 'active_support/core_ext/enumerable'
 
 module ActiveSupport
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically

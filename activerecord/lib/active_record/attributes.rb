@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_model/attribute/user_provided_default"
+require 'active_model/attribute/user_provided_default'
 
 module ActiveRecord
   # See ActiveRecord::Attributes::ClassMethods for documentation

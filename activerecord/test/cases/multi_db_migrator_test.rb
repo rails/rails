@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "cases/migration/helper"
+require 'cases/helper'
+require 'cases/migration/helper'
 
 class MultiDbMigratorTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -32,16 +32,16 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
     @connection_a.schema_migration.delete_all rescue nil
     @connection_b.schema_migration.delete_all rescue nil
 
-    @path_a = MIGRATIONS_ROOT + "/valid"
-    @path_b = MIGRATIONS_ROOT + "/to_copy"
+    @path_a = MIGRATIONS_ROOT + '/valid'
+    @path_b = MIGRATIONS_ROOT + '/to_copy'
 
     @schema_migration_a = @connection_a.schema_migration
     @migrations_a = ActiveRecord::MigrationContext.new(@path_a, @schema_migration_a).migrations
     @schema_migration_b = @connection_b.schema_migration
     @migrations_b = ActiveRecord::MigrationContext.new(@path_b, @schema_migration_b).migrations
 
-    @migrations_a_list = [[1, "ValidPeopleHaveLastNames"], [2, "WeNeedReminders"], [3, "InnocentJointable"]]
-    @migrations_b_list = [[1, "PeopleHaveHobbies"], [2, "PeopleHaveDescriptions"]]
+    @migrations_a_list = [[1, 'ValidPeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']]
+    @migrations_b_list = [[1, 'PeopleHaveHobbies'], [2, 'PeopleHaveDescriptions']]
 
     @verbose_was = ActiveRecord::Migration.verbose
 
@@ -68,8 +68,8 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
   end
 
   def test_schema_migration_class_names
-    assert_equal "ActiveRecord::SchemaMigration", @schema_migration_a.name
-    assert_equal "ARUnit2Model::SchemaMigration", @schema_migration_b.name
+    assert_equal 'ActiveRecord::SchemaMigration', @schema_migration_a.name
+    assert_equal 'ARUnit2Model::SchemaMigration', @schema_migration_b.name
   end
 
   def test_finds_migrations
@@ -89,18 +89,18 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
     @schema_migration_a.create(version: 10)
 
     assert_equal [
-      ["down", "001", "Valid people have last names"],
-      ["up",   "002", "We need reminders"],
-      ["down", "003", "Innocent jointable"],
-      ["up",   "010", "********** NO FILE **********"],
+      ['down', '001', 'Valid people have last names'],
+      ['up',   '002', 'We need reminders'],
+      ['down', '003', 'Innocent jointable'],
+      ['up',   '010', '********** NO FILE **********'],
     ], ActiveRecord::MigrationContext.new(@path_a, @schema_migration_a).migrations_status
 
     @schema_migration_b.create(version: 4)
 
     assert_equal [
-      ["down", "001", "People have hobbies"],
-      ["down", "002", "People have descriptions"],
-      ["up", "004", "********** NO FILE **********"]
+      ['down', '001', 'People have hobbies'],
+      ['down', '002', 'People have descriptions'],
+      ['up', '004', '********** NO FILE **********']
     ], ActiveRecord::MigrationContext.new(@path_b, @schema_migration_b).migrations_status
   end
 
@@ -134,15 +134,15 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
   end
 
   def test_finds_pending_migrations
-    @schema_migration_a.create!(version: "1")
-    migration_list_a = [ActiveRecord::Migration.new("foo", 1), ActiveRecord::Migration.new("bar", 3)]
+    @schema_migration_a.create!(version: '1')
+    migration_list_a = [ActiveRecord::Migration.new('foo', 1), ActiveRecord::Migration.new('bar', 3)]
     migrations_a = ActiveRecord::Migrator.new(:up, migration_list_a, @schema_migration_a).pending_migrations
 
     assert_equal 1, migrations_a.size
     assert_equal migration_list_a.last, migrations_a.first
 
-    @schema_migration_b.create!(version: "1")
-    migration_list_b = [ActiveRecord::Migration.new("foo", 1), ActiveRecord::Migration.new("bar", 3)]
+    @schema_migration_b.create!(version: '1')
+    migration_list_b = [ActiveRecord::Migration.new('foo', 1), ActiveRecord::Migration.new('bar', 3)]
     migrations_b = ActiveRecord::Migrator.new(:up, migration_list_b, @schema_migration_b).pending_migrations
 
     assert_equal 1, migrations_b.size
@@ -154,17 +154,17 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
     migrator = migrator.new(@path_a, @schema_migration_a)
 
     @schema_migration_a.drop_table
-    assert_not @connection_a.table_exists?("schema_migrations")
+    assert_not @connection_a.table_exists?('schema_migrations')
     migrator.migrate(1)
-    assert @connection_a.table_exists?("schema_migrations")
+    assert @connection_a.table_exists?('schema_migrations')
 
     _, migrator = migrator_class(3)
     migrator = migrator.new(@path_b, @schema_migration_b)
 
     @schema_migration_b.drop_table
-    assert_not @connection_b.table_exists?("schema_migrations")
+    assert_not @connection_b.table_exists?('schema_migrations')
     migrator.migrate(1)
-    assert @connection_b.table_exists?("schema_migrations")
+    assert @connection_b.table_exists?('schema_migrations')
   end
 
   def test_migrator_forward

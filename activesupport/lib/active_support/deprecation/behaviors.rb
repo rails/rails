@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/notifications"
+require 'active_support/notifications'
 
 module ActiveSupport
   # Raised when <tt>ActiveSupport::Deprecation::Behavior#behavior</tt> is set with <tt>:raise</tt>.
@@ -27,7 +27,7 @@ module ActiveSupport
             if defined?(Rails.logger) && Rails.logger
               Rails.logger
             else
-              require "active_support/logger"
+              require 'active_support/logger'
               ActiveSupport::Logger.new($stderr)
             end
         logger.warn message

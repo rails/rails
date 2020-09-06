@@ -6,7 +6,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        attribute_method_suffix "?"
+        attribute_method_suffix '?'
       end
 
       def query_attribute(attr_name)

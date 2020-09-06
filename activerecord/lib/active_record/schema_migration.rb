@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_record/scoping/default"
-require "active_record/scoping/named"
+require 'active_record/scoping/default'
+require 'active_record/scoping/named'
 
 module ActiveRecord
   # This class is used to create a table that keeps track of which migrations
@@ -15,7 +15,7 @@ module ActiveRecord
       end
 
       def primary_key
-        "version"
+        'version'
       end
 
       def table_name
@@ -37,7 +37,7 @@ module ActiveRecord
       end
 
       def normalize_migration_number(number)
-        "%.3d" % number.to_i
+        '%.3d' % number.to_i
       end
 
       def normalized_versions

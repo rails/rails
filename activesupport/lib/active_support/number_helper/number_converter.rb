@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/big_decimal/conversions"
-require "active_support/core_ext/object/blank"
-require "active_support/core_ext/hash/keys"
-require "active_support/i18n"
-require "active_support/core_ext/class/attribute"
+require 'active_support/core_ext/big_decimal/conversions'
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/keys'
+require 'active_support/i18n'
+require 'active_support/core_ext/class/attribute'
 
 module ActiveSupport
   module NumberHelper
@@ -22,9 +22,9 @@ module ActiveSupport
         # These are also the defaults for 'currency', 'percentage', 'precision', and 'human'
         format: {
           # Sets the separator between the units, for more precision (e.g. 1.0 / 2.0 == 0.5)
-          separator: ".",
+          separator: '.',
           # Delimits thousands (e.g. 1,000,000 is a million) (always in groups of three)
-          delimiter: ",",
+          delimiter: ',',
           # Number of decimals, behind the separator (the number 1 with a precision of 2 gives: 1.00)
           precision: 3,
           # If set to true, precision will mean the number of significant digits instead
@@ -37,12 +37,12 @@ module ActiveSupport
         # Used in number_to_currency
         currency: {
           format: {
-            format: "%u%n",
-            negative_format: "-%u%n",
-            unit: "$",
+            format: '%u%n',
+            negative_format: '-%u%n',
+            unit: '$',
             # These five are to override number.format and are optional
-            separator: ".",
-            delimiter: ",",
+            separator: '.',
+            delimiter: ',',
             precision: 2,
             significant: false,
             strip_insignificant_zeros: false
@@ -52,15 +52,15 @@ module ActiveSupport
         # Used in number_to_percentage
         percentage: {
           format: {
-            delimiter: "",
-            format: "%n%"
+            delimiter: '',
+            format: '%n%'
           }
         },
 
         # Used in number_to_rounded
         precision: {
           format: {
-            delimiter: ""
+            delimiter: ''
           }
         },
 
@@ -68,7 +68,7 @@ module ActiveSupport
         human: {
           format: {
             # These five are to override number.format and are optional
-            delimiter: "",
+            delimiter: '',
             precision: 3,
             significant: true,
             strip_insignificant_zeros: true
@@ -77,18 +77,18 @@ module ActiveSupport
           storage_units: {
             # Storage units output formatting.
             # %u is the storage unit, %n is the number (default: 2 MB)
-            format: "%n %u",
+            format: '%n %u',
             units: {
-              byte: "Bytes",
-              kb: "KB",
-              mb: "MB",
-              gb: "GB",
-              tb: "TB"
+              byte: 'Bytes',
+              kb: 'KB',
+              mb: 'MB',
+              gb: 'GB',
+              tb: 'TB'
             }
           },
           # Used in number_to_human
           decimal_units: {
-            format: "%n %u",
+            format: '%n %u',
             # Decimal units output formatting
             # By default we will only quantify some of the exponents
             # but the commented ones might be defined or overridden
@@ -101,16 +101,16 @@ module ActiveSupport
               # mili: Thousandth
               # centi: Hundredth
               # deci: Tenth
-              unit: "",
+              unit: '',
               # ten:
               #   one: Ten
               #   other: Tens
               # hundred: Hundred
-              thousand: "Thousand",
-              million: "Million",
-              billion: "Billion",
-              trillion: "Trillion",
-              quadrillion: "Quadrillion"
+              thousand: 'Thousand',
+              million: 'Million',
+              billion: 'Billion',
+              trillion: 'Trillion',
+              quadrillion: 'Quadrillion'
             }
           }
         }
@@ -170,7 +170,7 @@ module ActiveSupport
         end
 
         def default_value(key)
-          key.split(".").reduce(DEFAULTS) { |defaults, k| defaults[k.to_sym] }
+          key.split('.').reduce(DEFAULTS) { |defaults, k| defaults[k.to_sym] }
         end
 
         def valid_float?

@@ -1,31 +1,31 @@
 # frozen_string_literal: true
 
-require "zlib"
-require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/array/wrap"
-require "active_support/core_ext/enumerable"
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/numeric/bytes"
-require "active_support/core_ext/numeric/time"
-require "active_support/core_ext/object/to_param"
-require "active_support/core_ext/object/try"
-require "active_support/core_ext/string/inflections"
+require 'zlib'
+require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/numeric/bytes'
+require 'active_support/core_ext/numeric/time'
+require 'active_support/core_ext/object/to_param'
+require 'active_support/core_ext/object/try'
+require 'active_support/core_ext/string/inflections'
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
   module Cache
-    autoload :FileStore,        "active_support/cache/file_store"
-    autoload :MemoryStore,      "active_support/cache/memory_store"
-    autoload :MemCacheStore,    "active_support/cache/mem_cache_store"
-    autoload :NullStore,        "active_support/cache/null_store"
-    autoload :RedisCacheStore,  "active_support/cache/redis_cache_store"
+    autoload :FileStore,        'active_support/cache/file_store'
+    autoload :MemoryStore,      'active_support/cache/memory_store'
+    autoload :MemCacheStore,    'active_support/cache/mem_cache_store'
+    autoload :NullStore,        'active_support/cache/null_store'
+    autoload :RedisCacheStore,  'active_support/cache/redis_cache_store'
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
     UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl]
 
     module Strategy
-      autoload :LocalCache, "active_support/cache/strategy/local_cache"
+      autoload :LocalCache, 'active_support/cache/strategy/local_cache'
     end
 
     class << self
@@ -81,9 +81,9 @@ module ActiveSupport
       #
       # The +key+ argument can also respond to +cache_key+ or +to_param+.
       def expand_cache_key(key, namespace = nil)
-        expanded_cache_key = namespace ? +"#{namespace}/" : +""
+        expanded_cache_key = namespace ? +"#{namespace}/" : +''
 
-        if prefix = ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
+        if prefix = ENV['RAILS_CACHE_ID'] || ENV['RAILS_APP_VERSION']
           expanded_cache_key << "#{prefix}/"
         end
 
@@ -173,7 +173,7 @@ module ActiveSupport
           end
 
           def ensure_connection_pool_added!
-            require "connection_pool"
+            require 'connection_pool'
           rescue LoadError => e
             $stderr.puts "You don't have connection_pool installed in your application. Please add it to your Gemfile and run bundle install"
             raise e
@@ -334,7 +334,7 @@ module ActiveSupport
             save_block_result_to_cache(name, options, &block)
           end
         elsif options && options[:force]
-          raise ArgumentError, "Missing block: Calling `Cache#fetch` with `force: true` requires a block."
+          raise ArgumentError, 'Missing block: Calling `Cache#fetch` with `force: true` requires a block.'
         else
           read(name, options)
         end
@@ -435,7 +435,7 @@ module ActiveSupport
       #   cache.read("fizz")
       #   # => nil
       def fetch_multi(*names)
-        raise ArgumentError, "Missing block: `Cache#fetch_multi` requires a block." unless block_given?
+        raise ArgumentError, 'Missing block: `Cache#fetch_multi` requires a block.' unless block_given?
 
         options = names.extract_options!
         options = merged_options(options)
@@ -558,7 +558,7 @@ module ActiveSupport
           prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
           if prefix
             source = pattern.source
-            if source.start_with?("^")
+            if source.start_with?('^')
               source = source[1, source.length]
             else
               source = ".*#{source[0, source.length]}"

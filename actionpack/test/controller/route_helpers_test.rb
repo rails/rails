@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 class RouteHelperIntegrationTest < ActionDispatch::IntegrationTest
   def self.routes
@@ -23,7 +23,7 @@ class RouteHelperIntegrationTest < ActionDispatch::IntegrationTest
   # the controllers. For boot performance, it's important that we don't
   # duplicate these modules and make method cache invalidation expensive.
   # https://github.com/rails/rails/pull/37927
-  test "only includes one module with route helpers" do
+  test 'only includes one module with route helpers' do
     app = self.class
 
     url_helpers_module = app.routes.named_routes.url_helpers_module

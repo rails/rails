@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
-require "rails"
-require "action_controller/railtie"
-require "active_job/railtie"
-require "active_record/railtie"
+require 'rails'
+require 'action_controller/railtie'
+require 'active_job/railtie'
+require 'active_record/railtie'
 
-require "active_storage"
+require 'active_storage'
 
-require "active_storage/previewer/poppler_pdf_previewer"
-require "active_storage/previewer/mupdf_previewer"
-require "active_storage/previewer/video_previewer"
+require 'active_storage/previewer/poppler_pdf_previewer'
+require 'active_storage/previewer/mupdf_previewer'
+require 'active_storage/previewer/video_previewer'
 
-require "active_storage/analyzer/image_analyzer"
-require "active_storage/analyzer/video_analyzer"
+require 'active_storage/analyzer/image_analyzer'
+require 'active_storage/analyzer/video_analyzer'
 
-require "active_storage/service/registry"
+require 'active_storage/service/registry'
 
-require "active_storage/reflection"
+require 'active_storage/reflection'
 
 module ActiveStorage
   class Engine < Rails::Engine # :nodoc:
@@ -75,14 +75,14 @@ module ActiveStorage
 
     config.eager_load_namespaces << ActiveStorage
 
-    initializer "active_storage.configs" do
+    initializer 'active_storage.configs' do
       config.after_initialize do |app|
         ActiveStorage.logger            = app.config.active_storage.logger || Rails.logger
         ActiveStorage.variant_processor = app.config.active_storage.variant_processor || :mini_magick
         ActiveStorage.previewers        = app.config.active_storage.previewers || []
         ActiveStorage.analyzers         = app.config.active_storage.analyzers || []
         ActiveStorage.paths             = app.config.active_storage.paths || {}
-        ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
+        ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || '/rails/active_storage'
         ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
         ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
 
@@ -91,32 +91,32 @@ module ActiveStorage
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
         ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
-        ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
+        ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || 'application/octet-stream'
 
         ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
       end
     end
 
-    initializer "active_storage.attached" do
-      require "active_storage/attached"
+    initializer 'active_storage.attached' do
+      require 'active_storage/attached'
 
       ActiveSupport.on_load(:active_record) do
         include ActiveStorage::Attached::Model
       end
     end
 
-    initializer "active_storage.verifier" do
+    initializer 'active_storage.verifier' do
       config.after_initialize do |app|
-        ActiveStorage.verifier = app.message_verifier("ActiveStorage")
+        ActiveStorage.verifier = app.message_verifier('ActiveStorage')
       end
     end
 
-    initializer "active_storage.services" do
+    initializer 'active_storage.services' do
       ActiveSupport.on_load(:active_storage_blob) do
         configs = Rails.configuration.active_storage.service_configurations ||=
           begin
-            config_file = Rails.root.join("config/storage.yml")
+            config_file = Rails.root.join('config/storage.yml')
             raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
 
             ActiveSupport::ConfigurationFile.parse(config_file)
@@ -130,12 +130,12 @@ module ActiveStorage
       end
     end
 
-    initializer "active_storage.queues" do
+    initializer 'active_storage.queues' do
       config.after_initialize do |app|
         if queue = app.config.active_storage.queue
           ActiveSupport::Deprecation.warn \
-            "config.active_storage.queue is deprecated and will be removed in Rails 6.1. " \
-            "Set config.active_storage.queues.purge and config.active_storage.queues.analysis instead."
+            'config.active_storage.queue is deprecated and will be removed in Rails 6.1. ' \
+            'Set config.active_storage.queues.purge and config.active_storage.queues.analysis instead.'
 
           ActiveStorage.queues = { purge: queue, analysis: queue, mirror: queue }
         else
@@ -144,7 +144,7 @@ module ActiveStorage
       end
     end
 
-    initializer "active_storage.reflection" do
+    initializer 'active_storage.reflection' do
       ActiveSupport.on_load(:active_record) do
         include Reflection::ActiveRecordExtensions
         ActiveRecord::Reflection.singleton_class.prepend(Reflection::ReflectionExtension)

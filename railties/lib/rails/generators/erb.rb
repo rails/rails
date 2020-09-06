@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rails/generators/named_base"
+require 'rails/generators/named_base'
 
 module Erb # :nodoc:
   module Generators # :nodoc:
@@ -19,7 +19,7 @@ module Erb # :nodoc:
         end
 
         def filename_with_extensions(name, file_format = format)
-          [name, file_format, handler].compact.join(".")
+          [name, file_format, handler].compact.join('.')
         end
     end
   end

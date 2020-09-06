@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -10,35 +10,35 @@ module ActiveRecord
       end
 
       def test_quoted_true
-        assert_equal "TRUE", @quoter.quoted_true
+        assert_equal 'TRUE', @quoter.quoted_true
       end
 
       def test_quoted_false
-        assert_equal "FALSE", @quoter.quoted_false
+        assert_equal 'FALSE', @quoter.quoted_false
       end
 
       def test_quote_column_name
-        assert_equal "foo", @quoter.quote_column_name("foo")
+        assert_equal 'foo', @quoter.quote_column_name('foo')
       end
 
       def test_quote_table_name
-        assert_equal "foo", @quoter.quote_table_name("foo")
+        assert_equal 'foo', @quoter.quote_table_name('foo')
       end
 
       def test_quote_table_name_calls_quote_column_name
         @quoter.extend(Module.new {
           def quote_column_name(string)
-            "lol"
+            'lol'
           end
         })
-        assert_equal "lol", @quoter.quote_table_name("foo")
+        assert_equal 'lol', @quoter.quote_table_name('foo')
       end
 
       def test_quote_string
         assert_equal "''", @quoter.quote_string("'")
-        assert_equal "\\\\", @quoter.quote_string("\\")
+        assert_equal '\\\\', @quoter.quote_string('\\')
         assert_equal "hi''i", @quoter.quote_string("hi'i")
-        assert_equal "hi\\\\i", @quoter.quote_string("hi\\i")
+        assert_equal 'hi\\\\i', @quoter.quote_string('hi\\i')
       end
 
       def test_quoted_date
@@ -83,16 +83,16 @@ module ActiveRecord
           t = Time.now.change(usec: 0)
 
           expected = t.change(year: 2000, month: 1, day: 1)
-          expected = expected.getlocal.to_s(:db).sub("2000-01-01 ", "")
+          expected = expected.getlocal.to_s(:db).sub('2000-01-01 ', '')
 
           assert_equal expected, @quoter.quoted_time(t)
         end
       end
 
       def test_quoted_time_dst_utc
-        with_env_tz "America/New_York" do
+        with_env_tz 'America/New_York' do
           with_timezone_config default: :utc do
-            t = Time.new(2000, 7, 1, 0, 0, 0, "+04:30")
+            t = Time.new(2000, 7, 1, 0, 0, 0, '+04:30')
 
             expected = t.change(year: 2000, month: 1, day: 1)
             expected = expected.getutc.to_s(:db).slice(11..-1)
@@ -103,9 +103,9 @@ module ActiveRecord
       end
 
       def test_quoted_time_dst_local
-        with_env_tz "America/New_York" do
+        with_env_tz 'America/New_York' do
           with_timezone_config default: :local do
-            t = Time.new(2000, 7, 1, 0, 0, 0, "+04:30")
+            t = Time.new(2000, 7, 1, 0, 0, 0, '+04:30')
 
             expected = t.change(year: 2000, month: 1, day: 1)
             expected = expected.getlocal.to_s(:db).slice(11..-1)
@@ -120,7 +120,7 @@ module ActiveRecord
           t = Time.now.change(usec: 0)
 
           expected = t.change(year: 2000, month: 1, day: 1)
-          expected = expected.getlocal.to_s(:db).sub("2000-01-01 ", "")
+          expected = expected.getlocal.to_s(:db).sub('2000-01-01 ', '')
 
           assert_equal expected, @quoter.quoted_time(t)
         end
@@ -143,7 +143,7 @@ module ActiveRecord
       end
 
       def test_quote_nil
-        assert_equal "NULL", @quoter.quote(nil)
+        assert_equal 'NULL', @quoter.quote(nil)
       end
 
       def test_quote_true
@@ -171,11 +171,11 @@ module ActiveRecord
 
       def test_quote_bigdecimal
         bigdec = BigDecimal((1 << 100).to_s)
-        assert_equal bigdec.to_s("F"), @quoter.quote(bigdec)
+        assert_equal bigdec.to_s('F'), @quoter.quote(bigdec)
       end
 
       def test_dates_and_times
-        @quoter.extend(Module.new { def quoted_date(value) "lol" end })
+        @quoter.extend(Module.new { def quoted_date(value) 'lol' end })
         assert_equal "'lol'", @quoter.quote(Date.today)
         assert_equal "'lol'", @quoter.quote(Time.now)
         assert_equal "'lol'", @quoter.quote(DateTime.now)
@@ -203,7 +203,7 @@ module ActiveRecord
       end
 
       def test_quote_duration
-        assert_equal "1800", @quoter.quote(30.minutes)
+        assert_equal '1800', @quoter.quote(30.minutes)
       end
     end
 
@@ -213,7 +213,7 @@ module ActiveRecord
       end
 
       def test_type_cast_symbol
-        assert_equal "foo", @conn.type_cast(:foo)
+        assert_equal 'foo', @conn.type_cast(:foo)
       end
 
       def test_type_cast_date

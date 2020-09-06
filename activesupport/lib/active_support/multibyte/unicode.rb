@@ -18,7 +18,7 @@ module ActiveSupport
       }
 
       # The Unicode version that is supported by the implementation
-      UNICODE_VERSION = RbConfig::CONFIG["UNICODE_VERSION"]
+      UNICODE_VERSION = RbConfig::CONFIG['UNICODE_VERSION']
 
       # The default normalization used for operations that require
       # normalization. It can be set to any of the normalizations
@@ -51,21 +51,21 @@ module ActiveSupport
           removed from Rails 6.1. Use array.flatten.pack("U*") instead.
         MSG
 
-        unpacked.flatten.pack("U*")
+        unpacked.flatten.pack('U*')
       end
 
       # Decompose composed characters to the decomposed form.
       def decompose(type, codepoints)
         if type == :compatibility
-          codepoints.pack("U*").unicode_normalize(:nfkd).codepoints
+          codepoints.pack('U*').unicode_normalize(:nfkd).codepoints
         else
-          codepoints.pack("U*").unicode_normalize(:nfd).codepoints
+          codepoints.pack('U*').unicode_normalize(:nfd).codepoints
         end
       end
 
       # Compose decomposed characters to the composed form.
       def compose(codepoints)
-        codepoints.pack("U*").unicode_normalize(:nfc).codepoints
+        codepoints.pack('U*').unicode_normalize(:nfc).codepoints
       end
 
       # Rubinius' String#scrub, however, doesn't support ASCII-incompatible chars.
@@ -92,7 +92,7 @@ module ActiveSupport
           reader = Encoding::Converter.new(Encoding::UTF_8, Encoding::UTF_16LE)
 
           source = string.dup
-          out = "".force_encoding(Encoding::UTF_16LE)
+          out = ''.force_encoding(Encoding::UTF_16LE)
 
           loop do
             reader.primitive_convert(source, out)

@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/author"
-require "models/post"
-require "models/pet"
-require "models/toy"
+require 'cases/helper'
+require 'models/author'
+require 'models/post'
+require 'models/pet'
+require 'models/toy'
 
 class DeleteAllTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :pets, :toys
 
   def test_destroy_all
-    davids = Author.where(name: "David")
+    davids = Author.where(name: 'David')
 
     # Force load
     assert_equal [authors(:david)], davids.to_a
     assert_predicate davids, :loaded?
 
-    assert_difference("Author.count", -1) do
+    assert_difference('Author.count', -1) do
       destroyed = davids.destroy_all
       assert_equal [authors(:david)], destroyed
       assert_predicate destroyed.first, :frozen?
@@ -27,20 +27,20 @@ class DeleteAllTest < ActiveRecord::TestCase
   end
 
   def test_delete_all
-    davids = Author.where(name: "David")
+    davids = Author.where(name: 'David')
 
-    assert_difference("Author.count", -1) { davids.delete_all }
+    assert_difference('Author.count', -1) { davids.delete_all }
     assert_not_predicate davids, :loaded?
   end
 
   def test_delete_all_loaded
-    davids = Author.where(name: "David")
+    davids = Author.where(name: 'David')
 
     # Force load
     assert_equal [authors(:david)], davids.to_a
     assert_predicate davids, :loaded?
 
-    assert_difference("Author.count", -1) { davids.delete_all }
+    assert_difference('Author.count', -1) { davids.delete_all }
 
     assert_equal [], davids.to_a
     assert_predicate davids, :loaded?
@@ -49,12 +49,12 @@ class DeleteAllTest < ActiveRecord::TestCase
   def test_delete_all_with_unpermitted_relation_raises_error
     assert_raises(ActiveRecord::ActiveRecordError) { Author.distinct.delete_all }
     assert_raises(ActiveRecord::ActiveRecordError) { Author.group(:name).delete_all }
-    assert_raises(ActiveRecord::ActiveRecordError) { Author.having("SUM(id) < 3").delete_all }
-    assert_raises(ActiveRecord::ActiveRecordError) { Author.from("(SELECT * FROM authors) AS authors").delete_all }
+    assert_raises(ActiveRecord::ActiveRecordError) { Author.having('SUM(id) < 3').delete_all }
+    assert_raises(ActiveRecord::ActiveRecordError) { Author.from('(SELECT * FROM authors) AS authors').delete_all }
   end
 
   def test_delete_all_with_joins_and_where_part_is_hash
-    pets = Pet.joins(:toys).where(toys: { name: "Bone" })
+    pets = Pet.joins(:toys).where(toys: { name: 'Bone' })
 
     assert_equal true, pets.exists?
     sqls = capture_sql do
@@ -69,21 +69,21 @@ class DeleteAllTest < ActiveRecord::TestCase
   end
 
   def test_delete_all_with_joins_and_where_part_is_not_hash
-    pets = Pet.joins(:toys).where("toys.name = ?", "Bone")
+    pets = Pet.joins(:toys).where('toys.name = ?', 'Bone')
 
     assert_equal true, pets.exists?
     assert_equal pets.count, pets.delete_all
   end
 
   def test_delete_all_with_left_joins
-    pets = Pet.left_joins(:toys).where(toys: { name: "Bone" })
+    pets = Pet.left_joins(:toys).where(toys: { name: 'Bone' })
 
     assert_equal true, pets.exists?
     assert_equal pets.count, pets.delete_all
   end
 
   def test_delete_all_with_includes
-    pets = Pet.includes(:toys).where(toys: { name: "Bone" })
+    pets = Pet.includes(:toys).where(toys: { name: 'Bone' })
 
     assert_equal true, pets.exists?
     assert_equal pets.count, pets.delete_all

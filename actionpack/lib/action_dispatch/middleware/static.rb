@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "rack/utils"
-require "active_support/core_ext/uri"
+require 'rack/utils'
+require 'active_support/core_ext/uri'
 
 module ActionDispatch
   # This middleware serves static files from disk, if available.
@@ -15,7 +15,7 @@ module ActionDispatch
   #
   # Only files in the root directory are served; path traversal is denied.
   class Static
-    def initialize(app, path, index: "index", headers: {})
+    def initialize(app, path, index: 'index', headers: {})
       @app = app
       @file_handler = FileHandler.new(path, index: index, headers: headers)
     end
@@ -42,13 +42,13 @@ module ActionDispatch
   class FileHandler
     # Accept-Encoding value -> file extension
     PRECOMPRESSED = {
-      "br" => ".br",
-      "gzip" => ".gz",
-      "identity" => nil
+      'br' => '.br',
+      'gzip' => '.gz',
+      'identity' => nil
     }
 
-    def initialize(root, index: "index", headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript)/)
-      @root = root.chomp("/").b
+    def initialize(root, index: 'index', headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript)/)
+      @root = root.chomp('/').b
       @index = index
 
       @precompressed = Array(precompressed).map(&:to_s) | %w[ identity ]
@@ -105,7 +105,7 @@ module ActionDispatch
       end
 
       def try_files(filepath, content_type, accept_encoding:)
-        headers = { "Content-Type" => content_type }
+        headers = { 'Content-Type' => content_type }
 
         if compressible? content_type
           try_precompressed_files filepath, headers, accept_encoding: accept_encoding
@@ -122,13 +122,13 @@ module ActionDispatch
             #
             # Vary header is expected when we've found other available
             # encodings that Accept-Encoding ruled out.
-            if content_encoding == "identity"
+            if content_encoding == 'identity'
               return precompressed_filepath, headers
             else
-              headers["Vary"] = "Accept-Encoding"
+              headers['Vary'] = 'Accept-Encoding'
 
               if accept_encoding.any? { |enc, _| /\b#{content_encoding}\b/i.match?(enc) }
-                headers["Content-Encoding"] = content_encoding
+                headers['Content-Encoding'] = content_encoding
                 return precompressed_filepath, headers
               end
             end
@@ -162,7 +162,7 @@ module ActionDispatch
 
         ext = ::File.extname(path)
         content_type = ::Rack::Mime.mime_type(ext, nil)
-        yield path, content_type || "text/plain"
+        yield path, content_type || 'text/plain'
 
         # Tack on .html and /index.html only for paths that don't have
         # an explicit, resolvable file extension. No need to check
@@ -170,7 +170,7 @@ module ActionDispatch
         unless content_type
           default_ext = ::ActionController::Base.default_static_extension
           if ext != default_ext
-            default_content_type = ::Rack::Mime.mime_type(default_ext, "text/plain")
+            default_content_type = ::Rack::Mime.mime_type(default_ext, 'text/plain')
 
             yield "#{path}#{default_ext}", default_content_type
             yield "#{path}/#{@index}#{default_ext}", default_content_type
@@ -181,7 +181,7 @@ module ActionDispatch
       end
 
       def clean_path(path_info)
-        path = ::Rack::Utils.unescape_path path_info.chomp("/")
+        path = ::Rack::Utils.unescape_path path_info.chomp('/')
         if ::Rack::Utils.valid_path? path
           ::Rack::Utils.clean_path_info path
         end

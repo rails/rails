@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/deep_merge"
-require "active_support/core_ext/symbol/starts_ends_with"
+require 'active_support/core_ext/hash/deep_merge'
+require 'active_support/core_ext/symbol/starts_ends_with'
 
 module ActiveSupport
   class OptionMerger #:nodoc:
     instance_methods.each do |method|
-      undef_method(method) unless method.start_with?("__", "instance_eval", "class", "object_id")
+      undef_method(method) unless method.start_with?('__', 'instance_eval', 'class', 'object_id')
     end
 
     def initialize(context, options)
@@ -28,7 +28,7 @@ module ActiveSupport
         invoke_method(method, arguments, options, &block)
       end
 
-      if RUBY_VERSION >= "2.7"
+      if RUBY_VERSION >= '2.7'
         def invoke_method(method, arguments, options, &block)
           if options
             @context.__send__(method, *arguments, **options, &block)

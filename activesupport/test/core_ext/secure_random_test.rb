@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
-require "active_support/core_ext/securerandom"
+require_relative '../abstract_unit'
+require 'active_support/core_ext/securerandom'
 
 class SecureRandomTest < ActiveSupport::TestCase
   def test_base58

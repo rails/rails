@@ -62,7 +62,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def middle_reflection(join_model)
       middle_name = [lhs_model.name.downcase.pluralize,
-                     association_name.to_s].sort.join("_").gsub("::", "_").to_sym
+                     association_name.to_s].sort.join('_').gsub('::', '_').to_sym
       middle_options = middle_options join_model
 
       HasMany.create_reflection(lhs_model,
@@ -89,7 +89,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
             association_name.to_s.camelize.singularize
           }
           klass = lhs_model.send(:compute_type, class_name.to_s)
-          [lhs_model.table_name, klass.table_name].sort.join("\0").gsub(/^(.*[._])(.+)\0\1(.+)/, '\1\2_\3').tr("\0", "_")
+          [lhs_model.table_name, klass.table_name].sort.join("\0").gsub(/^(.*[._])(.+)\0\1(.+)/, '\1\2_\3').tr("\0", '_')
         end
       end
 

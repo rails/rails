@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rack/session/abstract/id"
+require 'rack/session/abstract/id'
 
 module ActionDispatch
   class Request
@@ -92,7 +92,7 @@ module ActionDispatch
         load_for_read!
         key = key.to_s
 
-        if key == "session_id"
+        if key == 'session_id'
           id&.public_id
         else
           @delegate[key]

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "test_helper"
+require 'test_helper'
 
 class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
-  test "reflecting on a singular attachment" do
+  test 'reflecting on a singular attachment' do
     reflection = User.reflect_on_attachment(:avatar)
     assert_equal User, reflection.active_record
     assert_equal :avatar, reflection.name
@@ -14,12 +14,12 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
     assert_equal :local, reflection.options[:service_name]
   end
 
-  test "reflection on a singular attachment with the same name as an attachment on another model" do
+  test 'reflection on a singular attachment with the same name as an attachment on another model' do
     reflection = Group.reflect_on_attachment(:avatar)
     assert_equal Group, reflection.active_record
   end
 
-  test "reflecting on a collection attachment" do
+  test 'reflecting on a collection attachment' do
     reflection = User.reflect_on_attachment(:highlights)
     assert_equal User, reflection.active_record
     assert_equal :highlights, reflection.name
@@ -30,7 +30,7 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
     assert_equal :local, reflection.options[:service_name]
   end
 
-  test "reflecting on all attachments" do
+  test 'reflecting on all attachments' do
     reflections = User.reflect_on_all_attachments.sort_by(&:name)
     assert_equal [ User ], reflections.collect(&:active_record).uniq
     assert_equal %i[ avatar cover_photo highlights vlogs ], reflections.collect(&:name)

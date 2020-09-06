@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/developer"
-require "models/comment"
-require "models/post"
-require "models/topic"
+require 'cases/helper'
+require 'models/developer'
+require 'models/comment'
+require 'models/post'
+require 'models/topic'
 
 class NullRelationTest < ActiveRecord::TestCase
   fixtures :posts, :comments
@@ -18,7 +18,7 @@ class NullRelationTest < ActiveRecord::TestCase
 
   def test_none_chainable
     assert_queries(0) do
-      assert_equal [], Developer.none.where(name: "David")
+      assert_equal [], Developer.none.where(name: 'David')
     end
   end
 
@@ -32,7 +32,7 @@ class NullRelationTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal [],    Developer.none.pluck(:id, :name)
       assert_equal 0,     Developer.none.delete_all
-      assert_equal 0,     Developer.none.update_all(name: "David")
+      assert_equal 0,     Developer.none.update_all(name: 'David')
       assert_equal 0,     Developer.none.delete(1)
       assert_equal false, Developer.none.exists?(1)
     end
@@ -51,12 +51,12 @@ class NullRelationTest < ActiveRecord::TestCase
   end
 
   def test_null_relation_metadata_methods
-    assert_equal "", Developer.none.to_sql
+    assert_equal '', Developer.none.to_sql
     assert_equal({}, Developer.none.where_values_hash)
   end
 
   def test_null_relation_where_values_hash
-    assert_equal({ "salary" => 100_000 }, Developer.none.where(salary: 100_000).where_values_hash)
+    assert_equal({ 'salary' => 100_000 }, Developer.none.where(salary: 100_000).where_values_hash)
   end
 
   [:count, :sum].each do |method|

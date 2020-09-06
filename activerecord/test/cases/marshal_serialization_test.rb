@@ -1,28 +1,28 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/topic"
-require "models/reply"
+require 'cases/helper'
+require 'models/topic'
+require 'models/reply'
 
 class MarshalSerializationTest < ActiveRecord::TestCase
   fixtures :topics
 
   def test_deserializing_rails_6_0_marshal_basic
-    topic = Marshal.load(marshal_fixture("rails_6_0_topic"))
+    topic = Marshal.load(marshal_fixture('rails_6_0_topic'))
 
     assert_not_predicate topic, :new_record?
     assert_equal 1, topic.id
-    assert_equal "The First Topic", topic.title
-    assert_equal "Have a nice day", topic.content
+    assert_equal 'The First Topic', topic.title
+    assert_equal 'Have a nice day', topic.content
   end
 
   def test_deserializing_rails_6_0_marshal_with_loaded_association_cache
-    topic = Marshal.load(marshal_fixture("rails_6_0_topic_associations"))
+    topic = Marshal.load(marshal_fixture('rails_6_0_topic_associations'))
 
     assert_not_predicate topic, :new_record?
     assert_equal 1, topic.id
-    assert_equal "The First Topic", topic.title
-    assert_equal "Have a nice day", topic.content
+    assert_equal 'The First Topic', topic.title
+    assert_equal 'Have a nice day', topic.content
   end
 
   private

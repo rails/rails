@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "env_helpers"
-require "rails/command"
-require "rails/commands/console/console_command"
+require 'abstract_unit'
+require 'env_helpers'
+require 'rails/command'
+require 'rails/commands/console/console_command'
 
 class Rails::ConsoleTest < ActiveSupport::TestCase
   include EnvHelpers
@@ -19,12 +19,12 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_sandbox_option
-    console = Rails::Console.new(app, parse_arguments(["--sandbox"]))
+    console = Rails::Console.new(app, parse_arguments(['--sandbox']))
     assert_predicate console, :sandbox?
   end
 
   def test_short_version_of_sandbox_option
-    console = Rails::Console.new(app, parse_arguments(["-s"]))
+    console = Rails::Console.new(app, parse_arguments(['-s']))
     assert_predicate console, :sandbox?
   end
 
@@ -41,7 +41,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_start_with_sandbox
-    start ["--sandbox"]
+    start ['--sandbox']
 
     assert_predicate app.console, :started?
     assert app.sandbox
@@ -49,7 +49,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_console_with_environment
-    start ["-e", "production"]
+    start ['-e', 'production']
     assert_match(/\sproduction\s/, output)
   end
 
@@ -66,31 +66,31 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_default_environment_with_rails_env
-    with_rails_env "special-production" do
+    with_rails_env 'special-production' do
       start
       assert_match(/\sspecial-production\s/, output)
     end
   end
 
   def test_default_environment_with_rack_env
-    with_rack_env "production" do
+    with_rack_env 'production' do
       start
       assert_match(/\sproduction\s/, output)
     end
   end
 
   def test_e_option
-    start ["-e", "special-production"]
+    start ['-e', 'special-production']
     assert_match(/\sspecial-production\s/, output)
   end
 
   def test_e_option_is_properly_expanded
-    start ["-e", "prod"]
+    start ['-e', 'prod']
     assert_match(/\sproduction\s/, output)
   end
 
   def test_environment_option
-    start ["--environment=special-production"]
+    start ['--environment=special-production']
     assert_match(/\sspecial-production\s/, output)
   end
 
@@ -99,11 +99,11 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
       alias_method :old_environments, :available_environments
 
       define_method :available_environments do
-        ["dev"]
+        ['dev']
       end
     end
 
-    assert_match("dev", parse_arguments(["-e", "dev"])[:environment])
+    assert_match('dev', parse_arguments(['-e', 'dev'])[:environment])
   ensure
     Rails::Command::ConsoleCommand.class_eval do
       undef_method :available_environments

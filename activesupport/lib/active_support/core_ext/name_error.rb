@@ -14,7 +14,7 @@ class NameError
     # It extends NameError#message with spell corrections which are SLOW.
     # We should use original_message message instead.
     message = respond_to?(:original_message) ? original_message : self.message
-    return unless message.start_with?("uninitialized constant ")
+    return unless message.start_with?('uninitialized constant ')
 
     receiver = begin
       self.receiver

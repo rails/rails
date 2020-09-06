@@ -123,7 +123,7 @@ module ActiveRecord
 
       private
         def default_primary_key
-          "id"
+          'id'
         end
     end
 
@@ -154,7 +154,7 @@ module ActiveRecord
         @options = options
 
         if polymorphic && foreign_key
-          raise ArgumentError, "Cannot add a foreign key to a polymorphic relation"
+          raise ArgumentError, 'Cannot add a foreign key to a polymorphic relation'
         end
       end
 
@@ -472,7 +472,7 @@ module ActiveRecord
         end
 
         def aliased_types(name, fallback)
-          "timestamp" == name ? :datetime : fallback
+          'timestamp' == name ? :datetime : fallback
         end
 
         def integer_like_primary_key?(type, options)

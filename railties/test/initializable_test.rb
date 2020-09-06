@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "rails/initializable"
+require 'abstract_unit'
+require 'rails/initializable'
 
 module InitializableTests
   class Foo
@@ -115,11 +115,11 @@ module InitializableTests
     class PluginA
       include Rails::Initializable
 
-      initializer "plugin_a.startup" do
+      initializer 'plugin_a.startup' do
         $arr << 1
       end
 
-      initializer "plugin_a.terminate" do
+      initializer 'plugin_a.terminate' do
         $arr << 4
       end
     end
@@ -127,11 +127,11 @@ module InitializableTests
     class PluginB
       include Rails::Initializable
 
-      initializer "plugin_b.startup", after: "plugin_a.startup" do
+      initializer 'plugin_b.startup', after: 'plugin_a.startup' do
         $arr << 2
       end
 
-      initializer "plugin_b.terminate", before: "plugin_a.terminate" do
+      initializer 'plugin_b.terminate', before: 'plugin_a.terminate' do
         $arr << 3
       end
     end
@@ -147,26 +147,26 @@ module InitializableTests
   class Basic < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
-    test "initializers run" do
+    test 'initializers run' do
       foo = Foo.new
       foo.run_initializers
       assert_equal 1, foo.foo
     end
 
-    test "initializers are inherited" do
+    test 'initializers are inherited' do
       bar = Bar.new
       bar.run_initializers
       assert_equal [1, 1], [bar.foo, bar.bar]
     end
 
-    test "initializers only get run once" do
+    test 'initializers only get run once' do
       foo = Foo.new
       foo.run_initializers
       foo.run_initializers
       assert_equal 1, foo.foo
     end
 
-    test "creating initializer without a block raises an error" do
+    test 'creating initializer without a block raises an error' do
       assert_raise(ArgumentError) do
         Class.new do
           include Rails::Initializable
@@ -183,19 +183,19 @@ module InitializableTests
   end
 
   class BeforeAfter < ActiveSupport::TestCase
-    test "running on parent" do
+    test 'running on parent' do
       $arr = []
       Parent.new.run_initializers
       assert_equal [5, 1, 2], $arr
     end
 
-    test "running on child" do
+    test 'running on child' do
       $arr = []
       Child.new.run_initializers
       assert_equal [5, 3, 1, 4, 2], $arr
     end
 
-    test "handles dependencies introduced before all initializers are loaded" do
+    test 'handles dependencies introduced before all initializers are loaded' do
       $arr = []
       Interdependent::Application.new.run_initializers
       assert_equal [1, 2, 3, 4], $arr
@@ -203,14 +203,14 @@ module InitializableTests
   end
 
   class InstanceTest < ActiveSupport::TestCase
-    test "running locals" do
+    test 'running locals' do
       $arr = []
       instance = Instance.new
       instance.run_initializers
       assert_equal [2, 3, 4], $arr
     end
 
-    test "running locals with groups" do
+    test 'running locals with groups' do
       $arr = []
       instance = Instance.new
       instance.run_initializers(:assets)
@@ -219,15 +219,15 @@ module InitializableTests
   end
 
   class WithArgsTest < ActiveSupport::TestCase
-    test "running initializers with args" do
+    test 'running initializers with args' do
       $with_arg = nil
-      WithArgs.new.run_initializers(:default, "foo")
-      assert_equal "foo", $with_arg
+      WithArgs.new.run_initializers(:default, 'foo')
+      assert_equal 'foo', $with_arg
     end
   end
 
   class OverriddenInitializerTest < ActiveSupport::TestCase
-    test "merges in the initializers from the parent in the right order" do
+    test 'merges in the initializers from the parent in the right order' do
       $arr = []
       OverriddenInitializer.new.run_initializers
       assert_equal [1, 2, 3, 4], $arr

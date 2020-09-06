@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "stringio"
+require 'abstract_unit'
+require 'stringio'
 
 class ActionController::TestRequestTest < ActionController::TestCase
   def test_test_request_has_session_options_initialized
@@ -14,13 +14,13 @@ class ActionController::TestRequestTest < ActionController::TestCase
   end
 
   def test_content_length_has_bytes_count_value
-    non_ascii_parameters = { data: { content: "Latin + Кириллица" } }
-    @request.set_header "REQUEST_METHOD", "POST"
-    @request.set_header "CONTENT_TYPE", "application/json"
-    @request.assign_parameters(@routes, "test", "create", non_ascii_parameters,
-                               "/test", [:data, :controller, :action])
+    non_ascii_parameters = { data: { content: 'Latin + Кириллица' } }
+    @request.set_header 'REQUEST_METHOD', 'POST'
+    @request.set_header 'CONTENT_TYPE', 'application/json'
+    @request.assign_parameters(@routes, 'test', 'create', non_ascii_parameters,
+                               '/test', [:data, :controller, :action])
     assert_equal(StringIO.new(non_ascii_parameters.to_json).length.to_s,
-                 @request.get_header("CONTENT_LENGTH"))
+                 @request.get_header('CONTENT_LENGTH'))
   end
 
   ActionDispatch::Session::AbstractStore::DEFAULT_OPTIONS.each_pair do |key, value|

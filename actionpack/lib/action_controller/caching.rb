@@ -38,7 +38,7 @@ module ActionController
       end
 
       def instrument_name
-        "action_controller"
+        'action_controller'
       end
   end
 end

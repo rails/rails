@@ -11,16 +11,16 @@
 # Rails and can change anytime.
 
 # Defines Object#blank? and Object#present?.
-require "active_support/core_ext/object/blank"
+require 'active_support/core_ext/object/blank'
 
 # Support for ClassMethods and the included macro.
-require "active_support/concern"
+require 'active_support/concern'
 
 # Defines Class#class_attribute.
-require "active_support/core_ext/class/attribute"
+require 'active_support/core_ext/class/attribute'
 
 # Defines Module#delegate.
-require "active_support/core_ext/module/delegation"
+require 'active_support/core_ext/module/delegation'
 
 # Defines ActiveSupport::Deprecation.
-require "active_support/deprecation"
+require 'active_support/deprecation'

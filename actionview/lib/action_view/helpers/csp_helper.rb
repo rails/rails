@@ -16,9 +16,9 @@ module ActionView
       #
       def csp_meta_tag(**options)
         if content_security_policy?
-          options[:name] = "csp-nonce"
+          options[:name] = 'csp-nonce'
           options[:content] = content_security_policy_nonce
-          tag("meta", options)
+          tag('meta', options)
         end
       end
     end

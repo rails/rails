@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "concurrent/atomic/count_down_latch"
-require "active_support/concurrency/share_lock"
+require_relative 'abstract_unit'
+require 'concurrent/atomic/count_down_latch'
+require 'active_support/concurrency/share_lock'
 
 class ShareLockTest < ActiveSupport::TestCase
   def setup

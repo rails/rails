@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require "yaml"
-require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/object/blank"
-require "active_support/key_generator"
-require "active_support/message_verifier"
-require "active_support/encrypted_configuration"
-require "active_support/deprecation"
-require "active_support/hash_with_indifferent_access"
-require "active_support/configuration_file"
-require "rails/engine"
-require "rails/secrets"
+require 'yaml'
+require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/object/blank'
+require 'active_support/key_generator'
+require 'active_support/message_verifier'
+require 'active_support/encrypted_configuration'
+require 'active_support/deprecation'
+require 'active_support/hash_with_indifferent_access'
+require 'active_support/configuration_file'
+require 'rails/engine'
+require 'rails/secrets'
 
 module Rails
   # An Engine with the responsibility of coordinating the whole boot process.
@@ -82,12 +82,12 @@ module Rails
   # If you decide to define Rake tasks, runners, or initializers in an
   # application other than +Rails.application+, then you must run them manually.
   class Application < Engine
-    autoload :Bootstrap,              "rails/application/bootstrap"
-    autoload :Configuration,          "rails/application/configuration"
-    autoload :DefaultMiddlewareStack, "rails/application/default_middleware_stack"
-    autoload :Finisher,               "rails/application/finisher"
-    autoload :Railties,               "rails/engine/railties"
-    autoload :RoutesReloader,         "rails/application/routes_reloader"
+    autoload :Bootstrap,              'rails/application/bootstrap'
+    autoload :Configuration,          'rails/application/configuration'
+    autoload :DefaultMiddlewareStack, 'rails/application/default_middleware_stack'
+    autoload :Finisher,               'rails/application/finisher'
+    autoload :Railties,               'rails/engine/railties'
+    autoload :RoutesReloader,         'rails/application/routes_reloader'
 
     class << self
       def inherited(base)
@@ -106,7 +106,7 @@ module Rails
       end
 
       def find_root(from)
-        find_root_with_flag "config.ru", from, Dir.pwd
+        find_root_with_flag 'config.ru', from, Dir.pwd
       end
 
       # Makes the +new+ method public.
@@ -243,7 +243,7 @@ module Rails
       yaml = name.is_a?(Pathname) ? name : Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
 
       if yaml.exist?
-        require "erb"
+        require 'erb'
         all_configs    = ActiveSupport::ConfigurationFile.parse(yaml, symbolize_names: true)
         config, shared = all_configs[env.to_sym], all_configs[:shared]
 
@@ -262,32 +262,32 @@ module Rails
     def env_config
       @app_env_config ||= begin
         super.merge(
-          "action_dispatch.parameter_filter" => config.filter_parameters,
-          "action_dispatch.redirect_filter" => config.filter_redirect,
-          "action_dispatch.secret_key_base" => secret_key_base,
-          "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
-          "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
-          "action_dispatch.logger" => Rails.logger,
-          "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
-          "action_dispatch.key_generator" => key_generator,
-          "action_dispatch.http_auth_salt" => config.action_dispatch.http_auth_salt,
-          "action_dispatch.signed_cookie_salt" => config.action_dispatch.signed_cookie_salt,
-          "action_dispatch.encrypted_cookie_salt" => config.action_dispatch.encrypted_cookie_salt,
-          "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt,
-          "action_dispatch.authenticated_encrypted_cookie_salt" => config.action_dispatch.authenticated_encrypted_cookie_salt,
-          "action_dispatch.use_authenticated_cookie_encryption" => config.action_dispatch.use_authenticated_cookie_encryption,
-          "action_dispatch.encrypted_cookie_cipher" => config.action_dispatch.encrypted_cookie_cipher,
-          "action_dispatch.signed_cookie_digest" => config.action_dispatch.signed_cookie_digest,
-          "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
-          "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest,
-          "action_dispatch.cookies_rotations" => config.action_dispatch.cookies_rotations,
-          "action_dispatch.cookies_same_site_protection" => coerce_same_site_protection(config.action_dispatch.cookies_same_site_protection),
-          "action_dispatch.use_cookies_with_metadata" => config.action_dispatch.use_cookies_with_metadata,
-          "action_dispatch.content_security_policy" => config.content_security_policy,
-          "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only,
-          "action_dispatch.content_security_policy_nonce_generator" => config.content_security_policy_nonce_generator,
-          "action_dispatch.content_security_policy_nonce_directives" => config.content_security_policy_nonce_directives,
-          "action_dispatch.feature_policy" => config.feature_policy,
+          'action_dispatch.parameter_filter' => config.filter_parameters,
+          'action_dispatch.redirect_filter' => config.filter_redirect,
+          'action_dispatch.secret_key_base' => secret_key_base,
+          'action_dispatch.show_exceptions' => config.action_dispatch.show_exceptions,
+          'action_dispatch.show_detailed_exceptions' => config.consider_all_requests_local,
+          'action_dispatch.logger' => Rails.logger,
+          'action_dispatch.backtrace_cleaner' => Rails.backtrace_cleaner,
+          'action_dispatch.key_generator' => key_generator,
+          'action_dispatch.http_auth_salt' => config.action_dispatch.http_auth_salt,
+          'action_dispatch.signed_cookie_salt' => config.action_dispatch.signed_cookie_salt,
+          'action_dispatch.encrypted_cookie_salt' => config.action_dispatch.encrypted_cookie_salt,
+          'action_dispatch.encrypted_signed_cookie_salt' => config.action_dispatch.encrypted_signed_cookie_salt,
+          'action_dispatch.authenticated_encrypted_cookie_salt' => config.action_dispatch.authenticated_encrypted_cookie_salt,
+          'action_dispatch.use_authenticated_cookie_encryption' => config.action_dispatch.use_authenticated_cookie_encryption,
+          'action_dispatch.encrypted_cookie_cipher' => config.action_dispatch.encrypted_cookie_cipher,
+          'action_dispatch.signed_cookie_digest' => config.action_dispatch.signed_cookie_digest,
+          'action_dispatch.cookies_serializer' => config.action_dispatch.cookies_serializer,
+          'action_dispatch.cookies_digest' => config.action_dispatch.cookies_digest,
+          'action_dispatch.cookies_rotations' => config.action_dispatch.cookies_rotations,
+          'action_dispatch.cookies_same_site_protection' => coerce_same_site_protection(config.action_dispatch.cookies_same_site_protection),
+          'action_dispatch.use_cookies_with_metadata' => config.action_dispatch.use_cookies_with_metadata,
+          'action_dispatch.content_security_policy' => config.content_security_policy,
+          'action_dispatch.content_security_policy_report_only' => config.content_security_policy_report_only,
+          'action_dispatch.content_security_policy_nonce_generator' => config.content_security_policy_nonce_generator,
+          'action_dispatch.content_security_policy_nonce_directives' => config.content_security_policy_nonce_directives,
+          'action_dispatch.feature_policy' => config.feature_policy,
         )
       end
     end
@@ -344,14 +344,14 @@ module Rails
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
     def self.add_lib_to_load_path!(root) #:nodoc:
-      path = File.join root, "lib"
+      path = File.join root, 'lib'
       if File.exist?(path) && !$LOAD_PATH.include?(path)
         $LOAD_PATH.unshift(path)
       end
     end
 
     def require_environment! #:nodoc:
-      environment = paths["config/environment"].existent.first
+      environment = paths['config/environment'].existent.first
       require environment if environment
     end
 
@@ -375,7 +375,7 @@ module Rails
     # Initialize the application passing the given group. By default, the
     # group is :default
     def initialize!(group = :default) #:nodoc:
-      raise "Application has been already initialized." if @initialized
+      raise 'Application has been already initialized.' if @initialized
       run_initializers(group, self)
       @initialized = true
       self
@@ -396,8 +396,8 @@ module Rails
     def secrets
       @secrets ||= begin
         secrets = ActiveSupport::OrderedOptions.new
-        files = config.paths["config/secrets"].existent
-        files = files.reject { |path| path.end_with?(".enc") } unless config.read_encrypted_secrets
+        files = config.paths['config/secrets'].existent
+        files = files.reject { |path| path.end_with?('.enc') } unless config.read_encrypted_secrets
         secrets.merge! Rails::Secrets.parse(files, env: Rails.env)
 
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
@@ -423,7 +423,7 @@ module Rails
         secrets.secret_key_base ||= generate_development_secret
       else
         validate_secret_key_base(
-          ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || secrets.secret_key_base
+          ENV['SECRET_KEY_BASE'] || credentials.secret_key_base || secrets.secret_key_base
         )
       end
     end
@@ -466,7 +466,7 @@ module Rails
     # Or to decrypt with a file, that should be version control ignored, relative to +Rails.root+:
     #
     #   Rails.application.encrypted("config/special_tokens.yml.enc", key_path: "config/special_tokens.key")
-    def encrypted(path, key_path: "config/master.key", env_key: "RAILS_MASTER_KEY")
+    def encrypted(path, key_path: 'config/master.key', env_key: 'RAILS_MASTER_KEY')
       ActiveSupport::EncryptedConfiguration.new(
         config_path: Rails.root.join(path),
         key_path: Rails.root.join(key_path),
@@ -485,7 +485,7 @@ module Rails
 
     console do
       unless ::Kernel.private_method_defined?(:y)
-        require "psych/y"
+        require 'psych/y'
       end
     end
 
@@ -514,7 +514,7 @@ module Rails
     def run_tasks_blocks(app) #:nodoc:
       railties.each { |r| r.run_tasks_blocks(app) }
       super
-      require "rails/tasks"
+      require 'rails/tasks'
       task :environment do
         ActiveSupport.on_load(:before_initialize) { config.eager_load = config.rake_eager_load }
 
@@ -590,7 +590,7 @@ module Rails
     private
       def generate_development_secret
         if secrets.secret_key_base.nil?
-          key_file = Rails.root.join("tmp/development_secret.txt")
+          key_file = Rails.root.join('tmp/development_secret.txt')
 
           if !File.exist?(key_file)
             random_key = SecureRandom.hex(64)
@@ -606,8 +606,8 @@ module Rails
 
       def build_request(env)
         req = super
-        env["ORIGINAL_FULLPATH"] = req.fullpath
-        env["ORIGINAL_SCRIPT_NAME"] = req.script_name
+        env['ORIGINAL_FULLPATH'] = req.fullpath
+        env['ORIGINAL_SCRIPT_NAME'] = req.script_name
         req
       end
 

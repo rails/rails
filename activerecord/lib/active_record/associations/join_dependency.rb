@@ -3,8 +3,8 @@
 module ActiveRecord
   module Associations
     class JoinDependency # :nodoc:
-      autoload :JoinBase,        "active_record/associations/join_dependency/join_base"
-      autoload :JoinAssociation, "active_record/associations/join_dependency/join_association"
+      autoload :JoinBase,        'active_record/associations/join_dependency/join_base'
+      autoload :JoinAssociation, 'active_record/associations/join_dependency/join_association'
 
       class Aliases # :nodoc:
         def initialize(tables)
@@ -135,7 +135,7 @@ module ActiveRecord
           class_name: join_root.base_klass.name
         }
 
-        message_bus.instrument("instantiation.active_record", payload) do
+        message_bus.instrument('instantiation.active_record', payload) do
           result_set.each { |row_hash|
             parent_key = primary_key ? row_hash[primary_key] : row_hash
             parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases, column_types, &block)

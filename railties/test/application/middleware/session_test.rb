@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
-require "rack/test"
+require 'isolation/abstract_unit'
+require 'rack/test'
 
 module ApplicationTests
   class MiddlewareSessionTest < ActiveSupport::TestCase
@@ -21,15 +21,15 @@ module ApplicationTests
       @app ||= Rails.application
     end
 
-    test "config.force_ssl sets cookie to secure only by default" do
-      add_to_config "config.force_ssl = true"
+    test 'config.force_ssl sets cookie to secure only by default' do
+      add_to_config 'config.force_ssl = true'
       require "#{app_path}/config/environment"
-      assert app.config.session_options[:secure], "Expected session to be marked as secure"
+      assert app.config.session_options[:secure], 'Expected session to be marked as secure'
     end
 
     test "config.force_ssl doesn't set cookie to secure only when changed from default" do
-      add_to_config "config.force_ssl = true"
-      add_to_config "config.ssl_options = { secure_cookies: false }"
+      add_to_config 'config.force_ssl = true'
+      add_to_config 'config.ssl_options = { secure_cookies: false }'
       require "#{app_path}/config/environment"
       assert_not app.config.session_options[:secure]
     end
@@ -40,22 +40,22 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           if params[:flash]
-            flash[:notice] = "notice"
+            flash[:notice] = 'notice'
           end
 
           head :ok
         end
       end
 
-      get "/?flash=true"
-      get "/"
+      get '/?flash=true'
+      get '/'
 
-      assert last_request.env["HTTP_COOKIE"]
-      assert_not last_response.headers["Set-Cookie"]
+      assert last_request.env['HTTP_COOKIE']
+      assert_not last_response.headers['Set-Cookie']
     end
 
     test "session is empty and isn't saved on unverified request when using :null_session protect method" do
-      app_file "config/routes.rb", <<-RUBY
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           get  ':controller(/:action)'
           post ':controller(/:action)'
@@ -83,20 +83,20 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      get "/foo/write_session"
-      get "/foo/read_session"
-      assert_equal "1", last_response.body
+      get '/foo/write_session'
+      get '/foo/read_session'
+      assert_equal '1', last_response.body
 
-      post "/foo/read_session"               # Read session using POST request without CSRF token
-      assert_equal "nil", last_response.body # Stored value shouldn't be accessible
+      post '/foo/read_session'               # Read session using POST request without CSRF token
+      assert_equal 'nil', last_response.body # Stored value shouldn't be accessible
 
-      post "/foo/write_session" # Write session using POST request without CSRF token
-      get "/foo/read_session"   # Session shouldn't be changed
-      assert_equal "1", last_response.body
+      post '/foo/write_session' # Write session using POST request without CSRF token
+      get '/foo/read_session'   # Session shouldn't be changed
+      assert_equal '1', last_response.body
     end
 
     test "cookie jar is empty and isn't saved on unverified request when using :null_session protect method" do
-      app_file "config/routes.rb", <<-RUBY
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           get  ':controller(/:action)'
           post ':controller(/:action)'
@@ -124,20 +124,20 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      get "/foo/write_cookie"
-      get "/foo/read_cookie"
+      get '/foo/write_cookie'
+      get '/foo/read_cookie'
       assert_equal '"1"', last_response.body
 
-      post "/foo/read_cookie"                # Read cookie using POST request without CSRF token
-      assert_equal "nil", last_response.body # Stored value shouldn't be accessible
+      post '/foo/read_cookie'                # Read cookie using POST request without CSRF token
+      assert_equal 'nil', last_response.body # Stored value shouldn't be accessible
 
-      post "/foo/write_cookie" # Write cookie using POST request without CSRF token
-      get "/foo/read_cookie"   # Cookie shouldn't be changed
+      post '/foo/write_cookie' # Write cookie using POST request without CSRF token
+      get '/foo/read_cookie'   # Cookie shouldn't be changed
       assert_equal '"1"', last_response.body
     end
 
-    test "session using encrypted cookie store" do
-      app_file "config/routes.rb", <<-RUBY
+    test 'session using encrypted cookie store' do
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           get ':controller(/:action)'
         end
@@ -171,23 +171,23 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      get "/foo/write_session"
-      get "/foo/read_session"
-      assert_equal "1", last_response.body
+      get '/foo/write_session'
+      get '/foo/read_session'
+      assert_equal '1', last_response.body
 
-      get "/foo/read_encrypted_cookie"
-      assert_equal "1", last_response.body
+      get '/foo/read_encrypted_cookie'
+      assert_equal '1', last_response.body
 
-      cipher = "aes-256-gcm"
-      secret = app.key_generator.generate_key("authenticated encrypted cookie")
+      cipher = 'aes-256-gcm'
+      secret = app.key_generator.generate_key('authenticated encrypted cookie')
       encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
 
-      get "/foo/read_raw_cookie"
-      assert_equal 1, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
+      get '/foo/read_raw_cookie'
+      assert_equal 1, encryptor.decrypt_and_verify(last_response.body, purpose: 'cookie._myapp_session')['foo']
     end
 
-    test "session upgrading signature to encryption cookie store works the same way as encrypted cookie store" do
-      app_file "config/routes.rb", <<-RUBY
+    test 'session upgrading signature to encryption cookie store works the same way as encrypted cookie store' do
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           get ':controller(/:action)'
         end
@@ -221,23 +221,23 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      get "/foo/write_session"
-      get "/foo/read_session"
-      assert_equal "1", last_response.body
+      get '/foo/write_session'
+      get '/foo/read_session'
+      assert_equal '1', last_response.body
 
-      get "/foo/read_encrypted_cookie"
-      assert_equal "1", last_response.body
+      get '/foo/read_encrypted_cookie'
+      assert_equal '1', last_response.body
 
-      cipher = "aes-256-gcm"
-      secret = app.key_generator.generate_key("authenticated encrypted cookie")
+      cipher = 'aes-256-gcm'
+      secret = app.key_generator.generate_key('authenticated encrypted cookie')
       encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
 
-      get "/foo/read_raw_cookie"
-      assert_equal 1, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
+      get '/foo/read_raw_cookie'
+      assert_equal 1, encryptor.decrypt_and_verify(last_response.body, purpose: 'cookie._myapp_session')['foo']
     end
 
-    test "session upgrading from AES-CBC-HMAC encryption to AES-GCM encryption" do
-      app_file "config/routes.rb", <<-RUBY
+    test 'session upgrading from AES-CBC-HMAC encryption to AES-GCM encryption' do
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           get ':controller(/:action)'
         end
@@ -280,34 +280,34 @@ module ApplicationTests
       RUBY
 
       begin
-        old_rails_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "production"
+        old_rails_env, ENV['RAILS_ENV'] = ENV['RAILS_ENV'], 'production'
 
         require "#{app_path}/config/environment"
 
-        get "/foo/write_raw_session"
-        get "/foo/read_session"
-        assert_equal "1", last_response.body
+        get '/foo/write_raw_session'
+        get '/foo/read_session'
+        assert_equal '1', last_response.body
 
-        get "/foo/write_session"
-        get "/foo/read_session"
-        assert_equal "2", last_response.body
+        get '/foo/write_session'
+        get '/foo/read_session'
+        assert_equal '2', last_response.body
 
-        get "/foo/read_encrypted_cookie"
-        assert_equal "2", last_response.body
+        get '/foo/read_encrypted_cookie'
+        assert_equal '2', last_response.body
 
-        cipher = "aes-256-gcm"
-        secret = app.key_generator.generate_key("authenticated encrypted cookie")
+        cipher = 'aes-256-gcm'
+        secret = app.key_generator.generate_key('authenticated encrypted cookie')
         encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
 
-        get "/foo/read_raw_cookie"
-        assert_equal 2, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
+        get '/foo/read_raw_cookie'
+        assert_equal 2, encryptor.decrypt_and_verify(last_response.body, purpose: 'cookie._myapp_session')['foo']
       ensure
-        ENV["RAILS_ENV"] = old_rails_env
+        ENV['RAILS_ENV'] = old_rails_env
       end
     end
 
-    test "calling reset_session on request does not trigger an error for API apps" do
-      add_to_config "config.api_only = true"
+    test 'calling reset_session on request does not trigger an error for API apps' do
+      add_to_config 'config.api_only = true'
 
       controller :test, <<-RUBY
         class TestController < ApplicationController
@@ -318,7 +318,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/routes.rb", <<-RUBY
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           get '/dump_flash' => "test#dump_flash"
         end
@@ -326,18 +326,18 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      get "/dump_flash"
+      get '/dump_flash'
 
       assert_equal 200, last_response.status
-      assert_equal "It worked!", last_response.body
+      assert_equal 'It worked!', last_response.body
 
       assert_not_includes Rails.application.middleware, ActionDispatch::Flash
     end
 
-    test "cookie_only is set to true even if user tries to overwrite it" do
+    test 'cookie_only is set to true even if user tries to overwrite it' do
       add_to_config "config.session_store :cookie_store, key: '_myapp_session', cookie_only: false"
       require "#{app_path}/config/environment"
-      assert app.config.session_options[:cookie_only], "Expected cookie_only to be set to true"
+      assert app.config.session_options[:cookie_only], 'Expected cookie_only to be set to true'
     end
   end
 end

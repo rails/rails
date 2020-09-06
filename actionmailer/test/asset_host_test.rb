@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "action_controller"
+require 'abstract_unit'
+require 'action_controller'
 
 class AssetHostMailer < ActionMailer::Base
   def email_with_asset
-    mail to: "test@localhost",
-      subject: "testing email containing asset path while asset_host is set",
-      from: "tester@example.com"
+    mail to: 'test@localhost',
+      subject: 'testing email containing asset path while asset_host is set',
+      from: 'tester@example.com'
   end
 end
 
 class AssetHostTest < ActionMailer::TestCase
   def setup
     AssetHostMailer.configure do |c|
-      c.asset_host = "http://www.example.com"
+      c.asset_host = 'http://www.example.com'
     end
   end
 
@@ -29,8 +29,8 @@ class AssetHostTest < ActionMailer::TestCase
 
   def test_asset_host_as_one_argument_proc
     AssetHostMailer.config.asset_host = Proc.new { |source|
-      if source.start_with?("/images")
-        "http://images.example.com"
+      if source.start_with?('/images')
+        'http://images.example.com'
       end
     }
     mail = AssetHostMailer.email_with_asset

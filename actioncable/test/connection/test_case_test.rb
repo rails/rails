@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "test_helper"
+require 'test_helper'
 
 class SimpleConnection < ActionCable::Connection::Base
   identified_by :user_id
@@ -28,35 +28,35 @@ class ConnectionSimpleTest < ActionCable::Connection::TestCase
   end
 
   def test_url_params
-    connect "/cable?user_id=323"
+    connect '/cable?user_id=323'
 
-    assert_equal "323", connection.user_id
+    assert_equal '323', connection.user_id
   end
 
   def test_params
     connect params: { user_id: 323 }
 
-    assert_equal "323", connection.user_id
+    assert_equal '323', connection.user_id
   end
 
   def test_plain_cookie
-    cookies["user_id"] = "456"
+    cookies['user_id'] = '456'
 
     connect
 
-    assert_equal "456", connection.user_id
+    assert_equal '456', connection.user_id
   end
 
   def test_disconnect
-    cookies["user_id"] = "456"
+    cookies['user_id'] = '456'
 
     connect
 
-    assert_equal "456", connection.user_id
+    assert_equal '456', connection.user_id
 
     disconnect
 
-    assert_equal "456", SimpleConnection.disconnected_user_id
+    assert_equal '456', SimpleConnection.disconnected_user_id
   end
 end
 
@@ -70,8 +70,8 @@ class Connection < ActionCable::Connection::Base
 
   def connect
     self.current_user_id = verify_user
-    self.token = request.headers["X-API-TOKEN"]
-    logger.add_tags("ActionCable")
+    self.token = request.headers['X-API-TOKEN']
+    logger.add_tags('ActionCable')
   end
 
   private
@@ -82,16 +82,16 @@ end
 
 class ConnectionTest < ActionCable::Connection::TestCase
   def test_connected_with_signed_cookies_and_headers
-    cookies.signed["user_id"] = "456"
+    cookies.signed['user_id'] = '456'
 
-    connect headers: { "X-API-TOKEN" => "abc" }
+    connect headers: { 'X-API-TOKEN' => 'abc' }
 
-    assert_equal "abc", connection.token
-    assert_equal "456", connection.current_user_id
+    assert_equal 'abc', connection.token
+    assert_equal '456', connection.current_user_id
   end
 
   def test_connected_when_no_signed_cookies_set
-    cookies["user_id"] = "456"
+    cookies['user_id'] = '456'
 
     assert_reject_connection { connect }
   end
@@ -126,11 +126,11 @@ class EncryptedCookiesConnectionTest < ActionCable::Connection::TestCase
   tests EncryptedCookiesConnection
 
   def test_connected_with_encrypted_cookies
-    cookies.encrypted["user_id"] = "456"
+    cookies.encrypted['user_id'] = '456'
 
     connect
 
-    assert_equal "456", connection.user_id
+    assert_equal '456', connection.user_id
   end
 
   def test_connection_rejected
@@ -155,8 +155,8 @@ class SessionConnectionTest < ActionCable::Connection::TestCase
   tests SessionConnection
 
   def test_connected_with_encrypted_cookies
-    connect session: { user_id: "789" }
-    assert_equal "789", connection.user_id
+    connect session: { user_id: '789' }
+    assert_equal '789', connection.user_id
   end
 
   def test_connection_rejected
@@ -174,7 +174,7 @@ class EnvConnection < ActionCable::Connection::Base
   private
     def verify_user
       # Warden-like authentication
-      env["authenticator"]&.user || reject_unauthorized_connection
+      env['authenticator']&.user || reject_unauthorized_connection
     end
 end
 
@@ -183,12 +183,12 @@ class EnvConnectionTest < ActionCable::Connection::TestCase
 
   def test_connected_with_env
     authenticator = Class.new do
-      def user; "David"; end
+      def user; 'David'; end
     end
 
-    connect env: { "authenticator" => authenticator.new }
+    connect env: { 'authenticator' => authenticator.new }
 
-    assert_equal "David", connection.user
+    assert_equal 'David', connection.user
   end
 
   def test_connection_rejected

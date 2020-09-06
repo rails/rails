@@ -1,8 +1,8 @@
 # encoding: US-ASCII
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "logger"
+require 'abstract_unit'
+require 'logger'
 
 class TestERBTemplate < ActiveSupport::TestCase
   ERBHandler = ActionView::Template::Handlers::ERB.new
@@ -21,11 +21,11 @@ class TestERBTemplate < ActiveSupport::TestCase
   class Context < ActionView::Base
     def initialize(*)
       super
-      @output_buffer = "original"
+      @output_buffer = 'original'
     end
 
     def hello
-      "Hello"
+      'Hello'
     end
 
     def apostrophe
@@ -34,10 +34,10 @@ class TestERBTemplate < ActiveSupport::TestCase
 
     def partial
       ActionView::Template.new(
-        "<%= @current_template.virtual_path %>",
-        "partial",
+        '<%= @current_template.virtual_path %>',
+        'partial',
         ERBHandler,
-        virtual_path: "partial",
+        virtual_path: 'partial',
         format: :html,
         locals: []
       )
@@ -56,9 +56,9 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
   end
 
-  def new_template(body = "<%= hello %>", details = {})
+  def new_template(body = '<%= hello %>', details = {})
     details = { format: :html, locals: [] }.merge details
-    ActionView::Template.new(body.dup, "hello template", details.delete(:handler) || ERBHandler, **{ virtual_path: "hello" }.merge!(details))
+    ActionView::Template.new(body.dup, 'hello template', details.delete(:handler) || ERBHandler, **{ virtual_path: 'hello' }.merge!(details))
   end
 
   def render(locals = {})
@@ -72,56 +72,56 @@ class TestERBTemplate < ActiveSupport::TestCase
 
   def test_basic_template
     @template = new_template
-    assert_equal "Hello", render
+    assert_equal 'Hello', render
   end
 
   def test_basic_template_does_html_escape
-    @template = new_template("<%= apostrophe %>")
-    assert_equal "l&#39;apostrophe", render
+    @template = new_template('<%= apostrophe %>')
+    assert_equal 'l&#39;apostrophe', render
   end
 
   def test_text_template_does_not_html_escape
-    @template = new_template("<%= apostrophe %> <%== apostrophe %>", format: :text)
+    @template = new_template('<%= apostrophe %> <%== apostrophe %>', format: :text)
     assert_equal "l'apostrophe l'apostrophe", render
   end
 
   def test_raw_template
-    @template = new_template("<%= hello %>", handler: ActionView::Template::Handlers::Raw.new)
-    assert_equal "<%= hello %>", render
+    @template = new_template('<%= hello %>', handler: ActionView::Template::Handlers::Raw.new)
+    assert_equal '<%= hello %>', render
   end
 
   def test_template_does_not_lose_its_source_after_rendering
     @template = new_template
     render
-    assert_equal "<%= hello %>", @template.source
+    assert_equal '<%= hello %>', @template.source
   end
 
   def test_template_does_not_lose_its_source_after_rendering_if_it_does_not_have_a_virtual_path
-    @template = new_template("Hello", virtual_path: nil)
+    @template = new_template('Hello', virtual_path: nil)
     render
-    assert_equal "Hello", @template.source
+    assert_equal 'Hello', @template.source
   end
 
   def test_locals
-    @template = new_template("<%= my_local %>", locals: [:my_local])
-    assert_equal "I am a local", render(my_local: "I am a local")
+    @template = new_template('<%= my_local %>', locals: [:my_local])
+    assert_equal 'I am a local', render(my_local: 'I am a local')
   end
 
   def test_restores_buffer
     @template = new_template
-    assert_equal "Hello", render
-    assert_equal "original", @context.my_buffer
+    assert_equal 'Hello', render
+    assert_equal 'original', @context.my_buffer
   end
 
   def test_virtual_path
-    @template = new_template("<%= @current_template.virtual_path %>" \
-                             "<%= partial.render(self, {}) %>" \
-                             "<%= @current_template.virtual_path %>")
-    assert_equal "hellopartialhello", render
+    @template = new_template('<%= @current_template.virtual_path %>' \
+                             '<%= partial.render(self, {}) %>' \
+                             '<%= @current_template.virtual_path %>')
+    assert_equal 'hellopartialhello', render
   end
 
   def test_refresh_is_deprecated
-    @template = new_template("Hello", virtual_path: "test/foo/bar", locals: [:key])
+    @template = new_template('Hello', virtual_path: 'test/foo/bar', locals: [:key])
     assert_deprecated do
       assert_same @template, @template.refresh(@context)
     end
@@ -142,7 +142,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   # is set to something other than UTF-8, we don't
   # get any errors and get back a UTF-8 String.
   def test_default_external_works
-    with_external_encoding "ISO-8859-1" do
+    with_external_encoding 'ISO-8859-1' do
       @template = new_template("hello \xFCmlat")
       assert_equal Encoding::UTF_8, render.encoding
       assert_equal "hello \u{fc}mlat", render
@@ -200,12 +200,12 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def test_short_identifier
-    @template = new_template("hello")
-    assert_equal "hello template", @template.short_identifier
+    @template = new_template('hello')
+    assert_equal 'hello template', @template.short_identifier
   end
 
   def test_template_inspect
-    @template = new_template("hello")
-    assert_equal "#<ActionView::Template hello template locals=[]>", @template.inspect
+    @template = new_template('hello')
+    assert_equal '#<ActionView::Template hello template locals=[]>', @template.inspect
   end
 end

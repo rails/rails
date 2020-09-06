@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-$: << File.expand_path("test", COMPONENT_ROOT)
+$: << File.expand_path('test', COMPONENT_ROOT)
 
-require "bundler"
+require 'bundler'
 Bundler.setup
 
-require "rails/test_unit/runner"
-require "rails/test_unit/reporter"
-require "rails/test_unit/line_filtering"
-require "active_support"
-require "active_support/test_case"
+require 'rails/test_unit/runner'
+require 'rails/test_unit/reporter'
+require 'rails/test_unit/line_filtering'
+require 'active_support'
+require 'active_support/test_case'
 
 ActiveSupport::TestCase.extend Rails::LineFiltering
 Rails::TestUnitReporter.app_root = COMPONENT_ROOT
-Rails::TestUnitReporter.executable = "bin/test"
+Rails::TestUnitReporter.executable = 'bin/test'
 
 Rails::TestUnit::Runner.parse_options(ARGV)
 Rails::TestUnit::Runner.run(ARGV)

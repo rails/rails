@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_record/middleware/database_selector/resolver"
+require 'active_record/middleware/database_selector/resolver'
 
 module ActiveRecord
   module Middleware

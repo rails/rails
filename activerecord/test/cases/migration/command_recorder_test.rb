@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 module ActiveRecord
   class Migration
@@ -39,18 +39,18 @@ module ActiveRecord
           end
         end
         recorder = CommandRecorder.new(recorder.new)
-        assert_equal "bar", recorder.foo(kw: "bar")
+        assert_equal 'bar', recorder.foo(kw: 'bar')
       end
 
       def test_inverse_of_raise_exception_on_unknown_commands
         assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.inverse_of :execute, ["some sql"]
+          @recorder.inverse_of :execute, ['some sql']
         end
       end
 
       def test_irreversible_commands_raise_exception
         assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.revert { @recorder.execute "some sql" }
+          @recorder.revert { @recorder.execute 'some sql' }
         end
       end
 
@@ -71,24 +71,24 @@ module ActiveRecord
       def test_revert_order
         block = Proc.new { |t| t.string :name }
         @recorder.instance_eval do
-          create_table("apples", &block)
+          create_table('apples', &block)
           revert do
-            create_table("bananas", &block)
+            create_table('bananas', &block)
             revert do
-              create_table("clementines", &block)
-              create_table("dates")
+              create_table('clementines', &block)
+              create_table('dates')
             end
-            create_table("elderberries")
+            create_table('elderberries')
           end
           revert do
-            create_table("figs", &block)
-            create_table("grapes")
+            create_table('figs', &block)
+            create_table('grapes')
           end
         end
-        assert_equal [[:create_table, ["apples"], block], [:drop_table, ["elderberries"], nil],
-                      [:create_table, ["clementines"], block], [:create_table, ["dates"], nil],
-                      [:drop_table, ["bananas"], block], [:drop_table, ["grapes"], nil],
-                      [:drop_table, ["figs"], block]], @recorder.commands
+        assert_equal [[:create_table, ['apples'], block], [:drop_table, ['elderberries'], nil],
+                      [:create_table, ['clementines'], block], [:create_table, ['dates'], nil],
+                      [:drop_table, ['bananas'], block], [:drop_table, ['grapes'], nil],
+                      [:drop_table, ['figs'], block]], @recorder.commands
       end
 
       def test_invert_change_table
@@ -99,7 +99,7 @@ module ActiveRecord
           end
         end
 
-        if RUBY_VERSION >= "2.8"
+        if RUBY_VERSION >= '2.8'
           assert_equal [
             [:rename_column, [:fruits, :cultivar, :kind]],
             [:remove_column, [:fruits, :name, :string], nil],
@@ -180,13 +180,13 @@ module ActiveRecord
 
       def test_invert_change_column_default
         assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.inverse_of :change_column_default, [:table, :column, "default_value"]
+          @recorder.inverse_of :change_column_default, [:table, :column, 'default_value']
         end
       end
 
       def test_invert_change_column_default_with_from_and_to
-        change = @recorder.inverse_of :change_column_default, [:table, :column, from: "old_value", to: "new_value"]
-        assert_equal [:change_column_default, [:table, :column, from: "new_value", to: "old_value"]], change
+        change = @recorder.inverse_of :change_column_default, [:table, :column, from: 'old_value', to: 'new_value']
+        assert_equal [:change_column_default, [:table, :column, from: 'new_value', to: 'old_value']], change
       end
 
       def test_invert_change_column_default_with_from_and_to_with_boolean
@@ -197,34 +197,34 @@ module ActiveRecord
       if ActiveRecord::Base.connection.supports_comments?
         def test_invert_change_column_comment
           assert_raises(ActiveRecord::IrreversibleMigration) do
-            @recorder.inverse_of :change_column_comment, [:table, :column, "comment"]
+            @recorder.inverse_of :change_column_comment, [:table, :column, 'comment']
           end
         end
 
         def test_invert_change_column_comment_with_from_and_to
-          change = @recorder.inverse_of :change_column_comment, [:table, :column, from: "old_value", to: "new_value"]
-          assert_equal [:change_column_comment, [:table, :column, from: "new_value", to: "old_value"]], change
+          change = @recorder.inverse_of :change_column_comment, [:table, :column, from: 'old_value', to: 'new_value']
+          assert_equal [:change_column_comment, [:table, :column, from: 'new_value', to: 'old_value']], change
         end
 
         def test_invert_change_column_comment_with_from_and_to_with_nil
-          change = @recorder.inverse_of :change_column_comment, [:table, :column, from: nil, to: "new_value"]
-          assert_equal [:change_column_comment, [:table, :column, from: "new_value", to: nil]], change
+          change = @recorder.inverse_of :change_column_comment, [:table, :column, from: nil, to: 'new_value']
+          assert_equal [:change_column_comment, [:table, :column, from: 'new_value', to: nil]], change
         end
 
         def test_invert_change_table_comment
           assert_raises(ActiveRecord::IrreversibleMigration) do
-            @recorder.inverse_of :change_column_comment, [:table, :column, "comment"]
+            @recorder.inverse_of :change_column_comment, [:table, :column, 'comment']
           end
         end
 
         def test_invert_change_table_comment_with_from_and_to
-          change = @recorder.inverse_of :change_table_comment, [:table, from: "old_value", to: "new_value"]
-          assert_equal [:change_table_comment, [:table, from: "new_value", to: "old_value"]], change
+          change = @recorder.inverse_of :change_table_comment, [:table, from: 'old_value', to: 'new_value']
+          assert_equal [:change_table_comment, [:table, from: 'new_value', to: 'old_value']], change
         end
 
         def test_invert_change_table_comment_with_from_and_to_with_nil
-          change = @recorder.inverse_of :change_table_comment, [:table, from: nil, to: "new_value"]
-          assert_equal [:change_table_comment, [:table, from: "new_value", to: nil]], change
+          change = @recorder.inverse_of :change_table_comment, [:table, from: nil, to: 'new_value']
+          assert_equal [:change_table_comment, [:table, from: 'new_value', to: nil]], change
         end
       end
 
@@ -255,8 +255,8 @@ module ActiveRecord
       end
 
       def test_invert_add_index_with_name
-        remove = @recorder.inverse_of :add_index, [:table, [:one, :two], name: "new_index"]
-        assert_equal [:remove_index, [:table, [:one, :two], name: "new_index"], nil], remove
+        remove = @recorder.inverse_of :add_index, [:table, [:one, :two], name: 'new_index']
+        assert_equal [:remove_index, [:table, [:one, :two], name: 'new_index'], nil], remove
       end
 
       def test_invert_add_index_with_algorithm_option
@@ -280,8 +280,8 @@ module ActiveRecord
       end
 
       def test_invert_remove_index_with_name
-        add = @recorder.inverse_of :remove_index, [:table, { column: [:one, :two], name: "new_index" }]
-        assert_equal [:add_index, [:table, [:one, :two], name: "new_index"]], add
+        add = @recorder.inverse_of :remove_index, [:table, { column: [:one, :two], name: 'new_index' }]
+        assert_equal [:add_index, [:table, [:one, :two], name: 'new_index']], add
       end
 
       def test_invert_remove_index_with_no_special_options
@@ -291,7 +291,7 @@ module ActiveRecord
 
       def test_invert_remove_index_with_no_column
         assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.inverse_of :remove_index, [:table, name: "new_index"]
+          @recorder.inverse_of :remove_index, [:table, name: 'new_index']
         end
       end
 
@@ -336,13 +336,13 @@ module ActiveRecord
       end
 
       def test_invert_enable_extension
-        disable = @recorder.inverse_of :enable_extension, ["uuid-ossp"]
-        assert_equal [:disable_extension, ["uuid-ossp"], nil], disable
+        disable = @recorder.inverse_of :enable_extension, ['uuid-ossp']
+        assert_equal [:disable_extension, ['uuid-ossp'], nil], disable
       end
 
       def test_invert_disable_extension
-        enable = @recorder.inverse_of :disable_extension, ["uuid-ossp"]
-        assert_equal [:enable_extension, ["uuid-ossp"], nil], enable
+        enable = @recorder.inverse_of :disable_extension, ['uuid-ossp']
+        assert_equal [:enable_extension, ['uuid-ossp'], nil], enable
       end
 
       def test_invert_add_foreign_key
@@ -356,33 +356,33 @@ module ActiveRecord
       end
 
       def test_invert_add_foreign_key_with_column
-        enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, column: "owner_id"]
-        assert_equal [:remove_foreign_key, [:dogs, :people, column: "owner_id"], nil], enable
+        enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, column: 'owner_id']
+        assert_equal [:remove_foreign_key, [:dogs, :people, column: 'owner_id'], nil], enable
       end
 
       def test_invert_remove_foreign_key_with_column
-        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, :people, column: "owner_id"]
-        assert_equal [:add_foreign_key, [:dogs, :people, column: "owner_id"]], enable
+        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, :people, column: 'owner_id']
+        assert_equal [:add_foreign_key, [:dogs, :people, column: 'owner_id']], enable
       end
 
       def test_invert_add_foreign_key_with_column_and_name
-        enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, column: "owner_id", name: "fk"]
-        assert_equal [:remove_foreign_key, [:dogs, :people, column: "owner_id", name: "fk"], nil], enable
+        enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, column: 'owner_id', name: 'fk']
+        assert_equal [:remove_foreign_key, [:dogs, :people, column: 'owner_id', name: 'fk'], nil], enable
       end
 
       def test_invert_remove_foreign_key_with_column_and_name
-        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, :people, column: "owner_id", name: "fk"]
-        assert_equal [:add_foreign_key, [:dogs, :people, column: "owner_id", name: "fk"]], enable
+        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, :people, column: 'owner_id', name: 'fk']
+        assert_equal [:add_foreign_key, [:dogs, :people, column: 'owner_id', name: 'fk']], enable
       end
 
       def test_invert_remove_foreign_key_with_primary_key
-        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, :people, primary_key: "person_id"]
-        assert_equal [:add_foreign_key, [:dogs, :people, primary_key: "person_id"]], enable
+        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, :people, primary_key: 'person_id']
+        assert_equal [:add_foreign_key, [:dogs, :people, primary_key: 'person_id']], enable
       end
 
       def test_invert_remove_foreign_key_with_primary_key_and_to_table_in_options
-        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, to_table: :people, primary_key: "uuid"]
-        assert_equal [:add_foreign_key, [:dogs, :people, primary_key: "uuid"]], enable
+        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, to_table: :people, primary_key: 'uuid']
+        assert_equal [:add_foreign_key, [:dogs, :people, primary_key: 'uuid']], enable
       end
 
       def test_invert_remove_foreign_key_with_on_delete_on_update
@@ -400,11 +400,11 @@ module ActiveRecord
 
       def test_invert_remove_foreign_key_is_irreversible_without_to_table
         assert_raises ActiveRecord::IrreversibleMigration do
-          @recorder.inverse_of :remove_foreign_key, [:dogs, column: "owner_id"]
+          @recorder.inverse_of :remove_foreign_key, [:dogs, column: 'owner_id']
         end
 
         assert_raises ActiveRecord::IrreversibleMigration do
-          @recorder.inverse_of :remove_foreign_key, [:dogs, name: "fk"]
+          @recorder.inverse_of :remove_foreign_key, [:dogs, name: 'fk']
         end
 
         assert_raises ActiveRecord::IrreversibleMigration do
@@ -416,15 +416,15 @@ module ActiveRecord
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.revert do
             @recorder.transaction do
-              @recorder.execute "some sql"
+              @recorder.execute 'some sql'
             end
           end
         end
       end
 
       def test_invert_remove_check_constraint
-        enable = @recorder.inverse_of :remove_check_constraint, [:dogs, "speed > 0", name: "speed_check"]
-        assert_equal [:add_check_constraint, [:dogs, "speed > 0", name: "speed_check"], nil], enable
+        enable = @recorder.inverse_of :remove_check_constraint, [:dogs, 'speed > 0', name: 'speed_check']
+        assert_equal [:add_check_constraint, [:dogs, 'speed > 0', name: 'speed_check'], nil], enable
       end
 
       def test_invert_remove_check_constraint_without_expression

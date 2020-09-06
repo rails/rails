@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "test_helper"
+require 'test_helper'
 
 class WorkerTest < ActionCable::TestCase
   class Receiver
@@ -34,13 +34,13 @@ class WorkerTest < ActionCable::TestCase
     @receiver.last_action = nil
   end
 
-  test "invoke" do
+  test 'invoke' do
     @worker.invoke @receiver, :run, connection: @receiver.connection
     assert_equal :run, @receiver.last_action
   end
 
-  test "invoke with arguments" do
-    @worker.invoke @receiver, :process, "Hello", connection: @receiver.connection
-    assert_equal [ :process, "Hello" ], @receiver.last_action
+  test 'invoke with arguments' do
+    @worker.invoke @receiver, :process, 'Hello', connection: @receiver.connection
+    assert_equal [ :process, 'Hello' ], @receiver.last_action
   end
 end

@@ -3,7 +3,7 @@
 module Rails
   # TODO: Move this to Rails::Conductor gem
   class Conductor::BaseController < ActionController::Base
-    layout "rails/conductor"
+    layout 'rails/conductor'
     before_action :ensure_development_env
 
     private

@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require_relative "helper"
+require_relative 'helper'
 
 module Arel
   class UpdateManagerTest < Arel::Spec
-    describe "new" do
-      it "takes an engine" do
+    describe 'new' do
+      it 'takes an engine' do
         Arel::UpdateManager.new
       end
     end
 
-    it "should not quote sql literals" do
+    it 'should not quote sql literals' do
       table = Table.new(:users)
       um = Arel::UpdateManager.new
       um.table table
@@ -18,18 +18,18 @@ module Arel
       _(um.to_sql).must_be_like %{ UPDATE "users" SET "name" =  ? }
     end
 
-    it "handles limit properly" do
+    it 'handles limit properly' do
       table = Table.new(:users)
       um = Arel::UpdateManager.new
-      um.key = "id"
+      um.key = 'id'
       um.take 10
       um.table table
       um.set [[table[:name], nil]]
       assert_match(/LIMIT 10/, um.to_sql)
     end
 
-    describe "set" do
-      it "updates with null" do
+    describe 'set' do
+      it 'updates with null' do
         table = Table.new(:users)
         um = Arel::UpdateManager.new
         um.table table
@@ -37,44 +37,44 @@ module Arel
         _(um.to_sql).must_be_like %{ UPDATE "users" SET "name" =  NULL }
       end
 
-      it "takes a string" do
+      it 'takes a string' do
         table = Table.new(:users)
         um = Arel::UpdateManager.new
         um.table table
-        um.set Nodes::SqlLiteral.new "foo = bar"
+        um.set Nodes::SqlLiteral.new 'foo = bar'
         _(um.to_sql).must_be_like %{ UPDATE "users" SET foo = bar }
       end
 
-      it "takes a list of lists" do
+      it 'takes a list of lists' do
         table = Table.new(:users)
         um = Arel::UpdateManager.new
         um.table table
-        um.set [[table[:id], 1], [table[:name], "hello"]]
+        um.set [[table[:id], 1], [table[:name], 'hello']]
         _(um.to_sql).must_be_like %{
           UPDATE "users" SET "id" = 1, "name" =  'hello'
         }
       end
 
-      it "chains" do
+      it 'chains' do
         table = Table.new(:users)
         um = Arel::UpdateManager.new
-        _(um.set([[table[:id], 1], [table[:name], "hello"]])).must_equal um
+        _(um.set([[table[:id], 1], [table[:name], 'hello']])).must_equal um
       end
     end
 
-    describe "table" do
-      it "generates an update statement" do
+    describe 'table' do
+      it 'generates an update statement' do
         um = Arel::UpdateManager.new
         um.table Table.new(:users)
         _(um.to_sql).must_be_like %{ UPDATE "users" }
       end
 
-      it "chains" do
+      it 'chains' do
         um = Arel::UpdateManager.new
         _(um.table(Table.new(:users))).must_equal um
       end
 
-      it "generates an update statement with joins" do
+      it 'generates an update statement with joins' do
         um = Arel::UpdateManager.new
 
         table = Table.new(:users)
@@ -88,8 +88,8 @@ module Arel
       end
     end
 
-    describe "where" do
-      it "generates a where clause" do
+    describe 'where' do
+      it 'generates a where clause' do
         table = Table.new :users
         um = Arel::UpdateManager.new
         um.table table
@@ -99,7 +99,7 @@ module Arel
         }
       end
 
-      it "chains" do
+      it 'chains' do
         table = Table.new :users
         um = Arel::UpdateManager.new
         um.table table
@@ -107,18 +107,18 @@ module Arel
       end
     end
 
-    describe "key" do
+    describe 'key' do
       before do
         @table = Table.new :users
         @um = Arel::UpdateManager.new
         @um.key = @table[:foo]
       end
 
-      it "can be set" do
+      it 'can be set' do
         _(@um.ast.key).must_equal @table[:foo]
       end
 
-      it "can be accessed" do
+      it 'can be accessed' do
         _(@um.key).must_equal @table[:foo]
       end
     end

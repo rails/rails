@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "sucker_punch"
+require 'sucker_punch'
 
 module ActiveJob
   module QueueAdapters
@@ -33,7 +33,7 @@ module ActiveJob
           delay = timestamp - Time.current.to_f
           JobWrapper.perform_in delay, job.serialize
         else
-          raise NotImplementedError, "sucker_punch 1.0 does not support `enqueued_at`. Please upgrade to version ~> 2.0.0 to enable this behavior."
+          raise NotImplementedError, 'sucker_punch 1.0 does not support `enqueued_at`. Please upgrade to version ~> 2.0.0 to enable this behavior.'
         end
       end
 

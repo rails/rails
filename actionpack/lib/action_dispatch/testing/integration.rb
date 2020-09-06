@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "stringio"
-require "uri"
-require "rack/test"
-require "minitest"
+require 'stringio'
+require 'uri'
+require 'rack/test'
+require 'minitest'
 
-require "action_dispatch/testing/request_encoder"
+require 'action_dispatch/testing/request_encoder'
 
 module ActionDispatch
   module Integration #:nodoc:
@@ -82,7 +82,7 @@ module ActionDispatch
     # IntegrationTest#open_session, rather than instantiating
     # Integration::Session directly.
     class Session
-      DEFAULT_HOST = "www.example.com"
+      DEFAULT_HOST = 'www.example.com'
 
       include Minitest::Assertions
       include TestProcess, RequestHelpers, Assertions
@@ -138,7 +138,7 @@ module ActionDispatch
             url_options.reverse_merge!(@app.routes.default_url_options)
           end
 
-          url_options.reverse_merge!(host: host, protocol: https? ? "https" : "http")
+          url_options.reverse_merge!(host: host, protocol: https? ? 'https' : 'http')
         end
       end
 
@@ -155,10 +155,10 @@ module ActionDispatch
         @url_options = nil
 
         self.host        = DEFAULT_HOST
-        self.remote_addr = "127.0.0.1"
-        self.accept      = "text/xml,application/xml,application/xhtml+xml," \
-                           "text/html;q=0.9,text/plain;q=0.8,image/png," \
-                           "*/*;q=0.5"
+        self.remote_addr = '127.0.0.1'
+        self.accept      = 'text/xml,application/xml,application/xhtml+xml,' \
+                           'text/html;q=0.9,text/plain;q=0.8,image/png,' \
+                           '*/*;q=0.5'
 
         unless defined? @named_routes_configured
           # the helpers are made protected by default--we make them public for
@@ -222,7 +222,7 @@ module ActionDispatch
         headers ||= {}
 
         if method == :get && as == :json && params
-          headers["X-Http-Method-Override"] = "GET"
+          headers['X-Http-Method-Override'] = 'GET'
           method = :post
         end
 
@@ -238,30 +238,30 @@ module ActionDispatch
           end
         end
 
-        hostname, port = host.split(":")
+        hostname, port = host.split(':')
 
         request_env = {
           :method => method,
           :params => request_encoder.encode_params(params),
 
-          "SERVER_NAME"     => hostname,
-          "SERVER_PORT"     => port || (https? ? "443" : "80"),
-          "HTTPS"           => https? ? "on" : "off",
-          "rack.url_scheme" => https? ? "https" : "http",
+          'SERVER_NAME'     => hostname,
+          'SERVER_PORT'     => port || (https? ? '443' : '80'),
+          'HTTPS'           => https? ? 'on' : 'off',
+          'rack.url_scheme' => https? ? 'https' : 'http',
 
-          "REQUEST_URI"    => path,
-          "HTTP_HOST"      => host,
-          "REMOTE_ADDR"    => remote_addr,
-          "CONTENT_TYPE"   => request_encoder.content_type,
-          "HTTP_ACCEPT"    => request_encoder.accept_header || accept
+          'REQUEST_URI'    => path,
+          'HTTP_HOST'      => host,
+          'REMOTE_ADDR'    => remote_addr,
+          'CONTENT_TYPE'   => request_encoder.content_type,
+          'HTTP_ACCEPT'    => request_encoder.accept_header || accept
         }
 
         wrapped_headers = Http::Headers.from_hash({})
         wrapped_headers.merge!(headers) if headers
 
         if xhr
-          wrapped_headers["HTTP_X_REQUESTED_WITH"] = "XMLHttpRequest"
-          wrapped_headers["HTTP_ACCEPT"] ||= [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
+          wrapped_headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
+          wrapped_headers['HTTP_ACCEPT'] ||= [Mime[:js], Mime[:html], Mime[:xml], 'text/xml', '*/*'].join(', ')
         end
 
         # This modifies the passed request_env directly.
@@ -359,11 +359,11 @@ module ActionDispatch
 
       %w(get post patch put head delete cookies assigns follow_redirect!).each do |method|
         # reset the html_document variable, except for cookies/assigns calls
-        unless method == "cookies" || method == "assigns"
-          reset_html_document = "@html_document = nil"
+        unless method == 'cookies' || method == 'assigns'
+          reset_html_document = '@html_document = nil'
         end
 
-        definition = RUBY_VERSION >= "2.7" ? "..." : "*args"
+        definition = RUBY_VERSION >= '2.7' ? '...' : '*args'
 
         module_eval <<~RUBY, __FILE__, __LINE__ + 1
           def #{method}(#{definition})

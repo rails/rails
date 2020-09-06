@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/kernel/reporting"
-require "active_support/core_ext/object/blank"
-require "stringio"
+require 'active_support/core_ext/kernel/reporting'
+require 'active_support/core_ext/object/blank'
+require 'stringio'
 
 module ActiveSupport
   module XmlMini_REXML #:nodoc:
     extend self
 
-    CONTENT_KEY = "__content__"
+    CONTENT_KEY = '__content__'
 
     # Parse an XML Document string or IO into a simple hash.
     #
@@ -19,13 +19,13 @@ module ActiveSupport
     #   XML Document string or IO to parse
     def parse(data)
       if !data.respond_to?(:read)
-        data = StringIO.new(data || "")
+        data = StringIO.new(data || '')
       end
 
       if data.eof?
         {}
       else
-        silence_warnings { require "rexml/document" } unless defined?(REXML::Document)
+        silence_warnings { require 'rexml/document' } unless defined?(REXML::Document)
         doc = REXML::Document.new(data)
 
         if doc.root
@@ -45,7 +45,7 @@ module ActiveSupport
       # element::
       #   XML element to merge into hash
       def merge_element!(hash, element, depth)
-        raise REXML::ParseException, "The document is too deep" if depth == 0
+        raise REXML::ParseException, 'The document is too deep' if depth == 0
         merge!(hash, element.name, collapse(element, depth))
       end
 
@@ -76,7 +76,7 @@ module ActiveSupport
           hash
         else
           # must use value to prevent double-escaping
-          texts = +""
+          texts = +''
           element.texts.each { |t| texts << t.value }
           merge!(hash, CONTENT_KEY, texts)
         end

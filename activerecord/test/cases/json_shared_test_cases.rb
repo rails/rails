@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "support/schema_dumping_helper"
-require "pp"
+require 'support/schema_dumping_helper'
+require 'pp'
 
 module JSONSharedTestCases
   include SchemaDumpingHelper
 
   class JsonDataType < ActiveRecord::Base
-    self.table_name = "json_data_type"
+    self.table_name = 'json_data_type'
 
     store_accessor :settings, :resolution
   end
@@ -22,71 +22,71 @@ module JSONSharedTestCases
   end
 
   def test_column
-    column = klass.columns_hash["payload"]
+    column = klass.columns_hash['payload']
     assert_equal column_type, column.type
     assert_type_match column_type, column.sql_type
 
-    type = klass.type_for_attribute("payload")
+    type = klass.type_for_attribute('payload')
     assert_not_predicate type, :binary?
   end
 
   def test_change_table_supports_json
-    @connection.change_table("json_data_type") do |t|
-      t.public_send column_type, "users"
+    @connection.change_table('json_data_type') do |t|
+      t.public_send column_type, 'users'
     end
     klass.reset_column_information
-    column = klass.columns_hash["users"]
+    column = klass.columns_hash['users']
     assert_equal column_type, column.type
     assert_type_match column_type, column.sql_type
   end
 
   def test_schema_dumping
-    output = dump_table_schema("json_data_type")
+    output = dump_table_schema('json_data_type')
     assert_match(/t\.#{column_type}\s+"settings"/, output)
   end
 
   def test_cast_value_on_write
-    x = klass.new(payload: { "string" => "foo", :symbol => :bar })
-    assert_equal({ "string" => "foo", :symbol => :bar }, x.payload_before_type_cast)
-    assert_equal({ "string" => "foo", "symbol" => "bar" }, x.payload)
+    x = klass.new(payload: { 'string' => 'foo', :symbol => :bar })
+    assert_equal({ 'string' => 'foo', :symbol => :bar }, x.payload_before_type_cast)
+    assert_equal({ 'string' => 'foo', 'symbol' => 'bar' }, x.payload)
     x.save!
-    assert_equal({ "string" => "foo", "symbol" => "bar" }, x.reload.payload)
+    assert_equal({ 'string' => 'foo', 'symbol' => 'bar' }, x.reload.payload)
   end
 
   def test_type_cast_json
-    type = klass.type_for_attribute("payload")
+    type = klass.type_for_attribute('payload')
 
     data = '{"a_key":"a_value"}'
     hash = type.deserialize(data)
-    assert_equal({ "a_key" => "a_value" }, hash)
-    assert_equal({ "a_key" => "a_value" }, type.deserialize(data))
+    assert_equal({ 'a_key' => 'a_value' }, hash)
+    assert_equal({ 'a_key' => 'a_value' }, type.deserialize(data))
 
-    assert_equal({}, type.deserialize("{}"))
-    assert_equal({ "key" => nil }, type.deserialize('{"key": null}'))
-    assert_equal({ "c" => "}", '"a"' => 'b "a b' }, type.deserialize(%q({"c":"}", "\"a\"":"b \"a b"})))
+    assert_equal({}, type.deserialize('{}'))
+    assert_equal({ 'key' => nil }, type.deserialize('{"key": null}'))
+    assert_equal({ 'c' => '}', '"a"' => 'b "a b' }, type.deserialize(%q({"c":"}", "\"a\"":"b \"a b"})))
   end
 
   def test_rewrite
     @connection.execute(insert_statement_per_database('{"k":"v"}'))
     x = klass.first
-    x.payload = { '"a\'' => "b" }
+    x.payload = { '"a\'' => 'b' }
     assert x.save!
   end
 
   def test_select
     @connection.execute(insert_statement_per_database('{"k":"v"}'))
     x = klass.first
-    assert_equal({ "k" => "v" }, x.payload)
+    assert_equal({ 'k' => 'v' }, x.payload)
   end
 
   def test_select_multikey
     @connection.execute(insert_statement_per_database('{"k1":"v1", "k2":"v2", "k3":[1,2,3]}'))
     x = klass.first
-    assert_equal({ "k1" => "v1", "k2" => "v2", "k3" => [1, 2, 3] }, x.payload)
+    assert_equal({ 'k1' => 'v1', 'k2' => 'v2', 'k3' => [1, 2, 3] }, x.payload)
   end
 
   def test_null_json
-    @connection.execute(insert_statement_per_database("null"))
+    @connection.execute(insert_statement_per_database('null'))
     x = klass.first
     assert_nil(x.payload)
   end
@@ -98,7 +98,7 @@ module JSONSharedTestCases
   end
 
   def test_select_nil_json_after_update
-    json = klass.create!(payload: "foo")
+    json = klass.create!(payload: 'foo')
     x = klass.where(payload: nil).first
     assert_nil(x)
 
@@ -110,65 +110,65 @@ module JSONSharedTestCases
   def test_select_array_json_value
     @connection.execute(insert_statement_per_database('["v0",{"k1":"v1"}]'))
     x = klass.first
-    assert_equal(["v0", { "k1" => "v1" }], x.payload)
+    assert_equal(['v0', { 'k1' => 'v1' }], x.payload)
   end
 
   def test_rewrite_array_json_value
     @connection.execute(insert_statement_per_database('["v0",{"k1":"v1"}]'))
     x = klass.first
-    x.payload = ["v1", { "k2" => "v2" }, "v3"]
+    x.payload = ['v1', { 'k2' => 'v2' }, 'v3']
     assert x.save!
   end
 
   def test_with_store_accessors
-    x = klass.new(resolution: "320×480")
-    assert_equal "320×480", x.resolution
+    x = klass.new(resolution: '320×480')
+    assert_equal '320×480', x.resolution
 
     x.save!
     x = klass.first
-    assert_equal "320×480", x.resolution
+    assert_equal '320×480', x.resolution
 
-    x.resolution = "640×1136"
+    x.resolution = '640×1136'
     x.save!
 
     x = klass.first
-    assert_equal "640×1136", x.resolution
+    assert_equal '640×1136', x.resolution
   end
 
   def test_duplication_with_store_accessors
-    x = klass.new(resolution: "320×480")
-    assert_equal "320×480", x.resolution
+    x = klass.new(resolution: '320×480')
+    assert_equal '320×480', x.resolution
 
     y = x.dup
-    assert_equal "320×480", y.resolution
+    assert_equal '320×480', y.resolution
   end
 
   def test_yaml_round_trip_with_store_accessors
-    x = klass.new(resolution: "320×480")
-    assert_equal "320×480", x.resolution
+    x = klass.new(resolution: '320×480')
+    assert_equal '320×480', x.resolution
 
     y = YAML.load(YAML.dump(x))
-    assert_equal "320×480", y.resolution
+    assert_equal '320×480', y.resolution
   end
 
   def test_changes_in_place
     json = klass.new
     assert_not_predicate json, :changed?
 
-    json.payload = { "one" => "two" }
+    json.payload = { 'one' => 'two' }
     assert_predicate json, :changed?
     assert_predicate json, :payload_changed?
 
     json.save!
     assert_not_predicate json, :changed?
 
-    json.payload["three"] = "four"
+    json.payload['three'] = 'four'
     assert_predicate json, :payload_changed?
 
     json.save!
     json.reload
 
-    assert_equal({ "one" => "two", "three" => "four" }, json.payload)
+    assert_equal({ 'one' => 'two', 'three' => 'four' }, json.payload)
     assert_not_predicate json, :changed?
   end
 
@@ -176,18 +176,18 @@ module JSONSharedTestCases
     json = klass.new
     assert_not_predicate json, :changed?
 
-    json.payload = { "three" => "four", "one" => "two" }
+    json.payload = { 'three' => 'four', 'one' => 'two' }
     json.save!
     json.reload
 
-    json.payload = { "three" => "four", "one" => "two" }
+    json.payload = { 'three' => 'four', 'one' => 'two' }
     assert_not_predicate json, :changed?
 
-    json.payload = [{ "three" => "four", "one" => "two" }, { "seven" => "eight", "five" => "six" }]
+    json.payload = [{ 'three' => 'four', 'one' => 'two' }, { 'seven' => 'eight', 'five' => 'six' }]
     json.save!
     json.reload
 
-    json.payload = [{ "three" => "four", "one" => "two" }, { "seven" => "eight", "five" => "six" }]
+    json.payload = [{ 'three' => 'four', 'one' => 'two' }, { 'seven' => 'eight', 'five' => 'six' }]
     assert_not_predicate json, :changed?
   end
 
@@ -203,8 +203,8 @@ module JSONSharedTestCases
   end
 
   def test_assigning_string_literal
-    json = klass.create!(payload: "foo")
-    assert_equal "foo", json.payload
+    json = klass.create!(payload: 'foo')
+    assert_equal 'foo', json.payload
   end
 
   def test_assigning_number
@@ -238,20 +238,20 @@ module JSONSharedTestCases
       serialize :settings, MySettings
     end
 
-    new_klass.create!(settings: MySettings.new("one" => "two"))
+    new_klass.create!(settings: MySettings.new('one' => 'two'))
     record = new_klass.first
 
     assert_instance_of MySettings, record.settings
-    assert_equal({ "one" => "two" }, record.settings.to_hash)
+    assert_equal({ 'one' => 'two' }, record.settings.to_hash)
 
-    record.settings = MySettings.new("three" => "four")
+    record.settings = MySettings.new('three' => 'four')
     record.save!
 
-    assert_equal({ "three" => "four" }, record.reload.settings.to_hash)
+    assert_equal({ 'three' => 'four' }, record.reload.settings.to_hash)
   end
 
   class JsonDataTypeWithFilter < ActiveRecord::Base
-    self.table_name = "json_data_type"
+    self.table_name = 'json_data_type'
 
     attribute :payload, :json
 
@@ -263,7 +263,7 @@ module JSONSharedTestCases
 
   def test_pretty_print
     x = JsonDataTypeWithFilter.create!(payload: {})
-    x.payload[11] = "foo"
+    x.payload[11] = 'foo'
     io = StringIO.new
     PP.pp(x, io)
     assert io.string

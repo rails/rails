@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
+require_relative 'abstract_unit'
 
 class ReloaderTest < ActiveSupport::TestCase
   def test_prepare_callback

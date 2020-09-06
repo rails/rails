@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/attribute_accessors"
+require 'active_support/core_ext/module/attribute_accessors'
 
 module ActionDispatch
   module Http
@@ -18,8 +18,8 @@ module ActionDispatch
 
       # The MIME type of the HTTP request, such as Mime[:xml].
       def content_mime_type
-        fetch_header("action_dispatch.request.content_type") do |k|
-          v = if get_header("CONTENT_TYPE") =~ /^([^,\;]*)/
+        fetch_header('action_dispatch.request.content_type') do |k|
+          v = if get_header('CONTENT_TYPE') =~ /^([^,\;]*)/
             Mime::Type.lookup($1.strip.downcase)
           else
             nil
@@ -33,13 +33,13 @@ module ActionDispatch
       end
 
       def has_content_type? # :nodoc:
-        get_header "CONTENT_TYPE"
+        get_header 'CONTENT_TYPE'
       end
 
       # Returns the accepted MIME type for the request.
       def accepts
-        fetch_header("action_dispatch.request.accepts") do |k|
-          header = get_header("HTTP_ACCEPT").to_s.strip
+        fetch_header('action_dispatch.request.accepts') do |k|
+          header = get_header('HTTP_ACCEPT').to_s.strip
 
           v = if header.empty?
             [content_mime_type]
@@ -61,7 +61,7 @@ module ActionDispatch
       end
 
       def formats
-        fetch_header("action_dispatch.request.formats") do |k|
+        fetch_header('action_dispatch.request.formats') do |k|
           v = if params_readable?
             Array(Mime[parameters[:format]])
           elsif use_accept_header && valid_accept_header
@@ -75,7 +75,7 @@ module ActionDispatch
           end
 
           v = v.select do |format|
-            format.symbol || format.ref == "*/*"
+            format.symbol || format.ref == '*/*'
           end
 
           set_header k, v
@@ -89,7 +89,7 @@ module ActionDispatch
         if variant.all? { |v| v.is_a?(Symbol) }
           @variant = ActiveSupport::ArrayInquirer.new(variant)
         else
-          raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols."
+          raise ArgumentError, 'request.variant must be set to a Symbol or an Array of Symbols.'
         end
       end
 
@@ -110,7 +110,7 @@ module ActionDispatch
       #   end
       def format=(extension)
         parameters[:format] = extension.to_s
-        set_header "action_dispatch.request.formats", [Mime::Type.lookup_by_extension(parameters[:format])]
+        set_header 'action_dispatch.request.formats', [Mime::Type.lookup_by_extension(parameters[:format])]
       end
 
       # Sets the \formats by string extensions. This differs from #format= by allowing you
@@ -129,7 +129,7 @@ module ActionDispatch
       #   end
       def formats=(extensions)
         parameters[:format] = extensions.first.to_s
-        set_header "action_dispatch.request.formats", extensions.collect { |extension|
+        set_header 'action_dispatch.request.formats', extensions.collect { |extension|
           Mime::Type.lookup_by_extension(extension)
         }
       end
@@ -172,7 +172,7 @@ module ActionDispatch
         end
 
         def format_from_path_extension # :doc:
-          path = get_header("action_dispatch.original_path") || get_header("PATH_INFO")
+          path = get_header('action_dispatch.original_path') || get_header('PATH_INFO')
           if match = path && path.match(/\.(\w+)\z/)
             Mime[match.captures.first]
           end

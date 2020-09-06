@@ -122,8 +122,8 @@ module ActionDispatch
           key = key.to_s
           if HTTP_HEADER.match?(key)
             key = key.upcase
-            key.tr!("-", "_")
-            key.prepend("HTTP_") unless CGI_VARIABLES.include?(key)
+            key.tr!('-', '_')
+            key.prepend('HTTP_') unless CGI_VARIABLES.include?(key)
           end
           key
         end

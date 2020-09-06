@@ -10,7 +10,7 @@ module ActiveSupport
       def before_setup
         if tagged_logger && tagged_logger.info?
           heading = "#{self.class}: #{name}"
-          divider = "-" * heading.size
+          divider = '-' * heading.size
           tagged_logger.info divider
           tagged_logger.info heading
           tagged_logger.info divider

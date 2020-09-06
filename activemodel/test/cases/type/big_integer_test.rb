@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 module ActiveModel
   module Type
@@ -8,7 +8,7 @@ module ActiveModel
       def test_type_cast_big_integer
         type = Type::BigInteger.new
         assert_equal 1, type.cast(1)
-        assert_equal 1, type.cast("1")
+        assert_equal 1, type.cast('1')
       end
 
       def test_small_values

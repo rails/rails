@@ -7,7 +7,7 @@ module ActionText
 
       class << self
         def from_node(node)
-          if node["url"] && content_type_is_image?(node["content-type"])
+          if node['url'] && content_type_is_image?(node['content-type'])
             new(attributes_from_node(node))
           end
         end
@@ -18,10 +18,10 @@ module ActionText
           end
 
           def attributes_from_node(node)
-            { url: node["url"],
-              content_type: node["content-type"],
-              width: node["width"],
-              height: node["height"] }
+            { url: node['url'],
+              content_type: node['content-type'],
+              width: node['width'],
+              height: node['height'] }
           end
       end
 
@@ -39,7 +39,7 @@ module ActionText
       end
 
       def to_partial_path
-        "action_text/attachables/remote_image"
+        'action_text/attachables/remote_image'
       end
     end
   end

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "pathname"
-require "tmpdir"
-require "active_support/message_encryptor"
+require 'pathname'
+require 'tmpdir'
+require 'active_support/message_encryptor'
 
 module ActiveSupport
   class EncryptedFile
@@ -15,12 +15,12 @@ module ActiveSupport
     class MissingKeyError < RuntimeError
       def initialize(key_path:, env_key:)
         super \
-          "Missing encryption key to decrypt file with. " +
+          'Missing encryption key to decrypt file with. ' +
           "Ask your team for your master key and write it to #{key_path} or put it in the ENV['#{env_key}']."
       end
     end
 
-    CIPHER = "aes-128-gcm"
+    CIPHER = 'aes-128-gcm'
 
     def self.generate_key
       SecureRandom.hex(ActiveSupport::MessageEncryptor.key_len(CIPHER))
@@ -82,7 +82,7 @@ module ActiveSupport
       end
 
       def encryptor
-        @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack("H*"), cipher: CIPHER)
+        @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack('H*'), cipher: CIPHER)
       end
 
 

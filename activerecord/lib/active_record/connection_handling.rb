@@ -2,8 +2,8 @@
 
 module ActiveRecord
   module ConnectionHandling
-    RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence }
-    DEFAULT_ENV = -> { RAILS_ENV.call || "default_env" }
+    RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV['RAILS_ENV'].presence || ENV['RACK_ENV'].presence }
+    DEFAULT_ENV = -> { RAILS_ENV.call || 'default_env' }
 
     # Establishes the connection to the database. Accepts a hash as input where
     # the <tt>:adapter</tt> key must be specified with the name of a database adapter (in lower-case)
@@ -80,7 +80,7 @@ module ActiveRecord
     # Returns an array of database connections.
     def connects_to(database: {}, shards: {})
       if database.present? && shards.present?
-        raise ArgumentError, "connects_to can only accept a `database` or `shards` argument, but not both arguments."
+        raise ArgumentError, 'connects_to can only accept a `database` or `shards` argument, but not both arguments.'
       end
 
       connections = []
@@ -137,14 +137,14 @@ module ActiveRecord
     #
     # The database kwarg is deprecated and will be removed in 6.2.0 without replacement.
     def connected_to(database: nil, role: nil, shard: nil, prevent_writes: false, &blk)
-      raise NotImplementedError, "connected_to can only be called on ActiveRecord::Base" unless self == Base
+      raise NotImplementedError, 'connected_to can only be called on ActiveRecord::Base' unless self == Base
 
       if database
-        ActiveSupport::Deprecation.warn("The database key in `connected_to` is deprecated. It will be removed in Rails 6.2.0 without replacement.")
+        ActiveSupport::Deprecation.warn('The database key in `connected_to` is deprecated. It will be removed in Rails 6.2.0 without replacement.')
       end
 
       if database && (role || shard)
-        raise ArgumentError, "`connected_to` cannot accept a `database` argument with any other arguments."
+        raise ArgumentError, '`connected_to` cannot accept a `database` argument with any other arguments.'
       elsif database
         if database.is_a?(Hash)
           role, database = database.first
@@ -162,7 +162,7 @@ module ActiveRecord
       elsif role
         with_role(role, prevent_writes, &blk)
       else
-        raise ArgumentError, "must provide a `shard` and/or `role`."
+        raise ArgumentError, 'must provide a `shard` and/or `role`.'
       end
     end
 
@@ -233,7 +233,7 @@ module ActiveRecord
     def connection_config
       connection_pool.db_config.configuration_hash
     end
-    deprecate connection_config: "Use connection_db_config instead"
+    deprecate connection_config: 'Use connection_db_config instead'
 
     # Returns the db_config object from the associated connection:
     #
@@ -280,7 +280,7 @@ module ActiveRecord
 
     private
       def resolve_config_for_connection(config_or_env)
-        raise "Anonymous class is not allowed." unless name
+        raise 'Anonymous class is not allowed.' unless name
 
         owner_name = primary_class? ? Base.name : name
         self.connection_specification_name = owner_name

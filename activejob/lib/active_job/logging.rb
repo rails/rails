@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/filters"
-require "active_support/tagged_logging"
-require "active_support/logger"
+require 'active_support/core_ext/string/filters'
+require 'active_support/tagged_logging'
+require 'active_support/logger'
 
 module ActiveJob
   module Logging #:nodoc:
@@ -19,7 +19,7 @@ module ActiveJob
     private
       def tag_logger(*tags)
         if logger.respond_to?(:tagged)
-          tags.unshift "ActiveJob" unless logger_tagged_by_active_job?
+          tags.unshift 'ActiveJob' unless logger_tagged_by_active_job?
           logger.tagged(*tags) { yield }
         else
           yield
@@ -27,7 +27,7 @@ module ActiveJob
       end
 
       def logger_tagged_by_active_job?
-        logger.formatter.current_tags.include?("ActiveJob")
+        logger.formatter.current_tags.include?('ActiveJob')
       end
   end
 end

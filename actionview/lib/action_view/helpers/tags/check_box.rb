@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "action_view/helpers/tags/checkable"
+require 'action_view/helpers/tags/checkable'
 
 module ActionView
   module Helpers
@@ -16,19 +16,19 @@ module ActionView
 
         def render
           options = @options.stringify_keys
-          options["type"]     = "checkbox"
-          options["value"]    = @checked_value
-          options["checked"] = "checked" if input_checked?(options)
+          options['type']     = 'checkbox'
+          options['value']    = @checked_value
+          options['checked'] = 'checked' if input_checked?(options)
 
-          if options["multiple"]
+          if options['multiple']
             add_default_name_and_id_for_value(@checked_value, options)
-            options.delete("multiple")
+            options.delete('multiple')
           else
             add_default_name_and_id(options)
           end
 
-          include_hidden = options.delete("include_hidden") { true }
-          checkbox = tag("input", options)
+          include_hidden = options.delete('include_hidden') { true }
+          checkbox = tag('input', options)
 
           if include_hidden
             hidden = hidden_field_for_checkbox(options)
@@ -57,7 +57,7 @@ module ActionView
           end
 
           def hidden_field_for_checkbox(options)
-            @unchecked_value ? tag("input", options.slice("name", "disabled", "form").merge!("type" => "hidden", "value" => @unchecked_value)) : "".html_safe
+            @unchecked_value ? tag('input', options.slice('name', 'disabled', 'form').merge!('type' => 'hidden', 'value' => @unchecked_value)) : ''.html_safe
           end
       end
     end

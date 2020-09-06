@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../support/job_buffer"
-require "active_support/core_ext/integer/inflections"
+require_relative '../support/job_buffer'
+require 'active_support/core_ext/integer/inflections'
 
 class DefaultsError < StandardError; end
 class DisabledJitterError < StandardError; end
@@ -46,7 +46,7 @@ class RetryJob < ActiveJob::Base
       JobBuffer.add("Raised #{raising} for the #{executions.ordinalize} time")
       raise raising.constantize
     else
-      JobBuffer.add("Successfully completed job")
+      JobBuffer.add('Successfully completed job')
     end
   end
 end

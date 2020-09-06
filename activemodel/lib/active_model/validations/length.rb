@@ -10,7 +10,7 @@ module ActiveModel
 
       def initialize(options)
         if range = (options.delete(:in) || options.delete(:within))
-          raise ArgumentError, ":in and :within must be a Range" unless range.is_a?(Range)
+          raise ArgumentError, ':in and :within must be a Range' unless range.is_a?(Range)
           options[:minimum], options[:maximum] = range.min, range.max
         end
 
@@ -25,7 +25,7 @@ module ActiveModel
         keys = CHECKS.keys & options.keys
 
         if keys.empty?
-          raise ArgumentError, "Range unspecified. Specify the :in, :within, :maximum, :minimum, or :is option."
+          raise ArgumentError, 'Range unspecified. Specify the :in, :within, :maximum, :minimum, or :is option.'
         end
 
         keys.each do |key|

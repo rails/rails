@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
 begin
-  gem "redis", ">= 4.0.1"
-  require "redis"
-  require "redis/distributed"
+  gem 'redis', '>= 4.0.1'
+  require 'redis'
+  require 'redis/distributed'
 rescue LoadError
-  warn "The Redis cache store requires the redis gem, version 4.0.1 or later. Please add it to your Gemfile: `gem \"redis\", \"~> 4.0\"`"
+  warn 'The Redis cache store requires the redis gem, version 4.0.1 or later. Please add it to your Gemfile: `gem "redis", "~> 4.0"`'
   raise
 end
 
 # Prefer the hiredis driver but don't require it.
 begin
-  require "redis/connection/hiredis"
+  require 'redis/connection/hiredis'
 rescue LoadError
 end
 
-require "digest/sha2"
-require "active_support/core_ext/marshal"
+require 'digest/sha2'
+require 'active_support/core_ext/marshal'
 
 module ActiveSupport
   module Cache
@@ -236,7 +236,7 @@ module ActiveSupport
           end
           redis.with do |c|
             pattern = namespace_key(matcher, options)
-            cursor = "0"
+            cursor = '0'
             # Fetch keys in batches using SCAN to avoid blocking the Redis server.
             nodes = c.respond_to?(:nodes) ? c.nodes : [c]
 
@@ -244,7 +244,7 @@ module ActiveSupport
               begin
                 cursor, keys = node.scan(cursor, match: pattern, count: SCAN_BATCH_SIZE)
                 node.del(*keys) unless keys.empty?
-              end until cursor == "0"
+              end until cursor == '0'
             end
           end
         end
@@ -311,7 +311,7 @@ module ActiveSupport
       def clear(options = nil)
         failsafe :clear do
           if namespace = merged_options(options)[:namespace]
-            delete_matched "*", namespace: namespace
+            delete_matched '*', namespace: namespace
           else
             redis.with { |c| c.flushdb }
           end

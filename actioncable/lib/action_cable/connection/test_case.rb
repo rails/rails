@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "active_support"
-require "active_support/test_case"
-require "active_support/core_ext/hash/indifferent_access"
-require "action_dispatch"
-require "action_dispatch/http/headers"
-require "action_dispatch/testing/test_request"
+require 'active_support'
+require 'active_support/test_case'
+require 'active_support/core_ext/hash/indifferent_access'
+require 'action_dispatch'
+require 'action_dispatch/http/headers'
+require 'action_dispatch/testing/test_request'
 
 module ActionCable
   module Connection
@@ -13,7 +13,7 @@ module ActionCable
       def initialize(name)
         super "Unable to determine the connection to test from #{name}. " +
           "You'll need to specify it using `tests YourConnection` in your " +
-          "test case definition."
+          'test case definition.'
       end
     end
 
@@ -23,7 +23,7 @@ module ActionCable
       #   # Asserts that connection without user_id fails
       #   assert_reject_connection { connect params: { user_id: '' } }
       def assert_reject_connection(&block)
-        assert_raises(Authorization::UnauthorizedError, "Expected to reject connection but no rejection was made", &block)
+        assert_raises(Authorization::UnauthorizedError, 'Expected to reject connection but no rejection was made', &block)
       end
     end
 
@@ -130,7 +130,7 @@ module ActionCable
       module Behavior
         extend ActiveSupport::Concern
 
-        DEFAULT_PATH = "/cable"
+        DEFAULT_PATH = '/cable'
 
         include ActiveSupport::Testing::ConstantLookup
         include Assertions
@@ -194,7 +194,7 @@ module ActionCable
 
         # Exert #disconnect on the connection under test.
         def disconnect
-          raise "Must be connected!" if connection.nil?
+          raise 'Must be connected!' if connection.nil?
 
           connection.disconnect if connection.respond_to?(:disconnect)
           @connection = nil
@@ -213,8 +213,8 @@ module ActionCable
             query_string = params.nil? ? uri.query : params.to_query
 
             request_env = {
-              "QUERY_STRING" => query_string,
-              "PATH_INFO" => uri.path
+              'QUERY_STRING' => query_string,
+              'PATH_INFO' => uri.path
             }.merge(env)
 
             if wrapped_headers.present?

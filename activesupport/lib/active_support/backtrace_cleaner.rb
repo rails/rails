@@ -101,7 +101,7 @@ module ActiveSupport
       end
 
       def add_stdlib_silencer
-        add_silencer { |line| line.start_with?(RbConfig::CONFIG["rubylibdir"]) }
+        add_silencer { |line| line.start_with?(RbConfig::CONFIG['rubylibdir']) }
       end
 
       # Process +ary+ via +filters+ using +method+, ensuring

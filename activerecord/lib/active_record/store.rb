@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/indifferent_access"
+require 'active_support/core_ext/hash/indifferent_access'
 
 module ActiveRecord
   # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.
@@ -116,7 +116,7 @@ module ActiveRecord
           when TrueClass
             "#{store_attribute}_"
           else
-            ""
+            ''
           end
         accessor_suffix =
           case suffix
@@ -125,7 +125,7 @@ module ActiveRecord
           when TrueClass
             "_#{store_attribute}"
           else
-            ""
+            ''
           end
 
         _store_accessors_module.module_eval do
@@ -272,7 +272,7 @@ module ActiveRecord
         end
 
         def load(yaml)
-          self.class.as_indifferent_hash(@coder.load(yaml || ""))
+          self.class.as_indifferent_hash(@coder.load(yaml || ''))
         end
 
         def self.as_indifferent_hash(obj)

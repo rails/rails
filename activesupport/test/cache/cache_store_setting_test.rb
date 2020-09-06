@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
-require "active_support/cache"
-require "dalli"
+require_relative '../abstract_unit'
+require 'active_support/cache'
+require 'dalli'
 
 class CacheStoreSettingTest < ActiveSupport::TestCase
   def test_memory_store_gets_created_if_no_arguments_passed_to_lookup_store_method
@@ -16,14 +16,14 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
   end
 
   def test_file_fragment_cache_store
-    store = ActiveSupport::Cache.lookup_store :file_store, "/path/to/cache/directory"
+    store = ActiveSupport::Cache.lookup_store :file_store, '/path/to/cache/directory'
     assert_kind_of(ActiveSupport::Cache::FileStore, store)
-    assert_equal "/path/to/cache/directory", store.cache_path
+    assert_equal '/path/to/cache/directory', store.cache_path
   end
 
   def test_mem_cache_fragment_cache_store
     assert_called_with(Dalli::Client, :new, [%w[localhost], {}]) do
-      store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost"
+      store = ActiveSupport::Cache.lookup_store :mem_cache_store, 'localhost'
       assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
     end
   end
@@ -47,39 +47,39 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
 
   def test_mem_cache_fragment_cache_store_with_multiple_servers
     assert_called_with(Dalli::Client, :new, [%w[localhost 192.168.1.1], {}]) do
-      store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", "192.168.1.1"
+      store = ActiveSupport::Cache.lookup_store :mem_cache_store, 'localhost', '192.168.1.1'
       assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
     end
   end
 
   def test_mem_cache_fragment_cache_store_with_options
     assert_called_with(Dalli::Client, :new, [%w[localhost 192.168.1.1], { timeout: 10 }]) do
-      store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", "192.168.1.1", namespace: "foo", timeout: 10
+      store = ActiveSupport::Cache.lookup_store :mem_cache_store, 'localhost', '192.168.1.1', namespace: 'foo', timeout: 10
       assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
-      assert_equal "foo", store.options[:namespace]
+      assert_equal 'foo', store.options[:namespace]
     end
   end
 
   def test_object_assigned_fragment_cache_store
-    store = ActiveSupport::Cache.lookup_store ActiveSupport::Cache::FileStore.new("/path/to/cache/directory")
+    store = ActiveSupport::Cache.lookup_store ActiveSupport::Cache::FileStore.new('/path/to/cache/directory')
     assert_kind_of(ActiveSupport::Cache::FileStore, store)
-    assert_equal "/path/to/cache/directory", store.cache_path
+    assert_equal '/path/to/cache/directory', store.cache_path
   end
 
   def test_redis_cache_store_with_single_array_object
-    cache_store = [:redis_cache_store, namespace: "foo"]
+    cache_store = [:redis_cache_store, namespace: 'foo']
 
     store = ActiveSupport::Cache.lookup_store(cache_store)
     assert_kind_of ActiveSupport::Cache::RedisCacheStore, store
-    assert_equal "foo", store.options[:namespace]
+    assert_equal 'foo', store.options[:namespace]
   end
 
   def test_redis_cache_store_with_ordered_options
     options = ActiveSupport::OrderedOptions.new
-    options.update namespace: "foo"
+    options.update namespace: 'foo'
 
     store = ActiveSupport::Cache.lookup_store :redis_cache_store, options
     assert_kind_of(ActiveSupport::Cache::RedisCacheStore, store)
-    assert_equal "foo", store.options[:namespace]
+    assert_equal 'foo', store.options[:namespace]
   end
 end

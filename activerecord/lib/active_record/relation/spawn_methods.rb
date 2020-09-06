@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/except"
-require "active_support/core_ext/hash/slice"
-require "active_record/relation/merger"
+require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/hash/slice'
+require 'active_record/relation/merger'
 
 module ActiveRecord
   module SpawnMethods

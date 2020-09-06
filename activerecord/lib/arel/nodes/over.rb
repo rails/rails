@@ -9,7 +9,7 @@ module Arel # :nodoc: all
         super(left, right)
       end
 
-      def operator; "OVER" end
+      def operator; 'OVER' end
     end
   end
 end

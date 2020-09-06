@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/all"
-require "action_controller"
+require 'active_support/all'
+require 'action_controller'
 
 module Rails
   module ConsoleMethods
@@ -10,7 +10,7 @@ module Rails
     def app(create = false)
       @app_integration_instance = nil if create
       @app_integration_instance ||= new_session do |sess|
-        sess.host! "www.example.com"
+        sess.host! 'www.example.com'
       end
     end
 
@@ -30,7 +30,7 @@ module Rails
 
     # reloads the environment
     def reload!(print = true)
-      puts "Reloading..." if print
+      puts 'Reloading...' if print
       Rails.application.reloader.reload!
       true
     end

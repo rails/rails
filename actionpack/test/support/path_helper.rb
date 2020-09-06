@@ -4,7 +4,7 @@ module ActionDispatch
   module Journey
     module PathHelper
       def path_from_string(string)
-        build_path(string, {}, "/.?", true)
+        build_path(string, {}, '/.?', true)
       end
 
       def build_path(path, requirements, separators, anchored)

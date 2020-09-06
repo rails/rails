@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/boolean"
+require 'cases/helper'
+require 'models/boolean'
 
 class BooleanTest < ActiveRecord::TestCase
   def test_boolean
@@ -24,9 +24,9 @@ class BooleanTest < ActiveRecord::TestCase
   end
 
   def test_boolean_cast_from_string
-    b_blank = Boolean.create!(value: "")
-    b_false = Boolean.create!(value: "0")
-    b_true  = Boolean.create!(value: "1")
+    b_blank = Boolean.create!(value: '')
+    b_false = Boolean.create!(value: '0')
+    b_true  = Boolean.create!(value: '1')
 
     assert_nil Boolean.find(b_blank.id).value
     assert_not_predicate Boolean.find(b_false.id), :value?
@@ -34,11 +34,11 @@ class BooleanTest < ActiveRecord::TestCase
   end
 
   def test_find_by_boolean_string
-    b_false = Boolean.create!(value: "false")
-    b_true  = Boolean.create!(value: "true")
+    b_false = Boolean.create!(value: 'false')
+    b_true  = Boolean.create!(value: 'true')
 
-    assert_equal b_false, Boolean.find_by(value: "false")
-    assert_equal b_true, Boolean.find_by(value: "true")
+    assert_equal b_false, Boolean.find_by(value: 'false')
+    assert_equal b_true, Boolean.find_by(value: 'true')
   end
 
   def test_find_by_falsy_boolean_symbol

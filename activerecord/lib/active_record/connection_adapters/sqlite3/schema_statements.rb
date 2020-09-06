@@ -6,12 +6,12 @@ module ActiveRecord
       module SchemaStatements # :nodoc:
         # Returns an array of indexes for the given table.
         def indexes(table_name)
-          exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
+          exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", 'SCHEMA').map do |row|
             # Indexes SQLite creates implicitly for internal use start with "sqlite_".
             # See https://www.sqlite.org/fileformat2.html#intschema
-            next if row["name"].start_with?("sqlite_")
+            next if row['name'].start_with?('sqlite_')
 
-            index_sql = query_value(<<~SQL, "SCHEMA")
+            index_sql = query_value(<<~SQL, 'SCHEMA')
               SELECT sql
               FROM sqlite_master
               WHERE name = #{quote(row['name'])} AND type = 'index'
@@ -23,8 +23,8 @@ module ActiveRecord
 
             /\bON\b\s*"?(\w+?)"?\s*\((?<expressions>.+?)\)(?:\s*WHERE\b\s*(?<where>.+))?\z/i =~ index_sql
 
-            columns = exec_query("PRAGMA index_info(#{quote(row['name'])})", "SCHEMA").map do |col|
-              col["name"]
+            columns = exec_query("PRAGMA index_info(#{quote(row['name'])})", 'SCHEMA').map do |col|
+              col['name']
             end
 
             orders = {}
@@ -43,8 +43,8 @@ module ActiveRecord
 
             IndexDefinition.new(
               table_name,
-              row["name"],
-              row["unique"] != 0,
+              row['name'],
+              row['unique'] != 0,
               columns,
               where: where,
               orders: orders
@@ -66,7 +66,7 @@ module ActiveRecord
 
           fkey = foreign_keys.detect do |fk|
             table = to_table || begin
-              table = options[:column].to_s.delete_suffix("_id")
+              table = options[:column].to_s.delete_suffix('_id')
               Base.pluralize_table_names ? table.pluralize : table
             end
             table = strip_table_name_prefix_and_suffix(table)
@@ -79,7 +79,7 @@ module ActiveRecord
         end
 
         def check_constraints(table_name)
-          table_sql = query_value(<<-SQL, "SCHEMA")
+          table_sql = query_value(<<-SQL, 'SCHEMA')
             SELECT sql
             FROM sqlite_master
             WHERE name = #{quote_table_name(table_name)} AND type = 'table'
@@ -126,7 +126,7 @@ module ActiveRecord
 
           def new_column_from_field(table_name, field)
             default = \
-              case field["dflt_value"]
+              case field['dflt_value']
               when /^null$/i
                 nil
               when /^'(.*)'$/m
@@ -134,11 +134,11 @@ module ActiveRecord
               when /^"(.*)"$/m
                 $1.gsub('""', '"')
               else
-                field["dflt_value"]
+                field['dflt_value']
               end
 
-            type_metadata = fetch_type_metadata(field["type"])
-            Column.new(field["name"], default, type_metadata, field["notnull"].to_i == 0, collation: field["collation"])
+            type_metadata = fetch_type_metadata(field['type'])
+            Column.new(field['name'], default, type_metadata, field['notnull'].to_i == 0, collation: field['collation'])
           end
 
           def data_source_sql(name = nil, type: nil)
@@ -154,9 +154,9 @@ module ActiveRecord
           def quoted_scope(name = nil, type: nil)
             type = \
               case type
-              when "BASE TABLE"
+              when 'BASE TABLE'
                 "'table'"
-              when "VIEW"
+              when 'VIEW'
                 "'view'"
               end
             scope = {}

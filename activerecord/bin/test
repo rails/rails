@@ -1,22 +1,22 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-adapter_index = ARGV.index("--adapter") || ARGV.index("-a")
+adapter_index = ARGV.index('--adapter') || ARGV.index('-a')
 if adapter_index
   ARGV.delete_at(adapter_index)
-  ENV["ARCONN"] = ARGV.delete_at(adapter_index).strip
+  ENV['ARCONN'] = ARGV.delete_at(adapter_index).strip
 end
 
-COMPONENT_ROOT = File.expand_path("..", __dir__)
-require_relative "../../tools/test"
+COMPONENT_ROOT = File.expand_path('..', __dir__)
+require_relative '../../tools/test'
 
 module Minitest
   def self.plugin_active_record_options(opts, options)
-    opts.separator ""
-    opts.separator "Active Record options:"
-    opts.on("-a", "--adapter [ADAPTER]",
-            "Run tests using a specific adapter (sqlite3, sqlite3_mem, mysql2, postgresql)") do |adapter|
-      ENV["ARCONN"] = adapter.strip
+    opts.separator ''
+    opts.separator 'Active Record options:'
+    opts.on('-a', '--adapter [ADAPTER]',
+            'Run tests using a specific adapter (sqlite3, sqlite3_mem, mysql2, postgresql)') do |adapter|
+      ENV['ARCONN'] = adapter.strip
     end
 
     opts
@@ -24,4 +24,4 @@ module Minitest
 end
 
 Minitest.load_plugins
-Minitest.extensions.unshift "active_record"
+Minitest.extensions.unshift 'active_record'

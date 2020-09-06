@@ -58,7 +58,7 @@ module ActiveRecord
         class_name: name
       }
 
-      message_bus.instrument("instantiation.active_record", payload) do
+      message_bus.instrument('instantiation.active_record', payload) do
         if result_set.includes_column?(inheritance_column)
           result_set.map { |record| instantiate(record, column_types, &block) }
         else

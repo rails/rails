@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "strscan"
+require 'strscan'
 
 module ActionDispatch
   module Journey # :nodoc:
@@ -44,21 +44,21 @@ module ActionDispatch
           case
             # /
           when @ss.skip(/\//)
-            [:SLASH, "/"]
+            [:SLASH, '/']
           when @ss.skip(/\(/)
-            [:LPAREN, "("]
+            [:LPAREN, '(']
           when @ss.skip(/\)/)
-            [:RPAREN, ")"]
+            [:RPAREN, ')']
           when @ss.skip(/\|/)
-            [:OR, "|"]
+            [:OR, '|']
           when @ss.skip(/\./)
-            [:DOT, "."]
+            [:DOT, '.']
           when text = dedup_scan(/:\w+/)
             [:SYMBOL, text]
           when text = dedup_scan(/\*\w+/)
             [:STAR, text]
           when text = @ss.scan(/(?:[\w%\-~!$&'*+,;=@]|\\[:()])+/)
-            text.tr! "\\", ""
+            text.tr! '\\', ''
             [:LITERAL, -text]
             # any char
           when text = dedup_scan(/./)

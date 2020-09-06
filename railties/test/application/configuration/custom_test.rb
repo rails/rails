@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
+require 'isolation/abstract_unit'
 
 module ApplicationTests
   module ConfigurationTests
@@ -14,7 +14,7 @@ module ApplicationTests
         teardown_app
       end
 
-      test "access custom configuration point" do
+      test 'access custom configuration point' do
         add_to_config <<-RUBY
           config.x.payment_processing.schedule = :daily
           config.x.payment_processing.retries  = 3

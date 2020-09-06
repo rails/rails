@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/enumerable"
+require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
   module Calculations
@@ -43,7 +43,7 @@ module ActiveRecord
     def count(column_name = nil)
       if block_given?
         unless column_name.nil?
-          raise ArgumentError, "Column name argument is not supported when a block is passed."
+          raise ArgumentError, 'Column name argument is not supported when a block is passed.'
         end
 
         super()
@@ -86,7 +86,7 @@ module ActiveRecord
     def sum(column_name = nil)
       if block_given?
         unless column_name.nil?
-          raise ArgumentError, "Column name argument is not supported when a block is passed."
+          raise ArgumentError, 'Column name argument is not supported when a block is passed.'
         end
 
         super()
@@ -130,7 +130,7 @@ module ActiveRecord
       if has_include?(column_name)
         relation = apply_join_dependency
 
-        if operation.to_s.downcase == "count"
+        if operation.to_s.downcase == 'count'
           unless distinct_value || distinct_select?(column_name || select_for_count)
             relation.distinct!
             relation.select_values = [ klass.primary_key || table[Arel.star] ]
@@ -250,7 +250,7 @@ module ActiveRecord
         # considered distinct.
         distinct = distinct_value
 
-        if operation == "count"
+        if operation == 'count'
           column_name ||= select_for_count
           if column_name == :all
             if !distinct
@@ -278,16 +278,16 @@ module ActiveRecord
         return column_name if Arel::Expressions === column_name
 
         arel_column(column_name.to_s) do |name|
-          Arel.sql(column_name == :all ? "*" : name)
+          Arel.sql(column_name == :all ? '*' : name)
         end
       end
 
       def operation_over_aggregate_column(column, operation, distinct)
-        operation == "count" ? column.count(distinct) : column.send(operation)
+        operation == 'count' ? column.count(distinct) : column.send(operation)
       end
 
       def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
-        if operation == "count" && (column_name == :all && distinct || has_limit_or_offset?)
+        if operation == 'count' && (column_name == :all && distinct || has_limit_or_offset?)
           # Shortcut when limit is zero.
           return 0 if limit_value == 0
 
@@ -298,7 +298,7 @@ module ActiveRecord
 
           column = aggregate_column(column_name)
           select_value = operation_over_aggregate_column(column, operation, distinct)
-          select_value.distinct = true if operation == "sum" && distinct
+          select_value.distinct = true if operation == 'sum' && distinct
 
           relation.select_values = [select_value]
 
@@ -403,16 +403,16 @@ module ActiveRecord
       #   column_alias_for("count(*)")                 # => "count_all"
       def column_alias_for(field)
         column_alias = +field
-        column_alias.gsub!(/\*/, "all")
-        column_alias.gsub!(/\W+/, " ")
+        column_alias.gsub!(/\*/, 'all')
+        column_alias.gsub!(/\W+/, ' ')
         column_alias.strip!
-        column_alias.gsub!(/ +/, "_")
+        column_alias.gsub!(/ +/, '_')
 
         connection.table_alias_for(column_alias)
       end
 
       def type_for(field, &block)
-        field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split(".").last
+        field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split('.').last
         @klass.type_for_attribute(field_name, &block)
       end
 
@@ -443,11 +443,11 @@ module ActiveRecord
 
       def type_cast_calculated_value(value, operation)
         case operation
-        when "count"
+        when 'count'
           value.to_i
-        when "sum"
+        when 'sum'
           yield value || 0
-        when "average"
+        when 'average'
           value&.respond_to?(:to_d) ? value.to_d : value
         else # "minimum", "maximum"
           yield value
@@ -457,7 +457,7 @@ module ActiveRecord
       def select_for_count
         if select_values.present?
           return select_values.first if select_values.one?
-          select_values.join(", ")
+          select_values.join(', ')
         else
           :all
         end
@@ -468,12 +468,12 @@ module ActiveRecord
           column_alias = Arel.star
           relation.select_values = [ Arel.sql(FinderMethods::ONE_AS_ONE) ] unless distinct
         else
-          column_alias = Arel.sql("count_column")
+          column_alias = Arel.sql('count_column')
           relation.select_values = [ aggregate_column(column_name).as(column_alias) ]
         end
 
-        subquery_alias = Arel.sql("subquery_for_count")
-        select_value = operation_over_aggregate_column(column_alias, "count", false)
+        subquery_alias = Arel.sql('subquery_for_count')
+        select_value = operation_over_aggregate_column(column_alias, 'count', false)
 
         relation.build_subquery(subquery_alias, select_value)
       end

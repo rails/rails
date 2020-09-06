@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "fileutils"
-require "thor/actions"
+require 'fileutils'
+require 'thor/actions'
 
 module Rails
   module Generators
@@ -62,7 +62,7 @@ module Rails
               say_status :conflict, :red
               raise Error, "Another migration is already named #{migration_file_name}: " \
                 "#{existing_migration}. Use --force to replace this migration " \
-                "or --skip to ignore conflicted file."
+                'or --skip to ignore conflicted file.'
             end
           end
 

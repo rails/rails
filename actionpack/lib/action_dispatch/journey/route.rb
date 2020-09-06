@@ -33,7 +33,7 @@ module ActionDispatch
 
         class All
           def self.call(_); true; end
-          def self.verb; ""; end
+          def self.verb; ''; end
         end
 
         VERB_TO_CLASS = VERBS.each_with_object(all: All) do |verb, hash|
@@ -176,7 +176,7 @@ module ActionDispatch
       end
 
       def verb
-        verbs.join("|")
+        verbs.join('|')
       end
 
       private

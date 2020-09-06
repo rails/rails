@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/slice"
-require "active_support/core_ext/enumerable"
-require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/regexp"
-require "active_support/core_ext/symbol/starts_ends_with"
-require "action_dispatch/routing/redirection"
-require "action_dispatch/routing/endpoint"
+require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/regexp'
+require 'active_support/core_ext/symbol/starts_ends_with'
+require 'action_dispatch/routing/redirection'
+require 'action_dispatch/routing/endpoint'
 
 module ActionDispatch
   module Routing
@@ -44,7 +44,7 @@ module ActionDispatch
         end
 
         def serve(req)
-          return [ 404, { "X-Cascade" => "pass" }, [] ] unless matches?(req)
+          return [ 404, { 'X-Cascade' => 'pass' }, [] ] unless matches?(req)
 
           @strategy.call @app, req
         end
@@ -94,7 +94,7 @@ module ActionDispatch
               "If you want to expose your action to both GET and POST, add `via: [:get, :post]` option.\n" \
               "If you want to expose your action to GET, use `get` in the router:\n" \
               "  Instead of: match \"controller#action\"\n" \
-              "  Do: get \"controller#action\""
+              '  Do: get "controller#action"'
             raise ArgumentError, msg
           end
           via
@@ -170,7 +170,7 @@ module ActionDispatch
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
 
           if path_params.include?(:action) && !@requirements.key?(:action)
-            @defaults[:action] ||= "index"
+            @defaults[:action] ||= 'index'
           end
 
           @required_defaults = (split_options[:required_defaults] || []).map(&:first)
@@ -236,7 +236,7 @@ module ActionDispatch
 
           def normalize_options!(options, path_params, modyoule)
             if path_params.include?(:controller)
-              raise ArgumentError, ":controller segment is not allowed within a namespace block" if modyoule
+              raise ArgumentError, ':controller segment is not allowed within a namespace block' if modyoule
 
               # Add a default constraint for :controller path segments that matches namespaced
               # controllers with default routes like :controller/:action/:id(.:format), e.g:
@@ -312,7 +312,7 @@ module ActionDispatch
             hash = check_part(:controller, controller, path_params, {}) do |part|
               translate_controller(part) {
                 message = +"'#{part}' is not a supported controller name. This can lead to potential routing problems."
-                message << " See https://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
+                message << ' See https://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use'
 
                 raise ArgumentError, message
               }
@@ -337,7 +337,7 @@ module ActionDispatch
 
           def split_to(to)
             if /#/.match?(to)
-              to.split("#").map!(&:-@)
+              to.split('#').map!(&:-@)
             else
               []
             end
@@ -345,10 +345,10 @@ module ActionDispatch
 
           def add_controller_module(controller, modyoule)
             if modyoule && !controller.is_a?(Regexp)
-              if controller&.start_with?("/")
+              if controller&.start_with?('/')
                 -controller[1..-1]
               else
-                -[modyoule, controller].compact.join("/")
+                -[modyoule, controller].compact.join('/')
               end
             else
               controller
@@ -409,7 +409,7 @@ module ActionDispatch
       end
 
       def self.normalize_name(name)
-        normalize_path(name)[1..-1].tr("/", "_")
+        normalize_path(name)[1..-1].tr('/', '_')
       end
 
       module Base
@@ -624,7 +624,7 @@ module ActionDispatch
             options.delete(app) if app
           end
 
-          raise ArgumentError, "A rack application must be specified" unless app.respond_to?(:call)
+          raise ArgumentError, 'A rack application must be specified' unless app.respond_to?(:call)
           raise ArgumentError, <<~MSG unless path
             Must be called with mount point
 
@@ -671,7 +671,7 @@ module ActionDispatch
               app.railtie_name
             elsif app.is_a?(Class)
               class_name = app.name
-              ActiveSupport::Inflector.underscore(class_name).tr("/", "_")
+              ActiveSupport::Inflector.underscore(class_name).tr('/', '_')
             end
           end
 
@@ -682,7 +682,7 @@ module ActionDispatch
 
             script_namer = ->(options) do
               prefix_options = options.slice(*_route.segment_keys)
-              prefix_options[:relative_url_root] = ""
+              prefix_options[:relative_url_root] = ''
 
               if options[:_recall]
                 prefix_options.reverse_merge!(options[:_recall].slice(*_route.segment_keys))
@@ -856,7 +856,7 @@ module ActionDispatch
           options = args.extract_options!.dup
           scope = {}
 
-          options[:path] = args.flatten.join("/") if args.any?
+          options[:path] = args.flatten.join('/') if args.any?
           options[:constraints] ||= {}
 
           unless nested_scope?
@@ -880,7 +880,7 @@ module ActionDispatch
           end
 
           if options.key? :anchor
-            raise ArgumentError, "anchor is ignored unless passed to `match`"
+            raise ArgumentError, 'anchor is ignored unless passed to `match`'
           end
 
           @scope.options.each do |option|
@@ -1160,7 +1160,7 @@ module ActionDispatch
           attr_reader :controller, :path, :param
 
           def initialize(entities, api_only, shallow, options = {})
-            if options[:param].to_s.include?(":")
+            if options[:param].to_s.include?(':')
               raise ArgumentError, ":param option can't contain colons"
             end
 
@@ -1635,7 +1635,7 @@ module ActionDispatch
             options  = path
             path, to = options.find { |name, _value| name.is_a?(String) }
 
-            raise ArgumentError, "Route path not specified" if path.nil?
+            raise ArgumentError, 'Route path not specified' if path.nil?
 
             case to
             when Symbol
@@ -1683,7 +1683,7 @@ module ActionDispatch
           elsif path.is_a?(Hash) && options.empty?
             options = path
           else
-            raise ArgumentError, "must be called with a path and/or options"
+            raise ArgumentError, 'must be called with a path and/or options'
           end
 
           if @scope.resources?
@@ -1834,8 +1834,8 @@ module ActionDispatch
               prefix = action
             end
 
-            if prefix && prefix != "/" && !prefix.empty?
-              Mapper.normalize_name prefix.to_s.tr("-", "_")
+            if prefix && prefix != '/' && !prefix.empty?
+              Mapper.normalize_name prefix.to_s.tr('-', '_')
             end
           end
 
@@ -1851,7 +1851,7 @@ module ActionDispatch
             end
 
             action_name = @scope.action_name(name_prefix, prefix, collection_name, member_name)
-            candidate = action_name.select(&:present?).join("_")
+            candidate = action_name.select(&:present?).join('_')
 
             unless candidate.empty?
               # If a name was not explicitly given, we check if it is valid
@@ -1915,7 +1915,7 @@ module ActionDispatch
             (path_types[String] || []).each do |_path|
               route_options = options.dup
               if _path && option_path
-                raise ArgumentError, "Ambiguous route definition. Both :path and the route path were specified as strings."
+                raise ArgumentError, 'Ambiguous route definition. Both :path and the route path were specified as strings.'
               end
               to = get_to_from_path(_path, to, route_options[:action])
               decomposed_match(_path, controller, route_options, _path, to, via, formatted, anchor, options_constraints)
@@ -1932,9 +1932,9 @@ module ActionDispatch
           def get_to_from_path(path, to, action)
             return to if to || action
 
-            path_without_format = path.sub(/\(\.:format\)$/, "")
+            path_without_format = path.sub(/\(\.:format\)$/, '')
             if using_match_shorthand?(path_without_format)
-              path_without_format.delete_prefix("/").sub(%r{/([^/]*)$}, '#\1').tr("-", "_")
+              path_without_format.delete_prefix('/').sub(%r{/([^/]*)$}, '#\1').tr('-', '_')
             else
               nil
             end
@@ -1961,14 +1961,14 @@ module ActionDispatch
 
           def add_route(action, controller, options, _path, to, via, formatted, anchor, options_constraints)
             path = path_for_action(action, _path)
-            raise ArgumentError, "path is required" if path.blank?
+            raise ArgumentError, 'path is required' if path.blank?
 
             action = action.to_s
 
             default_action = options.delete(:action) || @scope[:action]
 
             if /^[\w\-\/]+$/.match?(action)
-              default_action ||= action.tr("-", "_") unless action.include?("/")
+              default_action ||= action.tr('-', '_') unless action.include?('/')
             else
               action = nil
             end
@@ -1987,7 +1987,7 @@ module ActionDispatch
           end
 
           def match_root_route(options)
-            args = ["/", { as: :root, via: :get }.merge(options)]
+            args = ['/', { as: :root, via: :get }.merge(options)]
             match(*args)
           end
       end

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "active_support/core_ext/date_time"
-require "active_support/core_ext/numeric/time"
-require_relative "time_zone_test_helpers"
+require_relative 'abstract_unit'
+require 'active_support/core_ext/date_time'
+require 'active_support/core_ext/numeric/time'
+require_relative 'time_zone_test_helpers'
 
 class TimeTravelTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
@@ -71,8 +71,8 @@ class TimeTravelTest < ActiveSupport::TestCase
   end
 
   def test_time_helper_travel_to_with_time_zone
-    with_env_tz "US/Eastern" do
-      with_tz_default ActiveSupport::TimeZone["UTC"] do
+    with_env_tz 'US/Eastern' do
+      with_tz_default ActiveSupport::TimeZone['UTC'] do
         Time.stub(:now, Time.now) do
           expected_time = 5.minutes.ago
 

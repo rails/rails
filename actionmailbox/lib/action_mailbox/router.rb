@@ -39,4 +39,4 @@ module ActionMailbox
   end
 end
 
-require "action_mailbox/router/route"
+require 'action_mailbox/router/route'

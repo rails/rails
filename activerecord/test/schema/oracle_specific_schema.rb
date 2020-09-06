@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 ActiveRecord::Schema.define do
-  execute "drop table test_oracle_defaults" rescue nil
-  execute "drop sequence test_oracle_defaults_seq" rescue nil
-  execute "drop sequence companies_nonstd_seq" rescue nil
-  execute "drop table defaults" rescue nil
-  execute "drop sequence defaults_seq" rescue nil
+  execute 'drop table test_oracle_defaults' rescue nil
+  execute 'drop sequence test_oracle_defaults_seq' rescue nil
+  execute 'drop sequence companies_nonstd_seq' rescue nil
+  execute 'drop table defaults' rescue nil
+  execute 'drop sequence defaults_seq' rescue nil
 
   execute <<~SQL
     create table test_oracle_defaults (
@@ -16,9 +16,9 @@ ActiveRecord::Schema.define do
     )
   SQL
 
-  execute "create sequence test_oracle_defaults_seq minvalue 10000"
+  execute 'create sequence test_oracle_defaults_seq minvalue 10000'
 
-  execute "create sequence companies_nonstd_seq minvalue 10000"
+  execute 'create sequence companies_nonstd_seq minvalue 10000'
 
   execute <<~SQL
     CREATE TABLE defaults (
@@ -34,5 +34,5 @@ ActiveRecord::Schema.define do
       char3 clob default 'a text field'
     )
   SQL
-  execute "create sequence defaults_seq minvalue 10000"
+  execute 'create sequence defaults_seq minvalue 10000'
 end

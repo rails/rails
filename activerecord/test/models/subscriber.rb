@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Subscriber < ActiveRecord::Base
-  self.primary_key = "nick"
+  self.primary_key = 'nick'
   has_many :subscriptions
   has_many :books, through: :subscriptions
   has_many :published_books, through: :subscriptions

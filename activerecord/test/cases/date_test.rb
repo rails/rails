@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/topic"
+require 'cases/helper'
+require 'models/topic'
 
 class DateTest < ActiveRecord::TestCase
   def test_date_with_time_value
@@ -11,7 +11,7 @@ class DateTest < ActiveRecord::TestCase
   end
 
   def test_date_with_string_value
-    string_value = "2016-05-11 19:00:00"
+    string_value = '2016-05-11 19:00:00'
     topic = Topic.create(last_read: string_value)
     assert_equal topic, Topic.find_by(last_read: string_value)
   end
@@ -22,14 +22,14 @@ class DateTest < ActiveRecord::TestCase
     invalid_dates = [[2007, 11, 31], [1993, 2, 29], [2007, 2, 29]]
 
     valid_dates.each do |date_src|
-      topic = Topic.new("last_read(1i)" => date_src[0].to_s, "last_read(2i)" => date_src[1].to_s, "last_read(3i)" => date_src[2].to_s)
+      topic = Topic.new('last_read(1i)' => date_src[0].to_s, 'last_read(2i)' => date_src[1].to_s, 'last_read(3i)' => date_src[2].to_s)
       assert_equal(topic.last_read, Date.new(*date_src))
     end
 
     invalid_dates.each do |date_src|
       assert_nothing_raised do
-        topic = Topic.new("last_read(1i)" => date_src[0].to_s, "last_read(2i)" => date_src[1].to_s, "last_read(3i)" => date_src[2].to_s)
-        assert_equal(topic.last_read, Time.local(*date_src).to_date, "The date should be modified according to the behavior of the Time object")
+        topic = Topic.new('last_read(1i)' => date_src[0].to_s, 'last_read(2i)' => date_src[1].to_s, 'last_read(3i)' => date_src[2].to_s)
+        assert_equal(topic.last_read, Time.local(*date_src).to_date, 'The date should be modified according to the behavior of the Time object')
       end
     end
   end

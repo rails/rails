@@ -21,7 +21,7 @@ module ActionCable
       private
         # Returns the channel name, including channel_prefix specified in cable.yml
         def channel_with_prefix(channel)
-          [@server.config.cable[:channel_prefix], channel].compact.join(":")
+          [@server.config.cable[:channel_prefix], channel].compact.join(':')
         end
     end
   end

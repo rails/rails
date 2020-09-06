@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "rails"
-require "action_cable"
-require "action_cable/helpers/action_cable_helper"
-require "active_support/core_ext/hash/indifferent_access"
+require 'rails'
+require 'action_cable'
+require 'action_cable/helpers/action_cable_helper'
+require 'active_support/core_ext/hash/indifferent_access'
 
 module ActionCable
   class Engine < Rails::Engine # :nodoc:
@@ -12,35 +12,35 @@ module ActionCable
 
     config.eager_load_namespaces << ActionCable
 
-    initializer "action_cable.helpers" do
+    initializer 'action_cable.helpers' do
       ActiveSupport.on_load(:action_view) do
         include ActionCable::Helpers::ActionCableHelper
       end
     end
 
-    initializer "action_cable.logger" do
+    initializer 'action_cable.logger' do
       ActiveSupport.on_load(:action_cable) { self.logger ||= ::Rails.logger }
     end
 
-    initializer "action_cable.set_configs" do |app|
+    initializer 'action_cable.set_configs' do |app|
       options = app.config.action_cable
       options.allowed_request_origins ||= /https?:\/\/localhost:\d+/ if ::Rails.env.development?
 
-      app.paths.add "config/cable", with: "config/cable.yml"
+      app.paths.add 'config/cable', with: 'config/cable.yml'
 
       ActiveSupport.on_load(:action_cable) do
-        if (config_path = Pathname.new(app.config.paths["config/cable"].first)).exist?
+        if (config_path = Pathname.new(app.config.paths['config/cable'].first)).exist?
           self.cable = Rails.application.config_for(config_path).with_indifferent_access
         end
 
         previous_connection_class = connection_class
-        self.connection_class = -> { "ApplicationCable::Connection".safe_constantize || previous_connection_class.call }
+        self.connection_class = -> { 'ApplicationCable::Connection'.safe_constantize || previous_connection_class.call }
 
         options.each { |k, v| send("#{k}=", v) }
       end
     end
 
-    initializer "action_cable.routes" do
+    initializer 'action_cable.routes' do
       config.after_initialize do |app|
         config = app.config
         unless config.action_cable.mount_path.nil?
@@ -51,7 +51,7 @@ module ActionCable
       end
     end
 
-    initializer "action_cable.set_work_hooks" do |app|
+    initializer 'action_cable.set_work_hooks' do |app|
       ActiveSupport.on_load(:action_cable) do
         ActionCable::Server::Worker.set_callback :work, :around, prepend: true do |_, inner|
           app.executor.wrap do

@@ -26,17 +26,17 @@ module ActionView
           if File.exist?(options[:file])
             Template::RawFile.new(options[:file])
           else
-            ActiveSupport::Deprecation.warn "render file: should be given the absolute path to a file"
+            ActiveSupport::Deprecation.warn 'render file: should be given the absolute path to a file'
             @lookup_context.with_fallbacks.find_template(options[:file], nil, false, keys, @details)
           end
         elsif options.key?(:inline)
-          handler = Template.handler_for_extension(options[:type] || "erb")
+          handler = Template.handler_for_extension(options[:type] || 'erb')
           format = if handler.respond_to?(:default_format)
             handler.default_format
           else
             @lookup_context.formats.first
           end
-          Template::Inline.new(options[:inline], "inline template", handler, locals: keys, format: format)
+          Template::Inline.new(options[:inline], 'inline template', handler, locals: keys, format: format)
         elsif options.key?(:template)
           if options[:template].respond_to?(:render)
             options[:template]
@@ -44,7 +44,7 @@ module ActionView
             @lookup_context.find_template(options[:template], options[:prefixes], false, keys, @details)
           end
         else
-          raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file, :plain, :html or :body option."
+          raise ArgumentError, 'You invoked render but did not give any of :partial, :template, :inline, :file, :plain, :html or :body option.'
         end
       end
 
@@ -53,7 +53,7 @@ module ActionView
       def render_template(view, template, layout_name, locals)
         render_with_layout(view, template, layout_name, locals) do |layout|
           ActiveSupport::Notifications.instrument(
-            "render_template.action_view",
+            'render_template.action_view',
             identifier: template.identifier,
             layout: layout && layout.virtual_path
           ) do
@@ -66,7 +66,7 @@ module ActionView
         layout  = path && find_layout(path, locals.keys, [formats.first])
 
         body = if layout
-          ActiveSupport::Notifications.instrument("render_layout.action_view", identifier: layout.identifier) do
+          ActiveSupport::Notifications.instrument('render_layout.action_view', identifier: layout.identifier) do
             view.view_flow.set(:layout, yield(layout))
             layout.render(view, locals) { |*name| view._layout_for(*name) }
           end
@@ -90,8 +90,8 @@ module ActionView
         case layout
         when String
           begin
-            if layout.start_with?("/")
-              ActiveSupport::Deprecation.warn "Rendering layouts from an absolute path is deprecated."
+            if layout.start_with?('/')
+              ActiveSupport::Deprecation.warn 'Rendering layouts from an absolute path is deprecated.'
               @lookup_context.with_fallbacks.find_template(layout, nil, false, [], details)
             else
               @lookup_context.find_template(layout, nil, false, [], details)

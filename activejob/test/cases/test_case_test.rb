@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "helper"
-require "jobs/hello_job"
-require "jobs/logging_job"
-require "jobs/nested_job"
+require 'helper'
+require 'jobs/hello_job'
+require 'jobs/logging_job'
+require 'jobs/nested_job'
 
 class ActiveJobTestCaseTest < ActiveJob::TestCase
   # this tests that this job class doesn't get its adapter set.
@@ -11,7 +11,7 @@ class ActiveJobTestCaseTest < ActiveJob::TestCase
   # the `class_attribute` inheritance
   class TestClassAttributeInheritanceJob < ActiveJob::Base
     def self.queue_adapter=(*)
-      raise "Attempting to break `class_attribute` inheritance, bad!"
+      raise 'Attempting to break `class_attribute` inheritance, bad!'
     end
   end
 

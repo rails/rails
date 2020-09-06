@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "action_view/rendering"
-require "active_support/core_ext/module/redefine_method"
+require 'action_view/rendering'
+require 'active_support/core_ext/module/redefine_method'
 
 module ActionView
   # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
@@ -280,7 +280,7 @@ module ActionView
       def _write_layout_method # :nodoc:
         silence_redefinition_of_method(:_layout)
 
-        prefixes = /\blayouts/.match?(_implied_layout_name) ? [] : ["layouts"]
+        prefixes = /\blayouts/.match?(_implied_layout_name) ? [] : ['layouts']
         default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}, false, [], { formats: formats }).first || super"
         name_clause = if name
           default_behavior
@@ -315,7 +315,7 @@ module ActionView
           when false
             nil
           when true
-            raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil"
+            raise ArgumentError, 'Layouts must be specified as a String, Symbol, Proc, false, or nil'
           when nil
             name_clause
           end

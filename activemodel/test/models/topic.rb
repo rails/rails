@@ -6,7 +6,7 @@ class Topic
   include ActiveModel::AttributeMethods
   include ActiveSupport::NumberHelper
 
-  attribute_method_suffix "_before_type_cast"
+  attribute_method_suffix '_before_type_cast'
   define_attribute_method :price
 
   def self._validates_default_keys
@@ -38,11 +38,11 @@ class Topic
   end
 
   def my_validation
-    errors.add :title, "is missing" unless title
+    errors.add :title, 'is missing' unless title
   end
 
   def my_validation_with_arg(attr)
-    errors.add attr, "is missing" unless send(attr)
+    errors.add attr, 'is missing' unless send(attr)
   end
 
   def price

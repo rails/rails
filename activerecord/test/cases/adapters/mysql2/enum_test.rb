@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/schema_dumping_helper"
+require 'cases/helper'
+require 'support/schema_dumping_helper'
 
 class Mysql2EnumTest < ActiveRecord::Mysql2TestCase
   self.use_transactional_tests = false
@@ -21,27 +21,27 @@ class Mysql2EnumTest < ActiveRecord::Mysql2TestCase
   def setup
     EnumTest.connection.create_table :enum_tests, id: false, force: true do |t|
       t.column :enum_column, "enum('text','blob','tiny','medium','long','unsigned','bigint')"
-      t.column :state, "TINYINT(1)"
+      t.column :state, 'TINYINT(1)'
     end
   end
 
   def test_should_not_be_unsigned
-    column = EnumTest.columns_hash["enum_column"]
+    column = EnumTest.columns_hash['enum_column']
     assert_not_predicate column, :unsigned?
   end
 
   def test_should_not_be_bigint
-    column = EnumTest.columns_hash["enum_column"]
+    column = EnumTest.columns_hash['enum_column']
     assert_not_predicate column, :bigint?
   end
 
   def test_schema_dumping
-    schema = dump_table_schema "enum_tests"
+    schema = dump_table_schema 'enum_tests'
     assert_match %r{t\.column "enum_column", "enum\('text','blob','tiny','medium','long','unsigned','bigint'\)"$}, schema
   end
 
   def test_enum_with_attribute
     enum_test = EnumTest.create!(state: :middle)
-    assert_equal "middle", enum_test.state
+    assert_equal 'middle', enum_test.state
   end
 end

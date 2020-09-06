@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "active_support"
-require "active_support/testing/autorun"
-require "active_support/testing/method_call_assertions"
-require "active_support/testing/stream"
-require "active_record/fixtures"
+require 'active_support'
+require 'active_support/testing/autorun'
+require 'active_support/testing/method_call_assertions'
+require 'active_support/testing/stream'
+require 'active_record/fixtures'
 
-require "cases/validations_repair_helper"
+require 'cases/validations_repair_helper'
 
 module ActiveRecord
   # = Active Record Test Case
@@ -54,7 +54,7 @@ module ActiveRecord
       x = yield
       the_log = ignore_none ? SQLCounter.log_all : SQLCounter.log
       if num == :any
-        assert_operator the_log.size, :>=, 1, "1 or more queries expected, but none were executed."
+        assert_operator the_log.size, :>=, 1, '1 or more queries expected, but none were executed.'
       else
         mesg = "#{the_log.size} instead of #{num} queries were executed.#{the_log.size == 0 ? '' : "\nQueries:\n#{the_log.join("\n")}"}"
         assert_equal num, the_log.size, mesg
@@ -134,9 +134,9 @@ module ActiveRecord
 
       sql = values[:sql]
       self.class.log_all << sql
-      self.class.log << sql unless ["SCHEMA", "TRANSACTION"].include? values[:name]
+      self.class.log << sql unless ['SCHEMA', 'TRANSACTION'].include? values[:name]
     end
   end
 
-  ActiveSupport::Notifications.subscribe("sql.active_record", SQLCounter.new)
+  ActiveSupport::Notifications.subscribe('sql.active_record', SQLCounter.new)
 end

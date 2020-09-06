@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "tmpdir"
-require "active_support/core_ext/string/filters"
+require 'tmpdir'
+require 'active_support/core_ext/string/filters'
 
 module ActiveStorage
   module Downloading
@@ -22,7 +22,7 @@ module ActiveStorage
       end
 
       def open_tempfile_for_blob
-        tempfile = Tempfile.open([ "ActiveStorage", blob.filename.extension_with_delimiter ], tempdir)
+        tempfile = Tempfile.open([ 'ActiveStorage', blob.filename.extension_with_delimiter ], tempdir)
 
         begin
           yield tempfile

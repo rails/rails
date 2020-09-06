@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/topic"
+require 'cases/helper'
+require 'models/topic'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -10,7 +10,7 @@ module ActiveRecord
         fixtures :topics
 
         def test_update_question_marks
-          str       = "foo?bar"
+          str       = 'foo?bar'
           x         = Topic.first
           x.title   = str
           x.content = str
@@ -21,7 +21,7 @@ module ActiveRecord
         end
 
         def test_create_question_marks
-          str = "foo?bar"
+          str = 'foo?bar'
           x   = Topic.create!(title: str, content: str)
           x.reload
           assert_equal str, x.title

@@ -16,21 +16,21 @@ module ActiveRecord
         end
 
         def array
-          sql_type_metadata.sql_type.end_with?("[]")
+          sql_type_metadata.sql_type.end_with?('[]')
         end
         alias :array? :array
 
         def sql_type
-          super.delete_suffix("[]")
+          super.delete_suffix('[]')
         end
 
         def init_with(coder)
-          @serial = coder["serial"]
+          @serial = coder['serial']
           super
         end
 
         def encode_with(coder)
-          coder["serial"] = @serial
+          coder['serial'] = @serial
           super
         end
 

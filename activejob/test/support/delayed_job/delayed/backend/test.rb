@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # copied from https://github.com/collectiveidea/delayed_job/blob/master/spec/delayed/backend/test.rb
-require "ostruct"
+require 'ostruct'
 
 # An in-memory backend suitable only for testing. Tries to behave as if it were an ORM.
 module Delayed

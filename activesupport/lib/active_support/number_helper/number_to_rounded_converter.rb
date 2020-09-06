@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/number_helper/number_converter"
+require 'active_support/number_helper/number_converter'
 
 module ActiveSupport
   module NumberHelper
@@ -23,10 +23,10 @@ module ActiveSupport
             if rounded_number.nan? || rounded_number.infinite? || rounded_number == rounded_number.to_i
               "%00.#{precision}f" % rounded_number
             else
-              s = rounded_number.to_s("F")
-              s << "0" * precision
-              a, b = s.split(".", 2)
-              a << "."
+              s = rounded_number.to_s('F')
+              s << '0' * precision
+              a, b = s.split('.', 2)
+              a << '.'
               a << b[0, precision]
             end
         else
@@ -45,7 +45,7 @@ module ActiveSupport
         def format_number(number)
           if strip_insignificant_zeros
             escaped_separator = Regexp.escape(options[:separator])
-            number.sub(/(#{escaped_separator})(\d*[1-9])?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, "")
+            number.sub(/(#{escaped_separator})(\d*[1-9])?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, '')
           else
             number
           end

@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 class ClassFolder
-  ConstantInClassFolder = "indeed"
+  ConstantInClassFolder = 'indeed'
 end

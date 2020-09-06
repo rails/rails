@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "active_support/subscriber"
+require_relative 'abstract_unit'
+require 'active_support/subscriber'
 
 class TestSubscriber < ActiveSupport::Subscriber
   attach_to :doodle
@@ -52,25 +52,25 @@ class SubscriberTest < ActiveSupport::TestCase
   end
 
   def test_attaches_subscribers
-    ActiveSupport::Notifications.instrument("open_party.doodle")
+    ActiveSupport::Notifications.instrument('open_party.doodle')
 
-    assert_equal "open_party.doodle", TestSubscriber.events.first.name
+    assert_equal 'open_party.doodle', TestSubscriber.events.first.name
   end
 
   def test_attaches_only_one_subscriber
-    ActiveSupport::Notifications.instrument("open_party.doodle")
+    ActiveSupport::Notifications.instrument('open_party.doodle')
 
     assert_equal 1, TestSubscriber.events.size
   end
 
   def test_does_not_attach_private_methods
-    ActiveSupport::Notifications.instrument("private_party.doodle")
+    ActiveSupport::Notifications.instrument('private_party.doodle')
 
     assert_equal [], TestSubscriber.events
   end
 
   def test_detaches_subscribers
-    ActiveSupport::Notifications.instrument("open_party.doodle")
+    ActiveSupport::Notifications.instrument('open_party.doodle')
 
     assert_equal [], TestSubscriber2.events
     assert_equal 1, TestSubscriber.events.size

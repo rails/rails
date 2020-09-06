@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "ipaddr"
-require "active_support/core_ext/kernel/reporting"
-require "active_support/core_ext/symbol/starts_ends_with"
-require "active_support/file_update_checker"
-require "active_support/configuration_file"
-require "rails/engine/configuration"
-require "rails/source_annotation_extractor"
+require 'ipaddr'
+require 'active_support/core_ext/kernel/reporting'
+require 'active_support/core_ext/symbol/starts_ends_with'
+require 'active_support/file_update_checker'
+require 'active_support/configuration_file'
+require 'rails/engine/configuration'
+require 'rails/source_annotation_extractor'
 
 module Rails
   class Application
@@ -34,20 +34,20 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        @hosts                                   = Array(([".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")] if Rails.env.development?))
+        @hosts                                   = Array((['.localhost', IPAddr.new('0.0.0.0/0'), IPAddr.new('::/0')] if Rails.env.development?))
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
-        @public_file_server.index_name           = "index"
+        @public_file_server.index_name           = 'index'
         @force_ssl                               = false
         @ssl_options                             = {}
         @session_store                           = nil
-        @time_zone                               = "UTC"
+        @time_zone                               = 'UTC'
         @beginning_of_week                       = :monday
         @log_level                               = :debug
         @generators                              = app_generators
         @cache_store                             = [ :file_store, "#{root}/tmp/cache/" ]
         @railties_order                          = [:all]
-        @relative_url_root                       = ENV["RAILS_RELATIVE_URL_ROOT"]
+        @relative_url_root                       = ENV['RAILS_RELATIVE_URL_ROOT']
         @reload_classes_only_on_change           = true
         @file_watcher                            = ActiveSupport::FileUpdateChecker
         @exceptions_app                          = nil
@@ -79,7 +79,7 @@ module Rails
       # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
       def load_defaults(target_version)
         case target_version.to_s
-        when "5.0"
+        when '5.0'
           if respond_to?(:action_controller)
             action_controller.per_form_csrf_tokens = true
             action_controller.forgery_protection_origin_check = true
@@ -92,8 +92,8 @@ module Rails
           end
 
           self.ssl_options = { hsts: { subdomains: true } }
-        when "5.1"
-          load_defaults "5.0"
+        when '5.1'
+          load_defaults '5.0'
 
           if respond_to?(:assets)
             assets.unknown_asset_fallback = false
@@ -102,8 +102,8 @@ module Rails
           if respond_to?(:action_view)
             action_view.form_with_generates_remote_forms = true
           end
-        when "5.2"
-          load_defaults "5.1"
+        when '5.2'
+          load_defaults '5.1'
 
           if respond_to?(:active_record)
             active_record.cache_versioning = true
@@ -125,10 +125,10 @@ module Rails
           if respond_to?(:action_view)
             action_view.form_with_generates_ids = true
           end
-        when "6.0"
-          load_defaults "5.2"
+        when '6.0'
+          load_defaults '5.2'
 
-          self.autoloader = :zeitwerk if RUBY_ENGINE == "ruby"
+          self.autoloader = :zeitwerk if RUBY_ENGINE == 'ruby'
 
           if respond_to?(:action_view)
             action_view.default_enforce_utf8 = false
@@ -140,7 +140,7 @@ module Rails
           end
 
           if respond_to?(:action_mailer)
-            action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
+            action_mailer.delivery_job = 'ActionMailer::MailDeliveryJob'
           end
 
           if respond_to?(:active_job)
@@ -157,8 +157,8 @@ module Rails
           if respond_to?(:active_record)
             active_record.collection_cache_versioning = true
           end
-        when "6.1"
-          load_defaults "6.0"
+        when '6.1'
+          load_defaults '6.0'
 
           self.autoloader = :zeitwerk if %w[ruby truffleruby].include?(RUBY_ENGINE)
 
@@ -216,15 +216,15 @@ module Rails
       def paths
         @paths ||= begin
           paths = super
-          paths.add "config/database",    with: "config/database.yml"
-          paths.add "config/secrets",     with: "config", glob: "secrets.yml{,.enc}"
-          paths.add "config/environment", with: "config/environment.rb"
-          paths.add "lib/templates"
-          paths.add "log",                with: "log/#{Rails.env}.log"
-          paths.add "public"
-          paths.add "public/javascripts"
-          paths.add "public/stylesheets"
-          paths.add "tmp"
+          paths.add 'config/database',    with: 'config/database.yml'
+          paths.add 'config/secrets',     with: 'config', glob: 'secrets.yml{,.enc}'
+          paths.add 'config/environment', with: 'config/environment.rb'
+          paths.add 'lib/templates'
+          paths.add 'log',                with: "log/#{Rails.env}.log"
+          paths.add 'public'
+          paths.add 'public/javascripts'
+          paths.add 'public/stylesheets'
+          paths.add 'tmp'
           paths
         end
       end
@@ -237,8 +237,8 @@ module Rails
       # This uses a DummyERB custom compiler so YAML can ignore the ERB
       # tags and load the database.yml for the rake tasks.
       def load_database_yaml # :nodoc:
-        if path = paths["config/database"].existent.first
-          require "rails/application/dummy_erb_compiler"
+        if path = paths['config/database'].existent.first
+          require 'rails/application/dummy_erb_compiler'
 
           yaml = Pathname.new(path)
           erb = DummyERB.new(yaml.read)
@@ -252,18 +252,18 @@ module Rails
       # Loads and returns the entire raw configuration of database from
       # values stored in <tt>config/database.yml</tt>.
       def database_configuration
-        path = paths["config/database"].existent.first
+        path = paths['config/database'].existent.first
         yaml = Pathname.new(path) if path
 
         config = if yaml&.exist?
           loaded_yaml = ActiveSupport::ConfigurationFile.parse(yaml)
-          if (shared = loaded_yaml.delete("shared"))
+          if (shared = loaded_yaml.delete('shared'))
             loaded_yaml.each do |_k, values|
               values.reverse_merge!(shared)
             end
           end
           Hash.new(shared).merge(loaded_yaml)
-        elsif ENV["DATABASE_URL"]
+        elsif ENV['DATABASE_URL']
           # Value from ENV['DATABASE_URL'] is set to default database connection
           # by Active Record.
           {}
@@ -291,8 +291,8 @@ module Rails
             begin
               ActionDispatch::Session::ActiveRecordStore
             rescue NameError
-              raise "`ActiveRecord::SessionStore` is extracted out of Rails into a gem. " \
-                "Please add `activerecord-session_store` to your Gemfile to use it."
+              raise '`ActiveRecord::SessionStore` is extracted out of Rails into a gem. ' \
+                'Please add `activerecord-session_store` to your Gemfile to use it.'
             end
           end
 
@@ -341,7 +341,7 @@ module Rails
         when :classic
           @autoloader = autoloader
         when :zeitwerk
-          require "zeitwerk"
+          require 'zeitwerk'
           @autoloader = autoloader
         else
           raise ArgumentError, "config.autoloader may be :classic or :zeitwerk, got #{autoloader.inspect} instead"
@@ -349,12 +349,12 @@ module Rails
       end
 
       def default_log_file
-        path = paths["log"].first
+        path = paths['log'].first
         unless File.exist? File.dirname path
           FileUtils.mkdir_p File.dirname path
         end
 
-        f = File.open path, "a"
+        f = File.open path, 'a'
         f.binmode
         f.sync = autoflush_log # if true make sure every write flushes
         f
@@ -366,7 +366,7 @@ module Rails
         end
 
         def method_missing(method, *args)
-          if method.end_with?("=")
+          if method.end_with?('=')
             @configurations[:"#{method[0..-2]}"] = args.first
           else
             @configurations.fetch(method) {
@@ -383,22 +383,22 @@ module Rails
       private
         def default_credentials_content_path
           if credentials_available_for_current_env?
-            root.join("config", "credentials", "#{Rails.env}.yml.enc")
+            root.join('config', 'credentials', "#{Rails.env}.yml.enc")
           else
-            root.join("config", "credentials.yml.enc")
+            root.join('config', 'credentials.yml.enc')
           end
         end
 
         def default_credentials_key_path
           if credentials_available_for_current_env?
-            root.join("config", "credentials", "#{Rails.env}.key")
+            root.join('config', 'credentials', "#{Rails.env}.key")
           else
-            root.join("config", "master.key")
+            root.join('config', 'master.key')
           end
         end
 
         def credentials_available_for_current_env?
-          File.exist?(root.join("config", "credentials", "#{Rails.env}.yml.enc"))
+          File.exist?(root.join('config', 'credentials', "#{Rails.env}.yml.enc"))
         end
     end
   end

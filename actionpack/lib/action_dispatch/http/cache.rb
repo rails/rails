@@ -4,8 +4,8 @@ module ActionDispatch
   module Http
     module Cache
       module Request
-        HTTP_IF_MODIFIED_SINCE = "HTTP_IF_MODIFIED_SINCE"
-        HTTP_IF_NONE_MATCH     = "HTTP_IF_NONE_MATCH"
+        HTTP_IF_MODIFIED_SINCE = 'HTTP_IF_MODIFIED_SINCE'
+        HTTP_IF_NONE_MATCH     = 'HTTP_IF_NONE_MATCH'
 
         def if_modified_since
           if since = get_header(HTTP_IF_MODIFIED_SINCE)
@@ -28,7 +28,7 @@ module ActionDispatch
         def etag_matches?(etag)
           if etag
             validators = if_none_match_etags
-            validators.include?(etag) || validators.include?("*")
+            validators.include?(etag) || validators.include?('*')
           end
         end
 
@@ -103,11 +103,11 @@ module ActionDispatch
         end
 
         def weak_etag=(weak_validators)
-          set_header "ETag", generate_weak_etag(weak_validators)
+          set_header 'ETag', generate_weak_etag(weak_validators)
         end
 
         def strong_etag=(strong_validators)
-          set_header "ETag", generate_strong_etag(strong_validators)
+          set_header 'ETag', generate_strong_etag(strong_validators)
         end
 
         def etag?; etag; end
@@ -123,8 +123,8 @@ module ActionDispatch
         end
 
       private
-        DATE          = "Date"
-        LAST_MODIFIED = "Last-Modified"
+        DATE          = 'Date'
+        LAST_MODIFIED = 'Last-Modified'
         SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public private must-revalidate])
 
         def generate_weak_etag(validators)
@@ -137,7 +137,7 @@ module ActionDispatch
 
         def cache_control_segments
           if cache_control = _cache_control
-            cache_control.delete(" ").split(",")
+            cache_control.delete(' ').split(',')
           else
             []
           end
@@ -147,10 +147,10 @@ module ActionDispatch
           cache_control = {}
 
           cache_control_segments.each do |segment|
-            directive, argument = segment.split("=", 2)
+            directive, argument = segment.split('=', 2)
 
             if SPECIAL_KEYS.include? directive
-              directive.tr!("-", "_")
+              directive.tr!('-', '_')
               cache_control[directive.to_sym] = argument || true
             else
               cache_control[:extras] ||= []
@@ -165,11 +165,11 @@ module ActionDispatch
           @cache_control = cache_control_headers
         end
 
-        DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"
-        NO_CACHE              = "no-cache"
-        PUBLIC                = "public"
-        PRIVATE               = "private"
-        MUST_REVALIDATE       = "must-revalidate"
+        DEFAULT_CACHE_CONTROL = 'max-age=0, private, must-revalidate'
+        NO_CACHE              = 'no-cache'
+        PUBLIC                = 'public'
+        PRIVATE               = 'private'
+        MUST_REVALIDATE       = 'must-revalidate'
 
         def handle_conditional_get!
           # Normally default cache control setting is handled by ETag
@@ -200,7 +200,7 @@ module ActionDispatch
             options << NO_CACHE
             options.concat(control[:extras]) if control[:extras]
 
-            self._cache_control = options.join(", ")
+            self._cache_control = options.join(', ')
           else
             extras = control[:extras]
             max_age = control[:max_age]
@@ -215,7 +215,7 @@ module ActionDispatch
             options << "stale-if-error=#{stale_if_error.to_i}" if stale_if_error
             options.concat(extras) if extras
 
-            self._cache_control = options.join(", ")
+            self._cache_control = options.join(', ')
           end
         end
       end

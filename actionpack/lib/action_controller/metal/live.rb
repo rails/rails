@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "action_dispatch/http/response"
-require "delegate"
-require "active_support/json"
+require 'action_dispatch/http/response'
+require 'delegate'
+require 'active_support/json'
 
 module ActionController
   # Mix this module into your controller, and all actions in that controller
@@ -39,7 +39,7 @@ module ActionController
 
     module ClassMethods
       def make_response!(request)
-        if request.get_header("HTTP_VERSION") == "HTTP/1.0"
+        if request.get_header('HTTP_VERSION') == 'HTTP/1.0'
           super
         else
           Live::Response.new.tap do |res|
@@ -145,8 +145,8 @@ module ActionController
 
       def write(string)
         unless @response.committed?
-          @response.headers["Cache-Control"] ||= "no-cache"
-          @response.delete_header "Content-Length"
+          @response.headers['Cache-Control'] ||= 'no-cache'
+          @response.delete_header 'Content-Length'
         end
 
         super
@@ -158,7 +158,7 @@ module ActionController
             # Raise ClientDisconnected, which is a RuntimeError (not an
             # IOError), because that's more appropriate for something beyond
             # the developer's control.
-            raise ClientDisconnected, "client disconnected"
+            raise ClientDisconnected, 'client disconnected'
           end
         end
       end
@@ -302,7 +302,7 @@ module ActionController
         logger.fatal do
           message = +"\n#{exception.class} (#{exception.message}):\n"
           message << exception.annotated_source_code.to_s if exception.respond_to?(:annotated_source_code)
-          message << "  " << exception.backtrace.join("\n  ")
+          message << '  ' << exception.backtrace.join("\n  ")
           "#{message}\n\n"
         end
       end

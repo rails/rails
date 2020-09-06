@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/comment"
-require "models/post"
-require "models/subscriber"
+require 'cases/helper'
+require 'models/comment'
+require 'models/post'
+require 'models/subscriber'
 
 class EachTest < ActiveRecord::TestCase
   fixtures :posts, :subscribers
 
   def setup
-    @posts = Post.order("id asc")
+    @posts = Post.order('id asc')
     @total = Post.count
-    Post.count("id") # preheat arel's table cache
+    Post.count('id') # preheat arel's table cache
   end
 
   def test_each_should_execute_one_query_per_batch
@@ -56,20 +56,20 @@ class EachTest < ActiveRecord::TestCase
   def test_each_should_raise_if_select_is_set_without_id
     assert_raise(ArgumentError) do
       Post.select(:title).find_each(batch_size: 1) { |post|
-        flunk "should not call this block"
+        flunk 'should not call this block'
       }
     end
   end
 
   def test_each_should_execute_if_id_is_in_select
     assert_queries(6) do
-      Post.select("id, title, type").find_each(batch_size: 2) do |post|
+      Post.select('id, title, type').find_each(batch_size: 2) do |post|
         assert_kind_of Post, post
       end
     end
   end
 
-  test "find_each should honor limit if passed a block" do
+  test 'find_each should honor limit if passed a block' do
     limit = @total - 1
     total = 0
 
@@ -80,7 +80,7 @@ class EachTest < ActiveRecord::TestCase
     assert_equal limit, total
   end
 
-  test "find_each should honor limit if no block is passed" do
+  test 'find_each should honor limit if no block is passed' do
     limit = @total - 1
     total = 0
 
@@ -93,7 +93,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_warn_if_order_scope_is_set
     assert_called(ActiveRecord::Base.logger, :warn) do
-      Post.order("title").find_each { |post| post }
+      Post.order('title').find_each { |post| post }
     end
   end
 
@@ -101,7 +101,7 @@ class EachTest < ActiveRecord::TestCase
     previous_logger = ActiveRecord::Base.logger
     ActiveRecord::Base.logger = nil
     assert_nothing_raised do
-      Post.order("comments_count DESC").find_each { |post| post }
+      Post.order('comments_count DESC').find_each { |post| post }
     end
   ensure
     ActiveRecord::Base.logger = previous_logger
@@ -167,15 +167,15 @@ class EachTest < ActiveRecord::TestCase
   def test_each_should_raise_if_order_is_invalid
     assert_raise(ArgumentError) do
       Post.select(:title).find_each(batch_size: 1, order: :invalid) { |post|
-        flunk "should not call this block"
+        flunk 'should not call this block'
       }
     end
   end
 
   def test_find_in_batches_should_not_use_records_after_yielding_them_in_case_original_array_is_modified
-    not_a_post = +"not a post"
+    not_a_post = +'not a post'
     def not_a_post.id; end
-    not_a_post.stub(:id, -> { raise StandardError.new("not_a_post had #id called on it") }) do
+    not_a_post.stub(:id, -> { raise StandardError.new('not_a_post had #id called on it') }) do
       assert_nothing_raised do
         Post.find_in_batches(batch_size: 1) do |batch|
           assert_kind_of Array, batch
@@ -245,7 +245,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_use_any_column_as_primary_key
-    nick_order_subscribers = Subscriber.order("nick asc")
+    nick_order_subscribers = Subscriber.order('nick asc')
     start_nick = nick_order_subscribers.second.nick
 
     subscribers = []
@@ -278,7 +278,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  test "find_in_batches should honor limit if passed a block" do
+  test 'find_in_batches should honor limit if passed a block' do
     limit = @total - 1
     total = 0
 
@@ -289,7 +289,7 @@ class EachTest < ActiveRecord::TestCase
     assert_equal limit, total
   end
 
-  test "find_in_batches should honor limit if no block is passed" do
+  test 'find_in_batches should honor limit if no block is passed' do
     limit = @total - 1
     total = 0
 
@@ -341,7 +341,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_each_record_should_be_ordered_by_id
-    ids = Post.order("id ASC").pluck(:id)
+    ids = Post.order('id ASC').pluck(:id)
     assert_queries(6) do
       Post.in_batches(of: 2).each_record.with_index do |post, i|
         assert_equal ids[i], post.id
@@ -351,15 +351,15 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_update_all_affect_all_records
     assert_queries(6 + 6) do # 6 selects, 6 updates
-      Post.in_batches(of: 2).update_all(title: "updated-title")
+      Post.in_batches(of: 2).update_all(title: 'updated-title')
     end
-    assert_equal Post.all.pluck(:title), ["updated-title"] * Post.count
+    assert_equal Post.all.pluck(:title), ['updated-title'] * Post.count
   end
 
   def test_in_batches_delete_all_should_not_delete_records_in_other_batches
-    not_deleted_count = Post.where("id <= 2").count
-    Post.where("id > 2").in_batches(of: 2).delete_all
-    assert_equal 0, Post.where("id > 2").count
+    not_deleted_count = Post.where('id <= 2').count
+    Post.where('id > 2').in_batches(of: 2).delete_all
+    assert_equal 0, Post.where('id > 2').count
     assert_equal not_deleted_count, Post.count
   end
 
@@ -396,7 +396,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_start_from_the_start_option
-    post = Post.order("id ASC").where("id >= ?", 2).first
+    post = Post.order('id ASC').where('id >= ?', 2).first
     assert_queries(2) do
       relation = Post.in_batches(of: 1, start: 2).first
       assert_equal post, relation.first
@@ -404,7 +404,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_end_at_the_finish_option
-    post = Post.order("id DESC").where("id <= ?", 5).first
+    post = Post.order('id DESC').where('id <= ?', 5).first
     assert_queries(7) do
       relation = Post.in_batches(of: 1, finish: 5, load: true).reverse_each.first
       assert_equal post, relation.last
@@ -442,9 +442,9 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_not_use_records_after_yielding_them_in_case_original_array_is_modified
-    not_a_post = +"not a post"
+    not_a_post = +'not a post'
     def not_a_post.id
-      raise StandardError.new("not_a_post had #id called on it")
+      raise StandardError.new('not_a_post had #id called on it')
     end
 
     assert_nothing_raised do
@@ -467,7 +467,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_use_any_column_as_primary_key
-    nick_order_subscribers = Subscriber.order("nick asc")
+    nick_order_subscribers = Subscriber.order('nick asc')
     start_nick = nick_order_subscribers.second.nick
 
     subscribers = []
@@ -527,7 +527,7 @@ class EachTest < ActiveRecord::TestCase
     person.update(author_id: 1)
 
     Post.in_batches(of: 2) do |batch|
-      batch.where("author_id >= 1").update_all("author_id = author_id + 1")
+      batch.where('author_id >= 1').update_all('author_id = author_id + 1')
     end
     assert_equal 2, person.reload.author_id # incremented only once
   end
@@ -602,9 +602,9 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  test ".find_each respects table alias" do
+  test '.find_each respects table alias' do
     assert_queries(1) do
-      table_alias = Post.arel_table.alias("omg_posts")
+      table_alias = Post.arel_table.alias('omg_posts')
       table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
       predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
 
@@ -617,7 +617,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  test ".find_each bypasses the query cache for its own queries" do
+  test '.find_each bypasses the query cache for its own queries' do
     Post.cache do
       assert_queries(2) do
         Post.find_each { }
@@ -626,7 +626,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  test ".find_each does not disable the query cache inside the given block" do
+  test '.find_each does not disable the query cache inside the given block' do
     Post.cache do
       Post.find_each(start: 1, finish: 1) do |post|
         assert_queries(1) do
@@ -637,7 +637,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  test ".find_in_batches bypasses the query cache for its own queries" do
+  test '.find_in_batches bypasses the query cache for its own queries' do
     Post.cache do
       assert_queries(2) do
         Post.find_in_batches { }
@@ -646,7 +646,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  test ".find_in_batches does not disable the query cache inside the given block" do
+  test '.find_in_batches does not disable the query cache inside the given block' do
     Post.cache do
       Post.find_in_batches(start: 1, finish: 1) do |batch|
         assert_queries(1) do
@@ -657,7 +657,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  test ".in_batches bypasses the query cache for its own queries" do
+  test '.in_batches bypasses the query cache for its own queries' do
     Post.cache do
       assert_queries(2) do
         Post.in_batches { }
@@ -666,7 +666,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  test ".in_batches does not disable the query cache inside the given block" do
+  test '.in_batches does not disable the query cache inside the given block' do
     Post.cache do
       Post.in_batches(start: 1, finish: 1) do |relation|
         assert_queries(1) do

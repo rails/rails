@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/testing/parallelization"
+require 'active_support/testing/parallelization'
 
 module ActiveRecord
   module TestDatabases # :nodoc:
@@ -9,7 +9,7 @@ module ActiveRecord
     end
 
     def self.create_and_load_schema(i, env_name:)
-      old, ENV["VERBOSE"] = ENV["VERBOSE"], "false"
+      old, ENV['VERBOSE'] = ENV['VERBOSE'], 'false'
 
       ActiveRecord::Base.configurations.configs_for(env_name: env_name).each do |db_config|
         db_config._database = "#{db_config.database}-#{i}"
@@ -18,7 +18,7 @@ module ActiveRecord
       end
     ensure
       ActiveRecord::Base.establish_connection
-      ENV["VERBOSE"] = old
+      ENV['VERBOSE'] = old
     end
   end
 end

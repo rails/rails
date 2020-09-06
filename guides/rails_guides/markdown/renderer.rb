@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "rouge"
+require 'rouge'
 
 # Add more common shell commands
-Rouge::Lexers::Shell::BUILTINS << "|bin/rails|brew|bundle|gem|git|node|rails|rake|ruby|sqlite3|yarn"
+Rouge::Lexers::Shell::BUILTINS << '|bin/rails|brew|bundle|gem|git|node|rails|rake|ruby|sqlite3|yarn'
 
 module RailsGuides
   class Markdown
@@ -48,7 +48,7 @@ module RailsGuides
           %(<div class="note"><p>Defined in <code><a href="#{github_file_url($1)}">#{$1}</a></code>.</p></div>)
         elsif /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:]/.match?(text)
           convert_notes(text)
-        elsif text.include?("DO NOT READ THIS FILE ON GITHUB")
+        elsif text.include?('DO NOT READ THIS FILE ON GITHUB')
         elsif text =~ /^\[<sup>(\d+)\]:<\/sup> (.+)$/
           linkback = %(<a href="#footnote-#{$1}-ref"><sup>#{$1}</sup></a>)
           %(<p class="footnote" id="footnote-#{$1}">#{linkback} #{$2}</p>)
@@ -68,14 +68,14 @@ module RailsGuides
 
         def lexer_language(code_type)
           case code_type
-          when "html+erb"
-            "erb"
-          when "bash"
-            "console"
+          when 'html+erb'
+            'erb'
+          when 'bash'
+            'console'
           when nil
-            "plaintext"
+            'plaintext'
           else
-            ::Rouge::Lexer.find(code_type) ? code_type : "plaintext"
+            ::Rouge::Lexer.find(code_type) ? code_type : 'plaintext'
           end
         end
 
@@ -91,10 +91,10 @@ module RailsGuides
           body.gsub(/^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:](.*?)(\n(?=\n)|\Z)/m) do
             css_class = \
               case $1
-              when "CAUTION", "IMPORTANT"
-                "warning"
-              when "TIP"
-                "info"
+              when 'CAUTION', 'IMPORTANT'
+                'warning'
+              when 'TIP'
+                'info'
               else
                 $1.downcase
               end
@@ -108,7 +108,7 @@ module RailsGuides
           root = file_path[%r{(\w+)/}, 1]
           path = \
             case root
-            when "abstract_controller", "action_controller", "action_dispatch"
+            when 'abstract_controller', 'action_controller', 'action_dispatch'
               "actionpack/lib/#{file_path}"
             when /\A(action|active)_/
               "#{root.sub("_", "")}/lib/#{file_path}"
@@ -123,7 +123,7 @@ module RailsGuides
           if %r{https?://api\.rubyonrails\.org/v\d+\.}.match?(url)
             url
           elsif edge
-            url.sub("api", "edgeapi")
+            url.sub('api', 'edgeapi')
           else
             url.sub(/(?<=\.org)/, "/#{version}")
           end

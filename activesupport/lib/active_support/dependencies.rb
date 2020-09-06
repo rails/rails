@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-require "set"
-require "thread"
-require "concurrent/map"
-require "pathname"
-require "active_support/core_ext/module/aliasing"
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/module/introspection"
-require "active_support/core_ext/module/anonymous"
-require "active_support/core_ext/object/blank"
-require "active_support/core_ext/kernel/reporting"
-require "active_support/core_ext/load_error"
-require "active_support/core_ext/name_error"
-require "active_support/dependencies/interlock"
-require "active_support/inflector"
+require 'set'
+require 'thread'
+require 'concurrent/map'
+require 'pathname'
+require 'active_support/core_ext/module/aliasing'
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/module/introspection'
+require 'active_support/core_ext/module/anonymous'
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/kernel/reporting'
+require 'active_support/core_ext/load_error'
+require 'active_support/core_ext/name_error'
+require 'active_support/dependencies/interlock'
+require 'active_support/inflector'
 
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
@@ -61,7 +61,7 @@ module ActiveSupport #:nodoc:
     mattr_accessor :loading, default: []
 
     # Should we load files or require them?
-    mattr_accessor :mechanism, default: ENV["NO_RELOAD"] ? :require : :load
+    mattr_accessor :mechanism, default: ENV['NO_RELOAD'] ? :require : :load
 
     # The set of directories from which we may automatically load files. Files
     # under these directories will be reloaded on each request in development mode,
@@ -153,7 +153,7 @@ module ActiveSupport #:nodoc:
 
           # Normalize the list of new constants, and add them to the list we will return
           new_constants.each do |suffix|
-            constants << ([namespace, suffix] - ["Object"]).join("::")
+            constants << ([namespace, suffix] - ['Object']).join('::')
           end
         end
         constants
@@ -279,7 +279,7 @@ module ActiveSupport #:nodoc:
       # Engines that do not control the mode in which their parent application
       # runs should call +require_dependency+ where needed in case the runtime
       # mode is +:classic+.
-      def require_dependency(file_name, message = "No such file to load -- %s.rb")
+      def require_dependency(file_name, message = 'No such file to load -- %s.rb')
         file_name = file_name.to_path if file_name.respond_to?(:to_path)
         unless file_name.is_a?(String)
           raise ArgumentError, "the file name must either be a String or implement #to_path -- you passed #{file_name.inspect}"
@@ -370,7 +370,7 @@ module ActiveSupport #:nodoc:
       mechanism == :load
     end
 
-    def depend_on(file_name, message = "No such file to load -- %s.rb")
+    def depend_on(file_name, message = 'No such file to load -- %s.rb')
       path = search_for_file(file_name)
       require_or_load(path || file_name)
     rescue LoadError => load_error
@@ -390,7 +390,7 @@ module ActiveSupport #:nodoc:
     end
 
     def require_or_load(file_name, const_path = nil)
-      file_name = file_name.chomp(".rb")
+      file_name = file_name.chomp('.rb')
       expanded = File.expand_path(file_name)
       return if loaded.include?(expanded)
 
@@ -440,7 +440,7 @@ module ActiveSupport #:nodoc:
     # constant paths which would cause Dependencies to attempt to load this
     # file.
     def loadable_constants_for_path(path, bases = autoload_paths)
-      path = path.chomp(".rb")
+      path = path.chomp('.rb')
       expanded_path = File.expand_path(path)
       paths = []
 
@@ -461,7 +461,7 @@ module ActiveSupport #:nodoc:
 
     # Search for a file in autoload_paths matching the provided suffix.
     def search_for_file(path_suffix)
-      path_suffix += ".rb" unless path_suffix.end_with?(".rb")
+      path_suffix += '.rb' unless path_suffix.end_with?('.rb')
 
       autoload_paths.each do |root|
         path = File.join(root, path_suffix)
@@ -526,7 +526,7 @@ module ActiveSupport #:nodoc:
     # Returns the constant path for the provided parent and constant name.
     def qualified_name_for(mod, name)
       mod_name = to_constant_name mod
-      mod_name == "Object" ? name.to_s : "#{mod_name}::#{name}"
+      mod_name == 'Object' ? name.to_s : "#{mod_name}::#{name}"
     end
 
     # Load the constant named +const_name+ which is missing from +from_mod+. If
@@ -545,7 +545,7 @@ module ActiveSupport #:nodoc:
 
       if file_path
         expanded = File.expand_path(file_path)
-        expanded.delete_suffix!(".rb")
+        expanded.delete_suffix!('.rb')
 
         if loading.include?(expanded)
           raise "Circular dependency detected while autoloading constant #{qualified_name}"
@@ -606,7 +606,7 @@ module ActiveSupport #:nodoc:
     # as the environment will be in an inconsistent state, e.g. other constants
     # may have already been unloaded and not accessible.
     def remove_unloadable_constants!
-      log("removing unloadable constants")
+      log('removing unloadable constants')
       autoloaded_constants.each { |const| remove_constant const }
       autoloaded_constants.clear
       Reference.clear!
@@ -639,7 +639,7 @@ module ActiveSupport #:nodoc:
 
       def store(klass)
         return self unless klass.respond_to?(:name)
-        raise(ArgumentError, "anonymous classes cannot be cached") if klass.name.empty?
+        raise(ArgumentError, 'anonymous classes cannot be cached') if klass.name.empty?
         @store[klass.name] = klass
         self
       end
@@ -723,28 +723,28 @@ module ActiveSupport #:nodoc:
     # A module, class, symbol, or string may be provided.
     def to_constant_name(desc) #:nodoc:
       case desc
-      when String then desc.delete_prefix("::")
+      when String then desc.delete_prefix('::')
       when Symbol then desc.to_s
       when Module
         real_mod_name(desc) ||
-          raise(ArgumentError, "Anonymous modules have no name to be referenced by")
+          raise(ArgumentError, 'Anonymous modules have no name to be referenced by')
       else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
       end
     end
 
     def remove_constant(const) #:nodoc:
       # Normalize ::Foo, ::Object::Foo, Object::Foo, Object::Object::Foo, etc. as Foo.
-      normalized = const.to_s.delete_prefix("::")
-      normalized.sub!(/\A(Object::)+/, "")
+      normalized = const.to_s.delete_prefix('::')
+      normalized.sub!(/\A(Object::)+/, '')
 
-      constants = normalized.split("::")
+      constants = normalized.split('::')
       to_remove = constants.pop
 
       # Remove the file path from the loaded list.
       file_path = search_for_file(const.underscore)
       if file_path
         expanded = File.expand_path(file_path)
-        expanded.delete_suffix!(".rb")
+        expanded.delete_suffix!('.rb')
         loaded.delete(expanded)
       end
 
@@ -758,7 +758,7 @@ module ActiveSupport #:nodoc:
         # here than require the caller to be clever. We check the parent
         # rather than the very const argument because we do not want to
         # trigger Kernel#autoloads, see the comment below.
-        parent_name = constants.join("::")
+        parent_name = constants.join('::')
         return unless qualified_const_defined?(parent_name)
         parent = constantize(parent_name)
       end
@@ -802,7 +802,7 @@ module ActiveSupport #:nodoc:
     end
 
     private
-      if RUBY_VERSION < "2.6"
+      if RUBY_VERSION < '2.6'
         def uninitialized_constant(qualified_name, const_name, receiver:)
           NameError.new("uninitialized constant #{qualified_name}", const_name)
         end

@@ -26,7 +26,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       if model.dangerous_attribute_method?(name)
         raise ArgumentError, "You tried to define an association named #{name} on the model #{model.name}, but " \
                              "this will conflict with a method #{name} already defined by Active Record. " \
-                             "Please choose a different association name."
+                             'Please choose a different association name.'
       end
 
       reflection = create_reflection(model, name, scope, options, &block)
@@ -37,7 +37,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.create_reflection(model, name, scope, options, &block)
-      raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
+      raise ArgumentError, 'association names must be a Symbol' unless name.kind_of?(Symbol)
 
       validate_options(options)
 

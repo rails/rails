@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_model/attribute_set"
-require "active_model/attribute/user_provided_default"
+require 'active_model/attribute_set'
+require 'active_model/attribute/user_provided_default'
 
 module ActiveModel
   module Attributes #:nodoc:
@@ -9,7 +9,7 @@ module ActiveModel
     include ActiveModel::AttributeMethods
 
     included do
-      attribute_method_suffix "="
+      attribute_method_suffix '='
       class_attribute :attribute_types, :_default_attributes, instance_accessor: false
       self.attribute_types = Hash.new(Type.default_value)
       self._default_attributes = AttributeSet.new({})
@@ -49,7 +49,7 @@ module ActiveModel
             owner <<
               "def #{temp_method_name}(value)" <<
               "  _write_attribute(#{attr_name_expr}, value)" <<
-              "end"
+              'end'
           end
         end
 

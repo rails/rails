@@ -5,13 +5,13 @@ class DrinkDesigner < ActiveRecord::Base
 end
 
 class DrinkDesignerWithPolymorphicDependentNullifyChef < ActiveRecord::Base
-  self.table_name = "drink_designers"
+  self.table_name = 'drink_designers'
 
   has_one :chef, as: :employable, dependent: :nullify
 end
 
 class DrinkDesignerWithPolymorphicTouchChef < ActiveRecord::Base
-  self.table_name = "drink_designers"
+  self.table_name = 'drink_designers'
 
   has_one :chef, as: :employable, touch: true
 end

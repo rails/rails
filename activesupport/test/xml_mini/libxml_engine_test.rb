@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "xml_mini_engine_test"
+require_relative 'xml_mini_engine_test'
 
-XMLMiniEngineTest.run_with_gem("libxml") do
+XMLMiniEngineTest.run_with_gem('libxml') do
   class LibxmlEngineTest < XMLMiniEngineTest
     def setup
       super
@@ -11,7 +11,7 @@ XMLMiniEngineTest.run_with_gem("libxml") do
 
     private
       def engine
-        "LibXML"
+        'LibXML'
       end
 
       def expansion_attack_error

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "concurrent/map"
-require "action_view/path_set"
+require 'concurrent/map'
+require 'action_view/path_set'
 
 module ActionView
   class DependencyTracker # :nodoc:
@@ -113,7 +113,7 @@ module ActionView
         end
 
         def directory
-          name.split("/")[0..-2].join("/")
+          name.split('/')[0..-2].join('/')
         end
 
         def render_dependencies
@@ -149,7 +149,7 @@ module ActionView
           end
 
           if dependency
-            if dependency.include?("/")
+            if dependency.include?('/')
               dependencies << dependency
             else
               dependencies << "#{directory}/#{dependency}"
@@ -170,7 +170,7 @@ module ActionView
         def explicit_dependencies
           dependencies = source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
 
-          wildcards, explicits = dependencies.partition { |dependency| dependency.end_with?("*") }
+          wildcards, explicits = dependencies.partition { |dependency| dependency.end_with?('*') }
 
           (explicits + resolve_directories(wildcards)).uniq
         end

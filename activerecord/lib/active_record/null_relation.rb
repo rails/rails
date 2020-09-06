@@ -39,7 +39,7 @@ module ActiveRecord
     end
 
     def to_sql
-      ""
+      ''
     end
 
     def calculate(operation, _column_name)

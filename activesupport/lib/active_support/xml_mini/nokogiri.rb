@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 begin
-  require "nokogiri"
+  require 'nokogiri'
 rescue LoadError => e
   $stderr.puts "You don't have nokogiri installed in your application. Please add it to your Gemfile and run bundle install"
   raise e
 end
-require "active_support/core_ext/object/blank"
-require "stringio"
+require 'active_support/core_ext/object/blank'
+require 'stringio'
 
 module ActiveSupport
   module XmlMini_Nokogiri #:nodoc:
@@ -18,7 +18,7 @@ module ActiveSupport
     #   XML Document string or IO to parse
     def parse(data)
       if !data.respond_to?(:read)
-        data = StringIO.new(data || "")
+        data = StringIO.new(data || '')
       end
 
       if data.eof?
@@ -38,7 +38,7 @@ module ActiveSupport
       end
 
       module Node #:nodoc:
-        CONTENT_ROOT = "__content__"
+        CONTENT_ROOT = '__content__'
 
         # Convert XML document to hash.
         #
@@ -59,7 +59,7 @@ module ActiveSupport
             if c.element?
               c.to_hash(node_hash)
             elsif c.text? || c.cdata?
-              node_hash[CONTENT_ROOT] ||= +""
+              node_hash[CONTENT_ROOT] ||= +''
               node_hash[CONTENT_ROOT] << c.content
             end
           end

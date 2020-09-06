@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "rails"
+require 'rails'
 
 module EnvHelpers
   private
     def with_rails_env(env)
       Rails.instance_variable_set :@_env, nil
-      switch_env "RAILS_ENV", env do
-        switch_env "RACK_ENV", nil do
+      switch_env 'RAILS_ENV', env do
+        switch_env 'RACK_ENV', nil do
           yield
         end
       end
@@ -15,8 +15,8 @@ module EnvHelpers
 
     def with_rack_env(env)
       Rails.instance_variable_set :@_env, nil
-      switch_env "RACK_ENV", env do
-        switch_env "RAILS_ENV", nil do
+      switch_env 'RACK_ENV', env do
+        switch_env 'RAILS_ENV', nil do
           yield
         end
       end

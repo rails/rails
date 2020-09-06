@@ -13,7 +13,7 @@ module ActiveSupport
 
         def start
           fork do
-            set_process_title("(starting)")
+            set_process_title('(starting)')
 
             DRb.stop_service
 
@@ -26,7 +26,7 @@ module ActiveSupport
 
             work_from_queue
           ensure
-            set_process_title("(stopping)")
+            set_process_title('(stopping)')
 
             run_cleanup
             @queue.stop_worker(@id)
@@ -71,7 +71,7 @@ module ActiveSupport
             @queue.record(reporter, result)
           end
 
-          set_process_title("(idle)")
+          set_process_title('(idle)')
         end
 
         def after_fork

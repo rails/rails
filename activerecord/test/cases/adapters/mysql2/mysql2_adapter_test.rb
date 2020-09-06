@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/ddl_helper"
+require 'cases/helper'
+require 'support/ddl_helper'
 
 class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   include DdlHelper
@@ -43,59 +43,59 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   def test_exec_query_nothing_raises_with_no_result_queries
     assert_nothing_raised do
       with_example_table do
-        @conn.exec_query("INSERT INTO ex (number) VALUES (1)")
-        @conn.exec_query("DELETE FROM ex WHERE number = 1")
+        @conn.exec_query('INSERT INTO ex (number) VALUES (1)')
+        @conn.exec_query('DELETE FROM ex WHERE number = 1')
       end
     end
   end
 
   def test_database_exists_returns_false_if_database_does_not_exist
-    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-    config = db_config.configuration_hash.merge(database: "inexistent_activerecord_unittest")
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: 'arunit', name: 'primary')
+    config = db_config.configuration_hash.merge(database: 'inexistent_activerecord_unittest')
     assert_not ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(config),
-      "expected database to not exist"
+      'expected database to not exist'
   end
 
   def test_database_exists_returns_true_when_the_database_exists
-    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: 'arunit', name: 'primary')
     assert ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(db_config.configuration_hash),
       "expected database #{db_config.database} to exist"
   end
 
   def test_columns_for_distinct_zero_orders
-    assert_equal "posts.id",
-      @conn.columns_for_distinct("posts.id", [])
+    assert_equal 'posts.id',
+      @conn.columns_for_distinct('posts.id', [])
   end
 
   def test_columns_for_distinct_one_order
-    assert_equal "posts.created_at AS alias_0, posts.id",
-      @conn.columns_for_distinct("posts.id", ["posts.created_at desc"])
+    assert_equal 'posts.created_at AS alias_0, posts.id',
+      @conn.columns_for_distinct('posts.id', ['posts.created_at desc'])
   end
 
   def test_columns_for_distinct_few_orders
-    assert_equal "posts.created_at AS alias_0, posts.position AS alias_1, posts.id",
-      @conn.columns_for_distinct("posts.id", ["posts.created_at desc", "posts.position asc"])
+    assert_equal 'posts.created_at AS alias_0, posts.position AS alias_1, posts.id',
+      @conn.columns_for_distinct('posts.id', ['posts.created_at desc', 'posts.position asc'])
   end
 
   def test_columns_for_distinct_with_case
     assert_equal(
-      "CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END AS alias_0, posts.id",
-      @conn.columns_for_distinct("posts.id",
-        ["CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END"])
+      'CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END AS alias_0, posts.id',
+      @conn.columns_for_distinct('posts.id',
+        ['CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END'])
     )
   end
 
   def test_columns_for_distinct_blank_not_nil_orders
-    assert_equal "posts.created_at AS alias_0, posts.id",
-      @conn.columns_for_distinct("posts.id", ["posts.created_at desc", "", "   "])
+    assert_equal 'posts.created_at AS alias_0, posts.id',
+      @conn.columns_for_distinct('posts.id', ['posts.created_at desc', '', '   '])
   end
 
   def test_columns_for_distinct_with_arel_order
     Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
 
-    order = Arel.sql("posts.created_at").desc
-    assert_equal "posts.created_at AS alias_0, posts.id",
-      @conn.columns_for_distinct("posts.id", [order])
+    order = Arel.sql('posts.created_at').desc
+    assert_equal 'posts.created_at AS alias_0, posts.id',
+      @conn.columns_for_distinct('posts.id', [order])
   ensure
     Arel::Table.engine = ActiveRecord::Base
   end
@@ -118,7 +118,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     )
     assert_not_nil error.cause
   ensure
-    @conn.execute("ALTER TABLE engines DROP COLUMN old_car_id") rescue nil
+    @conn.execute('ALTER TABLE engines DROP COLUMN old_car_id') rescue nil
   end
 
   def test_errors_for_bigint_fks_on_integer_pk_table_in_create_table
@@ -247,25 +247,25 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def test_doesnt_error_when_a_show_query_is_called_while_preventing_writes
     @connection_handler.while_preventing_writes do
-      assert_equal 2, @conn.execute("SHOW FULL FIELDS FROM `engines`").entries.count
+      assert_equal 2, @conn.execute('SHOW FULL FIELDS FROM `engines`').entries.count
     end
   end
 
   def test_doesnt_error_when_a_set_query_is_called_while_preventing_writes
     @connection_handler.while_preventing_writes do
-      assert_nil @conn.execute("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci")
+      assert_nil @conn.execute('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci')
     end
   end
 
   def test_doesnt_error_when_a_describe_query_is_called_while_preventing_writes
     @connection_handler.while_preventing_writes do
-      assert_equal 2, @conn.execute("DESCRIBE engines").entries.count
+      assert_equal 2, @conn.execute('DESCRIBE engines').entries.count
     end
   end
 
   def test_doesnt_error_when_a_desc_query_is_called_while_preventing_writes
     @connection_handler.while_preventing_writes do
-      assert_equal 2, @conn.execute("DESC engines").entries.count
+      assert_equal 2, @conn.execute('DESC engines').entries.count
     end
   end
 
@@ -278,14 +278,14 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_read_timeout_exception
-    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: 'arunit', name: 'primary')
 
     ActiveRecord::Base.establish_connection(
-      db_config.configuration_hash.merge("read_timeout" => 1)
+      db_config.configuration_hash.merge('read_timeout' => 1)
     )
 
     error = assert_raises(ActiveRecord::AdapterTimeout) do
-      ActiveRecord::Base.connection.execute("SELECT SLEEP(2)")
+      ActiveRecord::Base.connection.execute('SELECT SLEEP(2)')
     end
     assert_kind_of ActiveRecord::QueryAborted, error
 
@@ -297,27 +297,27 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   def test_statement_timeout_error_codes
     raw_conn = @conn.raw_connection
     assert_raises(ActiveRecord::StatementTimeout) do
-      raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new("fail", 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_FILSORT_ABORT) }) {
-        @conn.execute("SELECT 1")
+      raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new('fail', 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_FILSORT_ABORT) }) {
+        @conn.execute('SELECT 1')
       }
     end
 
     assert_raises(ActiveRecord::StatementTimeout) do
-      raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new("fail", 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_QUERY_TIMEOUT) }) {
-        @conn.execute("SELECT 1")
+      raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new('fail', 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_QUERY_TIMEOUT) }) {
+        @conn.execute('SELECT 1')
       }
     end
   end
 
   def test_doesnt_error_when_a_use_query_is_called_while_preventing_writes
     @connection_handler.while_preventing_writes do
-      db_name = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").database
+      db_name = ActiveRecord::Base.configurations.configs_for(env_name: 'arunit', name: 'primary').database
       assert_nil @conn.execute("USE #{db_name}")
     end
   end
 
   private
-    def with_example_table(definition = "id int auto_increment primary key, number int, data varchar(255)", &block)
-      super(@conn, "ex", definition, &block)
+    def with_example_table(definition = 'id int auto_increment primary key, number int, data varchar(255)', &block)
+      super(@conn, 'ex', definition, &block)
     end
 end

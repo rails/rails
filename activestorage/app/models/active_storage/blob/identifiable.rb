@@ -26,7 +26,7 @@ module ActiveStorage::Blob::Identifiable
       if byte_size.positive?
         service.download_chunk key, 0...4.kilobytes
       else
-        ""
+        ''
       end
     end
 end

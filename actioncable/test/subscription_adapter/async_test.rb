@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "test_helper"
-require_relative "common"
+require 'test_helper'
+require_relative 'common'
 
 class AsyncAdapterTest < ActionCable::TestCase
   include CommonSubscriptionAdapterTest
@@ -14,6 +14,6 @@ class AsyncAdapterTest < ActionCable::TestCase
   end
 
   def cable_config
-    { adapter: "async" }
+    { adapter: 'async' }
   end
 end

@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "rails/railtie"
-require "rails/engine/railties"
-require "active_support/core_ext/module/delegation"
-require "active_support/core_ext/object/try"
-require "pathname"
-require "thread"
+require 'rails/railtie'
+require 'rails/engine/railties'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/object/try'
+require 'pathname'
+require 'thread'
 
 module Rails
   # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
@@ -346,7 +346,7 @@ module Rails
   #   # load Blog::Engine with highest priority, followed by application and other railties
   #   config.railties_order = [Blog::Engine, :main_app, :all]
   class Engine < Railtie
-    autoload :Configuration, "rails/engine/configuration"
+    autoload :Configuration, 'rails/engine/configuration'
 
     class << self
       attr_accessor :called_from, :isolated
@@ -371,7 +371,7 @@ module Rails
       end
 
       def find_root(from)
-        find_root_with_flag "lib", from
+        find_root_with_flag 'lib', from
       end
 
       def endpoint(endpoint = nil)
@@ -397,7 +397,7 @@ module Rails
             end
 
             unless mod.respond_to?(:use_relative_model_naming?)
-              class_eval "def use_relative_model_naming?; true; end", __FILE__, __LINE__
+              class_eval 'def use_relative_model_naming?; true; end', __FILE__, __LINE__
             end
 
             unless mod.respond_to?(:railtie_helpers_paths)
@@ -440,8 +440,8 @@ module Rails
     # Load console and invoke the registered hooks.
     # Check <tt>Rails::Railtie.console</tt> for more info.
     def load_console(app = self)
-      require "rails/console/app"
-      require "rails/console/helpers"
+      require 'rails/console/app'
+      require 'rails/console/helpers'
       run_console_blocks(app)
       self
     end
@@ -456,7 +456,7 @@ module Rails
     # Load Rake, railties tasks and invoke the registered hooks.
     # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
     def load_tasks(app = self)
-      require "rake"
+      require 'rake'
       run_tasks_blocks(app)
       self
     end
@@ -464,7 +464,7 @@ module Rails
     # Load Rails generators and invoke the registered hooks.
     # Check <tt>Rails::Railtie.generators</tt> for more info.
     def load_generators(app = self)
-      require "rails/generators"
+      require 'rails/generators'
       run_generators_blocks(app)
       Rails::Generators.configure!(app.config.generators)
       self
@@ -502,7 +502,7 @@ module Rails
 
     # Returns all registered helpers paths.
     def helpers_paths
-      paths["app/helpers"].existent
+      paths['app/helpers'].existent
     end
 
     # Returns the underlying Rack application for this engine.
@@ -551,7 +551,7 @@ module Rails
     #
     # Blog::Engine.load_seed
     def load_seed
-      seed_file = paths["db/seeds.rb"].existent.first
+      seed_file = paths['db/seeds.rb'].existent.first
       return unless seed_file
 
       if config.try(:active_job)&.queue_adapter == :async
@@ -562,7 +562,7 @@ module Rails
     end
 
     initializer :load_environment_config, before: :load_environment_hook, group: :all do
-      paths["config/environments"].existent.each do |environment|
+      paths['config/environments'].existent.each do |environment|
         require environment
       end
     end
@@ -593,8 +593,8 @@ module Rails
     end
 
     initializer :add_routing_paths do |app|
-      routing_paths = paths["config/routes.rb"].existent
-      external_paths = self.paths["config/routes"].paths
+      routing_paths = paths['config/routes.rb'].existent
+      external_paths = self.paths['config/routes'].paths
       routes.draw_paths.concat(external_paths)
 
       if routes? || routing_paths.any?
@@ -607,11 +607,11 @@ module Rails
     # I18n load paths are a special case since the ones added
     # later have higher priority.
     initializer :add_locales do
-      config.i18n.railties_load_path << paths["config/locales"]
+      config.i18n.railties_load_path << paths['config/locales']
     end
 
     initializer :add_view_paths do
-      views = paths["app/views"].existent
+      views = paths['app/views'].existent
       unless views.empty?
         ActiveSupport.on_load(:action_controller) { prepend_view_path(views) if respond_to?(:prepend_view_path) }
         ActiveSupport.on_load(:action_mailer) { prepend_view_path(views) }
@@ -620,12 +620,12 @@ module Rails
 
     initializer :prepend_helpers_path do |app|
       if !isolated? || (app == self)
-        app.config.helpers_paths.unshift(*paths["app/helpers"].existent)
+        app.config.helpers_paths.unshift(*paths['app/helpers'].existent)
       end
     end
 
     initializer :load_config_initializers do
-      config.paths["config/initializers"].existent.sort.each do |initializer|
+      config.paths['config/initializers'].existent.sort.each do |initializer|
         load_config_initializer(initializer)
       end
     end
@@ -643,11 +643,11 @@ module Rails
         namespace :install do
           desc "Copy migrations from #{railtie_name} to application"
           task :migrations do
-            ENV["FROM"] = railtie_name
-            if Rake::Task.task_defined?("railties:install:migrations")
-              Rake::Task["railties:install:migrations"].invoke
+            ENV['FROM'] = railtie_name
+            if Rake::Task.task_defined?('railties:install:migrations')
+              Rake::Task['railties:install:migrations'].invoke
             else
-              Rake::Task["app:railties:install:migrations"].invoke
+              Rake::Task['app:railties:install:migrations'].invoke
             end
           end
         end
@@ -661,12 +661,12 @@ module Rails
     protected
       def run_tasks_blocks(*) #:nodoc:
         super
-        paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
+        paths['lib/tasks'].existent.sort.each { |ext| load(ext) }
       end
 
     private
       def load_config_initializer(initializer) # :doc:
-        ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
+        ActiveSupport::Notifications.instrument('load_config_initializer.railties', initializer: initializer) do
           load(initializer)
         end
       end
@@ -684,7 +684,7 @@ module Rails
       end
 
       def has_migrations?
-        paths["db/migrate"].existent.any?
+        paths['db/migrate'].existent.any?
       end
 
       def self.find_root_with_flag(flag, root_path, default = nil) #:nodoc:

@@ -8,6 +8,6 @@ class DisableLogJob < ActiveJob::Base
   end
 
   def job_id
-    "LOGGING-JOB-ID"
+    'LOGGING-JOB-ID'
   end
 end

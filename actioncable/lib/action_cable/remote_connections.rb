@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/redefine_method"
+require 'active_support/core_ext/module/redefine_method'
 
 module ActionCable
   # If you need to disconnect a given connection, you can go through the
@@ -45,7 +45,7 @@ module ActionCable
 
         # Uses the internal channel to disconnect the connection.
         def disconnect
-          server.broadcast internal_channel, type: "disconnect"
+          server.broadcast internal_channel, type: 'disconnect'
         end
 
         # Returns all the identifiers that were applied to this connection.

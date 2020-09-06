@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../support/job_buffer"
-require "active_support/time"
+require_relative '../support/job_buffer'
+require 'active_support/time'
 
 class TimezoneDependentJob < ActiveJob::Base
   def perform(now)
@@ -9,7 +9,7 @@ class TimezoneDependentJob < ActiveJob::Base
     new_year = localtime(2018, 1, 1)
 
     if now >= new_year
-      JobBuffer.add("Happy New Year!")
+      JobBuffer.add('Happy New Year!')
     else
       JobBuffer.add("Just #{(new_year - now).div(3600)} hours to go")
     end

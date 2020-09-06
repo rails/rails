@@ -1,26 +1,26 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "active_support/testing/stream"
+require 'abstract_unit'
+require 'active_support/testing/stream'
 
 class TestHelperMailer < ActionMailer::Base
   def test
-    @world = "Earth"
-    mail body: render(inline: "Hello, <%= @world %>"),
-      to: "test@example.com",
-      from: "tester@example.com"
+    @world = 'Earth'
+    mail body: render(inline: 'Hello, <%= @world %>'),
+      to: 'test@example.com',
+      from: 'tester@example.com'
   end
 
   def test_args(recipient, name)
     mail body: render(inline: "Hello, #{name}"),
       to: recipient,
-      from: "tester@example.com"
+      from: 'tester@example.com'
   end
 
   def test_parameter_args
     mail body: render(inline: "All is #{params[:all]}"),
-      to: "test@example.com",
-      from: "tester@example.com"
+      to: 'test@example.com',
+      from: 'tester@example.com'
   end
 end
 
@@ -42,8 +42,8 @@ class TestHelperMailerTest < ActionMailer::TestCase
 
   def test_setup_creates_the_expected_mailer
     assert_kind_of Mail::Message, @expected
-    assert_equal "1.0", @expected.mime_version
-    assert_equal "text/plain", @expected.mime_type
+    assert_equal '1.0', @expected.mime_version
+    assert_equal 'text/plain', @expected.mime_type
   end
 
   def test_mailer_class_is_correctly_inferred
@@ -52,20 +52,20 @@ class TestHelperMailerTest < ActionMailer::TestCase
 
   def test_determine_default_mailer_raises_correct_error
     assert_raise(ActionMailer::NonInferrableMailerError) do
-      self.class.determine_default_mailer("NotAMailerTest")
+      self.class.determine_default_mailer('NotAMailerTest')
     end
   end
 
   def test_charset_is_utf_8
-    assert_equal "UTF-8", charset
+    assert_equal 'UTF-8', charset
   end
 
   def test_encode
-    assert_equal "This is あ string", Mail::Encodings.q_value_decode(encode("This is あ string"))
+    assert_equal 'This is あ string', Mail::Encodings.q_value_decode(encode('This is あ string'))
   end
 
   def test_read_fixture
-    assert_equal ["Welcome!"], read_fixture("welcome")
+    assert_equal ['Welcome!'], read_fixture('welcome')
   end
 
   def test_assert_emails
@@ -90,7 +90,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
     assert_nothing_raised do
       assert_emails(1) do
         silence_stream($stdout) do
-          CustomDeliveryMailer.with(foo: "bar").test_parameter_args.deliver_later
+          CustomDeliveryMailer.with(foo: 'bar').test_parameter_args.deliver_later
         end
       end
     end
@@ -182,8 +182,8 @@ class TestHelperMailerTest < ActionMailer::TestCase
         TestHelperMailer.test.deliver_now
       end
     end
-    assert_match "Expected: 2", error.message
-    assert_match "Actual: 1", error.message
+    assert_match 'Expected: 2', error.message
+    assert_match 'Actual: 1', error.message
   end
 
   def test_assert_no_emails_failure
@@ -338,9 +338,9 @@ class TestHelperMailerTest < ActionMailer::TestCase
 
   def test_assert_enqueued_email_with_with_args
     assert_nothing_raised do
-      assert_enqueued_email_with TestHelperMailer, :test_args, args: ["some_email", "some_name"] do
+      assert_enqueued_email_with TestHelperMailer, :test_args, args: ['some_email', 'some_name'] do
         silence_stream($stdout) do
-          TestHelperMailer.test_args("some_email", "some_name").deliver_later
+          TestHelperMailer.test_args('some_email', 'some_name').deliver_later
         end
       end
     end
@@ -349,17 +349,17 @@ class TestHelperMailerTest < ActionMailer::TestCase
   def test_assert_enqueued_email_with_with_no_block_with_args
     assert_nothing_raised do
       silence_stream($stdout) do
-        TestHelperMailer.test_args("some_email", "some_name").deliver_later
-        assert_enqueued_email_with TestHelperMailer, :test_args, args: ["some_email", "some_name"]
+        TestHelperMailer.test_args('some_email', 'some_name').deliver_later
+        assert_enqueued_email_with TestHelperMailer, :test_args, args: ['some_email', 'some_name']
       end
     end
   end
 
   def test_assert_enqueued_email_with_with_parameterized_args
     assert_nothing_raised do
-      assert_enqueued_email_with TestHelperMailer, :test_parameter_args, args: { all: "good" } do
+      assert_enqueued_email_with TestHelperMailer, :test_parameter_args, args: { all: 'good' } do
         silence_stream($stdout) do
-          TestHelperMailer.with(all: "good").test_parameter_args.deliver_later
+          TestHelperMailer.with(all: 'good').test_parameter_args.deliver_later
         end
       end
     end
@@ -368,8 +368,8 @@ class TestHelperMailerTest < ActionMailer::TestCase
   def test_assert_enqueued_email_with_with_no_block_with_parameterized_args
     assert_nothing_raised do
       silence_stream($stdout) do
-        TestHelperMailer.with(all: "good").test_parameter_args.deliver_later
-        assert_enqueued_email_with TestHelperMailer, :test_parameter_args, args: { all: "good" }
+        TestHelperMailer.with(all: 'good').test_parameter_args.deliver_later
+        assert_enqueued_email_with TestHelperMailer, :test_parameter_args, args: { all: 'good' }
       end
     end
   end
@@ -379,11 +379,11 @@ class AnotherTestHelperMailerTest < ActionMailer::TestCase
   tests TestHelperMailer
 
   def setup
-    @test_var = "a value"
+    @test_var = 'a value'
   end
 
   def test_setup_shouldnt_conflict_with_mailer_setup
     assert_kind_of Mail::Message, @expected
-    assert_equal "a value", @test_var
+    assert_equal 'a value', @test_var
   end
 end

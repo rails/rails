@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "action_controller/metal/strong_parameters"
-require "active_support/core_ext/object/deep_dup"
+require 'abstract_unit'
+require 'action_controller/metal/strong_parameters'
+require 'active_support/core_ext/object/deep_dup'
 
 class ParametersDupTest < ActiveSupport::TestCase
   setup do
@@ -10,12 +10,12 @@ class ParametersDupTest < ActiveSupport::TestCase
 
     @params = ActionController::Parameters.new(
       person: {
-        age: "32",
+        age: '32',
         name: {
-          first: "David",
-          last: "Heinemeier Hansson"
+          first: 'David',
+          last: 'Heinemeier Hansson'
         },
-        addresses: [{ city: "Chicago", state: "Illinois" }]
+        addresses: [{ city: 'Chicago', state: 'Illinois' }]
       }
     )
   end
@@ -44,23 +44,23 @@ class ParametersDupTest < ActiveSupport::TestCase
     assert_not_equal @params, dupped_params
   end
 
-  test "deep_dup content" do
+  test 'deep_dup content' do
     dupped_params = @params.deep_dup
-    dupped_params[:person][:age] = "45"
+    dupped_params[:person][:age] = '45'
     dupped_params[:person][:addresses].clear
 
     assert_not_equal @params[:person][:age], dupped_params[:person][:age]
     assert_not_equal @params[:person][:addresses], dupped_params[:person][:addresses]
   end
 
-  test "deep_dup @permitted" do
+  test 'deep_dup @permitted' do
     dupped_params = @params.deep_dup
     dupped_params.permit!
 
     assert_not_predicate @params, :permitted?
   end
 
-  test "deep_dup @permitted is being copied" do
+  test 'deep_dup @permitted is being copied' do
     @params.permit!
     assert_predicate @params.deep_dup, :permitted?
   end

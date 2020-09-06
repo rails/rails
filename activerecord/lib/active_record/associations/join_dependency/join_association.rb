@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_record/associations/join_dependency/join_part"
-require "active_support/core_ext/array/extract"
+require 'active_record/associations/join_dependency/join_part'
+require 'active_support/core_ext/array/extract'
 
 module ActiveRecord
   module Associations

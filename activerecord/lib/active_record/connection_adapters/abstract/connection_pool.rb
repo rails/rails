@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "thread"
-require "concurrent/map"
-require "monitor"
-require "weakref"
+require 'thread'
+require 'concurrent/map'
+require 'monitor'
+require 'weakref'
 
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection
@@ -214,7 +214,7 @@ module ActiveRecord
 
               elapsed = Concurrent.monotonic_time - t0
               if elapsed >= timeout
-                msg = "could not obtain a connection from the pool within %0.3f seconds (waited %0.3f seconds); all pooled connections were in use" %
+                msg = 'could not obtain a connection from the pool within %0.3f seconds (waited %0.3f seconds); all pooled connections were in use' %
                   [timeout, elapsed]
                 raise ConnectionTimeoutError, msg
               end
@@ -1054,7 +1054,7 @@ module ActiveRecord
         pool_manager = get_pool_manager(pool_config.connection_specification_name)
         pool_manager.set_pool_config(shard, pool_config)
 
-        message_bus.instrument("!connection.active_record", payload) do
+        message_bus.instrument('!connection.active_record', payload) do
           pool_config.pool
         end
       end
@@ -1126,7 +1126,7 @@ module ActiveRecord
       def remove_connection(owner, shard: ActiveRecord::Base.default_shard)
         remove_connection_pool(owner, shard: shard)&.configuration_hash
       end
-      deprecate remove_connection: "Use #remove_connection_pool, which now returns a DatabaseConfig object instead of a Hash"
+      deprecate remove_connection: 'Use #remove_connection_pool, which now returns a DatabaseConfig object instead of a Hash'
 
       def remove_connection_pool(owner, shard: ActiveRecord::Base.default_shard)
         if pool_manager = get_pool_manager(owner)
@@ -1160,8 +1160,8 @@ module ActiveRecord
         def get_pool_manager(owner)
           return owner_to_pool_manager[owner] if owner_to_pool_manager.key?(owner)
 
-          if owner == "primary"
-            ActiveSupport::Deprecation.warn("Using `\"primary\"` as a `connection_specification_name` is deprecated and will be removed in Rails 6.2.0. Please use `ActiveRecord::Base`.")
+          if owner == 'primary'
+            ActiveSupport::Deprecation.warn('Using `"primary"` as a `connection_specification_name` is deprecated and will be removed in Rails 6.2.0. Please use `ActiveRecord::Base`.')
             owner_to_pool_manager[Base.name]
           end
         end
@@ -1179,7 +1179,7 @@ module ActiveRecord
         def resolve_pool_config(config, owner_name)
           db_config = Base.configurations.resolve(config)
 
-          raise(AdapterNotSpecified, "database configuration does not specify adapter") unless db_config.adapter
+          raise(AdapterNotSpecified, 'database configuration does not specify adapter') unless db_config.adapter
 
           # Require the adapter itself and give useful feedback about
           #   1. Missing adapter gems and

@@ -90,10 +90,10 @@ module ActiveRecord
 
             if scope.is_a?(Relation) || !scope.respond_to?(:call)
               raise ArgumentError,
-                "Support for calling #default_scope without a block is removed. For example instead " \
+                'Support for calling #default_scope without a block is removed. For example instead ' \
                 "of `default_scope where(color: 'red')`, please use " \
                 "`default_scope { where(color: 'red') }`. (Alternatively you can just redefine " \
-                "self.default_scope.)"
+                'self.default_scope.)'
             end
 
             self.default_scopes += [scope]

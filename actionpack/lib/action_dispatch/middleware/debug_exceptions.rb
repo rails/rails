@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "action_dispatch/http/request"
-require "action_dispatch/middleware/exception_wrapper"
-require "action_dispatch/routing/inspector"
+require 'action_dispatch/http/request'
+require 'action_dispatch/middleware/exception_wrapper'
+require 'action_dispatch/routing/inspector'
 
-require "action_view"
+require 'action_view'
 
 module ActionDispatch
   # This middleware is responsible for logging exceptions and
@@ -28,7 +28,7 @@ module ActionDispatch
       request = ActionDispatch::Request.new env
       _, headers, body = response = @app.call(env)
 
-      if headers["X-Cascade"] == "pass"
+      if headers['X-Cascade'] == 'pass'
         body.close if body.respond_to?(:close)
         raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
       end
@@ -42,7 +42,7 @@ module ActionDispatch
 
     private
       def invoke_interceptors(request, exception)
-        backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
+        backtrace_cleaner = request.get_header('action_dispatch.backtrace_cleaner')
         wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
 
         @interceptors.each do |interceptor|
@@ -53,11 +53,11 @@ module ActionDispatch
       end
 
       def render_exception(request, exception)
-        backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
+        backtrace_cleaner = request.get_header('action_dispatch.backtrace_cleaner')
         wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
         log_error(request, wrapper)
 
-        if request.get_header("action_dispatch.show_detailed_exceptions")
+        if request.get_header('action_dispatch.show_detailed_exceptions')
           begin
             content_type = request.formats.first
           rescue Mime::Type::InvalidMimeType
@@ -80,10 +80,10 @@ module ActionDispatch
 
         if request.xhr?
           body = template.render(template: file, layout: false, formats: [:text])
-          format = "text/plain"
+          format = 'text/plain'
         else
-          body = template.render(template: file, layout: "rescues/layout")
-          format = "text/html"
+          body = template.render(template: file, layout: 'rescues/layout')
+          format = 'text/html'
         end
         render(wrapper.status_code, body, format)
       end
@@ -128,7 +128,7 @@ module ActionDispatch
       end
 
       def render(status, body, format)
-        [status, { "Content-Type" => "#{format}; charset=#{Response.default_charset}", "Content-Length" => body.bytesize.to_s }, [body]]
+        [status, { 'Content-Type' => "#{format}; charset=#{Response.default_charset}", 'Content-Length' => body.bytesize.to_s }, [body]]
       end
 
       def log_error(request, wrapper)
@@ -140,10 +140,10 @@ module ActionDispatch
         trace = wrapper.exception_trace
 
         message = []
-        message << "  "
+        message << '  '
         message << "#{exception.class} (#{exception.message}):"
         message.concat(exception.annotated_source_code) if exception.respond_to?(:annotated_source_code)
-        message << "  "
+        message << '  '
         message.concat(trace)
 
         log_array(logger, message)

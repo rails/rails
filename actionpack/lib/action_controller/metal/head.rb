@@ -29,7 +29,7 @@ module ActionController
       content_type = options.delete(:content_type)
 
       options.each do |key, value|
-        headers[key.to_s.split(/[-_]/).each { |v| v[0] = v[0].upcase }.join("-")] = value.to_s
+        headers[key.to_s.split(/[-_]/).each { |v| v[0] = v[0].upcase }.join('-')] = value.to_s
       end
 
       self.status = status
@@ -43,7 +43,7 @@ module ActionController
         response.charset = false
       end
 
-      self.response_body = ""
+      self.response_body = ''
 
       true
     end

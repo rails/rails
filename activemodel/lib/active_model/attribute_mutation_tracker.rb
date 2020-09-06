@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/indifferent_access"
-require "active_support/core_ext/object/duplicable"
+require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/object/duplicable'
 
 module ActiveModel
   class AttributeMutationTracker # :nodoc:

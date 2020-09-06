@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "yaml"
-require "active_support/encrypted_file"
-require "active_support/ordered_options"
-require "active_support/core_ext/object/inclusion"
-require "active_support/core_ext/module/delegation"
+require 'yaml'
+require 'active_support/encrypted_file'
+require 'active_support/ordered_options'
+require 'active_support/core_ext/object/inclusion'
+require 'active_support/core_ext/module/delegation'
 
 module ActiveSupport
   class EncryptedConfiguration < EncryptedFile
@@ -20,7 +20,7 @@ module ActiveSupport
     def read
       super
     rescue ActiveSupport::EncryptedFile::MissingContentError
-      ""
+      ''
     end
 
     def write(contents)

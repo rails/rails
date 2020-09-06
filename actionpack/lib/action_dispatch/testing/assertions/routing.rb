@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "uri"
-require "active_support/core_ext/hash/indifferent_access"
-require "active_support/core_ext/string/access"
-require "action_controller/metal/exceptions"
+require 'uri'
+require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/string/access'
+require 'action_controller/metal/exceptions'
 
 module ActionDispatch
   module Assertions
@@ -45,7 +45,7 @@ module ActionDispatch
       #   # Test a custom route
       #   assert_recognizes({controller: 'items', action: 'show', id: '1'}, 'view/item1')
       def assert_recognizes(expected_options, path, extras = {}, msg = nil)
-        if path.is_a?(Hash) && path[:method].to_s == "all"
+        if path.is_a?(Hash) && path[:method].to_s == 'all'
           [:get, :post, :put, :delete].each do |method|
             assert_recognizes(expected_options, path.merge(method: method), extras, msg)
           end
@@ -56,8 +56,8 @@ module ActionDispatch
 
           expected_options.stringify_keys!
 
-          msg = message(msg, "") {
-            sprintf("The recognized options <%s> did not match <%s>, difference:",
+          msg = message(msg, '') {
+            sprintf('The recognized options <%s> did not match <%s>, difference:',
                     request.path_parameters, expected_options)
           }
 
@@ -86,10 +86,10 @@ module ActionDispatch
         if %r{://}.match?(expected_path)
           fail_on(URI::InvalidURIError, message) do
             uri = URI.parse(expected_path)
-            expected_path = uri.path.to_s.empty? ? "/" : uri.path
+            expected_path = uri.path.to_s.empty? ? '/' : uri.path
           end
         else
-          expected_path = "/#{expected_path}" unless expected_path.start_with?("/")
+          expected_path = "/#{expected_path}" unless expected_path.start_with?('/')
         end
         # Load routes.rb if it hasn't been loaded.
 
@@ -97,10 +97,10 @@ module ActionDispatch
         generated_path, query_string_keys = @routes.generate_extras(options, defaults)
         found_extras = options.reject { |k, _| ! query_string_keys.include? k }
 
-        msg = message || sprintf("found extras <%s>, not <%s>", found_extras, extras)
+        msg = message || sprintf('found extras <%s>, not <%s>', found_extras, extras)
         assert_equal(extras, found_extras, msg)
 
-        msg = message || sprintf("The generated path <%s> did not match <%s>", generated_path,
+        msg = message || sprintf('The generated path <%s> did not match <%s>', generated_path,
             expected_path)
         assert_equal(expected_path, generated_path, msg)
       end
@@ -205,13 +205,13 @@ module ActionDispatch
           if %r{://}.match?(path)
             fail_on(URI::InvalidURIError, msg) do
               uri = URI.parse(path)
-              request.env["rack.url_scheme"] = uri.scheme || "http"
+              request.env['rack.url_scheme'] = uri.scheme || 'http'
               request.host = uri.host if uri.host
               request.port = uri.port if uri.port
-              request.path = uri.path.to_s.empty? ? "/" : uri.path
+              request.path = uri.path.to_s.empty? ? '/' : uri.path
             end
           else
-            path = "/#{path}" unless path.start_with?("/")
+            path = "/#{path}" unless path.start_with?('/')
             request.path = path
           end
 

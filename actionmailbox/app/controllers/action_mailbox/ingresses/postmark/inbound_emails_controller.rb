@@ -48,7 +48,7 @@ module ActionMailbox
     before_action :authenticate_by_password
 
     def create
-      ActionMailbox::InboundEmail.create_and_extract_message_id! params.require("RawEmail")
+      ActionMailbox::InboundEmail.create_and_extract_message_id! params.require('RawEmail')
     rescue ActionController::ParameterMissing => error
       logger.error <<~MESSAGE
         #{error.message}

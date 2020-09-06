@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "async"
+require_relative 'async'
 
 module ActionCable
   module SubscriptionAdapter

@@ -1,50 +1,50 @@
 # frozen_string_literal: true
 
-require "rake/testtask"
+require 'rake/testtask'
 
 task default: :test
 
 task :package
 
-desc "Run all unit tests"
-task test: "test:isolated"
+desc 'Run all unit tests'
+task test: 'test:isolated'
 
 namespace :test do
   task :isolated do
     estimated_duration = {
-      "test/application/test_runner_test.rb" => 201,
-      "test/application/assets_test.rb" => 131,
-      "test/application/rake/migrations_test.rb" => 65,
-      "test/generators/scaffold_generator_test.rb" => 57,
-      "test/generators/plugin_test_runner_test.rb" => 57,
-      "test/application/test_test.rb" => 52,
-      "test/application/configuration_test.rb" => 49,
-      "test/generators/app_generator_test.rb" => 43,
-      "test/application/rake/dbs_test.rb" => 43,
-      "test/application/rake_test.rb" => 33,
-      "test/generators/plugin_generator_test.rb" => 30,
-      "test/railties/engine_test.rb" => 27,
-      "test/generators/scaffold_controller_generator_test.rb" => 23,
-      "test/railties/generators_test.rb" => 19,
-      "test/application/console_test.rb" => 16,
-      "test/engine/commands_test.rb" => 15,
-      "test/application/routing_test.rb" => 15,
-      "test/application/mailer_previews_test.rb" => 15,
-      "test/application/rake/multi_dbs_test.rb" => 13,
-      "test/application/asset_debugging_test.rb" => 12,
-      "test/application/bin_setup_test.rb" => 11,
-      "test/engine/test_test.rb" => 10,
-      "test/application/runner_test.rb" => 10,
+      'test/application/test_runner_test.rb' => 201,
+      'test/application/assets_test.rb' => 131,
+      'test/application/rake/migrations_test.rb' => 65,
+      'test/generators/scaffold_generator_test.rb' => 57,
+      'test/generators/plugin_test_runner_test.rb' => 57,
+      'test/application/test_test.rb' => 52,
+      'test/application/configuration_test.rb' => 49,
+      'test/generators/app_generator_test.rb' => 43,
+      'test/application/rake/dbs_test.rb' => 43,
+      'test/application/rake_test.rb' => 33,
+      'test/generators/plugin_generator_test.rb' => 30,
+      'test/railties/engine_test.rb' => 27,
+      'test/generators/scaffold_controller_generator_test.rb' => 23,
+      'test/railties/generators_test.rb' => 19,
+      'test/application/console_test.rb' => 16,
+      'test/engine/commands_test.rb' => 15,
+      'test/application/routing_test.rb' => 15,
+      'test/application/mailer_previews_test.rb' => 15,
+      'test/application/rake/multi_dbs_test.rb' => 13,
+      'test/application/asset_debugging_test.rb' => 12,
+      'test/application/bin_setup_test.rb' => 11,
+      'test/engine/test_test.rb' => 10,
+      'test/application/runner_test.rb' => 10,
     }
     estimated_duration.default = 1
 
     dash_i = [
-      "test",
-      "lib",
-      "../activesupport/lib",
-      "../actionpack/lib",
-      "../actionview/lib",
-      "../activemodel/lib"
+      'test',
+      'lib',
+      '../activesupport/lib',
+      '../actionpack/lib',
+      '../actionview/lib',
+      '../activemodel/lib'
     ].map { |dir| File.expand_path(dir, __dir__) }
 
     dash_i.reverse_each do |x|
@@ -52,25 +52,25 @@ namespace :test do
     end
     $-w = true
 
-    require "bundler/setup" unless defined?(Bundler)
-    require "active_support"
+    require 'bundler/setup' unless defined?(Bundler)
+    require 'active_support'
 
     # Only generate the template app once.
-    require_relative "test/isolation/abstract_unit"
+    require_relative 'test/isolation/abstract_unit'
 
     failing_files = []
 
-    dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
-    test_options = ENV["TESTOPTS"].to_s.split(/[\s]+/)
+    dirs = (ENV['TEST_DIR'] || ENV['TEST_DIRS'] || '**').split(',')
+    test_options = ENV['TESTOPTS'].to_s.split(/[\s]+/)
 
     test_patterns = dirs.map { |dir| "test/#{dir}/*_test.rb" }
     test_files = Dir[*test_patterns].select do |file|
-      !file.start_with?("test/fixtures/") && !file.start_with?("test/isolation/assets/")
+      !file.start_with?('test/fixtures/') && !file.start_with?('test/isolation/assets/')
     end
 
-    if ENV["BUILDKITE_PARALLEL_JOB_COUNT"]
-      n = ENV["BUILDKITE_PARALLEL_JOB"].to_i
-      m = ENV["BUILDKITE_PARALLEL_JOB_COUNT"].to_i
+    if ENV['BUILDKITE_PARALLEL_JOB_COUNT']
+      n = ENV['BUILDKITE_PARALLEL_JOB'].to_i
+      m = ENV['BUILDKITE_PARALLEL_JOB_COUNT'].to_i
 
       buckets = Array.new(m) { [] }
       allocations = Array.new(m) { 0 }
@@ -89,7 +89,7 @@ namespace :test do
       puts "--- #{file}"
       fake_command = Shellwords.join([
         FileUtils::RUBY,
-        "-w",
+        '-w',
         *dash_i.map { |dir| "-I#{Pathname.new(dir).relative_path_from(Pathname.pwd)}" },
         file,
       ])
@@ -110,15 +110,15 @@ namespace :test do
 
       unless $?.success?
         failing_files << file
-        puts "^^^ +++"
+        puts '^^^ +++'
       end
     end
 
-    puts "--- All tests completed"
+    puts '--- All tests completed'
     unless failing_files.empty?
-      puts "^^^ +++"
+      puts '^^^ +++'
       puts
-      puts "Failed in:"
+      puts 'Failed in:'
       failing_files.each do |file|
         puts "  #{file}"
       end
@@ -129,10 +129,10 @@ namespace :test do
   end
 end
 
-Rake::TestTask.new("test:regular") do |t|
-  t.libs << "test" << "#{__dir__}/../activesupport/lib"
-  t.pattern = "test/**/*_test.rb"
+Rake::TestTask.new('test:regular') do |t|
+  t.libs << 'test' << "#{__dir__}/../activesupport/lib"
+  t.pattern = 'test/**/*_test.rb'
   t.warning = true
   t.verbose = true
-  t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+  t.ruby_opts = ['--dev'] if defined?(JRUBY_VERSION)
 end

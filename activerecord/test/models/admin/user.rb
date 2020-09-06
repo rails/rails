@@ -34,15 +34,15 @@ class Admin::User < ActiveRecord::Base
   end
 
   def phone_number=(value)
-    write_store_attribute(:settings, :phone_number, value && value.gsub(/[^\d]/, ""))
+    write_store_attribute(:settings, :phone_number, value && value.gsub(/[^\d]/, ''))
   end
 
   def color
-    super || "red"
+    super || 'red'
   end
 
   def color=(value)
-    value = "blue" unless %w(black red green blue).include?(value)
+    value = 'blue' unless %w(black red green blue).include?(value)
     super
   end
 end

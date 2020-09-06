@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "active_record/connection_adapters/abstract_mysql_adapter"
-require "active_record/connection_adapters/mysql/database_statements"
+require 'active_record/connection_adapters/abstract_mysql_adapter'
+require 'active_record/connection_adapters/mysql/database_statements'
 
-gem "mysql2", "~> 0.5"
-require "mysql2"
+gem 'mysql2', '~> 0.5'
+require 'mysql2'
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
@@ -14,7 +14,7 @@ module ActiveRecord
       config[:flags] ||= 0
 
       if config[:flags].kind_of? Array
-        config[:flags].push "FOUND_ROWS"
+        config[:flags].push 'FOUND_ROWS'
       else
         config[:flags] |= Mysql2::Client::FOUND_ROWS
       end
@@ -31,7 +31,7 @@ module ActiveRecord
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
       ER_BAD_DB_ERROR = 1049
-      ADAPTER_NAME = "Mysql2"
+      ADAPTER_NAME = 'Mysql2'
 
       include MySQL::DatabaseStatements
 
@@ -60,7 +60,7 @@ module ActiveRecord
       end
 
       def supports_json?
-        !mariadb? && database_version >= "5.7.8"
+        !mariadb? && database_version >= '5.7.8'
       end
 
       def supports_comments?
@@ -102,7 +102,7 @@ module ActiveRecord
       def quote_string(string)
         @connection.escape(string)
       rescue Mysql2::Error => error
-        raise translate_exception(error, message: error.message, sql: "<escape>", binds: [])
+        raise translate_exception(error, message: error.message, sql: '<escape>', binds: [])
       end
 
       #--

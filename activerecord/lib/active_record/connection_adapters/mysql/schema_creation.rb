@@ -31,17 +31,17 @@ module ActiveRecord
           end
 
           def visit_IndexDefinition(o, create = false)
-            index_type = o.type&.to_s&.upcase || o.unique && "UNIQUE"
+            index_type = o.type&.to_s&.upcase || o.unique && 'UNIQUE'
 
-            sql = create ? ["CREATE"] : []
+            sql = create ? ['CREATE'] : []
             sql << index_type if index_type
-            sql << "INDEX"
+            sql << 'INDEX'
             sql << quote_column_name(o.name)
             sql << "USING #{o.using}" if o.using
             sql << "ON #{quote_table_name(o.table)}" if create
             sql << "(#{quoted_columns(o)})"
 
-            add_sql_comment!(sql.join(" "), o.comment)
+            add_sql_comment!(sql.join(' '), o.comment)
           end
 
           def add_table_options!(create_sql, o)
@@ -57,7 +57,7 @@ module ActiveRecord
             # column to contain NULL, explicitly declare it with the NULL attribute.
             # See https://dev.mysql.com/doc/refman/en/timestamp-initialization.html
             if /\Atimestamp\b/.match?(options[:column].sql_type) && !options[:primary_key]
-              sql << " NULL" unless options[:null] == false || options_include_default?(options)
+              sql << ' NULL' unless options[:null] == false || options_include_default?(options)
             end
 
             if charset = options[:charset]
@@ -71,7 +71,7 @@ module ActiveRecord
             if as = options[:as]
               sql << " AS (#{as})"
               if options[:stored]
-                sql << (mariadb? ? " PERSISTENT" : " STORED")
+                sql << (mariadb? ? ' PERSISTENT' : ' STORED')
               end
             end
 
@@ -80,7 +80,7 @@ module ActiveRecord
 
           def add_column_position!(sql, options)
             if options[:first]
-              sql << " FIRST"
+              sql << ' FIRST'
             elsif options[:after]
               sql << " AFTER #{quote_column_name(options[:after])}"
             end

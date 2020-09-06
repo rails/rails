@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "shellwords"
-require "active_support/core_ext/kernel/reporting"
-require "active_support/core_ext/string/strip"
+require 'shellwords'
+require 'active_support/core_ext/kernel/reporting'
+require 'active_support/core_ext/string/strip'
 
 module Rails
   module Generators
@@ -42,7 +42,7 @@ module Rails
         in_root do
           str = "gem #{parts.join(", ")}"
           str = indentation + str
-          append_file_with_newline "Gemfile", str, verbose: false
+          append_file_with_newline 'Gemfile', str, verbose: false
         end
       end
 
@@ -55,30 +55,30 @@ module Rails
         options = names.extract_options!
         str = names.map(&:inspect)
         str << quote(options) unless options.empty?
-        str = str.join(", ")
+        str = str.join(', ')
         log :gemfile, "group #{str}"
 
         in_root do
-          append_file_with_newline "Gemfile", "\ngroup #{str} do", force: true
+          append_file_with_newline 'Gemfile', "\ngroup #{str} do", force: true
           with_indentation(&block)
-          append_file_with_newline "Gemfile", "end", force: true
+          append_file_with_newline 'Gemfile', 'end', force: true
         end
       end
 
       def github(repo, options = {}, &block)
         str = [quote(repo)]
         str << quote(options) unless options.empty?
-        str = str.join(", ")
+        str = str.join(', ')
         log :github, "github #{str}"
 
         in_root do
           if @indentation.zero?
-            append_file_with_newline "Gemfile", "\ngithub #{str} do", force: true
+            append_file_with_newline 'Gemfile', "\ngithub #{str} do", force: true
           else
-            append_file_with_newline "Gemfile", "#{indentation}github #{str} do", force: true
+            append_file_with_newline 'Gemfile', "#{indentation}github #{str} do", force: true
           end
           with_indentation(&block)
-          append_file_with_newline "Gemfile", "#{indentation}end", force: true
+          append_file_with_newline 'Gemfile', "#{indentation}end", force: true
         end
       end
 
@@ -96,11 +96,11 @@ module Rails
 
         in_root do
           if block
-            append_file_with_newline "Gemfile", "\nsource #{quote(source)} do", force: true
+            append_file_with_newline 'Gemfile', "\nsource #{quote(source)} do", force: true
             with_indentation(&block)
-            append_file_with_newline "Gemfile", "end", force: true
+            append_file_with_newline 'Gemfile', 'end', force: true
           else
-            prepend_file "Gemfile", "source #{quote(source)}\n", verbose: false
+            prepend_file 'Gemfile', "source #{quote(source)}\n", verbose: false
           end
         end
       end
@@ -124,7 +124,7 @@ module Rails
 
         in_root do
           if options[:env].nil?
-            inject_into_file "config/application.rb", optimize_indentation(data, 4), after: sentinel, verbose: false
+            inject_into_file 'config/application.rb', optimize_indentation(data, 4), after: sentinel, verbose: false
           else
             Array(options[:env]).each do |env|
               inject_into_file "config/environments/#{env}.rb", optimize_indentation(data, 2), after: env_file_sentinel, verbose: false
@@ -275,7 +275,7 @@ module Rails
         sentinel = /\.routes\.draw do\s*\n/m
 
         in_root do
-          inject_into_file "config/routes.rb", optimize_indentation(routing_code, 2), after: sentinel, verbose: false, force: false
+          inject_into_file 'config/routes.rb', optimize_indentation(routing_code, 2), after: sentinel, verbose: false, force: false
         end
       end
 
@@ -303,9 +303,9 @@ module Rails
         # based on the executor parameter provided.
         def execute_command(executor, command, options = {}) # :doc:
           log executor, command
-          sudo = options[:sudo] && !Gem.win_platform? ? "sudo " : ""
+          sudo = options[:sudo] && !Gem.win_platform? ? 'sudo ' : ''
           config = {
-            env: { "RAILS_ENV" => (options[:env] || ENV["RAILS_ENV"] || "development") },
+            env: { 'RAILS_ENV' => (options[:env] || ENV['RAILS_ENV'] || 'development') },
             verbose: false,
             capture: options[:capture],
             abort_on_failure: options[:abort_on_failure],
@@ -329,7 +329,7 @@ module Rails
           if value.respond_to? :each_pair
             return value.map do |k, v|
               "#{k}: #{quote(v)}"
-            end.join(", ")
+            end.join(', ')
           end
           return value.inspect unless value.is_a? String
 
@@ -348,7 +348,7 @@ module Rails
 
         # Indent the +Gemfile+ to the depth of @indentation
         def indentation # :doc:
-          "  " * @indentation
+          '  ' * @indentation
         end
 
         # Manage +Gemfile+ indentation for a DSL action block
@@ -362,7 +362,7 @@ module Rails
         # Append string to a file with a newline if necessary
         def append_file_with_newline(path, str, options = {})
           gsub_file path, /\n?\z/, options do |match|
-            match.end_with?("\n") ? "" : "\n#{str}\n"
+            match.end_with?("\n") ? '' : "\n#{str}\n"
           end
         end
     end

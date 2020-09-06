@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/execution_wrapper"
-require "active_support/executor"
+require 'active_support/execution_wrapper'
+require 'active_support/executor'
 
 module ActiveSupport
   #--

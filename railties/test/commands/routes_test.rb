@@ -1,23 +1,23 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
-require "rails/command"
-require "rails/commands/routes/routes_command"
-require "io/console/size"
+require 'isolation/abstract_unit'
+require 'rails/command'
+require 'rails/commands/routes/routes_command'
+require 'io/console/size'
 
 class Rails::Command::RoutesTest < ActiveSupport::TestCase
   setup :build_app
   teardown :teardown_app
 
-  test "singular resource output in rails routes" do
-    app_file "config/routes.rb", <<-RUBY
+  test 'singular resource output in rails routes' do
+    app_file 'config/routes.rb', <<-RUBY
       Rails.application.routes.draw do
         resource :post
         resource :user_permission
       end
     RUBY
 
-    assert_equal <<~OUTPUT, run_routes_command([ "-c", "PostController" ])
+    assert_equal <<~OUTPUT, run_routes_command([ '-c', 'PostController' ])
                              Prefix Verb   URI Pattern                                             Controller#Action
                            new_post GET    /post/new(.:format)                                     posts#new
                           edit_post GET    /post/edit(.:format)                                    posts#edit
@@ -29,7 +29,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       rails_postmark_inbound_emails POST   /rails/action_mailbox/postmark/inbound_emails(.:format) action_mailbox/ingresses/postmark/inbound_emails#create
     OUTPUT
 
-    assert_equal <<~OUTPUT, run_routes_command([ "-c", "UserPermissionController" ])
+    assert_equal <<~OUTPUT, run_routes_command([ '-c', 'UserPermissionController' ])
                     Prefix Verb   URI Pattern                     Controller#Action
        new_user_permission GET    /user_permission/new(.:format)  user_permissions#new
       edit_user_permission GET    /user_permission/edit(.:format) user_permissions#edit
@@ -41,8 +41,8 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
     OUTPUT
   end
 
-  test "rails routes with global search key" do
-    app_file "config/routes.rb", <<-RUBY
+  test 'rails routes with global search key' do
+    app_file 'config/routes.rb', <<-RUBY
       Rails.application.routes.draw do
         get '/cart', to: 'cart#show'
         post '/cart', to: 'cart#create'
@@ -50,7 +50,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       end
     RUBY
 
-    assert_equal <<~MESSAGE, run_routes_command([ "-g", "show" ])
+    assert_equal <<~MESSAGE, run_routes_command([ '-g', 'show' ])
                          Prefix Verb URI Pattern                                                                                       Controller#Action
                            cart GET  /cart(.:format)                                                                                   cart#show
   rails_conductor_inbound_email GET  /rails/conductor/action_mailbox/inbound_emails/:id(.:format)                                      rails/conductor/action_mailbox/inbound_emails#show
@@ -63,7 +63,7 @@ rails_blob_representation_proxy GET  /rails/active_storage/representations/proxy
              rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                                       active_storage/disk#show
     MESSAGE
 
-    assert_equal <<~MESSAGE, run_routes_command([ "-g", "POST" ])
+    assert_equal <<~MESSAGE, run_routes_command([ '-g', 'POST' ])
                                      Prefix Verb URI Pattern                                                         Controller#Action
                                             POST /cart(.:format)                                                     cart#create
               rails_postmark_inbound_emails POST /rails/action_mailbox/postmark/inbound_emails(.:format)             action_mailbox/ingresses/postmark/inbound_emails#create
@@ -77,14 +77,14 @@ rails_blob_representation_proxy GET  /rails/active_storage/representations/proxy
                        rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                      active_storage/direct_uploads#create
     MESSAGE
 
-    assert_equal <<~MESSAGE, run_routes_command([ "-g", "basketballs" ])
+    assert_equal <<~MESSAGE, run_routes_command([ '-g', 'basketballs' ])
            Prefix Verb URI Pattern            Controller#Action
       basketballs GET  /basketballs(.:format) basketball#index
     MESSAGE
   end
 
-  test "rails routes with controller search key" do
-    app_file "config/routes.rb", <<-RUBY
+  test 'rails routes with controller search key' do
+    app_file 'config/routes.rb', <<-RUBY
       Rails.application.routes.draw do
         get '/cart', to: 'cart#show'
         get '/basketball', to: 'basketball#index'
@@ -93,29 +93,29 @@ rails_blob_representation_proxy GET  /rails/active_storage/representations/proxy
     RUBY
 
     expected_cart_output = "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n"
-    output = run_routes_command(["-c", "cart"])
+    output = run_routes_command(['-c', 'cart'])
     assert_equal expected_cart_output, output
 
-    output = run_routes_command(["-c", "Cart"])
+    output = run_routes_command(['-c', 'Cart'])
     assert_equal expected_cart_output, output
 
-    output = run_routes_command(["-c", "CartController"])
+    output = run_routes_command(['-c', 'CartController'])
     assert_equal expected_cart_output, output
 
-    expected_perm_output = ["         Prefix Verb URI Pattern                Controller#Action",
+    expected_perm_output = ['         Prefix Verb URI Pattern                Controller#Action',
                             "user_permission GET  /user_permission(.:format) user_permission#index\n"].join("\n")
-    output = run_routes_command(["-c", "user_permission"])
+    output = run_routes_command(['-c', 'user_permission'])
     assert_equal expected_perm_output, output
 
-    output = run_routes_command(["-c", "UserPermission"])
+    output = run_routes_command(['-c', 'UserPermission'])
     assert_equal expected_perm_output, output
 
-    output = run_routes_command(["-c", "UserPermissionController"])
+    output = run_routes_command(['-c', 'UserPermissionController'])
     assert_equal expected_perm_output, output
   end
 
-  test "rails routes with namespaced controller search key" do
-    app_file "config/routes.rb", <<-RUBY
+  test 'rails routes with namespaced controller search key' do
+    app_file 'config/routes.rb', <<-RUBY
       Rails.application.routes.draw do
         namespace :admin do
           resource :post
@@ -124,7 +124,7 @@ rails_blob_representation_proxy GET  /rails/active_storage/representations/proxy
       end
     RUBY
 
-    assert_equal <<~OUTPUT, run_routes_command([ "-c", "Admin::PostController" ])
+    assert_equal <<~OUTPUT, run_routes_command([ '-c', 'Admin::PostController' ])
                Prefix Verb   URI Pattern                Controller#Action
        new_admin_post GET    /admin/post/new(.:format)  admin/posts#new
       edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit
@@ -135,7 +135,7 @@ rails_blob_representation_proxy GET  /rails/active_storage/representations/proxy
                       POST   /admin/post(.:format)      admin/posts#create
     OUTPUT
 
-    assert_equal <<~OUTPUT, run_routes_command([ "-c", "PostController" ])
+    assert_equal <<~OUTPUT, run_routes_command([ '-c', 'PostController' ])
                              Prefix Verb   URI Pattern                                             Controller#Action
                      new_admin_post GET    /admin/post/new(.:format)                               admin/posts#new
                     edit_admin_post GET    /admin/post/edit(.:format)                              admin/posts#edit
@@ -158,12 +158,12 @@ rails_blob_representation_proxy GET  /rails/active_storage/representations/proxy
                                  POST   /admin/user_permission(.:format)      admin/user_permissions#create
     OUTPUT
 
-    assert_equal expected_permission_output, run_routes_command([ "-c", "Admin::UserPermissionController" ])
-    assert_equal expected_permission_output, run_routes_command([ "-c", "UserPermissionController" ])
+    assert_equal expected_permission_output, run_routes_command([ '-c', 'Admin::UserPermissionController' ])
+    assert_equal expected_permission_output, run_routes_command([ '-c', 'UserPermissionController' ])
   end
 
-  test "rails routes displays message when no routes are defined" do
-    app_file "config/routes.rb", <<-RUBY
+  test 'rails routes displays message when no routes are defined' do
+    app_file 'config/routes.rb', <<-RUBY
       Rails.application.routes.draw do
       end
     RUBY
@@ -199,15 +199,15 @@ new_rails_conductor_inbound_email_source GET    /rails/conductor/action_mailbox/
     MESSAGE
   end
 
-  test "rails routes with expanded option" do
-    app_file "config/routes.rb", <<-RUBY
+  test 'rails routes with expanded option' do
+    app_file 'config/routes.rb', <<-RUBY
       Rails.application.routes.draw do
         get '/cart', to: 'cart#show'
       end
     RUBY
 
     output = IO.stub(:console_size, [0, 27]) do
-      run_routes_command([ "--expanded" ])
+      run_routes_command([ '--expanded' ])
     end
 
     # rubocop:disable Layout/TrailingWhitespace
@@ -353,6 +353,6 @@ new_rails_conductor_inbound_email_source GET    /rails/conductor/action_mailbox/
 
   private
     def run_routes_command(args = [])
-      rails "routes", args
+      rails 'routes', args
     end
 end

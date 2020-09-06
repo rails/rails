@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "active_support"
-require "active_support/rails"
+require 'active_support'
+require 'active_support/rails'
 
-require "nokogiri"
+require 'nokogiri'
 
 module ActionText
   extend ActiveSupport::Autoload

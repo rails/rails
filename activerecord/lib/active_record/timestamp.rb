@@ -80,11 +80,11 @@ module ActiveRecord
 
       private
         def timestamp_attributes_for_create
-          ["created_at", "created_on"].map! { |name| attribute_aliases[name] || name }
+          ['created_at', 'created_on'].map! { |name| attribute_aliases[name] || name }
         end
 
         def timestamp_attributes_for_update
-          ["updated_at", "updated_on"].map! { |name| attribute_aliases[name] || name }
+          ['updated_at', 'updated_on'].map! { |name| attribute_aliases[name] || name }
         end
 
         def reload_schema_from_cache

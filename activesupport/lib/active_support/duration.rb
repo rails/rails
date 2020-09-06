@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/array/conversions"
-require "active_support/core_ext/module/delegation"
-require "active_support/core_ext/object/acts_like"
-require "active_support/core_ext/string/filters"
+require 'active_support/core_ext/array/conversions'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/object/acts_like'
+require 'active_support/core_ext/string/filters'
 
 module ActiveSupport
   # Provides accurate date and time measurements using Date#advance and
@@ -126,8 +126,8 @@ module ActiveSupport
 
     attr_accessor :value, :parts
 
-    autoload :ISO8601Parser,     "active_support/duration/iso8601_parser"
-    autoload :ISO8601Serializer, "active_support/duration/iso8601_serializer"
+    autoload :ISO8601Parser,     'active_support/duration/iso8601_parser'
+    autoload :ISO8601Serializer, 'active_support/duration/iso8601_serializer'
 
     class << self
       # Creates a new Duration from string formatted according to ISO 8601 Duration.
@@ -433,11 +433,11 @@ module ActiveSupport
     end
 
     def init_with(coder) #:nodoc:
-      initialize(coder["value"], coder["parts"])
+      initialize(coder['value'], coder['parts'])
     end
 
     def encode_with(coder) #:nodoc:
-      coder.map = { "value" => @value, "parts" => @parts }
+      coder.map = { 'value' => @value, 'parts' => @parts }
     end
 
     # Build ISO 8601 Duration string for this duration.

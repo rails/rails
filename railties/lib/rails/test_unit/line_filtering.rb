@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rails/test_unit/runner"
+require 'rails/test_unit/runner'
 
 module Rails
   module LineFiltering # :nodoc:

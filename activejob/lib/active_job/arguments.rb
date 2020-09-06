@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash"
+require 'active_support/core_ext/hash'
 
 module ActiveJob
   # Raised when an exception is raised during job arguments deserialization.
@@ -48,15 +48,15 @@ module ActiveJob
       # :nodoc:
       PERMITTED_TYPES = [ NilClass, String, Integer, Float, BigDecimal, TrueClass, FalseClass ]
       # :nodoc:
-      GLOBALID_KEY = "_aj_globalid"
+      GLOBALID_KEY = '_aj_globalid'
       # :nodoc:
-      SYMBOL_KEYS_KEY = "_aj_symbol_keys"
+      SYMBOL_KEYS_KEY = '_aj_symbol_keys'
       # :nodoc:
-      RUBY2_KEYWORDS_KEY = "_aj_ruby2_keywords"
+      RUBY2_KEYWORDS_KEY = '_aj_ruby2_keywords'
       # :nodoc:
-      WITH_INDIFFERENT_ACCESS_KEY = "_aj_hash_with_indifferent_access"
+      WITH_INDIFFERENT_ACCESS_KEY = '_aj_hash_with_indifferent_access'
       # :nodoc:
-      OBJECT_SERIALIZER_KEY = "_aj_serialized"
+      OBJECT_SERIALIZER_KEY = '_aj_serialized'
 
       # :nodoc:
       RESERVED_KEYS = [
@@ -73,7 +73,7 @@ module ActiveJob
         using Module.new {
           refine Hash do
             class << Hash
-              if RUBY_VERSION >= "2.7"
+              if RUBY_VERSION >= '2.7'
                 def ruby2_keywords_hash?(hash)
                   !new(*[hash]).default.equal?(hash)
                 end
@@ -209,7 +209,7 @@ module ActiveJob
         { GLOBALID_KEY => argument.to_global_id.to_s }
       rescue URI::GID::MissingModelIdError
         raise SerializationError, "Unable to serialize #{argument.class} " \
-          "without an id. (Maybe you forgot to call save?)"
+          'without an id. (Maybe you forgot to call save?)'
       end
   end
 end

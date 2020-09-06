@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/post"
-require "models/author"
-require "models/developer"
-require "models/computer"
-require "models/project"
-require "models/comment"
-require "models/category"
-require "models/person"
-require "models/reference"
+require 'cases/helper'
+require 'models/post'
+require 'models/author'
+require 'models/developer'
+require 'models/computer'
+require 'models/project'
+require 'models/comment'
+require 'models/category'
+require 'models/person'
+require 'models/reference'
 
 class RelationScopingTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :developers, :projects, :comments, :posts, :developers_projects
@@ -39,23 +39,23 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_reverse_order
-    assert_equal Developer.order("id DESC").to_a.reverse, Developer.order("id DESC").reverse_order
+    assert_equal Developer.order('id DESC').to_a.reverse, Developer.order('id DESC').reverse_order
   end
 
   def test_reverse_order_with_arel_node
-    assert_equal Developer.order("id DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).reverse_order
+    assert_equal Developer.order('id DESC').to_a.reverse, Developer.order(Developer.arel_table[:id].desc).reverse_order
   end
 
   def test_reverse_order_with_multiple_arel_nodes
-    assert_equal Developer.order("id DESC").order("name DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).order(Developer.arel_table[:name].desc).reverse_order
+    assert_equal Developer.order('id DESC').order('name DESC').to_a.reverse, Developer.order(Developer.arel_table[:id].desc).order(Developer.arel_table[:name].desc).reverse_order
   end
 
   def test_reverse_order_with_arel_nodes_and_strings
-    assert_equal Developer.order("id DESC").order("name DESC").to_a.reverse, Developer.order("id DESC").order(Developer.arel_table[:name].desc).reverse_order
+    assert_equal Developer.order('id DESC').order('name DESC').to_a.reverse, Developer.order('id DESC').order(Developer.arel_table[:name].desc).reverse_order
   end
 
   def test_double_reverse_order_produces_original_order
-    assert_equal Developer.order("name DESC"), Developer.order("name DESC").reverse_order.reverse_order
+    assert_equal Developer.order('name DESC'), Developer.order('name DESC').reverse_order.reverse_order
   end
 
   def test_scoped_find
@@ -66,44 +66,44 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_scoped_find_first
     developer = Developer.find(10)
-    Developer.where("salary = 100000").scoping do
-      assert_equal developer, Developer.order("name").first
+    Developer.where('salary = 100000').scoping do
+      assert_equal developer, Developer.order('name').first
     end
   end
 
   def test_scoped_find_last
-    highest_salary = Developer.order("salary DESC").first
+    highest_salary = Developer.order('salary DESC').first
 
-    Developer.order("salary").scoping do
+    Developer.order('salary').scoping do
       assert_equal highest_salary, Developer.last
     end
   end
 
   def test_scoped_find_last_preserves_scope
-    lowest_salary  = Developer.order("salary ASC").first
-    highest_salary = Developer.order("salary DESC").first
+    lowest_salary  = Developer.order('salary ASC').first
+    highest_salary = Developer.order('salary DESC').first
 
-    Developer.order("salary").scoping do
+    Developer.order('salary').scoping do
       assert_equal highest_salary, Developer.last
       assert_equal lowest_salary, Developer.first
     end
   end
 
   def test_scoped_find_combines_and_sanitizes_conditions
-    Developer.where("salary = 9000").scoping do
+    Developer.where('salary = 9000').scoping do
       assert_equal developers(:poor_jamis), Developer.where("name = 'Jamis'").first
     end
   end
 
   def test_scoped_unscoped
-    DeveloperOrderedBySalary.where("salary = 9000").scoping do
+    DeveloperOrderedBySalary.where('salary = 9000').scoping do
       assert_equal 11, DeveloperOrderedBySalary.first.id
       assert_equal 1, DeveloperOrderedBySalary.unscoped.first.id
     end
   end
 
   def test_scoped_default_scoped
-    DeveloperOrderedBySalary.where("salary = 9000").scoping do
+    DeveloperOrderedBySalary.where('salary = 9000').scoping do
       assert_equal 11, DeveloperOrderedBySalary.first.id
       assert_equal 2, DeveloperOrderedBySalary.default_scoped.first.id
     end
@@ -116,16 +116,16 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_select
-    Developer.select("id, name").scoping do
+    Developer.select('id, name').scoping do
       developer = Developer.where("name = 'David'").first
-      assert_equal "David", developer.name
+      assert_equal 'David', developer.name
       assert_not developer.has_attribute?(:salary)
     end
   end
 
   def test_scope_select_concatenates
-    Developer.select("id, name").scoping do
-      developer = Developer.select("salary").where("name = 'David'").first
+    Developer.select('id, name').scoping do
+      developer = Developer.select('salary').where("name = 'David'").first
       assert_equal 80000, developer.salary
       assert developer.has_attribute?(:id)
       assert developer.has_attribute?(:name)
@@ -138,24 +138,24 @@ class RelationScopingTest < ActiveRecord::TestCase
       assert_equal 1, Developer.count
     end
 
-    Developer.where("salary = 100000").scoping do
+    Developer.where('salary = 100000').scoping do
       assert_equal 8, Developer.count
       assert_equal 1, Developer.where("name LIKE 'fixture_1%'").count
     end
   end
 
   def test_scoped_find_with_annotation
-    Developer.annotate("scoped").scoping do
+    Developer.annotate('scoped').scoping do
       developer = nil
       assert_sql(%r{/\* scoped \*/}) do
         developer = Developer.where("name = 'David'").first
       end
-      assert_equal "David", developer.name
+      assert_equal 'David', developer.name
     end
   end
 
   def test_find_with_annotation_unscoped
-    Developer.annotate("scoped").unscoped do
+    Developer.annotate('scoped').unscoped do
       developer = nil
       log = capture_sql do
         developer = Developer.where("name = 'David'").first
@@ -164,14 +164,14 @@ class RelationScopingTest < ActiveRecord::TestCase
       assert_not_predicate log, :empty?
       assert_predicate log.select { |query| query.match?(%r{/\* scoped \*/}) }, :empty?
 
-      assert_equal "David", developer.name
+      assert_equal 'David', developer.name
     end
   end
 
   def test_find_with_annotation_unscope
     developer = nil
     log = capture_sql do
-      developer = Developer.annotate("unscope").
+      developer = Developer.annotate('unscope').
         where("name = 'David'").
         unscope(:annotate).first
     end
@@ -179,13 +179,13 @@ class RelationScopingTest < ActiveRecord::TestCase
     assert_not_predicate log, :empty?
     assert_predicate log.select { |query| query.match?(%r{/\* unscope \*/}) }, :empty?
 
-    assert_equal "David", developer.name
+    assert_equal 'David', developer.name
   end
 
   def test_scoped_find_include
     # with the include, will retrieve only developers for the given project
     scoped_developers = Developer.includes(:projects).scoping do
-      Developer.where("projects.id" => 2).to_a
+      Developer.where('projects.id' => 2).to_a
     end
     assert_includes scoped_developers, developers(:david)
     assert_not_includes scoped_developers, developers(:jamis)
@@ -193,8 +193,8 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_joins
-    scoped_developers = Developer.joins("JOIN developers_projects ON id = developer_id").scoping do
-      Developer.where("developers_projects.project_id = 2").to_a
+    scoped_developers = Developer.joins('JOIN developers_projects ON id = developer_id').scoping do
+      Developer.where('developers_projects.project_id = 2').to_a
     end
 
     assert_includes scoped_developers, developers(:david)
@@ -205,7 +205,7 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_scoped_create_with_where
     new_comment = VerySpecialComment.where(post_id: 1).scoping do
-      VerySpecialComment.create body: "Wonderful world"
+      VerySpecialComment.create body: 'Wonderful world'
     end
 
     assert_equal 1, new_comment.post_id
@@ -214,7 +214,7 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_scoped_create_with_create_with
     new_comment = VerySpecialComment.create_with(post_id: 1).scoping do
-      VerySpecialComment.create body: "Wonderful world"
+      VerySpecialComment.create body: 'Wonderful world'
     end
 
     assert_equal 1, new_comment.post_id
@@ -223,7 +223,7 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_scoped_create_with_create_with_has_higher_priority
     new_comment = VerySpecialComment.where(post_id: 2).create_with(post_id: 1).scoping do
-      VerySpecialComment.create body: "Wonderful world"
+      VerySpecialComment.create body: 'Wonderful world'
     end
 
     assert_equal 1, new_comment.post_id
@@ -233,12 +233,12 @@ class RelationScopingTest < ActiveRecord::TestCase
   def test_ensure_that_method_scoping_is_correctly_restored
     begin
       Developer.where("name = 'Jamis'").scoping do
-        raise "an exception"
+        raise 'an exception'
       end
     rescue
     end
 
-    assert_not Developer.all.to_sql.include?("name = 'Jamis'"), "scope was not restored"
+    assert_not Developer.all.to_sql.include?("name = 'Jamis'"), 'scope was not restored'
   end
 
   def test_default_scope_filters_on_joins
@@ -294,8 +294,8 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_scoping_respects_current_class
     Comment.unscoped do
-      assert_equal "a comment...", Comment.all.what_are_you
-      assert_equal "a special comment...", SpecialComment.all.what_are_you
+      assert_equal 'a comment...', Comment.all.what_are_you
+      assert_equal 'a special comment...', SpecialComment.all.what_are_you
     end
   end
 
@@ -335,11 +335,11 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :developers, :projects, :comments, :posts
 
   def test_merge_options
-    Developer.where("salary = 80000").scoping do
+    Developer.where('salary = 80000').scoping do
       Developer.limit(10).scoping do
         devs = Developer.all
         sql = devs.to_sql
-        assert_match "(salary = 80000)", sql
+        assert_match '(salary = 80000)', sql
         assert_match(/LIMIT 10|ROWNUM <= 10|FETCH FIRST 10 ROWS ONLY/, sql)
       end
     end
@@ -354,39 +354,39 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_replace_options
-    Developer.where(name: "David").scoping do
+    Developer.where(name: 'David').scoping do
       Developer.unscoped do
-        assert_equal "Jamis", Developer.where(name: "Jamis").first[:name]
+        assert_equal 'Jamis', Developer.where(name: 'Jamis').first[:name]
       end
 
-      assert_equal "David", Developer.first[:name]
+      assert_equal 'David', Developer.first[:name]
     end
   end
 
   def test_three_level_nested_exclusive_scoped_find
     Developer.where("name = 'Jamis'").scoping do
-      assert_equal "Jamis", Developer.first.name
+      assert_equal 'Jamis', Developer.first.name
 
       Developer.unscoped.where("name = 'David'") do
-        assert_equal "David", Developer.first.name
+        assert_equal 'David', Developer.first.name
 
         Developer.unscoped.where("name = 'Maiha'") do
           assert_nil Developer.first
         end
 
         # ensure that scoping is restored
-        assert_equal "David", Developer.first.name
+        assert_equal 'David', Developer.first.name
       end
 
       # ensure that scoping is restored
-      assert_equal "Jamis", Developer.first.name
+      assert_equal 'Jamis', Developer.first.name
     end
   end
 
   def test_nested_scoped_create
     comment = Comment.create_with(post_id: 1).scoping do
       Comment.create_with(post_id: 2).scoping do
-        Comment.create body: "Hey guys, nested scopes are broken. Please fix!"
+        Comment.create body: 'Hey guys, nested scopes are broken. Please fix!'
       end
     end
 
@@ -394,15 +394,15 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_nested_exclusive_scope_for_create
-    comment = Comment.create_with(body: "Hey guys, nested scopes are broken. Please fix!").scoping do
+    comment = Comment.create_with(body: 'Hey guys, nested scopes are broken. Please fix!').scoping do
       Comment.unscoped.create_with(post_id: 1).scoping do
         assert_predicate Comment.new.body, :blank?
-        Comment.create body: "Hey guys"
+        Comment.create body: 'Hey guys'
       end
     end
 
     assert_equal 1, comment.post_id
-    assert_equal "Hey guys", comment.body
+    assert_equal 'Hey guys', comment.body
   end
 end
 
@@ -414,36 +414,36 @@ class HasManyScopingTest < ActiveRecord::TestCase
   end
 
   def test_forwarding_of_static_methods
-    assert_equal "a comment...", Comment.what_are_you
-    assert_equal "a comment...", @welcome.comments.what_are_you
+    assert_equal 'a comment...', Comment.what_are_you
+    assert_equal 'a comment...', @welcome.comments.what_are_you
   end
 
   def test_forwarding_to_scoped
-    assert_equal 4, Comment.search_by_type("Comment").size
-    assert_equal 2, @welcome.comments.search_by_type("Comment").size
+    assert_equal 4, Comment.search_by_type('Comment').size
+    assert_equal 2, @welcome.comments.search_by_type('Comment').size
   end
 
   def test_nested_scope_finder
-    Comment.where("1=0").scoping do
+    Comment.where('1=0').scoping do
       assert_equal 2, @welcome.comments.count
-      assert_equal "a comment...", @welcome.comments.what_are_you
+      assert_equal 'a comment...', @welcome.comments.what_are_you
     end
 
-    Comment.where("1=1").scoping do
+    Comment.where('1=1').scoping do
       assert_equal 2, @welcome.comments.count
-      assert_equal "a comment...", @welcome.comments.what_are_you
+      assert_equal 'a comment...', @welcome.comments.what_are_you
     end
   end
 
   def test_none_scoping
     Comment.none.scoping do
       assert_equal 2, @welcome.comments.count
-      assert_equal "a comment...", @welcome.comments.what_are_you
+      assert_equal 'a comment...', @welcome.comments.what_are_you
     end
 
-    Comment.where("1=1").scoping do
+    Comment.where('1=1').scoping do
       assert_equal 2, @welcome.comments.count
-      assert_equal "a comment...", @welcome.comments.what_are_you
+      assert_equal 'a comment...', @welcome.comments.what_are_you
     end
   end
 
@@ -472,31 +472,31 @@ class HasAndBelongsToManyScopingTest < ActiveRecord::TestCase
   end
 
   def test_forwarding_of_static_methods
-    assert_equal "a category...", Category.what_are_you
-    assert_equal "a category...", @welcome.categories.what_are_you
+    assert_equal 'a category...', Category.what_are_you
+    assert_equal 'a category...', @welcome.categories.what_are_you
   end
 
   def test_nested_scope_finder
-    Category.where("1=0").scoping do
+    Category.where('1=0').scoping do
       assert_equal 2, @welcome.categories.count
-      assert_equal "a category...", @welcome.categories.what_are_you
+      assert_equal 'a category...', @welcome.categories.what_are_you
     end
 
-    Category.where("1=1").scoping do
+    Category.where('1=1').scoping do
       assert_equal 2, @welcome.categories.count
-      assert_equal "a category...", @welcome.categories.what_are_you
+      assert_equal 'a category...', @welcome.categories.what_are_you
     end
   end
 
   def test_none_scoping
     Category.none.scoping do
       assert_equal 2, @welcome.categories.count
-      assert_equal "a category...", @welcome.categories.what_are_you
+      assert_equal 'a category...', @welcome.categories.what_are_you
     end
 
-    Category.where("1=1").scoping do
+    Category.where('1=1').scoping do
       assert_equal 2, @welcome.categories.count
-      assert_equal "a category...", @welcome.categories.what_are_you
+      assert_equal 'a category...', @welcome.categories.what_are_you
     end
   end
 end

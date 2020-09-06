@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "test_helper"
-require "database/setup"
+require 'test_helper'
+require 'database/setup'
 
 class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
   setup do
@@ -12,9 +12,9 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     ActiveStorage.track_variants = @was_tracking
   end
 
-  test "generating a resized variation of a JPEG blob" do
-    blob = create_file_blob(filename: "racecar.jpg")
-    variant = blob.variant(resize: "100x100")
+  test 'generating a resized variation of a JPEG blob' do
+    blob = create_file_blob(filename: 'racecar.jpg')
+    variant = blob.variant(resize: '100x100')
 
     assert_difference -> { blob.variant_records.count }, +1 do
       variant.process
@@ -30,14 +30,14 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     assert_equal variant.variation.digest, record.variation_digest
   end
 
-  test "serving a previously-generated resized variation of a JPEG blob" do
-    blob = create_file_blob(filename: "racecar.jpg")
+  test 'serving a previously-generated resized variation of a JPEG blob' do
+    blob = create_file_blob(filename: 'racecar.jpg')
 
     assert_difference -> { blob.variant_records.count } do
-      blob.variant(resize: "100x100").process
+      blob.variant(resize: '100x100').process
     end
 
-    variant = blob.variant(resize: "100x100")
+    variant = blob.variant(resize: '100x100')
 
     assert_no_difference -> { blob.variant_records.count } do
       variant.process
@@ -50,10 +50,10 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     assert_equal 67, image.height
   end
 
-  test "variant of a blob is on the same service" do
-    blob = create_file_blob(filename: "racecar.jpg", service_name: "local_public")
-    variant = blob.variant(resize: "100x100").process
+  test 'variant of a blob is on the same service' do
+    blob = create_file_blob(filename: 'racecar.jpg', service_name: 'local_public')
+    variant = blob.variant(resize: '100x100').process
 
-    assert_equal "local_public", variant.image.blob.service_name
+    assert_equal 'local_public', variant.image.blob.service_name
   end
 end

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/notifications/instrumenter"
-require "active_support/notifications/fanout"
-require "active_support/per_thread_registry"
+require 'active_support/notifications/instrumenter'
+require 'active_support/notifications/fanout'
+require 'active_support/per_thread_registry'
 
 module ActiveSupport
   # = Notifications

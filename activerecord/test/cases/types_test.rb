@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -11,15 +11,15 @@ module ActiveRecord
           raise
         end
         klass = Class.new(ActiveRecord::Base) do
-          self.table_name = "posts"
+          self.table_name = 'posts'
           attribute :foo, type_which_cannot_go_to_the_database
         end
         model = klass.new
 
-        model.foo = "foo"
-        model.foo = "bar"
+        model.foo = 'foo'
+        model.foo = 'bar'
 
-        assert_equal "bar", model.foo
+        assert_equal 'bar', model.foo
       end
     end
   end

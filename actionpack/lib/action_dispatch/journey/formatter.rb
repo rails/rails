@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "action_controller/metal/exceptions"
+require 'action_controller/metal/exceptions'
 
 module ActionDispatch
   # :stopdoc:
@@ -45,7 +45,7 @@ module ActionDispatch
         end
 
         def params
-          path("unknown")
+          path('unknown')
         end
 
         def message

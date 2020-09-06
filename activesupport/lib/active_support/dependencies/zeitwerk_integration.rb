@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "set"
-require "active_support/core_ext/string/inflections"
+require 'set'
+require 'active_support/core_ext/string/inflections'
 
 module ActiveSupport
   module Dependencies
@@ -11,7 +11,7 @@ module ActiveSupport
           Dependencies.unload_interlock do
             Rails.autoloaders.main.reload
           rescue Zeitwerk::ReloadingDisabledError
-            raise "reloading is disabled because config.cache_classes is true"
+            raise 'reloading is disabled because config.cache_classes is true'
           end
         end
 

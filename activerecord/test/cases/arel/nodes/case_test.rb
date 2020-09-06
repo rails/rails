@@ -1,28 +1,28 @@
 # frozen_string_literal: true
 
-require_relative "../helper"
+require_relative '../helper'
 
 module Arel
   module Nodes
     class NodesTest < Arel::Spec
-      describe "Case" do
-        describe "#initialize" do
-          it "sets case expression from first argument" do
-            node = Case.new "foo"
+      describe 'Case' do
+        describe '#initialize' do
+          it 'sets case expression from first argument' do
+            node = Case.new 'foo'
 
-            assert_equal "foo", node.case
+            assert_equal 'foo', node.case
           end
 
-          it "sets default case from second argument" do
-            node = Case.new nil, "bar"
+          it 'sets default case from second argument' do
+            node = Case.new nil, 'bar'
 
-            assert_equal "bar", node.default
+            assert_equal 'bar', node.default
           end
         end
 
-        describe "#clone" do
-          it "clones case, conditions and default" do
-            foo = Nodes.build_quoted "foo"
+        describe '#clone' do
+          it 'clones case, conditions and default' do
+            foo = Nodes.build_quoted 'foo'
 
             node = Case.new
             node.case = foo
@@ -42,9 +42,9 @@ module Arel
           end
         end
 
-        describe "equality" do
-          it "is equal with equal ivars" do
-            foo = Nodes.build_quoted "foo"
+        describe 'equality' do
+          it 'is equal with equal ivars' do
+            foo = Nodes.build_quoted 'foo'
             one = Nodes.build_quoted 1
             zero = Nodes.build_quoted 0
 
@@ -61,9 +61,9 @@ module Arel
             assert_equal 1, array.uniq.size
           end
 
-          it "is not equal with different ivars" do
-            foo = Nodes.build_quoted "foo"
-            bar = Nodes.build_quoted "bar"
+          it 'is not equal with different ivars' do
+            foo = Nodes.build_quoted 'foo'
+            bar = Nodes.build_quoted 'bar'
             one = Nodes.build_quoted 1
             zero = Nodes.build_quoted 0
 
@@ -81,10 +81,10 @@ module Arel
           end
         end
 
-        describe "#as" do
-          it "allows aliasing" do
-            node = Case.new "foo"
-            as = node.as("bar")
+        describe '#as' do
+          it 'allows aliasing' do
+            node = Case.new 'foo'
+            as = node.as('bar')
 
             assert_equal node, as.left
             assert_kind_of Arel::Nodes::SqlLiteral, as.right

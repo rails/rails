@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/redefine_method"
-require "active_support/core_ext/time/calculations"
-require "concurrent/map"
+require 'active_support/core_ext/module/redefine_method'
+require 'active_support/core_ext/time/calculations'
+require 'concurrent/map'
 
 module ActiveSupport
   module Testing

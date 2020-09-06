@@ -8,7 +8,7 @@ module ActionView #:nodoc:
 
       def initialize(string, type = nil)
         unless type
-          ActiveSupport::Deprecation.warn "ActionView::Template::HTML#initialize requires a type parameter"
+          ActiveSupport::Deprecation.warn 'ActionView::Template::HTML#initialize requires a type parameter'
           type = :html
         end
 
@@ -17,7 +17,7 @@ module ActionView #:nodoc:
       end
 
       def identifier
-        "html template"
+        'html template'
       end
 
       alias_method :inspect, :identifier

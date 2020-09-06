@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
+require_relative 'abstract_unit'
 
 class ConfigurationFileTest < ActiveSupport::TestCase
-  test "backtrace contains yaml path" do
+  test 'backtrace contains yaml path' do
     Tempfile.create do |file|
-      file.write("wrong: <%= foo %>")
+      file.write('wrong: <%= foo %>')
       file.rewind
 
       error = assert_raises do
@@ -16,9 +16,9 @@ class ConfigurationFileTest < ActiveSupport::TestCase
     end
   end
 
-  test "backtrace contains yaml path (when Pathname given)" do
+  test 'backtrace contains yaml path (when Pathname given)' do
     Tempfile.create do |file|
-      file.write("wrong: <%= foo %>")
+      file.write('wrong: <%= foo %>')
       file.rewind
 
       error = assert_raises do

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "active_record/tasks/database_tasks"
+require 'cases/helper'
+require 'active_record/tasks/database_tasks'
 
 if current_adapter?(:Mysql2Adapter)
   module ActiveRecord
@@ -12,8 +12,8 @@ if current_adapter?(:Mysql2Adapter)
           def error_number(_); end
         end.new
         @configuration = {
-          "adapter"  => "mysql2",
-          "database" => "my-app-db"
+          'adapter'  => 'mysql2',
+          'database' => 'my-app-db'
         }
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
@@ -24,14 +24,14 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_establishes_connection_without_database
-        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new('default_env', 'primary', @configuration)
 
         ActiveRecord::Base.stub(:connection, @connection) do
           assert_called_with(
             ActiveRecord::Base,
             :establish_connection,
             [
-              [adapter: "mysql2", database: nil],
+              [adapter: 'mysql2', database: nil],
               [db_config]
             ]
           ) do
@@ -42,7 +42,7 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_creates_database_with_no_default_options
         with_stubbed_connection_establish_connection do
-          assert_called_with(@connection, :create_database, ["my-app-db", {}]) do
+          assert_called_with(@connection, :create_database, ['my-app-db', {}]) do
             ActiveRecord::Tasks::DatabaseTasks.create @configuration
           end
         end
@@ -50,8 +50,8 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_creates_database_with_given_encoding
         with_stubbed_connection_establish_connection do
-          assert_called_with(@connection, :create_database, ["my-app-db", charset: "latin1"]) do
-            ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge("encoding" => "latin1")
+          assert_called_with(@connection, :create_database, ['my-app-db', charset: 'latin1']) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge('encoding' => 'latin1')
           end
         end
       end
@@ -61,22 +61,22 @@ if current_adapter?(:Mysql2Adapter)
           assert_called_with(
             @connection,
             :create_database,
-            ["my-app-db", collation: "latin1_swedish_ci"]
+            ['my-app-db', collation: 'latin1_swedish_ci']
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge("collation" => "latin1_swedish_ci")
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge('collation' => 'latin1_swedish_ci')
           end
         end
       end
 
       def test_establishes_connection_to_database
-        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new('default_env', 'primary', @configuration)
 
         ActiveRecord::Base.stub(:connection, @connection) do
           assert_called_with(
             ActiveRecord::Base,
             :establish_connection,
             [
-              [adapter: "mysql2", database: nil],
+              [adapter: 'mysql2', database: nil],
               [db_config]
             ]
           ) do
@@ -118,12 +118,12 @@ if current_adapter?(:Mysql2Adapter)
 
     class MysqlDBCreateWithInvalidPermissionsTest < ActiveRecord::TestCase
       def setup
-        @error         = Mysql2::Error.new("Invalid permissions")
+        @error         = Mysql2::Error.new('Invalid permissions')
         @configuration = {
-          "adapter"  => "mysql2",
-          "database" => "my-app-db",
-          "username" => "pat",
-          "password" => "wossname"
+          'adapter'  => 'mysql2',
+          'database' => 'my-app-db',
+          'username' => 'pat',
+          'password' => 'wossname'
         }
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
@@ -135,7 +135,7 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_raises_error
         ActiveRecord::Base.stub(:establish_connection, -> * { raise @error }) do
-          assert_raises(Mysql2::Error, "Invalid permissions") do
+          assert_raises(Mysql2::Error, 'Invalid permissions') do
             ActiveRecord::Tasks::DatabaseTasks.create @configuration
           end
         end
@@ -146,8 +146,8 @@ if current_adapter?(:Mysql2Adapter)
       def setup
         @connection    = Class.new { def drop_database(name); end }.new
         @configuration = {
-          "adapter"  => "mysql2",
-          "database" => "my-app-db"
+          'adapter'  => 'mysql2',
+          'database' => 'my-app-db'
         }
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
@@ -158,7 +158,7 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_establishes_connection_to_mysql_database
-        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new('default_env', 'primary', @configuration)
 
         ActiveRecord::Base.stub(:connection, @connection) do
           assert_called_with(
@@ -173,7 +173,7 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_drops_database
         with_stubbed_connection_establish_connection do
-          assert_called_with(@connection, :drop_database, ["my-app-db"]) do
+          assert_called_with(@connection, :drop_database, ['my-app-db']) do
             ActiveRecord::Tasks::DatabaseTasks.drop @configuration
           end
         end
@@ -201,13 +201,13 @@ if current_adapter?(:Mysql2Adapter)
       def setup
         @connection    = Class.new { def recreate_database(*); end }.new
         @configuration = {
-          "adapter"  => "mysql2",
-          "database" => "test-db"
+          'adapter'  => 'mysql2',
+          'database' => 'test-db'
         }
       end
 
       def test_establishes_connection_to_the_appropriate_database
-        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new('default_env', 'primary', @configuration)
 
         ActiveRecord::Base.stub(:connection, @connection) do
           assert_called_with(
@@ -222,7 +222,7 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_recreates_database_with_no_default_options
         with_stubbed_connection_establish_connection do
-          assert_called_with(@connection, :recreate_database, ["test-db", {}]) do
+          assert_called_with(@connection, :recreate_database, ['test-db', {}]) do
             ActiveRecord::Tasks::DatabaseTasks.purge @configuration
           end
         end
@@ -233,10 +233,10 @@ if current_adapter?(:Mysql2Adapter)
           assert_called_with(
             @connection,
             :recreate_database,
-            ["test-db", charset: "latin", collation: "latin1_swedish_ci"]
+            ['test-db', charset: 'latin', collation: 'latin1_swedish_ci']
           ) do
             ActiveRecord::Tasks::DatabaseTasks.purge @configuration.merge(
-              "encoding" => "latin", "collation" => "latin1_swedish_ci")
+              'encoding' => 'latin', 'collation' => 'latin1_swedish_ci')
           end
         end
       end
@@ -255,8 +255,8 @@ if current_adapter?(:Mysql2Adapter)
       def setup
         @connection    = Class.new { def charset; end }.new
         @configuration = {
-          "adapter"  => "mysql2",
-          "database" => "my-app-db"
+          'adapter'  => 'mysql2',
+          'database' => 'my-app-db'
         }
       end
 
@@ -273,8 +273,8 @@ if current_adapter?(:Mysql2Adapter)
       def setup
         @connection    = Class.new { def collation; end }.new
         @configuration = {
-          "adapter"  => "mysql2",
-          "database" => "my-app-db"
+          'adapter'  => 'mysql2',
+          'database' => 'my-app-db'
         }
       end
 
@@ -290,17 +290,17 @@ if current_adapter?(:Mysql2Adapter)
     class MySQLStructureDumpTest < ActiveRecord::TestCase
       def setup
         @configuration = {
-          "adapter"  => "mysql2",
-          "database" => "test-db"
+          'adapter'  => 'mysql2',
+          'database' => 'test-db'
         }
       end
 
       def test_structure_dump
-        filename = "awesome-file.sql"
+        filename = 'awesome-file.sql'
         assert_called_with(
           Kernel,
           :system,
-          ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+          ['mysqldump', '--result-file', filename, '--no-data', '--routines', '--skip-comments', 'test-db'],
           returns: true
         ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
@@ -308,23 +308,23 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_structure_dump_with_extra_flags
-        filename = "awesome-file.sql"
-        expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"]
+        filename = 'awesome-file.sql'
+        expected_command = ['mysqldump', '--noop', '--result-file', filename, '--no-data', '--routines', '--skip-comments', 'test-db']
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
-          with_structure_dump_flags(["--noop"]) do
+          with_structure_dump_flags(['--noop']) do
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
           end
         end
       end
 
       def test_structure_dump_with_ignore_tables
-        filename = "awesome-file.sql"
-        ActiveRecord::SchemaDumper.stub(:ignore_tables, ["foo", "bar"]) do
+        filename = 'awesome-file.sql'
+        ActiveRecord::SchemaDumper.stub(:ignore_tables, ['foo', 'bar']) do
           assert_called_with(
             Kernel,
             :system,
-            ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.foo", "--ignore-table=test-db.bar", "test-db"],
+            ['mysqldump', '--result-file', filename, '--no-data', '--routines', '--skip-comments', '--ignore-table=test-db.foo', '--ignore-table=test-db.bar', 'test-db'],
             returns: true
           ) do
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
@@ -333,11 +333,11 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_warn_when_external_structure_dump_command_execution_fails
-        filename = "awesome-file.sql"
+        filename = 'awesome-file.sql'
         assert_called_with(
           Kernel,
           :system,
-          ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+          ['mysqldump', '--result-file', filename, '--no-data', '--routines', '--skip-comments', 'test-db'],
           returns: false
         ) do
           e = assert_raise(RuntimeError) {
@@ -348,29 +348,29 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_structure_dump_with_port_number
-        filename = "awesome-file.sql"
+        filename = 'awesome-file.sql'
         assert_called_with(
           Kernel,
           :system,
-          ["mysqldump", "--port=10000", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+          ['mysqldump', '--port=10000', '--result-file', filename, '--no-data', '--routines', '--skip-comments', 'test-db'],
           returns: true
         ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(
-            @configuration.merge("port" => 10000),
+            @configuration.merge('port' => 10000),
             filename)
         end
       end
 
       def test_structure_dump_with_ssl
-        filename = "awesome-file.sql"
+        filename = 'awesome-file.sql'
         assert_called_with(
           Kernel,
           :system,
-          ["mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+          ['mysqldump', '--ssl-ca=ca.crt', '--result-file', filename, '--no-data', '--routines', '--skip-comments', 'test-db'],
           returns: true
         ) do
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(
-              @configuration.merge("sslca" => "ca.crt"),
+              @configuration.merge('sslca' => 'ca.crt'),
               filename)
           end
       end
@@ -388,17 +388,17 @@ if current_adapter?(:Mysql2Adapter)
     class MySQLStructureLoadTest < ActiveRecord::TestCase
       def setup
         @configuration = {
-          "adapter"  => "mysql2",
-          "database" => "test-db"
+          'adapter'  => 'mysql2',
+          'database' => 'test-db'
         }
       end
 
       def test_structure_load
-        filename = "awesome-file.sql"
-        expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db"]
+        filename = 'awesome-file.sql'
+        expected_command = ['mysql', '--noop', '--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, '--database', 'test-db']
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
-          with_structure_load_flags(["--noop"]) do
+          with_structure_load_flags(['--noop']) do
             ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
           end
         end

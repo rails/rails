@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "mini_magick"
+require 'mini_magick'
 
 module ActiveStorage
   module Transformers
@@ -11,7 +11,7 @@ module ActiveStorage
 
           transformations.each do |name, argument_or_subtransformations|
             image.mogrify do |command|
-              if name.to_s == "combine_options"
+              if name.to_s == 'combine_options'
                 argument_or_subtransformations.each do |subtransformation_name, subtransformation_argument|
                   pass_transform_argument(command, subtransformation_name, subtransformation_argument)
                 end

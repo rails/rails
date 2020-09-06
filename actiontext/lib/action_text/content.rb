@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/attribute_accessors_per_thread"
+require 'active_support/core_ext/module/attribute_accessors_per_thread'
 
 module ActionText
   class Content
@@ -31,7 +31,7 @@ module ActionText
     end
 
     def links
-      @links ||= fragment.find_all("a[href]").map { |a| a["href"] }.uniq
+      @links ||= fragment.find_all('a[href]').map { |a| a['href'] }.uniq
     end
 
     def attachments
@@ -88,7 +88,7 @@ module ActionText
     end
 
     def to_rendered_html_with_layout
-      renderer.render(partial: "action_text/content/layout", locals: { content: self })
+      renderer.render(partial: 'action_text/content/layout', locals: { content: self })
     end
 
     def to_s

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/attribute_accessors"
-require "rails/test_unit/reporter"
-require "rails/test_unit/runner"
+require 'active_support/core_ext/module/attribute_accessors'
+require 'rails/test_unit/reporter'
+require 'rails/test_unit/runner'
 
 module Minitest
   class SuppressedSummaryReporter < SummaryReporter
@@ -15,19 +15,19 @@ module Minitest
   def self.plugin_rails_options(opts, options)
     ::Rails::TestUnit::Runner.attach_before_load_options(opts)
 
-    opts.on("-b", "--backtrace", "Show the complete backtrace") do
+    opts.on('-b', '--backtrace', 'Show the complete backtrace') do
       options[:full_backtrace] = true
     end
 
-    opts.on("-d", "--defer-output", "Output test failures and errors after the test run") do
+    opts.on('-d', '--defer-output', 'Output test failures and errors after the test run') do
       options[:output_inline] = false
     end
 
-    opts.on("-f", "--fail-fast", "Abort test run on first failure or error") do
+    opts.on('-f', '--fail-fast', 'Abort test run on first failure or error') do
       options[:fail_fast] = true
     end
 
-    opts.on("-c", "--[no-]color", "Enable color in the output") do |value|
+    opts.on('-c', '--[no-]color', 'Enable color in the output') do |value|
       options[:color] = value
     end
 
@@ -38,7 +38,7 @@ module Minitest
   # Owes great inspiration to test runner trailblazers like RSpec,
   # minitest-reporters, maxitest and others.
   def self.plugin_rails_init(options)
-    unless options[:full_backtrace] || ENV["BACKTRACE"]
+    unless options[:full_backtrace] || ENV['BACKTRACE']
       # Plugin can run without Rails loaded, check before filtering.
       Minitest.backtrace_filter = ::Rails.backtrace_cleaner if ::Rails.respond_to?(:backtrace_cleaner)
     end

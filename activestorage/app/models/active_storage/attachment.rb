@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/delegation"
+require 'active_support/core_ext/module/delegation'
 
 # Attachments associate records with blobs. Usually that's a one record-many blobs relationship,
 # but it is possible to associate many different records with the same blob. A foreign-key constraint
@@ -8,10 +8,10 @@ require "active_support/core_ext/module/delegation"
 #
 # Attachments also have access to all methods from {ActiveStorage::Blob}[rdoc-ref:ActiveStorage::Blob].
 class ActiveStorage::Attachment < ActiveRecord::Base
-  self.table_name = "active_storage_attachments"
+  self.table_name = 'active_storage_attachments'
 
   belongs_to :record, polymorphic: true, touch: true
-  belongs_to :blob, class_name: "ActiveStorage::Blob", autosave: true
+  belongs_to :blob, class_name: 'ActiveStorage::Blob', autosave: true
 
   delegate_missing_to :blob
   delegate :signed_id, to: :blob

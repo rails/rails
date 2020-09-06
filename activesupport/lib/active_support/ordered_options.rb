@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/blank"
+require 'active_support/core_ext/object/blank'
 
 module ActiveSupport
   # +OrderedOptions+ inherits from +Hash+ and provides dynamic accessor methods.
@@ -42,10 +42,10 @@ module ActiveSupport
 
     def method_missing(name, *args)
       name_string = +name.to_s
-      if name_string.chomp!("=")
+      if name_string.chomp!('=')
         self[name_string] = args.first
       else
-        bangs = name_string.chomp!("!")
+        bangs = name_string.chomp!('!')
 
         if bangs
           self[name_string].presence || raise(KeyError.new(":#{name_string} is blank"))

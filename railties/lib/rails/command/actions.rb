@@ -7,7 +7,7 @@ module Rails
       # This allows us to run <tt>rails server</tt> from other directories, but still get
       # the main <tt>config.ru</tt> and properly set the <tt>tmp</tt> directory.
       def set_application_directory!
-        Dir.chdir(File.expand_path("../..", APP_PATH)) unless File.exist?(File.expand_path("config.ru"))
+        Dir.chdir(File.expand_path('../..', APP_PATH)) unless File.exist?(File.expand_path('config.ru'))
       end
 
       def require_application_and_environment!
@@ -31,7 +31,7 @@ module Rails
 
       if defined?(ENGINE_PATH)
         def load_tasks
-          Rake.application.init("rails")
+          Rake.application.init('rails')
           Rake.application.load_rakefile
         end
 

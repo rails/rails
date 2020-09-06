@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/schema_dumping_helper"
+require 'cases/helper'
+require 'support/schema_dumping_helper'
 
 class PostgresqlSerialTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
@@ -10,37 +10,37 @@ class PostgresqlSerialTest < ActiveRecord::PostgreSQLTestCase
 
   setup do
     @connection = ActiveRecord::Base.connection
-    @connection.create_table "postgresql_serials", force: true do |t|
+    @connection.create_table 'postgresql_serials', force: true do |t|
       t.serial :seq
       t.integer :serials_id, default: -> { "nextval('postgresql_serials_id_seq')" }
     end
   end
 
   teardown do
-    @connection.drop_table "postgresql_serials", if_exists: true
+    @connection.drop_table 'postgresql_serials', if_exists: true
   end
 
   def test_serial_column
-    column = PostgresqlSerial.columns_hash["seq"]
+    column = PostgresqlSerial.columns_hash['seq']
     assert_equal :integer, column.type
-    assert_equal "integer", column.sql_type
+    assert_equal 'integer', column.sql_type
     assert_predicate column, :serial?
   end
 
   def test_not_serial_column
-    column = PostgresqlSerial.columns_hash["serials_id"]
+    column = PostgresqlSerial.columns_hash['serials_id']
     assert_equal :integer, column.type
-    assert_equal "integer", column.sql_type
+    assert_equal 'integer', column.sql_type
     assert_not_predicate column, :serial?
   end
 
   def test_schema_dump_with_shorthand
-    output = dump_table_schema "postgresql_serials"
+    output = dump_table_schema 'postgresql_serials'
     assert_match %r{t\.serial\s+"seq",\s+null: false$}, output
   end
 
   def test_schema_dump_with_not_serial
-    output = dump_table_schema "postgresql_serials"
+    output = dump_table_schema 'postgresql_serials'
     assert_match %r{t\.integer\s+"serials_id",\s+default: -> \{ "nextval\('postgresql_serials_id_seq'::regclass\)" \}$}, output
   end
 end
@@ -52,37 +52,37 @@ class PostgresqlBigSerialTest < ActiveRecord::PostgreSQLTestCase
 
   setup do
     @connection = ActiveRecord::Base.connection
-    @connection.create_table "postgresql_big_serials", force: true do |t|
+    @connection.create_table 'postgresql_big_serials', force: true do |t|
       t.bigserial :seq
       t.bigint :serials_id, default: -> { "nextval('postgresql_big_serials_id_seq')" }
     end
   end
 
   teardown do
-    @connection.drop_table "postgresql_big_serials", if_exists: true
+    @connection.drop_table 'postgresql_big_serials', if_exists: true
   end
 
   def test_bigserial_column
-    column = PostgresqlBigSerial.columns_hash["seq"]
+    column = PostgresqlBigSerial.columns_hash['seq']
     assert_equal :integer, column.type
-    assert_equal "bigint", column.sql_type
+    assert_equal 'bigint', column.sql_type
     assert_predicate column, :serial?
   end
 
   def test_not_bigserial_column
-    column = PostgresqlBigSerial.columns_hash["serials_id"]
+    column = PostgresqlBigSerial.columns_hash['serials_id']
     assert_equal :integer, column.type
-    assert_equal "bigint", column.sql_type
+    assert_equal 'bigint', column.sql_type
     assert_not_predicate column, :serial?
   end
 
   def test_schema_dump_with_shorthand
-    output = dump_table_schema "postgresql_big_serials"
+    output = dump_table_schema 'postgresql_big_serials'
     assert_match %r{t\.bigserial\s+"seq",\s+null: false$}, output
   end
 
   def test_schema_dump_with_not_bigserial
-    output = dump_table_schema "postgresql_big_serials"
+    output = dump_table_schema 'postgresql_big_serials'
     assert_match %r{t\.bigint\s+"serials_id",\s+default: -> \{ "nextval\('postgresql_big_serials_id_seq'::regclass\)" \}$}, output
   end
 end
@@ -116,7 +116,7 @@ module SequenceNameDetectionTestCases
     end
 
     def test_schema_dump_with_collided_sequence_name
-      output = dump_table_schema "foo"
+      output = dump_table_schema 'foo'
       assert_match %r{t\.serial\s+"bar_id",\s+null: false$}, output
       assert_match %r{t\.bigserial\s+"bar_baz_id",\s+null: false$}, output
     end
@@ -126,7 +126,7 @@ module SequenceNameDetectionTestCases
     include SchemaDumpingHelper
 
     def setup
-      @table_name = "long_table_name_to_test_sequence_name_detection_for_serial_cols"
+      @table_name = 'long_table_name_to_test_sequence_name_detection_for_serial_cols'
       @connection = ActiveRecord::Base.connection
       @connection.create_table @table_name, force: true do |t|
         t.serial :seq

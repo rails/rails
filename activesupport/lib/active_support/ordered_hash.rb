@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "yaml"
+require 'yaml'
 
-YAML.add_builtin_type("omap") do |type, val|
+YAML.add_builtin_type('omap') do |type, val|
   ActiveSupport::OrderedHash[val.map { |v| v.to_a.first }]
 end
 
@@ -23,11 +23,11 @@ module ActiveSupport
   # with other implementations.
   class OrderedHash < ::Hash
     def to_yaml_type
-      "!tag:yaml.org,2002:omap"
+      '!tag:yaml.org,2002:omap'
     end
 
     def encode_with(coder)
-      coder.represent_seq "!omap", map { |k, v| { k => v } }
+      coder.represent_seq '!omap', map { |k, v| { k => v } }
     end
 
     def select(*args, &block)

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/class/attribute"
+require 'active_support/core_ext/class/attribute'
 
 module ActiveModel
   # == Active \Model \Error
@@ -18,9 +18,9 @@ module ActiveModel
 
       if i18n_customize_full_message && base_class.respond_to?(:i18n_scope)
         attribute = attribute.remove(/\[\d+\]/)
-        parts = attribute.split(".")
+        parts = attribute.split('.')
         attribute_name = parts.pop
-        namespace = parts.join("/") unless parts.empty?
+        namespace = parts.join('/') unless parts.empty?
         attributes_scope = "#{base_class.i18n_scope}.errors.models"
 
         if namespace
@@ -45,9 +45,9 @@ module ActiveModel
       end
 
       defaults << :"errors.format"
-      defaults << "%{attribute} %{message}"
+      defaults << '%{attribute} %{message}'
 
-      attr_name = attribute.tr(".", "_").humanize
+      attr_name = attribute.tr('.', '_').humanize
       attr_name = base_class.human_attribute_name(attribute, default: attr_name)
 
       I18n.t(defaults.shift,

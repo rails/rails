@@ -185,9 +185,9 @@ module ActionDispatch
           def self.path; CACHE[:path][nil]; end
 
           def self.build(action, type)
-            prefix = action ? "#{action}_" : ""
+            prefix = action ? "#{action}_" : ''
             suffix = type
-            if action.to_s == "new"
+            if action.to_s == 'new'
               HelperMethodBuilder.singular prefix, suffix
             else
               HelperMethodBuilder.plural prefix, suffix
@@ -274,7 +274,7 @@ module ActionDispatch
 
           def handle_model_call(target, record)
             if mapping = polymorphic_mapping(target, record)
-              mapping.call(target, [record], suffix == "path")
+              mapping.call(target, [record], suffix == 'path')
             else
               method, args = handle_model(record)
               target.send(method, *args)
@@ -318,7 +318,7 @@ module ActionDispatch
 
             route << suffix
 
-            named_route = prefix + route.join("_")
+            named_route = prefix + route.join('_')
             [named_route, args]
           end
 
@@ -340,9 +340,9 @@ module ActionDispatch
               "#{prefix}#{str}_#{suffix}"
             end
 
-            [nil, "new", "edit"].each do |action|
-              CACHE[:url][action]  = build action, "url"
-              CACHE[:path][action] = build action, "path"
+            [nil, 'new', 'edit'].each do |action|
+              CACHE[:url][action]  = build action, 'url'
+              CACHE[:path][action] = build action, 'path'
             end
         end
     end

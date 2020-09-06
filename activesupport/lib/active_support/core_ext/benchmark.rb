@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "benchmark"
+require 'benchmark'
 
 class << Benchmark
   # Benchmark realtime in milliseconds.

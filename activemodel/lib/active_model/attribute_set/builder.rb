@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_model/attribute"
+require 'active_model/attribute'
 
 module ActiveModel
   class AttributeSet # :nodoc:

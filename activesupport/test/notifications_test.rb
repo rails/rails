@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "active_support/core_ext/module/delegation"
+require_relative 'abstract_unit'
+require 'active_support/core_ext/module/delegation'
 
 module Notifications
   class TestCase < ActiveSupport::TestCase
@@ -12,7 +12,7 @@ module Notifications
       @events = []
       @named_events = []
       @subscription = @notifier.subscribe { |*args| @events << event(*args) }
-      @named_subscription = @notifier.subscribe("named.subscription") { |*args| @named_events << event(*args) }
+      @named_subscription = @notifier.subscribe('named.subscription') { |*args| @named_events << event(*args) }
     end
 
     def teardown
@@ -32,9 +32,9 @@ module Notifications
         events << event
       end
 
-      ActiveSupport::Notifications.instrument("foo")
+      ActiveSupport::Notifications.instrument('foo')
       event = events.first
-      assert event, "should have an event"
+      assert event, 'should have an event'
       assert_operator event.allocations, :>, 0
       assert_operator event.cpu_time, :>, 0
       assert_operator event.idle_time, :>, 0
@@ -43,22 +43,22 @@ module Notifications
 
     def test_subscribe_to_events_where_payload_is_changed_during_instrumentation
       @notifier.subscribe do |event|
-        assert_equal "success!", event.payload[:my_key]
+        assert_equal 'success!', event.payload[:my_key]
       end
 
-      ActiveSupport::Notifications.instrument("foo") do |payload|
-        payload[:my_key] = "success!"
+      ActiveSupport::Notifications.instrument('foo') do |payload|
+        payload[:my_key] = 'success!'
       end
     end
 
     def test_subscribe_to_events_can_handle_nested_hashes_in_the_paylaod
       @notifier.subscribe do |event|
-        assert_equal "success!", event.payload[:some_key][:key_one]
-        assert_equal "great_success!", event.payload[:some_key][:key_two]
+        assert_equal 'success!', event.payload[:some_key][:key_one]
+        assert_equal 'great_success!', event.payload[:some_key][:key_two]
       end
 
-      ActiveSupport::Notifications.instrument("foo", some_key: { key_one: "success!" }) do |payload|
-        payload[:some_key][:key_two] = "great_success!"
+      ActiveSupport::Notifications.instrument('foo', some_key: { key_one: 'success!' }) do |payload|
+        payload[:some_key][:key_two] = 'great_success!'
       end
     end
 
@@ -67,11 +67,11 @@ module Notifications
       ActiveSupport::Notifications.notifier = ActiveSupport::Notifications::Fanout.new
 
       event = nil
-      ActiveSupport::Notifications.subscribe("foo") do |e|
+      ActiveSupport::Notifications.subscribe('foo') do |e|
         event = e
       end
 
-      ActiveSupport::Notifications.instrument("foo") do
+      ActiveSupport::Notifications.instrument('foo') do
         100.times { Object.new } # allocate at least 100 objects
       end
 
@@ -84,7 +84,7 @@ module Notifications
 
   class TimedAndMonotonicTimedSubscriberTest < TestCase
     def test_subscribe
-      event_name = "foo"
+      event_name = 'foo'
       class_of_started = nil
       class_of_finished = nil
 
@@ -99,7 +99,7 @@ module Notifications
     end
 
     def test_monotonic_subscribe
-      event_name = "foo"
+      event_name = 'foo'
       class_of_started = nil
       class_of_finished = nil
 
@@ -116,7 +116,7 @@ module Notifications
 
   class SubscribedTest < TestCase
     def test_subscribed
-      name     = "foo"
+      name     = 'foo'
       name2    = name * 2
       expected = [name, name]
 
@@ -134,7 +134,7 @@ module Notifications
     end
 
     def test_subscribed_all_messages
-      name     = "foo"
+      name     = 'foo'
       name2    = name * 2
       expected = [name, name2, name]
 
@@ -157,17 +157,17 @@ module Notifications
       old_notifier = ActiveSupport::Notifications.notifier
       ActiveSupport::Notifications.notifier = ActiveSupport::Notifications::Fanout.new
 
-      ActiveSupport::Notifications.subscribe("foo", TestSubscriber.new)
+      ActiveSupport::Notifications.subscribe('foo', TestSubscriber.new)
 
-      ActiveSupport::Notifications.instrument("foo") do
-        ActiveSupport::Notifications.subscribe("foo") { }
+      ActiveSupport::Notifications.instrument('foo') do
+        ActiveSupport::Notifications.subscribe('foo') { }
       end
     ensure
       ActiveSupport::Notifications.notifier = old_notifier
     end
 
     def test_timed_subscribed
-      event_name = "foo"
+      event_name = 'foo'
       class_of_started = nil
       class_of_finished = nil
       callback = lambda do |name, started, finished, unique_id, data|
@@ -185,7 +185,7 @@ module Notifications
     end
 
     def test_monotonic_timed_subscribed
-      event_name = "foo"
+      event_name = 'foo'
       class_of_started = nil
       class_of_finished = nil
       callback = lambda do |name, started, finished, unique_id, data|
@@ -215,42 +215,42 @@ module Notifications
     end
 
     def test_unsubscribing_by_name_removes_a_subscription
-      @notifier.publish "named.subscription", :foo
+      @notifier.publish 'named.subscription', :foo
       @notifier.wait
-      assert_equal [["named.subscription", :foo]], @named_events
-      @notifier.unsubscribe("named.subscription")
-      @notifier.publish "named.subscription", :foo
+      assert_equal [['named.subscription', :foo]], @named_events
+      @notifier.unsubscribe('named.subscription')
+      @notifier.publish 'named.subscription', :foo
       @notifier.wait
-      assert_equal [["named.subscription", :foo]], @named_events
+      assert_equal [['named.subscription', :foo]], @named_events
     end
 
     def test_unsubscribing_by_name_leaves_the_other_subscriptions
-      @notifier.publish "named.subscription", :foo
+      @notifier.publish 'named.subscription', :foo
       @notifier.wait
-      assert_equal [["named.subscription", :foo]], @events
-      @notifier.unsubscribe("named.subscription")
-      @notifier.publish "named.subscription", :foo
+      assert_equal [['named.subscription', :foo]], @events
+      @notifier.unsubscribe('named.subscription')
+      @notifier.publish 'named.subscription', :foo
       @notifier.wait
-      assert_equal [["named.subscription", :foo], ["named.subscription", :foo]], @events
+      assert_equal [['named.subscription', :foo], ['named.subscription', :foo]], @events
     end
 
     def test_unsubscribing_by_name_leaves_regexp_matched_subscriptions
       @matched_events = []
       @notifier.subscribe(/subscription/) { |*args| @matched_events << event(*args) }
-      @notifier.publish("named.subscription", :before)
+      @notifier.publish('named.subscription', :before)
       @notifier.wait
       [@events, @named_events, @matched_events].each do |collector|
-        assert_includes(collector, ["named.subscription", :before])
+        assert_includes(collector, ['named.subscription', :before])
       end
-      @notifier.unsubscribe("named.subscription")
-      @notifier.publish("named.subscription", :after)
-      @notifier.publish("other.subscription", :after)
+      @notifier.unsubscribe('named.subscription')
+      @notifier.publish('named.subscription', :after)
+      @notifier.publish('other.subscription', :after)
       @notifier.wait
-      assert_includes(@events, ["named.subscription", :after])
-      assert_includes(@events, ["other.subscription", :after])
-      assert_includes(@matched_events, ["other.subscription", :after])
-      assert_not_includes(@matched_events, ["named.subscription", :after])
-      assert_not_includes(@named_events, ["named.subscription", :after])
+      assert_includes(@events, ['named.subscription', :after])
+      assert_includes(@events, ['other.subscription', :after])
+      assert_includes(@matched_events, ['other.subscription', :after])
+      assert_not_includes(@matched_events, ['named.subscription', :after])
+      assert_not_includes(@named_events, ['named.subscription', :after])
     end
 
   private
@@ -291,7 +291,7 @@ module Notifications
       @notifier.publish :foo
       @notifier.publish :foo
 
-      @notifier.subscribe("not_existent") do |*args|
+      @notifier.subscribe('not_existent') do |*args|
         @events << ActiveSupport::Notifications::Event.new(*args)
       end
 
@@ -304,26 +304,26 @@ module Notifications
 
     def test_log_subscriber_with_string
       events = []
-      @notifier.subscribe("1") { |*args| events << args }
+      @notifier.subscribe('1') { |*args| events << args }
 
-      @notifier.publish "1"
-      @notifier.publish "1.a"
-      @notifier.publish "a.1"
+      @notifier.publish '1'
+      @notifier.publish '1.a'
+      @notifier.publish 'a.1'
       @notifier.wait
 
-      assert_equal [["1"]], events
+      assert_equal [['1']], events
     end
 
     def test_log_subscriber_with_pattern
       events = []
       @notifier.subscribe(/\d/) { |*args| events << args }
 
-      @notifier.publish "1"
-      @notifier.publish "a.1"
-      @notifier.publish "1.a"
+      @notifier.publish '1'
+      @notifier.publish 'a.1'
+      @notifier.publish '1.a'
       @notifier.wait
 
-      assert_equal [["1"], ["a.1"], ["1.a"]], events
+      assert_equal [['1'], ['a.1'], ['1.a']], events
     end
 
     def test_multiple_log_subscribers
@@ -369,40 +369,40 @@ module Notifications
     end
 
     def test_nested_events_can_be_instrumented
-      instrument(:awesome, payload: "notifications") do
-        instrument(:wot, payload: "child") do
+      instrument(:awesome, payload: 'notifications') do
+        instrument(:wot, payload: 'child') do
           1 + 1
         end
 
         assert_equal 1, @events.size
         assert_equal :wot, @events.first.name
-        assert_equal Hash[payload: "child"], @events.first.payload
+        assert_equal Hash[payload: 'child'], @events.first.payload
       end
 
       assert_equal 2, @events.size
       assert_equal :awesome, @events.last.name
-      assert_equal Hash[payload: "notifications"], @events.last.payload
+      assert_equal Hash[payload: 'notifications'], @events.last.payload
     end
 
     def test_instrument_publishes_when_exception_is_raised
       begin
-        instrument(:awesome, payload: "notifications") do
-          raise "FAIL"
+        instrument(:awesome, payload: 'notifications') do
+          raise 'FAIL'
         end
       rescue RuntimeError => e
-        assert_equal "FAIL", e.message
+        assert_equal 'FAIL', e.message
       end
 
       assert_equal 1, @events.size
-      assert_equal Hash[payload: "notifications",
-        exception: ["RuntimeError", "FAIL"], exception_object: e], @events.last.payload
+      assert_equal Hash[payload: 'notifications',
+        exception: ['RuntimeError', 'FAIL'], exception_object: e], @events.last.payload
     end
 
     def test_event_is_pushed_even_without_block
-      instrument(:awesome, payload: "notifications")
+      instrument(:awesome, payload: 'notifications')
       assert_equal 1, @events.size
       assert_equal :awesome, @events.last.name
-      assert_equal Hash[payload: "notifications"], @events.last.payload
+      assert_equal Hash[payload: 'notifications'], @events.last.payload
     end
   end
 

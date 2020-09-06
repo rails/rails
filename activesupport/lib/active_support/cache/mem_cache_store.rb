@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
 begin
-  require "dalli"
+  require 'dalli'
 rescue LoadError => e
   $stderr.puts "You don't have dalli installed in your application. Please add it to your Gemfile and run bundle install"
   raise e
 end
 
-require "active_support/core_ext/enumerable"
-require "active_support/core_ext/marshal"
-require "active_support/core_ext/array/extract_options"
+require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/marshal'
+require 'active_support/core_ext/array/extract_options'
 
 module ActiveSupport
   module Cache
@@ -60,7 +60,7 @@ module ActiveSupport
       def self.build_mem_cache(*addresses) # :nodoc:
         addresses = addresses.flatten
         options = addresses.extract_options!
-        addresses = ["localhost:11211"] if addresses.empty?
+        addresses = ['localhost:11211'] if addresses.empty?
         pool_options = retrieve_pool_options(options)
 
         if pool_options.empty?
@@ -85,7 +85,7 @@ module ActiveSupport
         super(options)
 
         unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
-          raise ArgumentError, "First argument must be an empty array, an array of hosts or a Dalli::Client instance."
+          raise ArgumentError, 'First argument must be an empty array, an array of hosts or a Dalli::Client instance.'
         end
         if addresses.first.is_a?(Dalli::Client)
           @data = addresses.first

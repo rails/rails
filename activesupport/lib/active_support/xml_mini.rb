@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "time"
-require "base64"
-require "bigdecimal"
-require "bigdecimal/util"
-require "active_support/core_ext/module/delegation"
-require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/date_time/calculations"
+require 'time'
+require 'base64'
+require 'bigdecimal'
+require 'bigdecimal/util'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/date_time/calculations'
 
 module ActiveSupport
   # = XmlMini
@@ -23,68 +23,68 @@ module ActiveSupport
       attr_writer :original_filename, :content_type
 
       def original_filename
-        @original_filename || "untitled"
+        @original_filename || 'untitled'
       end
 
       def content_type
-        @content_type || "application/octet-stream"
+        @content_type || 'application/octet-stream'
       end
     end
 
     DEFAULT_ENCODINGS = {
-      "binary" => "base64"
+      'binary' => 'base64'
     } unless defined?(DEFAULT_ENCODINGS)
 
     unless defined?(TYPE_NAMES)
       TYPE_NAMES = {
-        "Symbol"     => "symbol",
-        "Integer"    => "integer",
-        "BigDecimal" => "decimal",
-        "Float"      => "float",
-        "TrueClass"  => "boolean",
-        "FalseClass" => "boolean",
-        "Date"       => "date",
-        "DateTime"   => "dateTime",
-        "Time"       => "dateTime",
-        "Array"      => "array",
-        "Hash"       => "hash"
+        'Symbol'     => 'symbol',
+        'Integer'    => 'integer',
+        'BigDecimal' => 'decimal',
+        'Float'      => 'float',
+        'TrueClass'  => 'boolean',
+        'FalseClass' => 'boolean',
+        'Date'       => 'date',
+        'DateTime'   => 'dateTime',
+        'Time'       => 'dateTime',
+        'Array'      => 'array',
+        'Hash'       => 'hash'
       }
     end
 
     FORMATTING = {
-      "symbol"   => Proc.new { |symbol| symbol.to_s },
-      "date"     => Proc.new { |date| date.to_s(:db) },
-      "dateTime" => Proc.new { |time| time.xmlschema },
-      "binary"   => Proc.new { |binary| ::Base64.encode64(binary) },
-      "yaml"     => Proc.new { |yaml| yaml.to_yaml }
+      'symbol'   => Proc.new { |symbol| symbol.to_s },
+      'date'     => Proc.new { |date| date.to_s(:db) },
+      'dateTime' => Proc.new { |time| time.xmlschema },
+      'binary'   => Proc.new { |binary| ::Base64.encode64(binary) },
+      'yaml'     => Proc.new { |yaml| yaml.to_yaml }
     } unless defined?(FORMATTING)
 
     # TODO use regexp instead of Date.parse
     unless defined?(PARSING)
       PARSING = {
-        "symbol"       => Proc.new { |symbol|  symbol.to_s.to_sym },
-        "date"         => Proc.new { |date|    ::Date.parse(date) },
-        "datetime"     => Proc.new { |time|    Time.xmlschema(time).utc rescue ::DateTime.parse(time).utc },
-        "integer"      => Proc.new { |integer| integer.to_i },
-        "float"        => Proc.new { |float|   float.to_f },
-        "decimal"      => Proc.new do |number|
+        'symbol'       => Proc.new { |symbol|  symbol.to_s.to_sym },
+        'date'         => Proc.new { |date|    ::Date.parse(date) },
+        'datetime'     => Proc.new { |time|    Time.xmlschema(time).utc rescue ::DateTime.parse(time).utc },
+        'integer'      => Proc.new { |integer| integer.to_i },
+        'float'        => Proc.new { |float|   float.to_f },
+        'decimal'      => Proc.new do |number|
           if String === number
             number.to_d
           else
             BigDecimal(number)
           end
         end,
-        "boolean"      => Proc.new { |boolean| %w(1 true).include?(boolean.to_s.strip) },
-        "string"       => Proc.new { |string|  string.to_s },
-        "yaml"         => Proc.new { |yaml|    YAML.load(yaml) rescue yaml },
-        "base64Binary" => Proc.new { |bin|     ::Base64.decode64(bin) },
-        "binary"       => Proc.new { |bin, entity| _parse_binary(bin, entity) },
-        "file"         => Proc.new { |file, entity| _parse_file(file, entity) }
+        'boolean'      => Proc.new { |boolean| %w(1 true).include?(boolean.to_s.strip) },
+        'string'       => Proc.new { |string|  string.to_s },
+        'yaml'         => Proc.new { |yaml|    YAML.load(yaml) rescue yaml },
+        'base64Binary' => Proc.new { |bin|     ::Base64.decode64(bin) },
+        'binary'       => Proc.new { |bin, entity| _parse_binary(bin, entity) },
+        'file'         => Proc.new { |file, entity| _parse_file(file, entity) }
       }
 
       PARSING.update(
-        "double"   => PARSING["float"],
-        "dateTime" => PARSING["datetime"]
+        'double'   => PARSING['float'],
+        'dateTime' => PARSING['datetime']
       )
     end
 
@@ -127,7 +127,7 @@ module ActiveSupport
         type_name ||= TYPE_NAMES[value.class.name]
         type_name ||= value.class.name if value && !value.respond_to?(:to_str)
         type_name   = type_name.to_s   if type_name
-        type_name   = "dateTime" if type_name == "datetime"
+        type_name   = 'dateTime' if type_name == 'datetime'
 
         key = rename_key(key.to_s, options)
 
@@ -163,8 +163,8 @@ module ActiveSupport
 
       # TODO: Add support for other encodings
       def _parse_binary(bin, entity)
-        case entity["encoding"]
-        when "base64"
+        case entity['encoding']
+        when 'base64'
           ::Base64.decode64(bin)
         else
           bin
@@ -174,8 +174,8 @@ module ActiveSupport
       def _parse_file(file, entity)
         f = StringIO.new(::Base64.decode64(file))
         f.extend(FileLike)
-        f.original_filename = entity["name"]
-        f.content_type = entity["content_type"]
+        f.original_filename = entity['name']
+        f.content_type = entity['content_type']
         f
       end
 
@@ -197,5 +197,5 @@ module ActiveSupport
       end
   end
 
-  XmlMini.backend = "REXML"
+  XmlMini.backend = 'REXML'
 end

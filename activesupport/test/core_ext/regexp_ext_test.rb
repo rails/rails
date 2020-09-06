@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
-require "active_support/core_ext/regexp"
+require_relative '../abstract_unit'
+require 'active_support/core_ext/regexp'
 
 class RegexpExtAccessTests < ActiveSupport::TestCase
   def test_multiline

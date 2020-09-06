@@ -21,14 +21,14 @@ module ActionMailbox
 
       def authenticate_by_password
         if password.present?
-          http_basic_authenticate_or_request_with name: "actionmailbox", password: password, realm: "Action Mailbox"
+          http_basic_authenticate_or_request_with name: 'actionmailbox', password: password, realm: 'Action Mailbox'
         else
-          raise ArgumentError, "Missing required ingress credentials"
+          raise ArgumentError, 'Missing required ingress credentials'
         end
       end
 
       def password
-        Rails.application.credentials.dig(:action_mailbox, :ingress_password) || ENV["RAILS_INBOUND_EMAIL_PASSWORD"]
+        Rails.application.credentials.dig(:action_mailbox, :ingress_password) || ENV['RAILS_INBOUND_EMAIL_PASSWORD']
       end
   end
 end

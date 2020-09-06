@@ -16,13 +16,13 @@ module ActiveModel
     class Boolean < Value
       FALSE_VALUES = [
         false, 0,
-        "0", :"0",
-        "f", :f,
-        "F", :F,
-        "false", :false,
-        "FALSE", :FALSE,
-        "off", :off,
-        "OFF", :OFF,
+        '0', :"0",
+        'f', :f,
+        'F', :F,
+        'false', :false,
+        'FALSE', :FALSE,
+        'off', :off,
+        'OFF', :OFF,
       ].to_set.freeze
 
       def type # :nodoc:
@@ -35,7 +35,7 @@ module ActiveModel
 
       private
         def cast_value(value)
-          if value == ""
+          if value == ''
             nil
           else
             !FALSE_VALUES.include?(value)

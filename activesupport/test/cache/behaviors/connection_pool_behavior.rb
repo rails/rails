@@ -8,14 +8,14 @@ module ConnectionPoolBehavior
 
     emulating_latency do
       cache = ActiveSupport::Cache.lookup_store(*store, { pool_size: 2, pool_timeout: 1 }.merge(store_options))
-      cache.read("foo")
+      cache.read('foo')
 
       assert_raises Timeout::Error do
         # One of the three threads will fail in 1 second because our pool size
         # is only two.
         3.times do
           threads << Thread.new do
-            cache.read("latency")
+            cache.read('latency')
           end
         end
 
@@ -39,7 +39,7 @@ module ConnectionPoolBehavior
         # the connection pool isn't used at all.
         10.times do
           threads << Thread.new do
-            cache.read("latency")
+            cache.read('latency')
           end
         end
 

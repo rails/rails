@@ -49,7 +49,7 @@ class Module
   #
   #   Person.new.hair_colors # => [:brown, :black, :blonde, :red]
   def mattr_reader(*syms, instance_reader: true, instance_accessor: true, default: nil, location: nil)
-    raise TypeError, "module attributes should be defined directly on class, not singleton" if singleton_class?
+    raise TypeError, 'module attributes should be defined directly on class, not singleton' if singleton_class?
     location ||= caller_locations(1, 1).first
 
     definition = []
@@ -66,7 +66,7 @@ class Module
       class_variable_set("@@#{sym}", sym_default_value) unless sym_default_value.nil? && class_variable_defined?("@@#{sym}")
     end
 
-    module_eval(definition.join(";"), location.path, location.lineno)
+    module_eval(definition.join(';'), location.path, location.lineno)
   end
   alias :cattr_reader :mattr_reader
 
@@ -113,7 +113,7 @@ class Module
   #
   #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
   def mattr_writer(*syms, instance_writer: true, instance_accessor: true, default: nil, location: nil)
-    raise TypeError, "module attributes should be defined directly on class, not singleton" if singleton_class?
+    raise TypeError, 'module attributes should be defined directly on class, not singleton' if singleton_class?
     location ||= caller_locations(1, 1).first
 
     definition = []
@@ -129,7 +129,7 @@ class Module
       class_variable_set("@@#{sym}", sym_default_value) unless sym_default_value.nil? && class_variable_defined?("@@#{sym}")
     end
 
-    module_eval(definition.join(";"), location.path, location.lineno)
+    module_eval(definition.join(';'), location.path, location.lineno)
   end
   alias :cattr_writer :mattr_writer
 

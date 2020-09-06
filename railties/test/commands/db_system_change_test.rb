@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
-require "rails/command"
-require "rails/commands/db/system/change/change_command"
+require 'isolation/abstract_unit'
+require 'rails/command'
+require 'rails/commands/db/system/change/change_command'
 
 class Rails::Command::Db::System::ChangeCommandTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
@@ -11,17 +11,17 @@ class Rails::Command::Db::System::ChangeCommandTest < ActiveSupport::TestCase
 
   teardown { teardown_app }
 
-  test "change to existing database" do
-    change_database(to: "sqlite3")
+  test 'change to existing database' do
+    change_database(to: 'sqlite3')
 
-    output = change_database(to: "sqlite3")
+    output = change_database(to: 'sqlite3')
 
-    assert_match "identical  config/database.yml", output
-    assert_match "gsub  Gemfile", output
+    assert_match 'identical  config/database.yml', output
+    assert_match 'gsub  Gemfile', output
   end
 
-  test "change to invalid database" do
-    output = change_database(to: "invalid-db")
+  test 'change to invalid database' do
+    output = change_database(to: 'invalid-db')
 
     assert_match <<~MSG.squish, output
       Invalid value for --to option.
@@ -32,31 +32,31 @@ class Rails::Command::Db::System::ChangeCommandTest < ActiveSupport::TestCase
     MSG
   end
 
-  test "change to postgresql" do
-    output = change_database(to: "postgresql")
+  test 'change to postgresql' do
+    output = change_database(to: 'postgresql')
 
-    assert_match "force  config/database.yml", output
-    assert_match "gsub  Gemfile", output
+    assert_match 'force  config/database.yml', output
+    assert_match 'gsub  Gemfile', output
   end
 
-  test "change to mysql" do
-    output = change_database(to: "mysql")
+  test 'change to mysql' do
+    output = change_database(to: 'mysql')
 
-    assert_match "force  config/database.yml", output
-    assert_match "gsub  Gemfile", output
+    assert_match 'force  config/database.yml', output
+    assert_match 'gsub  Gemfile', output
   end
 
-  test "change to sqlite3" do
-    change_database(to: "postgresql")
-    output = change_database(to: "sqlite3")
+  test 'change to sqlite3' do
+    change_database(to: 'postgresql')
+    output = change_database(to: 'sqlite3')
 
-    assert_match "force  config/database.yml", output
-    assert_match "gsub  Gemfile", output
+    assert_match 'force  config/database.yml', output
+    assert_match 'gsub  Gemfile', output
   end
 
   private
     def change_database(to:, **options)
-      args = ["--to", to]
-      rails "db:system:change", args, **options
+      args = ['--to', to]
+      rails 'db:system:change', args, **options
     end
 end

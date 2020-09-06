@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/number_helper/number_converter"
+require 'active_support/number_helper/number_converter'
 
 module ActiveSupport
   module NumberHelper
@@ -40,15 +40,15 @@ module ActiveSupport
         end
 
         def delimiter
-          opts[:delimiter] || "-"
+          opts[:delimiter] || '-'
         end
 
         def country_code(code)
-          code.blank? ? "" : "+#{code}#{delimiter}"
+          code.blank? ? '' : "+#{code}#{delimiter}"
         end
 
         def phone_ext(ext)
-          ext.blank? ? "" : " x #{ext}"
+          ext.blank? ? '' : " x #{ext}"
         end
 
         def regexp_pattern(default_pattern)

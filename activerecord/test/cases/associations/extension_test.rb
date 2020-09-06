@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/post"
-require "models/comment"
-require "models/project"
-require "models/developer"
-require "models/computer"
-require "models/company_in_module"
+require 'cases/helper'
+require 'models/post'
+require 'models/comment'
+require 'models/project'
+require 'models/developer'
+require 'models/computer'
+require 'models/company_in_module'
 
 class AssociationsExtensionsTest < ActiveRecord::TestCase
   fixtures :projects, :developers, :developers_projects, :comments, :posts
@@ -39,8 +39,8 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
   end
 
   def test_extension_with_dirty_target
-    comment = posts(:welcome).comments.build(body: "New comment")
-    assert_equal comment, posts(:welcome).comments.with_content("New comment")
+    comment = posts(:welcome).comments.build(body: 'New comment')
+    assert_equal comment, posts(:welcome).comments.with_content('New comment')
   end
 
   def test_marshalling_extensions
@@ -70,14 +70,14 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     extend!(Developer)
     extend!(MyApplication::Business::Developer)
 
-    assert Developer.const_get "AssociationNameAssociationExtension"
-    assert MyApplication::Business::Developer.const_get "AssociationNameAssociationExtension"
+    assert Developer.const_get 'AssociationNameAssociationExtension'
+    assert MyApplication::Business::Developer.const_get 'AssociationNameAssociationExtension'
   end
 
   def test_proxy_association_after_scoped
     post = posts(:welcome)
     assert_equal post.association(:comments), post.comments.the_association
-    assert_equal post.association(:comments), post.comments.where("1=1").the_association
+    assert_equal post.association(:comments), post.comments.where('1=1').the_association
   end
 
   def test_association_with_default_scope

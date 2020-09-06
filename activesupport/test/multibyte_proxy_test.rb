@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
+require_relative 'abstract_unit'
 
 class MultibyteProxyText < ActiveSupport::TestCase
   class AsciiOnlyEncoder
@@ -8,7 +8,7 @@ class MultibyteProxyText < ActiveSupport::TestCase
     alias to_s wrapped_string
 
     def initialize(string)
-      @wrapped_string = string.gsub(/[^\u0000-\u007F]/, "?")
+      @wrapped_string = string.gsub(/[^\u0000-\u007F]/, '?')
     end
   end
 
@@ -24,11 +24,11 @@ class MultibyteProxyText < ActiveSupport::TestCase
     end
   end
 
-  test "custom multibyte encoder" do
+  test 'custom multibyte encoder' do
     with_custom_encoder(AsciiOnlyEncoder) do
-      assert_equal "s?me string 123", "søme string 123".mb_chars.to_s
+      assert_equal 's?me string 123', 'søme string 123'.mb_chars.to_s
     end
 
-    assert_equal "søme string 123", "søme string 123".mb_chars.to_s
+    assert_equal 'søme string 123', 'søme string 123'.mb_chars.to_s
   end
 end

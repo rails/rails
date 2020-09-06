@@ -4,11 +4,11 @@ module ActionText
   module Attachable
     extend ActiveSupport::Concern
 
-    LOCATOR_NAME = "attachable"
+    LOCATOR_NAME = 'attachable'
 
     class << self
       def from_node(node)
-        if attachable = attachable_from_sgid(node["sgid"])
+        if attachable = attachable_from_sgid(node['sgid'])
           attachable
         elsif attachable = ActionText::Attachables::ContentAttachment.from_node(node)
           attachable
@@ -44,7 +44,7 @@ module ActionText
     end
 
     def attachable_content_type
-      try(:content_type) || "application/octet-stream"
+      try(:content_type) || 'application/octet-stream'
     end
 
     def attachable_filename

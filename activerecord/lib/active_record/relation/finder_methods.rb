@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/filters"
+require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
   module FinderMethods
-    ONE_AS_ONE = "1 AS one"
+    ONE_AS_ONE = '1 AS one'
 
     # Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
     # If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised.
@@ -416,7 +416,7 @@ module ActiveRecord
 
         relation = relation.except(:select).select(values).distinct!
 
-        id_rows = skip_query_cache_if_necessary { @klass.connection.select_rows(relation.arel, "SQL") }
+        id_rows = skip_query_cache_if_necessary { @klass.connection.select_rows(relation.arel, 'SQL') }
         id_rows.map(&:last)
       end
 

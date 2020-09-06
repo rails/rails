@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "bigdecimal"
-require "securerandom"
+require 'cases/helper'
+require 'bigdecimal'
+require 'securerandom'
 
 class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
   def setup
@@ -26,12 +26,12 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
   end
 
   def test_type_cast_bigdecimal
-    bd = BigDecimal "10.0"
+    bd = BigDecimal '10.0'
     assert_equal bd.to_f, @conn.type_cast(bd)
   end
 
   def test_quoting_binary_strings
-    value = "hello".encode("ascii-8bit")
+    value = 'hello'.encode('ascii-8bit')
     type = ActiveRecord::Type::String.new
 
     assert_equal "'hello'", @conn.quote(type.serialize(value))
@@ -52,12 +52,12 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
   end
 
   def test_quoted_time_dst_utc
-    with_env_tz "America/New_York" do
+    with_env_tz 'America/New_York' do
       with_timezone_config default: :utc do
-        t = Time.new(2000, 7, 1, 0, 0, 0, "+04:30")
+        t = Time.new(2000, 7, 1, 0, 0, 0, '+04:30')
 
         expected = t.change(year: 2000, month: 1, day: 1)
-        expected = expected.getutc.to_s(:db).sub(/\A\d\d\d\d-\d\d-\d\d /, "2000-01-01 ")
+        expected = expected.getutc.to_s(:db).sub(/\A\d\d\d\d-\d\d-\d\d /, '2000-01-01 ')
 
         assert_equal expected, @conn.quoted_time(t)
       end
@@ -65,12 +65,12 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
   end
 
   def test_quoted_time_dst_local
-    with_env_tz "America/New_York" do
+    with_env_tz 'America/New_York' do
       with_timezone_config default: :local do
-        t = Time.new(2000, 7, 1, 0, 0, 0, "+04:30")
+        t = Time.new(2000, 7, 1, 0, 0, 0, '+04:30')
 
         expected = t.change(year: 2000, month: 1, day: 1)
-        expected = expected.getlocal.to_s(:db).sub(/\A\d\d\d\d-\d\d-\d\d /, "2000-01-01 ")
+        expected = expected.getlocal.to_s(:db).sub(/\A\d\d\d\d-\d\d-\d\d /, '2000-01-01 ')
 
         assert_equal expected, @conn.quoted_time(t)
       end

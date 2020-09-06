@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
-require "active_support/notifications/instrumenter"
+require_relative '../abstract_unit'
+require 'active_support/notifications/instrumenter'
 
 module ActiveSupport
   module Notifications
@@ -29,7 +29,7 @@ module ActiveSupport
 
       def test_instrument
         called = false
-        instrumenter.instrument("foo", payload) {
+        instrumenter.instrument('foo', payload) {
           called = true
         }
 
@@ -37,28 +37,28 @@ module ActiveSupport
       end
 
       def test_instrument_yields_the_payload_for_further_modification
-        assert_equal 2, instrumenter.instrument("awesome") { |p| p[:result] = 1 + 1 }
+        assert_equal 2, instrumenter.instrument('awesome') { |p| p[:result] = 1 + 1 }
         assert_equal 1, notifier.finishes.size
         name, _, payload = notifier.finishes.first
-        assert_equal "awesome", name
+        assert_equal 'awesome', name
         assert_equal Hash[result: 2], payload
       end
 
       def test_instrument_works_without_a_block
-        instrumenter.instrument("no.block", payload)
+        instrumenter.instrument('no.block', payload)
         assert_equal 1, notifier.finishes.size
-        assert_equal "no.block", notifier.finishes.first.first
+        assert_equal 'no.block', notifier.finishes.first.first
       end
 
       def test_start
-        instrumenter.start("foo", payload)
-        assert_equal [["foo", instrumenter.id, payload]], notifier.starts
+        instrumenter.start('foo', payload)
+        assert_equal [['foo', instrumenter.id, payload]], notifier.starts
         assert_empty notifier.finishes
       end
 
       def test_finish
-        instrumenter.finish("foo", payload)
-        assert_equal [["foo", instrumenter.id, payload]], notifier.finishes
+        instrumenter.finish('foo', payload)
+        assert_equal [['foo', instrumenter.id, payload]], notifier.finishes
         assert_empty notifier.starts
       end
     end

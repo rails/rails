@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
-require "pathname"
-require "active_support"
-require "rails/command/helpers/editor"
+require 'pathname'
+require 'active_support'
+require 'rails/command/helpers/editor'
 
 module Rails
   module Command
     class EncryptedCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
 
-      class_option :key, aliases: "-k", type: :string,
-        default: "config/master.key", desc: "The Rails.root relative path to the encryption key"
+      class_option :key, aliases: '-k', type: :string,
+        default: 'config/master.key', desc: 'The Rails.root relative path to the encryption key'
 
       no_commands do
         def help
           say "Usage:\n  #{self.class.banner}"
-          say ""
+          say ''
           say self.class.desc
         end
       end
@@ -24,7 +24,7 @@ module Rails
         require_application!
         encrypted = Rails.application.encrypted(file_path, key_path: options[:key])
 
-        ensure_editor_available(command: "bin/rails encrypted:edit") || (return)
+        ensure_editor_available(command: 'bin/rails encrypted:edit') || (return)
         ensure_encryption_key_has_been_added(options[:key]) if encrypted.key.nil?
         ensure_encrypted_file_has_been_added(file_path, options[:key])
 
@@ -32,7 +32,7 @@ module Rails
           change_encrypted_file_in_system_editor(file_path, options[:key])
         end
 
-        say "File encrypted and saved."
+        say 'File encrypted and saved.'
       rescue ActiveSupport::MessageEncryptor::InvalidMessage
         say "Couldn't decrypt #{file_path}. Perhaps you passed the wrong key?"
       end
@@ -62,15 +62,15 @@ module Rails
 
 
         def encryption_key_file_generator
-          require "rails/generators"
-          require "rails/generators/rails/encryption_key_file/encryption_key_file_generator"
+          require 'rails/generators'
+          require 'rails/generators/rails/encryption_key_file/encryption_key_file_generator'
 
           Rails::Generators::EncryptionKeyFileGenerator.new
         end
 
         def encrypted_file_generator
-          require "rails/generators"
-          require "rails/generators/rails/encrypted_file/encrypted_file_generator"
+          require 'rails/generators'
+          require 'rails/generators/rails/encrypted_file/encrypted_file_generator'
 
           Rails::Generators::EncryptedFileGenerator.new
         end

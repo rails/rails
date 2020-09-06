@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 module AbstractController
   module Testing
@@ -13,15 +13,15 @@ module AbstractController
         @controller = TranslationController.new
         I18n.backend.store_translations(:en,
           one: {
-            two: "bar",
+            two: 'bar',
           },
           abstract_controller: {
             testing: {
               translation: {
                 index: {
-                  foo: "bar",
+                  foo: 'bar',
                 },
-                no_action: "no_action_tr",
+                no_action: 'no_action_tr',
               },
             },
           })
@@ -47,7 +47,7 @@ module AbstractController
         AbstractController::Translation.raise_on_missing_translations = true
 
         assert_raise(I18n::MissingTranslationData) do
-          @controller.t("translations.missing")
+          @controller.t('translations.missing')
         end
       ensure
         AbstractController::Translation.raise_on_missing_translations = false
@@ -61,31 +61,31 @@ module AbstractController
 
       def test_lazy_lookup
         @controller.stub :action_name, :index do
-          assert_equal "bar", @controller.t(".foo")
+          assert_equal 'bar', @controller.t('.foo')
         end
       end
 
       def test_lazy_lookup_with_symbol
         @controller.stub :action_name, :index do
-          assert_equal "bar", @controller.t(:'.foo')
+          assert_equal 'bar', @controller.t(:'.foo')
         end
       end
 
       def test_lazy_lookup_fallback
         @controller.stub :action_name, :index do
-          assert_equal "no_action_tr", @controller.t(:'.no_action')
+          assert_equal 'no_action_tr', @controller.t(:'.no_action')
         end
       end
 
       def test_default_translation
         @controller.stub :action_name, :index do
-          assert_equal "bar", @controller.t("one.two")
-          assert_equal "baz", @controller.t(".twoz", default: ["baz", :twoz])
+          assert_equal 'bar', @controller.t('one.two')
+          assert_equal 'baz', @controller.t('.twoz', default: ['baz', :twoz])
         end
       end
 
       def test_localize
-        time, expected = Time.gm(2000), "Sat, 01 Jan 2000 00:00:00 +0000"
+        time, expected = Time.gm(2000), 'Sat, 01 Jan 2000 00:00:00 +0000'
         I18n.stub :localize, expected do
           assert_equal expected, @controller.l(time)
         end

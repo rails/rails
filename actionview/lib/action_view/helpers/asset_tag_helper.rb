@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/object/inclusion"
-require "action_view/helpers/asset_url_helper"
-require "action_view/helpers/tag_helper"
+require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/object/inclusion'
+require 'action_view/helpers/asset_url_helper'
+require 'action_view/helpers/tag_helper'
 
 module ActionView
   # = Action View Asset Tag Helpers
@@ -85,24 +85,24 @@ module ActionView
       #   # => <script src="http://www.example.com/xmlhr.js" nonce="..."></script>
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
+        path_options = options.extract!('protocol', 'extname', 'host', 'skip_pipeline').symbolize_keys
         preload_links = []
-        nopush = options["nopush"].nil? ? true : options.delete("nopush")
+        nopush = options['nopush'].nil? ? true : options.delete('nopush')
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
-          unless options["defer"]
+          unless options['defer']
             preload_link = "<#{href}>; rel=preload; as=script"
-            preload_link += "; nopush" if nopush
+            preload_link += '; nopush' if nopush
             preload_links << preload_link
           end
           tag_options = {
-            "src" => href
+            'src' => href
           }.merge!(options)
-          if tag_options["nonce"] == true
-            tag_options["nonce"] = content_security_policy_nonce
+          if tag_options['nonce'] == true
+            tag_options['nonce'] = content_security_policy_nonce
           end
-          content_tag("script", "", tag_options)
+          content_tag('script', '', tag_options)
         }.join("\n").html_safe
 
         send_preload_links_header(preload_links)
@@ -140,19 +140,19 @@ module ActionView
       #   #    <link href="/css/stylish.css" media="screen" rel="stylesheet" />
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!("protocol", "host", "skip_pipeline").symbolize_keys
+        path_options = options.extract!('protocol', 'host', 'skip_pipeline').symbolize_keys
         preload_links = []
-        nopush = options["nopush"].nil? ? true : options.delete("nopush")
+        nopush = options['nopush'].nil? ? true : options.delete('nopush')
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_stylesheet(source, path_options)
           preload_link = "<#{href}>; rel=preload; as=style"
-          preload_link += "; nopush" if nopush
+          preload_link += '; nopush' if nopush
           preload_links << preload_link
           tag_options = {
-            "rel" => "stylesheet",
-            "media" => "screen",
-            "href" => href
+            'rel' => 'stylesheet',
+            'media' => 'screen',
+            'href' => href
           }.merge!(options)
           tag(:link, tag_options)
         }.join("\n").html_safe
@@ -195,11 +195,11 @@ module ActionView
         end
 
         tag(
-          "link",
-          "rel"   => tag_options[:rel] || "alternate",
-          "type"  => tag_options[:type] || Template::Types[type].to_s,
-          "title" => tag_options[:title] || type.to_s.upcase,
-          "href"  => url_options.is_a?(Hash) ? url_for(url_options.merge(only_path: false)) : url_options
+          'link',
+          'rel'   => tag_options[:rel] || 'alternate',
+          'type'  => tag_options[:type] || Template::Types[type].to_s,
+          'title' => tag_options[:title] || type.to_s.upcase,
+          'href'  => url_options.is_a?(Hash) ? url_for(url_options.merge(only_path: false)) : url_options
         )
       end
 
@@ -230,10 +230,10 @@ module ActionView
       #
       #   favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
       #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
-      def favicon_link_tag(source = "favicon.ico", options = {})
-        tag("link", {
-          rel: "shortcut icon",
-          type: "image/x-icon",
+      def favicon_link_tag(source = 'favicon.ico', options = {})
+        tag('link', {
+          rel: 'shortcut icon',
+          type: 'image/x-icon',
           href: path_to_image(source, skip_pipeline: options.delete(:skip_pipeline))
         }.merge!(options.symbolize_keys))
       end
@@ -274,15 +274,15 @@ module ActionView
       #
       def preload_link_tag(source, options = {})
         href = asset_path(source, skip_pipeline: options.delete(:skip_pipeline))
-        extname = File.extname(source).downcase.delete(".")
+        extname = File.extname(source).downcase.delete('.')
         mime_type = options.delete(:type) || Template::Types[extname]&.to_s
         as_type = options.delete(:as) || resolve_link_as(extname, mime_type)
         crossorigin = options.delete(:crossorigin)
-        crossorigin = "anonymous" if crossorigin == true || (crossorigin.blank? && as_type == "font")
+        crossorigin = 'anonymous' if crossorigin == true || (crossorigin.blank? && as_type == 'font')
         nopush = options.delete(:nopush) || false
 
         link_tag = tag.link(**{
-          rel: "preload",
+          rel: 'preload',
           href: href,
           as: as_type,
           type: mime_type,
@@ -292,7 +292,7 @@ module ActionView
         preload_link = "<#{href}>; rel=preload; as=#{as_type}"
         preload_link += "; type=#{mime_type}" if mime_type
         preload_link += "; crossorigin=#{crossorigin}" if crossorigin
-        preload_link += "; nopush" if nopush
+        preload_link += '; nopush' if nopush
 
         send_preload_links_header([preload_link])
 
@@ -355,11 +355,11 @@ module ActionView
           options[:srcset] = options[:srcset].map do |src_path, size|
             src_path = path_to_image(src_path, skip_pipeline: skip_pipeline)
             "#{src_path} #{size}"
-          end.join(", ")
+          end.join(', ')
         end
 
         options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
-        tag("img", options)
+        tag('img', options)
       end
 
       # Returns an HTML video tag for the +sources+. If +sources+ is a string,
@@ -409,7 +409,7 @@ module ActionView
         options = sources.extract_options!.symbolize_keys
         public_poster_folder = options.delete(:poster_skip_pipeline)
         sources << options
-        multiple_sources_tag_builder("video", sources) do |tag_options|
+        multiple_sources_tag_builder('video', sources) do |tag_options|
           tag_options[:poster] = path_to_image(tag_options[:poster], skip_pipeline: public_poster_folder) if tag_options[:poster]
           tag_options[:width], tag_options[:height] = extract_dimensions(tag_options.delete(:size)) if tag_options[:size]
         end
@@ -433,7 +433,7 @@ module ActionView
       #   audio_tag("sound.wav", "sound.mid")
       #   # => <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
       def audio_tag(*sources)
-        multiple_sources_tag_builder("audio", sources)
+        multiple_sources_tag_builder('audio', sources)
       end
 
       private
@@ -446,7 +446,7 @@ module ActionView
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source, skip_pipeline: skip_pipeline)) }
+              safe_join sources.map { |source| tag('source', src: send("path_to_#{type}", source, skip_pipeline: skip_pipeline)) }
             end
           else
             options[:src] = send("path_to_#{type}", sources.first, skip_pipeline: skip_pipeline)
@@ -467,7 +467,7 @@ module ActionView
         def extract_dimensions(size)
           size = size.to_s
           if /\A\d+x\d+\z/.match?(size)
-            size.split("x")
+            size.split('x')
           elsif /\A\d+\z/.match?(size)
             [size, size]
           end
@@ -475,29 +475,29 @@ module ActionView
 
         def check_for_image_tag_errors(options)
           if options[:size] && (options[:height] || options[:width])
-            raise ArgumentError, "Cannot pass a :size option with a :height or :width option"
+            raise ArgumentError, 'Cannot pass a :size option with a :height or :width option'
           end
         end
 
         def resolve_link_as(extname, mime_type)
-          if extname == "js"
-            "script"
-          elsif extname == "css"
-            "style"
-          elsif extname == "vtt"
-            "track"
-          elsif (type = mime_type.to_s.split("/")[0]) && type.in?(%w(audio video font))
+          if extname == 'js'
+            'script'
+          elsif extname == 'css'
+            'style'
+          elsif extname == 'vtt'
+            'track'
+          elsif (type = mime_type.to_s.split('/')[0]) && type.in?(%w(audio video font))
             type
           end
         end
 
         def send_preload_links_header(preload_links)
           if respond_to?(:request) && request
-            request.send_early_hints("Link" => preload_links.join("\n"))
+            request.send_early_hints('Link' => preload_links.join("\n"))
           end
 
           if respond_to?(:response) && response
-            response.headers["Link"] = [response.headers["Link"].presence, *preload_links].compact.join(",")
+            response.headers['Link'] = [response.headers['Link'].presence, *preload_links].compact.join(',')
           end
         end
     end

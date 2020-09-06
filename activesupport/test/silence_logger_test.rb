@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "active_support/logger_silence"
-require "logger"
+require_relative 'abstract_unit'
+require 'active_support/logger_silence'
+require 'logger'
 
 class LoggerSilenceTest < ActiveSupport::TestCase
   class MyLogger < ::Logger
@@ -14,16 +14,16 @@ class LoggerSilenceTest < ActiveSupport::TestCase
     @logger = MyLogger.new(@io)
   end
 
-  test "#silence silences the log" do
+  test '#silence silences the log' do
     @logger.silence(Logger::ERROR) do
-      @logger.info("Foo")
+      @logger.info('Foo')
     end
     @io.rewind
 
     assert_empty @io.read
   end
 
-  test "#debug? is true when setting the temporary level to Logger::DEBUG" do
+  test '#debug? is true when setting the temporary level to Logger::DEBUG' do
     @logger.level = Logger::INFO
 
     @logger.silence(Logger::DEBUG) do

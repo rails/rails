@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require "active_support"
-require "minitest/autorun"
-require "arel"
+require 'active_support'
+require 'minitest/autorun'
+require 'arel'
 
-require_relative "support/fake_record"
+require_relative 'support/fake_record'
 
 Minitest::Expectation.class_eval do
   def must_be_like(other)
-    self.class.new(target.gsub(/\s+/, " ").strip, ctx).must_equal other.gsub(/\s+/, " ").strip
+    self.class.new(target.gsub(/\s+/, ' ').strip, ctx).must_equal other.gsub(/\s+/, ' ').strip
   end
 end
 

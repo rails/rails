@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
+require_relative '../abstract_unit'
 
 class MethodCallAssertionsTest < ActiveSupport::TestCase
   class Level
@@ -52,7 +52,7 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
 
   def test_assert_called_with_message
     error = assert_raises(Minitest::Assertion) do
-      assert_called(@object, :increment, "dang it") do
+      assert_called(@object, :increment, 'dang it') do
         # Call nothing...
       end
     end
@@ -128,7 +128,7 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
 
   def test_assert_called_on_instance_of_with_message
     error = assert_raises(Minitest::Assertion) do
-      assert_called_on_instance_of(Level, :increment, "dang it") do
+      assert_called_on_instance_of(Level, :increment, 'dang it') do
         # Call nothing...
       end
     end

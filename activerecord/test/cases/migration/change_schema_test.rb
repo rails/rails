@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 module ActiveRecord
   class Migration
@@ -46,7 +46,7 @@ module ActiveRecord
         end
 
         assert_raises(ActiveRecord::NotNullViolation) do
-          connection.execute "insert into testings (foo) values (NULL)"
+          connection.execute 'insert into testings (foo) values (NULL)'
         end
       end
 
@@ -55,25 +55,25 @@ module ActiveRecord
         mysql = current_adapter?(:Mysql2Adapter)
 
         connection.create_table :testings do |t|
-          t.column :one, :string, default: "hello"
+          t.column :one, :string, default: 'hello'
           t.column :two, :boolean, default: true
           t.column :three, :boolean, default: false
           t.column :four, :integer, default: 1
-          t.column :five, :text, default: "hello" unless mysql
+          t.column :five, :text, default: 'hello' unless mysql
         end
 
         columns = connection.columns(:testings)
-        one = columns.detect { |c| c.name == "one" }
-        two = columns.detect { |c| c.name == "two" }
-        three = columns.detect { |c| c.name == "three" }
-        four = columns.detect { |c| c.name == "four" }
-        five = columns.detect { |c| c.name == "five" } unless mysql
+        one = columns.detect { |c| c.name == 'one' }
+        two = columns.detect { |c| c.name == 'two' }
+        three = columns.detect { |c| c.name == 'three' }
+        four = columns.detect { |c| c.name == 'four' }
+        five = columns.detect { |c| c.name == 'five' } unless mysql
 
-        assert_equal "hello", one.default
+        assert_equal 'hello', one.default
         assert_equal true, connection.lookup_cast_type_from_column(two).deserialize(two.default)
         assert_equal false, connection.lookup_cast_type_from_column(three).deserialize(three.default)
-        assert_equal "1", four.default
-        assert_equal "hello", five.default unless mysql
+        assert_equal '1', four.default
+        assert_equal 'hello', five.default unless mysql
       end
 
       if current_adapter?(:PostgreSQLAdapter)
@@ -82,7 +82,7 @@ module ActiveRecord
           connection.add_column :testings, :foo, :string, array: true
 
           columns = connection.columns(:testings)
-          array_column = columns.detect { |c| c.name == "foo" }
+          array_column = columns.detect { |c| c.name == 'foo' }
 
           assert_predicate array_column, :array?
         end
@@ -93,7 +93,7 @@ module ActiveRecord
           end
 
           columns = connection.columns(:testings)
-          array_column = columns.detect { |c| c.name == "foo" }
+          array_column = columns.detect { |c| c.name == 'foo' }
 
           assert_predicate array_column, :array?
         end
@@ -104,12 +104,12 @@ module ActiveRecord
           t.bigint :eight_int
         end
         columns = connection.columns(:testings)
-        eight   = columns.detect { |c| c.name == "eight_int"   }
+        eight   = columns.detect { |c| c.name == 'eight_int'   }
 
         if current_adapter?(:OracleAdapter)
-          assert_equal "NUMBER(19)", eight.sql_type
+          assert_equal 'NUMBER(19)', eight.sql_type
         elsif current_adapter?(:SQLite3Adapter)
-          assert_equal "bigint", eight.sql_type
+          assert_equal 'bigint', eight.sql_type
         else
           assert_equal :integer, eight.type
           assert_equal 8, eight.limit
@@ -130,29 +130,29 @@ module ActiveRecord
         end
 
         columns = connection.columns(:testings)
-        foo = columns.detect { |c| c.name == "foo" }
+        foo = columns.detect { |c| c.name == 'foo' }
         assert_equal 255, foo.limit
 
-        default = columns.detect { |c| c.name == "default_int" }
-        one     = columns.detect { |c| c.name == "one_int"     }
-        four    = columns.detect { |c| c.name == "four_int"    }
-        eight   = columns.detect { |c| c.name == "eight_int"   }
+        default = columns.detect { |c| c.name == 'default_int' }
+        one     = columns.detect { |c| c.name == 'one_int'     }
+        four    = columns.detect { |c| c.name == 'four_int'    }
+        eight   = columns.detect { |c| c.name == 'eight_int'   }
 
         if current_adapter?(:PostgreSQLAdapter)
-          assert_equal "integer", default.sql_type
-          assert_equal "smallint", one.sql_type
-          assert_equal "integer", four.sql_type
-          assert_equal "bigint", eight.sql_type
+          assert_equal 'integer', default.sql_type
+          assert_equal 'smallint', one.sql_type
+          assert_equal 'integer', four.sql_type
+          assert_equal 'bigint', eight.sql_type
         elsif current_adapter?(:Mysql2Adapter)
           assert_match %r/\Aint/, default.sql_type
           assert_match %r/\Atinyint/, one.sql_type
           assert_match %r/\Aint/, four.sql_type
           assert_match %r/\Abigint/, eight.sql_type
         elsif current_adapter?(:OracleAdapter)
-          assert_equal "NUMBER(38)", default.sql_type
-          assert_equal "NUMBER(1)", one.sql_type
-          assert_equal "NUMBER(4)", four.sql_type
-          assert_equal "NUMBER(8)", eight.sql_type
+          assert_equal 'NUMBER(38)', default.sql_type
+          assert_equal 'NUMBER(1)', one.sql_type
+          assert_equal 'NUMBER(4)', four.sql_type
+          assert_equal 'NUMBER(8)', eight.sql_type
         end
       end
 
@@ -213,8 +213,8 @@ module ActiveRecord
         end
         created_columns = connection.columns(table_name)
 
-        created_at_column = created_columns.detect { |c| c.name == "created_at" }
-        updated_at_column = created_columns.detect { |c| c.name == "updated_at" }
+        created_at_column = created_columns.detect { |c| c.name == 'created_at' }
+        updated_at_column = created_columns.detect { |c| c.name == 'updated_at' }
 
         assert_not created_at_column.null
         assert_not updated_at_column.null
@@ -226,8 +226,8 @@ module ActiveRecord
         end
         created_columns = connection.columns(table_name)
 
-        created_at_column = created_columns.detect { |c| c.name == "created_at" }
-        updated_at_column = created_columns.detect { |c| c.name == "updated_at" }
+        created_at_column = created_columns.detect { |c| c.name == 'created_at' }
+        updated_at_column = created_columns.detect { |c| c.name == 'updated_at' }
 
         assert created_at_column.null
         assert updated_at_column.null
@@ -257,12 +257,12 @@ module ActiveRecord
           t.column :foo, :string
         end
 
-        quoted_id  = connection.quote_column_name("id")
-        quoted_foo = connection.quote_column_name("foo")
-        quoted_bar = connection.quote_column_name("bar")
+        quoted_id  = connection.quote_column_name('id')
+        quoted_foo = connection.quote_column_name('foo')
+        quoted_bar = connection.quote_column_name('bar')
         connection.execute("insert into testings (#{quoted_id}, #{quoted_foo}) values (1, 'hello')")
         assert_nothing_raised do
-          connection.add_column :testings, :bar, :string, null: false, default: "default"
+          connection.add_column :testings, :bar, :string, null: false, default: 'default'
         end
 
         assert_raises(ActiveRecord::NotNullViolation) do
@@ -275,18 +275,18 @@ module ActiveRecord
           t.column :foo, :timestamp
         end
 
-        column = connection.columns(:testings).find { |c| c.name == "foo" }
+        column = connection.columns(:testings).find { |c| c.name == 'foo' }
 
         assert_equal :datetime, column.type
 
         if current_adapter?(:PostgreSQLAdapter)
-          assert_equal "timestamp without time zone", column.sql_type
+          assert_equal 'timestamp without time zone', column.sql_type
         elsif current_adapter?(:Mysql2Adapter)
-          assert_equal "timestamp", column.sql_type
+          assert_equal 'timestamp', column.sql_type
         elsif current_adapter?(:OracleAdapter)
-          assert_equal "TIMESTAMP(6)", column.sql_type
+          assert_equal 'TIMESTAMP(6)', column.sql_type
         else
-          assert_equal connection.type_to_sql("datetime"), column.sql_type
+          assert_equal connection.type_to_sql('datetime'), column.sql_type
         end
       end
 
@@ -310,12 +310,12 @@ module ActiveRecord
           t.column :title, :string
         end
         person_klass = Class.new(ActiveRecord::Base)
-        person_klass.table_name = "testings"
+        person_klass.table_name = 'testings'
 
-        person_klass.connection.add_column "testings", "wealth", :integer, null: false, default: 99
+        person_klass.connection.add_column 'testings', 'wealth', :integer, null: false, default: 99
         person_klass.reset_column_information
-        assert_equal 99, person_klass.column_defaults["wealth"]
-        assert_equal false, person_klass.columns_hash["wealth"].null
+        assert_equal 99, person_klass.column_defaults['wealth']
+        assert_equal false, person_klass.columns_hash['wealth'].null
         # Oracle needs primary key value from sequence
         if current_adapter?(:OracleAdapter)
           assert_nothing_raised { person_klass.connection.execute("insert into testings (id, title) values (testings_seq.nextval, 'tester')") }
@@ -324,37 +324,37 @@ module ActiveRecord
         end
 
         # change column default to see that column doesn't lose its not null definition
-        person_klass.connection.change_column_default "testings", "wealth", 100
+        person_klass.connection.change_column_default 'testings', 'wealth', 100
         person_klass.reset_column_information
-        assert_equal 100, person_klass.column_defaults["wealth"]
-        assert_equal false, person_klass.columns_hash["wealth"].null
+        assert_equal 100, person_klass.column_defaults['wealth']
+        assert_equal false, person_klass.columns_hash['wealth'].null
 
         # rename column to see that column doesn't lose its not null and/or default definition
-        person_klass.connection.rename_column "testings", "wealth", "money"
+        person_klass.connection.rename_column 'testings', 'wealth', 'money'
         person_klass.reset_column_information
-        assert_nil person_klass.columns_hash["wealth"]
-        assert_equal 100, person_klass.column_defaults["money"]
-        assert_equal false, person_klass.columns_hash["money"].null
+        assert_nil person_klass.columns_hash['wealth']
+        assert_equal 100, person_klass.column_defaults['money']
+        assert_equal false, person_klass.columns_hash['money'].null
 
         # change column
-        person_klass.connection.change_column "testings", "money", :integer, null: false, default: 1000
+        person_klass.connection.change_column 'testings', 'money', :integer, null: false, default: 1000
         person_klass.reset_column_information
-        assert_equal 1000, person_klass.column_defaults["money"]
-        assert_equal false, person_klass.columns_hash["money"].null
+        assert_equal 1000, person_klass.column_defaults['money']
+        assert_equal false, person_klass.columns_hash['money'].null
 
         # change column, make it nullable and clear default
-        person_klass.connection.change_column "testings", "money", :integer, null: true, default: nil
+        person_klass.connection.change_column 'testings', 'money', :integer, null: true, default: nil
         person_klass.reset_column_information
-        assert_nil person_klass.columns_hash["money"].default
-        assert_equal true, person_klass.columns_hash["money"].null
+        assert_nil person_klass.columns_hash['money'].default
+        assert_equal true, person_klass.columns_hash['money'].null
 
         # change_column_null, make it not nullable and set null values to a default value
-        person_klass.connection.execute("UPDATE testings SET money = NULL")
-        person_klass.connection.change_column_null "testings", "money", false, 2000
+        person_klass.connection.execute('UPDATE testings SET money = NULL')
+        person_klass.connection.change_column_null 'testings', 'money', false, 2000
         person_klass.reset_column_information
-        assert_nil person_klass.columns_hash["money"].default
-        assert_equal false, person_klass.columns_hash["money"].null
-        assert_equal 2000, connection.select_values("SELECT money FROM testings").first.to_i
+        assert_nil person_klass.columns_hash['money'].default
+        assert_equal false, person_klass.columns_hash['money'].null
+        assert_equal 2000, connection.select_values('SELECT money FROM testings').first.to_i
       end
 
       def test_change_column_null
@@ -366,9 +366,9 @@ module ActiveRecord
           end
           notnull_migration.new.suppress_messages do
             notnull_migration.migrate(:up)
-            assert_equal false, connection.columns(:testings).find { |c| c.name == "foo" }.null
+            assert_equal false, connection.columns(:testings).find { |c| c.name == 'foo' }.null
             notnull_migration.migrate(:down)
-            assert connection.columns(:testings).find { |c| c.name == "foo" }.null
+            assert connection.columns(:testings).find { |c| c.name == 'foo' }.null
           end
         end
       end
@@ -400,7 +400,7 @@ module ActiveRecord
           t.column :foo, :string, limit: 100
           t.column :bar, :decimal, precision: 8, scale: 2
           t.column :taggable_id, :integer, null: false
-          t.column :taggable_type, :string, default: "Photo"
+          t.column :taggable_type, :string, default: 'Photo'
         end
 
         assert connection.column_exists?(:testings, :foo, :string, limit: 100)
@@ -409,7 +409,7 @@ module ActiveRecord
         assert_not connection.column_exists?(:testings, :bar, :decimal, precision: nil, scale: nil)
         assert connection.column_exists?(:testings, :taggable_id, :integer, null: false)
         assert_not connection.column_exists?(:testings, :taggable_id, :integer, null: true)
-        assert connection.column_exists?(:testings, :taggable_type, :string, default: "Photo")
+        assert connection.column_exists?(:testings, :taggable_type, :string, default: 'Photo')
         assert_not connection.column_exists?(:testings, :taggable_type, :string, default: nil)
       end
 
@@ -463,9 +463,9 @@ module ActiveRecord
 
         def test_create_table_with_force_cascade_drops_dependent_objects
           if current_adapter?(:Mysql2Adapter)
-            skip "MySQL > 5.5 does not drop dependent objects with DROP TABLE CASCADE"
+            skip 'MySQL > 5.5 does not drop dependent objects with DROP TABLE CASCADE'
           elsif current_adapter?(:SQLite3Adapter)
-            skip "SQLite3 does not support DROP TABLE CASCADE syntax"
+            skip 'SQLite3 does not support DROP TABLE CASCADE syntax'
           end
           # can't re-create table referenced by foreign key
           assert_raises(ActiveRecord::StatementInvalid) do

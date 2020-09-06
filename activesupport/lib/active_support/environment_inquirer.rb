@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "active_support/string_inquirer"
+require 'active_support/string_inquirer'
 
 module ActiveSupport
   class EnvironmentInquirer < StringInquirer #:nodoc:
-    DEFAULT_ENVIRONMENTS = ["development", "test", "production"]
+    DEFAULT_ENVIRONMENTS = ['development', 'test', 'production']
     def initialize(env)
       super(env)
 

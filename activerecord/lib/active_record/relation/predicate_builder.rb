@@ -2,12 +2,12 @@
 
 module ActiveRecord
   class PredicateBuilder # :nodoc:
-    require "active_record/relation/predicate_builder/array_handler"
-    require "active_record/relation/predicate_builder/basic_object_handler"
-    require "active_record/relation/predicate_builder/range_handler"
-    require "active_record/relation/predicate_builder/relation_handler"
-    require "active_record/relation/predicate_builder/association_query_value"
-    require "active_record/relation/predicate_builder/polymorphic_array_value"
+    require 'active_record/relation/predicate_builder/array_handler'
+    require 'active_record/relation/predicate_builder/basic_object_handler'
+    require 'active_record/relation/predicate_builder/range_handler'
+    require 'active_record/relation/predicate_builder/relation_handler'
+    require 'active_record/relation/predicate_builder/association_query_value'
+    require 'active_record/relation/predicate_builder/polymorphic_array_value'
 
     # No-op BaseHandler to work Mashal.load(File.read("legacy_relation.dump")).
     # TODO: Remove the constant alias once Rails 6.1 has released.
@@ -33,8 +33,8 @@ module ActiveRecord
       attributes.each_with_object([]) do |(key, value), result|
         if value.is_a?(Hash)
           result << key
-        elsif key.include?(".")
-          result << key.split(".").first
+        elsif key.include?('.')
+          result << key.split('.').first
         end
       end
     end
@@ -79,7 +79,7 @@ module ActiveRecord
 
     protected
       def expand_from_hash(attributes, &block)
-        return ["1=0"] if attributes.empty?
+        return ['1=0'] if attributes.empty?
 
         attributes.flat_map do |key, value|
           if value.is_a?(Hash) && !table.has_column?(key)
@@ -149,11 +149,11 @@ module ActiveRecord
 
       def convert_dot_notation_to_hash(attributes)
         dot_notation = attributes.select do |k, v|
-          k.include?(".") && !v.is_a?(Hash)
+          k.include?('.') && !v.is_a?(Hash)
         end
 
         dot_notation.each_key do |key|
-          table_name, column_name = key.split(".")
+          table_name, column_name = key.split('.')
           value = attributes.delete(key)
           attributes[table_name] ||= {}
 

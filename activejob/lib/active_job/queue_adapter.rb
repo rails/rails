@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/inflections"
+require 'active_support/core_ext/string/inflections'
 
 module ActiveJob
   # The <tt>ActiveJob::QueueAdapter</tt> module is used to load the

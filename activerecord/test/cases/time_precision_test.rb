@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/schema_dumping_helper"
+require 'cases/helper'
+require 'support/schema_dumping_helper'
 
 if supports_datetime_with_precision?
   class TimePrecisionTest < ActiveRecord::TestCase
@@ -23,8 +23,8 @@ if supports_datetime_with_precision?
       @connection.create_table(:foos, force: true)
       @connection.add_column :foos, :start,  :time, precision: 3
       @connection.add_column :foos, :finish, :time, precision: 6
-      assert_equal 3, Foo.columns_hash["start"].precision
-      assert_equal 6, Foo.columns_hash["finish"].precision
+      assert_equal 3, Foo.columns_hash['start'].precision
+      assert_equal 6, Foo.columns_hash['finish'].precision
     end
 
     def test_time_precision_is_truncated_on_assignment
@@ -70,8 +70,8 @@ if supports_datetime_with_precision?
         t.time :start,  precision: 3
         t.time :finish, precision: 6
       end
-      assert_nil Foo.columns_hash["start"].limit
-      assert_nil Foo.columns_hash["finish"].limit
+      assert_nil Foo.columns_hash['start'].limit
+      assert_nil Foo.columns_hash['finish'].limit
     end
 
     def test_invalid_time_precision_raises_error
@@ -105,7 +105,7 @@ if supports_datetime_with_precision?
         t.time :start,  precision: 4
         t.time :finish, precision: 6
       end
-      output = dump_table_schema("foos")
+      output = dump_table_schema('foos')
       assert_match %r{t\.time\s+"start",\s+precision: 4$}, output
       assert_match %r{t\.time\s+"finish",\s+precision: 6$}, output
     end
@@ -116,7 +116,7 @@ if supports_datetime_with_precision?
           t.time :start,  precision: 0
           t.time :finish, precision: 0
         end
-        output = dump_table_schema("foos")
+        output = dump_table_schema('foos')
         assert_match %r{t\.time\s+"start",\s+precision: 0$}, output
         assert_match %r{t\.time\s+"finish",\s+precision: 0$}, output
       end

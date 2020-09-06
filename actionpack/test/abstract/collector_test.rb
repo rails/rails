@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 module AbstractController
   module Testing
@@ -18,18 +18,18 @@ module AbstractController
     end
 
     class TestCollector < ActiveSupport::TestCase
-      test "responds to default mime types" do
+      test 'responds to default mime types' do
         collector = MyCollector.new
         assert_respond_to collector, :html
         assert_respond_to collector, :text
       end
 
-      test "does not respond to unknown mime types" do
+      test 'does not respond to unknown mime types' do
         collector = MyCollector.new
         assert_not_respond_to collector, :unknown
       end
 
-      test "register mime types on method missing" do
+      test 'register mime types on method missing' do
         AbstractController::Collector.remove_method :js
         begin
           collector = MyCollector.new
@@ -43,14 +43,14 @@ module AbstractController
         end
       end
 
-      test "does not register unknown mime types" do
+      test 'does not register unknown mime types' do
         collector = MyCollector.new
         assert_raise NoMethodError do
           collector.unknown
         end
       end
 
-      test "generated methods call custom with arguments received" do
+      test 'generated methods call custom with arguments received' do
         collector = MyCollector.new
         collector.html
         collector.text(:foo)

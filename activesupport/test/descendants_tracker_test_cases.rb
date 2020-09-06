@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "set"
+require 'set'
 
 module DescendantsTrackerTestCases
   class Parent
@@ -70,12 +70,12 @@ module DescendantsTrackerTestCases
         ActiveSupport::Dependencies.autoloaded_constants = klasses.map(&:name)
       end
 
-      old_descendants = ActiveSupport::DescendantsTracker.class_eval("@@direct_descendants").dup
+      old_descendants = ActiveSupport::DescendantsTracker.class_eval('@@direct_descendants').dup
       old_descendants.each { |k, v| old_descendants[k] = v.dup }
 
       yield
     ensure
       ActiveSupport::Dependencies.autoloaded_constants = old_autoloaded if defined? ActiveSupport::Dependencies
-      ActiveSupport::DescendantsTracker.class_eval("@@direct_descendants").replace(old_descendants)
+      ActiveSupport::DescendantsTracker.class_eval('@@direct_descendants').replace(old_descendants)
     end
 end

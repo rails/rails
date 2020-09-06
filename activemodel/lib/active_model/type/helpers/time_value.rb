@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/zones"
-require "active_support/core_ext/time/zones"
+require 'active_support/core_ext/string/zones'
+require 'active_support/core_ext/time/zones'
 
 module ActiveModel
   module Type
@@ -79,7 +79,7 @@ module ActiveModel
             end
 
             if $8
-              offset = $8 == "Z" ? 0 : $8.to_i * 3600 + $9.to_i * 60
+              offset = $8 == 'Z' ? 0 : $8.to_i * 3600 + $9.to_i * 60
             end
 
             new_time($1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, usec, offset)

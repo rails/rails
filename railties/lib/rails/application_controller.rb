@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class Rails::ApplicationController < ActionController::Base # :nodoc:
-  self.view_paths = File.expand_path("templates", __dir__)
-  layout "application"
+  self.view_paths = File.expand_path('templates', __dir__)
+  layout 'application'
 
   before_action :disable_content_security_policy_nonce!
 
@@ -14,7 +14,7 @@ class Rails::ApplicationController < ActionController::Base # :nodoc:
   private
     def require_local!
       unless local_request?
-        render html: "<p>For security purposes, this information is only available to local requests.</p>".html_safe, status: :forbidden
+        render html: '<p>For security purposes, this information is only available to local requests.</p>'.html_safe, status: :forbidden
       end
     end
 

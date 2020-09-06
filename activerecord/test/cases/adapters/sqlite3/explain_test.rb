@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/author"
-require "models/post"
+require 'cases/helper'
+require 'models/author'
+require 'models/post'
 
 class SQLite3ExplainTest < ActiveRecord::SQLite3TestCase
   fixtures :authors

@@ -60,7 +60,7 @@ module ActiveRecord
       #   sanitize_sql_for_order("id ASC")
       #   # => "id ASC"
       def sanitize_sql_for_order(condition)
-        if condition.is_a?(Array) && condition.first.to_s.include?("?")
+        if condition.is_a?(Array) && condition.first.to_s.include?('?')
           disallow_raw_sql!(
             [condition.first],
             permit: connection.column_name_with_order_matcher
@@ -88,7 +88,7 @@ module ActiveRecord
           type = type_for_attribute(attr)
           value = type.serialize(type.cast(value))
           "#{c.quote_table_name_for_assignment(table, attr)} = #{c.quote(value)}"
-        end.join(", ")
+        end.join(', ')
       end
 
       # Sanitizes a +string+ so that it is safe to use within an SQL
@@ -105,8 +105,8 @@ module ActiveRecord
       #
       #   sanitize_sql_like("snake_cased_string", "!")
       #   # => "snake!_cased!_string"
-      def sanitize_sql_like(string, escape_character = "\\")
-        pattern = Regexp.union(escape_character, "%", "_")
+      def sanitize_sql_like(string, escape_character = '\\')
+        pattern = Regexp.union(escape_character, '%', '_')
         string.gsub(pattern) { |x| [escape_character, x].join }
       end
 
@@ -125,7 +125,7 @@ module ActiveRecord
         statement, *values = ary
         if values.first.is_a?(Hash) && /:\w+/.match?(statement)
           replace_named_bind_variables(statement, values.first)
-        elsif statement.include?("?")
+        elsif statement.include?('?')
           replace_bind_variables(statement, values)
         elsif statement.blank?
           statement
@@ -145,25 +145,25 @@ module ActiveRecord
 
         if allow_unsafe_raw_sql == :deprecated
           ActiveSupport::Deprecation.warn(
-            "Dangerous query method (method whose arguments are used as raw " \
-            "SQL) called with non-attribute argument(s): " \
+            'Dangerous query method (method whose arguments are used as raw ' \
+            'SQL) called with non-attribute argument(s): ' \
             "#{unexpected.map(&:inspect).join(", ")}. Non-attribute " \
-            "arguments will be disallowed in Rails 6.1. This method should " \
-            "not be called with user-provided values, such as request " \
-            "parameters or model attributes. Known-safe values can be passed " \
-            "by wrapping them in Arel.sql()."
+            'arguments will be disallowed in Rails 6.1. This method should ' \
+            'not be called with user-provided values, such as request ' \
+            'parameters or model attributes. Known-safe values can be passed ' \
+            'by wrapping them in Arel.sql().'
           )
         else
           raise(ActiveRecord::UnknownAttributeReference,
-            "Query method called with non-attribute argument(s): " +
-            unexpected.map(&:inspect).join(", ")
+            'Query method called with non-attribute argument(s): ' +
+            unexpected.map(&:inspect).join(', ')
           )
         end
       end
 
       private
         def replace_bind_variables(statement, values)
-          raise_if_bind_arity_mismatch(statement, statement.count("?"), values.size)
+          raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
           bound = values.dup
           c = connection
           statement.gsub(/\?/) do
@@ -181,7 +181,7 @@ module ActiveRecord
 
         def replace_named_bind_variables(statement, bind_vars)
           statement.gsub(/(:?):([a-zA-Z]\w*)/) do |match|
-            if $1 == ":" # skip postgresql casts
+            if $1 == ':' # skip postgresql casts
               match # return the whole match
             elsif bind_vars.include?(match = $2.to_sym)
               replace_bind_variable(bind_vars[match])
@@ -197,7 +197,7 @@ module ActiveRecord
             if values.empty?
               c.quote(nil)
             else
-              values.map! { |v| c.quote(v) }.join(",")
+              values.map! { |v| c.quote(v) }.join(',')
             end
           else
             value = value.id_for_database if value.respond_to?(:id_for_database)

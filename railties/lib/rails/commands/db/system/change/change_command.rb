@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require "rails/generators"
-require "rails/generators/rails/db/system/change/change_generator"
+require 'rails/generators'
+require 'rails/generators/rails/db/system/change/change_generator'
 
 module Rails
   module Command
     module Db
       module System
         class ChangeCommand < Base # :nodoc:
-          class_option :to, desc: "The database system to switch to."
+          class_option :to, desc: 'The database system to switch to.'
 
           def initialize(positional_args, option_args, *)
             @argv = positional_args + option_args

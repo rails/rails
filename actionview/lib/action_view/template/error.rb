@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/enumerable"
+require 'active_support/core_ext/enumerable'
 
 module ActionView
   # = Action View Errors
@@ -19,8 +19,8 @@ module ActionView
       @string.force_encoding(Encoding::ASCII_8BIT)
       "Your template was not saved as valid #{@encoding}. Please " \
       "either specify #{@encoding} as the encoding for your template " \
-      "in your text editor, or mark the template with its " \
-      "encoding by inserting the following as the first line " \
+      'in your text editor, or mark the template with its ' \
+      'encoding by inserting the following as the first line ' \
       "of the template:\n\n# encoding: <name of correct encoding>.\n\n" \
       "The source of your template was:\n\n#{@string}"
     end
@@ -33,17 +33,17 @@ module ActionView
       @path = path
       prefixes = Array(prefixes)
       template_type = if partial
-        "partial"
+        'partial'
       elsif /layouts/i.match?(path)
-        "layout"
+        'layout'
       else
-        "template"
+        'template'
       end
 
       if partial && path.present?
-        path = path.sub(%r{([^/]+)$}, "_\\1")
+        path = path.sub(%r{([^/]+)$}, '_\\1')
       end
-      searched_paths = prefixes.map { |prefix| [prefix, path].join("/") }
+      searched_paths = prefixes.map { |prefix| [prefix, path].join('/') }
 
       out  = "Missing #{template_type} #{searched_paths.join(", ")} with #{details.inspect}. Searched in:\n"
       out += paths.compact.map { |p| "  * #{p.to_s.inspect}\n" }.join
@@ -74,10 +74,10 @@ module ActionView
 
       def sub_template_message
         if @sub_templates
-          "Trace of template inclusion: " +
-          @sub_templates.collect(&:inspect).join(", ")
+          'Trace of template inclusion: ' +
+          @sub_templates.collect(&:inspect).join(', ')
         else
-          ""
+          ''
         end
       end
 
@@ -118,7 +118,7 @@ module ActionView
           if line_number
             "on line ##{line_number} of "
           else
-            "in "
+            'in '
           end + file_name
         end
 
@@ -148,7 +148,7 @@ module ActionView
 
     def annotated_source_code
       @offending_code_string.split("\n").map.with_index(1) { |line, index|
-        indentation = " " * 4
+        indentation = ' ' * 4
         "#{index}:#{indentation}#{line}"
       }
     end

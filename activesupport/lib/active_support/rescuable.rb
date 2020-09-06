@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/concern"
-require "active_support/core_ext/class/attribute"
-require "active_support/core_ext/string/inflections"
+require 'active_support/concern'
+require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/string/inflections'
 
 module ActiveSupport
   # Rescuable module adds support for easier exception handling.
@@ -53,7 +53,7 @@ module ActiveSupport
           if block_given?
             with = block
           else
-            raise ArgumentError, "Need a handler. Pass the with: keyword argument or provide a block."
+            raise ArgumentError, 'Need a handler. Pass the with: keyword argument or provide a block.'
           end
         end
 

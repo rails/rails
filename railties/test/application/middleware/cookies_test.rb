@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
-require "rack/test"
+require 'isolation/abstract_unit'
+require 'rack/test'
 
 module ApplicationTests
   class CookiesTest < ActiveSupport::TestCase
@@ -26,33 +26,33 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
-    test "always_write_cookie is true by default in development" do
-      require "rails"
-      Rails.env = "development"
+    test 'always_write_cookie is true by default in development' do
+      require 'rails'
+      Rails.env = 'development'
       require "#{app_path}/config/environment"
       assert_equal true, ActionDispatch::Cookies::CookieJar.always_write_cookie
     end
 
-    test "always_write_cookie is false by default in production" do
-      require "rails"
-      Rails.env = "production"
+    test 'always_write_cookie is false by default in production' do
+      require 'rails'
+      Rails.env = 'production'
       require "#{app_path}/config/environment"
       assert_equal false, ActionDispatch::Cookies::CookieJar.always_write_cookie
     end
 
-    test "always_write_cookie can be overridden" do
+    test 'always_write_cookie can be overridden' do
       add_to_config <<-RUBY
         config.action_dispatch.always_write_cookie = false
       RUBY
 
-      require "rails"
-      Rails.env = "development"
+      require 'rails'
+      Rails.env = 'development'
       require "#{app_path}/config/environment"
       assert_equal false, ActionDispatch::Cookies::CookieJar.always_write_cookie
     end
 
-    test "signed cookies with SHA512 digest and rotated out SHA256 and SHA1 digests" do
-      app_file "config/routes.rb", <<-RUBY
+    test 'signed cookies with SHA512 digest and rotated out SHA256 and SHA1 digests' do
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           get  ':controller(/:action)'
           post ':controller(/:action)'
@@ -103,25 +103,25 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      verifier_sha512 = ActiveSupport::MessageVerifier.new(app.key_generator.generate_key("sha512 salt"), digest: :SHA512)
+      verifier_sha512 = ActiveSupport::MessageVerifier.new(app.key_generator.generate_key('sha512 salt'), digest: :SHA512)
 
-      get "/foo/write_raw_cookie_sha1"
-      get "/foo/read_signed"
-      assert_equal "signed cookie".inspect, last_response.body
+      get '/foo/write_raw_cookie_sha1'
+      get '/foo/read_signed'
+      assert_equal 'signed cookie'.inspect, last_response.body
 
-      get "/foo/read_raw_cookie"
-      assert_equal "signed cookie", verifier_sha512.verify(last_response.body, purpose: "cookie.signed_cookie")
+      get '/foo/read_raw_cookie'
+      assert_equal 'signed cookie', verifier_sha512.verify(last_response.body, purpose: 'cookie.signed_cookie')
 
-      get "/foo/write_raw_cookie_sha256"
-      get "/foo/read_signed"
-      assert_equal "signed cookie".inspect, last_response.body
+      get '/foo/write_raw_cookie_sha256'
+      get '/foo/read_signed'
+      assert_equal 'signed cookie'.inspect, last_response.body
 
-      get "/foo/read_raw_cookie"
-      assert_equal "signed cookie", verifier_sha512.verify(last_response.body, purpose: "cookie.signed_cookie")
+      get '/foo/read_raw_cookie'
+      assert_equal 'signed cookie', verifier_sha512.verify(last_response.body, purpose: 'cookie.signed_cookie')
     end
 
-    test "encrypted cookies rotating multiple encryption keys" do
-      app_file "config/routes.rb", <<-RUBY
+    test 'encrypted cookies rotating multiple encryption keys' do
+      app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
           get  ':controller(/:action)'
           post ':controller(/:action)'
@@ -173,21 +173,21 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      encryptor = ActiveSupport::MessageEncryptor.new(app.key_generator.generate_key("salt", 32), cipher: "aes-256-gcm")
+      encryptor = ActiveSupport::MessageEncryptor.new(app.key_generator.generate_key('salt', 32), cipher: 'aes-256-gcm')
 
-      get "/foo/write_raw_cookie_one"
-      get "/foo/read_encrypted"
-      assert_equal "encrypted cookie".inspect, last_response.body
+      get '/foo/write_raw_cookie_one'
+      get '/foo/read_encrypted'
+      assert_equal 'encrypted cookie'.inspect, last_response.body
 
-      get "/foo/read_raw_cookie"
-      assert_equal "encrypted cookie", encryptor.decrypt_and_verify(last_response.body, purpose: "cookie.encrypted_cookie")
+      get '/foo/read_raw_cookie'
+      assert_equal 'encrypted cookie', encryptor.decrypt_and_verify(last_response.body, purpose: 'cookie.encrypted_cookie')
 
-      get "/foo/write_raw_cookie_two"
-      get "/foo/read_encrypted"
-      assert_equal "encrypted cookie".inspect, last_response.body
+      get '/foo/write_raw_cookie_two'
+      get '/foo/read_encrypted'
+      assert_equal 'encrypted cookie'.inspect, last_response.body
 
-      get "/foo/read_raw_cookie"
-      assert_equal "encrypted cookie", encryptor.decrypt_and_verify(last_response.body, purpose: "cookie.encrypted_cookie")
+      get '/foo/read_raw_cookie'
+      assert_equal 'encrypted cookie', encryptor.decrypt_and_verify(last_response.body, purpose: 'cookie.encrypted_cookie')
     end
   end
 end

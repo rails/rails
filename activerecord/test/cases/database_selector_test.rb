@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/person"
-require "action_dispatch"
+require 'cases/helper'
+require 'models/person'
+require 'action_dispatch'
 
 module ActiveRecord
   class DatabaseSelectorTest < ActiveRecord::TestCase
@@ -280,17 +280,17 @@ module ActiveRecord
     def test_the_middleware_chooses_writing_role_with_POST_request
       middleware = ActiveRecord::Middleware::DatabaseSelector.new(lambda { |env|
         assert ActiveRecord::Base.connected_to?(role: :writing)
-        [200, {}, ["body"]]
+        [200, {}, ['body']]
       })
-      assert_equal [200, {}, ["body"]], middleware.call("REQUEST_METHOD" => "POST")
+      assert_equal [200, {}, ['body']], middleware.call('REQUEST_METHOD' => 'POST')
     end
 
     def test_the_middleware_chooses_reading_role_with_GET_request
       middleware = ActiveRecord::Middleware::DatabaseSelector.new(lambda { |env|
         assert ActiveRecord::Base.connected_to?(role: :reading)
-        [200, {}, ["body"]]
+        [200, {}, ['body']]
       })
-      assert_equal [200, {}, ["body"]], middleware.call("REQUEST_METHOD" => "GET")
+      assert_equal [200, {}, ['body']], middleware.call('REQUEST_METHOD' => 'GET')
     end
   end
 end

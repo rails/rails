@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "rack/cache"
-require "rack/cache/context"
-require "active_support/cache"
+require 'rack/cache'
+require 'rack/cache/context'
+require 'active_support/cache'
 
 module ActionDispatch
   class RailsMetaStore < Rack::Cache::MetaStore

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-gem "aws-sdk-s3", "~> 1.48"
+gem 'aws-sdk-s3', '~> 1.48'
 
-require "aws-sdk-s3"
-require "active_support/core_ext/numeric/bytes"
+require 'aws-sdk-s3'
+require 'active_support/core_ext/numeric/bytes'
 
 module ActiveStorage
   # Wraps the Amazon Simple Storage Service (S3) as an Active Storage service.
@@ -20,7 +20,7 @@ module ActiveStorage
       @public = public
 
       @upload_options = upload
-      @upload_options[:acl] = "public-read" if public?
+      @upload_options[:acl] = 'public-read' if public?
     end
 
     def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, **)
@@ -81,7 +81,7 @@ module ActiveStorage
       instrument :url, key: key do |payload|
         generated_url = object_for(key).presigned_url :put, expires_in: expires_in.to_i,
           content_type: content_type, content_length: content_length, content_md5: checksum,
-          whitelist_headers: ["content-length"], **upload_options
+          whitelist_headers: ['content-length'], **upload_options
 
         payload[:url] = generated_url
 
@@ -92,7 +92,7 @@ module ActiveStorage
     def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      { "Content-Type" => content_type, "Content-MD5" => checksum, "Content-Disposition" => content_disposition }
+      { 'Content-Type' => content_type, 'Content-MD5' => checksum, 'Content-Disposition' => content_disposition }
     end
 
     private

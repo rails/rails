@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "xml_mini_engine_test"
+require_relative 'xml_mini_engine_test'
 
 class REXMLEngineTest < XMLMiniEngineTest
   def test_default_is_rexml
@@ -8,17 +8,17 @@ class REXMLEngineTest < XMLMiniEngineTest
   end
 
   def test_parse_from_empty_string
-    assert_equal({}, ActiveSupport::XmlMini.parse(""))
+    assert_equal({}, ActiveSupport::XmlMini.parse(''))
   end
 
   def test_parse_from_frozen_string
-    xml_string = "<root></root>"
-    assert_equal({ "root" => {} }, ActiveSupport::XmlMini.parse(xml_string))
+    xml_string = '<root></root>'
+    assert_equal({ 'root' => {} }, ActiveSupport::XmlMini.parse(xml_string))
   end
 
   private
     def engine
-      "REXML"
+      'REXML'
     end
 
     def expansion_attack_error

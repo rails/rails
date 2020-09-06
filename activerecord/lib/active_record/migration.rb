@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "benchmark"
-require "set"
-require "zlib"
-require "active_support/core_ext/array/access"
-require "active_support/core_ext/enumerable"
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/actionable_error"
+require 'benchmark'
+require 'set'
+require 'zlib'
+require 'active_support/core_ext/array/access'
+require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/actionable_error'
 
 module ActiveRecord
   class MigrationError < ActiveRecordError #:nodoc:
@@ -95,7 +95,7 @@ module ActiveRecord
       if version
         super("Multiple migrations have the version number #{version}.")
       else
-        super("Duplicate migration version error.")
+        super('Duplicate migration version error.')
       end
     end
   end
@@ -105,7 +105,7 @@ module ActiveRecord
       if name
         super("Multiple migrations have the name #{name}.")
       else
-        super("Duplicate migration name.")
+        super('Duplicate migration name.')
       end
     end
   end
@@ -115,7 +115,7 @@ module ActiveRecord
       if version
         super("No migration with version number #{version}.")
       else
-        super("Unknown migration version.")
+        super('Unknown migration version.')
       end
     end
   end
@@ -125,7 +125,7 @@ module ActiveRecord
       if name
         super("Illegal name for migration file: #{name}\n\t(only lower case letters, numbers, and '_' allowed).")
       else
-        super("Illegal name for migration.")
+        super('Illegal name for migration.')
       end
     end
   end
@@ -133,7 +133,7 @@ module ActiveRecord
   class PendingMigrationError < MigrationError #:nodoc:
     include ActiveSupport::ActionableError
 
-    action "Run pending migrations" do
+    action 'Run pending migrations' do
       ActiveRecord::Tasks::DatabaseTasks.migrate
 
       if ActiveRecord::Base.dump_schema_after_migration
@@ -155,8 +155,8 @@ module ActiveRecord
   end
 
   class ConcurrentMigrationError < MigrationError #:nodoc:
-    DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running."
-    RELEASE_LOCK_FAILED_MESSAGE = "Failed to release advisory lock"
+    DEFAULT_MESSAGE = 'Cannot run migrations because another migration process is currently running.'
+    RELEASE_LOCK_FAILED_MESSAGE = 'Failed to release advisory lock'
 
     def initialize(message = DEFAULT_MESSAGE)
       super
@@ -175,10 +175,10 @@ module ActiveRecord
   end
 
   class ProtectedEnvironmentError < ActiveRecordError #:nodoc:
-    def initialize(env = "production")
+    def initialize(env = 'production')
       msg = +"You are attempting to run a destructive action against your '#{env}' database.\n"
       msg << "If you are sure you want to continue, run the same command with the environment variable:\n"
-      msg << "DISABLE_DATABASE_ENVIRONMENT_CHECK=1"
+      msg << 'DISABLE_DATABASE_ENVIRONMENT_CHECK=1'
       super(msg)
     end
   end
@@ -188,7 +188,7 @@ module ActiveRecord
       msg = +"You are attempting to modify a database that was last run in `#{ stored }` environment.\n"
       msg << "You are running in `#{ current }` environment. "
       msg << "If you are sure you want to continue, first set the environment using:\n\n"
-      msg << "        bin/rails db:environment:set"
+      msg << '        bin/rails db:environment:set'
       if defined?(Rails.env)
         super("#{msg} RAILS_ENV=#{::Rails.env}\n\n")
       else
@@ -200,7 +200,7 @@ module ActiveRecord
   class EnvironmentStorageError < ActiveRecordError # :nodoc:
     def initialize
       msg = +"You are attempting to store the environment in a database where metadata is disabled.\n"
-      msg << "Check your database configuration to see if this is intended."
+      msg << 'Check your database configuration to see if this is intended.'
       super(msg)
     end
   end
@@ -534,9 +534,9 @@ module ActiveRecord
   # Remember that you can still open your own transactions, even if you
   # are in a Migration with <tt>self.disable_ddl_transaction!</tt>.
   class Migration
-    autoload :CommandRecorder, "active_record/migration/command_recorder"
-    autoload :Compatibility, "active_record/migration/compatibility"
-    autoload :JoinTable, "active_record/migration/join_table"
+    autoload :CommandRecorder, 'active_record/migration/command_recorder'
+    autoload :Compatibility, 'active_record/migration/compatibility'
+    autoload :JoinTable, 'active_record/migration/join_table'
 
     # This must be defined before the inherited hook, below
     class Current < Migration #:nodoc:
@@ -545,7 +545,7 @@ module ActiveRecord
     def self.inherited(subclass) #:nodoc:
       super
       if subclass.superclass == Migration
-        raise StandardError, "Directly inheriting from ActiveRecord::Migration is not supported. " \
+        raise StandardError, 'Directly inheriting from ActiveRecord::Migration is not supported. ' \
           "Please specify the Rails release the migration was written for:\n" \
           "\n" \
           "  class #{subclass} < ActiveRecord::Migration[4.2]"
@@ -593,7 +593,7 @@ module ActiveRecord
       private
         def build_watcher(&block)
           paths = Array(connection.migration_context.migrations_paths)
-          @file_watcher.new([], paths.index_with(["rb"]), &block)
+          @file_watcher.new([], paths.index_with(['rb']), &block)
         end
 
         def connection
@@ -627,7 +627,7 @@ module ActiveRecord
           root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
           FileUtils.cd(root) do
             Base.clear_all_connections!
-            system("bin/rails db:test:prepare")
+            system('bin/rails db:test:prepare')
           end
         end
 
@@ -830,8 +830,8 @@ module ActiveRecord
       return unless respond_to?(direction)
 
       case direction
-      when :up   then announce "migrating"
-      when :down then announce "reverting"
+      when :up   then announce 'migrating'
+      when :down then announce 'reverting'
       end
 
       time = nil
@@ -842,8 +842,8 @@ module ActiveRecord
       end
 
       case direction
-      when :up   then announce "migrated (%.4fs)" % time.real; write
-      when :down then announce "reverted (%.4fs)" % time.real; write
+      when :up   then announce 'migrated (%.4fs)' % time.real; write
+      when :down then announce 'reverted (%.4fs)' % time.real; write
       end
     end
 
@@ -862,14 +862,14 @@ module ActiveRecord
       @connection = nil
     end
 
-    def write(text = "")
+    def write(text = '')
       puts(text) if verbose
     end
 
     def announce(message)
       text = "#{version} #{name}: #{message}"
       length = [0, 75 - text.length].max
-      write "== %s %s" % [text, "=" * length]
+      write '== %s %s' % [text, '=' * length]
     end
 
     # Takes a message argument and outputs it as is.
@@ -884,7 +884,7 @@ module ActiveRecord
       say(message)
       result = nil
       time = Benchmark.measure { result = yield }
-      say "%.4fs" % time.real, :subitem
+      say '%.4fs' % time.real, :subitem
       say("#{result} rows", :subitem) if result.is_a?(Integer)
       result
     end
@@ -902,7 +902,7 @@ module ActiveRecord
     end
 
     def method_missing(method, *arguments, &block)
-      arg_list = arguments.map(&:inspect) * ", "
+      arg_list = arguments.map(&:inspect) * ', '
 
       say_with_time "#{method}(#{arg_list})" do
         unless connection.respond_to? :revert
@@ -934,14 +934,14 @@ module ActiveRecord
         source_migrations.each do |migration|
           source = File.binread(migration.filename)
           inserted_comment = "# This migration comes from #{scope} (originally #{migration.version})\n"
-          magic_comments = +""
+          magic_comments = +''
           loop do
             # If we have a magic comment in the original migration,
             # insert our comment after the first newline(end of the magic comment line)
             # so the magic keep working.
             # Note that magic comments must be at the first line(except sh-bang).
             source.sub!(/\A(?:#.*\b(?:en)?coding:\s*\S+|#\s*frozen_string_literal:\s*(?:true|false)).*\n/) do |magic_comment|
-              magic_comments << magic_comment; ""
+              magic_comments << magic_comment; ''
             end || break
           end
           source = "#{magic_comments}#{inserted_comment}#{source}"
@@ -982,7 +982,7 @@ module ActiveRecord
     # Determines the version number of the next migration.
     def next_migration_number(number)
       if ActiveRecord::Base.timestamped_migrations
-        [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
+        [Time.now.utc.strftime('%Y%m%d%H%M%S'), '%.14d' % number].max
       else
         SchemaMigration.normalize_migration_number(number)
       end
@@ -1134,12 +1134,12 @@ module ActiveRecord
         version, name, scope = parse_migration_filename(file)
         raise IllegalMigrationNameError.new(file) unless version
         version = schema_migration.normalize_migration_number(version)
-        status = db_list.delete(version) ? "up" : "down"
+        status = db_list.delete(version) ? 'up' : 'down'
         [status, version, (name + scope).humanize]
       end.compact
 
       db_list.map! do |version|
-        ["up", version, "********** NO FILE **********"]
+        ['up', version, '********** NO FILE **********']
       end
 
       (db_list + file_list).sort_by { |_, version, _| version }
@@ -1203,7 +1203,7 @@ module ActiveRecord
       end
     end
 
-    self.migrations_paths = ["db/migrate"]
+    self.migrations_paths = ['db/migrate']
 
     def initialize(direction, migrations, schema_migration, target_version = nil)
       @direction         = direction
@@ -1319,8 +1319,8 @@ module ActiveRecord
           record_version_state_after_migrating(migration.version)
         end
       rescue => e
-        msg = +"An error has occurred, "
-        msg << "this and " if use_transaction?(migration)
+        msg = +'An error has occurred, '
+        msg << 'this and ' if use_transaction?(migration)
         msg << "all later migrations canceled:\n\n#{e}"
         raise StandardError, msg, e.backtrace
       end

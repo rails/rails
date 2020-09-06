@@ -11,7 +11,7 @@ module ActionDispatch
         @capabilities = capabilities
 
         if name == :selenium
-          require "selenium/webdriver"
+          require 'selenium/webdriver'
           @browser.preload
         end
       end

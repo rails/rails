@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/number_helper/number_converter"
+require 'active_support/number_helper/number_converter'
 
 module ActiveSupport
   module NumberHelper
@@ -24,12 +24,12 @@ module ActiveSupport
           human_size = number / (base**exponent)
           number_to_format = NumberToRoundedConverter.convert(human_size, options)
         end
-        conversion_format.gsub("%n", number_to_format).gsub("%u", unit)
+        conversion_format.gsub('%n', number_to_format).gsub('%u', unit)
       end
 
       private
         def conversion_format
-          translate_number_value_with_default("human.storage_units.format", locale: options[:locale], raise: true)
+          translate_number_value_with_default('human.storage_units.format', locale: options[:locale], raise: true)
         end
 
         def unit
@@ -37,7 +37,7 @@ module ActiveSupport
         end
 
         def storage_unit_key
-          key_end = smaller_than_base? ? "byte" : STORAGE_UNITS[exponent]
+          key_end = smaller_than_base? ? 'byte' : STORAGE_UNITS[exponent]
           "human.storage_units.units.#{key_end}"
         end
 

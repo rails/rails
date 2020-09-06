@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "action_controller/metal/exceptions"
-require "action_dispatch/http/content_disposition"
+require 'action_controller/metal/exceptions'
+require 'action_dispatch/http/content_disposition'
 
 module ActionController #:nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
@@ -11,8 +11,8 @@ module ActionController #:nodoc:
 
     include ActionController::Rendering
 
-    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream" #:nodoc:
-    DEFAULT_SEND_FILE_DISPOSITION = "attachment" #:nodoc:
+    DEFAULT_SEND_FILE_TYPE        = 'application/octet-stream' #:nodoc:
+    DEFAULT_SEND_FILE_DISPOSITION = 'attachment' #:nodoc:
 
     private
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
@@ -118,7 +118,7 @@ module ActionController #:nodoc:
         self.content_type = content_type
         response.sending_file = true
 
-        raise ArgumentError, ":type option required" if content_type.nil?
+        raise ArgumentError, ':type option required' if content_type.nil?
 
         if content_type.is_a?(Symbol)
           extension = Mime[content_type]
@@ -127,17 +127,17 @@ module ActionController #:nodoc:
         else
           if !type_provided && options[:filename]
             # If type wasn't provided, try guessing from file extension.
-            content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.delete(".")) || content_type
+            content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.delete('.')) || content_type
           end
           self.content_type = content_type
         end
 
         disposition = options.fetch(:disposition, DEFAULT_SEND_FILE_DISPOSITION)
         if disposition
-          headers["Content-Disposition"] = ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: options[:filename])
+          headers['Content-Disposition'] = ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: options[:filename])
         end
 
-        headers["Content-Transfer-Encoding"] = "binary"
+        headers['Content-Transfer-Encoding'] = 'binary'
 
         # Fix a problem with IE 6.0 on opening downloaded files:
         # If Cache-Control: no-cache is set (which Rails does by default),

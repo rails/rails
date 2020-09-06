@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../abstract_unit"
-require "active_support/core_ext/module/attribute_accessors_per_thread"
+require_relative '../../abstract_unit'
+require 'active_support/core_ext/module/attribute_accessors_per_thread'
 
 class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
   class MyClass
@@ -22,9 +22,9 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
 
   def test_can_initialize_with_default_value
     Thread.new do
-      @class.thread_mattr_accessor :baz, default: "default_value"
+      @class.thread_mattr_accessor :baz, default: 'default_value'
 
-      assert_equal "default_value", @class.baz
+      assert_equal 'default_value', @class.baz
     end.join
 
     assert_nil @class.baz
@@ -74,21 +74,21 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
   def test_values_should_not_bleed_between_threads
     threads = []
     threads << Thread.new do
-      @class.foo = "things"
+      @class.foo = 'things'
       Thread.pass
-      assert_equal "things", @class.foo
+      assert_equal 'things', @class.foo
     end
 
     threads << Thread.new do
-      @class.foo = "other things"
+      @class.foo = 'other things'
       Thread.pass
-      assert_equal "other things", @class.foo
+      assert_equal 'other things', @class.foo
     end
 
     threads << Thread.new do
-      @class.foo = "really other things"
+      @class.foo = 'really other things'
       Thread.pass
-      assert_equal "really other things", @class.foo
+      assert_equal 'really other things', @class.foo
     end
 
     threads.each(&:join)
@@ -97,46 +97,46 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
   def test_should_raise_name_error_if_attribute_name_is_invalid
     exception = assert_raises NameError do
       Class.new do
-        thread_cattr_reader "1nvalid"
+        thread_cattr_reader '1nvalid'
       end
     end
-    assert_equal "invalid attribute name: 1nvalid", exception.message
+    assert_equal 'invalid attribute name: 1nvalid', exception.message
 
     exception = assert_raises NameError do
       Class.new do
-        thread_cattr_writer "1nvalid"
+        thread_cattr_writer '1nvalid'
       end
     end
-    assert_equal "invalid attribute name: 1nvalid", exception.message
+    assert_equal 'invalid attribute name: 1nvalid', exception.message
 
     exception = assert_raises NameError do
       Class.new do
-        thread_mattr_reader "1valid_part"
+        thread_mattr_reader '1valid_part'
       end
     end
-    assert_equal "invalid attribute name: 1valid_part", exception.message
+    assert_equal 'invalid attribute name: 1valid_part', exception.message
 
     exception = assert_raises NameError do
       Class.new do
-        thread_mattr_writer "2valid_part"
+        thread_mattr_writer '2valid_part'
       end
     end
-    assert_equal "invalid attribute name: 2valid_part", exception.message
+    assert_equal 'invalid attribute name: 2valid_part', exception.message
   end
 
   def test_should_return_same_value_by_class_or_instance_accessor
-    @class.foo = "fries"
+    @class.foo = 'fries'
 
     assert_equal @class.foo, @object.foo
   end
 
   def test_should_not_affect_superclass_if_subclass_set_value
-    @class.foo = "super"
-    assert_equal "super", @class.foo
+    @class.foo = 'super'
+    assert_equal 'super', @class.foo
     assert_nil @subclass.foo
 
-    @subclass.foo = "sub"
-    assert_equal "super", @class.foo
-    assert_equal "sub", @subclass.foo
+    @subclass.foo = 'sub'
+    assert_equal 'super', @class.foo
+    assert_equal 'sub', @subclass.foo
   end
 end

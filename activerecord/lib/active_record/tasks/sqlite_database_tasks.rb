@@ -22,7 +22,7 @@ module ActiveRecord
       end
 
       def drop
-        require "pathname"
+        require 'pathname'
         path = Pathname.new(db_config.database)
         file = path.absolute? ? path.to_s : File.join(root, path)
 
@@ -49,16 +49,16 @@ module ActiveRecord
 
         ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
         if ignore_tables.any?
-          condition = ignore_tables.map { |table| connection.quote(table) }.join(", ")
+          condition = ignore_tables.map { |table| connection.quote(table) }.join(', ')
           args << "SELECT sql FROM sqlite_master WHERE tbl_name NOT IN (#{condition}) ORDER BY tbl_name, type DESC, name"
         else
-          args << ".schema"
+          args << '.schema'
         end
-        run_cmd("sqlite3", args, filename)
+        run_cmd('sqlite3', args, filename)
       end
 
       def structure_load(filename, extra_flags)
-        flags = extra_flags.join(" ") if extra_flags
+        flags = extra_flags.join(' ') if extra_flags
         `sqlite3 #{flags} #{db_config.database} < "#{filename}"`
       end
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "mutex_m"
-require "active_support/core_ext/enumerable"
+require 'mutex_m'
+require 'active_support/core_ext/enumerable'
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -148,7 +148,7 @@ module ActiveRecord
       #   Person.attribute_method?(:age=)    # => true
       #   Person.attribute_method?(:nothing) # => false
       def attribute_method?(attribute)
-        super || (table_exists? && column_names.include?(attribute.to_s.delete_suffix("=")))
+        super || (table_exists? && column_names.include?(attribute.to_s.delete_suffix('=')))
       end
 
       # Returns an array of column names as strings if it's not an abstract class and

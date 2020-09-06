@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../abstract_unit"
-require "active_support/core_ext/module/attribute_accessors"
+require_relative '../../abstract_unit'
+require 'active_support/core_ext/module/attribute_accessors'
 
 class ModuleAttributeAccessorTest < ActiveSupport::TestCase
   def setup
@@ -11,15 +11,15 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
       mattr_reader   :shaq, instance_reader: false
       mattr_accessor :camp, instance_accessor: false
 
-      cattr_accessor(:defa) { "default_accessor_value" }
-      cattr_reader(:defr) { "default_reader_value" }
-      cattr_writer(:defw) { "default_writer_value" }
+      cattr_accessor(:defa) { 'default_accessor_value' }
+      cattr_reader(:defr) { 'default_reader_value' }
+      cattr_writer(:defw) { 'default_writer_value' }
       cattr_accessor(:deff) { false }
       cattr_accessor(:quux) { :quux }
 
-      cattr_accessor :def_accessor, default: "default_accessor_value"
-      cattr_reader :def_reader, default: "default_reader_value"
-      cattr_writer :def_writer, default: "default_writer_value"
+      cattr_accessor :def_accessor, default: 'default_accessor_value'
+      cattr_reader :def_reader, default: 'default_reader_value'
+      cattr_writer :def_writer, default: 'default_writer_value'
       cattr_accessor :def_false, default: false
       cattr_accessor(:def_priority, default: false) { :no_priority }
     end
@@ -34,9 +34,9 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
   end
 
   def test_mattr_default_keyword_arguments
-    assert_equal "default_accessor_value", @module.def_accessor
-    assert_equal "default_reader_value", @module.def_reader
-    assert_equal "default_writer_value", @module.class_variable_get(:@@def_writer)
+    assert_equal 'default_accessor_value', @module.def_accessor
+    assert_equal 'default_reader_value', @module.def_reader
+    assert_equal 'default_writer_value', @module.class_variable_get(:@@def_writer)
   end
 
   def test_mattr_can_default_to_false
@@ -82,17 +82,17 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
   def test_should_raise_name_error_if_attribute_name_is_invalid
     exception = assert_raises NameError do
       Class.new do
-        cattr_reader "1nvalid"
+        cattr_reader '1nvalid'
       end
     end
-    assert_equal "invalid attribute name: 1nvalid", exception.message
+    assert_equal 'invalid attribute name: 1nvalid', exception.message
 
     exception = assert_raises NameError do
       Class.new do
-        cattr_writer "1nvalid"
+        cattr_writer '1nvalid'
       end
     end
-    assert_equal "invalid attribute name: 1nvalid", exception.message
+    assert_equal 'invalid attribute name: 1nvalid', exception.message
 
     exception = assert_raises NameError do
       Class.new do
@@ -110,9 +110,9 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
   end
 
   def test_should_use_default_value_if_block_passed
-    assert_equal "default_accessor_value", @module.defa
-    assert_equal "default_reader_value", @module.defr
-    assert_equal "default_writer_value", @module.class_variable_get("@@defw")
+    assert_equal 'default_accessor_value', @module.defa
+    assert_equal 'default_reader_value', @module.defr
+    assert_equal 'default_writer_value', @module.class_variable_get('@@defw')
   end
 
   def test_method_invocation_should_not_invoke_the_default_block
@@ -121,7 +121,7 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
     @module.cattr_accessor(:defcount) { count += 1 }
 
     assert_equal 1, count
-    assert_no_difference "count" do
+    assert_no_difference 'count' do
       @module.defcount
     end
   end
@@ -143,7 +143,7 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
         mattr_accessor :my_attr
       end
     end
-    assert_equal "module attributes should be defined directly on class, not singleton", ex.message
+    assert_equal 'module attributes should be defined directly on class, not singleton', ex.message
 
     assert_not_includes Module.class_variables, :@@my_attr
   end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/access"
-require "digest/sha2"
+require 'active_support/core_ext/string/access'
+require 'digest/sha2'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -26,13 +26,13 @@ module ActiveRecord
 
       # Truncates a table alias according to the limits of the current adapter.
       def table_alias_for(table_name)
-        table_name[0...table_alias_length].tr(".", "_")
+        table_name[0...table_alias_length].tr('.', '_')
       end
 
       # Returns the relation names useable to back Active Record models.
       # For most adapters this means all #tables and #views.
       def data_sources
-        query_values(data_source_sql, "SCHEMA")
+        query_values(data_source_sql, 'SCHEMA')
       rescue NotImplementedError
         tables | views
       end
@@ -42,14 +42,14 @@ module ActiveRecord
       #   data_source_exists?(:ebooks)
       #
       def data_source_exists?(name)
-        query_values(data_source_sql(name), "SCHEMA").any? if name.present?
+        query_values(data_source_sql(name), 'SCHEMA').any? if name.present?
       rescue NotImplementedError
         data_sources.include?(name.to_s)
       end
 
       # Returns an array of table names defined in the database.
       def tables
-        query_values(data_source_sql(type: "BASE TABLE"), "SCHEMA")
+        query_values(data_source_sql(type: 'BASE TABLE'), 'SCHEMA')
       end
 
       # Checks to see if the table +table_name+ exists on the database.
@@ -57,14 +57,14 @@ module ActiveRecord
       #   table_exists?(:developers)
       #
       def table_exists?(table_name)
-        query_values(data_source_sql(table_name, type: "BASE TABLE"), "SCHEMA").any? if table_name.present?
+        query_values(data_source_sql(table_name, type: 'BASE TABLE'), 'SCHEMA').any? if table_name.present?
       rescue NotImplementedError
         tables.include?(table_name.to_s)
       end
 
       # Returns an array of view names defined in the database.
       def views
-        query_values(data_source_sql(type: "VIEW"), "SCHEMA")
+        query_values(data_source_sql(type: 'VIEW'), 'SCHEMA')
       end
 
       # Checks to see if the view +view_name+ exists on the database.
@@ -72,14 +72,14 @@ module ActiveRecord
       #   view_exists?(:ebooks)
       #
       def view_exists?(view_name)
-        query_values(data_source_sql(view_name, type: "VIEW"), "SCHEMA").any? if view_name.present?
+        query_values(data_source_sql(view_name, type: 'VIEW'), 'SCHEMA').any? if view_name.present?
       rescue NotImplementedError
         views.include?(view_name.to_s)
       end
 
       # Returns an array of indexes for the given table.
       def indexes(table_name)
-        raise NotImplementedError, "#indexes is not implemented"
+        raise NotImplementedError, '#indexes is not implemented'
       end
 
       # Checks to see if an index exists on a table for a given index definition.
@@ -496,7 +496,7 @@ module ActiveRecord
       #   rename_table('octopuses', 'octopi')
       #
       def rename_table(table_name, new_name)
-        raise NotImplementedError, "rename_table is not implemented"
+        raise NotImplementedError, 'rename_table is not implemented'
       end
 
       # Drops a table from the database.
@@ -626,7 +626,7 @@ module ActiveRecord
       #    remove_columns(:suppliers, :qualification, :experience, type: :string, null: false)
       def remove_columns(table_name, *column_names, type: nil, **options)
         if column_names.empty?
-          raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)")
+          raise ArgumentError.new('You must specify at least one column name. Example: remove_columns(:people, :first_name)')
         end
 
         column_names.each do |column_name|
@@ -661,7 +661,7 @@ module ActiveRecord
       #   change_column(:accounts, :description, :text)
       #
       def change_column(table_name, column_name, type, **options)
-        raise NotImplementedError, "change_column is not implemented"
+        raise NotImplementedError, 'change_column is not implemented'
       end
 
       # Sets a new default value for a column:
@@ -679,7 +679,7 @@ module ActiveRecord
       #   change_column_default(:posts, :state, from: nil, to: "draft")
       #
       def change_column_default(table_name, column_name, default_or_changes)
-        raise NotImplementedError, "change_column_default is not implemented"
+        raise NotImplementedError, 'change_column_default is not implemented'
       end
 
       # Sets or removes a <tt>NOT NULL</tt> constraint on a column. The +null+ flag
@@ -699,7 +699,7 @@ module ActiveRecord
       #
       # Please note the fourth argument does not set a column's default.
       def change_column_null(table_name, column_name, null, default = nil)
-        raise NotImplementedError, "change_column_null is not implemented"
+        raise NotImplementedError, 'change_column_null is not implemented'
       end
 
       # Renames a column.
@@ -707,7 +707,7 @@ module ActiveRecord
       #   rename_column(:suppliers, :description, :name)
       #
       def rename_column(table_name, column_name, new_column_name)
-        raise NotImplementedError, "rename_column is not implemented"
+        raise NotImplementedError, 'rename_column is not implemented'
       end
 
       # Adds a new index to the table. +column_name+ can be a single Symbol, or
@@ -906,7 +906,7 @@ module ActiveRecord
           elsif options[:name]
             options[:name]
           else
-            raise ArgumentError, "You must specify the index name"
+            raise ArgumentError, 'You must specify the index name'
           end
         else
           index_name(table_name, index_name_options(options))
@@ -1007,7 +1007,7 @@ module ActiveRecord
       # Returns an array of foreign keys for the given table.
       # The foreign keys are represented as ForeignKeyDefinition objects.
       def foreign_keys(table_name)
-        raise NotImplementedError, "foreign_keys is not implemented"
+        raise NotImplementedError, 'foreign_keys is not implemented'
       end
 
       # Adds a new foreign key. +from_table+ is the table with the key column,
@@ -1226,7 +1226,7 @@ module ActiveRecord
                 column_type_sql << "(#{precision})"
               end
             elsif scale
-              raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale is specified"
+              raise ArgumentError, 'Error adding decimal column: precision cannot be empty if scale is specified'
             end
 
           elsif [:datetime, :timestamp, :time, :interval].include?(type) && precision ||= native[:precision]
@@ -1320,7 +1320,7 @@ module ActiveRecord
         quoted_columns = column_names.each_with_object({}) do |name, result|
           result[name.to_sym] = quote_column_name(name).dup
         end
-        add_options_for_index_columns(quoted_columns, **options).values.join(", ")
+        add_options_for_index_columns(quoted_columns, **options).values.join(', ')
       end
 
       def options_include_default?(options)
@@ -1393,7 +1393,7 @@ module ActiveRecord
             checks << lambda { |i| index_name(table_name, i.columns) == index_name(table_name, column_names) }
           end
 
-          raise ArgumentError, "No name or columns specified" if checks.none?
+          raise ArgumentError, 'No name or columns specified' if checks.none?
 
           matching_indexes = indexes(table_name).select { |i| checks.all? { |check| check[i] } }
 
@@ -1466,7 +1466,7 @@ module ActiveRecord
 
         def index_name_options(column_names)
           if column_names.is_a?(String) && /\W/.match?(column_names)
-            column_names = column_names.scan(/\w+/).join("_")
+            column_names = column_names.scan(/\w+/).join('_')
           end
 
           { column: column_names }
@@ -1499,9 +1499,9 @@ module ActiveRecord
 
         def extract_foreign_key_action(specifier)
           case specifier
-          when "CASCADE"; :cascade
-          when "SET NULL"; :nullify
-          when "RESTRICT"; :restrict
+          when 'CASCADE'; :cascade
+          when 'SET NULL'; :nullify
+          when 'RESTRICT'; :restrict
           end
         end
 

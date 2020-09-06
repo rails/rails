@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class Account < ActiveRecord::Base
-  belongs_to :firm, class_name: "Company"
-  belongs_to :unautosaved_firm, foreign_key: "firm_id", class_name: "Firm", autosave: false
+  belongs_to :firm, class_name: 'Company'
+  belongs_to :unautosaved_firm, foreign_key: 'firm_id', class_name: 'Firm', autosave: false
 
   alias_attribute :available_credit, :credit_limit
 
@@ -11,7 +11,7 @@ class Account < ActiveRecord::Base
   end
 
   # Test private kernel method through collection proxy using has_many.
-  scope :open, -> { where("firm_name = ?", "37signals") }
+  scope :open, -> { where('firm_name = ?', '37signals') }
   scope :available, -> { open }
 
   before_destroy do |account|
@@ -25,15 +25,15 @@ class Account < ActiveRecord::Base
 
   private
     def check_empty_credit_limit
-      errors.add("credit_limit", :blank) if credit_limit.blank?
+      errors.add('credit_limit', :blank) if credit_limit.blank?
     end
 
     def ensure_good_credit
-      errors.add(:credit_limit, "too low") unless credit_limit > 10_000
+      errors.add(:credit_limit, 'too low') unless credit_limit > 10_000
     end
 
     def private_method
-      "Sir, yes sir!"
+      'Sir, yes sir!'
     end
 end
 

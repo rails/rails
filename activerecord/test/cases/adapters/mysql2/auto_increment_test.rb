@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/schema_dumping_helper"
+require 'cases/helper'
+require 'support/schema_dumping_helper'
 
 class Mysql2AutoIncrementTest < ActiveRecord::Mysql2TestCase
   include SchemaDumpingHelper
@@ -19,7 +19,7 @@ class Mysql2AutoIncrementTest < ActiveRecord::Mysql2TestCase
       t.integer :id, null: false, auto_increment: true
       t.index :id
     end
-    output = dump_table_schema("auto_increments")
+    output = dump_table_schema('auto_increments')
     assert_match(/t\.integer\s+"id",\s+null: false,\s+auto_increment: true$/, output)
   end
 
@@ -28,7 +28,7 @@ class Mysql2AutoIncrementTest < ActiveRecord::Mysql2TestCase
       t.integer :id, null: false, auto_increment: true
       t.datetime :created_at, null: false
     end
-    output = dump_table_schema("auto_increments")
+    output = dump_table_schema('auto_increments')
     assert_match(/t\.integer\s+"id",\s+null: false,\s+auto_increment: true$/, output)
   end
 end

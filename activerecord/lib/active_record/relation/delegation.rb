@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "mutex_m"
-require "active_support/core_ext/module/delegation"
+require 'mutex_m'
+require 'active_support/core_ext/module/delegation'
 
 module ActiveRecord
   module Delegation # :nodoc:
@@ -21,7 +21,7 @@ module ActiveRecord
             include ClassSpecificRelation
           }
           include_relation_methods(delegate)
-          mangled_name = klass.name.gsub("::", "_")
+          mangled_name = klass.name.gsub('::', '_')
           const_set mangled_name, delegate
           private_constant mangled_name
 
@@ -61,7 +61,7 @@ module ActiveRecord
           return if method_defined?(method)
 
           if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method) && !DELEGATION_RESERVED_METHOD_NAMES.include?(method.to_s)
-            definition = RUBY_VERSION >= "2.7" ? "..." : "*args, &block"
+            definition = RUBY_VERSION >= '2.7' ? '...' : '*args, &block'
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
               def #{method}(#{definition})
                 scoping { klass.#{method}(#{definition}) }

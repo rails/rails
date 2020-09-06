@@ -1,51 +1,51 @@
 # frozen_string_literal: true
 
-activesupport_path = File.expand_path("../../../activesupport/lib", __dir__)
+activesupport_path = File.expand_path('../../../activesupport/lib', __dir__)
 $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
 
-require "thor/group"
-require "rails/command"
+require 'thor/group'
+require 'rails/command'
 
-require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/enumerable"
-require "active_support/core_ext/hash/deep_merge"
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/string/indent"
-require "active_support/core_ext/string/inflections"
+require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/hash/deep_merge'
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/string/indent'
+require 'active_support/core_ext/string/inflections'
 
 module Rails
   module Generators
     include Rails::Command::Behavior
 
-    autoload :Actions,         "rails/generators/actions"
-    autoload :ActiveModel,     "rails/generators/active_model"
-    autoload :Base,            "rails/generators/base"
-    autoload :Migration,       "rails/generators/migration"
-    autoload :Database,        "rails/generators/database"
-    autoload :AppName,         "rails/generators/app_name"
-    autoload :NamedBase,       "rails/generators/named_base"
-    autoload :ResourceHelpers, "rails/generators/resource_helpers"
-    autoload :TestCase,        "rails/generators/test_case"
+    autoload :Actions,         'rails/generators/actions'
+    autoload :ActiveModel,     'rails/generators/active_model'
+    autoload :Base,            'rails/generators/base'
+    autoload :Migration,       'rails/generators/migration'
+    autoload :Database,        'rails/generators/database'
+    autoload :AppName,         'rails/generators/app_name'
+    autoload :NamedBase,       'rails/generators/named_base'
+    autoload :ResourceHelpers, 'rails/generators/resource_helpers'
+    autoload :TestCase,        'rails/generators/test_case'
 
     mattr_accessor :namespace
 
     DEFAULT_ALIASES = {
       rails: {
-        actions: "-a",
-        orm: "-o",
-        javascripts: "-j",
-        javascript_engine: "-je",
-        resource_controller: "-c",
-        scaffold_controller: "-c",
-        stylesheets: "-y",
-        stylesheet_engine: "-se",
-        scaffold_stylesheet: "-ss",
-        template_engine: "-e",
-        test_framework: "-t"
+        actions: '-a',
+        orm: '-o',
+        javascripts: '-j',
+        javascript_engine: '-je',
+        resource_controller: '-c',
+        scaffold_controller: '-c',
+        stylesheets: '-y',
+        stylesheet_engine: '-se',
+        scaffold_stylesheet: '-ss',
+        template_engine: '-e',
+        test_framework: '-t'
       },
 
       test_unit: {
-        fixture_replacement: "-r",
+        fixture_replacement: '-r',
       }
     }
 
@@ -119,7 +119,7 @@ module Rails
       # migration generators, and completely disable helpers and assets
       # so generators such as scaffold won't create them.
       def api_only!
-        hide_namespaces "assets", "helper", "css", "js"
+        hide_namespaces 'assets', 'helper', 'css', 'js'
 
         options[:rails].merge!(
           api: true,
@@ -145,8 +145,8 @@ module Rails
           css      = options[:rails][:stylesheet_engine]
 
           [
-            "rails",
-            "resource_route",
+            'rails',
+            'resource_route',
             "#{orm}:migration",
             "#{orm}:model",
             "#{test}:controller",
@@ -163,10 +163,10 @@ module Rails
             "#{template}:mailer",
             "#{css}:scaffold",
             "#{css}:assets",
-            "css:assets",
-            "css:scaffold",
-            "action_text:install",
-            "action_mailbox:install"
+            'css:assets',
+            'css:scaffold',
+            'action_text:install',
+            'action_mailbox:install'
           ]
         end
       end
@@ -177,17 +177,17 @@ module Rails
       alias hide_namespace hide_namespaces
 
       # Show help message with available generators.
-      def help(command = "generate")
+      def help(command = 'generate')
         puts "Usage: rails #{command} GENERATOR [args] [options]"
         puts
-        puts "General options:"
+        puts 'General options:'
         puts "  -h, [--help]     # Print generator's options and usage"
-        puts "  -p, [--pretend]  # Run but do not make any changes"
-        puts "  -f, [--force]    # Overwrite files that already exist"
-        puts "  -s, [--skip]     # Skip files that already exist"
-        puts "  -q, [--quiet]    # Suppress status output"
+        puts '  -p, [--pretend]  # Run but do not make any changes'
+        puts '  -f, [--force]    # Overwrite files that already exist'
+        puts '  -s, [--skip]     # Skip files that already exist'
+        puts '  -q, [--quiet]    # Suppress status output'
         puts
-        puts "Please choose a generator below."
+        puts 'Please choose a generator below.'
         puts
 
         print_generators
@@ -208,24 +208,24 @@ module Rails
 
         groups = Hash.new { |h, k| h[k] = [] }
         namespaces.each do |namespace|
-          base = namespace.split(":").first
+          base = namespace.split(':').first
           groups[base] << namespace
         end
 
-        rails = groups.delete("rails")
-        rails.map! { |n| n.delete_prefix("rails:") }
-        rails.delete("app")
-        rails.delete("plugin")
-        rails.delete("encrypted_secrets")
-        rails.delete("encrypted_file")
-        rails.delete("encryption_key_file")
-        rails.delete("master_key")
-        rails.delete("credentials")
-        rails.delete("db:system:change")
+        rails = groups.delete('rails')
+        rails.map! { |n| n.delete_prefix('rails:') }
+        rails.delete('app')
+        rails.delete('plugin')
+        rails.delete('encrypted_secrets')
+        rails.delete('encrypted_file')
+        rails.delete('encryption_key_file')
+        rails.delete('master_key')
+        rails.delete('credentials')
+        rails.delete('db:system:change')
 
         hidden_namespaces.each { |n| groups.delete(n.to_s) }
 
-        [[ "rails", rails ]] + groups.sort.to_a
+        [[ 'rails', rails ]] + groups.sort.to_a
       end
 
       # Rails finds namespaces similar to Thor, it only adds one rule:
@@ -269,9 +269,9 @@ module Rails
       # It's used as the default entry point for generate, destroy and update
       # commands.
       def invoke(namespace, args = ARGV, config = {})
-        names = namespace.to_s.split(":")
-        if klass = find_by_namespace(names.pop, names.any? && names.join(":"))
-          args << "--help" if args.empty? && klass.arguments.any?(&:required?)
+        names = namespace.to_s.split(':')
+        if klass = find_by_namespace(names.pop, names.any? && names.join(':'))
+          args << '--help' if args.empty? && klass.arguments.any?(&:required?)
           klass.start(args, config)
           run_after_generate_callback if config[:behavior] == :invoke
         else
@@ -314,7 +314,7 @@ module Rails
         end
 
         def command_type # :doc:
-          @command_type ||= "generator"
+          @command_type ||= 'generator'
         end
 
         def lookup_paths # :doc:
@@ -322,7 +322,7 @@ module Rails
         end
 
         def file_lookup_paths # :doc:
-          @file_lookup_paths ||= [ "{#{lookup_paths.join(',')}}", "**", "*_generator.rb" ]
+          @file_lookup_paths ||= [ "{#{lookup_paths.join(',')}}", '**', '*_generator.rb' ]
         end
 
         def run_after_generate_callback

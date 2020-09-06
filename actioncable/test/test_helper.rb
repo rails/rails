@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
-require "action_cable"
-require "active_support/testing/autorun"
-require "active_support/testing/method_call_assertions"
+require 'action_cable'
+require 'active_support/testing/autorun'
+require 'active_support/testing/method_call_assertions'
 
-require "puma"
-require "rack/mock"
+require 'puma'
+require 'rack/mock'
 
 begin
-  require "byebug"
+  require 'byebug'
 rescue LoadError
 end
 
 # Require all the stubs and models
-Dir[File.expand_path("stubs/*.rb", __dir__)].each { |file| require file }
+Dir[File.expand_path('stubs/*.rb', __dir__)].each { |file| require file }
 
 # Set test adapter and logger
-ActionCable.server.config.cable = { "adapter" => "test" }
+ActionCable.server.config.cable = { 'adapter' => 'test' }
 ActionCable.server.config.logger = Logger.new(nil)
 
 class ActionCable::TestCase < ActiveSupport::TestCase
@@ -37,9 +37,9 @@ class ActionCable::TestCase < ActiveSupport::TestCase
     until executor.completed_task_count == executor.scheduled_task_count
       sleep 0.1
       timeout -= 0.1
-      raise "Executor could not complete all tasks in 2 seconds" unless timeout > 0
+      raise 'Executor could not complete all tasks in 2 seconds' unless timeout > 0
     end
   end
 end
 
-require_relative "../../tools/test_common"
+require_relative '../../tools/test_common'

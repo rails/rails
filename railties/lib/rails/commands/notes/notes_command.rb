@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "rails/source_annotation_extractor"
+require 'rails/source_annotation_extractor'
 
 module Rails
   module Command
     class NotesCommand < Base # :nodoc:
-      class_option :annotations, aliases: "-a", desc: "Filter by specific annotations, e.g. Foobar TODO", type: :array, default: Rails::SourceAnnotationExtractor::Annotation.tags
+      class_option :annotations, aliases: '-a', desc: 'Filter by specific annotations, e.g. Foobar TODO', type: :array, default: Rails::SourceAnnotationExtractor::Annotation.tags
 
       def perform(*)
         require_application_and_environment!
@@ -19,7 +19,7 @@ module Rails
           annotations = options[:annotations]
           tag = (annotations.length > 1)
 
-          Rails::SourceAnnotationExtractor.enumerate annotations.join("|"), tag: tag, dirs: directories
+          Rails::SourceAnnotationExtractor.enumerate annotations.join('|'), tag: tag, dirs: directories
         end
 
         def directories
@@ -28,11 +28,11 @@ module Rails
 
         def deprecation_warning
           return if source_annotation_directories.empty?
-          ActiveSupport::Deprecation.warn("`SOURCE_ANNOTATION_DIRECTORIES` is deprecated and will be removed in Rails 6.1. You can add default directories by using config.annotations.register_directories instead.")
+          ActiveSupport::Deprecation.warn('`SOURCE_ANNOTATION_DIRECTORIES` is deprecated and will be removed in Rails 6.1. You can add default directories by using config.annotations.register_directories instead.')
         end
 
         def source_annotation_directories
-          ENV["SOURCE_ANNOTATION_DIRECTORIES"].to_s.split(",")
+          ENV['SOURCE_ANNOTATION_DIRECTORIES'].to_s.split(',')
         end
     end
   end

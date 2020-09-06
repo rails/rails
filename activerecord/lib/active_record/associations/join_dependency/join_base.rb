@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_record/associations/join_dependency/join_part"
+require 'active_record/associations/join_dependency/join_part'
 
 module ActiveRecord
   module Associations

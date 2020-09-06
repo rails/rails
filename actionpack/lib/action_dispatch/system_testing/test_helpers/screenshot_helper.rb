@@ -49,7 +49,7 @@ module ActionDispatch
           attr_accessor :_screenshot_counter
 
           def save_html?
-            ENV["RAILS_SYSTEM_TESTING_SCREENSHOT_HTML"] == "1"
+            ENV['RAILS_SYSTEM_TESTING_SCREENSHOT_HTML'] == '1'
           end
 
           def increment_unique
@@ -58,11 +58,11 @@ module ActionDispatch
           end
 
           def unique
-            failed? ? "failures" : (_screenshot_counter || 0).to_s
+            failed? ? 'failures' : (_screenshot_counter || 0).to_s
           end
 
           def image_name
-            sanitized_method_name = method_name.tr("/\\", "--")
+            sanitized_method_name = method_name.tr('/\\', '--')
             name = "#{unique}_#{sanitized_method_name}"
             name[0...225]
           end
@@ -97,10 +97,10 @@ module ActionDispatch
 
           def output_type
             # Environment variables have priority
-            output_type = ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] || ENV["CAPYBARA_INLINE_SCREENSHOT"]
+            output_type = ENV['RAILS_SYSTEM_TESTING_SCREENSHOT'] || ENV['CAPYBARA_INLINE_SCREENSHOT']
 
             # Default to outputting a path to the screenshot
-            output_type ||= "simple"
+            output_type ||= 'simple'
 
             output_type
           end
@@ -110,9 +110,9 @@ module ActionDispatch
             message << +"[Screenshot HTML]: #{html_path}\n" if save_html?
 
             case output_type
-            when "artifact"
+            when 'artifact'
               message << "\e]1338;url=artifact://#{absolute_image_path}\a\n"
-            when "inline"
+            when 'inline'
               name = inline_base64(File.basename(absolute_image_path))
               image = inline_base64(File.read(absolute_image_path))
               message << "\e]1337;File=name=#{name};height=400px;inline=1:#{image}\a\n"

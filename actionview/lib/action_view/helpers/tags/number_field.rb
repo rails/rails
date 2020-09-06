@@ -7,8 +7,8 @@ module ActionView
         def render
           options = @options.stringify_keys
 
-          if range = options.delete("in") || options.delete("within")
-            options.update("min" => range.min, "max" => range.max)
+          if range = options.delete('in') || options.delete('within')
+            options.update('min' => range.min, 'max' => range.max)
           end
 
           @options = options

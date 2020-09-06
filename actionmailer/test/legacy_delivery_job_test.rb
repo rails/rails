@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "active_job"
-require "mailers/params_mailer"
-require "mailers/delayed_mailer"
+require 'abstract_unit'
+require 'active_job'
+require 'mailers/params_mailer'
+require 'mailers/delayed_mailer'
 
 class LegacyDeliveryJobTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -45,13 +45,13 @@ class LegacyDeliveryJobTest < ActiveSupport::TestCase
     ActionMailer::Base.deliver_later_queue_name = @previous_deliver_later_queue_name
   end
 
-  test "should send parameterized mail correctly" do
-    mail = ParamsMailer.with(inviter: "david@basecamp.com", invitee: "jason@basecamp.com").invitation
+  test 'should send parameterized mail correctly' do
+    mail = ParamsMailer.with(inviter: 'david@basecamp.com', invitee: 'jason@basecamp.com').invitation
     args = [
-      "ParamsMailer",
-      "invitation",
-      "deliver_now",
-      { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" },
+      'ParamsMailer',
+      'invitation',
+      'deliver_now',
+      { inviter: 'david@basecamp.com', invitee: 'jason@basecamp.com' },
     ]
 
     with_delivery_job(LegacyDeliveryJob) do
@@ -63,12 +63,12 @@ class LegacyDeliveryJobTest < ActiveSupport::TestCase
     end
   end
 
-  test "should send mail correctly" do
+  test 'should send mail correctly' do
     mail = DelayedMailer.test_message(1, 2, 3)
     args = [
-      "DelayedMailer",
-      "test_message",
-      "deliver_now",
+      'DelayedMailer',
+      'test_message',
+      'deliver_now',
       1,
       2,
       3,
@@ -83,9 +83,9 @@ class LegacyDeliveryJobTest < ActiveSupport::TestCase
     end
   end
 
-  test "triggers a deprecation warning when a delivery job use legacy arguments" do
+  test 'triggers a deprecation warning when a delivery job use legacy arguments' do
     with_delivery_job(LegacyArgumentDeliveryJob) do
-      assert_deprecated("Action Mailer will pass the mail arguments inside the `:args` keyword argument") do
+      assert_deprecated('Action Mailer will pass the mail arguments inside the `:args` keyword argument') do
         perform_enqueued_jobs do
           DelayedMailer.test_message(1, 2, 3).deliver_later
         end
@@ -93,7 +93,7 @@ class LegacyDeliveryJobTest < ActiveSupport::TestCase
     end
   end
 
-  test "does not trigger a deprecation warning when a delivery job use a required `args` kwargs" do
+  test 'does not trigger a deprecation warning when a delivery job use a required `args` kwargs' do
     with_delivery_job(NewArgumentDeliveryJob) do
       assert_not_deprecated do
         perform_enqueued_jobs do
@@ -103,7 +103,7 @@ class LegacyDeliveryJobTest < ActiveSupport::TestCase
     end
   end
 
-  test "does not trigger a deprecation warning when a delivery job use a keyrest argument" do
+  test 'does not trigger a deprecation warning when a delivery job use a keyrest argument' do
     with_delivery_job(KeyRestArgumentJob) do
       assert_not_deprecated do
         perform_enqueued_jobs do

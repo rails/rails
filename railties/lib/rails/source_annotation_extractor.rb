@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
+require 'active_support/deprecation'
 
 module Rails
   # Implements the logic behind <tt>Rails::Command::NotesCommand</tt>. See <tt>rails notes --help</tt> for usage information.
@@ -44,9 +44,9 @@ module Rails
         extensions[/\.(#{exts.join("|")})$/] = block
       end
 
-      register_extensions("builder", "rb", "rake", "yml", "yaml", "ruby") { |tag| /#\s*(#{tag}):?\s*(.*)$/ }
-      register_extensions("css", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
-      register_extensions("erb") { |tag| /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/ }
+      register_extensions('builder', 'rb', 'rake', 'yml', 'yaml', 'ruby') { |tag| /#\s*(#{tag}):?\s*(.*)$/ }
+      register_extensions('css', 'js') { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
+      register_extensions('erb') { |tag| /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/ }
 
       # Returns a representation of the annotation that looks like this:
       #
@@ -83,7 +83,7 @@ module Rails
     #
     # This class method is the single entry point for the `rails notes` command.
     def self.enumerate(tag = nil, options = {})
-      tag ||= Annotation.tags.join("|")
+      tag ||= Annotation.tags.join('|')
       extractor = new(tag)
       dirs = options.delete(:dirs) || Annotation.directories
       extractor.display(extractor.find(dirs), options)
@@ -109,7 +109,7 @@ module Rails
       results = {}
 
       Dir.glob("#{dir}/*") do |item|
-        next if File.basename(item).start_with?(".")
+        next if File.basename(item).start_with?('.')
 
         if File.directory?(item)
           results.update(find_in(item))
@@ -159,4 +159,4 @@ end
 # Remove this deprecated class in the next minor version
 #:nodoc:
 SourceAnnotationExtractor = ActiveSupport::Deprecation::DeprecatedConstantProxy.
-  new("SourceAnnotationExtractor", "Rails::SourceAnnotationExtractor")
+  new('SourceAnnotationExtractor', 'Rails::SourceAnnotationExtractor')

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "active_support/configurable"
+require_relative 'abstract_unit'
+require 'active_support/configurable'
 
 class ConfigurableActiveSupport < ActiveSupport::TestCase
   class Parent
@@ -21,17 +21,17 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     Child.config.clear
   end
 
-  test "adds a configuration hash" do
+  test 'adds a configuration hash' do
     assert_equal({ foo: :bar }, Parent.config)
   end
 
-  test "adds a configuration hash to a module as well" do
+  test 'adds a configuration hash to a module as well' do
     mixin = Module.new { include ActiveSupport::Configurable }
     mixin.config.foo = :bar
     assert_equal({ foo: :bar }, mixin.config)
   end
 
-  test "configuration hash is inheritable" do
+  test 'configuration hash is inheritable' do
     assert_equal :bar, Child.config.foo
     assert_equal :bar, Parent.config.foo
 
@@ -40,7 +40,7 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     assert_equal :bar, Parent.config.foo
   end
 
-  test "configuration accessors are not available on instance" do
+  test 'configuration accessors are not available on instance' do
     instance = Parent.new
 
     assert_not_respond_to instance, :bar
@@ -50,7 +50,7 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     assert_not_respond_to instance, :baz=
   end
 
-  test "configuration accessors can take a default value" do
+  test 'configuration accessors can take a default value' do
     parent = Class.new do
       include ActiveSupport::Configurable
       config_accessor :hair_colors, :tshirt_colors do
@@ -62,7 +62,7 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     assert_equal [:black, :blue, :white], parent.tshirt_colors
   end
 
-  test "configuration hash is available on instance" do
+  test 'configuration hash is available on instance' do
     instance = Parent.new
     assert_equal :bar, instance.config.foo
     assert_equal :bar, Parent.config.foo
@@ -72,7 +72,7 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     assert_equal :bar, Parent.config.foo
   end
 
-  test "configuration is crystalizeable" do
+  test 'configuration is crystalizeable' do
     parent = Class.new { include ActiveSupport::Configurable }
     child  = Class.new(parent)
 
@@ -90,11 +90,11 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     assert_method_defined child.new.config, :bar
   end
 
-  test "should raise name error if attribute name is invalid" do
+  test 'should raise name error if attribute name is invalid' do
     assert_raises NameError do
       Class.new do
         include ActiveSupport::Configurable
-        config_accessor "invalid attribute name"
+        config_accessor 'invalid attribute name'
       end
     end
 
@@ -113,7 +113,7 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     end
   end
 
-  test "the config_accessor method should not be publicly callable" do
+  test 'the config_accessor method should not be publicly callable' do
     assert_raises NoMethodError do
       Class.new {
         include ActiveSupport::Configurable

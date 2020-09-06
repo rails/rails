@@ -16,18 +16,18 @@ module ActiveRecord
     end
 
     def build(attributes = nil, &block)
-      block = _deprecated_scope_block("new", &block)
+      block = _deprecated_scope_block('new', &block)
       scoping { @association.build(attributes, &block) }
     end
     alias new build
 
     def create(attributes = nil, &block)
-      block = _deprecated_scope_block("create", &block)
+      block = _deprecated_scope_block('create', &block)
       scoping { @association.create(attributes, &block) }
     end
 
     def create!(attributes = nil, &block)
-      block = _deprecated_scope_block("create!", &block)
+      block = _deprecated_scope_block('create!', &block)
       scoping { @association.create!(attributes, &block) }
     end
 

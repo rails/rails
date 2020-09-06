@@ -32,42 +32,42 @@ module Arel # :nodoc: all
 
       private
         def visit_Arel_Nodes_Ordering(o)
-          visit_edge o, "expr"
+          visit_edge o, 'expr'
         end
 
         def visit_Arel_Nodes_TableAlias(o)
-          visit_edge o, "name"
-          visit_edge o, "relation"
+          visit_edge o, 'name'
+          visit_edge o, 'relation'
         end
 
         def visit_Arel_Nodes_Count(o)
-          visit_edge o, "expressions"
-          visit_edge o, "distinct"
+          visit_edge o, 'expressions'
+          visit_edge o, 'distinct'
         end
 
         def visit_Arel_Nodes_ValuesList(o)
-          visit_edge o, "rows"
+          visit_edge o, 'rows'
         end
 
         def visit_Arel_Nodes_StringJoin(o)
-          visit_edge o, "left"
+          visit_edge o, 'left'
         end
 
         def visit_Arel_Nodes_InnerJoin(o)
-          visit_edge o, "left"
-          visit_edge o, "right"
+          visit_edge o, 'left'
+          visit_edge o, 'right'
         end
         alias :visit_Arel_Nodes_FullOuterJoin  :visit_Arel_Nodes_InnerJoin
         alias :visit_Arel_Nodes_OuterJoin      :visit_Arel_Nodes_InnerJoin
         alias :visit_Arel_Nodes_RightOuterJoin :visit_Arel_Nodes_InnerJoin
 
         def visit_Arel_Nodes_DeleteStatement(o)
-          visit_edge o, "relation"
-          visit_edge o, "wheres"
+          visit_edge o, 'relation'
+          visit_edge o, 'wheres'
         end
 
         def unary(o)
-          visit_edge o, "expr"
+          visit_edge o, 'expr'
         end
         alias :visit_Arel_Nodes_Group             :unary
         alias :visit_Arel_Nodes_Cube              :unary
@@ -88,24 +88,24 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_Range             :unary
 
         def window(o)
-          visit_edge o, "partitions"
-          visit_edge o, "orders"
-          visit_edge o, "framing"
+          visit_edge o, 'partitions'
+          visit_edge o, 'orders'
+          visit_edge o, 'framing'
         end
         alias :visit_Arel_Nodes_Window            :window
 
         def named_window(o)
-          visit_edge o, "partitions"
-          visit_edge o, "orders"
-          visit_edge o, "framing"
-          visit_edge o, "name"
+          visit_edge o, 'partitions'
+          visit_edge o, 'orders'
+          visit_edge o, 'framing'
+          visit_edge o, 'name'
         end
         alias :visit_Arel_Nodes_NamedWindow       :named_window
 
         def function(o)
-          visit_edge o, "expressions"
-          visit_edge o, "distinct"
-          visit_edge o, "alias"
+          visit_edge o, 'expressions'
+          visit_edge o, 'distinct'
+          visit_edge o, 'alias'
         end
         alias :visit_Arel_Nodes_Exists :function
         alias :visit_Arel_Nodes_Min    :function
@@ -114,62 +114,62 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_Sum    :function
 
         def extract(o)
-          visit_edge o, "expressions"
-          visit_edge o, "alias"
+          visit_edge o, 'expressions'
+          visit_edge o, 'alias'
         end
         alias :visit_Arel_Nodes_Extract :extract
 
         def visit_Arel_Nodes_NamedFunction(o)
-          visit_edge o, "name"
-          visit_edge o, "expressions"
-          visit_edge o, "distinct"
-          visit_edge o, "alias"
+          visit_edge o, 'name'
+          visit_edge o, 'expressions'
+          visit_edge o, 'distinct'
+          visit_edge o, 'alias'
         end
 
         def visit_Arel_Nodes_InsertStatement(o)
-          visit_edge o, "relation"
-          visit_edge o, "columns"
-          visit_edge o, "values"
+          visit_edge o, 'relation'
+          visit_edge o, 'columns'
+          visit_edge o, 'values'
         end
 
         def visit_Arel_Nodes_SelectCore(o)
-          visit_edge o, "source"
-          visit_edge o, "projections"
-          visit_edge o, "wheres"
-          visit_edge o,  "windows"
+          visit_edge o, 'source'
+          visit_edge o, 'projections'
+          visit_edge o, 'wheres'
+          visit_edge o,  'windows'
         end
 
         def visit_Arel_Nodes_SelectStatement(o)
-          visit_edge o, "cores"
-          visit_edge o, "limit"
-          visit_edge o, "orders"
-          visit_edge o, "offset"
+          visit_edge o, 'cores'
+          visit_edge o, 'limit'
+          visit_edge o, 'orders'
+          visit_edge o, 'offset'
         end
 
         def visit_Arel_Nodes_UpdateStatement(o)
-          visit_edge o, "relation"
-          visit_edge o, "wheres"
-          visit_edge o, "values"
+          visit_edge o, 'relation'
+          visit_edge o, 'wheres'
+          visit_edge o, 'values'
         end
 
         def visit_Arel_Table(o)
-          visit_edge o, "name"
+          visit_edge o, 'name'
         end
 
         def visit_Arel_Nodes_Casted(o)
-          visit_edge o, "value"
-          visit_edge o, "attribute"
+          visit_edge o, 'value'
+          visit_edge o, 'attribute'
         end
 
         def visit_Arel_Nodes_HomogeneousIn(o)
-          visit_edge o, "values"
-          visit_edge o, "type"
-          visit_edge o, "attribute"
+          visit_edge o, 'values'
+          visit_edge o, 'type'
+          visit_edge o, 'attribute'
         end
 
         def visit_Arel_Attribute(o)
-          visit_edge o, "relation"
-          visit_edge o, "name"
+          visit_edge o, 'relation'
+          visit_edge o, 'name'
         end
         alias :visit_Arel_Attributes_Integer :visit_Arel_Attribute
         alias :visit_Arel_Attributes_Float :visit_Arel_Attribute
@@ -186,8 +186,8 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_And :nary
 
         def binary(o)
-          visit_edge o, "left"
-          visit_edge o, "right"
+          visit_edge o, 'left'
+          visit_edge o, 'right'
         end
         alias :visit_Arel_Nodes_As                 :binary
         alias :visit_Arel_Nodes_Assignment         :binary
@@ -225,11 +225,11 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_SqlLiteral :visit_String
 
         def visit_Arel_Nodes_BindParam(o)
-          edge("value") { visit o.value }
+          edge('value') { visit o.value }
         end
 
         def visit_ActiveModel_Attribute(o)
-          edge("value_before_type_cast") { visit o.value_before_type_cast }
+          edge('value_before_type_cast') { visit o.value_before_type_cast }
         end
 
         def visit_Hash(o)
@@ -246,7 +246,7 @@ module Arel # :nodoc: all
         alias :visit_Set :visit_Array
 
         def visit_Arel_Nodes_Comment(o)
-          visit_edge(o, "values")
+          visit_edge(o, 'values')
         end
 
         def visit_edge(o, method)

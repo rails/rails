@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 class ActiveRecordSchemaTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -26,10 +26,10 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
   def test_has_primary_key
     old_primary_key_prefix_type = ActiveRecord::Base.primary_key_prefix_type
     ActiveRecord::Base.primary_key_prefix_type = :table_name_with_underscore
-    assert_equal "version", @schema_migration.primary_key
+    assert_equal 'version', @schema_migration.primary_key
 
     @schema_migration.create_table
-    assert_difference "@schema_migration.count", 1 do
+    assert_difference '@schema_migration.count', 1 do
       @schema_migration.create version: 12
     end
   ensure
@@ -47,14 +47,14 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
       end
     end
 
-    assert_nothing_raised { @connection.select_all "SELECT * FROM fruits" }
-    assert_nothing_raised { @connection.select_all "SELECT * FROM schema_migrations" }
+    assert_nothing_raised { @connection.select_all 'SELECT * FROM fruits' }
+    assert_nothing_raised { @connection.select_all 'SELECT * FROM schema_migrations' }
     assert_equal 7, @connection.migration_context.current_version
   end
 
   def test_schema_define_with_table_name_prefix
     old_table_name_prefix = ActiveRecord::Base.table_name_prefix
-    ActiveRecord::Base.table_name_prefix = "nep_"
+    ActiveRecord::Base.table_name_prefix = 'nep_'
     @schema_migration.reset_table_name
     ActiveRecord::InternalMetadata.reset_table_name
     ActiveRecord::Schema.define(version: 7) do
@@ -86,29 +86,29 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     Class.new(ActiveRecord::Schema).define(version: 9) do
       create_table :fruits
     end
-    assert_nothing_raised { @connection.select_all "SELECT * FROM fruits" }
+    assert_nothing_raised { @connection.select_all 'SELECT * FROM fruits' }
   end
 
   def test_normalize_version
-    assert_equal "118", @schema_migration.normalize_migration_number("0000118")
-    assert_equal "002", @schema_migration.normalize_migration_number("2")
-    assert_equal "017", @schema_migration.normalize_migration_number("0017")
-    assert_equal "20131219224947", @schema_migration.normalize_migration_number("20131219224947")
+    assert_equal '118', @schema_migration.normalize_migration_number('0000118')
+    assert_equal '002', @schema_migration.normalize_migration_number('2')
+    assert_equal '017', @schema_migration.normalize_migration_number('0017')
+    assert_equal '20131219224947', @schema_migration.normalize_migration_number('20131219224947')
   end
 
   def test_schema_load_with_multiple_indexes_for_column_of_different_names
     ActiveRecord::Schema.define do
       create_table :multiple_indexes do |t|
-        t.string "foo"
-        t.index ["foo"], name: "multiple_indexes_foo_1"
-        t.index ["foo"], name: "multiple_indexes_foo_2"
+        t.string 'foo'
+        t.index ['foo'], name: 'multiple_indexes_foo_1'
+        t.index ['foo'], name: 'multiple_indexes_foo_2'
       end
     end
 
-    indexes = @connection.indexes("multiple_indexes")
+    indexes = @connection.indexes('multiple_indexes')
 
     assert_equal 2, indexes.length
-    assert_equal ["multiple_indexes_foo_1", "multiple_indexes_foo_2"], indexes.collect(&:name).sort
+    assert_equal ['multiple_indexes_foo_1', 'multiple_indexes_foo_2'], indexes.collect(&:name).sort
   end
 
   def test_timestamps_without_null_set_null_to_false_on_create_table

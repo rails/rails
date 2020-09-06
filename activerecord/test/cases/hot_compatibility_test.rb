@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/connection_helper"
+require 'cases/helper'
+require 'support/connection_helper'
 
 class HotCompatibilityTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -14,7 +14,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
         t.string :bar
       end
 
-      def self.name; "HotCompatibility"; end
+      def self.name; 'HotCompatibility'; end
     end
   end
 
@@ -22,7 +22,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.drop_table :hot_compatibilities
   end
 
-  test "insert after remove_column" do
+  test 'insert after remove_column' do
     # warm cache
     @klass.create!
 
@@ -37,29 +37,29 @@ class HotCompatibilityTest < ActiveRecord::TestCase
 
     # but we can successfully create a record so long as we don't
     # reference the removed column
-    record = @klass.create! foo: "foo"
+    record = @klass.create! foo: 'foo'
     record.reload
-    assert_equal "foo", record.foo
+    assert_equal 'foo', record.foo
   end
 
-  test "update after remove_column" do
-    record = @klass.create! foo: "foo"
+  test 'update after remove_column' do
+    record = @klass.create! foo: 'foo'
     assert_equal 3, @klass.columns.length
     @klass.connection.remove_column :hot_compatibilities, :bar
     assert_equal 3, @klass.columns.length
 
     record.reload
-    assert_equal "foo", record.foo
-    record.foo = "bar"
+    assert_equal 'foo', record.foo
+    record.foo = 'bar'
     record.save!
     record.reload
-    assert_equal "bar", record.foo
+    assert_equal 'bar', record.foo
   end
 
   if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.connection.prepared_statements
-    test "cleans up after prepared statement failure in a transaction" do
+    test 'cleans up after prepared statement failure in a transaction' do
       with_two_connections do |original_connection, ddl_connection|
-        record = @klass.create! bar: "bar"
+        record = @klass.create! bar: 'bar'
 
         # prepare the reload statement in a transaction
         @klass.transaction do
@@ -67,7 +67,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
         end
 
         assert get_prepared_statement_cache(@klass.connection).any?,
-          "expected prepared statement cache to have something in it"
+          'expected prepared statement cache to have something in it'
 
         # add a new column
         ddl_connection.add_column :hot_compatibilities, :baz, :string
@@ -83,9 +83,9 @@ class HotCompatibilityTest < ActiveRecord::TestCase
       end
     end
 
-    test "cleans up after prepared statement failure in nested transactions" do
+    test 'cleans up after prepared statement failure in nested transactions' do
       with_two_connections do |original_connection, ddl_connection|
-        record = @klass.create! bar: "bar"
+        record = @klass.create! bar: 'bar'
 
         # prepare the reload statement in a transaction
         @klass.transaction do
@@ -93,7 +93,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
         end
 
         assert get_prepared_statement_cache(@klass.connection).any?,
-          "expected prepared statement cache to have something in it"
+          'expected prepared statement cache to have something in it'
 
         # add a new column
         ddl_connection.add_column :hot_compatibilities, :baz, :string

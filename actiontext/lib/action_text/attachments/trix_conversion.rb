@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/try"
+require 'active_support/core_ext/object/try'
 
 module ActionText
   module Attachments
@@ -21,7 +21,7 @@ module ActionText
 
       def to_trix_attachment(content = trix_attachment_content)
         attributes = full_attributes.dup
-        attributes["content"] = content if content
+        attributes['content'] = content if content
         TrixAttachment.from_attributes(attributes)
       end
 

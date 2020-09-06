@@ -3,11 +3,11 @@
 module Rails
   module Generators
     class AssetsGenerator < NamedBase # :nodoc:
-      class_option :javascripts, type: :boolean, desc: "Generate JavaScripts"
-      class_option :stylesheets, type: :boolean, desc: "Generate Stylesheets"
+      class_option :javascripts, type: :boolean, desc: 'Generate JavaScripts'
+      class_option :stylesheets, type: :boolean, desc: 'Generate Stylesheets'
 
-      class_option :javascript_engine, desc: "Engine for JavaScripts"
-      class_option :stylesheet_engine, desc: "Engine for Stylesheets"
+      class_option :javascript_engine, desc: 'Engine for JavaScripts'
+      class_option :stylesheet_engine, desc: 'Engine for Stylesheets'
 
       private
         def asset_name

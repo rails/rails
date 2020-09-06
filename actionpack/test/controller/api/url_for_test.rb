@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 class UrlForApiController < ActionController::API
   def one; end
@@ -12,11 +12,11 @@ class UrlForApiTest < ActionController::TestCase
 
   def setup
     super
-    @request.host = "www.example.com"
+    @request.host = 'www.example.com'
   end
 
   def test_url_for
     get :one
-    assert_equal "http://www.example.com/url_for_api/one", @controller.url_for
+    assert_equal 'http://www.example.com/url_for_api/one', @controller.url_for
   end
 end

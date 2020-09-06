@@ -29,8 +29,8 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        attribute_method_suffix "_before_type_cast"
-        attribute_method_suffix "_came_from_user?"
+        attribute_method_suffix '_before_type_cast'
+        attribute_method_suffix '_came_from_user?'
       end
 
       # Returns the value of the attribute identified by +attr_name+ before

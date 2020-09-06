@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "active_record/relation/from_clause"
-require "active_record/relation/query_attribute"
-require "active_record/relation/where_clause"
-require "active_model/forbidden_attributes_protection"
-require "active_support/core_ext/array/wrap"
+require 'active_record/relation/from_clause'
+require 'active_record/relation/query_attribute'
+require 'active_record/relation/where_clause'
+require 'active_model/forbidden_attributes_protection'
+require 'active_support/core_ext/array/wrap'
 
 module ActiveRecord
   module QueryMethods
@@ -109,11 +109,11 @@ module ActiveRecord
       method_name, default =
         case name
         when *Relation::MULTI_VALUE_METHODS
-          ["#{name}_values", "FROZEN_EMPTY_ARRAY"]
+          ["#{name}_values", 'FROZEN_EMPTY_ARRAY']
         when *Relation::SINGLE_VALUE_METHODS
-          ["#{name}_value", name == :create_with ? "FROZEN_EMPTY_HASH" : "nil"]
+          ["#{name}_value", name == :create_with ? 'FROZEN_EMPTY_HASH' : 'nil']
         when *Relation::CLAUSE_METHODS
-          ["#{name}_clause", name == :from ? "Relation::FromClause.empty" : "Relation::WhereClause.empty"]
+          ["#{name}_clause", name == :from ? 'Relation::FromClause.empty' : 'Relation::WhereClause.empty']
         end
 
       class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -466,7 +466,7 @@ module ActiveRecord
         when Hash
           scope.each do |key, target_value|
             if key != :where
-              raise ArgumentError, "Hash arguments in .unscope(*args) must have :where as the key."
+              raise ArgumentError, 'Hash arguments in .unscope(*args) must have :where as the key.'
             end
 
             target_values = resolve_arel_attributes(Array.wrap(target_value))
@@ -847,7 +847,7 @@ module ActiveRecord
     end
 
     def none! # :nodoc:
-      where!("1=0").extending!(NullRelation)
+      where!('1=0').extending!(NullRelation)
     end
 
     # Sets readonly attributes for the returned relation. If value is
@@ -1159,8 +1159,8 @@ module ActiveRecord
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
-        arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value))) if limit_value
-        arel.skip(build_cast_value("OFFSET", offset_value.to_i)) if offset_value
+        arel.take(build_cast_value('LIMIT', connection.sanitize_limit(limit_value))) if limit_value
+        arel.skip(build_cast_value('OFFSET', offset_value.to_i)) if offset_value
         arel.group(*arel_columns(group_values.uniq)) unless group_values.empty?
 
         build_order(arel)
@@ -1201,7 +1201,7 @@ module ActiveRecord
           if opts.eager_loading?
             opts = opts.send(:apply_join_dependency)
           end
-          name ||= "subquery"
+          name ||= 'subquery'
           opts.arel.as(name.to_s)
         else
           opts
@@ -1232,7 +1232,7 @@ module ActiveRecord
         unless left_outer_joins_values.empty?
           stashed_left_joins = []
           left_joins = select_association_list(left_outer_joins_values, stashed_left_joins) do
-            raise ArgumentError, "only Hash, Symbol and Array are allowed"
+            raise ArgumentError, 'only Hash, Symbol and Array are allowed'
           end
 
           if joins_values.empty?
@@ -1266,7 +1266,7 @@ module ActiveRecord
           if join.is_a?(Arel::Nodes::Join)
             buckets[:join_node] << join
           else
-            raise "unknown class: %s" % join.class.name
+            raise 'unknown class: %s' % join.class.name
           end
         end
 
@@ -1332,7 +1332,7 @@ module ActiveRecord
         if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
           table[field]
         elsif field.match?(/\A\w+\.\w+\z/)
-          table, column = field.split(".")
+          table, column = field.split('.')
           predicate_builder.resolve_arel_attribute(table, column) do
             lookup_reflection_from_join_dependencies(table)
           end
@@ -1351,7 +1351,7 @@ module ActiveRecord
         if order_query.empty?
           return [table[primary_key].desc] if primary_key
           raise IrreversibleOrderError,
-            "Relation has no current order and table has no primary key to be used as default order"
+            'Relation has no current order and table has no primary key to be used as default order'
         end
 
         order_query.flat_map do |o|
@@ -1366,9 +1366,9 @@ module ActiveRecord
             if does_not_support_reverse?(o)
               raise IrreversibleOrderError, "Order #{o.inspect} cannot be reversed automatically"
             end
-            o.split(",").map! do |s|
+            o.split(',').map! do |s|
               s.strip!
-              s.gsub!(/\sasc\Z/i, " DESC") || s.gsub!(/\sdesc\Z/i, " ASC") || (s << " DESC")
+              s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || (s << ' DESC')
             end
           else
             o
@@ -1382,7 +1382,7 @@ module ActiveRecord
         order = String.new(order) unless order.instance_of?(String)
 
         # Uses SQL function with multiple arguments.
-        (order.include?(",") && order.split(",").find { |section| section.count("(") != section.count(")") }) ||
+        (order.include?(',') && order.split(',').find { |section| section.count('(') != section.count(')') }) ||
           # Uses "nulls first" like construction.
           /\bnulls\s+(?:first|last)\b/i.match?(order)
       end
@@ -1393,7 +1393,7 @@ module ActiveRecord
       end
 
       VALID_DIRECTIONS = [:asc, :desc, :ASC, :DESC,
-                          "asc", "desc", "ASC", "DESC"].to_set # :nodoc:
+                          'asc', 'desc', 'ASC', 'DESC'].to_set # :nodoc:
 
       def validate_order_args(args)
         args.each do |arg|
@@ -1454,7 +1454,7 @@ module ActiveRecord
 
       def order_column(field)
         arel_column(field) do |attr_name|
-          if attr_name == "count" && !group_values.empty?
+          if attr_name == 'count' && !group_values.empty?
             table[attr_name]
           else
             Arel.sql(connection.quote_table_name(attr_name))
@@ -1476,8 +1476,8 @@ module ActiveRecord
             end
           else
             attr = attr.to_s
-            if attr.include?(".")
-              table, column = attr.split(".", 2)
+            if attr.include?('.')
+              table, column = attr.split('.', 2)
               predicate_builder.resolve_arel_attribute(table, column)
             else
               attr

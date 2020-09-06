@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_job"
+require 'active_job'
 
 module ActionMailer
   # The <tt>ActionMailer::DeliveryJob</tt> class is used when you

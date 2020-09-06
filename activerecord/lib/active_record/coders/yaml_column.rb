@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "yaml"
+require 'yaml'
 
 module ActiveRecord
   module Coders # :nodoc:
@@ -16,16 +16,16 @@ module ActiveRecord
       def dump(obj)
         return if obj.nil?
 
-        assert_valid_value(obj, action: "dump")
+        assert_valid_value(obj, action: 'dump')
         YAML.dump obj
       end
 
       def load(yaml)
         return object_class.new if object_class != Object && yaml.nil?
-        return yaml unless yaml.is_a?(String) && yaml.start_with?("---")
+        return yaml unless yaml.is_a?(String) && yaml.start_with?('---')
         obj = YAML.load(yaml)
 
-        assert_valid_value(obj, action: "load")
+        assert_valid_value(obj, action: 'load')
         obj ||= object_class.new if object_class != Object
 
         obj

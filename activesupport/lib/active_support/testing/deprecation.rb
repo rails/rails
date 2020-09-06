@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
+require 'active_support/deprecation'
 
 module ActiveSupport
   module Testing
     module Deprecation #:nodoc:
       def assert_deprecated(match = nil, deprecator = nil, &block)
         result, warnings = collect_deprecations(deprecator, &block)
-        assert !warnings.empty?, "Expected a deprecation warning within the block but received none"
+        assert !warnings.empty?, 'Expected a deprecation warning within the block but received none'
         if match
           match = Regexp.new(Regexp.escape(match)) unless match.is_a?(Regexp)
           assert warnings.any? { |w| match.match?(w) }, "No deprecation warning matched #{match}: #{warnings.join(', ')}"

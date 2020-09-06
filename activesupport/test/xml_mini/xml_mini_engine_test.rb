@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
-require "active_support/xml_mini"
-require "active_support/core_ext/hash/conversions"
+require_relative '../abstract_unit'
+require 'active_support/xml_mini'
+require 'active_support/core_ext/hash/conversions'
 
 class XMLMiniEngineTest < ActiveSupport::TestCase
   def self.run_with_gem(gem_name)
@@ -40,12 +40,12 @@ class XMLMiniEngineTest < ActiveSupport::TestCase
           </logo>
         </blog>
       eoxml
-      assert hash.key?("blog")
-      assert hash["blog"].key?("logo")
+      assert hash.key?('blog')
+      assert hash['blog'].key?('logo')
 
-      file = hash["blog"]["logo"]
-      assert_equal "logo.png", file.original_filename
-      assert_equal "image/png", file.content_type
+      file = hash['blog']['logo']
+      assert_equal 'logo.png', file.original_filename
+      assert_equal 'image/png', file.content_type
     end
 
     def test_exception_thrown_on_expansion_attack
@@ -74,12 +74,12 @@ class XMLMiniEngineTest < ActiveSupport::TestCase
 
     def test_blank_returns_empty_hash
       assert_equal({}, ActiveSupport::XmlMini.parse(nil))
-      assert_equal({}, ActiveSupport::XmlMini.parse(""))
+      assert_equal({}, ActiveSupport::XmlMini.parse(''))
     end
 
     def test_parse_from_frozen_string
-      xml_string = "<root/>"
-      assert_equal({ "root" => {} }, ActiveSupport::XmlMini.parse(xml_string))
+      xml_string = '<root/>'
+      assert_equal({ 'root' => {} }, ActiveSupport::XmlMini.parse(xml_string))
     end
 
     def test_array_type_makes_an_array
@@ -245,7 +245,7 @@ class XMLMiniEngineTest < ActiveSupport::TestCase
       def assert_equal_rexml(xml)
         parsed_xml = ActiveSupport::XmlMini.parse(xml)
         xml.rewind if xml.respond_to?(:rewind)
-        hash = ActiveSupport::XmlMini.with_backend("REXML") { ActiveSupport::XmlMini.parse(xml) }
+        hash = ActiveSupport::XmlMini.with_backend('REXML') { ActiveSupport::XmlMini.parse(xml) }
         assert_equal(hash, parsed_xml)
       end
 

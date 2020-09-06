@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/class/subclasses"
+require 'active_support/core_ext/class/subclasses'
 
 module ActiveJob
   # Provides helper methods for testing Active Job
@@ -710,7 +710,7 @@ module ActiveJob
       end
 
       def validate_option(only: nil, except: nil)
-        raise ArgumentError, "Cannot specify both `:only` and `:except` options." if only && except
+        raise ArgumentError, 'Cannot specify both `:only` and `:except` options.' if only && except
       end
   end
 end

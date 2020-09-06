@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rack/chunked"
+require 'rack/chunked'
 
 module ActionController #:nodoc:
   # Allows views to be streamed back to the client as they are rendered.
@@ -200,12 +200,12 @@ module ActionController #:nodoc:
       def _process_options(options)
         super
         if options[:stream]
-          if request.version == "HTTP/1.0"
+          if request.version == 'HTTP/1.0'
             options.delete(:stream)
           else
-            headers["Cache-Control"] ||= "no-cache"
-            headers["Transfer-Encoding"] = "chunked"
-            headers.delete("Content-Length")
+            headers['Cache-Control'] ||= 'no-cache'
+            headers['Transfer-Encoding'] = 'chunked'
+            headers.delete('Content-Length')
           end
         end
       end

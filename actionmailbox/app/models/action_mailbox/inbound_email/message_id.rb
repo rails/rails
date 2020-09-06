@@ -18,7 +18,7 @@ module ActionMailbox::InboundEmail::MessageId
       message_id = extract_message_id(source) || generate_missing_message_id(message_checksum)
 
       create! options.merge(message_id: message_id, message_checksum: message_checksum) do |inbound_email|
-        inbound_email.raw_email.attach io: StringIO.new(source), filename: "message.eml", content_type: "message/rfc822"
+        inbound_email.raw_email.attach io: StringIO.new(source), filename: 'message.eml', content_type: 'message/rfc822'
       end
     rescue ActiveRecord::RecordNotUnique
       nil

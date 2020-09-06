@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../../abstract_unit"
-require "json"
-require_relative "../../json/encoding_test_cases"
+require_relative '../../abstract_unit'
+require 'json'
+require_relative '../../json/encoding_test_cases'
 
 # These test cases were added to test that we do not interfere with json gem's
 # output when the AS encoder is loaded, primarily for problems reported in
@@ -15,7 +15,7 @@ require_relative "../../json/encoding_test_cases"
 # we need to require this upfront to ensure we don't get a false failure, but
 # ideally we should just fix the BigDecimal core_ext to not change to_s without
 # arguments.
-require "active_support/core_ext/big_decimal"
+require 'active_support/core_ext/big_decimal'
 
 class JsonGemEncodingTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
@@ -34,7 +34,7 @@ class JsonGemEncodingTest < ActiveSupport::TestCase
     end
   end
 
-  test "custom to_json" do
+  test 'custom to_json' do
     assert_same_with_or_without_active_support(CustomToJson.new)
   end
 
@@ -50,7 +50,7 @@ class JsonGemEncodingTest < ActiveSupport::TestCase
         exception = e
       end
 
-      require_or_skip "active_support/core_ext/object/json"
+      require_or_skip 'active_support/core_ext/object/json'
 
       if exception
         assert_raises_with_message JSON::GeneratorError, e.message do

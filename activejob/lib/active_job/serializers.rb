@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "set"
+require 'set'
 
 module ActiveJob
   # The <tt>ActiveJob::Serializers</tt> module is used to store a list of known serializers

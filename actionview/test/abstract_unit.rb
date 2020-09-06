@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-$:.unshift File.expand_path("lib", __dir__)
+$:.unshift File.expand_path('lib', __dir__)
 
-ENV["TMPDIR"] = File.expand_path("tmp", __dir__)
+ENV['TMPDIR'] = File.expand_path('tmp', __dir__)
 
-require "active_support/core_ext/kernel/reporting"
+require 'active_support/core_ext/kernel/reporting'
 
 # These are the normal settings that will be set up by Railties
 # TODO: Have these tests support other combinations of these values
@@ -13,13 +13,13 @@ silence_warnings do
   Encoding.default_external = Encoding::UTF_8
 end
 
-require "active_support/testing/autorun"
-require "active_support/testing/method_call_assertions"
-require "action_controller"
-require "action_view"
-require "action_view/testing/resolvers"
-require "active_support/dependencies"
-require "active_model"
+require 'active_support/testing/autorun'
+require 'active_support/testing/method_call_assertions'
+require 'action_controller'
+require 'action_view'
+require 'action_view/testing/resolvers'
+require 'active_support/dependencies'
+require 'active_model'
 
 module ActionViewTestSuiteUtils
   def self.require_helpers(helpers_dirs)
@@ -46,7 +46,7 @@ I18n.enforce_available_locales = false
 
 ORIGINAL_LOCALES = I18n.available_locales.map(&:to_s).sort
 
-FIXTURE_LOAD_PATH = File.expand_path("fixtures", __dir__)
+FIXTURE_LOAD_PATH = File.expand_path('fixtures', __dir__)
 
 module RenderERBUtils
   def view
@@ -61,7 +61,7 @@ module RenderERBUtils
   def render_erb(string)
     template = ActionView::Template.new(
       string.strip,
-      "test template",
+      'test template',
       ActionView::Template.handler_for_extension(:erb),
       format: :html, locals: [])
 
@@ -89,11 +89,11 @@ class BasicController
   def config
     @config ||= ActiveSupport::InheritableOptions.new(ActionController::Base.config).tap do |config|
       # VIEW TODO: View tests should not require a controller
-      public_dir = File.expand_path("fixtures/public", __dir__)
+      public_dir = File.expand_path('fixtures/public', __dir__)
       config.assets_dir = public_dir
       config.javascripts_dir = "#{public_dir}/javascripts"
       config.stylesheets_dir = "#{public_dir}/stylesheets"
-      config.assets          = ActiveSupport::InheritableOptions.new(prefix: "assets")
+      config.assets          = ActiveSupport::InheritableOptions.new(prefix: 'assets')
       config
     end
   end
@@ -183,14 +183,14 @@ class ActiveSupport::TestCase
 
   private
     # Skips the current run on Rubinius using Minitest::Assertions#skip
-    def rubinius_skip(message = "")
-      skip message if RUBY_ENGINE == "rbx"
+    def rubinius_skip(message = '')
+      skip message if RUBY_ENGINE == 'rbx'
     end
 
     # Skips the current run on JRuby using Minitest::Assertions#skip
-    def jruby_skip(message = "")
+    def jruby_skip(message = '')
       skip message if defined?(JRUBY_VERSION)
     end
 end
 
-require_relative "../../tools/test_common"
+require_relative '../../tools/test_common'

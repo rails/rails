@@ -37,8 +37,8 @@ class ActiveStorage::VariantWithRecord
             yield io: output, filename: blob.filename, content_type: blob.content_type, service_name: blob.service.name
           end
         else
-          variation.transform(input, format: "png") do |output|
-            yield io: output, filename: "#{blob.filename.base}.png", content_type: "image/png", service_name: blob.service.name
+          variation.transform(input, format: 'png') do |output|
+            yield io: output, filename: "#{blob.filename.base}.png", content_type: 'image/png', service_name: blob.service.name
           end
         end
       end

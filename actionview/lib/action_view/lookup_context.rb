@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "concurrent/map"
-require "active_support/core_ext/module/attribute_accessors"
-require "action_view/template/resolver"
+require 'concurrent/map'
+require 'active_support/core_ext/module/attribute_accessors'
+require 'action_view/template/resolver'
 
 module ActionView
   # = Action View Lookup Context
@@ -228,13 +228,13 @@ module ActionView
       # name instead of the prefix.
       def normalize_name(name, prefixes)
         prefixes = prefixes.presence
-        parts    = name.to_s.split("/")
+        parts    = name.to_s.split('/')
         parts.shift if parts.first.empty?
         name = parts.pop
 
-        return name, prefixes || [""] if parts.empty?
+        return name, prefixes || [''] if parts.empty?
 
-        parts    = parts.join("/")
+        parts    = parts.join('/')
         prefixes = prefixes ? prefixes.map { |p| "#{p}/#{parts}" } : [parts]
 
         return name, prefixes
@@ -279,7 +279,7 @@ module ActionView
     def formats=(values)
       if values
         values = values.dup
-        values.concat(default_formats) if values.delete "*/*"
+        values.concat(default_formats) if values.delete '*/*'
         values.uniq!
 
         invalid_values = (values - Template::Types.symbols)

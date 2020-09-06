@@ -23,9 +23,9 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require "active_support"
-require "active_support/rails"
-require "action_view/version"
+require 'active_support'
+require 'active_support/rails'
+require 'action_view/version'
 
 module ActionView
   extend ActiveSupport::Autoload
@@ -47,7 +47,7 @@ module ActionView
     autoload :UnboundTemplate
     autoload :ViewPaths
 
-    autoload_under "renderer" do
+    autoload_under 'renderer' do
       autoload :Renderer
       autoload :AbstractRenderer
       autoload :PartialRenderer
@@ -57,7 +57,7 @@ module ActionView
       autoload :StreamingTemplateRenderer
     end
 
-    autoload_at "action_view/template/resolver" do
+    autoload_at 'action_view/template/resolver' do
       autoload :Resolver
       autoload :PathResolver
       autoload :FileSystemResolver
@@ -65,17 +65,17 @@ module ActionView
       autoload :FallbackFileSystemResolver
     end
 
-    autoload_at "action_view/buffers" do
+    autoload_at 'action_view/buffers' do
       autoload :OutputBuffer
       autoload :StreamingBuffer
     end
 
-    autoload_at "action_view/flows" do
+    autoload_at 'action_view/flows' do
       autoload :OutputFlow
       autoload :StreamingFlow
     end
 
-    autoload_at "action_view/template/error" do
+    autoload_at 'action_view/template/error' do
       autoload :MissingTemplate
       autoload :ActionViewError
       autoload :EncodingError
@@ -95,8 +95,8 @@ module ActionView
   end
 end
 
-require "active_support/core_ext/string/output_safety"
+require 'active_support/core_ext/string/output_safety'
 
 ActiveSupport.on_load(:i18n) do
-  I18n.load_path << File.expand_path("action_view/locale/en.yml", __dir__)
+  I18n.load_path << File.expand_path('action_view/locale/en.yml', __dir__)
 end

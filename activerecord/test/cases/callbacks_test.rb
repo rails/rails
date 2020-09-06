@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/developer"
-require "models/computer"
-require "active_support/core_ext/symbol/starts_ends_with"
+require 'cases/helper'
+require 'models/developer'
+require 'models/computer'
+require 'active_support/core_ext/symbol/starts_ends_with'
 
 class CallbackDeveloper < ActiveRecord::Base
-  self.table_name = "developers"
+  self.table_name = 'developers'
 
   class << self
     def callback_proc(callback_method)
@@ -30,7 +30,7 @@ class CallbackDeveloper < ActiveRecord::Base
   end
 
   ActiveRecord::Callbacks::CALLBACKS.each do |callback_method|
-    next if callback_method.start_with?("around_")
+    next if callback_method.start_with?('around_')
     define_callback_method(callback_method)
     send(callback_method, callback_proc(callback_method))
     send(callback_method, callback_object(callback_method))
@@ -48,7 +48,7 @@ class CallbackDeveloperWithHaltedValidation < CallbackDeveloper
 end
 
 class ParentDeveloper < ActiveRecord::Base
-  self.table_name = "developers"
+  self.table_name = 'developers'
   attr_accessor :after_save_called
   before_validation { |record| record.after_save_called = true }
 end
@@ -57,7 +57,7 @@ class ChildDeveloper < ParentDeveloper
 end
 
 class ImmutableDeveloper < ActiveRecord::Base
-  self.table_name = "developers"
+  self.table_name = 'developers'
 
   validates_inclusion_of :salary, in: 50000..200000
 
@@ -71,7 +71,7 @@ class ImmutableDeveloper < ActiveRecord::Base
 end
 
 class DeveloperWithCanceledCallbacks < ActiveRecord::Base
-  self.table_name = "developers"
+  self.table_name = 'developers'
 
   validates_inclusion_of :salary, in: 50000..200000
 
@@ -85,7 +85,7 @@ class DeveloperWithCanceledCallbacks < ActiveRecord::Base
 end
 
 class OnCallbacksDeveloper < ActiveRecord::Base
-  self.table_name = "developers"
+  self.table_name = 'developers'
 
   before_validation { history << :before_validation }
   before_validation(on: :create) { history << :before_validation_on_create }
@@ -105,7 +105,7 @@ class OnCallbacksDeveloper < ActiveRecord::Base
 end
 
 class ContextualCallbacksDeveloper < ActiveRecord::Base
-  self.table_name = "developers"
+  self.table_name = 'developers'
 
   before_validation { history << :before_validation }
   before_validation :before_validation_on_create_and_update, on: [ :create, :update ]
@@ -131,7 +131,7 @@ class ContextualCallbacksDeveloper < ActiveRecord::Base
 end
 
 class CallbackHaltedDeveloper < ActiveRecord::Base
-  self.table_name = "developers"
+  self.table_name = 'developers'
 
   attr_reader   :after_save_called, :after_create_called, :after_update_called, :after_destroy_called
   attr_accessor :cancel_before_save, :cancel_before_create, :cancel_before_update, :cancel_before_destroy
@@ -217,7 +217,7 @@ class CallbacksTest < ActiveRecord::TestCase
   end
 
   def test_create
-    david = CallbackDeveloper.create("name" => "David", "salary" => 1000000)
+    david = CallbackDeveloper.create('name' => 'David', 'salary' => 1000000)
     assert_equal [
       [ :after_initialize,            :method ],
       [ :after_initialize,            :proc   ],
@@ -255,7 +255,7 @@ class CallbacksTest < ActiveRecord::TestCase
   end
 
   def test_validate_on_create
-    david = OnCallbacksDeveloper.create("name" => "David", "salary" => 1000000)
+    david = OnCallbacksDeveloper.create('name' => 'David', 'salary' => 1000000)
     assert_equal [
       :before_validation,
       :before_validation_on_create,
@@ -266,7 +266,7 @@ class CallbacksTest < ActiveRecord::TestCase
   end
 
   def test_validate_on_contextual_create
-    david = ContextualCallbacksDeveloper.create("name" => "David", "salary" => 1000000)
+    david = ContextualCallbacksDeveloper.create('name' => 'David', 'salary' => 1000000)
     assert_equal [
       :before_validation,
       :before_validation_on_create,
@@ -480,7 +480,7 @@ class CallbacksTest < ActiveRecord::TestCase
         before_save(on: :create) { }
       end
     end
-    assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend", exception.message
+    assert_equal 'Unknown key: :on. Valid keys are: :if, :unless, :prepend', exception.message
   end
 
   def test_around_save_doesnt_allow_on_option
@@ -489,7 +489,7 @@ class CallbacksTest < ActiveRecord::TestCase
         around_save(on: :create) { }
       end
     end
-    assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend", exception.message
+    assert_equal 'Unknown key: :on. Valid keys are: :if, :unless, :prepend', exception.message
   end
 
   def test_after_save_doesnt_allow_on_option
@@ -498,6 +498,6 @@ class CallbacksTest < ActiveRecord::TestCase
         after_save(on: :create) { }
       end
     end
-    assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend", exception.message
+    assert_equal 'Unknown key: :on. Valid keys are: :if, :unless, :prepend', exception.message
   end
 end

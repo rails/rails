@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "console_helpers"
+require 'abstract_unit'
+require 'console_helpers'
 
 class Rails::Engine::CommandsTest < ActiveSupport::TestCase
   include ConsoleHelpers
 
   def setup
-    @destination_root = Dir.mktmpdir("bukkits")
+    @destination_root = Dir.mktmpdir('bukkits')
     Dir.chdir(@destination_root) { `bundle exec rails plugin new bukkits --mountable` }
   end
 
@@ -19,45 +19,45 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
     output = capture(:stderr) do
       Dir.chdir(plugin_path) { `bin/rails --help` }
     end
-    assert_no_match "NameError", output
+    assert_no_match 'NameError', output
   end
 
   def test_runner_command_work_inside_engine
     output = capture(:stdout) do
-      Dir.chdir(plugin_path) { system({ "SKIP_REQUIRE_WEBPACKER" => "true" }, "bin/rails runner 'puts Rails.env'") }
+      Dir.chdir(plugin_path) { system({ 'SKIP_REQUIRE_WEBPACKER' => 'true' }, "bin/rails runner 'puts Rails.env'") }
     end
 
-    assert_equal "test", output.strip
+    assert_equal 'test', output.strip
   end
 
   def test_console_command_work_inside_engine
-    skip "PTY unavailable" unless available_pty?
+    skip 'PTY unavailable' unless available_pty?
 
     primary, replica = PTY.open
-    cmd = "console"
-    cmd += " --singleline" if RUBY_VERSION >= "2.7"
+    cmd = 'console'
+    cmd += ' --singleline' if RUBY_VERSION >= '2.7'
     spawn_command(cmd, replica)
-    assert_output(">", primary)
+    assert_output('>', primary)
   ensure
-    primary.puts "quit"
+    primary.puts 'quit'
   end
 
   def test_dbconsole_command_work_inside_engine
-    skip "PTY unavailable" unless available_pty?
+    skip 'PTY unavailable' unless available_pty?
 
     primary, replica = PTY.open
-    spawn_command("dbconsole", replica)
-    assert_output("sqlite>", primary)
+    spawn_command('dbconsole', replica)
+    assert_output('sqlite>', primary)
   ensure
-    primary.puts ".exit"
+    primary.puts '.exit'
   end
 
   def test_server_command_work_inside_engine
-    skip "PTY unavailable" unless available_pty?
+    skip 'PTY unavailable' unless available_pty?
 
     primary, replica = PTY.open
-    pid = spawn_command("server", replica)
-    assert_output("Listening on", primary)
+    pid = spawn_command('server', replica)
+    assert_output('Listening on', primary)
   ensure
     kill(pid)
   end
@@ -69,14 +69,14 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
 
     def spawn_command(command, fd)
       Process.spawn(
-        { "SKIP_REQUIRE_WEBPACKER" => "true" },
+        { 'SKIP_REQUIRE_WEBPACKER' => 'true' },
         "#{plugin_path}/bin/rails #{command}",
         in: fd, out: fd, err: fd
       )
     end
 
     def kill(pid)
-      Process.kill("TERM", pid)
+      Process.kill('TERM', pid)
       Process.wait(pid)
     rescue Errno::ESRCH
     end

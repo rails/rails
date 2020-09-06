@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
-require "active_support/core_ext/file"
+require_relative '../abstract_unit'
+require 'active_support/core_ext/file'
 
 class AtomicWriteTest < ActiveSupport::TestCase
   def test_atomic_write_without_errors
-    contents = "Atomic Text"
+    contents = 'Atomic Text'
     File.atomic_write(file_name, Dir.pwd) do |file|
       file.write(contents)
       assert_not File.exist?(file_name)
@@ -18,16 +18,16 @@ class AtomicWriteTest < ActiveSupport::TestCase
 
   def test_atomic_write_doesnt_write_when_block_raises
     File.atomic_write(file_name) do |file|
-      file.write("testing")
-      raise "something bad"
+      file.write('testing')
+      raise 'something bad'
     end
   rescue
     assert_not File.exist?(file_name)
   end
 
   def test_atomic_write_preserves_file_permissions
-    contents = "Atomic Text"
-    File.open(file_name, "w", 0755) do |file|
+    contents = 'Atomic Text'
+    File.open(file_name, 'w', 0755) do |file|
       file.write(contents)
       assert File.exist?(file_name)
     end
@@ -47,7 +47,7 @@ class AtomicWriteTest < ActiveSupport::TestCase
   end
 
   def test_atomic_write_preserves_default_file_permissions
-    contents = "Atomic Text"
+    contents = 'Atomic Text'
     File.atomic_write(file_name, Dir.pwd) do |file|
       file.write(contents)
       assert_not File.exist?(file_name)
@@ -75,10 +75,10 @@ class AtomicWriteTest < ActiveSupport::TestCase
 
   def test_atomic_write_returns_result_from_yielded_block
     block_return_value = File.atomic_write(file_name, Dir.pwd) do |file|
-      "Hello world!"
+      'Hello world!'
     end
 
-    assert_equal "Hello world!", block_return_value
+    assert_equal 'Hello world!', block_return_value
   ensure
     File.unlink(file_name) rescue nil
   end

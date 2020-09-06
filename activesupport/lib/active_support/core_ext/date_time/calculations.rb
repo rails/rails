@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "date"
+require 'date'
 
 class DateTime
   class << self
@@ -57,7 +57,7 @@ class DateTime
       new_fraction = Rational(new_usec, 1000000)
     end
 
-    raise ArgumentError, "argument out of range" if new_fraction >= 1
+    raise ArgumentError, 'argument out of range' if new_fraction >= 1
 
     ::DateTime.civil(
       options.fetch(:year, year),

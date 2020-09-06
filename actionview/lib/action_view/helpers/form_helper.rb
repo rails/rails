@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-require "cgi"
-require "action_view/helpers/date_helper"
-require "action_view/helpers/tag_helper"
-require "action_view/helpers/form_tag_helper"
-require "action_view/helpers/active_model_helper"
-require "action_view/model_naming"
-require "action_view/record_identifier"
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/hash/slice"
-require "active_support/core_ext/string/output_safety"
-require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/symbol/starts_ends_with"
+require 'cgi'
+require 'action_view/helpers/date_helper'
+require 'action_view/helpers/tag_helper'
+require 'action_view/helpers/form_tag_helper'
+require 'action_view/helpers/active_model_helper'
+require 'action_view/model_naming'
+require 'action_view/record_identifier'
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/string/output_safety'
+require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/symbol/starts_ends_with'
 
 module ActionView
   # = Action View Form Helpers
@@ -429,7 +429,7 @@ module ActionView
       #     ...
       #   <% end %>
       def form_for(record, options = {}, &block)
-        raise ArgumentError, "Missing block" unless block_given?
+        raise ArgumentError, 'Missing block' unless block_given?
         html_options = options[:html] ||= {}
 
         case record
@@ -438,7 +438,7 @@ module ActionView
           object      = nil
         else
           object      = record.is_a?(Array) ? record.last : record
-          raise ArgumentError, "First argument in form cannot contain nil or be empty" unless object
+          raise ArgumentError, 'First argument in form cannot contain nil or be empty' unless object
           object_name = options[:as] || model_name_from_record_or_class(object).param_key
           apply_form_for_options!(record, object, options)
         end
@@ -465,7 +465,7 @@ module ActionView
         action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :patch] : [:new, :post]
         options[:html].reverse_merge!(
           class:  as ? "#{action}_#{as}" : dom_class(object, action),
-          id:     (as ? [namespace, action, as] : [namespace, dom_id(object, action)]).compact.join("_").presence,
+          id:     (as ? [namespace, action, as] : [namespace, dom_id(object, action)]).compact.join('_').presence,
           method: method
         )
 
@@ -1298,7 +1298,7 @@ module ActionView
       #   check_box("eula", "accepted", { class: 'eula_check' }, "yes", "no")
       #   # => <input name="eula[accepted]" type="hidden" value="no" />
       #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes" />
-      def check_box(object_name, method, options = {}, checked_value = "1", unchecked_value = "0")
+      def check_box(object_name, method, options = {}, checked_value = '1', unchecked_value = '0')
         Tags::CheckBox.new(object_name, method, self, checked_value, unchecked_value, options).render
       end
 
@@ -1531,12 +1531,12 @@ module ActionView
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
           html_options[:enforce_utf8] = !skip_enforcing_utf8 unless skip_enforcing_utf8.nil?
 
-          html_options[:enctype] = "multipart/form-data" if html_options.delete(:multipart)
+          html_options[:enctype] = 'multipart/form-data' if html_options.delete(:multipart)
 
           # The following URL is unescaped, this is just a hash of options, and it is the
           # responsibility of the caller to escape all the values.
           html_options[:action] = url_for(url_for_options || {})
-          html_options[:"accept-charset"] = "UTF-8"
+          html_options[:"accept-charset"] = 'UTF-8'
           html_options[:"data-remote"] = true unless local
 
           html_options[:authenticity_token] = options.delete(:authenticity_token)
@@ -1650,7 +1650,7 @@ module ActionView
       end
 
       def self._to_partial_path
-        @_to_partial_path ||= name.demodulize.underscore.sub!(/_builder$/, "")
+        @_to_partial_path ||= name.demodulize.underscore.sub!(/_builder$/, '')
       end
 
       def to_partial_path
@@ -1669,7 +1669,7 @@ module ActionView
 
         convert_to_legacy_options(@options)
 
-        if @object_name&.end_with?("[]")
+        if @object_name&.end_with?('[]')
           if (object ||= @template.instance_variable_get("@#{@object_name[0..-3]}")) && object.respond_to?(:to_param)
             @auto_index = object.to_param
           else
@@ -2175,13 +2175,13 @@ module ActionView
         index = if options.has_key?(:index)
           options[:index]
         elsif defined?(@auto_index)
-          object_name = object_name.to_s.delete_suffix("[]")
+          object_name = object_name.to_s.delete_suffix('[]')
           @auto_index
         end
 
         record_name = if index
           "#{object_name}[#{index}][#{record_name}]"
-        elsif record_name.end_with?("[]")
+        elsif record_name.end_with?('[]')
           "#{object_name}[#{record_name[0..-3]}][#{record_object.id}]"
         else
           "#{object_name}[#{record_name}]"
@@ -2310,7 +2310,7 @@ module ActionView
       #   check_box("accepted", { class: 'eula_check' }, "yes", "no")
       #   # => <input name="eula[accepted]" type="hidden" value="no" />
       #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes" />
-      def check_box(method, options = {}, checked_value = "1", unchecked_value = "0")
+      def check_box(method, options = {}, checked_value = '1', unchecked_value = '0')
         @template.check_box(@object_name, method, objectify_options(options), checked_value, unchecked_value)
       end
 

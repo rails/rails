@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 class CsrfHelperTest < ActiveSupport::TestCase
   cattr_accessor :request_forgery, default: false
@@ -10,7 +10,7 @@ class CsrfHelperTest < ActiveSupport::TestCase
   include Rails::Dom::Testing::Assertions::DomAssertions
 
   def test_csrf_meta_tags_without_request_forgery_protection
-    assert_dom_equal "", csrf_meta_tags
+    assert_dom_equal '', csrf_meta_tags
   end
 
   def test_csrf_meta_tags_with_request_forgery_protection
@@ -27,7 +27,7 @@ class CsrfHelperTest < ActiveSupport::TestCase
   def test_csrf_meta_tags_without_protect_against_forgery_method
     self.class.undef_method(:protect_against_forgery?)
 
-    assert_dom_equal "", csrf_meta_tags
+    assert_dom_equal '', csrf_meta_tags
   ensure
     self.class.define_method(:protect_against_forgery?) { request_forgery }
   end
@@ -37,10 +37,10 @@ class CsrfHelperTest < ActiveSupport::TestCase
   end
 
   def form_authenticity_token(**)
-    "secret"
+    'secret'
   end
 
   def request_forgery_protection_token
-    "form_token"
+    'form_token'
   end
 end

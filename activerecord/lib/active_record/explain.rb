@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_record/explain_registry"
+require 'active_record/explain_registry'
 
 module ActiveRecord
   module Explain
@@ -20,7 +20,7 @@ module ActiveRecord
       str = queries.map do |sql, binds|
         msg = +"EXPLAIN for: #{sql}"
         unless binds.empty?
-          msg << " "
+          msg << ' '
           msg << binds.map { |attr| render_bind(attr) }.inspect
         end
         msg << "\n"

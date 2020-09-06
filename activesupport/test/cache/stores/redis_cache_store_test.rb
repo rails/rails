@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "../../abstract_unit"
-require "active_support/cache"
-require "active_support/cache/redis_cache_store"
-require_relative "../behaviors"
+require_relative '../../abstract_unit'
+require 'active_support/cache'
+require 'active_support/cache/redis_cache_store'
+require_relative '../behaviors'
 
-driver_name = %w[ ruby hiredis ].include?(ENV["REDIS_DRIVER"]) ? ENV["REDIS_DRIVER"] : "hiredis"
+driver_name = %w[ ruby hiredis ].include?(ENV['REDIS_DRIVER']) ? ENV['REDIS_DRIVER'] : 'hiredis'
 driver = Object.const_get("Redis::Connection::#{driver_name.camelize}")
 
 Redis::Connection.drivers.clear
@@ -25,17 +25,17 @@ class SlowRedis < Redis
 end
 
 module ActiveSupport::Cache::RedisCacheStoreTests
-  DRIVER = %w[ ruby hiredis ].include?(ENV["REDIS_DRIVER"]) ? ENV["REDIS_DRIVER"] : "hiredis"
+  DRIVER = %w[ ruby hiredis ].include?(ENV['REDIS_DRIVER']) ? ENV['REDIS_DRIVER'] : 'hiredis'
 
   class LookupTest < ActiveSupport::TestCase
-    test "may be looked up as :redis_cache_store" do
+    test 'may be looked up as :redis_cache_store' do
       assert_kind_of ActiveSupport::Cache::RedisCacheStore,
         ActiveSupport::Cache.lookup_store(:redis_cache_store)
     end
   end
 
   class InitializationTest < ActiveSupport::TestCase
-    test "omitted URL uses Redis client with default settings" do
+    test 'omitted URL uses Redis client with default settings' do
       assert_called_with Redis, :new, [
         url: nil,
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
@@ -45,7 +45,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
-    test "no URLs uses Redis client with default settings" do
+    test 'no URLs uses Redis client with default settings' do
       assert_called_with Redis, :new, [
         url: nil,
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
@@ -55,19 +55,19 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
-    test "singular URL uses Redis client" do
+    test 'singular URL uses Redis client' do
       assert_called_with Redis, :new, [
-        url: "redis://localhost:6379/0",
+        url: 'redis://localhost:6379/0',
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
         reconnect_attempts: 0, driver: DRIVER
       ] do
-        build url: "redis://localhost:6379/0"
+        build url: 'redis://localhost:6379/0'
       end
     end
 
-    test "one URL uses Redis client" do
+    test 'one URL uses Redis client' do
       assert_called_with Redis, :new, [
-        url: "redis://localhost:6379/0",
+        url: 'redis://localhost:6379/0',
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
         reconnect_attempts: 0, driver: DRIVER
       ] do
@@ -75,12 +75,12 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
-    test "multiple URLs uses Redis::Distributed client" do
+    test 'multiple URLs uses Redis::Distributed client' do
       assert_called_with Redis, :new, [
-        [ url: "redis://localhost:6379/0",
+        [ url: 'redis://localhost:6379/0',
           connect_timeout: 20, read_timeout: 1, write_timeout: 1,
           reconnect_attempts: 0, driver: DRIVER ],
-        [ url: "redis://localhost:6379/1",
+        [ url: 'redis://localhost:6379/1',
           connect_timeout: 20, read_timeout: 1, write_timeout: 1,
           reconnect_attempts: 0, driver: DRIVER ],
       ], returns: Redis.new do
@@ -89,14 +89,14 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
-    test "block argument uses yielded client" do
+    test 'block argument uses yielded client' do
       block = -> { :custom_redis_client }
       assert_called block, :call do
         build redis: block
       end
     end
 
-    test "instance of Redis uses given instance" do
+    test 'instance of Redis uses given instance' do
       redis_instance = Redis.new
       @cache = build(redis: redis_instance)
       assert_same @cache.redis, redis_instance
@@ -136,15 +136,15 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     def test_fetch_multi_uses_redis_mget
       assert_called(@cache.redis, :mget, returns: []) do
-        @cache.fetch_multi("a", "b", "c") do |key|
+        @cache.fetch_multi('a', 'b', 'c') do |key|
           key * 2
         end
       end
     end
 
     def test_fetch_multi_with_namespace
-      assert_called_with(@cache.redis, :mget, ["custom-namespace:a", "custom-namespace:b", "custom-namespace:c"], returns: []) do
-        @cache.fetch_multi("a", "b", "c", namespace: "custom-namespace") do |key|
+      assert_called_with(@cache.redis, :mget, ['custom-namespace:a', 'custom-namespace:b', 'custom-namespace:c'], returns: []) do
+        @cache.fetch_multi('a', 'b', 'c', namespace: 'custom-namespace') do |key|
           key * 2
         end
       end
@@ -159,40 +159,40 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     def test_increment_expires_in
       assert_called_with @cache.redis, :incrby, [ "#{@namespace}:foo", 1 ] do
         assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do
-          @cache.increment "foo", 1, expires_in: 60
+          @cache.increment 'foo', 1, expires_in: 60
         end
       end
 
       # key and ttl exist
       @cache.redis.setex "#{@namespace}:bar", 120, 1
       assert_not_called @cache.redis, :expire do
-        @cache.increment "bar", 1, expires_in: 2.minutes
+        @cache.increment 'bar', 1, expires_in: 2.minutes
       end
 
       # key exist but not have expire
       @cache.redis.set "#{@namespace}:dar", 10
       assert_called_with @cache.redis, :expire, [ "#{@namespace}:dar", 60 ] do
-        @cache.increment "dar", 1, expires_in: 60
+        @cache.increment 'dar', 1, expires_in: 60
       end
     end
 
     def test_decrement_expires_in
       assert_called_with @cache.redis, :decrby, [ "#{@namespace}:foo", 1 ] do
         assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do
-          @cache.decrement "foo", 1, expires_in: 60
+          @cache.decrement 'foo', 1, expires_in: 60
         end
       end
 
       # key and ttl exist
       @cache.redis.setex "#{@namespace}:bar", 120, 1
       assert_not_called @cache.redis, :expire do
-        @cache.decrement "bar", 1, expires_in: 2.minutes
+        @cache.decrement 'bar', 1, expires_in: 2.minutes
       end
 
       # key exist but not have expire
       @cache.redis.set "#{@namespace}:dar", 10
       assert_called_with @cache.redis, :expire, [ "#{@namespace}:dar", 60 ] do
-        @cache.decrement "dar", 1, expires_in: 60
+        @cache.decrement 'dar', 1, expires_in: 60
       end
     end
   end
@@ -219,7 +219,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   class RedisDistributedConnectionPoolBehaviourTest < ConnectionPoolBehaviourTest
     private
       def store_options
-        { url: [ENV["REDIS_URL"] || "redis://localhost:6379/0"] * 2 }
+        { url: [ENV['REDIS_URL'] || 'redis://localhost:6379/0'] * 2 }
       end
   end
 
@@ -269,15 +269,15 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   end
 
   class DeleteMatchedTest < StoreTest
-    test "deletes keys matching glob" do
-      @cache.write("foo", "bar")
-      @cache.write("fu", "baz")
-      @cache.delete_matched("foo*")
-      assert_not @cache.exist?("foo")
-      assert @cache.exist?("fu")
+    test 'deletes keys matching glob' do
+      @cache.write('foo', 'bar')
+      @cache.write('fu', 'baz')
+      @cache.delete_matched('foo*')
+      assert_not @cache.exist?('foo')
+      assert @cache.exist?('fu')
     end
 
-    test "fails with regexp matchers" do
+    test 'fails with regexp matchers' do
       assert_raise ArgumentError do
         @cache.delete_matched(/OO/i)
       end
@@ -285,40 +285,40 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   end
 
   class ClearTest < StoreTest
-    test "clear all cache key" do
-      @cache.write("foo", "bar")
-      @cache.write("fu", "baz")
+    test 'clear all cache key' do
+      @cache.write('foo', 'bar')
+      @cache.write('fu', 'baz')
       @cache.clear
-      assert_not @cache.exist?("foo")
-      assert_not @cache.exist?("fu")
+      assert_not @cache.exist?('foo')
+      assert_not @cache.exist?('fu')
     end
 
-    test "only clear namespace cache key" do
-      @cache.write("foo", "bar")
-      @cache.redis.set("fu", "baz")
+    test 'only clear namespace cache key' do
+      @cache.write('foo', 'bar')
+      @cache.redis.set('fu', 'baz')
       @cache.clear
-      assert_not @cache.exist?("foo")
-      assert @cache.redis.exists?("fu")
+      assert_not @cache.exist?('foo')
+      assert @cache.redis.exists?('fu')
     end
 
-    test "clear all cache key with Redis::Distributed" do
+    test 'clear all cache key with Redis::Distributed' do
       cache = ActiveSupport::Cache::RedisCacheStore.new(
         url: %w[redis://localhost:6379/0, redis://localhost:6379/1],
         timeout: 0.1, namespace: @namespace, expires_in: 60, driver: DRIVER)
-      cache.write("foo", "bar")
-      cache.write("fu", "baz")
+      cache.write('foo', 'bar')
+      cache.write('fu', 'baz')
       cache.clear
-      assert_not cache.exist?("foo")
-      assert_not cache.exist?("fu")
+      assert_not cache.exist?('foo')
+      assert_not cache.exist?('fu')
     end
   end
 
   class RawTest < StoreTest
-    test "does not compress values read with \"raw\" enabled" do
-      @cache.write("foo", "bar", raw: true)
+    test 'does not compress values read with "raw" enabled' do
+      @cache.write('foo', 'bar', raw: true)
 
       assert_not_called_on_instance_of ActiveSupport::Cache::Entry, :compress! do
-        @cache.read("foo", raw: true)
+        @cache.read('foo', raw: true)
       end
     end
   end

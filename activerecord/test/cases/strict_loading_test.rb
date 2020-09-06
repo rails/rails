@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/developer"
-require "models/computer"
-require "models/mentor"
-require "models/project"
-require "models/ship"
+require 'cases/helper'
+require 'models/developer'
+require 'models/computer'
+require 'models/mentor'
+require 'models/project'
+require 'models/ship'
 
 class StrictLoadingTest < ActiveRecord::TestCase
   fixtures :developers
@@ -37,12 +37,12 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
   def test_strict_loading_by_default_can_be_set_per_model
     model1 = Class.new(ActiveRecord::Base) do
-      self.table_name = "developers"
+      self.table_name = 'developers'
       self.strict_loading_by_default = true
     end.new
 
     model2 = Class.new(ActiveRecord::Base) do
-      self.table_name = "developers"
+      self.table_name = 'developers'
       self.strict_loading_by_default = false
     end.new
 
@@ -53,11 +53,11 @@ class StrictLoadingTest < ActiveRecord::TestCase
   def test_strict_loading_by_default_is_inheritable
     with_strict_loading_by_default(ActiveRecord::Base) do
       model1 = Class.new(ActiveRecord::Base) do
-        self.table_name = "developers"
+        self.table_name = 'developers'
       end.new
 
       model2 = Class.new(ActiveRecord::Base) do
-        self.table_name = "developers"
+        self.table_name = 'developers'
         self.strict_loading_by_default = false
       end.new
 
@@ -90,13 +90,13 @@ class StrictLoadingTest < ActiveRecord::TestCase
     developer = Developer.first
 
     3.times do
-      AuditLog.create(developer: developer, message: "I am message")
+      AuditLog.create(developer: developer, message: 'I am message')
     end
 
     dev = Developer.includes(:audit_logs).strict_loading.first
 
     assert_predicate dev, :strict_loading?
-    assert dev.audit_logs.all?(&:strict_loading?), "Expected all audit logs to be strict_loading"
+    assert dev.audit_logs.all?(&:strict_loading?), 'Expected all audit logs to be strict_loading'
   end
 
   def test_preload_audit_logs_are_strict_loading_because_it_is_strict_loading_by_default
@@ -104,13 +104,13 @@ class StrictLoadingTest < ActiveRecord::TestCase
       developer = Developer.first
 
       3.times do
-        AuditLog.create(developer: developer, message: "I am message")
+        AuditLog.create(developer: developer, message: 'I am message')
       end
 
       dev = Developer.includes(:audit_logs).first
 
       assert_not_predicate dev, :strict_loading?
-      assert dev.audit_logs.all?(&:strict_loading?), "Expected all audit logs to be strict_loading"
+      assert dev.audit_logs.all?(&:strict_loading?), 'Expected all audit logs to be strict_loading'
     end
   end
 
@@ -118,25 +118,25 @@ class StrictLoadingTest < ActiveRecord::TestCase
     developer = Developer.first
 
     3.times do
-      AuditLog.create(developer: developer, message: "I am message")
+      AuditLog.create(developer: developer, message: 'I am message')
     end
 
     dev = Developer.eager_load(:strict_loading_audit_logs).first
 
-    assert dev.strict_loading_audit_logs.all?(&:strict_loading?), "Expected all audit logs to be strict_loading"
+    assert dev.strict_loading_audit_logs.all?(&:strict_loading?), 'Expected all audit logs to be strict_loading'
   end
 
   def test_eager_load_audit_logs_are_strict_loading_because_parent_is_strict_loading
     developer = Developer.first
 
     3.times do
-      AuditLog.create(developer: developer, message: "I am message")
+      AuditLog.create(developer: developer, message: 'I am message')
     end
 
     dev = Developer.eager_load(:audit_logs).strict_loading.first
 
     assert_predicate dev, :strict_loading?
-    assert dev.audit_logs.all?(&:strict_loading?), "Expected all audit logs to be strict_loading"
+    assert dev.audit_logs.all?(&:strict_loading?), 'Expected all audit logs to be strict_loading'
   end
 
   def test_eager_load_audit_logs_are_strict_loading_because_it_is_strict_loading_by_default
@@ -144,14 +144,14 @@ class StrictLoadingTest < ActiveRecord::TestCase
       developer = Developer.first
 
       3.times do
-        AuditLog.create(developer: developer, message: "I am message")
+        AuditLog.create(developer: developer, message: 'I am message')
       end
 
       dev = Developer.eager_load(:audit_logs).first
 
       assert_not_predicate dev, :strict_loading?
       assert_predicate AuditLog.last, :strict_loading?
-      assert dev.audit_logs.all?(&:strict_loading?), "Expected all audit logs to be strict_loading"
+      assert dev.audit_logs.all?(&:strict_loading?), 'Expected all audit logs to be strict_loading'
     end
   end
 
@@ -176,7 +176,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
   end
 
   def test_raises_on_lazy_loading_a_strict_loading_belongs_to_relation
-    mentor = Mentor.create!(name: "Mentor")
+    mentor = Mentor.create!(name: 'Mentor')
 
     developer = Developer.first
     developer.update_column(:mentor_id, mentor.id)
@@ -188,7 +188,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
   def test_raises_on_lazy_loading_a_belongs_to_relation_if_strict_loading_by_default
     with_strict_loading_by_default(Developer) do
-      mentor = Mentor.create!(name: "Mentor")
+      mentor = Mentor.create!(name: 'Mentor')
 
       developer = Developer.first
       developer.update_column(:mentor_id, mentor.id)
@@ -200,7 +200,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
   end
 
   def test_does_not_raise_on_eager_loading_a_strict_loading_belongs_to_relation
-    mentor = Mentor.create!(name: "Mentor")
+    mentor = Mentor.create!(name: 'Mentor')
 
     Developer.first.update_column(:mentor_id, mentor.id)
     developer = Developer.includes(:strict_loading_mentor).first
@@ -210,7 +210,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
   def test_does_not_raise_on_eager_loading_a_belongs_to_relation_if_strict_loading_by_default
     with_strict_loading_by_default(Developer) do
-      mentor = Mentor.create!(name: "Mentor")
+      mentor = Mentor.create!(name: 'Mentor')
 
       Developer.first.update_column(:mentor_id, mentor.id)
       developer = Developer.includes(:mentor).first
@@ -264,7 +264,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
     AuditLog.create(
       3.times.map do
-        { developer_id: developer.id, message: "I am message" }
+        { developer_id: developer.id, message: 'I am message' }
       end
     )
 
@@ -279,7 +279,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
       AuditLog.create(
         3.times.map do
-          { developer_id: developer.id, message: "I am message" }
+          { developer_id: developer.id, message: 'I am message' }
         end
       )
 
@@ -294,7 +294,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
     AuditLog.create(
       3.times.map do
-        { developer_id: developer.id, message: "I am message" }
+        { developer_id: developer.id, message: 'I am message' }
       end
     )
 
@@ -309,7 +309,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
       AuditLog.create(
         3.times.map do
-          { developer_id: developer.id, message: "I am message" }
+          { developer_id: developer.id, message: 'I am message' }
         end
       )
 

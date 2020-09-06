@@ -4,9 +4,9 @@ class Ship < ActiveRecord::Base
   self.record_timestamps = false
 
   belongs_to :pirate
-  belongs_to :update_only_pirate, class_name: "Pirate"
+  belongs_to :update_only_pirate, class_name: 'Pirate'
   belongs_to :developer, dependent: :destroy
-  has_many :parts, class_name: "ShipPart"
+  has_many :parts, class_name: 'ShipPart'
   has_many :treasures
 
   accepts_nested_attributes_for :parts, allow_destroy: true
@@ -23,20 +23,20 @@ class Ship < ActiveRecord::Base
 end
 
 class ShipWithoutNestedAttributes < ActiveRecord::Base
-  self.table_name = "ships"
+  self.table_name = 'ships'
   has_many :prisoners, inverse_of: :ship, foreign_key: :ship_id
-  has_many :parts, class_name: "ShipPart", foreign_key: :ship_id
+  has_many :parts, class_name: 'ShipPart', foreign_key: :ship_id
 
   validates :name, presence: true, if: -> { true }
   validates :name, presence: true, if: -> { true }
 end
 
 class Prisoner < ActiveRecord::Base
-  belongs_to :ship, autosave: true, class_name: "ShipWithoutNestedAttributes", inverse_of: :prisoners
+  belongs_to :ship, autosave: true, class_name: 'ShipWithoutNestedAttributes', inverse_of: :prisoners
 end
 
 class FamousShip < ActiveRecord::Base
-  self.table_name = "ships"
+  self.table_name = 'ships'
   belongs_to :famous_pirate, foreign_key: :pirate_id
   validates_presence_of :name, on: :conference
 end

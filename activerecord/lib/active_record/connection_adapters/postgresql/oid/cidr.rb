@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "ipaddr"
+require 'ipaddr'
 
 module ActiveRecord
   module ConnectionAdapters

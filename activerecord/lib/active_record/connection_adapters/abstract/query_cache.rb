@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "concurrent/map"
+require 'concurrent/map'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -110,7 +110,7 @@ module ActiveRecord
             result =
               if @query_cache[sql].key?(binds)
                 ActiveSupport::Notifications.instrument(
-                  "sql.active_record",
+                  'sql.active_record',
                   cache_notification_info(sql, name, binds)
                 )
                 @query_cache[sql][binds]

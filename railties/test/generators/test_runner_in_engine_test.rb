@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require "generators/plugin_test_helper"
+require 'generators/plugin_test_helper'
 
 class TestRunnerInEngineTest < ActiveSupport::TestCase
   include PluginTestHelper
 
   def setup
-    @destination_root = Dir.mktmpdir("bukkits")
+    @destination_root = Dir.mktmpdir('bukkits')
     Dir.chdir(@destination_root) { `bundle exec rails plugin new bukkits --full --skip-bundle` }
-    plugin_file "test/dummy/db/schema.rb", ""
+    plugin_file 'test/dummy/db/schema.rb', ''
   end
 
   def teardown
@@ -16,9 +16,9 @@ class TestRunnerInEngineTest < ActiveSupport::TestCase
   end
 
   def test_rerun_snippet_is_relative_path
-    create_test_file "post", pass: false
+    create_test_file 'post', pass: false
 
-    output = run_test_command("test/post_test.rb")
+    output = run_test_command('test/post_test.rb')
     expect = %r{Running:\n\nPostTest\nF\n\nFailure:\nPostTest#test_truth \[[^\]]+test/post_test\.rb:6\]:\nwups!\n\nrails test test/post_test\.rb:4}
     assert_match expect, output
   end

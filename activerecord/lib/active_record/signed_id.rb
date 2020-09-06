@@ -74,9 +74,9 @@ module ActiveRecord
           secret = secret.call if secret.respond_to?(:call)
 
           if secret.nil?
-            raise ArgumentError, "You must set ActiveRecord::Base.signed_id_verifier_secret to use signed ids"
+            raise ArgumentError, 'You must set ActiveRecord::Base.signed_id_verifier_secret to use signed ids'
           else
-            ActiveSupport::MessageVerifier.new secret, digest: "SHA256", serializer: JSON
+            ActiveSupport::MessageVerifier.new secret, digest: 'SHA256', serializer: JSON
           end
         end
       end
@@ -90,7 +90,7 @@ module ActiveRecord
 
       # :nodoc:
       def combine_signed_id_purposes(purpose)
-        [ name.underscore, purpose.to_s ].compact_blank.join("/")
+        [ name.underscore, purpose.to_s ].compact_blank.join('/')
       end
     end
 

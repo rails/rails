@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../abstract_unit"
-require "active_support/core_ext/module/introspection"
+require_relative '../../abstract_unit'
+require 'active_support/core_ext/module/introspection'
 
 module ParentA
   module B
@@ -16,19 +16,19 @@ end
 
 class IntrospectionTest < ActiveSupport::TestCase
   def test_module_parent_name
-    assert_equal "ParentA", ParentA::B.module_parent_name
-    assert_equal "ParentA::B", ParentA::B::C.module_parent_name
+    assert_equal 'ParentA', ParentA::B.module_parent_name
+    assert_equal 'ParentA::B', ParentA::B::C.module_parent_name
     assert_nil ParentA.module_parent_name
   end
 
   def test_module_parent_name_when_frozen
-    assert_equal "ParentA", ParentA::FrozenB.module_parent_name
-    assert_equal "ParentA::B", ParentA::B::FrozenC.module_parent_name
+    assert_equal 'ParentA', ParentA::FrozenB.module_parent_name
+    assert_equal 'ParentA::B', ParentA::B::FrozenC.module_parent_name
   end
 
   def test_parent_name
     assert_deprecated do
-      assert_equal "ParentA", ParentA::B.parent_name
+      assert_equal 'ParentA', ParentA::B.parent_name
     end
   end
 

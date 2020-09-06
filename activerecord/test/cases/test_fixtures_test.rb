@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "tempfile"
-require "fileutils"
-require "models/zine"
+require 'cases/helper'
+require 'tempfile'
+require 'fileutils'
+require 'models/zine'
 
 class TestFixturesTest < ActiveRecord::TestCase
   setup do
@@ -16,15 +16,15 @@ class TestFixturesTest < ActiveRecord::TestCase
   end
 
   def test_use_transactional_tests_can_be_overridden
-    @klass.use_transactional_tests = "foobar"
+    @klass.use_transactional_tests = 'foobar'
 
-    assert_equal "foobar", @klass.use_transactional_tests
+    assert_equal 'foobar', @klass.use_transactional_tests
   end
 
   unless in_memory_db?
     def test_doesnt_rely_on_active_support_test_case_specific_methods
       tmp_dir = Dir.mktmpdir
-      File.write(File.join(tmp_dir, "zines.yml"), <<~YML)
+      File.write(File.join(tmp_dir, 'zines.yml'), <<~YML)
       going_out:
         title: Hello
       YML
@@ -38,8 +38,8 @@ class TestFixturesTest < ActiveRecord::TestCase
         fixtures :all
 
         def test_run_successfuly
-          assert_equal("Hello", Zine.first.title)
-          assert_equal("Hello", zines(:going_out).title)
+          assert_equal('Hello', Zine.first.title)
+          assert_equal('Hello', zines(:going_out).title)
         end
       end
 
@@ -48,7 +48,7 @@ class TestFixturesTest < ActiveRecord::TestCase
       ActiveRecord::Base.connection_handlers = {}
       ActiveRecord::Base.establish_connection(:arunit)
 
-      test_result = klass.new("test_run_successfuly").run
+      test_result = klass.new('test_run_successfuly').run
       assert_predicate(test_result, :passed?)
     ensure
       ActiveRecord::Base.connection_handler = old_handler

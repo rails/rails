@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "controller/fake_models"
+require 'abstract_unit'
+require 'controller/fake_models'
 
 class FormWithTest < ActionView::TestCase
   include RenderERBUtils
@@ -37,7 +37,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
     method = options[:method]
     skip_enforcing_utf8 = options.fetch(:skip_enforcing_utf8, false)
 
-    (+"").tap do |txt|
+    (+'').tap do |txt|
       unless skip_enforcing_utf8
         txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
       end
@@ -48,10 +48,10 @@ class FormWithActsLikeFormTagTest < FormWithTest
     end
   end
 
-  def form_text(action = "http://www.example.com", local: false, **options)
+  def form_text(action = 'http://www.example.com', local: false, **options)
     enctype, html_class, id, method = options.values_at(:enctype, :html_class, :id, :method)
 
-    method = method.to_s == "get" ? "get" : "post"
+    method = method.to_s == 'get' ? 'get' : 'post'
 
     txt =  +%{<form accept-charset="UTF-8" action="#{action}"}
     txt << %{ enctype="multipart/form-data"} if enctype
@@ -61,11 +61,11 @@ class FormWithActsLikeFormTagTest < FormWithTest
     txt << %{ method="#{method}">}
   end
 
-  def whole_form(action = "http://www.example.com", options = {})
+  def whole_form(action = 'http://www.example.com', options = {})
     out = form_text(action, **options) + hidden_fields(options)
 
     if block_given?
-      out << yield << "</form>"
+      out << yield << '</form>'
     end
 
     out
@@ -73,7 +73,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
 
   def url_for(options)
     if options.is_a?(Hash)
-      "http://www.example.com"
+      'http://www.example.com'
     else
       super
     end
@@ -82,41 +82,41 @@ class FormWithActsLikeFormTagTest < FormWithTest
   def test_form_with_multipart
     actual = form_with(multipart: true)
 
-    expected = whole_form("http://www.example.com", enctype: true)
+    expected = whole_form('http://www.example.com', enctype: true)
     assert_dom_equal expected, actual
   end
 
   def test_form_with_with_method_patch
     actual = form_with(method: :patch)
 
-    expected = whole_form("http://www.example.com", method: :patch)
+    expected = whole_form('http://www.example.com', method: :patch)
     assert_dom_equal expected, actual
   end
 
   def test_form_with_with_method_put
     actual = form_with(method: :put)
 
-    expected = whole_form("http://www.example.com", method: :put)
+    expected = whole_form('http://www.example.com', method: :put)
     assert_dom_equal expected, actual
   end
 
   def test_form_with_with_method_delete
     actual = form_with(method: :delete)
 
-    expected = whole_form("http://www.example.com", method: :delete)
+    expected = whole_form('http://www.example.com', method: :delete)
     assert_dom_equal expected, actual
   end
 
   def test_form_with_with_local_true
     actual = form_with(local: true)
 
-    expected = whole_form("http://www.example.com", local: true)
+    expected = whole_form('http://www.example.com', local: true)
     assert_dom_equal expected, actual
   end
 
   def test_form_with_skip_enforcing_utf8_true
     actual = form_with(skip_enforcing_utf8: true)
-    expected = whole_form("http://www.example.com", skip_enforcing_utf8: true)
+    expected = whole_form('http://www.example.com', skip_enforcing_utf8: true)
     assert_dom_equal expected, actual
     assert_predicate actual, :html_safe?
   end
@@ -124,7 +124,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
   def test_form_with_default_enforce_utf8_false
     with_default_enforce_utf8 false do
       actual = form_with
-      expected = whole_form("http://www.example.com", skip_enforcing_utf8: true)
+      expected = whole_form('http://www.example.com', skip_enforcing_utf8: true)
       assert_dom_equal expected, actual
       assert_predicate actual, :html_safe?
     end
@@ -133,7 +133,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
   def test_form_with_default_enforce_utf8_true
     with_default_enforce_utf8 true do
       actual = form_with
-      expected = whole_form("http://www.example.com", skip_enforcing_utf8: false)
+      expected = whole_form('http://www.example.com', skip_enforcing_utf8: false)
       assert_dom_equal expected, actual
       assert_predicate actual, :html_safe?
     end
@@ -142,15 +142,15 @@ class FormWithActsLikeFormTagTest < FormWithTest
   def test_form_with_with_block_in_erb
     output_buffer = render_erb("<%= form_with(url: 'http://www.example.com') do %>Hello world!<% end %>")
 
-    expected = whole_form { "Hello world!" }
+    expected = whole_form { 'Hello world!' }
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_with_with_block_and_method_in_erb
     output_buffer = render_erb("<%= form_with(url: 'http://www.example.com', method: :put) do %>Hello world!<% end %>")
 
-    expected = whole_form("http://www.example.com", method: "put") do
-      "Hello world!"
+    expected = whole_form('http://www.example.com', method: 'put') do
+      'Hello world!'
     end
 
     assert_dom_equal expected, output_buffer
@@ -159,8 +159,8 @@ class FormWithActsLikeFormTagTest < FormWithTest
   def test_form_with_with_block_in_erb_and_local_true
     output_buffer = render_erb("<%= form_with(url: 'http://www.example.com', local: true) do %>Hello world!<% end %>")
 
-    expected = whole_form("http://www.example.com", local: true) do
-      "Hello world!"
+    expected = whole_form('http://www.example.com', local: true) do
+      'Hello world!'
     end
 
     assert_dom_equal expected, output_buffer
@@ -178,80 +178,80 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   setup do
     # Create "label" locale for testing I18n label helpers
-    I18n.backend.store_translations "label",
+    I18n.backend.store_translations 'label',
       activemodel: {
         attributes: {
           post: {
-            cost: "Total cost"
+            cost: 'Total cost'
           },
           "post/language": {
-            spanish: "Espanol"
+            spanish: 'Espanol'
           }
         }
       },
       helpers: {
         label: {
           post: {
-            body: "Write entire text here",
+            body: 'Write entire text here',
             color: {
-              red: "Rojo"
+              red: 'Rojo'
             },
             comments: {
-              body: "Write body here"
+              body: 'Write body here'
             }
           },
           tag: {
-            value: "Tag"
+            value: 'Tag'
           },
           post_delegate: {
-            title: "Delegate model_name title"
+            title: 'Delegate model_name title'
           }
         }
       }
 
     # Create "submit" locale for testing I18n submit helpers
-    I18n.backend.store_translations "submit",
+    I18n.backend.store_translations 'submit',
       helpers: {
         submit: {
-          create: "Create %{model}",
-          update: "Confirm %{model} changes",
-          submit: "Save changes",
+          create: 'Create %{model}',
+          update: 'Confirm %{model} changes',
+          submit: 'Save changes',
           another_post: {
-            update: "Update your %{model}"
+            update: 'Update your %{model}'
           },
           "blog/post": {
-            update: "Update your %{model}"
+            update: 'Update your %{model}'
           }
         }
       }
 
-    I18n.backend.store_translations "placeholder",
+    I18n.backend.store_translations 'placeholder',
       activemodel: {
         attributes: {
           post: {
-            cost: "Total cost"
+            cost: 'Total cost'
           },
           "post/cost": {
-            uk: "Pounds"
+            uk: 'Pounds'
           }
         }
       },
       helpers: {
         placeholder: {
           post: {
-            title: "What is this about?",
+            title: 'What is this about?',
             written_on: {
-              spanish: "Escrito en"
+              spanish: 'Escrito en'
             },
             comments: {
-              body: "Write body here"
+              body: 'Write body here'
             }
           },
           post_delegate: {
-            title: "Delegate model_name title"
+            title: 'Delegate model_name title'
           },
           tag: {
-            value: "Tag"
+            value: 'Tag'
           }
         }
       }
@@ -260,7 +260,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     @comment = Comment.new
     def @post.errors
       Class.new {
-        def [](field); field == "author_name" ? ["can't be empty"] : [] end
+        def [](field); field == 'author_name' ? ["can't be empty"] : [] end
         def empty?() false end
         def count() 1 end
         def full_messages() ["Author name can't be empty"] end
@@ -268,14 +268,14 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
     def @post.to_key; [123]; end
     def @post.id; 0; end
-    def @post.id_before_type_cast; "omg"; end
+    def @post.id_before_type_cast; 'omg'; end
     def @post.id_came_from_user?; true; end
-    def @post.to_param; "123"; end
+    def @post.to_param; '123'; end
 
     @post.persisted   = true
-    @post.title       = "Hello World"
-    @post.author_name = ""
-    @post.body        = "Back to the hill and over it again!"
+    @post.title       = 'Hello World'
+    @post.author_name = ''
+    @post.body        = 'Back to the hill and over it again!'
     @post.secret      = 1
     @post.written_on  = Date.new(2004, 6, 15)
 
@@ -287,9 +287,9 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     @post_delegator = PostDelegator.new
 
-    @post_delegator.title = "Hello World"
+    @post_delegator.title = 'Hello World'
 
-    @car = Car.new("#000FFF")
+    @car = Car.new('#000FFF')
     @controller.singleton_class.include Routes.url_helpers
   end
 
@@ -305,8 +305,8 @@ class FormWithActsLikeFormForTest < FormWithTest
       end
     end
 
-    get "/foo", to: "controller#action"
-    root to: "main#index"
+    get '/foo', to: 'controller#action'
+    root to: 'main#index'
   end
 
   include Routes.url_helpers
@@ -315,8 +315,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     @url_for_options = object
 
     if object.is_a?(Hash) && object[:use_route].blank? && object[:controller].blank?
-      object[:controller] = "main"
-      object[:action] = "index"
+      object[:controller] = 'main'
+      object[:action] = 'index'
     end
 
     super
@@ -324,33 +324,33 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   def test_form_with_requires_arguments
     error = assert_raises(ArgumentError) do
-      form_for(nil, html: { id: "create-post" }) do
+      form_for(nil, html: { id: 'create-post' }) do
       end
     end
-    assert_equal "First argument in form cannot contain nil or be empty", error.message
+    assert_equal 'First argument in form cannot contain nil or be empty', error.message
 
     error = assert_raises(ArgumentError) do
-      form_for([nil, nil], html: { id: "create-post" }) do
+      form_for([nil, nil], html: { id: 'create-post' }) do
       end
     end
-    assert_equal "First argument in form cannot contain nil or be empty", error.message
+    assert_equal 'First argument in form cannot contain nil or be empty', error.message
   end
 
   def test_form_with
-    form_with(model: @post, id: "create-post") do |f|
-      concat f.label(:title) { "The Title" }
+    form_with(model: @post, id: 'create-post') do |f|
+      concat f.label(:title) { 'The Title' }
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
       concat f.select(:category, %w( animal economy sports ))
-      concat f.submit("Create post")
-      concat f.button("Create post")
+      concat f.submit('Create post')
+      concat f.button('Create post')
       concat f.button {
-        concat content_tag(:span, "Create post")
+        concat content_tag(:span, 'Create post')
       }
     end
 
-    expected = whole_form("/posts/123", "create-post", method: "patch") do
+    expected = whole_form('/posts/123', 'create-post', method: 'patch') do
       "<label for='post_title'>The Title</label>" \
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
@@ -369,17 +369,17 @@ class FormWithActsLikeFormForTest < FormWithTest
     old_value = ActionView::Helpers::FormHelper.form_with_generates_ids
     ActionView::Helpers::FormHelper.form_with_generates_ids = false
 
-    form_with(model: @post, id: "create-post") do |f|
-      concat f.label(:title) { "The Title" }
+    form_with(model: @post, id: 'create-post') do |f|
+      concat f.label(:title) { 'The Title' }
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
       concat f.select(:category, %w( animal economy sports ))
-      concat f.submit("Create post")
+      concat f.submit('Create post')
     end
 
-    expected = whole_form("/posts/123", "create-post", method: "patch") do
-      "<label>The Title</label>" \
+    expected = whole_form('/posts/123', 'create-post', method: 'patch') do
+      '<label>The Title</label>' \
       "<input name='post[title]' type='text' value='Hello World' />" \
       "<textarea name='post[body]'>\nBack to the hill and over it again!</textarea>" \
       "<input name='post[secret]' type='hidden' value='0' />" \
@@ -394,12 +394,12 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_only_url_on_create
-    form_with(url: "/posts") do |f|
-      concat f.label :title, "Label me"
+    form_with(url: '/posts') do |f|
+      concat f.label :title, 'Label me'
       concat f.text_field :title
     end
 
-    expected = whole_form("/posts") do
+    expected = whole_form('/posts') do
       '<label for="title">Label me</label>' \
       '<input type="text" name="title" id="title">'
     end
@@ -408,12 +408,12 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_only_url_on_update
-    form_with(url: "/posts/123") do |f|
-      concat f.label :title, "Label me"
+    form_with(url: '/posts/123') do |f|
+      concat f.label :title, 'Label me'
       concat f.text_field :title
     end
 
-    expected = whole_form("/posts/123") do
+    expected = whole_form('/posts/123') do
       '<label for="title">Label me</label>' \
       '<input type="text" name="title" id="title">'
     end
@@ -422,11 +422,11 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_general_attributes
-    form_with(url: "/posts/123") do |f|
+    form_with(url: '/posts/123') do |f|
       concat f.text_field :no_model_to_back_this_badboy
     end
 
-    expected = whole_form("/posts/123") do
+    expected = whole_form('/posts/123') do
       '<input type="text" name="no_model_to_back_this_badboy" id="no_model_to_back_this_badboy" >'
     end
 
@@ -438,7 +438,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       concat f.text_field :this_dont_exist_on_post
     end
 
-    expected = whole_form("/posts/123", method: :patch) do
+    expected = whole_form('/posts/123', method: :patch) do
       '<input type="text" name="post[this_dont_exist_on_post]" id="post_this_dont_exist_on_post" >'
     end
 
@@ -449,16 +449,16 @@ class FormWithActsLikeFormForTest < FormWithTest
     obj = Class.new do
       private
         def private_property
-          "That would be great."
+          'That would be great.'
         end
 
       protected
         def protected_property
-          "I believe you have my stapler."
+          'I believe you have my stapler.'
         end
     end.new
 
-    form_with(model: obj, scope: "other_name", url: "/", id: "edit-other-name") do |f|
+    form_with(model: obj, scope: 'other_name', url: '/', id: 'edit-other-name') do |f|
       assert_dom_equal '<input type="hidden" name="other_name[private_property]" id="other_name_private_property">', f.hidden_field(:private_property)
       assert_dom_equal '<input type="hidden" name="other_name[protected_property]"  id="other_name_protected_property">', f.hidden_field(:protected_property)
     end
@@ -471,11 +471,11 @@ class FormWithActsLikeFormForTest < FormWithTest
       concat f.collection_select(:active, [true, false], :to_s, :to_s)
     end
 
-    expected = whole_form("/posts") do
+    expected = whole_form('/posts') do
       "<select name='post[active]' id='post_active'>" \
       "<option value='true'>true</option>\n" \
       "<option selected='selected' value='false'>false</option>" \
-      "</select>"
+      '</select>'
     end
 
     assert_dom_equal expected, output_buffer
@@ -488,7 +488,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       concat f.collection_radio_buttons(:active, [true, false], :to_s, :to_s)
     end
 
-    expected = whole_form("/posts") do
+    expected = whole_form('/posts') do
       "<input type='hidden' name='post[active]' value='' />" \
       "<input name='post[active]' type='radio' value='true' id='post_active_true' />" \
       "<label for='post_active_true'>true</label>" \
@@ -510,14 +510,14 @@ class FormWithActsLikeFormForTest < FormWithTest
       concat rendered_radio_buttons
     end
 
-    expected = whole_form("/posts") do
+    expected = whole_form('/posts') do
       "<input type='hidden' name='post[active]' value='' />" \
       "<label for='post_active_true'>" \
       "<input name='post[active]' type='radio' value='true' id='post_active_true' />" \
-      "true</label>" \
+      'true</label>' \
       "<label for='post_active_false'>" \
       "<input checked='checked' name='post[active]' type='radio' value='false' id='post_active_false' />" \
-      "false</label>"
+      'false</label>'
     end
 
     assert_dom_equal expected, output_buffer
@@ -536,14 +536,14 @@ class FormWithActsLikeFormForTest < FormWithTest
       concat f.hidden_field :id
     end
 
-    expected = whole_form("/posts") do
+    expected = whole_form('/posts') do
       "<input type='hidden' name='post[active]' value='' />" \
       "<label for='post_active_true'>" \
       "<input name='post[active]' type='radio' value='true' id='post_active_true' />" \
-      "true</label>" \
+      'true</label>' \
       "<label for='post_active_false'>" \
       "<input checked='checked' name='post[active]' type='radio' value='false' id='post_active_false' />" \
-      "false</label>" \
+      'false</label>' \
       "<input name='post[id]' type='hidden' value='1' id='post_id' />"
     end
 
@@ -554,11 +554,11 @@ class FormWithActsLikeFormForTest < FormWithTest
     post = Post.new
     def post.active; false; end
 
-    form_with(model: post, index: "1") do |f|
+    form_with(model: post, index: '1') do |f|
       concat f.collection_radio_buttons(:active, [true, false], :to_s, :to_s)
     end
 
-    expected = whole_form("/posts") do
+    expected = whole_form('/posts') do
       "<input type='hidden' name='post[1][active]' value='' />" \
       "<input name='post[1][active]' type='radio' value='true' id='post_1_active_true' />" \
       "<label for='post_1_active_true'>true</label>" \
@@ -577,7 +577,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       concat f.collection_check_boxes(:tag_ids, collection, :first, :last)
     end
 
-    expected = whole_form("/posts") do
+    expected = whole_form('/posts') do
       "<input name='post[tag_ids][]' type='hidden' value='' />" \
       "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='1' id='post_tag_ids_1' />" \
       "<label for='post_tag_ids_1'>Tag 1</label>" \
@@ -601,17 +601,17 @@ class FormWithActsLikeFormForTest < FormWithTest
       concat rendered_check_boxes
     end
 
-    expected = whole_form("/posts") do
+    expected = whole_form('/posts') do
       "<input name='post[tag_ids][]' type='hidden' value='' />" \
       "<label for='post_tag_ids_1'>" \
       "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='1' id='post_tag_ids_1' />" \
-      "Tag 1</label>" \
+      'Tag 1</label>' \
       "<label for='post_tag_ids_2'>" \
       "<input name='post[tag_ids][]' type='checkbox' value='2' id='post_tag_ids_2' />" \
-      "Tag 2</label>" \
+      'Tag 2</label>' \
       "<label for='post_tag_ids_3'>" \
       "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='3' id='post_tag_ids_3' />" \
-      "Tag 3</label>"
+      'Tag 3</label>'
     end
 
     assert_dom_equal expected, output_buffer
@@ -631,17 +631,17 @@ class FormWithActsLikeFormForTest < FormWithTest
       concat f.hidden_field :id
     end
 
-    expected = whole_form("/posts") do
+    expected = whole_form('/posts') do
       "<input name='post[tag_ids][]' type='hidden' value='' />" \
       "<label for='post_tag_ids_1'>" \
       "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='1' id='post_tag_ids_1' />" \
-      "Tag 1</label>" \
+      'Tag 1</label>' \
       "<label for='post_tag_ids_2'>" \
       "<input name='post[tag_ids][]' type='checkbox' value='2' id='post_tag_ids_2' />" \
-      "Tag 2</label>" \
+      'Tag 2</label>' \
       "<label for='post_tag_ids_3'>" \
       "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='3' id='post_tag_ids_3' />" \
-      "Tag 3</label>" \
+      'Tag 3</label>' \
       "<input name='post[id]' type='hidden' value='1' id='post_id' />"
     end
 
@@ -651,13 +651,13 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_form_with_index_and_with_collection_check_boxes
     post = Post.new
     def post.tag_ids; [1]; end
-    collection = [[1, "Tag 1"]]
+    collection = [[1, 'Tag 1']]
 
-    form_with(model: post, index: "1") do |f|
+    form_with(model: post, index: '1') do |f|
       concat f.collection_check_boxes(:tag_ids, collection, :first, :last)
     end
 
-    expected = whole_form("/posts") do
+    expected = whole_form('/posts') do
       "<input name='post[1][tag_ids][]' type='hidden' value='' />" \
       "<input checked='checked' name='post[1][tag_ids][]' type='checkbox' value='1' id='post_1_tag_ids_1' />" \
       "<label for='post_1_tag_ids_1'>Tag 1</label>"
@@ -667,11 +667,11 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_file_field_generate_multipart
-    form_with(model: @post, id: "create-post") do |f|
+    form_with(model: @post, id: 'create-post') do |f|
       concat f.file_field(:file)
     end
 
-    expected = whole_form("/posts/123", "create-post", method: "patch", multipart: true) do
+    expected = whole_form('/posts/123', 'create-post', method: 'patch', multipart: true) do
       "<input name='post[file]' type='file' id='post_file' />"
     end
 
@@ -685,7 +685,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch", multipart: true) do
+    expected = whole_form('/posts/123', method: 'patch', multipart: true) do
       "<input name='post[comment][file]' type='file' id='post_comment_file'/>"
     end
 
@@ -693,11 +693,11 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_format
-    form_with(model: @post, format: :json, id: "edit_post_123", class: "edit_post") do |f|
+    form_with(model: @post, format: :json, id: 'edit_post_123', class: 'edit_post') do |f|
       concat f.label(:title)
     end
 
-    expected = whole_form("/posts/123.json", "edit_post_123", "edit_post", method: "patch") do
+    expected = whole_form('/posts/123.json', 'edit_post_123', 'edit_post', method: 'patch') do
       "<label for='post_title'>Title</label>"
     end
 
@@ -705,11 +705,11 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_format_and_url
-    form_with(model: @post, format: :json, url: "/") do |f|
+    form_with(model: @post, format: :json, url: '/') do |f|
       concat f.label(:title)
     end
 
-    expected = whole_form("/", method: "patch") do
+    expected = whole_form('/', method: 'patch') do
       "<label for='post_title'>Title</label>"
     end
 
@@ -717,14 +717,14 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_model_using_relative_model_naming
-    blog_post = Blog::Post.new("And his name will be forty and four.", 44)
+    blog_post = Blog::Post.new('And his name will be forty and four.', 44)
 
     form_with(model: blog_post) do |f|
       concat f.text_field :title
-      concat f.submit("Edit post")
+      concat f.submit('Edit post')
     end
 
-    expected = whole_form("/posts/44", method: "patch") do
+    expected = whole_form('/posts/44', method: 'patch') do
       "<input name='post[title]' type='text' value='And his name will be forty and four.' id='post_title' />" \
       "<input name='commit' data-disable-with='Edit post' type='submit' value='Edit post' />"
     end
@@ -733,15 +733,15 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_symbol_scope
-    form_with(model: @post, scope: "other_name", id: "create-post") do |f|
-      concat f.label(:title, class: "post_title")
+    form_with(model: @post, scope: 'other_name', id: 'create-post') do |f|
+      concat f.label(:title, class: 'post_title')
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
-      concat f.submit("Create post")
+      concat f.submit('Create post')
     end
 
-    expected = whole_form("/posts/123", "create-post", method: "patch") do
+    expected = whole_form('/posts/123', 'create-post', method: 'patch') do
       "<label for='other_name_title' class='post_title'>Title</label>" \
       "<input name='other_name[title]' value='Hello World' type='text' id='other_name_title' />" \
       "<textarea name='other_name[body]' id='other_name_body'>\nBack to the hill and over it again!</textarea>" \
@@ -754,13 +754,13 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_method_as_part_of_html_options
-    form_with(model: @post, url: "/", id: "create-post", html: { method: :delete }) do |f|
+    form_with(model: @post, url: '/', id: 'create-post', html: { method: :delete }) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
     end
 
-    expected = whole_form("/", "create-post", method: "delete") do
+    expected = whole_form('/', 'create-post', method: 'delete') do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
       "<input name='post[secret]' type='hidden' value='0' />" \
@@ -771,13 +771,13 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_method
-    form_with(model: @post, url: "/", method: :delete, id: "create-post") do |f|
+    form_with(model: @post, url: '/', method: :delete, id: 'create-post') do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
     end
 
-    expected = whole_form("/", "create-post", method: "delete") do
+    expected = whole_form('/', 'create-post', method: 'delete') do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body' >\nBack to the hill and over it again!</textarea>" \
       "<input name='post[secret]' type='hidden' value='0' />" \
@@ -790,11 +790,11 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_form_with_with_search_field
     # Test case for bug which would emit an "object" attribute
     # when used with form_for using a search_field form helper
-    form_with(model: Post.new, url: "/search", id: "search-post", method: :get) do |f|
+    form_with(model: Post.new, url: '/search', id: 'search-post', method: :get) do |f|
       concat f.search_field(:title)
     end
 
-    expected = whole_form("/search", "search-post", method: "get") do
+    expected = whole_form('/search', 'search-post', method: 'get') do
       "<input name='post[title]' type='search' id='post_title' />"
     end
 
@@ -802,13 +802,13 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_enables_remote_by_default
-    form_with(model: @post, url: "/", id: "create-post", method: :patch) do |f|
+    form_with(model: @post, url: '/', id: 'create-post', method: :patch) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
     end
 
-    expected = whole_form("/", "create-post", method: "patch") do
+    expected = whole_form('/', 'create-post', method: 'patch') do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body' >\nBack to the hill and over it again!</textarea>" \
       "<input name='post[secret]' type='hidden' value='0' />" \
@@ -822,13 +822,13 @@ class FormWithActsLikeFormForTest < FormWithTest
     old_value = ActionView::Helpers::FormHelper.form_with_generates_remote_forms
     ActionView::Helpers::FormHelper.form_with_generates_remote_forms = false
 
-    form_with(model: @post, url: "/", id: "create-post", method: :patch) do |f|
+    form_with(model: @post, url: '/', id: 'create-post', method: :patch) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
     end
 
-    expected = whole_form("/", "create-post", method: "patch", local: true) do
+    expected = whole_form('/', 'create-post', method: 'patch', local: true) do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
       "<input name='post[secret]' type='hidden' value='0' />" \
@@ -845,7 +845,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       concat f.text_field(:title)
     end
 
-    expected = whole_form("/", skip_enforcing_utf8: true) do
+    expected = whole_form('/', skip_enforcing_utf8: true) do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />"
     end
 
@@ -857,7 +857,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       concat f.text_field(:title)
     end
 
-    expected = whole_form("/", skip_enforcing_utf8: false) do
+    expected = whole_form('/', skip_enforcing_utf8: false) do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />"
     end
 
@@ -870,7 +870,7 @@ class FormWithActsLikeFormForTest < FormWithTest
         concat f.text_field(:title)
       end
 
-      expected = whole_form("/", skip_enforcing_utf8: false) do
+      expected = whole_form('/', skip_enforcing_utf8: false) do
         "<input name='post[title]' type='text' value='Hello World' id='post_title' />"
       end
 
@@ -884,7 +884,7 @@ class FormWithActsLikeFormForTest < FormWithTest
         concat f.text_field(:title)
       end
 
-      expected = whole_form("/", skip_enforcing_utf8: true) do
+      expected = whole_form('/', skip_enforcing_utf8: true) do
         "<input name='post[title]' type='text' value='Hello World' id='post_title' />"
       end
 
@@ -893,13 +893,13 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_without_object
-    form_with(scope: :post, id: "create-post") do |f|
+    form_with(scope: :post, id: 'create-post') do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
     end
 
-    expected = whole_form("/", "create-post") do
+    expected = whole_form('/', 'create-post') do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body' >\nBack to the hill and over it again!</textarea>" \
       "<input name='post[secret]' type='hidden' value='0' />" \
@@ -910,14 +910,14 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_index
-    form_with(model: @post, scope: "post[]") do |f|
+    form_with(model: @post, scope: 'post[]') do |f|
       concat f.label(:title)
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<label for='post_123_title'>Title</label>" \
       "<input name='post[123][title]' type='text' value='Hello World' id='post_123_title' />" \
       "<textarea name='post[123][body]' id='post_123_body'>\nBack to the hill and over it again!</textarea>" \
@@ -929,13 +929,13 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_nil_index_option_override
-    form_with(model: @post, scope: "post[]", index: nil) do |f|
+    form_with(model: @post, scope: 'post[]', index: nil) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<input name='post[][title]' type='text' value='Hello World' id='post__title' />" \
       "<textarea name='post[][body]' id='post__body' >\nBack to the hill and over it again!</textarea>" \
       "<input name='post[][secret]' type='hidden' value='0' />" \
@@ -947,12 +947,12 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   def test_form_with_label_error_wrapping
     form_with(model: @post) do |f|
-      concat f.label(:author_name, class: "label")
+      concat f.label(:author_name, class: 'label')
       concat f.text_field(:author_name)
-      concat f.submit("Create post")
+      concat f.submit('Create post')
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<div class='field_with_errors'><label for='post_author_name' class='label'>Author name</label></div>" \
       "<div class='field_with_errors'><input name='post[author_name]' type='text' value='' id='post_author_name' /></div>" \
       "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />"
@@ -965,12 +965,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     post = remove_instance_variable :@post
 
     form_with(model: post) do |f|
-      concat f.label(:author_name, class: "label")
+      concat f.label(:author_name, class: 'label')
       concat f.text_field(:author_name)
-      concat f.submit("Create post")
+      concat f.submit('Create post')
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<div class='field_with_errors'><label for='post_author_name' class='label'>Author name</label></div>" \
       "<div class='field_with_errors'><input name='post[author_name]' type='text' value='' id='post_author_name' /></div>" \
       "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />"
@@ -981,11 +981,11 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   def test_form_with_label_error_wrapping_block_and_non_block_versions
     form_with(model: @post) do |f|
-      concat f.label(:author_name, "Name", class: "label")
-      concat f.label(:author_name, class: "label") { "Name" }
+      concat f.label(:author_name, 'Name', class: 'label')
+      concat f.label(:author_name, class: 'label') { 'Name' }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<div class='field_with_errors'><label for='post_author_name' class='label'>Name</label></div>" \
       "<div class='field_with_errors'><label for='post_author_name' class='label'>Name</label></div>"
     end
@@ -1001,7 +1001,7 @@ class FormWithActsLikeFormForTest < FormWithTest
           concat f.submit
         end
 
-        expected = whole_form("/posts") do
+        expected = whole_form('/posts') do
           "<input name='commit' data-disable-with='Create Post' type='submit' value='Create Post' />"
         end
 
@@ -1016,7 +1016,7 @@ class FormWithActsLikeFormForTest < FormWithTest
         concat f.submit
       end
 
-      expected = whole_form("/posts/123", method: "patch") do
+      expected = whole_form('/posts/123', method: 'patch') do
         "<input name='commit' data-disable-with='Confirm Post changes' type='submit' value='Confirm Post changes' />"
       end
 
@@ -1027,7 +1027,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_submit_without_object_and_locale_strings
     I18n.with_locale :submit do
       form_with(scope: :post) do |f|
-        concat f.submit class: "extra"
+        concat f.submit class: 'extra'
       end
 
       expected = whole_form do
@@ -1044,7 +1044,7 @@ class FormWithActsLikeFormForTest < FormWithTest
         concat f.submit
       end
 
-      expected = whole_form("/posts/123", method: "patch") do
+      expected = whole_form('/posts/123', method: 'patch') do
         "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
       end
 
@@ -1053,13 +1053,13 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_submit_with_object_which_is_namespaced
-    blog_post = Blog::Post.new("And his name will be forty and four.", 44)
+    blog_post = Blog::Post.new('And his name will be forty and four.', 44)
     I18n.with_locale :submit do
       form_with(model: blog_post) do |f|
         concat f.submit
       end
 
-      expected = whole_form("/posts/44", method: "patch") do
+      expected = whole_form('/posts/44', method: 'patch') do
         "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
       end
 
@@ -1074,7 +1074,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: :patch) do
+    expected = whole_form('/posts/123', method: :patch) do
       '<input type="text" name="post[comment][dont_exist_on_model]" id="post_comment_dont_exist_on_model" >'
     end
 
@@ -1084,10 +1084,10 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_fields_with_attributes_not_on_model_deep_nested
     @comment.save
     form_with(scope: :posts) do |f|
-      f.fields("post[]", model: @post) do |f2|
+      f.fields('post[]', model: @post) do |f2|
         f2.text_field(:id)
         @post.comments.each do |comment|
-          concat f2.fields("comment[]", model: comment) { |c|
+          concat f2.fields('comment[]', model: comment) { |c|
             concat c.text_field(:dont_exist_on_model)
           }
         end
@@ -1102,14 +1102,14 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_nested_fields
-    @comment.body = "Hello World"
+    @comment.body = 'Hello World'
     form_with(model: @post) do |f|
       concat f.fields(model: @comment) { |c|
         concat c.text_field(:body)
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<input name='post[comment][body]' type='text' value='Hello World' id='post_comment_body' />"
     end
 
@@ -1119,10 +1119,10 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_deep_nested_fields
     @comment.save
     form_with(scope: :posts) do |f|
-      f.fields("post[]", model: @post) do |f2|
+      f.fields('post[]', model: @post) do |f2|
         f2.text_field(:id)
         @post.comments.each do |comment|
-          concat f2.fields("comment[]", model: comment) { |c|
+          concat f2.fields('comment[]', model: comment) { |c|
             concat c.text_field(:name)
           }
         end
@@ -1137,14 +1137,14 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_nested_fields_with_nested_collections
-    form_with(model: @post, scope: "post[]") do |f|
+    form_with(model: @post, scope: 'post[]') do |f|
       concat f.text_field(:title)
-      concat f.fields("comment[]", model: @comment) { |c|
+      concat f.fields('comment[]', model: @comment) { |c|
         concat c.text_field(:name)
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<input name='post[123][title]' type='text' value='Hello World' id='post_123_title' />" \
       "<input name='post[123][comment][][name]' type='text' value='new comment' id='post_123_comment__name' />"
     end
@@ -1155,12 +1155,12 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_nested_fields_with_index_and_parent_fields
     form_with(model: @post, index: 1) do |c|
       concat c.text_field(:title)
-      concat c.fields("comment", model: @comment, index: 1) { |r|
+      concat c.fields('comment', model: @comment, index: 1) { |r|
         concat r.text_field(:name)
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<input name='post[1][title]' type='text' value='Hello World' id='post_1_title' />" \
       "<input name='post[1][comment][1][name]' type='text' value='new comment' id='post_1_comment_1_name' />"
     end
@@ -1175,7 +1175,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<input name='post[1][comment][title]' type='text' value='Hello World' id='post_1_comment_title' />"
     end
 
@@ -1189,7 +1189,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<input name='post[1][comment][5][title]' type='text' value='Hello World' id='post_1_comment_5_title' />"
     end
 
@@ -1197,13 +1197,13 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_nested_fields_with_auto_index
-    form_with(model: @post, scope: "post[]") do |f|
+    form_with(model: @post, scope: 'post[]') do |f|
       concat f.fields(:comment, model: @post) { |c|
         concat c.text_field(:title)
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<input name='post[123][comment][title]' type='text' value='Hello World' id='post_123_comment_title' />"
     end
 
@@ -1213,11 +1213,11 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_nested_fields_with_index_radio_button
     form_with(model: @post) do |f|
       concat f.fields(:comment, model: @post, index: 5) { |c|
-        concat c.radio_button(:title, "hello")
+        concat c.radio_button(:title, 'hello')
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<input name='post[comment][5][title]' type='radio' value='hello' id='post_comment_5_title_hello' />"
     end
 
@@ -1225,13 +1225,13 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_nested_fields_with_auto_index_on_both
-    form_with(model: @post, scope: "post[]") do |f|
-      concat f.fields("comment[]", model: @post) { |c|
+    form_with(model: @post, scope: 'post[]') do |f|
+      concat f.fields('comment[]', model: @post) { |c|
         concat c.text_field(:title)
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<input name='post[123][comment][123][title]' type='text' value='Hello World' id='post_123_comment_123_title' />"
     end
 
@@ -1239,21 +1239,21 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_nested_fields_with_index_and_auto_index
-    output_buffer = form_with(model: @post, scope: "post[]") do |f|
+    output_buffer = form_with(model: @post, scope: 'post[]') do |f|
       concat f.fields(:comment, model: @post, index: 5) { |c|
         concat c.text_field(:title)
       }
     end
 
     output_buffer << form_with(model: @post, index: 1) do |f|
-      concat f.fields("comment[]", model: @post) { |c|
+      concat f.fields('comment[]', model: @post) { |c|
         concat c.text_field(:title)
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<input name='post[123][comment][5][title]' type='text' value='Hello World' id='post_123_comment_5_title' />"
-    end + whole_form("/posts/123", method: "patch") do
+    end + whole_form('/posts/123', method: 'patch') do
       "<input name='post[1][comment][123][title]' type='text' value='Hello World' id='post_1_comment_123_title' />"
     end
 
@@ -1270,7 +1270,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
         '<input name="post[author_attributes][name]" type="text" value="new author" id="post_author_attributes_name" />'
     end
@@ -1297,7 +1297,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />' \
       '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" />'
@@ -1316,7 +1316,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />' \
       '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" />'
@@ -1335,7 +1335,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />'
     end
@@ -1353,7 +1353,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />'
     end
@@ -1371,7 +1371,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />' \
       '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" />'
@@ -1391,7 +1391,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />'
@@ -1412,7 +1412,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       end
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
       '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" />' \
@@ -1439,7 +1439,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       end
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />' \
       '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" />' \
@@ -1466,7 +1466,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       end
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
@@ -1492,7 +1492,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       end
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[author_attributes][name]" type="text" value="author #321" id="post_author_attributes_name" />' \
       '<input name="post[author_attributes][id]" type="hidden" value="321" id="post_author_attributes_id" />' \
@@ -1515,7 +1515,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       end
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
       '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" />' \
@@ -1539,7 +1539,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       end
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
@@ -1562,7 +1562,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       end
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="new comment" id="post_comments_attributes_0_name" />' \
       '<input name="post[comments_attributes][1][name]" type="text" value="new comment" id="post_comments_attributes_1_name" />'
@@ -1583,7 +1583,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       end
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #321" id="post_comments_attributes_0_name" />' \
       '<input name="post[comments_attributes][0][id]" type="hidden" value="321" id="post_comments_attributes_0_id"/>' \
@@ -1601,7 +1601,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       end
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />'
     end
 
@@ -1618,7 +1618,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
       '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" />' \
@@ -1639,7 +1639,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
       '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" />' \
@@ -1653,8 +1653,8 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_nested_fields_label_translation_with_more_than_10_records
     @post.comments = Array.new(11) { |id| Comment.new(id + 1) }
 
-    params = 11.times.map { ["post.comments.body", default: [:"comment.body", ""], scope: "helpers.label"] }
-    assert_called_with(I18n, :t, params, returns: "Write body here") do
+    params = 11.times.map { ['post.comments.body', default: [:"comment.body", ''], scope: 'helpers.label'] }
+    assert_called_with(I18n, :t, params, returns: 'Write body here') do
       form_with(model: @post) do |f|
         f.fields(:comments) do |cf|
           concat cf.label(:body)
@@ -1674,7 +1674,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #1" id="post_comments_attributes_0_name" />' \
       '<input name="post[comments_attributes][0][id]" type="hidden" value="1" id="post_comments_attributes_0_id" />' \
@@ -1697,7 +1697,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[title]" type="text" value="Hello World" id="post_title" />' \
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #321" id="post_comments_attributes_0_name" />' \
       '<input name="post[comments_attributes][0][id]" type="hidden" value="321" id="post_comments_attributes_0_id" />' \
@@ -1712,12 +1712,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     @post.comments = []
 
     form_with(model: @post) do |f|
-      concat f.fields(:comments, model: Comment.new(321), child_index: "abc") { |cf|
+      concat f.fields(:comments, model: Comment.new(321), child_index: 'abc') { |cf|
         concat cf.text_field(:name)
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[comments_attributes][abc][name]" type="text" value="comment #321" id="post_comments_attributes_abc_name" />' \
       '<input name="post[comments_attributes][abc][id]" type="hidden" value="321" id="post_comments_attributes_abc_id" />'
     end
@@ -1729,12 +1729,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     @post.comments = []
 
     form_with(model: @post) do |f|
-      concat f.fields(:comments, model: Comment.new(321), child_index: -> { "abc" }) { |cf|
+      concat f.fields(:comments, model: Comment.new(321), child_index: -> { 'abc' }) { |cf|
         concat cf.text_field(:name)
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[comments_attributes][abc][name]" type="text" value="comment #321" id="post_comments_attributes_abc_name" />' \
       '<input name="post[comments_attributes][abc][id]" type="hidden" value="321" id="post_comments_attributes_abc_id" />'
     end
@@ -1752,12 +1752,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     @post.comments = FakeAssociationProxy.new
 
     form_with(model: @post) do |f|
-      concat f.fields(:comments, model: Comment.new(321), child_index: "abc") { |cf|
+      concat f.fields(:comments, model: Comment.new(321), child_index: 'abc') { |cf|
         concat cf.text_field(:name)
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[comments_attributes][abc][name]" type="text" value="comment #321" id="post_comments_attributes_abc_name" />' \
       '<input name="post[comments_attributes][abc][id]" type="hidden" value="321" id="post_comments_attributes_abc_id" />'
     end
@@ -1809,8 +1809,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     @post.comments = []
 
     form_with(model: @post) do |f|
-      f.fields(:comments, model: Comment.new(321), child_index: "abc") { |cf|
-        assert_equal "abc", cf.index
+      f.fields(:comments, model: Comment.new(321), child_index: 'abc') { |cf|
+        assert_equal 'abc', cf.index
       }
     end
   end
@@ -1835,7 +1835,7 @@ class FormWithActsLikeFormForTest < FormWithTest
           concat trf.text_field(:value)
         }
       }
-      concat f.fields("tags", model: @post.tags[1]) { |tf|
+      concat f.fields('tags', model: @post.tags[1]) { |tf|
         concat tf.text_field(:value)
         concat tf.fields(:relevances, model: TagRelevance.new(31415)) { |trf|
           concat trf.text_field(:value)
@@ -1843,7 +1843,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[comments_attributes][0][name]" type="text" value="comment #321" id="post_comments_attributes_0_name" />' \
       '<input name="post[comments_attributes][0][relevances_attributes][0][value]" type="text" value="commentrelevance #314" id="post_comments_attributes_0_relevances_attributes_0_value" />' \
       '<input name="post[comments_attributes][0][relevances_attributes][0][id]" type="hidden" value="314" id="post_comments_attributes_0_relevances_attributes_0_id"/>' \
@@ -1870,7 +1870,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       '<input name="post[author_attributes][name]" type="text" value="hash backed author" id="post_author_attributes_name" />'
     end
 
@@ -1894,7 +1894,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_fields_with_index
-    output_buffer = fields("post[]", model: @post) do |f|
+    output_buffer = fields('post[]', model: @post) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
@@ -1910,7 +1910,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_fields_with_nil_index_option_override
-    output_buffer = fields("post[]", model: @post, index: nil) do |f|
+    output_buffer = fields('post[]', model: @post, index: nil) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
@@ -1926,7 +1926,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_fields_with_index_option_override
-    output_buffer = fields("post[]", model: @post, index: "abc") do |f|
+    output_buffer = fields('post[]', model: @post, index: 'abc') do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
@@ -1974,23 +1974,23 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_fields_object_with_bracketed_name
-    output_buffer = fields("author[post]", model: @post) do |f|
+    output_buffer = fields('author[post]', model: @post) do |f|
       concat f.label(:title)
       concat f.text_field(:title)
     end
 
-    assert_dom_equal "<label for=\"author_post_title\">Title</label>" \
+    assert_dom_equal '<label for="author_post_title">Title</label>' \
     "<input name='author[post][title]' type='text' value='Hello World' id='author_post_title' id='author_post_1_title' />",
       output_buffer
   end
 
   def test_fields_object_with_bracketed_name_and_index
-    output_buffer = fields("author[post]", model: @post, index: 1) do |f|
+    output_buffer = fields('author[post]', model: @post, index: 1) do |f|
       concat f.label(:title)
       concat f.text_field(:title)
     end
 
-    assert_dom_equal "<label for=\"author_post_1_title\">Title</label>" \
+    assert_dom_equal '<label for="author_post_1_title">Title</label>' \
       "<input name='author[post][1][title]' type='text' value='Hello World' id='author_post_1_title' />",
       output_buffer
   end
@@ -2000,7 +2000,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_and_fields
-    form_with(model: @post, scope: :post, id: "create-post") do |post_form|
+    form_with(model: @post, scope: :post, id: 'create-post') do |post_form|
       concat post_form.text_field(:title)
       concat post_form.text_area(:body)
 
@@ -2009,7 +2009,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", "create-post", method: "patch") do
+    expected = whole_form('/posts/123', 'create-post', method: 'patch') do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body' >\nBack to the hill and over it again!</textarea>" \
       "<input name='parent_post[secret]' type='hidden' value='0' />" \
@@ -2020,7 +2020,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_and_fields_with_object
-    form_with(model: @post, scope: :post, id: "create-post") do |post_form|
+    form_with(model: @post, scope: :post, id: 'create-post') do |post_form|
       concat post_form.text_field(:title)
       concat post_form.text_area(:body)
 
@@ -2029,7 +2029,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", "create-post", method: "patch") do
+    expected = whole_form('/posts/123', 'create-post', method: 'patch') do
       "<input name='post[title]' type='text' value='Hello World' id='post_title' />" \
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
       "<input name='post[comment][name]' type='text' value='new comment' id='post_comment_name' />"
@@ -2045,7 +2045,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       }
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<input name='post[category][name]' type='text' id='post_category_name' />"
     end
 
@@ -2070,7 +2070,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       concat f.check_box(:secret)
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<label for='title'>Title:</label> <input name='post[title]' type='text' value='Hello World' id='post_title'/><br/>" \
       "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea><br/>" \
       "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' /><br/>"
@@ -2089,7 +2089,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       concat f.check_box(:secret)
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<label for='title'>Title:</label> <input name='post[title]' type='text' value='Hello World' id='post_title' /><br/>" \
       "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea><br/>" \
       "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' value='1' id='post_secret' /><br/>"
@@ -2102,13 +2102,13 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   def test_lazy_loading_default_form_builder
     old_default_form_builder, ActionView::Base.default_form_builder =
-      ActionView::Base.default_form_builder, "FormWithActsLikeFormForTest::LabelledFormBuilder"
+      ActionView::Base.default_form_builder, 'FormWithActsLikeFormForTest::LabelledFormBuilder'
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
     end
 
-    expected = whole_form("/posts/123", method: "patch") do
+    expected = whole_form('/posts/123', method: 'patch') do
       "<label for='title'>Title:</label> <input name='post[title]' type='text' value='Hello World' id='post_title' /><br/>"
     end
 
@@ -2130,7 +2130,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_lazy_loading_form_builder_override
-    self.default_form_builder = "FormWithActsLikeFormForTest::LabelledFormBuilder"
+    self.default_form_builder = 'FormWithActsLikeFormForTest::LabelledFormBuilder'
 
     output_buffer = fields(:post, model: @post) do |f|
       concat f.text_field(:title)
@@ -2162,7 +2162,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     form_with(model: @post, builder: LabelledFormBuilder) do |f|
       f.fields(:comments, model: Comment.new) do |nested_fields|
         klass = nested_fields.class
-        ""
+        ''
       end
     end
 
@@ -2173,9 +2173,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     klass = nil
 
     form_with(model: @post, builder: LabelledFormBuilder) do |f|
-      f.fields(:comments, model: Comment.new, index: "foo") do |nested_fields|
+      f.fields(:comments, model: Comment.new, index: 'foo') do |nested_fields|
         klass = nested_fields.class
-        ""
+        ''
       end
     end
 
@@ -2187,10 +2187,10 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     form_with(model: @post, builder: LabelledFormBuilder) do |f|
       path = f.to_partial_path
-      ""
+      ''
     end
 
-    assert_equal "labelled_form", path
+    assert_equal 'labelled_form', path
   end
 
   class LabelledFormBuilderSubclass < LabelledFormBuilder; end
@@ -2201,7 +2201,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     form_with(model: @post, builder: LabelledFormBuilder) do |f|
       f.fields(:comments, model: Comment.new, builder: LabelledFormBuilderSubclass) do |nested_fields|
         klass = nested_fields.class
-        ""
+        ''
       end
     end
 
@@ -2209,36 +2209,36 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_html_options_adds_options_to_form_tag
-    form_with(model: @post, html: { id: "some_form", class: "some_class", multipart: true }) do |f| end
-    expected = whole_form("/posts/123", "some_form", "some_class", method: "patch", multipart: "multipart/form-data")
+    form_with(model: @post, html: { id: 'some_form', class: 'some_class', multipart: true }) do |f| end
+    expected = whole_form('/posts/123', 'some_form', 'some_class', method: 'patch', multipart: 'multipart/form-data')
 
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_with_with_string_url_option
-    form_with(model: @post, url: "http://www.otherdomain.com") do |f| end
+    form_with(model: @post, url: 'http://www.otherdomain.com') do |f| end
 
-    assert_dom_equal whole_form("http://www.otherdomain.com", method: "patch"), output_buffer
+    assert_dom_equal whole_form('http://www.otherdomain.com', method: 'patch'), output_buffer
   end
 
   def test_form_with_with_hash_url_option
-    form_with(model: @post, url: { controller: "controller", action: "action" }) do |f| end
+    form_with(model: @post, url: { controller: 'controller', action: 'action' }) do |f| end
 
-    assert_equal "controller", @url_for_options[:controller]
-    assert_equal "action", @url_for_options[:action]
+    assert_equal 'controller', @url_for_options[:controller]
+    assert_equal 'action', @url_for_options[:action]
   end
 
   def test_form_with_with_record_url_option
     form_with(model: @post, url: @post) do |f| end
 
-    expected = whole_form("/posts/123", method: "patch")
+    expected = whole_form('/posts/123', method: 'patch')
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_with_with_existing_object
     form_with(model: @post) do |f| end
 
-    expected = whole_form("/posts/123", method: "patch")
+    expected = whole_form('/posts/123', method: 'patch')
     assert_dom_equal expected, output_buffer
   end
 
@@ -2249,7 +2249,7 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     form_with(model: post) { }
 
-    expected = whole_form("/posts")
+    expected = whole_form('/posts')
     assert_dom_equal expected, output_buffer
   end
 
@@ -2257,7 +2257,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     @comment.save
     form_with(model: [@post, @comment]) { }
 
-    expected = whole_form(post_comment_path(@post, @comment), method: "patch")
+    expected = whole_form(post_comment_path(@post, @comment), method: 'patch')
     assert_dom_equal expected, output_buffer
   end
 
@@ -2272,7 +2272,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     @comment.save
     form_with(model: [:admin, @post, @comment]) { }
 
-    expected = whole_form(admin_post_comment_path(@post, @comment), method: "patch")
+    expected = whole_form(admin_post_comment_path(@post, @comment), method: 'patch')
     assert_dom_equal expected, output_buffer
   end
 
@@ -2284,27 +2284,27 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_existing_object_and_custom_url
-    form_with(model: @post, url: "/super_posts") do |f| end
+    form_with(model: @post, url: '/super_posts') do |f| end
 
-    expected = whole_form("/super_posts", method: "patch")
+    expected = whole_form('/super_posts', method: 'patch')
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_with_with_default_method_as_patch
     form_with(model: @post) { }
-    expected = whole_form("/posts/123", method: "patch")
+    expected = whole_form('/posts/123', method: 'patch')
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_with_with_data_attributes
-    form_with(model: @post, data: { behavior: "stuff" }) { }
+    form_with(model: @post, data: { behavior: 'stuff' }) { }
     assert_match %r|data-behavior="stuff"|, output_buffer
     assert_match %r|data-remote="true"|, output_buffer
   end
 
   def test_fields_returns_block_result
-    output = fields(model: Post.new) { |f| "fields" }
-    assert_equal "fields", output
+    output = fields(model: Post.new) { |f| 'fields' }
+    assert_equal 'fields', output
   end
 
   def test_form_with_only_instantiates_builder_once
@@ -2317,7 +2317,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     form_with(model: @post, builder: builder_class) { }
-    assert_equal 1, initialization_count, "form builder instantiated more than once"
+    assert_equal 1, initialization_count, 'form builder instantiated more than once'
   end
 
   private
@@ -2325,7 +2325,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       method = options[:method]
 
       if options.fetch(:skip_enforcing_utf8, false)
-        txt = +""
+        txt = +''
       else
         txt = +%{<input name="utf8" type="hidden" value="&#x2713;" />}
       end
@@ -2337,22 +2337,22 @@ class FormWithActsLikeFormForTest < FormWithTest
       txt
     end
 
-    def form_text(action = "/", id = nil, html_class = nil, local = nil, multipart = nil, method = nil)
+    def form_text(action = '/', id = nil, html_class = nil, local = nil, multipart = nil, method = nil)
       txt =  +%{<form accept-charset="UTF-8" action="#{action}"}
       txt << %{ enctype="multipart/form-data"} if multipart
       txt << %{ data-remote="true"} unless local
       txt << %{ class="#{html_class}"} if html_class
       txt << %{ id="#{id}"} if id
-      method = method.to_s == "get" ? "get" : "post"
+      method = method.to_s == 'get' ? 'get' : 'post'
       txt << %{ method="#{method}">}
     end
 
-    def whole_form(action = "/", id = nil, html_class = nil, local: false, **options)
-      contents = block_given? ? yield : ""
+    def whole_form(action = '/', id = nil, html_class = nil, local: false, **options)
+      contents = block_given? ? yield : ''
 
       method, multipart = options.values_at(:method, :multipart)
 
-      form_text(action, id, html_class, local, multipart, method) + hidden_fields(options.slice :method, :skip_enforcing_utf8) + contents + "</form>"
+      form_text(action, id, html_class, local, multipart, method) + hidden_fields(options.slice :method, :skip_enforcing_utf8) + contents + '</form>'
     end
 
     def protect_against_forgery?

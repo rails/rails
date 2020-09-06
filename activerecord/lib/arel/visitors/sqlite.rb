@@ -15,22 +15,22 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_True(o, collector)
-          collector << "1"
+          collector << '1'
         end
 
         def visit_Arel_Nodes_False(o, collector)
-          collector << "0"
+          collector << '0'
         end
 
         def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
           collector = visit o.left, collector
-          collector << " IS "
+          collector << ' IS '
           visit o.right, collector
         end
 
         def visit_Arel_Nodes_IsDistinctFrom(o, collector)
           collector = visit o.left, collector
-          collector << " IS NOT "
+          collector << ' IS NOT '
           visit o.right, collector
         end
     end

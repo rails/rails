@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "test_helper"
-require "stubs/test_server"
-require "active_support/core_ext/object/json"
+require 'test_helper'
+require 'stubs/test_server'
+require 'active_support/core_ext/object/json'
 
 class ActionCable::Connection::BaseTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
@@ -26,15 +26,15 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     @server.config.allowed_request_origins = %w( http://rubyonrails.com )
   end
 
-  test "making a connection with invalid headers" do
+  test 'making a connection with invalid headers' do
     run_in_eventmachine do
-      connection = ActionCable::Connection::Base.new(@server, Rack::MockRequest.env_for("/test"))
+      connection = ActionCable::Connection::Base.new(@server, Rack::MockRequest.env_for('/test'))
       response = connection.process
       assert_equal 404, response[0]
     end
   end
 
-  test "websocket connection" do
+  test 'websocket connection' do
     run_in_eventmachine do
       connection = open_connection
       connection.process
@@ -46,7 +46,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     end
   end
 
-  test "rack response" do
+  test 'rack response' do
     run_in_eventmachine do
       connection = open_connection
       response = connection.process
@@ -55,11 +55,11 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     end
   end
 
-  test "on connection open" do
+  test 'on connection open' do
     run_in_eventmachine do
       connection = open_connection
 
-      assert_called_with(connection.websocket, :transmit, [{ type: "welcome" }.to_json]) do
+      assert_called_with(connection.websocket, :transmit, [{ type: 'welcome' }.to_json]) do
         assert_called(connection.message_buffer, :process!) do
           connection.process
           wait_for_async
@@ -71,7 +71,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     end
   end
 
-  test "on connection close" do
+  test 'on connection close' do
     run_in_eventmachine do
       connection = open_connection
       connection.process
@@ -89,7 +89,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     end
   end
 
-  test "connection statistics" do
+  test 'connection statistics' do
     run_in_eventmachine do
       connection = open_connection
       connection.process
@@ -102,29 +102,29 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     end
   end
 
-  test "explicitly closing a connection" do
+  test 'explicitly closing a connection' do
     run_in_eventmachine do
       connection = open_connection
       connection.process
 
       assert_called(connection.websocket, :close) do
-        connection.close(reason: "testing")
+        connection.close(reason: 'testing')
       end
     end
   end
 
-  test "rejecting a connection causes a 404" do
+  test 'rejecting a connection causes a 404' do
     run_in_eventmachine do
       class CallMeMaybe
         def call(*)
-          raise "Do not call me!"
+          raise 'Do not call me!'
         end
       end
 
       env = Rack::MockRequest.env_for(
-        "/test",
-        "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
-          "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.org", "rack.hijack" => CallMeMaybe.new
+        '/test',
+        'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket',
+          'HTTP_HOST' => 'localhost', 'HTTP_ORIGIN' => 'http://rubyonrails.org', 'rack.hijack' => CallMeMaybe.new
       )
 
       connection = ActionCable::Connection::Base.new(@server, env)
@@ -135,8 +135,8 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
 
   private
     def open_connection
-      env = Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
-        "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
+      env = Rack::MockRequest.env_for '/test', 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket',
+        'HTTP_HOST' => 'localhost', 'HTTP_ORIGIN' => 'http://rubyonrails.com'
 
       Connection.new(@server, env)
     end

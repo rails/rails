@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 module PeopleHelper
   def title(text)
@@ -22,18 +22,18 @@ end
 
 class PeopleHelperTest < ActionView::TestCase
   def test_title
-    assert_equal "<h1>Ruby on Rails</h1>", title("Ruby on Rails")
+    assert_equal '<h1>Ruby on Rails</h1>', title('Ruby on Rails')
   end
 
   def test_homepage_path
     with_test_route_set do
-      assert_equal "/people", homepage_path
+      assert_equal '/people', homepage_path
     end
   end
 
   def test_homepage_url
     with_test_route_set do
-      assert_equal "http://test.host/people", homepage_url
+      assert_equal 'http://test.host/people', homepage_url
     end
   end
 
@@ -43,14 +43,14 @@ class PeopleHelperTest < ActionView::TestCase
         extend ActiveModel::Naming
         def to_model; self; end
         def persisted?; true; end
-        def self.name; "Minitest::Mock"; end
-      }.new "David"
+        def self.name; 'Minitest::Mock'; end
+      }.new 'David'
 
       the_model = nil
       extend Module.new {
         define_method(:minitest_mock_path) { |model, *args|
           the_model = model
-          "/people/1"
+          '/people/1'
         }
       }
       assert_equal '<a href="/people/1">David</a>', link_to_person(person)
@@ -62,7 +62,7 @@ class PeopleHelperTest < ActionView::TestCase
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          get "people", to: "people#index", as: :people
+          get 'people', to: 'people#index', as: :people
         end
         yield
       end
@@ -86,7 +86,7 @@ class CrazySymbolHelperTest < ActionView::TestCase
 end
 
 class CrazyStringHelperTest < ActionView::TestCase
-  tests "people"
+  tests 'people'
 
   def test_set_helper_class_using_string
     assert_equal PeopleHelper, self.class.helper_class

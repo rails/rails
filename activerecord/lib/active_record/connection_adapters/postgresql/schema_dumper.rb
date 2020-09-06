@@ -8,7 +8,7 @@ module ActiveRecord
           def extensions(stream)
             extensions = @connection.extensions
             if extensions.any?
-              stream.puts "  # These are extensions that must be enabled in order to support this database"
+              stream.puts '  # These are extensions that must be enabled in order to support this database'
               extensions.sort.each do |extension|
                 stream.puts "  enable_extension #{extension.inspect}"
               end
@@ -18,7 +18,7 @@ module ActiveRecord
 
           def prepare_column_options(column)
             spec = super
-            spec[:array] = "true" if column.array?
+            spec[:array] = 'true' if column.array?
             spec
           end
 

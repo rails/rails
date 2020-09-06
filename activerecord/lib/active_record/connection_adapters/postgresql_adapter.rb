@@ -1,23 +1,23 @@
 # frozen_string_literal: true
 
-gem "pg", "~> 1.1"
-require "pg"
+gem 'pg', '~> 1.1'
+require 'pg'
 
-require "active_support/core_ext/object/try"
-require "active_record/connection_adapters/abstract_adapter"
-require "active_record/connection_adapters/statement_pool"
-require "active_record/connection_adapters/postgresql/column"
-require "active_record/connection_adapters/postgresql/database_statements"
-require "active_record/connection_adapters/postgresql/explain_pretty_printer"
-require "active_record/connection_adapters/postgresql/oid"
-require "active_record/connection_adapters/postgresql/quoting"
-require "active_record/connection_adapters/postgresql/referential_integrity"
-require "active_record/connection_adapters/postgresql/schema_creation"
-require "active_record/connection_adapters/postgresql/schema_definitions"
-require "active_record/connection_adapters/postgresql/schema_dumper"
-require "active_record/connection_adapters/postgresql/schema_statements"
-require "active_record/connection_adapters/postgresql/type_metadata"
-require "active_record/connection_adapters/postgresql/utils"
+require 'active_support/core_ext/object/try'
+require 'active_record/connection_adapters/abstract_adapter'
+require 'active_record/connection_adapters/statement_pool'
+require 'active_record/connection_adapters/postgresql/column'
+require 'active_record/connection_adapters/postgresql/database_statements'
+require 'active_record/connection_adapters/postgresql/explain_pretty_printer'
+require 'active_record/connection_adapters/postgresql/oid'
+require 'active_record/connection_adapters/postgresql/quoting'
+require 'active_record/connection_adapters/postgresql/referential_integrity'
+require 'active_record/connection_adapters/postgresql/schema_creation'
+require 'active_record/connection_adapters/postgresql/schema_definitions'
+require 'active_record/connection_adapters/postgresql/schema_dumper'
+require 'active_record/connection_adapters/postgresql/schema_statements'
+require 'active_record/connection_adapters/postgresql/type_metadata'
+require 'active_record/connection_adapters/postgresql/utils'
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
@@ -71,7 +71,7 @@ module ActiveRecord
     # In addition, default connection parameters of libpq can be set per environment variables.
     # See https://www.postgresql.org/docs/current/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
-      ADAPTER_NAME = "PostgreSQL"
+      ADAPTER_NAME = 'PostgreSQL'
 
       class << self
         def new_client(conn_params)
@@ -99,46 +99,46 @@ module ActiveRecord
       class_attribute :create_unlogged_tables, default: false
 
       NATIVE_DATABASE_TYPES = {
-        primary_key: "bigserial primary key",
-        string:      { name: "character varying" },
-        text:        { name: "text" },
-        integer:     { name: "integer", limit: 4 },
-        float:       { name: "float" },
-        decimal:     { name: "decimal" },
-        datetime:    { name: "timestamp" },
-        time:        { name: "time" },
-        date:        { name: "date" },
-        daterange:   { name: "daterange" },
-        numrange:    { name: "numrange" },
-        tsrange:     { name: "tsrange" },
-        tstzrange:   { name: "tstzrange" },
-        int4range:   { name: "int4range" },
-        int8range:   { name: "int8range" },
-        binary:      { name: "bytea" },
-        boolean:     { name: "boolean" },
-        xml:         { name: "xml" },
-        tsvector:    { name: "tsvector" },
-        hstore:      { name: "hstore" },
-        inet:        { name: "inet" },
-        cidr:        { name: "cidr" },
-        macaddr:     { name: "macaddr" },
-        uuid:        { name: "uuid" },
-        json:        { name: "json" },
-        jsonb:       { name: "jsonb" },
-        ltree:       { name: "ltree" },
-        citext:      { name: "citext" },
-        point:       { name: "point" },
-        line:        { name: "line" },
-        lseg:        { name: "lseg" },
-        box:         { name: "box" },
-        path:        { name: "path" },
-        polygon:     { name: "polygon" },
-        circle:      { name: "circle" },
-        bit:         { name: "bit" },
-        bit_varying: { name: "bit varying" },
-        money:       { name: "money" },
-        interval:    { name: "interval" },
-        oid:         { name: "oid" },
+        primary_key: 'bigserial primary key',
+        string:      { name: 'character varying' },
+        text:        { name: 'text' },
+        integer:     { name: 'integer', limit: 4 },
+        float:       { name: 'float' },
+        decimal:     { name: 'decimal' },
+        datetime:    { name: 'timestamp' },
+        time:        { name: 'time' },
+        date:        { name: 'date' },
+        daterange:   { name: 'daterange' },
+        numrange:    { name: 'numrange' },
+        tsrange:     { name: 'tsrange' },
+        tstzrange:   { name: 'tstzrange' },
+        int4range:   { name: 'int4range' },
+        int8range:   { name: 'int8range' },
+        binary:      { name: 'bytea' },
+        boolean:     { name: 'boolean' },
+        xml:         { name: 'xml' },
+        tsvector:    { name: 'tsvector' },
+        hstore:      { name: 'hstore' },
+        inet:        { name: 'inet' },
+        cidr:        { name: 'cidr' },
+        macaddr:     { name: 'macaddr' },
+        uuid:        { name: 'uuid' },
+        json:        { name: 'json' },
+        jsonb:       { name: 'jsonb' },
+        ltree:       { name: 'ltree' },
+        citext:      { name: 'citext' },
+        point:       { name: 'point' },
+        line:        { name: 'line' },
+        lseg:        { name: 'lseg' },
+        box:         { name: 'box' },
+        path:        { name: 'path' },
+        polygon:     { name: 'polygon' },
+        circle:      { name: 'circle' },
+        bit:         { name: 'bit' },
+        bit_varying: { name: 'bit varying' },
+        money:       { name: 'money' },
+        interval:    { name: 'interval' },
+        oid:         { name: 'oid' },
       }
 
       OID = PostgreSQL::OID #:nodoc:
@@ -216,7 +216,7 @@ module ActiveRecord
       alias supports_insert_conflict_target? supports_insert_on_conflict?
 
       def index_algorithms
-        { concurrently: "CONCURRENTLY" }
+        { concurrently: 'CONCURRENTLY' }
       end
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
@@ -263,7 +263,7 @@ module ActiveRecord
 
         @type_map = Type::HashLookupTypeMap.new
         initialize_type_map
-        @local_tz = execute("SHOW TIME ZONE", "SCHEMA").first["TimeZone"]
+        @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first['TimeZone']
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
 
@@ -276,7 +276,7 @@ module ActiveRecord
       # Is this connection alive and ready for queries?
       def active?
         @lock.synchronize do
-          @connection.query "SELECT 1"
+          @connection.query 'SELECT 1'
         end
         true
       rescue PG::Error
@@ -299,9 +299,9 @@ module ActiveRecord
           clear_cache!
           reset_transaction
           unless @connection.transaction_status == ::PG::PQTRANS_IDLE
-            @connection.query "ROLLBACK"
+            @connection.query 'ROLLBACK'
           end
-          @connection.query "DISCARD ALL"
+          @connection.query 'DISCARD ALL'
           configure_connection
         end
       end
@@ -326,7 +326,7 @@ module ActiveRecord
       end
 
       def set_standard_conforming_strings
-        execute("SET standard_conforming_strings = on", "SCHEMA")
+        execute('SET standard_conforming_strings = on', 'SCHEMA')
       end
 
       def supports_ddl_transactions?
@@ -364,7 +364,7 @@ module ActiveRecord
 
       def supports_optimizer_hints?
         unless defined?(@has_pg_hint_plan)
-          @has_pg_hint_plan = extension_available?("pg_hint_plan")
+          @has_pg_hint_plan = extension_available?('pg_hint_plan')
         end
         @has_pg_hint_plan
       end
@@ -379,14 +379,14 @@ module ActiveRecord
 
       def get_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
-          raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")
+          raise(ArgumentError, 'PostgreSQL requires advisory lock ids to be a signed 64 bit integer')
         end
         query_value("SELECT pg_try_advisory_lock(#{lock_id})")
       end
 
       def release_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
-          raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")
+          raise(ArgumentError, 'PostgreSQL requires advisory lock ids to be a signed 64 bit integer')
         end
         query_value("SELECT pg_advisory_unlock(#{lock_id})")
       end
@@ -404,20 +404,20 @@ module ActiveRecord
       end
 
       def extension_available?(name)
-        query_value("SELECT true FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA")
+        query_value("SELECT true FROM pg_available_extensions WHERE name = #{quote(name)}", 'SCHEMA')
       end
 
       def extension_enabled?(name)
-        query_value("SELECT installed_version IS NOT NULL FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA")
+        query_value("SELECT installed_version IS NOT NULL FROM pg_available_extensions WHERE name = #{quote(name)}", 'SCHEMA')
       end
 
       def extensions
-        exec_query("SELECT extname FROM pg_extension", "SCHEMA").cast_values
+        exec_query('SELECT extname FROM pg_extension', 'SCHEMA').cast_values
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL
       def max_identifier_length
-        @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
+        @max_identifier_length ||= query_value('SHOW max_identifier_length', 'SCHEMA').to_i
       end
 
       # Set the authorized user for this session
@@ -448,7 +448,7 @@ module ActiveRecord
         elsif insert.update_duplicates?
           sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
           sql << insert.touch_model_timestamps_unless { |column| "#{insert.model.quoted_table_name}.#{column} IS NOT DISTINCT FROM excluded.#{column}" }
-          sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
+          sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(',')
         end
 
         sql << " RETURNING #{insert.returning}" if insert.returning
@@ -463,16 +463,16 @@ module ActiveRecord
 
       private
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
-        VALUE_LIMIT_VIOLATION = "22001"
-        NUMERIC_VALUE_OUT_OF_RANGE = "22003"
-        NOT_NULL_VIOLATION    = "23502"
-        FOREIGN_KEY_VIOLATION = "23503"
-        UNIQUE_VIOLATION      = "23505"
-        SERIALIZATION_FAILURE = "40001"
-        DEADLOCK_DETECTED     = "40P01"
-        DUPLICATE_DATABASE    = "42P04"
-        LOCK_NOT_AVAILABLE    = "55P03"
-        QUERY_CANCELED        = "57014"
+        VALUE_LIMIT_VIOLATION = '22001'
+        NUMERIC_VALUE_OUT_OF_RANGE = '22003'
+        NOT_NULL_VIOLATION    = '23502'
+        FOREIGN_KEY_VIOLATION = '23503'
+        UNIQUE_VIOLATION      = '23505'
+        SERIALIZATION_FAILURE = '40001'
+        DEADLOCK_DETECTED     = '40P01'
+        DUPLICATE_DATABASE    = '42P04'
+        LOCK_NOT_AVAILABLE    = '55P03'
+        QUERY_CANCELED        = '57014'
 
         def translate_exception(exception, message:, sql:, binds:)
           return exception unless exception.respond_to?(:result)
@@ -503,7 +503,7 @@ module ActiveRecord
           end
         end
 
-        def get_oid_type(oid, fmod, column_name, sql_type = "")
+        def get_oid_type(oid, fmod, column_name, sql_type = '')
           if !type_map.key?(oid)
             load_additional_types([oid])
           end
@@ -517,53 +517,53 @@ module ActiveRecord
         end
 
         def initialize_type_map(m = type_map)
-          m.register_type "int2", Type::Integer.new(limit: 2)
-          m.register_type "int4", Type::Integer.new(limit: 4)
-          m.register_type "int8", Type::Integer.new(limit: 8)
-          m.register_type "oid", OID::Oid.new
-          m.register_type "float4", Type::Float.new
-          m.alias_type "float8", "float4"
-          m.register_type "text", Type::Text.new
-          register_class_with_limit m, "varchar", Type::String
-          m.alias_type "char", "varchar"
-          m.alias_type "name", "varchar"
-          m.alias_type "bpchar", "varchar"
-          m.register_type "bool", Type::Boolean.new
-          register_class_with_limit m, "bit", OID::Bit
-          register_class_with_limit m, "varbit", OID::BitVarying
-          m.alias_type "timestamptz", "timestamp"
-          m.register_type "date", OID::Date.new
+          m.register_type 'int2', Type::Integer.new(limit: 2)
+          m.register_type 'int4', Type::Integer.new(limit: 4)
+          m.register_type 'int8', Type::Integer.new(limit: 8)
+          m.register_type 'oid', OID::Oid.new
+          m.register_type 'float4', Type::Float.new
+          m.alias_type 'float8', 'float4'
+          m.register_type 'text', Type::Text.new
+          register_class_with_limit m, 'varchar', Type::String
+          m.alias_type 'char', 'varchar'
+          m.alias_type 'name', 'varchar'
+          m.alias_type 'bpchar', 'varchar'
+          m.register_type 'bool', Type::Boolean.new
+          register_class_with_limit m, 'bit', OID::Bit
+          register_class_with_limit m, 'varbit', OID::BitVarying
+          m.alias_type 'timestamptz', 'timestamp'
+          m.register_type 'date', OID::Date.new
 
-          m.register_type "money", OID::Money.new
-          m.register_type "bytea", OID::Bytea.new
-          m.register_type "point", OID::Point.new
-          m.register_type "hstore", OID::Hstore.new
-          m.register_type "json", Type::Json.new
-          m.register_type "jsonb", OID::Jsonb.new
-          m.register_type "cidr", OID::Cidr.new
-          m.register_type "inet", OID::Inet.new
-          m.register_type "uuid", OID::Uuid.new
-          m.register_type "xml", OID::Xml.new
-          m.register_type "tsvector", OID::SpecializedString.new(:tsvector)
-          m.register_type "macaddr", OID::Macaddr.new
-          m.register_type "citext", OID::SpecializedString.new(:citext)
-          m.register_type "ltree", OID::SpecializedString.new(:ltree)
-          m.register_type "line", OID::SpecializedString.new(:line)
-          m.register_type "lseg", OID::SpecializedString.new(:lseg)
-          m.register_type "box", OID::SpecializedString.new(:box)
-          m.register_type "path", OID::SpecializedString.new(:path)
-          m.register_type "polygon", OID::SpecializedString.new(:polygon)
-          m.register_type "circle", OID::SpecializedString.new(:circle)
+          m.register_type 'money', OID::Money.new
+          m.register_type 'bytea', OID::Bytea.new
+          m.register_type 'point', OID::Point.new
+          m.register_type 'hstore', OID::Hstore.new
+          m.register_type 'json', Type::Json.new
+          m.register_type 'jsonb', OID::Jsonb.new
+          m.register_type 'cidr', OID::Cidr.new
+          m.register_type 'inet', OID::Inet.new
+          m.register_type 'uuid', OID::Uuid.new
+          m.register_type 'xml', OID::Xml.new
+          m.register_type 'tsvector', OID::SpecializedString.new(:tsvector)
+          m.register_type 'macaddr', OID::Macaddr.new
+          m.register_type 'citext', OID::SpecializedString.new(:citext)
+          m.register_type 'ltree', OID::SpecializedString.new(:ltree)
+          m.register_type 'line', OID::SpecializedString.new(:line)
+          m.register_type 'lseg', OID::SpecializedString.new(:lseg)
+          m.register_type 'box', OID::SpecializedString.new(:box)
+          m.register_type 'path', OID::SpecializedString.new(:path)
+          m.register_type 'polygon', OID::SpecializedString.new(:polygon)
+          m.register_type 'circle', OID::SpecializedString.new(:circle)
 
-          m.register_type "interval" do |_, _, sql_type|
+          m.register_type 'interval' do |_, _, sql_type|
             precision = extract_precision(sql_type)
             OID::SpecializedString.new(:interval, precision: precision)
           end
 
-          register_class_with_precision m, "time", Type::Time
-          register_class_with_precision m, "timestamp", OID::DateTime
+          register_class_with_precision m, 'time', Type::Time
+          register_class_with_precision m, 'timestamp', OID::DateTime
 
-          m.register_type "numeric" do |_, fmod, sql_type|
+          m.register_type 'numeric' do |_, fmod, sql_type|
             precision = extract_precision(sql_type)
             scale = extract_scale(sql_type)
 
@@ -592,13 +592,13 @@ module ActiveRecord
             # Quoted types
           when /\A[\(B]?'(.*)'.*::"?([\w. ]+)"?(?:\[\])?\z/m
             # The default 'now'::date is CURRENT_DATE
-            if $1 == "now" && $2 == "date"
+            if $1 == 'now' && $2 == 'date'
               nil
             else
               $1.gsub("''", "'")
             end
             # Boolean types
-          when "true", "false"
+          when 'true', 'false'
             default
             # Numeric types
           when /\A\(?(-?\d+(\.\d*)?)\)?(::bigint)?\z/
@@ -631,17 +631,17 @@ module ActiveRecord
           SQL
 
           if oids
-            query += "WHERE t.oid IN (%s)" % oids.join(", ")
+            query += 'WHERE t.oid IN (%s)' % oids.join(', ')
           else
             query += initializer.query_conditions_for_initial_load
           end
 
-          execute_and_clear(query, "SCHEMA", []) do |records|
+          execute_and_clear(query, 'SCHEMA', []) do |records|
             initializer.run(records)
           end
         end
 
-        FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
+        FEATURE_NOT_SUPPORTED = '0A000' #:nodoc:
 
         def execute_and_clear(sql, name, binds, prepare: false)
           if preventing_writes? && write_query?(sql)
@@ -720,7 +720,7 @@ module ActiveRecord
         def is_cached_plan_failure?(e)
           pgerror = e.cause
           pgerror.result.result_error_field(PG::PG_DIAG_SQLSTATE) == FEATURE_NOT_SUPPORTED &&
-            pgerror.result.result_error_field(PG::PG_DIAG_SOURCE_FUNCTION) == "RevalidateCachedQuery"
+            pgerror.result.result_error_field(PG::PG_DIAG_SOURCE_FUNCTION) == 'RevalidateCachedQuery'
         rescue
           false
         end
@@ -770,7 +770,7 @@ module ActiveRecord
           if @config[:encoding]
             @connection.set_client_encoding(@config[:encoding])
           end
-          self.client_min_messages = @config[:min_messages] || "warning"
+          self.client_min_messages = @config[:min_messages] || 'warning'
           self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
 
           # Use standard-conforming strings so we don't have to do the E'...' dance.
@@ -780,22 +780,22 @@ module ActiveRecord
 
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
-          unless variables["timezone"]
+          unless variables['timezone']
             if ActiveRecord::Base.default_timezone == :utc
-              variables["timezone"] = "UTC"
+              variables['timezone'] = 'UTC'
             elsif @local_tz
-              variables["timezone"] = @local_tz
+              variables['timezone'] = @local_tz
             end
           end
 
           # SET statements from :variables config hash
           # https://www.postgresql.org/docs/current/static/sql-set.html
           variables.map do |k, v|
-            if v == ":default" || v == :default
+            if v == ':default' || v == :default
               # Sets the value to the global or compile default
-              execute("SET SESSION #{k} TO DEFAULT", "SCHEMA")
+              execute("SET SESSION #{k} TO DEFAULT", 'SCHEMA')
             elsif !v.nil?
-              execute("SET SESSION #{k} TO #{quote(v)}", "SCHEMA")
+              execute("SET SESSION #{k} TO #{quote(v)}", 'SCHEMA')
             end
           end
         end
@@ -819,7 +819,7 @@ module ActiveRecord
         #  - format_type includes the column size constraint, e.g. varchar(50)
         #  - ::regclass is a function that gives the id for a table name
         def column_definitions(table_name)
-          query(<<~SQL, "SCHEMA")
+          query(<<~SQL, 'SCHEMA')
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment
@@ -862,7 +862,7 @@ module ActiveRecord
                   AND castsource = #{quote column.sql_type}::regtype
               )
             SQL
-            execute_and_clear(sql, "SCHEMA", []) do |result|
+            execute_and_clear(sql, 'SCHEMA', []) do |result|
               result.getvalue(0, 0)
             end
           end
@@ -893,27 +893,27 @@ module ActiveRecord
           @timestamp_decoder = nil
 
           coders_by_name = {
-            "int2" => PG::TextDecoder::Integer,
-            "int4" => PG::TextDecoder::Integer,
-            "int8" => PG::TextDecoder::Integer,
-            "oid" => PG::TextDecoder::Integer,
-            "float4" => PG::TextDecoder::Float,
-            "float8" => PG::TextDecoder::Float,
-            "numeric" => PG::TextDecoder::Numeric,
-            "bool" => PG::TextDecoder::Boolean,
-            "timestamp" => PG::TextDecoder::TimestampUtc,
-            "timestamptz" => PG::TextDecoder::TimestampWithTimeZone,
+            'int2' => PG::TextDecoder::Integer,
+            'int4' => PG::TextDecoder::Integer,
+            'int8' => PG::TextDecoder::Integer,
+            'oid' => PG::TextDecoder::Integer,
+            'float4' => PG::TextDecoder::Float,
+            'float8' => PG::TextDecoder::Float,
+            'numeric' => PG::TextDecoder::Numeric,
+            'bool' => PG::TextDecoder::Boolean,
+            'timestamp' => PG::TextDecoder::TimestampUtc,
+            'timestamptz' => PG::TextDecoder::TimestampWithTimeZone,
           }
 
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
-          query = <<~SQL % known_coder_types.join(", ")
+          query = <<~SQL % known_coder_types.join(', ')
             SELECT t.oid, t.typname
             FROM pg_type as t
             WHERE t.typname IN (%s)
           SQL
-          coders = execute_and_clear(query, "SCHEMA", []) do |result|
+          coders = execute_and_clear(query, 'SCHEMA', []) do |result|
             result
-              .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
+              .map { |row| construct_coder(row, coders_by_name[row['typname']]) }
               .compact
           end
 
@@ -923,17 +923,17 @@ module ActiveRecord
 
           @type_map_for_results = PG::TypeMapByOid.new
           @type_map_for_results.default_type_map = map
-          @type_map_for_results.add_coder(PG::TextDecoder::Bytea.new(oid: 17, name: "bytea"))
-          @type_map_for_results.add_coder(MoneyDecoder.new(oid: 790, name: "money"))
+          @type_map_for_results.add_coder(PG::TextDecoder::Bytea.new(oid: 17, name: 'bytea'))
+          @type_map_for_results.add_coder(MoneyDecoder.new(oid: 790, name: 'money'))
 
           # extract timestamp decoder for use in update_typemap_for_default_timezone
-          @timestamp_decoder = coders.find { |coder| coder.name == "timestamp" }
+          @timestamp_decoder = coders.find { |coder| coder.name == 'timestamp' }
           update_typemap_for_default_timezone
         end
 
         def construct_coder(row, coder_class)
           return unless coder_class
-          coder_class.new(oid: row["oid"].to_i, name: row["typname"])
+          coder_class.new(oid: row['oid'].to_i, name: row['typname'])
         end
 
         class MoneyDecoder < PG::SimpleDecoder # :nodoc:

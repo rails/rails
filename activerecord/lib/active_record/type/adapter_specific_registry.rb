@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_model/type/registry"
+require 'active_model/type/registry'
 
 module ActiveRecord
   # :stopdoc:

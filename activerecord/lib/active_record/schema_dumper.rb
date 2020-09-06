@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "stringio"
+require 'stringio'
 
 module ActiveRecord
   # = Active Record Schema Dumper
@@ -65,11 +65,11 @@ module ActiveRecord
       def formatted_version
         stringified = @version.to_s
         return stringified unless stringified.length == 14
-        stringified.insert(4, "_").insert(7, "_").insert(10, "_")
+        stringified.insert(4, '_').insert(7, '_').insert(10, '_')
       end
 
       def define_params
-        @version ? "version: #{formatted_version}" : ""
+        @version ? "version: #{formatted_version}" : ''
       end
 
       def header(stream)
@@ -92,7 +92,7 @@ HEADER
       end
 
       def trailer(stream)
-        stream.puts "end"
+        stream.puts 'end'
       end
 
       # extensions are only supported by PostgreSQL
@@ -128,7 +128,7 @@ HEADER
 
           case pk
           when String
-            tbl.print ", primary_key: #{pk.inspect}" unless pk == "id"
+            tbl.print ", primary_key: #{pk.inspect}" unless pk == 'id'
             pkcol = columns.detect { |c| c.name == pk }
             pkcolspec = column_spec_for_primary_key(pkcol)
             unless pkcolspec.empty?
@@ -140,7 +140,7 @@ HEADER
           when Array
             tbl.print ", primary_key: #{pk.inspect}"
           else
-            tbl.print ", id: false"
+            tbl.print ', id: false'
           end
 
           table_options = @connection.table_options(table)
@@ -148,7 +148,7 @@ HEADER
             tbl.print ", #{format_options(table_options)}"
           end
 
-          tbl.puts ", force: :cascade do |t|"
+          tbl.puts ', force: :cascade do |t|'
 
           # then dump all non-primary key columns
           columns.each do |column|
@@ -167,7 +167,7 @@ HEADER
           indexes_in_create(table, tbl)
           check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
 
-          tbl.puts "  end"
+          tbl.puts '  end'
           tbl.puts
 
           tbl.rewind
@@ -208,7 +208,7 @@ HEADER
           index.columns.inspect,
           "name: #{index.name.inspect}",
         ]
-        index_parts << "unique: true" if index.unique
+        index_parts << 'unique: true' if index.unique
         index_parts << "length: #{format_index_parts(index.lengths)}" if index.lengths.present?
         index_parts << "order: #{format_index_parts(index.orders)}" if index.orders.present?
         index_parts << "opclass: #{format_index_parts(index.opclasses)}" if index.opclasses.present?
@@ -270,11 +270,11 @@ HEADER
       def format_colspec(colspec)
         colspec.map do |key, value|
           "#{key}: #{ value.is_a?(Hash) ? "{ #{format_colspec(value)} }" : value }"
-        end.join(", ")
+        end.join(', ')
       end
 
       def format_options(options)
-        options.map { |key, value| "#{key}: #{value.inspect}" }.join(", ")
+        options.map { |key, value| "#{key}: #{value.inspect}" }.join(', ')
       end
 
       def format_index_parts(options)
@@ -288,7 +288,7 @@ HEADER
       def remove_prefix_and_suffix(table)
         prefix = Regexp.escape(@options[:table_name_prefix].to_s)
         suffix = Regexp.escape(@options[:table_name_suffix].to_s)
-        table.sub(/\A#{prefix}(.+)#{suffix}\z/, "\\1")
+        table.sub(/\A#{prefix}(.+)#{suffix}\z/, '\\1')
       end
 
       def ignored?(table_name)

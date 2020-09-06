@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rails/generators/base"
+require 'rails/generators/base'
 
 module Rails
   module Generators
@@ -11,10 +11,10 @@ module Rails
           include AppName
 
           class_option :to, required: true,
-            desc: "The database system to switch to."
+            desc: 'The database system to switch to.'
 
           def self.default_generator_root
-            path = File.expand_path(File.join(base_name, "app"), base_root)
+            path = File.expand_path(File.join(base_name, 'app'), base_root)
             path if File.exist?(path)
           end
 
@@ -31,13 +31,13 @@ module Rails
           end
 
           def edit_database_config
-            template("config/databases/#{options[:database]}.yml", "config/database.yml")
+            template("config/databases/#{options[:database]}.yml", 'config/database.yml')
           end
 
           def edit_gemfile
             name, version = gem_for_database
-            gsub_file("Gemfile", all_database_gems_regex, name)
-            gsub_file("Gemfile", gem_entry_regex_for(name), gem_entry_for(name, *version))
+            gsub_file('Gemfile', all_database_gems_regex, name)
+            gsub_file('Gemfile', gem_entry_regex_for(name), gem_entry_for(name, *version))
           end
 
           private

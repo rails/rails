@@ -7,8 +7,8 @@ module ActiveRecord
         private
           def prepare_column_options(column)
             spec = super
-            spec[:unsigned] = "true" if column.unsigned?
-            spec[:auto_increment] = "true" if column.auto_increment?
+            spec[:unsigned] = 'true' if column.unsigned?
+            spec[:auto_increment] = 'true' if column.auto_increment?
 
             if /\A(?<size>tiny|medium|long)(?:text|blob)/ =~ column.sql_type
               spec = { size: size.to_sym.inspect }.merge!(spec)
@@ -16,7 +16,7 @@ module ActiveRecord
 
             if @connection.supports_virtual_columns? && column.virtual?
               spec[:as] = extract_expression_for_virtual_column(column)
-              spec[:stored] = "true" if /\b(?:STORED|PERSISTENT)\b/.match?(column.extra)
+              spec[:stored] = 'true' if /\b(?:STORED|PERSISTENT)\b/.match?(column.extra)
               spec = { type: schema_type(column).inspect }.merge!(spec)
             end
 
@@ -60,13 +60,13 @@ module ActiveRecord
             if column.collation
               @table_collation_cache ||= {}
               @table_collation_cache[table_name] ||=
-                @connection.exec_query("SHOW TABLE STATUS LIKE #{@connection.quote(table_name)}", "SCHEMA").first["Collation"]
+                @connection.exec_query("SHOW TABLE STATUS LIKE #{@connection.quote(table_name)}", 'SCHEMA').first['Collation']
               column.collation.inspect if column.collation != @table_collation_cache[table_name]
             end
           end
 
           def extract_expression_for_virtual_column(column)
-            if @connection.mariadb? && @connection.database_version < "10.2.5"
+            if @connection.mariadb? && @connection.database_version < '10.2.5'
               create_table_info = @connection.send(:create_table_info, table_name)
               column_name = @connection.quote_column_name(column.name)
               if %r/#{column_name} #{Regexp.quote(column.sql_type)}(?: COLLATE \w+)? AS \((?<expression>.+?)\) #{column.extra}/ =~ create_table_info
@@ -75,11 +75,11 @@ module ActiveRecord
             else
               scope = @connection.send(:quoted_scope, table_name)
               column_name = @connection.quote(column.name)
-              sql = "SELECT generation_expression FROM information_schema.columns" \
+              sql = 'SELECT generation_expression FROM information_schema.columns' \
                     " WHERE table_schema = #{scope[:schema]}" \
                     "   AND table_name = #{scope[:name]}" \
                     "   AND column_name = #{column_name}"
-              @connection.query_value(sql, "SCHEMA").inspect
+              @connection.query_value(sql, 'SCHEMA').inspect
             end
           end
       end

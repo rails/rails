@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/indifferent_access"
+require 'active_support/core_ext/hash/indifferent_access'
 
 module ActionCable
   module Connection
@@ -13,10 +13,10 @@ module ActionCable
       end
 
       def execute_command(data)
-        case data["command"]
-        when "subscribe"   then add data
-        when "unsubscribe" then remove data
-        when "message"     then perform_action data
+        case data['command']
+        when 'subscribe'   then add data
+        when 'unsubscribe' then remove data
+        when 'message'     then perform_action data
         else
           logger.error "Received unrecognized command in #{data.inspect}"
         end
@@ -26,7 +26,7 @@ module ActionCable
       end
 
       def add(data)
-        id_key = data["identifier"]
+        id_key = data['identifier']
         id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
 
         return if subscriptions.key?(id_key)
@@ -53,7 +53,7 @@ module ActionCable
       end
 
       def perform_action(data)
-        find(data).perform_action ActiveSupport::JSON.decode(data["data"])
+        find(data).perform_action ActiveSupport::JSON.decode(data['data'])
       end
 
       def identifiers
@@ -69,7 +69,7 @@ module ActionCable
         delegate :logger, to: :connection
 
         def find(data)
-          if subscription = subscriptions[data["identifier"]]
+          if subscription = subscriptions[data['identifier']]
             subscription
           else
             raise "Unable to find subscription with identifier: #{data['identifier']}"

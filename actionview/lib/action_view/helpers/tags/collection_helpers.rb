@@ -97,7 +97,7 @@ module ActionView
 
             # Prepend a hidden field to make sure something will be sent back to the
             # server if all radio buttons are unchecked.
-            if options.fetch("include_hidden", true)
+            if options.fetch('include_hidden', true)
               hidden_field + rendered_collection
             else
               rendered_collection
@@ -106,7 +106,7 @@ module ActionView
 
           def hidden_field
             hidden_name = @html_options[:name] || hidden_field_name
-            @template_object.hidden_field_tag(hidden_name, "", id: nil)
+            @template_object.hidden_field_tag(hidden_name, '', id: nil)
           end
 
           def hidden_field_name

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/post"
-require "models/comment"
-require "active_support/core_ext/symbol/starts_ends_with"
+require 'cases/helper'
+require 'models/post'
+require 'models/comment'
+require 'active_support/core_ext/symbol/starts_ends_with'
 
 module ActiveRecord
   module DelegationTests
@@ -51,7 +51,7 @@ module ActiveRecord
       ActiveRecord::FinderMethods.public_instance_methods(false) - [:raise_record_not_found_exception!] +
       ActiveRecord::SpawnMethods.public_instance_methods(false) - [:spawn, :merge!] +
       ActiveRecord::QueryMethods.public_instance_methods(false).reject { |method|
-        method.end_with?("=", "!", "value", "values", "clause")
+        method.end_with?('=', '!', 'value', 'values', 'clause')
       } - [:reverse_order, :arel, :extensions, :construct_join_dependency] + [
         :any?, :many?, :none?, :one?,
         :first_or_create, :first_or_create!, :first_or_initialize,
@@ -62,7 +62,7 @@ module ActiveRecord
 
     def test_delegate_querying_methods
       klass = Class.new(ActiveRecord::Base) do
-        self.table_name = "posts"
+        self.table_name = 'posts'
       end
 
       assert_equal QUERYING_METHODS.sort, ActiveRecord::Querying::QUERYING_METHODS.sort

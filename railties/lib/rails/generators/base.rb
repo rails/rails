@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 begin
-  require "thor/group"
+  require 'thor/group'
 rescue LoadError
   puts "Thor is not available.\nIf you ran this command from a git checkout " \
        "of Rails, please make sure thor is installed,\nand run this command " \
@@ -19,9 +19,9 @@ module Rails
       include Rails::Generators::Actions
 
       class_option :skip_namespace, type: :boolean, default: false,
-                                    desc: "Skip namespace (affects only isolated engines)"
+                                    desc: 'Skip namespace (affects only isolated engines)'
       class_option :skip_collision_check, type: :boolean, default: false,
-                                          desc: "Skip collision check"
+                                          desc: 'Skip collision check'
 
       add_runtime_options!
       strict_args_position!
@@ -53,7 +53,7 @@ module Rails
       # is removed.
       def self.namespace(name = nil)
         return super if name
-        @namespace ||= super.delete_suffix("_generator").sub(/:generators:/, ":")
+        @namespace ||= super.delete_suffix('_generator').sub(/:generators:/, ':')
       end
 
       # Convenience method to hide this generator from the available ones when
@@ -181,9 +181,9 @@ module Rails
             defaults = if options[:type] == :boolean
               {}
             elsif [true, false].include?(default_value_for_option(name, options))
-              { banner: "" }
+              { banner: '' }
             else
-              { desc: "#{name.to_s.humanize} to be invoked", banner: "NAME" }
+              { desc: "#{name.to_s.humanize} to be invoked", banner: 'NAME' }
             end
 
             class_option(name, defaults.merge!(options))
@@ -219,7 +219,7 @@ module Rails
       def self.default_source_root
         return unless base_name && generator_name
         return unless default_generator_root
-        path = File.join(default_generator_root, "templates")
+        path = File.join(default_generator_root, 'templates')
         path if File.exist?(path)
       end
 
@@ -237,11 +237,11 @@ module Rails
         # Invoke source_root so the default_source_root is set.
         base.source_root
 
-        if base.name && !base.name.end_with?("Base")
+        if base.name && !base.name.end_with?('Base')
           Rails::Generators.subclasses << base
 
           Rails::Generators.templates_path.each do |path|
-            if base.name.include?("::")
+            if base.name.include?('::')
               base.source_paths << File.join(path, base.base_name, base.generator_name)
             else
               base.source_paths << File.join(path, base.generator_name)
@@ -263,14 +263,14 @@ module Rails
             next if class_name.strip.empty?
 
             # Split the class from its module nesting
-            nesting = class_name.split("::")
+            nesting = class_name.split('::')
             last_name = nesting.pop
             last = extract_last_module(nesting)
 
             if last && last.const_defined?(last_name.camelize, false)
               raise Error, "The name '#{class_name}' is either already used in your application " \
-                           "or reserved by Ruby on Rails. Please choose an alternative or use --skip-collision-check "  \
-                           "or --force to skip this check and run this generator again."
+                           'or reserved by Ruby on Rails. Please choose an alternative or use --skip-collision-check '  \
+                           'or --force to skip this check and run this generator again.'
             end
           end
         end
@@ -292,7 +292,7 @@ module Rails
         end
 
         def indent(content, multiplier = 2) # :doc:
-          spaces = " " * multiplier
+          spaces = ' ' * multiplier
           content.each_line.map { |line| line.blank? ? line : "#{spaces}#{line}" }.join
         end
 
@@ -310,22 +310,22 @@ module Rails
         end
 
         def namespace_dirs
-          @namespace_dirs ||= namespace.name.split("::").map(&:underscore)
+          @namespace_dirs ||= namespace.name.split('::').map(&:underscore)
         end
 
         def namespaced_path # :doc:
-          @namespaced_path ||= namespace_dirs.join("/")
+          @namespaced_path ||= namespace_dirs.join('/')
         end
 
         # Use Rails default banner.
         def self.banner # :doc:
-          "rails generate #{namespace.delete_prefix("rails:")} #{arguments.map(&:usage).join(' ')} [options]".gsub(/\s+/, " ")
+          "rails generate #{namespace.delete_prefix("rails:")} #{arguments.map(&:usage).join(' ')} [options]".gsub(/\s+/, ' ')
         end
 
         # Sets the base_name taking into account the current class namespace.
         def self.base_name # :doc:
           @base_name ||= begin
-            if base = name.to_s.split("::").first
+            if base = name.to_s.split('::').first
               base.underscore
             end
           end
@@ -335,8 +335,8 @@ module Rails
         # Rails::Generators::ModelGenerator will return "model" as generator name.
         def self.generator_name # :doc:
           @generator_name ||= begin
-            if generator = name.to_s.split("::").last
-              generator.delete_suffix!("Generator")
+            if generator = name.to_s.split('::').last
+              generator.delete_suffix!('Generator')
               generator.underscore
             end
           end
@@ -390,8 +390,8 @@ module Rails
         # Small macro to add ruby as an option to the generator with proper
         # default value plus an instance helper method called shebang.
         def self.add_shebang_option! # :doc:
-          class_option :ruby, type: :string, aliases: "-r", default: Thor::Util.ruby_command,
-                              desc: "Path to the Ruby binary of your choice", banner: "PATH"
+          class_option :ruby, type: :string, aliases: '-r', default: Thor::Util.ruby_command,
+                              desc: 'Path to the Ruby binary of your choice', banner: 'PATH'
 
           no_tasks {
             define_method :shebang do
@@ -409,8 +409,8 @@ module Rails
 
         def self.usage_path # :doc:
           paths = [
-            source_root && File.expand_path("../USAGE", source_root),
-            default_generator_root && File.join(default_generator_root, "USAGE")
+            source_root && File.expand_path('../USAGE', source_root),
+            default_generator_root && File.join(default_generator_root, 'USAGE')
           ]
           paths.compact.detect { |path| File.exist? path }
         end

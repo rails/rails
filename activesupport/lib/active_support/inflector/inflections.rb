@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "concurrent/map"
-require "active_support/i18n"
+require 'concurrent/map'
+require 'active_support/i18n'
 
 module ActiveSupport
   module Inflector

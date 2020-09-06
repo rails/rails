@@ -1,23 +1,23 @@
 # frozen_string_literal: true
 
-ENV["RAILS_ENV"] ||= "test"
-require_relative "dummy/config/environment.rb"
+ENV['RAILS_ENV'] ||= 'test'
+require_relative 'dummy/config/environment.rb'
 
-require "bundler/setup"
-require "active_support"
-require "active_support/test_case"
-require "active_support/core_ext/object/try"
-require "active_support/testing/autorun"
-require "active_support/configuration_file"
-require "active_storage/service/mirror_service"
-require "image_processing/mini_magick"
+require 'bundler/setup'
+require 'active_support'
+require 'active_support/test_case'
+require 'active_support/core_ext/object/try'
+require 'active_support/testing/autorun'
+require 'active_support/configuration_file'
+require 'active_storage/service/mirror_service'
+require 'image_processing/mini_magick'
 
 begin
-  require "byebug"
+  require 'byebug'
 rescue LoadError
 end
 
-require "active_job"
+require 'active_job'
 ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 
@@ -25,35 +25,35 @@ ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 Minitest.backtrace_filter = Minitest::BacktraceFilter.new
 
 SERVICE_CONFIGURATIONS = begin
-  ActiveSupport::ConfigurationFile.parse(File.expand_path("service/configurations.yml", __dir__)).deep_symbolize_keys
+  ActiveSupport::ConfigurationFile.parse(File.expand_path('service/configurations.yml', __dir__)).deep_symbolize_keys
 rescue Errno::ENOENT
-  puts "Missing service configuration file in test/service/configurations.yml"
+  puts 'Missing service configuration file in test/service/configurations.yml'
   {}
 end
 
-require "tmpdir"
+require 'tmpdir'
 
 Rails.configuration.active_storage.service_configurations = SERVICE_CONFIGURATIONS.merge(
-  "local" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests") },
-  "local_public" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests"), "public" => true },
-  "disk_mirror_1" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_1") },
-  "disk_mirror_2" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_2") },
-  "disk_mirror_3" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_3") },
-  "mirror" => { "service" => "Mirror", "primary" => "local", "mirrors" => ["disk_mirror_1", "disk_mirror_2", "disk_mirror_3"] }
+  'local' => { 'service' => 'Disk', 'root' => Dir.mktmpdir('active_storage_tests') },
+  'local_public' => { 'service' => 'Disk', 'root' => Dir.mktmpdir('active_storage_tests'), 'public' => true },
+  'disk_mirror_1' => { 'service' => 'Disk', 'root' => Dir.mktmpdir('active_storage_tests_1') },
+  'disk_mirror_2' => { 'service' => 'Disk', 'root' => Dir.mktmpdir('active_storage_tests_2') },
+  'disk_mirror_3' => { 'service' => 'Disk', 'root' => Dir.mktmpdir('active_storage_tests_3') },
+  'mirror' => { 'service' => 'Mirror', 'primary' => 'local', 'mirrors' => ['disk_mirror_1', 'disk_mirror_2', 'disk_mirror_3'] }
 ).deep_stringify_keys
 
-Rails.configuration.active_storage.service = "local"
+Rails.configuration.active_storage.service = 'local'
 
 ActiveStorage.logger = ActiveSupport::Logger.new(nil)
-ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
+ActiveStorage.verifier = ActiveSupport::MessageVerifier.new('Testing')
 
 class ActiveSupport::TestCase
-  self.file_fixture_path = File.expand_path("fixtures/files", __dir__)
+  self.file_fixture_path = File.expand_path('fixtures/files', __dir__)
 
   include ActiveRecord::TestFixtures
 
   setup do
-    ActiveStorage::Current.host = "https://example.com"
+    ActiveStorage::Current.host = 'https://example.com'
   end
 
   teardown do
@@ -61,23 +61,23 @@ class ActiveSupport::TestCase
   end
 
   private
-    def create_blob(key: nil, data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, service_name: nil, record: nil)
+    def create_blob(key: nil, data: 'Hello world!', filename: 'hello.txt', content_type: 'text/plain', identify: true, service_name: nil, record: nil)
       ActiveStorage::Blob.create_and_upload! key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, service_name: service_name, record: record
     end
 
-    def create_file_blob(key: nil, filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil, service_name: nil, record: nil)
+    def create_file_blob(key: nil, filename: 'racecar.jpg', content_type: 'image/jpeg', metadata: nil, service_name: nil, record: nil)
       ActiveStorage::Blob.create_and_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, record: record
     end
 
-    def create_blob_before_direct_upload(key: nil, filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain", record: nil)
+    def create_blob_before_direct_upload(key: nil, filename: 'hello.txt', byte_size:, checksum:, content_type: 'text/plain', record: nil)
       ActiveStorage::Blob.create_before_direct_upload! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record
     end
 
-    def build_blob_after_unfurling(key: nil, data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, record: nil)
+    def build_blob_after_unfurling(key: nil, data: 'Hello world!', filename: 'hello.txt', content_type: 'text/plain', identify: true, record: nil)
       ActiveStorage::Blob.build_after_unfurling key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, record: record
     end
 
-    def directly_upload_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", record: nil)
+    def directly_upload_file_blob(filename: 'racecar.jpg', content_type: 'image/jpeg', record: nil)
       file = file_fixture(filename)
       byte_size = file.size
       checksum = Digest::MD5.file(file).base64digest
@@ -110,8 +110,8 @@ class ActiveSupport::TestCase
     end
 end
 
-require "global_id"
-GlobalID.app = "ActiveStorageExampleApp"
+require 'global_id'
+GlobalID.app = 'ActiveStorageExampleApp'
 ActiveRecord::Base.send :include, GlobalID::Identification
 
 class User < ActiveRecord::Base
@@ -131,4 +131,4 @@ class Group < ActiveRecord::Base
   accepts_nested_attributes_for :users
 end
 
-require_relative "../../tools/test_common"
+require_relative '../../tools/test_common'

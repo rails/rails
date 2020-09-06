@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
+require 'isolation/abstract_unit'
 
 module ApplicationTests
   class UrlGenerationTest < ActiveSupport::TestCase
@@ -10,17 +10,17 @@ module ApplicationTests
       Rails.application
     end
 
-    test "it works" do
-      require "rails"
-      require "action_controller/railtie"
-      require "action_view/railtie"
+    test 'it works' do
+      require 'rails'
+      require 'action_controller/railtie'
+      require 'action_view/railtie'
 
       class MyApp < Rails::Application
-        config.session_store :cookie_store, key: "_myapp_session"
+        config.session_store :cookie_store, key: '_myapp_session'
         config.active_support.deprecation = :log
         config.eager_load = false
         config.hosts << proc { true }
-        config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+        config.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
       end
 
       Rails.application.initialize!
@@ -35,26 +35,26 @@ module ApplicationTests
       end
 
       MyApp.routes.draw do
-        get "/" => "omg#index", as: :omg
+        get '/' => 'omg#index', as: :omg
       end
 
-      require "rack/test"
+      require 'rack/test'
       extend Rack::Test::Methods
 
-      get "/"
-      assert_equal "/", last_response.body
+      get '/'
+      assert_equal '/', last_response.body
     end
 
     def test_routes_know_the_relative_root
-      require "rails"
-      require "action_controller/railtie"
-      require "action_view/railtie"
+      require 'rails'
+      require 'action_controller/railtie'
+      require 'action_view/railtie'
 
-      relative_url = "/hello"
-      ENV["RAILS_RELATIVE_URL_ROOT"] = relative_url
+      relative_url = '/hello'
+      ENV['RAILS_RELATIVE_URL_ROOT'] = relative_url
       app = Class.new(Rails::Application)
       assert_equal relative_url, app.routes.relative_url_root
-      ENV["RAILS_RELATIVE_URL_ROOT"] = nil
+      ENV['RAILS_RELATIVE_URL_ROOT'] = nil
     end
   end
 end

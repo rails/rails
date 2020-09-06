@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
+require_relative '../abstract_unit'
 
 module DateAndTimeBehavior
   def test_yesterday

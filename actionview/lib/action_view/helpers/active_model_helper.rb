@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/enumerable"
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/enumerable'
 
 module ActionView
   # = Active Model Helpers
@@ -43,11 +43,11 @@ module ActionView
         end
 
         def select_markup_helper?(type)
-          ["optgroup", "option"].include?(type)
+          ['optgroup', 'option'].include?(type)
         end
 
         def tag_generate_errors?(options)
-          options["type"] != "hidden"
+          options['type'] != 'hidden'
         end
     end
   end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/json"
+require 'active_support/json'
 
 module ActiveModel
   module Serializers

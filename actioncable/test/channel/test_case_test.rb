@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "test_helper"
+require 'test_helper'
 
 class TestTestChannel < ActionCable::Channel::Base
 end
@@ -22,7 +22,7 @@ class NonInferrableSymbolNameChannelTest < ActionCable::Channel::TestCase
 end
 
 class NonInferrableStringNameChannelTest < ActionCable::Channel::TestCase
-  tests "test_test_channel"
+  tests 'test_test_channel'
 
   def test_set_channel_class_manual_using_string
     assert_equal TestTestChannel, self.class.channel_class
@@ -48,7 +48,7 @@ class SubscriptionsTestChannelTest < ActionCable::Channel::TestCase
     assert_not subscription.rejected?
     assert_equal 1, connection.transmissions.size
     assert_equal ActionCable::INTERNAL[:message_types][:confirmation],
-                 connection.transmissions.last["type"]
+                 connection.transmissions.last['type']
   end
 end
 
@@ -56,11 +56,11 @@ class StubConnectionTest < ActionCable::Channel::TestCase
   tests SubscriptionsTestChannel
 
   def test_connection_identifiers
-    stub_connection username: "John", admin: true
+    stub_connection username: 'John', admin: true
 
     subscribe
 
-    assert_equal "John", subscription.username
+    assert_equal 'John', subscription.username
     assert subscription.admin
   end
 end
@@ -79,7 +79,7 @@ class RejectionTestChannelTest < ActionCable::Channel::TestCase
     assert subscription.rejected?
     assert_equal 1, connection.transmissions.size
     assert_equal ActionCable::INTERNAL[:message_types][:rejection],
-                 connection.transmissions.last["type"]
+                 connection.transmissions.last['type']
   end
 end
 
@@ -93,13 +93,13 @@ class StreamsTestChannelTest < ActionCable::Channel::TestCase
   def test_stream_without_params
     subscribe
 
-    assert_has_stream "test_0"
+    assert_has_stream 'test_0'
   end
 
   def test_stream_with_params
     subscribe id: 42
 
-    assert_has_stream "test_42"
+    assert_has_stream 'test_42'
   end
 end
 
@@ -131,12 +131,12 @@ end
 
 class PerformTestChannel < ActionCable::Channel::Base
   def echo(data)
-    data.delete("action")
+    data.delete('action')
     transmit data
   end
 
   def ping
-    transmit({ type: "pong" })
+    transmit({ type: 'pong' })
   end
 end
 
@@ -147,15 +147,15 @@ class PerformTestChannelTest < ActionCable::Channel::TestCase
   end
 
   def test_perform_with_params
-    perform :echo, text: "You are man!"
+    perform :echo, text: 'You are man!'
 
-    assert_equal({ "text" => "You are man!" }, transmissions.last)
+    assert_equal({ 'text' => 'You are man!' }, transmissions.last)
   end
 
   def test_perform_and_transmit
     perform :ping
 
-    assert_equal "pong", transmissions.last["type"]
+    assert_equal 'pong', transmissions.last['type']
   end
 end
 
@@ -173,14 +173,14 @@ class BroadcastsTestChannel < ActionCable::Channel::Base
   def broadcast(data)
     ActionCable.server.broadcast(
       "broadcast_#{params[:id]}",
-      { text: data["message"], user_id: user_id }
+      { text: data['message'], user_id: user_id }
     )
   end
 
   def broadcast_to_user(data)
     user = User.new user_id
 
-    broadcast_to user, text: data["message"]
+    broadcast_to user, text: data['message']
   end
 end
 
@@ -191,8 +191,8 @@ class BroadcastsTestChannelTest < ActionCable::Channel::TestCase
   end
 
   def test_broadcast_matchers_included
-    assert_broadcast_on("broadcast_5", user_id: 2017, text: "SOS") do
-      perform :broadcast, message: "SOS"
+    assert_broadcast_on('broadcast_5', user_id: 2017, text: 'SOS') do
+      perform :broadcast, message: 'SOS'
     end
   end
 
@@ -200,15 +200,15 @@ class BroadcastsTestChannelTest < ActionCable::Channel::TestCase
     user = User.new(2017)
 
     assert_broadcasts(user, 1) do
-      perform :broadcast_to_user, text: "SOS"
+      perform :broadcast_to_user, text: 'SOS'
     end
   end
 
   def test_broadcast_to_object_with_data
     user = User.new(2017)
 
-    assert_broadcast_on(user, text: "SOS") do
-      perform :broadcast_to_user, message: "SOS"
+    assert_broadcast_on(user, text: 'SOS') do
+      perform :broadcast_to_user, message: 'SOS'
     end
   end
 end

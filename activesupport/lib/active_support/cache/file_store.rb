@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/marshal"
-require "active_support/core_ext/file/atomic"
-require "active_support/core_ext/string/conversions"
-require "uri/common"
+require 'active_support/core_ext/marshal'
+require 'active_support/core_ext/file/atomic'
+require 'active_support/core_ext/string/conversions'
+require 'uri/common'
 
 module ActiveSupport
   module Cache
@@ -15,10 +15,10 @@ module ActiveSupport
       prepend Strategy::LocalCache
       attr_reader :cache_path
 
-      DIR_FORMATTER = "%03X"
+      DIR_FORMATTER = '%03X'
       FILENAME_MAX_SIZE = 226 # max filename size on file system is 255, minus room for timestamp, pid, and random characters appended by Tempfile (used by atomic write)
       FILEPATH_MAX_SIZE = 900 # max is 1024, plus some room
-      GITKEEP_FILES = [".gitkeep", ".keep"].freeze
+      GITKEEP_FILES = ['.gitkeep', '.keep'].freeze
 
       def initialize(cache_path, options = nil)
         super(options)
@@ -106,7 +106,7 @@ module ActiveSupport
         # Lock a file for a block so only one process can modify it at a time.
         def lock_file(file_name, &block)
           if File.exist?(file_name)
-            File.open(file_name, "r+") do |f|
+            File.open(file_name, 'r+') do |f|
               f.flock File::LOCK_EX
               yield
             ensure

@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/time/zones"
+require 'active_support/core_ext/time/zones'
 
 module ActiveModel
   module Type
     module Helpers # :nodoc: all
       module Timezone
         def is_utc?
-          ::Time.zone_default.nil? || ::Time.zone_default.match?("UTC")
+          ::Time.zone_default.nil? || ::Time.zone_default.match?('UTC')
         end
 
         def default_timezone

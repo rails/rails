@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_record/database_configurations"
+require 'active_record/database_configurations'
 
 module ActiveRecord
   module Tasks # :nodoc:
@@ -52,10 +52,10 @@ module ActiveRecord
       deprecate :current_config=
       attr_accessor :database_configuration
 
-      LOCAL_HOSTS = ["127.0.0.1", "localhost"]
+      LOCAL_HOSTS = ['127.0.0.1', 'localhost']
 
       def check_protected_environments!
-        unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
+        unless ENV['DISABLE_DATABASE_ENVIRONMENT_CHECK']
           current = ActiveRecord::Base.connection.migration_context.current_environment
           stored  = ActiveRecord::Base.connection.migration_context.last_stored_environment
 
@@ -75,23 +75,23 @@ module ActiveRecord
         @tasks[pattern] = task
       end
 
-      register_task(/mysql/,        "ActiveRecord::Tasks::MySQLDatabaseTasks")
-      register_task(/postgresql/,   "ActiveRecord::Tasks::PostgreSQLDatabaseTasks")
-      register_task(/sqlite/,       "ActiveRecord::Tasks::SQLiteDatabaseTasks")
+      register_task(/mysql/,        'ActiveRecord::Tasks::MySQLDatabaseTasks')
+      register_task(/postgresql/,   'ActiveRecord::Tasks::PostgreSQLDatabaseTasks')
+      register_task(/sqlite/,       'ActiveRecord::Tasks::SQLiteDatabaseTasks')
 
       def db_dir
-        @db_dir ||= Rails.application.config.paths["db"].first
+        @db_dir ||= Rails.application.config.paths['db'].first
       end
 
       def migrations_paths
-        @migrations_paths ||= Rails.application.paths["db/migrate"].to_a
+        @migrations_paths ||= Rails.application.paths['db/migrate'].to_a
       end
 
       def fixtures_path
-        @fixtures_path ||= if ENV["FIXTURES_PATH"]
-          File.join(root, ENV["FIXTURES_PATH"])
+        @fixtures_path ||= if ENV['FIXTURES_PATH']
+          File.join(root, ENV['FIXTURES_PATH'])
         else
-          File.join(root, "test", "fixtures")
+          File.join(root, 'test', 'fixtures')
         end
       end
 
@@ -104,12 +104,12 @@ module ActiveRecord
       end
 
       def spec
-        @spec ||= "primary"
+        @spec ||= 'primary'
       end
-      deprecate spec: "please use name instead"
+      deprecate spec: 'please use name instead'
 
       def name
-        @name ||= "primary"
+        @name ||= 'primary'
       end
 
       def seed_loader
@@ -121,7 +121,7 @@ module ActiveRecord
           @current_config = options[:config]
         else
           env_name = options[:env] || env
-          name = options[:spec] || "primary"
+          name = options[:spec] || 'primary'
 
           @current_config ||= ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)&.configuration_hash
         end
@@ -229,7 +229,7 @@ module ActiveRecord
       def migrate
         check_target_version
 
-        scope = ENV["SCOPE"]
+        scope = ENV['SCOPE']
         verbose_was, Migration.verbose = Migration.verbose, verbose?
 
         Base.connection.migration_context.migrate(target_version) do |migration|
@@ -243,13 +243,13 @@ module ActiveRecord
 
       def migrate_status
         unless ActiveRecord::Base.connection.schema_migration.table_exists?
-          Kernel.abort "Schema migrations table does not exist yet."
+          Kernel.abort 'Schema migrations table does not exist yet.'
         end
 
         # output
         puts "\ndatabase: #{ActiveRecord::Base.connection_db_config.database}\n\n"
         puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
-        puts "-" * 50
+        puts '-' * 50
         ActiveRecord::Base.connection.migration_context.migrations_status.each do |status, version, name|
           puts "#{status.center(8)}  #{version.ljust(14)}  #{name}"
         end
@@ -257,13 +257,13 @@ module ActiveRecord
       end
 
       def check_target_version
-        if target_version && !(Migration::MigrationFilenameRegexp.match?(ENV["VERSION"]) || /\A\d+\z/.match?(ENV["VERSION"]))
+        if target_version && !(Migration::MigrationFilenameRegexp.match?(ENV['VERSION']) || /\A\d+\z/.match?(ENV['VERSION']))
           raise "Invalid format of target version: `VERSION=#{ENV['VERSION']}`"
         end
       end
 
       def target_version
-        ENV["VERSION"].to_i if ENV["VERSION"] && !ENV["VERSION"].empty?
+        ENV['VERSION'].to_i if ENV['VERSION'] && !ENV['VERSION'].empty?
       end
 
       def charset_current(env_name = env, db_name = name)
@@ -315,7 +315,7 @@ module ActiveRecord
       def load_schema(db_config, format = ActiveRecord::Base.schema_format, file = nil) # :nodoc:
         file ||= dump_filename(db_config.name, format)
 
-        verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
+        verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV['VERBOSE']
         check_schema_file(file)
         ActiveRecord::Base.establish_connection(db_config)
 
@@ -338,7 +338,7 @@ module ActiveRecord
         db_config = resolve_configuration(configuration)
 
         if environment || name
-          ActiveSupport::Deprecation.warn("`environment` and `name` will be removed as parameters in 6.2.0, you may now pass an ActiveRecord::DatabaseConfigurations::DatabaseConfig as `configuration` instead.")
+          ActiveSupport::Deprecation.warn('`environment` and `name` will be removed as parameters in 6.2.0, you may now pass an ActiveRecord::DatabaseConfigurations::DatabaseConfig as `configuration` instead.')
         end
 
         name ||= db_config.name
@@ -374,19 +374,19 @@ module ActiveRecord
       end
 
       def dump_schema(db_config, format = ActiveRecord::Base.schema_format) # :nodoc:
-        require "active_record/schema_dumper"
+        require 'active_record/schema_dumper'
         filename = dump_filename(db_config.name, format)
         connection = ActiveRecord::Base.connection
 
         case format
         when :ruby
-          File.open(filename, "w:utf-8") do |file|
+          File.open(filename, 'w:utf-8') do |file|
             ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
           end
         when :sql
           structure_dump(db_config, filename)
           if connection.schema_migration.table_exists?
-            File.open(filename, "a") do |f|
+            File.open(filename, 'a') do |f|
               f.puts connection.dump_schema_information
               f.print "\n"
             end
@@ -401,9 +401,9 @@ module ActiveRecord
       def schema_file_type(format = ActiveRecord::Base.schema_format)
         case format
         when :ruby
-          "schema.rb"
+          'schema.rb'
         when :sql
-          "structure.sql"
+          'structure.sql'
         end
       end
 
@@ -414,17 +414,17 @@ module ActiveRecord
           "#{db_config_name}_#{schema_file_type(format)}"
         end
 
-        ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+        ENV['SCHEMA'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
       end
 
       def cache_dump_filename(db_config_name, schema_cache_path: nil)
         filename = if ActiveRecord::Base.configurations.primary?(db_config_name)
-          "schema_cache.yml"
+          'schema_cache.yml'
         else
           "#{db_config_name}_schema_cache.yml"
         end
 
-        schema_cache_path || ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+        schema_cache_path || ENV['SCHEMA_CACHE'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
       end
 
       def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
@@ -446,9 +446,9 @@ module ActiveRecord
         if seed_loader
           seed_loader.load_seed
         else
-          raise "You tried to load seed data, but no seed loader is specified. Please specify seed " \
+          raise 'You tried to load seed data, but no seed loader is specified. Please specify seed ' \
                 "loader with ActiveRecord::Tasks::DatabaseTasks.seed_loader = your_seed_loader\n" \
-                "Seed loader should respond to load_seed method"
+                'Seed loader should respond to load_seed method'
         end
       end
 
@@ -470,7 +470,7 @@ module ActiveRecord
         end
 
         def verbose?
-          ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
+          ENV['VERBOSE'] ? ENV['VERBOSE'] != 'false' : true
         end
 
         # Create a new instance for the specified db configuration object
@@ -494,7 +494,7 @@ module ActiveRecord
 
         def each_current_configuration(environment, name = nil)
           environments = [environment]
-          environments << "test" if environment == "development" && !ENV["DATABASE_URL"]
+          environments << 'test' if environment == 'development' && !ENV['DATABASE_URL']
 
           environments.each do |env|
             ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|

@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "pathname"
-require "active_support/core_ext/class"
-require "active_support/core_ext/module/attribute_accessors"
-require "action_view/template"
-require "thread"
-require "concurrent/map"
+require 'pathname'
+require 'active_support/core_ext/class'
+require 'active_support/core_ext/module/attribute_accessors'
+require 'action_view/template'
+require 'thread'
+require 'concurrent/map'
 
 module ActionView
   # = Action View Resolver
@@ -16,7 +16,7 @@ module ActionView
       alias_method :partial?, :partial
 
       def self.build(name, prefix, partial)
-        virtual = +""
+        virtual = +''
         virtual << "#{prefix}/" unless prefix.empty?
         virtual << (partial ? "_#{name}" : name)
         new name, prefix, partial, virtual
@@ -37,10 +37,10 @@ module ActionView
 
     class PathParser # :nodoc:
       def build_path_regex
-        handlers = Template::Handlers.extensions.map { |x| Regexp.escape(x) }.join("|")
-        formats = Template::Types.symbols.map { |x| Regexp.escape(x) }.join("|")
-        locales = "[a-z]{2}(?:-[A-Z]{2})?"
-        variants = "[^.]*"
+        handlers = Template::Handlers.extensions.map { |x| Regexp.escape(x) }.join('|')
+        formats = Template::Types.symbols.map { |x| Regexp.escape(x) }.join('|')
+        locales = '[a-z]{2}(?:-[A-Z]{2})?'
+        variants = '[^.]*'
 
         %r{
           \A
@@ -59,7 +59,7 @@ module ActionView
         @regex ||= build_path_regex
         match = @regex.match(path)
         {
-          prefix: match[:prefix] || "",
+          prefix: match[:prefix] || '',
           action: match[:action],
           partial: !!match[:partial],
           locale: match[:locale]&.to_sym,
@@ -174,7 +174,7 @@ module ActionView
     # because Resolver guarantees that the arguments are present and
     # normalized.
     def find_templates(name, prefix, partial, details, locals = [])
-      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details, locals = []) method"
+      raise NotImplementedError, 'Subclasses must implement a find_templates(name, prefix, partial, details, locals = []) method'
     end
 
     # Handles templates caching. If a key is given and caching is on
@@ -196,8 +196,8 @@ module ActionView
 
   # An abstract class that implements a Resolver with path semantics.
   class PathResolver < Resolver #:nodoc:
-    EXTENSIONS = { locale: ".", formats: ".", variants: "+", handlers: "." }
-    DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}"
+    EXTENSIONS = { locale: '.', formats: '.', variants: '+', handlers: '.' }
+    DEFAULT_PATTERN = ':prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}'
 
     def initialize(pattern = nil)
       if pattern
@@ -264,7 +264,7 @@ module ActionView
       end
 
       def find_template_paths_from_details(path, details)
-        if path.name.include?(".")
+        if path.name.include?('.')
           ActiveSupport::Deprecation.warn("Rendering actions with '.' in the name is deprecated: #{path}")
         end
 
@@ -282,7 +282,7 @@ module ActionView
 
       def inside_path?(path, filename)
         filename = File.expand_path(filename)
-        path = File.join(path, "")
+        path = File.join(path, '')
         filename.start_with?(path)
       end
 
@@ -290,15 +290,15 @@ module ActionView
       def build_query(path, details)
         query = @pattern.dup
 
-        prefix = path.prefix.empty? ? "" : "#{escape_entry(path.prefix)}\\1"
+        prefix = path.prefix.empty? ? '' : "#{escape_entry(path.prefix)}\\1"
         query.gsub!(/:prefix(\/)?/, prefix)
 
         partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
-        query.gsub!(":action", partial)
+        query.gsub!(':action', partial)
 
         details.each do |ext, candidates|
           if ext == :variants && candidates == :any
-            query.gsub!(/:#{ext}/, "*")
+            query.gsub!(/:#{ext}/, '*')
           else
             query.gsub!(/:#{ext}/, "{#{candidates.compact.uniq.join(',')}}")
           end
@@ -331,7 +331,7 @@ module ActionView
     attr_reader :path
 
     def initialize(path, pattern = nil)
-      raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
+      raise ArgumentError, 'path already is a Resolver class' if path.is_a?(Resolver)
       super(pattern)
       @path = File.expand_path(path)
     end
@@ -365,7 +365,7 @@ module ActionView
       end
 
       def find_template_paths_from_details(path, details)
-        if path.name.include?(".")
+        if path.name.include?('.')
           # Fall back to the unoptimized resolver, which will warn
           return super
         end
@@ -405,12 +405,12 @@ module ActionView
         exts = EXTENSIONS.map do |ext, prefix|
           match =
             if ext == :variants && details[ext] == :any
-              ".*?"
+              '.*?'
             else
               arr = details[ext].compact
               arr.uniq!
               arr.map! { |e| Regexp.escape(e) }
-              arr.join("|")
+              arr.join('|')
             end
           prefix = Regexp.escape(prefix)
           "(#{prefix}(?<#{ext}>#{match}))?"
@@ -426,7 +426,7 @@ module ActionView
     private_class_method :new
 
     def self.instances
-      [new(""), new("/")]
+      [new(''), new('/')]
     end
 
     def build_unbound_template(template, _)

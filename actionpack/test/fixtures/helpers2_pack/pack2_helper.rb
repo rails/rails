@@ -2,6 +2,6 @@
 
 module Pack2Helper
   def conflicting_helper
-    "pack2"
+    'pack2'
   end
 end

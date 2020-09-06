@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../helper"
-require "arel/collectors/substitute_binds"
-require "arel/collectors/sql_string"
+require_relative '../helper'
+require 'arel/collectors/substitute_binds'
+require 'arel/collectors/sql_string'
 
 module Arel
   module Collectors
@@ -16,8 +16,8 @@ module Arel
       def ast_with_binds
         table = Table.new(:users)
         manager = Arel::SelectManager.new table
-        manager.where(table[:age].eq(Nodes::BindParam.new("hello")))
-        manager.where(table[:name].eq(Nodes::BindParam.new("world")))
+        manager.where(table[:age].eq(Nodes::BindParam.new('hello')))
+        manager.where(table[:name].eq(Nodes::BindParam.new('world')))
         manager.ast
       end
 

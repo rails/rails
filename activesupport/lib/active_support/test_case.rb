@@ -1,18 +1,18 @@
 # frozen_string_literal: true
 
-gem "minitest" # make sure we get the gem, not stdlib
-require "minitest"
-require "active_support/testing/tagged_logging"
-require "active_support/testing/setup_and_teardown"
-require "active_support/testing/assertions"
-require "active_support/testing/deprecation"
-require "active_support/testing/declarative"
-require "active_support/testing/isolation"
-require "active_support/testing/constant_lookup"
-require "active_support/testing/time_helpers"
-require "active_support/testing/file_fixtures"
-require "active_support/testing/parallelization"
-require "concurrent/utility/processor_counter"
+gem 'minitest' # make sure we get the gem, not stdlib
+require 'minitest'
+require 'active_support/testing/tagged_logging'
+require 'active_support/testing/setup_and_teardown'
+require 'active_support/testing/assertions'
+require 'active_support/testing/deprecation'
+require 'active_support/testing/declarative'
+require 'active_support/testing/isolation'
+require 'active_support/testing/constant_lookup'
+require 'active_support/testing/time_helpers'
+require 'active_support/testing/file_fixtures'
+require 'active_support/testing/parallelization'
+require 'concurrent/utility/processor_counter'
 
 module ActiveSupport
   class TestCase < ::Minitest::Test
@@ -73,7 +73,7 @@ module ActiveSupport
       # The processes parallelization uses a Ruby DRb server.
       def parallelize(workers: :number_of_processors, with: :processes)
         workers = Concurrent.physical_processor_count if workers == :number_of_processors
-        workers = ENV["PARALLEL_WORKERS"].to_i if ENV["PARALLEL_WORKERS"]
+        workers = ENV['PARALLEL_WORKERS'].to_i if ENV['PARALLEL_WORKERS']
 
         return if workers <= 1
 

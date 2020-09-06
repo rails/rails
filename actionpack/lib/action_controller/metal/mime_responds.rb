@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_controller/collector"
+require 'abstract_controller/collector'
 
 module ActionController #:nodoc:
   module MimeResponds
@@ -199,7 +199,7 @@ module ActionController #:nodoc:
     #     format.html.phone # this gets rendered
     #   end
     def respond_to(*mimes)
-      raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
+      raise ArgumentError, 'respond_to takes either types or a block, never both' if mimes.any? && block_given?
 
       collector = Collector.new(mimes, request.variant)
       yield collector if block_given?

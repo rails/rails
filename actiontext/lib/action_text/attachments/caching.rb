@@ -4,7 +4,7 @@ module ActionText
   module Attachments
     module Caching
       def cache_key(*args)
-        [self.class.name, cache_digest, *attachable.cache_key(*args)].join("/")
+        [self.class.name, cache_digest, *attachable.cache_key(*args)].join('/')
       end
 
       private

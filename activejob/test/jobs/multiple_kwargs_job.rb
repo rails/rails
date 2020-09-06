@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../support/job_buffer"
+require_relative '../support/job_buffer'
 
 class MultipleKwargsJob < ActiveJob::Base
   def perform(argument1:, argument2:)

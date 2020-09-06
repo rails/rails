@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
+require_relative 'abstract_unit'
 
 class ForkTrackerTest < ActiveSupport::TestCase
   def test_object_fork
@@ -9,7 +9,7 @@ class ForkTrackerTest < ActiveSupport::TestCase
 
     handler = ActiveSupport::ForkTracker.after_fork do
       called = true
-      write.write "forked"
+      write.write 'forked'
     end
 
     assert_not respond_to?(:fork)
@@ -22,7 +22,7 @@ class ForkTrackerTest < ActiveSupport::TestCase
     write.close
 
     Process.waitpid(pid)
-    assert_equal "forked", read.read
+    assert_equal 'forked', read.read
     read.close
 
     assert_not called
@@ -36,13 +36,13 @@ class ForkTrackerTest < ActiveSupport::TestCase
 
     handler = ActiveSupport::ForkTracker.after_fork do
       called = true
-      write.write "forked"
+      write.write 'forked'
     end
 
     if pid = fork
       write.close
       Process.waitpid(pid)
-      assert_equal "forked", read.read
+      assert_equal 'forked', read.read
       read.close
       assert_not called
     else
@@ -60,7 +60,7 @@ class ForkTrackerTest < ActiveSupport::TestCase
 
     handler = ActiveSupport::ForkTracker.after_fork do
       called = true
-      write.write "forked"
+      write.write 'forked'
     end
 
     pid = Process.fork do
@@ -72,7 +72,7 @@ class ForkTrackerTest < ActiveSupport::TestCase
     write.close
 
     Process.waitpid(pid)
-    assert_equal "forked", read.read
+    assert_equal 'forked', read.read
     read.close
     assert_not called
   ensure
@@ -85,13 +85,13 @@ class ForkTrackerTest < ActiveSupport::TestCase
 
     handler = ActiveSupport::ForkTracker.after_fork do
       called = true
-      write.write "forked"
+      write.write 'forked'
     end
 
     if pid = Process.fork
       write.close
       Process.waitpid(pid)
-      assert_equal "forked", read.read
+      assert_equal 'forked', read.read
       read.close
       assert_not called
     else
@@ -109,7 +109,7 @@ class ForkTrackerTest < ActiveSupport::TestCase
 
     handler = ActiveSupport::ForkTracker.after_fork do
       called = true
-      write.write "forked"
+      write.write 'forked'
     end
 
     pid = Kernel.fork do
@@ -121,7 +121,7 @@ class ForkTrackerTest < ActiveSupport::TestCase
     write.close
 
     Process.waitpid(pid)
-    assert_equal "forked", read.read
+    assert_equal 'forked', read.read
     read.close
     assert_not called
   ensure
@@ -134,13 +134,13 @@ class ForkTrackerTest < ActiveSupport::TestCase
 
     handler = ActiveSupport::ForkTracker.after_fork do
       called = true
-      write.write "forked"
+      write.write 'forked'
     end
 
     if pid = Kernel.fork
       write.close
       Process.waitpid(pid)
-      assert_equal "forked", read.read
+      assert_equal 'forked', read.read
       read.close
       assert_not called
     else
@@ -179,7 +179,7 @@ class ForkTrackerTest < ActiveSupport::TestCase
 
     handler = ActiveSupport::ForkTracker.after_fork do
       called = true
-      write.write "forked"
+      write.write 'forked'
     end
 
     klass = Class.new(BasicObject) do
@@ -200,7 +200,7 @@ class ForkTrackerTest < ActiveSupport::TestCase
     write.close
 
     Process.waitpid(pid)
-    assert_equal "forked", read.read
+    assert_equal 'forked', read.read
     read.close
 
     assert_not called

@@ -6,7 +6,7 @@ module ActiveRecord
       module DatabaseStatements
         def explain(arel, binds = [])
           sql = "EXPLAIN #{to_sql(arel, binds)}"
-          PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", binds))
+          PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
         end
 
         # Queries the database and returns the results in an Array-like object
@@ -49,7 +49,7 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false)
+        def exec_query(sql, name = 'SQL', binds = [], prepare: false)
           execute_and_clear(sql, name, binds, prepare: prepare) do |result|
             types = {}
             fields = result.fields
@@ -106,7 +106,7 @@ module ActiveRecord
 
         # Begins a transaction.
         def begin_db_transaction
-          execute("BEGIN", "TRANSACTION")
+          execute('BEGIN', 'TRANSACTION')
         end
 
         def begin_isolated_db_transaction(isolation)
@@ -116,12 +116,12 @@ module ActiveRecord
 
         # Commits a transaction.
         def commit_db_transaction
-          execute("COMMIT", "TRANSACTION")
+          execute('COMMIT', 'TRANSACTION')
         end
 
         # Aborts a transaction.
         def exec_rollback_db_transaction
-          execute("ROLLBACK", "TRANSACTION")
+          execute('ROLLBACK', 'TRANSACTION')
         end
 
         private
@@ -135,7 +135,7 @@ module ActiveRecord
 
           # Returns the current ID of a table's sequence.
           def last_insert_id_result(sequence_name)
-            exec_query("SELECT currval(#{quote(sequence_name)})", "SQL")
+            exec_query("SELECT currval(#{quote(sequence_name)})", 'SQL')
           end
 
           def suppress_composite_primary_key(pk)

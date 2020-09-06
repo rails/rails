@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "thread"
+require 'thread'
 
 module ActionCable
   module Connection
@@ -12,7 +12,7 @@ module ActionCable
       def initialize(event_loop, socket)
         @event_loop    = event_loop
         @socket_object = socket
-        @stream_send   = socket.env["stream.send"]
+        @stream_send   = socket.env['stream.send']
 
         @rack_hijack_io = nil
         @write_lock = Mutex.new
@@ -96,12 +96,12 @@ module ActionCable
       end
 
       def hijack_rack_socket
-        return unless @socket_object.env["rack.hijack"]
+        return unless @socket_object.env['rack.hijack']
 
         # This should return the underlying io according to the SPEC:
-        @rack_hijack_io = @socket_object.env["rack.hijack"].call
+        @rack_hijack_io = @socket_object.env['rack.hijack'].call
         # Retain existing behaviour if required:
-        @rack_hijack_io ||= @socket_object.env["rack.hijack_io"]
+        @rack_hijack_io ||= @socket_object.env['rack.hijack_io']
 
         @event_loop.attach(@rack_hijack_io, self)
       end

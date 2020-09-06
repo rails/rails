@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../abstract_unit"
+require_relative '../abstract_unit'
 
 module ActiveSupport
   module Notifications
@@ -30,26 +30,26 @@ module ActiveSupport
       def test_evented_listener
         notifier = Fanout.new
         listener = Listener.new
-        notifier.subscribe "hi", listener
-        notifier.start  "hi", 1, {}
-        notifier.start  "hi", 2, {}
-        notifier.finish "hi", 2, {}
-        notifier.finish "hi", 1, {}
+        notifier.subscribe 'hi', listener
+        notifier.start  'hi', 1, {}
+        notifier.start  'hi', 2, {}
+        notifier.finish 'hi', 2, {}
+        notifier.finish 'hi', 1, {}
 
         assert_equal 4, listener.events.length
         assert_equal [
-          [:start, "hi", 1, {}],
-          [:start, "hi", 2, {}],
-          [:finish, "hi", 2, {}],
-          [:finish, "hi", 1, {}],
+          [:start, 'hi', 1, {}],
+          [:start, 'hi', 2, {}],
+          [:finish, 'hi', 2, {}],
+          [:finish, 'hi', 1, {}],
         ], listener.events
       end
 
       def test_evented_listener_no_events
         notifier = Fanout.new
         listener = Listener.new
-        notifier.subscribe "hi", listener
-        notifier.start  "world", 1, {}
+        notifier.subscribe 'hi', listener
+        notifier.start  'world', 1, {}
         assert_equal 0, listener.events.length
       end
 
@@ -57,31 +57,31 @@ module ActiveSupport
         notifier = Fanout.new
         listener = Listener.new
         notifier.subscribe nil, listener
-        notifier.start  "hello", 1, {}
-        notifier.start  "world", 1, {}
-        notifier.finish  "world", 1, {}
-        notifier.finish  "hello", 1, {}
+        notifier.start  'hello', 1, {}
+        notifier.start  'world', 1, {}
+        notifier.finish  'world', 1, {}
+        notifier.finish  'hello', 1, {}
 
         assert_equal 4, listener.events.length
         assert_equal [
-          [:start,  "hello", 1, {}],
-          [:start,  "world", 1, {}],
-          [:finish,  "world", 1, {}],
-          [:finish,  "hello", 1, {}],
+          [:start,  'hello', 1, {}],
+          [:start,  'world', 1, {}],
+          [:finish,  'world', 1, {}],
+          [:finish,  'hello', 1, {}],
         ], listener.events
       end
 
       def test_evented_listener_priority
         notifier = Fanout.new
         listener = ListenerWithTimedSupport.new
-        notifier.subscribe "hi", listener
+        notifier.subscribe 'hi', listener
 
-        notifier.start "hi", 1, {}
-        notifier.finish "hi", 1, {}
+        notifier.start 'hi', 1, {}
+        notifier.finish 'hi', 1, {}
 
         assert_equal [
-          [:start, "hi", 1, {}],
-          [:finish, "hi", 1, {}]
+          [:start, 'hi', 1, {}],
+          [:finish, 'hi', 1, {}]
         ], listener.events
       end
 
@@ -89,16 +89,16 @@ module ActiveSupport
         notifier = Fanout.new
         listener = Listener.new
         notifier.subscribe(/[a-z]*.world/, listener)
-        notifier.start("hi.world", 1, {})
-        notifier.finish("hi.world", 2, {})
-        notifier.start("hello.world", 1, {})
-        notifier.finish("hello.world", 2, {})
+        notifier.start('hi.world', 1, {})
+        notifier.finish('hi.world', 2, {})
+        notifier.start('hello.world', 1, {})
+        notifier.finish('hello.world', 2, {})
 
         assert_equal [
-          [:start, "hi.world", 1, {}],
-          [:finish, "hi.world", 2, {}],
-          [:start, "hello.world", 1, {}],
-          [:finish, "hello.world", 2, {}]
+          [:start, 'hi.world', 1, {}],
+          [:finish, 'hi.world', 2, {}],
+          [:start, 'hello.world', 1, {}],
+          [:finish, 'hello.world', 2, {}]
         ], listener.events
       end
 
@@ -106,15 +106,15 @@ module ActiveSupport
         notifier = Fanout.new
         listener = Listener.new
         notifier.subscribe(/[a-z]*.world/, listener)
-        notifier.unsubscribe("hi.world")
-        notifier.start("hi.world", 1, {})
-        notifier.finish("hi.world", 2, {})
-        notifier.start("hello.world", 1, {})
-        notifier.finish("hello.world", 2, {})
+        notifier.unsubscribe('hi.world')
+        notifier.start('hi.world', 1, {})
+        notifier.finish('hi.world', 2, {})
+        notifier.start('hello.world', 1, {})
+        notifier.finish('hello.world', 2, {})
 
         assert_equal [
-          [:start, "hello.world", 1, {}],
-          [:finish, "hello.world", 2, {}]
+          [:start, 'hello.world', 1, {}],
+          [:finish, 'hello.world', 2, {}]
         ], listener.events
       end
     end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
+require 'isolation/abstract_unit'
 
 module ApplicationTests
   class WatcherTest < ActiveSupport::TestCase
@@ -13,11 +13,11 @@ module ApplicationTests
       @app ||= Rails.application
     end
 
-    test "watchable_args classifies files included in autoload path" do
+    test 'watchable_args classifies files included in autoload path' do
       add_to_config <<-RUBY
         config.file_watcher = ActiveSupport::EventedFileUpdateChecker
       RUBY
-      app_file "app/README.md", ""
+      app_file 'app/README.md', ''
 
       require "#{rails_root}/config/environment"
 

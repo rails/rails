@@ -5,7 +5,7 @@ module Rails
     class RakeCommand < Base # :nodoc:
       extend Rails::Command::Actions
 
-      namespace "rake"
+      namespace 'rake'
 
       class << self
         def printing_commands
@@ -16,7 +16,7 @@ module Rails
           require_rake
 
           Rake.with_application do |rake|
-            rake.init("rails", [task, *args])
+            rake.init('rails', [task, *args])
             rake.load_rakefile
             if Rails.respond_to?(:root)
               rake.options.suppress_backtrace_pattern = /\A(?!#{Regexp.quote(Rails.root.to_s)})/
@@ -34,7 +34,7 @@ module Rails
             require_application!
 
             Rake::TaskManager.record_task_metadata = true
-            Rake.application.instance_variable_set(:@name, "rails")
+            Rake.application.instance_variable_set(:@name, 'rails')
             load_tasks
             @rake_tasks = Rake.application.tasks.select(&:comment)
           end
@@ -44,7 +44,7 @@ module Rails
           end
 
           def require_rake
-            require "rake" # Defer booting Rake until we know it's needed.
+            require 'rake' # Defer booting Rake until we know it's needed.
           end
       end
     end

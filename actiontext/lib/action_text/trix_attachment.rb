@@ -2,16 +2,16 @@
 
 module ActionText
   class TrixAttachment
-    TAG_NAME = "figure"
-    SELECTOR = "[data-trix-attachment]"
+    TAG_NAME = 'figure'
+    SELECTOR = '[data-trix-attachment]'
 
     COMPOSED_ATTRIBUTES = %w( caption presentation )
     ATTRIBUTES = %w( sgid contentType url href filename filesize width height previewable content ) + COMPOSED_ATTRIBUTES
     ATTRIBUTE_TYPES = {
-      "previewable" => ->(value) { value.to_s == "true" },
-      "filesize"    => ->(value) { Integer(value.to_s) rescue value },
-      "width"       => ->(value) { Integer(value.to_s) rescue nil },
-      "height"      => ->(value) { Integer(value.to_s) rescue nil },
+      'previewable' => ->(value) { value.to_s == 'true' },
+      'filesize'    => ->(value) { Integer(value.to_s) rescue value },
+      'width'       => ->(value) { Integer(value.to_s) rescue nil },
+      'height'      => ->(value) { Integer(value.to_s) rescue nil },
       :default      => ->(value) { value.to_s }
     }
 
@@ -23,8 +23,8 @@ module ActionText
         trix_attributes = attributes.slice(*COMPOSED_ATTRIBUTES)
 
         node = ActionText::HtmlConversion.create_element(TAG_NAME)
-        node["data-trix-attachment"] = JSON.generate(trix_attachment_attributes)
-        node["data-trix-attributes"] = JSON.generate(trix_attributes) if trix_attributes.any?
+        node['data-trix-attachment'] = JSON.generate(trix_attachment_attributes)
+        node['data-trix-attributes'] = JSON.generate(trix_attributes) if trix_attributes.any?
 
         new(node)
       end
@@ -66,11 +66,11 @@ module ActionText
 
     private
       def attachment_attributes
-        read_json_object_attribute("data-trix-attachment")
+        read_json_object_attribute('data-trix-attachment')
       end
 
       def composed_attributes
-        read_json_object_attribute("data-trix-attributes")
+        read_json_object_attribute('data-trix-attributes')
       end
 
       def read_json_object_attribute(name)

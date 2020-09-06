@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require_relative "xml_mini_engine_test"
+require_relative 'xml_mini_engine_test'
 
-XMLMiniEngineTest.run_with_gem("libxml") do
+XMLMiniEngineTest.run_with_gem('libxml') do
   class LibXMLSAXEngineTest < XMLMiniEngineTest
     private
       def engine
-        "LibXMLSAX"
+        'LibXMLSAX'
       end
 
       def expansion_attack_error

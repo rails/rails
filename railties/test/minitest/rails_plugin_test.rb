@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 class Minitest::RailsPluginTest < ActiveSupport::TestCase
   setup do
     @options = Minitest.process_args []
-    @output = StringIO.new("".encode("UTF-8"))
+    @output = StringIO.new(''.encode('UTF-8'))
   end
 
-  test "default reporters are replaced" do
+  test 'default reporters are replaced' do
     with_reporter Minitest::CompositeReporter.new do |reporter|
       reporter << Minitest::SummaryReporter.new(@output, @options)
       reporter << Minitest::ProgressReporter.new(@output, @options)
@@ -23,7 +23,7 @@ class Minitest::RailsPluginTest < ActiveSupport::TestCase
     end
   end
 
-  test "no custom reporters are added if nothing to replace" do
+  test 'no custom reporters are added if nothing to replace' do
     with_reporter Minitest::CompositeReporter.new do |reporter|
       Minitest.plugin_rails_init({})
 

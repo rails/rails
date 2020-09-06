@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 module ActiveRecord
   class CacheKeyTest < ActiveRecord::TestCase
@@ -25,24 +25,24 @@ module ActiveRecord
       @connection.drop_table :cache_me_with_versions, if_exists: true
     end
 
-    test "cache_key format is not too precise" do
+    test 'cache_key format is not too precise' do
       record = CacheMe.create
       key = record.cache_key
 
       assert_equal key, record.reload.cache_key
     end
 
-    test "cache_key has no version when versioning is on" do
+    test 'cache_key has no version when versioning is on' do
       record = CacheMeWithVersion.create
       assert_equal "active_record/cache_key_test/cache_me_with_versions/#{record.id}", record.cache_key
     end
 
-    test "cache_version is only there when versioning is on" do
+    test 'cache_version is only there when versioning is on' do
       assert_predicate CacheMeWithVersion.create.cache_version, :present?
       assert_not_predicate CacheMe.create.cache_version, :present?
     end
 
-    test "cache_key_with_version always has both key and version" do
+    test 'cache_key_with_version always has both key and version' do
       r1 = CacheMeWithVersion.create
       assert_equal "active_record/cache_key_test/cache_me_with_versions/#{r1.id}-#{r1.updated_at.utc.to_s(:usec)}", r1.cache_key_with_version
 
@@ -50,7 +50,7 @@ module ActiveRecord
       assert_equal "active_record/cache_key_test/cache_mes/#{r2.id}-#{r2.updated_at.utc.to_s(:usec)}", r2.cache_key_with_version
     end
 
-    test "cache_version is the same when it comes from the DB or from the user" do
+    test 'cache_version is the same when it comes from the DB or from the user' do
       skip("Mysql2 and PostgreSQL don't return a string value for updated_at") if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
 
       record = CacheMeWithVersion.create
@@ -62,7 +62,7 @@ module ActiveRecord
       assert_equal record.cache_version, record_from_db.cache_version
     end
 
-    test "cache_version does not truncate zeros when timestamp ends in zeros" do
+    test 'cache_version does not truncate zeros when timestamp ends in zeros' do
       skip("Mysql2 and PostgreSQL don't return a string value for updated_at") if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
 
       travel_to Time.now.beginning_of_day do
@@ -76,14 +76,14 @@ module ActiveRecord
       end
     end
 
-    test "cache_version calls updated_at when the value is generated at create time" do
+    test 'cache_version calls updated_at when the value is generated at create time' do
       record = CacheMeWithVersion.create
       assert_called(record, :updated_at) do
         record.cache_version
       end
     end
 
-    test "cache_version does NOT call updated_at when value is from the database" do
+    test 'cache_version does NOT call updated_at when value is from the database' do
       skip("Mysql2 and PostgreSQL don't return a string value for updated_at") if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
 
       record = CacheMeWithVersion.create
@@ -93,7 +93,7 @@ module ActiveRecord
       end
     end
 
-    test "cache_version does call updated_at when it is assigned via a Time object" do
+    test 'cache_version does call updated_at when it is assigned via a Time object' do
       record = CacheMeWithVersion.create
       record_from_db = CacheMeWithVersion.find(record.id)
       assert_called(record_from_db, :updated_at) do
@@ -102,7 +102,7 @@ module ActiveRecord
       end
     end
 
-    test "cache_version does call updated_at when it is assigned via a string" do
+    test 'cache_version does call updated_at when it is assigned via a string' do
       record = CacheMeWithVersion.create
       record_from_db = CacheMeWithVersion.find(record.id)
       assert_called(record_from_db, :updated_at) do
@@ -111,7 +111,7 @@ module ActiveRecord
       end
     end
 
-    test "cache_version does call updated_at when it is assigned via a hash" do
+    test 'cache_version does call updated_at when it is assigned via a hash' do
       record = CacheMeWithVersion.create
       record_from_db = CacheMeWithVersion.find(record.id)
       assert_called(record_from_db, :updated_at) do
@@ -120,7 +120,7 @@ module ActiveRecord
       end
     end
 
-    test "updated_at on class but not on instance raises an error" do
+    test 'updated_at on class but not on instance raises an error' do
       record = CacheMeWithVersion.create
       record_from_db = CacheMeWithVersion.where(id: record.id).select(:id).first
       assert_raises(ActiveModel::MissingAttributeError) do

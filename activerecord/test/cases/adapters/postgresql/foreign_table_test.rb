@@ -1,27 +1,27 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/professor"
+require 'cases/helper'
+require 'models/professor'
 
 if ActiveRecord::Base.connection.supports_foreign_tables?
   class ForeignTableTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
     class ForeignProfessor < ActiveRecord::Base
-      self.table_name = "foreign_professors"
+      self.table_name = 'foreign_professors'
     end
 
     class ForeignProfessorWithPk < ForeignProfessor
-      self.primary_key = "id"
+      self.primary_key = 'id'
     end
 
     def setup
-      @professor = Professor.create(name: "Nicola")
+      @professor = Professor.create(name: 'Nicola')
 
       @connection = ActiveRecord::Base.connection
-      enable_extension!("postgres_fdw", @connection)
+      enable_extension!('postgres_fdw', @connection)
 
-      foreign_db_config = ARTest.test_configuration_hashes["arunit2"]
+      foreign_db_config = ARTest.test_configuration_hashes['arunit2']
       @connection.execute <<~SQL
         CREATE SERVER foreign_server
           FOREIGN DATA WRAPPER postgres_fdw
@@ -44,7 +44,7 @@ if ActiveRecord::Base.connection.supports_foreign_tables?
     end
 
     def teardown
-      disable_extension!("postgres_fdw", @connection)
+      disable_extension!('postgres_fdw', @connection)
       @connection.execute <<~SQL
         DROP SERVER IF EXISTS foreign_server CASCADE
       SQL
@@ -61,19 +61,19 @@ if ActiveRecord::Base.connection.supports_foreign_tables?
     end
 
     def test_foreign_tables
-      assert_equal ["foreign_professors"], @connection.foreign_tables
+      assert_equal ['foreign_professors'], @connection.foreign_tables
     end
 
     def test_foreign_table_exists
-      assert @connection.foreign_table_exists?("foreign_professors")
+      assert @connection.foreign_table_exists?('foreign_professors')
       assert @connection.foreign_table_exists?(:foreign_professors)
-      assert_not @connection.foreign_table_exists?("nonexistingtable")
+      assert_not @connection.foreign_table_exists?('nonexistingtable')
       assert_not @connection.foreign_table_exists?("'")
       assert_not @connection.foreign_table_exists?(nil)
     end
 
     def test_attribute_names
-      assert_equal ["id", "name"], ForeignProfessor.attribute_names
+      assert_equal ['id', 'name'], ForeignProfessor.attribute_names
     end
 
     def test_attributes
@@ -87,23 +87,23 @@ if ActiveRecord::Base.connection.supports_foreign_tables?
 
     def test_insert_record
       # Explicit `id` here to avoid complex configurations to implicitly work with remote table
-      ForeignProfessorWithPk.create!(id: 100, name: "Leonardo")
+      ForeignProfessorWithPk.create!(id: 100, name: 'Leonardo')
 
       professor = ForeignProfessorWithPk.last
-      assert_equal "Leonardo", professor.name
+      assert_equal 'Leonardo', professor.name
     end
 
     def test_update_record
       professor = ForeignProfessorWithPk.find(@professor.id)
-      professor.name = "Albert"
+      professor.name = 'Albert'
       professor.save!
       professor.reload
-      assert_equal "Albert", professor.name
+      assert_equal 'Albert', professor.name
     end
 
     def test_delete_record
       professor = ForeignProfessorWithPk.find(@professor.id)
-      assert_difference("ForeignProfessor.count", -1) { professor.destroy }
+      assert_difference('ForeignProfessor.count', -1) { professor.destroy }
     end
   end
 end

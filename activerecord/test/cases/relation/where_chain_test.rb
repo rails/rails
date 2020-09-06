@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/post"
-require "models/author"
-require "models/human"
-require "models/essay"
-require "models/comment"
-require "models/categorization"
+require 'cases/helper'
+require 'models/post'
+require 'models/author'
+require 'models/human'
+require 'models/essay'
+require 'models/comment'
+require 'models/categorization'
 
 
 module ActiveRecord
@@ -24,8 +24,8 @@ module ActiveRecord
     end
 
     def test_not_inverts_where_clause
-      relation = Post.where.not(title: "hello")
-      expected_where_clause = Post.where(title: "hello").where_clause.invert
+      relation = Post.where.not(title: 'hello')
+      expected_where_clause = Post.where(title: 'hello').where_clause.invert
 
       assert_equal expected_where_clause, relation.where_clause
     end
@@ -37,62 +37,62 @@ module ActiveRecord
     end
 
     def test_association_not_eq
-      expected = Comment.arel_table["title"].not_eq(Arel::Nodes::BindParam.new(1))
-      relation = Post.joins(:comments).where.not(comments: { title: "hello" })
+      expected = Comment.arel_table['title'].not_eq(Arel::Nodes::BindParam.new(1))
+      relation = Post.joins(:comments).where.not(comments: { title: 'hello' })
       assert_equal(expected.to_sql, relation.where_clause.ast.to_sql)
     end
 
     def test_not_eq_with_preceding_where
-      relation = Post.where(title: "hello").where.not(title: "world")
+      relation = Post.where(title: 'hello').where.not(title: 'world')
       expected_where_clause =
-        Post.where(title: "hello").where_clause +
-        Post.where(title: "world").where_clause.invert
+        Post.where(title: 'hello').where_clause +
+        Post.where(title: 'world').where_clause.invert
 
       assert_equal expected_where_clause, relation.where_clause
     end
 
     def test_not_eq_with_succeeding_where
-      relation = Post.where.not(title: "hello").where(title: "world")
+      relation = Post.where.not(title: 'hello').where(title: 'world')
       expected_where_clause =
-        Post.where(title: "hello").where_clause.invert +
-        Post.where(title: "world").where_clause
+        Post.where(title: 'hello').where_clause.invert +
+        Post.where(title: 'world').where_clause
 
       assert_equal expected_where_clause, relation.where_clause
     end
 
     def test_chaining_multiple
-      relation = Post.where.not(author_id: [1, 2]).where.not(title: "ruby on rails")
+      relation = Post.where.not(author_id: [1, 2]).where.not(title: 'ruby on rails')
       expected_where_clause =
         Post.where(author_id: [1, 2]).where_clause.invert +
-        Post.where(title: "ruby on rails").where_clause.invert
+        Post.where(title: 'ruby on rails').where_clause.invert
 
       assert_equal expected_where_clause, relation.where_clause
     end
 
     def test_rewhere_with_one_condition
-      relation = Post.where(body: "hello").where(body: "world").rewhere(body: "hullo")
-      expected = Post.where(body: "hullo")
+      relation = Post.where(body: 'hello').where(body: 'world').rewhere(body: 'hullo')
+      expected = Post.where(body: 'hullo')
 
       assert_equal expected.to_a, relation.to_a
     end
 
     def test_rewhere_with_multiple_overwriting_conditions
-      relation = Post.where(body: "hello").where(type: "StiPost").rewhere(body: "hullo", type: "Post")
-      expected = Post.where(body: "hullo", type: "Post")
+      relation = Post.where(body: 'hello').where(type: 'StiPost').rewhere(body: 'hullo', type: 'Post')
+      expected = Post.where(body: 'hullo', type: 'Post')
 
       assert_equal expected.to_a, relation.to_a
     end
 
     def test_rewhere_with_one_overwriting_condition_and_one_unrelated
-      relation = Post.where(body: "hello").where(type: "Post").rewhere(body: "hullo")
-      expected = Post.where(body: "hullo", type: "Post")
+      relation = Post.where(body: 'hello').where(type: 'Post').rewhere(body: 'hullo')
+      expected = Post.where(body: 'hullo', type: 'Post')
 
       assert_equal expected.to_a, relation.to_a
     end
 
     def test_rewhere_with_alias_condition
-      relation = Post.where(text: "hello").where(text: "world").rewhere(text: "hullo")
-      expected = Post.where(text: "hullo")
+      relation = Post.where(text: 'hello').where(text: 'world').rewhere(text: 'hullo')
+      expected = Post.where(text: 'hullo')
 
       assert_equal expected.to_a, relation.to_a
     end

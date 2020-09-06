@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "action_dispatch/http/rack_cache"
+require 'abstract_unit'
+require 'action_dispatch/http/rack_cache'
 
 class RackCacheMetaStoreTest < ActiveSupport::TestCase
   class ReadWriteHash < ::Hash
@@ -13,7 +13,7 @@ class RackCacheMetaStoreTest < ActiveSupport::TestCase
     @store = ActionDispatch::RailsMetaStore.new(ReadWriteHash.new)
   end
 
-  test "stuff is deep duped" do
+  test 'stuff is deep duped' do
     @store.write(:foo, bar: :original)
     hash = @store.read(:foo)
     hash[:bar] = :changed

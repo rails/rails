@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 class ExecutorTest < ActiveSupport::TestCase
   class MyBody < Array
@@ -9,11 +9,11 @@ class ExecutorTest < ActiveSupport::TestCase
     end
 
     def foo
-      "foo"
+      'foo'
     end
 
     def bar
-      "bar"
+      'bar'
     end
 
     def close
@@ -39,15 +39,15 @@ class ExecutorTest < ActiveSupport::TestCase
   def test_returned_body_object_behaves_like_underlying_object
     body = call_and_return_body do
       b = MyBody.new
-      b << "hello"
-      b << "world"
-      [200, { "Content-Type" => "text/html" }, b]
+      b << 'hello'
+      b << 'world'
+      [200, { 'Content-Type' => 'text/html' }, b]
     end
     assert_equal 2, body.size
-    assert_equal "hello", body[0]
-    assert_equal "world", body[1]
-    assert_equal "foo", body.foo
-    assert_equal "bar", body.bar
+    assert_equal 'hello', body[0]
+    assert_equal 'world', body[1]
+    assert_equal 'foo', body.foo
+    assert_equal 'bar', body.bar
   end
 
   def test_it_calls_close_on_underlying_object_when_close_is_called_on_body
@@ -56,7 +56,7 @@ class ExecutorTest < ActiveSupport::TestCase
       b = MyBody.new do
         close_called = true
       end
-      [200, { "Content-Type" => "text/html" }, b]
+      [200, { 'Content-Type' => 'text/html' }, b]
     end
     body.close
     assert close_called
@@ -64,7 +64,7 @@ class ExecutorTest < ActiveSupport::TestCase
 
   def test_returned_body_object_responds_to_all_methods_supported_by_underlying_object
     body = call_and_return_body do
-      [200, { "Content-Type" => "text/html" }, MyBody.new]
+      [200, { 'Content-Type' => 'text/html' }, MyBody.new]
     end
     assert_respond_to body, :size
     assert_respond_to body, :each
@@ -101,7 +101,7 @@ class ExecutorTest < ActiveSupport::TestCase
 
     begin
       call_and_return_body do
-        raise "error"
+        raise 'error'
       end
     rescue
     end
@@ -121,8 +121,8 @@ class ExecutorTest < ActiveSupport::TestCase
 
   private
     def call_and_return_body(&block)
-      app = middleware(block || proc { [200, {}, "response"] })
-      _, _, body = app.call("rack.input" => StringIO.new(""))
+      app = middleware(block || proc { [200, {}, 'response'] })
+      _, _, body = app.call('rack.input' => StringIO.new(''))
       body
     end
 

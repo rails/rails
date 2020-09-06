@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/file/atomic"
+require 'active_support/core_ext/file/atomic'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -9,12 +9,12 @@ module ActiveRecord
         return unless File.file?(filename)
 
         read(filename) do |file|
-          filename.include?(".dump") ? Marshal.load(file) : YAML.load(file)
+          filename.include?('.dump') ? Marshal.load(file) : YAML.load(file)
         end
       end
 
       def self.read(filename, &block)
-        if File.extname(filename) == ".gz"
+        if File.extname(filename) == '.gz'
           Zlib::GzipReader.open(filename) { |gz|
             yield gz.read
           }
@@ -49,21 +49,21 @@ module ActiveRecord
       def encode_with(coder)
         reset_version!
 
-        coder["columns"]          = @columns
-        coder["primary_keys"]     = @primary_keys
-        coder["data_sources"]     = @data_sources
-        coder["indexes"]          = @indexes
-        coder["version"]          = @version
-        coder["database_version"] = database_version
+        coder['columns']          = @columns
+        coder['primary_keys']     = @primary_keys
+        coder['data_sources']     = @data_sources
+        coder['indexes']          = @indexes
+        coder['version']          = @version
+        coder['database_version'] = database_version
       end
 
       def init_with(coder)
-        @columns          = coder["columns"]
-        @primary_keys     = coder["primary_keys"]
-        @data_sources     = coder["data_sources"]
-        @indexes          = coder["indexes"] || {}
-        @version          = coder["version"]
-        @database_version = coder["database_version"]
+        @columns          = coder['columns']
+        @primary_keys     = coder['primary_keys']
+        @data_sources     = coder['data_sources']
+        @indexes          = coder['indexes'] || {}
+        @version          = coder['version']
+        @database_version = coder['database_version']
 
         derive_columns_hash_and_deduplicate_values
       end
@@ -156,7 +156,7 @@ module ActiveRecord
         clear!
         connection.data_sources.each { |table| add(table) }
         open(filename) { |f|
-          if filename.include?(".dump")
+          if filename.include?('.dump')
             f.write(Marshal.dump(self))
           else
             f.write(YAML.dump(self))
@@ -209,7 +209,7 @@ module ActiveRecord
 
         def open(filename)
           File.atomic_write(filename) do |file|
-            if File.extname(filename) == ".gz"
+            if File.extname(filename) == '.gz'
               zipper = Zlib::GzipWriter.new file
               yield zipper
               zipper.flush

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/slice"
+require 'active_support/core_ext/hash/slice'
 
 module ActiveModel
   module Validations
@@ -107,8 +107,8 @@ module ActiveModel
         defaults = attributes.extract_options!.dup
         validations = defaults.slice!(*_validates_default_keys)
 
-        raise ArgumentError, "You need to supply at least one attribute" if attributes.empty?
-        raise ArgumentError, "You need to supply at least one validation" if validations.empty?
+        raise ArgumentError, 'You need to supply at least one attribute' if attributes.empty?
+        raise ArgumentError, 'You need to supply at least one validation' if validations.empty?
 
         defaults[:attributes] = attributes
 
@@ -116,7 +116,7 @@ module ActiveModel
           key = "#{key.to_s.camelize}Validator"
 
           begin
-            validator = key.include?("::") ? key.constantize : const_get(key)
+            validator = key.include?('::') ? key.constantize : const_get(key)
           rescue NameError
             raise ArgumentError, "Unknown validator: '#{key}'"
           end

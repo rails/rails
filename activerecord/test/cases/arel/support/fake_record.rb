@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/enumerable"
+require 'active_support/core_ext/enumerable'
 
-require "date"
+require 'date'
 module FakeRecord
   class Column < Struct.new(:name, :type)
   end
@@ -14,24 +14,24 @@ module FakeRecord
     def initialize(visitor = nil)
       @tables = %w{ users photos developers products}
       @columns = {
-        "users" => [
-          Column.new("id", :integer),
-          Column.new("name", :string),
-          Column.new("bool", :boolean),
-          Column.new("created_at", :date)
+        'users' => [
+          Column.new('id', :integer),
+          Column.new('name', :string),
+          Column.new('bool', :boolean),
+          Column.new('created_at', :date)
         ],
-        "products" => [
-          Column.new("id", :integer),
-          Column.new("price", :decimal)
+        'products' => [
+          Column.new('id', :integer),
+          Column.new('price', :decimal)
         ]
       }
       @columns_hash = {
-        "users" => @columns["users"].index_by(&:name),
-        "products" => @columns["products"].index_by(&:name)
+        'users' => @columns['users'].index_by(&:name),
+        'products' => @columns['products'].index_by(&:name)
       }
       @primary_keys = {
-        "users" => "id",
-        "products" => "id"
+        'users' => 'id',
+        'products' => 'id'
       }
       @visitor = visitor
     end
@@ -79,7 +79,7 @@ module FakeRecord
       when false
         "'f'"
       when nil
-        "NULL"
+        'NULL'
       when Numeric
         thing
       else
@@ -95,7 +95,7 @@ module FakeRecord
     attr_reader :spec, :connection
 
     def initialize
-      @spec = Spec.new(adapter: "america")
+      @spec = Spec.new(adapter: 'america')
       @connection = Connection.new
       @connection.visitor = Arel::Visitors::ToSql.new(connection)
     end

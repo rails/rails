@@ -29,8 +29,8 @@ module ActionCable
         end
 
         def process_internal_message(message)
-          case message["type"]
-          when "disconnect"
+          case message['type']
+          when 'disconnect'
             logger.info "Removing connection (#{connection_identifier})"
             websocket.close
           end

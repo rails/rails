@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
+require 'isolation/abstract_unit'
 
 module ApplicationTests
   class MultipleApplicationsTest < ActiveSupport::TestCase
@@ -9,7 +9,7 @@ module ApplicationTests
     def setup
       build_app(initializers: true)
       require "#{rails_root}/config/environment"
-      Rails.application.config.some_setting = "something_or_other"
+      Rails.application.config.some_setting = 'something_or_other'
     end
 
     def teardown
@@ -19,8 +19,8 @@ module ApplicationTests
     def test_cloning_an_application_makes_a_shallow_copy_of_config
       clone = Rails.application.clone
 
-      assert_equal Rails.application.config, clone.config, "The cloned application should get a copy of the config"
-      assert_equal Rails.application.config.some_setting, clone.config.some_setting, "The some_setting on the config should be the same"
+      assert_equal Rails.application.config, clone.config, 'The cloned application should get a copy of the config'
+      assert_equal Rails.application.config.some_setting, clone.config.some_setting, 'The some_setting on the config should be the same'
     end
 
     def test_inheriting_multiple_times_from_application
@@ -33,16 +33,16 @@ module ApplicationTests
       application1 = AppTemplate::Application.new
       application2 = AppTemplate::Application.new
 
-      assert_not_equal Rails.application.object_id, application1.object_id, "New applications should not be the same as the original application"
-      assert_not_equal Rails.application.object_id, application2.object_id, "New applications should not be the same as the original application"
+      assert_not_equal Rails.application.object_id, application1.object_id, 'New applications should not be the same as the original application'
+      assert_not_equal Rails.application.object_id, application2.object_id, 'New applications should not be the same as the original application'
     end
 
     def test_initialization_of_application_with_previous_config
       application1 = AppTemplate::Application.create(config: Rails.application.config)
       application2 = AppTemplate::Application.create
 
-      assert_equal Rails.application.config, application1.config, "Creating a new application while setting an initial config should result in the same config"
-      assert_not_equal Rails.application.config, application2.config, "New applications without setting an initial config should not have the same config"
+      assert_equal Rails.application.config, application1.config, 'Creating a new application while setting an initial config should result in the same config'
+      assert_not_equal Rails.application.config, application2.config, 'New applications without setting an initial config should not have the same config'
     end
 
     def test_initialization_of_application_with_previous_railties
@@ -88,12 +88,12 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      assert_equal 0, run_count, "The count should stay at zero without any calls to the rake tasks"
-      require "rake"
-      require "rake/testtask"
-      require "rdoc/task"
+      assert_equal 0, run_count, 'The count should stay at zero without any calls to the rake tasks'
+      require 'rake'
+      require 'rake/testtask'
+      require 'rdoc/task'
       Rails.application.load_tasks
-      assert_equal 2, run_count, "Calling a rake task should result in two increments to the count"
+      assert_equal 2, run_count, 'Calling a rake task should result in two increments to the count'
     end
 
     def test_multiple_applications_can_be_initialized
@@ -105,9 +105,9 @@ module ApplicationTests
       AppTemplate::Application.console { run_count += 1 }
       AppTemplate::Application.new.console { run_count += 1 }
 
-      assert_equal 0, run_count, "Without loading the consoles, the count should be 0"
+      assert_equal 0, run_count, 'Without loading the consoles, the count should be 0'
       Rails.application.load_console
-      assert_equal 2, run_count, "There should have been two consoles that increment the count"
+      assert_equal 2, run_count, 'There should have been two consoles that increment the count'
     end
 
     def test_generators_run_on_different_applications_go_to_the_same_class
@@ -115,9 +115,9 @@ module ApplicationTests
       AppTemplate::Application.generators { run_count += 1 }
       AppTemplate::Application.new.generators { run_count += 1 }
 
-      assert_equal 0, run_count, "Without loading the generators, the count should be 0"
+      assert_equal 0, run_count, 'Without loading the generators, the count should be 0'
       Rails.application.load_generators
-      assert_equal 2, run_count, "There should have been two generators that increment the count"
+      assert_equal 2, run_count, 'There should have been two generators that increment the count'
     end
 
     def test_runners_run_on_different_applications_go_to_the_same_class
@@ -125,28 +125,28 @@ module ApplicationTests
       AppTemplate::Application.runner { run_count += 1 }
       AppTemplate::Application.new.runner { run_count += 1 }
 
-      assert_equal 0, run_count, "Without loading the runners, the count should be 0"
+      assert_equal 0, run_count, 'Without loading the runners, the count should be 0'
       Rails.application.load_runner
-      assert_equal 2, run_count, "There should have been two runners that increment the count"
+      assert_equal 2, run_count, 'There should have been two runners that increment the count'
     end
 
     def test_isolate_namespace_on_an_application
-      assert_nil Rails.application.railtie_namespace, "Before isolating namespace, the railtie namespace should be nil"
+      assert_nil Rails.application.railtie_namespace, 'Before isolating namespace, the railtie namespace should be nil'
       Rails.application.isolate_namespace(AppTemplate)
-      assert_equal Rails.application.railtie_namespace, AppTemplate, "After isolating namespace, we should have a namespace"
+      assert_equal Rails.application.railtie_namespace, AppTemplate, 'After isolating namespace, we should have a namespace'
     end
 
     def test_inserting_configuration_into_application
       app = AppTemplate::Application.new(config: Rails.application.config)
-      app.config.some_setting = "a_different_setting"
-      assert_equal "a_different_setting", app.config.some_setting, "The configuration's some_setting should be set."
+      app.config.some_setting = 'a_different_setting'
+      assert_equal 'a_different_setting', app.config.some_setting, "The configuration's some_setting should be set."
 
-      new_config = Rails::Application::Configuration.new(Pathname.new("root_of_application"))
-      new_config.some_setting = "some_setting_dude"
+      new_config = Rails::Application::Configuration.new(Pathname.new('root_of_application'))
+      new_config.some_setting = 'some_setting_dude'
       app.config = new_config
 
-      assert_equal "some_setting_dude", app.config.some_setting, "The configuration's some_setting should have changed."
-      assert_equal "root_of_application", app.config.root.to_s, "The root should have changed to the new config's root."
+      assert_equal 'some_setting_dude', app.config.some_setting, "The configuration's some_setting should have changed."
+      assert_equal 'root_of_application', app.config.root.to_s, "The root should have changed to the new config's root."
       assert_equal new_config, app.config, "The application's config should have changed to the new config."
     end
   end

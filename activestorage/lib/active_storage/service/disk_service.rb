@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "fileutils"
-require "pathname"
-require "digest/md5"
-require "active_support/core_ext/numeric/bytes"
+require 'fileutils'
+require 'pathname'
+require 'digest/md5'
+require 'active_support/core_ext/numeric/bytes'
 
 module ActiveStorage
   # Wraps a local disk path as an Active Storage service. See ActiveStorage::Service for the generic API
@@ -39,7 +39,7 @@ module ActiveStorage
 
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
-        File.open(path_for(key), "rb") do |file|
+        File.open(path_for(key), 'rb') do |file|
           file.seek range.begin
           file.read range.size
         end
@@ -95,7 +95,7 @@ module ActiveStorage
     end
 
     def headers_for_direct_upload(key, content_type:, **)
-      { "Content-Type" => content_type }
+      { 'Content-Type' => content_type }
     end
 
     def path_for(key) #:nodoc:
@@ -136,7 +136,7 @@ module ActiveStorage
 
 
       def stream(key)
-        File.open(path_for(key), "rb") do |file|
+        File.open(path_for(key), 'rb') do |file|
           while data = file.read(5.megabytes)
             yield data
           end
@@ -146,7 +146,7 @@ module ActiveStorage
       end
 
       def folder_for(key)
-        [ key[0..1], key[2..3] ].join("/")
+        [ key[0..1], key[2..3] ].join('/')
       end
 
       def make_path_for(key)

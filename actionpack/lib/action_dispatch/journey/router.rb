@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require "action_dispatch/journey/router/utils"
-require "action_dispatch/journey/routes"
-require "action_dispatch/journey/formatter"
+require 'action_dispatch/journey/router/utils'
+require 'action_dispatch/journey/routes'
+require 'action_dispatch/journey/formatter'
 
 before = $-w
 $-w = false
-require "action_dispatch/journey/parser"
+require 'action_dispatch/journey/parser'
 $-w = before
 
-require "action_dispatch/journey/route"
-require "action_dispatch/journey/path/pattern"
+require 'action_dispatch/journey/route'
+require 'action_dispatch/journey/path/pattern'
 
 module ActionDispatch
   module Journey # :nodoc:
@@ -35,9 +35,9 @@ module ActionDispatch
           script_name = req.script_name
 
           unless route.path.anchored
-            req.script_name = (script_name.to_s + match.to_s).chomp("/")
+            req.script_name = (script_name.to_s + match.to_s).chomp('/')
             req.path_info = match.post_match
-            req.path_info = "/" + req.path_info unless req.path_info.start_with? "/"
+            req.path_info = '/' + req.path_info unless req.path_info.start_with? '/'
           end
 
           tmp_params = set_params.merge route.defaults
@@ -49,7 +49,7 @@ module ActionDispatch
 
           status, headers, body = route.app.serve(req)
 
-          if "pass" == headers["X-Cascade"]
+          if 'pass' == headers['X-Cascade']
             req.script_name     = script_name
             req.path_info       = path_info
             req.path_parameters = set_params
@@ -59,7 +59,7 @@ module ActionDispatch
           return [status, headers, body]
         end
 
-        [404, { "X-Cascade" => "pass" }, ["Not Found"]]
+        [404, { 'X-Cascade' => 'pass' }, ['Not Found']]
       end
 
       def recognize(rails_req)
@@ -67,7 +67,7 @@ module ActionDispatch
           unless route.path.anchored
             rails_req.script_name = match.to_s
             rails_req.path_info   = match.post_match
-            rails_req.path_info   = "/" + rails_req.path_info unless rails_req.path_info.start_with? "/"
+            rails_req.path_info   = '/' + rails_req.path_info unless rails_req.path_info.start_with? '/'
           end
 
           parameters = route.defaults.merge parameters
@@ -136,11 +136,11 @@ module ActionDispatch
           return head_routes unless head_routes.empty?
 
           begin
-            req.request_method = "GET"
+            req.request_method = 'GET'
             routes.select! { |r| r.matches?(req) }
             routes
           ensure
-            req.request_method = "HEAD"
+            req.request_method = 'HEAD'
           end
         end
     end

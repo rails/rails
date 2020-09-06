@@ -211,7 +211,7 @@ module ActiveRecord
         @attempted_action = attempted_action
         super("Attempted to #{attempted_action} a stale object: #{record.class.name}.")
       else
-        super("Stale object error.")
+        super('Stale object error.')
       end
     end
   end
@@ -307,7 +307,7 @@ module ActiveRecord
         @model = model
         super(message)
       else
-        super("Unknown primary key.")
+        super('Unknown primary key.')
       end
     end
   end

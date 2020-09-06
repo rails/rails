@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../test_helper"
+require_relative '../test_helper'
 
 class RootMailbox < ActionMailbox::Base
   def process
@@ -22,7 +22,7 @@ end
 
 class FirstMailboxAddress
   def match?(inbound_email)
-    inbound_email.mail.to.include?("replies-class@example.com")
+    inbound_email.mail.to.include?('replies-class@example.com')
   end
 end
 
@@ -33,129 +33,129 @@ module ActionMailbox
       $processed_by = $processed_mail = nil
     end
 
-    test "single string route" do
-      @router.add_routes("first@example.com" => :first)
+    test 'single string route' do
+      @router.add_routes('first@example.com' => :first)
 
-      inbound_email = create_inbound_email_from_mail(to: "first@example.com", subject: "This is a reply")
+      inbound_email = create_inbound_email_from_mail(to: 'first@example.com', subject: 'This is a reply')
       @router.route inbound_email
-      assert_equal "FirstMailbox", $processed_by
+      assert_equal 'FirstMailbox', $processed_by
       assert_equal inbound_email.mail, $processed_mail
     end
 
-    test "single string routing on cc" do
-      @router.add_routes("first@example.com" => :first)
+    test 'single string routing on cc' do
+      @router.add_routes('first@example.com' => :first)
 
-      inbound_email = create_inbound_email_from_mail(to: "someone@example.com", cc: "first@example.com", subject: "This is a reply")
+      inbound_email = create_inbound_email_from_mail(to: 'someone@example.com', cc: 'first@example.com', subject: 'This is a reply')
       @router.route inbound_email
-      assert_equal "FirstMailbox", $processed_by
+      assert_equal 'FirstMailbox', $processed_by
       assert_equal inbound_email.mail, $processed_mail
     end
 
-    test "single string routing on bcc" do
-      @router.add_routes("first@example.com" => :first)
+    test 'single string routing on bcc' do
+      @router.add_routes('first@example.com' => :first)
 
-      inbound_email = create_inbound_email_from_mail(to: "someone@example.com", bcc: "first@example.com", subject: "This is a reply")
+      inbound_email = create_inbound_email_from_mail(to: 'someone@example.com', bcc: 'first@example.com', subject: 'This is a reply')
       @router.route inbound_email
-      assert_equal "FirstMailbox", $processed_by
+      assert_equal 'FirstMailbox', $processed_by
       assert_equal inbound_email.mail, $processed_mail
     end
 
-    test "single string routing case-insensitively" do
-      @router.add_routes("first@example.com" => :first)
+    test 'single string routing case-insensitively' do
+      @router.add_routes('first@example.com' => :first)
 
-      inbound_email = create_inbound_email_from_mail(to: "FIRST@example.com", subject: "This is a reply")
+      inbound_email = create_inbound_email_from_mail(to: 'FIRST@example.com', subject: 'This is a reply')
       @router.route inbound_email
-      assert_equal "FirstMailbox", $processed_by
+      assert_equal 'FirstMailbox', $processed_by
       assert_equal inbound_email.mail, $processed_mail
     end
 
-    test "multiple string routes" do
-      @router.add_routes("first@example.com" => :first, "second@example.com" => :second)
+    test 'multiple string routes' do
+      @router.add_routes('first@example.com' => :first, 'second@example.com' => :second)
 
-      inbound_email = create_inbound_email_from_mail(to: "first@example.com", subject: "This is a reply")
+      inbound_email = create_inbound_email_from_mail(to: 'first@example.com', subject: 'This is a reply')
       @router.route inbound_email
-      assert_equal "FirstMailbox", $processed_by
+      assert_equal 'FirstMailbox', $processed_by
       assert_equal inbound_email.mail, $processed_mail
 
-      inbound_email = create_inbound_email_from_mail(to: "second@example.com", subject: "This is a reply")
+      inbound_email = create_inbound_email_from_mail(to: 'second@example.com', subject: 'This is a reply')
       @router.route inbound_email
-      assert_equal "SecondMailbox", $processed_by
+      assert_equal 'SecondMailbox', $processed_by
       assert_equal inbound_email.mail, $processed_mail
     end
 
-    test "single regexp route" do
-      @router.add_routes(/replies-\w+@example.com/ => :first, "replies-nowhere@example.com" => :second)
+    test 'single regexp route' do
+      @router.add_routes(/replies-\w+@example.com/ => :first, 'replies-nowhere@example.com' => :second)
 
-      inbound_email = create_inbound_email_from_mail(to: "replies-okay@example.com", subject: "This is a reply")
+      inbound_email = create_inbound_email_from_mail(to: 'replies-okay@example.com', subject: 'This is a reply')
       @router.route inbound_email
-      assert_equal "FirstMailbox", $processed_by
+      assert_equal 'FirstMailbox', $processed_by
     end
 
-    test "single proc route" do
+    test 'single proc route' do
       @router.add_route \
-        ->(inbound_email) { inbound_email.mail.to.include?("replies-proc@example.com") },
+        ->(inbound_email) { inbound_email.mail.to.include?('replies-proc@example.com') },
         to: :second
 
-      @router.route create_inbound_email_from_mail(to: "replies-proc@example.com", subject: "This is a reply")
-      assert_equal "SecondMailbox", $processed_by
+      @router.route create_inbound_email_from_mail(to: 'replies-proc@example.com', subject: 'This is a reply')
+      assert_equal 'SecondMailbox', $processed_by
     end
 
-    test "address class route" do
+    test 'address class route' do
       @router.add_route FirstMailboxAddress.new, to: :first
-      @router.route create_inbound_email_from_mail(to: "replies-class@example.com", subject: "This is a reply")
-      assert_equal "FirstMailbox", $processed_by
+      @router.route create_inbound_email_from_mail(to: 'replies-class@example.com', subject: 'This is a reply')
+      assert_equal 'FirstMailbox', $processed_by
     end
 
-    test "string route to nested mailbox" do
-      @router.add_route "first@example.com", to: "nested/first"
+    test 'string route to nested mailbox' do
+      @router.add_route 'first@example.com', to: 'nested/first'
 
-      inbound_email = create_inbound_email_from_mail(to: "first@example.com", subject: "This is a reply")
+      inbound_email = create_inbound_email_from_mail(to: 'first@example.com', subject: 'This is a reply')
       @router.route inbound_email
-      assert_equal "Nested::FirstMailbox", $processed_by
+      assert_equal 'Nested::FirstMailbox', $processed_by
     end
 
-    test "all as the only route" do
+    test 'all as the only route' do
       @router.add_route :all, to: :first
-      @router.route create_inbound_email_from_mail(to: "replies-class@example.com", subject: "This is a reply")
-      assert_equal "FirstMailbox", $processed_by
+      @router.route create_inbound_email_from_mail(to: 'replies-class@example.com', subject: 'This is a reply')
+      assert_equal 'FirstMailbox', $processed_by
     end
 
-    test "all as the second route" do
+    test 'all as the second route' do
       @router.add_route FirstMailboxAddress.new, to: :first
       @router.add_route :all, to: :second
 
-      @router.route create_inbound_email_from_mail(to: "replies-class@example.com", subject: "This is a reply")
-      assert_equal "FirstMailbox", $processed_by
+      @router.route create_inbound_email_from_mail(to: 'replies-class@example.com', subject: 'This is a reply')
+      assert_equal 'FirstMailbox', $processed_by
 
-      @router.route create_inbound_email_from_mail(to: "elsewhere@example.com", subject: "This is a reply")
-      assert_equal "SecondMailbox", $processed_by
+      @router.route create_inbound_email_from_mail(to: 'elsewhere@example.com', subject: 'This is a reply')
+      assert_equal 'SecondMailbox', $processed_by
     end
 
-    test "missing route" do
+    test 'missing route' do
       assert_raises(ActionMailbox::Router::RoutingError) do
-        inbound_email = create_inbound_email_from_mail(to: "going-nowhere@example.com", subject: "This is a reply")
+        inbound_email = create_inbound_email_from_mail(to: 'going-nowhere@example.com', subject: 'This is a reply')
         @router.route inbound_email
         assert inbound_email.bounced?
       end
     end
 
-    test "invalid address" do
+    test 'invalid address' do
       assert_raises(ArgumentError) do
         @router.add_route Array.new, to: :first
       end
     end
 
-    test "single string mailbox_for" do
-      @router.add_routes("first@example.com" => :first)
+    test 'single string mailbox_for' do
+      @router.add_routes('first@example.com' => :first)
 
-      inbound_email = create_inbound_email_from_mail(to: "first@example.com", subject: "This is a reply")
+      inbound_email = create_inbound_email_from_mail(to: 'first@example.com', subject: 'This is a reply')
       assert_equal FirstMailbox, @router.mailbox_for(inbound_email)
     end
 
-    test "mailbox_for with no matches" do
-      @router.add_routes("first@example.com" => :first)
+    test 'mailbox_for with no matches' do
+      @router.add_routes('first@example.com' => :first)
 
-      inbound_email = create_inbound_email_from_mail(to: "second@example.com", subject: "This is a reply")
+      inbound_email = create_inbound_email_from_mail(to: 'second@example.com', subject: 'This is a reply')
       assert_nil @router.mailbox_for(inbound_email)
     end
   end

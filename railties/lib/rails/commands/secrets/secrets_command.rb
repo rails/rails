@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support"
-require "rails/secrets"
+require 'active_support'
+require 'rails/secrets'
 
 module Rails
   module Command
@@ -9,7 +9,7 @@ module Rails
       no_commands do
         def help
           say "Usage:\n  #{self.class.banner}"
-          say ""
+          say ''
           say self.class.desc
         end
       end
@@ -19,13 +19,13 @@ module Rails
       end
 
       def edit
-        if ENV["EDITOR"].to_s.empty?
-          say "No $EDITOR to open decrypted secrets in. Assign one like this:"
-          say ""
+        if ENV['EDITOR'].to_s.empty?
+          say 'No $EDITOR to open decrypted secrets in. Assign one like this:'
+          say ''
           say %(EDITOR="mate --wait" rails secrets:edit)
-          say ""
+          say ''
           say "For editors that fork and exit immediately, it's important to pass a wait flag,"
-          say "otherwise the secrets will be saved immediately with no chance to edit."
+          say 'otherwise the secrets will be saved immediately with no chance to edit.'
 
           return
         end
@@ -36,9 +36,9 @@ module Rails
           system("#{ENV["EDITOR"]} #{tmp_path}")
         end
 
-        say "New secrets encrypted and saved."
+        say 'New secrets encrypted and saved.'
       rescue Interrupt
-        say "Aborted changing encrypted secrets: nothing saved."
+        say 'Aborted changing encrypted secrets: nothing saved.'
       rescue Rails::Secrets::MissingKeyError => error
         say error.message
       rescue Errno::ENOENT => error
@@ -55,8 +55,8 @@ module Rails
 
       private
         def deprecate_in_favor_of_credentials_and_exit
-          say "Encrypted secrets is deprecated in favor of credentials. Run:"
-          say "rails credentials:help"
+          say 'Encrypted secrets is deprecated in favor of credentials. Run:'
+          say 'rails credentials:help'
 
           exit 1
         end

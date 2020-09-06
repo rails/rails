@@ -2,7 +2,7 @@
 
 # rubocop:disable Style/RedundantBegin
 
-require "rails"
+require 'rails'
 
 %w(
   active_record/railtie

@@ -6,7 +6,7 @@ module ActionText
   # This record is then associated with the Active Record model the application desires to have
   # rich text content using the +has_rich_text+ class method.
   class RichText < ActiveRecord::Base
-    self.table_name = "action_text_rich_texts"
+    self.table_name = 'action_text_rich_texts'
 
     serialize :body, ActionText::Content
     delegate :to_s, :nil?, to: :body

@@ -8,7 +8,7 @@ class Comment < ActiveRecord::Base
   scope :containing_the_letter_e, -> { where("comments.body LIKE '%e%'") }
   scope :not_again, -> { where("comments.body NOT LIKE '%again%'") }
   scope :for_first_post, -> { where(post_id: 1) }
-  scope :for_first_author, -> { joins(:post).where("posts.author_id" => 1) }
+  scope :for_first_author, -> { joins(:post).where('posts.author_id' => 1) }
   scope :created, -> { all }
 
   belongs_to :post, counter_cache: true
@@ -20,8 +20,8 @@ class Comment < ActiveRecord::Base
   belongs_to :first_post, foreign_key: :post_id
   belongs_to :special_post_with_default_scope, foreign_key: :post_id
 
-  has_many :children, class_name: "Comment", foreign_key: :parent_id
-  belongs_to :parent, class_name: "Comment", counter_cache: :children_count
+  has_many :children, class_name: 'Comment', foreign_key: :parent_id
+  belongs_to :parent, class_name: 'Comment', counter_cache: :children_count
 
   enum label: [:default, :child]
 
@@ -43,7 +43,7 @@ class Comment < ActiveRecord::Base
   end
 
   def self.what_are_you
-    "a comment..."
+    'a comment...'
   end
 
   def self.search_by_type(q)
@@ -65,7 +65,7 @@ class SpecialComment < Comment
   default_scope { where(deleted_at: nil) }
 
   def self.what_are_you
-    "a special comment..."
+    'a special comment...'
   end
 end
 
@@ -76,20 +76,20 @@ class VerySpecialComment < Comment
 end
 
 class CommentThatAutomaticallyAltersPostBody < Comment
-  belongs_to :post, class_name: "PostThatLoadsCommentsInAnAfterSaveHook", foreign_key: :post_id
+  belongs_to :post, class_name: 'PostThatLoadsCommentsInAnAfterSaveHook', foreign_key: :post_id
 
   after_save do |comment|
-    comment.post.update(body: "Automatically altered")
+    comment.post.update(body: 'Automatically altered')
   end
 end
 
 class CommentWithDefaultScopeReferencesAssociation < Comment
-  default_scope -> { includes(:developer).order("developers.name").references(:developer) }
+  default_scope -> { includes(:developer).order('developers.name').references(:developer) }
   belongs_to :developer
 end
 
 class CommentWithAfterCreateUpdate < Comment
   after_create do
-    update(body: "bar")
+    update(body: 'bar')
   end
 end

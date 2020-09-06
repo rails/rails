@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "fiber"
+require 'fiber'
 
 module ActionView
   # == TODO
@@ -34,7 +34,7 @@ module ActionView
 
           message = +"\n#{exception.class} (#{exception.message}):\n"
           message << exception.annotated_source_code.to_s if exception.respond_to?(:annotated_source_code)
-          message << "  " << exception.backtrace.join("\n  ")
+          message << '  ' << exception.backtrace.join("\n  ")
           logger.fatal("#{message}\n\n")
         end
     end
@@ -63,7 +63,7 @@ module ActionView
         yielder = lambda { |*name| view._layout_for(*name) }
 
         ActiveSupport::Notifications.instrument(
-          "render_template.action_view",
+          'render_template.action_view',
           identifier: template.identifier,
           layout: layout && layout.virtual_path
         ) do

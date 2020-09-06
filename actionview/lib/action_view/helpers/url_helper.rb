@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "action_view/helpers/javascript_helper"
-require "active_support/core_ext/array/access"
-require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/string/output_safety"
+require 'action_view/helpers/javascript_helper'
+require 'active_support/core_ext/array/access'
+require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/string/output_safety'
 
 module ActionView
   # = Action View URL Helpers
@@ -38,19 +38,19 @@ module ActionView
           _back_url
         else
           raise ArgumentError, "arguments passed to url_for can't be handled. Please require " \
-                               "routes or provide your own implementation"
+                               'routes or provide your own implementation'
         end
       end
 
       def _back_url # :nodoc:
-        _filtered_referrer || "javascript:history.back()"
+        _filtered_referrer || 'javascript:history.back()'
       end
       private :_back_url
 
       def _filtered_referrer # :nodoc:
         if controller.respond_to?(:request)
-          referrer = controller.request.env["HTTP_REFERER"]
-          if referrer && URI(referrer).scheme != "javascript"
+          referrer = controller.request.env['HTTP_REFERER']
+          if referrer && URI(referrer).scheme != 'javascript'
             referrer
           end
         end
@@ -200,9 +200,9 @@ module ActionView
         html_options = convert_options_to_data_attributes(options, html_options)
 
         url = url_for(options)
-        html_options["href"] ||= url
+        html_options['href'] ||= url
 
-        content_tag("a", name || url, html_options, &block)
+        content_tag('a', name || url, html_options, &block)
       end
 
       # Generates a form containing a single button that submits to the URL created
@@ -304,43 +304,43 @@ module ActionView
         html_options = html_options.stringify_keys
 
         url    = options.is_a?(String) ? options : url_for(options)
-        remote = html_options.delete("remote")
-        params = html_options.delete("params")
+        remote = html_options.delete('remote')
+        params = html_options.delete('params')
 
-        method     = html_options.delete("method").to_s
-        method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : "".html_safe
+        method     = html_options.delete('method').to_s
+        method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : ''.html_safe
 
-        form_method  = method == "get" ? "get" : "post"
-        form_options = html_options.delete("form") || {}
-        form_options[:class] ||= html_options.delete("form_class") || "button_to"
+        form_method  = method == 'get' ? 'get' : 'post'
+        form_options = html_options.delete('form') || {}
+        form_options[:class] ||= html_options.delete('form_class') || 'button_to'
         form_options[:method] = form_method
         form_options[:action] = url
         form_options[:'data-remote'] = true if remote
 
-        request_token_tag = if form_method == "post"
-          request_method = method.empty? ? "post" : method
+        request_token_tag = if form_method == 'post'
+          request_method = method.empty? ? 'post' : method
           token_tag(nil, form_options: { action: url, method: request_method })
         else
-          ""
+          ''
         end
 
         html_options = convert_options_to_data_attributes(options, html_options)
-        html_options["type"] = "submit"
+        html_options['type'] = 'submit'
 
         button = if block_given?
-          content_tag("button", html_options, &block)
+          content_tag('button', html_options, &block)
         else
-          html_options["value"] = name || url
-          tag("input", html_options)
+          html_options['value'] = name || url
+          tag('input', html_options)
         end
 
         inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
         if params
           to_form_params(params).each do |param|
-            inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value])
+            inner_tags.safe_concat tag(:input, type: 'hidden', name: param[:name], value: param[:value])
           end
         end
-        content_tag("form", inner_tags, form_options)
+        content_tag('form', inner_tags, form_options)
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
@@ -486,12 +486,12 @@ module ActionView
           option = html_options.delete(item).presence || next
           "#{item.dasherize}=#{ERB::Util.url_encode(option)}"
         }.compact
-        extras = extras.empty? ? "" : "?" + extras.join("&")
+        extras = extras.empty? ? '' : '?' + extras.join('&')
 
-        encoded_email_address = ERB::Util.url_encode(email_address).gsub("%40", "@")
-        html_options["href"] = "mailto:#{encoded_email_address}#{extras}"
+        encoded_email_address = ERB::Util.url_encode(email_address).gsub('%40', '@')
+        html_options['href'] = "mailto:#{encoded_email_address}#{extras}"
 
-        content_tag("a", name || email_address, html_options, &block)
+        content_tag('a', name || email_address, html_options, &block)
       end
 
       # True if the current request URI was generated by the given +options+.
@@ -541,9 +541,9 @@ module ActionView
       #
       def current_page?(options, check_parameters: false)
         unless request
-          raise "You cannot use helpers that need to determine the current " \
-                "page unless your view context provides a Request object " \
-                "in a #request method"
+          raise 'You cannot use helpers that need to determine the current ' \
+                'page unless your view context provides a Request object ' \
+                'in a #request method'
         end
 
         return false unless request.get? || request.head?
@@ -555,12 +555,12 @@ module ActionView
         # submitted URL doesn't have any either. This lets the function
         # work with things like ?order=asc
         # the behaviour can be disabled with check_parameters: true
-        request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
+        request_uri = url_string.index('?') || check_parameters ? request.fullpath : request.path
         request_uri = URI::DEFAULT_PARSER.unescape(request_uri).force_encoding(Encoding::BINARY)
 
-        if url_string.start_with?("/") && url_string != "/"
-          url_string.chomp!("/")
-          request_uri.chomp!("/")
+        if url_string.start_with?('/') && url_string != '/'
+          url_string.chomp!('/')
+          request_uri.chomp!('/')
         end
 
         if %r{^\w+://}.match?(url_string)
@@ -610,12 +610,12 @@ module ActionView
           option = html_options.delete(item).presence || next
           "#{item.dasherize}=#{ERB::Util.url_encode(option)}"
         }.compact
-        extras = extras.empty? ? "" : "?&" + extras.join("&")
+        extras = extras.empty? ? '' : '?&' + extras.join('&')
 
         encoded_phone_number = ERB::Util.url_encode(phone_number)
-        html_options["href"] = "sms:#{encoded_phone_number};#{extras}"
+        html_options['href'] = "sms:#{encoded_phone_number};#{extras}"
 
-        content_tag("a", name || phone_number, html_options, &block)
+        content_tag('a', name || phone_number, html_options, &block)
       end
 
       # Creates a TEL anchor link tag to the specified +phone_number+, which is
@@ -656,72 +656,72 @@ module ActionView
         html_options, name = name, nil if block_given?
         html_options = (html_options || {}).stringify_keys
 
-        country_code = html_options.delete("country_code").presence
-        country_code = country_code.nil? ? "" : "+#{ERB::Util.url_encode(country_code)}"
+        country_code = html_options.delete('country_code').presence
+        country_code = country_code.nil? ? '' : "+#{ERB::Util.url_encode(country_code)}"
 
         encoded_phone_number = ERB::Util.url_encode(phone_number)
-        html_options["href"] = "tel:#{country_code}#{encoded_phone_number}"
+        html_options['href'] = "tel:#{country_code}#{encoded_phone_number}"
 
-        content_tag("a", name || phone_number, html_options, &block)
+        content_tag('a', name || phone_number, html_options, &block)
       end
 
       private
         def convert_options_to_data_attributes(options, html_options)
           if html_options
             html_options = html_options.stringify_keys
-            html_options["data-remote"] = "true" if link_to_remote_options?(options) || link_to_remote_options?(html_options)
+            html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
-            method = html_options.delete("method")
+            method = html_options.delete('method')
 
             add_method_to_attributes!(html_options, method) if method
 
             html_options
           else
-            link_to_remote_options?(options) ? { "data-remote" => "true" } : {}
+            link_to_remote_options?(options) ? { 'data-remote' => 'true' } : {}
           end
         end
 
         def link_to_remote_options?(options)
           if options.is_a?(Hash)
-            options.delete("remote") || options.delete(:remote)
+            options.delete('remote') || options.delete(:remote)
           end
         end
 
         def add_method_to_attributes!(html_options, method)
-          if method_not_get_method?(method) && !html_options["rel"]&.match?(/nofollow/)
-            if html_options["rel"].blank?
-              html_options["rel"] = "nofollow"
+          if method_not_get_method?(method) && !html_options['rel']&.match?(/nofollow/)
+            if html_options['rel'].blank?
+              html_options['rel'] = 'nofollow'
             else
-              html_options["rel"] = "#{html_options["rel"]} nofollow"
+              html_options['rel'] = "#{html_options["rel"]} nofollow"
             end
           end
-          html_options["data-method"] = method
+          html_options['data-method'] = method
         end
 
         STRINGIFIED_COMMON_METHODS = {
-          get:    "get",
-          delete: "delete",
-          patch:  "patch",
-          post:   "post",
-          put:    "put",
+          get:    'get',
+          delete: 'delete',
+          patch:  'patch',
+          post:   'post',
+          put:    'put',
         }.freeze
 
         def method_not_get_method?(method)
           return false unless method
-          (STRINGIFIED_COMMON_METHODS[method] || method.to_s.downcase) != "get"
+          (STRINGIFIED_COMMON_METHODS[method] || method.to_s.downcase) != 'get'
         end
 
         def token_tag(token = nil, form_options: {})
           if token != false && defined?(protect_against_forgery?) && protect_against_forgery?
             token ||= form_authenticity_token(form_options: form_options)
-            tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token)
+            tag(:input, type: 'hidden', name: request_forgery_protection_token.to_s, value: token)
           else
-            ""
+            ''
           end
         end
 
         def method_tag(method)
-          tag("input", type: "hidden", name: "_method", value: method.to_s)
+          tag('input', type: 'hidden', name: '_method', value: method.to_s)
         end
 
         # Returns an array of hashes each containing :name and :value keys

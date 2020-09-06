@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/log_subscriber"
+require 'active_support/log_subscriber'
 
 module ActiveJob
   class LogSubscriber < ActiveSupport::LogSubscriber #:nodoc:
@@ -101,15 +101,15 @@ module ActiveJob
 
     private
       def queue_name(event)
-        event.payload[:adapter].class.name.demodulize.remove("Adapter") + "(#{event.payload[:job].queue_name})"
+        event.payload[:adapter].class.name.demodulize.remove('Adapter') + "(#{event.payload[:job].queue_name})"
       end
 
       def args_info(job)
         if job.class.log_arguments? && job.arguments.any?
-          " with arguments: " +
-            job.arguments.map { |arg| format(arg).inspect }.join(", ")
+          ' with arguments: ' +
+            job.arguments.map { |arg| format(arg).inspect }.join(', ')
         else
-          ""
+          ''
         end
       end
 

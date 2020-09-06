@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "redcarpet"
-require "nokogiri"
-require "rails_guides/markdown/renderer"
-require "rails-html-sanitizer"
+require 'redcarpet'
+require 'nokogiri'
+require 'rails_guides/markdown/renderer'
+require 'rails-html-sanitizer'
 
 module RailsGuides
   class Markdown
@@ -13,7 +13,7 @@ module RailsGuides
       @edge          = edge
       @version       = version
       @index_counter = Hash.new(0)
-      @raw_header    = ""
+      @raw_header    = ''
       @node_ids      = {}
     end
 
@@ -52,10 +52,10 @@ module RailsGuides
       def dom_id_text(text)
         escaped_chars = Regexp.escape('\\/`*_{}[]()#+-.!:,;|&<>^~=\'"')
 
-        text.downcase.gsub(/\?/, "-questionmark")
-                     .gsub(/!/, "-bang")
-                     .gsub(/[#{escaped_chars}]+/, " ").strip
-                     .gsub(/\s+/, "-")
+        text.downcase.gsub(/\?/, '-questionmark')
+                     .gsub(/!/, '-bang')
+                     .gsub(/[#{escaped_chars}]+/, ' ').strip
+                     .gsub(/\s+/, '-')
       end
 
       def engine
@@ -97,15 +97,15 @@ module RailsGuides
             doc.children.each do |node|
               if /^h[3-6]$/.match?(node.name)
                 case node.name
-                when "h3"
+                when 'h3'
                   hierarchy = [node]
                   @headings_for_index << [1, node, node.inner_html]
-                when "h4"
+                when 'h4'
                   hierarchy = hierarchy[0, 1] + [node]
                   @headings_for_index << [2, node, node.inner_html]
-                when "h5"
+                when 'h5'
                   hierarchy = hierarchy[0, 2] + [node]
-                when "h6"
+                when 'h6'
                   hierarchy = hierarchy[0, 3] + [node]
                 end
 
@@ -114,7 +114,7 @@ module RailsGuides
               end
             end
 
-            doc.css("h3, h4, h5, h6").each do |node|
+            doc.css('h3, h4, h5, h6').each do |node|
               node.inner_html = "<a class='anchorlink' href='##{node[:id]}'>#{node.inner_html}</a>"
             end
           end.to_html
@@ -123,7 +123,7 @@ module RailsGuides
 
       def generate_index
         if @headings_for_index.present?
-          raw_index = ""
+          raw_index = ''
           @headings_for_index.each do |level, node, label|
             if level == 1
               raw_index += "1. [#{label}](##{node[:id]})\n"
@@ -133,7 +133,7 @@ module RailsGuides
           end
 
           @index = Nokogiri::HTML.fragment(engine.render(raw_index)).tap do |doc|
-            doc.at("ol")[:class] = "chapters"
+            doc.at('ol')[:class] = 'chapters'
           end.to_html
 
           @index = <<-INDEX.html_safe
@@ -149,7 +149,7 @@ module RailsGuides
         if heading = Nokogiri::HTML.fragment(@header).at(:h2)
           @title = "#{heading.text} — Ruby on Rails Guides"
         else
-          @title = "Ruby on Rails Guides"
+          @title = 'Ruby on Rails Guides'
         end
       end
 

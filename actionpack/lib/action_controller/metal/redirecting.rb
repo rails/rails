@@ -56,7 +56,7 @@ module ActionController
     # To terminate the execution of the function immediately after the +redirect_to+, use return.
     #   redirect_to post_url(@post) and return
     def redirect_to(options = {}, response_options = {})
-      raise ActionControllerError.new("Cannot redirect to nil!") unless options
+      raise ActionControllerError.new('Cannot redirect to nil!') unless options
       raise AbstractController::DoubleRenderError if response_body
 
       self.status        = _extract_redirect_to_status(options, response_options)
@@ -88,7 +88,7 @@ module ActionController
     # All other options that can be passed to #redirect_to are accepted as
     # options and the behavior is identical.
     def redirect_back(fallback_location:, allow_other_host: true, **args)
-      referer = request.headers["Referer"]
+      referer = request.headers['Referer']
       redirect_to_referer = referer && (allow_other_host || _url_host_allowed?(referer))
       redirect_to redirect_to_referer ? referer : fallback_location, **args
     end

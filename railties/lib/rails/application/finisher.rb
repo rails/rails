@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/array/conversions"
+require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/array/conversions'
 
 module Rails
   class Application
@@ -9,7 +9,7 @@ module Rails
       include Initializable
 
       initializer :add_generator_templates do
-        config.generators.templates.unshift(*paths["lib/templates"].existent)
+        config.generators.templates.unshift(*paths['lib/templates'].existent)
       end
 
       initializer :ensure_autoload_once_paths_as_subset do
@@ -32,10 +32,10 @@ module Rails
         next if ActiveSupport::Dependencies.autoloaded_constants.empty?
 
         autoloaded    = ActiveSupport::Dependencies.autoloaded_constants
-        constants     = "constant".pluralize(autoloaded.size)
+        constants     = 'constant'.pluralize(autoloaded.size)
         enum          = autoloaded.to_sentence
-        have          = autoloaded.size == 1 ? "has" : "have"
-        these         = autoloaded.size == 1 ? "This" : "These"
+        have          = autoloaded.size == 1 ? 'has' : 'have'
+        these         = autoloaded.size == 1 ? 'This' : 'These'
         example       = autoloaded.first
         example_klass = example.constantize.class
 
@@ -77,7 +77,7 @@ module Rails
 
       initializer :let_zeitwerk_take_over do
         if config.autoloader == :zeitwerk
-          require "active_support/dependencies/zeitwerk_integration"
+          require 'active_support/dependencies/zeitwerk_integration'
           ActiveSupport::Dependencies::ZeitwerkIntegration.take_over(enable_reloading: !config.cache_classes)
         end
       end
@@ -85,13 +85,13 @@ module Rails
       initializer :add_builtin_route do |app|
         if Rails.env.development?
           app.routes.prepend do
-            get "/rails/info/properties" => "rails/info#properties", internal: true
-            get "/rails/info/routes"     => "rails/info#routes", internal: true
-            get "/rails/info"            => "rails/info#index", internal: true
+            get '/rails/info/properties' => 'rails/info#properties', internal: true
+            get '/rails/info/routes'     => 'rails/info#routes', internal: true
+            get '/rails/info'            => 'rails/info#index', internal: true
           end
 
           app.routes.append do
-            get "/"                      => "rails/welcome#index", internal: true
+            get '/'                      => 'rails/welcome#index', internal: true
           end
         end
       end
@@ -99,7 +99,7 @@ module Rails
       # Setup default session store if not already set in config/application.rb
       initializer :setup_default_session_store, before: :build_middleware_stack do |app|
         unless app.config.session_store?
-          app_name = app.class.name ? app.railtie_name.chomp("_application") : ""
+          app_name = app.class.name ? app.railtie_name.chomp('_application') : ''
           app.config.session_store :cookie_store, key: "_#{app_name}_session"
         end
       end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "global_id/railtie"
-require "active_job"
+require 'global_id/railtie'
+require 'active_job'
 
 module ActiveJob
   # = Active Job Railtie
@@ -9,18 +9,18 @@ module ActiveJob
     config.active_job = ActiveSupport::OrderedOptions.new
     config.active_job.custom_serializers = []
 
-    initializer "active_job.logger" do
+    initializer 'active_job.logger' do
       ActiveSupport.on_load(:active_job) { self.logger = ::Rails.logger }
     end
 
-    initializer "active_job.custom_serializers" do |app|
+    initializer 'active_job.custom_serializers' do |app|
       config.after_initialize do
         custom_serializers = app.config.active_job.delete(:custom_serializers)
         ActiveJob::Serializers.add_serializers custom_serializers
       end
     end
 
-    initializer "active_job.set_configs" do |app|
+    initializer 'active_job.set_configs' do |app|
       options = app.config.active_job
       options.queue_adapter ||= :async
 
@@ -36,7 +36,7 @@ module ActiveJob
       end
     end
 
-    initializer "active_job.set_reloader_hook" do |app|
+    initializer 'active_job.set_reloader_hook' do |app|
       ActiveSupport.on_load(:active_job) do
         ActiveJob::Callbacks.singleton_class.set_callback(:execute, :around, prepend: true) do |_, inner|
           app.reloader.wrap do

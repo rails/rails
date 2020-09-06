@@ -166,7 +166,7 @@ module ActiveRecord
         parent_transaction.state.add_child(@state)
 
         if isolation_level
-          raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
+          raise ActiveRecord::TransactionIsolationError, 'cannot set transaction isolation in a nested transaction'
         end
 
         @savepoint_name = savepoint_name
@@ -318,7 +318,7 @@ module ActiveRecord
           raise
         ensure
           if !error && transaction
-            if Thread.current.status == "aborting"
+            if Thread.current.status == 'aborting'
               rollback_transaction
             else
               if !completed && transaction.written

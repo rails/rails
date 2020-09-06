@@ -12,5 +12,5 @@ class Organization < ActiveRecord::Base
 
   has_many :posts, through: :author, source: :posts
 
-  scope :clubs, -> { from("clubs") }
+  scope :clubs, -> { from('clubs') }
 end

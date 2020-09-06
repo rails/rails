@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "active_support/ordered_options"
+require_relative 'abstract_unit'
+require 'active_support/ordered_options'
 
 class OrderedOptionsTest < ActiveSupport::TestCase
   def test_usage
@@ -17,7 +17,7 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     assert_equal 1, a.size
     assert_not a[:allow_concurrency]
 
-    a["else_where"] = 56
+    a['else_where'] = 56
     assert_equal 2, a.size
     assert_equal 56, a[:else_where]
   end
@@ -26,7 +26,7 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     a = ActiveSupport::OrderedOptions.new
 
     a[:allow_concurrency] = true
-    a["else_where"] = 56
+    a['else_where'] = 56
 
     test = [[:allow_concurrency, true], [:else_where, 56]]
 
@@ -118,11 +118,11 @@ class OrderedOptionsTest < ActiveSupport::TestCase
 
   def test_inspect
     a = ActiveSupport::OrderedOptions.new
-    assert_equal "#<ActiveSupport::OrderedOptions {}>", a.inspect
+    assert_equal '#<ActiveSupport::OrderedOptions {}>', a.inspect
 
     a.foo   = :bar
     a[:baz] = :quz
 
-    assert_equal "#<ActiveSupport::OrderedOptions {:foo=>:bar, :baz=>:quz}>", a.inspect
+    assert_equal '#<ActiveSupport::OrderedOptions {:foo=>:bar, :baz=>:quz}>', a.inspect
   end
 end

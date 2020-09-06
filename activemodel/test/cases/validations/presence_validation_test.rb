@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
-require "models/topic"
-require "models/person"
-require "models/custom_reader"
+require 'models/topic'
+require 'models/person'
+require 'models/custom_reader'
 
 class PresenceValidationTest < ActiveModel::TestCase
   teardown do
@@ -21,13 +21,13 @@ class PresenceValidationTest < ActiveModel::TestCase
     assert_equal ["can't be blank"], t.errors[:title]
     assert_equal ["can't be blank"], t.errors[:content]
 
-    t.title = "something"
-    t.content = "   "
+    t.title = 'something'
+    t.content = '   '
 
     assert_predicate t, :invalid?
     assert_equal ["can't be blank"], t.errors[:content]
 
-    t.content = "like stuff"
+    t.content = 'like stuff'
 
     assert_predicate t, :valid?
   end
@@ -55,7 +55,7 @@ class PresenceValidationTest < ActiveModel::TestCase
 
     assert_equal ["can't be blank"], p.errors[:karma]
 
-    p.karma = "Cold"
+    p.karma = 'Cold'
     assert_predicate p, :valid?
   end
 
@@ -67,21 +67,21 @@ class PresenceValidationTest < ActiveModel::TestCase
 
     assert_equal ["can't be blank"], p.errors[:karma]
 
-    p[:karma] = "Cold"
+    p[:karma] = 'Cold'
     assert_predicate p, :valid?
   end
 
   def test_validates_presence_of_with_allow_nil_option
     Topic.validates_presence_of(:title, allow_nil: true)
 
-    t = Topic.new(title: "something")
+    t = Topic.new(title: 'something')
     assert t.valid?, t.errors.full_messages
 
-    t.title = ""
+    t.title = ''
     assert_predicate t, :invalid?
     assert_equal ["can't be blank"], t.errors[:title]
 
-    t.title = "  "
+    t.title = '  '
     assert t.invalid?, t.errors.full_messages
     assert_equal ["can't be blank"], t.errors[:title]
 
@@ -92,13 +92,13 @@ class PresenceValidationTest < ActiveModel::TestCase
   def test_validates_presence_of_with_allow_blank_option
     Topic.validates_presence_of(:title, allow_blank: true)
 
-    t = Topic.new(title: "something")
+    t = Topic.new(title: 'something')
     assert t.valid?, t.errors.full_messages
 
-    t.title = ""
+    t.title = ''
     assert t.valid?, t.errors.full_messages
 
-    t.title = "  "
+    t.title = '  '
     assert t.valid?, t.errors.full_messages
 
     t.title = nil

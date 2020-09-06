@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Content < ActiveRecord::Base
-  self.table_name = "content"
+  self.table_name = 'content'
   has_one :content_position, dependent: :destroy
 
   def self.destroyed_ids
@@ -14,8 +14,8 @@ class Content < ActiveRecord::Base
 end
 
 class ContentWhichRequiresTwoDestroyCalls < ActiveRecord::Base
-  self.table_name = "content"
-  has_one :content_position, foreign_key: "content_id", dependent: :destroy
+  self.table_name = 'content'
+  has_one :content_position, foreign_key: 'content_id', dependent: :destroy
 
   after_initialize do
     @destroy_count = 0

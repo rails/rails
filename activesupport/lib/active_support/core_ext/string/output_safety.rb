@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "erb"
-require "active_support/core_ext/module/redefine_method"
-require "active_support/multibyte/unicode"
+require 'erb'
+require 'active_support/core_ext/module/redefine_method'
+require 'active_support/multibyte/unicode'
 
 class ERB
   module Util
-    HTML_ESCAPE = { "&" => "&amp;",  ">" => "&gt;",   "<" => "&lt;", '"' => "&quot;", "'" => "&#39;" }
-    JSON_ESCAPE = { "&" => '\u0026', ">" => '\u003e', "<" => '\u003c', "\u2028" => '\u2028', "\u2029" => '\u2029' }
+    HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;', "'" => '&#39;' }
+    JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003e', '<' => '\u003c', "\u2028" => '\u2028', "\u2029" => '\u2029' }
     HTML_ESCAPE_ONCE_REGEXP = /["><']|&(?!([a-zA-Z]+|(#\d+)|(#[xX][\dA-Fa-f]+));)/
     JSON_ESCAPE_REGEXP = /[\u2028\u2029&><]/u
 
@@ -146,7 +146,7 @@ module ActiveSupport #:nodoc:
     # Raised when <tt>ActiveSupport::SafeBuffer#safe_concat</tt> is called on unsafe buffers.
     class SafeConcatError < StandardError
       def initialize
-        super "Could not concatenate to the buffer because it is not html safe."
+        super 'Could not concatenate to the buffer because it is not html safe.'
       end
     end
 
@@ -169,7 +169,7 @@ module ActiveSupport #:nodoc:
       original_concat(value)
     end
 
-    def initialize(str = "")
+    def initialize(str = '')
       @html_safe = true
       super
     end
@@ -295,7 +295,7 @@ module ActiveSupport #:nodoc:
       end
 
       def set_block_back_references(block, match_data)
-        block.binding.eval("proc { |m| $~ = m }").call(match_data)
+        block.binding.eval('proc { |m| $~ = m }').call(match_data)
       rescue ArgumentError
         # Can't create binding from C level Proc
       end

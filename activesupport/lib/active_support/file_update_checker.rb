@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/time/calculations"
+require 'active_support/core_ext/time/calculations'
 
 module ActiveSupport
   # FileUpdateChecker specifies the API used by Rails to watch files
@@ -41,7 +41,7 @@ module ActiveSupport
     # after FileUpdateChecker has been initialized.
     def initialize(files, dirs = {}, &block)
       unless block
-        raise ArgumentError, "A block is required to initialize a FileUpdateChecker"
+        raise ArgumentError, 'A block is required to initialize a FileUpdateChecker'
       end
 
       @files = files.freeze
@@ -150,7 +150,7 @@ module ActiveSupport
       end
 
       def escape(key)
-        key.gsub(",", '\,')
+        key.gsub(',', '\,')
       end
 
       def compile_ext(array)

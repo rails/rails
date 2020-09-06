@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "isolation/abstract_unit"
-require "env_helpers"
+require 'isolation/abstract_unit'
+require 'env_helpers'
 
 module ApplicationTests
   class IntegrationTestCaseTest < ActiveSupport::TestCase
@@ -15,10 +15,10 @@ module ApplicationTests
       teardown_app
     end
 
-    test "resets Action Mailer test deliveries" do
-      rails "generate", "mailer", "BaseMailer", "welcome"
+    test 'resets Action Mailer test deliveries' do
+      rails 'generate', 'mailer', 'BaseMailer', 'welcome'
 
-      app_file "test/integration/mailer_integration_test.rb", <<-RUBY
+      app_file 'test/integration/mailer_integration_test.rb', <<-RUBY
         require "test_helper"
 
         class MailerIntegrationTest < ActionDispatch::IntegrationTest
@@ -40,8 +40,8 @@ module ApplicationTests
         end
       RUBY
 
-      with_rails_env("test") { rails("db:migrate") }
-      output = rails("test")
+      with_rails_env('test') { rails('db:migrate') }
+      output = rails('test')
       assert_match(/0 failures, 0 errors/, output)
     end
   end
@@ -57,8 +57,8 @@ module ApplicationTests
       teardown_app
     end
 
-    test "app method of integration tests returns test_app by default" do
-      app_file "test/integration/default_app_test.rb", <<-RUBY
+    test 'app method of integration tests returns test_app by default' do
+      app_file 'test/integration/default_app_test.rb', <<-RUBY
         require "test_helper"
 
         class DefaultAppIntegrationTest < ActionDispatch::IntegrationTest
@@ -68,8 +68,8 @@ module ApplicationTests
         end
       RUBY
 
-      with_rails_env("test") { rails("db:migrate") }
-      output = rails("test")
+      with_rails_env('test') { rails('db:migrate') }
+      output = rails('test')
       assert_match(/0 failures, 0 errors/, output)
     end
   end

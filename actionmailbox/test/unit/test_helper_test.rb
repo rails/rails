@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
-require_relative "../test_helper"
+require_relative '../test_helper'
 
 module ActionMailbox
   class TestHelperTest < ActiveSupport::TestCase
-    test "multi-part mail can be built in tests using a block" do
+    test 'multi-part mail can be built in tests using a block' do
       inbound_email = create_inbound_email_from_mail do
-        to "test@example.com"
-        from "hello@example.com"
+        to 'test@example.com'
+        from 'hello@example.com'
 
         text_part do
-          body "Hello, world"
+          body 'Hello, world'
         end
 
         html_part do
-          body "<h1>Hello, world</h1>"
+          body '<h1>Hello, world</h1>'
         end
       end
 

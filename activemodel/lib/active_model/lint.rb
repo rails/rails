@@ -31,7 +31,7 @@ module ActiveModel
       def test_to_key
         assert_respond_to model, :to_key
         def model.persisted?() false end
-        assert model.to_key.nil?, "to_key should return nil when `persisted?` returns false"
+        assert model.to_key.nil?, 'to_key should return nil when `persisted?` returns false'
       end
 
       # Passes if the object's model responds to <tt>to_param</tt> and if
@@ -47,7 +47,7 @@ module ActiveModel
         assert_respond_to model, :to_param
         def model.to_key() [1] end
         def model.persisted?() false end
-        assert model.to_param.nil?, "to_param should return nil when `persisted?` returns false"
+        assert model.to_param.nil?, 'to_param should return nil when `persisted?` returns false'
       end
 
       # Passes if the object's model responds to <tt>to_partial_path</tt> and if
@@ -69,7 +69,7 @@ module ActiveModel
       # object will route to the update action.
       def test_persisted?
         assert_respond_to model, :persisted?
-        assert_boolean model.persisted?, "persisted?"
+        assert_boolean model.persisted?, 'persisted?'
       end
 
       # Passes if the object's model responds to <tt>model_name</tt> both as
@@ -101,7 +101,7 @@ module ActiveModel
       # locale. If no error is present, the method should return an empty array.
       def test_errors_aref
         assert_respond_to model, :errors
-        assert_equal [], model.errors[:hello], "errors#[] should return an empty Array"
+        assert_equal [], model.errors[:hello], 'errors#[] should return an empty Array'
       end
 
       private

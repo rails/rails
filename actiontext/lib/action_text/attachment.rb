@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/try"
+require 'active_support/core_ext/object/try'
 
 module ActionText
   class Attachment
     include Attachments::TrixConversion, Attachments::Minification, Attachments::Caching
 
-    TAG_NAME = "action-text-attachment"
+    TAG_NAME = 'action-text-attachment'
     SELECTOR = TAG_NAME
     ATTRIBUTES = %w( sgid content-type url href filename filesize width height previewable presentation caption )
 
@@ -58,7 +58,7 @@ module ActionText
     end
 
     def caption
-      node_attributes["caption"].presence
+      node_attributes['caption'].presence
     end
 
     def full_attributes
@@ -99,7 +99,7 @@ module ActionText
       end
 
       def sgid_attributes
-        @sgid_attributes ||= node_attributes.slice("sgid").presence || attachable_attributes.slice("sgid")
+        @sgid_attributes ||= node_attributes.slice('sgid').presence || attachable_attributes.slice('sgid')
       end
   end
 end

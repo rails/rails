@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "action_dispatch/http/mime_type"
+require 'action_dispatch/http/mime_type'
 
 module AbstractController
   module Collector
@@ -24,11 +24,11 @@ module AbstractController
   private
     def method_missing(symbol, &block)
       unless mime_constant = Mime[symbol]
-        raise NoMethodError, "To respond to a custom format, register it as a MIME type first: " \
-          "https://guides.rubyonrails.org/action_controller_overview.html#restful-downloads. " \
-          "If you meant to respond to a variant like :tablet or :phone, not a custom format, " \
-          "be sure to nest your variant response within a format response: " \
-          "format.html { |html| html.tablet { ... } }"
+        raise NoMethodError, 'To respond to a custom format, register it as a MIME type first: ' \
+          'https://guides.rubyonrails.org/action_controller_overview.html#restful-downloads. ' \
+          'If you meant to respond to a variant like :tablet or :phone, not a custom format, ' \
+          'be sure to nest your variant response within a format response: ' \
+          'format.html { |html| html.tablet { ... } }'
       end
 
       if Mime::SET.include?(mime_constant)

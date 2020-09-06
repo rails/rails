@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "fileutils"
-require "active_support/notifications"
-require "active_support/dependencies"
-require "active_support/descendants_tracker"
-require "rails/secrets"
+require 'fileutils'
+require 'active_support/notifications'
+require 'active_support/dependencies'
+require 'active_support/descendants_tracker'
+require 'rails/secrets'
 
 module Rails
   class Application
@@ -14,7 +14,7 @@ module Rails
       initializer :load_environment_hook, group: :all do end
 
       initializer :load_active_support, group: :all do
-        require "active_support/all" unless config.active_support.bare
+        require 'active_support/all' unless config.active_support.bare
       end
 
       initializer :set_eager_load, group: :all do
@@ -39,13 +39,13 @@ module Rails
           logger = ActiveSupport::TaggedLogging.new(logger)
           logger
         rescue StandardError
-          path = config.paths["log"].first
+          path = config.paths['log'].first
           logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDERR))
           logger.level = ActiveSupport::Logger::WARN
           logger.warn(
             "Rails Error: Unable to access log file. Please ensure that #{path} exists and is writable " \
             "(ie, make it writable for user and group: chmod 0664 #{path}). " \
-            "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."
+            'The log level has been raised to WARN and the output directed to STDERR until the problem is fixed.'
           )
           logger
         end

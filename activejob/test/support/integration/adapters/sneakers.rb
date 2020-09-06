@@ -1,24 +1,24 @@
 # frozen_string_literal: true
 
-require "sneakers/runner"
-require "timeout"
+require 'sneakers/runner'
+require 'timeout'
 
 module SneakersJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :sneakers
     Sneakers.configure  heartbeat: 2,
-                        amqp: ENV["RABBITMQ_URL"] || "amqp://guest:guest@localhost:5672",
-                        vhost: "/",
-                        exchange: "active_jobs_sneakers_int_test",
+                        amqp: ENV['RABBITMQ_URL'] || 'amqp://guest:guest@localhost:5672',
+                        vhost: '/',
+                        exchange: 'active_jobs_sneakers_int_test',
                         exchange_type: :direct,
                         daemonize: true,
                         threads: 1,
                         workers: 1,
-                        pid_path: Rails.root.join("tmp/sneakers.pid").to_s,
-                        log: Rails.root.join("log/sneakers.log").to_s
+                        pid_path: Rails.root.join('tmp/sneakers.pid').to_s,
+                        log: Rails.root.join('log/sneakers.log').to_s
     unless can_run?
       puts "Cannot run integration tests for sneakers. To be able to run integration tests for sneakers you need to install and start rabbitmq.\n"
-      status = ENV["CI"] ? false : true
+      status = ENV['CI'] ? false : true
       exit status
     end
   end
@@ -31,7 +31,7 @@ module SneakersJobsManager
     @pid = fork do
       queues = %w(integration_tests)
       workers = queues.map do |q|
-        worker_klass = "ActiveJobWorker" + Digest::MD5.hexdigest(q)
+        worker_klass = 'ActiveJobWorker' + Digest::MD5.hexdigest(q)
         Sneakers.const_set(worker_klass, Class.new(ActiveJob::QueueAdapters::SneakersAdapter::JobWrapper) do
           from_queue q
         end)
@@ -46,13 +46,13 @@ module SneakersJobsManager
       end
     rescue Timeout::Error
       stop_workers
-      raise "Failed to start sneakers worker"
+      raise 'Failed to start sneakers worker'
     end
   end
 
   def stop_workers
-    Process.kill "TERM", @pid
-    Process.kill "TERM", File.open(Rails.root.join("tmp/sneakers.pid").to_s).read.to_i
+    Process.kill 'TERM', @pid
+    Process.kill 'TERM', File.open(Rails.root.join('tmp/sneakers.pid').to_s).read.to_i
   rescue
   end
 
@@ -75,6 +75,6 @@ module SneakersJobsManager
     end
 
     def bunny_queue
-      @queue ||= bunny_publisher.exchange.channel.queue "integration_tests", durable: true
+      @queue ||= bunny_publisher.exchange.channel.queue 'integration_tests', durable: true
     end
 end

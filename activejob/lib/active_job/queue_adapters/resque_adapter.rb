@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require "resque"
-require "active_support/core_ext/enumerable"
-require "active_support/core_ext/array/access"
+require 'resque'
+require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/array/access'
 
 begin
-  require "resque-scheduler"
+  require 'resque-scheduler'
 rescue LoadError
   begin
-    require "resque_scheduler"
+    require 'resque_scheduler'
   rescue LoadError
     false
   end
@@ -35,8 +35,8 @@ module ActiveJob
 
       def enqueue_at(job, timestamp) #:nodoc:
         unless Resque.respond_to?(:enqueue_at_with_queue)
-          raise NotImplementedError, "To be able to schedule jobs with Resque you need the " \
-            "resque-scheduler gem. Please add it to your Gemfile and run bundle install"
+          raise NotImplementedError, 'To be able to schedule jobs with Resque you need the ' \
+            'resque-scheduler gem. Please add it to your Gemfile and run bundle install'
         end
         Resque.enqueue_at_with_queue job.queue_name, timestamp, JobWrapper, job.serialize
       end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/test_case"
+require 'active_support/test_case'
 
 module ActionCable
   class TestCase < ActiveSupport::TestCase

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/dependencies/zeitwerk_integration"
+require 'active_support/dependencies/zeitwerk_integration'
 
 module Rails
   module Autoloaders # :nodoc:
@@ -10,7 +10,7 @@ module Rails
       def main
         if zeitwerk_enabled?
           @main ||= Zeitwerk::Loader.new.tap do |loader|
-            loader.tag = "rails.main"
+            loader.tag = 'rails.main'
             loader.inflector = ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector
           end
         end
@@ -19,7 +19,7 @@ module Rails
       def once
         if zeitwerk_enabled?
           @once ||= Zeitwerk::Loader.new.tap do |loader|
-            loader.tag = "rails.once"
+            loader.tag = 'rails.once'
             loader.inflector = ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector
           end
         end

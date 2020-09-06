@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "generators/generators_test_helper"
-require "rails/generators/rails/scaffold_controller/scaffold_controller_generator"
+require 'generators/generators_test_helper'
+require 'rails/generators/rails/scaffold_controller/scaffold_controller_generator'
 
 module Unknown
   module Generators
@@ -17,7 +17,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_controller_skeleton_is_created
     run_generator
 
-    assert_file "app/controllers/users_controller.rb" do |content|
+    assert_file 'app/controllers/users_controller.rb' do |content|
       assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
@@ -56,69 +56,69 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_dont_use_require_or_permit_if_there_are_no_attributes
-    run_generator ["User"]
+    run_generator ['User']
 
-    assert_file "app/controllers/users_controller.rb" do |content|
+    assert_file 'app/controllers/users_controller.rb' do |content|
       assert_match(/def user_params/, content)
       assert_match(/params\.fetch\(:user, \{\}\)/, content)
     end
   end
 
   def test_controller_permit_references_attributes
-    run_generator ["LineItem", "product:references", "cart:belongs_to"]
+    run_generator ['LineItem', 'product:references', 'cart:belongs_to']
 
-    assert_file "app/controllers/line_items_controller.rb" do |content|
+    assert_file 'app/controllers/line_items_controller.rb' do |content|
       assert_match(/def line_item_params/, content)
       assert_match(/params\.require\(:line_item\)\.permit\(:product_id, :cart_id\)/, content)
     end
   end
 
   def test_controller_permit_polymorphic_references_attributes
-    run_generator ["LineItem", "product:references{polymorphic}"]
+    run_generator ['LineItem', 'product:references{polymorphic}']
 
-    assert_file "app/controllers/line_items_controller.rb" do |content|
+    assert_file 'app/controllers/line_items_controller.rb' do |content|
       assert_match(/def line_item_params/, content)
       assert_match(/params\.require\(:line_item\)\.permit\(:product_id, :product_type\)/, content)
     end
   end
 
   def test_controller_permit_attachment_attributes
-    run_generator ["Message", "video:attachment", "photos:attachments"]
+    run_generator ['Message', 'video:attachment', 'photos:attachments']
 
-    assert_file "app/controllers/messages_controller.rb" do |content|
+    assert_file 'app/controllers/messages_controller.rb' do |content|
       assert_match(/def message_params/, content)
       assert_match(/params\.require\(:message\)\.permit\(:video, photos: \[\]\)/, content)
     end
   end
 
   def test_controller_permit_attachments_attributes_only
-    run_generator ["Message", "photos:attachments"]
+    run_generator ['Message', 'photos:attachments']
 
-    assert_file "app/controllers/messages_controller.rb" do |content|
+    assert_file 'app/controllers/messages_controller.rb' do |content|
       assert_match(/def message_params/, content)
       assert_match(/params\.require\(:message\)\.permit\(photos: \[\]\)/, content)
     end
   end
 
   def test_controller_route_are_added
-    run_generator ["Message", "photos:attachments"]
+    run_generator ['Message', 'photos:attachments']
 
-    assert_file "config/routes.rb" do |route|
+    assert_file 'config/routes.rb' do |route|
       assert_match(/resources :messages$/, route)
     end
   end
 
   def test_controller_route_are_skipped
-    run_generator ["Message", "photos:attachments", "--skip-routes"]
+    run_generator ['Message', 'photos:attachments', '--skip-routes']
 
-    assert_file "config/routes.rb" do |route|
+    assert_file 'config/routes.rb' do |route|
       assert_no_match(/resources :messages$/, route)
     end
   end
 
   def test_helper_are_invoked_with_a_pluralized_name
     run_generator
-    assert_file "app/helpers/users_helper.rb", /module UsersHelper/
+    assert_file 'app/helpers/users_helper.rb', /module UsersHelper/
   end
 
   def test_views_are_generated
@@ -127,7 +127,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     %w(index edit new show).each do |view|
       assert_file "app/views/users/#{view}.html.erb"
     end
-    assert_no_file "app/views/layouts/users.html.erb"
+    assert_no_file 'app/views/layouts/users.html.erb'
   end
 
   def test_index_page_have_notice
@@ -139,9 +139,9 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_functional_tests
-    run_generator ["User", "name:string", "age:integer", "organization:references{polymorphic}"]
+    run_generator ['User', 'name:string', 'age:integer', 'organization:references{polymorphic}']
 
-    assert_file "test/controllers/users_controller_test.rb" do |content|
+    assert_file 'test/controllers/users_controller_test.rb' do |content|
       assert_match(/class UsersControllerTest < ActionDispatch::IntegrationTest/, content)
       assert_match(/test "should get index"/, content)
       assert_match(/post users_url, params: \{ user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}/, content)
@@ -150,9 +150,9 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_functional_tests_without_attributes
-    run_generator ["User"]
+    run_generator ['User']
 
-    assert_file "test/controllers/users_controller_test.rb" do |content|
+    assert_file 'test/controllers/users_controller_test.rb' do |content|
       assert_match(/class UsersControllerTest < ActionDispatch::IntegrationTest/, content)
       assert_match(/test "should get index"/, content)
       assert_match(/post users_url, params: \{ user: \{  \} \}/, content)
@@ -161,19 +161,19 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_skip_helper_if_required
-    run_generator ["User", "name:string", "age:integer", "--no-helper"]
-    assert_no_file "app/helpers/users_helper.rb"
+    run_generator ['User', 'name:string', 'age:integer', '--no-helper']
+    assert_no_file 'app/helpers/users_helper.rb'
   end
 
   def test_skip_layout_if_required
-    run_generator ["User", "name:string", "age:integer", "--no-layout"]
-    assert_no_file "app/views/layouts/users.html.erb"
+    run_generator ['User', 'name:string', 'age:integer', '--no-layout']
+    assert_no_file 'app/views/layouts/users.html.erb'
   end
 
   def test_default_orm_is_used
-    run_generator ["User", "--orm=unknown"]
+    run_generator ['User', '--orm=unknown']
 
-    assert_file "app/controllers/users_controller.rb" do |content|
+    assert_file 'app/controllers/users_controller.rb' do |content|
       assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
@@ -190,9 +190,9 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     end
 
     Unknown::Generators.const_set(:ActiveModel, klass)
-    run_generator ["User", "--orm=unknown"]
+    run_generator ['User', '--orm=unknown']
 
-    assert_file "app/controllers/users_controller.rb" do |content|
+    assert_file 'app/controllers/users_controller.rb' do |content|
       assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
@@ -205,41 +205,41 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_model_name_option
-    run_generator ["Admin::User", "--model-name=User"]
-    assert_file "app/controllers/admin/users_controller.rb" do |content|
+    run_generator ['Admin::User', '--model-name=User']
+    assert_file 'app/controllers/admin/users_controller.rb' do |content|
       assert_instance_method :index, content do |m|
-        assert_match("@users = User.all", m)
+        assert_match('@users = User.all', m)
       end
 
       assert_instance_method :create, content do |m|
-        assert_match("redirect_to [:admin, @user]", m)
+        assert_match('redirect_to [:admin, @user]', m)
       end
 
       assert_instance_method :update, content do |m|
-        assert_match("redirect_to [:admin, @user]", m)
+        assert_match('redirect_to [:admin, @user]', m)
       end
     end
 
-    assert_file "app/views/admin/users/index.html.erb" do |content|
+    assert_file 'app/views/admin/users/index.html.erb' do |content|
       assert_match("'Show', [:admin, user]", content)
       assert_match("'Edit', edit_admin_user_path(user)", content)
       assert_match("'Destroy', [:admin, user]", content)
       assert_match("'New User', new_admin_user_path", content)
     end
 
-    assert_file "app/views/admin/users/new.html.erb" do |content|
+    assert_file 'app/views/admin/users/new.html.erb' do |content|
       assert_match("'Back', admin_users_path", content)
     end
 
-    assert_file "app/views/admin/users/_form.html.erb" do |content|
-      assert_match("model: [:admin, user]", content)
+    assert_file 'app/views/admin/users/_form.html.erb' do |content|
+      assert_match('model: [:admin, user]', content)
     end
   end
 
   def test_controller_tests_pass_by_default_inside_mountable_engine
     Dir.chdir(destination_root) { `bundle exec rails plugin new bukkits --mountable` }
 
-    engine_path = File.join(destination_root, "bukkits")
+    engine_path = File.join(destination_root, 'bukkits')
 
     Dir.chdir(engine_path) do
       quietly { `bin/rails g controller dashboard foo` }
@@ -251,7 +251,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_controller_tests_pass_by_default_inside_full_engine
     Dir.chdir(destination_root) { `bundle exec rails plugin new bukkits --full` }
 
-    engine_path = File.join(destination_root, "bukkits")
+    engine_path = File.join(destination_root, 'bukkits')
 
     Dir.chdir(engine_path) do
       quietly { `bin/rails g controller dashboard foo` }
@@ -261,9 +261,9 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_api_only_generates_a_proper_api_controller
-    run_generator ["User", "--api"]
+    run_generator ['User', '--api']
 
-    assert_file "app/controllers/users_controller.rb" do |content|
+    assert_file 'app/controllers/users_controller.rb' do |content|
       assert_match(/class UsersController < ApplicationController/, content)
       assert_no_match(/respond_to/, content)
 
@@ -294,17 +294,17 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_no_file "app/views/users/index.html.erb"
-    assert_no_file "app/views/users/edit.html.erb"
-    assert_no_file "app/views/users/show.html.erb"
-    assert_no_file "app/views/users/new.html.erb"
-    assert_no_file "app/views/users/_form.html.erb"
+    assert_no_file 'app/views/users/index.html.erb'
+    assert_no_file 'app/views/users/edit.html.erb'
+    assert_no_file 'app/views/users/show.html.erb'
+    assert_no_file 'app/views/users/new.html.erb'
+    assert_no_file 'app/views/users/_form.html.erb'
   end
 
   def test_api_controller_tests
-    run_generator ["User", "name:string", "age:integer", "organization:references{polymorphic}", "--api"]
+    run_generator ['User', 'name:string', 'age:integer', 'organization:references{polymorphic}', '--api']
 
-    assert_file "test/controllers/users_controller_test.rb" do |content|
+    assert_file 'test/controllers/users_controller_test.rb' do |content|
       assert_match(/class UsersControllerTest < ActionDispatch::IntegrationTest/, content)
       assert_match(/test "should get index"/, content)
       assert_match(/post users_url, params: \{ user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}, as: :json/, content)
@@ -314,9 +314,9 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_api_only_generates_params_for_attachments
-    run_generator ["Message", "video:attachment", "photos:attachments", "--api"]
+    run_generator ['Message', 'video:attachment', 'photos:attachments', '--api']
 
-    assert_file "app/controllers/messages_controller.rb" do |content|
+    assert_file 'app/controllers/messages_controller.rb' do |content|
       assert_match(/def message_params/, content)
       assert_match(/params\.require\(:message\)\.permit\(:video, photos: \[\]\)/, content)
     end

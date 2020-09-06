@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "pathname"
+require 'pathname'
 
 module Rails
   module Paths
@@ -183,7 +183,7 @@ module Rails
       end
 
       def paths
-        raise "You need to set a path root" unless @root.path
+        raise 'You need to set a path root' unless @root.path
 
         map do |p|
           Pathname.new(@root.path).join(p)
@@ -191,12 +191,12 @@ module Rails
       end
 
       def extensions # :nodoc:
-        $1.split(",") if @glob =~ /\{([\S]+)\}/
+        $1.split(',') if @glob =~ /\{([\S]+)\}/
       end
 
       # Expands all paths against the root and return all unique values.
       def expanded
-        raise "You need to set a path root" unless @root.path
+        raise 'You need to set a path root' unless @root.path
         result = []
 
         each do |path|

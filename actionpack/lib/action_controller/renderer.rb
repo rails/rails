@@ -37,11 +37,11 @@ module ActionController
     attr_reader :defaults, :controller
 
     DEFAULTS = {
-      http_host: "example.org",
+      http_host: 'example.org',
       https: false,
-      method: "get",
-      script_name: "",
-      input: ""
+      method: 'get',
+      script_name: '',
+      input: ''
     }.freeze
 
     # Create a new renderer instance for a specific controller class.
@@ -89,7 +89,7 @@ module ActionController
     #
     # Otherwise, a partial is rendered using the second parameter as the locals hash.
     def render(*args)
-      raise "missing controller" unless controller
+      raise 'missing controller' unless controller
 
       request = ActionDispatch::Request.new @env
       request.routes = controller._routes
@@ -110,16 +110,16 @@ module ActionController
           new_env[key] = rack_value_for(k, v) unless new_env.key?(key)
         end
 
-        new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"
+        new_env['rack.url_scheme'] = new_env['HTTPS'] == 'on' ? 'https' : 'http'
         new_env
       end
 
       RACK_KEY_TRANSLATION = {
-        http_host:   "HTTP_HOST",
-        https:       "HTTPS",
-        method:      "REQUEST_METHOD",
-        script_name: "SCRIPT_NAME",
-        input:       "rack.input"
+        http_host:   'HTTP_HOST',
+        https:       'HTTPS',
+        method:      'REQUEST_METHOD',
+        script_name: 'SCRIPT_NAME',
+        input:       'rack.input'
       }
 
       def rack_key_for(key)
@@ -129,7 +129,7 @@ module ActionController
       def rack_value_for(key, value)
         case key
         when :https
-          value ? "on" : "off"
+          value ? 'on' : 'off'
         when :method
           -value.upcase
         else

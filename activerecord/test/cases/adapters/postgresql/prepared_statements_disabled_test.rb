@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/computer"
-require "models/developer"
+require 'cases/helper'
+require 'models/computer'
+require 'models/developer'
 
 class PreparedStatementsDisabledTest < ActiveRecord::PostgreSQLTestCase
   fixtures :developers
@@ -21,7 +21,7 @@ class PreparedStatementsDisabledTest < ActiveRecord::PostgreSQLTestCase
 
     david = developers(:david)
 
-    assert_equal david, Developer.where(name: "David").last # With Binds
+    assert_equal david, Developer.where(name: 'David').last # With Binds
     assert_operator Developer.count, :>, 0 # Without Binds
   end
 end

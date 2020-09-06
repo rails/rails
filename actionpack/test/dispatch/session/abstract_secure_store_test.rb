@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "action_dispatch/middleware/session/abstract_store"
+require 'abstract_unit'
+require 'action_dispatch/middleware/session/abstract_store'
 
 module ActionDispatch
   module Session
@@ -48,7 +48,7 @@ module ActionDispatch
 
         assert @env
         session = Request::Session.find ActionDispatch::Request.new @env
-        session["foo"] = "bar"
+        session['foo'] = 'bar'
 
         as.call(@env)
         session1 = Request::Session.find ActionDispatch::Request.new @env

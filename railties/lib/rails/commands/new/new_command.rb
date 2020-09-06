@@ -5,7 +5,7 @@ module Rails
     class NewCommand < Base # :nodoc:
       no_commands do
         def help
-          Rails::Command.invoke :application, [ "--help" ]
+          Rails::Command.invoke :application, [ '--help' ]
         end
       end
 

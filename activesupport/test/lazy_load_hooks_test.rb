@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "active_support/core_ext/module/remove_method"
+require_relative 'abstract_unit'
+require 'active_support/core_ext/module/remove_method'
 
 class LazyLoadHooksTest < ActiveSupport::TestCase
   def test_basic_hook
@@ -129,12 +129,12 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
   def test_hook_uses_class_eval_when_base_is_a_class
     ActiveSupport.on_load(:uses_class_eval) do
       def first_wrestler
-        "John Cena"
+        'John Cena'
       end
     end
 
     ActiveSupport.run_load_hooks(:uses_class_eval, FakeContext)
-    assert_equal "John Cena", FakeContext.new(0).first_wrestler
+    assert_equal 'John Cena', FakeContext.new(0).first_wrestler
   ensure
     FakeContext.remove_possible_method(:first_wrestler)
   end
@@ -143,7 +143,7 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
     mod = Module.new
     ActiveSupport.on_load(:uses_class_eval2) do
       def last_wrestler
-        "Dwayne Johnson"
+        'Dwayne Johnson'
       end
     end
     ActiveSupport.run_load_hooks(:uses_class_eval2, mod)
@@ -152,13 +152,13 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
       include mod
     end
 
-    assert_equal "Dwayne Johnson", klass.new.last_wrestler
+    assert_equal 'Dwayne Johnson', klass.new.last_wrestler
   end
 
   def test_hook_uses_instance_eval_when_base_is_an_instance
     ActiveSupport.on_load(:uses_instance_eval) do
       def second_wrestler
-        "Hulk Hogan"
+        'Hulk Hogan'
       end
     end
 
@@ -171,7 +171,7 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
     assert_raises NoMethodError do
       FakeContext.second_wrestler
     end
-    assert_equal "Hulk Hogan", context.second_wrestler
+    assert_equal 'Hulk Hogan', context.second_wrestler
   end
 
 private

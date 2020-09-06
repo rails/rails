@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rake"
+require 'rake'
 
 # Load Rails Rakefile extensions
 %w(
@@ -17,7 +17,7 @@ require "rake"
   yarn
   zeitwerk
 ).tap { |arr|
-  arr << "statistics" if Rake.application.current_scope.empty?
+  arr << 'statistics' if Rake.application.current_scope.empty?
 }.each do |task|
   load "rails/tasks/#{task}.rake"
 end

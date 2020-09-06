@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../abstract_unit"
-require "active_support/core_ext/module/remove_method"
+require_relative '../../abstract_unit'
+require 'active_support/core_ext/module/remove_method'
 
 module RemoveMethodTests
   class A

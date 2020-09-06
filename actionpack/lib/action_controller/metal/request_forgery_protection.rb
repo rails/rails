@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "rack/session/abstract/id"
-require "action_controller/metal/exceptions"
-require "active_support/security_utils"
+require 'rack/session/abstract/id'
+require 'action_controller/metal/exceptions'
+require 'active_support/security_utils'
 
 module ActionController #:nodoc:
   class InvalidAuthenticityToken < ActionControllerError #:nodoc:
@@ -150,7 +150,7 @@ module ActionController #:nodoc:
         def protection_method_class(name)
           ActionController::RequestForgeryProtection::ProtectionMethods.const_get(name.to_s.classify)
         rescue NameError
-          raise ArgumentError, "Invalid request forgery protection method, use :null_session, :exception, or :reset_session"
+          raise ArgumentError, 'Invalid request forgery protection method, use :null_session, :exception, or :reset_session'
         end
     end
 
@@ -244,10 +244,10 @@ module ActionController #:nodoc:
       end
 
       #:nodoc:
-      CROSS_ORIGIN_JAVASCRIPT_WARNING = "Security warning: an embedded " \
-        "<script> tag on another site requested protected JavaScript. " \
+      CROSS_ORIGIN_JAVASCRIPT_WARNING = 'Security warning: an embedded ' \
+        '<script> tag on another site requested protected JavaScript. ' \
         "If you know what you're doing, go ahead and disable forgery " \
-        "protection on this action to permit cross-origin JavaScript embedding."
+        'protection on this action to permit cross-origin JavaScript embedding.'
       private_constant :CROSS_ORIGIN_JAVASCRIPT_WARNING
       # :startdoc:
 
@@ -386,7 +386,7 @@ module ActionController #:nodoc:
         if per_form_csrf_tokens
           correct_token = per_form_csrf_token(
             session,
-            request.path.chomp("/"),
+            request.path.chomp('/'),
             request.request_method
           )
 
@@ -402,10 +402,10 @@ module ActionController #:nodoc:
       end
 
       def per_form_csrf_token(session, action_path, method) # :doc:
-        csrf_token_hmac(session, [action_path, method.downcase].join("#"))
+        csrf_token_hmac(session, [action_path, method.downcase].join('#'))
       end
 
-      GLOBAL_CSRF_TOKEN_IDENTIFIER = "!real_csrf_token"
+      GLOBAL_CSRF_TOKEN_IDENTIFIER = '!real_csrf_token'
       private_constant :GLOBAL_CSRF_TOKEN_IDENTIFIER
 
       def global_csrf_token(session) # :doc:
@@ -455,7 +455,7 @@ module ActionController #:nodoc:
       def valid_request_origin? # :doc:
         if forgery_protection_origin_check
           # We accept blank origin headers because some user agents don't send it.
-          raise InvalidAuthenticityToken, NULL_ORIGIN_MESSAGE if request.origin == "null"
+          raise InvalidAuthenticityToken, NULL_ORIGIN_MESSAGE if request.origin == 'null'
           request.origin.nil? || request.origin == request.base_url
         else
           true
@@ -464,7 +464,7 @@ module ActionController #:nodoc:
 
       def normalize_action_path(action_path) # :doc:
         uri = URI.parse(action_path)
-        uri.path.chomp("/")
+        uri.path.chomp('/')
       end
 
       def generate_csrf_token # :nodoc:

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rails/generators/migration"
+require 'rails/generators/migration'
 
 module ActiveRecord
   module Generators # :nodoc:
@@ -31,12 +31,12 @@ module ActiveRecord
           if defined?(Rails.application) && Rails.application
             configured_migrate_path || default_migrate_path
           else
-            "db/migrate"
+            'db/migrate'
           end
         end
 
         def default_migrate_path
-          Rails.application.config.paths["db/migrate"].to_ary.first
+          Rails.application.config.paths['db/migrate'].to_ary.first
         end
 
         def configured_migrate_path

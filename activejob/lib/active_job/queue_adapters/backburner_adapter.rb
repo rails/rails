@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "backburner"
+require 'backburner'
 
 module ActiveJob
   module QueueAdapters

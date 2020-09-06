@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-gem "pg", "~> 1.1"
-require "pg"
-require "thread"
-require "digest/sha1"
+gem 'pg', '~> 1.1'
+require 'pg'
+require 'thread'
+require 'digest/sha1'
 
 module ActionCable
   module SubscriptionAdapter
@@ -67,7 +67,7 @@ module ActionCable
 
         def verify!(pg_conn)
           unless pg_conn.is_a?(PG::Connection)
-            raise "The Active Record database must be PostgreSQL in order to use the PostgreSQL Action Cable storage adapter"
+            raise 'The Active Record database must be PostgreSQL in order to use the PostgreSQL Action Cable storage adapter'
           end
         end
 

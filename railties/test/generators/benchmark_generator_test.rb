@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "generators/generators_test_helper"
-require "rails/generators/rails/benchmark/benchmark_generator"
+require 'generators/generators_test_helper'
+require 'rails/generators/rails/benchmark/benchmark_generator'
 
 module Rails
   module Generators
@@ -12,14 +12,14 @@ module Rails
         copy_gemfile
       end
 
-      test "generate benchmark" do
-        run_generator ["my_benchmark"]
+      test 'generate benchmark' do
+        run_generator ['my_benchmark']
 
-        assert_file("Gemfile") do |content|
+        assert_file('Gemfile') do |content|
           assert_match "gem 'benchmark-ips'", content
         end
 
-        assert_file("script/benchmarks/my_benchmark.rb") do |content|
+        assert_file('script/benchmarks/my_benchmark.rb') do |content|
           assert_equal <<~RUBY, content
             # frozen_string_literal: true
 
@@ -39,7 +39,7 @@ module Rails
         end
       end
 
-      test "generate benchmark with no name" do
+      test 'generate benchmark with no name' do
         output = capture(:stderr) do
           run_generator []
         end
@@ -49,10 +49,10 @@ module Rails
         MSG
       end
 
-      test "generate benchmark with reports" do
-        run_generator ["my_benchmark", "with_patch", "without_patch"]
+      test 'generate benchmark with reports' do
+        run_generator ['my_benchmark', 'with_patch', 'without_patch']
 
-        assert_file("script/benchmarks/my_benchmark.rb") do |content|
+        assert_file('script/benchmarks/my_benchmark.rb') do |content|
           assert_equal <<~RUBY, content
             # frozen_string_literal: true
 
@@ -72,13 +72,13 @@ module Rails
         end
       end
 
-      test "generate benchmark twice only adds ips gem once" do
-        run_generator ["my_benchmark"]
-        run_generator ["my_benchmark"]
+      test 'generate benchmark twice only adds ips gem once' do
+        run_generator ['my_benchmark']
+        run_generator ['my_benchmark']
 
-        assert_file("Gemfile") do |content|
+        assert_file('Gemfile') do |content|
           occurrences = content.scan("gem 'benchmark-ips'").count
-          assert_equal 1, occurrences, "Should only have benchmark-ips present once"
+          assert_equal 1, occurrences, 'Should only have benchmark-ips present once'
         end
       end
     end

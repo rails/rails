@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/callbacks"
+require 'active_support/callbacks'
 
 module ActionMailbox
   # Defines the callbacks related to processing.

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "irb"
-require "irb/completion"
+require 'irb'
+require 'irb/completion'
 
-require "rails/command/environment_argument"
+require 'rails/command/environment_argument'
 
 module Rails
   class Console
@@ -28,7 +28,7 @@ module Rails
       app.sandbox = sandbox?
 
       if sandbox? && app.config.disable_sandbox
-        puts "Error: Unable to start console in sandbox mode as sandbox mode is disabled (config.disable_sandbox is true)."
+        puts 'Error: Unable to start console in sandbox mode as sandbox mode is disabled (config.disable_sandbox is true).'
         exit 1
       end
 
@@ -59,7 +59,7 @@ module Rails
 
       if sandbox?
         puts "Loading #{Rails.env} environment in sandbox (Rails #{Rails.version})"
-        puts "Any modifications you make will be rolled back on exit"
+        puts 'Any modifications you make will be rolled back on exit'
       else
         puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
       end
@@ -75,14 +75,14 @@ module Rails
     class ConsoleCommand < Base # :nodoc:
       include EnvironmentArgument
 
-      class_option :sandbox, aliases: "-s", type: :boolean, default: false,
-        desc: "Rollback database modifications on exit."
+      class_option :sandbox, aliases: '-s', type: :boolean, default: false,
+        desc: 'Rollback database modifications on exit.'
 
       def initialize(args = [], local_options = {}, config = {})
         console_options = []
 
         # For the same behavior as OptionParser, leave only options after "--" in ARGV.
-        termination = local_options.find_index("--")
+        termination = local_options.find_index('--')
         if termination
           console_options = local_options[termination + 1..-1]
           local_options = local_options[0...termination]
@@ -96,7 +96,7 @@ module Rails
         extract_environment_option_from_argument
 
         # RAILS_ENV needs to be set before config/application is required.
-        ENV["RAILS_ENV"] = options[:environment]
+        ENV['RAILS_ENV'] = options[:environment]
 
         require_application_and_environment!
         Rails::Console.start(Rails.application, options)

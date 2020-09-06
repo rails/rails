@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "generators/generators_test_helper"
-require "rails/generators/rails/migration/migration_generator"
-require "active_record/migration"
+require 'generators/generators_test_helper'
+require 'rails/generators/rails/migration/migration_generator'
+require 'active_record/migration'
 
 class MigrationGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -18,40 +18,40 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_migration
-    migration = "change_title_body_from_posts"
+    migration = 'change_title_body_from_posts'
     run_generator [migration]
     assert_migration "db/migrate/#{migration}.rb", /class ChangeTitleBodyFromPosts < ActiveRecord::Migration\[[0-9.]+\]/
   end
 
   def test_migrations_generated_simultaneously
-    migrations = ["change_title_body_from_posts", "change_email_from_comments"]
+    migrations = ['change_title_body_from_posts', 'change_email_from_comments']
 
     first_migration_number, second_migration_number = migrations.collect do |migration|
       run_generator [migration]
       file_name = migration_file_name "db/migrate/#{migration}.rb"
 
-      File.basename(file_name).split("_").first
+      File.basename(file_name).split('_').first
     end
 
     assert_not_equal first_migration_number, second_migration_number
   end
 
   def test_migration_with_class_name
-    migration = "ChangeTitleBodyFromPosts"
+    migration = 'ChangeTitleBodyFromPosts'
     run_generator [migration]
-    assert_migration "db/migrate/change_title_body_from_posts.rb", /class #{migration} < ActiveRecord::Migration\[[0-9.]+\]/
+    assert_migration 'db/migrate/change_title_body_from_posts.rb', /class #{migration} < ActiveRecord::Migration\[[0-9.]+\]/
   end
 
   def test_migration_with_invalid_file_name
-    migration = "add_something:datetime"
+    migration = 'add_something:datetime'
     assert_raise ActiveRecord::IllegalMigrationNameError do
       run_generator [migration]
     end
   end
 
   def test_add_migration_with_attributes
-    migration = "add_title_body_to_posts"
-    run_generator [migration, "title:string", "body:text"]
+    migration = 'add_title_body_to_posts'
+    run_generator [migration, 'title:string', 'body:text']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -62,8 +62,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_with_table_having_from_in_title
-    migration = "add_email_address_to_excluded_from_campaign"
-    run_generator [migration, "email_address:string"]
+    migration = 'add_email_address_to_excluded_from_campaign'
+    run_generator [migration, 'email_address:string']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -73,8 +73,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_remove_migration_with_indexed_attribute
-    migration = "remove_title_body_from_posts"
-    run_generator [migration, "title:string:index", "body:text"]
+    migration = 'remove_title_body_from_posts'
+    run_generator [migration, 'title:string:index', 'body:text']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -86,8 +86,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_remove_migration_with_attributes
-    migration = "remove_title_body_from_posts"
-    run_generator [migration, "title:string", "body:text"]
+    migration = 'remove_title_body_from_posts'
+    run_generator [migration, 'title:string', 'body:text']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -98,8 +98,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_remove_migration_with_table_having_to_in_title
-    migration = "remove_email_address_from_sent_to_user"
-    run_generator [migration, "email_address:string"]
+    migration = 'remove_email_address_from_sent_to_user'
+    run_generator [migration, 'email_address:string']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -109,8 +109,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_remove_migration_with_references_options
-    migration = "remove_references_from_books"
-    run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
+    migration = 'remove_references_from_books'
+    run_generator [migration, 'author:belongs_to', 'distributor:references{polymorphic}']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -121,8 +121,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_remove_migration_with_references_removes_foreign_keys
-    migration = "remove_references_from_books"
-    run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
+    migration = 'remove_references_from_books'
+    run_generator [migration, 'author:belongs_to', 'distributor:references{polymorphic}']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -134,8 +134,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_remove_migration_with_references_removes_foreign_keys_when_primary_key_uuid
-    migration = "remove_references_from_books"
-    run_generator [migration, "author:belongs_to", "--primary_key_type=uuid"]
+    migration = 'remove_references_from_books'
+    run_generator [migration, 'author:belongs_to', '--primary_key_type=uuid']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -145,8 +145,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_with_attributes_and_indices
-    migration = "add_title_with_index_and_body_to_posts"
-    run_generator [migration, "title:string:index", "body:text", "user_id:integer:uniq"]
+    migration = 'add_title_with_index_and_body_to_posts'
+    run_generator [migration, 'title:string:index', 'body:text', 'user_id:integer:uniq']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -160,8 +160,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_with_attributes_and_wrong_index_declaration
-    migration = "add_title_and_content_to_books"
-    run_generator [migration, "title:string:inex", "content:text", "user_id:integer:unik"]
+    migration = 'add_title_and_content_to_books'
+    run_generator [migration, 'title:string:inex', 'content:text', 'user_id:integer:unik']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -175,8 +175,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_with_attributes_without_type_and_index
-    migration = "add_title_with_index_and_body_to_posts"
-    run_generator [migration, "title:index", "body:text", "user_uuid:uniq"]
+    migration = 'add_title_with_index_and_body_to_posts'
+    run_generator [migration, 'title:index', 'body:text', 'user_uuid:uniq']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -190,8 +190,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_with_attributes_index_declaration_and_attribute_options
-    migration = "add_title_and_content_to_books"
-    run_generator [migration, "title:string{40}:index", "content:string{255}", "price:decimal{1,2}:index", "discount:decimal{3.4}:uniq"]
+    migration = 'add_title_and_content_to_books'
+    run_generator [migration, 'title:string{40}:index', 'content:string{255}', 'price:decimal{1,2}:index', 'discount:decimal{3.4}:uniq']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -207,8 +207,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_with_references_options
-    migration = "add_references_to_books"
-    run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
+    migration = 'add_references_to_books'
+    run_generator [migration, 'author:belongs_to', 'distributor:references{polymorphic}']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -219,8 +219,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_with_references_adds_null_false_by_default
-    migration = "add_references_to_books"
-    run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
+    migration = 'add_references_to_books'
+    run_generator [migration, 'author:belongs_to', 'distributor:references{polymorphic}']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -233,9 +233,9 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   def test_add_migration_with_references_does_not_add_belongs_to_when_required_by_default_global_config_is_false
     Rails.application.config.active_record.belongs_to_required_by_default = false
 
-    migration = "add_references_to_books"
+    migration = 'add_references_to_books'
 
-    run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
+    run_generator [migration, 'author:belongs_to', 'distributor:references{polymorphic}']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -246,8 +246,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_with_references_adds_foreign_keys
-    migration = "add_references_to_books"
-    run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
+    migration = 'add_references_to_books'
+    run_generator [migration, 'author:belongs_to', 'distributor:references{polymorphic}']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -259,8 +259,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_create_join_table_migration
-    migration = "add_media_join_table"
-    run_generator [migration, "artist_id", "musics:uniq"]
+    migration = 'add_media_join_table'
+    run_generator [migration, 'artist_id', 'musics:uniq']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -272,8 +272,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_create_table_migration
-    run_generator ["create_books", "title:string", "content:text"]
-    assert_migration "db/migrate/create_books.rb" do |content|
+    run_generator ['create_books', 'title:string', 'content:text']
+    assert_migration 'db/migrate/create_books.rb' do |content|
       assert_method :change, content do |change|
         assert_match(/create_table :books/, change)
         assert_match(/  t\.string :title/, change)
@@ -283,14 +283,14 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_create_table_migration_with_timestamps
-    run_generator ["create_books", "title:string", "content:text"]
-    assert_migration "db/migrate/create_books.rb", /t.timestamps/
+    run_generator ['create_books', 'title:string', 'content:text']
+    assert_migration 'db/migrate/create_books.rb', /t.timestamps/
   end
 
   def test_create_table_timestamps_are_skipped
-    run_generator ["create_books", "title:string", "content:text", "--no-timestamps"]
+    run_generator ['create_books', 'title:string', 'content:text', '--no-timestamps']
 
-    assert_migration "db/migrate/create_books.rb" do |m|
+    assert_migration 'db/migrate/create_books.rb' do |m|
       assert_method :change, m do |change|
         assert_no_match(/t.timestamps/, change)
       end
@@ -298,8 +298,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_uuid_to_create_table_migration
-    run_generator ["create_books", "--primary_key_type=uuid"]
-    assert_migration "db/migrate/create_books.rb" do |content|
+    run_generator ['create_books', '--primary_key_type=uuid']
+    assert_migration 'db/migrate/create_books.rb' do |content|
       assert_method :change, content do |change|
         assert_match(/create_table :books, id: :uuid/, change)
       end
@@ -307,8 +307,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_with_references_options_when_primary_key_uuid
-    migration = "add_references_to_books"
-    run_generator [migration, "author:belongs_to", "--primary_key_type=uuid"]
+    migration = 'add_references_to_books'
+    run_generator [migration, 'author:belongs_to', '--primary_key_type=uuid']
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/add_reference :books, :author,.*\sforeign_key: true, type: :uuid/, change)
@@ -318,8 +318,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
   def test_database_puts_migrations_in_configured_folder
     with_database_configuration do
-      run_generator ["create_books", "--database=secondary"]
-      assert_migration "db/secondary_migrate/create_books.rb" do |content|
+      run_generator ['create_books', '--database=secondary']
+      assert_migration 'db/secondary_migrate/create_books.rb' do |content|
         assert_method :change, content do |change|
           assert_match(/create_table :books/, change)
         end
@@ -329,8 +329,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
   def test_database_puts_migrations_in_configured_folder_with_aliases
     with_database_configuration do
-      run_generator ["create_books", "--db=secondary"]
-      assert_migration "db/secondary_migrate/create_books.rb" do |content|
+      run_generator ['create_books', '--db=secondary']
+      assert_migration 'db/secondary_migrate/create_books.rb' do |content|
         assert_method :change, content do |change|
           assert_match(/create_table :books/, change)
         end
@@ -339,8 +339,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove_or_create
-    migration = "delete_books"
-    run_generator [migration, "title:string", "content:text"]
+    migration = 'delete_books'
+    run_generator [migration, 'title:string', 'content:text']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -355,8 +355,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
   def test_migration_with_singular_table_name
     with_singular_table_name do
-      migration = "add_title_body_to_post"
-      run_generator [migration, "title:string"]
+      migration = 'add_title_body_to_post'
+      run_generator [migration, 'title:string']
       assert_migration "db/migrate/#{migration}.rb" do |content|
         assert_method :change, content do |change|
           assert_match(/add_column :post, :title, :string/, change)
@@ -367,8 +367,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
   def test_create_join_table_migration_with_singular_table_name
     with_singular_table_name do
-      migration = "add_media_join_table"
-      run_generator [migration, "artist_id", "music:uniq"]
+      migration = 'add_media_join_table'
+      run_generator [migration, 'artist_id', 'music:uniq']
 
       assert_migration "db/migrate/#{migration}.rb" do |content|
         assert_method :change, content do |change|
@@ -382,8 +382,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
   def test_create_table_migration_with_singular_table_name
     with_singular_table_name do
-      run_generator ["create_book", "title:string", "content:text"]
-      assert_migration "db/migrate/create_book.rb" do |content|
+      run_generator ['create_book', 'title:string', 'content:text']
+      assert_migration 'db/migrate/create_book.rb' do |content|
         assert_method :change, content do |change|
           assert_match(/create_table :book/, change)
           assert_match(/  t\.string :title/, change)
@@ -394,8 +394,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_create_table_migration_with_token_option
-    run_generator ["create_users", "token:token", "auth_token:token"]
-    assert_migration "db/migrate/create_users.rb" do |content|
+    run_generator ['create_users', 'token:token', 'auth_token:token']
+    assert_migration 'db/migrate/create_users.rb' do |content|
       assert_method :change, content do |change|
         assert_match(/create_table :users/, change)
         assert_match(/  t\.string :token/, change)
@@ -407,8 +407,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_with_token_option
-    migration = "add_token_to_users"
-    run_generator [migration, "auth_token:token"]
+    migration = 'add_token_to_users'
+    run_generator [migration, 'auth_token:token']
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/add_column :users, :auth_token, :string/, change)
@@ -418,19 +418,19 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_to_configured_path
-    old_paths = Rails.application.config.paths["db/migrate"]
-    Rails.application.config.paths.add "db/migrate", with: "db2/migrate"
+    old_paths = Rails.application.config.paths['db/migrate']
+    Rails.application.config.paths.add 'db/migrate', with: 'db2/migrate'
 
-    migration = "migration_in_custom_path"
+    migration = 'migration_in_custom_path'
     run_generator [migration]
     assert_migration "db2/migrate/#{migration}.rb", /.*/
   ensure
-    Rails.application.config.paths["db/migrate"] = old_paths
+    Rails.application.config.paths['db/migrate'] = old_paths
   end
 
   def test_add_migration_ignores_virtual_attributes
-    migration = "add_rich_text_content_to_messages"
-    run_generator [migration, "content:rich_text", "video:attachment", "photos:attachments"]
+    migration = 'add_rich_text_content_to_messages'
+    run_generator [migration, 'content:rich_text', 'video:attachment', 'photos:attachments']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
@@ -442,8 +442,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_create_table_migration_ignores_virtual_attributes
-    run_generator ["create_messages", "content:rich_text", "video:attachment", "photos:attachments"]
-    assert_migration "db/migrate/create_messages.rb" do |content|
+    run_generator ['create_messages', 'content:rich_text', 'video:attachment', 'photos:attachments']
+    assert_migration 'db/migrate/create_messages.rb' do |content|
       assert_method :change, content do |change|
         assert_match(/create_table :messages/, change)
         assert_no_match(/  t\.rich_text :content/, change)
@@ -454,8 +454,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_remove_migration_with_virtual_attributes
-    migration = "remove_content_from_messages"
-    run_generator [migration, "content:rich_text", "video:attachment", "photos:attachments"]
+    migration = 'remove_content_from_messages'
+    run_generator [migration, 'content:rich_text', 'video:attachment', 'photos:attachments']
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|

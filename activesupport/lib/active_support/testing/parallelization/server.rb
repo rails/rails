@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "drb"
-require "drb/unix" unless Gem.win_platform?
+require 'drb'
+require 'drb/unix' unless Gem.win_platform?
 
 module ActiveSupport
   module Testing
@@ -64,8 +64,8 @@ module ActiveSupport
 
           @in_flight.values.each do |(klass, name, reporter)|
             result = Minitest::Result.from(klass.new(name))
-            error = RuntimeError.new("result not reported")
-            error.set_backtrace([""])
+            error = RuntimeError.new('result not reported')
+            error.set_backtrace([''])
             result.failures << Minitest::UnexpectedError.new(error)
             reporter.synchronize do
               reporter.record(result)

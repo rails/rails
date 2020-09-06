@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-require "config"
+require 'config'
 
-require "stringio"
+require 'stringio'
 
-require "active_record"
-require "cases/test_case"
-require "active_support/dependencies"
-require "active_support/logger"
-require "active_support/core_ext/kernel/singleton_class"
+require 'active_record'
+require 'cases/test_case'
+require 'active_support/dependencies'
+require 'active_support/logger'
+require 'active_support/core_ext/kernel/singleton_class'
 
-require "support/config"
-require "support/connection"
+require 'support/config'
+require 'support/connection'
 
 # TODO: Move all these random hacks into the ARTest namespace and into the support/ dir
 
@@ -27,7 +27,7 @@ I18n.enforce_available_locales = false
 ARTest.connect
 
 # Quote "type" if it's a reserved word for the current connection.
-QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name("type")
+QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
 
 def current_adapter?(*types)
   types.any? do |type|
@@ -38,11 +38,11 @@ end
 
 def in_memory_db?
   current_adapter?(:SQLite3Adapter) &&
-  ActiveRecord::Base.connection_pool.db_config.database == ":memory:"
+  ActiveRecord::Base.connection_pool.db_config.database == ':memory:'
 end
 
 def mysql_enforcing_gtid_consistency?
-  current_adapter?(:Mysql2Adapter) && "ON" == ActiveRecord::Base.connection.show_variable("enforce_gtid_consistency")
+  current_adapter?(:Mysql2Adapter) && 'ON' == ActiveRecord::Base.connection.show_variable('enforce_gtid_consistency')
 end
 
 def supports_default_expression?
@@ -50,7 +50,7 @@ def supports_default_expression?
     true
   elsif current_adapter?(:Mysql2Adapter)
     conn = ActiveRecord::Base.connection
-    !conn.mariadb? && conn.database_version >= "8.0.13"
+    !conn.mariadb? && conn.database_version >= '8.0.13'
   end
 end
 
@@ -71,11 +71,11 @@ end
   end
 end
 
-def with_env_tz(new_tz = "US/Eastern")
-  old_tz, ENV["TZ"] = ENV["TZ"], new_tz
+def with_env_tz(new_tz = 'US/Eastern')
+  old_tz, ENV['TZ'] = ENV['TZ'], new_tz
   yield
 ensure
-  old_tz ? ENV["TZ"] = old_tz : ENV.delete("TZ")
+  old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
 end
 
 def with_timezone_config(cfg)
@@ -161,7 +161,7 @@ def load_schema
   adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
   adapter_specific_schema_file = SCHEMA_ROOT + "/#{adapter_name}_specific_schema.rb"
 
-  load SCHEMA_ROOT + "/schema.rb"
+  load SCHEMA_ROOT + '/schema.rb'
 
   if File.exist?(adapter_specific_schema_file)
     load adapter_specific_schema_file
@@ -206,4 +206,4 @@ module InTimeZone
     end
 end
 
-require_relative "../../../tools/test_common"
+require_relative '../../../tools/test_common'

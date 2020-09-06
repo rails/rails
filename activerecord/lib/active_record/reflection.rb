@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/filters"
+require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
   # = Active Record Reflection
@@ -404,7 +404,7 @@ module ActiveRecord
     class AssociationReflection < MacroReflection #:nodoc:
       def compute_class(name)
         if polymorphic?
-          raise ArgumentError, "Polymorphic associations do not support computing the class."
+          raise ArgumentError, 'Polymorphic associations do not support computing the class.'
         end
         active_record.send(:compute_type, name)
       end
@@ -419,7 +419,7 @@ module ActiveRecord
         @constructable = calculate_constructable(macro, options)
 
         if options[:class_name] && options[:class_name].class == Class
-          raise ArgumentError, "A class was passed to `:class_name` but we are expecting a string."
+          raise ArgumentError, 'A class was passed to `:class_name` but we are expecting a string.'
         end
       end
 

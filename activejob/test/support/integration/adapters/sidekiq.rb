@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "sidekiq/api"
+require 'sidekiq/api'
 
-require "sidekiq/testing"
+require 'sidekiq/testing'
 Sidekiq::Testing.disable!
 
 module SidekiqJobsManager
@@ -10,14 +10,14 @@ module SidekiqJobsManager
     ActiveJob::Base.queue_adapter = :sidekiq
     unless can_run?
       puts "Cannot run integration tests for sidekiq. To be able to run integration tests for sidekiq you need to install and start redis.\n"
-      status = ENV["CI"] ? false : true
+      status = ENV['CI'] ? false : true
       exit status
     end
   end
 
   def clear_jobs
     Sidekiq::ScheduledSet.new.clear
-    Sidekiq::Queue.new("integration_tests").clear
+    Sidekiq::Queue.new('integration_tests').clear
   end
 
   def start_workers
@@ -35,12 +35,12 @@ module SidekiqJobsManager
       $stdout.sync = true
       $stderr.sync = true
 
-      logfile = Rails.root.join("log/sidekiq.log").to_s
+      logfile = Rails.root.join('log/sidekiq.log').to_s
       Sidekiq.logger = Sidekiq::Logger.new(logfile)
 
       self_read, self_write = IO.pipe
-      trap "TERM" do
-        self_write.puts("TERM")
+      trap 'TERM' do
+        self_write.puts('TERM')
       end
 
       Thread.new do
@@ -48,23 +48,23 @@ module SidekiqJobsManager
           death_read.read
         rescue Exception
         end
-        self_write.puts("TERM")
+        self_write.puts('TERM')
       end
 
-      require "sidekiq/cli"
-      require "sidekiq/launcher"
-      sidekiq = Sidekiq::Launcher.new(queues: ["integration_tests"],
-                                       environment: "test",
+      require 'sidekiq/cli'
+      require 'sidekiq/launcher'
+      sidekiq = Sidekiq::Launcher.new(queues: ['integration_tests'],
+                                       environment: 'test',
                                        concurrency: 1,
                                        timeout: 1)
       Sidekiq.average_scheduled_poll_interval = 0.5
       Sidekiq.options[:poll_interval_average] = 1
       begin
         sidekiq.run
-        continue_write.puts "started"
+        continue_write.puts 'started'
         while readable_io = IO.select([self_read])
           signal = readable_io.first[0].gets.strip
-          raise Interrupt if signal == "TERM"
+          raise Interrupt if signal == 'TERM'
         end
       rescue Interrupt
       end
@@ -76,12 +76,12 @@ module SidekiqJobsManager
     death_read.close
     @worker_lifeline = death_write
 
-    raise "Failed to start worker" unless continue_read.gets == "started\n"
+    raise 'Failed to start worker' unless continue_read.gets == "started\n"
   end
 
   def stop_workers
     if @pid
-      Process.kill "TERM", @pid
+      Process.kill 'TERM', @pid
       Process.wait @pid
     end
   end

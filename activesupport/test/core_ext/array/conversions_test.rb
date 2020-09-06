@@ -1,79 +1,79 @@
 # frozen_string_literal: true
 
-require_relative "../../abstract_unit"
-require "active_support/core_ext/array"
-require "active_support/core_ext/big_decimal"
-require "active_support/core_ext/hash"
-require "active_support/core_ext/string"
+require_relative '../../abstract_unit'
+require 'active_support/core_ext/array'
+require 'active_support/core_ext/big_decimal'
+require 'active_support/core_ext/hash'
+require 'active_support/core_ext/string'
 
 class ToSentenceTest < ActiveSupport::TestCase
   def test_plain_array_to_sentence
-    assert_equal "", [].to_sentence
-    assert_equal "one", ["one"].to_sentence
-    assert_equal "one and two", ["one", "two"].to_sentence
-    assert_equal "one, two, and three", ["one", "two", "three"].to_sentence
+    assert_equal '', [].to_sentence
+    assert_equal 'one', ['one'].to_sentence
+    assert_equal 'one and two', ['one', 'two'].to_sentence
+    assert_equal 'one, two, and three', ['one', 'two', 'three'].to_sentence
   end
 
   def test_to_sentence_with_words_connector
-    assert_equal "one two, and three", ["one", "two", "three"].to_sentence(words_connector: " ")
-    assert_equal "one & two, and three", ["one", "two", "three"].to_sentence(words_connector: " & ")
-    assert_equal "onetwo, and three", ["one", "two", "three"].to_sentence(words_connector: nil)
+    assert_equal 'one two, and three', ['one', 'two', 'three'].to_sentence(words_connector: ' ')
+    assert_equal 'one & two, and three', ['one', 'two', 'three'].to_sentence(words_connector: ' & ')
+    assert_equal 'onetwo, and three', ['one', 'two', 'three'].to_sentence(words_connector: nil)
   end
 
   def test_to_sentence_with_last_word_connector
-    assert_equal "one, two, and also three", ["one", "two", "three"].to_sentence(last_word_connector: ", and also ")
-    assert_equal "one, twothree", ["one", "two", "three"].to_sentence(last_word_connector: nil)
-    assert_equal "one, two three", ["one", "two", "three"].to_sentence(last_word_connector: " ")
-    assert_equal "one, two and three", ["one", "two", "three"].to_sentence(last_word_connector: " and ")
+    assert_equal 'one, two, and also three', ['one', 'two', 'three'].to_sentence(last_word_connector: ', and also ')
+    assert_equal 'one, twothree', ['one', 'two', 'three'].to_sentence(last_word_connector: nil)
+    assert_equal 'one, two three', ['one', 'two', 'three'].to_sentence(last_word_connector: ' ')
+    assert_equal 'one, two and three', ['one', 'two', 'three'].to_sentence(last_word_connector: ' and ')
   end
 
   def test_two_elements
-    assert_equal "one and two", ["one", "two"].to_sentence
-    assert_equal "one two", ["one", "two"].to_sentence(two_words_connector: " ")
+    assert_equal 'one and two', ['one', 'two'].to_sentence
+    assert_equal 'one two', ['one', 'two'].to_sentence(two_words_connector: ' ')
   end
 
   def test_one_element
-    assert_equal "one", ["one"].to_sentence
+    assert_equal 'one', ['one'].to_sentence
   end
 
   def test_one_element_not_same_object
-    elements = ["one"]
+    elements = ['one']
     assert_not_equal elements[0].object_id, elements.to_sentence.object_id
   end
 
   def test_one_non_string_element
-    assert_equal "1", [1].to_sentence
+    assert_equal '1', [1].to_sentence
   end
 
   def test_does_not_modify_given_hash
-    options = { words_connector: " " }
-    assert_equal "one two, and three", ["one", "two", "three"].to_sentence(options)
-    assert_equal({ words_connector: " " }, options)
+    options = { words_connector: ' ' }
+    assert_equal 'one two, and three', ['one', 'two', 'three'].to_sentence(options)
+    assert_equal({ words_connector: ' ' }, options)
   end
 
   def test_with_blank_elements
-    assert_equal ", one, , two, and three", [nil, "one", "", "two", "three"].to_sentence
+    assert_equal ', one, , two, and three', [nil, 'one', '', 'two', 'three'].to_sentence
   end
 
   def test_with_invalid_options
     exception = assert_raise ArgumentError do
-      ["one", "two"].to_sentence(passing: "invalid option")
+      ['one', 'two'].to_sentence(passing: 'invalid option')
     end
 
-    assert_equal "Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale", exception.message
+    assert_equal 'Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale', exception.message
   end
 
   def test_always_returns_string
-    assert_instance_of String, [ActiveSupport::SafeBuffer.new("one")].to_sentence
-    assert_instance_of String, [ActiveSupport::SafeBuffer.new("one"), "two"].to_sentence
-    assert_instance_of String, [ActiveSupport::SafeBuffer.new("one"), "two", "three"].to_sentence
+    assert_instance_of String, [ActiveSupport::SafeBuffer.new('one')].to_sentence
+    assert_instance_of String, [ActiveSupport::SafeBuffer.new('one'), 'two'].to_sentence
+    assert_instance_of String, [ActiveSupport::SafeBuffer.new('one'), 'two', 'three'].to_sentence
   end
 
   def test_returns_no_frozen_string
     assert_not [].to_sentence.frozen?
-    assert_not ["one"].to_sentence.frozen?
-    assert_not ["one", "two"].to_sentence.frozen?
-    assert_not ["one", "two", "three"].to_sentence.frozen?
+    assert_not ['one'].to_sentence.frozen?
+    assert_not ['one', 'two'].to_sentence.frozen?
+    assert_not ['one', 'two', 'three'].to_sentence.frozen?
   end
 end
 
@@ -88,16 +88,16 @@ class ToSTest < ActiveSupport::TestCase
   def test_to_s_db
     collection = [TestDB.new, TestDB.new, TestDB.new]
 
-    assert_equal "null", [].to_s(:db)
-    assert_equal "1,2,3", collection.to_s(:db)
+    assert_equal 'null', [].to_s(:db)
+    assert_equal '1,2,3', collection.to_s(:db)
   end
 end
 
 class ToXmlTest < ActiveSupport::TestCase
   def test_to_xml_with_hash_elements
     xml = [
-      { name: "David", age: 26, age_in_millis: 820497600000 },
-      { name: "Jason", age: 31, age_in_millis: BigDecimal("1.0") }
+      { name: 'David', age: 26, age_in_millis: 820497600000 },
+      { name: 'Jason', age: 31, age_in_millis: BigDecimal('1.0') }
     ].to_xml(skip_instruct: true, indent: 0)
 
     assert_equal '<objects type="array"><object>', xml.first(30)
@@ -117,7 +117,7 @@ class ToXmlTest < ActiveSupport::TestCase
   end
 
   def test_to_xml_with_non_hash_different_type_elements
-    xml = [1, 2.0, "3"].to_xml(skip_instruct: true, indent: 0)
+    xml = [1, 2.0, '3'].to_xml(skip_instruct: true, indent: 0)
 
     assert_equal '<objects type="array"><object', xml.first(29)
     assert_includes xml, %(<object type="integer">1</object>), xml
@@ -127,18 +127,18 @@ class ToXmlTest < ActiveSupport::TestCase
 
   def test_to_xml_with_dedicated_name
     xml = [
-      { name: "David", age: 26, age_in_millis: 820497600000 }, { name: "Jason", age: 31 }
-    ].to_xml(skip_instruct: true, indent: 0, root: "people")
+      { name: 'David', age: 26, age_in_millis: 820497600000 }, { name: 'Jason', age: 31 }
+    ].to_xml(skip_instruct: true, indent: 0, root: 'people')
 
     assert_equal '<people type="array"><person>', xml.first(29)
   end
 
   def test_to_xml_with_options
     xml = [
-      { name: "David", street_address: "Paulina" }, { name: "Jason", street_address: "Evergreen" }
+      { name: 'David', street_address: 'Paulina' }, { name: 'Jason', street_address: 'Evergreen' }
     ].to_xml(skip_instruct: true, skip_types: true, indent: 0)
 
-    assert_equal "<objects><object>", xml.first(17)
+    assert_equal '<objects><object>', xml.first(17)
     assert_includes xml, %(<street-address>Paulina</street-address>)
     assert_includes xml, %(<name>David</name>)
     assert_includes xml, %(<street-address>Evergreen</street-address>)
@@ -147,7 +147,7 @@ class ToXmlTest < ActiveSupport::TestCase
 
   def test_to_xml_with_indent_set
     xml = [
-      { name: "David", street_address: "Paulina" }, { name: "Jason", street_address: "Evergreen" }
+      { name: 'David', street_address: 'Paulina' }, { name: 'Jason', street_address: 'Evergreen' }
     ].to_xml(skip_instruct: true, skip_types: true, indent: 4)
 
     assert_equal "<objects>\n    <object>", xml.first(22)
@@ -159,28 +159,28 @@ class ToXmlTest < ActiveSupport::TestCase
 
   def test_to_xml_with_dasherize_false
     xml = [
-      { name: "David", street_address: "Paulina" }, { name: "Jason", street_address: "Evergreen" }
+      { name: 'David', street_address: 'Paulina' }, { name: 'Jason', street_address: 'Evergreen' }
     ].to_xml(skip_instruct: true, skip_types: true, indent: 0, dasherize: false)
 
-    assert_equal "<objects><object>", xml.first(17)
+    assert_equal '<objects><object>', xml.first(17)
     assert_includes xml, %(<street_address>Paulina</street_address>)
     assert_includes xml, %(<street_address>Evergreen</street_address>)
   end
 
   def test_to_xml_with_dasherize_true
     xml = [
-      { name: "David", street_address: "Paulina" }, { name: "Jason", street_address: "Evergreen" }
+      { name: 'David', street_address: 'Paulina' }, { name: 'Jason', street_address: 'Evergreen' }
     ].to_xml(skip_instruct: true, skip_types: true, indent: 0, dasherize: true)
 
-    assert_equal "<objects><object>", xml.first(17)
+    assert_equal '<objects><object>', xml.first(17)
     assert_includes xml, %(<street-address>Paulina</street-address>)
     assert_includes xml, %(<street-address>Evergreen</street-address>)
   end
 
   def test_to_xml_with_instruct
     xml = [
-      { name: "David", age: 26, age_in_millis: 820497600000 },
-      { name: "Jason", age: 31, age_in_millis: BigDecimal("1.0") }
+      { name: 'David', age: 26, age_in_millis: 820497600000 },
+      { name: 'Jason', age: 31, age_in_millis: BigDecimal('1.0') }
     ].to_xml(skip_instruct: false, indent: 0)
 
     assert_match(/^<\?xml [^>]*/, xml)
@@ -189,8 +189,8 @@ class ToXmlTest < ActiveSupport::TestCase
 
   def test_to_xml_with_block
     xml = [
-      { name: "David", age: 26, age_in_millis: 820497600000 },
-      { name: "Jason", age: 31, age_in_millis: BigDecimal("1.0") }
+      { name: 'David', age: 26, age_in_millis: 820497600000 },
+      { name: 'Jason', age: 31, age_in_millis: BigDecimal('1.0') }
     ].to_xml(skip_instruct: true, indent: 0) do |builder|
       builder.count 2
     end

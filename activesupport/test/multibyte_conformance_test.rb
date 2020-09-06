@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require_relative "multibyte_test_helpers"
+require_relative 'abstract_unit'
+require_relative 'multibyte_test_helpers'
 
 class MultibyteConformanceTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
-  UNIDATA_FILE = "/NormalizationTest.txt"
+  UNIDATA_FILE = '/NormalizationTest.txt'
   RUN_P = begin
             Downloader.download(UNIDATA_URL + UNIDATA_FILE, CACHE_DIR + UNIDATA_FILE)
           rescue
@@ -14,7 +14,7 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
 
   def setup
     @proxy = ActiveSupport::Multibyte::Chars
-    skip "Unable to download test data" unless RUN_P
+    skip 'Unable to download test data' unless RUN_P
   end
 
   def test_normalizations_C
@@ -89,17 +89,17 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
 
   private
     def each_line_of_norm_tests(&block)
-      File.open(File.join(CACHE_DIR, UNIDATA_FILE), "r") do | f |
+      File.open(File.join(CACHE_DIR, UNIDATA_FILE), 'r') do | f |
         until f.eof?
           line = f.gets.chomp!
-          next if line.empty? || line.start_with?("#")
+          next if line.empty? || line.start_with?('#')
 
-          cols, comment = line.split("#")
-          cols = cols.split(";").map(&:strip).reject(&:empty?)
+          cols, comment = line.split('#')
+          cols = cols.split(';').map(&:strip).reject(&:empty?)
           next unless cols.length == 5
 
           # codepoints are in hex in the test suite, pack wants them as integers
-          cols.map! { |c| c.split.map { |codepoint| codepoint.to_i(16) }.pack("U*") }
+          cols.map! { |c| c.split.map { |codepoint| codepoint.to_i(16) }.pack('U*') }
           cols << comment
 
           yield(*cols)
@@ -108,6 +108,6 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
     end
 
     def inspect_codepoints(str)
-      str.to_s.unpack("U*").map { |cp| cp.to_s(16) }.join(" ")
+      str.to_s.unpack('U*').map { |cp| cp.to_s(16) }.join(' ')
     end
 end

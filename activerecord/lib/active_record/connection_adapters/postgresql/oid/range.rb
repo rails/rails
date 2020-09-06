@@ -14,11 +14,11 @@ module ActiveRecord
           end
 
           def type_cast_for_schema(value)
-            value.inspect.gsub("Infinity", "::Float::INFINITY")
+            value.inspect.gsub('Infinity', '::Float::INFINITY')
           end
 
           def cast_value(value)
-            return if value == "empty"
+            return if value == 'empty'
             return value unless value.is_a?(::String)
 
             extracted = extract_bounds(value)
@@ -67,12 +67,12 @@ module ActiveRecord
             end
 
             def extract_bounds(value)
-              from, to = value[1..-2].split(",", 2)
+              from, to = value[1..-2].split(',', 2)
               {
-                from:          (from == "" || from == "-infinity") ? infinity(negative: true) : unquote(from),
-                to:            (to == "" || to == "infinity") ? infinity : unquote(to),
-                exclude_start: value.start_with?("("),
-                exclude_end:   value.end_with?(")")
+                from:          (from == '' || from == '-infinity') ? infinity(negative: true) : unquote(from),
+                to:            (to == '' || to == 'infinity') ? infinity : unquote(to),
+                exclude_start: value.start_with?('('),
+                exclude_end:   value.end_with?(')')
               }
             end
 

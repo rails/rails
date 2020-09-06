@@ -2,7 +2,7 @@
 
 module ActiveRecord
   class LogSubscriber < ActiveSupport::LogSubscriber
-    IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
+    IGNORE_PAYLOAD_NAMES = ['SCHEMA', 'EXPLAIN']
 
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 
@@ -40,7 +40,7 @@ module ActiveRecord
           binds << render_bind(attr, casted_params[i])
         end
         binds = binds.inspect
-        binds.prepend("  ")
+        binds.prepend('  ')
       end
 
       name = colorize_payload_name(name, payload[:name])
@@ -70,7 +70,7 @@ module ActiveRecord
       end
 
       def colorize_payload_name(name, payload_name)
-        if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
+        if payload_name.blank? || payload_name == 'SQL' # SQL vs Model Load/Exists
           color(name, MAGENTA, true)
         else
           color(name, CYAN, true)

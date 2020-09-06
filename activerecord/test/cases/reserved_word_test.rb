@@ -1,28 +1,28 @@
 # frozen_string_literal: true
 
-require "cases/helper"
+require 'cases/helper'
 
 class ReservedWordTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
   self.use_transactional_tests = false
 
   class Group < ActiveRecord::Base
-    Group.table_name = "group"
+    Group.table_name = 'group'
     belongs_to :select
     has_one :values
   end
 
   class Select < ActiveRecord::Base
-    Select.table_name = "select"
+    Select.table_name = 'select'
     has_many :groups
   end
 
   class Values < ActiveRecord::Base
-    Values.table_name = "values"
+    Values.table_name = 'values'
   end
 
   class Distinct < ActiveRecord::Base
-    Distinct.table_name = "distinct"
+    Distinct.table_name = 'distinct'
     has_and_belongs_to_many :selects
     has_many :values, through: :groups
   end
@@ -68,23 +68,23 @@ class ReservedWordTest < ActiveRecord::TestCase
   end
 
   def test_change_columns
-    assert_nothing_raised { @connection.change_column_default(:group, :order, "whatever") }
-    assert_nothing_raised { @connection.change_column("group", "order", :text, default: nil) }
+    assert_nothing_raised { @connection.change_column_default(:group, :order, 'whatever') }
+    assert_nothing_raised { @connection.change_column('group', 'order', :text, default: nil) }
     assert_nothing_raised { @connection.rename_column(:group, :order, :values) }
   end
 
   def test_introspect
-    assert_equal ["id", "order", "select_id"], @connection.columns(:group).map(&:name).sort
-    assert_equal ["index_group_on_select_id"], @connection.indexes(:group).map(&:name).sort
+    assert_equal ['id', 'order', 'select_id'], @connection.columns(:group).map(&:name).sort
+    assert_equal ['index_group_on_select_id'], @connection.indexes(:group).map(&:name).sort
   end
 
   def test_activerecord_model
     x = Group.new
-    x.order = "x"
+    x.order = 'x'
     x.save!
-    x.order = "y"
+    x.order = 'y'
     x.save!
-    assert_equal x, Group.find_by_order("y")
+    assert_equal x, Group.find_by_order('y')
     assert_equal x, Group.find(x.id)
   end
 
@@ -117,7 +117,7 @@ class ReservedWordTest < ActiveRecord::TestCase
 
   def test_activerecord_introspection
     assert_predicate Group, :table_exists?
-    assert_equal ["id", "order", "select_id"], Group.columns.map(&:name).sort
+    assert_equal ['id', 'order', 'select_id'], Group.columns.map(&:name).sort
   end
 
   def test_calculations_work_with_reserved_words
@@ -136,6 +136,6 @@ class ReservedWordTest < ActiveRecord::TestCase
   private
     # custom fixture loader, uses FixtureSet#create_fixtures and appends base_path to the current file's path
     def create_test_fixtures(*fixture_names)
-      ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + "/reserved_words", fixture_names)
+      ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + '/reserved_words', fixture_names)
     end
 end

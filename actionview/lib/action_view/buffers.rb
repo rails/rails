@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/output_safety"
+require 'active_support/core_ext/string/output_safety'
 
 module ActionView
   # Used as a buffer for views

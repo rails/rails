@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/concern"
-require "rails/generators/actions/create_migration"
+require 'active_support/concern'
+require 'rails/generators/actions/create_migration'
 
 module Rails
   module Generators
@@ -23,7 +23,7 @@ module Rails
 
         def current_migration_number(dirname)
           migration_lookup_at(dirname).collect do |file|
-            File.basename(file).split("_").first.to_i
+            File.basename(file).split('_').first.to_i
           end.max.to_i
         end
 
@@ -41,7 +41,7 @@ module Rails
 
         migration_dir = File.dirname(destination)
         @migration_number     = self.class.next_migration_number(migration_dir)
-        @migration_file_name  = File.basename(destination, ".rb")
+        @migration_file_name  = File.basename(destination, '.rb')
         @migration_class_name = @migration_file_name.camelize
       end
 
@@ -57,16 +57,16 @@ module Rails
         source = File.expand_path(find_in_source_paths(source.to_s))
 
         set_migration_assigns!(destination)
-        context = instance_eval("binding")
+        context = instance_eval('binding')
 
         dir, base = File.split(destination)
-        numbered_destination = File.join(dir, ["%migration_number%", base].join("_"))
+        numbered_destination = File.join(dir, ['%migration_number%', base].join('_'))
 
         file = create_migration numbered_destination, nil, config do
           if ERB.instance_method(:initialize).parameters.assoc(:key) # Ruby 2.6+
-            ERB.new(::File.binread(source), trim_mode: "-", eoutvar: "@output_buffer").result(context)
+            ERB.new(::File.binread(source), trim_mode: '-', eoutvar: '@output_buffer').result(context)
           else
-            ERB.new(::File.binread(source), nil, "-", "@output_buffer").result(context)
+            ERB.new(::File.binread(source), nil, '-', '@output_buffer').result(context)
           end
         end
         Rails::Generators.add_generated_file(file)

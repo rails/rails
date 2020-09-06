@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "models/author"
-require "models/post"
+require 'cases/helper'
+require 'models/author'
+require 'models/post'
 
 class Mysql2ExplainTest < ActiveRecord::Mysql2TestCase
   fixtures :authors

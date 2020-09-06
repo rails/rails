@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-require "cases/helper"
-require "support/schema_dumping_helper"
+require 'cases/helper'
+require 'support/schema_dumping_helper'
 
 class UnloggedTablesTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
-  TABLE_NAME = "things"
-  LOGGED_FIELD = "relpersistence"
+  TABLE_NAME = 'things'
+  LOGGED_FIELD = 'relpersistence'
   LOGGED_QUERY = "SELECT #{LOGGED_FIELD} FROM pg_class WHERE relname = '#{TABLE_NAME}'"
-  LOGGED = "p"
-  UNLOGGED = "u"
-  TEMPORARY = "t"
+  LOGGED = 'p'
+  UNLOGGED = 'u'
+  TEMPORARY = 't'
 
   class Thing < ActiveRecord::Base
     self.table_name = TABLE_NAME

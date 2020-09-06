@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/hash/reverse_merge"
-require "active_support/core_ext/hash/except"
+require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/hash/reverse_merge'
+require 'active_support/core_ext/hash/except'
 
 module ActiveSupport
   # Implements a hash where keys <tt>:foo</tt> and <tt>"foo"</tt> are considered

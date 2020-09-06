@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "abstract_unit"
-require "active_support/log_subscriber/test_helper"
+require_relative 'abstract_unit'
+require 'active_support/log_subscriber/test_helper'
 
 class MyLogSubscriber < ActiveSupport::LogSubscriber
   attr_reader :event
@@ -12,9 +12,9 @@ class MyLogSubscriber < ActiveSupport::LogSubscriber
   end
 
   def foo(event)
-    debug "debug"
-    info { "info" }
-    warn "warn"
+    debug 'debug'
+    info { 'info' }
+    warn 'warn'
   end
 
   def bar(event)
@@ -22,7 +22,7 @@ class MyLogSubscriber < ActiveSupport::LogSubscriber
   end
 
   def puke(event)
-    raise "puke"
+    raise 'puke'
   end
 end
 
@@ -63,21 +63,21 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
 
   def test_event_is_sent_to_the_registered_class
     ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
-    instrument "some_event.my_log_subscriber"
+    instrument 'some_event.my_log_subscriber'
     wait
     assert_equal %w(some_event.my_log_subscriber), @logger.logged(:info)
   end
 
   def test_event_is_an_active_support_notifications_event
     ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
-    instrument "some_event.my_log_subscriber"
+    instrument 'some_event.my_log_subscriber'
     wait
     assert_kind_of ActiveSupport::Notifications::Event, @log_subscriber.event
   end
 
   def test_event_attributes
     ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
-    instrument "some_event.my_log_subscriber"
+    instrument 'some_event.my_log_subscriber'
     wait
     event = @log_subscriber.event
     if defined?(JRUBY_VERSION)
@@ -93,7 +93,7 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
 
   def test_does_not_send_the_event_if_it_doesnt_match_the_class
     ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
-    instrument "unknown_event.my_log_subscriber"
+    instrument 'unknown_event.my_log_subscriber'
     wait
     # If we get here, it means that NoMethodError was not raised.
   end
@@ -102,14 +102,14 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     ActiveSupport::LogSubscriber.logger = nil
     assert_not_called(@log_subscriber, :some_event) do
       ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
-      instrument "some_event.my_log_subscriber"
+      instrument 'some_event.my_log_subscriber'
       wait
     end
   end
 
   def test_does_not_fail_with_non_namespaced_events
     ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
-    instrument "whatever"
+    instrument 'whatever'
     wait
   end
 
@@ -129,12 +129,12 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
 
   def test_logging_does_not_die_on_failures
     ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
-    instrument "puke.my_log_subscriber"
-    instrument "some_event.my_log_subscriber"
+    instrument 'puke.my_log_subscriber'
+    instrument 'some_event.my_log_subscriber'
     wait
 
     assert_equal 1, @logger.logged(:info).size
-    assert_equal "some_event.my_log_subscriber", @logger.logged(:info).last
+    assert_equal 'some_event.my_log_subscriber', @logger.logged(:info).last
 
     assert_equal 1, @logger.logged(:error).size
     assert_match 'Could not log "puke.my_log_subscriber" event. RuntimeError: puke', @logger.logged(:error).last

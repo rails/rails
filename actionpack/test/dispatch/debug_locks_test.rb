@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require 'abstract_unit'
 
 class DebugLocksTest < ActionDispatch::IntegrationTest
   setup do
@@ -20,7 +20,7 @@ class DebugLocksTest < ActionDispatch::IntegrationTest
 
     thread_ready.wait
 
-    get "/rails/locks"
+    get '/rails/locks'
 
     test_terminated.count_down
 

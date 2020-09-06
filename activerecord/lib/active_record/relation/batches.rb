@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_record/relation/batches/batch_enumerator"
+require 'active_record/relation/batches/batch_enumerator'
 
 module ActiveRecord
   module Batches
@@ -240,7 +240,7 @@ module ActiveRecord
         break if ids.empty?
 
         primary_key_offset = ids.last
-        raise ArgumentError.new("Primary key not included in the custom select clause") unless primary_key_offset
+        raise ArgumentError.new('Primary key not included in the custom select clause') unless primary_key_offset
 
         yield yielded_relation
 

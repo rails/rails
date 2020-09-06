@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require_relative "../helper"
+require_relative '../helper'
 
 module Arel
   module Nodes
-    describe "equality" do
+    describe 'equality' do
       # FIXME: backwards compat
-      describe "backwards compat" do
-        describe "to_sql" do
-          it "takes an engine" do
+      describe 'backwards compat' do
+        describe 'to_sql' do
+          it 'takes an engine' do
             engine = FakeRecord::Base.new
             engine.connection.extend Module.new {
               attr_accessor :quote_count
@@ -26,8 +26,8 @@ module Arel
         end
       end
 
-      describe "or" do
-        it "makes an OR node" do
+      describe 'or' do
+        it 'makes an OR node' do
           attr = Table.new(:users)[:id]
           left  = attr.eq(10)
           right = attr.eq(11)
@@ -37,8 +37,8 @@ module Arel
         end
       end
 
-      describe "and" do
-        it "makes and AND node" do
+      describe 'and' do
+        it 'makes and AND node' do
           attr = Table.new(:users)[:id]
           left  = attr.eq(10)
           right = attr.eq(11)
@@ -48,13 +48,13 @@ module Arel
         end
       end
 
-      it "is equal with equal ivars" do
-        array = [Equality.new("foo", "bar"), Equality.new("foo", "bar")]
+      it 'is equal with equal ivars' do
+        array = [Equality.new('foo', 'bar'), Equality.new('foo', 'bar')]
         assert_equal 1, array.uniq.size
       end
 
-      it "is not equal with different ivars" do
-        array = [Equality.new("foo", "bar"), Equality.new("foo", "baz")]
+      it 'is not equal with different ivars' do
+        array = [Equality.new('foo', 'bar'), Equality.new('foo', 'baz')]
         assert_equal 2, array.uniq.size
       end
     end
