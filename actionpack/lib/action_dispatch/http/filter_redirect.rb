@@ -24,9 +24,10 @@ module ActionDispatch
 
       def location_filter_match?
         location_filters.any? do |filter|
-          if String === filter
+          case filter
+          when String
             location.include?(filter)
-          elsif Regexp === filter
+          when Regexp
             location.match?(filter)
           end
         end

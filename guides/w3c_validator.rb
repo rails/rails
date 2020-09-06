@@ -36,7 +36,7 @@ module RailsGuides
     def validate
       # https://github.com/w3c-validators/w3c_validators/issues/25
       validator = NuValidator.new
-      STDOUT.sync = true
+      $stdout.sync = true
       errors_on_guides = {}
 
       guides_to_validate.each do |f|

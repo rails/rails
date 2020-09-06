@@ -926,7 +926,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test "Concatting an integer to safe always yields safe" do
     string = @string.html_safe
-    string = string.concat(13)
+    string.concat(13)
     assert_equal (+"hello").concat(13), string
     assert_predicate string, :html_safe?
   end

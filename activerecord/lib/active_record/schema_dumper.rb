@@ -30,7 +30,7 @@ module ActiveRecord
     cattr_accessor :chk_ignore_pattern, default: /^chk_rails_[0-9a-f]{10}$/
 
     class << self
-      def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
+      def dump(connection = ActiveRecord::Base.connection, stream = $stdout, config = ActiveRecord::Base)
         connection.create_schema_dumper(generate_options(config)).dump(stream)
         stream
       end

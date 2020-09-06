@@ -21,7 +21,7 @@ module UJS
     config.secret_key_base = "59d7a4dbd349fa3838d79e330e39690fc22b931e7dc17d9162f03d633d526fbb92dfdb2dc9804c8be3e199631b9c1fbe43fc3e4fc75730b515851849c728d5c7"
     config.paths["app/views"].unshift("#{Rails.root}/views")
     config.public_file_server.enabled = true
-    config.logger = Logger.new(STDOUT)
+    config.logger = Logger.new($stdout)
     config.log_level = :error
     config.hosts << proc { true }
 

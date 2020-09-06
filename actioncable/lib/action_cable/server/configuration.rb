@@ -24,7 +24,7 @@ module ActionCable
       # If the adapter cannot be found, this will default to the Redis adapter.
       # Also makes sure proper dependencies are required.
       def pubsub_adapter
-        adapter = (cable.fetch("adapter") { "redis" })
+        adapter = (cable.fetch("adapter", "redis"))
 
         # Require the adapter itself and give useful feedback about
         #   1. Missing adapter gems and

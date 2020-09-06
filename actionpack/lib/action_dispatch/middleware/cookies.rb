@@ -448,7 +448,8 @@ module ActionDispatch
           cookies_same_site_protection = request.cookies_same_site_protection
           options[:same_site] ||= cookies_same_site_protection.call(request)
 
-          if options[:domain] == :all || options[:domain] == "all"
+          case options[:domain]
+          when :all, "all"
             # If there is a provided tld length then we use it otherwise default domain regexp.
             domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
 
@@ -457,7 +458,7 @@ module ActionDispatch
             options[:domain] = if !request.host.match?(/^[\d.]+$/) && (request.host =~ domain_regexp)
               ".#{$&}"
             end
-          elsif options[:domain].is_a? Array
+          when Array
             # If host matches one of the supplied domains.
             options[:domain] = options[:domain].find do |domain|
               domain = domain.delete_prefix(".")

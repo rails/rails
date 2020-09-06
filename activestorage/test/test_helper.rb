@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ENV["RAILS_ENV"] ||= "test"
-require_relative "dummy/config/environment.rb"
+require_relative "dummy/config/environment"
 
 require "bundler/setup"
 require "active_support"
@@ -69,7 +69,7 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.create_and_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, record: record
     end
 
-    def create_blob_before_direct_upload(key: nil, filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain", record: nil)
+    def create_blob_before_direct_upload(byte_size:, checksum:, key: nil, filename: "hello.txt", content_type: "text/plain", record: nil)
       ActiveStorage::Blob.create_before_direct_upload! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record
     end
 

@@ -78,7 +78,7 @@ class ActionsTest < Rails::Generators::TestCase
   def test_gem_should_put_gem_dependency_in_gemfile
     run_generator
     action :gem, "will-paginate"
-    assert_file "Gemfile", /gem 'will\-paginate'\n\z/
+    assert_file "Gemfile", /gem 'will-paginate'\n\z/
   end
 
   def test_gem_with_version_should_include_version_in_gemfile

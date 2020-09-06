@@ -65,7 +65,7 @@ module ActiveModel
               name,
               value,
               type,
-              _default_attributes.fetch(name.to_s) { nil },
+              _default_attributes.fetch(name.to_s, nil),
             )
           end
           _default_attributes[name] = default_attribute

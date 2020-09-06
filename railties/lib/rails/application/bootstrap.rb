@@ -40,7 +40,7 @@ module Rails
           logger
         rescue StandardError
           path = config.paths["log"].first
-          logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDERR))
+          logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new($stderr))
           logger.level = ActiveSupport::Logger::WARN
           logger.warn(
             "Rails Error: Unable to access log file. Please ensure that #{path} exists and is writable " \

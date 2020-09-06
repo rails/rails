@@ -255,7 +255,7 @@ module Rails
         path = paths["config/database"].existent.first
         yaml = Pathname.new(path) if path
 
-        config = if yaml&.exist?
+        if yaml&.exist?
           loaded_yaml = ActiveSupport::ConfigurationFile.parse(yaml)
           if (shared = loaded_yaml.delete("shared"))
             loaded_yaml.each do |_k, values|
@@ -270,8 +270,6 @@ module Rails
         else
           raise "Could not load database configuration. No such file - #{paths["config/database"].instance_variable_get(:@paths)}"
         end
-
-        config
       rescue => e
         raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
       end

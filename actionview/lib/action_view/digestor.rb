@@ -13,7 +13,7 @@ module ActionView
       # * <tt>format</tt>       - Template format
       # * <tt>finder</tt>       - An instance of <tt>ActionView::LookupContext</tt>
       # * <tt>dependencies</tt> - An array of dependent views
-      def digest(name:, format: nil, finder:, dependencies: nil)
+      def digest(name:, finder:, format: nil, dependencies: nil)
         if dependencies.nil? || dependencies.empty?
           cache_key = "#{name}.#{format}"
         else

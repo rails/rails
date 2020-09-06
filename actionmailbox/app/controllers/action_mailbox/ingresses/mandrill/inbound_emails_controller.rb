@@ -75,7 +75,7 @@ module ActionMailbox
           end
 
           def expected_signature
-            Base64.strict_encode64 OpenSSL::HMAC.digest(OpenSSL::Digest::SHA1.new, key, message)
+            Base64.strict_encode64 OpenSSL::HMAC.digest(OpenSSL::Digest.new("SHA1"), key, message)
           end
 
           def message

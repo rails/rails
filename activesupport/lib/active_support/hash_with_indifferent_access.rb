@@ -368,13 +368,14 @@ module ActiveSupport
       end
 
       def convert_value(value, conversion: nil)
-        if value.is_a? Hash
+        case value
+        when Hash
           if conversion == :to_hash
             value.to_hash
           else
             value.nested_under_indifferent_access
           end
-        elsif value.is_a?(Array)
+        when Array
           if conversion != :assignment || value.frozen?
             value = value.dup
           end

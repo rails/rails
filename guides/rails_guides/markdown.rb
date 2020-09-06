@@ -70,8 +70,8 @@ module RailsGuides
       end
 
       def extract_raw_header_and_body
-        if /^\-{40,}$/.match?(@raw_body)
-          @raw_header, _, @raw_body = @raw_body.partition(/^\-{40,}$/).map(&:strip)
+        if /^-{40,}$/.match?(@raw_body)
+          @raw_header, _, @raw_body = @raw_body.partition(/^-{40,}$/).map(&:strip)
         end
       end
 
@@ -125,9 +125,10 @@ module RailsGuides
         if @headings_for_index.present?
           raw_index = ""
           @headings_for_index.each do |level, node, label|
-            if level == 1
+            case level
+            when 1
               raw_index += "1. [#{label}](##{node[:id]})\n"
-            elsif level == 2
+            when 2
               raw_index += "    * [#{label}](##{node[:id]})\n"
             end
           end

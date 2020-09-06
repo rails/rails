@@ -15,8 +15,8 @@ module ActiveSupport
         end
 
         def quietly
-          silence_stream(STDOUT) do
-            silence_stream(STDERR) do
+          silence_stream($stdout) do
+            silence_stream($stderr) do
               yield
             end
           end

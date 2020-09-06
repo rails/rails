@@ -1497,12 +1497,14 @@ module ActiveRecord
             raise(ArgumentError, "Table '#{from_table}' has no foreign key for #{to_table || options}")
         end
 
+        FOREIGN_KEY_ACTIONS = {
+          "CASCADE" => :cascade,
+          "SET NULL" => :nullify,
+          "RESTRICT" => :restrict
+        }
+
         def extract_foreign_key_action(specifier)
-          case specifier
-          when "CASCADE"; :cascade
-          when "SET NULL"; :nullify
-          when "RESTRICT"; :restrict
-          end
+          FOREIGN_KEY_ACTIONS[specifier]
         end
 
         def check_constraint_name(table_name, **options)

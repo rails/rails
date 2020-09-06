@@ -884,9 +884,10 @@ module ActionDispatch
           end
 
           @scope.options.each do |option|
-            if option == :blocks
+            case option
+            when :blocks
               value = block
-            elsif option == :options
+            when :options
               value = options
             else
               value = options.delete(option) { POISON }

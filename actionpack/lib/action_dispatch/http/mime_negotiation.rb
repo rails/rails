@@ -19,7 +19,7 @@ module ActionDispatch
       # The MIME type of the HTTP request, such as Mime[:xml].
       def content_mime_type
         fetch_header("action_dispatch.request.content_type") do |k|
-          v = if get_header("CONTENT_TYPE") =~ /^([^,\;]*)/
+          v = if get_header("CONTENT_TYPE") =~ /^([^,;]*)/
             Mime::Type.lookup($1.strip.downcase)
           else
             nil

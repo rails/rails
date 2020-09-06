@@ -82,7 +82,7 @@ module ActiveRecord
         end
 
         def prepare_command_options
-          args = {
+          {
             host:      "--host",
             port:      "--port",
             socket:    "--socket",
@@ -95,8 +95,6 @@ module ActiveRecord
             sslcipher: "--ssl-cipher",
             sslkey:    "--ssl-key"
           }.map { |opt, arg| "#{arg}=#{configuration_hash[opt]}" if configuration_hash[opt] }.compact
-
-          args
         end
 
         def run_cmd(cmd, args, action)

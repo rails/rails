@@ -342,13 +342,14 @@ module ActionController #:nodoc:
         # deploy this code, we should be able to handle any unmasked
         # tokens that we've issued without error.
 
-        if masked_token.length == AUTHENTICITY_TOKEN_LENGTH
+        case masked_token.length
+        when AUTHENTICITY_TOKEN_LENGTH
           # This is actually an unmasked token. This is expected if
           # you have just upgraded to masked tokens, but should stop
           # happening shortly after installing this gem.
           compare_with_real_token masked_token, session
 
-        elsif masked_token.length == AUTHENTICITY_TOKEN_LENGTH * 2
+        when AUTHENTICITY_TOKEN_LENGTH * 2
           csrf_token = unmask_token(masked_token)
 
           compare_with_global_token(csrf_token, session) ||
@@ -414,7 +415,7 @@ module ActionController #:nodoc:
 
       def csrf_token_hmac(session, identifier) # :doc:
         OpenSSL::HMAC.digest(
-          OpenSSL::Digest::SHA256.new,
+          OpenSSL::Digest.new("SHA256"),
           real_csrf_token(session),
           identifier
         )

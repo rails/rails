@@ -29,7 +29,7 @@ module ActionMailbox
 
     attr_reader :uri, :username, :password
 
-    def initialize(url:, username: "actionmailbox", password:)
+    def initialize(url:, password:, username: "actionmailbox")
       @uri, @username, @password = URI(url), username, password
     end
 

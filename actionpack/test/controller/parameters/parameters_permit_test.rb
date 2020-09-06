@@ -62,7 +62,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     values += [0, 1.0, 2**128, BigDecimal(1)]
     values += [true, false]
     values += [Date.today, Time.now, DateTime.now]
-    values += [STDOUT, StringIO.new, ActionDispatch::Http::UploadedFile.new(tempfile: __FILE__),
+    values += [$stdout, StringIO.new, ActionDispatch::Http::UploadedFile.new(tempfile: __FILE__),
       Rack::Test::UploadedFile.new(__FILE__)]
 
     values.each do |value|

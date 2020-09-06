@@ -162,7 +162,7 @@ module ActiveStorage
         self.class.name.split("::").third.remove("Service")
       end
 
-      def content_disposition_with(type: "inline", filename:)
+      def content_disposition_with(filename:, type: "inline")
         disposition = (type.to_s.presence_in(%w( attachment inline )) || "inline")
         ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized)
       end

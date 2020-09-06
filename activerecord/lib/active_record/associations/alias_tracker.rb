@@ -27,7 +27,8 @@ module ActiveRecord
         quoted_name = nil
 
         counts = table_joins.map do |join|
-          if join.is_a?(Arel::Nodes::StringJoin)
+          case join
+          when Arel::Nodes::StringJoin
             # quoted_name should be case ignored as some database adapters (Oracle) return quoted name in uppercase
             quoted_name ||= connection.quote_table_name(name)
 
@@ -35,7 +36,7 @@ module ActiveRecord
             join.left.scan(
               /JOIN(?:\s+\w+)?\s+(?:\S+\s+)?(?:#{quoted_name}|#{name})\sON/i
             ).size
-          elsif join.is_a?(Arel::Nodes::Join)
+          when Arel::Nodes::Join
             join.left.name == name ? 1 : 0
           else
             raise ArgumentError, "joins list should be initialized by list of Arel::Nodes::Join"

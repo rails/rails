@@ -17,7 +17,7 @@ require "logger"
 
 # This connection will do for database-independent bug reports.
 ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-ActiveRecord::Base.logger = Logger.new(STDOUT)
+ActiveRecord::Base.logger = Logger.new($stdout)
 
 ActiveRecord::Schema.define do
   create_table :payments, force: true do |t|

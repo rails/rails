@@ -43,8 +43,8 @@ class ActionDispatch::IntegrationTest
 end
 
 if ARGV.include?("-v")
-  ActiveRecord::Base.logger = Logger.new(STDOUT)
-  ActiveJob::Base.logger    = Logger.new(STDOUT)
+  ActiveRecord::Base.logger = Logger.new($stdout)
+  ActiveJob::Base.logger    = Logger.new($stdout)
 end
 
 class BounceMailer < ActionMailer::Base

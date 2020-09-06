@@ -77,11 +77,11 @@ module Rails
       def log_to_stdout
         wrapped_app # touch the app so the logger is set up
 
-        console = ActiveSupport::Logger.new(STDOUT)
+        console = ActiveSupport::Logger.new($stdout)
         console.formatter = Rails.logger.formatter
         console.level = Rails.logger.level
 
-        unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDOUT)
+        unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, $stdout)
           Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
         end
       end

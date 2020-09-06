@@ -92,9 +92,10 @@ module ActionView
     def log_rendering_start(payload, name)
       debug do
         qualifier =
-          if name == "render_template.action_view"
+          case name
+          when "render_template.action_view"
             ""
-          elsif name == "render_layout.action_view"
+          when "render_layout.action_view"
             "layout "
           end
 

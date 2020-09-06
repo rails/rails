@@ -285,11 +285,12 @@ module ActiveRecord
       # it is preferred to use {update_all}[rdoc-ref:Relation#update_all]
       # for updating all records in a single query.
       def update(id = :all, attributes)
-        if id.is_a?(Array)
+        case id
+        when Array
           id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
             object.update(attributes[idx])
           }
-        elsif id == :all
+        when :all
           all.each { |record| record.update(attributes) }
         else
           if ActiveRecord::Base === id

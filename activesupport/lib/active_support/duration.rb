@@ -28,9 +28,10 @@ module ActiveSupport
       end
 
       def <=>(other)
-        if Scalar === other || Duration === other
+        case other
+        when Scalar, Duration
           value <=> other.value
-        elsif Numeric === other
+        when Numeric
           value <=> other
         else
           nil
@@ -91,9 +92,10 @@ module ActiveSupport
 
       private
         def calculate(op, other)
-          if Scalar === other
+          case other
+          when Scalar
             Scalar.new(value.public_send(op, other.value))
-          elsif Numeric === other
+          when Numeric
             Scalar.new(value.public_send(op, other))
           else
             raise_type_error(other)
@@ -228,9 +230,10 @@ module ActiveSupport
     # Compares one Duration with another or a Numeric to this Duration.
     # Numeric values are treated as seconds.
     def <=>(other)
-      if Duration === other
+      case other
+      when Duration
         value <=> other.value
-      elsif Numeric === other
+      when Numeric
         value <=> other
       end
     end
@@ -257,9 +260,10 @@ module ActiveSupport
 
     # Multiplies this Duration by a Numeric and returns a new Duration.
     def *(other)
-      if Scalar === other || Duration === other
+      case other
+      when Scalar, Duration
         Duration.new(value * other.value, parts.transform_values { |number| number * other.value })
-      elsif Numeric === other
+      when Numeric
         Duration.new(value * other, parts.transform_values { |number| number * other })
       else
         raise_type_error(other)
@@ -268,11 +272,12 @@ module ActiveSupport
 
     # Divides this Duration by a Numeric and returns a new Duration.
     def /(other)
-      if Scalar === other
+      case other
+      when Scalar
         Duration.new(value / other.value, parts.transform_values { |number| number / other.value })
-      elsif Duration === other
+      when Duration
         value / other.value
-      elsif Numeric === other
+      when Numeric
         Duration.new(value / other, parts.transform_values { |number| number / other })
       else
         raise_type_error(other)
@@ -282,9 +287,10 @@ module ActiveSupport
     # Returns the modulo of this Duration by another Duration or Numeric.
     # Numeric values are treated as seconds.
     def %(other)
-      if Duration === other || Scalar === other
+      case other
+      when Duration, Scalar
         Duration.build(value % other.value)
-      elsif Numeric === other
+      when Numeric
         Duration.build(value % other)
       else
         raise_type_error(other)
@@ -456,11 +462,12 @@ module ActiveSupport
           time.since(sign * value)
         else
           parts.inject(time) do |t, (type, number)|
-            if type == :seconds
+            case type
+            when :seconds
               t.since(sign * number)
-            elsif type == :minutes
+            when :minutes
               t.since(sign * number * 60)
-            elsif type == :hours
+            when :hours
               t.since(sign * number * 3600)
             else
               t.advance(type => sign * number)

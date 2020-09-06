@@ -695,12 +695,14 @@ module ActiveRecord
             "#{table_name}_#{column_name}_#{suffix}"
           end
 
+          FOREIGN_KEY_ACTIONS = {
+            "c" => :cascade,
+            "n" => :nullify,
+            "r" => :restrict
+          }
+
           def extract_foreign_key_action(specifier)
-            case specifier
-            when "c"; :cascade
-            when "n"; :nullify
-            when "r"; :restrict
-            end
+            FOREIGN_KEY_ACTIONS[specifier]
           end
 
           def add_column_for_alter(table_name, column_name, type, **options)
@@ -758,17 +760,15 @@ module ActiveRecord
             sql
           end
 
+          RELATION_TYPES = {
+            "BASE TABLE" => "'r','p'",
+            "VIEW" => "'v','m'",
+            "FOREIGN TABLE" => "'f'"
+          }
+
           def quoted_scope(name = nil, type: nil)
             schema, name = extract_schema_qualified_name(name)
-            type = \
-              case type
-              when "BASE TABLE"
-                "'r','p'"
-              when "VIEW"
-                "'v','m'"
-              when "FOREIGN TABLE"
-                "'f'"
-              end
+            type = RELATION_TYPES[type]
             scope = {}
             scope[:schema] = schema ? quote(schema) : "ANY (current_schemas(false))"
             scope[:name] = quote(name) if name

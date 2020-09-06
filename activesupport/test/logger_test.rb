@@ -22,10 +22,10 @@ class LoggerTest < ActiveSupport::TestCase
 
   def test_log_outputs_to
     assert Logger.logger_outputs_to?(@logger, @output),            "Expected logger_outputs_to? @output to return true but was false"
-    assert Logger.logger_outputs_to?(@logger, @output, STDOUT),    "Expected logger_outputs_to? @output or STDOUT to return true but was false"
+    assert Logger.logger_outputs_to?(@logger, @output, $stdout),    "Expected logger_outputs_to? @output or STDOUT to return true but was false"
 
-    assert_not Logger.logger_outputs_to?(@logger, STDOUT),         "Expected logger_outputs_to? to STDOUT to return false, but was true"
-    assert_not Logger.logger_outputs_to?(@logger, STDOUT, STDERR), "Expected logger_outputs_to? to STDOUT or STDERR to return false, but was true"
+    assert_not Logger.logger_outputs_to?(@logger, $stdout),         "Expected logger_outputs_to? to STDOUT to return false, but was true"
+    assert_not Logger.logger_outputs_to?(@logger, $stdout, $stderr), "Expected logger_outputs_to? to STDOUT or STDERR to return false, but was true"
   end
 
   def test_write_binary_data_to_existing_file

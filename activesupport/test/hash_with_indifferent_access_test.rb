@@ -527,7 +527,7 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] } }.with_indifferent_access
     assert_equal "1", hash[:urls][:url].first[:address]
 
-    hash = hash.to_hash
+    hash = hash.to_hash # rubocop:disable Style/RedundantSelfAssignment
     assert_not hash.instance_of?(HashWithIndifferentAccess)
     assert_not hash["urls"].instance_of?(HashWithIndifferentAccess)
     assert_not hash["urls"]["url"].first.instance_of?(HashWithIndifferentAccess)

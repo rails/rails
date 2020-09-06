@@ -49,6 +49,7 @@ module RailsGuides
         elsif /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:]/.match?(text)
           convert_notes(text)
         elsif text.include?("DO NOT READ THIS FILE ON GITHUB")
+          # nothing
         elsif text =~ /^\[<sup>(\d+)\]:<\/sup> (.+)$/
           linkback = %(<a href="#footnote-#{$1}-ref"><sup>#{$1}</sup></a>)
           %(<p class="footnote" id="footnote-#{$1}">#{linkback} #{$2}</p>)

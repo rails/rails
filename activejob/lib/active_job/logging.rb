@@ -9,7 +9,7 @@ module ActiveJob
     extend ActiveSupport::Concern
 
     included do
-      cattr_accessor :logger, default: ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT))
+      cattr_accessor :logger, default: ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new($stdout))
       class_attribute :log_arguments, instance_accessor: false, default: true
 
       around_enqueue { |_, block| tag_logger(&block) }

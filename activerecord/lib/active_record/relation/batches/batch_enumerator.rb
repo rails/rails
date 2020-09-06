@@ -5,7 +5,7 @@ module ActiveRecord
     class BatchEnumerator
       include Enumerable
 
-      def initialize(of: 1000, start: nil, finish: nil, relation:) #:nodoc:
+      def initialize(relation:, of: 1000, start: nil, finish: nil) #:nodoc:
         @of       = of
         @relation = relation
         @start = start

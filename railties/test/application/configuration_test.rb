@@ -558,7 +558,7 @@ module ApplicationTests
       with_rails_env "production" do
         switch_env "RAILS_LOG_TO_STDOUT", "1" do
           app "production"
-          assert ActiveSupport::Logger.logger_outputs_to?(app.config.logger, STDOUT)
+          assert ActiveSupport::Logger.logger_outputs_to?(app.config.logger, $stdout)
         end
       end
     end
@@ -802,7 +802,7 @@ module ApplicationTests
       end
 
       get "/"
-      assert_match(/csrf\-param/, last_response.body)
+      assert_match(/csrf-param/, last_response.body)
     end
 
     test "default form builder specified as a string" do
@@ -1579,7 +1579,7 @@ module ApplicationTests
 
     test "config.log_level with custom logger" do
       make_basic_app do |application|
-        application.config.logger = Logger.new(STDOUT)
+        application.config.logger = Logger.new($stdout)
         application.config.log_level = :info
       end
       assert_equal Logger::INFO, Rails.logger.level

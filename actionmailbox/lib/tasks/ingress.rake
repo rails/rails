@@ -17,7 +17,7 @@ namespace :action_mailbox do
         exit 64 # EX_USAGE
       end
 
-      ActionMailbox::Relayer.new(url: url, password: password).relay(STDIN.read).tap do |result|
+      ActionMailbox::Relayer.new(url: url, password: password).relay($stdin.read).tap do |result|
         print result.message
 
         case
@@ -40,7 +40,7 @@ namespace :action_mailbox do
         exit 1
       end
 
-      ActionMailbox::Relayer.new(url: url, password: password).relay(STDIN.read).tap do |result|
+      ActionMailbox::Relayer.new(url: url, password: password).relay($stdin.read).tap do |result|
         print "#{result.status_code} #{result.message}"
         exit result.success?
       end
@@ -55,7 +55,7 @@ namespace :action_mailbox do
         exit 111
       end
 
-      ActionMailbox::Relayer.new(url: url, password: password).relay(STDIN.read).tap do |result|
+      ActionMailbox::Relayer.new(url: url, password: password).relay($stdin.read).tap do |result|
         print result.message
 
         case

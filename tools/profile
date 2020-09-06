@@ -107,7 +107,7 @@ begin
   require "active_support/inflector"
   require "active_support/core_ext/string/inflections"
 rescue LoadError
-  STDERR.puts $!.message
+  $stderr.puts $!.message
   class String
     # File activesupport/lib/active_support/inflector/methods.rb, line 150
     def classify
@@ -132,6 +132,6 @@ if $0 == __FILE__
     mode = ARGV.shift
     CodeTools::Profiler.new(path, mode).profile_requires
   else
-    STDERR.puts "No file path entered. Usage is tools/profile path/to/file.rb [ruby-prof mode] [ruby-prof printer]"
+    $stderr.puts "No file path entered. Usage is tools/profile path/to/file.rb [ruby-prof mode] [ruby-prof printer]"
   end
 end

@@ -462,7 +462,7 @@ EXPECTED
   end
 
   def test_to_json_works_on_io_objects
-    assert_equal STDOUT.to_s.to_json, STDOUT.to_json
+    assert_equal $stdout.to_s.to_json, $stdout.to_json
   end
 
   private

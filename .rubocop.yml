@@ -216,6 +216,41 @@ Lint/UselessAssignment:
 Lint/DeprecatedClassMethods:
   Enabled: true
 
+Lint/DeprecatedOpenSSLConstant:
+  Enabled: true
+
+Lint/DuplicateElsifCondition:
+  Enabled: true
+
+Lint/DuplicateRescueException:
+  Enabled: true
+
+Lint/BinaryOperatorWithIdenticalOperands:
+  Enabled: true
+  Exclude:
+    - '**/test/**/*'
+
+Lint/FloatComparison:
+  Enabled: true
+
+Lint/TopLevelReturnWithArgument:
+  Enabled: true
+
+Lint/EmptyConditionalBody:
+  Enabled: true
+
+Lint/OutOfRangeRegexpRef:
+  Enabled: true
+
+Lint/DuplicateRequire:
+  Enabled: true
+
+Lint/EmptyFile:
+  Enabled: true
+
+Lint/TrailingCommaInAttributeDeclaration:
+  Enabled: true
+
 Style/ParenthesesAroundCondition:
   Enabled: true
 
@@ -242,6 +277,48 @@ Style/ColonMethodCall:
 
 Style/TrivialAccessors:
   Enabled: true
+
+Style/SlicingWithRange:
+  Enabled: true
+
+Style/RedundantRegexpEscape:
+  Enabled: true
+
+Style/RedundantFetchBlock:
+  Enabled: true
+  Exclude:
+    - '**/test/**/*'
+
+Style/BisectedAttrAccessor:
+  Enabled: true
+
+Style/RedundantAssignment:
+  Enabled: true
+
+Style/RedundantFileExtensionInRequire:
+  Enabled: true
+
+Style/HashLikeCase:
+  Enabled: true
+
+Style/GlobalStdStream:
+  Enabled: true
+
+Style/SingleArgumentDig:
+  Enabled: true
+  Exclude:
+    - '**/test/**/*'
+
+Style/RedundantSelfAssignment:
+  Enabled: true
+
+Style/KeywordParametersOrder:
+  Enabled: true
+
+Style/CombinableLoops:
+  Enabled: true
+  Exclude:
+  - '**/test/**/*'
 
 Performance/FlatMap:
   Enabled: true
