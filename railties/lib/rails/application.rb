@@ -514,7 +514,7 @@ module Rails
     def run_tasks_blocks(app) #:nodoc:
       railties.each { |r| r.run_tasks_blocks(app) }
       super
-      require "rails/tasks"
+      load "rails/tasks.rb"
       task :environment do
         ActiveSupport.on_load(:before_initialize) { config.eager_load = config.rake_eager_load }
 
