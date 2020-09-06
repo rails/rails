@@ -29,7 +29,8 @@ gem "uglifier", ">= 1.3.0", require: false
 gem "json", ">= 2.0.0"
 
 group :rubocop do
-  gem "rubocop", ">= 0.47", require: false
+  gem "rubocop", ">= 0.90", require: false
+  gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
   gem "rubocop-rails", require: false
 end
