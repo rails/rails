@@ -135,14 +135,15 @@ module ActiveModel
       end
     end
 
-    # Returns the error detail.
+    # Returns the error details.
     #
     #   error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
-    #   error.detail
+    #   error.details
     #   # => { error: :too_short, count: 5 }
-    def detail
+    def details
       { error: raw_type }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
     end
+    alias_method :detail, :details
 
     # Returns the full error message.
     #
