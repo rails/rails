@@ -100,7 +100,7 @@ module ActionController
       # characters; and is terminated by a colon (":").
       # See https://tools.ietf.org/html/rfc3986#section-3.1
       # The protocol relative scheme starts with a double slash "//".
-      when /\A([a-z][a-z\d\-+\.]*:|\/\/).*/i
+      when /\A([a-z][a-z\d\-+.]*:|\/\/).*/i
         options
       when String
         request.protocol + request.host_with_port + options

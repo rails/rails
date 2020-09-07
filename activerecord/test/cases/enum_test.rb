@@ -345,7 +345,7 @@ class EnumTest < ActiveRecord::TestCase
       e = assert_raises(ArgumentError) do
         klass.class_eval { enum name => ["value_#{i}"] }
       end
-      assert_match(/You tried to define an enum named \"#{name}\" on the model/, e.message)
+      assert_match(/You tried to define an enum named "#{name}" on the model/, e.message)
     end
   end
 

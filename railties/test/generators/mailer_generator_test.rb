@@ -46,13 +46,13 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       assert_match(/test "bar"/, test)
     end
     assert_file "test/mailers/previews/notifier_mailer_preview.rb" do |preview|
-      assert_match(/\# Preview all emails at http:\/\/localhost\:3000\/rails\/mailers\/notifier_mailer/, preview)
+      assert_match(/\# Preview all emails at http:\/\/localhost:3000\/rails\/mailers\/notifier_mailer/, preview)
       assert_match(/class NotifierMailerPreview < ActionMailer::Preview/, preview)
-      assert_match(/\# Preview this email at http:\/\/localhost\:3000\/rails\/mailers\/notifier_mailer\/foo/, preview)
+      assert_match(/\# Preview this email at http:\/\/localhost:3000\/rails\/mailers\/notifier_mailer\/foo/, preview)
       assert_instance_method :foo, preview do |foo|
         assert_match(/NotifierMailer\.foo/, foo)
       end
-      assert_match(/\# Preview this email at http:\/\/localhost\:3000\/rails\/mailers\/notifier_mailer\/bar/, preview)
+      assert_match(/\# Preview this email at http:\/\/localhost:3000\/rails\/mailers\/notifier_mailer\/bar/, preview)
       assert_instance_method :bar, preview do |bar|
         assert_match(/NotifierMailer\.bar/, bar)
       end
@@ -126,9 +126,9 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       assert_match(/en\.farm\.animal_mailer\.moos\.subject/, mailer)
     end
     assert_file "test/mailers/previews/farm/animal_mailer_preview.rb" do |preview|
-      assert_match(/\# Preview all emails at http:\/\/localhost\:3000\/rails\/mailers\/farm\/animal_mailer/, preview)
+      assert_match(/\# Preview all emails at http:\/\/localhost:3000\/rails\/mailers\/farm\/animal_mailer/, preview)
       assert_match(/class Farm::AnimalMailerPreview < ActionMailer::Preview/, preview)
-      assert_match(/\# Preview this email at http:\/\/localhost\:3000\/rails\/mailers\/farm\/animal_mailer\/moos/, preview)
+      assert_match(/\# Preview this email at http:\/\/localhost:3000\/rails\/mailers\/farm\/animal_mailer\/moos/, preview)
     end
     assert_file "app/views/farm/animal_mailer/moos.text.erb"
     assert_file "app/views/farm/animal_mailer/moos.html.erb"

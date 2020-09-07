@@ -115,7 +115,7 @@ module ActiveRecord
               fk_name = association.join_foreign_key
 
               if association.name.to_s != fk_name && value = @row.delete(association.name.to_s)
-                if association.polymorphic? && value.sub!(/\s*\(([^\)]*)\)\s*$/, "")
+                if association.polymorphic? && value.sub!(/\s*\(([^)]*)\)\s*$/, "")
                   # support polymorphic belongs_to as "label (Type)"
                   @row[association.join_foreign_type] = $1
                 end

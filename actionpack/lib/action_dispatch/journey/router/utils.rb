@@ -44,7 +44,7 @@ module ActionDispatch
 
           ESCAPED  = /%[a-zA-Z0-9]{2}/.freeze
 
-          FRAGMENT = /[^#{UNRESERVED}#{SUB_DELIMS}:@\/\?]/.freeze
+          FRAGMENT = /[^#{UNRESERVED}#{SUB_DELIMS}:@\/?]/.freeze
           SEGMENT  = /[^#{UNRESERVED}#{SUB_DELIMS}:@]/.freeze
           PATH     = /[^#{UNRESERVED}#{SUB_DELIMS}:@\/]/.freeze
 

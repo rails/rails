@@ -232,6 +232,9 @@ Style/RedundantReturn:
   Enabled: true
   AllowMultipleReturnValues: true
 
+Style/RedundantRegexpEscape:
+  Enabled: true
+
 Style/Semicolon:
   Enabled: true
   AllowAsExpressionSeparator: true
