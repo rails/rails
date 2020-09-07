@@ -225,7 +225,7 @@ class MigrationTest < ActiveRecord::TestCase
           assert_match(/check that column\/key exists/, error.message)
         end
       elsif current_adapter?(:PostgreSQLAdapter)
-        assert_match(/column \"last_name\" of relation \"people\" does not exist/, error.message)
+        assert_match(/column "last_name" of relation "people" does not exist/, error.message)
       end
     end
   ensure

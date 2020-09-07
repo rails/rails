@@ -482,7 +482,7 @@ module ActiveRecord
           end
         end
 
-        COLLATE_REGEX = /.*\"(\w+)\".*collate\s+\"(\w+)\".*/i.freeze
+        COLLATE_REGEX = /.*"(\w+)".*collate\s+"(\w+)".*/i.freeze
 
         def table_structure_with_collation(table_name, basic_structure)
           collation_hash = {}

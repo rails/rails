@@ -686,7 +686,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
       end
     end
     assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
   end
 
   def test_assert_enqueued_with_failure_with_no_block_with_global_id_args
@@ -698,7 +698,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
   end
 
   def test_assert_enqueued_with_does_not_change_jobs_count
@@ -1913,7 +1913,7 @@ class PerformedJobsTest < ActiveJob::TestCase
       end
     end
     assert_match(/No performed job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
   end
 
   def test_assert_performed_with_without_block_failure_with_global_id_args
@@ -1926,7 +1926,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No performed job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
   end
 
   def test_assert_performed_with_does_not_change_jobs_count

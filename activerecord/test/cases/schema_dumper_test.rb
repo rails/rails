@@ -305,7 +305,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     def test_schema_dump_includes_limit_on_array_type
       output = dump_table_schema "bigint_array"
-      assert_match %r{t\.bigint\s+"big_int_data_points\",\s+array: true}, output
+      assert_match %r{t\.bigint\s+"big_int_data_points",\s+array: true}, output
     end
 
     def test_schema_dump_allows_array_of_decimal_defaults

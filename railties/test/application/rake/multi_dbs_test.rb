@@ -97,13 +97,13 @@ module ApplicationTests
           if schema_format == "ruby"
             schema_dump = File.read("db/schema.rb")
             schema_dump_animals = File.read("db/animals_schema.rb")
-            assert_match(/create_table \"books\"/, schema_dump)
-            assert_match(/create_table \"dogs\"/, schema_dump_animals)
+            assert_match(/create_table "books"/, schema_dump)
+            assert_match(/create_table "dogs"/, schema_dump_animals)
           else
             schema_dump = File.read("db/structure.sql")
             schema_dump_animals = File.read("db/animals_structure.sql")
-            assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, schema_dump)
-            assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"dogs\"/, schema_dump_animals)
+            assert_match(/CREATE TABLE (?:IF NOT EXISTS )?"books"/, schema_dump)
+            assert_match(/CREATE TABLE (?:IF NOT EXISTS )?"dogs"/, schema_dump_animals)
           end
 
           rails "db:schema:load"
@@ -125,21 +125,21 @@ module ApplicationTests
             if database == "primary"
               schema_dump = File.read("db/#{format}.rb")
               assert_not(File.exist?("db/animals_#{format}.rb"))
-              assert_match(/create_table \"books\"/, schema_dump)
+              assert_match(/create_table "books"/, schema_dump)
             else
               assert_not(File.exist?("db/#{format}.rb"))
               schema_dump_animals = File.read("db/animals_#{format}.rb")
-              assert_match(/create_table \"dogs\"/, schema_dump_animals)
+              assert_match(/create_table "dogs"/, schema_dump_animals)
             end
           else
             if database == "primary"
               schema_dump = File.read("db/#{format}.sql")
               assert_not(File.exist?("db/animals_#{format}.sql"))
-              assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, schema_dump)
+              assert_match(/CREATE TABLE (?:IF NOT EXISTS )?"books"/, schema_dump)
             else
               assert_not(File.exist?("db/#{format}.sql"))
               schema_dump_animals = File.read("db/animals_#{format}.sql")
-              assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"dogs\"/, schema_dump_animals)
+              assert_match(/CREATE TABLE (?:IF NOT EXISTS )?"dogs"/, schema_dump_animals)
             end
           end
 
@@ -176,21 +176,21 @@ module ApplicationTests
             if name == "primary"
               schema_dump = File.read("db/schema.rb")
               assert_not(File.exist?("db/animals_schema.rb"))
-              assert_match(/create_table \"books\"/, schema_dump)
+              assert_match(/create_table "books"/, schema_dump)
             else
               assert_not(File.exist?("db/schema.rb"))
               schema_dump_animals = File.read("db/animals_schema.rb")
-              assert_match(/create_table \"dogs\"/, schema_dump_animals)
+              assert_match(/create_table "dogs"/, schema_dump_animals)
             end
           else
             if name == "primary"
               schema_dump = File.read("db/structure.sql")
               assert_not(File.exist?("db/animals_structure.sql"))
-              assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, schema_dump)
+              assert_match(/CREATE TABLE (?:IF NOT EXISTS )?"books"/, schema_dump)
             else
               assert_not(File.exist?("db/structure.sql"))
               schema_dump_animals = File.read("db/animals_structure.sql")
-              assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"dogs\"/, schema_dump_animals)
+              assert_match(/CREATE TABLE (?:IF NOT EXISTS )?"dogs"/, schema_dump_animals)
             end
           end
         end
