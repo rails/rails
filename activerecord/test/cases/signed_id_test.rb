@@ -11,7 +11,7 @@ SIGNED_ID_VERIFIER_TEST_SECRET = -> { "This is normally set by the railtie initi
 ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
 
 class SignedIdTest < ActiveRecord::TestCase
-  fixtures :accounts, :toys
+  fixtures :accounts, :toys, :companies
 
   setup do
     @account = Account.first
@@ -24,6 +24,10 @@ class SignedIdTest < ActiveRecord::TestCase
 
   test "find signed record with custom primary key" do
     assert_equal @toy, Toy.find_signed(@toy.signed_id)
+  end
+
+  test "find signed record for single table inheritance (STI Models)" do
+    assert_equal Company.first, Company.find_signed(Company.first.signed_id)
   end
 
   test "raise UnknownPrimaryKey when model have no primary key" do
