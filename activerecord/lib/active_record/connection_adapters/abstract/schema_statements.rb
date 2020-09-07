@@ -1142,6 +1142,11 @@ module ActiveRecord
       #
       #   ALTER TABLE "products" ADD CONSTRAINT price_check CHECK (price > 0)
       #
+      # The +options+ hash can include the following keys:
+      # [<tt>:name</tt>]
+      #   The constraint name. Defaults to <tt>chk_rails_<identifier></tt>.
+      # [<tt>:validate</tt>]
+      #   (PostgreSQL only) Specify whether or not the constraint should be validated. Defaults to +true+.
       def add_check_constraint(table_name, expression, **options)
         return unless supports_check_constraints?
 

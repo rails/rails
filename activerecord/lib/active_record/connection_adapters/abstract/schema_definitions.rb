@@ -132,6 +132,11 @@ module ActiveRecord
         options[:name]
       end
 
+      def validate?
+        options.fetch(:validate, true)
+      end
+      alias validated? validate?
+
       def export_name_on_schema_dump?
         !ActiveRecord::SchemaDumper.chk_ignore_pattern.match?(name) if name
       end

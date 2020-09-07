@@ -13,6 +13,10 @@ module ActiveRecord
             super.dup.tap { |sql| sql << " NOT VALID" unless o.validate? }
           end
 
+          def visit_CheckConstraintDefinition(o)
+            super.dup.tap { |sql| sql << " NOT VALID" unless o.validate? }
+          end
+
           def visit_ValidateConstraint(name)
             "VALIDATE CONSTRAINT #{quote_column_name(name)}"
           end
