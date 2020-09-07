@@ -308,5 +308,12 @@ module ApplicationTests
       output = rails("app:template", "LOCATION=template.rb")
       assert_match(/Hello, World!/, output)
     end
+
+    def test_template_runs_after_bundle
+      app_file "template.rb", "after_bundle { puts 'after bundle run' }"
+
+      output = rails("app:template", "LOCATION=template.rb")
+      assert_match(/after bundle run/, output)
+    end
   end
 end

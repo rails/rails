@@ -13,6 +13,8 @@ namespace :app do
     require "rails/generators/rails/app/app_generator"
     generator = Rails::Generators::AppGenerator.new [Rails.root], {}, { destination_root: Rails.root }
     generator.apply template, verbose: false
+    generator.run_bundle
+    generator.run_after_bundle_callbacks
   end
 
   namespace :templates do
