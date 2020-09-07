@@ -91,7 +91,7 @@ module ActiveSupport
         gems_paths = (Gem.path | [Gem.default_dir]).map { |p| Regexp.escape(p) }
         return if gems_paths.empty?
 
-        gems_regexp = %r{(#{gems_paths.join('|')})/(bundler/)?gems/([^/]+)-([\w.]+)/(.*)}
+        gems_regexp = %r{\A(#{gems_paths.join('|')})/(bundler/)?gems/([^/]+)-([\w.]+)/(.*)}
         gems_result = '\3 (\4) \5'
         add_filter { |line| line.sub(gems_regexp, gems_result) }
       end
