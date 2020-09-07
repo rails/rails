@@ -12,7 +12,16 @@ module Arel # :nodoc: all
       end
     end
 
-    class NullsFirst < Ordering; end
-    class NullsLast < Ordering; end
+    class NullsFirst < Ordering
+      def reverse
+        NullsLast.new(expr.reverse)
+      end
+    end
+
+    class NullsLast < Ordering
+      def reverse
+        NullsFirst.new(expr.reverse)
+      end
+    end
   end
 end
