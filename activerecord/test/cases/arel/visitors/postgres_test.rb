@@ -330,6 +330,20 @@ module Arel
             "users"."first_name" DESC NULLS LAST
           }
         end
+
+        it "should handle nulls first reversed" do
+          test = Table.new(:users)[:first_name].desc.nulls_first.reverse
+          _(compile(test)).must_be_like %{
+            "users"."first_name" ASC NULLS LAST
+          }
+        end
+
+        it "should handle nulls last reversed" do
+          test = Table.new(:users)[:first_name].desc.nulls_last.reverse
+          _(compile(test)).must_be_like %{
+            "users"."first_name" ASC NULLS FIRST
+          }
+        end
       end
 
       describe "Nodes::InfixOperation" do
