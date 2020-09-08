@@ -1267,7 +1267,7 @@ class Order < ApplicationRecord
 end
 ```
 
-Now we can use `Relation#merge`:
+Now we can use `Relation#merge` to merge in the `created_in_time_range` scope:
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
