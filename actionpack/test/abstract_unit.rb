@@ -266,7 +266,8 @@ module ActionDispatch
 
       params = { "PATH_INFO" => path,
                  "REQUEST_METHOD" => method,
-                 "HTTP_HOST" => host }
+                 "HTTP_HOST" => host,
+                 "rack.input" => StringIO.new }
 
       routes.call(params)
     end

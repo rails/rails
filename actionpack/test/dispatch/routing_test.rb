@@ -4564,6 +4564,10 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
     def show
       render plain: "foo#show"
     end
+
+    def update
+      render plain: "foo#update"
+    end
   end
 
   test "invalid UTF-8 encoding returns a bad request" do
@@ -4619,6 +4623,21 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
       assert_response :bad_request
 
       get "/foo/show/%E2%EF%BF%BD%A6?something_else=%E2%EF%BF%BD%A6"
+      assert_response :bad_request
+    end
+  end
+
+  test "invalid POST params with a method override cause a bad request" do
+    with_routing do |set|
+      set.draw do
+        patch "/foo/:id", to: "test_invalid_urls/foo#update"
+      end
+
+      patch_method_override = "_method=PATCH"
+      invalid_params = "%"
+
+      post "/foo/1", params: "#{patch_method_override}&#{invalid_params}"
+
       assert_response :bad_request
     end
   end

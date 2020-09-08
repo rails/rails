@@ -42,7 +42,8 @@ class PathGenerationTest < ActiveSupport::TestCase
 
     params = { "PATH_INFO" => path,
               "REQUEST_METHOD" => method,
-              "HTTP_HOST"      => host }
+              "HTTP_HOST"      => host,
+              "rack.input"     => StringIO.new }
 
     params["SCRIPT_NAME"] = script_name if script_name
 
