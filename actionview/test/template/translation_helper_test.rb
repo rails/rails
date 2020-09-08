@@ -205,6 +205,13 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal false, translation.html_safe?
   end
 
+  def test_translate_does_not_mark_unsourced_string_default_as_html_safe
+    untrusted_string = "<script>alert()</script>"
+    translation = translate(:"translations.missing", default: [:"translations.missing_html", untrusted_string])
+    assert_equal untrusted_string, translation
+    assert_not_predicate translation, :html_safe?
+  end
+
   def test_translate_with_string_default
     translation = translate(:'translations.missing', default: "A Generic String")
     assert_equal "A Generic String", translation
