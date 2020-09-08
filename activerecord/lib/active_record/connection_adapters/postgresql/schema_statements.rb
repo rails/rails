@@ -523,7 +523,7 @@ module ActiveRecord
           scope = quoted_scope(table_name)
 
           check_info = exec_query(<<-SQL, "SCHEMA")
-            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef
+            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef, c.convalidated AS valid
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
             WHERE c.contype = 'c'
@@ -532,7 +532,8 @@ module ActiveRecord
 
           check_info.map do |row|
             options = {
-              name: row["conname"]
+              name: row["conname"],
+              validate: row["valid"]
             }
             expression = row["constraintdef"][/CHECK \({2}(.+)\){2}/, 1]
 
@@ -630,6 +631,19 @@ module ActiveRecord
           fk_name_to_validate = foreign_key_for!(from_table, to_table: to_table, **options).name
 
           validate_constraint from_table, fk_name_to_validate
+        end
+
+        # Validates the given check constraint.
+        #
+        #   validate_check_constraint :products, name: "price_check"
+        #
+        # The +options+ hash accepts the same keys as add_check_constraint[rdoc-ref:ConnectionAdapters::SchemaStatements#add_check_constraint].
+        def validate_check_constraint(table_name, **options)
+          return unless supports_validate_constraints?
+
+          chk_name_to_validate = check_constraint_for!(table_name, **options).name
+
+          validate_constraint table_name, chk_name_to_validate
         end
 
         private

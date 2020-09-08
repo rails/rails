@@ -1,3 +1,7 @@
+*   Add support for check constraints that are `NOT VALID` via `validate: false` (PostgreSQL-only).
+
+    *Alex Robbin*
+
 *   Ensure the default configuration is considered primary or first for an environment
 
     If a multiple database application provides a configuration named primary, that will be treated as default. In applications that do not have a primary entry, the default database configuration will be the first configuration for an environment.
