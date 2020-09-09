@@ -96,9 +96,13 @@ module ActionView
             end
           end
 
+          html_safe_options[:default] = MISSING_TRANSLATION unless html_safe_options[:default].blank?
+
           translation = I18n.translate(fully_resolved_key, **html_safe_options.merge(raise: i18n_raise))
 
-          if translation.respond_to?(:map)
+          if translation.equal?(MISSING_TRANSLATION)
+            translated_text = options[:default].first
+          elsif translation.respond_to?(:map)
             translated_text = translation.map { |element| element.respond_to?(:html_safe) ? element.html_safe : element }
           else
             translated_text = translation.respond_to?(:html_safe) ? translation.html_safe : translation
@@ -150,6 +154,9 @@ module ActionView
       alias :l :localize
 
       private
+        MISSING_TRANSLATION = Object.new
+        private_constant :MISSING_TRANSLATION
+
         def scope_key_by_partial(key)
           stringified_key = key.to_s
           if stringified_key.start_with?(".")
