@@ -1,3 +1,8 @@
+## Rails 5.2.4.4 (September 09, 2020) ##
+
+*   No changes.
+
+
 ## Rails 5.2.4.3 (May 18, 2020) ##
 
 *   [CVE-2020-8165] Deprecate Marshal.load on raw cache read in RedisCacheStore
