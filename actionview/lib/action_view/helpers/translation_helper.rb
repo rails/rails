@@ -76,13 +76,20 @@ module ActionView
 
         if html_safe_translation_key?(key)
           html_safe_options = options.dup
+
           options.except(*I18n::RESERVED_KEYS).each do |name, value|
             unless name == :count && value.is_a?(Numeric)
               html_safe_options[name] = ERB::Util.html_escape(value.to_s)
             end
           end
+
+          html_safe_options[:default] = MISSING_TRANSLATION unless html_safe_options[:default].blank?
+
           translation = I18n.translate(scope_key_by_partial(key), **html_safe_options.merge(raise: i18n_raise))
-          if translation.respond_to?(:map)
+
+          if translation.equal?(MISSING_TRANSLATION)
+            options[:default].first
+          elsif translation.respond_to?(:map)
             translation.map { |element| element.respond_to?(:html_safe) ? element.html_safe : element }
           else
             translation.respond_to?(:html_safe) ? translation.html_safe : translation
@@ -121,6 +128,9 @@ module ActionView
       alias :l :localize
 
       private
+        MISSING_TRANSLATION = Object.new
+        private_constant :MISSING_TRANSLATION
+
         def scope_key_by_partial(key)
           stringified_key = key.to_s
           if stringified_key.first == "."
