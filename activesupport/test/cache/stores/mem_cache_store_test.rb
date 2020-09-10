@@ -79,8 +79,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def test_raw_read_entry_compression
     cache = lookup_store(raw: true)
     cache.write("foo", 2)
-
-    assert_not_called_on_instance_of ActiveSupport::Cache::Entry, :compress! do
+    assert_not_called Zlib::Deflate, :deflate do
       cache.read("foo")
     end
   end
