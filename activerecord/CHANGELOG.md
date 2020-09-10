@@ -1,3 +1,13 @@
+*   All connection adapters `execute` now raises `ActiveRecord::ConnectionNotEstablished` rather than
+    `ActiveRecord::InvalidStatement` when they encounter a connection error.
+
+    *Jean Boussier*
+
+*   `Mysql2Adapter#quote_string` now raises `ActiveRecord::ConnectionNotEstablished` rather than
+    `ActiveRecord::InvalidStatement` when it can't connect to the MySQL server.
+
+    *Jean Boussier*
+
 *   Add support for check constraints that are `NOT VALID` via `validate: false` (PostgreSQL-only).
 
     *Alex Robbin*
