@@ -115,7 +115,7 @@ module Rails
 
           if respond_to?(:active_support)
             active_support.use_authenticated_message_encryption = true
-            active_support.use_sha1_digests = true
+            active_support.hash_digest_class = ::Digest::SHA1
           end
 
           if respond_to?(:action_controller)
