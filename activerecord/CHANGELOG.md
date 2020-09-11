@@ -1,3 +1,33 @@
+*   Connections can be granularly switched for abstract classes when `connected_to` is called.
+
+    This change allows `connected_to` to switch a `role` and/or `shard` for a single abstract class instead of all classes globally. Applications that want to use the new feature need to set `config.active_record.legacy_connection_handling` to `false` in their application configuration.
+
+    Example usage:
+
+    Given an application we have a `User` model that inherits from `ApplicationRecord` and a `Dog` model that inherits from `AnimalsRecord`. `AnimalsRecord` and `ApplicationRecord` have writing and reading connections as well as shard `default`, `one`, and `two`.
+
+    ```ruby
+    ActiveRecord::Base.connected_to(role: :reading) do
+      User.first # reads from default replica
+      Dog.first # reads from default replica
+
+      AnimalsRecord.connected_to(role: :writing, shard: :one) do
+        User.first # reads from default replica
+        Dog.first # reads from shard one primary
+      end
+
+      User.first # reads from default replica
+      Dog.first # reads from default replica
+
+      ApplicationRecord.connected_to(role: :writing, shard: :two) do
+        User.first # reads from shard two primary
+        Dog.first # reads from default replica
+      end
+    end
+    ```
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Allow double-dash comment syntax when querying read-only databases
 
     *James Adam*

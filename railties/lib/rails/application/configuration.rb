@@ -164,6 +164,7 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
+            active_record.legacy_connection_handling = false
           end
 
           if respond_to?(:active_storage)

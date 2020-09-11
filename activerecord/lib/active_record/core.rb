@@ -137,8 +137,6 @@ module ActiveRecord
 
       class_attribute :strict_loading_by_default, instance_accessor: false, default: false
 
-      mattr_accessor :connection_handlers, instance_accessor: false, default: {}
-
       mattr_accessor :writing_role, instance_accessor: false, default: :writing
 
       mattr_accessor :reading_role, instance_accessor: false, default: :reading
@@ -147,7 +145,11 @@ module ActiveRecord
 
       class_attribute :default_connection_handler, instance_writer: false
 
+      class_attribute :default_role, instance_writer: false
+
       class_attribute :default_shard, instance_writer: false
+
+      mattr_accessor :legacy_connection_handling, instance_writer: false, default: true
 
       self.filter_attributes = []
 
@@ -159,15 +161,77 @@ module ActiveRecord
         Thread.current.thread_variable_set(:ar_connection_handler, handler)
       end
 
-      def self.current_shard
-        Thread.current.thread_variable_get(:ar_shard) || default_shard
+      def self.connection_handlers
+        @@connection_handlers ||= {}
       end
 
-      def self.current_shard=(shard)
-        Thread.current.thread_variable_set(:ar_shard, shard)
+      def self.connection_handlers=(handlers)
+        @@connection_handlers = handlers
+      end
+
+      def self.current_shard # :nodoc:
+        connected_to_stack.reverse_each do |hash|
+          return hash[:shard] if hash[:shard] && hash[:klass] == Base
+          return hash[:shard] if hash[:shard] && hash[:klass] == abstract_base_class
+        end
+
+        default_shard
+      end
+
+      def self.current_preventing_writes # :nodoc:
+        connected_to_stack.reverse_each do |hash|
+          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klass] == Base
+          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klass] == abstract_base_class
+        end
+
+        false
+      end
+
+      # Returns the symbol representing the current connected role.
+      #
+      #   ActiveRecord::Base.connected_to(role: :writing) do
+      #     ActiveRecord::Base.current_role #=> :writing
+      #   end
+      #
+      #   ActiveRecord::Base.connected_to(role: :reading) do
+      #     ActiveRecord::Base.current_role #=> :reading
+      #   end
+      def self.current_role
+        if ActiveRecord::Base.legacy_connection_handling
+          connection_handlers.key(connection_handler) || default_role
+        else
+          connected_to_stack.reverse_each do |hash|
+            return hash[:role] if hash[:role] && hash[:klass] == Base
+            return hash[:role] if hash[:role] && hash[:klass] == abstract_base_class
+          end
+
+          default_role
+        end
+      end
+
+      def self.connected_to_stack # :nodoc:
+        if connected_to_stack = Thread.current.thread_variable_get(:ar_connected_to_stack)
+          connected_to_stack
+        else
+          connected_to_stack = Concurrent::Array.new
+          Thread.current.thread_variable_set(:ar_connected_to_stack, connected_to_stack)
+          connected_to_stack
+        end
+      end
+
+      def self.abstract_base_class # :nodoc:
+        klass = self
+
+        until klass == Base
+          break if klass.abstract_class?
+          klass = klass.superclass
+        end
+
+        klass
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
+      self.default_role = writing_role
       self.default_shard = :default
     end
 

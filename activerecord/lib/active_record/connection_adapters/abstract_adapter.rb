@@ -116,7 +116,11 @@ module ActiveRecord
       # Returns true if the connection is a replica, or if +prevent_writes+
       # is set to true.
       def preventing_writes?
-        replica? || ActiveRecord::Base.connection_handler.prevent_writes
+        if ActiveRecord::Base.legacy_connection_handling
+          replica? || ActiveRecord::Base.connection_handler.prevent_writes
+        else
+          replica? || ActiveRecord::Base.current_preventing_writes
+        end
       end
 
       def migrations_paths # :nodoc:
