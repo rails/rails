@@ -1,3 +1,14 @@
+*   Disentangle Action Text from ApplicationController
+
+    Allow Action Text to be used without having an ApplicationController
+    defined.
+    This makes sure:
+    * Action Text attachments render the correct URL host in mailers.
+    * an ActionController::Renderer isn't allocated per request.
+    * Sidekiq doesn't hang with the "classic" autoloader.
+
+    *Jonathan Hefner*
+
 ## Rails 6.0.4 (June 15, 2021) ##
 
 *   No changes.

@@ -1,13 +1,8 @@
 <p id="notice"><%= notice %></p>
 
-<p>
-  <strong>Subject:</strong>
-  <%= @message.subject %>
-</p>
+<h1 id="subject"><%= @message.subject %></h1>
 
-<div class="trix-content">
-  <%= @message.content.html_safe %>
-</div>
+<div id="content"><%= @message.content %></div>
 
 <%= link_to 'Edit', edit_message_path(@message) %> |
 <%= link_to 'Back', messages_path %>
