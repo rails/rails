@@ -264,15 +264,23 @@ module ActiveRecord
         end
       end
 
-      class ShardConnectionTestModel < ActiveRecord::Base
+      class SecondaryBase < ActiveRecord::Base
+        self.abstract_class = true
       end
 
-      class ShardConnectionTestModelB < ActiveRecord::Base
+      class ShardConnectionTestModel < SecondaryBase
+      end
+
+      class SomeOtherBase < ActiveRecord::Base
+        self.abstract_class = true
+      end
+
+      class ShardConnectionTestModelB < SomeOtherBase
       end
 
       def test_same_shards_across_clusters
-        ShardConnectionTestModel.connects_to shards: { one: { writing: { database: ":memory:", adapter: "sqlite3" } } }
-        ShardConnectionTestModelB.connects_to shards: { one: { writing: { database: ":memory:", adapter: "sqlite3" } } }
+        SecondaryBase.connects_to shards: { one: { writing: { database: ":memory:", adapter: "sqlite3" } } }
+        SomeOtherBase.connects_to shards: { one: { writing: { database: ":memory:", adapter: "sqlite3" } } }
 
         ActiveRecord::Base.connected_to(shard: :one) do
           ShardConnectionTestModel.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
@@ -287,7 +295,7 @@ module ActiveRecord
       end
 
       def test_sharding_separation
-        ShardConnectionTestModel.connects_to shards: {
+        SecondaryBase.connects_to shards: {
           default: { writing: { database: ":memory:", adapter: "sqlite3" } },
           one: { writing: { database: ":memory:", adapter: "sqlite3" } }
         }
@@ -323,7 +331,7 @@ module ActiveRecord
         tf_default = Tempfile.open "shard_key_default"
         tf_shard_one = Tempfile.open "shard_key_one"
 
-        ShardConnectionTestModel.connects_to shards: {
+        SecondaryBase.connects_to shards: {
           default: { writing: { database: tf_default.path, adapter: "sqlite3" } },
           one: { writing: { database: tf_shard_one.path, adapter: "sqlite3" } }
         }
@@ -368,7 +376,7 @@ module ActiveRecord
         tf_default_reading = Tempfile.open "shard_key_default_reading"
         tf_shard_one_reading = Tempfile.open "shard_key_one_reading"
 
-        ShardConnectionTestModel.connects_to shards: {
+        SecondaryBase.connects_to shards: {
           default: { writing: { database: tf_default.path, adapter: "sqlite3" }, secondary: { database: tf_default_reading.path, adapter: "sqlite3" } },
           one: { writing: { database: tf_shard_one.path, adapter: "sqlite3" }, secondary: { database: tf_shard_one_reading.path, adapter: "sqlite3" } }
         }

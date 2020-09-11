@@ -79,6 +79,8 @@ module ActiveRecord
     #
     # Returns an array of database connections.
     def connects_to(database: {}, shards: {})
+      raise NotImplementedError, "connects_to can only be called on ActiveRecord::Base or abstract classes" unless self == Base || abstract_class?
+
       if database.present? && shards.present?
         raise ArgumentError, "connects_to can only accept a `database` or `shards` argument, but not both arguments."
       end
