@@ -1051,6 +1051,13 @@ class CookiesTest < ActionController::TestCase
     assert_cookie_header "user_name=rizwanreza; domain=.nextangle.co.uk; path=/; SameSite=Lax"
   end
 
+  def test_cookie_with_all_domain_option_using_3_letter_domain_and_2_letter_tld
+    @request.host = "two.subdomains.abc.se"
+    get :set_cookie_with_domain
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=.abc.se; path=/; SameSite=Lax"
+  end
+
   def test_cookie_with_all_domain_option_using_host_with_port
     @request.host = "nextangle.local:3000"
     get :set_cookie_with_domain
