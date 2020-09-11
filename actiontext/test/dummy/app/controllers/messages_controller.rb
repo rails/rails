@@ -1,4 +1,4 @@
-class MessagesController < ApplicationController
+class MessagesController < ActionController::Base
   before_action :set_message, only: [:show, :edit, :update, :destroy]
 
   # GET /messages

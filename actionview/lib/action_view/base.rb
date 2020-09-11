@@ -152,7 +152,7 @@ module ActionView #:nodoc:
     # Specify whether rendering within namespaced controllers should prefix
     # the partial paths for ActiveModel objects with the namespace.
     # (e.g., an Admin::PostsController would render @post using /admin/posts/_post.erb)
-    cattr_accessor :prefix_partial_path_with_controller_namespace, default: true
+    class_attribute :prefix_partial_path_with_controller_namespace, default: true
 
     # Specify default_formats that can be rendered.
     cattr_accessor :default_formats
