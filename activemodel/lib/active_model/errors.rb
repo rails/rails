@@ -347,7 +347,7 @@ module ActiveModel
     # compatibility, but this behavior is deprecated.
     def details
       hash = group_by_attribute.transform_values do |errors|
-        errors.map(&:detail)
+        errors.map(&:details)
       end
       DeprecationHandlingDetailsHash.new(hash)
     end
