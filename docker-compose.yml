@@ -1,0 +1,33 @@
+version: '3'
+services:
+  rails:
+    build:
+      context: .
+    depends_on:
+      - memcached
+      - mysql
+      - postgres
+      - redis
+    environment:
+      - MEMCACHE_SERVERS
+      - MYSQL_HOST
+      - PGHOST
+      - PGPASSWORD
+      - PGUSER
+      - REDIS_URL
+    volumes:
+      - .:/usr/src/rails
+  memcached:
+    image: memcached:1.6
+  redis:
+    image: redis:6.0
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: 1
+    volumes:
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+  postgres:
+    image: postgres:11
+    environment:
+      POSTGRES_PASSWORD: postgres
