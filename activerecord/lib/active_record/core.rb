@@ -147,12 +147,34 @@ module ActiveRecord
         Thread.current.thread_variable_set(:ar_connection_handler, handler)
       end
 
-      def self.current_shard
-        Thread.current.thread_variable_get(:ar_shard) || default_shard
+      def self.current_shard # :nodoc:
+        shard_stack.reverse_each do |hash|
+          return hash[:shard] if hash[:shard] && hash[:klass] == Base
+          return hash[:shard] if hash[:shard] && hash[:klass] == abstract_base_class
+        end
+
+        default_shard
       end
 
-      def self.current_shard=(shard)
-        Thread.current.thread_variable_set(:ar_shard, shard)
+      def self.shard_stack # :nodoc:
+        if shard_stack = Thread.current.thread_variable_get(:ar_shard_stack)
+          shard_stack
+        else
+          shard_stack = Concurrent::Array.new
+          Thread.current.thread_variable_set(:ar_shard_stack, shard_stack)
+          shard_stack
+        end
+      end
+
+      def self.abstract_base_class # :nodoc:
+        klass = self
+
+        until klass == Base
+          break if klass.abstract_class?
+          klass = klass.superclass
+        end
+
+        klass
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new

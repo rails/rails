@@ -135,7 +135,11 @@ module ActiveRecord
     #
     # The database kwarg is deprecated and will be removed in 6.2.0 without replacement.
     def connected_to(database: nil, role: nil, shard: nil, prevent_writes: false, &blk)
-      raise NotImplementedError, "`connected_to` can only be called on ActiveRecord::Base" unless self == Base
+      if shard && role
+        raise NotImplementedError, "calling `connected_to` with `role` and `shard` is only allowed on ActiveRecord::Base or abstract classes" unless abstract_class? || self == Base
+      else
+        raise NotImplementedError, "`connected_to` can only be called on ActiveRecord::Base" unless self == Base
+      end
 
       if database
         ActiveSupport::Deprecation.warn("The database key in `connected_to` is deprecated. It will be removed in Rails 6.2.0 without replacement.")
@@ -305,14 +309,12 @@ module ActiveRecord
       end
 
       def with_shard(shard, role, prevent_writes)
-        old_shard = current_shard
-
         with_role(role, prevent_writes) do
-          self.current_shard = shard
+          self.shard_stack << { shard: shard, klass: self }
           yield
         end
       ensure
-        self.current_shard = old_shard
+        self.shard_stack.pop
       end
 
       def swap_connection_handler(handler, &blk) # :nodoc:

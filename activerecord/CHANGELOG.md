@@ -1,3 +1,9 @@
+*   Connections can be granularly switched for abstract classes when `connected_to` is called.
+
+    This change allows `connected_to` to switch a `shard` for a single abstract class instead of all classes.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Add `SKIP_TEST_DATABASE` environment variable to disable modifying the test database when `rails db:create` and `rails db:drop` are called.
 
     *Jason Schweier*
