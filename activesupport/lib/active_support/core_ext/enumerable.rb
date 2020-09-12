@@ -151,10 +151,10 @@ module Enumerable
   #   # => [[1, "David"], [2, "Rafael"]]
   def pluck(*keys)
     if keys.many?
-      map { |element| keys.map { |key| element[key] } }
+      map { |element| keys.map { |key| element.respond_to?(key) ? element.public_send(key) : element[key] } }
     else
       key = keys.first
-      map { |element| element[key] }
+      map { |element| element.respond_to?(key) ? element.public_send(key) : element[key] }
     end
   end
 

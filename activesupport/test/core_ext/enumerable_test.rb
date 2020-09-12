@@ -11,6 +11,14 @@ class SummablePayment < Payment
   def +(p) self.class.new(price + p.price) end
 end
 
+class AttrReader
+  attr_reader :id
+
+  def initialize(id)
+    @id = id
+  end
+end
+
 class EnumerableTests < ActiveSupport::TestCase
   class GenericEnumerable
     include Enumerable
@@ -244,6 +252,14 @@ class EnumerableTests < ActiveSupport::TestCase
 
     assert_equal [], [].pluck(:price)
     assert_equal [], [].pluck(:dollars, :cents)
+
+    attr_reader_collection = [
+      AttrReader.new(1),
+      AttrReader.new(2),
+      AttrReader.new(3),
+    ]
+
+    assert_equal([1, 2, 3], attr_reader_collection.pluck(:id))
   end
 
   def test_pick
