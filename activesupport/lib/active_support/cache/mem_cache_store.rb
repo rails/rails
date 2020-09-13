@@ -141,7 +141,7 @@ module ActiveSupport
 
         # Write an entry to the cache.
         def write_entry(key, entry, **options)
-          method = options && options[:unless_exist] ? :add : :set
+          method = options[:unless_exist] ? :add : :set
           value = options[:raw] ? entry.value.to_s : entry
           expires_in = options[:expires_in].to_i
           if expires_in > 0 && !options[:raw]
