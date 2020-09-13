@@ -30,7 +30,7 @@ module ActiveStorage::Blob::Representable
   # variable, call ActiveStorage::Blob#variable?.
   def variant(transformations)
     if variable?
-      variant_class.new(self, transformations)
+      variant_class.new(self, ActiveStorage::Variation.wrap(transformations).default_to(default_transformations))
     else
       raise ActiveStorage::InvariableError
     end
@@ -95,6 +95,26 @@ module ActiveStorage::Blob::Representable
   end
 
   private
+    def default_transformations
+      { format: default_variant_format }
+    end
+
+    def default_variant_format
+      if web_image?
+        format || :png
+      else
+        :png
+      end
+    end
+
+    def format
+      if filename.extension.present? && MiniMime.lookup_by_extension(filename.extension)&.content_type == content_type
+        filename.extension
+      else
+        MiniMime.lookup_by_content_type(content_type)&.extension
+      end
+    end
+
     def variant_class
       ActiveStorage.track_variants ? ActiveStorage::VariantWithRecord : ActiveStorage::Variant
     end
