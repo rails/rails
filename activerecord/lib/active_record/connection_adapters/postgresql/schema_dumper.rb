@@ -28,6 +28,27 @@ module ActiveRecord
             end
           end
 
+          def exclusion_constraints_in_create(table, stream)
+            if (exclusion_constraints = @connection.exclusion_constraints(table)).any?
+              add_exclusion_constraint_statements = exclusion_constraints.map do |exclusion_constraint|
+                parts = [
+                  "t.exclusion_constraint #{exclusion_constraint.expression.inspect}"
+                ]
+
+                parts << "where: #{exclusion_constraint.where.inspect}" if exclusion_constraint.where
+                parts << "using: #{exclusion_constraint.using.inspect}" if exclusion_constraint.using
+
+                if exclusion_constraint.export_name_on_schema_dump?
+                  parts << "name: #{exclusion_constraint.name.inspect}"
+                end
+
+                "    #{parts.join(', ')}"
+              end
+
+              stream.puts add_exclusion_constraint_statements.sort.join("\n")
+            end
+          end
+
           def prepare_column_options(column)
             spec = super
             spec[:array] = "true" if column.array?

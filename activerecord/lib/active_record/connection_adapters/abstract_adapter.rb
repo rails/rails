@@ -409,6 +409,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support creating exclusion constraints?
+      def supports_exclusion_constraints?
+        false
+      end
+
       # Does this adapter support views?
       def supports_views?
         false

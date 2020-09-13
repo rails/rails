@@ -148,6 +148,20 @@ module ActiveRecord
             t.xml :foo, :bar
           end
         end
+
+        def test_exclusion_constraint_creates_exclusion_constraint
+          with_change_table do |t|
+            @connection.expect :add_exclusion_constraint, nil, [:delete_me, "daterange(start_date, end_date) WITH &&", using: :gist, where: "start_date IS NOT NULL AND end_date IS NOT NULL", name: "date_overlap"]
+            t.exclusion_constraint "daterange(start_date, end_date) WITH &&", using: :gist, where: "start_date IS NOT NULL AND end_date IS NOT NULL", name: "date_overlap"
+          end
+        end
+
+        def test_remove_exclusion_constraint_removes_exclusion_constraint
+          with_change_table do |t|
+            @connection.expect :remove_exclusion_constraint, nil, [:delete_me, name: "date_overlap"]
+            t.remove_exclusion_constraint name: "date_overlap"
+          end
+        end
       end
 
       def test_column_creates_column
