@@ -1182,6 +1182,58 @@ module ActiveRecord
         execute schema_creation.accept(at)
       end
 
+      # Returns an array of exclusion constraints for the given table.
+      # The exclusion constraints are represented as ExclusionConstraintDefinition objects.
+      def exclusion_constraints(table_name)
+        raise NotImplementedError
+      end
+
+      # Adds a new exclusion constraint to the table. +expression+ is a String
+      # representation of a list of exclusion elements and operators.
+      #
+      #   add_exclusion_constraint :products, "price WITH =, availability_range WITH &&", using: :gist, name: "price_check"
+      #
+      # generates:
+      #
+      #   ALTER TABLE "products" ADD CONSTRAINT price_check EXCLUDE USING gist (price WITH =, availability_range WITH &&)
+      #
+      # The +options+ hash can include the following keys:
+      # [<tt>:name</tt>]
+      #   The constraint name. Defaults to <tt>excl_rails_<identifier></tt>.
+      def add_exclusion_constraint(table_name, expression, **options)
+        return unless supports_exclusion_constraints?
+
+        options = exclusion_constraint_options(table_name, expression, options)
+        at = create_alter_table(table_name)
+        at.add_exclusion_constraint(expression, options)
+
+        execute schema_creation.accept(at)
+      end
+
+      def exclusion_constraint_options(table_name, expression, options) # :nodoc:
+        options = options.dup
+        options[:name] ||= exclusion_constraint_name(table_name, expression: expression, **options)
+        options
+      end
+
+      # Removes the given exclusion constraint from the table.
+      #
+      #   remove_exclusion_constraint :products, name: "price_check"
+      #
+      # The +expression+ parameter will be ignored if present. It can be helpful
+      # to provide this in a migration's +change+ method so it can be reverted.
+      # In that case, +expression+ will be used by #add_exclusion_constraint.
+      def remove_exclusion_constraint(table_name, expression = nil, **options)
+        return unless supports_exclusion_constraints?
+
+        excl_name_to_delete = exclusion_constraint_for!(table_name, expression: expression, **options).name
+
+        at = create_alter_table(table_name)
+        at.drop_exclusion_constraint(excl_name_to_delete)
+
+        execute schema_creation.accept(at)
+      end
+
       def dump_schema_information # :nodoc:
         versions = schema_migration.all_versions
         insert_versions_sql(versions) if versions.any?
@@ -1548,6 +1600,27 @@ module ActiveRecord
         def check_constraint_for!(table_name, expression: nil, **options)
           check_constraint_for(table_name, expression: expression, **options) ||
             raise(ArgumentError, "Table '#{table_name}' has no check constraint for #{expression || options}")
+        end
+
+        def exclusion_constraint_name(table_name, **options)
+          options.fetch(:name) do
+            expression = options.fetch(:expression)
+            identifier = "#{table_name}_#{expression}_excl"
+            hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
+
+            "excl_rails_#{hashed_identifier}"
+          end
+        end
+
+        def exclusion_constraint_for(table_name, **options)
+          return unless supports_exclusion_constraints?
+          excl_name = exclusion_constraint_name(table_name, **options)
+          exclusion_constraints(table_name).detect { |excl| excl.name == excl_name }
+        end
+
+        def exclusion_constraint_for!(table_name, expression: nil, **options)
+          exclusion_constraint_for(table_name, expression: expression, **options) ||
+            raise(ArgumentError, "Table '#{table_name}' has no exclusion constraint for #{expression || options}")
         end
 
         def validate_index_length!(table_name, new_name, internal = false)

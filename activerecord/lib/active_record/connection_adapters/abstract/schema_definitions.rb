@@ -146,6 +146,24 @@ module ActiveRecord
       end
     end
 
+    ExclusionConstraintDefinition = Struct.new(:table_name, :expression, :options) do
+      def name
+        options[:name]
+      end
+
+      def using
+        options[:using]
+      end
+
+      def where
+        options[:where]
+      end
+
+      def export_name_on_schema_dump?
+        !ActiveRecord::SchemaDumper.excl_ignore_pattern.match?(name) if name
+      end
+    end
+
     class ReferenceDefinition # :nodoc:
       def initialize(
         name,
@@ -293,7 +311,7 @@ module ActiveRecord
     class TableDefinition
       include ColumnMethods
 
-      attr_reader :name, :temporary, :if_not_exists, :options, :as, :comment, :indexes, :foreign_keys, :check_constraints
+      attr_reader :name, :temporary, :if_not_exists, :options, :as, :comment, :indexes, :foreign_keys, :check_constraints, :exclusion_constraints
 
       def initialize(
         conn,
@@ -311,6 +329,7 @@ module ActiveRecord
         @foreign_keys = []
         @primary_keys = nil
         @check_constraints = []
+        @exclusion_constraints = []
         @temporary = temporary
         @if_not_exists = if_not_exists
         @options = options
@@ -443,6 +462,10 @@ module ActiveRecord
         check_constraints << new_check_constraint_definition(expression, options)
       end
 
+      def exclusion_constraint(expression, **options)
+        exclusion_constraints << new_exclusion_constraint_definition(expression, options)
+      end
+
       # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
       # <tt>:updated_at</tt> to the table. See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
       #
@@ -495,6 +518,11 @@ module ActiveRecord
         CheckConstraintDefinition.new(name, expression, options)
       end
 
+      def new_exclusion_constraint_definition(expression, options) # :nodoc:
+        options = @conn.exclusion_constraint_options(name, expression, options)
+        ExclusionConstraintDefinition.new(name, expression, options)
+      end
+
       private
         def create_column_definition(name, type, options)
           ColumnDefinition.new(name, type, options)
@@ -517,6 +545,7 @@ module ActiveRecord
       attr_reader :adds
       attr_reader :foreign_key_adds, :foreign_key_drops
       attr_reader :check_constraint_adds, :check_constraint_drops
+      attr_reader :exclusion_constraint_adds, :exclusion_constraint_drops
 
       def initialize(td)
         @td   = td
@@ -525,6 +554,8 @@ module ActiveRecord
         @foreign_key_drops = []
         @check_constraint_adds = []
         @check_constraint_drops = []
+        @exclusion_constraint_adds = []
+        @exclusion_constraint_drops = []
       end
 
       def name; @td.name; end
@@ -543,6 +574,14 @@ module ActiveRecord
 
       def drop_check_constraint(constraint_name)
         @check_constraint_drops << constraint_name
+      end
+
+      def add_exclusion_constraint(expression, options)
+        @exclusion_constraint_adds << @td.new_exclusion_constraint_definition(expression, options)
+      end
+
+      def drop_exclusion_constraint(constraint_name)
+        @exclusion_constraint_drops << constraint_name
       end
 
       def add_column(name, type, **options)
@@ -570,6 +609,7 @@ module ActiveRecord
     #     t.references
     #     t.belongs_to
     #     t.check_constraint
+    #     t.exclusion_constraint
     #     t.string
     #     t.text
     #     t.integer
@@ -593,6 +633,7 @@ module ActiveRecord
     #     t.remove_belongs_to
     #     t.remove_index
     #     t.remove_check_constraint
+    #     t.remove_exclusion_constraint
     #     t.remove_timestamps
     #   end
     #
@@ -811,6 +852,24 @@ module ActiveRecord
       # See {connection.remove_check_constraint}[rdoc-ref:SchemaStatements#remove_check_constraint]
       def remove_check_constraint(*args)
         @base.remove_check_constraint(name, *args)
+      end
+
+      # Adds an exclusion constraint.
+      #
+      #  t.exclusion_constraint("price WITH =, availability_range WITH &&", using: :gist, name: "price_check")
+      #
+      # See {connection.add_exclusion_constraint}[rdoc-ref:SchemaStatements#add_exclusion_constraint]
+      def exclusion_constraint(*args)
+        @base.add_exclusion_constraint(name, *args)
+      end
+
+      # Removes the given exclusion constraint from the table.
+      #
+      #  t.remove_exclusion_constraint(name: "price_check")
+      #
+      # See {connection.remove_exclusion_constraint}[rdoc-ref:SchemaStatements#remove_exclusion_constraint]
+      def remove_exclusion_constraint(*args)
+        @base.remove_exclusion_constraint(name, *args)
       end
     end
   end

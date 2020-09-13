@@ -15,7 +15,7 @@ module ActiveRecord
 
       delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
         :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys?,
-        :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?,
+        :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?, :supports_exclusion_constraints?,
         to: :@conn, private: true
 
       private
@@ -26,6 +26,8 @@ module ActiveRecord
           sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
           sql << o.check_constraint_adds.map { |con| visit_AddCheckConstraint con }.join(" ")
           sql << o.check_constraint_drops.map { |con| visit_DropCheckConstraint con }.join(" ")
+          sql << o.exclusion_constraint_adds.map { |con| visit_AddExclusionConstraint con }.join(" ")
+          sql << o.exclusion_constraint_drops.map { |con| visit_DropExclusionConstraint con }.join(" ")
         end
 
         def visit_ColumnDefinition(o)
@@ -57,6 +59,10 @@ module ActiveRecord
 
           if supports_check_constraints?
             statements.concat(o.check_constraints.map { |chk| accept chk })
+          end
+
+          if supports_exclusion_constraints?
+            statements.concat(o.exclusion_constraints.map { |chk| accept chk })
           end
 
           create_sql << "(#{statements.join(', ')})" if statements.present?
@@ -114,6 +120,25 @@ module ActiveRecord
         end
 
         def visit_DropCheckConstraint(name)
+          "DROP CONSTRAINT #{quote_column_name(name)}"
+        end
+
+        def visit_ExclusionConstraintDefinition(o)
+          sql = ["CONSTRAINT"]
+          sql << o.name
+          sql << "EXCLUDE"
+          sql << "USING #{o.using}" if o.using
+          sql << "(#{o.expression})"
+          sql << "WHERE (#{o.where})" if o.where
+
+          sql.join(" ")
+        end
+
+        def visit_AddExclusionConstraint(o)
+          "ADD #{accept(o)}"
+        end
+
+        def visit_DropExclusionConstraint(name)
           "DROP CONSTRAINT #{quote_column_name(name)}"
         end
 

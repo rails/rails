@@ -1263,6 +1263,13 @@ ActiveRecord::Schema.define do
     t.integer :id
     t.datetime :created_at
   end
+
+  create_table :test_exclusion_constraints, force: true do |t|
+    t.date :start_date
+    t.date :end_date
+
+    t.exclusion_constraint "daterange(start_date, end_date) WITH &&", using: :gist, where: "start_date IS NOT NULL AND end_date IS NOT NULL", name: "test_exclusion_constraints_date_overlap"
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|

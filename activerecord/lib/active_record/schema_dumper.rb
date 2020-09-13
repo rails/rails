@@ -29,6 +29,12 @@ module ActiveRecord
     # should not be dumped to db/schema.rb.
     cattr_accessor :chk_ignore_pattern, default: /^chk_rails_[0-9a-f]{10}$/
 
+    ##
+    # :singleton-method:
+    # Specify a custom regular expression matching exclusion constraints which name
+    # should not be dumped to db/schema.rb.
+    cattr_accessor :excl_ignore_pattern, default: /^excl_rails_[0-9a-f]{10}$/
+
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
         connection.create_schema_dumper(generate_options(config)).dump(stream)
@@ -166,6 +172,7 @@ HEADER
 
           indexes_in_create(table, tbl)
           check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
+          exclusion_constraints_in_create(table, tbl) if @connection.supports_exclusion_constraints?
 
           tbl.puts "  end"
           tbl.puts
@@ -196,6 +203,12 @@ HEADER
 
       def indexes_in_create(table, stream)
         if (indexes = @connection.indexes(table)).any?
+          if @connection.supports_exclusion_constraints? && (exclusion_constraints = @connection.exclusion_constraints(table)).any?
+            exclusion_constraint_names = exclusion_constraints.collect(&:name)
+
+            indexes = indexes.reject { |index| exclusion_constraint_names.include?(index.name) }
+          end
+
           index_statements = indexes.map do |index|
             "    t.index #{index_parts(index).join(', ')}"
           end
@@ -234,6 +247,27 @@ HEADER
           end
 
           stream.puts add_check_constraint_statements.sort.join("\n")
+        end
+      end
+
+      def exclusion_constraints_in_create(table, stream)
+        if (exclusion_constraints = @connection.exclusion_constraints(table)).any?
+          add_exclusion_constraint_statements = exclusion_constraints.map do |exclusion_constraint|
+            parts = [
+              "t.exclusion_constraint #{exclusion_constraint.expression.inspect}"
+            ]
+
+            parts << "where: #{exclusion_constraint.where.inspect}" if exclusion_constraint.where
+            parts << "using: #{exclusion_constraint.using.inspect}" if exclusion_constraint.using
+
+            if exclusion_constraint.export_name_on_schema_dump?
+              parts << "name: #{exclusion_constraint.name.inspect}"
+            end
+
+            "    #{parts.join(', ')}"
+          end
+
+          stream.puts add_exclusion_constraint_statements.sort.join("\n")
         end
       end
 
