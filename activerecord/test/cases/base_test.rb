@@ -1661,6 +1661,14 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  test "cannot call connects_to on non-abstract or non-ActiveRecord::Base classes" do
+    error = assert_raises(NotImplementedError) do
+      Bird.connects_to(database: { writing: :arunit })
+    end
+
+    assert_equal "connects_to can only be called on ActiveRecord::Base or abstract classes", error.message
+  end
+
   test "cannot call connected_to on subclasses of ActiveRecord::Base" do
     error = assert_raises(NotImplementedError) do
       Bird.connected_to(role: :reading) { }

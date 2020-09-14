@@ -1,3 +1,9 @@
+*   `connects_to` can only be called on `ActiveRecord::Base` or abstract classes.
+
+    Ensure that `connects_to` can only be called from `ActiveRecord::Base` or abstract classes. This protects the application from opening duplicate or too many connections.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   All connection adapters `execute` now raises `ActiveRecord::ConnectionNotEstablished` rather than
     `ActiveRecord::InvalidStatement` when they encounter a connection error.
 
