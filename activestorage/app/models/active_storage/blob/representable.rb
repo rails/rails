@@ -30,7 +30,7 @@ module ActiveStorage::Blob::Representable
   # variable, call ActiveStorage::Blob#variable?.
   def variant(transformations)
     if variable?
-      variant_class.new(self, ActiveStorage::Variation.wrap(transformations).default_to(default_transformations))
+      variant_class.new(self, ActiveStorage::Variation.wrap(transformations).default_to(default_variant_transformations))
     else
       raise ActiveStorage::InvariableError
     end
@@ -95,7 +95,7 @@ module ActiveStorage::Blob::Representable
   end
 
   private
-    def default_transformations
+    def default_variant_transformations
       { format: default_variant_format }
     end
 
