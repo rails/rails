@@ -78,10 +78,10 @@ module ActionDispatch
         end
       end
 
-      class BinaryParamEncoder < ParamEncoder # :nodoc:
+      class BinaryParamEncoder # :nodoc:
         def self.encode(request, params)
-          controller = params[:controller] || request.path_parameters[:controller]
-          action = params[:action] || request.path_parameters[:action]
+          controller = request.path_parameters[:controller]
+          action = request.path_parameters[:action]
 
           return params unless controller && controller.valid_encoding?
 
@@ -90,6 +90,7 @@ module ActionDispatch
               param.force_encoding ::Encoding::ASCII_8BIT
             end
           end
+
           params
         end
 
