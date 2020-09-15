@@ -5,12 +5,12 @@
     *Eileen M. Uchitelle*, *John Crepezzi*
 
 *   All connection adapters `execute` now raises `ActiveRecord::ConnectionNotEstablished` rather than
-    `ActiveRecord::InvalidStatement` when they encounter a connection error.
+    `ActiveRecord::StatementInvalid` when they encounter a connection error.
 
     *Jean Boussier*
 
 *   `Mysql2Adapter#quote_string` now raises `ActiveRecord::ConnectionNotEstablished` rather than
-    `ActiveRecord::InvalidStatement` when it can't connect to the MySQL server.
+    `ActiveRecord::StatementInvalid` when it can't connect to the MySQL server.
 
     *Jean Boussier*
 
