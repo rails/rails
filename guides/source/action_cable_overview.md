@@ -727,7 +727,7 @@ when using the same Redis server for multiple applications. See the [Redis PubSu
 The PostgreSQL adapter uses Active Record's connection pool, and thus the
 application's `config/database.yml` database configuration, for its connection.
 This connection will be outside of the regular connection pool limits, and will
-persist for the lifetime of the Action Cable process.
+persist for the lifetime of the server process.
 
 ### Allowed Request Origins
 
