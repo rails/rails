@@ -780,7 +780,7 @@ class RequestMethod < BaseRequestTest
     ensure
       # Reset original acronym set
       ActiveSupport::Inflector.inflections do |inflect|
-        inflect.send(:instance_variable_set, "@acronyms", existing_acronyms)
+        inflect.instance_variable_set :@acronyms, existing_acronyms
         inflect.send(:define_acronym_regex_patterns)
       end
     end
