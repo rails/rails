@@ -150,6 +150,7 @@ module ActiveSupport
       "Singapore"                    => "Asia/Singapore",
       "Taipei"                       => "Asia/Taipei",
       "Perth"                        => "Australia/Perth",
+      "Manila"                       => "Asia/Manila",
       "Irkutsk"                      => "Asia/Irkutsk",
       "Ulaanbaatar"                  => "Asia/Ulaanbaatar",
       "Seoul"                        => "Asia/Seoul",
