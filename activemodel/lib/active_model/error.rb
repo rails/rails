@@ -58,7 +58,7 @@ module ActiveModel
 
     def self.generate_message(attribute, type, base, options) # :nodoc:
       type = options.delete(:message) if options[:message].is_a?(Symbol)
-      value = (attribute != :base ? base.send(:read_attribute_for_validation, attribute) : nil)
+      value = (attribute != :base ? base.read_attribute_for_validation(attribute) : nil)
 
       options = {
         model: base.model_name.human,
