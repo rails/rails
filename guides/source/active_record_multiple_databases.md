@@ -349,14 +349,15 @@ class ApplicationRecord < ActiveRecord::Base
 end
 ```
 
-Then models can swap connections manually via the `connected_to` API:
+Then models can swap connections manually via the `connected_to` API. If
+using sharding both a `role` and `shard` must be passed:
 
 ```ruby
-ActiveRecord::Base.connected_to(shard: :default) do
+ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
   @id = Record.create! # creates a record in shard one
 end
 
-ActiveRecord::Base.connected_to(shard: :shard_one) do
+ActiveRecord::Base.connected_to(role: :writing, shard: :shard_one) do
   Record.find(@id) # can't find record, doesn't exist
 end
 ```

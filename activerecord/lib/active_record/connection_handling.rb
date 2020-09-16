@@ -160,7 +160,11 @@ module ActiveRecord
 
         with_handler(role, &blk)
       elsif shard
-        with_shard(shard, role || current_role, prevent_writes, &blk)
+        unless role
+          raise ArgumentError, "`connected_to` cannot accept a `shard` argument without a `role`."
+        end
+
+        with_shard(shard, role, prevent_writes, &blk)
       elsif role
         with_role(role, prevent_writes, &blk)
       else
