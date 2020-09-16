@@ -100,7 +100,6 @@ module ActiveRecord
       first_config && name == first_config.name
     end
 
-
     # Returns the DatabaseConfigurations object as a Hash.
     def to_h
       configurations.inject({}) do |memo, db_config|

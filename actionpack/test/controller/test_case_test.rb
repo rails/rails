@@ -247,7 +247,6 @@ XML
     assert_equal JSON.parse(@response.body)["foo"], "bar"
   end
 
-
   def test_body_stream
     params = Hash[:page, { name: "page name" }, "some key", 123]
 

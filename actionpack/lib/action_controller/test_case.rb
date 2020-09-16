@@ -503,7 +503,6 @@ module ActionController
         process_controller_response(action, cookies, xhr)
       end
 
-
       def controller_class_name
         @controller.class.anonymous? ? "anonymous" : @controller.class.controller_path
       end

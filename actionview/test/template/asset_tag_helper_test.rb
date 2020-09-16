@@ -509,7 +509,6 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_dom_equal %(<script src="/javascripts/foo.js"></script>), javascript_include_tag("foo.js")
   end
 
-
   def test_should_set_preload_links
     stylesheet_link_tag("http://example.com/style.css")
     javascript_include_tag("http://example.com/all.js")

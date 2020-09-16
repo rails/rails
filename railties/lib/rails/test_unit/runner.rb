@@ -44,7 +44,6 @@ module Rails
         def load_tests(argv)
           patterns = extract_filters(argv)
 
-
           tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
           tests.exclude(default_test_exclude_glob) if patterns.empty?
 

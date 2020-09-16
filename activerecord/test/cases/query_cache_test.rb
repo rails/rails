@@ -96,7 +96,6 @@ class QueryCacheTest < ActiveRecord::TestCase
     clean_up_connection_handler
   end
 
-
   if Process.respond_to?(:fork) && !in_memory_db?
     def test_query_cache_with_multiple_handlers_and_forked_processes
       ActiveRecord::Base.connection_handlers = {

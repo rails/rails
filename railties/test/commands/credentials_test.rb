@@ -178,7 +178,6 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(encrypted_content, run_diff_command(content_path))
   end
 
-
   private
     def run_edit_command(editor: "cat", environment: nil, **options)
       switch_env("EDITOR", editor) do

@@ -72,7 +72,6 @@ module RenderTestCases
     assert_equal "Hello world!", @view.render(template: "test/hello_world")
   end
 
-
   def test_render_file
     assert_equal "Hello world!", assert_deprecated { @view.render(file: "test/hello_world") }
   end

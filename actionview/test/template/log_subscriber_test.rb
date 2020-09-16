@@ -260,7 +260,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     end
   end
 
-
   def test_render_collection_with_implicit_path
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
       set_cache_controller

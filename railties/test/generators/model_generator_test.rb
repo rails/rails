@@ -15,7 +15,6 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     Rails.application.config.active_record.belongs_to_required_by_default = true
   end
 
-
   def teardown
     Rails.application.config.active_record.belongs_to_required_by_default = @old_belongs_to_required_by_default
   end

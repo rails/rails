@@ -8,7 +8,6 @@ require "models/essay"
 require "models/comment"
 require "models/categorization"
 
-
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
     fixtures :posts, :comments, :authors, :humans, :essays
