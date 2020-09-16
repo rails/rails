@@ -1124,7 +1124,7 @@ class ResourcesTest < ActionController::TestCase
               if collection_methods
                 collection do
                   collection_methods.each do |name, method|
-                    send(method, name)
+                    public_send(method, name)
                   end
                 end
               end
@@ -1132,7 +1132,7 @@ class ResourcesTest < ActionController::TestCase
               if member_methods
                 member do
                   member_methods.each do |name, method|
-                    send(method, name)
+                    public_send(method, name)
                   end
                 end
               end
