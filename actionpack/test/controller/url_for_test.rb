@@ -418,9 +418,9 @@ module AbstractController
 
           controller = kls.new
           params = { action: :index, controller: :posts, format: :xml }
-          assert_equal("http://www.basecamphq.com/posts.xml", controller.send(:url_for, params))
+          assert_equal("http://www.basecamphq.com/posts.xml", controller.url_for(params))
           params[:format] = nil
-          assert_equal("http://www.basecamphq.com/", controller.send(:url_for, params))
+          assert_equal("http://www.basecamphq.com/", controller.url_for(params))
         end
       end
 
@@ -472,7 +472,7 @@ module AbstractController
 
           controller = kls.new
           assert_equal("http://www.basecamphq.com/admin/posts/new?param=value",
-            controller.send(:url_for, [:new, :admin, :post, { param: "value" }])
+            controller.url_for([:new, :admin, :post, { param: "value" }])
           )
         end
       end
