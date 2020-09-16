@@ -1,3 +1,10 @@
+*   The Poppler PDF previewer renders a preview image using the original
+    document's crop box rather than its media box, hiding print margins. This
+    matches the behavior of the MuPDF previewer.
+
+    *Vincent Robert*
+
+
 ## Rails 5.2.4.4 (September 09, 2020) ##
 
 *   No changes.
