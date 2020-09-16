@@ -154,7 +154,7 @@ Also, if you've turned on `config.wrap_parameters` in your initializer or called
 And, assuming that you're sending the data to `CompaniesController`, it would then be wrapped within the `:company` key like this:
 
 ```ruby
-{ name: "acme", address: "123 Carrot Street", company: { name: "acme", address: "123 Carrot Street" } }
+{ company: { name: "acme", address: "123 Carrot Street" } }
 ```
 
 You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
