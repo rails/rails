@@ -41,8 +41,8 @@ module ActionDispatch
         end
       end
 
-      def self.set_binary_encoding(request, params)
-        BinaryParamEncoder.encode(request, params)
+      def self.set_binary_encoding(request, params, controller, action)
+        BinaryParamEncoder.encode(request, params, controller, action)
       end
 
       class ParamEncoder # :nodoc:
@@ -79,10 +79,7 @@ module ActionDispatch
       end
 
       class BinaryParamEncoder # :nodoc:
-        def self.encode(request, params)
-          controller = request.path_parameters[:controller]
-          action = request.path_parameters[:action]
-
+        def self.encode(request, params, controller, action)
           return params unless controller && controller.valid_encoding?
 
           if binary_params_for?(request, controller, action)
