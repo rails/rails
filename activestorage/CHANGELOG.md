@@ -1,3 +1,9 @@
+*   The Poppler PDF previewer renders a preview image using the original
+    document's crop box rather than its media box, hiding print margins. This
+    matches the behavior of the MuPDF previewer.
+
+    *Vincent Robert*
+
 *   Touch parent model when an attachment is purged.
 
     *Víctor Pérez Rodríguez*
