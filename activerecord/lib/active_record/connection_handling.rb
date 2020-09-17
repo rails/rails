@@ -122,19 +122,15 @@ module ActiveRecord
     #     Dog.create! # throws exception because we're on a replica
     #   end
     #
-    # If only a shard is passed, Active Record will look up the shard on the
-    # current role. If a non-existent shard is passed, an
-    # `ActiveRecord::ConnectionNotEstablished` error will be raised.
+    # When swapping to a shard, the role must be passed as well. If a non-existent
+    # shard is passed, an `ActiveRecord::ConnectionNotEstablished` error will be
+    # raised.
     #
-    #   ActiveRecord::Base.connected_to(shard: :default) do
-    #     # Dog.create! # creates dog in shard with the default key
-    #   end
-    #
-    # If a shard and role is passed, Active Record will first lookup the role,
+    # When a shard and role is passed, Active Record will first lookup the role,
     # and then look up the connection by shard key.
     #
     #   ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one_replica) do
-    #     # Dog.create! # would raise as we're on a readonly connection
+    #     Dog.first # finds first Dog record stored on the shard one replica
     #   end
     #
     # The database kwarg is deprecated and will be removed in 6.2.0 without replacement.
