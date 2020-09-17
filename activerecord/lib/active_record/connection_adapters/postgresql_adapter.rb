@@ -626,17 +626,34 @@ module ActiveRecord
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
 
-          query = <<~SQL
-            SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
-            FROM pg_type as t
-            LEFT JOIN pg_range as r ON oid = rngtypid
+          subquery = <<~SQL
+            SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype,
+              t.typtype, t.typbasetype, a.attname, a.atttypid, a.attnum
+              FROM pg_type as t
+              LEFT JOIN pg_range as r ON t.oid = r.rngtypid
+              LEFT JOIN pg_attribute as a ON t.typrelid = a.attrelid
           SQL
 
-          if oids
-            query += "WHERE t.oid::integer IN (%s)" % oids.join(", ")
-          else
-            query += initializer.query_conditions_for_initial_load
-          end
+          initial_condition =
+            if oids
+              "WHERE t.oid IN (%s)" % oids.join(", ")
+            else
+              initializer.query_conditions_for_initial_load
+            end
+
+          # Recursively extract definitions for all types of
+          # <nested> attributes of composite types.
+          query = <<~SQL
+            WITH RECURSIVE records AS (
+              #{subquery} #{initial_condition}
+              UNION
+              #{subquery} JOIN records ON t.oid = records.atttypid
+            )
+            SELECT oid, typname, typelem, typdelim, typinput, rngsubtype,
+                   typtype, typbasetype, attname, atttypid
+              FROM records
+              ORDER BY oid, attnum
+          SQL
 
           execute_and_clear(query, "SCHEMA", []) do |records|
             initializer.run(records)
@@ -950,6 +967,7 @@ module ActiveRecord
         ActiveRecord::Type.register(:legacy_point, OID::LegacyPoint, adapter: :postgresql)
         ActiveRecord::Type.register(:uuid, OID::Uuid, adapter: :postgresql)
         ActiveRecord::Type.register(:vector, OID::Vector, adapter: :postgresql)
+        ActiveRecord::Type.register(:composite, OID::Composite, adapter: :postgresql)
         ActiveRecord::Type.register(:xml, OID::Xml, adapter: :postgresql)
     end
   end

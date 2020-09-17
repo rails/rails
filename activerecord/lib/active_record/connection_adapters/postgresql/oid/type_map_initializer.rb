@@ -23,14 +23,14 @@ module ActiveRecord
             enums = nodes.extract! { |row| row["typtype"] == "e" }
             domains = nodes.extract! { |row| row["typtype"] == "d" }
             arrays = nodes.extract! { |row| row["typinput"] == "array_in" }
-            composites = nodes.extract! { |row| row["typelem"].to_i != 0 }
+            composites = extract_composites!(nodes) { |row| row["typtype"] == "c" }
 
             mapped.each     { |row| register_mapped_type(row)    }
             enums.each      { |row| register_enum_type(row)      }
             domains.each    { |row| register_domain_type(row)    }
             arrays.each     { |row| register_array_type(row)     }
             ranges.each     { |row| register_range_type(row)     }
-            composites.each { |row| register_composite_type(row) }
+            composites.each { |row, attrs| register_composite_type(row, attrs) }
           end
 
           def query_conditions_for_initial_load
@@ -46,6 +46,13 @@ module ActiveRecord
           end
 
           private
+            def extract_composites!(nodes, &block)
+              nodes
+                .extract!(&block)
+                .group_by { |row| row.except("attname", "atttypid") }
+                .transform_values { |rows| rows.map { |r| r.slice("attname", "atttypid") } }
+            end
+
             def register_mapped_type(row)
               alias_type row["oid"], row["typname"]
             end
@@ -74,10 +81,17 @@ module ActiveRecord
               end
             end
 
-            def register_composite_type(row)
-              if subtype = @store.lookup(row["typelem"].to_i)
-                register row["oid"], OID::Vector.new(row["typdelim"], subtype)
+            def register_composite_type(row, attrs)
+              return unless ActiveRecord::Base.pg_composite_type_cast.to_s == "hash"
+
+              attributes = attrs.map do |attr|
+                {
+                  name: attr["attname"].to_sym,
+                  type: @store.lookup(attr["atttypid"].to_i),
+                }
               end
+
+              register row["oid"], OID::Composite.new(row["typdelim"], attributes)
             end
 
             def register(oid, oid_type = nil, &block)

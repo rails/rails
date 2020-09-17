@@ -130,6 +130,15 @@ module ActiveRecord
 
       mattr_accessor :has_many_inversing, instance_accessor: false, default: false
 
+      ##
+      # :singleton-method:
+      # Specify how to serialize PostgreSQL composite types.
+      # If set to :hash, then attributes should be serialized to Ruby hashes
+      # indexed by names of the composite type's attributes.
+      # Otherwise serializes them into plain Ruby strings representing PostreSQL tuples.
+      # By default set to 'string'
+      mattr_accessor :pg_composite_type_cast, instance_accessor: false, default: :string
+
       class_attribute :default_connection_handler, instance_writer: false
 
       self.filter_attributes = []
