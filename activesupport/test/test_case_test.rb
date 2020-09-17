@@ -26,6 +26,9 @@ class AssertionsTest < ActiveSupport::TestCase
 
     e = assert_raises(Minitest::Assertion) { assert_not true, "custom" }
     assert_equal "custom", e.message
+
+    e = assert_raises(Minitest::Assertion) { assert_not "truthy value" }
+    assert_equal "Expected \"truthy value\" to be nil or false", e.message
   end
 
   def test_assert_no_difference_pass

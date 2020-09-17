@@ -20,7 +20,7 @@ module ActiveSupport
       #   assert_not foo, 'foo should be false'
       def assert_not(object, message = nil)
         message ||= "Expected #{mu_pp(object)} to be nil or false"
-        assert !object, message
+        refute object, message
       end
 
       # Assertion that the block should not raise an exception.
