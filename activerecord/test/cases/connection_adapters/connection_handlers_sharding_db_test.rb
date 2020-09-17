@@ -26,7 +26,7 @@ module ActiveRecord
 
       unless in_memory_db?
         def test_establishing_a_connection_in_connected_to_block_uses_current_role_and_shard
-          ActiveRecord::Base.connected_to(shard: :shard_one) do
+          ActiveRecord::Base.connected_to(role: :writing, shard: :shard_one) do
             db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
             ActiveRecord::Base.establish_connection(db_config)
             assert_nothing_raised { Person.first }
@@ -213,11 +213,6 @@ module ActiveRecord
               assert_equal "primary_replica", ActiveRecord::Base.connection_pool.db_config.name
             end
 
-            # Uses the current role
-            ActiveRecord::Base.connected_to(shard: :default) do
-              assert_equal "primary_replica", ActiveRecord::Base.connection_pool.db_config.name
-            end
-
             # Resets correctly
             assert_equal "primary_shard_one_replica", ActiveRecord::Base.connection_pool.db_config.name
           end
@@ -282,7 +277,7 @@ module ActiveRecord
         SecondaryBase.connects_to shards: { one: { writing: { database: ":memory:", adapter: "sqlite3" } } }
         SomeOtherBase.connects_to shards: { one: { writing: { database: ":memory:", adapter: "sqlite3" } } }
 
-        ActiveRecord::Base.connected_to(shard: :one) do
+        ActiveRecord::Base.connected_to(role: :writing, shard: :one) do
           ShardConnectionTestModel.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
           ShardConnectionTestModel.create!(shard_key: "test_model_default")
 
@@ -301,7 +296,7 @@ module ActiveRecord
         }
 
         [:default, :one].each do |shard_name|
-          ActiveRecord::Base.connected_to(shard: shard_name) do
+          ActiveRecord::Base.connected_to(role: :writing, shard: shard_name) do
             ShardConnectionTestModel.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
           end
         end
@@ -310,13 +305,13 @@ module ActiveRecord
         ShardConnectionTestModel.create!(shard_key: "foo")
 
         # Make sure we can read it when explicitly connecting to :default
-        ActiveRecord::Base.connected_to(shard: :default) do
+        ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
           assert ShardConnectionTestModel.find_by_shard_key("foo")
         end
 
         # Switch to shard and make sure we can't read the record from :default
         # Also add a new record on :one
-        ActiveRecord::Base.connected_to(shard: :one) do
+        ActiveRecord::Base.connected_to(role: :writing, shard: :one) do
           assert_not ShardConnectionTestModel.find_by_shard_key("foo")
           ShardConnectionTestModel.create!(shard_key: "bar")
         end
@@ -337,7 +332,7 @@ module ActiveRecord
         }
 
         [:default, :one].each do |shard_name|
-          ActiveRecord::Base.connected_to(shard: shard_name) do
+          ActiveRecord::Base.connected_to(role: :writing, shard: shard_name) do
             ShardConnectionTestModel.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
             ShardConnectionTestModel.connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}')")
           end
@@ -356,7 +351,7 @@ module ActiveRecord
           shard_one_latch.count_down
         end
 
-        ActiveRecord::Base.connected_to(shard: :one) do
+        ActiveRecord::Base.connected_to(role: :writing, shard: :one) do
           shard_default_latch.count_down
           assert_equal "shard_key_one", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
           shard_one_latch.wait
@@ -382,12 +377,12 @@ module ActiveRecord
         }
 
         [:default, :one].each do |shard_name|
-          ActiveRecord::Base.connected_to(shard: shard_name) do
+          ActiveRecord::Base.connected_to(role: :writing, shard: shard_name) do
             ShardConnectionTestModel.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
             ShardConnectionTestModel.connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}')")
           end
 
-          ActiveRecord::Base.connected_to(shard: shard_name, role: :secondary) do
+          ActiveRecord::Base.connected_to(role: :secondary, shard: shard_name) do
             ShardConnectionTestModel.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
             ShardConnectionTestModel.connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}_secondary')")
           end
