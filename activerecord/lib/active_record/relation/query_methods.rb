@@ -693,6 +693,32 @@ module ActiveRecord
       scope
     end
 
+    # Allows you to invert an entire where clause instead of manually applying conditions.
+    #
+    #   class User
+    #     scope :active, -> { where(accepted: true, locked: false) }
+    #   end
+    #
+    #   User.where(accepted: true)
+    #   # WHERE `accepted` = 1
+    #
+    #   User.where(accepted: true).invert_where
+    #   # WHERE `accepted` != 1
+    #
+    #   User.active
+    #   # WHERE `accepted` = 1 AND `locked` = 0
+    #
+    #   User.active.invert_where
+    #   # WHERE NOT (`accepted` = 1 AND `locked` = 0)
+    def invert_where
+      spawn.invert_where!
+    end
+
+    def invert_where! # :nodoc:
+      self.where_clause = where_clause.invert
+      self
+    end
+
     # Returns a new relation, which is the logical intersection of this relation and the one passed
     # as an argument.
     #
