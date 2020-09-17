@@ -1,3 +1,9 @@
+*   Return a 405 Method Not Allowed response when a request uses an unknown HTTP method.
+
+    Fixes #38998.
+
+    *Loren Norman*
+
 *   Make railsrc file location xdg-specification compliant
 
     `rails new` will now look for the default `railsrc` file at
