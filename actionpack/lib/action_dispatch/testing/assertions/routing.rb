@@ -91,7 +91,6 @@ module ActionDispatch
         else
           expected_path = "/#{expected_path}" unless expected_path.start_with?("/")
         end
-        # Load routes.rb if it hasn't been loaded.
 
         options = options.clone
         generated_path, query_string_keys = @routes.generate_extras(options, defaults)
