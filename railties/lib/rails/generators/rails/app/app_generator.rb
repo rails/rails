@@ -73,6 +73,9 @@ module Rails
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run "git init", capture: options[:quiet], abort_on_failure: false
+        if user_default_branch.strip.empty?
+          `git symbolic-ref HEAD refs/heads/main`
+        end
       end
     end
 
@@ -265,6 +268,11 @@ module Rails
     def config_target_version
       defined?(@config_target_version) ? @config_target_version : Rails::VERSION::STRING.to_f
     end
+
+    private
+      def user_default_branch
+        @user_default_branch ||= `git config init.defaultbranch`
+      end
   end
 
   module Generators
