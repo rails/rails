@@ -77,10 +77,6 @@ A broadcasting is a pub/sub link where anything transmitted by the broadcaster i
 sent directly to the channel subscribers who are streaming that named broadcasting.
 Each channel can be streaming zero or more broadcastings.
 
-As you can see, this is a fairly deep architectural stack. There's a lot of new
-terminology to identify the new pieces, and on top of that, you're dealing
-with both client and server side reflections of each unit.
-
 ## Server-Side Components
 
 ### Connections
