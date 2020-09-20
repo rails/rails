@@ -44,6 +44,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(topics(:first).title, Topic.find(1).title)
   end
 
+  def test_find_with_hash_parameter
+    assert_raises(ActiveRecord::RecordNotFound) { Post.find(foo: "bar") }
+    assert_raises(ActiveRecord::RecordNotFound) { Post.find(foo: "bar", bar: "baz") }
+  end
+
   def test_find_with_proc_parameter_and_block
     exception = assert_raises(RuntimeError) do
       Topic.all.find(-> { raise "should happen" }) { |e| e.title == "non-existing-title" }
