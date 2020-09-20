@@ -1,3 +1,7 @@
+*   Fix bug to make memcached write_entry expire correctly with unless_exist
+
+    *Jye Lee*
+
 *   Add `ActiveSupport::Duration` conversion methods
 
     `in_seconds`, `in_minutes`, `in_hours`, `in_days`, `in_weeks`, `in_months`, and `in_years` return the respective duration covered.

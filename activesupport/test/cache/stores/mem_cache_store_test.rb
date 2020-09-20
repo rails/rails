@@ -161,6 +161,13 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_unless_exist_expires_when_configured
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+    assert_called_with cache.instance_variable_get(:@data), :add, [ "foo", ActiveSupport::Cache::Entry, 1, Hash ] do
+      cache.write("foo", "bar", expires_in: 1, unless_exist: true)
+    end
+  end
+
   private
     def random_string(length)
       (0...length).map { (65 + rand(26)).chr }.join
