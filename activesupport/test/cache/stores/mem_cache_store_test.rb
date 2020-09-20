@@ -163,16 +163,9 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_unless_exist_expires_when_configured
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
-    called = nil
-    server = Class.new do
-      define_method(:add) { |*args| called = args }
-      def with
-        yield self
-      end
+    assert_called_with cache.instance_variable_get(:@data), :add, [ "foo", ActiveSupport::Cache::Entry, 1, Hash ] do
+      cache.write("foo", "bar", expires_in: 1, unless_exist: true)
     end
-    cache.instance_variable_set(:@data, server.new)
-    assert cache.write("foo", "bar", expires_in: 1, unless_exist: true)
-    assert_equal 1, called[2]
   end
 
   private
