@@ -7,10 +7,19 @@ module AbstractController
         Module.new do
           define_method(:inherited) do |klass|
             super(klass)
-            if namespace = klass.module_parents.detect { |m| m.respond_to?(:railtie_routes_url_helpers) }
-              klass.include(namespace.railtie_routes_url_helpers(include_path_helpers))
+
+            namespace = klass.module_parents.detect { |m| m.respond_to?(:railtie_routes_url_helpers) }
+            previous_namespace = klass._route_namespace if klass.respond_to?(:_route_namespace)
+            fresh_module = namespace != previous_namespace
+
+            if namespace
+              klass.include(namespace.railtie_routes_url_helpers(include_path_helpers, fresh_module))
             else
-              klass.include(routes.url_helpers(include_path_helpers))
+              klass.include(routes.url_helpers(include_path_helpers, fresh_module))
+            end
+
+            if fresh_module
+              klass.define_singleton_method(:_route_namespace) { namespace }
             end
           end
         end

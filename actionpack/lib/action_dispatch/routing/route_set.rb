@@ -476,8 +476,10 @@ module ActionDispatch
         RUBY
       end
 
-      def url_helpers(supports_path = true)
-        if supports_path
+      def url_helpers(supports_path = true, fresh_module = false)
+        if fresh_module
+          generate_url_helpers(supports_path)
+        elsif supports_path
           @url_helpers_with_paths ||= generate_url_helpers(true)
         else
           @url_helpers_without_paths ||= generate_url_helpers(false)
