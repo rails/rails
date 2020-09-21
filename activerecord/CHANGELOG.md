@@ -1,3 +1,7 @@
+*   Add `SKIP_TEST_DATABASE` environment variable to disable modifying the test database when `rails db:create` and `rails db:drop` are called.
+
+    *Jason Schweier*
+
 *   `connects_to` can only be called on `ActiveRecord::Base` or abstract classes.
 
     Ensure that `connects_to` can only be called from `ActiveRecord::Base` or abstract classes. This protects the application from opening duplicate or too many connections.
