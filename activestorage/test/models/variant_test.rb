@@ -192,18 +192,29 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_operator variant.url.length, :<, 785
   end
 
-  test "works for vips processor" do
-    ActiveStorage.variant_processor = :vips
-    blob = create_file_blob(filename: "racecar.jpg")
-    variant = blob.variant(thumbnail_image: 100).processed
+  test "thumbnail variation of JPEG blob processed with VIPS" do
+    process_variants_with :vips do
+      blob = create_file_blob(filename: "racecar.jpg")
+      variant = blob.variant(thumbnail_image: 100).processed
 
-    image = read_image(variant)
-    assert_equal 100, image.width
-    assert_equal 67, image.height
-  rescue LoadError
-    # libvips not installed
-  ensure
-    ActiveStorage.variant_processor = :mini_magick
+      image = read_image(variant)
+      assert_equal 100, image.width
+      assert_equal 67, image.height
+    end
+  end
+
+  test "thumbnail variation of extensionless GIF blob processed with VIPS" do
+    process_variants_with :vips do
+      blob = ActiveStorage::Blob.create_and_upload!(io: file_fixture("image.gif").open, filename: "image", content_type: "image/gif")
+      variant = blob.variant(resize_to_fit: [100, 100]).processed
+
+      image = read_image(variant)
+      assert_equal "image.gif", variant.filename.to_s
+      assert_equal "image/gif", variant.content_type
+      assert_equal "GIF", image.type
+      assert_equal 100, image.width
+      assert_equal 100, image.height
+    end
   end
 
   test "passes content_type on upload" do
@@ -217,4 +228,14 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
       blob.variant(resize: "100x100").processed
     end
   end
+
+  private
+    def process_variants_with(processor)
+      previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, processor
+      yield
+    rescue LoadError
+      skip "Variant processor #{processor.inspect} is not installed"
+    ensure
+      ActiveStorage.variant_processor = previous_processor
+    end
 end
