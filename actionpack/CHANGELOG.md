@@ -1,3 +1,10 @@
+*   Catch invalid UTF-8 parameters for POST requests and respond with BadRequest.
+
+    Additionally, perform `#set_binary_encoding` in `ActionDispatch::Http::Request#GET` and
+    `ActionDispatch::Http::Request#POST` prior to validating encoding.
+
+    *Adrianna Chang*
+
 *   Allow `assert_recognizes` routing assertions to work on mounted root routes.
 
     *Gannon McGibbon*
