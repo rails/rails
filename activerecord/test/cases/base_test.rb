@@ -1674,7 +1674,7 @@ class BasicsTest < ActiveRecord::TestCase
       Bird.connected_to(role: :reading) { }
     end
 
-    assert_equal "connected_to can only be called on ActiveRecord::Base", error.message
+    assert_equal "`connected_to` can only be called on ActiveRecord::Base", error.message
   end
 
   test "preventing writes applies to all connections on a handler" do
