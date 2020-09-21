@@ -336,7 +336,7 @@ module ActiveRecord
         error = +"Couldn't find #{name}"
         error << " with#{conditions}" if conditions
         raise RecordNotFound.new(error, name, key)
-      elsif Array(ids).size == 1
+      elsif Array.wrap(ids).size == 1
         error = "Couldn't find #{name} with '#{key}'=#{ids}#{conditions}"
         raise RecordNotFound.new(error, name, key, ids)
       else
