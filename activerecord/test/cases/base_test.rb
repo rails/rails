@@ -1666,7 +1666,7 @@ class BasicsTest < ActiveRecord::TestCase
       Bird.connects_to(database: { writing: :arunit })
     end
 
-    assert_equal "connects_to can only be called on ActiveRecord::Base or abstract classes", error.message
+    assert_equal "`connects_to` can only be called on ActiveRecord::Base or abstract classes", error.message
   end
 
   test "cannot call connected_to on subclasses of ActiveRecord::Base" do

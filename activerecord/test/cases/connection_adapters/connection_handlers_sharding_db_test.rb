@@ -233,7 +233,7 @@ module ActiveRecord
           error = assert_raises(ArgumentError) do
             ActiveRecord::Base.connects_to(database: { writing: :arunit }, shards: { shard_one: { writing: :arunit } })
           end
-          assert_equal "connects_to can only accept a `database` or `shards` argument, but not both arguments.", error.message
+          assert_equal "`connects_to` can only accept a `database` or `shards` argument, but not both arguments.", error.message
         end
 
         def test_retrieve_connection_pool_with_invalid_shard
