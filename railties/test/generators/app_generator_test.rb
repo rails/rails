@@ -295,6 +295,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_adds_bin_yarn_into_setup_script
+    run_generator
+
+    assert_file "bin/yarn"
+
+    assert_file "bin/setup" do |content|
+      # Does not comment yarn install
+      assert_match(/(?=[^#]*?) system! 'bin\/yarn'/, content)
+    end
+  end
+
   def test_app_update_does_not_generate_yarn_contents_when_bin_yarn_is_not_used
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-javascript"]
@@ -307,7 +318,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_file "#{app_root}/bin/yarn"
 
       assert_file "#{app_root}/bin/setup" do |content|
-        assert_no_match(/system\('bin\/yarn'\)/, content)
+        assert_no_match(/system! 'bin\/yarn'/, content)
       end
     end
   end
