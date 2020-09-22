@@ -155,8 +155,23 @@ module ActiveRecord
 
     module ClassMethods # :nodoc:
       private
+        if Module.method(:method_defined?).arity == 1 # MRI 2.5 and older
+          using Module.new {
+            refine Module do
+              def method_defined?(method, inherit = true)
+                if inherit
+                  super(method)
+                else
+                  instance_methods(false).include?(method.to_sym)
+                end
+              end
+            end
+          }
+        end
+
         def define_non_cyclic_method(name, &block)
-          return if instance_methods(false).include?(name)
+          return if method_defined?(name, false)
+
           define_method(name) do |*args|
             result = true; @_already_called ||= {}
             # Loop prevention for validation of associations
