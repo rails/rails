@@ -53,6 +53,19 @@ module ActiveRecord
   class ConnectionNotEstablished < ActiveRecordError
   end
 
+  # Raised when a connection could not be obtained within the connection
+  # acquisition timeout period: because max connections in pool
+  # are in use.
+  class ConnectionTimeoutError < ConnectionNotEstablished
+  end
+
+  # Raised when a pool was unable to get ahold of all its connections
+  # to perform a "group" action such as
+  # {ActiveRecord::Base.connection_pool.disconnect!}[rdoc-ref:ConnectionAdapters::ConnectionPool#disconnect!]
+  # or {ActiveRecord::Base.clear_reloadable_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_reloadable_connections!].
+  class ExclusiveConnectionTimeoutError < ConnectionTimeoutError
+  end
+
   # Raised when a write to the database is attempted on a read only connection.
   class ReadOnlyError < ActiveRecordError
   end
