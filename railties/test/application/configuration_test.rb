@@ -1578,12 +1578,14 @@ module ApplicationTests
     end
 
     test "config.log_level defaults to debug in development" do
+      restore_default_config
       app "development"
 
       assert_equal Logger::DEBUG, Rails.logger.level
     end
 
     test "config.log_level default to info in production" do
+      restore_default_config
       app "production"
 
       assert_equal Logger::INFO, Rails.logger.level
