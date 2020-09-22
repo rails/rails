@@ -1,3 +1,8 @@
+*   Change the default logging level from :debug to :info to avoid inadvertent exposure of personally
+    identifiable information (PII) in production environments.
+
+    *Eric M. Payne*
+
 *   Automatically generate abstract class when using multiple databases.
 
     When generating a scaffold for a multiple database application, Rails will now automatically generate the abstract class for the database when the database argument is passed. This abstract class will include the connection information for the writing configuration and any models generated for that database will automatically inherit from the abstract class.
