@@ -621,6 +621,11 @@ While you're waiting for feedback on your pull request, open up a few other
 pull requests and give someone else some! I'm sure they'll appreciate it in
 the same way that you appreciate feedback on your patches.
 
+Note that your pull request may be marked as "Approved" by somebody who does not
+have access to merge it. Further changes may still be required before members of
+the core or committer teams accept it. To prevent confusion, when giving
+feedback on someone else's pull request please avoid marking it as "Approved."
+
 ### Iterate as Necessary
 
 It's entirely possible that the feedback you get will suggest changes. Don't get discouraged: the whole point of contributing to an active open source project is to tap into the knowledge of the community. If people are encouraging you to tweak your code, then it's worth making the tweaks and resubmitting. If the feedback is that your code doesn't belong in the core, you might still think about releasing it as a gem.
