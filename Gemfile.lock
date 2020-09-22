@@ -6,6 +6,12 @@ GIT
       pg (>= 0.17, < 2.0)
 
 GIT
+  remote: https://github.com/brianmario/mysql2.git
+  revision: e2503dc6e8ad02f8c2f4fc71006f9840694e319c
+  specs:
+    mysql2 (0.5.3)
+
+GIT
   remote: https://github.com/matthewd/websocket-client-simple.git
   revision: e161305f1a466b9398d86df3b1731b03362da91b
   branch: close-race
@@ -333,9 +339,6 @@ GEM
     multipart-post (2.1.1)
     mustache (1.1.1)
     mustermann (1.0.3)
-    mysql2 (0.5.3)
-    mysql2 (0.5.3-x64-mingw32)
-    mysql2 (0.5.3-x86-mingw32)
     nio4r (2.5.2)
     nio4r (2.5.2-java)
     nokogiri (1.10.10)
@@ -574,7 +577,7 @@ DEPENDENCIES
   minitest-bisect
   minitest-reporters
   minitest-retry
-  mysql2 (~> 0.5)
+  mysql2 (~> 0.5)!
   nokogiri (>= 1.8.1)
   pg (~> 1.1)
   psych (~> 3.0)
