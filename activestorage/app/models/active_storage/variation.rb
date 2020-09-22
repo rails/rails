@@ -43,14 +43,28 @@ class ActiveStorage::Variation
     @transformations = transformations.deep_symbolize_keys
   end
 
+  def default_to(defaults)
+    self.class.new transformations.reverse_merge(defaults)
+  end
+
   # Accepts a File object, performs the +transformations+ against it, and
-  # saves the transformed image into a temporary file. If +format+ is specified
-  # it will be the format of the result image, otherwise the result image
-  # retains the source format.
-  def transform(file, format: nil, &block)
+  # saves the transformed image into a temporary file.
+  def transform(file, &block)
     ActiveSupport::Notifications.instrument("transform.active_storage") do
       transformer.transform(file, format: format, &block)
     end
+  end
+
+  def format
+    transformations.fetch(:format, :png).tap do |format|
+      if MimeMagic.by_extension(format).nil?
+        raise ArgumentError, "Invalid variant format (#{format.inspect})"
+      end
+    end
+  end
+
+  def content_type
+    MimeMagic.by_extension(format).to_s
   end
 
   # Returns a signed key for all the +transformations+ that this variation was instantiated with.
@@ -64,6 +78,10 @@ class ActiveStorage::Variation
 
   private
     def transformer
+      transformer_class.new(transformations.except(:format))
+    end
+
+    def transformer_class
       if ActiveStorage.variant_processor
         begin
           require "image_processing"
@@ -73,12 +91,12 @@ class ActiveStorage::Variation
             Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
           WARNING
 
-          ActiveStorage::Transformers::MiniMagickTransformer.new(transformations)
+          ActiveStorage::Transformers::MiniMagickTransformer
         else
-          ActiveStorage::Transformers::ImageProcessingTransformer.new(transformations)
+          ActiveStorage::Transformers::ImageProcessingTransformer
         end
       else
-        ActiveStorage::Transformers::MiniMagickTransformer.new(transformations)
+        ActiveStorage::Transformers::MiniMagickTransformer
       end
     end
 end
