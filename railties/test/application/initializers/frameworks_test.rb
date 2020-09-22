@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
+require "env_helpers"
 
 module ApplicationTests
   class FrameworksTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include EnvHelpers
 
     def setup
       build_app
@@ -214,10 +216,24 @@ module ApplicationTests
       assert !defined?(ActiveRecord::Base) || ActiveRecord.autoload?(:Base)
     end
 
+    test "can boot with an unhealthy database" do
+      rails %w(generate model post title:string)
+
+      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+        require "#{app_path}/config/environment"
+      end
+    end
+
     test "use schema cache dump" do
       rails %w(generate model post title:string)
       rails %w(db:migrate db:schema:cache:dump)
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+      RUBY
+
       require "#{app_path}/config/environment"
+
       assert ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     ensure
       ActiveRecord::Base.connection.drop_table("posts", if_exists: true) # force drop posts table for test.
@@ -226,18 +242,63 @@ module ApplicationTests
     test "expire schema cache dump" do
       rails %w(generate model post title:string)
       rails %w(db:migrate db:schema:cache:dump db:rollback)
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+      RUBY
+
       require "#{app_path}/config/environment"
       assert_not ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end
 
-    test "does not expire schema cache dump if check_schema_cache_dump_version is false" do
+    test "expire schema cache dump if the version can't be checked because the database is unhealthy" do
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump)
+
       add_to_config <<-RUBY
-        config.active_record.check_schema_cache_dump_version = false
+        config.eager_load = true
       RUBY
+
+      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+        require "#{app_path}/config/environment"
+
+        assert_nil ActiveRecord::Base.connection_pool.schema_cache
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          ActiveRecord::Base.connection.execute("SELECT 1")
+        end
+      end
+    end
+
+    test "does not expire schema cache dump if check_schema_cache_dump_version is false" do
       rails %w(generate model post title:string)
       rails %w(db:migrate db:schema:cache:dump db:rollback)
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.active_record.check_schema_cache_dump_version = false
+      RUBY
+
       require "#{app_path}/config/environment"
       assert ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")
+    end
+
+    test "does not expire schema cache dump if check_schema_cache_dump_version is false and the database unhealthy" do
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump db:rollback)
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.active_record.check_schema_cache_dump_version = false
+      RUBY
+
+      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+        require "#{app_path}/config/environment"
+
+        assert ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          ActiveRecord::Base.connection.execute("SELECT 1")
+        end
+      end
     end
 
     test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do
