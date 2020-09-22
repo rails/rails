@@ -108,10 +108,10 @@ module ActiveStorage::Blob::Representable
     end
 
     def format
-      if filename.extension.present? && MiniMime.lookup_by_extension(filename.extension)&.content_type == content_type
+      if filename.extension.present? && MimeMagic.by_extension(filename.extension)&.to_s == content_type
         filename.extension
       else
-        MiniMime.lookup_by_content_type(content_type)&.extension
+        MimeMagic.new(content_type).extensions.first
       end
     end
 

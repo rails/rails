@@ -57,14 +57,14 @@ class ActiveStorage::Variation
 
   def format
     transformations.fetch(:format, :png).tap do |format|
-      if Mime::Type.lookup_by_extension(format).nil?
+      if MimeMagic.by_extension(format).nil?
         raise ArgumentError, "Invalid variant format (#{format.inspect})"
       end
     end
   end
 
   def content_type
-    Mime::Type.lookup_by_extension(format).to_s
+    MimeMagic.by_extension(format).to_s
   end
 
   # Returns a signed key for all the +transformations+ that this variation was instantiated with.
