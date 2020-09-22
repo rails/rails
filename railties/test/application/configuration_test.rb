@@ -1577,8 +1577,15 @@ module ApplicationTests
       assert_equal session_options, app.config.session_options
     end
 
-    test "config.log_level defaults to info" do
-      make_basic_app
+    test "config.log_level defaults to debug in development" do
+      app "development"
+
+      assert_equal Logger::DEBUG, Rails.logger.level
+    end
+
+    test "config.log_level default to info in production" do
+      app "production"
+
       assert_equal Logger::INFO, Rails.logger.level
     end
 
