@@ -14,7 +14,7 @@
 # Blobs are intended to be immutable in as-so-far as their reference to a specific file goes. You're allowed to
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
-class ActiveStorage::Blob < ActiveRecord::Base
+class ActiveStorage::Blob < ActiveStorage::Record
   # We use constant paths in the following include calls to avoid a gotcha of
   # classic mode: If the parent application defines a top-level Analyzable, for
   # example, and ActiveStorage::Blob::Analyzable is not yet loaded, a bare
