@@ -31,6 +31,9 @@ module ActiveStorage
   #
   #   config.active_storage.service = :local
   #
+  # If specific configuration file exists for current environment, it takes precedence, thus for +production+
+  # environment it is <tt>config/storage/production.yml</tt> that will be loaded.
+  #
   # If you are using Active Storage outside of a Ruby on Rails application, you
   # can configure the service to use like this:
   #

@@ -66,6 +66,8 @@ amazon:
   region: "" # e.g. 'us-east-1'
 ```
 
+NOTE: Environment-specific configuration files take precedence over `config/storage.yml`. In `production` for instance, it is `config/storage/production.yml` that will be loaded if present.
+
 Tell Active Storage which service to use by setting
 `Rails.application.config.active_storage.service`. Because each environment will
 likely use a different service, it is recommended to do this on a
@@ -132,7 +134,7 @@ amazon:
   http_open_timeout: 0
   http_read_timeout: 0
   retry_limit: 0
-  upload: 
+  upload:
     server_side_encryption: "" # 'aws:kms' or 'AES256'
 ```
 TIP: Set sensible client HTTP timeouts and retry limits for your application. In certain failure scenarios, the default AWS client configuration may cause connections to be held for up to several minutes and lead to request queuing.
