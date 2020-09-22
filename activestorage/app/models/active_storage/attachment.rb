@@ -7,7 +7,7 @@ require "active_support/core_ext/module/delegation"
 # on the attachments table prevents blobs from being purged if they’re still attached to any records.
 #
 # Attachments also have access to all methods from {ActiveStorage::Blob}[rdoc-ref:ActiveStorage::Blob].
-class ActiveStorage::Attachment < ActiveRecord::Base
+class ActiveStorage::Attachment < ActiveStorage::Record
   self.table_name = "active_storage_attachments"
 
   belongs_to :record, polymorphic: true, touch: true

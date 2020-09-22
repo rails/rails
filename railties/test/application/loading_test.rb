@@ -133,7 +133,11 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    initial = [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, ApplicationRecord].collect(&:to_s).sort
+    initial = [
+      ActiveStorage::Record, ActiveStorage::Blob, ActiveStorage::Attachment,
+      ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, ApplicationRecord
+    ].collect(&:to_s).sort
+
     assert_equal initial, ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq
     get "/load"
     assert_equal [Post].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort - initial
