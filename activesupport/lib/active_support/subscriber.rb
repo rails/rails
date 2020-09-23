@@ -31,15 +31,16 @@ module ActiveSupport
   class Subscriber
     class << self
       # Attach the subscriber to a namespace.
-      def attach_to(namespace, subscriber = new, notifier = ActiveSupport::Notifications)
+      def attach_to(namespace, subscriber = new, notifier = ActiveSupport::Notifications, inherit_all: false)
         @namespace  = namespace
         @subscriber = subscriber
         @notifier   = notifier
+        @inherit_all = inherit_all
 
         subscribers << subscriber
 
         # Add event subscribers for all existing methods on the class.
-        subscriber.public_methods(false).each do |event|
+        fetch_public_methods(subscriber, inherit_all).each do |event|
           add_event_subscriber(event)
         end
       end
@@ -55,7 +56,7 @@ module ActiveSupport
         subscribers.delete(subscriber)
 
         # Remove event subscribers of all existing methods on the class.
-        subscriber.public_methods(false).each do |event|
+        fetch_public_methods(subscriber, true).each do |event|
           remove_event_subscriber(event)
         end
 
@@ -116,6 +117,10 @@ module ActiveSupport
 
         def pattern_subscribed?(pattern)
           subscriber.patterns.key?(pattern)
+        end
+
+        def fetch_public_methods(subscriber, inherit_all)
+          subscriber.public_methods(inherit_all) - Subscriber.public_instance_methods(true)
         end
     end
 
