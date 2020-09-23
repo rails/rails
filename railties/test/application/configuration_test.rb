@@ -2225,6 +2225,18 @@ module ApplicationTests
       assert_equal Digest::SHA1, ActiveSupport::Digest.hash_digest_class
     end
 
+    test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.hash_digest_class" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/custom_digest_class.rb", <<-RUBY
+        Rails.application.config.active_support.hash_digest_class = Digest::SHA256
+      RUBY
+
+      app "development"
+
+      assert_equal Digest::SHA256, ActiveSupport::Digest.hash_digest_class
+    end
+
     test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
       class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer; end
 
