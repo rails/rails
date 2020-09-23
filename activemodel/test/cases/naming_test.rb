@@ -280,3 +280,29 @@ class NamingMethodDelegationTest < ActiveModel::TestCase
     assert_equal Blog::Post.model_name, Blog::Post.new.model_name
   end
 end
+
+class OverridingAccessorsTest < ActiveModel::TestCase
+  def test_overriding_accessors_keys
+    model_name = ActiveModel::Name.new(Post::TrackBack).tap do |name|
+      name.singular = :singular
+      name.plural = :plural
+      name.element = :element
+      name.collection = :collection
+      name.singular_route_key = :singular_route_key
+      name.route_key = :route_key
+      name.param_key = :param_key
+      name.i18n_key = :i18n_key
+      name.name = :name
+    end
+
+    assert_equal :singular, model_name.singular
+    assert_equal :plural, model_name.plural
+    assert_equal :element, model_name.element
+    assert_equal :collection, model_name.collection
+    assert_equal :singular_route_key, model_name.singular_route_key
+    assert_equal :route_key, model_name.route_key
+    assert_equal :param_key, model_name.param_key
+    assert_equal :i18n_key, model_name.i18n_key
+    assert_equal :name, model_name.name
+  end
+end
