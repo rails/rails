@@ -2017,7 +2017,7 @@ class Article < ApplicationRecord
 
   validates :status, in: VALID_STATUSES
 
-  def archived? 
+  def archived?
     status == 'archived'
   end
 end
@@ -2052,7 +2052,7 @@ Then, in our `index` action template (`app/views/articles/index.html.erb`) we wo
   </tr>
 
   <% @articles.each do |article| %>
-    <% unless article.archived? %> 
+    <% unless article.archived? %>
       <tr>
         <td><%= article.title %></td>
         <td><%= article.text %></td>
@@ -2103,6 +2103,7 @@ Now, we can remove the duplicated logic from each model and instead include our 
 
 
 In `app/models/article.rb`:
+
 ```ruby
 class Article < ApplicationRecord
   include Visible
