@@ -66,6 +66,10 @@ module Rails
       template "gitignore", ".gitignore"
     end
 
+    def gitattributes
+      template "gitattributes", ".gitattributes"
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run "git init", capture: options[:quiet], abort_on_failure: false
@@ -331,8 +335,13 @@ module Rails
         build(:rakefile)
         build(:ruby_version)
         build(:configru)
-        build(:gitignore)   unless options[:skip_git]
-        build(:gemfile)     unless options[:skip_gemfile]
+
+        unless options[:skip_git]
+          build(:gitignore)
+          build(:gitattributes)
+        end
+
+        build(:gemfile) unless options[:skip_gemfile]
         build(:version_control)
         build(:package_json) unless options[:skip_javascript]
       end
