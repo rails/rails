@@ -71,6 +71,19 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal "Success", body
   end
 
+  test "proc host can accept both host and request" do
+    host_proc = proc { |host, req| host == "example.com" || req.path == "/skip" }
+    @app = ActionDispatch::HostAuthorization.new(App, host_proc)
+
+    get "/skip", env: {
+      "HOST" => "forbidden",
+      "X-Forwarded-Host" => "forbidden"
+    }
+
+    assert_response :ok
+    assert_equal "Success", body
+  end
+
   test "mark the host when authorized" do
     @app = ActionDispatch::HostAuthorization.new(App, ".example.com")
 

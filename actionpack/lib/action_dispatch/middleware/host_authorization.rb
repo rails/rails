@@ -19,9 +19,9 @@ module ActionDispatch
         @hosts.empty?
       end
 
-      def allows?(host)
+      def allows?(host, request = nil)
         @hosts.any? do |allowed|
-          allowed === host
+          allowed === (allowed.is_a?(Proc) && allowed.arity > 1 ? [host, request] : host)
         rescue
           # IPAddr#=== raises an error if you give it a hostname instead of
           # IP. Treat similar errors as blocked access.
@@ -90,8 +90,8 @@ module ActionDispatch
         origin_host = request.get_header("HTTP_HOST").to_s.sub(/:\d+\z/, "")
         forwarded_host = request.x_forwarded_host.to_s.split(/,\s?/).last.to_s.sub(/:\d+\z/, "")
 
-        @permissions.allows?(origin_host) &&
-          (forwarded_host.blank? || @permissions.allows?(forwarded_host))
+        @permissions.allows?(origin_host, request) &&
+          (forwarded_host.blank? || @permissions.allows?(forwarded_host, request))
       end
 
       def mark_as_authorized(request)

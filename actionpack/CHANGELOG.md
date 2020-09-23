@@ -1,3 +1,11 @@
+*   Pass request object to `Proc` used for `ActionDispatch::HostAuthorization`
+
+    If a `Proc` is provided to `config.hosts`, it can receive two arguments: the host value and the full request
+    object. This allows bypassing the host authorization check based on other aspects of a request, such as the path
+    or headers.
+    
+    *Andrew Weinstein*
+
 *   Added support for exclusive no-store Cache-Control header.
 
     If `no-store` is set on Cache-Control header it is exclusive (all other cache directives are dropped).
