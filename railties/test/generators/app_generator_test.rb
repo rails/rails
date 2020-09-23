@@ -5,6 +5,7 @@ require "rails/generators/rails/app/app_generator"
 require "generators/shared_generator_tests"
 
 DEFAULT_APP_FILES = %w(
+  .gitattributes
   .gitignore
   .ruby-version
   README.md
@@ -915,6 +916,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "spring"
   end
 
+  def test_skip_active_record_option
+    run_generator [destination_root, "--skip-active-record"]
+
+    assert_file ".gitattributes" do |content|
+      assert_no_match(/schema.rb/, content)
+    end
+  end
+
   def test_skip_javascript_option
     command_check = -> command, *_ do
       if command == "webpacker:install"
@@ -931,6 +940,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "webpacker"
     assert_file "config/initializers/content_security_policy.rb" do |content|
       assert_no_match(/policy\.connect_src/, content)
+    end
+
+    assert_file ".gitattributes" do |content|
+      assert_no_match(/yarn\.lock/, content)
     end
   end
 
