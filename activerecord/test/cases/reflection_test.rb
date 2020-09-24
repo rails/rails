@@ -519,17 +519,33 @@ class ReflectionTest < ActiveRecord::TestCase
     end
 end
 
-class UncastableReflectionTest < ActiveRecord::TestCase
+class UncastableOverriddenAttributeReflectionTest < ActiveRecord::TestCase
+  class NickType < ActiveRecord::Type::Binary
+    def serialize(value)
+      super("nickname-#{value}")
+    end
+
+    def deserialize(value)
+      super(value).to_s.delete_prefix("nickname-")
+    end
+
+    def cast_value(value)
+      value.to_s
+    end
+  end
+
   class Book < ActiveRecord::Base
   end
 
   class Subscription < ActiveRecord::Base
     belongs_to :subscriber
     belongs_to :book
+    attribute :subscriber_id, NickType.new
   end
 
   class Subscriber < ActiveRecord::Base
     self.primary_key = "nick"
+    attribute :nick, NickType.new
     has_many :subscriptions
     has_one :subscription
     has_many :books, through: :subscriptions
@@ -552,17 +568,16 @@ class UncastableReflectionTest < ActiveRecord::TestCase
   test "uncastable has_many through: reflection" do
     error = assert_raises(NotImplementedError) { @subscriber.books }
     assert_equal <<~MSG.squish, error.message
-      In order to correctly type cast UncastableReflectionTest::Subscriber.nick,
-      UncastableReflectionTest::Book needs to define a :subscriptions association.
+      In order to correctly type cast #{self.class}::Subscriber.nick,
+      #{self.class}::Book needs to define a :subscriptions association.
     MSG
   end
 
   test "uncastable has_one through: reflection" do
     error = assert_raises(NotImplementedError) { @subscriber.book }
-
     assert_equal <<~MSG.squish, error.message
-      In order to correctly type cast UncastableReflectionTest::Subscriber.nick,
-      UncastableReflectionTest::Book needs to define a :subscription association.
+      In order to correctly type cast #{self.class}::Subscriber.nick,
+      #{self.class}::Book needs to define a :subscription association.
     MSG
   end
 
