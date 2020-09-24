@@ -283,6 +283,26 @@ module ActiveRecord
     end
   end
 
+  class DatabaseTasksDumpSchemaTest < ActiveRecord::TestCase
+    def test_ensure_db_dir
+      Dir.mktmpdir do |dir|
+        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
+          db_config = OpenStruct.new(name: "fake_db_config")
+          path = "#{dir}/fake_db_config_schema.rb"
+
+          FileUtils.rm_rf(dir)
+          assert_not File.file?(path)
+
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+
+          assert File.file?(path)
+        end
+      end
+    ensure
+      ActiveRecord::Base.clear_cache!
+    end
+  end
+
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
     def setup
       @configurations = { "development" => { "database" => "my-db" } }

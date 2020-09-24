@@ -378,6 +378,7 @@ module ActiveRecord
         filename = dump_filename(db_config.name, format)
         connection = ActiveRecord::Base.connection
 
+        FileUtils.mkdir_p(db_dir)
         case format
         when :ruby
           File.open(filename, "w:utf-8") do |file|
