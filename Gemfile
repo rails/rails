@@ -41,7 +41,7 @@ end
 
 # Active Support
 gem "dalli"
-gem "listen", "~> 3.2", require: false
+gem "listen", "~> 3.2", require: false, github: "guard/listen"
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
 gem "rexml", require: false
@@ -71,7 +71,7 @@ group :cable do
   gem "hiredis", require: false
   gem "redis", "~> 4.0", require: false
 
-  gem "redis-namespace"
+  gem "redis-namespace", github: "resque/redis-namespace"
 
   gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
 
