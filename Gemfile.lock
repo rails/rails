@@ -12,6 +12,14 @@ GIT
     mysql2 (0.5.3)
 
 GIT
+  remote: https://github.com/guard/listen.git
+  revision: 86e06aeb0878dcd46fd635d620656748255d3f67
+  specs:
+    listen (3.2.1)
+      rb-fsevent (~> 0.10, >= 0.10.3)
+      rb-inotify (~> 0.9, >= 0.9.10)
+
+GIT
   remote: https://github.com/matthewd/websocket-client-simple.git
   revision: e161305f1a466b9398d86df3b1731b03362da91b
   branch: close-race
@@ -19,6 +27,13 @@ GIT
     websocket-client-simple (0.3.0)
       event_emitter
       websocket
+
+GIT
+  remote: https://github.com/resque/redis-namespace.git
+  revision: c31e63dc3cd5e59ef5ea394d4d46ac60d1e6f82e
+  specs:
+    redis-namespace (1.8.0)
+      redis (>= 3.0.4)
 
 PATH
   remote: .
@@ -301,9 +316,6 @@ GEM
       mustache
       nokogiri
     libxml-ruby (3.1.0)
-    listen (3.2.1)
-      rb-fsevent (~> 0.10, >= 0.10.3)
-      rb-inotify (~> 0.9, >= 0.9.10)
     loofah (2.4.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -384,14 +396,12 @@ GEM
       loofah (~> 2.3)
     rainbow (3.0.0)
     rake (13.0.1)
-    rb-fsevent (0.10.3)
+    rb-fsevent (0.10.4)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
     rdoc (6.2.1)
     redcarpet (3.2.3)
     redis (4.2.0)
-    redis-namespace (1.7.0)
-      redis (>= 3.0.4)
     regexp_parser (1.7.1)
     representable (3.0.4)
       declarative (< 0.1.0)
@@ -544,9 +554,11 @@ GEM
 
 PLATFORMS
   java
+  mswin64
   ruby
   x64-mingw32
   x86-mingw32
+  x86-mswin32
 
 DEPENDENCIES
   activerecord-jdbcmysql-adapter (>= 1.3.0)
@@ -573,7 +585,7 @@ DEPENDENCIES
   json (>= 2.0.0)
   kindlerb (~> 1.2.0)
   libxml-ruby
-  listen (~> 3.2)
+  listen (~> 3.2)!
   minitest-bisect
   minitest-reporters
   minitest-retry
@@ -591,7 +603,7 @@ DEPENDENCIES
   rake (>= 11.1)
   redcarpet (~> 3.2.3)
   redis (~> 4.0)
-  redis-namespace
+  redis-namespace!
   resque
   resque-scheduler
   rexml
