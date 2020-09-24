@@ -48,7 +48,6 @@ gem "dalli"
 gem "listen", "~> 3.2", require: false, github: "guard/listen"
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
-gem "rexml", require: false
 
 # for railties app_generator_test
 gem "bootsnap", ">= 1.4.4", require: false
