@@ -95,7 +95,6 @@ PATH
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
-      rexml
       tzinfo (~> 2.0)
       zeitwerk (~> 2.3)
     rails (6.1.0.alpha)
@@ -607,6 +606,7 @@ DEPENDENCIES
   redis-namespace!
   resque
   resque-scheduler
+  rexml
   rouge
   rubocop (>= 0.90)
   rubocop-packaging

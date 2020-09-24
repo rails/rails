@@ -25,7 +25,7 @@ module ActiveSupport
       if data.eof?
         {}
       else
-        silence_warnings { require "rexml/document" } unless defined?(REXML::Document)
+        require_rexml unless defined?(REXML::Document)
         doc = REXML::Document.new(data)
 
         if doc.root
@@ -38,6 +38,14 @@ module ActiveSupport
     end
 
     private
+
+      def require_rexml
+        silence_warnings { require "rexml/document" }
+      rescue LoadError => e
+        $stderr.puts "You don't have rexml installed in your application. Please add it to your Gemfile and run bundle install"
+        raise e
+      end
+
       # Convert an XML element and merge into the hash
       #
       # hash::
