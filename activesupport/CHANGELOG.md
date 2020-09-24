@@ -1,5 +1,5 @@
-*   ActiveSupport::Subscriber#attach_to now accepts an inherit_from: argument. When set to true,
-    it allows a subscriber to receive events for methods defined in the subscriber's ancestor class(es)
+*   `ActiveSupport::Subscriber#attach_to` now accepts an `inherit_all:` argument. When set to true,
+    it allows a subscriber to receive events for methods defined in the subscriber's ancestor class(es).
 
     ```ruby
     class ActionControllerSubscriber < ActiveSupport::Subscriber
