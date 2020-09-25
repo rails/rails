@@ -38,7 +38,6 @@ module ActiveSupport
     end
 
     private
-
       def require_rexml
         silence_warnings { require "rexml/document" }
       rescue LoadError => e
