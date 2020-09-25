@@ -914,10 +914,6 @@
 
     *Ryuta Kamizono*
 
-*   Ensure custom PK types are casted in through reflection queries.
-
-    *Gannon McGibbon*
-
 *   Preserve user supplied joins order as much as possible.
 
     Fixes #36761, #34328, #24281, #12953.

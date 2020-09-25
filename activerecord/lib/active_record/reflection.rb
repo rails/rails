@@ -766,9 +766,7 @@ module ActiveRecord
       end
 
       def klass
-        @klass ||= delegate_reflection.compute_class(class_name).tap do |klass|
-          check_reflection_validity!(klass)
-        end
+        @klass ||= delegate_reflection.compute_class(class_name)
       end
 
       # Returns the source of the through reflection. It checks both a singularized
@@ -997,26 +995,6 @@ module ActiveRecord
         def derive_class_name
           # get the class_name of the belongs_to association of the through reflection
           options[:source_type] || source_reflection.class_name
-        end
-
-        def custom_join_key_type?
-          source_reflection.active_record.attributes_to_define_after_schema_loads.key?(
-            delegate_reflection.foreign_key
-          )
-        end
-
-        def check_reflection_validity!(klass)
-          return unless custom_join_key_type?
-
-          through_reflection = options[:through].to_s
-
-          unless klass.reflections.key?(through_reflection) ||
-                 klass.reflections.key?(through_reflection.pluralize)
-            raise NotImplementedError, <<~MSG.squish
-              In order to correctly type cast #{active_record}.#{active_record.primary_key},
-              #{klass} needs to define a :#{through_reflection} association.
-            MSG
-          end
         end
 
         delegate_methods = AssociationReflection.public_instance_methods -
