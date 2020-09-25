@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "mimemagic"
+
 module ActiveStorage::Blob::Representable
   extend ActiveSupport::Concern
 
