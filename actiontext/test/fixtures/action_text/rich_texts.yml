@@ -1,8 +1,3 @@
-hello_world_body:
-  name: body
-  record: hello_world (Message)
-  body: <p>Hello, World</p>
-
 hello_world_review_content:
   record: hello_world (Review)
   name: content
