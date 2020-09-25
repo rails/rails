@@ -34,6 +34,8 @@ module ActiveRecord
     config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
     config.active_record.sqlite3.represent_boolean_as_integer = nil
 
+    config.active_record.queues = ActiveSupport::InheritableOptions.new(destroy: :active_record_destroy)
+
     config.eager_load_namespaces << ActiveRecord
 
     rake_tasks do

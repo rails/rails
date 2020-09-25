@@ -74,7 +74,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.define_callbacks(model, reflection)
       if dependent = reflection.options[:dependent]
-        check_dependent_options(dependent)
+        check_dependent_options(dependent, model)
         add_destroy_callbacks(model, reflection)
       end
 
@@ -120,7 +120,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
       raise NotImplementedError
     end
 
-    def self.check_dependent_options(dependent)
+    def self.check_dependent_options(dependent, model)
+      if dependent == :destroy_async && !model.destroy_association_async_job
+        err_message = "ActiveJob is required to use destroy_async on associations"
+        raise ActiveRecord::ActiveJobRequiredError, err_message
+      end
       unless valid_dependent_options.include? dependent
         raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{dependent}"
       end
