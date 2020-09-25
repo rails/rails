@@ -224,7 +224,7 @@ Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain co
 
 #### `render` without `partial` and `locals` options
 
-In the above example, `render` takes 2 options: `partial` and `locals`. But if
+In the example below, `render` takes 2 options: `partial` and `locals`. But if
 these are the only options you want to pass, you can skip using these options.
 For example, instead of:
 
