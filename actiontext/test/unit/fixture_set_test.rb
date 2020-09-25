@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class FixtureFileHelpersTest < ActiveSupport::TestCase
+class ActionText::FixtureSetTest < ActiveSupport::TestCase
   def test_action_text_attachment
     message = messages(:hello_world)
     review = reviews(:hello_world)

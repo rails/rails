@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module ActionText
-  module FixtureFileHelpers
-    def action_text_attachment(fixture_set_name, label)
+  class FixtureSet
+    def self.attachment(fixture_set_name, label)
       identifier = ActiveRecord::FixtureSet.identify(label)
       model_name = ActiveRecord::FixtureSet.default_fixture_model_name(fixture_set_name)
       uri = URI::GID.build(app: GlobalID.app, model_name: model_name, model_id: identifier)

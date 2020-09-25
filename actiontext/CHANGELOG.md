@@ -1,12 +1,12 @@
-*   Add `action_text_attachment` helper to `ActiveRecord::FixtureSet` context to
-    generate an `<action-text-attachment sgid="..."></action-text-attachment>`
-    element with a valid `sgid` attribute.
+*   Declare `ActionText::FixtureSet.attachment` to generate an
+    `<action-text-attachment sgid="..."></action-text-attachment>` element with
+    a valid `sgid` attribute.
 
     ```ruby
     hello_world_review_content:
       record: hello_world (Review)
       name: content
-      body: <p><%= action_text_attachment("messages", :hello_world) %> is great!</p>
+      body: <p><%= ActionText::FixtureSet.attachment("messages", :hello_world) %> is great!</p>
     ```
 
     *Sean Doyle*

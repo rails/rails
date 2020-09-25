@@ -6,4 +6,4 @@ hello_world_body:
 hello_world_review_content:
   record: hello_world (Review)
   name: content
-  body: <p><%= action_text_attachment("messages", :hello_world) %> is great!</p>
+  body: <p><%= ActionText::FixtureSet.attachment("messages", :hello_world) %> is great!</p>
