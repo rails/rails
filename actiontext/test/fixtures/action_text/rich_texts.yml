@@ -1,0 +1,9 @@
+hello_world_body:
+  name: body
+  record: hello_world (Message)
+  body: <p>Hello, World</p>
+
+hello_world_review_content:
+  record: hello_world (Review)
+  name: content
+  body: <p><%= action_text_attachment("messages", :hello_world) %> is great!</p>

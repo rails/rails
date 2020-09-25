@@ -14,6 +14,7 @@ module ActionText
   autoload :Attribute
   autoload :Content
   autoload :Fragment
+  autoload :FixtureFileHelpers
   autoload :HtmlConversion
   autoload :PlainTextConversion
   autoload :Rendering

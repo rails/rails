@@ -58,6 +58,14 @@ module ActionText
       end
     end
 
+    initializer "action_text.fixture_set_helper" do
+      ActiveSupport.on_load(:active_support_test_case) do
+        require "active_record/fixtures"
+
+        ActiveRecord::FixtureSet.context_class.include ActionText::FixtureFileHelpers
+      end
+    end
+
     initializer "action_text.system_test_helper" do
       ActiveSupport.on_load(:action_dispatch_system_test_case) do
         require "action_text/system_test_helper"
