@@ -4,6 +4,7 @@ require "active_support/test_case"
 require "active_support/testing/autorun"
 require "rails/generators/rails/app/app_generator"
 require "tempfile"
+require 'fileutils'
 
 module Rails
   module Generators
@@ -54,6 +55,20 @@ module Rails
         }.new ["new"]
         args = scrubber.prepare!
         assert_equal [], args
+      end
+
+      def test_xdg_config_no_custom_rc
+        xdg = Dir.tmpdir
+        ENV["XDG_CONFIG_HOME"] = xdg
+        rails_xdg_path = File.join(xdg, "rails")
+        Dir.mkdir(rails_xdg_path, 0700) unless Dir.exist?(rails_xdg_path)
+        Dir.new(rails_xdg_path)
+        railrc_path = File.join(rails_xdg_path, "railsrc")
+        railsrc = File.new(railrc_path, "w")
+        railsrc.close
+
+        scrubber = Class.new(ARGVScrubber)
+        assert_equal scrubber.default_rc_file, railrc_path
       end
 
       def test_new_homedir_rc
