@@ -388,11 +388,13 @@ class HashExtTest < ActiveSupport::TestCase
   def test_extract_nils
     original = { a: nil, b: nil }
     expected = { a: nil }
+    remaining = { b: nil }
     extracted = original.extract!(:a, :x)
 
     assert_equal expected, extracted
     assert_nil extracted[:a]
     assert_nil extracted[:x]
+    assert_equal remaining, original
   end
 
   def test_except
