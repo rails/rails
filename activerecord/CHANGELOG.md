@@ -1,3 +1,15 @@
+*   `BatchEnumerator#update_all` and `BatchEnumerator#delete_all` now return the
+    total number of rows affected, just like their non-batched counterparts.
+
+    ```ruby
+    Person.in_batches.update_all("first_name = 'Eugene'") # => 42
+    Person.in_batches.delete_all # => 42
+    ```
+
+    Fixes #40287.
+
+    *Eugene Kenny*
+
 *   Add support for PostgreSQL `interval` data type with conversion to
     `ActiveSupport::Duration` when loading records from database and
     serialization to ISO 8601 formatted duration string on save.
