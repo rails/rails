@@ -644,6 +644,7 @@ You can also use this to override routing methods defined by resources, like thi
 
 ```ruby
 get ':username', to: 'users#show', as: :user
+resources :users
 ```
 
 This will define a `user_path` method that will be available in controllers, helpers, and views that will go to a route such as `/bob`. Inside the `show` action of `UsersController`, `params[:username]` will contain the username for the user. Change `:username` in the route definition if you do not want your parameter name to be `:username`.
