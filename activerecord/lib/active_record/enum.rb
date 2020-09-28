@@ -201,7 +201,8 @@ module ActiveRecord
               suffix = "_#{enum_suffix}"
             end
 
-            value_method_name = "#{prefix}#{label}#{suffix}"
+            method_friendly_label = label.to_s.gsub(/\W+/, "_")
+            value_method_name = "#{prefix}#{method_friendly_label}#{suffix}"
             enum_values[label] = value
             label = label.to_s
 
