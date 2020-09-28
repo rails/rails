@@ -776,7 +776,7 @@ module ActiveRecord
     #
     # The optional <tt>:lock</tt> flag option allows you to lock the reloaded record:
     #
-    #   reload(lock: true) # reload with pessimistic locking
+    #   reload({lock: true}) # reload with pessimistic locking
     #
     # Reloading is commonly used in test suites to test something is actually
     # written to the database, or when some action modifies the corresponding
