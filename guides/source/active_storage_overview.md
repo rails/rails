@@ -97,6 +97,10 @@ config.active_storage.service = :test
 Continue reading for more information on the built-in service adapters (e.g.
 `Disk` and `S3`) and the configuration they require.
 
+NOTE: Configuration files that are environment-specific will take precedence:
+in production, for example, the `config/storage/production.yml` file will take
+precedence over the `config/storage.yml` file.
+
 ### Disk Service
 
 Declare a Disk service in `config/storage.yml`:
