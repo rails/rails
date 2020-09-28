@@ -94,8 +94,12 @@ module ActionView
         def tag_option(key, value, escape)
           case value
           when Array, Hash
-            value = TagHelper.build_tag_values(value) if key.to_s == "class"
-            value = escape ? safe_join(value, " ") : value.join(" ")
+            if key.to_s.start_with?("data-")
+              value = value.to_json
+            else
+              value = TagHelper.build_tag_values(value) if key.to_s == "class"
+              value = escape ? safe_join(value, " ") : value.join(" ")
+            end
           else
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
           end

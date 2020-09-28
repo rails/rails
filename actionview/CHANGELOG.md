@@ -1,3 +1,11 @@
+*   Treat `data-` prefixed attributes as if they were declared in `data: {}`
+    attributes Hashes:
+
+        tag.div "data-json-value": { key: "value" }
+        # => <div data-json-value=\"{&quot;key&quot;:&quot;value&quot;}\"></div>
+
+    *Sean Doyle*
+
 *   `ActionView::Helpers::TranslationHelper#translate` accepts a block, yielding
     the translated text and the fully resolved translation key:
 
