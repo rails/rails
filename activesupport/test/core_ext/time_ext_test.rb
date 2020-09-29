@@ -890,7 +890,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"]), 0)
   end
 
-  def test_at_with_time_precision
+  def test_at_with_time_with_zone_precision
     time_with_nsec = Time.at(500000000, 123456789, :nsec)
     time_with_zone = ActiveSupport::TimeWithZone.new(time_with_nsec, ActiveSupport::TimeZone["UTC"])
     assert_equal time_with_zone, Time.at(time_with_zone)
