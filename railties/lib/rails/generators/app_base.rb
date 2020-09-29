@@ -122,12 +122,6 @@ module Rails
          cable_gemfile_entry].flatten.find_all(&@gem_filter)
       end
 
-      def add_gem_entry_filter # :doc:
-        @gem_filter = lambda { |next_filter, entry|
-          yield(entry) && next_filter.call(entry)
-        }.curry[@gem_filter]
-      end
-
       def builder # :doc:
         @builder ||= begin
           builder_class = get_builder_class
