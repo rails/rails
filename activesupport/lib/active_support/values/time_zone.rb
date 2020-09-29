@@ -65,6 +65,7 @@ module ActiveSupport
       "Mid-Atlantic"                 => "Atlantic/South_Georgia",
       "Azores"                       => "Atlantic/Azores",
       "Cape Verde Is."               => "Atlantic/Cape_Verde",
+      "Reykjavik"                    => "Atlantic/Reykjavik",
       "Dublin"                       => "Europe/Dublin",
       "Edinburgh"                    => "Europe/London",
       "Lisbon"                       => "Europe/Lisbon",
