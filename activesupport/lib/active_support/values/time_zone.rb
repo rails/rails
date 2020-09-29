@@ -90,6 +90,7 @@ module ActiveSupport
       "Bern"                         => "Europe/Zurich",
       "Zurich"                       => "Europe/Zurich",
       "Rome"                         => "Europe/Rome",
+      "Oslo"                         => "Europe/Oslo",
       "Stockholm"                    => "Europe/Stockholm",
       "Vienna"                       => "Europe/Vienna",
       "West Central Africa"          => "Africa/Algiers",
