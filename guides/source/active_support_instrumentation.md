@@ -70,7 +70,7 @@ ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*a
 end
 ```
 
-You may also pass block with only one argument, it will yield an event object to the block:
+You may also pass a block that accepts only one argument, and it will receive an event object:
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
