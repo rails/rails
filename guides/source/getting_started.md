@@ -255,9 +255,9 @@ your application in action, open a browser window and navigate to
 TIP: To stop the web server, hit Ctrl+C in the terminal window where it's
 running. To verify the server has stopped you should see your command prompt
 cursor again. For most UNIX-like systems including macOS this will be a
-dollar sign `$`. In development mode, Rails does not generally require you to
-restart the server; changes you make in files will be automatically picked up by
-the server.
+dollar sign `$`. In the development environment, Rails does not generally
+require you to restart the server; changes you make in files will be
+automatically picked up by the server.
 
 The "Yay! You're on Rails!" page is the _smoke test_ for a new Rails
 application: it makes sure that you have your software configured correctly
@@ -1063,9 +1063,9 @@ TIP: If you want to link to an action in the same controller, you don't need to
 specify the `:controller` option, as Rails will use the current controller by
 default.
 
-TIP: In development mode (which is what you're working in by default), Rails
-reloads your application with every browser request, so there's no need to stop
-and restart the web server when a change is made.
+TIP: In the development environment (which is what you're working in by
+default), Rails reloads your application with every browser request, so there's
+no need to stop and restart the web server when a change is made.
 
 ### Adding Some Validation
 
