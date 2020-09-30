@@ -1,3 +1,36 @@
+*   Add support for PostgreSQL `interval` data type with conversion to
+    `ActiveSupport::Duration` when loading records from database and
+    serialization to ISO 8601 formatted duration string on save.
+    Add support to define a column in migrations and get it in a schema dump.
+    Optional column precision is supported.
+
+    To use this in 6.1, you need to place the next string to your model file:
+
+        attribute :duration, :interval
+
+    To keep old behavior until 6.2 is released:
+
+        attribute :duration, :string
+
+    Example:
+
+        create_table :events do |t|
+          t.string   :name
+          t.interval :duration
+        end
+
+        class Event < ApplicationRecord
+          attribute :duration, :interval
+        end
+
+        Event.create!(name: 'Rock Fest', duration: 2.days)
+        Event.last.duration # => 2 days
+        Event.last.duration.iso8601 # => "P2D"
+        Event.new(duration: 'P1DT12H3S').duration # => 1 day, 12 hours, and 3 seconds
+        Event.new(duration: '1 day') # Unknown value will be ignored and NULL will be written to database
+
+    *Andrey Novikov*
+
 *   Allow associations supporting the `dependent:` key to take `dependent: :destroy_async`.
 
     ```ruby
