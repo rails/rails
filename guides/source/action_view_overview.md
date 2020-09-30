@@ -181,7 +181,7 @@ more examples and information.
 
 #### Template Caching
 
-By default, Rails will compile each template to a method in order to render it. When you alter a template, Rails will check the file's modification time and recompile it in development mode.
+By default, Rails will compile each template to a method in order to render it. In the development environment, when you alter a template, Rails will check the file's modification time and recompile it.
 
 ### Partials
 

@@ -494,7 +494,7 @@ By opting-out you optimize `$LOAD_PATH` lookups (less directories to check), and
 
 #### Thread-safety
 
-In classic mode, constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe when autoloading is enabled, as it is common in `development` mode.
+In classic mode, constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe when autoloading is enabled, as it is common in the development environment.
 
 Constant autoloading is thread-safe in `zeitwerk` mode. For example, you can now autoload in multi-threaded scripts executed by the `runner` command.
 
@@ -750,8 +750,7 @@ are also fine because the file defining them will have been eager loaded while b
 
 For the vast majority of applications this change needs no action. But in the
 very rare event that your application needs autoloading while running in
-production mode, set `Rails.application.config.enable_dependency_loading` to
-true.
+production, set `Rails.application.config.enable_dependency_loading` to true.
 
 ### XML Serialization
 
@@ -858,7 +857,7 @@ should also extend the module with `ActiveSupport::Concern`. Alternatively, you 
 to include `ActionController::Live` directly to the controller once the `StreamingSupport` is included.
 
 This means that if your application used to have its own streaming module, the following code
-would break in production mode:
+would break in production:
 
 ```ruby
 # This is a work-around for streamed controllers performing authentication with Warden/Devise.
@@ -1249,7 +1248,7 @@ secrets, you need to:
 
 2. Use your existing `secret_key_base` from the `secret_token.rb` initializer to
    set the SECRET_KEY_BASE environment variable for whichever users running the
-   Rails application in production mode. Alternatively, you can simply copy the existing
+   Rails application in production. Alternatively, you can simply copy the existing
    `secret_key_base` from the `secret_token.rb` initializer to `secrets.yml`
    under the `production` section, replacing '<%= ENV["SECRET_KEY_BASE"] %>'.
 
