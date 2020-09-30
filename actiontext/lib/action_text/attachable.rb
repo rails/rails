@@ -71,6 +71,10 @@ module ActionText
       to_partial_path
     end
 
+    def to_attachable_partial_path
+      to_partial_path
+    end
+
     def to_rich_text_attributes(attributes = {})
       attributes.dup.tap do |attrs|
         attrs[:sgid] = attachable_sgid

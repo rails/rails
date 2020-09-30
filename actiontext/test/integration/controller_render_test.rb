@@ -31,4 +31,12 @@ class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
     get admin_message_path(message)
     assert_select "#content-html .trix-content .attachment--jpg"
   end
+
+  test "resolves ActionText::Attachable based on their to_attachable_partial_path" do
+    alice = people(:alice)
+
+    get messages_path
+
+    assert_select ".mentioned-person", text: alice.name
+  end
 end
