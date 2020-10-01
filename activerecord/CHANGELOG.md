@@ -1,3 +1,7 @@
+*   Allow double-dash comment syntax when querying read-only databases
+
+    *James Adam*
+
 *   Add `values_at` method.
 
     Returns an array containing the values associated with the given methods.
