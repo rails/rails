@@ -2085,7 +2085,7 @@ We can add our status validation to the concern, but this is slightly more compl
 
 ```ruby
 module Visible
-  extends ActiveSupport::Concern
+  extend ActiveSupport::Concern
 
   included do
     VALID_STATUSES = ['public', 'private', 'archived']
@@ -2128,7 +2128,7 @@ Class methods can also be added to concerns. If we want a count of public articl
 
 ```ruby
 module Visible
-  extends ActiveSupport::Concern
+  extend ActiveSupport::Concern
 
   VALID_STATUSES = ['public', 'private', 'archived']
 
