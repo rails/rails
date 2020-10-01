@@ -235,6 +235,72 @@ module ActiveRecord
       end
     end
 
+    def test_doesnt_error_when_a_select_query_starting_with_a_slash_star_comment_is_called_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+      @connection_handler.while_preventing_writes do
+        result = @connection.select_all("/* some comment */ SELECT subscribers.* FROM subscribers WHERE nick = '138853948594'")
+        assert_equal 1, result.length
+      end
+    end
+
+    def test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes
+      @connection_handler.while_preventing_writes do
+        @connection.transaction do
+          assert_no_queries do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.insert("/* some comment */ INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+            end
+          end
+        end
+      end
+    end
+
+    def test_doesnt_error_when_a_select_query_starting_with_double_dash_comments_is_called_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+      @connection_handler.while_preventing_writes do
+        result = @connection.select_all("-- some comment\n-- comment about INSERT\nSELECT subscribers.* FROM subscribers WHERE nick = '138853948594'")
+        assert_equal 1, result.length
+      end
+    end
+
+    def test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_is_called_while_preventing_writes
+      @connection_handler.while_preventing_writes do
+        @connection.transaction do
+          assert_no_queries do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.insert("-- some comment\nINSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+            end
+          end
+        end
+      end
+    end
+
+    def test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_containing_read_command_is_called_while_preventing_writes
+      @connection_handler.while_preventing_writes do
+        @connection.transaction do
+          assert_no_queries do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.insert("/* SELECT */ INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+            end
+          end
+        end
+      end
+    end
+
+    def test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes
+      @connection_handler.while_preventing_writes do
+        @connection.transaction do
+          assert_no_queries do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.insert("-- SELECT\nINSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+            end
+          end
+        end
+      end
+    end
+
     if ActiveRecord::Base.connection.supports_common_table_expressions?
       def test_doesnt_error_when_a_read_query_with_a_cte_is_called_while_preventing_writes
         @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")

@@ -1,3 +1,7 @@
+*   Allow double-dash comment syntax when querying read-only databases
+
+    *James Adam*
+
 *   Add support for PostgreSQL `interval` data type with conversion to
     `ActiveSupport::Duration` when loading records from database and
     serialization to ISO 8601 formatted duration string on save.
