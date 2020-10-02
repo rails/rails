@@ -80,7 +80,7 @@ class ShareLockTest < ActiveSupport::TestCase
       with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
         exclusive_threads = (1..2).map do
           Thread.new do
-            @lock.send(use_upgrading ? :sharing : :tap) do
+            @lock.public_send(use_upgrading ? :sharing : :tap) do
               @lock.exclusive(purpose: :load, compatible: [:load, :unload]) { }
             end
           end
@@ -118,13 +118,13 @@ class ShareLockTest < ActiveSupport::TestCase
         together = Concurrent::CyclicBarrier.new(2)
         conflicting_exclusive_threads = [
           Thread.new do
-            @lock.send(use_upgrading ? :sharing : :tap) do
+            @lock.public_send(use_upgrading ? :sharing : :tap) do
               together.wait
               @lock.exclusive(purpose: :red, compatible: [:green, :purple]) { }
             end
           end,
           Thread.new do
-            @lock.send(use_upgrading ? :sharing : :tap) do
+            @lock.public_send(use_upgrading ? :sharing : :tap) do
               together.wait
               @lock.exclusive(purpose: :blue, compatible: [:green]) { }
             end
@@ -465,7 +465,7 @@ class ShareLockTest < ActiveSupport::TestCase
       with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
         threads = thread_params.map do |purpose, compatible, use_upgrading|
           Thread.new do
-            @lock.send(use_upgrading ? :sharing : :tap) do
+            @lock.public_send(use_upgrading ? :sharing : :tap) do
               @lock.exclusive(purpose: purpose, compatible: compatible) do
                 scratch_pad_mutex.synchronize { scratch_pad << purpose }
               end
