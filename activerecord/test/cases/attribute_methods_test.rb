@@ -566,9 +566,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       meth = "#{prefix}title"
       assert_respond_to topic, meth
-      assert_equal ["title"], topic.send(meth)
-      assert_equal ["title", "a"], topic.send(meth, "a")
-      assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
+      assert_equal ["title"], topic.public_send(meth)
+      assert_equal ["title", "a"], topic.public_send(meth, "a")
+      assert_equal ["title", 1, 2, 3], topic.public_send(meth, 1, 2, 3)
     end
   end
 
@@ -580,9 +580,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       meth = "title#{suffix}"
       assert_respond_to topic, meth
-      assert_equal ["title"], topic.send(meth)
-      assert_equal ["title", "a"], topic.send(meth, "a")
-      assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
+      assert_equal ["title"], topic.public_send(meth)
+      assert_equal ["title", "a"], topic.public_send(meth, "a")
+      assert_equal ["title", 1, 2, 3], topic.public_send(meth, 1, 2, 3)
     end
   end
 
@@ -594,9 +594,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       meth = "#{prefix}title#{suffix}"
       assert_respond_to topic, meth
-      assert_equal ["title"], topic.send(meth)
-      assert_equal ["title", "a"], topic.send(meth, "a")
-      assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
+      assert_equal ["title"], topic.public_send(meth)
+      assert_equal ["title", "a"], topic.public_send(meth, "a")
+      assert_equal ["title", 1, 2, 3], topic.public_send(meth, 1, 2, 3)
     end
   end
 

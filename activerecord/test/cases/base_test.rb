@@ -706,12 +706,12 @@ class BasicsTest < ActiveRecord::TestCase
   def test_non_valid_identifier_column_name
     weird = Weird.create("a$b" => "value")
     weird.reload
-    assert_equal "value", weird.send("a$b")
+    assert_equal "value", weird.public_send("a$b")
     assert_equal "value", weird.read_attribute("a$b")
 
     weird.update_columns("a$b" => "value2")
     weird.reload
-    assert_equal "value2", weird.send("a$b")
+    assert_equal "value2", weird.public_send("a$b")
     assert_equal "value2", weird.read_attribute("a$b")
   end
 

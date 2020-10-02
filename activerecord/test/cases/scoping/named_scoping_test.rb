@@ -410,8 +410,8 @@ class NamedScopingTest < ActiveRecord::TestCase
       scope :"title containing space", ->(space: " ") { where("title LIKE '%#{space}%'") }
       scope :approved, -> { where(approved: true) }
     end
-    assert_equal klass.where("title LIKE '% %'"), klass.send(:"title containing space", space: " ")
-    assert_equal klass.approved.where("title LIKE '% %'"), klass.approved.send(:"title containing space", space: " ")
+    assert_equal klass.where("title LIKE '% %'"), klass.public_send(:"title containing space", space: " ")
+    assert_equal klass.approved.where("title LIKE '% %'"), klass.approved.public_send(:"title containing space", space: " ")
   end
 
   def test_find_all_should_behave_like_select
