@@ -1111,13 +1111,13 @@ class FoxyFixturesTest < ActiveRecord::TestCase
 
   def test_populates_timestamp_columns
     TIMESTAMP_COLUMNS.each do |property|
-      assert_not_nil(parrots(:george).send(property), "should set #{property}")
+      assert_not_nil(parrots(:george).public_send(property), "should set #{property}")
     end
   end
 
   def test_does_not_populate_timestamp_columns_if_model_has_set_record_timestamps_to_false
     TIMESTAMP_COLUMNS.each do |property|
-      assert_nil(ships(:black_pearl).send(property), "should not set #{property}")
+      assert_nil(ships(:black_pearl).public_send(property), "should not set #{property}")
     end
   end
 
@@ -1125,7 +1125,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     last = nil
 
     TIMESTAMP_COLUMNS.each do |property|
-      current = parrots(:george).send(property)
+      current = parrots(:george).public_send(property)
       last ||= current
 
       assert_equal(last, current)
