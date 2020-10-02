@@ -1427,9 +1427,9 @@ module ActiveRecord
             arg.map { |field, dir|
               case field
               when Arel::Nodes::SqlLiteral
-                field.send(dir.downcase)
+                field.public_send(dir.downcase)
               else
-                order_column(field.to_s).send(dir.downcase)
+                order_column(field.to_s).public_send(dir.downcase)
               end
             }
           else
