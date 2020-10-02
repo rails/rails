@@ -1117,7 +1117,7 @@ class TransactionTest < ActiveRecord::TestCase
     %w(validation save destroy).each do |filter|
       define_method("add_cancelling_before_#{filter}_with_db_side_effect_to_topic") do |topic|
         meta = class << topic; self; end
-        meta.send("define_method", "before_#{filter}_for_transaction") do
+        meta.define_method "before_#{filter}_for_transaction" do
           Book.create
           throw(:abort)
         end
