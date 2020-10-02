@@ -13,7 +13,7 @@ module ActionView
         end
 
         def render
-          error_wrapping(datetime_selector(@options, @html_options).send("select_#{select_type}").html_safe)
+          error_wrapping(datetime_selector(@options, @html_options).public_send("select_#{select_type}").html_safe)
         end
 
         class << self
