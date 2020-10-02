@@ -146,7 +146,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     ModelWithWeirdNamesAttributes.define_attribute_method(:'a?b')
 
     assert_respond_to ModelWithWeirdNamesAttributes.new, :'a?b'
-    assert_equal "value of a?b", ModelWithWeirdNamesAttributes.new.send("a?b")
+    assert_equal "value of a?b", ModelWithWeirdNamesAttributes.new.public_send("a?b")
   ensure
     ModelWithWeirdNamesAttributes.undefine_attribute_methods
   end
@@ -182,7 +182,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     ModelWithAttributesWithSpaces.define_attribute_methods(:'foo bar')
 
     assert_respond_to ModelWithAttributesWithSpaces.new, :'foo bar'
-    assert_equal "value of foo bar", ModelWithAttributesWithSpaces.new.send(:'foo bar')
+    assert_equal "value of foo bar", ModelWithAttributesWithSpaces.new.public_send(:'foo bar')
   ensure
     ModelWithAttributesWithSpaces.undefine_attribute_methods
   end
