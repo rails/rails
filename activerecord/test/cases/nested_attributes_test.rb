@@ -624,13 +624,13 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_take_an_array_and_assign_the_attributes_to_the_associated_models
-    @pirate.send(association_setter, @alternate_params[association_getter].values)
+    @pirate.public_send(association_setter, @alternate_params[association_getter].values)
     @pirate.save
     assert_equal ["Grace OMalley", "Privateers Greed"], [@child_1.reload.name, @child_2.reload.name]
   end
 
   def test_should_also_work_with_a_HashWithIndifferentAccess
-    @pirate.send(association_setter, ActiveSupport::HashWithIndifferentAccess.new("foo" => ActiveSupport::HashWithIndifferentAccess.new(id: @child_1.id, name: "Grace OMalley")))
+    @pirate.public_send(association_setter, ActiveSupport::HashWithIndifferentAccess.new("foo" => ActiveSupport::HashWithIndifferentAccess.new(id: @child_1.id, name: "Grace OMalley")))
     @pirate.save
     assert_equal "Grace OMalley", @child_1.reload.name
   end
@@ -643,7 +643,7 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_should_not_load_association_when_updating_existing_records
     @pirate.reload
-    @pirate.send(association_setter, [{ id: @child_1.id, name: "Grace OMalley" }])
+    @pirate.public_send(association_setter, [{ id: @child_1.id, name: "Grace OMalley" }])
     assert_not_predicate @pirate.public_send(@association_name), :loaded?
 
     @pirate.save
@@ -653,13 +653,13 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_should_not_overwrite_unsaved_updates_when_loading_association
     @pirate.reload
-    @pirate.send(association_setter, [{ id: @child_1.id, name: "Grace OMalley" }])
+    @pirate.public_send(association_setter, [{ id: @child_1.id, name: "Grace OMalley" }])
     assert_equal "Grace OMalley", @pirate.public_send(@association_name).load_target.find { |r| r.id == @child_1.id }.name
   end
 
   def test_should_preserve_order_when_not_overwriting_unsaved_updates
     @pirate.reload
-    @pirate.send(association_setter, [{ id: @child_1.id, name: "Grace OMalley" }])
+    @pirate.public_send(association_setter, [{ id: @child_1.id, name: "Grace OMalley" }])
     assert_equal @child_1.id, @pirate.public_send(@association_name).load_target.first.id
   end
 
@@ -668,13 +668,13 @@ module NestedAttributesOnACollectionAssociationTests
     record = @pirate.class.reflect_on_association(@association_name).klass.new(name: "Grace OMalley")
     @pirate.public_send(@association_name) << record
     record.save!
-    @pirate.send(@association_name).last.update!(name: "Polly")
+    @pirate.public_send(@association_name).last.update!(name: "Polly")
     assert_equal "Polly", @pirate.public_send(@association_name).load_target.last.name
   end
 
   def test_should_not_remove_scheduled_destroys_when_loading_association
     @pirate.reload
-    @pirate.send(association_setter, [{ id: @child_1.id, _destroy: "1" }])
+    @pirate.public_send(association_setter, [{ id: @child_1.id, _destroy: "1" }])
     assert_predicate @pirate.public_send(@association_name).load_target.find { |r| r.id == @child_1.id }, :marked_for_destruction?
   end
 
@@ -725,7 +725,7 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_should_not_assign_destroy_key_to_a_record
     assert_nothing_raised do
-      @pirate.send(association_setter, "foo" => { "_destroy" => "0" })
+      @pirate.public_send(association_setter, "foo" => { "_destroy" => "0" })
     end
   end
 
@@ -753,17 +753,17 @@ module NestedAttributesOnACollectionAssociationTests
     attributes = {}
     attributes["123726353"] = { name: "Grace OMalley" }
     attributes["2"] = { name: "Privateers Greed" } # 2 is lower then 123726353
-    @pirate.send(association_setter, attributes)
+    @pirate.public_send(association_setter, attributes)
 
     assert_equal ["Posideons Killer", "Killer bandita Dionne", "Privateers Greed", "Grace OMalley"].to_set, @pirate.public_send(@association_name).map(&:name).to_set
   end
 
   def test_should_raise_an_argument_error_if_something_else_than_a_hash_is_passed
-    assert_nothing_raised { @pirate.send(association_setter, {}) }
-    assert_nothing_raised { @pirate.send(association_setter, Hash.new) }
+    assert_nothing_raised { @pirate.public_send(association_setter, {}) }
+    assert_nothing_raised { @pirate.public_send(association_setter, Hash.new) }
 
     exception = assert_raise ArgumentError do
-      @pirate.send(association_setter, "foo")
+      @pirate.public_send(association_setter, "foo")
     end
     assert_equal %{Hash or Array expected for attribute `#{@association_name}`, got String ("foo")}, exception.message
   end
@@ -786,7 +786,7 @@ module NestedAttributesOnACollectionAssociationTests
   def test_should_be_possible_to_destroy_a_record
     ["1", 1, "true", true].each do |true_variable|
       record = @pirate.reload.public_send(@association_name).create!(name: "Grace OMalley")
-      @pirate.send(association_setter,
+      @pirate.public_send(association_setter,
         @alternate_params[association_getter].merge("baz" => { :id => record.id, "_destroy" => true_variable })
       )
 
@@ -807,7 +807,7 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_should_not_destroy_the_associated_model_until_the_parent_is_saved
     assert_no_difference("@pirate.public_send(@association_name).count") do
-      @pirate.send(association_setter, @alternate_params[association_getter].merge("baz" => { :id => @child_1.id, "_destroy" => true }))
+      @pirate.public_send(association_setter, @alternate_params[association_getter].merge("baz" => { :id => @child_1.id, "_destroy" => true }))
     end
     assert_difference("@pirate.public_send(@association_name).count", -1) { @pirate.save }
   end
