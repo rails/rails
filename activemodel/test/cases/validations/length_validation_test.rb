@@ -411,6 +411,21 @@ class LengthValidationTest < ActiveModel::TestCase
     assert_predicate Topic.new("title" => "david2"), :invalid?
   end
 
+  def test_validates_length_of_using_symbol_as_maximum
+    Topic.validates_length_of :title, maximum: :five
+
+    t = Topic.new("title" => "valid", "content" => "whatever")
+    assert_predicate t, :valid?
+
+    t.title = "notvalid"
+    assert_predicate t, :invalid?
+    assert_predicate t.errors[:title], :any?
+    assert_equal ["is too long (maximum is 5 characters)"], t.errors[:title]
+
+    t.title = ""
+    assert_predicate t, :valid?
+  end
+
   def test_validates_length_of_using_proc_as_maximum
     Topic.validates_length_of :title, maximum: ->(model) { 5 }
 

@@ -52,4 +52,10 @@ class Topic
   def attribute_before_type_cast(attr)
     instance_variable_get(:"@#{attr}")
   end
+
+  private
+
+    def five
+      5
+    end
 end
