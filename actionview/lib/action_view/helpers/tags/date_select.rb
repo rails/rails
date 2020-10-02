@@ -58,7 +58,7 @@ module ActionView
               time = Time.current
 
               [:year, :month, :day, :hour, :min, :sec].each do |key|
-                default[key] ||= time.send(key)
+                default[key] ||= time.public_send(key)
               end
 
               Time.utc(
