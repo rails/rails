@@ -54,7 +54,6 @@ class Topic
   end
 
   private
-
     def five
       5
     end
