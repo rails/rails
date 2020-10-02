@@ -76,7 +76,7 @@ module ActiveSupport
       # Private, for the test suite.
       def initialize_dup(orig) # :nodoc:
         %w(plurals singulars uncountables humans acronyms).each do |scope|
-          instance_variable_set("@#{scope}", orig.send(scope).dup)
+          instance_variable_set("@#{scope}", orig.public_send(scope).dup)
         end
         define_acronym_regex_patterns
       end
