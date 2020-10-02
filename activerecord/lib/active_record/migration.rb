@@ -856,7 +856,7 @@ module ActiveRecord
           change
         end
       else
-        send(direction)
+        public_send(direction)
       end
     ensure
       @connection = nil
@@ -1189,7 +1189,7 @@ module ActiveRecord
 
         finish = migrator.migrations[start_index + steps]
         version = finish ? finish.version : 0
-        send(direction, version)
+        public_send(direction, version)
       end
   end
 
