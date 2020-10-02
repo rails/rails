@@ -49,7 +49,7 @@ module ActiveRecord
       [:delete_all, :update_all, :destroy_all].each do |method|
         define_method(method) do |*args, &block|
           @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: false).each do |relation|
-            relation.send(method, *args, &block)
+            relation.public_send(method, *args, &block)
           end
         end
       end
