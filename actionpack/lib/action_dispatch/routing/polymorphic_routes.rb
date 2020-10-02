@@ -228,9 +228,9 @@ module ActionDispatch
             end
 
             if options.empty?
-              recipient.send(method, *args)
+              recipient.public_send(method, *args)
             else
-              recipient.send(method, *args, options)
+              recipient.public_send(method, *args, options)
             end
           end
 
@@ -247,7 +247,7 @@ module ActionDispatch
           end
 
           def handle_string_call(target, str)
-            target.send get_method_for_string str
+            target.public_send get_method_for_string str
           end
 
           def handle_class(klass)
