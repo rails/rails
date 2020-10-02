@@ -871,7 +871,7 @@ module ActiveRecord
         alias_method :release, :remove_connection_from_thread_cache
 
         def new_connection
-          Base.send(db_config.adapter_method, db_config.configuration_hash).tap do |conn|
+          Base.public_send(db_config.adapter_method, db_config.configuration_hash).tap do |conn|
             conn.check_version
           end
         end
