@@ -514,7 +514,7 @@ class ReflectionTest < ActiveRecord::TestCase
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)
       options.each do |method, value|
-        assert_equal(value, reflection.send(method))
+        assert_equal(value, reflection.public_send(method))
       end
     end
 end
