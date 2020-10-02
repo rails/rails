@@ -40,7 +40,7 @@ module ActiveModel
         options.slice(*CHECKS.keys).each do |option, option_value|
           case option
           when :odd, :even
-            unless value.to_i.send(CHECKS[option])
+            unless value.to_i.public_send(CHECKS[option])
               record.errors.add(attr_name, option, **filtered_options(value))
             end
           else
