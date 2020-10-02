@@ -677,7 +677,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   def test_ruby_19_weekday_name_query_methods
     %w(sunday? monday? tuesday? wednesday? thursday? friday? saturday?).each do |name|
       assert_respond_to @twz, name
-      assert_equal @twz.send(name), @twz.method(name).call
+      assert_equal @twz.public_send(name), @twz.method(name).call
     end
   end
 
