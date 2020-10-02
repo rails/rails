@@ -106,8 +106,8 @@ class AttributeMethodsTest < ActiveModel::TestCase
   end
 
   test "unrelated classes should not share attribute method matchers" do
-    assert_not_equal ModelWithAttributes.send(:attribute_method_matchers),
-                     ModelWithAttributes2.send(:attribute_method_matchers)
+    assert_not_equal ModelWithAttributes.public_send(:attribute_method_matchers),
+                     ModelWithAttributes2.public_send(:attribute_method_matchers)
   end
 
   test "#define_attribute_method generates attribute method" do
