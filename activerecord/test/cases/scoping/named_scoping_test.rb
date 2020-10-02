@@ -590,7 +590,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
     [:destroy_all, :reset, :delete_all].each do |method|
       before = post.comments.containing_the_letter_e
-      post.association(:comments).send(method)
+      post.association(:comments).public_send(method)
       assert_not_same before, post.comments.containing_the_letter_e, "CollectionAssociation##{method} should reset the named scopes cache"
     end
   end
