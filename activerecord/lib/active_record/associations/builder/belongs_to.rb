@@ -58,9 +58,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
         if old_record
           if touch != true
-            old_record.send(touch_method, touch)
+            old_record.public_send(touch_method, touch)
           else
-            old_record.send(touch_method)
+            old_record.public_send(touch_method)
           end
         end
       end
@@ -68,9 +68,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
       record = o.send name
       if record && record.persisted?
         if touch != true
-          record.send(touch_method, touch)
+          record.public_send(touch_method, touch)
         else
-          record.send(touch_method)
+          record.public_send(touch_method)
         end
       end
     end
