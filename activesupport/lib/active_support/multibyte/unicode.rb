@@ -143,7 +143,7 @@ module ActiveSupport
           will be removed from Rails 6.1. Use String methods directly.
           MSG
 
-          string.send(method)
+          string.public_send(method)
         end
       end
 
