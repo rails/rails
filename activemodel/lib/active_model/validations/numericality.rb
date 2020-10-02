@@ -53,7 +53,7 @@ module ActiveModel
 
             option_value = parse_as_number(option_value, precision, scale)
 
-            unless value.send(CHECKS[option], option_value)
+            unless value.public_send(CHECKS[option], option_value)
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
           end
