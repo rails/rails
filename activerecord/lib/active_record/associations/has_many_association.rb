@@ -36,7 +36,7 @@ module ActiveRecord
             primary_key_column = association_class.primary_key.to_sym
 
             ids = target.collect do |assoc|
-              assoc.send(primary_key_column)
+              assoc.public_send(primary_key_column)
             end
 
             enqueue_destroy_association(
