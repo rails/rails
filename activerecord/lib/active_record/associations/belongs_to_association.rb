@@ -24,7 +24,7 @@ module ActiveRecord
             ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
           )
         else
-          target.send(options[:dependent])
+          target.public_send(options[:dependent])
         end
       end
 
