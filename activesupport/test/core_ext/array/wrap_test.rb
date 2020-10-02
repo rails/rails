@@ -12,7 +12,7 @@ class WrapTest < ActiveSupport::TestCase
 
   class Proxy
     def initialize(target) @target = target end
-    def method_missing(*a) @target.send(*a) end
+    def method_missing(*a) @target.public_send(*a) end
   end
 
   class DoubtfulToAry
