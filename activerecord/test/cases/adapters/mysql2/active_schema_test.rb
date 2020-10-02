@@ -119,7 +119,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_create_mysql_database_with_encoding
-    if row_format_dynamic_by_default?
+    if ActiveRecord::Base.connection.send(:row_format_dynamic_by_default?)
       assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8mb4`", create_database(:matt)
     else
       error = assert_raises(RuntimeError) { create_database(:matt) }
