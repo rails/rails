@@ -827,10 +827,10 @@ is updated.
 
 ```ruby
 class Person < ApplicationRecord
-  # it will be possible to update email with a duplicated value
+  # it will be possible to create email with a duplicated value
   validates :email, uniqueness: true, on: :create
 
-  # it will be possible to create the record with a non-numerical age
+  # it will be possible to update the record with a non-numerical age
   validates :age, numericality: true, on: :update
 
   # the default (validates on both create and update)
