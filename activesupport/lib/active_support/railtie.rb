@@ -78,7 +78,7 @@ module ActiveSupport
     initializer "active_support.set_configs" do |app|
       app.config.active_support.each do |k, v|
         k = "#{k}="
-        ActiveSupport.send(k, v) if ActiveSupport.respond_to? k
+        ActiveSupport.public_send(k, v) if ActiveSupport.respond_to? k
       end
     end
 
