@@ -107,7 +107,7 @@ module ActiveSupport
       # Process +ary+ via +filters+ using +method+, ensuring
       # _something_ gets returned.
       def process_collection(ary, filters, method)
-        filters.reduce(ary) { |bt, f| bt.send(method) { |line| f.call(line) } }
+        filters.reduce(ary) { |bt, f| bt.public_send(method) { |line| f.call(line) } }
       end
 
       # Use @filters to transform the backtrace via map
