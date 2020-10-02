@@ -1905,7 +1905,7 @@ module ActionView
       (field_helpers - [:label, :check_box, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |selector|
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def #{selector}(method, options = {})  # def text_field(method, options = {})
-            @template.send(                      #   @template.send(
+            @template.public_send(               #   @template.public_send(
               #{selector.inspect},               #     :text_field,
               @object_name,                      #     @object_name,
               method,                            #     method,
