@@ -319,6 +319,21 @@ module ActiveRecord
       skip_query_cache_if_necessary { connection.select_rows(relation.arel, "#{name} Exists?").size == 1 }
     end
 
+    # Returns true if the relation contains the given record or false otherwise.
+    #
+    # No query is performed if the relation is loaded; the given record is
+    # compared to the records in memory. If the relation is unloaded, an
+    # efficient existence query is performed, as in #exists?.
+    def include?(record)
+      if loaded?
+        records.include?(record)
+      else
+        record.is_a?(klass) && exists?(record.id)
+      end
+    end
+
+    alias :member? :include?
+
     # This method is called whenever no records are found with either a single
     # id or multiple ids and raises an ActiveRecord::RecordNotFound exception.
     #

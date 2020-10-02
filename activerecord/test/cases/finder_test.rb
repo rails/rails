@@ -375,6 +375,45 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_include_on_unloaded_relation_with_match
+    assert_sql(/1 AS one.*LIMIT/) do
+      assert_equal true, Customer.where(name: "David").include?(customers(:david))
+    end
+  end
+
+  def test_include_on_unloaded_relation_without_match
+    assert_sql(/1 AS one.*LIMIT/) do
+      assert_equal false, Customer.where(name: "David").include?(customers(:mary))
+    end
+  end
+
+  def test_include_on_unloaded_relation_with_mismatched_class
+    topic = topics(:first)
+    assert Customer.exists?(topic.id)
+
+    assert_no_queries do
+      assert_equal false, Customer.where(name: "David").include?(topic)
+    end
+  end
+
+  def test_include_on_loaded_relation_with_match
+    customers = Customer.where(name: "David").load
+    david     = customers(:david)
+
+    assert_no_queries do
+      assert_equal true, customers.include?(david)
+    end
+  end
+
+  def test_include_on_loaded_relation_without_match
+    customers = Customer.where(name: "David").load
+    mary      = customers(:mary)
+
+    assert_no_queries do
+      assert_equal false, customers.include?(mary)
+    end
+  end
+
   def test_find_by_array_of_one_id
     assert_kind_of(Array, Topic.find([ 1 ]))
     assert_equal(1, Topic.find([ 1 ]).length)
