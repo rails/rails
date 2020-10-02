@@ -65,7 +65,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         end
       end
 
-      record = o.send name
+      record = o.public_send name
       if record && record.persisted?
         if touch != true
           record.public_send(touch_method, touch)
