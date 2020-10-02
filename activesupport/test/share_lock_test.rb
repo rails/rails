@@ -560,7 +560,7 @@ class ShareLockTest < ActiveSupport::TestCase
       section_release = Concurrent::CountDownLatch.new
 
       stuck_thread = Thread.new do
-        @lock.send(lock_section) do
+        @lock.public_send(lock_section) do
           in_section.count_down
           section_release.wait
         end
