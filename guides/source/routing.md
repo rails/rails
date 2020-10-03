@@ -640,7 +640,7 @@ get 'exit', to: 'sessions#destroy', as: :logout
 
 This will create `logout_path` and `logout_url` as named route helpers in your application. Calling `logout_path` will return `/exit`
 
-You can also use this to override routing methods defined by resources, like this:
+You can also use this to override routing methods defined by resources by placing custom routes before the resource is defined, like this:
 
 ```ruby
 get ':username', to: 'users#show', as: :user
