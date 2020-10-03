@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
+require "chdir_helpers"
 
 module ApplicationTests
   module RakeTests
     class RakeMultiDbsTest < ActiveSupport::TestCase
-      include ActiveSupport::Testing::Isolation
+      include ActiveSupport::Testing::Isolation, ChdirHelpers
 
       def setup
         build_app(multi_db: true)
@@ -17,7 +18,7 @@ module ApplicationTests
       end
 
       def db_create_and_drop(namespace, expected_database)
-        Dir.chdir(app_path) do
+        chdir(app_path) do
           output = rails("db:create")
           assert_match(/Created database/, output)
           assert_match_namespace(namespace, output)
@@ -33,7 +34,7 @@ module ApplicationTests
       end
 
       def db_create_and_drop_namespace(namespace, expected_database)
-        Dir.chdir(app_path) do
+        chdir(app_path) do
           output = rails("db:create:#{namespace}")
           assert_match(/Created database/, output)
           assert_match_namespace(namespace, output)
@@ -55,7 +56,7 @@ module ApplicationTests
       end
 
       def db_migrate_and_migrate_status
-        Dir.chdir(app_path) do
+        chdir(app_path) do
           generate_models_for_animals
           rails "db:migrate"
           output = rails "db:migrate:status"
@@ -65,7 +66,7 @@ module ApplicationTests
       end
 
       def db_migrate_and_schema_cache_dump
-        Dir.chdir(app_path) do
+        chdir(app_path) do
           generate_models_for_animals
           rails "db:migrate"
           rails "db:schema:cache:dump"
@@ -75,7 +76,7 @@ module ApplicationTests
       end
 
       def db_migrate_and_schema_cache_dump_and_schema_cache_clear
-        Dir.chdir(app_path) do
+        chdir(app_path) do
           generate_models_for_animals
           rails "db:migrate"
           rails "db:schema:cache:dump"
@@ -86,7 +87,7 @@ module ApplicationTests
       end
 
       def db_migrate_and_schema_dump_and_load(format)
-        Dir.chdir(app_path) do
+        chdir(app_path) do
           generate_models_for_animals
           rails "db:migrate", "db:#{format}:dump"
 
@@ -113,7 +114,7 @@ module ApplicationTests
       end
 
       def db_migrate_namespaced(namespace)
-        Dir.chdir(app_path) do
+        chdir(app_path) do
           generate_models_for_animals
           output = rails("db:migrate:#{namespace}")
           if namespace == "primary"
@@ -125,7 +126,7 @@ module ApplicationTests
       end
 
       def db_migrate_status_namespaced(namespace)
-        Dir.chdir(app_path) do
+        chdir(app_path) do
           generate_models_for_animals
           output = rails("db:migrate:status:#{namespace}")
           if namespace == "primary"
@@ -137,7 +138,7 @@ module ApplicationTests
       end
 
       def db_up_and_down(version, namespace = nil)
-        Dir.chdir(app_path) do
+        chdir(app_path) do
           generate_models_for_animals
           rails("db:migrate")
 
@@ -167,7 +168,7 @@ module ApplicationTests
       end
 
       def db_prepare
-        Dir.chdir(app_path) do
+        chdir(app_path) do
           generate_models_for_animals
           output = rails("db:prepare")
 
@@ -232,7 +233,7 @@ module ApplicationTests
       end
 
       test "db:migrate set back connection to its original state" do
-        Dir.chdir(app_path) do
+        chdir(app_path) do
           dummy_task = <<~RUBY
             task foo: :environment do
               Book.first
@@ -368,7 +369,7 @@ module ApplicationTests
 
       test "db:prepare setups missing database without clearing existing one" do
         require "#{app_path}/config/environment"
-        Dir.chdir(app_path) do
+        chdir(app_path) do
           # Bug not visible on SQLite3. Can be simplified when https://github.com/rails/rails/issues/36383 resolved
           use_postgresql(multi_db: true)
           generate_models_for_animals

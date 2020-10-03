@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
+require "chdir_helpers"
 
 module ApplicationTests
   module RakeTests
     class LogTest < ActiveSupport::TestCase
-      include ActiveSupport::Testing::Isolation
+      include ActiveSupport::Testing::Isolation, ChdirHelpers
 
       def setup
         build_app
@@ -16,7 +17,7 @@ module ApplicationTests
       end
 
       test "log:clear clear all environments log files by default" do
-        Dir.chdir(app_path) do
+        chdir(app_path) do
           File.open("config/environments/staging.rb", "w")
 
           File.write("log/staging.log", "staging")
