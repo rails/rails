@@ -394,8 +394,8 @@ It should look something like the following:
 
 ```ruby
 Rails.application.routes.draw do
+  get 'welcome/index'
   root 'welcome#index'
-  get "/welcome", to: "welcome#index"
 end
 ```
 
