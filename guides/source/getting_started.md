@@ -2005,7 +2005,30 @@ You can use concerns in your controller or model the same way you would use any 
 
 A given blog article might have various statuses - for instance, it might be visible to everyone (i.e. `public`), or only visible to the author (i.e. `private`). It may also be hidden to all but still retrievable (i.e. `archived`). Comments may similarly be hidden or visible. This could be represented using a `status` column in each model.
 
-Within the `article` model, after running a migration to add a `status` column, you might add:
+Within the `article` and the `comment` model add a `status` column:
+
+```bash
+$ rails g migration AddStatusToModels
+```
+
+Before you migrate your database, add a status column to `comments` and `status`:
+
+```ruby
+class AddStatusToCommentsAndArticles < ActiveRecord::Migration[6.0]
+  def change
+    add_column :comments, :status, :string, default: "public"
+    add_column :articles, :status, :string, default: "public"
+  end
+end
+```
+
+Above you can set the default status of new articles and comments to `default`. Now now you can migrate your database with the new columns:
+
+```bash
+$ bin/rails db:migrate
+```
+
+Now we want to add a validation process to our `Article` model.
 
 ```ruby
 class Article < ApplicationRecord
@@ -2015,7 +2038,7 @@ class Article < ApplicationRecord
 
   VALID_STATUSES = ['public', 'private', 'archived']
 
-  validates :status, in: VALID_STATUSES
+  validates :status, inclusion: { in: VALID_STATUSES }
 
   def archived?
     status == 'archived'
@@ -2031,7 +2054,7 @@ class Comment < ApplicationRecord
 
   VALID_STATUSES = ['public', 'private', 'archived']
 
-  validates :status, in: VALID_STATUSES
+  validates :status, inclusion: { in: VALID_STATUSES }
 
   def archived?
     status == 'archived'
@@ -2090,7 +2113,7 @@ module Visible
   included do
     VALID_STATUSES = ['public', 'private', 'archived']
 
-    validates :status, in: VALID_STATUSES
+    validates :status, inclusion: { in: VALID_STATUSES }
   end
 
   def archived?
@@ -2133,7 +2156,7 @@ module Visible
   VALID_STATUSES = ['public', 'private', 'archived']
 
   included do
-    validates :status, in: VALID_STATUSES
+    validates :status, inclusion: { in: VALID_STATUSES }
   end
 
   class_methods do
