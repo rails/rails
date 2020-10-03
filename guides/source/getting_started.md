@@ -286,7 +286,7 @@ to a particular _route_. To start off, let's create a route in
 
 ```ruby
 Rails.application.routes.draw do
-  get "/articles", to: "articles#index"
+  get "/welcome", to: "welcome#index"
 
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
 end
@@ -307,38 +307,38 @@ particular _resource_. The methods inside controllers are given the name
 "actions", as they _act upon_ requests as they come in.
 
 To create a new controller, you will need to run the "controller" generator and
-tell it you want a controller called "articles" with an action called "index",
+tell it you want a controller called "welcome" with an action called "index",
 just like this:
 
 ```bash
-$ bin/rails generate controller articles index
+$ bin/rails generate controller Welcome index
 ```
 
 Rails will create several files and a route for you.
 
 ```
-create  app/controllers/articles_controller.rb
-  route  get 'articles/index'
+create  app/controllers/welcome_controller.rb
+  route  get 'welcome/index'
 invoke  erb
-create    app/views/articles
-create    app/views/articles/index.html.erb
+create    app/views/welcome
+create    app/views/welcome/index.html.erb
 invoke  test_unit
-create    test/controllers/articles_controller_test.rb
+create    test/controllers/welcome_controller_test.rb
 invoke  helper
-create    app/helpers/articles_helper.rb
+create    app/helpers/welcome_helper.rb
 invoke    test_unit
 invoke  assets
 invoke    scss
-create      app/assets/stylesheets/articles.scss
+create      app/assets/stylesheets/welcome.scss
 ```
 
 Most important of these is the controller, located at
-`app/controllers/articles_controller.rb`.
+`app/controllers/welcome_controller.rb`.
 
 Let's look at that controller now:
 
 ```ruby
-class ArticlesController < ApplicationController
+class WelcomeController < ApplicationController
   def index
   end
 end
@@ -352,9 +352,9 @@ don't want this action to do anything, and so we'll keep it blank for now.
 When an action is left blank like this, Rails will default to rendering a view
 that matches the name of the controller and the name of the action. Views in a
 Rails application live in `app/views`, and so the default view for this action
-is going to be `app/views/articles/index.html.erb`.
+is going to be `app/views/welcome/index.html.erb`.
 
-Open the `app/views/articles/index.html.erb` file in your text editor. Delete all
+Open the `app/views/welcome/index.html.erb` file in your text editor. Delete all
 of the existing code in the file, and replace it with the following single line
 of code:
 
@@ -363,7 +363,7 @@ of code:
 ```
 
 If we go back to our browser and make a request to
-<http://localhost:3000/articles>, we'll see our text appear on the page.
+<http://localhost:3000/welcome>, we'll see our text appear on the page.
 
 ### Setting the Application Home Page
 
@@ -379,6 +379,7 @@ Open the file `config/routes.rb` in your editor.
 ```ruby
 Rails.application.routes.draw do
   get 'welcome/index'
+  get "/welcome", to: "welcome#index"
 
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
 end
@@ -393,9 +394,8 @@ It should look something like the following:
 
 ```ruby
 Rails.application.routes.draw do
-  get 'welcome/index'
-
   root 'welcome#index'
+  get "/welcome", to: "welcome#index"
 end
 ```
 
