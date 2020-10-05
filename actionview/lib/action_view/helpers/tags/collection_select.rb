@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/try"
+
 module ActionView
   module Helpers
     module Tags # :nodoc:
@@ -19,11 +21,22 @@ module ActionView
             disabled: @options[:disabled]
           }
 
-          select_content_tag(
-            options_from_collection_for_select(@collection, @value_method, @text_method, option_tags_options),
-            @options, @html_options
-          )
+          option_tags = if grouped_collection?
+            option_groups_from_collection_for_select(@collection, :last, :first, @value_method, @text_method, option_tags_options)
+          else
+            options_from_collection_for_select(@collection, @value_method, @text_method, option_tags_options)
+          end
+
+          select_content_tag(option_tags, @options, @html_options)
         end
+
+        private
+          def grouped_collection?
+            case @collection
+            when Hash, Array
+              @collection.first&.try(:last).is_a?(Array)
+            end
+          end
       end
     end
   end
