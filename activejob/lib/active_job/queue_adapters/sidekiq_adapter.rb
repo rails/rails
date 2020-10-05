@@ -35,6 +35,13 @@ module ActiveJob
           "at"      => timestamp
       end
 
+      def concurrency_reached?(job)
+        false
+      end
+
+      def clear_concurrency(job)
+      end
+
       class JobWrapper #:nodoc:
         include Sidekiq::Worker
 

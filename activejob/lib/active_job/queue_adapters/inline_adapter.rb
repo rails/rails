@@ -18,6 +18,13 @@ module ActiveJob
       def enqueue_at(*) #:nodoc:
         raise NotImplementedError, "Use a queueing backend to enqueue jobs in the future. Read more at https://guides.rubyonrails.org/active_job_basics.html"
       end
+
+      def concurrency_reached?(job)
+        false
+      end
+
+      def clear_concurrency(job)
+      end
     end
   end
 end

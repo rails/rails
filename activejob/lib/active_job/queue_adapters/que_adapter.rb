@@ -29,6 +29,13 @@ module ActiveJob
         que_job
       end
 
+      def concurrency_reached?(job)
+        false
+      end
+
+      def clear_concurrency(job)
+      end
+
       class JobWrapper < Que::Job #:nodoc:
         def run(job_data)
           Base.execute job_data

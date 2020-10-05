@@ -13,6 +13,7 @@ require "active_job/logging"
 require "active_job/instrumentation"
 require "active_job/timezones"
 require "active_job/translation"
+require "active_job/concurrency"
 
 module ActiveJob #:nodoc:
   # = Active Job
@@ -73,6 +74,7 @@ module ActiveJob #:nodoc:
     include Logging
     include Timezones
     include Translation
+    include Concurrency
 
     ActiveSupport.run_load_hooks(:active_job, self)
   end

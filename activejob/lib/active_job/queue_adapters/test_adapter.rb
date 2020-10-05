@@ -35,6 +35,13 @@ module ActiveJob
         perform_or_enqueue(perform_enqueued_at_jobs && !filtered?(job), job, job_data)
       end
 
+      def concurrency_reached?(job)
+        false
+      end
+
+      def clear_concurrency(job)
+      end
+
       private
         def job_to_hash(job, extras = {})
           job.serialize.tap do |job_data|

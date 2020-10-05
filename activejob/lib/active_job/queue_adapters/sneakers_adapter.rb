@@ -33,6 +33,13 @@ module ActiveJob
         raise NotImplementedError, "This queueing backend does not support scheduling jobs. To see what features are supported go to http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html"
       end
 
+      def concurrency_reached?(job)
+        false
+      end
+
+      def clear_concurrency(job)
+      end
+
       class JobWrapper #:nodoc:
         include Sneakers::Worker
         from_queue "default"

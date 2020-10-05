@@ -37,6 +37,13 @@ module ActiveJob
         qc_job
       end
 
+      def concurrency_reached?(job)
+        false
+      end
+
+      def clear_concurrency(job)
+      end
+
       # Builds a <tt>QC::Queue</tt> object to schedule jobs on.
       #
       # If you have a custom <tt>QC::Queue</tt> subclass you'll need to subclass

@@ -24,6 +24,13 @@ module ActiveJob
         Backburner::Worker.enqueue(JobWrapper, [job.serialize], queue: job.queue_name, pri: job.priority, delay: delay)
       end
 
+      def concurrency_reached?(job)
+        false
+      end
+
+      def clear_concurrency(job)
+      end
+
       class JobWrapper #:nodoc:
         class << self
           def perform(job_data)

@@ -37,6 +37,13 @@ module ActiveJob
         end
       end
 
+      def concurrency_reached?(job)
+        false
+      end
+
+      def clear_concurrency(job)
+      end
+
       class JobWrapper #:nodoc:
         include SuckerPunch::Job
 

@@ -47,6 +47,8 @@ module ActiveJob
       _perform_job
     rescue Exception => exception
       rescue_with_handler(exception) || raise
+    ensure
+      clear_concurrency
     end
 
     def perform(*)
