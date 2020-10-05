@@ -339,7 +339,7 @@ Select boxes in HTML require a significant amount of markup - one `<option>` ele
 For example, let's say we have a list of cities for the user to choose from. We can use the `select` helper like so:
 
 ```erb
-<%= form.select :city, ["Berlin", "Lisbon", "Madrid"] %>
+<%= form.select :city, ["Berlin", "Chicago", "Madrid"] %>
 ```
 
 Output:
@@ -347,15 +347,15 @@ Output:
 ```html
 <select name="city" id="city">
   <option value="Berlin">Berlin</option>
-  <option value="Lisbon">Lisbon</option>
+  <option value="Chicago">Chicago</option>
   <option value="Madrid">Madrid</option>
 </select>
 ```
 
-Of course, we can also designate `<option>` values that differ from their labels:
+We can also designate `<option>` values that differ from their labels:
 
 ```erb
-<%= form.select :city, [["Berlin", "BE"], ["Lisbon", "LX"], ["Madrid", "MD"]] %>
+<%= form.select :city, [["Berlin", "BE"], ["Chicago", "CHI"], ["Madrid", "MD"]] %>
 ```
 
 Output:
@@ -363,17 +363,17 @@ Output:
 ```html
 <select name="city" id="city">
   <option value="BE">Berlin</option>
-  <option value="LX">Lisbon</option>
+  <option value="CHI">Chicago</option>
   <option value="MD">Madrid</option>
 </select>
 ```
 
-This way, the user will see the full city name, but `params[:city]` will be one of `"BE"`, `"LX"`, or `"MD"`.
+This way, the user will see the full city name, but `params[:city]` will be one of `"BE"`, `"CHI"`, or `"MD"`.
 
-Finally, we can specify a default choice for the select box with the `:selected` argument:
+Lastly, we can specify a default choice for the select box with the `:selected` argument:
 
 ```erb
-<%= form.select :city, [["Berlin", "BE"], ["Lisbon", "LX"], ["Madrid", "MD"]], selected: "LX" %>
+<%= form.select :city, [["Berlin", "BE"], ["Chicago", "CHI"], ["Madrid", "MD"]], selected: "CHI" %>
 ```
 
 Output:
@@ -381,8 +381,35 @@ Output:
 ```html
 <select name="city" id="city">
   <option value="BE">Berlin</option>
-  <option value="LX" selected="selected">Lisbon</option>
+  <option value="CHI" selected="selected">Chicago</option>
   <option value="MD">Madrid</option>
+</select>
+```
+
+### Option Groups
+
+In some cases we may want to improve the user experience by grouping related options together. We can do so by passing a `Hash` (or comparable `Array`) to `select`:
+
+```erb
+<%= form.select :city,
+      {
+        "Europe" => [ ["Berlin", "BE"], ["Madrid", "MD"] ],
+        "North America" => [ ["Chicago", "CHI"] ],
+      },
+      selected: "CHI" %>
+```
+
+Output:
+
+```html
+<select name="city" id="city">
+  <optgroup label="Europe">
+    <option value="BE">Berlin</option>
+    <option value="MD">Madrid</option>
+  </optgroup>
+  <optgroup label="North America">
+    <option value="CHI" selected="selected">Chicago</option>
+  </optgroup>
 </select>
 ```
 
@@ -398,7 +425,7 @@ The following form:
 
 ```erb
 <%= form_with model: @person do |form| %>
-  <%= form.select :city, [["Berlin", "BE"], ["Lisbon", "LX"], ["Madrid", "MD"]] %>
+  <%= form.select :city, [["Berlin", "BE"], ["Chicago", "CHI"], ["Madrid", "MD"]] %>
 <% end %>
 ```
 
@@ -407,7 +434,7 @@ Outputs a select box like:
 ```html
 <select name="person[city]" id="person_city">
   <option value="BE">Berlin</option>
-  <option value="LX">Lisbon</option>
+  <option value="CHI">Chicago</option>
   <option value="MD" selected="selected">Madrid</option>
 </select>
 ```
@@ -514,7 +541,7 @@ Often, we want to generate a set of choices in a form from a collection of objec
 City.order(:name).to_a
 # => [
 #      #<City id: 3, name: "Berlin">,
-#      #<City id: 1, name: "Lisbon">,
+#      #<City id: 1, name: "Chicago">,
 #      #<City id: 2, name: "Madrid">
 #    ]
 ```
@@ -534,7 +561,7 @@ Output:
 ```html
 <select name="city_id" id="city_id">
   <option value="3">Berlin</option>
-  <option value="1">Lisbon</option>
+  <option value="1">Chicago</option>
   <option value="2">Madrid</option>
 </select>
 ```
@@ -555,7 +582,7 @@ Output:
 <input type="radio" name="city_id" value="3" id="city_id_3">
 <label for="city_id_3">Berlin</label>
 <input type="radio" name="city_id" value="1" id="city_id_1">
-<label for="city_id_1">Lisbon</label>
+<label for="city_id_1">Chicago</label>
 <input type="radio" name="city_id" value="2" id="city_id_2">
 <label for="city_id_2">Madrid</label>
 ```
@@ -574,7 +601,7 @@ Output:
 <input type="checkbox" name="city_id[]" value="3" id="city_id_3">
 <label for="city_id_3">Berlin</label>
 <input type="checkbox" name="city_id[]" value="1" id="city_id_1">
-<label for="city_id_1">Lisbon</label>
+<label for="city_id_1">Chicago</label>
 <input type="checkbox" name="city_id[]" value="2" id="city_id_2">
 <label for="city_id_2">Madrid</label>
 ```
