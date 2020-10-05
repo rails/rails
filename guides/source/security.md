@@ -653,11 +653,11 @@ INFO: _Injection is a class of attacks that introduce malicious code or paramete
 
 Injection is very tricky, because the same code or parameter can be malicious in one context, but totally harmless in another. A context can be a scripting, query or programming language, the shell or a Ruby/Rails method. The following sections will cover all important contexts where injection attacks may happen. The first section, however, covers an architectural decision in connection with Injection.
 
-### Whitelists versus Blacklists
+### Permitted lists versus Restricted lists
 
-NOTE: _When sanitizing, protecting or verifying something, prefer whitelists over blacklists._
+NOTE: _When sanitizing, protecting or verifying something, prefer permitted lists over restricted lists._
 
-A blacklist can be a list of bad e-mail addresses, non-public actions or bad HTML tags. This is opposed to a whitelist which lists the good e-mail addresses, public actions, good HTML tags and so on. Although sometimes it is not possible to create a whitelist (in a SPAM filter, for example), _prefer to use whitelist approaches_:
+A restricted list can be a list of bad e-mail addresses, non-public actions or bad HTML tags. This is opposed to a permitted list which lists the good e-mail addresses, public actions, good HTML tags and so on. Although sometimes it is not possible to create a permitted list (in a SPAM filter, for example), _prefer to use permitted list approaches_:
 
 * Use before_action except: [...] instead of only: [...] for security-related actions. This way you don't forget to enable security checks for newly added actions.
 * Allow &lt;strong&gt; instead of removing &lt;script&gt; against Cross-Site Scripting (XSS). See below for details.
@@ -665,7 +665,7 @@ A blacklist can be a list of bad e-mail addresses, non-public actions or bad HTM
     * This will make the attack work: "&lt;sc&lt;script&gt;ript&gt;".gsub("&lt;script&gt;", "")
     * But reject malformed input
 
-Whitelists are also a good approach against the human factor of forgetting something in the blacklist.
+Permitted lists are also a good approach against the human factor of forgetting something in the permitted list.
 
 ### SQL Injection
 
