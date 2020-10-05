@@ -1,3 +1,16 @@
+*   Support passing record to uniqueness validator `:conditions` callable:
+
+    ```ruby
+    class Article < ApplicationRecord
+      validates_uniqueness_of :title, conditions: ->(article) {
+        published_at = article.published_at
+        where(published_at: published_at.beginning_of_year..published_at.end_of_year)
+      }
+    end
+    ```
+
+    *Eliot Sykes*
+
 *   `BatchEnumerator#update_all` and `BatchEnumerator#delete_all` now return the
     total number of rows affected, just like their non-batched counterparts.
 
