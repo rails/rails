@@ -97,6 +97,12 @@ class TagHelperTest < ActionView::TestCase
       tag.p(disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true, allowpaymentrequest: true, nomodule: true, playsinline: true)
   end
 
+  def test_tag_builder_with_options_builds_p_elements
+    html = tag.with_options(id: "with-options") { |t| t.p("content") }
+
+    assert_dom_equal '<p id="with-options">content</p>', html
+  end
+
   def test_tag_builder_do_not_modify_html_safe_options
     html_safe_str = '"'.html_safe
     assert_equal "<p value=\"&quot;\" />", tag("p", value: html_safe_str)
