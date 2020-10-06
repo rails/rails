@@ -104,29 +104,28 @@ module ActiveSupport
         add_silencer { |line| line.start_with?(RbConfig::CONFIG["rubylibdir"]) }
       end
 
-      # Process +ary+ via +filters+ using +method+, ensuring
-      # _something_ gets returned.
-      def process_collection(ary, filters, method)
-        filters.reduce(ary) { |bt, f| bt.public_send(method) { |line| f.call(line) } }
-      end
-
-      # Use @filters to transform the backtrace via map
       def filter_backtrace(backtrace)
-        process_collection backtrace, @filters, :map
+        @filters.each do |f|
+          backtrace = backtrace.map { |line| f.call(line) }
+        end
+
+        backtrace
       end
 
-      # Use @silencers to reject parts of the backtrace. Guarantee
-      # something non-empty is returned.
       def silence(backtrace)
-        result = process_collection backtrace, @silencers, :reject
-        result.first ? result : backtrace.dup
+        @silencers.each do |s|
+          backtrace = backtrace.reject { |line| s.call(line) }
+        end
+
+        backtrace
       end
 
-      # Use @silencers to select parts of the backtrace. Guarantee
-      # something non-empty is returned.
       def noise(backtrace)
-        result = backtrace.select { |line| @silencers.any? { |s| s.call(line) } }
-        result.first ? result : backtrace.dup
+        backtrace.select do |line|
+          @silencers.any? do |s|
+            s.call(line)
+          end
+        end
       end
   end
 end
