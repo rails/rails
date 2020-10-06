@@ -396,18 +396,28 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_include_on_unloaded_relation_with_offset
+    assert_sql(/ORDER BY name ASC/) do
+      assert_equal true, Customer.offset(1).order("name ASC").include?(customers(:mary))
+    end
+  end
+
+  def test_include_on_unloaded_relation_with_limit
+    mary = customers(:mary)
+    barney = customers(:barney)
+    david = customers(:david)
+
+    assert_equal false, Customer.order(id: :desc).limit(2).include?(david)
+    assert_equal true,  Customer.order(id: :desc).limit(2).include?(barney)
+    assert_equal true,  Customer.order(id: :desc).limit(2).include?(mary)
+  end
+
   def test_include_on_loaded_relation_with_match
     customers = Customer.where(name: "David").load
     david     = customers(:david)
 
     assert_no_queries do
       assert_equal true, customers.include?(david)
-    end
-  end
-
-  def test_include_on_unloaded_relation_with_offset
-    assert_sql(/ORDER BY name ASC/) do
-      assert_equal true, Customer.offset(1).order("name ASC").include?(customers(:mary))
     end
   end
 
@@ -441,6 +451,22 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_member_on_unloaded_relation_with_offset
+    assert_sql(/ORDER BY name ASC/) do
+      assert_equal true, Customer.offset(1).order("name ASC").member?(customers(:mary))
+    end
+  end
+
+  def test_member_on_unloaded_relation_with_limit
+    mary = customers(:mary)
+    barney = customers(:barney)
+    david = customers(:david)
+
+    assert_equal false, Customer.order(id: :desc).limit(2).member?(david)
+    assert_equal true,  Customer.order(id: :desc).limit(2).member?(barney)
+    assert_equal true,  Customer.order(id: :desc).limit(2).member?(mary)
+  end
+
   def test_member_on_loaded_relation_with_match
     customers = Customer.where(name: "David").load
     david     = customers(:david)
@@ -456,12 +482,6 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_no_queries do
       assert_equal false, customers.member?(mary)
-    end
-  end
-
-  def test_member_on_unloaded_relation_with_offset
-    assert_sql(/ORDER BY name ASC/) do
-      assert_equal true, Customer.offset(1).order("name ASC").member?(customers(:mary))
     end
   end
 
