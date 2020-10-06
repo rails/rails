@@ -514,7 +514,7 @@ module ApplicationTests
     def test_shows_filtered_backtrace_by_default
       create_backtrace_test
 
-      assert_match "Rails::BacktraceCleaner", run_test_command("test/unit/backtrace_test.rb")
+      assert_match "Minitest::RailsBacktraceCleanerDecorator", run_test_command("test/unit/backtrace_test.rb")
     end
 
     def test_backtrace_option

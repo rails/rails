@@ -35,12 +35,24 @@ module Minitest
     options[:output_inline] = true
   end
 
+  class RailsBacktraceCleanerDecorator
+    def initialize(backtrace_cleaner)
+      @backtrace_cleaner = backtrace_cleaner
+    end
+
+    def filter(backtrace)
+      filtered = @backtrace_cleaner.filter(backtrace)
+      filtered = backtrace.dup if filtered.empty?
+      filtered
+    end
+  end
+
   # Owes great inspiration to test runner trailblazers like RSpec,
   # minitest-reporters, maxitest and others.
   def self.plugin_rails_init(options)
     unless options[:full_backtrace] || ENV["BACKTRACE"]
       # Plugin can run without Rails loaded, check before filtering.
-      Minitest.backtrace_filter = ::Rails.backtrace_cleaner if ::Rails.respond_to?(:backtrace_cleaner)
+      Minitest.backtrace_filter = RailsBacktraceCleanerDecorator.new(::Rails.backtrace_cleaner) if ::Rails.respond_to?(:backtrace_cleaner)
     end
 
     # Suppress summary reports when outputting inline rerun snippets.
