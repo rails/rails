@@ -36,10 +36,28 @@ module ActiveJob
       end
 
       def concurrency_reached?(job)
-        false
+        @concurrency_count ||= Hash.new { |k, v| k[v] = 0 }
+
+        lock_key = job.concurrency_key
+        enqueue_limit = job.concurrency_limit_instance.enqueue_limit
+
+        if @concurrency_count[lock_key].nil?
+          @concurrency_count[lock_key] += 1
+          return false
+        end
+
+        if @concurrency_count[lock_key] < enqueue_limit
+          @concurrency_count[lock_key] += 1
+          false
+        else
+          true
+        end
       end
 
       def clear_concurrency(job)
+        @concurrency_count ||= Hash.new { |k, v| k[v] = 0 }
+        lock_key = job.concurrency_key
+        @concurrency_count[lock_key] -= 1 if @concurrency_count.key?(lock_key)
       end
 
       private

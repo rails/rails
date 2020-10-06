@@ -4,7 +4,7 @@ module ActiveJob
   module Concurrency
     class Limit
       def initialize(limit)
-        @limit = lmit
+        @limit = limit
       end
 
       def locking?
