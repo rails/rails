@@ -1719,6 +1719,7 @@ FROM books
 INNER JOIN authors
  ON authors.id = books.author_id
 WHERE books.title = $1 [["title", "Abstraction and Specification in Program Development"]]
+LIMIT 1
 ```
 
 NOTE: Note that if a query matches multiple records, `find_by` will
