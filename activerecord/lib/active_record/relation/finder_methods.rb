@@ -325,7 +325,7 @@ module ActiveRecord
     # compared to the records in memory. If the relation is unloaded, an
     # efficient existence query is performed, as in #exists?.
     def include?(record)
-      if loaded?
+      if loaded? || offset_value
         records.include?(record)
       else
         record.is_a?(klass) && exists?(record.id)

@@ -405,6 +405,12 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_include_on_unloaded_relation_with_offset
+    assert_sql(/ORDER BY name ASC/) do
+      assert_equal true, Customer.offset(1).order("name ASC").include?(customers(:mary))
+    end
+  end
+
   def test_include_on_loaded_relation_without_match
     customers = Customer.where(name: "David").load
     mary      = customers(:mary)
@@ -450,6 +456,12 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_no_queries do
       assert_equal false, customers.member?(mary)
+    end
+  end
+
+  def test_member_on_unloaded_relation_with_offset
+    assert_sql(/ORDER BY name ASC/) do
+      assert_equal true, Customer.offset(1).order("name ASC").member?(customers(:mary))
     end
   end
 
