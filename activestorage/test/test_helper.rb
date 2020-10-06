@@ -112,7 +112,7 @@ end
 
 require "global_id"
 GlobalID.app = "ActiveStorageExampleApp"
-ActiveRecord::Base.send :include, GlobalID::Identification
+ActiveRecord::Base.include GlobalID::Identification
 
 class User < ActiveRecord::Base
   validates :name, presence: true
