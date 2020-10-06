@@ -255,7 +255,7 @@ module ActionDispatch
           end
 
           def handle_class_call(target, klass)
-            target.send get_method_for_class klass
+            target.public_send get_method_for_class klass
           end
 
           def handle_model(record)
@@ -277,7 +277,7 @@ module ActionDispatch
               mapping.call(target, [record], suffix == "path")
             else
               method, args = handle_model(record)
-              target.send(method, *args)
+              target.public_send(method, *args)
             end
           end
 
