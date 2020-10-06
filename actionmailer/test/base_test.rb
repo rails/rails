@@ -981,13 +981,13 @@ class BaseTest < ActiveSupport::TestCase
     def swap(klass, new_values)
       old_values = {}
       new_values.each do |key, value|
-        old_values[key] = klass.send key
-        klass.send :"#{key}=", value
+        old_values[key] = klass.public_send key
+        klass.public_send :"#{key}=", value
       end
       yield
     ensure
       old_values.each do |key, value|
-        klass.send :"#{key}=", value
+        klass.public_send :"#{key}=", value
       end
     end
 
