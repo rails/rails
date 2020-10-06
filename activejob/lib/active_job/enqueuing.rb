@@ -64,7 +64,7 @@ module ActiveJob
       self.priority     = options[:priority].to_i if options[:priority]
       self.successfully_enqueued = false
 
-      return false if queue_adapter.concurrency_reached? self
+      return false if concurrency_reached?
 
       run_callbacks :enqueue do
         if scheduled_at

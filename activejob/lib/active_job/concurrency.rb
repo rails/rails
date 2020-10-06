@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 module ActiveJob
-  # Provides general behavior that will be included into every Active Job
-  # object that inherits from ActiveJob::Base.
   module Concurrency
     extend ActiveSupport::Concern
+    extend ActiveSupport::Autoload
+
+    autoload :Limit
 
     included do
       class_attribute :_concurrency_limit, instance_accessor: false
@@ -26,7 +27,7 @@ module ActiveJob
       end
 
       def concurrency(limit:, keys: [], timeout: 120)
-        self._concurrency_limit = limit
+        self._concurrency_limit = Limit.new(limit)
         self._concurrency_keys = keys
         self._concurrency_timeout = timeout
       end
@@ -53,7 +54,25 @@ module ActiveJob
       self.concurrency_timeout = job_data["concurrency_timeout"]
     end
 
+    def concurrency_limit
+      @concurrency_limit ||= self.class.concurrency_limit
+    end
+
+    def concurrency_reached?
+      return false unless concurrency_limit
+
+      if concurrency_limit.locking? || concurrency_limit.enqueue_limit?
+        self.class.queue_adapter.concurrency_reached?(self)
+      end
+    end
+
+    def concurrency_key
+      keys = self.class.concurrency_keys
+      "#{self.class}:#{arguments[0].dig(*keys)}"
+    end
+
     def clear_concurrency
+      return unless self.class.concurrency_limit
       self.class.queue_adapter.clear_concurrency(self)
     end
   end
