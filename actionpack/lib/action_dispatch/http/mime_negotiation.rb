@@ -7,6 +7,8 @@ module ActionDispatch
     module MimeNegotiation
       extend ActiveSupport::Concern
 
+      class InvalidType < ::Mime::Type::InvalidMimeType; end
+
       RESCUABLE_MIME_FORMAT_ERRORS = [
         ActionController::BadRequest,
         ActionDispatch::Http::Parameters::ParseError,
@@ -25,6 +27,8 @@ module ActionDispatch
             nil
           end
           set_header k, v
+        rescue ::Mime::Type::InvalidMimeType => e
+          raise InvalidType, e.message
         end
       end
 
@@ -47,6 +51,8 @@ module ActionDispatch
             Mime::Type.parse(header)
           end
           set_header k, v
+        rescue ::Mime::Type::InvalidMimeType => e
+          raise InvalidType, e.message
         end
       end
 
