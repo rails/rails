@@ -556,6 +556,28 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal 3, log.lines.count
   end
 
+  test "doesn't log the framework backtrace when error type is a invalid mine type" do
+    @app = ProductionApp
+
+    output = StringIO.new
+    backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
+    backtrace_cleaner.add_silencer { true }
+
+    env = { "Accept" => "text/html,*",
+            "action_dispatch.show_exceptions"   => true,
+            "action_dispatch.logger"            => Logger.new(output),
+            "action_dispatch.backtrace_cleaner" => backtrace_cleaner }
+
+    assert_raises ActionDispatch::Http::MimeNegotiation::InvalidType do
+      get "/invalid_mimetype", headers: env
+    end
+
+    log = output.rewind && output.read
+
+    assert_includes log, "ActionDispatch::Http::MimeNegotiation::InvalidType (ActionDispatch::Http::MimeNegotiation::InvalidType)"
+    assert_equal 3, log.lines.count
+  end
+
   test "display backtrace when error type is SyntaxError" do
     @app = DevelopmentApp
 
