@@ -8,19 +8,19 @@ module QC
     redefine_method(:enqueue) do |method, *args|
       receiver_str, _, message = method.rpartition(".")
       receiver = eval(receiver_str)
-      receiver.send(message, *args)
+      receiver.public_send(message, *args)
     end
 
     redefine_method(:enqueue_in) do |seconds, method, *args|
       receiver_str, _, message = method.rpartition(".")
       receiver = eval(receiver_str)
-      receiver.send(message, *args)
+      receiver.public_send(message, *args)
     end
 
     redefine_method(:enqueue_at) do |not_before, method, *args|
       receiver_str, _, message = method.rpartition(".")
       receiver = eval(receiver_str)
-      receiver.send(message, *args)
+      receiver.public_send(message, *args)
     end
   end
 end
