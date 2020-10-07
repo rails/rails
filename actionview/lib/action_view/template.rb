@@ -333,10 +333,8 @@ module ActionView
           raise WrongEncodingError.new(source, Encoding.default_internal)
         end
 
-        start_line = @handler.respond_to?(:start_line) ? @handler.start_line(self) : 0
-
         begin
-          mod.module_eval(source, identifier, start_line)
+          mod.module_eval(source, identifier, 0)
         rescue SyntaxError
           # Account for when code in the template is not syntactically valid; e.g. if we're using
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate

@@ -217,7 +217,7 @@ class TestController < ActionController::Base
   end
 
   def render_line_offset
-    render inline: "<% raise %>", locals: { foo: "bar" }
+    render template: "test/raise"
   end
 
   def heading
@@ -1459,15 +1459,10 @@ class RenderTest < ActionController::TestCase
 
     get :greeting
 
-    lines = @response.body.split("\n")
-
-    assert_includes lines.first, "<!-- BEGIN"
-    assert_includes lines.first, "test/fixtures/actionpack/test/greeting.html.erb -->"
-
-    assert_includes lines[1], "This is grand!"
-
-    assert_includes lines.last, "<!-- END"
-    assert_includes lines.last, "test/fixtures/actionpack/test/greeting.html.erb -->"
+    assert_includes @response.body, "<!-- BEGIN"
+    assert_includes @response.body, "<!-- END"
+    assert_includes @response.body, "test/fixtures/actionpack/test/greeting.html.erb"
+    assert_includes @response.body, "This is grand!"
   ensure
     ActionView::Base.annotate_rendered_view_with_filenames = false
   end
