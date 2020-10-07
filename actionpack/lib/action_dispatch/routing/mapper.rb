@@ -690,7 +690,7 @@ module ActionDispatch
 
               # We must actually delete prefix segment keys to avoid passing them to next url_for.
               _route.segment_keys.each { |k| options.delete(k) }
-              _url_helpers.send("#{name}_path", prefix_options)
+              _url_helpers.public_send("#{name}_path", prefix_options)
             end
 
             app.routes.define_mounted_helper(name, script_namer)
