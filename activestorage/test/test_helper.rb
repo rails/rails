@@ -21,9 +21,6 @@ require "active_job"
 ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 
-# Filter out the backtrace from minitest while preserving the one from other libraries.
-Minitest.backtrace_filter = Minitest::BacktraceFilter.new
-
 SERVICE_CONFIGURATIONS = begin
   ActiveSupport::ConfigurationFile.parse(File.expand_path("service/configurations.yml", __dir__)).deep_symbolize_keys
 rescue Errno::ENOENT
