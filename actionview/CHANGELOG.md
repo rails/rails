@@ -1,3 +1,8 @@
+## Rails 6.0.3.4 (October 07, 2020) ##
+
+*   No changes.
+
+
 ## Rails 6.0.3.3 (September 09, 2020) ##
 
 *   [CVE-2020-8185] Fix potential XSS vulnerability in the `translate`/`t` helper.
