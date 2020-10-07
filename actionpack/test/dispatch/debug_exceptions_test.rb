@@ -81,7 +81,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       when "/unprocessable_entity"
         raise ActionController::InvalidAuthenticityToken
       when "/invalid_mimetype"
-        raise Mime::Type::InvalidMimeType
+        raise ActionDispatch::Http::MimeNegotiation::InvalidType
       when "/not_found_original_exception"
         begin
           raise AbstractController::ActionNotFound.new
@@ -216,7 +216,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => true }
     assert_response 406
-    assert_match(/Mime::Type::InvalidMimeType/, body)
+    assert_match(/ActionDispatch::Http::MimeNegotiation::InvalidType/, body)
   end
 
   test "rescue with text error for xhr request" do
@@ -313,7 +313,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_response 406
     assert_no_match(/<body>/, body)
     assert_equal "application/json", response.media_type
-    assert_match(/Mime::Type::InvalidMimeType/, body)
+    assert_match(/ActionDispatch::Http::MimeNegotiation::InvalidType/, body)
   end
 
   test "rescue with HTML format for HTML API request" do

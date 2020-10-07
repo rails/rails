@@ -63,7 +63,7 @@ module ActionDispatch
         if request.get_header("action_dispatch.show_detailed_exceptions")
           begin
             content_type = request.formats.first
-          rescue Mime::Type::InvalidMimeType
+          rescue ActionDispatch::Http::MimeNegotiation::InvalidType
             content_type = Mime[:text]
           end
 
