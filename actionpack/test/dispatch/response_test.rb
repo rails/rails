@@ -295,6 +295,17 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal("application/xml; charset=utf-16", resp.headers["Content-Type"])
   end
 
+  test "respect no-store cache-control" do
+    resp = ActionDispatch::Response.new.tap { |response|
+      response.cache_control[:public] = true
+      response.cache_control[:no_store] = true
+      response.body = "Hello"
+    }
+    resp.to_a
+
+    assert_equal("no-store", resp.headers["Cache-Control"])
+  end
+
   test "read content type with default charset utf-8" do
     resp = ActionDispatch::Response.new(200, "Content-Type" => "text/xml")
     assert_equal("utf-8", resp.charset)
