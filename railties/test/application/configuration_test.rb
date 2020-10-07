@@ -162,7 +162,7 @@ module ApplicationTests
 
         assert_changes -> { File.exist?(File.join(app_path, "db", "schema.rb")) }, from: false, to: true do
           output = capture(:stdout) do
-            post "/rails/actions", { error: "ActiveRecord::PendingMigrationError", action: "Run pending migrations" }
+            post "/rails/actions", { error: "ActiveRecord::PendingMigrationError", action: "Run pending migrations", location: "/foo" }
           end
 
           assert_match(/\d{14}\s+CreateUser/, output)
