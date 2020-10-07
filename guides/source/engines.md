@@ -1512,10 +1512,12 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActionDispatch::SystemTestCase`     | `action_dispatch_system_test_case`   |
 | `ActionMailbox::Base`                | `action_mailbox`                     |
 | `ActionMailbox::InboundEmail`        | `action_mailbox_inbound_email`       |
+| `ActionMailbox::Record`              | `action_mailbox_record`              |
 | `ActionMailbox::TestCase`            | `action_mailbox_test_case`           |
 | `ActionMailer::Base`                 | `action_mailer`                      |
 | `ActionMailer::TestCase`             | `action_mailer_test_case`            |
 | `ActionText::Content`                | `action_text_content`                |
+| `ActionText::Record`                 | `action_text_record`                 |
 | `ActionText::RichText`               | `action_text_rich_text`              |
 | `ActionView::Base`                   | `action_view`                        |
 | `ActionView::TestCase`               | `action_view_test_case`              |
@@ -1524,6 +1526,7 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActiveRecord::Base`                 | `active_record`                      |
 | `ActiveStorage::Attachment`          | `active_storage_attachment`          |
 | `ActiveStorage::Blob`                | `active_storage_blob`                |
+| `ActiveStorage::Record`              | `active_storage_record`              |
 | `ActiveSupport::TestCase`            | `active_support_test_case`           |
 | `i18n`                               | `i18n`                               |
 
