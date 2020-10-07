@@ -10,6 +10,11 @@
     *Eugene Kenny*
 
 
+## Rails 6.0.3.4 (October 07, 2020) ##
+
+*   No changes.
+
+
 ## Rails 6.0.3.3 (September 09, 2020) ##
 
 *   No changes.
