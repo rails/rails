@@ -448,7 +448,11 @@ module ActiveRecord
         when "sum"
           yield value || 0
         when "average"
-          value&.respond_to?(:to_d) ? value.to_d : value
+          if !value.is_a?(Numeric) && value&.respond_to?(:to_d)
+            value.to_d
+          else
+            value
+          end
         else # "minimum", "maximum"
           yield value
         end
