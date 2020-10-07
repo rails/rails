@@ -22,7 +22,7 @@ NOTE: This guide is not intended to be a complete documentation of available for
 Dealing with Basic Forms
 ------------------------
 
-The main form helper is `form_with`.
+The main form helper is [`form_with`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with).
 
 ```erb
 <%= form_with do |form| %>
@@ -108,7 +108,7 @@ This generates the following:
 <label for="pet_cat">I own a cat</label>
 ```
 
-The first parameter to `check_box` is the name of the input. The second parameter is the value of the input. This value will be included in the form data (and be present in `params`) when the checkbox is checked.
+The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input. The second parameter is the value of the input. This value will be included in the form data (and be present in `params`) when the checkbox is checked.
 
 #### Radio Buttons
 
@@ -130,7 +130,7 @@ Output:
 <label for="age_adult">I am over 21</label>
 ```
 
-As with `check_box`, the second parameter to `radio_button` is the value of the input. Because these two radio buttons share the same name (`age`), the user will only be able to select one of them, and `params[:age]` will contain either `"child"` or `"adult"`.
+As with `check_box`, the second parameter to [`radio_button`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-radio_button) is the value of the input. Because these two radio buttons share the same name (`age`), the user will only be able to select one of them, and `params[:age]` will contain either `"child"` or `"adult"`.
 
 NOTE: Always use labels for checkbox and radio buttons. They associate text with a specific option and,
 by expanding the clickable region,
@@ -238,7 +238,7 @@ TIP: Conventionally your inputs will mirror model attributes. However, they don'
 
 #### The `fields_for` Helper
 
-You can create a similar binding without actually creating `<form>` tags with the `fields_for` helper. This is useful for editing additional model objects with the same form. For example, if you had a `Person` model with an associated `ContactDetail` model, you could create a form for creating both like so:
+You can create a similar binding without actually creating `<form>` tags with the [`fields_for`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-fields_for) helper. This is useful for editing additional model objects with the same form. For example, if you had a `Person` model with an associated `ContactDetail` model, you could create a form for creating both like so:
 
 ```erb
 <%= form_with model: @person do |person_form| %>
@@ -336,7 +336,7 @@ Making Select Boxes with Ease
 
 Select boxes in HTML require a significant amount of markup - one `<option>` element for each option to choose from. So Rails provides helper methods to reduce this burden.
 
-For example, let's say we have a list of cities for the user to choose from. We can use the `select` helper like so:
+For example, let's say we have a list of cities for the user to choose from. We can use the [`select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-select) helper like so:
 
 ```erb
 <%= form.select :city, ["Berlin", "Lisbon", "Madrid"] %>
@@ -416,13 +416,11 @@ Notice that the appropriate option was automatically marked `selected="selected"
 
 ### Time Zone and Country Select
 
-To leverage time zone support in Rails, you have to ask your users what time zone they are in. Doing so would require generating select options from a list of pre-defined [`ActiveSupport::TimeZone`](https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects, but you can simply use the `time_zone_select` helper that already wraps this:
+To leverage time zone support in Rails, you have to ask your users what time zone they are in. Doing so would require generating select options from a list of pre-defined [`ActiveSupport::TimeZone`](https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects, but you can simply use the [`time_zone_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_zone_select) helper that already wraps this:
 
 ```erb
-<%= time_zone_select(:person, :time_zone) %>
+<%= form.time_zone_select :time_zone %>
 ```
-
-There is also `time_zone_options_for_select` helper for a more manual (therefore more customizable) way of doing this. Read the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormOptionsHelper.html#method-i-time_zone_options_for_select) to learn about the possible arguments for these two methods.
 
 Rails _used_ to have a `country_select` helper for choosing countries, but this has been extracted to the [country_select plugin](https://github.com/stefanpenner/country_select).
 
@@ -582,7 +580,7 @@ Output:
 Uploading Files
 ---------------
 
-A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the rendered form's enctype attribute **must** be set to "multipart/form-data". If you use `form_with` with `:model`, this is done automatically:
+A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. File upload fields can be rendered with the [`file_field`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-file_field) helper. The most important thing to remember with file uploads is that the rendered form's enctype attribute **must** be set to "multipart/form-data". If you use `form_with` with `:model`, this is done automatically:
 
 ```erb
 <%= form_with model: @person do |form| %>
@@ -818,7 +816,7 @@ Many apps grow beyond simple forms editing a single object. For example, when cr
 
 ### Configuring the Model
 
-Active Record provides model level support via the `accepts_nested_attributes_for` method:
+Active Record provides model level support via the [`accepts_nested_attributes_for`](https://api.rubyonrails.org/classes/ActiveRecord/NestedAttributes/ClassMethods.html#method-i-accepts_nested_attributes_for) method:
 
 ```ruby
 class Person < ApplicationRecord
@@ -970,4 +968,4 @@ Rather than rendering multiple sets of fields ahead of time you may wish to add 
 Using form_for and form_tag
 ---------------------------
 
-Before `form_with` was introduced in Rails 5.1 its functionality used to be split between `form_tag` and `form_for`. Both are now soft-deprecated. Documentation on their usage can be found in [older versions of this guide](https://guides.rubyonrails.org/v5.2/form_helpers.html).
+Before `form_with` was introduced in Rails 5.1 its functionality used to be split between [`form_tag`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag) and [`form_for`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormHelper.html#method-i-form_for). Both are now soft-deprecated. Documentation on their usage can be found in [older versions of this guide](https://guides.rubyonrails.org/v5.2/form_helpers.html).
