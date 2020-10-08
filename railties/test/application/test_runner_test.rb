@@ -511,28 +511,6 @@ module ApplicationTests
       end
     end
 
-    def test_shows_filtered_backtrace_by_default
-      create_backtrace_test
-
-      assert_match "Minitest::RailsBacktraceCleanerDecorator", run_test_command("test/unit/backtrace_test.rb")
-    end
-
-    def test_backtrace_option
-      create_backtrace_test
-
-      assert_match "Minitest::BacktraceFilter", run_test_command("test/unit/backtrace_test.rb -b")
-      assert_match "Minitest::BacktraceFilter",
-        run_test_command("test/unit/backtrace_test.rb --backtrace")
-    end
-
-    def test_show_full_backtrace_using_backtrace_environment_variable
-      create_backtrace_test
-
-      switch_env "BACKTRACE", "true" do
-        assert_match "Minitest::BacktraceFilter", run_test_command("test/unit/backtrace_test.rb")
-      end
-    end
-
     def test_run_app_without_rails_loaded
       # Simulate a real Rails app boot.
       app_file "config/boot.rb", <<-RUBY
@@ -951,18 +929,6 @@ module ApplicationTests
           class #{name.camelize}Test < ActiveSupport::TestCase
             def test_fixture
               puts "\#{User.count} users (\#{__FILE__})"
-            end
-          end
-        RUBY
-      end
-
-      def create_backtrace_test
-        app_file "test/unit/backtrace_test.rb", <<-RUBY
-          require "test_helper"
-
-          class BacktraceTest < ActiveSupport::TestCase
-            def test_backtrace
-              puts Minitest.backtrace_filter
             end
           end
         RUBY
