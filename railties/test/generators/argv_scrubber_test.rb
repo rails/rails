@@ -69,6 +69,7 @@ module Rails
 
         scrubber = Class.new(ARGVScrubber)
         assert_equal scrubber.default_rc_file, railrc_path
+        File.delete(railrc_path) if File.exist?(railrc_path)
       end
 
       def test_new_homedir_rc
