@@ -371,5 +371,28 @@ class ForwardsMailboxTest < ActionMailbox::TestCase
     assert_equal "Status update?", recording.forward.subject
     assert_match "What's the status?", recording.forward.content.to_s
   end
+  
+  # you can use the mail object directly, and add attachments:
+  test "directly record with an attachment" do
+  assert_difference -> { people(:david).buckets.first.recordings.count } do    
+    @mail = Mail.new do |mail|
+      mail.to 'save@example.com'
+      mail.bcc 'clandestine_observer@example.com'
+      mail.from people(:david).email_address
+      mail.subject "Fwd: Status update?"
+      mail.body "--- Begin forwarded message --- etc"
+
+      # if you want to add an attachment
+      mail.add_file :filename => 'image.jpg', :content => File.read('test/files/image.jpg')
+    end
+    @mail[:bcc].include_in_headers = true
+
+    create_inbound_email_from_source(@mail.to_s, status: :processing).route
+  end
+
+  # add tests ensuring attachments are attached below
+  # assert_equal true, is_attached? 
+end
+
 end
 ```
