@@ -410,17 +410,21 @@ All these problems are solved in `zeitwerk` mode, it just works as expected, and
 
 ### Less File Lookups
 
-In `classic` mode, every single missing constant triggers a file lookup that walks the autoload paths. In `zeitwerk` mode there is only one pass, which is done once, not per missing constant, which is generally more performant. Subdirectories are visited only if their namespace is used.
+In `classic` mode, every single missing constant triggers a file lookup that walks the autoload paths.
+
+In `zeitwerk` mode there is only one pass. That pass is done once, not per missing constant, and so it is generally more performant. Subdirectories are visited only if their namespace is used.
 
 ### Underscore vs Camelize
 
-Inflections go the other way around. In `classic` mode, given a missing constant Rails _underscores_ its name and performs a file lookup. On the other hand, `zeitwerk` mode checks first the file system, and _camelizes_ file names to know the constant those files are expected to define. While in common names these operations match, if acronyms or custom inflection rules are configured, they may not.
+Inflections go the other way around.
 
-For example, by default `"HTMLParser".underscore` is `"html_parser"`, and `"html_parser".camelize` is `"HtmlParser"`.
+In `classic` mode, given a missing constant Rails _underscores_ its name and performs a file lookup. On the other hand, `zeitwerk` mode checks first the file system, and _camelizes_ file names to know the constant those files are expected to define.
+
+While in common names these operations match, if acronyms or custom inflection rules are configured, they may not. For example, by default `"HTMLParser".underscore` is `"html_parser"`, and `"html_parser".camelize` is `"HtmlParser"`.
 
 ### More Differences
 
-There are some other subtle differences, please check Please check [this section of _Upgrading Ruby on Rails_](upgrading_ruby_on_rails.html#autoloading) guide for details.
+There are some other subtle differences, please check [this section of _Upgrading Ruby on Rails_](upgrading_ruby_on_rails.html#autoloading) guide for details.
 
 Classic Mode is Deprecated
 --------------------------
