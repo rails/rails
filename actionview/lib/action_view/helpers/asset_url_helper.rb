@@ -300,6 +300,7 @@ module ActionView
           when :relative
             "//#{host}"
           when :request
+            raise "Protocol undefined for request" unless request
             "#{request.protocol}#{host}"
           else
             "#{protocol}://#{host}"
