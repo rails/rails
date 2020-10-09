@@ -5,7 +5,7 @@ import Subscription from "./subscription"
 // and it should be called through the consumer like so:
 //
 //   App = {}
-//   App.cable = ActionCable.createConsumer("ws://example.com/accounts/1")
+//   App.cable = ActionCable.createConsumer("wss://example.com/accounts/1")
 //   App.appearance = App.cable.subscriptions.create("AppearanceChannel")
 //
 // For more details on how you'd configure an actual channel subscription, see ActionCable.Subscription.

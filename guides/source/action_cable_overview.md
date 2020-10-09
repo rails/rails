@@ -594,7 +594,7 @@ consumer.subscriptions.create("AppearanceChannel", {
 ##### Client-Server Interaction
 
 1. **Client** connects to the **Server** via `App.cable =
-ActionCable.createConsumer("ws://cable.example.com")`. (`cable.js`). The
+ActionCable.createConsumer("wss://cable.example.com")`. (`cable.js`). The
 **Server** identifies this connection by `current_user`.
 
 2. **Client** subscribes to the appearance channel via

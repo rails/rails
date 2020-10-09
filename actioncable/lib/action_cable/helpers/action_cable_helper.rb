@@ -26,9 +26,9 @@ module ActionCable
       #   <%= action_cable_meta_tag %> would render:
       #   => <meta name="action-cable-url" content="/cable123" />
       #
-      #   config.action_cable.url = "ws://actioncable.com"
+      #   config.action_cable.url = "wss://actioncable.com"
       #   <%= action_cable_meta_tag %> would render:
-      #   => <meta name="action-cable-url" content="ws://actioncable.com" />
+      #   => <meta name="action-cable-url" content="wss://actioncable.com" />
       #
       def action_cable_meta_tag
         tag "meta", name: "action-cable-url", content: (
