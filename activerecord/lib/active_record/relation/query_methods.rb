@@ -653,13 +653,13 @@ module ActiveRecord
     #
     # If the condition is any blank-ish object, then #where is a no-op and returns
     # the current relation.
-    def where(opts = :chain, *rest)
-      if :chain == opts
+    def where(*args)
+      if args.empty?
         WhereChain.new(spawn)
-      elsif opts.blank?
+      elsif args.length == 1 && args.first.blank?
         self
       else
-        spawn.where!(opts, *rest)
+        spawn.where!(*args)
       end
     end
 
