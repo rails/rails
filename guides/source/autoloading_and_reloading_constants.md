@@ -81,7 +81,7 @@ The section _Customizing Inflections_ below documents ways to override this defa
 
 Please, check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#file-structure) for further details.
 
-Autoload paths
+Autoload Paths
 --------------
 
 We call _autoload paths_ to the list of application directories whose contents are to be autoloaded. For example, `app/models`. Such directories represent the root namespace: `Object`.
