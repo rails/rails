@@ -63,6 +63,26 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, posts.to_a.size
   end
 
+  def test_block_where
+    posts = Post.where { |post| post[:author_id].eq(1).and(post[:id].eq(1)) }
+    assert_equal 1, posts.to_a.size
+  end
+
+  def test_block_where_can_chain
+    posts = Post.where { |post| post[:author_id].eq(1) }.where { |post| post[:id].eq(1) }
+    assert_equal 1, posts.to_a.size
+  end
+
+  def test_block_method_where
+    posts = Post.where { |post| post.author_id.eq(1).and(post.id.eq(1)) }
+    assert_equal 1, posts.to_a.size
+  end
+
+  def test_block_instance_method_where
+    posts = Post.where { author_id.eq(1).and(id.eq(1)) }
+    assert_equal 1, posts.to_a.size
+  end
+
   def test_scoped
     topics = Topic.all
     assert_kind_of ActiveRecord::Relation, topics
@@ -510,6 +530,24 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_hash_conditions_on_joined_table
     firms = DependentFirm.joins(:account).where(name: "RailsCore", accounts: { credit_limit: 55..60 }).to_a
+    assert_equal 1, firms.size
+    assert_equal companies(:rails_core), firms.first
+  end
+
+  def tests_finding_with_block_on_joined_table
+    firms = DependentFirm.joins(:account).where { |firm| firm[:name].eq("RailsCore").and(firm.accounts[:credit_limit].eq(55..60)) }.to_a
+    assert_equal 1, firms.size
+    assert_equal companies(:rails_core), firms.first
+  end
+
+  def tests_finding_with_block_and_methods_on_joined_table
+    firms = DependentFirm.joins(:account).where { |firm| firm.name.eq("RailsCore").and(firm.accounts.credit_limit.eq(55..60)) }.to_a
+    assert_equal 1, firms.size
+    assert_equal companies(:rails_core), firms.first
+  end
+
+  def tests_finding_with_block_and_instance_methods_on_joined_table
+    firms = DependentFirm.joins(:account).where { name.eq("RailsCore").and(accounts.credit_limit.eq(55..60)) }.to_a
     assert_equal 1, firms.size
     assert_equal companies(:rails_core), firms.first
   end
