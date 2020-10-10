@@ -1,3 +1,13 @@
+*   Make railsrc file location xdg-specification compliant
+
+    Rails new will load the railsrc file from XDG_CONFIG_HOME/rails/railsrc
+    It will then fallback to .config if XDG_CONFIG_HOME not specified
+    It will then fallback to HOME/.railsrc
+
+    The fallback behaviour means this does not cause any breaking changes.
+
+    *Nick Wolf*
+
 *   Deprecate `config.active_support.use_sha1_digests`
 
     `config.active_support.use_sha1_digests` is deprecated. It is replaced with `config.active_support.hash_digest_class` which allows setting the desired Digest instead. The Rails version defaults have been updated to use this new method as well so the behavior there is unchanged.
