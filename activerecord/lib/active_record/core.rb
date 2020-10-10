@@ -470,10 +470,17 @@ module ActiveRecord
     # Note also that destroying a record preserves its ID in the model instance, so deleted
     # models are still comparable.
     def ==(comparison_object)
-      super ||
-        comparison_object.instance_of?(self.class) &&
-        !id.nil? &&
-        comparison_object.id == id
+      if !self.class.current_shard.nil?
+        super ||
+          comparison_object.instance_of?(self.class) &&
+          !id.nil? &&
+          comparison_object.id == id && comparison_object.class.current_shard == self.class.current_shard
+      else
+        super ||
+          comparison_object.instance_of?(self.class) &&
+          !id.nil? &&
+          comparison_object.id == id
+      end
     end
     alias :eql? :==
 
