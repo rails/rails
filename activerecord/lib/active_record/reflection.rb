@@ -9,6 +9,7 @@ module ActiveRecord
 
     included do
       class_attribute :_reflections, instance_writer: false, default: {}
+      class_attribute :_reflection_symbol_to_string, instance_writer: false, default: {}
       class_attribute :aggregate_reflections, instance_writer: false, default: {}
     end
 
@@ -22,6 +23,7 @@ module ActiveRecord
         ar.clear_reflections_cache
         name = -name.to_s
         ar._reflections = ar._reflections.except(name).merge!(name => reflection)
+        ar._reflection_symbol_to_string[name.to_sym] = name
       end
 
       def add_aggregate_reflection(ar, name, reflection)
@@ -112,11 +114,13 @@ module ActiveRecord
       #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
       #
       def reflect_on_association(association)
-        reflections[association.to_s]
+        key = _reflection_symbol_to_string[association] || association
+        reflections[key]
       end
 
       def _reflect_on_association(association) #:nodoc:
-        _reflections[association.to_s]
+        key = _reflection_symbol_to_string[association] || association
+        _reflections[key]
       end
 
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
