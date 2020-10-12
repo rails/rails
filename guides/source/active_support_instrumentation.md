@@ -686,6 +686,8 @@ INFO. The only ActiveStorage service that provides this hook so far is GCS.
 | ------------ | ------------------- |
 | `:key`       | Secure token        |
 
+### transform.active_storage
+
 Railties
 --------
 
