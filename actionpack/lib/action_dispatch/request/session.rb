@@ -79,7 +79,7 @@ module ActionDispatch
       def destroy
         clear
         options = self.options || {}
-        @by.delete_session(@req, options.id(@req), options)
+        @by.send(:delete_session, @req, options.id(@req), options)
 
         # Load the new sid to be written with the response.
         @loaded = false
