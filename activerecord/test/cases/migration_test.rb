@@ -942,7 +942,15 @@ class MigrationTest < ActiveRecord::TestCase
         }.new
 
         migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
-        query = "SELECT query FROM pg_stat_activity WHERE datname = '#{ActiveRecord::Base.connection_db_config.database}' AND state = 'idle'"
+        lock_id = migrator.send(:generate_migrator_advisory_lock_id)
+
+        query = <<~SQL
+        SELECT query
+        FROM pg_stat_activity
+        WHERE datname = '#{ActiveRecord::Base.connection_db_config.database}'
+        AND state = 'idle'
+        AND query LIKE '%#{lock_id}%'
+        SQL
 
         assert_no_changes -> { ActiveRecord::Base.connection.exec_query(query).rows.flatten } do
           migrator.migrate
