@@ -80,7 +80,7 @@ module ActiveRecord
     # the first DatabaseConfig for the environment.
     def find_db_config(env)
       configurations
-        .sort_by { |db_config| db_config.for_current_env? ? 0 : 1 }
+        .sort_by.with_index { |db_config, i| db_config.for_current_env? ? [0, i] : [1, i] }
         .find do |db_config|
           db_config.env_name == env.to_s ||
             (db_config.for_current_env? && db_config.name == env.to_s)

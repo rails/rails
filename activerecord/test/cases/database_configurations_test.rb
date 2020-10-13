@@ -54,6 +54,24 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     ENV["RAILS_ENV"] = original_rails_env
   end
 
+  def test_find_db_config_returns_first_config_for_env
+    config = ActiveRecord::DatabaseConfigurations.new({
+        "test" => {
+          "config_1"=> {
+            "database" => "db"
+          },
+          "config_2"=> {
+            "database" => "db"
+          },
+          "config_3"=> {
+            "database" => "db"
+          },
+        }
+      })
+
+    assert_equal "config_1", config.find_db_config("test").name
+  end
+
   def test_find_db_config_returns_a_db_config_object_for_the_given_env
     config = ActiveRecord::Base.configurations.find_db_config("arunit2")
 
