@@ -164,6 +164,28 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal({ "foo" => { "foo" => "hello" } }, JSON.parse(json))
   end
 
+  def test_open_struct_to_json_without_options
+    open_struct = OpenStruct.new(foo: "hello", bar: "world")
+    json = open_struct.to_json
+
+    assert_equal({ "foo" => "hello", "bar" => "world" }, JSON.parse(json))
+  end
+
+  def test_open_struct_to_json_with_options
+    open_struct = OpenStruct.new(foo: "hello", bar: "world")
+    json = open_struct.to_json only: [:foo]
+
+    assert_equal({ "foo" => "hello" }, JSON.parse(json))
+  end
+
+  def test_open_struct_to_json_with_options_nested
+    nested_open_struct = OpenStruct.new(foo: "hello", bar: "world")
+    open_struct = OpenStruct.new(foo: nested_open_struct)
+    json = open_struct.to_json only: [:foo]
+
+    assert_equal({ "foo" => { "foo" => "hello" } }, JSON.parse(json))
+  end
+
   def test_hash_should_pass_encoding_options_to_children_in_as_json
     person = {
       name: "John",

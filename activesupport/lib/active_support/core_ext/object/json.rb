@@ -65,6 +65,12 @@ class Struct #:nodoc:
   end
 end
 
+class OpenStruct #:nodoc:
+  def as_json(options = nil)
+    to_h.as_json(options)
+  end
+end
+
 class TrueClass
   def as_json(options = nil) #:nodoc:
     self
