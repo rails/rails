@@ -974,7 +974,24 @@ As a convenience you can instead pass the symbol `:all_blank` which will create 
 
 Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an 'Add new address' button. Rails does not provide any built-in support for this. When generating new sets of fields you must ensure the key of the associated array is unique - the current JavaScript date (milliseconds since the [epoch](https://en.wikipedia.org/wiki/Unix_time)) is a common choice.
 
-Using form_for and form_tag
----------------------------
+Using Tag Helpers Without a Form Builder
+----------------------------------------
+
+In case you need to render form fields outside of the context of a form builder, Rails provides tag helpers for common form elements. For example, [`check_box_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html#method-i-check_box_tag):
+
+```erb
+<%= check_box_tag "accept" %>
+```
+
+Output:
+
+```html
+<input type="checkbox" name="accept" id="accept" value="1" />
+```
+
+Generally, these helpers have the same name as their form builder counterparts plus a `_tag` suffix.  For a complete list, see the [`FormTagHelper` API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
+
+Using `form_tag` and `form_for`
+-------------------------------
 
 Before `form_with` was introduced in Rails 5.1 its functionality used to be split between [`form_tag`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag) and [`form_for`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormHelper.html#method-i-form_for). Both are now soft-deprecated. Documentation on their usage can be found in [older versions of this guide](https://guides.rubyonrails.org/v5.2/form_helpers.html).
