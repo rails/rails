@@ -1,10 +1,9 @@
-# encoding: utf-8
 # frozen_string_literal: true
 
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-class PostgresqlIntervalTest < ActiveRecord::TestCase
+class PostgresqlIntervalTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   class IntervalDataType < ActiveRecord::Base
