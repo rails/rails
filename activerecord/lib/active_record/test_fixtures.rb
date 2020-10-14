@@ -114,6 +114,9 @@ module ActiveRecord
 
       # Load fixtures once and begin transaction.
       if run_in_transaction?
+        @legacy_saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
+        @saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
+
         if @@already_loaded_fixtures[self.class]
           @loaded_fixtures = @@already_loaded_fixtures[self.class]
         else
@@ -169,6 +172,7 @@ module ActiveRecord
           connection.pool.lock_thread = false
         end
         @fixture_connections.clear
+        teardown_shared_connection_pool
       else
         ActiveRecord::FixtureSet.reset_cache
       end
@@ -200,8 +204,13 @@ module ActiveRecord
                 return unless writing_pool_manager
 
                 pool_manager = handler.send(:owner_to_pool_manager)[name]
+                @legacy_saved_pool_configs[handler][name] ||= {}
                 pool_manager.shard_names.each do |shard_name|
                   writing_pool_config = writing_pool_manager.get_pool_config(nil, shard_name)
+                  pool_config = pool_manager.get_pool_config(nil, shard_name)
+                  next if pool_config == writing_pool_config
+
+                  @legacy_saved_pool_configs[handler][name][shard_name] = pool_config
                   pool_manager.set_pool_config(nil, shard_name, writing_pool_config)
                 end
               end
@@ -214,13 +223,46 @@ module ActiveRecord
             pool_manager = handler.send(:owner_to_pool_manager)[name]
             pool_manager.shard_names.each do |shard_name|
               writing_pool_config = pool_manager.get_pool_config(ActiveRecord::Base.writing_role, shard_name)
+              @saved_pool_configs[name][shard_name] ||= {}
               pool_manager.role_names.each do |role|
-                next unless pool_manager.get_pool_config(role, shard_name)
+                next unless pool_config = pool_manager.get_pool_config(role, shard_name)
+                next if pool_config == writing_pool_config
+
+                @saved_pool_configs[name][shard_name][role] = pool_config
                 pool_manager.set_pool_config(role, shard_name, writing_pool_config)
               end
             end
           end
         end
+      end
+
+      def teardown_shared_connection_pool
+        if ActiveRecord::Base.legacy_connection_handling
+          @legacy_saved_pool_configs.each_pair do |handler, names|
+            names.each_pair do |name, shards|
+              shards.each_pair do |shard_name, pool_config|
+                pool_manager = handler.send(:owner_to_pool_manager)[name]
+                pool_manager.set_pool_config(nil, shard_name, pool_config)
+              end
+            end
+          end
+        else
+          handler = ActiveRecord::Base.connection_handler
+
+          @saved_pool_configs.each_pair do |name, shards|
+            pool_manager = handler.send(:owner_to_pool_manager)[name]
+            shards.each_pair do |shard_name, roles|
+              roles.each_pair do |role, pool_config|
+                next unless pool_manager.get_pool_config(role, shard_name)
+
+                pool_manager.set_pool_config(role, shard_name, pool_config)
+              end
+            end
+          end
+        end
+
+        @legacy_saved_pool_configs.clear
+        @saved_pool_configs.clear
       end
 
       def load_fixtures(config)
