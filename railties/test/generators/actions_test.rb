@@ -586,6 +586,34 @@ class ActionsTest < Rails::Generators::TestCase
     ROUTING_CODE
   end
 
+  test "route with sentinel option should insert after sentinel" do
+    run_generator
+    action :route, "get 'foo'"
+    action :route, "get 'bar'", sentinel: /get 'foo'\n/m
+    assert_routes <<~ROUTING_CODE.chomp
+      get 'foo'
+      get 'bar'
+    ROUTING_CODE
+  end
+
+  test "route with indentation option should use correct indentation" do
+    run_generator
+    action :route, "get 'foo'", indentation: 4
+    assert_routes "get 'foo'", indentation: 4
+  end
+
+  test "route with sentinel and indentation options should use correct indentation" do
+    run_generator
+    action :route, "get 'foo'", namespace: :baz
+    action :route, "get 'bar'", after: /get 'foo'\n/m, indentation: 4
+    assert_routes <<~ROUTING_CODE.chomp
+      namespace :baz do
+        get 'foo'
+        get 'bar'
+      end
+    ROUTING_CODE
+  end
+
   def test_readme
     run_generator
     assert_called(Rails::Generators::AppGenerator, :source_root, times: 2, returns: destination_root) do
@@ -641,12 +669,12 @@ class ActionsTest < Rails::Generators::TestCase
       end
     end
 
-    def assert_routes(*route_commands)
+    def assert_routes(*route_commands, indentation: 2)
       route_regexps = route_commands.flatten.map do |route_command|
         %r{
           ^#{Regexp.escape("Rails.application.routes.draw do")}\n
             (?:[ ]{2}.+\n|\n)*
-            #{Regexp.escape(route_command.indent(2))}\n
+            #{Regexp.escape(route_command.indent(indentation))}\n
             (?:[ ]{2}.+\n|\n)*
           end\n
         }x

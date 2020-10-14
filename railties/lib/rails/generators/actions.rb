@@ -266,16 +266,16 @@ module Rails
       #
       #   route "root 'welcome#index'"
       #   route "root 'admin#index'", namespace: :admin
-      def route(routing_code, namespace: nil)
+      #   route "root 'admin#index'", after: /namespace :admin do\n/m, indentation: 4
+      def route(routing_code, namespace: nil, after: /\.routes\.draw do\s*\n/m, indentation: 2)
         routing_code = Array(namespace).reverse.reduce(routing_code) do |code, ns|
           "namespace :#{ns} do\n#{indent(code, 2)}\nend"
         end
 
         log :route, routing_code
-        sentinel = /\.routes\.draw do\s*\n/m
 
         in_root do
-          inject_into_file "config/routes.rb", optimize_indentation(routing_code, 2), after: sentinel, verbose: false, force: false
+          inject_into_file "config/routes.rb", optimize_indentation(routing_code, indentation), after: after, verbose: false, force: false
         end
       end
 
