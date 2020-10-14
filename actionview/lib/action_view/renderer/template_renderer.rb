@@ -37,6 +37,8 @@ module ActionView
             @lookup_context.formats.first
           end
           Template::Inline.new(options[:inline], "inline template", handler, locals: keys, format: format)
+        elsif options.key?(:renderable)
+          Template::Renderable.new(options[:renderable])
         elsif options.key?(:template)
           if options[:template].respond_to?(:render)
             options[:template]
