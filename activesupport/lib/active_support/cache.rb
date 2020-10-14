@@ -22,7 +22,7 @@ module ActiveSupport
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
-    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl]
+    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl, :coder]
 
     module Strategy
       autoload :LocalCache, "active_support/cache/strategy/local_cache"
@@ -158,6 +158,8 @@ module ActiveSupport
     # threshold is configurable with the <tt>:compress_threshold</tt> option,
     # specified in bytes.
     class Store
+      DEFAULT_CODER = Marshal
+
       cattr_accessor :logger, instance_writer: true
 
       attr_reader :silence, :options
@@ -185,6 +187,7 @@ module ActiveSupport
       # namespace for the cache.
       def initialize(options = nil)
         @options = options ? options.dup : {}
+        @coder = @options.delete(:coder) { self.class::DEFAULT_CODER } || NullCoder
       end
 
       # Silences the logger.
@@ -581,6 +584,14 @@ module ActiveSupport
           raise NotImplementedError.new
         end
 
+        def serialize_entry(entry)
+          @coder.dump(entry)
+        end
+
+        def deserialize_entry(payload)
+          payload.nil? ? nil : @coder.load(payload)
+        end
+
         # Reads multiple entries from the cache implementation. Subclasses MAY
         # implement this method.
         def read_multi_entries(names, **options)
@@ -740,6 +751,18 @@ module ActiveSupport
         end
     end
 
+    module NullCoder # :nodoc:
+      class << self
+        def load(payload)
+          payload
+        end
+
+        def dump(entry)
+          entry
+        end
+      end
+    end
+
     # This class is used to represent cache entries. Cache entries have a value, an optional
     # expiration time, and an optional version. The expiration time is used to support the :race_condition_ttl option
     # on the cache. The version is used to support the :version option on the cache for rejecting
@@ -790,8 +813,8 @@ module ActiveSupport
       end
 
       # Returns the size of the cached value. This could be less than
-      # <tt>value.size</tt> if the data is compressed.
-      def size
+      # <tt>value.bytesize</tt> if the data is compressed.
+      def bytesize
         case value
         when NilClass
           0

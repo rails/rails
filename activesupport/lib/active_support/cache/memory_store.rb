@@ -18,6 +18,23 @@ module ActiveSupport
     #
     # MemoryStore is thread-safe.
     class MemoryStore < Store
+      module DupCoder # :nodoc:
+        class << self
+          def load(entry)
+            entry = entry.dup
+            entry.dup_value!
+            entry
+          end
+
+          def dump(entry)
+            entry.dup_value!
+            entry
+          end
+        end
+      end
+
+      DEFAULT_CODER = DupCoder
+
       def initialize(options = nil)
         options ||= {}
         super(options)
@@ -114,35 +131,34 @@ module ActiveSupport
       private
         PER_ENTRY_OVERHEAD = 240
 
-        def cached_size(key, entry)
-          key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
+        def cached_size(key, payload)
+          key.to_s.bytesize + payload.bytesize + PER_ENTRY_OVERHEAD
         end
 
         def read_entry(key, **options)
           entry = nil
           synchronize do
-            entry = @data.delete(key)
-            if entry
-              @data[key] = entry
-              entry = entry.dup
+            payload = @data.delete(key)
+            if payload
+              @data[key] = payload
+              entry = deserialize_entry(payload)
             end
           end
-          entry&.dup_value!
           entry
         end
 
         def write_entry(key, entry, **options)
-          entry.dup_value!
+          payload = serialize_entry(entry)
           synchronize do
             return false if options[:unless_exist] && @data.key?(key)
 
-            old_entry = @data.delete(key)
-            if old_entry
-              @cache_size -= (old_entry.size - entry.size)
+            old_payload = @data[key]
+            if old_payload
+              @cache_size -= (old_payload.bytesize - payload.bytesize)
             else
-              @cache_size += cached_size(key, entry)
+              @cache_size += cached_size(key, payload)
             end
-            @data[key] = entry
+            @data[key] = payload
             prune(@max_size * 0.75, @max_prune_time) if @cache_size > @max_size
             true
           end
@@ -150,9 +166,9 @@ module ActiveSupport
 
         def delete_entry(key, **options)
           synchronize do
-            entry = @data.delete(key)
-            @cache_size -= cached_size(key, entry) if entry
-            !!entry
+            payload = @data.delete(key)
+            @cache_size -= cached_size(key, payload) if payload
+            !!payload
           end
         end
 

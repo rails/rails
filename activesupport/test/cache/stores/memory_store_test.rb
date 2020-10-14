@@ -6,11 +6,16 @@ require_relative "../behaviors"
 
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
-    @cache = ActiveSupport::Cache.lookup_store(:memory_store, expires_in: 60)
+    @cache = lookup_store(expires_in: 60)
+  end
+
+  def lookup_store(options = {})
+    ActiveSupport::Cache.lookup_store(:memory_store, options)
   end
 
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
+  include CacheStoreCoderBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
