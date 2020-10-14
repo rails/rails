@@ -586,10 +586,10 @@ class ActionsTest < Rails::Generators::TestCase
     ROUTING_CODE
   end
 
-  test "route with sentinel option should insert after sentinel" do
+  test "route with after option should insert after regex match" do
     run_generator
     action :route, "get 'foo'"
-    action :route, "get 'bar'", sentinel: /get 'foo'\n/m
+    action :route, "get 'bar'", after: /get 'foo'\n/m
     assert_routes <<~ROUTING_CODE.chomp
       get 'foo'
       get 'bar'
@@ -602,7 +602,7 @@ class ActionsTest < Rails::Generators::TestCase
     assert_routes "get 'foo'", indentation: 4
   end
 
-  test "route with sentinel and indentation options should use correct indentation" do
+  test "route with after and indentation options should use correct indentation" do
     run_generator
     action :route, "get 'foo'", namespace: :baz
     action :route, "get 'bar'", after: /get 'foo'\n/m, indentation: 4
