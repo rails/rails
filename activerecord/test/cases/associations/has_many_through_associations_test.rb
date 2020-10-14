@@ -369,6 +369,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_includes post.people, person
   end
 
+  def test_insert_record_with_has_one_inverse
+    old_post = posts(:thinking)
+    person = old_post.people.create!(first_name: "Joe")
+
+    new_post = posts(:welcome)
+
+    new_post.single_people << person
+
+    assert 1, person.readers.count
+    assert_equal person.reader.reload.post_id, new_post.id
+  end
+
   def test_build_then_save_with_has_one_inverse
     post   = posts(:thinking)
     person = post.single_people.build(first_name: "Bob")

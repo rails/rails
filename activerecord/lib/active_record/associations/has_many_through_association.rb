@@ -41,7 +41,7 @@ module ActiveRecord
 
           if owner.new_record? && records
             records.flatten.each do |record|
-              build_through_record(record)
+              through_records(record)
             end
           end
 
@@ -53,16 +53,36 @@ module ActiveRecord
         #
         # However, after insert_record has been called, the cache is cleared in
         # order to allow multiple instances of the same record in an association.
+        def through_records(record)
+          @through_records[record] ||= build_through_record(record)
+        end
+
         def build_through_record(record)
-          @through_records[record] ||= begin
-            ensure_mutable
+          ensure_mutable
 
-            attributes = through_scope_attributes
-            attributes[source_reflection.name] = record
-            attributes[source_reflection.foreign_type] = options[:source_type] if options[:source_type]
+          updated_has_many_through_with_inverse_has_one = has_many_through_with_inverse_has_one(record)
 
-            through_association.build(attributes)
-          end
+          return updated_has_many_through_with_inverse_has_one if updated_has_many_through_with_inverse_has_one
+
+          attributes = through_scope_attributes
+          attributes[source_reflection.name] = record
+          attributes[source_reflection.foreign_type] = options[:source_type] if options[:source_type]
+
+          through_association.build(attributes)
+        end
+
+        def has_many_through_with_inverse_has_one(record)
+          inverse = source_reflection.inverse_of
+
+          return unless inverse && inverse.has_one?
+
+          has_one_target = record.association(inverse.name).scope.where(through_scope_attributes).first
+
+          return if has_one_target.nil?
+
+          has_one_target[through_reflection.foreign_key] = owner.id
+
+          has_one_target
         end
 
         attr_reader :through_scope
@@ -75,7 +95,7 @@ module ActiveRecord
         end
 
         def save_through_record(record)
-          association = build_through_record(record)
+          association = through_records(record)
           if association.changed?
             association.save!
           end
@@ -92,9 +112,9 @@ module ActiveRecord
           inverse = source_reflection.inverse_of
           if inverse
             if inverse.collection?
-              record.send(inverse.name) << build_through_record(record)
+              record.send(inverse.name) << through_records(record)
             elsif inverse.has_one?
-              record.send("#{inverse.name}=", build_through_record(record))
+              record.send("#{inverse.name}=", through_records(record))
             end
           end
 
