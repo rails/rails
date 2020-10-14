@@ -135,10 +135,9 @@ To test that your method does what it says it does, run the unit tests with `bin
   2 runs, 2 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-To see this in action, change to the `test/dummy` directory, fire up a console, and start squawking:
+To see this in action, change to the `test/dummy` directory, start `bin/rails console`, and commence squawking:
 
-```bash
-$ bin/rails console
+```ruby
 >> "Hello World".to_squawk
 => "squawk! Hello World"
 ```
@@ -391,7 +390,7 @@ class ActsAsYaffleTest < ActiveSupport::TestCase
 end
 ```
 
-Run the test to make sure the last two tests fail with an error that contains "NoMethodError: undefined method `squawk'",
+Run the test to make sure the last two tests fail with an error that contains "NoMethodError: undefined method \`squawk'",
 then update `acts_as_yaffle.rb` to look like this:
 
 ```ruby

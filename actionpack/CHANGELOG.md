@@ -1,3 +1,20 @@
+*   Added support for exclusive no-store Cache-Control header.
+
+    If `no-store` is set on Cache-Control header it is exclusive (all other cache directives are dropped).
+
+    *Chris Kruger*
+
+*   Catch invalid UTF-8 parameters for POST requests and respond with BadRequest.
+
+    Additionally, perform `#set_binary_encoding` in `ActionDispatch::Http::Request#GET` and
+    `ActionDispatch::Http::Request#POST` prior to validating encoding.
+
+    *Adrianna Chang*
+
+*   Allow `assert_recognizes` routing assertions to work on mounted root routes.
+
+    *Gannon McGibbon*
+
 *   Change default redirection status code for non-GET/HEAD requests to 308 Permanent Redirect for `ActionDispatch::SSL`.
 
     *Alan Tan*, *Oz Ben-David*

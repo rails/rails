@@ -56,15 +56,50 @@ module ActiveRecord
       assert_equal 255, UnoverloadedType.type_for_attribute("overloaded_string_with_limit").limit
     end
 
+    test "overloaded default but keeping its own type" do
+      klass = Class.new(UnoverloadedType) do
+        attribute :overloaded_string_with_limit, default: "the overloaded default"
+      end
+
+      assert_equal 255, UnoverloadedType.type_for_attribute("overloaded_string_with_limit").limit
+      assert_equal 255, klass.type_for_attribute("overloaded_string_with_limit").limit
+
+      assert_nil UnoverloadedType.new.overloaded_string_with_limit
+      assert_equal "the overloaded default", klass.new.overloaded_string_with_limit
+    end
+
     test "extra options are forwarded to the type caster constructor" do
       klass = Class.new(OverloadedType) do
-        attribute :starts_at, :datetime, precision: 3, limit: 2, scale: 1
+        attribute :starts_at, :datetime, precision: 3, limit: 2, scale: 1, default: -> { Time.now.utc }
       end
 
       starts_at_type = klass.type_for_attribute(:starts_at)
+
       assert_equal 3, starts_at_type.precision
       assert_equal 2, starts_at_type.limit
       assert_equal 1, starts_at_type.scale
+
+      assert_kind_of Type::DateTime, starts_at_type
+      assert_instance_of Time, klass.new.starts_at
+    end
+
+    test "time zone aware attribute" do
+      with_timezone_config aware_attributes: true, zone: "Pacific Time (US & Canada)" do
+        klass = Class.new(OverloadedType) do
+          attribute :starts_at, :datetime, precision: 3, default: -> { Time.now.utc }
+          attribute :ends_at, default: -> { Time.now.utc }
+        end
+
+        starts_at_type = klass.type_for_attribute(:starts_at)
+        ends_at_type   = klass.type_for_attribute(:ends_at)
+
+        assert_instance_of AttributeMethods::TimeZoneConversion::TimeZoneConverter, starts_at_type
+        assert_instance_of AttributeMethods::TimeZoneConversion::TimeZoneConverter, ends_at_type
+        assert_kind_of Type::DateTime, starts_at_type.__getobj__
+        assert_kind_of Type::DateTime, ends_at_type.__getobj__
+        assert_instance_of ActiveSupport::TimeWithZone, klass.new.starts_at
+        assert_instance_of ActiveSupport::TimeWithZone, klass.new.ends_at
+      end
     end
 
     test "nonexistent attribute" do

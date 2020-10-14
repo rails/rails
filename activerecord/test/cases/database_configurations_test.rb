@@ -54,11 +54,47 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     ENV["RAILS_ENV"] = original_rails_env
   end
 
+  def test_find_db_config_returns_first_config_for_env
+    config = ActiveRecord::DatabaseConfigurations.new({
+        "test" => {
+          "config_1"=> {
+            "database" => "db"
+          },
+          "config_2"=> {
+            "database" => "db"
+          },
+          "config_3"=> {
+            "database" => "db"
+          },
+        }
+      })
+
+    assert_equal "config_1", config.find_db_config("test").name
+  end
+
   def test_find_db_config_returns_a_db_config_object_for_the_given_env
     config = ActiveRecord::Base.configurations.find_db_config("arunit2")
 
     assert_equal "arunit2", config.env_name
     assert_equal "primary", config.name
+  end
+
+  def test_find_db_config_prioritize_db_config_object_for_the_current_env
+    config = ActiveRecord::DatabaseConfigurations.new({
+      "primary" => {
+        "adapter" => "randomadapter"
+      },
+      ActiveRecord::ConnectionHandling::DEFAULT_ENV.call => {
+        "primary" => {
+          "adapter" => "sqlite3",
+          "database" => ":memory:"
+        }
+      }
+    }).find_db_config("primary")
+
+    assert_equal "primary", config.name
+    assert_equal ActiveRecord::ConnectionHandling::DEFAULT_ENV.call, config.env_name
+    assert_equal ":memory:", config.database
   end
 
   def test_to_h_turns_db_config_object_back_into_a_hash_and_is_deprecated

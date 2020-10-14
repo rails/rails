@@ -28,6 +28,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def teardown
     super
+    ActionController::Base.view_paths.map(&:clear_cache)
 
     ActiveSupport::LogSubscriber.log_subscribers.clear
 
@@ -258,7 +259,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       assert_match(/Rendered collection of test\/_customer.erb within layouts\/_yield_only \[2 times\]/, @logger.logged(:debug).last)
     end
   end
-
 
   def test_render_collection_with_implicit_path
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do

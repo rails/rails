@@ -8,12 +8,17 @@ require "pathname"
 class FileStoreTest < ActiveSupport::TestCase
   attr_reader :cache_dir
 
+  def lookup_store(options = {})
+    cache_dir = options.delete(:cache_dir) { @cache_dir }
+    ActiveSupport::Cache.lookup_store(:file_store, cache_dir, options)
+  end
+
   def setup
     @cache_dir = Dir.mktmpdir("file-store-")
     Dir.mkdir(cache_dir) unless File.exist?(cache_dir)
-    @cache = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, expires_in: 60)
-    @peek = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, expires_in: 60)
-    @cache_with_pathname = ActiveSupport::Cache.lookup_store(:file_store, Pathname.new(cache_dir), expires_in: 60)
+    @cache = lookup_store(expires_in: 60)
+    @peek = lookup_store(expires_in: 60)
+    @cache_with_pathname = lookup_store(cache_dir: Pathname.new(cache_dir), expires_in: 60)
 
     @buffer = StringIO.new
     @cache.logger = ActiveSupport::Logger.new(@buffer)
@@ -26,6 +31,7 @@ class FileStoreTest < ActiveSupport::TestCase
 
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
+  include CacheStoreCoderBehavior
   include LocalCacheBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior

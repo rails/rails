@@ -26,7 +26,7 @@ module ActiveRecord
     def test_initialize_single_values
       relation = Relation.new(FakeKlass)
       (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |method|
-        assert_nil relation.send("#{method}_value"), method.to_s
+        assert_nil relation.public_send("#{method}_value"), method.to_s
       end
       value = relation.create_with_value
       assert_equal({}, value)
@@ -36,7 +36,7 @@ module ActiveRecord
     def test_multi_value_initialize
       relation = Relation.new(FakeKlass)
       Relation::MULTI_VALUE_METHODS.each do |method|
-        values = relation.send("#{method}_values")
+        values = relation.public_send("#{method}_values")
         assert_equal [], values, method.to_s
         assert_predicate values, :frozen?, method.to_s
       end
@@ -140,13 +140,13 @@ module ActiveRecord
       relation = Relation.new(FakeKlass)
       assert_equal [], relation.references_values
       relation = relation.references(:foo).references(:omg, :lol)
-      assert_equal ["foo", "omg", "lol"], relation.references_values
+      assert_equal [:foo, :omg, :lol], relation.references_values
     end
 
     def test_references_values_dont_duplicate
       relation = Relation.new(FakeKlass)
       relation = relation.references(:foo).references(:foo)
-      assert_equal ["foo"], relation.references_values
+      assert_equal [:foo], relation.references_values
     end
 
     test "merging a hash into a relation" do

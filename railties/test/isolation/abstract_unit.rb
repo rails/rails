@@ -206,7 +206,6 @@ module TestHelpers
         config.session_store :cookie_store, key: "_myapp_session"
         config.active_support.deprecation = :log
         config.action_controller.allow_forgery_protection = false
-        config.log_level = :info
       RUBY
     end
 

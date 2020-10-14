@@ -2,7 +2,7 @@
 
 require "abstract_unit"
 require "controller/fake_models"
-require "test_component"
+require "test_renderable"
 require "active_model/validations"
 
 class TestController < ActionController::Base
@@ -71,7 +71,6 @@ module RenderTestCases
   def test_render_template
     assert_equal "Hello world!", @view.render(template: "test/hello_world")
   end
-
 
   def test_render_file
     assert_equal "Hello world!", assert_deprecated { @view.render(file: "test/hello_world") }
@@ -327,7 +326,12 @@ module RenderTestCases
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
 
-  def test_render_object
+  def test_undefined_method_error_references_named_class
+    e = assert_raises(ActionView::Template::Error) { @view.render(inline: "<%= undefined %>") }
+    assert_match(/`undefined' for #<ActionView::Base:0x[0-9a-f]+>/, e.message)
+  end
+
+  def test_render_renderable_object
     assert_equal "Hello: david", @view.render(partial: "test/customer", object: Customer.new("david"))
     assert_equal "FalseClass", @view.render(partial: "test/klass", object: false)
     assert_equal "NilClass", @view.render(partial: "test/klass", object: nil)
@@ -693,10 +697,10 @@ module RenderTestCases
     assert_raises(ArgumentError) { ActionView::Template.register_template_handler CustomHandler }
   end
 
-  def test_render_component
+  def test_render_object
     assert_equal(
       %(Hello, World!),
-      @view.render(TestComponent.new)
+      @view.render(TestRenderable.new)
     )
   end
 end

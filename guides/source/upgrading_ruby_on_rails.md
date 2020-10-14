@@ -494,7 +494,7 @@ By opting-out you optimize `$LOAD_PATH` lookups (less directories to check), and
 
 #### Thread-safety
 
-In classic mode, constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe when autoloading is enabled, as it is common in `development` mode.
+In classic mode, constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe when autoloading is enabled, as it is common in the development environment.
 
 Constant autoloading is thread-safe in `zeitwerk` mode. For example, you can now autoload in multi-threaded scripts executed by the `runner` command.
 
@@ -668,7 +668,7 @@ model behavior.
 When upgrading from Rails 4.2 to Rails 5.0, you need to create an
 `application_record.rb` file in `app/models/` and add the following content:
 
-```
+```ruby
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 end
@@ -709,7 +709,7 @@ behavior has changed to now inherit from `ApplicationJob`.
 When upgrading from Rails 4.2 to Rails 5.0, you need to create an
 `application_job.rb` file in `app/jobs/` and add the following content:
 
-```
+```ruby
 class ApplicationJob < ActiveJob::Base
 end
 ```
@@ -750,8 +750,7 @@ are also fine because the file defining them will have been eager loaded while b
 
 For the vast majority of applications this change needs no action. But in the
 very rare event that your application needs autoloading while running in
-production mode, set `Rails.application.config.enable_dependency_loading` to
-true.
+production, set `Rails.application.config.enable_dependency_loading` to true.
 
 ### XML Serialization
 
@@ -858,7 +857,7 @@ should also extend the module with `ActiveSupport::Concern`. Alternatively, you 
 to include `ActionController::Live` directly to the controller once the `StreamingSupport` is included.
 
 This means that if your application used to have its own streaming module, the following code
-would break in production mode:
+would break in production:
 
 ```ruby
 # This is a work-around for streamed controllers performing authentication with Warden/Devise.
@@ -888,8 +887,8 @@ end
 
 This can be turned off per-association with `optional: true`.
 
-This default will be automatically configured in new applications. If existing application
-want to add this feature it will need to be turned on in an initializer.
+This default will be automatically configured in new applications. If an existing application
+wants to add this feature it will need to be turned on in an initializer:
 
     config.active_record.belongs_to_required_by_default = true
 
@@ -1249,7 +1248,7 @@ secrets, you need to:
 
 2. Use your existing `secret_key_base` from the `secret_token.rb` initializer to
    set the SECRET_KEY_BASE environment variable for whichever users running the
-   Rails application in production mode. Alternatively, you can simply copy the existing
+   Rails application in production. Alternatively, you can simply copy the existing
    `secret_key_base` from the `secret_token.rb` initializer to `secrets.yml`
    under the `production` section, replacing '<%= ENV["SECRET_KEY_BASE"] %>'.
 
@@ -1383,7 +1382,7 @@ gem to your `Gemfile`.
 now returns millisecond precision by default. If you need to keep old behavior with no millisecond
 precision, set the following in an initializer:
 
-```
+```ruby
 ActiveSupport::JSON::Encoding.time_precision = 0
 ```
 
@@ -1674,7 +1673,7 @@ used with `PATCH`](http://www.rfc-editor.org/errata_search.php?rfc=5789). One
 such format is [JSON Patch](https://tools.ietf.org/html/rfc6902). While Rails
 does not support JSON Patch natively, it's easy enough to add support:
 
-```
+```ruby
 # in your controller
 def update
   respond_to do |format|

@@ -21,10 +21,14 @@ module ActiveRecord
       end
 
       def teardown
-        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+        clean_up_connection_handler
       end
 
-      class MultiConnectionTestModel < ActiveRecord::Base
+      class SecondaryBase < ActiveRecord::Base
+        self.abstract_class = true
+      end
+
+      class MultiConnectionTestModel < SecondaryBase
       end
 
       def test_multiple_connection_handlers_works_in_a_threaded_environment
@@ -33,7 +37,7 @@ module ActiveRecord
 
         # We need to use a role for reading not named reading, otherwise we'll prevent writes
         # and won't be able to write to the second connection.
-        MultiConnectionTestModel.connects_to database: { writing: { database: tf_writing.path, adapter: "sqlite3" }, secondary: { database: tf_reading.path, adapter: "sqlite3" } }
+        SecondaryBase.connects_to database: { writing: { database: tf_writing.path, adapter: "sqlite3" }, secondary: { database: tf_reading.path, adapter: "sqlite3" } }
 
         MultiConnectionTestModel.connection.execute("CREATE TABLE `multi_connection_test_models` (connection_role VARCHAR (255))")
         MultiConnectionTestModel.connection.execute("INSERT INTO multi_connection_test_models VALUES ('writing')")
@@ -73,7 +77,7 @@ module ActiveRecord
       def test_loading_relations_with_multi_db_connection_handlers
         # We need to use a role for reading not named reading, otherwise we'll prevent writes
         # and won't be able to write to the second connection.
-        MultiConnectionTestModel.connects_to database: { writing: { database: ":memory:", adapter: "sqlite3" }, secondary: { database: ":memory:", adapter: "sqlite3" } }
+        SecondaryBase.connects_to database: { writing: { database: ":memory:", adapter: "sqlite3" }, secondary: { database: ":memory:", adapter: "sqlite3" } }
 
         relation = ActiveRecord::Base.connected_to(role: :secondary) do
           MultiConnectionTestModel.connection.execute("CREATE TABLE `multi_connection_test_models` (connection_role VARCHAR (255))")
@@ -215,6 +219,14 @@ module ActiveRecord
             end
           end
           assert_equal "`connected_to` cannot accept a `database` argument with any other arguments.", error.message
+        end
+
+        def test_database_argument_is_deprecated
+          assert_deprecated do
+            ActiveRecord::Base.connected_to(database: { writing: { adapter: "sqlite3", database: "test/db/primary.sqlite3" } }) { }
+          end
+        ensure
+          ActiveRecord::Base.establish_connection(:arunit)
         end
 
         def test_switching_connections_without_database_and_role_raises
@@ -369,8 +381,6 @@ module ActiveRecord
       end
 
       def test_connection_handlers_are_per_thread_and_not_per_fiber
-        original_handlers = ActiveRecord::Base.connection_handlers
-
         ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler, reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new }
 
         reading_handler = ActiveRecord::Base.connection_handlers[:reading]
@@ -382,7 +392,7 @@ module ActiveRecord
         assert_not_equal reading, ActiveRecord::Base.connection_handler
         assert_equal reading, reading_handler
       ensure
-        ActiveRecord::Base.connection_handlers = original_handlers
+        clean_up_connection_handler
       end
 
       def test_connection_handlers_swapping_connections_in_fiber

@@ -75,7 +75,7 @@ class CodeStatistics #:nodoc:
     end
 
     def width_for(label)
-      [@statistics.values.sum { |s| s.send(label) }.to_s.size, HEADERS[label].length].max
+      [@statistics.values.sum { |s| s.public_send(label) }.to_s.size, HEADERS[label].length].max
     end
 
     def print_header

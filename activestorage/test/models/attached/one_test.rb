@@ -319,6 +319,13 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_equal 2736, @user.avatar.metadata[:height]
   end
 
+  test "creating an attachment as part of an autosave association through nested attributes" do
+    group = Group.create!(users_attributes: [{ name: "John", avatar: { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" } }])
+    group.save!
+    new_user = User.find_by(name: "John")
+    assert new_user.avatar.attached?
+  end
+
   test "updating an attachment as part of an autosave association" do
     group = Group.create!(users: [@user])
     @user.avatar = fixture_file_upload("racecar.jpg")
@@ -449,7 +456,9 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       @user.avatar.attach blob
       assert @user.avatar.attached?
 
-      @user.avatar.purge
+      assert_changes -> { @user.updated_at } do
+        @user.avatar.purge
+      end
       assert_not @user.avatar.attached?
       assert_not ActiveStorage::Blob.exists?(blob.id)
       assert_not ActiveStorage::Blob.service.exist?(blob.key)
@@ -478,7 +487,9 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       assert @user.avatar.attached?
 
       perform_enqueued_jobs do
-        @user.avatar.purge_later
+        assert_changes -> { @user.updated_at } do
+          @user.avatar.purge_later
+        end
       end
 
       assert_not @user.avatar.attached?

@@ -228,9 +228,9 @@ module ActionDispatch
             end
 
             if options.empty?
-              recipient.send(method, *args)
+              recipient.public_send(method, *args)
             else
-              recipient.send(method, *args, options)
+              recipient.public_send(method, *args, options)
             end
           end
 
@@ -247,7 +247,7 @@ module ActionDispatch
           end
 
           def handle_string_call(target, str)
-            target.send get_method_for_string str
+            target.public_send get_method_for_string str
           end
 
           def handle_class(klass)
@@ -255,7 +255,7 @@ module ActionDispatch
           end
 
           def handle_class_call(target, klass)
-            target.send get_method_for_class klass
+            target.public_send get_method_for_class klass
           end
 
           def handle_model(record)
@@ -277,7 +277,7 @@ module ActionDispatch
               mapping.call(target, [record], suffix == "path")
             else
               method, args = handle_model(record)
-              target.send(method, *args)
+              target.public_send(method, *args)
             end
           end
 

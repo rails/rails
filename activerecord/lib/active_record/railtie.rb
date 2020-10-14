@@ -27,19 +27,20 @@ module ActiveRecord
     )
 
     config.active_record.use_schema_cache_dump = true
+    config.active_record.check_schema_cache_dump_version = true
     config.active_record.maintain_test_schema = true
     config.active_record.has_many_inversing = false
 
     config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
     config.active_record.sqlite3.represent_boolean_as_integer = nil
 
+    config.active_record.queues = ActiveSupport::InheritableOptions.new(destroy: :active_record_destroy)
+
     config.eager_load_namespaces << ActiveRecord
 
     rake_tasks do
       namespace :db do
         task :load_config do
-          ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
-
           if defined?(ENGINE_ROOT) && engine = Rails::Engine.find(ENGINE_ROOT)
             if engine.paths["db/migrate"].existent
               ActiveRecord::Tasks::DatabaseTasks.migrations_paths += engine.paths["db/migrate"].to_a
@@ -126,6 +127,8 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     initializer "active_record.check_schema_cache_dump" do
+      check_schema_cache_dump_version = config.active_record.delete(:check_schema_cache_dump_version)
+
       if config.active_record.delete(:use_schema_cache_dump)
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
@@ -139,12 +142,19 @@ To keep using the current cache store, you can turn off cache versioning entirel
             cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
             next if cache.nil?
 
-            current_version = ActiveRecord::Migrator.current_version
-            next if current_version.nil?
+            if check_schema_cache_dump_version
+              current_version = begin
+                ActiveRecord::Migrator.current_version
+              rescue ActiveRecordError => error
+                warn "Failed to validate the schema cache because of #{error.class}: #{error.message}"
+                nil
+              end
+              next if current_version.nil?
 
-            if cache.version != current_version
-              warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
-              next
+              if cache.version != current_version
+                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
+                next
+              end
             end
 
             connection_pool.set_schema_cache(cache.dup)
@@ -157,16 +167,29 @@ To keep using the current cache store, you can turn off cache versioning entirel
       config.after_initialize do
         ActiveSupport.on_load(:active_record) do
           if app.config.eager_load
-            descendants.each do |model|
-              # SchemaMigration and InternalMetadata both override `table_exists?`
-              # to bypass the schema cache, so skip them to avoid the extra queries.
-              next if model._internal?
+            begin
+              descendants.each do |model|
+                # SchemaMigration and InternalMetadata both override `table_exists?`
+                # to bypass the schema cache, so skip them to avoid the extra queries.
+                next if model._internal?
 
-              # If there's no connection yet, or the schema cache doesn't have the columns
-              # hash for the model cached, `define_attribute_methods` would trigger a query.
-              next unless model.connected? && model.connection.schema_cache.columns_hash?(model.table_name)
+                # If the schema cache was loaded from a dump, we can use it without connecting
+                schema_cache = model.connection_pool.schema_cache
 
-              model.define_attribute_methods
+                # If there's no connection yet, we avoid connecting.
+                schema_cache ||= model.connected? && model.connection.schema_cache
+
+                # If the schema cache doesn't have the columns
+                # hash for the model cached, `define_attribute_methods` would trigger a query.
+                if schema_cache && schema_cache.columns_hash?(model.table_name)
+                  model.define_attribute_methods
+                end
+              end
+            rescue ActiveRecordError => error
+              # Regardless of wether there was already a connection or not, we rescue any database
+              # error because it is critical that the application can boot even if the database
+              # is unhealthy.
+              warn "Failed to define attribute methods because of #{error.class}: #{error.message}"
             end
           end
         end

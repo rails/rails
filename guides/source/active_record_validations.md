@@ -86,13 +86,15 @@ end
 We can see how it works by looking at some `bin/rails console` output:
 
 ```ruby
-$ bin/rails console
 >> p = Person.new(name: "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
+
 >> p.new_record?
 => true
+
 >> p.save
 => true
+
 >> p.new_record?
 => false
 ```
@@ -133,6 +135,10 @@ database regardless of its validity. They should be used with caution.
 * `decrement_counter`
 * `increment!`
 * `increment_counter`
+* `insert`
+* `insert!`
+* `insert_all`
+* `insert_all!`
 * `toggle!`
 * `touch`
 * `touch_all`
@@ -141,6 +147,8 @@ database regardless of its validity. They should be used with caution.
 * `update_column`
 * `update_columns`
 * `update_counters`
+* `upsert`
+* `upsert_all`
 
 Note that `save` also has the ability to skip validations if passed `validate:
 false` as an argument. This technique should be used with caution.
@@ -525,9 +533,9 @@ to map the association. This way, it is not only checked that the foreign key
 is not empty but also that the referenced object exists.
 
 ```ruby
-class LineItem < ApplicationRecord
-  belongs_to :order
-  validates :order, presence: true
+class Supplier < ApplicationRecord
+  has_one :account
+  validates :account, presence: true
 end
 ```
 
@@ -550,8 +558,8 @@ Since `false.blank?` is true, if you want to validate the presence of a boolean
 field you should use one of the following validations:
 
 ```ruby
-validates :boolean_field_name, inclusion: { in: [true, false] }
-validates :boolean_field_name, exclusion: { in: [nil] }
+validates :boolean_field_name, inclusion: [true, false]
+validates :boolean_field_name, exclusion: [nil]
 ```
 
 By using one of these validations, you will ensure the value will NOT be `nil`
@@ -676,7 +684,7 @@ validator class as `options`:
 ```ruby
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
-    if options[:fields].any?{|field| record.send(field) == "Evil" }
+    if options[:fields].any? { |field| record.send(field) == "Evil" }
       record.errors.add :base, "This person is evil"
     end
   end
@@ -791,9 +799,9 @@ class Person < ApplicationRecord
   # Hard-coded message
   validates :name, presence: { message: "must be given please" }
 
-  # Message with dynamic attribute value. %{value} will be replaced with
-  # the actual value of the attribute. %{attribute} and %{model} also
-  # available.
+  # Message with dynamic attribute value. %{value} will be replaced
+  # with the actual value of the attribute. %{attribute} and %{model}
+  # are also available.
   validates :age, numericality: { message: "%{value} seems wrong" }
 
   # Proc
@@ -802,7 +810,7 @@ class Person < ApplicationRecord
       # object = person object being validated
       # data = { model: "Person", attribute: "Username", value: <username> }
       message: ->(object, data) do
-        "Hey #{object.name}!, #{data[:value]} is taken already! Try again #{Time.zone.tomorrow}"
+        "Hey #{object.name}, #{data[:value]} is already taken."
       end
     }
 end
@@ -1252,9 +1260,9 @@ Assuming we have a model that's been saved in an instance variable named
     <h2><%= pluralize(@article.errors.count, "error") %> prohibited this article from being saved:</h2>
 
     <ul>
-    <% @article.errors.each do |error| %>
-      <li><%= error.full_message %></li>
-    <% end %>
+      <% @article.errors.each do |error| %>
+        <li><%= error.full_message %></li>
+      <% end %>
     </ul>
   </div>
 <% end %>
@@ -1266,7 +1274,7 @@ the entry.
 
 ```html
 <div class="field_with_errors">
- <input id="article_title" name="article[title]" size="30" type="text" value="">
+  <input id="article_title" name="article[title]" size="30" type="text" value="">
 </div>
 ```
 

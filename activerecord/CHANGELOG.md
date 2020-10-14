@@ -1,31 +1,176 @@
-*   Support `where` with comparison operators (`>`, `>=`, `<`, and `<=`).
+*   Support passing record to uniqueness validator `:conditions` callable:
 
     ```ruby
-    posts = Post.order(:id)
-
-    posts.where("id >": 9).pluck(:id)  # => [10, 11]
-    posts.where("id >=": 9).pluck(:id) # => [9, 10, 11]
-    posts.where("id <": 3).pluck(:id)  # => [1, 2]
-    posts.where("id <=": 3).pluck(:id) # => [1, 2, 3]
+    class Article < ApplicationRecord
+      validates_uniqueness_of :title, conditions: ->(article) {
+        published_at = article.published_at
+        where(published_at: published_at.beginning_of_year..published_at.end_of_year)
+      }
+    end
     ```
 
-    From type casting and table/column name resolution's point of view,
-    `where("created_at >=": time)` is better alternative than `where("created_at >= ?", time)`.
+    *Eliot Sykes*
+
+*   `BatchEnumerator#update_all` and `BatchEnumerator#delete_all` now return the
+    total number of rows affected, just like their non-batched counterparts.
+
+    ```ruby
+    Person.in_batches.update_all("first_name = 'Eugene'") # => 42
+    Person.in_batches.delete_all # => 42
+    ```
+
+    Fixes #40287.
+
+    *Eugene Kenny*
+
+*   Add support for PostgreSQL `interval` data type with conversion to
+    `ActiveSupport::Duration` when loading records from database and
+    serialization to ISO 8601 formatted duration string on save.
+    Add support to define a column in migrations and get it in a schema dump.
+    Optional column precision is supported.
+
+    To use this in 6.1, you need to place the next string to your model file:
+
+        attribute :duration, :interval
+
+    To keep old behavior until 6.2 is released:
+
+        attribute :duration, :string
+
+    Example:
+
+        create_table :events do |t|
+          t.string   :name
+          t.interval :duration
+        end
+
+        class Event < ApplicationRecord
+          attribute :duration, :interval
+        end
+
+        Event.create!(name: 'Rock Fest', duration: 2.days)
+        Event.last.duration # => 2 days
+        Event.last.duration.iso8601 # => "P2D"
+        Event.new(duration: 'P1DT12H3S').duration # => 1 day, 12 hours, and 3 seconds
+        Event.new(duration: '1 day') # Unknown value will be ignored and NULL will be written to database
+
+    *Andrey Novikov*
+
+*   Allow associations supporting the `dependent:` key to take `dependent: :destroy_async`.
+
+    ```ruby
+    class Account < ActiveRecord::Base
+        belongs_to :supplier, dependent: :destroy_async
+    end
+    ```
+
+    `:destroy_async` will enqueue a job to destroy associated records in the background.
+
+    *DHH*, *George Claghorn*, *Cory Gwin*, *Rafael Mendonça França*, *Adrianna Chang*
+
+*   Add `SKIP_TEST_DATABASE` environment variable to disable modifying the test database when `rails db:create` and `rails db:drop` are called.
+
+    *Jason Schweier*
+
+*   `connects_to` can only be called on `ActiveRecord::Base` or abstract classes.
+
+    Ensure that `connects_to` can only be called from `ActiveRecord::Base` or abstract classes. This protects the application from opening duplicate or too many connections.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   All connection adapters `execute` now raises `ActiveRecord::ConnectionNotEstablished` rather than
+    `ActiveRecord::StatementInvalid` when they encounter a connection error.
+
+    *Jean Boussier*
+
+*   `Mysql2Adapter#quote_string` now raises `ActiveRecord::ConnectionNotEstablished` rather than
+    `ActiveRecord::StatementInvalid` when it can't connect to the MySQL server.
+
+    *Jean Boussier*
+
+*   Add support for check constraints that are `NOT VALID` via `validate: false` (PostgreSQL-only).
+
+    *Alex Robbin*
+
+*   Ensure the default configuration is considered primary or first for an environment
+
+    If a multiple database application provides a configuration named primary, that will be treated as default. In applications that do not have a primary entry, the default database configuration will be the first configuration for an environment.
+
+    *Eileen M. Uchitelle*
+
+*   Allow `where` references association names as joined table name aliases.
+
+    ```ruby
+    class Comment < ActiveRecord::Base
+      enum label: [:default, :child]
+      has_many :children, class_name: "Comment", foreign_key: :parent_id
+    end
+
+    # ... FROM comments LEFT OUTER JOIN comments children ON ... WHERE children.label = 1
+    Comment.includes(:children).where("children.label": "child")
+    ```
+
+    *Ryuta Kamizono*
+
+*   Support storing demodulized class name for polymorphic type.
+
+    Before Rails 6.1, storing demodulized class name is supported only for STI type
+    by `store_full_sti_class` class attribute.
+
+    Now `store_full_class_name` class attribute can handle both STI and polymorphic types.
+
+    *Ryuta Kamizono*
+
+*   Deprecate `rails db:structure:{load, dump}` tasks and extend
+    `rails db:schema:{load, dump}` tasks to work with either `:ruby` or `:sql` format,
+    depending on `config.active_record.schema_format` configuration value.
+
+    *fatkodima*
+
+*   Respect the `select` values for eager loading.
+
+    ```ruby
+    post = Post.select("UPPER(title) AS title").first
+    post.title # => "WELCOME TO THE WEBLOG"
+    post.body  # => ActiveModel::MissingAttributeError
+
+    # Rails 6.0 (ignore the `select` values)
+    post = Post.select("UPPER(title) AS title").eager_load(:comments).first
+    post.title # => "Welcome to the weblog"
+    post.body  # => "Such a lovely day"
+
+    # Rails 6.1 (respect the `select` values)
+    post = Post.select("UPPER(title) AS title").eager_load(:comments).first
+    post.title # => "WELCOME TO THE WEBLOG"
+    post.body  # => ActiveModel::MissingAttributeError
+    ```
+
+    *Ryuta Kamizono*
+
+*   Allow attribute's default to be configured but keeping its own type.
 
     ```ruby
     class Post < ActiveRecord::Base
-      attribute :created_at, :datetime, precision: 3
+      attribute :written_at, default: -> { Time.now.utc }
     end
 
-    time = Time.now.utc # => 2020-06-24 10:11:12.123456 UTC
+    # Rails 6.0
+    Post.type_for_attribute(:written_at) # => #<Type::Value ... precision: nil, ...>
 
-    Post.create!(created_at: time) # => #<Post id: 1, created_at: "2020-06-24 10:11:12.123000">
+    # Rails 6.1
+    Post.type_for_attribute(:written_at) # => #<Type::DateTime ... precision: 6, ...>
+    ```
 
-    # SELECT `posts`.* FROM `posts` WHERE (created_at >= '2020-06-24 10:11:12.123456')
-    Post.where("created_at >= ?", time) # => []
+    *Ryuta Kamizono*
 
-    # SELECT `posts`.* FROM `posts` WHERE `posts`.`created_at` >= '2020-06-24 10:11:12.123000'
-    Post.where("created_at >=": time) # => [#<Post id: 1, created_at: "2020-06-24 10:11:12.123000">]
+*   Allow default to be configured for Enum.
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      enum status: [:proposed, :written, :published], _default: :published
+    end
+
+    Book.new.status # => "published"
     ```
 
     *Ryuta Kamizono*
@@ -826,10 +971,6 @@
     To continue taking non-deterministic result, use `.take` / `.take!` instead.
 
     *Ryuta Kamizono*
-
-*   Ensure custom PK types are casted in through reflection queries.
-
-    *Gannon McGibbon*
 
 *   Preserve user supplied joins order as much as possible.
 

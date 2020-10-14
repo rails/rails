@@ -27,6 +27,18 @@ module ActiveRecord
       mattr_accessor :verbose_query_logs, instance_writer: false, default: false
 
       ##
+      # :singleton-method:
+      #
+      # Specifies the names of the queues used by background jobs.
+      mattr_accessor :queues, instance_accessor: false, default: {}
+
+      ##
+      # :singleton-method:
+      #
+      # Specifies the job used to destroy associations in the background
+      class_attribute :destroy_association_async_job, instance_writer: false, instance_predicate: false, default: false
+
+      ##
       # Contains the database configuration - as is typically stored in config/database.yml -
       # as an ActiveRecord::DatabaseConfigurations object.
       #
@@ -104,7 +116,7 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Specifies which database schemas to dump when calling db:structure:dump.
+      # Specifies which database schemas to dump when calling db:schema:dump.
       # If the value is :schema_search_path (the default), any schemas listed in
       # schema_search_path are dumped. Use :all to dump all schemas regardless
       # of schema_search_path, or a string of comma separated schemas for a
@@ -135,7 +147,7 @@ module ActiveRecord
 
       class_attribute :default_connection_handler, instance_writer: false
 
-      class_attribute :default_pool_key, instance_writer: false
+      class_attribute :default_shard, instance_writer: false
 
       self.filter_attributes = []
 
@@ -147,16 +159,16 @@ module ActiveRecord
         Thread.current.thread_variable_set(:ar_connection_handler, handler)
       end
 
-      def self.current_pool_key
-        Thread.current.thread_variable_get(:ar_pool_key) || default_pool_key
+      def self.current_shard
+        Thread.current.thread_variable_get(:ar_shard) || default_shard
       end
 
-      def self.current_pool_key=(pool_key)
-        Thread.current.thread_variable_set(:ar_pool_key, pool_key)
+      def self.current_shard=(shard)
+        Thread.current.thread_variable_set(:ar_shard, shard)
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
-      self.default_pool_key = :default
+      self.default_shard = :default
     end
 
     module ClassMethods
@@ -289,14 +301,13 @@ module ActiveRecord
       #     scope :published_and_commented, -> { published.and(arel_table[:comments_count].gt(0)) }
       #   end
       def arel_table # :nodoc:
-        @arel_table ||= Arel::Table.new(table_name, type_caster: type_caster)
+        @arel_table ||= Arel::Table.new(table_name, klass: self)
       end
 
       def arel_attribute(name, table = arel_table) # :nodoc:
-        name = name.to_s
-        name = attribute_aliases[name] || name
         table[name]
       end
+      deprecate :arel_attribute
 
       def predicate_builder # :nodoc:
         @predicate_builder ||= PredicateBuilder.new(table_metadata)
@@ -321,7 +332,6 @@ module ActiveRecord
 
           if finder_needs_type_condition? && !ignore_default_scope?
             relation.where!(type_condition)
-            relation.create_with!(inheritance_column.to_s => sti_name)
           else
             relation
           end

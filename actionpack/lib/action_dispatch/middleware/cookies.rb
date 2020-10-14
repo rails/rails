@@ -70,7 +70,7 @@ module ActionDispatch
     end
 
     def cookies_same_site_protection
-      get_header Cookies::COOKIES_SAME_SITE_PROTECTION
+      get_header(Cookies::COOKIES_SAME_SITE_PROTECTION) || Proc.new { }
     end
 
     def cookies_digest
@@ -88,11 +88,10 @@ module ActionDispatch
     # :startdoc:
   end
 
-  # \Cookies are read and written through ActionController#cookies.
+  # Read and write data to cookies through ActionController#cookies.
   #
-  # The cookies being read are the ones received along with the request, the cookies
-  # being written will be sent out with the response. Reading a cookie does not get
-  # the cookie object itself back, just the value it holds.
+  # When reading cookie data, the data is read from the HTTP request header, Cookie.
+  # When writing cookie data, the data is sent out in the HTTP response header, Set-Cookie.
   #
   # Examples of writing:
   #
@@ -445,7 +444,9 @@ module ActionDispatch
           end
 
           options[:path]      ||= "/"
-          options[:same_site] ||= request.cookies_same_site_protection
+
+          cookies_same_site_protection = request.cookies_same_site_protection
+          options[:same_site] ||= cookies_same_site_protection.call(request)
 
           if options[:domain] == :all || options[:domain] == "all"
             # If there is a provided tld length then we use it otherwise default domain regexp.

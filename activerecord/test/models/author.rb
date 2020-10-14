@@ -38,7 +38,7 @@ class Author < ActiveRecord::Base
            -> { where(title: "Welcome to the weblog").where(comments_count: 1) },
            class_name: "Post"
   has_many :welcome_posts_with_comments,
-           -> { where(title: "Welcome to the weblog").where("comments_count >": 0) },
+           -> { where(title: "Welcome to the weblog").where("legacy_comments_count > 0") },
            class_name: "Post"
 
   has_many :comments_desc, -> { order("comments.id DESC") }, through: :posts_sorted_by_id, source: :comments
@@ -92,6 +92,9 @@ class Author < ActiveRecord::Base
   has_many :special_categorizations
   has_many :special_categories, through: :special_categorizations, source: :category
   has_one  :special_category,   through: :special_categorizations, source: :category
+
+  has_many :general_categorizations, -> { joins(:category).where("categories.name": "General") }, class_name: "Categorization"
+  has_many :general_posts, through: :general_categorizations, source: :post
 
   has_many :special_categories_with_conditions, -> { where(categorizations: { special: true }) }, through: :categorizations, source: :category
   has_many :nonspecial_categories_with_conditions, -> { where(categorizations: { special: false }) }, through: :categorizations, source: :category

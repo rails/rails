@@ -933,6 +933,31 @@ class MigrationTest < ActiveRecord::TestCase
       end
     end
 
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_with_advisory_lock_closes_connection
+        migration = Class.new(ActiveRecord::Migration::Current) {
+          def version; 100 end
+          def migrate(x)
+          end
+        }.new
+
+        migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
+        lock_id = migrator.send(:generate_migrator_advisory_lock_id)
+
+        query = <<~SQL
+        SELECT query
+        FROM pg_stat_activity
+        WHERE datname = '#{ActiveRecord::Base.connection_db_config.database}'
+        AND state = 'idle'
+        AND query LIKE '%#{lock_id}%'
+        SQL
+
+        assert_no_changes -> { ActiveRecord::Base.connection.exec_query(query).rows.flatten } do
+          migrator.migrate
+        end
+      end
+    end
+
     def test_with_advisory_lock_raises_the_right_error_when_it_fails_to_release_lock
       migration = Class.new(ActiveRecord::Migration::Current).new
       migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
@@ -940,8 +965,10 @@ class MigrationTest < ActiveRecord::TestCase
 
       e = assert_raises(ActiveRecord::ConcurrentMigrationError) do
         silence_stream($stderr) do
-          migrator.send(:with_advisory_lock) do
-            ActiveRecord::AdvisoryLockBase.connection.release_advisory_lock(lock_id)
+          migrator.stub(:with_advisory_lock_connection, ->(&block) { block.call(ActiveRecord::Base.connection) }) do
+            migrator.send(:with_advisory_lock) do
+              ActiveRecord::Base.connection.release_advisory_lock(lock_id)
+            end
           end
         end
       end

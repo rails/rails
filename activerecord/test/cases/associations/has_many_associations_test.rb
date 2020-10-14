@@ -1961,7 +1961,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       firm.clients = []
     end
 
-    assert_equal [], firm.send("clients=", [])
+    assert_equal [], firm.public_send("clients=", [])
   end
 
   def test_transactions_when_replacing_on_persisted

@@ -318,9 +318,9 @@ You can use `uuid` type to define references in migrations:
 ```ruby
 # db/migrate/20150418012400_create_blog.rb
 enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
-create_table :posts, id: :uuid, default: 'gen_random_uuid()'
+create_table :posts, id: :uuid
 
-create_table :comments, id: :uuid, default: 'gen_random_uuid()' do |t|
+create_table :comments, id: :uuid do |t|
   # t.belongs_to :post, type: :uuid
   t.references :post, type: :uuid
 end
@@ -404,6 +404,29 @@ macbook.address
 All geometric types, with the exception of `points` are mapped to normal text.
 A point is casted to an array containing `x` and `y` coordinates.
 
+### Interval
+
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-datetime.html#DATATYPE-INTERVAL-INPUT)
+* [functions and operators](http://www.postgresql.org/docs/current/static/functions-datetime.html)
+
+This type is mapped to [`ActiveSupport::Duration`](http://api.rubyonrails.org/classes/ActiveSupport/Duration.html) objects.
+
+```ruby
+# db/migrate/20200120000000_create_events.rb
+create_table :events do |t|
+  t.interval 'duration'
+end
+
+# app/models/event.rb
+class Event < ApplicationRecord
+end
+
+# Usage
+Event.create(duration: 2.days)
+
+event = Event.first
+event.duration # => 2 days
+```
 
 UUID Primary Keys
 -----------------
@@ -414,7 +437,7 @@ extension to generate random UUIDs.
 ```ruby
 # db/migrate/20131220144913_create_devices.rb
 enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
-create_table :devices, id: :uuid, default: 'gen_random_uuid()' do |t|
+create_table :devices, id: :uuid do |t|
   t.string :kind
 end
 

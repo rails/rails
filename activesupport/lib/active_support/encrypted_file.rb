@@ -20,10 +20,20 @@ module ActiveSupport
       end
     end
 
+    class InvalidKeyLengthError < RuntimeError
+      def initialize
+        super "Encryption key must be exactly #{EncryptedFile.expected_key_length} characters."
+      end
+    end
+
     CIPHER = "aes-128-gcm"
 
     def self.generate_key
       SecureRandom.hex(ActiveSupport::MessageEncryptor.key_len(CIPHER))
+    end
+
+    def self.expected_key_length # :nodoc:
+      @expected_key_length ||= generate_key.length
     end
 
 
@@ -74,6 +84,7 @@ module ActiveSupport
 
 
       def encrypt(contents)
+        check_key_length
         encryptor.encrypt_and_sign contents
       end
 
@@ -91,11 +102,16 @@ module ActiveSupport
       end
 
       def read_key_file
-        key_path.binread.strip if key_path.exist?
+        return @key_file_contents if defined?(@key_file_contents)
+        @key_file_contents = (key_path.binread.strip if key_path.exist?)
       end
 
       def handle_missing_key
         raise MissingKeyError.new(key_path: key_path, env_key: env_key) if raise_if_missing_key
+      end
+
+      def check_key_length
+        raise InvalidKeyLengthError if key&.length != self.class.expected_key_length
       end
   end
 end

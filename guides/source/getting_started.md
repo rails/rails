@@ -93,7 +93,7 @@ dollar sign `$` should be run in the command line. Verify that you have a
 current version of Ruby installed:
 
 ```bash
-$ ruby -v
+$ ruby --version
 ruby 2.5.0
 ```
 
@@ -139,7 +139,7 @@ instructions at the [Yarn website](https://classic.yarnpkg.com/en/docs/install).
 Running this command should print out Yarn version:
 
 ```bash
-$ yarn -v
+$ yarn --version
 ```
 
 If it says something like "1.22.0", Yarn has been installed correctly.
@@ -255,9 +255,9 @@ your application in action, open a browser window and navigate to
 TIP: To stop the web server, hit Ctrl+C in the terminal window where it's
 running. To verify the server has stopped you should see your command prompt
 cursor again. For most UNIX-like systems including macOS this will be a
-dollar sign `$`. In development mode, Rails does not generally require you to
-restart the server; changes you make in files will be automatically picked up by
-the server.
+dollar sign `$`. In the development environment, Rails does not generally
+require you to restart the server; changes you make in files will be
+automatically picked up by the server.
 
 The "Yay! You're on Rails!" page is the _smoke test_ for a new Rails
 application: it makes sure that you have your software configured correctly
@@ -1063,9 +1063,9 @@ TIP: If you want to link to an action in the same controller, you don't need to
 specify the `:controller` option, as Rails will use the current controller by
 default.
 
-TIP: In development mode (which is what you're working in by default), Rails
-reloads your application with every browser request, so there's no need to stop
-and restart the web server when a change is made.
+TIP: In the development environment (which is what you're working in by
+default), Rails reloads your application with every browser request, so there's
+no need to stop and restart the web server when a change is made.
 
 ### Adding Some Validation
 
@@ -1991,6 +1991,192 @@ the `app/views/comments` directory.
 The `@article` object is available to any partials rendered in the view because
 we defined it as an instance variable.
 
+
+### Using Concerns
+
+Concerns are a way to make large controllers or models easier to understand and manage. This also has the advantage of reusability when multiple models (or controllers) share the same concerns. Concerns are implemented using modules that contain methods representing a well-defined slice of the functionality that a model or controller is responsible for. In other languages, modules are often known as mixins.
+
+You can use concerns in your controller or model the same way you would use any module. When you first created your app with `rails new blog`, two folders were created within `app/` along with the rest:
+
+ ```
+ app/controllers/concerns
+ app/models/concerns
+ ```
+
+A given blog article might have various statuses - for instance, it might be visible to everyone (i.e. `public`), or only visible to the author (i.e. `private`). It may also be hidden to all but still retrievable (i.e. `archived`). Comments may similarly be hidden or visible. This could be represented using a `status` column in each model.
+
+Within the `article` model, after running a migration to add a `status` column, you might add:
+
+```ruby
+class Article < ApplicationRecord
+  has_many :comments
+  validates :title, presence: true,
+                    length: { minimum: 5 }
+
+  VALID_STATUSES = ['public', 'private', 'archived']
+
+  validates :status, in: VALID_STATUSES
+
+  def archived?
+    status == 'archived'
+  end
+end
+```
+
+and in the `Comment` model:
+
+```ruby
+class Comment < ApplicationRecord
+  belongs_to :article
+
+  VALID_STATUSES = ['public', 'private', 'archived']
+
+  validates :status, in: VALID_STATUSES
+
+  def archived?
+    status == 'archived'
+  end
+end
+```
+
+Then, in our `index` action template (`app/views/articles/index.html.erb`) we would use the `archived?` method to avoid displaying any article that is archived:
+
+```html+erb
+<h1>Listing Articles</h1>
+<%= link_to 'New article', new_article_path %>
+<table>
+  <tr>
+    <th>Title</th>
+    <th>Text</th>
+    <th colspan="3"></th>
+  </tr>
+
+  <% @articles.each do |article| %>
+    <% unless article.archived? %>
+      <tr>
+        <td><%= article.title %></td>
+        <td><%= article.text %></td>
+        <td><%= link_to 'Show', article_path(article) %></td>
+        <td><%= link_to 'Edit', edit_article_path(article) %></td>
+        <td><%= link_to 'Destroy', article_path(article),
+                method: :delete,
+                data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  <% end %>
+</table>
+```
+
+However, if you look again at our models now, you can see that the logic is duplicated. If in the future we increase the functionality of our blog - to include private messages, for instance -  we might find ourselves duplicating the logic yet again. This is where concerns come in handy.
+
+A concern is only responsible for a focused subset of the model's responsibility; the methods in our concern will all be related to the visibility of a model. Let's call our new concern (module) `Visible`. We can create a new file inside `app/models/concerns` called `visible.rb` , and store all of the status methods that were duplicated in the models.
+
+`app/models/concerns/visible.rb`
+
+```ruby
+module Visible
+  def archived?
+    status == 'archived'
+  end
+end
+```
+
+We can add our status validation to the concern, but this is slightly more complex as validations are methods called at the class level. The `ActiveSupport::Concern` ([API Guide](https://api.rubyonrails.org/classes/ActiveSupport/Concern.html)) gives us a simpler way to include them:
+
+```ruby
+module Visible
+  extend ActiveSupport::Concern
+
+  included do
+    VALID_STATUSES = ['public', 'private', 'archived']
+
+    validates :status, in: VALID_STATUSES
+  end
+
+  def archived?
+    status == 'archived'
+  end
+end
+```
+
+Now, we can remove the duplicated logic from each model and instead include our new `Visible` module:
+
+
+In `app/models/article.rb`:
+
+```ruby
+class Article < ApplicationRecord
+  include Visible
+  has_many :comments
+
+  validates :title, presence: true,
+                    length: { minimum: 5 }
+
+end
+```
+
+and in `app/models/comment.rb`:
+
+```ruby
+class Comment < ApplicationRecord
+  include Visible
+  belongs_to :article
+end
+```
+
+Class methods can also be added to concerns. If we want a count of public articles or comments to display on our main page, we might add a class method to Visible as follows:
+
+```ruby
+module Visible
+  extend ActiveSupport::Concern
+
+  VALID_STATUSES = ['public', 'private', 'archived']
+
+  included do
+    validates :status, in: VALID_STATUSES
+  end
+
+  class_methods do
+    def public_count
+      where(status: 'public').count
+    end
+  end
+
+  def archived?
+    status == 'archived'
+  end
+end
+```
+
+Then in the view, you can call it like any class method:
+
+```html+erb
+<h1>Listing Articles</h1>
+Our blog has <%= Article.public_count %> articles and counting! Add yours now.
+<%= link_to 'New article', new_article_path %>
+<table>
+  <tr>
+    <th>Title</th>
+    <th>Text</th>
+    <th colspan="3"></th>
+  </tr>
+
+  <% @articles.each do |article| %>
+    <% unless article.archived? %>
+      <tr>
+        <td><%= article.title %></td>
+        <td><%= article.text %></td>
+        <td><%= link_to 'Show', article_path(article) %></td>
+        <td><%= link_to 'Edit', edit_article_path(article) %></td>
+        <td><%= link_to 'Destroy', article_path(article),
+                method: :delete,
+                data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  <% end %>
+</table>
+```
+
 Deleting Comments
 -----------------
 
@@ -2060,6 +2246,8 @@ Article model, `app/models/article.rb`, as follows:
 
 ```ruby
 class Article < ApplicationRecord
+  include Visible
+
   has_many :comments, dependent: :destroy
   validates :title, presence: true,
                     length: { minimum: 5 }

@@ -11,6 +11,35 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     @connection_handler = ActiveRecord::Base.connection_handler
   end
 
+  def test_connection_error
+    assert_raises ActiveRecord::ConnectionNotEstablished do
+      ActiveRecord::Base.mysql2_connection(socket: File::NULL)
+    end
+  end
+
+  def test_reconnection_error
+    fake_connection = Class.new do
+      def query_options
+        {}
+      end
+
+      def query(*)
+      end
+
+      def close
+      end
+    end.new
+    @conn = ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
+      fake_connection,
+      ActiveRecord::Base.logger,
+      nil,
+      { socket: File::NULL }
+    )
+    assert_raises ActiveRecord::ConnectionNotEstablished do
+      @conn.reconnect!
+    end
+  end
+
   def test_exec_query_nothing_raises_with_no_result_queries
     assert_nothing_raised do
       with_example_table do

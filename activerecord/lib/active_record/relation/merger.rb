@@ -32,9 +32,9 @@ module ActiveRecord
         hash.each do |k, v|
           k = :_select if k == :select
           if Array === v
-            other.send("#{k}!", *v)
+            other.public_send("#{k}!", *v)
           else
-            other.send("#{k}!", v)
+            other.public_send("#{k}!", v)
           end
         end
         other
@@ -70,7 +70,7 @@ module ActiveRecord
             if name == :select
               relation._select!(*value)
             else
-              relation.send("#{name}!", *value)
+              relation.public_send("#{name}!", *value)
             end
           end
         end

@@ -23,7 +23,6 @@ module ActiveRecord
       class_attribute :use_transactional_tests, default: true
       class_attribute :use_instantiated_fixtures, default: false # true, false, or :no_instances
       class_attribute :pre_loaded_fixtures, default: false
-      class_attribute :config, default: ActiveRecord::Base
       class_attribute :lock_threads, default: true
     end
 

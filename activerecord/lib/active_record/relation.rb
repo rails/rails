@@ -39,8 +39,9 @@ module ActiveRecord
     end
 
     def arel_attribute(name) # :nodoc:
-      klass.arel_attribute(name, table)
+      table[name]
     end
+    deprecate :arel_attribute
 
     def bind_attribute(name, value) # :nodoc:
       if reflection = klass._reflect_on_association(name)
@@ -48,7 +49,7 @@ module ActiveRecord
         value = value.read_attribute(reflection.klass.primary_key) unless value.nil?
       end
 
-      attr = arel_attribute(name)
+      attr = table[name]
       bind = predicate_builder.build_bind_attribute(attr.name, value)
       yield attr, bind
     end
@@ -352,7 +353,7 @@ module ActiveRecord
       else
         collection = eager_loading? ? apply_join_dependency : self
 
-        column = connection.visitor.compile(arel_attribute(timestamp_column))
+        column = connection.visitor.compile(table[timestamp_column])
         select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
 
         if collection.has_limit_or_offset?
@@ -447,7 +448,7 @@ module ActiveRecord
 
       stmt = Arel::UpdateManager.new
       stmt.table(arel.join_sources.empty? ? table : arel.source)
-      stmt.key = arel_attribute(primary_key)
+      stmt.key = table[primary_key]
       stmt.take(arel.limit)
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
@@ -457,7 +458,7 @@ module ActiveRecord
         if klass.locking_enabled? &&
             !updates.key?(klass.locking_column) &&
             !updates.key?(klass.locking_column.to_sym)
-          attr = arel_attribute(klass.locking_column)
+          attr = table[klass.locking_column]
           updates[attr.name] = _increment_attribute(attr)
         end
         stmt.set _substitute_values(updates)
@@ -493,7 +494,7 @@ module ActiveRecord
 
       updates = {}
       counters.each do |counter_name, value|
-        attr = arel_attribute(counter_name)
+        attr = table[counter_name]
         updates[attr.name] = _increment_attribute(attr, value)
       end
 
@@ -589,7 +590,7 @@ module ActiveRecord
 
       stmt = Arel::DeleteManager.new
       stmt.from(arel.join_sources.empty? ? table : arel.source)
-      stmt.key = arel_attribute(primary_key)
+      stmt.key = table[primary_key]
       stmt.take(arel.limit)
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
@@ -685,6 +686,7 @@ module ActiveRecord
 
     def scope_for_create
       hash = where_values_hash
+      hash.delete(klass.inheritance_column) if klass.finder_needs_type_condition?
       create_with_value.each { |k, v| hash[k.to_s] = v } unless create_with_value.empty?
       hash
     end
@@ -813,7 +815,7 @@ module ActiveRecord
 
       def _substitute_values(values)
         values.map do |name, value|
-          attr = arel_attribute(name)
+          attr = table[name]
           unless Arel.arel_node?(value)
             type = klass.type_for_attribute(attr.name)
             value = predicate_builder.build_bind_attribute(attr.name, type.cast(value))
@@ -872,27 +874,27 @@ module ActiveRecord
       end
 
       def references_eager_loaded_tables?
-        joined_tables = arel.join_sources.map do |join|
+        joined_tables = build_joins([]).flat_map do |join|
           if join.is_a?(Arel::Nodes::StringJoin)
             tables_in_string(join.left)
           else
-            [join.left.table_name, join.left.table_alias]
+            join.left.name
           end
         end
 
-        joined_tables += [table.name, table.table_alias]
+        joined_tables << table.name
 
         # always convert table names to downcase as in Oracle quoted table names are in uppercase
-        joined_tables = joined_tables.flatten.compact.map(&:downcase).uniq
+        joined_tables.map!(&:downcase)
 
-        (references_values - joined_tables).any?
+        !(references_values.map(&:to_s) - joined_tables).empty?
       end
 
       def tables_in_string(string)
         return [] if string.blank?
         # always convert table names to downcase as in Oracle quoted table names are in uppercase
         # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
-        string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map(&:downcase).uniq - ["raw_sql_"]
+        string.scan(/[a-zA-Z_][.\w]+(?=.?\.)/).map!(&:downcase) - ["raw_sql_"]
       end
   end
 end

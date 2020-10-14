@@ -30,35 +30,40 @@ choice.
 Terminology
 -----------
 
+Action Cable uses WebSockets instead of the HTTP request-response protocol.
+Both Action Cable and WebSockets introduce some less familiar terminology:
+
+### Connections
+
+*Connections* form the foundation of the client-server relationship.
 A single Action Cable server can handle multiple connection instances. It has one
 connection instance per WebSocket connection. A single user may have multiple
 WebSockets open to your application if they use multiple browser tabs or devices.
-The client of a WebSocket connection is called the consumer.
 
-Each consumer can in turn subscribe to multiple cable channels. Each channel
+### Consumers
+
+The client of a WebSocket connection is called the *consumer*. In Action Cable
+the consumer is created by the client-side JavaScript framework.
+
+### Channels
+
+Each consumer can in turn subscribe to multiple *channels*. Each channel
 encapsulates a logical unit of work, similar to what a controller does in
 a regular MVC setup. For example, you could have a `ChatChannel` and
 an `AppearancesChannel`, and a consumer could be subscribed to either
 or to both of these channels. At the very least, a consumer should be subscribed
 to one channel.
 
-When the consumer is subscribed to a channel, they act as a subscriber.
+### Subscribers
+
+When the consumer is subscribed to a channel, they act as a *subscriber*.
 The connection between the subscriber and the channel is, surprise-surprise,
 called a subscription. A consumer can act as a subscriber to a given channel
 any number of times. For example, a consumer could subscribe to multiple chat rooms
 at the same time. (And remember that a physical user may have multiple consumers,
 one per tab/device open to your connection).
 
-Each channel can then again be streaming zero or more broadcastings.
-A broadcasting is a pubsub link where anything transmitted by the broadcaster is
-sent directly to the channel subscribers who are streaming that named broadcasting.
-
-As you can see, this is a fairly deep architectural stack. There's a lot of new
-terminology to identify the new pieces, and on top of that, you're dealing
-with both client and server side reflections of each unit.
-
-What is Pub/Sub?
-----------------
+### Pub/Sub
 
 [Pub/Sub](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern), or
 Publish-Subscribe, refers to a message queue paradigm whereby senders of
@@ -66,12 +71,17 @@ information (publishers), send data to an abstract class of recipients
 (subscribers), without specifying individual recipients. Action Cable uses this
 approach to communicate between the server and many clients.
 
+### Broadcastings
+
+A broadcasting is a pub/sub link where anything transmitted by the broadcaster is
+sent directly to the channel subscribers who are streaming that named broadcasting.
+Each channel can be streaming zero or more broadcastings.
+
 ## Server-Side Components
 
 ### Connections
 
-*Connections* form the foundation of the client-server relationship. For every
-WebSocket accepted by the server, a connection object is instantiated. This
+For every WebSocket accepted by the server, a connection object is instantiated. This
 object becomes the parent of all the *channel subscriptions* that are created
 from there on. The connection itself does not deal with any specific application
 logic beyond authentication and authorization. The client of a WebSocket
@@ -185,7 +195,7 @@ A consumer could then be subscribed to either or both of these channels.
 
 Consumers subscribe to channels, acting as *subscribers*. Their connection is
 called a *subscription*. Produced messages are then routed to these channel
-subscriptions based on an identifier sent by the cable consumer.
+subscriptions based on an identifier sent by the channel consumer.
 
 ```ruby
 # app/channels/chat_channel.rb

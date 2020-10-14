@@ -124,13 +124,13 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     class_eval(<<-EOTESTS, __FILE__, __LINE__ + 1)
       def test_#{method}_bang_should_return_self_when_modifying_wrapped_string
         chars = ' él piDió Un bUen café '.dup
-        assert_equal chars.object_id, chars.send("#{method}!").object_id
+        assert_equal chars.object_id, chars.public_send("#{method}!").object_id
       end
 
       def test_#{method}_bang_should_change_wrapped_string
         original = ' él piDió Un bUen café '.dup
         proxy = chars(original.dup)
-        proxy.send("#{method}!")
+        proxy.public_send("#{method}!")
         assert_not_equal original, proxy.to_s
       end
     EOTESTS

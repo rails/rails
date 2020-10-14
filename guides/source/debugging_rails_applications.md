@@ -331,7 +331,7 @@ application server, and you will be placed at the debugger's prompt `(byebug)`.
 Before the prompt, the code around the line that is about to be run will be
 displayed and the current line will be marked by '=>', like this:
 
-```
+```ruby
 [1, 10] in /PathTo/project/app/controllers/articles_controller.rb
     3:
     4:   # GET /articles
@@ -930,7 +930,7 @@ do that with `local_variables`.
 
 ### Settings
 
-* `config.web_console.whitelisted_ips`: Authorized list of IPv4 or IPv6
+* `config.web_console.allowed_ips`: Authorized list of IPv4 or IPv6
 addresses and networks (defaults: `127.0.0.1/8, ::1`).
 * `config.web_console.whiny_requests`: Log a message when a console rendering
 is prevented (defaults: `true`).

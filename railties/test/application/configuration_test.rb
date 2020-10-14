@@ -153,12 +153,25 @@ module ApplicationTests
 
       app "development"
 
-      ActiveRecord::Migrator.migrations_paths = ["#{app_path}/db/migrate"]
-
       begin
+        ActiveRecord::Migrator.migrations_paths = ["#{app_path}/db/migrate"]
+
         get "/foo"
         assert_equal 500, last_response.status
         assert_match "ActiveRecord::PendingMigrationError", last_response.body
+
+        assert_changes -> { File.exist?(File.join(app_path, "db", "schema.rb")) }, from: false, to: true do
+          output = capture(:stdout) do
+            post "/rails/actions", { error: "ActiveRecord::PendingMigrationError", action: "Run pending migrations", location: "/foo" }
+          end
+
+          assert_match(/\d{14}\s+CreateUser/, output)
+        end
+
+        assert_equal 302, last_response.status
+
+        get "/foo"
+        assert_equal 404, last_response.status
       ensure
         ActiveRecord::Migrator.migrations_paths = nil
       end
@@ -1564,12 +1577,26 @@ module ApplicationTests
       assert_equal session_options, app.config.session_options
     end
 
+    test "config.log_level defaults to debug in development" do
+      restore_default_config
+      app "development"
+
+      assert_equal Logger::DEBUG, Rails.logger.level
+    end
+
+    test "config.log_level default to info in production" do
+      restore_default_config
+      app "production"
+
+      assert_equal Logger::INFO, Rails.logger.level
+    end
+
     test "config.log_level with custom logger" do
       make_basic_app do |application|
         application.config.logger = Logger.new(STDOUT)
-        application.config.log_level = :info
+        application.config.log_level = :debug
       end
-      assert_equal Logger::INFO, Rails.logger.level
+      assert_equal Logger::DEBUG, Rails.logger.level
     end
 
     test "respond_to? accepts include_private" do
@@ -2198,6 +2225,18 @@ module ApplicationTests
       assert_equal Digest::SHA1, ActiveSupport::Digest.hash_digest_class
     end
 
+    test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.hash_digest_class" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/custom_digest_class.rb", <<-RUBY
+        Rails.application.config.active_support.hash_digest_class = Digest::SHA256
+      RUBY
+
+      app "development"
+
+      assert_equal Digest::SHA256, ActiveSupport::Digest.hash_digest_class
+    end
+
     test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
       class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer; end
 
@@ -2208,6 +2247,18 @@ module ApplicationTests
       app "development"
 
       assert_includes ActiveJob::Serializers.serializers, DummySerializer
+    end
+
+    test "active record job queue is set" do
+      app "development"
+
+      assert_equal ActiveSupport::InheritableOptions.new(destroy: :active_record_destroy), ActiveRecord::Base.queues
+    end
+
+    test "destroy association async job should be loaded in configs" do
+      app "development"
+
+      assert_equal ActiveRecord::DestroyAssociationAsyncJob, ActiveRecord::Base.destroy_association_async_job
     end
 
     test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 is false by default" do
@@ -2634,6 +2685,12 @@ module ApplicationTests
       app "development"
 
       assert_equal true, Rails.application.config.rake_eager_load
+    end
+
+    test "unknown_asset_fallback is false by default" do
+      app "development"
+
+      assert_equal false, Rails.application.config.assets.unknown_asset_fallback
     end
 
     private

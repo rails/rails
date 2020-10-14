@@ -51,7 +51,7 @@ module I18n
         when :raise_on_missing_translations
           forward_raise_on_missing_translations_config(app)
         else
-          I18n.send("#{setting}=", value)
+          I18n.public_send("#{setting}=", value)
         end
       end
 

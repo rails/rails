@@ -31,7 +31,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_check_class_collision
-    Object.send :const_set, :NotifierMailer, Class.new
+    Object.const_set :NotifierMailer, Class.new
     content = capture(:stderr) { run_generator }
     assert_match(/The name 'NotifierMailer' is either already used in your application or reserved/, content)
   ensure
@@ -60,7 +60,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_check_test_class_collision
-    Object.send :const_set, :NotifierMailerTest, Class.new
+    Object.const_set :NotifierMailerTest, Class.new
     content = capture(:stderr) { run_generator }
     assert_match(/The name 'NotifierMailerTest' is either already used in your application or reserved/, content)
   ensure
@@ -68,7 +68,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_check_preview_class_collision
-    Object.send :const_set, :NotifierMailerPreview, Class.new
+    Object.const_set :NotifierMailerPreview, Class.new
     content = capture(:stderr) { run_generator }
     assert_match(/The name 'NotifierMailerPreview' is either already used in your application or reserved/, content)
   ensure

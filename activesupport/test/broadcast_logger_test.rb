@@ -18,7 +18,7 @@ module ActiveSupport
       level = Logger::Severity.const_get(level_name)
 
       test "##{method} adds the message to all loggers" do
-        logger.send(method, "msg")
+        logger.public_send(method, "msg")
 
         assert_equal [level, "msg", nil], log1.adds.first
         assert_equal [level, "msg", nil], log2.adds.first

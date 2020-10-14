@@ -55,13 +55,6 @@ module ActiveSupport
       attr_reader :name, :time, :end, :transaction_id, :children
       attr_accessor :payload
 
-      def self.clock_gettime_supported? # :nodoc:
-        defined?(Process::CLOCK_THREAD_CPUTIME_ID) &&
-          !Gem.win_platform? &&
-          !RUBY_PLATFORM.match?(/solaris/i)
-      end
-      private_class_method :clock_gettime_supported?
-
       def initialize(name, start, ending, transaction_id, payload)
         @name           = name
         @payload        = payload.dup
@@ -141,11 +134,13 @@ module ActiveSupport
           Concurrent.monotonic_time
         end
 
-        if clock_gettime_supported?
+        begin
+          Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
+
           def now_cpu
             Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
           end
-        else
+        rescue
           def now_cpu
             0
           end

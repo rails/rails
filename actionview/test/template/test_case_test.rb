@@ -156,6 +156,13 @@ module ActionView
 
       assert_equal "controller_helper_method", some_method
     end
+
+    class AnotherTestClass < ActionView::TestCase
+      test "doesn't use controller helpers from other tests" do
+        assert_not_respond_to view, :render_from_helper
+        assert_not_includes @controller._helpers.instance_methods, :render_from_helper
+      end
+    end
   end
 
   class ViewAssignsTest < ActionView::TestCase

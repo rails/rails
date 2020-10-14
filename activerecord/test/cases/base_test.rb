@@ -78,6 +78,23 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Post::GeneratedRelationMethods", mod.inspect
   end
 
+  def test_arel_attribute_normalization
+    assert_equal Post.arel_table["body"], Post.arel_table[:body]
+    assert_equal Post.arel_table["body"], Post.arel_table[:text]
+  end
+
+  def test_deprecated_arel_attribute
+    assert_deprecated do
+      assert_equal Post.arel_table["body"], Post.arel_attribute(:body)
+    end
+  end
+
+  def test_deprecated_arel_attribute_on_relation
+    assert_deprecated do
+      assert_equal Post.arel_table["body"], Post.all.arel_attribute(:body)
+    end
+  end
+
   def test_incomplete_schema_loading
     topic = Topic.first
     payload = { foo: 42 }
@@ -689,12 +706,12 @@ class BasicsTest < ActiveRecord::TestCase
   def test_non_valid_identifier_column_name
     weird = Weird.create("a$b" => "value")
     weird.reload
-    assert_equal "value", weird.send("a$b")
+    assert_equal "value", weird.public_send("a$b")
     assert_equal "value", weird.read_attribute("a$b")
 
     weird.update_columns("a$b" => "value2")
     weird.reload
-    assert_equal "value2", weird.send("a$b")
+    assert_equal "value2", weird.public_send("a$b")
     assert_equal "value2", weird.read_attribute("a$b")
   end
 
@@ -1644,12 +1661,20 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  test "cannot call connects_to on non-abstract or non-ActiveRecord::Base classes" do
+    error = assert_raises(NotImplementedError) do
+      Bird.connects_to(database: { writing: :arunit })
+    end
+
+    assert_equal "`connects_to` can only be called on ActiveRecord::Base or abstract classes", error.message
+  end
+
   test "cannot call connected_to on subclasses of ActiveRecord::Base" do
     error = assert_raises(NotImplementedError) do
       Bird.connected_to(role: :reading) { }
     end
 
-    assert_equal "connected_to can only be called on ActiveRecord::Base", error.message
+    assert_equal "`connected_to` can only be called on ActiveRecord::Base", error.message
   end
 
   test "preventing writes applies to all connections on a handler" do
@@ -1702,7 +1727,7 @@ class BasicsTest < ActiveRecord::TestCase
 
       assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
     ensure
-      ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+      clean_up_connection_handler
       ActiveRecord::Base.establish_connection(:arunit)
     end
   end

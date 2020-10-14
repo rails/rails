@@ -766,17 +766,7 @@ module ActiveRecord
       end
 
       def klass
-        @klass ||= delegate_reflection.compute_class(class_name).tap do |klass|
-          if !parent_reflection.is_a?(HasAndBelongsToManyReflection) &&
-             !(klass.reflections.key?(options[:through].to_s) ||
-               klass.reflections.key?(options[:through].to_s.pluralize)) &&
-             active_record.type_for_attribute(active_record.primary_key).type != :integer
-            raise NotImplementedError, <<~MSG.squish
-              In order to correctly type cast #{active_record}.#{active_record.primary_key},
-              #{klass} needs to define a :#{options[:through]} association.
-            MSG
-          end
-        end
+        @klass ||= delegate_reflection.compute_class(class_name)
       end
 
       # Returns the source of the through reflection. It checks both a singularized
@@ -1015,7 +1005,7 @@ module ActiveRecord
 
     class PolymorphicReflection < AbstractReflection # :nodoc:
       delegate :klass, :scope, :plural_name, :type, :join_primary_key, :join_foreign_key,
-               :scope_for, to: :@reflection
+               :name, :scope_for, to: :@reflection
 
       def initialize(reflection, previous_reflection)
         @reflection = reflection
@@ -1052,7 +1042,7 @@ module ActiveRecord
       end
 
       def aliased_table
-        @aliased_table ||= Arel::Table.new(table_name, type_caster: klass.type_caster)
+        klass.arel_table
       end
 
       def join_primary_key(klass = self.klass)

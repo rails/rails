@@ -47,6 +47,10 @@ module ActionView
           @view_context = view_context
         end
 
+        def p(*arguments, **options, &block)
+          tag_string(:p, *arguments, **options, &block)
+        end
+
         def tag_string(name, content = nil, escape_attributes: true, **options, &block)
           content = @view_context.capture(self, &block) if block_given?
           if VOID_ELEMENTS.include?(name) && content.nil?

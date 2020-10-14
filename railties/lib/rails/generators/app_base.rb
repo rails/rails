@@ -161,7 +161,7 @@ module Rails
       end
 
       def build(meth, *args) # :doc:
-        builder.send(meth, *args) if builder.respond_to?(meth)
+        builder.public_send(meth, *args) if builder.respond_to?(meth)
       end
 
       def create_root # :doc:

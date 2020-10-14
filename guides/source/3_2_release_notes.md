@@ -150,7 +150,7 @@ Railties
 
 * Allow scaffold/model/migration generators to accept "index" and "uniq" modifiers. For example,
 
-    ```ruby
+    ```bash
     bin/rails g scaffold Post title:string:index author:uniq price:decimal{7,2}
     ```
 

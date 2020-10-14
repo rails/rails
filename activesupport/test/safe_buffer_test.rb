@@ -101,13 +101,13 @@ class SafeBufferTest < ActiveSupport::TestCase
   }.each do |unsafe_method, dummy_args|
     test "Should not return safe buffer from #{unsafe_method}" do
       skip unless String.method_defined?(unsafe_method)
-      altered_buffer = @buffer.send(unsafe_method, *dummy_args)
+      altered_buffer = @buffer.public_send(unsafe_method, *dummy_args)
       assert_not_predicate altered_buffer, :html_safe?
     end
 
     test "Should not return safe buffer from #{unsafe_method}!" do
       skip unless String.method_defined?("#{unsafe_method}!")
-      @buffer.send("#{unsafe_method}!", *dummy_args)
+      @buffer.public_send("#{unsafe_method}!", *dummy_args)
       assert_not_predicate @buffer, :html_safe?
     end
   end

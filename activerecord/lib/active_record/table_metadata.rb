@@ -10,14 +10,6 @@ module ActiveRecord
       @reflection = reflection
     end
 
-    def arel_attribute(column_name)
-      if klass
-        klass.arel_attribute(column_name, arel_table)
-      else
-        arel_table[column_name]
-      end
-    end
-
     def type(column_name)
       arel_table.type_for_attribute(column_name)
     end
@@ -41,7 +33,8 @@ module ActiveRecord
 
       if reflection && !reflection.polymorphic?
         association_klass = reflection.klass
-        arel_table = association_klass.arel_table.alias(table_name)
+        arel_table = association_klass.arel_table
+        arel_table = arel_table.alias(table_name) if arel_table.name != table_name
         TableMetadata.new(association_klass, arel_table, reflection)
       else
         type_caster = TypeCaster::Connection.new(klass, table_name)
@@ -73,7 +66,9 @@ module ActiveRecord
       end
     end
 
+    attr_reader :arel_table
+
     private
-      attr_reader :klass, :arel_table, :reflection
+      attr_reader :klass, :reflection
   end
 end

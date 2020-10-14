@@ -71,7 +71,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_deduplicate_joins
     posts = Post.arel_table
-    constraint = posts[:author_id].eq(Author.arel_attribute(:id))
+    constraint = posts[:author_id].eq(Author.arel_table[:id])
 
     authors = Author.joins(posts.create_join(posts, posts.create_on(constraint)))
     authors = authors.joins(:author_address).merge(authors.where("posts.type": "SpecialPost"))

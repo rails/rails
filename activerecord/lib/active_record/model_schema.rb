@@ -141,7 +141,7 @@ module ActiveRecord
       self.inheritance_column = "type"
       self.ignored_columns = [].freeze
 
-      delegate :type_for_attribute, to: :class
+      delegate :type_for_attribute, :column_for_attribute, to: :class
 
       initialize_load_schema_monitor
     end
@@ -400,6 +400,26 @@ module ActiveRecord
         end
       end
 
+      # Returns the column object for the named attribute.
+      # Returns an +ActiveRecord::ConnectionAdapters::NullColumn+ if the
+      # named attribute does not exist.
+      #
+      #   class Person < ActiveRecord::Base
+      #   end
+      #
+      #   person = Person.new
+      #   person.column_for_attribute(:name) # the result depends on the ConnectionAdapter
+      #   # => #<ActiveRecord::ConnectionAdapters::Column:0x007ff4ab083980 @name="name", @sql_type="varchar(255)", @null=true, ...>
+      #
+      #   person.column_for_attribute(:nothing)
+      #   # => #<ActiveRecord::ConnectionAdapters::NullColumn:0xXXX @name=nil, @sql_type=nil, @cast_type=#<Type::Value>, ...>
+      def column_for_attribute(name)
+        name = name.to_s
+        columns_hash.fetch(name) do
+          ConnectionAdapters::NullColumn.new(name)
+        end
+      end
+
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the Active Record object for this table.
       def column_defaults
@@ -507,6 +527,7 @@ module ActiveRecord
           @columns_hash.each do |name, column|
             type = connection.lookup_cast_type_from_column(column)
             type = _convert_type_from_options(type)
+            warn_if_deprecated_type(column)
             define_attribute(
               name,
               type,
@@ -564,6 +585,32 @@ module ActiveRecord
             type.to_immutable_string
           else
             type
+          end
+        end
+
+        def warn_if_deprecated_type(column)
+          return if attributes_to_define_after_schema_loads.key?(column.name)
+          return unless column.respond_to?(:oid)
+
+          if column.array?
+            array_arguments = ", array: true"
+          else
+            array_arguments = ""
+          end
+
+          if column.sql_type.start_with?("interval")
+            precision_arguments = column.precision.presence && ", precision: #{column.precision}"
+            ActiveSupport::Deprecation.warn(<<~WARNING)
+              The behavior of the `:interval` type will be changing in Rails 6.2
+              to return an `ActiveSupport::Duration` object. If you'd like to keep
+              the old behavior, you can add this line to #{self.name} model:
+
+                attribute :#{column.name}, :string#{precision_arguments}#{array_arguments}
+
+              If you'd like the new behavior today, you can add this line:
+
+                attribute :#{column.name}, :interval#{precision_arguments}#{array_arguments}
+            WARNING
           end
         end
     end

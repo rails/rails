@@ -106,8 +106,8 @@ class AttributeMethodsTest < ActiveModel::TestCase
   end
 
   test "unrelated classes should not share attribute method matchers" do
-    assert_not_equal ModelWithAttributes.send(:attribute_method_matchers),
-                     ModelWithAttributes2.send(:attribute_method_matchers)
+    assert_not_equal ModelWithAttributes.public_send(:attribute_method_matchers),
+                     ModelWithAttributes2.public_send(:attribute_method_matchers)
   end
 
   test "#define_attribute_method generates attribute method" do
@@ -146,7 +146,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     ModelWithWeirdNamesAttributes.define_attribute_method(:'a?b')
 
     assert_respond_to ModelWithWeirdNamesAttributes.new, :'a?b'
-    assert_equal "value of a?b", ModelWithWeirdNamesAttributes.new.send("a?b")
+    assert_equal "value of a?b", ModelWithWeirdNamesAttributes.new.public_send("a?b")
   ensure
     ModelWithWeirdNamesAttributes.undefine_attribute_methods
   end
@@ -182,7 +182,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     ModelWithAttributesWithSpaces.define_attribute_methods(:'foo bar')
 
     assert_respond_to ModelWithAttributesWithSpaces.new, :'foo bar'
-    assert_equal "value of foo bar", ModelWithAttributesWithSpaces.new.send(:'foo bar')
+    assert_equal "value of foo bar", ModelWithAttributesWithSpaces.new.public_send(:'foo bar')
   ensure
     ModelWithAttributesWithSpaces.undefine_attribute_methods
   end

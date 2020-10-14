@@ -149,6 +149,10 @@ def disable_extension!(extension, connection)
   connection.reconnect!
 end
 
+def clean_up_connection_handler
+  ActiveRecord::Base.connection_handlers = { ActiveRecord::Base.writing_role => ActiveRecord::Base.default_connection_handler }
+end
+
 def load_schema
   # silence verbose schema loading
   original_stdout = $stdout
@@ -201,5 +205,3 @@ module InTimeZone
       ActiveRecord::Base.time_zone_aware_attributes = old_tz
     end
 end
-
-require_relative "../../../tools/test_common"

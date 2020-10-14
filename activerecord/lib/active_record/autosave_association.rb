@@ -29,7 +29,7 @@ module ActiveRecord
   # == Callbacks
   #
   # Association with autosave option defines several callbacks on your
-  # model (before_save, after_create, after_update). Please note that
+  # model (around_save, before_save, after_create, after_update). Please note that
   # callbacks are executed in the order they were defined in
   # model. You should avoid modifying the association content before
   # autosave callbacks are executed. Placing your callbacks after
@@ -155,8 +155,23 @@ module ActiveRecord
 
     module ClassMethods # :nodoc:
       private
+        if Module.method(:method_defined?).arity == 1 # MRI 2.5 and older
+          using Module.new {
+            refine Module do
+              def method_defined?(method, inherit = true)
+                if inherit
+                  super(method)
+                else
+                  instance_methods(false).include?(method.to_sym)
+                end
+              end
+            end
+          }
+        end
+
         def define_non_cyclic_method(name, &block)
-          return if instance_methods(false).include?(name)
+          return if method_defined?(name, false)
+
           define_method(name) do |*args|
             result = true; @_already_called ||= {}
             # Loop prevention for validation of associations
@@ -188,8 +203,7 @@ module ActiveRecord
           save_method = :"autosave_associated_records_for_#{reflection.name}"
 
           if reflection.collection?
-            before_save :before_save_collection_association
-            after_save :after_save_collection_association
+            around_save :around_save_collection_association
 
             define_non_cyclic_method(save_method) { save_collection_association(reflection) }
             # Doesn't use after_save as that would save associations added in after_create/after_update twice
@@ -362,14 +376,15 @@ module ActiveRecord
         end
       end
 
-      # Is used as a before_save callback to check while saving a collection
+      # Is used as an around_save callback to check while saving a collection
       # association whether or not the parent was a new record before saving.
-      def before_save_collection_association
-        @new_record_before_save ||= new_record?
-      end
+      def around_save_collection_association
+        previously_new_record_before_save = (@new_record_before_save ||= false)
+        @new_record_before_save = !previously_new_record_before_save && new_record?
 
-      def after_save_collection_association
-        @new_record_before_save = false
+        yield
+      ensure
+        @new_record_before_save = previously_new_record_before_save
       end
 
       # Saves any new associated records, or all loaded autosave associations if
@@ -442,7 +457,7 @@ module ActiveRecord
           if autosave && record.marked_for_destruction?
             record.destroy
           elsif autosave != false
-            key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
+            key = reflection.options[:primary_key] ? public_send(reflection.options[:primary_key]) : id
 
             if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
               unless reflection.through_reflection
@@ -491,7 +506,7 @@ module ActiveRecord
             saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
 
             if association.updated?
-              association_id = record.send(reflection.options[:primary_key] || :id)
+              association_id = record.public_send(reflection.options[:primary_key] || :id)
               self[reflection.foreign_key] = association_id
               association.loaded!
             end

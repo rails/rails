@@ -135,6 +135,12 @@ module ActiveRecord
 
     action "Run pending migrations" do
       ActiveRecord::Tasks::DatabaseTasks.migrate
+
+      if ActiveRecord::Base.dump_schema_after_migration
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema(
+          ActiveRecord::Base.connection_db_config
+        )
+      end
     end
 
     def initialize(message = nil)
@@ -850,7 +856,7 @@ module ActiveRecord
           change
         end
       else
-        send(direction)
+        public_send(direction)
       end
     ensure
       @connection = nil
@@ -1183,7 +1189,7 @@ module ActiveRecord
 
         finish = migrator.migrations[start_index + steps]
         version = finish ? finish.version : 0
-        send(direction, version)
+        public_send(direction, version)
       end
   end
 
@@ -1376,18 +1382,29 @@ module ActiveRecord
 
       def with_advisory_lock
         lock_id = generate_migrator_advisory_lock_id
-        AdvisoryLockBase.establish_connection(ActiveRecord::Base.connection_db_config) unless AdvisoryLockBase.connected?
-        connection = AdvisoryLockBase.connection
-        got_lock = connection.get_advisory_lock(lock_id)
-        raise ConcurrentMigrationError unless got_lock
-        load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
-        yield
-      ensure
-        if got_lock && !connection.release_advisory_lock(lock_id)
-          raise ConcurrentMigrationError.new(
-            ConcurrentMigrationError::RELEASE_LOCK_FAILED_MESSAGE
-          )
+
+        with_advisory_lock_connection do |connection|
+          got_lock = connection.get_advisory_lock(lock_id)
+          raise ConcurrentMigrationError unless got_lock
+          load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
+          yield
+        ensure
+          if got_lock && !connection.release_advisory_lock(lock_id)
+            raise ConcurrentMigrationError.new(
+              ConcurrentMigrationError::RELEASE_LOCK_FAILED_MESSAGE
+            )
+          end
         end
+      end
+
+      def with_advisory_lock_connection
+        pool = ActiveRecord::ConnectionAdapters::ConnectionHandler.new.establish_connection(
+          ActiveRecord::Base.connection_db_config
+        )
+
+        pool.with_connection { |connection| yield(connection) }
+      ensure
+        pool&.disconnect!
       end
 
       MIGRATOR_SALT = 2053462845

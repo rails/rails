@@ -16,12 +16,12 @@ module ActiveSupport
     def ===(value)
       if value.is_a?(::Range)
         is_backwards_op = value.exclude_end? ? :>= : :>
-        return false if value.begin && value.end && value.begin.send(is_backwards_op, value.end)
+        return false if value.begin && value.end && value.begin.public_send(is_backwards_op, value.end)
         # 1...10 includes 1..9 but it does not include 1..10.
         # 1..10 includes 1...11 but it does not include 1...12.
         operator = exclude_end? && !value.exclude_end? ? :< : :<=
         value_max = !exclude_end? && value.exclude_end? ? value.max : value.last
-        super(value.first) && (self.end.nil? || value_max.send(operator, last))
+        super(value.first) && (self.end.nil? || value_max.public_send(operator, last))
       else
         super
       end
@@ -41,12 +41,12 @@ module ActiveSupport
     def include?(value)
       if value.is_a?(::Range)
         is_backwards_op = value.exclude_end? ? :>= : :>
-        return false if value.begin && value.end && value.begin.send(is_backwards_op, value.end)
+        return false if value.begin && value.end && value.begin.public_send(is_backwards_op, value.end)
         # 1...10 includes 1..9 but it does not include 1..10.
         # 1..10 includes 1...11 but it does not include 1...12.
         operator = exclude_end? && !value.exclude_end? ? :< : :<=
         value_max = !exclude_end? && value.exclude_end? ? value.max : value.last
-        super(value.first) && (self.end.nil? || value_max.send(operator, last))
+        super(value.first) && (self.end.nil? || value_max.public_send(operator, last))
       else
         super
       end
@@ -66,12 +66,12 @@ module ActiveSupport
     def cover?(value)
       if value.is_a?(::Range)
         is_backwards_op = value.exclude_end? ? :>= : :>
-        return false if value.begin && value.end && value.begin.send(is_backwards_op, value.end)
+        return false if value.begin && value.end && value.begin.public_send(is_backwards_op, value.end)
         # 1...10 covers 1..9 but it does not cover 1..10.
         # 1..10 covers 1...11 but it does not cover 1...12.
         operator = exclude_end? && !value.exclude_end? ? :< : :<=
         value_max = !exclude_end? && value.exclude_end? ? value.max : value.last
-        super(value.first) && (self.end.nil? || value_max.send(operator, last))
+        super(value.first) && (self.end.nil? || value_max.public_send(operator, last))
       else
         super
       end

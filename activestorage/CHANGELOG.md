@@ -1,3 +1,17 @@
+*   Add per-environment configuration support
+
+    *Pietro Moro*
+    
+*   The Poppler PDF previewer renders a preview image using the original
+    document's crop box rather than its media box, hiding print margins. This
+    matches the behavior of the MuPDF previewer.
+
+    *Vincent Robert*
+
+*   Touch parent model when an attachment is purged.
+
+    *Víctor Pérez Rodríguez*
+
 *   Files can now be served by proxying them from the underlying storage service
     instead of redirecting to a signed service URL. Use the
     `rails_storage_proxy_path` and `_url` helpers to proxy an attached file:

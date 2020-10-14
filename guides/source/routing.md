@@ -640,10 +640,11 @@ get 'exit', to: 'sessions#destroy', as: :logout
 
 This will create `logout_path` and `logout_url` as named route helpers in your application. Calling `logout_path` will return `/exit`
 
-You can also use this to override routing methods defined by resources, like this:
+You can also use this to override routing methods defined by resources by placing custom routes before the resource is defined, like this:
 
 ```ruby
 get ':username', to: 'users#show', as: :user
+resources :users
 ```
 
 This will define a `user_path` method that will be available in controllers, helpers, and views that will go to a route such as `/bob`. Inside the `show` action of `UsersController`, `params[:username]` will contain the username for the user. Change `:username` in the route definition if you do not want your parameter name to be `:username`.
@@ -750,6 +751,35 @@ end
 ```
 
 Both the `matches?` method and the lambda gets the `request` object as an argument.
+
+#### Constraints in a block form
+
+You can specify constraints in a block form. This is useful for when you need to apply the same rule to several routes. For example
+
+```
+class RestrictedListConstraint
+  # ...Same as the example above
+end
+
+Rails.application.routes.draw do
+  constraints(RestrictedListConstraint.new) do
+    get '*path', to: 'restricted_list#index',
+    get '*other-path', to: 'other_restricted_list#index',
+  end
+end
+```
+
+You also use a `lambda`:
+
+```
+Rails.application.routes.draw do
+  constraints(lambda { |request| RestrictedList.retrieve_ips.include?(request.remote_ip) }) do
+    get '*path', to: 'restricted_list#index',
+    get '*other-path', to: 'other_restricted_list#index',
+  end
+end
+```
+
 
 ### Route Globbing and Wildcard Segments
 

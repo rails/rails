@@ -47,13 +47,14 @@ module ActiveRecord
   #     enum status: [ :active, :archived ], _scopes: false
   #   end
   #
-  # You can set the default value from the database declaration, like:
+  # You can set the default enum value by setting +:_default+, like:
   #
-  #   create_table :conversations do |t|
-  #     t.column :status, :integer, default: 0
+  #   class Conversation < ActiveRecord::Base
+  #     enum status: [ :active, :archived ], _default: "active"
   #   end
   #
-  # Good practice is to let the first declared status be the default.
+  #   conversation = Conversation.new
+  #   conversation.status # => "active"
   #
   # Finally, it's also possible to explicitly map the relation between attribute and
   # database integer with a hash:
@@ -135,7 +136,6 @@ module ActiveRecord
       end
 
       def deserialize(value)
-        return if value.nil?
         mapping.key(subtype.deserialize(value))
       end
 
@@ -159,9 +159,14 @@ module ActiveRecord
 
     def enum(definitions)
       klass = self
+
       enum_prefix = definitions.delete(:_prefix)
       enum_suffix = definitions.delete(:_suffix)
       enum_scopes = definitions.delete(:_scopes)
+
+      default = {}
+      default[:default] = definitions.delete(:_default) if definitions.key?(:_default)
+
       definitions.each do |name, values|
         assert_valid_enum_definition_values(values)
         # statuses = { }
@@ -177,7 +182,8 @@ module ActiveRecord
         detect_enum_conflict!(name, "#{name}=")
 
         attr = attribute_alias?(name) ? attribute_alias(name) : name
-        decorate_attribute_type(attr, :enum) do |subtype|
+
+        decorate_attribute_type(attr, **default) do |subtype|
           EnumType.new(attr, enum_values, subtype)
         end
 
@@ -195,7 +201,8 @@ module ActiveRecord
               suffix = "_#{enum_suffix}"
             end
 
-            value_method_name = "#{prefix}#{label}#{suffix}"
+            method_friendly_label = label.to_s.gsub(/\W+/, "_")
+            value_method_name = "#{prefix}#{method_friendly_label}#{suffix}"
             enum_values[label] = value
             label = label.to_s
 

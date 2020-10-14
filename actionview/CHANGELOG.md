@@ -1,3 +1,12 @@
+*   `ActionView::Helpers::TranslationHelper#translate` accepts a block, yielding
+    the translated text and the fully resolved translation key:
+
+        <%= translate(".relative_key") do |translation, resolved_key| %>
+          <span title="<%= resolved_key %>"><%= translation %></span>
+        <% end %>
+
+    *Sean Doyle*
+
 *   Ensure cache fragment digests include all relevant template dependencies when
     fragments are contained in a block passed to the render helper. Remove the
     virtual_path keyword arguments found in CacheHelper as they no longer possess

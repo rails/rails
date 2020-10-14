@@ -9,11 +9,12 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.valid_options(options)
       valid = super + [:counter_cache, :optional, :default]
       valid += [:polymorphic, :foreign_type] if options[:polymorphic]
+      valid += [:ensuring_owner_was] if options[:dependent] == :destroy_async
       valid
     end
 
     def self.valid_dependent_options
-      [:destroy, :delete]
+      [:destroy, :delete, :destroy_async]
     end
 
     def self.define_callbacks(model, reflection)
@@ -57,19 +58,19 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
         if old_record
           if touch != true
-            old_record.send(touch_method, touch)
+            old_record.public_send(touch_method, touch)
           else
-            old_record.send(touch_method)
+            old_record.public_send(touch_method)
           end
         end
       end
 
-      record = o.send name
+      record = o.public_send name
       if record && record.persisted?
         if touch != true
-          record.send(touch_method, touch)
+          record.public_send(touch_method, touch)
         else
-          record.send(touch_method)
+          record.public_send(touch_method)
         end
       end
     end

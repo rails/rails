@@ -97,6 +97,10 @@ config.active_storage.service = :test
 Continue reading for more information on the built-in service adapters (e.g.
 `Disk` and `S3`) and the configuration they require.
 
+NOTE: Configuration files that are environment-specific will take precedence:
+in production, for example, the `config/storage/production.yml` file (if existent)
+will take precedence over the `config/storage.yml` file.
+
 ### Disk Service
 
 Declare a Disk service in `config/storage.yml`:
@@ -120,7 +124,7 @@ amazon:
   bucket: ""
 ```
 
-Optionally provide a Hash of upload options:
+Optionally provide client and upload options:
 
 ```yaml
 amazon:
@@ -129,9 +133,13 @@ amazon:
   secret_access_key: ""
   region: ""
   bucket: ""
+  http_open_timeout: 0
+  http_read_timeout: 0
+  retry_limit: 0
   upload: 
     server_side_encryption: "" # 'aws:kms' or 'AES256'
 ```
+TIP: Set sensible client HTTP timeouts and retry limits for your application. In certain failure scenarios, the default AWS client configuration may cause connections to be held for up to several minutes and lead to request queuing.
 
 Add the [`aws-sdk-s3`](https://github.com/aws/aws-sdk-ruby) gem to your `Gemfile`:
 
@@ -147,7 +155,7 @@ and `region` keys in the example above. The S3 Service supports all of the
 authentication options described in the [AWS SDK documentation]
 (https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
 
-To connect to an S3-compatible object storage API such as Digital Ocean Spaces, provide the `endpoint`:
+To connect to an S3-compatible object storage API such as DigitalOcean Spaces, provide the `endpoint`:
 
 ```yaml
 digitalocean:
@@ -496,7 +504,7 @@ message.video.open do |file|
 end
 ```
 
-It's important to know that the file are not yet available in the `after_create` callback but in the `after_create_commit` only.
+It's important to know that the file is not yet available in the `after_create` callback but in the `after_create_commit` only.
 
 Analyzing Files
 ---------------

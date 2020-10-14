@@ -1111,13 +1111,13 @@ class FoxyFixturesTest < ActiveRecord::TestCase
 
   def test_populates_timestamp_columns
     TIMESTAMP_COLUMNS.each do |property|
-      assert_not_nil(parrots(:george).send(property), "should set #{property}")
+      assert_not_nil(parrots(:george).public_send(property), "should set #{property}")
     end
   end
 
   def test_does_not_populate_timestamp_columns_if_model_has_set_record_timestamps_to_false
     TIMESTAMP_COLUMNS.each do |property|
-      assert_nil(ships(:black_pearl).send(property), "should not set #{property}")
+      assert_nil(ships(:black_pearl).public_send(property), "should not set #{property}")
     end
   end
 
@@ -1125,7 +1125,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     last = nil
 
     TIMESTAMP_COLUMNS.each do |property|
-      current = parrots(:george).send(property)
+      current = parrots(:george).public_send(property)
       last ||= current
 
       assert_equal(last, current)
@@ -1399,7 +1399,6 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
 
     def setup
       @old_handler = ActiveRecord::Base.connection_handler
-      @old_handlers = ActiveRecord::Base.connection_handlers
       @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(ENV["RAILS_ENV"], "readonly", readonly_config)
 
@@ -1413,7 +1412,7 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
     def teardown
       ActiveRecord::Base.configurations = @prev_configs
       ActiveRecord::Base.connection_handler = @old_handler
-      ActiveRecord::Base.connection_handlers = @old_handlers
+      clean_up_connection_handler
     end
 
     def test_uses_writing_connection_for_fixtures

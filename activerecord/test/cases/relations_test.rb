@@ -306,6 +306,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:third).title, topics.first.title
   end
 
+  def test_reverse_arel_order_with_function
+    topics = Topic.order(Topic.arel_table[:title].lower).reverse_order
+    assert_equal topics(:third).title, topics.first.title
+  end
+
   def test_reverse_arel_assoc_order_with_function
     topics = Topic.order(Arel.sql("lower(title)") => :asc).reverse_order
     assert_equal topics(:third).title, topics.first.title
@@ -423,6 +428,11 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.order("author_name").order("title").reorder("id").to_a
     topics_titles = topics.map(&:title)
     assert_equal ["The First Topic", "The Second Topic of the day", "The Third Topic of the day", "The Fourth Topic of the day", "The Fifth Topic of the day"], topics_titles
+  end
+
+  def test_reorder_deduplication
+    topics = Topic.reorder("id desc", "id desc")
+    assert_equal ["id desc"], topics.order_values
   end
 
   def test_finding_with_reorder_by_aliased_attributes
@@ -967,7 +977,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 11, posts.count(:all)
     assert_equal 11, posts.count(:id)
 
-    assert_equal 3, posts.where("comments_count >": 1).count
+    assert_equal 3, posts.where("legacy_comments_count > 1").count
     assert_equal 6, posts.where(comments_count: 0).count
   end
 
@@ -1087,7 +1097,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_count_complex_chained_relations
-    posts = Post.select("comments_count").where("id is not null").group("author_id").where("comments_count >": 0)
+    posts = Post.select("comments_count").where("id is not null").group("author_id").where("legacy_comments_count > 0")
 
     expected = { 1 => 4, 2 => 1 }
     assert_equal expected, posts.count
@@ -1109,7 +1119,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_empty_complex_chained_relations
-    posts = Post.select("comments_count").where("id is not null").group("author_id").where("comments_count >": 0)
+    posts = Post.select("comments_count").where("id is not null").group("author_id").where("legacy_comments_count > 0")
 
     assert_queries(1) { assert_equal false, posts.empty? }
     assert_not_predicate posts, :loaded?
@@ -1121,14 +1131,6 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_any
     posts = Post.all
-
-    # This test was failing when run on its own (as opposed to running the entire suite).
-    # The second line in the assert_queries block was causing visit_Arel_Attributes_Attribute
-    # in Arel::Visitors::ToSql to trigger a SHOW TABLES query. Running that line here causes
-    # the SHOW TABLES result to be cached so we don't have to do it again in the block.
-    #
-    # This is obviously a rubbish fix but it's the best I can come up with for now...
-    posts.where(id: nil).any?
 
     assert_queries(3) do
       assert posts.any? # Uses COUNT()
@@ -1261,7 +1263,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_predicate same_parrot, :persisted?
     assert_equal parrot, same_parrot
 
-    canary = Bird.where(Bird.arel_attribute(:color).is_distinct_from("green")).first_or_create(name: "canary")
+    canary = Bird.where(Bird.arel_table[:color].is_distinct_from("green")).first_or_create(name: "canary")
     assert_equal "canary", canary.name
     assert_nil canary.color
   end
@@ -1385,7 +1387,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "parrot", parrot.name
     assert_equal "green", parrot.color
 
-    canary = Bird.where(Bird.arel_attribute(:color).is_distinct_from("green")).first_or_initialize(name: "canary")
+    canary = Bird.where(Bird.arel_table[:color].is_distinct_from("green")).first_or_initialize(name: "canary")
     assert_equal "canary", canary.name
     assert_nil canary.color
   end
@@ -1963,7 +1965,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal post, custom_post_relation.joins(:author).where!(title: post.title).take
   end
 
-  test "arel_attribute respects a custom table" do
+  test "arel_table respects a custom table" do
     assert_equal [posts(:sti_comments)], custom_post_relation.ranked_by_comments.limit_by(1).to_a
   end
 
@@ -2093,7 +2095,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_unscope_with_arel_sql
-    posts = Post.where(Arel.sql("'Welcome to the weblog'").eq(Post.arel_attribute(:title)))
+    posts = Post.where(Arel.sql("'Welcome to the weblog'").eq(Post.arel_table[:title]))
 
     assert_equal 1, posts.count
     assert_equal Post.count, posts.unscope(where: :title).count
@@ -2159,25 +2161,6 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal "3", third_post.title
     assert_not_same first_post, third_post
-  end
-
-  def test_where_with_comparison_operator
-    posts = Post.order(:id)
-
-    assert_equal [10, 11], posts.where("id >": 9).pluck(:id)
-    assert_equal [9, 10, 11], posts.where("id >=": 9).pluck(:id)
-    assert_equal [1, 2], posts.where("id <": 3).pluck(:id)
-    assert_equal [1, 2, 3], posts.where("id <=": 3).pluck(:id)
-  end
-
-  def test_where_with_table_name_resolution
-    posts = Post.joins(:comments).order(:id)
-
-    assert_equal [1, 1, 2], posts.where("id <": 3).pluck(:id)
-
-    assert_raise(ActiveRecord::StatementInvalid) do
-      posts.where("id < ?", 3).pluck(:id) # ambiguous column name: id
-    end
   end
 
   test "#skip_query_cache!" do

@@ -120,6 +120,7 @@ ActiveRecord::Schema.define do
     t.datetime :published_on
     t.boolean :boolean_status
     t.index [:author_id, :name], unique: true
+    t.integer :tags_count, default: 0
     t.index :isbn, where: "published_on IS NOT NULL", unique: true
     t.index "(lower(external_id))", unique: true if supports_expression_index?
 
@@ -210,6 +211,7 @@ ActiveRecord::Schema.define do
       t.text    :body, null: false
     end
     t.string  :type
+    t.integer :label, default: 0
     t.integer :tags_count, default: 0
     t.integer :children_count, default: 0
     t.integer :parent_id
@@ -241,6 +243,8 @@ ActiveRecord::Schema.define do
 
   create_table :content, force: true do |t|
     t.string :title
+    t.belongs_to :book
+    t.belongs_to :book_destroy_async
   end
 
   create_table :content_positions, force: true do |t|
@@ -289,6 +293,50 @@ ActiveRecord::Schema.define do
     t.string :dashboard_id, **case_sensitive_options
     t.string :name
   end
+
+  create_table :destroy_async_parents, force: true, id: false do |t|
+    t.primary_key :parent_id
+    t.string :name
+    t.integer :tags_count, default: 0
+  end
+
+  create_table :destroy_async_parent_soft_deletes, force: true do |t|
+    t.integer :tags_count, default: 0
+    t.boolean :deleted
+  end
+
+  create_table :dl_keyed_belongs_tos, force: true, id: false do |t|
+    t.primary_key :belongs_key
+    t.references :destroy_async_parent
+  end
+
+  create_table :dl_keyed_belongs_to_soft_deletes, force: true do |t|
+    t.references :destroy_async_parent_soft_delete,
+      index: { name: :soft_del_parent }
+    t.boolean :deleted
+  end
+
+  create_table :dl_keyed_has_ones, force: true, id: false do |t|
+   t.primary_key :has_one_key
+
+   t.references :destroy_async_parent
+   t.references :destroy_async_parent_soft_delete
+ end
+
+  create_table :dl_keyed_has_manies, force: true, id: false do |t|
+   t.primary_key :many_key
+   t.references :destroy_async_parent
+ end
+
+  create_table :dl_keyed_has_many_throughs, force: true, id: false do |t|
+   t.primary_key :through_key
+ end
+
+  create_table :dl_keyed_joins, force: true, id: false do |t|
+   t.primary_key :joins_key
+   t.references :destroy_async_parent
+   t.references :dl_keyed_has_many_through
+ end
 
   create_table :developers, force: true do |t|
     t.string   :name
@@ -360,6 +408,7 @@ ActiveRecord::Schema.define do
     t.string :writer_type
     t.string :category_id
     t.string :author_id
+    t.references :book
   end
 
   create_table :events, force: true do |t|
@@ -992,6 +1041,13 @@ ActiveRecord::Schema.define do
     t.integer :car_id
   end
 
+  create_table :unused_destroy_asyncs, force: true do |t|
+  end
+
+  create_table :unused_belongs_to, force: true do |t|
+    t.belongs_to :unused_destroy_async
+  end
+
   create_table :variants, force: true do |t|
     t.references :product
     t.string     :name
@@ -1009,27 +1065,27 @@ ActiveRecord::Schema.define do
     create_table(t, force: true) { }
   end
 
-  create_table :men, force: true do |t|
+  create_table :humans, force: true do |t|
     t.string  :name
   end
 
   create_table :faces, force: true do |t|
     t.string  :description
-    t.integer :man_id
-    t.integer :polymorphic_man_id
-    t.string  :polymorphic_man_type
-    t.integer :poly_man_without_inverse_id
-    t.string  :poly_man_without_inverse_type
-    t.integer :horrible_polymorphic_man_id
-    t.string  :horrible_polymorphic_man_type
-    t.references :human, polymorphic: true, index: false
+    t.integer :human_id
+    t.integer :polymorphic_human_id
+    t.string  :polymorphic_human_type
+    t.integer :poly_human_without_inverse_id
+    t.string  :poly_human_without_inverse_type
+    t.integer :puzzled_polymorphic_human_id
+    t.string  :puzzled_polymorphic_human_type
+    t.references :super_human, polymorphic: true, index: false
   end
 
   create_table :interests, force: true do |t|
     t.string :topic
-    t.integer :man_id
-    t.integer :polymorphic_man_id
-    t.string :polymorphic_man_type
+    t.integer :human_id
+    t.integer :polymorphic_human_id
+    t.string :polymorphic_human_type
     t.integer :zine_id
   end
 
@@ -1127,6 +1183,7 @@ ActiveRecord::Schema.define do
     t.string :overloaded_string_with_limit, limit: 255
     t.string :string_with_default, default: "the original default"
     t.string :inferred_string, limit: 255
+    t.datetime :starts_at, :ends_at
   end
 
   create_table :users, force: true do |t|

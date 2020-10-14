@@ -69,7 +69,10 @@ end
 module ActionDispatch
   module SharedRoutes
     def before_setup
-      @routes = SharedTestRoutes
+      @routes = Routing::RouteSet.new
+      ActiveSupport::Deprecation.silence do
+        @routes.draw { get ":controller(/:action)" }
+      end
       super
     end
   end

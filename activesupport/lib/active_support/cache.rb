@@ -22,7 +22,7 @@ module ActiveSupport
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
-    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl]
+    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl, :coder]
 
     module Strategy
       autoload :LocalCache, "active_support/cache/strategy/local_cache"
@@ -158,6 +158,8 @@ module ActiveSupport
     # threshold is configurable with the <tt>:compress_threshold</tt> option,
     # specified in bytes.
     class Store
+      DEFAULT_CODER = Marshal
+
       cattr_accessor :logger, instance_writer: true
 
       attr_reader :silence, :options
@@ -185,6 +187,7 @@ module ActiveSupport
       # namespace for the cache.
       def initialize(options = nil)
         @options = options ? options.dup : {}
+        @coder = @options.delete(:coder) { self.class::DEFAULT_CODER } || NullCoder
       end
 
       # Silences the logger.
@@ -581,6 +584,14 @@ module ActiveSupport
           raise NotImplementedError.new
         end
 
+        def serialize_entry(entry)
+          @coder.dump(entry)
+        end
+
+        def deserialize_entry(payload)
+          payload.nil? ? nil : @coder.load(payload)
+        end
+
         # Reads multiple entries from the cache implementation. Subclasses MAY
         # implement this method.
         def read_multi_entries(names, **options)
@@ -617,13 +628,7 @@ module ActiveSupport
         # Deletes multiples entries in the cache implementation. Subclasses MAY
         # implement this method.
         def delete_multi_entries(entries, **options)
-          entries.inject(0) do |sum, key|
-            if delete_entry(key, **options)
-              sum + 1
-            else
-              sum
-            end
-          end
+          entries.count { |key| delete_entry(key, **options) }
         end
 
         # Merges the default options with ones specific to a method call.
@@ -687,7 +692,7 @@ module ActiveSupport
               expanded_key(key.first)
             end
           when Hash
-            key.collect { |k, v| "#{k}=#{v}" }.sort
+            key.collect { |k, v| "#{k}=#{v}" }.sort!
           else
             key
           end.to_param
@@ -700,7 +705,7 @@ module ActiveSupport
         def expanded_version(key)
           case
           when key.respond_to?(:cache_version) then key.cache_version.to_param
-          when key.is_a?(Array)                then key.map { |element| expanded_version(element) }.compact.to_param
+          when key.is_a?(Array)                then key.map { |element| expanded_version(element) }.tap(&:compact!).to_param
           when key.respond_to?(:to_a)          then expanded_version(key.to_a)
           end
         end
@@ -744,6 +749,18 @@ module ActiveSupport
           write(name, result, options) unless result.nil? && options[:skip_nil]
           result
         end
+    end
+
+    module NullCoder # :nodoc:
+      class << self
+        def load(payload)
+          payload
+        end
+
+        def dump(entry)
+          entry
+        end
+      end
     end
 
     # This class is used to represent cache entries. Cache entries have a value, an optional
@@ -796,8 +813,8 @@ module ActiveSupport
       end
 
       # Returns the size of the cached value. This could be less than
-      # <tt>value.size</tt> if the data is compressed.
-      def size
+      # <tt>value.bytesize</tt> if the data is compressed.
+      def bytesize
         case value
         when NilClass
           0

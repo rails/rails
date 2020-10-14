@@ -1,15 +1,26 @@
 # frozen_string_literal: true
 
+require "rouge"
+
+# Add more common shell commands
+Rouge::Lexers::Shell::BUILTINS << "|bin/rails|brew|bundle|gem|git|node|rails|rake|ruby|sqlite3|yarn"
+
 module RailsGuides
   class Markdown
     class Renderer < Redcarpet::Render::HTML
       cattr_accessor :edge, :version
 
       def block_code(code, language)
-        <<-HTML
-<div class="code_container">
-<pre><code class="language-#{class_for(language)}">#{ERB::Util.h(code)}</code></pre>
-</div>
+        formatter = Rouge::Formatters::HTML.new
+        lexer = ::Rouge::Lexer.find_fancy(lexer_language(language))
+        formatted_code = formatter.format(lexer.lex(code))
+        clipboard_id = "clipboard-#{SecureRandom.hex(16)}"
+        <<~HTML
+          <div class="code_container">
+          <pre><code class="highlight #{lexer_language(language)}">#{formatted_code}</code></pre>
+          <textarea class="clipboard-content" id="#{clipboard_id}">#{clipboard_content(code, language)}</textarea>
+          <button class="clipboard-button" data-clipboard-target="##{clipboard_id}">Copy</button>
+          </div>
         HTML
       end
 
@@ -58,19 +69,28 @@ module RailsGuides
           end
         end
 
-        def class_for(code_type)
+        def lexer_language(code_type)
           case code_type
-          when "ruby", "sql", "plain", "js", "yaml"
-            code_type
-          when "erb", "html+erb"
+          when "html+erb"
             "erb"
-          when "html"
-            "xml" # HTML is understood, but there are .xml rules in the CSS
           when "bash"
-            "shell-session"
+            "console"
+          when nil
+            "plaintext"
           else
-            "plain"
+            ::Rouge::Lexer.find(code_type) ? code_type : "plaintext"
           end
+        end
+
+        def clipboard_content(code, language)
+          if language == "bash"
+            prompt_regexp = /^\$ /
+            code = code.split("\n").
+              select { |line| line =~ prompt_regexp }.
+              map { |line| line.gsub(prompt_regexp, "") }.
+              join("\n")
+          end
+          ERB::Util.h(code)
         end
 
         def convert_notes(body)

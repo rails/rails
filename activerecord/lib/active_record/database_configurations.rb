@@ -79,10 +79,25 @@ module ActiveRecord
     # If the application has multiple databases +find_db_config+ will return
     # the first DatabaseConfig for the environment.
     def find_db_config(env)
-      configurations.find do |db_config|
-        db_config.env_name == env.to_s ||
-          (db_config.for_current_env? && db_config.name == env.to_s)
-      end
+      configurations
+        .sort_by.with_index { |db_config, i| db_config.for_current_env? ? [0, i] : [1, i] }
+        .find do |db_config|
+          db_config.env_name == env.to_s ||
+            (db_config.for_current_env? && db_config.name == env.to_s)
+        end
+    end
+
+    # A primary configuration is one that is named primary or if there is
+    # no primary, the first configuration for an environment will be treated
+    # as primary. This is used as the "default" configuration and is used
+    # when the application needs to treat one configuration differently. For
+    # example, when Rails dumps the schema, the primary configuration's schema
+    # file will be named `schema.rb` instead of `primary_schema.rb`.
+    def primary?(name) # :nodoc:
+      return true if name == "primary"
+
+      first_config = find_db_config(default_env)
+      first_config && name == first_config.name
     end
 
     # Returns the DatabaseConfigurations object as a Hash.

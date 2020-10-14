@@ -1,3 +1,63 @@
+*   `ActiveSupport::Subscriber#attach_to` now accepts an `inherit_all:` argument. When set to true,
+    it allows a subscriber to receive events for methods defined in the subscriber's ancestor class(es).
+
+    ```ruby
+    class ActionControllerSubscriber < ActiveSupport::Subscriber
+      attach_to :action_controller
+
+      def start_processing(event)
+        info "Processing by #{event.payload[:controller]}##{event.payload[:action]} as #{format}"
+      end
+
+      def redirect_to(event)
+        info { "Redirected to #{event.payload[:location]}" }
+      end
+    end
+
+    # We detach ActionControllerSubscriber from the :action_controller namespace so that our CustomActionControllerSubscriber
+    # can provide its own instrumentation for certain events in the namespace
+    ActionControllerSubscriber.detach_from(:action_controller)
+
+    class CustomActionControllerSubscriber < ActionControllerSubscriber
+      attach_to :action_controller, inherit_all: true
+
+      def start_processing(event)
+        info "A custom response to start_processing events"
+      end
+
+      # => CustomActionControllerSubscriber will process events for "start_processing.action_controller" notifications
+      # using its own #start_processing implementation, while retaining ActionControllerSubscriber's instrumentation
+      # for "redirect_to.action_controller" notifications
+    end
+    ```
+
+    *Adrianna Chang*
+
+*   Fix bug to make memcached write_entry expire correctly with unless_exist
+
+    *Jye Lee*
+
+*   Add `ActiveSupport::Duration` conversion methods
+
+    `in_seconds`, `in_minutes`, `in_hours`, `in_days`, `in_weeks`, `in_months`, and `in_years` return the respective duration covered.
+
+    *Jason York*
+
+*   Fixed issue in `ActiveSupport::Cache::RedisCacheStore` not passing options
+    to `read_multi` causing `fetch_multi` to not work properly
+
+    *Rajesh Sharma*
+
+*   Fixed issue in `ActiveSupport::Cache::MemCacheStore` which caused duplicate compression,
+    and caused the provided `compression_threshold` to not be respected.
+
+    *Max Gurewitz*
+
+*   Prevent `RedisCacheStore` and `MemCacheStore` from performing compression
+    when reading entries written with `raw: true`.
+
+    *Max Gurewitz*
+
 *   `URI.parser` is deprecated and will be removed in Rails 6.2. Use
     `URI::DEFAULT_PARSER` instead.
 

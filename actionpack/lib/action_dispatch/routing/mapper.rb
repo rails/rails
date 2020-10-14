@@ -128,9 +128,21 @@ module ActionDispatch
           @internal           = options.delete(:internal)
           @scope_options      = scope_params[:options]
 
-          path_params = ast.find_all(&:symbol?).map(&:to_sym)
+          path_params = []
+          wildcard_options = {}
+          ast.each do |node|
+            if node.symbol?
+              path_params << node.to_sym
+            elsif formatted != false && node.star?
+              # Add a constraint for wildcard route to make it non-greedy and match the
+              # optional format part of the route by default.
+              wildcard_options[node.name.to_sym] ||= /.+?/
+            elsif node.cat?
+              alter_regex_for_custom_routes(node)
+            end
+          end
 
-          options = add_wildcard_options(options, formatted, ast)
+          options = wildcard_options.merge!(options)
 
           options = normalize_options!(options, path_params, scope_params[:module])
 
@@ -175,8 +187,10 @@ module ActionDispatch
           app(@blocks)
         end
 
+        JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
+
         def path
-          build_path @ast, requirements, @anchor
+          Journey::Path::Pattern.new(@ast, requirements, JOINED_SEPARATORS, @anchor)
         end
 
         def conditions
@@ -197,16 +211,10 @@ module ActionDispatch
         end
         private :request_method
 
-        JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
-
-        def build_path(ast, requirements, anchor)
-          pattern = Journey::Path::Pattern.new(ast, requirements, JOINED_SEPARATORS, anchor)
-
+        private
           # Find all the symbol nodes that are adjacent to literal nodes and alter
           # the regexp so that Journey will partition them into custom routes.
-          ast.find_all { |node|
-            next unless node.cat?
-
+          def alter_regex_for_custom_routes(node)
             if node.left.literal? && node.right.symbol?
               symbol = node.right
             elsif node.left.literal? && node.right.cat? && node.right.left.symbol?
@@ -215,34 +223,15 @@ module ActionDispatch
               symbol = node.left
             elsif node.left.symbol? && node.right.cat? && node.right.left.literal?
               symbol = node.left
-            else
-              next
             end
 
             if symbol
               symbol.regexp = /(?:#{Regexp.union(symbol.regexp, '-')})+/
             end
-          }
-
-          pattern
-        end
-        private :build_path
-
-        private
-          def intern(object)
-            object.is_a?(String) ? -object : object
           end
 
-          def add_wildcard_options(options, formatted, path_ast)
-            # Add a constraint for wildcard route to make it non-greedy and match the
-            # optional format part of the route by default.
-            if formatted != false
-              path_ast.grep(Journey::Nodes::Star).each_with_object({}) { |node, hash|
-                hash[node.name.to_sym] ||= /.+?/
-              }.merge options
-            else
-              options
-            end
+          def intern(object)
+            object.is_a?(String) ? -object : object
           end
 
           def normalize_options!(options, path_params, modyoule)
@@ -701,7 +690,7 @@ module ActionDispatch
 
               # We must actually delete prefix segment keys to avoid passing them to next url_for.
               _route.segment_keys.each { |k| options.delete(k) }
-              _url_helpers.send("#{name}_path", prefix_options)
+              _url_helpers.public_send("#{name}_path", prefix_options)
             end
 
             app.routes.define_mounted_helper(name, script_namer)

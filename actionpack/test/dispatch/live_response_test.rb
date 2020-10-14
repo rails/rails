@@ -62,6 +62,12 @@ module ActionController
         assert_equal "public", @response.headers["Cache-Control"]
       end
 
+      def test_cache_control_no_store_is_respected
+        @response.set_header("Cache-Control", "private, no-store")
+        @response.stream.write "omg"
+        assert_equal "no-store", @response.headers["Cache-Control"]
+      end
+
       def test_content_length_is_removed
         @response.headers["Content-Length"] = "1234"
         @response.stream.write "omg"

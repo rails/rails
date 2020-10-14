@@ -563,7 +563,7 @@ module ActiveRecord
         [:disconnect, :clear_reloadable_connections].each do |group_action_method|
           @pool.with_connection do |connection|
             assert_raises(ExclusiveConnectionTimeoutError) do
-              Thread.new { @pool.send(group_action_method) }.join
+              Thread.new { @pool.public_send(group_action_method) }.join
             end
           end
         end

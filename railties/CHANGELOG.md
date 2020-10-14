@@ -1,3 +1,61 @@
+*   Deprecate `config.active_support.use_sha1_digests`
+
+    `config.active_support.use_sha1_digests` is deprecated. It is replaced with `config.active_support.hash_digest_class` which allows setting the desired Digest instead. The Rails version defaults have been updated to use this new method as well so the behavior there is unchanged.
+
+    *Dirkjan Bussink*
+
+*   Change the default logging level from :debug to :info to avoid inadvertent exposure of personally
+    identifiable information (PII) in production environments.
+
+    *Eric M. Payne*
+
+*   Automatically generate abstract class when using multiple databases.
+
+    When generating a scaffold for a multiple database application, Rails will now automatically generate the abstract class for the database when the database argument is passed. This abstract class will include the connection information for the writing configuration and any models generated for that database will automatically inherit from the abstract class.
+
+    Usage:
+
+    ```bash
+    $ bin/rails generate scaffold Pet name:string --database=animals
+    ```
+
+    Will create an abstract class for the animals connection.
+
+    ```ruby
+    class AnimalsRecord < ApplicationRecord
+      self.abstract_class = true
+
+      connects_to database: { writing: :animals }
+    end
+    ```
+
+    And generate a `Pet` model that inherits from the new `AnimalsRecord`:
+
+    ```ruby
+    class Pet < AnimalsRecord
+    end
+    ```
+
+    If you already have an abstract class and it follows a different pattern than Rails defaults, you can pass a parent class with the database argument.
+
+    ```bash
+    $ bin/rails generate scaffold Pet name:string --database=animals --parent=SecondaryBase
+    ```
+
+    This will ensure the model inherits from the `SecondaryBase` parent instead of `AnimalsRecord`
+
+    ```ruby
+    class Pet < SecondaryBase
+    end
+    ```
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+
+*   Accept params from url to prepopulate the Inbound Emails form in Rails conductor.
+
+    *Chris Oliver*
+
 *   Create a new rails app using a minimal stack.
 
       `rails new cool_app --minimal`
@@ -158,7 +216,7 @@
 
     Previously:
 
-    ```
+    ```bash
     $ bin/rails g migration add_location_to_users location:references
     ```
 

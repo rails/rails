@@ -533,7 +533,8 @@ module ActiveSupport #:nodoc:
     # it is not possible to load the constant into from_mod, try its parent
     # module using +const_missing+.
     def load_missing_constant(from_mod, const_name)
-      unless qualified_const_defined?(from_mod.name) && Inflector.constantize(from_mod.name).equal?(from_mod)
+      from_mod_name = real_mod_name(from_mod)
+      unless qualified_const_defined?(from_mod_name) && Inflector.constantize(from_mod_name).equal?(from_mod)
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
 

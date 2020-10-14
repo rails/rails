@@ -282,7 +282,7 @@ TIP: `send_file` is often a faster and better option if a layout isn't required.
 Rails can render objects responding to `:render_in`.
 
 ```ruby
-render MyComponent.new
+render MyRenderable.new
 ```
 
 This calls `render_in` on the provided object with the current view context.
@@ -754,7 +754,7 @@ head :bad_request
 
 This would produce the following header:
 
-```
+```http
 HTTP/1.1 400 Bad Request
 Connection: close
 Date: Sun, 24 Jan 2010 12:15:53 GMT
@@ -773,7 +773,7 @@ head :created, location: photo_path(@photo)
 
 Which would produce:
 
-```
+```http
 HTTP/1.1 201 Created
 Connection: close
 Date: Sun, 24 Jan 2010 12:16:44 GMT

@@ -238,8 +238,6 @@ module ActiveRecord
     end
 
     def references!(*table_names) # :nodoc:
-      table_names.map!(&:to_s)
-
       self.references_values |= table_names
       self
     end
@@ -298,7 +296,7 @@ module ActiveRecord
     end
 
     def _select!(*fields) # :nodoc:
-      self.select_values += fields
+      self.select_values |= fields
       self
     end
 
@@ -382,7 +380,7 @@ module ActiveRecord
     # Same as #order but operates on relation in-place instead of copying.
     def order!(*args) # :nodoc:
       preprocess_order_args(args) unless args.empty?
-      self.order_values += args
+      self.order_values |= args
       self
     end
 
@@ -405,6 +403,7 @@ module ActiveRecord
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
       preprocess_order_args(args) unless args.all?(&:blank?)
+      args.uniq!
       self.reordering_value = true
       self.order_values = args
       self
@@ -503,8 +502,7 @@ module ActiveRecord
     #   # SELECT "users".*
     #   # FROM "users"
     #   # INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
-    #   # INNER JOIN "comments" "comments_posts"
-    #   #   ON "comments_posts"."post_id" = "posts"."id"
+    #   # INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
     #
     # You can use strings in order to customize your joins:
     #
@@ -655,13 +653,13 @@ module ActiveRecord
     #
     # If the condition is any blank-ish object, then #where is a no-op and returns
     # the current relation.
-    def where(opts = :chain, *rest)
-      if :chain == opts
+    def where(*args)
+      if args.empty?
         WhereChain.new(spawn)
-      elsif opts.blank?
+      elsif args.length == 1 && args.first.blank?
         self
       else
-        spawn.where!(opts, *rest)
+        spawn.where!(*args)
       end
     end
 
@@ -1035,8 +1033,7 @@ module ActiveRecord
     end
 
     def reverse_order! # :nodoc:
-      orders = order_values.uniq
-      orders.compact_blank!
+      orders = order_values.compact_blank
       self.order_values = reverse_sql_order(orders)
       self
     end
@@ -1158,7 +1155,7 @@ module ActiveRecord
       def build_arel(aliases)
         arel = Arel::SelectManager.new(table)
 
-        build_joins(arel, aliases)
+        build_joins(arel.join_sources, aliases)
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
@@ -1253,7 +1250,7 @@ module ActiveRecord
         end
 
         joins.each_with_index do |join, i|
-          joins[i] = table.create_string_join(Arel.sql(join.strip)) if join.is_a?(String)
+          joins[i] = Arel::Nodes::StringJoin.new(Arel.sql(join.strip)) if join.is_a?(String)
         end
 
         while joins.first.is_a?(Arel::Nodes::Join)
@@ -1279,8 +1276,8 @@ module ActiveRecord
         return buckets, Arel::Nodes::InnerJoin
       end
 
-      def build_joins(manager, aliases)
-        return if joins_values.empty? && left_outer_joins_values.empty?
+      def build_joins(join_sources, aliases = nil)
+        return join_sources if joins_values.empty? && left_outer_joins_values.empty?
 
         buckets, join_type = build_join_buckets
 
@@ -1289,23 +1286,23 @@ module ActiveRecord
         leading_joins     = buckets[:leading_join]
         join_nodes        = buckets[:join_node]
 
-        join_sources = manager.join_sources
         join_sources.concat(leading_joins) unless leading_joins.empty?
 
         unless association_joins.empty? && stashed_joins.empty?
           alias_tracker = alias_tracker(leading_joins + join_nodes, aliases)
           join_dependency = construct_join_dependency(association_joins, join_type)
-          join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker))
+          join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker, references_values))
         end
 
         join_sources.concat(join_nodes) unless join_nodes.empty?
+        join_sources
       end
 
       def build_select(arel)
         if select_values.any?
-          arel.project(*arel_columns(select_values.uniq))
+          arel.project(*arel_columns(select_values))
         elsif klass.ignored_columns.any?
-          arel.project(*klass.column_names.map { |field| arel_attribute(field) })
+          arel.project(*klass.column_names.map { |field| table[field] })
         else
           arel.project(table[Arel.star])
         end
@@ -1333,7 +1330,7 @@ module ActiveRecord
         from = from_clause.name || from_clause.value
 
         if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
-          arel_attribute(field)
+          table[field]
         elsif field.match?(/\A\w+\.\w+\z/)
           table, column = field.split(".")
           predicate_builder.resolve_arel_attribute(table, column) do
@@ -1352,7 +1349,7 @@ module ActiveRecord
 
       def reverse_sql_order(order_query)
         if order_query.empty?
-          return [arel_attribute(primary_key).desc] if primary_key
+          return [table[primary_key].desc] if primary_key
           raise IrreversibleOrderError,
             "Relation has no current order and table has no primary key to be used as default order"
         end
@@ -1363,6 +1360,8 @@ module ActiveRecord
             o.desc
           when Arel::Nodes::Ordering
             o.reverse
+          when Arel::Nodes::NodeExpression
+            o.desc
           when String
             if does_not_support_reverse?(o)
               raise IrreversibleOrderError, "Order #{o.inspect} cannot be reversed automatically"
@@ -1389,9 +1388,7 @@ module ActiveRecord
       end
 
       def build_order(arel)
-        orders = order_values.uniq
-        orders.compact_blank!
-
+        orders = order_values.compact_blank
         arel.order(*orders) unless orders.empty?
       end
 
@@ -1430,9 +1427,9 @@ module ActiveRecord
             arg.map { |field, dir|
               case field
               when Arel::Nodes::SqlLiteral
-                field.send(dir.downcase)
+                field.public_send(dir.downcase)
               else
-                order_column(field.to_s).send(dir.downcase)
+                order_column(field.to_s).public_send(dir.downcase)
               end
             }
           else
@@ -1458,7 +1455,7 @@ module ActiveRecord
       def order_column(field)
         arel_column(field) do |attr_name|
           if attr_name == "count" && !group_values.empty?
-            arel_attribute(attr_name)
+            table[attr_name]
           else
             Arel.sql(connection.quote_table_name(attr_name))
           end
@@ -1505,9 +1502,9 @@ module ActiveRecord
       #   check_if_method_has_arguments!("references", args)
       #   ...
       # end
-      def check_if_method_has_arguments!(method_name, args, message = "The method .#{method_name}() must contain arguments.")
+      def check_if_method_has_arguments!(method_name, args, message = nil)
         if args.blank?
-          raise ArgumentError, message
+          raise ArgumentError, message || "The method .#{method_name}() must contain arguments."
         elsif block_given?
           yield args
         else

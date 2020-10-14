@@ -25,6 +25,22 @@ module ApplicationTests
       assert $task_loaded
     end
 
+    test "framework tasks are evaluated only once" do
+      assert_equal ["Rails version"], rails("about").scan(/^Rails version/)
+    end
+
+    test "tasks can invoke framework tasks via Rails::Command.invoke" do
+      add_to_config <<~RUBY
+        rake_tasks do
+          task :invoke_about do
+            Rails::Command.invoke :about
+          end
+        end
+      RUBY
+
+      assert_match(/^Rails version/, rails("invoke_about"))
+    end
+
     test "task backtrace is silenced" do
       add_to_config <<-RUBY
         rake_tasks do
@@ -244,7 +260,7 @@ module ApplicationTests
       rails "generate", "scaffold", "user", "username:string"
       rails "db:migrate"
       output = rails("db:test:prepare", "--trace")
-      assert_match(/Execute db:test:load_structure/, output)
+      assert_match(/Execute db:test:load_schema/, output)
     end
 
     def test_rake_dump_structure_should_respect_db_structure_env_variable

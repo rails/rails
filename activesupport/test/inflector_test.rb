@@ -560,7 +560,7 @@ class InflectorTest < ActiveSupport::TestCase
       # clear the inflections
       ActiveSupport::Inflector.inflections do |inflect|
         inflect.clear(scope)
-        assert_equal [], inflect.send(scope)
+        assert_equal [], inflect.public_send(scope)
       end
     end
   end

@@ -780,7 +780,7 @@ class RequestMethod < BaseRequestTest
     ensure
       # Reset original acronym set
       ActiveSupport::Inflector.inflections do |inflect|
-        inflect.send(:instance_variable_set, "@acronyms", existing_acronyms)
+        inflect.instance_variable_set :@acronyms, existing_acronyms
         inflect.send(:define_acronym_regex_patterns)
       end
     end
@@ -1051,6 +1051,43 @@ class RequestParameters < BaseRequestTest
     assert_raises(ActionController::BadRequest) { request.parameters }
   end
 
+  test "POST parameters containing invalid UTF8 character" do
+    data = "foo=%81E"
+    request = stub_request(
+      "REQUEST_METHOD" => "POST",
+      "CONTENT_LENGTH" => data.length,
+      "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
+      "rack.input" => StringIO.new(data)
+    )
+
+    err = assert_raises(ActionController::BadRequest) { request.parameters }
+
+    assert_predicate err.message, :valid_encoding?
+    assert_equal "Invalid request parameters: Invalid encoding for parameter: �E", err.message
+  end
+
+  test "query parameters specified as ASCII_8BIT encoded do not raise InvalidParameterError" do
+    request = stub_request("QUERY_STRING" => "foo=%81E")
+
+    ActionDispatch::Request::Utils.stub(:set_binary_encoding, { "foo" => "\x81E".b }) do
+      request.parameters
+    end
+  end
+
+  test "POST parameters specified as ASCII_8BIT encoded do not raise InvalidParameterError" do
+    data = "foo=%81E"
+    request = stub_request(
+      "REQUEST_METHOD" => "POST",
+      "CONTENT_LENGTH" => data.length,
+      "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
+      "rack.input" => StringIO.new(data)
+    )
+
+    ActionDispatch::Request::Utils.stub(:set_binary_encoding, { "foo" => "\x81E".b }) do
+      request.parameters
+    end
+  end
+
   test "parameters not accessible after rack parse error 1" do
     request = stub_request(
       "REQUEST_METHOD" => "POST",
@@ -1288,5 +1325,19 @@ class EarlyHintsRequestTest < BaseRequestTest
     expected_hints = { "Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload" }
 
     assert_equal expected_hints, early_hints
+  end
+end
+
+class RequestInspectTest < BaseRequestTest
+  test "inspect" do
+    request = stub_request(
+      "REQUEST_METHOD" => "POST",
+      "REMOTE_ADDR" => "1.2.3.4",
+      "HTTP_X_FORWARDED_PROTO" => "https",
+      "HTTP_X_FORWARDED_HOST" => "example.com:443",
+      "PATH_INFO" => "/path/",
+      "QUERY_STRING" => "q=1"
+    )
+    assert_match %r(#<ActionDispatch::Request POST "https://example.com/path/\?q=1" for 1.2.3.4>), request.inspect
   end
 end

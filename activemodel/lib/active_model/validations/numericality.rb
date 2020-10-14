@@ -25,42 +25,22 @@ module ActiveModel
       end
 
       def validate_each(record, attr_name, value, precision: Float::DIG, scale: nil)
-        came_from_user = :"#{attr_name}_came_from_user?"
-
-        if record.respond_to?(came_from_user)
-          if record.public_send(came_from_user)
-            raw_value = record.read_attribute_before_type_cast(attr_name)
-          elsif record.respond_to?(:read_attribute)
-            raw_value = record.read_attribute(attr_name)
-          end
-        else
-          before_type_cast = :"#{attr_name}_before_type_cast"
-          if record.respond_to?(before_type_cast)
-            raw_value = record.public_send(before_type_cast)
-          end
-        end
-        raw_value ||= value
-
-        if record_attribute_changed_in_place?(record, attr_name)
-          raw_value = value
-        end
-
-        unless is_number?(raw_value, precision, scale)
-          record.errors.add(attr_name, :not_a_number, **filtered_options(raw_value))
+        unless is_number?(value, precision, scale)
+          record.errors.add(attr_name, :not_a_number, **filtered_options(value))
           return
         end
 
-        if allow_only_integer?(record) && !is_integer?(raw_value)
-          record.errors.add(attr_name, :not_an_integer, **filtered_options(raw_value))
+        if allow_only_integer?(record) && !is_integer?(value)
+          record.errors.add(attr_name, :not_an_integer, **filtered_options(value))
           return
         end
 
-        value = parse_as_number(raw_value, precision, scale)
+        value = parse_as_number(value, precision, scale)
 
         options.slice(*CHECKS.keys).each do |option, option_value|
           case option
           when :odd, :even
-            unless value.to_i.send(CHECKS[option])
+            unless value.to_i.public_send(CHECKS[option])
               record.errors.add(attr_name, option, **filtered_options(value))
             end
           else
@@ -73,7 +53,7 @@ module ActiveModel
 
             option_value = parse_as_number(option_value, precision, scale)
 
-            unless value.send(CHECKS[option], option_value)
+            unless value.public_send(CHECKS[option], option_value)
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
           end
@@ -128,6 +108,27 @@ module ActiveModel
         end
       end
 
+      def read_attribute_for_validation(record, attr_name)
+        return super if record_attribute_changed_in_place?(record, attr_name)
+
+        came_from_user = :"#{attr_name}_came_from_user?"
+
+        if record.respond_to?(came_from_user)
+          if record.public_send(came_from_user)
+            raw_value = record.read_attribute_before_type_cast(attr_name)
+          elsif record.respond_to?(:read_attribute)
+            raw_value = record.read_attribute(attr_name)
+          end
+        else
+          before_type_cast = :"#{attr_name}_before_type_cast"
+          if record.respond_to?(before_type_cast)
+            raw_value = record.public_send(before_type_cast)
+          end
+        end
+
+        raw_value || super
+      end
+
       def record_attribute_changed_in_place?(record, attr_name)
         record.respond_to?(:attribute_changed_in_place?) &&
           record.attribute_changed_in_place?(attr_name.to_s)
@@ -180,6 +181,7 @@ module ActiveModel
       # * <tt>:less_than</tt>
       # * <tt>:less_than_or_equal_to</tt>
       # * <tt>:only_integer</tt>
+      # * <tt>:other_than</tt>
       #
       # For example:
       #

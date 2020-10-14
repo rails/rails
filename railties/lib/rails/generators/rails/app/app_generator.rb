@@ -66,6 +66,10 @@ module Rails
       template "gitignore", ".gitignore"
     end
 
+    def gitattributes
+      template "gitattributes", ".gitattributes"
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run "git init", capture: options[:quiet], abort_on_failure: false
@@ -331,8 +335,13 @@ module Rails
         build(:rakefile)
         build(:ruby_version)
         build(:configru)
-        build(:gitignore)   unless options[:skip_git]
-        build(:gemfile)     unless options[:skip_gemfile]
+
+        unless options[:skip_git]
+          build(:gitignore)
+          build(:gitattributes)
+        end
+
+        build(:gemfile) unless options[:skip_gemfile]
         build(:version_control)
         build(:package_json) unless options[:skip_javascript]
       end
@@ -491,6 +500,12 @@ module Rails
         end
       end
 
+      def delete_active_job_folder_if_skipping_active_job
+        if options[:skip_active_job]
+          remove_dir "app/jobs"
+        end
+      end
+
       def delete_action_mailer_files_skipping_action_mailer
         if options[:skip_action_mailer]
           remove_file "app/views/layouts/mailer.html.erb"
@@ -534,12 +549,6 @@ module Rails
 
       def finish_template
         build(:leftovers)
-      end
-
-      def delete_active_job_folder_if_skipping_active_job
-        if options[:skip_active_job]
-          remove_dir "app/jobs"
-        end
       end
 
       public_task :apply_rails_template, :run_bundle

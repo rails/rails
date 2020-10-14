@@ -205,13 +205,13 @@ module ActiveRecord
       # tracking is performed. The methods +changed?+ and +changed_in_place?+
       # will be called from ActiveModel::Dirty. See the documentation for those
       # methods in ActiveModel::Type::Value for more details.
-      def attribute(name, cast_type = Type::Value.new, **options)
+      def attribute(name, cast_type = nil, **options, &block)
         name = name.to_s
         reload_schema_from_cache
 
         self.attributes_to_define_after_schema_loads =
           attributes_to_define_after_schema_loads.merge(
-            name => [cast_type, options]
+            name => [cast_type || block, options]
           )
       end
 
@@ -246,12 +246,7 @@ module ActiveRecord
       def load_schema! # :nodoc:
         super
         attributes_to_define_after_schema_loads.each do |name, (type, options)|
-          if type.is_a?(Symbol)
-            adapter_name = ActiveRecord::Type.adapter_name_from(self)
-            type = ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
-          end
-
-          define_attribute(name, type, **options.slice(:default))
+          define_attribute(name, _lookup_cast_type(name, type, options), **options.slice(:default))
         end
       end
 
@@ -273,6 +268,30 @@ module ActiveRecord
             default_attribute = ActiveModel::Attribute.from_database(name, value, type)
           end
           _default_attributes[name] = default_attribute
+        end
+
+        def decorate_attribute_type(attr_name, **default)
+          type, options = attributes_to_define_after_schema_loads[attr_name]
+
+          attribute(attr_name, **default) do |cast_type|
+            if type && !type.is_a?(Proc)
+              cast_type = _lookup_cast_type(attr_name, type, options)
+            end
+
+            yield cast_type
+          end
+        end
+
+        def _lookup_cast_type(name, type, options)
+          case type
+          when Symbol
+            adapter_name = ActiveRecord::Type.adapter_name_from(self)
+            ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
+          when Proc
+            type[type_for_attribute(name)]
+          else
+            type || type_for_attribute(name)
+          end
         end
     end
   end

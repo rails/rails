@@ -414,8 +414,8 @@ module ActiveRecord
 
         def _substitute_values(values)
           values.map do |name, value|
-            attr = arel_attribute(name)
-            bind = predicate_builder.build_bind_attribute(name, value)
+            attr = arel_table[name]
+            bind = predicate_builder.build_bind_attribute(attr.name, value)
             [attr, bind]
           end
         end
@@ -569,12 +569,15 @@ module ActiveRecord
     # If you want to change the sti column as well, use #becomes! instead.
     def becomes(klass)
       became = klass.allocate
-      became.send(:initialize)
-      became.instance_variable_set(:@attributes, @attributes)
-      became.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
-      became.instance_variable_set(:@new_record, new_record?)
-      became.instance_variable_set(:@destroyed, destroyed?)
-      became.errors.copy!(errors)
+
+      became.send(:initialize) do |becoming|
+        becoming.instance_variable_set(:@attributes, @attributes)
+        becoming.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
+        becoming.instance_variable_set(:@new_record, new_record?)
+        becoming.instance_variable_set(:@destroyed, destroyed?)
+        becoming.errors.copy!(errors)
+      end
+
       became
     end
 
