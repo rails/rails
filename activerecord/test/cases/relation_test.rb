@@ -444,6 +444,18 @@ module ActiveRecord
       end
     end
 
+    test "no queries on empty relation exists?" do
+      assert_queries(0) do
+        Post.where(id: []).exists?(123)
+      end
+    end
+
+    test "no queries on empty condition exists?" do
+      assert_queries(0) do
+        Post.all.exists?(id: [])
+      end
+    end
+
     private
       def skip_if_sqlite3_version_includes_quoting_bug
         if sqlite3_version_includes_quoting_bug?
