@@ -102,4 +102,12 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     assert_not_predicate subject, :valid?
   end
+
+  def test_aliased_attribute
+    model_class.validates_numericality_of(:new_bank_balance, greater_or_equal_than: 0)
+
+    subject = model_class.new(new_bank_balance: "abcd")
+
+    assert_not_predicate subject, :valid?
+  end
 end

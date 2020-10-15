@@ -1,3 +1,7 @@
+*   Fix `read_attribute_before_type_cast` to consider attribute aliases.
+
+    *Marcelo Lauxen*
+
 *   Support passing record to uniqueness validator `:conditions` callable:
 
     ```ruby

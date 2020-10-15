@@ -12,6 +12,7 @@ require "models/category"
 require "models/reply"
 require "models/contact"
 require "models/keyboard"
+require "models/numeric_data"
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   include InTimeZone
@@ -1085,6 +1086,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "generated attribute methods ancestors have correct module" do
     mod = Topic.send(:generated_attribute_methods)
     assert_equal "Topic::GeneratedAttributeMethods", mod.inspect
+  end
+
+  test "read_attribute_before_type_cast with aliased attribute" do
+    model = NumericData.new(new_bank_balance: "abcd")
+    assert_equal "abcd", model.read_attribute_before_type_cast("new_bank_balance")
   end
 
   private
