@@ -1652,7 +1652,7 @@ order = Order.first
 order.shipped?
 # Returns true if status == :shipped
 order.complete?
-# Returns true if status == :shipped
+# Returns true if status == :complete
 ...
 ```
 
