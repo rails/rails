@@ -1364,6 +1364,20 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
 
     assert_not_predicate ship, :valid?
   end
+
+  def test_should_reset_scope
+    ship = Ship.new(name: "Princess Olga")
+    ship.build_pirate(catchphrase: "Arr")
+    ship.save!
+
+    assert_equal ship.association(:pirate).scope.where_values_hash, { "id" => ship.pirate.id }
+
+    pirate = Pirate.new(catchphrase: "Arr")
+    pirate.build_ship(name: "Princess Olga")
+    pirate.save!
+
+    assert_equal pirate.association(:ship).scope.where_values_hash, { "pirate_id" => pirate.id }
+  end
 end
 
 class TestAutosaveAssociationOnAHasOneThroughAssociation < ActiveRecord::TestCase

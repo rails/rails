@@ -464,11 +464,16 @@ module ActiveRecord
                 record[reflection.foreign_key] = key
                 if inverse_reflection = reflection.inverse_of
                   record.association(inverse_reflection.name).inversed_from(self)
+                  record.association(inverse_reflection.name).reset_scope
+                  record.association(inverse_reflection.name).loaded!
                 end
               end
 
               saved = record.save(validate: !autosave)
               raise ActiveRecord::Rollback if !saved && autosave
+
+              association(reflection.name).reset_scope
+
               saved
             end
           end
