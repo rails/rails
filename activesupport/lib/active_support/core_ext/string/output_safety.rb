@@ -263,23 +263,23 @@ module ActiveSupport #:nodoc:
     UNSAFE_STRING_METHODS_WITH_BACKREF.each do |unsafe_method|
       if unsafe_method.respond_to?(unsafe_method)
         class_eval <<-EOT, __FILE__, __LINE__ + 1
-          def #{unsafe_method}(*args, &block)             # def gsub(*args, &block)
-            if block                                      #   if block
+          def #{unsafe_method}(*args)             # def gsub(*args, &block)
+            if block_given?                                      #   if block
               to_str.#{unsafe_method}(*args) { |*params|  #     to_str.gsub(*args) { |*params|
-                set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
-                block.call(*params)                       #       block.call(*params)
+                Proc.new { |m| $~ = m }.call($~)      #       set_block_back_references(block, $~)
+                yield(*params)                            #       yield *params
               }                                           #     }
             else                                          #   else
               to_str.#{unsafe_method}(*args)              #     to_str.gsub(*args)
             end                                           #   end
           end                                             # end
 
-          def #{unsafe_method}!(*args, &block)            # def gsub!(*args, &block)
+          def #{unsafe_method}!(*args)            # def gsub!(*args, &block)
             @html_safe = false                            #   @html_safe = false
-            if block                                      #   if block
+            if block_given?                                      #   if block
               super(*args) { |*params|                    #     super(*args) { |*params|
-                set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
-                block.call(*params)                       #       block.call(*params)
+                Proc.new { |m| $~ = m }.call($~)      #       set_block_back_references(block, $~)
+                yield(*params)                             #       yield *params
               }                                           #     }
             else                                          #   else
               super                                       #     super
