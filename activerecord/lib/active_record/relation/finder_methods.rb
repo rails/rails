@@ -315,6 +315,7 @@ module ActiveRecord
       end
 
       relation = construct_relation_for_exists(conditions)
+      return false if relation.where_clause.contradiction?
 
       skip_query_cache_if_necessary { connection.select_rows(relation.arel, "#{name} Exists?").size == 1 }
     end
