@@ -4,6 +4,7 @@ require "cases/helper"
 require "models/person"
 require "models/traffic_light"
 require "models/post"
+require "models/binary_field"
 
 class SerializedAttributeTest < ActiveRecord::TestCase
   fixtures :topics, :posts
@@ -315,6 +316,20 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic.reload
 
     assert_equal({}, topic.content)
+  end
+
+  if current_adapter?(:Mysql2Adapter)
+    def test_is_not_changed_when_stored_in_mysql_blob
+      value = %w(Fée)
+      model = BinaryField.create!(normal_blob: value, normal_text: value)
+      model.reload
+
+      model.normal_text = value
+      assert_not_predicate model, :normal_text_changed?
+
+      model.normal_blob = value
+      assert_not_predicate model, :normal_blob_changed?
+    end
   end
 
   def test_values_cast_from_nil_are_persisted_as_nil

@@ -61,9 +61,12 @@ module ActiveRecord
         end
 
         def encoded(value)
-          unless default_value?(value)
-            coder.dump(value)
+          return if default_value?(value)
+          payload = coder.dump(value)
+          if payload && binary?
+            payload.force_encoding(Encoding::BINARY)
           end
+          payload
         end
     end
   end
