@@ -173,7 +173,7 @@ module ActiveRecord
           end
 
           changes = {}
-          @attributes.keys.each do |attr_name|
+          @attributes.each do |attr_name,_value|
             next if @_touch_attr_names.include?(attr_name)
 
             if attribute_changed?(attr_name)

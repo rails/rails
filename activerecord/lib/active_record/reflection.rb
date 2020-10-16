@@ -945,7 +945,7 @@ module ActiveRecord
         end
 
         if parent_reflection.nil?
-          reflections = active_record.reflections.keys.map(&:to_sym)
+          reflections = active_record.reflections.keys.map!(&:to_sym)
 
           if reflections.index(through_reflection.name) > reflections.index(name)
             raise HasManyThroughOrderError.new(active_record.name, self, through_reflection)

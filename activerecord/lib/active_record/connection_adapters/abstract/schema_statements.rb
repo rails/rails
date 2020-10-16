@@ -1317,7 +1317,7 @@ module ActiveRecord
 
       def index_algorithm(algorithm) # :nodoc:
         index_algorithms.fetch(algorithm) do
-          raise ArgumentError, "Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}"
+          raise ArgumentError, "Algorithm must be one of the following: #{index_algorithms.keys.map!(&:inspect).join(', ')}"
         end if algorithm
       end
 

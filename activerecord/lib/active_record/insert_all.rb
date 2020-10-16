@@ -10,7 +10,7 @@ module ActiveRecord
     def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
-      @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s)
+      @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map!(&:to_s)
       @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
 
       if model.scope_attributes?

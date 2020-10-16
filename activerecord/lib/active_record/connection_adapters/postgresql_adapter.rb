@@ -30,8 +30,7 @@ module ActiveRecord
       conn_params[:dbname] = conn_params.delete(:database) if conn_params[:database]
 
       # Forward only valid config params to PG::Connection.connect.
-      valid_conn_param_keys = PG::Connection.conndefaults_hash.keys + [:requiressl]
-      conn_params.slice!(*valid_conn_param_keys)
+      conn_params.slice!(*PG::Connection.conndefaults_hash.keys, :requiressl)
 
       ConnectionAdapters::PostgreSQLAdapter.new(
         ConnectionAdapters::PostgreSQLAdapter.new_client(conn_params),
@@ -914,7 +913,7 @@ module ActiveRecord
             "timestamptz" => PG::TextDecoder::TimestampWithTimeZone,
           }
 
-          known_coder_types = coders_by_name.keys.map { |n| quote(n) }
+          known_coder_types = coders_by_name.collect { |k,_v| quote(k) }
           query = <<~SQL % known_coder_types.join(", ")
             SELECT t.oid, t.typname
             FROM pg_type as t

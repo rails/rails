@@ -473,8 +473,7 @@ module ActiveRecord
         check_record_limit!(options[:limit], attributes_collection)
 
         if attributes_collection.is_a? Hash
-          keys = attributes_collection.keys
-          attributes_collection = if keys.include?("id") || keys.include?(:id)
+          attributes_collection = if attributes_collection.key?("id") || attributes_collection.key?(:id)
             [attributes_collection]
           else
             attributes_collection.values
