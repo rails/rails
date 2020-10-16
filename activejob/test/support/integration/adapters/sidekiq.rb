@@ -24,6 +24,7 @@ module SidekiqJobsManager
     continue_read, continue_write = IO.pipe
     death_read, death_write = IO.pipe
 
+    sleep 1
     @pid = fork do
       continue_read.close
       death_write.close
