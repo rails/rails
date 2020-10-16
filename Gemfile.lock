@@ -29,6 +29,14 @@ GIT
       websocket
 
 GIT
+  remote: https://github.com/p8/sdoc.git
+  revision: a5e95cafdebf8a76ea21f2237e6349223f9ecac5
+  branch: without-frames
+  specs:
+    sdoc (1.1.0)
+      rdoc (>= 5.0)
+
+GIT
   remote: https://github.com/resque/redis-namespace.git
   revision: c31e63dc3cd5e59ef5ea394d4d46ac60d1e6f82e
   specs:
@@ -461,8 +469,6 @@ GEM
       sprockets (> 3.0)
       sprockets-rails
       tilt
-    sdoc (1.1.0)
-      rdoc (>= 5.0)
     selenium-webdriver (3.142.7)
       childprocess (>= 0.5, < 4.0)
       rubyzip (>= 1.2.2)
@@ -612,7 +618,7 @@ DEPENDENCIES
   rubocop-performance
   rubocop-rails
   sass-rails
-  sdoc (~> 1.1)
+  sdoc!
   selenium-webdriver (>= 3.141.592)
   sequel
   sidekiq
