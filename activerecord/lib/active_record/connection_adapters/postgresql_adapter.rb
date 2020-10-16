@@ -913,7 +913,7 @@ module ActiveRecord
             "timestamptz" => PG::TextDecoder::TimestampWithTimeZone,
           }
 
-          known_coder_types = coders_by_name.collect { |k,_v| quote(k) }
+          known_coder_types = coders_by_name.collect { |k, _v| quote(k) }
           query = <<~SQL % known_coder_types.join(", ")
             SELECT t.oid, t.typname
             FROM pg_type as t

@@ -465,7 +465,8 @@ module ActiveRecord
           values_list = fixtures.map do |fixture|
             fixture = fixture.stringify_keys
 
-            if fixture.any? { |key, _value| !columns.key?(key) }
+            unknown_columns = fixture.keys - columns.keys
+            if unknown_columns.any?
               raise Fixture::FixtureError, %(table "#{table_name}" has no columns named #{unknown_columns.map(&:inspect).join(', ')}.)
             end
 
