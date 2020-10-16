@@ -264,19 +264,19 @@ module ActiveSupport #:nodoc:
       if unsafe_method.respond_to?(unsafe_method)
         class_eval <<-EOT, __FILE__, __LINE__ + 1
           def #{unsafe_method}(*args, &block)             # def gsub(*args, &block)
-            if block                                      #   if block
+            if block && (Regexp === args.first)           #   if block
               to_str.#{unsafe_method}(*args) { |*params|  #     to_str.gsub(*args) { |*params|
                 set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
                 block.call(*params)                       #       block.call(*params)
               }                                           #     }
             else                                          #   else
-              to_str.#{unsafe_method}(*args)              #     to_str.gsub(*args)
+              to_str.#{unsafe_method}(*args, &block)      #     to_str.gsub(*args)
             end                                           #   end
           end                                             # end
 
           def #{unsafe_method}!(*args, &block)            # def gsub!(*args, &block)
             @html_safe = false                            #   @html_safe = false
-            if block                                      #   if block
+            if block && (Regexp === args.first)           #   if block
               super(*args) { |*params|                    #     super(*args) { |*params|
                 set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
                 block.call(*params)                       #       block.call(*params)
