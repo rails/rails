@@ -1,3 +1,15 @@
+*   Add `preorder` as a new query method to prepend the specified order onto any existing order.
+
+    ```ruby
+    class User < ApplicationRecord
+      scope :recent, -> { order(name: :asc) }
+    end
+
+    most_popular_then_recent = User.recent.preorder(popularity: :desc) # generated SQL has `ORDER BY popularity DESC, name ASC`
+    ```
+
+    *Alex Robbin*
+
 *   Support passing record to uniqueness validator `:conditions` callable:
 
     ```ruby

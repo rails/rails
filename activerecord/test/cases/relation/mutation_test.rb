@@ -88,6 +88,13 @@ module ActiveRecord
       assert_equal "posts", node.expr.relation.name
     end
 
+    test "#preorder!" do
+      @relation = relation.order("foo")
+
+      assert relation.preorder!("bar").equal?(relation)
+      assert_equal ["bar", "foo"], relation.order_values
+    end
+
     test "reverse_order!" do
       @relation = Post.order("title ASC, comments_count DESC")
 
