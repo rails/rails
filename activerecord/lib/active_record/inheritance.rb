@@ -71,10 +71,9 @@ module ActiveRecord
         end
 
         if abstract_class?
-          raise NotImplementedError, "#{self} is an abstract class and cannot be instantiated without setting the '#{inheritance_column}' attribute."
+          raise NotImplementedError, "#{self} is an abstract class and cannot be instantiated."
         end
 
-        super
       end
 
       # Returns +true+ if this does not need STI type condition. Returns
