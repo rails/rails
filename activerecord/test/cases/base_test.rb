@@ -1133,7 +1133,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_abstract_class_table_name
-    assert_nil AbstractCompany.table_name
+    assert_equal AbstractCompany.table_name, "companies"
   end
 
   def test_find_on_abstract_base_class_doesnt_use_type_condition
