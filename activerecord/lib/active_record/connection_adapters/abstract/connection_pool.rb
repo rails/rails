@@ -319,7 +319,7 @@ module ActiveRecord
               Thread.new(frequency) do |t|
                 # Advise multi-threaded app servers to ignore this thread for
                 # the purposes of fork safety warnings
-                Thread.current[:fork_safe] = true
+                Thread.current.thread_variable_set(:fork_safe, true)
                 running = true
                 while running
                   sleep t
