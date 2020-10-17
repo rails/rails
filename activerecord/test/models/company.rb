@@ -2,6 +2,7 @@
 
 class AbstractCompany < ActiveRecord::Base
   self.abstract_class = true
+  self.table_name = :companies
 end
 
 class Company < AbstractCompany

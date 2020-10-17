@@ -50,7 +50,7 @@ module ActiveRecord
       # and if the inheritance column is attr accessible, it initializes an
       # instance of the given subclass instead of the base class.
       def new(attributes = nil, &block)
-        if abstract_class? || self == Base
+        if self == Base
           raise NotImplementedError, "#{self} is an abstract class and cannot be instantiated."
         end
 
@@ -67,10 +67,14 @@ module ActiveRecord
         end
 
         if subclass && subclass != self
-          subclass.new(attributes, &block)
-        else
-          super
+          return subclass.new(attributes, &block)
         end
+
+        if abstract_class?
+          raise NotImplementedError, "#{self} is an abstract class and cannot be instantiated."
+        end
+
+        super
       end
 
       # Returns +true+ if this does not need STI type condition. Returns

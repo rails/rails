@@ -298,6 +298,11 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_equal Firm, firm.class
   end
 
+  def test_inheritance_new_with_abstract_class
+    firm = AbstractCompany.new(type: "Firm")
+    assert_equal Firm, firm.class
+  end
+
   def test_where_new_with_subclass
     firm = Company.where(type: "Firm").new
     assert_equal Firm, firm.class
