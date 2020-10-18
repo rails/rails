@@ -13,6 +13,7 @@ module Rails
       # Future people who read this... These tests are just to surround the
       # current behavior of the ARGVScrubber, they do not mean that the class
       # *must* act this way, I just want to prevent regressions.
+
       include EnvHelpers
 
       def test_version

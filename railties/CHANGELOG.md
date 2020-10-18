@@ -1,8 +1,8 @@
 *   Make railsrc file location xdg-specification compliant
 
-    Rails new will load the railsrc file from XDG_CONFIG_HOME/rails/railsrc
-    It will then fallback to .config if XDG_CONFIG_HOME not specified
-    It will then fallback to HOME/.railsrc
+    Rails new will load the `railsrc` file from `XDG_CONFIG_HOME/rails/railsrc`.
+    It will then fallback to `.config` if `XDG_CONFIG_HOME` not specified.
+    It will then fallback to `HOME/.railsrc`.
 
     The fallback behaviour means this does not cause any breaking changes.
 
