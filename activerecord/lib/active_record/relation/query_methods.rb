@@ -409,6 +409,25 @@ module ActiveRecord
       self
     end
 
+    # Prepends to any existing order defined on the relation with the specified order. For example:
+    #
+    #   User.order('email ASC').preorder('id DESC')
+    #
+    # generates a query with `ORDER BY id DESC, email ASC`. This is useful if you are using a scope that has an order that you want use as a fallback.
+    def preorder(*args)
+      check_if_method_has_arguments!(:preorder, args) do
+        sanitize_order_arguments(args)
+      end
+      spawn.preorder!(*args)
+    end
+
+    # Same as #preorder but operates on relation in-place instead of copying.
+    def preorder!(*args)
+      preprocess_order_args(args) unless args.empty?
+      self.order_values = args | order_values
+      self
+    end
+
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
                                      :includes, :from, :readonly, :having, :optimizer_hints])
