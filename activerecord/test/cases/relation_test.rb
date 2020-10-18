@@ -456,6 +456,18 @@ module ActiveRecord
       end
     end
 
+    test "no queries on empty relation find_by" do
+      assert_queries(0) do
+        Post.find_by(id: [])
+      end
+    end
+
+    test "no queries on empty condition find_by" do
+      assert_queries(0) do
+        Post.all.find_by(id: [])
+      end
+    end
+
     private
       def skip_if_sqlite3_version_includes_quoting_bug
         if sqlite3_version_includes_quoting_bug?
