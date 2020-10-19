@@ -33,8 +33,6 @@ module ActiveSupport
         end
       end
 
-      DEFAULT_CODER = DupCoder
-
       def initialize(options = nil)
         options ||= {}
         super(options)
@@ -130,6 +128,10 @@ module ActiveSupport
 
       private
         PER_ENTRY_OVERHEAD = 240
+
+        def default_coder
+          DupCoder
+        end
 
         def cached_size(key, payload)
           key.to_s.bytesize + payload.bytesize + PER_ENTRY_OVERHEAD

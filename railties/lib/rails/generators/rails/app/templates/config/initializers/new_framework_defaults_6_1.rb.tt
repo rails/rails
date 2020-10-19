@@ -6,6 +6,10 @@
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 
+# Turns on the new ActiveSupport::Cache serialization format, that is both
+# more compact an faster.
+# Rails.application.config.active_support.optimized_cache_entry_format = true
+
 # Support for inversing belongs_to -> has_many Active Record associations.
 # Rails.application.config.active_record.has_many_inversing = true
 

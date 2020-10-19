@@ -26,8 +26,6 @@ module ActiveSupport
     # MemCacheStore implements the Strategy::LocalCache strategy which implements
     # an in-memory cache inside of a block.
     class MemCacheStore < Store
-      DEFAULT_CODER = NullCoder # Dalli automatically Marshal values
-
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         private
@@ -136,6 +134,10 @@ module ActiveSupport
       end
 
       private
+        def default_coder
+          NullCoder
+        end
+
         # Read an entry from the cache.
         def read_entry(key, **options)
           rescue_error_with(nil) { deserialize_entry(@data.with { |c| c.get(key, options) }) }

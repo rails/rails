@@ -91,6 +91,9 @@ module ActiveSupport
         expanded_cache_key
       end
 
+      attr_accessor :optimized_cache_entry_format
+      @optimized_cache_entry_format = false
+
       private
         def retrieve_cache_key(key)
           case
@@ -158,8 +161,6 @@ module ActiveSupport
     # threshold is configurable with the <tt>:compress_threshold</tt> option,
     # specified in bytes.
     class Store
-      DEFAULT_CODER = Marshal
-
       cattr_accessor :logger, instance_writer: true
 
       attr_reader :silence, :options
@@ -187,7 +188,7 @@ module ActiveSupport
       # namespace for the cache.
       def initialize(options = nil)
         @options = options ? options.dup : {}
-        @coder = @options.delete(:coder) { self.class::DEFAULT_CODER } || NullCoder
+        @coder = @options.delete(:coder) { default_coder } || NullCoder
       end
 
       # Silences the logger.
@@ -553,6 +554,14 @@ module ActiveSupport
       end
 
       private
+        def default_coder
+          if Cache.optimized_cache_entry_format
+            EntryCoder
+          else
+            LegacyCoder
+          end
+        end
+
         # Adds the namespace defined in the options to a pattern designed to
         # match keys. Implementations that support delete_matched should call
         # this method to translate a pattern that matches names into one that
@@ -763,6 +772,40 @@ module ActiveSupport
       end
     end
 
+    MARSHAL_PREFIX =  "\x04\b".b.freeze
+
+    module LegacyCoder # :nodoc:
+      class << self
+        def load(payload)
+          if payload.start_with?(MARSHAL_PREFIX)
+            Marshal.load(payload)
+          else
+            EntryCoder.load(payload)
+          end
+        end
+
+        def dump(entry)
+          Marshal.dump(entry)
+        end
+      end
+    end
+
+    module EntryCoder # :nodoc:
+      class << self
+        def load(payload)
+          if payload.start_with?(MARSHAL_PREFIX)
+            LegacyCoder.load(payload)
+          else
+            Entry.allocate.unpack(payload)
+          end
+        end
+
+        def dump(entry)
+          entry.pack
+        end
+      end
+    end
+
     # This class is used to represent cache entries. Cache entries have a value, an optional
     # expiration time, and an optional version. The expiration time is used to support the :race_condition_ttl option
     # on the cache. The version is used to support the :version option on the cache for rejecting
@@ -784,6 +827,56 @@ module ActiveSupport
         @expires_in = expires_in && expires_in.to_f
 
         compress!(compress_threshold) if compress
+      end
+
+      def init_with(value:, compressed:, version:, expires_at:)
+        @value = value
+        @version = version
+        @created_at = 0.0
+        @expires_in = expires_at
+        @compressed = true if compressed
+        self
+      end
+
+      HEADER_FORMAT = "CGN"
+      HEADER_SIZE = [0, 0.0, 0].pack(HEADER_FORMAT).bytesize # 13 bytes
+
+      def unpack(payload) # :nodoc:
+        compressed, expires_at, version_bytesize = payload.unpack(HEADER_FORMAT)
+        compressed = compressed == 1
+
+        @created_at = 0.0
+        if expires_at != 0
+          @expires_in = expires_at
+        end
+
+        @version = nil
+        if version_bytesize > 0
+          @version = Marshal.load(payload.byteslice(HEADER_SIZE, version_bytesize))
+        end
+
+        value = payload.byteslice((HEADER_SIZE + version_bytesize)..-1)
+        if compressed
+          @value = value
+          @compressed = true
+        else
+          @value = Marshal.load(value)
+        end
+
+        self
+      end
+
+      def pack
+        serialized_version = version ? Marshal.dump(version) : nil
+
+        payload = [
+          compressed? ? 1 : 0,
+          expires_at.to_f,
+          serialized_version ? serialized_version.bytesize : 0,
+        ].pack(HEADER_FORMAT)
+        payload << serialized_version if serialized_version
+        payload << serialized_value
+        payload
       end
 
       def value
@@ -866,6 +959,14 @@ module ActiveSupport
 
         def uncompress(value)
           Marshal.load(Zlib::Inflate.inflate(value))
+        end
+
+        def serialized_value
+          if compressed?
+            @value
+          else
+            Marshal.dump(@value)
+          end
         end
     end
   end

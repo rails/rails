@@ -202,6 +202,19 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
   end
 
+  class OptimizedRedisCacheStoreCommonBehaviorTest < RedisCacheStoreCommonBehaviorTest
+    def setup
+      ActiveSupport::Cache.optimized_cache_entry_format = true
+      super
+    end
+
+    def teardown
+      super
+      ActiveSupport::Cache.optimized_cache_entry_format = nil
+    end
+  end
+
+
   class ConnectionPoolBehaviourTest < StoreTest
     include ConnectionPoolBehavior
 

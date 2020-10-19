@@ -88,6 +88,14 @@ module ActiveSupport
 
   cattr_accessor :test_order # :nodoc:
 
+  def self.optimized_cache_entry_format
+    Cache.optimized_cache_entry_format
+  end
+
+  def self.optimized_cache_entry_format=(value)
+    Cache.optimized_cache_entry_format = value
+  end
+
   def self.to_time_preserves_timezone
     DateAndTime::Compatibility.preserve_timezone
   end

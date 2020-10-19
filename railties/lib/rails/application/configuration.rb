@@ -162,6 +162,10 @@ module Rails
 
           self.autoloader = :zeitwerk if %w[ruby truffleruby].include?(RUBY_ENGINE)
 
+          if respond_to?(:active_support)
+            active_support.optimized_cache_entry_format = true
+          end
+
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
           end

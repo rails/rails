@@ -145,3 +145,15 @@ class FileStoreTest < ActiveSupport::TestCase
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
   end
 end
+
+class OptimizedFileStoreTest < FileStoreTest
+  def setup
+    ActiveSupport::Cache.optimized_cache_entry_format = true
+    super
+  end
+
+  def teardown
+    super
+    ActiveSupport::Cache.optimized_cache_entry_format = nil
+  end
+end
