@@ -865,6 +865,8 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.use_authenticated_message_encryption` specifies whether to use AES-256-GCM authenticated encryption as the default cipher for encrypting messages instead of AES-256-CBC.
 
+* `config.active_support.cache_format_version` specifies which version of the cache serializer to use. Possible values are `6.1` and `7.0`. Defaults to `6.1`.
+
 * `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
 * `ActiveSupport::Cache::Store.logger` specifies the logger to use within cache store operations.

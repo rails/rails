@@ -209,6 +209,39 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
   end
 
+  class OptimizedRedisCacheStoreCommonBehaviorTest < RedisCacheStoreCommonBehaviorTest
+    def before_setup
+      @previous_format = ActiveSupport::Cache.format_version
+      ActiveSupport::Cache.format_version = 7.0
+      super
+    end
+
+    def forward_compatibility
+      previous_format = ActiveSupport::Cache.format_version
+      ActiveSupport::Cache.format_version = 6.1
+      @old_store = lookup_store
+      ActiveSupport::Cache.format_version = previous_format
+
+      @old_store.write("foo", "bar")
+      assert_equal "bar", @cache.read("foo")
+    end
+
+    def forward_compatibility
+      previous_format = ActiveSupport::Cache.format_version
+      ActiveSupport::Cache.format_version = 6.1
+      @old_store = lookup_store
+      ActiveSupport::Cache.format_version = previous_format
+
+      @cache.write("foo", "bar")
+      assert_equal "bar", @old_store.read("foo")
+    end
+
+    def after_teardown
+      super
+      ActiveSupport::Cache.format_version = @previous_format
+    end
+  end
+
   class ConnectionPoolBehaviourTest < StoreTest
     include ConnectionPoolBehavior
 

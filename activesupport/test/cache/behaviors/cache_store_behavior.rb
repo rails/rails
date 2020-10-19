@@ -183,7 +183,7 @@ module CacheStoreBehavior
   end
 
   def test_nil_with_compress_low_compress_threshold
-    assert_uncompressed(nil, compress: true, compress_threshold: 1)
+    assert_uncompressed(nil, compress: true, compress_threshold: 20)
   end
 
   def test_small_string_with_default_compression_settings
@@ -243,12 +243,12 @@ module CacheStoreBehavior
   end
 
   def test_incompressible_data
-    assert_uncompressed(nil, compress: true, compress_threshold: 1)
-    assert_uncompressed(true, compress: true, compress_threshold: 1)
-    assert_uncompressed(false, compress: true, compress_threshold: 1)
-    assert_uncompressed(0, compress: true, compress_threshold: 1)
-    assert_uncompressed(1.2345, compress: true, compress_threshold: 1)
-    assert_uncompressed("", compress: true, compress_threshold: 1)
+    assert_uncompressed(nil, compress: true, compress_threshold: 30)
+    assert_uncompressed(true, compress: true, compress_threshold: 30)
+    assert_uncompressed(false, compress: true, compress_threshold: 30)
+    assert_uncompressed(0, compress: true, compress_threshold: 30)
+    assert_uncompressed(1.2345, compress: true, compress_threshold: 30)
+    assert_uncompressed("", compress: true, compress_threshold: 30)
 
     incompressible = nil
 
@@ -600,8 +600,11 @@ module CacheStoreBehavior
       actual_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "actual", {}), **{})
       uncompressed_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "uncompressed", {}), **{})
 
-      actual_size = Marshal.dump(actual_entry).bytesize
-      uncompressed_size = Marshal.dump(uncompressed_entry).bytesize
+      actual_payload = @cache.send(:serialize_entry, actual_entry, **@cache.send(:merged_options, options))
+      uncompressed_payload = @cache.send(:serialize_entry, uncompressed_entry, compress: false)
+
+      actual_size = actual_payload.bytesize
+      uncompressed_size = uncompressed_payload.bytesize
 
       if should_compress
         assert_operator actual_size, :<, uncompressed_size, "value should be compressed"

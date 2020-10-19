@@ -35,7 +35,11 @@ module ActiveSupport
       autoload :LocalCache, "active_support/cache/strategy/local_cache"
     end
 
+    @format_version = 6.1
+
     class << self
+      attr_accessor :format_version
+
       # Creates a new Store object according to the given options.
       #
       # If no arguments are passed to this method, then a new
@@ -171,24 +175,6 @@ module ActiveSupport
     # threshold is configurable with the <tt>:compress_threshold</tt> option,
     # specified in bytes.
     class Store
-      module MarshalCoder # :nodoc:
-        extend self
-
-        def dump(entry)
-          Marshal.dump(entry)
-        end
-
-        def dump_compressed(entry, threshold)
-          Marshal.dump(entry.compressed(threshold))
-        end
-
-        def load(payload)
-          Marshal.load(payload)
-        end
-      end
-
-      DEFAULT_CODER = MarshalCoder
-
       cattr_accessor :logger, instance_writer: true
 
       attr_reader :silence, :options
@@ -219,7 +205,7 @@ module ActiveSupport
         @options[:compress] = true unless @options.key?(:compress)
         @options[:compress_threshold] = DEFAULT_COMPRESS_LIMIT unless @options.key?(:compress_threshold)
 
-        @coder = @options.delete(:coder) { self.class::DEFAULT_CODER } || NullCoder
+        @coder = @options.delete(:coder) { default_coder } || NullCoder
         @coder_supports_compression = @coder.respond_to?(:dump_compressed)
       end
 
@@ -600,6 +586,10 @@ module ActiveSupport
       end
 
       private
+        def default_coder
+          Coders[Cache.format_version]
+        end
+
         # Adds the namespace defined in the options to a pattern designed to
         # match keys. Implementations that support delete_matched should call
         # this method to translate a pattern that matches names into one that
@@ -705,6 +695,7 @@ module ActiveSupport
             options[canonical_name] ||= options[alias_key] if alias_key
             options.except!(*aliases)
           end
+
           options
         end
 
@@ -831,6 +822,76 @@ module ActiveSupport
       end
     end
 
+    module Coders # :nodoc:
+      MARK_61              = "\x04\b".b.freeze # The one set by Marshal.
+      MARK_70_UNCOMPRESSED = "\x00".b.freeze
+      MARK_70_COMPRESSED   = "\x01".b.freeze
+
+      class << self
+        def [](version)
+          case version
+          when 6.1
+            Rails61Coder
+          when 7.0
+            Rails70Coder
+          else
+            raise ArgumentError, "Unknown ActiveSupport::Cache.format_version #{Cache.format_version.inspect}"
+          end
+        end
+      end
+
+      module Loader
+        extend self
+
+        def load(payload)
+          if payload.start_with?(MARK_70_UNCOMPRESSED)
+            members = Marshal.load(payload.byteslice(1..-1))
+          elsif payload.start_with?(MARK_70_COMPRESSED)
+            members = Marshal.load(Zlib::Inflate.inflate(payload.byteslice(1..-1)))
+          elsif payload.start_with?(MARK_61)
+            return Marshal.load(payload)
+          else
+            raise ArgumentError, %{Invalid cache prefix: #{payload.byteslice(0).inspect}, expected "\\x00" or "\\x01"}
+          end
+          Entry.unpack(members)
+        end
+      end
+
+      module Rails61Coder
+        include Loader
+        extend self
+
+        def dump(entry)
+          Marshal.dump(entry)
+        end
+
+        def dump_compressed(entry, threshold)
+          Marshal.dump(entry.compressed(threshold))
+        end
+      end
+
+      module Rails70Coder
+        include Loader
+        extend self
+
+        def dump(entry)
+          MARK_70_UNCOMPRESSED + Marshal.dump(entry.pack)
+        end
+
+        def dump_compressed(entry, threshold)
+          payload = Marshal.dump(entry.pack)
+          if payload.bytesize >= threshold
+            compressed_payload = Zlib::Deflate.deflate(payload)
+            if compressed_payload.bytesize < payload.bytesize
+              return MARK_70_COMPRESSED + compressed_payload
+            end
+          end
+
+          MARK_70_UNCOMPRESSED + payload
+        end
+      end
+    end
+
     # This class is used to represent cache entries. Cache entries have a value, an optional
     # expiration time, and an optional version. The expiration time is used to support the :race_condition_ttl option
     # on the cache. The version is used to support the :version option on the cache for rejecting
@@ -839,6 +900,12 @@ module ActiveSupport
     # Since cache entries in most instances will be serialized, the internals of this class are highly optimized
     # using short instance variable names that are lazily defined.
     class Entry # :nodoc:
+      class << self
+        def unpack(members)
+          new(members[0], expires_at: members[1], version: members[2])
+        end
+      end
+
       attr_reader :version
 
       # Creates a new cache entry for the specified value. Options supported are
@@ -848,7 +915,6 @@ module ActiveSupport
         @version    = version
         @created_at = 0.0
         @expires_in = expires_at&.to_f || expires_in && (expires_in.to_f + Time.now.to_f)
-
         @compressed = true if compressed
       end
 
@@ -933,6 +999,12 @@ module ActiveSupport
             @value = Marshal.load(Marshal.dump(@value))
           end
         end
+      end
+
+      def pack
+        members = [value, expires_at, version]
+        members.pop while !members.empty? && members.last.nil?
+        members
       end
 
       private
