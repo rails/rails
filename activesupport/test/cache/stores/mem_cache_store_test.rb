@@ -167,6 +167,25 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_uses_provided_dalli_client_if_present
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, Dalli::Client.new("custom_host"))
+
+    assert_equal ["custom_host"], servers(cache)
+  end
+
+  def test_forwards_string_addresses_if_present
+    expected_addresses = ["first", "second"]
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, expected_addresses)
+
+    assert_equal expected_addresses, servers(cache)
+  end
+
+  def test_falls_back_to_localhost_if_no_address_provided
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+
+    assert_equal ["localhost:11211"], servers(cache)
+  end
+
   private
     def random_string(length)
       (0...length).map { (65 + rand(26)).chr }.join
@@ -194,6 +213,10 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     ensure
       Dalli.send(:remove_const, :Server)
       Dalli.const_set(:Server, old_server)
+    end
+
+    def servers(cache = @cache)
+      client(cache).instance_variable_get(:@servers)
     end
 
     def client(cache = @cache)
