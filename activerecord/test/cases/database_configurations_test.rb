@@ -72,6 +72,21 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     assert_equal "config_1", config.find_db_config("test").name
   end
 
+  def test_treat_empty_db_url_as_missing
+    config = ActiveRecord::DatabaseConfigurations.new({
+        "test" => {
+          "url" => ""
+          },
+        "development"=> {
+          "primary" => {
+            "database" => "dev_db"
+          }
+        }
+      })
+
+    assert_equal({ database: "dev_db" }, config.resolve("database" => "dev_db").configuration_hash)
+  end
+
   def test_find_db_config_returns_a_db_config_object_for_the_given_env
     config = ActiveRecord::Base.configurations.find_db_config("arunit2")
 
