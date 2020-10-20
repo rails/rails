@@ -53,16 +53,18 @@ module ActiveSupport
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
       # Creates a new Dalli::Client instance with specified addresses and options.
-      # By default address is equal localhost:11211.
+      # If no addresses are provided, we give nil to Dalli::Client, so it uses its fallbacks:
+      # - ENV["MEMCACHE_SERVERS"] (if defined)
+      # - "127.0.0.1:11211"        (otherwise)
       #
       #   ActiveSupport::Cache::MemCacheStore.build_mem_cache
-      #     # => #<Dalli::Client:0x007f98a47d2028 @servers=["localhost:11211"], @options={}, @ring=nil>
+      #     # => #<Dalli::Client:0x007f98a47d2028 @servers=["127.0.0.1:11211"], @options={}, @ring=nil>
       #   ActiveSupport::Cache::MemCacheStore.build_mem_cache('localhost:10290')
       #     # => #<Dalli::Client:0x007f98a47b3a60 @servers=["localhost:10290"], @options={}, @ring=nil>
       def self.build_mem_cache(*addresses) # :nodoc:
         addresses = addresses.flatten
         options = addresses.extract_options!
-        addresses = ["localhost:11211"] if addresses.empty?
+        addresses = nil if addresses.empty?
         pool_options = retrieve_pool_options(options)
 
         if pool_options.empty?
@@ -79,8 +81,8 @@ module ActiveSupport
       #
       #   ActiveSupport::Cache::MemCacheStore.new("localhost", "server-downstairs.localnetwork:8229")
       #
-      # If no addresses are specified, then MemCacheStore will connect to
-      # localhost port 11211 (the default memcached port).
+      # If no addresses are provided, but ENV['MEMCACHE_SERVERS'] is defined, it will be used instead. Otherwise,
+      # MemCacheStore will connect to localhost:11211 (the default memcached port).
       def initialize(*addresses)
         addresses = addresses.flatten
         options = addresses.extract_options!

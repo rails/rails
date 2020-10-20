@@ -180,10 +180,20 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_equal expected_addresses, servers(cache)
   end
 
-  def test_falls_back_to_localhost_if_no_address_provided
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+  def test_falls_back_to_localhost_if_no_address_provided_and_memcache_servers_undefined
+    with_memcache_servers_environment_variable(nil) do
+      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
 
-    assert_equal ["localhost:11211"], servers(cache)
+      assert_equal ["127.0.0.1:11211"], servers(cache)
+    end
+  end
+
+  def test_falls_back_to_localhost_if_no_address_provided_and_memcache_servers_defined
+    with_memcache_servers_environment_variable("custom_host") do
+      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+
+      assert_equal ["custom_host"], servers(cache)
+    end
   end
 
   private
@@ -221,5 +231,17 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
     def client(cache = @cache)
       cache.instance_variable_get(:@data)
+    end
+
+    def with_memcache_servers_environment_variable(value)
+      original_value = ENV["MEMCACHE_SERVERS"]
+      ENV["MEMCACHE_SERVERS"] = value
+      yield
+    ensure
+      if original_value.nil?
+        ENV.delete("MEMCACHE_SERVERS")
+      else
+        ENV["MEMCACHE_SERVERS"] = original_value
+      end
     end
 end
