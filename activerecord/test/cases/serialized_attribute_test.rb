@@ -330,6 +330,24 @@ class SerializedAttributeTest < ActiveRecord::TestCase
       model.normal_blob = value
       assert_not_predicate model, :normal_blob_changed?
     end
+
+    class FrozenBinaryField < BinaryField
+      class FrozenCoder < ActiveRecord::Coders::YAMLColumn
+        def dump(obj)
+          super&.freeze
+        end
+      end
+      serialize :normal_blob, FrozenCoder.new(:normal_blob, Array)
+    end
+
+    def test_is_not_changed_when_stored_in_mysql_blob_frozen_payload
+      value = %w(Fée)
+      model = FrozenBinaryField.create!(normal_blob: value, normal_text: value)
+      model.reload
+
+      model.normal_blob = value
+      assert_not_predicate model, :normal_blob_changed?
+    end
   end
 
   def test_values_cast_from_nil_are_persisted_as_nil
