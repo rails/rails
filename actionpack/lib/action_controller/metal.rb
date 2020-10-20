@@ -135,7 +135,7 @@ module ActionController
       end
     end
 
-    def self.binary_params_for?(action) # :nodoc:
+    def self.custom_encoding_for(action, param) # :nodoc:
       false
     end
 
