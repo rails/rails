@@ -228,7 +228,7 @@ module ActiveRecord
       # If the collection has been loaded
       # it is equivalent to <tt>collection.size.zero?</tt>. If the
       # collection has not been loaded, it is equivalent to
-      # <tt>collection.exists?</tt>. If the collection has not already been
+      # <tt>!collection.exists?</tt>. If the collection has not already been
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
