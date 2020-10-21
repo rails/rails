@@ -45,7 +45,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     @namespace = "test-#{SecureRandom.hex}"
     @cache = lookup_store(expires_in: 60)
     @peek = lookup_store
-    @data = @cache.instance_variable_get(:@data)
     @cache.silence!
     @cache.logger = ActiveSupport::Logger.new(File::NULL)
   end
@@ -64,7 +63,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   # Overrides test from LocalCacheBehavior in order to stub out the cache clear
   # and replace it with a delete.
   def test_clear_also_clears_local_cache
-    client = @cache.instance_variable_get(:@data)
     key = "#{@namespace}:foo"
     client.stub(:flush_all, -> { client.delete(key) }) do
       super
@@ -102,14 +100,14 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_increment_expires_in
     cache = lookup_store(raw: true, namespace: nil)
-    assert_called_with cache.instance_variable_get(:@data), :incr, [ "foo", 1, 60 ] do
+    assert_called_with client(cache), :incr, [ "foo", 1, 60 ] do
       cache.increment("foo", 1, expires_in: 60)
     end
   end
 
   def test_decrement_expires_in
     cache = lookup_store(raw: true, namespace: nil)
-    assert_called_with cache.instance_variable_get(:@data), :decr, [ "foo", 1, 60 ] do
+    assert_called_with client(cache), :decr, [ "foo", 1, 60 ] do
       cache.decrement("foo", 1, expires_in: 60)
     end
   end
@@ -164,8 +162,37 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_unless_exist_expires_when_configured
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
-    assert_called_with cache.instance_variable_get(:@data), :add, [ "foo", ActiveSupport::Cache::Entry, 1, Hash ] do
+    assert_called_with client(cache), :add, [ "foo", ActiveSupport::Cache::Entry, 1, Hash ] do
       cache.write("foo", "bar", expires_in: 1, unless_exist: true)
+    end
+  end
+
+  def test_uses_provided_dalli_client_if_present
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, Dalli::Client.new("custom_host"))
+
+    assert_equal ["custom_host"], servers(cache)
+  end
+
+  def test_forwards_string_addresses_if_present
+    expected_addresses = ["first", "second"]
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, expected_addresses)
+
+    assert_equal expected_addresses, servers(cache)
+  end
+
+  def test_falls_back_to_localhost_if_no_address_provided_and_memcache_servers_undefined
+    with_memcache_servers_environment_variable(nil) do
+      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+
+      assert_equal ["127.0.0.1:11211"], servers(cache)
+    end
+  end
+
+  def test_falls_back_to_localhost_if_no_address_provided_and_memcache_servers_defined
+    with_memcache_servers_environment_variable("custom_host") do
+      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+
+      assert_equal ["custom_host"], servers(cache)
     end
   end
 
@@ -175,7 +202,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
 
     def store
-      [:mem_cache_store, ENV["MEMCACHE_SERVERS"] || "localhost:11211"]
+      [:mem_cache_store]
     end
 
     def emulating_latency
@@ -196,5 +223,25 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     ensure
       Dalli.send(:remove_const, :Server)
       Dalli.const_set(:Server, old_server)
+    end
+
+    def servers(cache = @cache)
+      client(cache).instance_variable_get(:@servers)
+    end
+
+    def client(cache = @cache)
+      cache.instance_variable_get(:@data)
+    end
+
+    def with_memcache_servers_environment_variable(value)
+      original_value = ENV["MEMCACHE_SERVERS"]
+      ENV["MEMCACHE_SERVERS"] = value
+      yield
+    ensure
+      if original_value.nil?
+        ENV.delete("MEMCACHE_SERVERS")
+      else
+        ENV["MEMCACHE_SERVERS"] = original_value
+      end
     end
 end

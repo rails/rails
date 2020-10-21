@@ -1,3 +1,7 @@
+*   Updated `ActiveSupport::Cache::MemCacheStore` docs to reflect support for `$MEMCACHE_SERVERS`.
+
+    *Sam Bostock*
+
 *   Use Bookstore as a unified use-case for all examples in Active Record Query Interface Guide.
 
     *Ashley Engelund*, *Vipul A M*
