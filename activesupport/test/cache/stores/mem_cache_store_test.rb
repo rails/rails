@@ -202,7 +202,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
 
     def store
-      [:mem_cache_store, ENV["MEMCACHE_SERVERS"] || "localhost:11211"]
+      [:mem_cache_store]
     end
 
     def emulating_latency
