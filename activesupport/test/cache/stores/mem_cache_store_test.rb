@@ -27,7 +27,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   begin
     servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
     ss = Dalli::Client.new(servers).stats
-    raise Dalli::DalliError unless ss[servers]
+    raise Dalli::DalliError unless ss[servers] || ss[servers + ":11211"]
 
     MEMCACHE_UP = true
   rescue Dalli::DalliError
