@@ -37,6 +37,15 @@ module ActiveRecord
         assert connection.index_name_exists?(table_name, "new_idx")
       end
 
+      def test_rename_index_with_symbol
+        # keep the names short to make Oracle and similar behave
+        connection.add_index(table_name, [:foo], name: :old_idx)
+        connection.rename_index(table_name, :old_idx, :new_idx)
+
+        assert_not connection.index_name_exists?(table_name, "old_idx")
+        assert connection.index_name_exists?(table_name, "new_idx")
+      end
+
       def test_rename_index_too_long
         too_long_index_name = good_index_name + "x"
         # keep the names short to make Oracle and similar behave
