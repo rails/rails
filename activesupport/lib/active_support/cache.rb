@@ -838,27 +838,55 @@ module ActiveSupport
         self
       end
 
-      HEADER_FORMAT = "CGN"
-      HEADER_SIZE = [0, 0.0, 0].pack(HEADER_FORMAT).bytesize # 13 bytes
+      module Header
+        BITFIELD_FORMAT = "C" # 1 byte
+
+        COMPRESSED = 1
+
+        Field = Struct.new(:mask, :format, :bytesize)
+
+        EXPIRES_AT = Field.new(1 << 1, "G", 8)
+        # We do not use the 1 << 2 mask to avoid looking like a Marshal payload
+        VERSION_SIZE = Field.new(1 << 3, "N", 4)
+      end
 
       def unpack(payload) # :nodoc:
-        compressed, expires_at, version_bytesize = payload.unpack(HEADER_FORMAT)
-        compressed = compressed == 1
+        byte_offset = 1
+        header_format = +Header::BITFIELD_FORMAT
+        bitfield = payload.unpack(header_format).first
+
+        if (bitfield & Header::EXPIRES_AT.mask) > 0
+          byte_offset += Header::EXPIRES_AT.bytesize
+          header_format << Header::EXPIRES_AT.format
+        end
+
+        if (bitfield & Header::VERSION_SIZE.mask) > 0
+          byte_offset += Header::VERSION_SIZE.bytesize
+          header_format << Header::VERSION_SIZE.format
+        end
+
+        header = payload.unpack(header_format)
+        header.shift
+
+        if (bitfield & Header::COMPRESSED) > 0
+          @compressed = true
+        end
 
         @created_at = 0.0
-        if expires_at != 0
-          @expires_in = expires_at
+        if (bitfield & Header::EXPIRES_AT.mask) > 0
+          @expires_in = header.shift
         end
 
         @version = nil
-        if version_bytesize > 0
-          @version = Marshal.load(payload.byteslice(HEADER_SIZE, version_bytesize))
+        if (bitfield & Header::VERSION_SIZE.mask) > 0
+          version_bytesize = header.shift
+          @version = Marshal.load(payload.byteslice(byte_offset, version_bytesize))
+          byte_offset += version_bytesize
         end
 
-        value = payload.byteslice((HEADER_SIZE + version_bytesize)..-1)
-        if compressed
+        value = payload.byteslice(byte_offset..-1)
+        if defined? @compressed
           @value = value
-          @compressed = true
         else
           @value = Marshal.load(value)
         end
@@ -869,11 +897,29 @@ module ActiveSupport
       def pack
         serialized_version = version ? Marshal.dump(version) : nil
 
-        payload = [
-          compressed? ? 1 : 0,
-          expires_at.to_f,
-          serialized_version ? serialized_version.bytesize : 0,
-        ].pack(HEADER_FORMAT)
+        header_format = +Header::BITFIELD_FORMAT
+        header = []
+        payload = []
+
+        bitfield = 0
+        if compressed?
+          bitfield |= Header::COMPRESSED
+        end
+
+        if expires_at
+          bitfield |= Header::EXPIRES_AT.mask
+          header_format << Header::EXPIRES_AT.format
+          header << expires_at.to_f
+        end
+
+        if serialized_version
+          bitfield |= Header::VERSION_SIZE.mask
+          header_format << Header::VERSION_SIZE.format
+          header << serialized_version.bytesize
+        end
+
+        header.unshift(bitfield)
+        payload = header.pack(header_format)
         payload << serialized_version if serialized_version
         payload << serialized_value
         payload
