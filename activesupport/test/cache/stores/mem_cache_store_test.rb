@@ -45,7 +45,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     @namespace = "test-#{SecureRandom.hex}"
     @cache = lookup_store(expires_in: 60)
     @peek = lookup_store
-    @data = @cache.instance_variable_get(:@data)
     @cache.silence!
     @cache.logger = ActiveSupport::Logger.new(File::NULL)
   end
@@ -64,7 +63,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   # Overrides test from LocalCacheBehavior in order to stub out the cache clear
   # and replace it with a delete.
   def test_clear_also_clears_local_cache
-    client = @cache.instance_variable_get(:@data)
     key = "#{@namespace}:foo"
     client.stub(:flush_all, -> { client.delete(key) }) do
       super
@@ -102,14 +100,14 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_increment_expires_in
     cache = lookup_store(raw: true, namespace: nil)
-    assert_called_with cache.instance_variable_get(:@data), :incr, [ "foo", 1, 60 ] do
+    assert_called_with client(cache), :incr, [ "foo", 1, 60 ] do
       cache.increment("foo", 1, expires_in: 60)
     end
   end
 
   def test_decrement_expires_in
     cache = lookup_store(raw: true, namespace: nil)
-    assert_called_with cache.instance_variable_get(:@data), :decr, [ "foo", 1, 60 ] do
+    assert_called_with client(cache), :decr, [ "foo", 1, 60 ] do
       cache.decrement("foo", 1, expires_in: 60)
     end
   end
@@ -164,7 +162,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_unless_exist_expires_when_configured
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
-    assert_called_with cache.instance_variable_get(:@data), :add, [ "foo", ActiveSupport::Cache::Entry, 1, Hash ] do
+    assert_called_with client(cache), :add, [ "foo", ActiveSupport::Cache::Entry, 1, Hash ] do
       cache.write("foo", "bar", expires_in: 1, unless_exist: true)
     end
   end
@@ -196,5 +194,9 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     ensure
       Dalli.send(:remove_const, :Server)
       Dalli.const_set(:Server, old_server)
+    end
+
+    def client(cache = @cache)
+      cache.instance_variable_get(:@data)
     end
 end
