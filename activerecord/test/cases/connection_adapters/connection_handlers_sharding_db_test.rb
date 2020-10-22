@@ -40,7 +40,7 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "primary"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
               "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" },
             }
           }
@@ -73,8 +73,8 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "primary"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
-              "primary_replica"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3", "replica" => true },
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3", "replica" => true },
               "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" },
               "primary_shard_one_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3", "replica" => true }
             }
@@ -117,8 +117,8 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "primary"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
-              "primary_replica"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3", "replica" => true },
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3", "replica" => true },
               "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" },
               "primary_shard_one_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3", "replica" => true }
             }
@@ -185,8 +185,8 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "primary"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
-              "primary_replica"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3", "replica" => true },
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3", "replica" => true },
               "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" },
               "primary_shard_one_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3", "replica" => true }
             }
