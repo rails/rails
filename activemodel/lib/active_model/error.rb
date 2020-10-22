@@ -12,8 +12,10 @@ module ActiveModel
 
     class_attribute :i18n_customize_full_message, default: false
 
-    def self.full_message(attribute, message, base_class) # :nodoc:
+    def self.full_message(attribute, message, base) # :nodoc:
       return message if attribute == :base
+
+      base_class = base.class
       attribute = attribute.to_s
 
       if i18n_customize_full_message && base_class.respond_to?(:i18n_scope)
@@ -48,7 +50,10 @@ module ActiveModel
       defaults << "%{attribute} %{message}"
 
       attr_name = attribute.tr(".", "_").humanize
-      attr_name = base_class.human_attribute_name(attribute, default: attr_name)
+      attr_name = base_class.human_attribute_name(attribute, {
+        default: attr_name,
+        base: base,
+      })
 
       I18n.t(defaults.shift,
         default:  defaults,
@@ -62,7 +67,7 @@ module ActiveModel
 
       options = {
         model: base.model_name.human,
-        attribute: base.class.human_attribute_name(attribute),
+        attribute: base.class.human_attribute_name(attribute, { base: base }),
         value: value,
         object: base
       }.merge!(options)
@@ -151,7 +156,7 @@ module ActiveModel
     #   error.full_message
     #   # => "Name is too short (minimum is 5 characters)"
     def full_message
-      self.class.full_message(attribute, message, @base.class)
+      self.class.full_message(attribute, message, @base)
     end
 
     # See if error matches provided +attribute+, +type+ and +options+.

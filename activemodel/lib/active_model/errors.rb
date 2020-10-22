@@ -511,7 +511,7 @@ module ActiveModel
     #
     #   person.errors.full_message(:name, 'is invalid') # => "Name is invalid"
     def full_message(attribute, message)
-      Error.full_message(attribute, message, @base.class)
+      Error.full_message(attribute, message, @base)
     end
 
     # Translates an error message in its default scope
