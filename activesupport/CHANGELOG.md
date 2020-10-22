@@ -1,3 +1,8 @@
+*   Speed up `ActiveSupport::SecurityUtils.fixed_length_secure_compare` by using
+    `OpenSSL.fixed_length_secure_compare`, if available.
+
+    *Nate Matykiewicz*
+
 *   `ActiveSupport::Cache::MemCacheStore` now checks `ENV["MEMCACHE_SERVERS"]` before falling back to `"localhost:11211"` if configured without any addresses.
 
     ```ruby
