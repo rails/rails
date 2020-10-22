@@ -5,7 +5,13 @@
     "@rails/ujs": "^6.0.0"<% unless options[:skip_turbolinks] %>,
     "turbolinks": "^5.2.0"<% end -%><% unless skip_active_storage? %>,
     "@rails/activestorage": "^6.0.0"<% end -%><% unless options[:skip_action_cable] %>,
-    "@rails/actioncable": "^6.0.0"<% end %>
+    "@rails/actioncable": "^6.0.0"<% end -%><% if options[:skip_turbolinks] %>,
+    "@rails/webpacker": "~>5.x"<% end %>
+  },
+  "devDependencies": {
+    <% if options[:skip_turbolinks] %>
+    "webpack-dev-server": "^3.10.3"
+    <% end %>
   },
   "version": "0.1.0"
 }
