@@ -12,12 +12,10 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-    begin
-      @connection.transaction do
-        @connection.create_table("bytea_data_type") do |t|
-          t.binary "payload"
-          t.binary "serialized"
-        end
+    @connection.transaction do
+      @connection.create_table("bytea_data_type") do |t|
+        t.binary "payload"
+        t.binary "serialized"
       end
     end
     @column = ByteaDataType.columns_hash["payload"]
