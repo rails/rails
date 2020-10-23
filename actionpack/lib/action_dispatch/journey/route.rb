@@ -141,6 +141,12 @@ module ActionDispatch
         end
       end
 
+      def groupped_optional_parts
+        @groupped_optional_parts ||= path.groupped_optional_names.map do |group|
+          group.map(&:to_sym)
+        end
+      end
+
       def glob?
         path.spec.any?(Nodes::Star)
       end

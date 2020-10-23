@@ -509,12 +509,54 @@ module AbstractController
                 param1: /\d*/,
                 param2: /\d+/
               }
+            get "(:param1)/test2(/:param2)" => "index#index2",
+              defaults: {
+                param1: 1
+              },
+              constraints: {
+                param1: /\d*/,
+                param2: /\d+/
+              }
+            get "(:param1)/test3/:param2" => "index#index3",
+              defaults: {
+                param1: 1
+              },
+              constraints: {
+                param1: /\d*/,
+                param2: /\d+/
+              }
+            get "test4/(:param1)/(:param2)" => "index#index4",
+              defaults: {
+                param1: 1
+              },
+              constraints: {
+                param1: /\d*/,
+                param2: /\d+/
+              }
           end
 
           kls = Class.new { include set.url_helpers }
           kls.default_url_options[:host] = "www.basecamphq.com"
 
+          assert_equal "http://www.basecamphq.com/test", kls.new.url_for(controller: "index")
           assert_equal "http://www.basecamphq.com/test", kls.new.url_for(controller: "index", param1: "1")
+          assert_equal "http://www.basecamphq.com/2/test", kls.new.url_for(controller: "index", param1: "2")
+          assert_equal "http://www.basecamphq.com/test/3", kls.new.url_for(controller: "index", param2: "3")
+
+          assert_equal "http://www.basecamphq.com/test2", kls.new.url_for(controller: "index", param1: "1", action: "index2")
+          assert_equal "http://www.basecamphq.com/2/test2", kls.new.url_for(controller: "index", param1: "2", action: "index2")
+          assert_equal "http://www.basecamphq.com/test2/3", kls.new.url_for(controller: "index", action: "index2", param2: "3")
+          assert_equal "http://www.basecamphq.com/2/test2/3", kls.new.url_for(controller: "index", param1: "2", action: "index2", param2: "3")
+
+          assert_equal "http://www.basecamphq.com/test3/3", kls.new.url_for(controller: "index", action: "index3", param2: "3")
+          assert_equal "http://www.basecamphq.com/test3/3", kls.new.url_for(controller: "index", param1: "1", action: "index3", param2: "3")
+          assert_equal "http://www.basecamphq.com/2/test3/3", kls.new.url_for(controller: "index", param1: "2", action: "index3", param2: "3")
+
+          assert_equal "http://www.basecamphq.com/test4", kls.new.url_for(controller: "index", action: "index4")
+          assert_equal "http://www.basecamphq.com/test4/2", kls.new.url_for(controller: "index", param1: "2", action: "index4")
+          assert_equal "http://www.basecamphq.com/test4/2/3", kls.new.url_for(controller: "index", param1: "2", action: "index4", param2: "3")
+          # Doesn't make sense due to ambiguity, but is consistent with both rails4 and rails5 routing behavior:
+          assert_equal "http://www.basecamphq.com/test4/3", kls.new.url_for(controller: "index", action: "index4", param2: "3")
         end
       end
 

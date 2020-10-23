@@ -1510,6 +1510,45 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/user?format=html", user_path(format: "html")
   end
 
+  def test_scoped_with_optional_param_and_defaults_and_with_route_with_dynamic_segment
+    draw do
+      scope "(:locale)", locale: /en|uk/, defaults: { locale: :uk } do
+        get "/projects/:id(/:year(/:month(/:day)))" => "projects#index", as: :project, defaults: { year: "2018", month: "01", day: "01" }
+      end
+    end
+
+    assert_equal "/projects/1", project_path(id: 1)
+    assert_equal "/projects/1", project_path(id: 1, locale: :uk)
+    assert_equal "/projects/1/2018/01/13", project_path(id: 1, locale: :uk, day: "13")
+    assert_equal "/en/projects/1", project_path(id: 1, locale: :en)
+  end
+
+  def test_required_param_suffixed_with_multiple_optional_params
+    draw do
+      get "/projects/:id(/:year(/:month(/:day)))" => "projects#index", as: :project, defaults: { year: "2018", month: "01", day: "01" }
+    end
+
+    assert_equal "/projects/1", project_path(id: 1)
+    assert_equal "/projects/1/2018/01/13", project_path(id: 1, day: "13")
+    assert_equal "/projects/1/2008", project_path(id: 1, year: "2008")
+    assert_equal "/projects/1/2018/12", project_path(id: 1, month: "12")
+    assert_equal "/projects/1/2008/12", project_path(id: 1, year: "2008", month: "12")
+    assert_equal "/projects/1/2018/12/13", project_path(id: 1, month: "12", day: "13")
+    assert_equal "/projects/1/2008/01/13", project_path(id: 1, year: "2008", day: "13")
+    assert_equal "/projects/1/2008/12/13", project_path(id: 1, year: "2008", month: "12", day: "13")
+  end
+
+  def test_grouped_optional_params
+    draw do
+      get "(/:locale)/projects(/:year(/:month(/:day)))", to: "projects#index", as: :projects,
+        constraints: { locale: /en|de|fr/, year: /\d{4}/, month: /\d{2}/, day: /\d{2}/ },
+        defaults: { locale: "en", year: "2018", month: "01", day: "01" }
+    end
+
+    assert_equal "/projects/2018/01/31.json", projects_path("en", "2018", "01", "31", :json)
+    assert_equal "/de/projects/2018/01/31.json", projects_path("de", "2018", "01", "31", :json)
+  end
+
   def test_index
     draw do
       get "/info" => "projects#info", :as => "info"

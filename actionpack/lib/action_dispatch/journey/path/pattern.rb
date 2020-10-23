@@ -53,6 +53,18 @@ module ActionDispatch
           }.map(&:name).uniq
         end
 
+        def groupped_optional_names
+          last_added_group = nil
+          spec.each_with_object([]) do |node, memo|
+            next unless node.group?
+
+            if !last_added_group || last_added_group.exclude?(node)
+              last_added_group = node
+              memo << node.find_all(&:symbol?).map(&:name)
+            end
+          end
+        end
+
         class AnchoredRegexp < Journey::Visitors::Visitor # :nodoc:
           def initialize(separator, matchers)
             @separator = separator

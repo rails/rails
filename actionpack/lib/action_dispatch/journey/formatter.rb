@@ -77,12 +77,14 @@ module ActionDispatch
           defaults       = route.defaults
           required_parts = route.required_parts
 
-          route.parts.reverse_each do |key|
-            break if defaults[key].nil? && parameterized_parts[key].present?
-            next if parameterized_parts[key].to_s != defaults[key].to_s
-            break if required_parts.include?(key)
+          route.groupped_optional_parts.each do |group|
+            group.reverse_each do |key|
+              break if defaults[key].nil? && parameterized_parts[key].present?
+              break if parameterized_parts[key].to_s != defaults[key].to_s
+              break if required_parts.include?(key)
 
-            parameterized_parts.delete(key)
+              parameterized_parts.delete(key)
+            end
           end
 
           return RouteWithParams.new(route, parameterized_parts, params)
