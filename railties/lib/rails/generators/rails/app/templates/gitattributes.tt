@@ -1,5 +1,9 @@
 # See https://git-scm.com/docs/gitattributes for more about git attribute files.
 
+*.rb diff=ruby
+*.rake diff=ruby
+*.gemspec diff=ruby
+
 <% unless options[:skip_active_record] -%>
 # Mark the database schema as having been generated.
 db/schema.rb linguist-generated
