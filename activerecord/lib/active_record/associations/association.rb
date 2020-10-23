@@ -46,7 +46,9 @@ module ActiveRecord
         reset_scope
       end
 
-      # Resets the \loaded flag to +false+ and sets the \target to +nil+.
+      # Resets state:
+      #   \loaded and \inversed    to +false+
+      #   \target and \stale_state to +nil+
       def reset
         @loaded = false
         @target = nil
