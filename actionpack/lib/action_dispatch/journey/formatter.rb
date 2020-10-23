@@ -77,7 +77,7 @@ module ActionDispatch
           defaults       = route.defaults
           required_parts = route.required_parts
 
-          route.groupped_optional_parts.each do |group|
+          route.grouped_optional_parts.each do |group|
             group.reverse_each do |key|
               break if defaults[key].nil? && parameterized_parts[key].present?
               break if parameterized_parts[key].to_s != defaults[key].to_s
