@@ -1,3 +1,10 @@
+*   Return a 405 Method Not Allowed response when a request uses an unknown HTTP method.
+
+    Fixes #38998.
+
+    *Loren Norman*
+
+
 ## Rails 6.0.3.4 (October 07, 2020) ##
 
 *   No changes.
