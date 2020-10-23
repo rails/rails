@@ -21,12 +21,15 @@ module ActiveModel
           fast_string_to_time(value) || fallback_string_to_time(value)
         end
 
-        # '0.123456' -> 123456
-        # '1.123456' -> 123456
+        # Converts time[:sec_fraction] value to an Integer
+        #   '0.123456' -> 123456
+        #   '1.123456' -> 123456
+        #   nil        -> 0
         def microseconds(time)
           time[:sec_fraction] ? (time[:sec_fraction] * 1_000_000).to_i : 0
         end
 
+        # Returns a Time constructed from parsing the string,
         def fallback_string_to_time(string)
           time_hash = ::Date._parse(string)
           time_hash[:sec_fraction] = microseconds(time_hash)
@@ -34,6 +37,8 @@ module ActiveModel
           new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction, :offset))
         end
 
+        # Calls Helpers::AcceptsMultiparameterTime) if values_hash has keys [1, 2, 3]
+        # Raises ArgumentError if not
         def value_from_multiparameter_assignment(values_hash)
           missing_parameters = [1, 2, 3].delete_if { |key| values_hash.key?(key) }
           unless missing_parameters.empty?
