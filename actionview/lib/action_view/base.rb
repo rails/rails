@@ -165,6 +165,9 @@ module ActionView #:nodoc:
     # Annotate rendered view with file names
     cattr_accessor :annotate_rendered_view_with_filenames, default: false
 
+    # Annotate rendered view with test selectors
+    cattr_accessor :annotate_rendered_view_with_test_selectors, default: false
+
     class_attribute :_routes
     class_attribute :logger
 

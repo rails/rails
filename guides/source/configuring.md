@@ -701,6 +701,8 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.annotate_rendered_view_with_filenames` determines whether to annotate rendered view with template file names. This defaults to `false`.
 
+* `config.action_view.annotate_rendered_view_with_test_selectors` determines whether to render the output of `test_selector`. This defaults to `false`.
+
 ### Configuring Action Mailbox
 
 `config.action_mailbox` provides the following configuration options:

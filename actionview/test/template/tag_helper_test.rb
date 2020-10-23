@@ -43,6 +43,15 @@ class TagHelperTest < ActionView::TestCase
     assert_equal("<input value=\"123 456\" />", str)
   end
 
+  def test_tag_test_selector
+    ActionView::Base.annotate_rendered_view_with_filenames = true
+
+    str = tag("p", test_selector: "my-element")
+    assert_match(/data-test-selector="my-element"/, str)
+  ensure
+    ActionView::Base.annotate_rendered_view_with_filenames = false
+  end
+
   def test_tag_options_with_array_of_random_objects
     klass = Class.new do
       def to_s
@@ -336,6 +345,14 @@ class TagHelperTest < ActionView::TestCase
 
     str = tag.p "limelight", class: ["song", { "play>": true }], escape_attributes: false
     assert_equal "<p class=\"song play>\">limelight</p>", str
+  end
+
+  def test_test_selector_helper
+    ActionView::Base.annotate_rendered_view_with_filenames = true
+
+    assert_equal ' data-test-selector="limelight"', test_selector("limelight")
+  ensure
+    ActionView::Base.annotate_rendered_view_with_filenames = false
   end
 
   def test_class_names

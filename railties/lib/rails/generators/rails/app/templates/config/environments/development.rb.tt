@@ -77,6 +77,9 @@ Rails.application.configure do
   # Annotate rendered view with file names
   # config.action_view.annotate_rendered_view_with_filenames = true
 
+  # Annotate rendered view with test selectors
+  # config.action_view.annotate_rendered_view_with_test_selectors = true
+
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
   <%= '# ' unless depend_on_listen? %>config.file_watcher = ActiveSupport::EventedFileUpdateChecker

@@ -38,4 +38,7 @@ Rails.application.configure do
 
   # Annotate rendered view with file names
   # config.action_view.annotate_rendered_view_with_filenames
+
+  # Annotate rendered view with test selectors
+  # config.action_view.annotate_rendered_view_with_test_selectors = true
 end

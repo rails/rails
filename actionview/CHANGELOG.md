@@ -1,3 +1,7 @@
+*   Add `test_selector` helper and tag helper option for precise targeting of DOM elements in test assertions.
+
+    *Nikka Padilla*, *Joel Hawksley*
+
 *   `ActionView::Helpers::TranslationHelper#translate` accepts a block, yielding
     the translated text and the fully resolved translation key:
 

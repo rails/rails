@@ -29,6 +29,7 @@ module ActionView
       TAG_PREFIXES = ["aria", "data", :aria, :data].to_set.freeze
 
       TAG_TYPES = {}
+      TAG_TYPES[:test_selector] = :test_selector
       TAG_TYPES.merge! BOOLEAN_ATTRIBUTES.index_with(:boolean)
       TAG_TYPES.merge! TAG_PREFIXES.index_with(:prefix)
       TAG_TYPES.freeze
@@ -78,6 +79,11 @@ module ActionView
               if value
                 output << sep
                 output << boolean_tag_option(key)
+              end
+            elsif type == :test_selector
+              if value && ActionView::Base.annotate_rendered_view_with_filenames
+                output << sep
+                output << prefix_tag_option("data", "test-selector", value, escape)
               end
             elsif !value.nil?
               output << sep
@@ -198,6 +204,14 @@ module ActionView
       #   # A void element:
       #   tag.br  # => <br>
       #
+      # The tag builder supports adding a data attribute for targeting
+      # of DOM elements in test assertions, using the `test_selector` option.
+      #
+      #   tag.section test_selector: dom_id(@post)
+      #   # => <section data-test-selector="<generated dom id>"></section>
+      #
+      # The test selector is only rendered if `config.action_view.annotate_rendered_view_with_filenames` is true.
+      #
       # === Legacy syntax
       #
       # The following format is for legacy syntax support. It will be deprecated in future versions of Rails.
@@ -301,6 +315,18 @@ module ActionView
       #    # => "123 foo bar"
       def class_names(*args)
         safe_join(build_tag_values(*args), " ")
+      end
+
+      # Returns a data-test-selector attribute with a value
+      # of +name+ when annotate_rendered_view_with_test_selectors is true.
+      #
+      # ==== Examples
+      #   <div<%= test_selector("my-special-div") %>>My Special div</div>
+      #    # => <div data-test-selector='my-special-div'>My Special div</div>
+      def test_selector(value = "true")
+        if ActionView::Base.annotate_rendered_view_with_filenames
+          tag_builder.tag_options(data: { test_selector: value })
+        end
       end
 
       # Returns a CDATA section with the given +content+. CDATA sections
