@@ -1291,7 +1291,7 @@ module ActiveRecord
     def test_charset_current
       old_configurations = ActiveRecord::Base.configurations
       configurations = {
-        "production"  => { "database" => "prod-db" }
+        "production" => { "database" => "prod-db" }
       }
 
       ActiveRecord::Base.configurations = configurations
@@ -1324,7 +1324,7 @@ module ActiveRecord
     def test_collation_current
       old_configurations = ActiveRecord::Base.configurations
       configurations = {
-        "production"  => { "database" => "prod-db" }
+        "production" => { "database" => "prod-db" }
       }
 
       ActiveRecord::Base.configurations = configurations

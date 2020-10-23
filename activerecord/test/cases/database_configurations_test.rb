@@ -57,13 +57,13 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
   def test_find_db_config_returns_first_config_for_env
     config = ActiveRecord::DatabaseConfigurations.new({
         "test" => {
-          "config_1"=> {
+          "config_1" => {
             "database" => "db"
           },
-          "config_2"=> {
+          "config_2" => {
             "database" => "db"
           },
-          "config_3"=> {
+          "config_3" => {
             "database" => "db"
           },
         }
