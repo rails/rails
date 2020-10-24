@@ -511,6 +511,11 @@ The schema dumper adds two additional configuration options:
   `fk_rails_` are not exported to the database schema dump.
   Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
 
+* `config.active_record.destroy_all_in_batches` ensures
+  ActiveRecord::Relation#destroy_all to perform the record's deletion in batches.
+  ActiveRecord::Relation#destroy_all won't longer return the collection of the deleted
+  records after enabling this option.
+
 ### Configuring Action Controller
 
 `config.action_controller` includes a number of configuration settings:

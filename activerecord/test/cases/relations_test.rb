@@ -1846,8 +1846,22 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_difference("Post.count", -3) { david.posts.destroy_by(body: "hello") }
 
-    destroyed = Author.destroy_by(id: david.id)
-    assert_equal [david], destroyed
+    assert_difference("Author.count", -1) do
+      Author.destroy_by(id: david.id)
+    end
+  end
+
+  def test_destroy_all_deprecated_return_value
+    ActiveRecord::Base.destroy_all_in_batches = false
+    david = authors(:david)
+
+    assert_deprecated do
+      assert_difference("Author.count", -1) do
+        assert_equal [david], Author.where(id: david.id).destroy_all
+      end
+    end
+  ensure
+    ActiveRecord::Base.destroy_all_in_batches = true
   end
 
   test "find_by with hash conditions returns the first matching record" do
