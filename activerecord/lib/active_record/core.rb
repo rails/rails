@@ -598,7 +598,7 @@ module ActiveRecord
 
     # Returns a hash of the given methods with their names as keys and returned values as values.
     def slice(*methods)
-      Hash[methods.flatten.map! { |method| [method, public_send(method)] }].with_indifferent_access
+      methods.flatten.index_with { |method| public_send(method) }.with_indifferent_access
     end
 
     # Returns an array of the values returned by the given methods.
