@@ -459,7 +459,7 @@ module ActiveRecord
           elsif autosave != false
             key = reflection.options[:primary_key] ? public_send(reflection.options[:primary_key]) : id
 
-            if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
+            if (autosave && record.changed_for_autosave?) || record_changed?(reflection, record, key)
               unless reflection.through_reflection
                 record[reflection.foreign_key] = key
                 if inverse_reflection = reflection.inverse_of
