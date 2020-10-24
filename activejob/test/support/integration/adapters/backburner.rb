@@ -31,11 +31,9 @@ module BackburnerJobsManager
   end
 
   def can_run?
-    begin
-      @worker = Backburner::Worker.new
-    rescue
-      return false
-    end
+    @worker = Backburner::Worker.new
     true
+  rescue
+    return false
   end
 end

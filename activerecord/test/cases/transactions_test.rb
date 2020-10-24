@@ -231,7 +231,6 @@ class TransactionTest < ActiveRecord::TestCase
         raise "Bad things!"
       end
     rescue
-      # caught it
     end
 
     assert_predicate @first, :approved?, "First should still be changed in the objects"

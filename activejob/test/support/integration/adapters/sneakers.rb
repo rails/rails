@@ -57,12 +57,10 @@ module SneakersJobsManager
   end
 
   def can_run?
-    begin
-      bunny_publisher
-    rescue
-      return false
-    end
+    bunny_publisher
     true
+  rescue
+    return false
   end
 
   private

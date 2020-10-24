@@ -130,11 +130,8 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_drop_schema
-    begin
-      @connection.create_schema "test_schema3"
-    ensure
-      @connection.drop_schema "test_schema3"
-    end
+    @connection.create_schema "test_schema3"
+    @connection.drop_schema "test_schema3"
     assert_not_includes @connection.schema_names, "test_schema3"
   end
 
