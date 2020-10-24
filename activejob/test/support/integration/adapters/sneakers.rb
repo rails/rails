@@ -60,7 +60,7 @@ module SneakersJobsManager
     bunny_publisher
     true
   rescue
-    return false
+    false
   end
 
   private

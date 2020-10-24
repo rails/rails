@@ -34,6 +34,6 @@ module BackburnerJobsManager
     @worker = Backburner::Worker.new
     true
   rescue
-    return false
+    false
   end
 end
