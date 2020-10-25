@@ -1092,6 +1092,11 @@ module ActiveRecord
         self
       end
 
+      def inspect # :nodoc:
+        load_target if find_from_target?
+        super
+      end
+
       delegate_methods = [
         QueryMethods,
         SpawnMethods,

@@ -185,6 +185,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
     andreas = Developer.new name: "Andreas", log: "new developer added"
     assert_not_predicate andreas.audit_logs, :loaded?
     assert_match(/message: "new developer added"/, andreas.audit_logs.inspect)
+    assert_predicate andreas.audit_logs, :loaded?
   end
 
   def test_save_on_parent_saves_children
