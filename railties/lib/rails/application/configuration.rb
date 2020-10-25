@@ -160,7 +160,7 @@ module Rails
         when "6.1"
           load_defaults "6.0"
 
-          self.autoloader = :zeitwerk if RUBY_ENGINE == "truffleruby"
+          self.autoloader = :zeitwerk if %w[ruby truffleruby].include?(RUBY_ENGINE)
 
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
