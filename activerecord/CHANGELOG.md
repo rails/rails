@@ -1,3 +1,8 @@
+*   Allow users to silence the "Rails couldn't infer whether you are using multiple databases..."
+    message using `config.active_record.suppress_multiple_database_warning`.
+
+    *Omri Gabay*
+
 *   Add `values_at` method.
 
     Returns an array containing the values associated with the given methods.

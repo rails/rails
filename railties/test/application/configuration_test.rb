@@ -1626,6 +1626,11 @@ module ApplicationTests
       assert_not ActiveRecord::Base.verbose_query_logs
     end
 
+    test "config.active_record.suppress_multiple_database_warning is false by default in development" do
+      app "development"
+      assert_not ActiveRecord::Base.suppress_multiple_database_warning
+    end
+
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
       make_basic_app do |application|
         application.config.annotations.register_extensions("coffee") do |tag|
@@ -1863,6 +1868,23 @@ module ApplicationTests
       app_file "config/database.yml", ""
       app "development"
       assert_equal({}, Rails.application.config.load_database_yaml)
+    end
+
+    test "setup_initial_database_yaml does not print a warning if config.active_record.suppress_multiple_database_warning is true" do
+      app_file "config/database.yml", <<-YAML
+        <%= Rails.env %>:
+          username: bobby
+          adapter: sqlite3
+          database: 'dev_db'
+      YAML
+      add_to_config <<-RUBY
+        config.active_record.suppress_multiple_database_warning = true
+      RUBY
+      app "development"
+
+      assert_silent do
+        ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
+      end
     end
 
     test "raises with proper error message if no database configuration found" do
