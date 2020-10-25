@@ -28,6 +28,7 @@ module SneakersJobsManager
   end
 
   def start_workers
+    sleep 1
     @pid = fork do
       queues = %w(integration_tests)
       workers = queues.map do |q|
