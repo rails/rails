@@ -1,3 +1,8 @@
+*   Allow users to silence the "Rails couldn't infer whether you are using multiple databases..."
+    message using `config.active_record.suppress_multiple_database_warning`.
+
+    *Omri Gabay*
+
 *   Connections can be granularly switched for abstract classes when `connected_to` is called.
 
     This change allows `connected_to` to switch a `role` and/or `shard` for a single abstract class instead of all classes globally. Applications that want to use the new feature need to set `config.active_record.legacy_connection_handling` to `false` in their application configuration.
