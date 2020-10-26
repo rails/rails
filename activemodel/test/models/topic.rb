@@ -21,7 +21,7 @@ class Topic
 
   def initialize(attributes = {})
     attributes.each do |key, value|
-      send "#{key}=", value
+      public_send "#{key}=", value
     end
   end
 
@@ -42,7 +42,7 @@ class Topic
   end
 
   def my_validation_with_arg(attr)
-    errors.add attr, "is missing" unless send(attr)
+    errors.add attr, "is missing" unless public_send(attr)
   end
 
   def price
