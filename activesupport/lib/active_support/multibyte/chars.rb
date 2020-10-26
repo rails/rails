@@ -202,7 +202,7 @@ module ActiveSupport #:nodoc:
 
       %w(reverse tidy_bytes).each do |method|
         define_method("#{method}!") do |*args|
-          @wrapped_string = send(method, *args).to_s
+          @wrapped_string = public_send(method, *args).to_s
           self
         end
       end
