@@ -276,7 +276,7 @@ module ActionView #:nodoc:
       _old_output_buffer, _old_template = @output_buffer, @current_template
       @current_template = template if add_to_stack
       @output_buffer = buffer
-      send(method, locals, buffer, &block)
+      public_send(method, locals, buffer, &block)
     ensure
       @output_buffer, @current_template = _old_output_buffer, _old_template
     end
