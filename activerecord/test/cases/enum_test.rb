@@ -290,13 +290,23 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate Book.illustrator_visibility_invisible.create, :illustrator_visibility_invisible?
   end
 
-  test "_before_type_cast" do
+  test "attribute_before_type_cast" do
     assert_equal 2, @book.status_before_type_cast
     assert_equal "published", @book.status
 
     @book.status = "published"
 
     assert_equal "published", @book.status_before_type_cast
+    assert_equal "published", @book.status
+  end
+
+  test "attribute_for_database" do
+    assert_equal 2, @book.status_for_database
+    assert_equal "published", @book.status
+
+    @book.status = "published"
+
+    assert_equal 2, @book.status_for_database
     assert_equal "published", @book.status
   end
 
