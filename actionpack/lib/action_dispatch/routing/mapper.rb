@@ -1704,20 +1704,20 @@ module ActionDispatch
 
           def apply_common_behavior_for(method, resources, options, &block)
             if resources.length > 1
-              resources.each { |r| send(method, r, options, &block) }
+              resources.each { |r| public_send(method, r, options, &block) }
               return true
             end
 
             if options[:shallow]
               options.delete(:shallow)
               shallow do
-                send(method, resources.pop, options, &block)
+                public_send(method, resources.pop, options, &block)
               end
               return true
             end
 
             if resource_scope?
-              nested { send(method, resources.pop, options, &block) }
+              nested { public_send(method, resources.pop, options, &block) }
               return true
             end
 
@@ -1728,7 +1728,7 @@ module ActionDispatch
             scope_options = options.slice!(*RESOURCE_OPTIONS)
             unless scope_options.empty?
               scope(scope_options) do
-                send(method, resources.pop, options, &block)
+                public_send(method, resources.pop, options, &block)
               end
               return true
             end
