@@ -117,7 +117,7 @@ module ActiveModel
         #   user.authenticate_password('notright')      # => false
         #   user.authenticate_password('mUc3m00RsqyRe') # => user
         define_method("authenticate_#{attribute}") do |unencrypted_password|
-          attribute_digest = send("#{attribute}_digest")
+          attribute_digest = public_send("#{attribute}_digest")
           BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
         end
 
