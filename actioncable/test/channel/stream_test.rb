@@ -52,7 +52,6 @@ module ActionCable::StreamTests
   end
 
   class StreamTest < ActionCable::TestCase
-
     setup do
       @connection = TestConnection.new
     end
@@ -98,7 +97,6 @@ module ActionCable::StreamTests
 
     test "stream_for" do
       run_in_eventmachine do
-
         channel = ChatChannel.new @connection, ""
         channel.subscribe_to_channel
         channel.stream_for Room.new(1)
@@ -114,7 +112,6 @@ module ActionCable::StreamTests
 
     test "stream_or_reject_for" do
       run_in_eventmachine do
-
         channel = ChatChannel.new @connection, ""
         channel.subscribe_to_channel
         channel.stream_or_reject_for Room.new(1)
@@ -145,7 +142,6 @@ module ActionCable::StreamTests
 
     test "stream_from subscription confirmation" do
       run_in_eventmachine do
-
         channel = ChatChannel.new @connection, "{id: 1}", id: 1
         channel.subscribe_to_channel
 
@@ -162,7 +158,6 @@ module ActionCable::StreamTests
 
     test "subscription confirmation should only be sent out once" do
       run_in_eventmachine do
-
         channel = ChatChannel.new @connection, "test_channel"
         channel.send_confirmation
         channel.send_confirmation
@@ -178,7 +173,6 @@ module ActionCable::StreamTests
 
     test "stop_all_streams" do
       run_in_eventmachine do
-
         channel = ChatChannel.new @connection, "{id: 3}"
         channel.subscribe_to_channel
 
@@ -212,7 +206,6 @@ module ActionCable::StreamTests
 
     test "stop_stream_from" do
       run_in_eventmachine do
-
         channel = ChatChannel.new @connection, "{id: 3}"
         channel.subscribe_to_channel
 
@@ -244,7 +237,6 @@ module ActionCable::StreamTests
 
     test "stop_stream_for" do
       run_in_eventmachine do
-
         channel = ChatChannel.new @connection, "{id: 3}"
         channel.subscribe_to_channel
 
