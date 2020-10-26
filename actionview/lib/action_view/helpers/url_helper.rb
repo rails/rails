@@ -177,7 +177,7 @@ module ActionView
       #   # => <a href="/searches?query=ruby+on+rails">Ruby on Rails search</a>
       #
       #   link_to "Nonsense search", searches_path(foo: "bar", baz: "quux")
-      #   # => <a href="/searches?foo=bar&amp;baz=quux">Nonsense search</a>
+      #   # => <a href="/searches?foo=bar&baz=quux">Nonsense search</a>
       #
       # The only option specific to +link_to+ (<tt>:method</tt>) is used as follows:
       #
