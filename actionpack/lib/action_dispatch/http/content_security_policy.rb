@@ -18,9 +18,14 @@ module ActionDispatch #:nodoc:
         _, headers, _ = response = @app.call(env)
 
         return response unless html_response?(headers)
-        return response if policy_present?(headers)
 
-        if policy = request.content_security_policy
+        if policy = request.content_security_policy and report_policy = request.content_security_policy_report_only
+          nonce = request.content_security_policy_nonce
+          nonce_directives = request.content_security_policy_nonce_directives
+          context = request.controller_instance || request
+          headers[POLICY] = policy.build(context, nonce, nonce_directives)
+          headers[POLICY_REPORT_ONLY] = report_policy.build(context, nonce, nonce_directives)
+        elsif policy = request.content_security_policy
           nonce = request.content_security_policy_nonce
           nonce_directives = request.content_security_policy_nonce_directives
           context = request.controller_instance || request
@@ -43,10 +48,6 @@ module ActionDispatch #:nodoc:
           else
             POLICY
           end
-        end
-
-        def policy_present?(headers)
-          headers[POLICY] || headers[POLICY_REPORT_ONLY]
         end
     end
 
