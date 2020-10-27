@@ -248,7 +248,7 @@ module ActiveRecord
           raise ArgumentError, error_message
         end
 
-        if values.is_a?(Hash) && values.any? { |k, _v| k.blank? } || values.is_a?(Array) && values.any?(&:blank?)
+        if values.is_a?(Hash) && values.keys.any?(&:blank?) || values.is_a?(Array) && values.any?(&:blank?)
           raise ArgumentError, "Enum label name must not be blank."
         end
       end
