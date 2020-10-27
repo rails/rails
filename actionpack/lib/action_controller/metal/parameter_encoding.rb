@@ -15,8 +15,10 @@ module ActionController
         @_parameter_encodings = Hash.new { |h, k| h[k] = {} }
       end
 
-      def custom_encoding_for(action, param) # :nodoc:
-        @_parameter_encodings[action.to_s][param.to_s]
+      def action_encoding_template(action) # :nodoc:
+        if @_parameter_encodings.has_key?(action.to_s)
+          @_parameter_encodings[action.to_s]
+        end
       end
 
       # Specify that a given action's parameters should all be encoded as
