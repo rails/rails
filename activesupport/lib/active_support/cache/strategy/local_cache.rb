@@ -107,6 +107,12 @@ module ActiveSupport
           super
         end
 
+        def delete_matched(matcher, options = nil) # :nodoc:
+          return super unless cache = local_cache
+          cache.clear
+          super
+        end
+
         def increment(name, amount = 1, **options) # :nodoc:
           return super unless local_cache
           value = bypass_local_cache { super }
