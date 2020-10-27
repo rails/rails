@@ -135,7 +135,7 @@ module ActionController
       end
     end
 
-    def self.custom_encoding_for(action, param) # :nodoc:
+    def self.action_encoding_template(action) # :nodoc:
       false
     end
 
