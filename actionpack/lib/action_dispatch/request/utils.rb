@@ -83,7 +83,6 @@ module ActionDispatch
           return params unless controller && controller.valid_encoding?
 
           params.except(:controller, :action).each do |key, value|
-            # next if key == :controller || key == :action
             ActionDispatch::Request::Utils.each_param_value(value) do |param|
               if desired_encoding = custom_encoding_for(request, controller, action, key)
                 param.force_encoding(desired_encoding)
