@@ -125,7 +125,7 @@ module ActionDispatch
       private
         DATE          = "Date"
         LAST_MODIFIED = "Last-Modified"
-        SPECIAL_KEYS  = Set.new(%w[extras no-store no-cache max-age public private must-revalidate])
+        SPECIAL_KEYS  = Set.new(%w[extras no-store no-cache max-age public private must-revalidate proxy-revalidate])
 
         def generate_weak_etag(validators)
           "W/#{generate_strong_etag(validators)}"
@@ -171,6 +171,7 @@ module ActionDispatch
         PUBLIC                = "public"
         PRIVATE               = "private"
         MUST_REVALIDATE       = "must-revalidate"
+        PROXY_REVALIDATE      = "proxy-revalidate"
 
         def handle_conditional_get!
           # Normally default cache control setting is handled by ETag
@@ -214,6 +215,7 @@ module ActionDispatch
             options << "max-age=#{max_age.to_i}" if max_age
             options << (control[:public] ? PUBLIC : PRIVATE)
             options << MUST_REVALIDATE if control[:must_revalidate]
+            options << PROXY_REVALIDATE if control[:proxy_revalidate]
             options << "stale-while-revalidate=#{stale_while_revalidate.to_i}" if stale_while_revalidate
             options << "stale-if-error=#{stale_if_error.to_i}" if stale_if_error
             options.concat(extras) if extras

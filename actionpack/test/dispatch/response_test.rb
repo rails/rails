@@ -306,6 +306,16 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal("no-store", resp.headers["Cache-Control"])
   end
 
+  test "respect proxy-revalidate cache-control" do
+    resp = ActionDispatch::Response.new.tap { |response|
+      response.cache_control[:proxy_revalidate] = true
+      response.body = "Hello"
+    }
+    resp.to_a
+
+    assert_equal("private, proxy-revalidate", resp.headers["Cache-Control"])
+  end
+
   test "read content type with default charset utf-8" do
     resp = ActionDispatch::Response.new(200, "Content-Type" => "text/xml")
     assert_equal("utf-8", resp.charset)

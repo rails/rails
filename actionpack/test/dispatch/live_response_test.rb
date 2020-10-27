@@ -68,6 +68,12 @@ module ActionController
         assert_equal "no-store", @response.headers["Cache-Control"]
       end
 
+      def test_cache_control_proxy_revalidate_is_respected
+        @response.set_header("Cache-Control", "proxy-revalidate")
+        @response.stream.write "omg"
+        assert_equal "private, proxy-revalidate", @response.headers["Cache-Control"]
+      end
+
       def test_content_length_is_removed
         @response.headers["Content-Length"] = "1234"
         @response.stream.write "omg"
