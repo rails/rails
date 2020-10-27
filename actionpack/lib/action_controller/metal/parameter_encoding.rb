@@ -49,8 +49,8 @@ module ActionController
         @_parameter_encodings[action.to_s] = Hash.new { Encoding::ASCII_8BIT }
       end
 
-      # Specify the encoding for a a parameter on an action
-      # If not specified the default is UTF-8
+      # Specify the encoding for a parameter on an action.
+      # If not specified the default is UTF-8.
       #
       # You can specify a binary (ASCII_8BIT) parameter with:
       #
