@@ -48,19 +48,19 @@ module ActionController
       end
 
       # Specify the encoding for a a parameter on an action
-      # ASCII-8BIT (it "skips" the encoding default of UTF-8).
+      # If not specified the default is UTF-8
       #
-      # For example, a controller would use it like this:
+      # You can specify a binary (ASCII_8BIT) parameter with:
       #
       #   class RepositoryController < ActionController::Base
+      #     # This specifies that file_path is not UTF-8 and is instead ASCII_8BIT
       #     param_encoding :show, :file_path, Encoding::ASCII_8BIT
       #
       #     def show
       #       @repo = Repository.find_by_filesystem_path params[:file_path]
       #
-      #       # `repo_name` is guaranteed to be UTF-8, but was ASCII-8BIT, so
-      #       # tag it as such
-      #       @repo_name = params[:repo_name].force_encoding 'UTF-8'
+      #       # params[:repo_name] remains UTF-8 encoded
+      #       @repo_name = params[:repo_name]
       #     end
       #
       #     def index
@@ -68,7 +68,8 @@ module ActionController
       #     end
       #   end
       #
-      # The file_path parameter on the show action would be encoded as ASCII-8BIT.
+      # The file_path parameter on the show action would be encoded as ASCII-8BIT,
+      # but all other arguments will remain UTF-8 encoded.
       # This is useful in the case where an application must handle data
       # but encoding of the data is unknown, like file system data.
       def param_encoding(action, param, encoding)
