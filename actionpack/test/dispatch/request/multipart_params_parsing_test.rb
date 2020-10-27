@@ -4,12 +4,10 @@ require "abstract_unit"
 
 class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
+    skip_parameter_encoding("parse_binary")
+
     class << self
       attr_accessor :last_request_parameters, :last_parameters
-
-      def binary_params_for?(action)
-        action == "parse_binary"
-      end
     end
 
     def parse_binary
