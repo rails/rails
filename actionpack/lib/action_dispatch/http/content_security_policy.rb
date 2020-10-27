@@ -19,7 +19,7 @@ module ActionDispatch #:nodoc:
 
         return response unless html_response?(headers)
 
-        if policy = request.content_security_policy and report_policy = request.content_security_policy_report_only
+        if policy = request.content_security_policy && report_policy = request.content_security_policy_report_only
           nonce = request.content_security_policy_nonce
           nonce_directives = request.content_security_policy_nonce_directives
           context = request.controller_instance || request
