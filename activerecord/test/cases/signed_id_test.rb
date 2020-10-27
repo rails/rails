@@ -22,6 +22,12 @@ class SignedIdTest < ActiveRecord::TestCase
     assert_equal @account, Account.find_signed(@account.signed_id)
   end
 
+  test "find signed record on relation" do
+    assert_equal @account, Account.where("1=1").find_signed(@account.signed_id)
+
+    assert_nil Account.where("1=0").find_signed(@account.signed_id)
+  end
+
   test "find signed record with custom primary key" do
     assert_equal @toy, Toy.find_signed(@toy.signed_id)
   end
@@ -39,6 +45,14 @@ class SignedIdTest < ActiveRecord::TestCase
 
   test "find signed record with a bang" do
     assert_equal @account, Account.find_signed!(@account.signed_id)
+  end
+
+  test "find signed record with a bang on relation" do
+    assert_equal @account, Account.where("1=1").find_signed!(@account.signed_id)
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Account.where("1=0").find_signed!(@account.signed_id)
+    end
   end
 
   test "fail to find record from broken signed id" do
