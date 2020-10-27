@@ -44,6 +44,9 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     before_destroy { self.class.find(id).touch if persisted? }
 
     before_commit { |record| record.do_before_commit(nil) }
+
+    around_save :do_around_save
+
     after_commit { |record| record.do_after_commit(nil) }
     after_save_commit { |record| record.do_after_commit(:save) }
     after_create_commit { |record| record.do_after_commit(:create) }
@@ -62,6 +65,11 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       @before_commit ||= {}
       @before_commit[on] ||= []
       @before_commit[on] << block
+    end
+
+    def around_save_block(&block)
+      @around_save ||= []
+      @around_save << block
     end
 
     def after_commit_block(on = nil, &block)
@@ -83,6 +91,12 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     def do_after_commit(on)
       blocks = @after_commit[on] if defined?(@after_commit)
+      blocks.each { |b| b.call(self) } if blocks
+    end
+
+    def do_around_save
+      yield
+      blocks = @around_save if defined?(@around_save)
       blocks.each { |b| b.call(self) } if blocks
     end
 
@@ -472,6 +486,41 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     record_3 = TopicWithCallbacks.create!
     callbacks = []
     record_1.after_commit_block { raise }
+    record_2.after_commit_block { callbacks << record_2.id }
+    record_3.after_commit_block { callbacks << record_3.id }
+    begin
+      TopicWithCallbacks.transaction do
+        record_1.save!
+        record_2.save!
+        record_3.save!
+      end
+    rescue
+      # From record_1.after_commit
+    end
+    assert_equal [], callbacks
+  end
+
+  def test_after_commit_not_called_on_errors_in_around_save
+    record_1 = TopicWithCallbacks.create!
+    callbacks = []
+    record_1.around_save_block { raise }
+    record_1.after_commit_block { callbacks << record_1.id }
+    begin
+      TopicWithCallbacks.transaction do
+        record_1.save!
+      end
+    rescue
+      # From record_1.after_commit
+    end
+    assert_equal [], callbacks
+  end
+
+  def test_after_commit_chain_not_called_on_errors_in_around_save
+    record_1 = TopicWithCallbacks.create!
+    record_2 = TopicWithCallbacks.create!
+    record_3 = TopicWithCallbacks.create!
+    callbacks = []
+    record_1.around_save_block { raise }
     record_2.after_commit_block { callbacks << record_2.id }
     record_3.after_commit_block { callbacks << record_3.id }
     begin
