@@ -769,115 +769,61 @@ Nice!
 TIP: To learn more about routing, see [Rails Routing from the Outside In](
 routing.html).
 
-### Laying down the Groundwork
+### Creating a New Article
 
-Firstly, you need a place within the application to create a new article. A
-great place for that would be at `/articles/new`. With the route already
-defined, requests can now be made to `/articles/new` in the application.
-Navigate to <http://localhost:3000/articles/new> and you'll see a routing
-error:
+Now we move on to the "C" (Create) of CRUD. Typically, in web applications,
+creating a new resource is a multi-step process. First, the user requests a form
+to fill out. Then, the user submits the form. If there are no errors, then the
+resource is created and some kind of confirmation is displayed. Else, the form
+is redisplayed with error messages, and the process is repeated.
 
-![Another routing error, uninitialized constant ArticlesController](images/getting_started/routing_error_no_controller.png)
-
-This error occurs because the route needs to have a controller defined in order
-to serve the request. The solution to this particular problem is to create
-a controller called `ArticlesController`. You can do this by running this
-command:
-
-```bash
-$ bin/rails generate controller Articles
-```
-
-If you open up the newly generated `app/controllers/articles_controller.rb`
-you'll see a fairly empty controller:
+In a Rails application, these steps are conventionally handled by a controller's
+`new` and `create` actions. Let's add a typical implementation of these actions
+to `app/controllers/articles_controller.rb`, below the `show` action:
 
 ```ruby
 class ArticlesController < ApplicationController
-end
-```
+  def index
+    @articles = Article.all
+  end
 
-A controller is a class that is defined to inherit from
-`ApplicationController`.
-It's inside this class that you'll define methods that will become the actions
-for this controller. These actions will perform CRUD operations on the articles
-within our system.
+  def show
+    @article = Article.find(params[:id])
+  end
 
-NOTE: There are `public`, `private` and `protected` methods in Ruby,
-but only `public` methods can be actions for controllers.
-For more details check out [Programming Ruby](https://ruby-doc.org/docs/ProgrammingRuby/).
-
-If you refresh <http://localhost:3000/articles/new> now, you'll get a new error:
-
-![Unknown action new for ArticlesController!](images/getting_started/unknown_action_new_for_articles.png)
-
-This error indicates that Rails cannot find the `new` action inside the
-`ArticlesController` that you just generated. This is because when controllers
-are generated in Rails they are empty by default, unless you tell it
-your desired actions during the generation process.
-
-To manually define an action inside a controller, all you need to do is to
-define a new method inside the controller. Open
-`app/controllers/articles_controller.rb` and inside the `ArticlesController`
-class, define the `new` method so that your controller now looks like this:
-
-```ruby
-class ArticlesController < ApplicationController
   def new
+    @article = Article.new
+  end
+
+  def create
+    @article = Article.new(title: "...", body: "...")
+
+    if @article.save
+      redirect_to @article
+    else
+      render :new
+    end
   end
 end
 ```
 
-With the `new` method defined in `ArticlesController`, if you refresh
-<http://localhost:3000/articles/new> you'll see another error:
+The `new` action instantiates a new article, but does not save it. This article
+will be used in the view when building the form. By default, the `new` action
+will render `app/views/articles/new.html.erb`, which we will create next.
 
-![Template is missing for articles/new]
-(images/getting_started/template_is_missing_articles_new.png)
+The `create` action instantiates a new article with values for the title and
+body, and attempts to save it. If the article is saved successfully, the action
+redirects the browser to the article's page at `"http://localhost:3000/articles/#{@article.id}"`.
+Else, the action redisplays the form by rendering `app/views/articles/new.html.erb`.
+The title and body here are dummy values. After we create the form, we will come
+back and change these.
 
-You're getting this error now because Rails expects plain actions like this one
-to have views associated with them to display their information. With no view
-available, Rails will raise an exception.
-
-Let's look at the full error message again:
-
->ArticlesController#new is missing a template for request formats: text/html
-
->NOTE!
->Unless told otherwise, Rails expects an action to render a template with the same name, contained in a folder named after its controller. If this controller is an API responding with 204 (No Content), which does not require a template, then this error will occur when trying to access it via browser, since we expect an HTML template to be rendered for such requests. If that's the case, carry on.
-
-The message identifies which template is missing. In this case, it's the
-`articles/new` template. Rails will first look for this template. If not found,
-then it will attempt to load a template called `application/new`, because the
-`ArticlesController` inherits from `ApplicationController`.
-
-Next the message contains `request.formats` which specifies the format of
-template to be served in response. It is set to `text/html` as we requested
-this page via browser, so Rails is looking for an HTML template.
-
-The simplest template that would work in this case would be one located at
-`app/views/articles/new.html.erb`. The extension of this file name is important:
-the first extension is the _format_ of the template, and the second extension
-is the _handler_ that will be used to render the template. Rails is attempting
-to find a template called `articles/new` within `app/views` for the
-application. The format for this template can only be `html` and the default
-handler for HTML is `erb`. Rails uses other handlers for other formats.
-`builder` handler is used to build XML templates and `coffee` handler uses
-CoffeeScript to build JavaScript templates. Since you want to create a new
-HTML form, you will be using the `ERB` language which is designed to embed Ruby
-in HTML.
-
-Therefore the file should be called `articles/new.html.erb` and needs to be
-located inside the `app/views` directory of the application.
-
-Go ahead now and create a new file at `app/views/articles/new.html.erb` and
-write this content in it:
-
-```html
-<h1>New Article</h1>
-```
-
-When you refresh <http://localhost:3000/articles/new> you'll now see that the
-page has a title. The route, controller, action, and view are now working
-harmoniously! It's time to create the form for a new article.
+NOTE: [`redirect_to`](https://api.rubyonrails.org/classes/ActionController/Redirecting.html#method-i-redirect_to)
+will cause the browser to make a new request,
+whereas [`render`](https://api.rubyonrails.org/classes/AbstractController/Rendering.html#method-i-render)
+renders the specified view for the current request.
+It is important to use `redirect_to` after mutating the database or application state.
+Otherwise, if the user refreshes the page, the browser will make the same request, and the mutation will be repeated.
 
 ### The first form
 
@@ -969,58 +915,6 @@ this to work.
 NOTE: By default `form_with` submits forms using Ajax thereby skipping full page
 redirects. To make this guide easier to get into we've disabled that with
 `local: true` for now.
-
-### Creating Articles
-
-To make the "Unknown action" go away, you can define a `create` action within
-the `ArticlesController` class in `app/controllers/articles_controller.rb`,
-underneath the `new` action, as shown:
-
-```ruby
-class ArticlesController < ApplicationController
-  def new
-  end
-
-  def create
-  end
-end
-```
-
-If you re-submit the form now, you may not see any change on the page. Don't worry!
-This is because Rails by default returns `204 No Content` response for an action if
-we don't specify what the response should be. We added the `create` action
-but didn't specify anything about how the response should be. In this case, the
-`create` action should save our new article to the database.
-
-When a form is submitted, the fields of the form are sent to Rails as
-_parameters_. These parameters can then be referenced inside the controller
-actions, typically to perform a particular task. To see what these parameters
-look like, change the `create` action to this:
-
-```ruby
-def create
-  render plain: params[:article].inspect
-end
-```
-
-The `render` method here is taking a hash with a key of `:plain` and
-value of `params[:article].inspect`. The `params` method is the object which
-represents the parameters (or fields) coming in from the form. The `params`
-method returns an `ActionController::Parameters` object, which
-allows you to access the keys of the hash using either strings or symbols. In
-this situation, the only parameters that matter are the ones from the form.
-
-TIP: Ensure you have a firm grasp of the `params` method, as you'll use it fairly regularly. Let's consider an example URL: **http://www.example.com/?username=dhh&email=dhh@email.com**. In this URL, `params[:username]` would equal "dhh" and `params[:email]` would equal "dhh@email.com".
-
-If you re-submit the form one more time, you'll see something that looks like the following:
-
-```ruby
-<ActionController::Parameters {"title"=>"First Article!", "text"=>"This is my first article."} permitted: false>
-```
-
-This action is now displaying the parameters for the article that are coming in
-from the form. However, this isn't really all that helpful. Yes, you can see the
-parameters but nothing in particular is being done with them.
 
 ### Saving Data in the Controller
 
