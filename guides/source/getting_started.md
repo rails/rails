@@ -944,140 +944,103 @@ end
 TIP: To learn more about Strong Parameters, see [Action Controller Overview §
 Strong Parameters](action_controller_overview.html#strong-parameters).
 
-### Adding Some Validation
+#### Validations and Displaying Error Messages
 
-The model file, `app/models/article.rb` is about as simple as it can get:
+As we have seen, creating a resource is a multi-step process. Handling invalid
+user input is another step of that process. Rails provides a feature called
+*validations* to help us deal with invalid user input. Validations are rules
+that are checked before a model object is saved. If any of the checks fail, the
+save will be aborted, and appropriate error messages will be added to the
+`errors` attribute of the model object.
 
-```ruby
-class Article < ApplicationRecord
-end
-```
-
-There isn't much to this file - but note that the `Article` class inherits from
-`ApplicationRecord`. `ApplicationRecord` inherits from `ActiveRecord::Base`
-which supplies a great deal of functionality to your Rails models for free,
-including basic database CRUD (Create, Read, Update, Destroy) operations, data
-validation, as well as sophisticated search support and the ability to relate
-multiple models to one another.
-
-Rails includes methods to help you validate the data that you send to models.
-Open the `app/models/article.rb` file and edit it:
+Let's add some validations to our model in `app/models/article.rb`:
 
 ```ruby
 class Article < ApplicationRecord
-  validates :title, presence: true,
-                    length: { minimum: 5 }
+  validates :title, presence: true
+  validates :body, presence: true, length: { minimum: 10 }
 end
 ```
 
-These changes will ensure that all articles have a title that is at least five
-characters long. Rails can validate a variety of conditions in a model,
-including the presence or uniqueness of columns, their format, and the
-existence of associated objects. Validations are covered in detail in [Active
-Record Validations](active_record_validations.html).
+The first validation declares that a `title` value must be present. Because
+`title` is a string, this means that the `title` value must contain at least one
+non-whitespace character.
 
-With the validation now in place, when you call `@article.save` on an invalid
-article, it will return `false`. If you open
-`app/controllers/articles_controller.rb` again, you'll notice that we don't
-check the result of calling `@article.save` inside the `create` action.
-If `@article.save` fails in this situation, we need to show the form back to the
-user. To do this, change the `new` and `create` actions inside
-`app/controllers/articles_controller.rb` to these:
+The second validation declares that a `body` value must also be present.
+Additionally, it declares that the `body` value must be at least 10 characters
+long.
 
-```ruby
-def new
-  @article = Article.new
-end
+NOTE: You may be wondering where the `title` and `body` attributes are defined.
+Active Record automatically defines model attributes for every table column, so
+you don't have to declare those attributes in your model file.
 
-def create
-  @article = Article.new(article_params)
-
-  if @article.save
-    redirect_to @article
-  else
-    render 'new'
-  end
-end
-
-private
-  def article_params
-    params.require(:article).permit(:title, :text)
-  end
-```
-
-The `new` action is now creating a new instance variable called `@article`, and
-you'll see why that is in just a few moments.
-
-Notice that inside the `create` action we use `render` instead of `redirect_to`
-when `save` returns `false`. The `render` method is used so that the `@article`
-object is passed back to the `new` template when it is rendered. This rendering
-is done within the same request as the form submission, whereas the
-`redirect_to` will tell the browser to issue another request.
-
-If you reload
-<http://localhost:3000/articles/new> and
-try to save an article without a title, Rails will send you back to the
-form, but that's not very useful. You need to tell the user that
-something went wrong. To do that, you'll modify
-`app/views/articles/new.html.erb` to check for error messages:
+With our validations in place, let's modify `app/views/articles/new.html.erb` to
+display any error messages for `title` and `body`:
 
 ```html+erb
-<%= form_with scope: :article, url: articles_path, local: true do |form| %>
+<h1>New Article</h1>
 
-  <% if @article.errors.any? %>
-    <div id="error_explanation">
-      <h2>
-        <%= pluralize(@article.errors.count, "error") %> prohibited
-        this article from being saved:
-      </h2>
-      <ul>
-        <% @article.errors.full_messages.each do |msg| %>
-          <li><%= msg %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
-
-  <p>
+<%= form_with model: @article, local: true do |form| %>
+  <div>
     <%= form.label :title %><br>
     <%= form.text_field :title %>
-  </p>
+    <%= @article.errors.full_messages_for(:title).each do |message| %>
+      <div><%= message %></div>
+    <% end %>
+  </div>
 
-  <p>
-    <%= form.label :text %><br>
-    <%= form.text_area :text %>
-  </p>
+  <div>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %><br>
+    <%= @article.errors.full_messages_for(:body).each do |message| %>
+      <div><%= message %></div>
+    <% end %>
+  </div>
 
-  <p>
+  <div>
     <%= form.submit %>
-  </p>
-
+  </div>
 <% end %>
-
-<%= link_to 'Back', articles_path %>
 ```
 
-A few things are going on. We check if there are any errors with
-`@article.errors.any?`, and in that case we show a list of all
-errors with `@article.errors.full_messages`.
+The [`full_messages_for`](https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-full_messages_for)
+method returns an array of user-friendly error messages for a specified
+attribute. If there are no errors for that attribute, the array will be empty.
 
-`pluralize` is a rails helper that takes a number and a string as its
-arguments. If the number is greater than one, the string will be automatically
-pluralized.
+To understand how all of this works together, let's take another look at the
+`new` and `create` controller actions:
 
-The reason why we added `@article = Article.new` in the `ArticlesController` is
-that otherwise `@article` would be `nil` in our view, and calling
-`@article.errors.any?` would throw an error.
+```ruby
+  def new
+    @article = Article.new
+  end
 
-TIP: Rails automatically wraps fields that contain an error with a div
-with class `field_with_errors`. You can define a CSS rule to make them
-standout.
+  def create
+    @article = Article.new(article_params)
 
-Now you'll get a nice error message when saving an article without a title when
-you attempt to do that on the new article form
-<http://localhost:3000/articles/new>:
+    if @article.save
+      redirect_to @article
+    else
+      render :new
+    end
+  end
+```
 
-![Form With Errors](images/getting_started/form_with_errors.png)
+When we visit <http://localhost:3000/articles/new>, the `GET /articles/new`
+request is mapped to the `new` action. The `new` action does not attempt to save
+`@article`. Therefore, validations are not checked, and there will be no error
+messages.
+
+When we submit the form, the `POST /articles` request is mapped to the `create`
+action. The `create` action *does* attempt to save `@article`. Therefore,
+validations *are* checked. If any validation fails, `@article` will not be
+saved, and `app/views/articles/new.html.erb` will be rendered with error
+messages.
+
+TIP: To learn more about validations, see [Active Record Validations](
+active_record_validations.html). To learn more about validation error messages,
+see [Active Record Validations § Working with Validation Errors](
+active_record_validations.html#working-with-validation-errors).
 
 ### Updating Articles
 
