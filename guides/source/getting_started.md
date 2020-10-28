@@ -1416,8 +1416,9 @@ association:
 ```ruby
 class Article < ApplicationRecord
   has_many :comments
-  validates :title, presence: true,
-                    length: { minimum: 5 }
+
+  validates :title, presence: true
+  validates :body, presence: true, length: { minimum: 10 }
 end
 ```
 
@@ -1436,8 +1437,12 @@ knows where we would like to navigate to see `comments`. Open up the
 `config/routes.rb` file again, and edit it as follows:
 
 ```ruby
-resources :articles do
-  resources :comments
+Rails.application.routes.draw do
+  root "articles#index"
+
+  resources :articles do
+    resources :comments
+  end
 end
 ```
 
@@ -1477,15 +1482,16 @@ So first, we'll wire up the Article show template
 (`app/views/articles/show.html.erb`) to let us make a new comment:
 
 ```html+erb
-<p>
-  <strong>Title:</strong>
-  <%= @article.title %>
-</p>
+<h1><%= @article.title %></h1>
 
-<p>
-  <strong>Text:</strong>
-  <%= @article.text %>
-</p>
+<p><%= @article.body %></p>
+
+<ul>
+  <li><%= link_to "Edit", edit_article_path(@article) %></li>
+  <li><%= link_to "Destroy", article_path(@article),
+                  method: :delete,
+                  data: { confirm: "Are you sure?" } %></li>
+</ul>
 
 <h2>Add a comment:</h2>
 <%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
@@ -1501,9 +1507,6 @@ So first, we'll wire up the Article show template
     <%= form.submit %>
   </p>
 <% end %>
-
-<%= link_to 'Edit', edit_article_path(@article) %> |
-<%= link_to 'Back', articles_path %>
 ```
 
 This adds a form on the `Article` show page that creates a new comment by
@@ -1545,15 +1548,16 @@ the `show` action of the `ArticlesController` which in turn renders the
 add that to the `app/views/articles/show.html.erb`.
 
 ```html+erb
-<p>
-  <strong>Title:</strong>
-  <%= @article.title %>
-</p>
+<h1><%= @article.title %></h1>
 
-<p>
-  <strong>Text:</strong>
-  <%= @article.text %>
-</p>
+<p><%= @article.body %></p>
+
+<ul>
+  <li><%= link_to "Edit", edit_article_path(@article) %></li>
+  <li><%= link_to "Destroy", article_path(@article),
+                  method: :delete,
+                  data: { confirm: "Are you sure?" } %></li>
+</ul>
 
 <h2>Comments</h2>
 <% @article.comments.each do |comment| %>
@@ -1582,9 +1586,6 @@ add that to the `app/views/articles/show.html.erb`.
     <%= form.submit %>
   </p>
 <% end %>
-
-<%= link_to 'Edit', edit_article_path(@article) %> |
-<%= link_to 'Back', articles_path %>
 ```
 
 Now you can add articles and comments to your blog and have them show up in the
@@ -1621,15 +1622,16 @@ Then you can change `app/views/articles/show.html.erb` to look like the
 following:
 
 ```html+erb
-<p>
-  <strong>Title:</strong>
-  <%= @article.title %>
-</p>
+<h1><%= @article.title %></h1>
 
-<p>
-  <strong>Text:</strong>
-  <%= @article.text %>
-</p>
+<p><%= @article.body %></p>
+
+<ul>
+  <li><%= link_to "Edit", edit_article_path(@article) %></li>
+  <li><%= link_to "Destroy", article_path(@article),
+                  method: :delete,
+                  data: { confirm: "Are you sure?" } %></li>
+</ul>
 
 <h2>Comments</h2>
 <%= render @article.comments %>
@@ -1648,9 +1650,6 @@ following:
     <%= form.submit %>
   </p>
 <% end %>
-
-<%= link_to 'Edit', edit_article_path(@article) %> |
-<%= link_to 'Back', articles_path %>
 ```
 
 This will now render the partial in `app/views/comments/_comment.html.erb` once
@@ -1683,24 +1682,22 @@ create a file `app/views/comments/_form.html.erb` containing:
 Then you make the `app/views/articles/show.html.erb` look like the following:
 
 ```html+erb
-<p>
-  <strong>Title:</strong>
-  <%= @article.title %>
-</p>
+<h1><%= @article.title %></h1>
 
-<p>
-  <strong>Text:</strong>
-  <%= @article.text %>
-</p>
+<p><%= @article.body %></p>
+
+<ul>
+  <li><%= link_to "Edit", edit_article_path(@article) %></li>
+  <li><%= link_to "Destroy", article_path(@article),
+                  method: :delete,
+                  data: { confirm: "Are you sure?" } %></li>
+</ul>
 
 <h2>Comments</h2>
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
 <%= render 'comments/form' %>
-
-<%= link_to 'Edit', edit_article_path(@article) %> |
-<%= link_to 'Back', articles_path %>
 ```
 
 The second render just defines the partial template we want to render,
@@ -1730,8 +1727,9 @@ Within the `article` model, after running a migration to add a `status` column, 
 ```ruby
 class Article < ApplicationRecord
   has_many :comments
-  validates :title, presence: true,
-                    length: { minimum: 5 }
+
+  validates :title, presence: true
+  validates :body, presence: true, length: { minimum: 10 }
 
   VALID_STATUSES = ['public', 'private', 'archived']
 
@@ -1762,29 +1760,19 @@ end
 Then, in our `index` action template (`app/views/articles/index.html.erb`) we would use the `archived?` method to avoid displaying any article that is archived:
 
 ```html+erb
-<h1>Listing Articles</h1>
-<%= link_to 'New article', new_article_path %>
-<table>
-  <tr>
-    <th>Title</th>
-    <th>Text</th>
-    <th colspan="3"></th>
-  </tr>
+<h1>Articles</h1>
 
+<ul>
   <% @articles.each do |article| %>
     <% unless article.archived? %>
-      <tr>
-        <td><%= article.title %></td>
-        <td><%= article.text %></td>
-        <td><%= link_to 'Show', article_path(article) %></td>
-        <td><%= link_to 'Edit', edit_article_path(article) %></td>
-        <td><%= link_to 'Destroy', article_path(article),
-                method: :delete,
-                data: { confirm: 'Are you sure?' } %></td>
-      </tr>
+      <li>
+        <%= link_to article.title, article %>
+      </li>
     <% end %>
   <% end %>
-</table>
+</ul>
+
+<%= link_to "New Article", new_article_path %>
 ```
 
 However, if you look again at our models now, you can see that the logic is duplicated. If in the future we increase the functionality of our blog - to include private messages, for instance -  we might find ourselves duplicating the logic yet again. This is where concerns come in handy.
@@ -1829,9 +1817,8 @@ class Article < ApplicationRecord
   include Visible
   has_many :comments
 
-  validates :title, presence: true,
-                    length: { minimum: 5 }
-
+  validates :title, presence: true
+  validates :body, presence: true, length: { minimum: 10 }
 end
 ```
 
@@ -1871,30 +1858,19 @@ end
 Then in the view, you can call it like any class method:
 
 ```html+erb
-<h1>Listing Articles</h1>
-Our blog has <%= Article.public_count %> articles and counting! Add yours now.
-<%= link_to 'New article', new_article_path %>
-<table>
-  <tr>
-    <th>Title</th>
-    <th>Text</th>
-    <th colspan="3"></th>
-  </tr>
+<h1>Articles</h1>
 
+Our blog has <%= Article.public_count %> articles and counting!
+
+<ul>
   <% @articles.each do |article| %>
-    <% unless article.archived? %>
-      <tr>
-        <td><%= article.title %></td>
-        <td><%= article.text %></td>
-        <td><%= link_to 'Show', article_path(article) %></td>
-        <td><%= link_to 'Edit', edit_article_path(article) %></td>
-        <td><%= link_to 'Destroy', article_path(article),
-                method: :delete,
-                data: { confirm: 'Are you sure?' } %></td>
-      </tr>
-    <% end %>
+    <li>
+      <%= link_to article.title, article %>
+    </li>
   <% end %>
-</table>
+</ul>
+
+<%= link_to "New Article", new_article_path %>
 ```
 
 Deleting Comments
@@ -1921,7 +1897,7 @@ So first, let's add the delete link in the
 <p>
   <%= link_to 'Destroy Comment', [comment.article, comment],
                method: :delete,
-               data: { confirm: 'Are you sure?' } %>
+               data: { confirm: "Are you sure?" } %>
 </p>
 ```
 
@@ -1969,8 +1945,9 @@ class Article < ApplicationRecord
   include Visible
 
   has_many :comments, dependent: :destroy
-  validates :title, presence: true,
-                    length: { minimum: 5 }
+
+  validates :title, presence: true
+  validates :body, presence: true, length: { minimum: 10 }
 end
 ```
 
