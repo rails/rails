@@ -265,24 +265,19 @@ enough to serve a page.
 
 ### Say "Hello", Rails
 
-To get Rails saying "Hello", you need to create at minimum a _route_, a _controller_ and a _view_.
+To get Rails saying "Hello", you need to create at minimum a *route*, a
+*controller* with an *action*, and a *view*. A route maps a request to a
+controller action. A controller action performs the necessary work to handle the
+request, and prepares any data for the view. A view displays data in a desired
+format.
 
-A controller's purpose is to receive specific requests for the application.
-_Routing_ decides which controller receives which requests. Often, there is more
-than one route to each controller, and different routes can be served by
-different _actions_. Each action's purpose is to collect information to provide
-it to a view.
+In terms of implementation: Routes are rules written in a Ruby [DSL
+(Domain-Specific Language)](https://en.wikipedia.org/wiki/Domain-specific_language).
+Controllers are Ruby classes, and their public methods are actions. And views
+are templates, usually written in a mixture of HTML and Ruby.
 
-A view's purpose is to display this information in a human readable format. An
-important distinction to make is that the _controller_, not the view,
-is where information is collected. The view should just display that information.
-By default, view templates are written in a language called eRuby (Embedded
-Ruby) which is processed by the request cycle in Rails before being sent to the
-user.
-
-When we make a request to our Rails application, we do so by making a request
-to a particular _route_. To start off, let's create a route in
-`config/routes.rb`:
+Let's start by adding a route to our routes file, `config/routes.rb`, at the
+top of the `Rails.application.routes.draw` block:
 
 ```ruby
 Rails.application.routes.draw do
@@ -292,33 +287,21 @@ Rails.application.routes.draw do
 end
 ```
 
-This is your application's _routing file_ which holds entries in a special [DSL
-(domain-specific
-language)](https://en.wikipedia.org/wiki/Domain-specific_language) that tells
-Rails how to connect incoming requests to controllers and actions.
+The route above declares that `GET /articles` requests are mapped to the `index`
+action of `ArticlesController`.
 
-The line that we have just added says that we are going to match a `GET
-/articles` request to `articles#index`. This string passed as the `to` option
-represents the _controller_ and _action_ that will be responsible for handling
-this request.
-
-Controllers are classes that group together common methods for handling a
-particular _resource_. The methods inside controllers are given the name
-"actions", as they _act upon_ requests as they come in.
-
-To create a new controller, you will need to run the "controller" generator and
-tell it you want a controller called "articles" with an action called "index",
-just like this:
+To create `ArticlesController` and its `index` action, we'll run the controller
+generator (with the `--skip-routes` option because we already have an
+appropriate route):
 
 ```bash
-$ bin/rails generate controller articles index
+$ bin/rails generate controller Articles index --skip-routes
 ```
 
-Rails will create several files and a route for you.
+Rails will create several files for you:
 
 ```
 create  app/controllers/articles_controller.rb
-  route  get 'articles/index'
 invoke  erb
 create    app/views/articles
 create    app/views/articles/index.html.erb
@@ -332,10 +315,8 @@ invoke    scss
 create      app/assets/stylesheets/articles.scss
 ```
 
-Most important of these is the controller, located at
-`app/controllers/articles_controller.rb`.
-
-Let's look at that controller now:
+The most important of these is the controller file,
+`app/controllers/articles_controller.rb`. Let's take a look at it:
 
 ```ruby
 class ArticlesController < ApplicationController
@@ -344,26 +325,21 @@ class ArticlesController < ApplicationController
 end
 ```
 
-This controller defines a single action, or "method" in common Ruby terms,
-called `index`. This action is where we would define any logic that we would
-want to happen when a request comes in to this action. Right at this moment, we
-don't want this action to do anything, and so we'll keep it blank for now.
+The `index` action is empty. When an action does not explicitly render a view
+(or otherwise trigger an HTTP response), Rails will automatically render a view
+that matches the name of the controller and action. Convention Over
+Configuration! Views are located in the `app/views` directory. So the `index`
+action will render `app/views/articles/index.html.erb` by default.
 
-When an action is left blank like this, Rails will default to rendering a view
-that matches the name of the controller and the name of the action. Views in a
-Rails application live in `app/views`, and so the default view for this action
-is going to be `app/views/articles/index.html.erb`.
-
-Open the `app/views/articles/index.html.erb` file in your text editor. Delete all
-of the existing code in the file, and replace it with the following single line
-of code:
+Let's open `app/views/articles/index.html.erb`, and replace its contents with:
 
 ```html
 <h1>Hello, Rails!</h1>
 ```
 
-If we go back to our browser and make a request to
-<http://localhost:3000/articles>, we'll see our text appear on the page.
+If you previously stopped the web server to run the controller generator,
+restart it with `bin/rails server`. Now visit <http://localhost:3000/articles>,
+and see our text displayed!
 
 ### Setting the Application Home Page
 
