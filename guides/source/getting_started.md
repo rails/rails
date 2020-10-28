@@ -1042,6 +1042,26 @@ active_record_validations.html). To learn more about validation error messages,
 see [Active Record Validations § Working with Validation Errors](
 active_record_validations.html#working-with-validation-errors).
 
+#### Finishing Up
+
+We can now create an article by visiting <http://localhost:3000/articles/new>.
+To finish up, let's link to that page from the bottom of
+`app/views/articles/index.html.erb`:
+
+```html+erb
+<h1>Articles</h1>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li>
+      <%= link_to article.title, article %>
+    </li>
+  <% end %>
+</ul>
+
+<%= link_to "New Article", new_article_path %>
+```
+
 ### Updating Articles
 
 We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating
