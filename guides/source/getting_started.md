@@ -1213,41 +1213,16 @@ page from the bottom of `app/views/articles/show.html.erb`:
 </ul>
 ```
 
-### Deleting Articles
+### Deleting an Article
 
-We're now ready to cover the "D" part of CRUD, deleting articles from the
-database. Following the REST convention, the route for
-deleting articles as per output of `bin/rails routes` is:
+Finally, we arrive at the "D" (Delete) of CRUD. Deleting a resource is a simpler
+process than creating or updating. It only requires a route and a controller
+action. And our resourceful routing (`resources :articles`) already provides the
+route, which maps `DELETE /articles/:id` requests to the `destroy` action of
+`ArticlesController`.
 
-```ruby
-DELETE /articles/:id(.:format)      articles#destroy
-```
-
-The `delete` routing method should be used for routes that destroy
-resources. If this was left as a typical `get` route, it could be possible for
-people to craft malicious URLs like this:
-
-```html
-<a href='http://example.com/articles/1/destroy'>look at this cat!</a>
-```
-
-We use the `delete` method for destroying resources, and this route is mapped
-to the `destroy` action inside `app/controllers/articles_controller.rb`, which
-doesn't exist yet. The `destroy` method is generally the last CRUD action in
-the controller, and like the other public CRUD actions, it must be placed
-before any `private` or `protected` methods. Let's add it:
-
-```ruby
-def destroy
-  @article = Article.find(params[:id])
-  @article.destroy
-
-  redirect_to articles_path
-end
-```
-
-The complete `ArticlesController` in the
-`app/controllers/articles_controller.rb` file should now look like this:
+So, let's add a typical `destroy` action to `app/controllers/articles_controller.rb`,
+below the `update` action:
 
 ```ruby
 class ArticlesController < ApplicationController
@@ -1263,18 +1238,18 @@ class ArticlesController < ApplicationController
     @article = Article.new
   end
 
-  def edit
-    @article = Article.find(params[:id])
-  end
-
   def create
     @article = Article.new(article_params)
 
     if @article.save
       redirect_to @article
     else
-      render 'new'
+      render :new
     end
+  end
+
+  def edit
+    @article = Article.find(params[:id])
   end
 
   def update
@@ -1283,7 +1258,7 @@ class ArticlesController < ApplicationController
     if @article.update(article_params)
       redirect_to @article
     else
-      render 'edit'
+      render :edit
     end
   end
 
@@ -1291,68 +1266,53 @@ class ArticlesController < ApplicationController
     @article = Article.find(params[:id])
     @article.destroy
 
-    redirect_to articles_path
+    redirect_to root_path
   end
 
   private
     def article_params
-      params.require(:article).permit(:title, :text)
+      params.require(:article).permit(:title, :body)
     end
 end
 ```
 
-You can call `destroy` on Active Record objects when you want to delete
-them from the database. Note that we don't need to add a view for this
-action since we're redirecting to the `index` action.
+The `destroy` action fetches the article from the database, and calls [`destroy`](
+https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-destroy)
+on it. Then, it redirects the browser to the root path.
 
-Finally, add a 'Destroy' link to your `index` action template
-(`app/views/articles/index.html.erb`) to wrap everything together.
+We have chosen to redirect to the root path because that is our main access
+point for articles. But, in other circumstances, you might choose to redirect to
+e.g. `articles_path`.
+
+Now let's add a link at the bottom of `app/views/articles/show.html.erb` so that
+we can delete an article from its own page:
 
 ```html+erb
-<h1>Listing Articles</h1>
-<%= link_to 'New article', new_article_path %>
-<table>
-  <tr>
-    <th>Title</th>
-    <th>Text</th>
-    <th colspan="3"></th>
-  </tr>
+<h1><%= @article.title %></h1>
 
-  <% @articles.each do |article| %>
-    <tr>
-      <td><%= article.title %></td>
-      <td><%= article.text %></td>
-      <td><%= link_to 'Show', article_path(article) %></td>
-      <td><%= link_to 'Edit', edit_article_path(article) %></td>
-      <td><%= link_to 'Destroy', article_path(article),
-              method: :delete,
-              data: { confirm: 'Are you sure?' } %></td>
-    </tr>
-  <% end %>
-</table>
+<p><%= @article.body %></p>
+
+<ul>
+  <li><%= link_to "Edit", edit_article_path(@article) %></li>
+  <li><%= link_to "Destroy", article_path(@article),
+                  method: :delete,
+                  data: { confirm: "Are you sure?" } %></li>
+</ul>
 ```
 
-Here we're using `link_to` in a different way. We pass the named route as the
-second argument, and then the options as another argument. The `method: :delete`
-and `data: { confirm: 'Are you sure?' }` options are used as HTML5 attributes so
-that when the link is clicked, Rails will first show a confirm dialog to the
-user, and then submit the link with method `delete`.  This is done via the
-JavaScript file `rails-ujs` which is automatically included in your
-application's layout (`app/views/layouts/application.html.erb`) when you
-generated the application. Without this file, the confirmation dialog box won't
-appear.
+In the above code, we're passing a few additional options to `link_to`. The
+`method: :delete` option causes the link to make a `DELETE` request instead of a
+`GET` request. The `data: { confirm: "Are you sure?" }` option causes a
+confirmation dialog to appear when the link is clicked. If the user cancels the
+dialog, the request is aborted. Both of these options are powered by a feature
+of Rails called *Unobtrusive JavaScript* (UJS). The JavaScript file that
+implements these behaviors is included by default in fresh Rails applications.
 
-![Confirm Dialog](images/getting_started/confirm_dialog.png)
+TIP: To learn more about Unobtrusive JavaScript, see [Working With JavaScript in
+Rails](working_with_javascript_in_rails.html).
 
-TIP: Learn more about Unobtrusive JavaScript on
-[Working With JavaScript in Rails](working_with_javascript_in_rails.html) guide.
-
-Congratulations, you can now create, show, list, update, and destroy
-articles.
-
-TIP: In general, Rails encourages using resources objects instead of
-declaring routes manually. For more information about routing, see
-[Rails Routing from the Outside In](routing.html).
+And that's it! We can now list, show, create, update, and delete articles!
+InCRUDable!
 
 Adding a Second Model
 ---------------------
