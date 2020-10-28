@@ -290,6 +290,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated `ActiveSupport::LoggerThreadSafeLevel#after_initialize`.
 
+*   Remove deprecated `Module#parent_name`, `Module#parent` and `Module#parents`.
+
 ### Deprecations
 
 ### Notable changes

@@ -1,3 +1,7 @@
+*   Remove deprecated `Module#parent_name`, `Module#parent` and `Module#parents`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveSupport::LoggerThreadSafeLevel#after_initialize`.
 
     *Rafael Mendonça França*
