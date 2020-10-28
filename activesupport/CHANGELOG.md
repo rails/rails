@@ -1,3 +1,7 @@
+*   Remove deprecated file `active_support/core_ext/numeric/inquiry`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated file `active_support/core_ext/module/reachable`.
 
     *Rafael Mendonça França*

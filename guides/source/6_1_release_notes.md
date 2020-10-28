@@ -294,6 +294,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated file `active_support/core_ext/module/reachable`.
 
+*   Remove deprecated file `active_support/core_ext/numeric/inquiry`.
+
 ### Deprecations
 
 ### Notable changes
