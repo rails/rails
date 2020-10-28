@@ -37,7 +37,7 @@ module ActiveRecord
       include Savepoints
 
       SIMPLE_INT = /\A\d+\z/
-      COMMENT_REGEX = %r{/\*(?:[^\*]|\*[^/])*\*/}m
+      COMMENT_REGEX = %r{(?:\-\-.*\n)*|/\*(?:[^\*]|\*[^/])*\*/}m
 
       attr_accessor :pool
       attr_reader :visitor, :owner, :logger, :lock
