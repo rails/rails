@@ -296,6 +296,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated file `active_support/core_ext/numeric/inquiry`.
 
+*   Remove deprecated file `active_support/core_ext/array/prepend_and_append`.
+
 ### Deprecations
 
 ### Notable changes
