@@ -1,3 +1,7 @@
+*   Remove deprecated file `active_support/core_ext/hash/compact`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated file `active_support/core_ext/array/prepend_and_append`.
 
     *Rafael Mendonça França*

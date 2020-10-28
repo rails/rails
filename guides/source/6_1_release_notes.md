@@ -298,6 +298,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated file `active_support/core_ext/array/prepend_and_append`.
 
+*   Remove deprecated file `active_support/core_ext/hash/compact`.
+
 ### Deprecations
 
 ### Notable changes

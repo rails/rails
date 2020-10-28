@@ -434,12 +434,6 @@ class HashExtTest < ActiveSupport::TestCase
       original.except(:a)
     end
   end
-
-  def test_requiring_compact_is_deprecated
-    assert_deprecated do
-      require "active_support/core_ext/hash/compact"
-    end
-  end
 end
 
 class IWriteMyOwnXML
