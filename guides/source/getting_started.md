@@ -1197,6 +1197,22 @@ And now, let's create a very similar `app/views/articles/edit.html.erb`:
 TIP: To learn more about partials, see [Layouts and Rendering in Rails § Using
 Partials](layouts_and_rendering.html#using-partials).
 
+#### Finishing Up
+
+We can now update an article by visiting its edit page, e.g.
+<http://localhost:3000/articles/1/edit>. To finish up, let's link to the edit
+page from the bottom of `app/views/articles/show.html.erb`:
+
+```html+erb
+<h1><%= @article.title %></h1>
+
+<p><%= @article.body %></p>
+
+<ul>
+  <li><%= link_to "Edit", edit_article_path(@article) %></li>
+</ul>
+```
+
 ### Deleting Articles
 
 We're now ready to cover the "D" part of CRUD, deleting articles from the
