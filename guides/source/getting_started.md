@@ -600,11 +600,16 @@ We can see the final result by visiting <http://localhost:3000>. (Remember that
 We've connected all the MVC pieces together, and we have our first controller
 action! Next, we'll move on to the second action.
 
-Getting Up and Running
-----------------------
+CRUDit Where CRUDit Is Due
+--------------------------
 
-Now that you've seen how to create a controller, an action, and a view, let's
-create something with a bit more substance.
+Almost all web applications involve [CRUD (Create, Read, Update, and Delete)](
+https://en.wikipedia.org/wiki/Create,_read,_update,_and_delete) operations. You
+may even find that the majority of the work your application does is CRUD. Rails
+acknowledges this, and provides many features to help simplify code doing CRUD.
+
+Let's begin exploring these features by adding more functionality to our
+application.
 
 In the Blog application, you will now create a new _resource_. A resource is the
 term used for a collection of similar objects, such as articles, people, or
