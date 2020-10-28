@@ -302,6 +302,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated file `active_support/core_ext/hash/transform_values`.
 
+*   Remove deprecated file `active_support/core_ext/range/include_range`.
+
 ### Deprecations
 
 ### Notable changes

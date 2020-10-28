@@ -1,3 +1,7 @@
+*   Remove deprecated file `active_support/core_ext/range/include_range`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated file `active_support/core_ext/hash/transform_values`.
 
     *Rafael Mendonça França*
