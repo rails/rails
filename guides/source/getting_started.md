@@ -366,6 +366,18 @@ confirming that the `root` route is also mapped to the `index` action of
 TIP: To learn more about routing, see [Rails Routing from the Outside In](
 routing.html).
 
+MVC and You
+-----------
+
+So far, we've discussed routes, controllers, actions, and views. All of these
+are typical pieces of a web application that follows the [MVC (Model-View-Controller)](
+https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) pattern.
+MVC is a design pattern that divides the responsibilities of an application to
+make it easier to reason about. Rails follows this design pattern by convention.
+
+Since we have a controller and a view to work with, let's generate the next
+piece: a model.
+
 Getting Up and Running
 ----------------------
 
