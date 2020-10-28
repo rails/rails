@@ -1132,81 +1132,70 @@ validations fail and the update is successful, the action redirects the browser
 to the article's page. Else, the action redisplays the form, with error
 messages, by rendering `app/views/articles/edit.html.erb`.
 
-### Using partials to clean up duplication in views
+#### Using Partials to Share View Code
 
-Our `edit` page looks very similar to the `new` page; in fact, they
-both share the same code for displaying the form. Let's remove this
-duplication by using a view partial. By convention, partial files are
-prefixed with an underscore.
+Our `edit` form will look the same as our `new` form. Even the code will be the
+same, thanks to the Rails form builder and resourceful routing. The form builder
+automatically configures the form to make the appropriate kind of request, based
+on whether the model object has been previously saved.
 
-TIP: You can read more about partials in the
-[Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
-
-Create a new file `app/views/articles/_form.html.erb` with the following
-content:
+Because the code will be the same, we're going to factor it out into a shared
+view called a *partial*. Let's create `app/views/articles/_form.html.erb` with
+the following contents:
 
 ```html+erb
-<%= form_with model: @article, local: true do |form| %>
-
-  <% if @article.errors.any? %>
-    <div id="error_explanation">
-      <h2>
-        <%= pluralize(@article.errors.count, "error") %> prohibited
-        this article from being saved:
-      </h2>
-      <ul>
-        <% @article.errors.full_messages.each do |msg| %>
-          <li><%= msg %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
-
-  <p>
+<%= form_with model: article, local: true do |form| %>
+  <div>
     <%= form.label :title %><br>
     <%= form.text_field :title %>
-  </p>
+    <%= article.errors.full_messages_for(:title).each do |message| %>
+      <div><%= message %></div>
+    <% end %>
+  </div>
 
-  <p>
-    <%= form.label :text %><br>
-    <%= form.text_area :text %>
-  </p>
+  <div>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %><br>
+    <%= article.errors.full_messages_for(:body).each do |message| %>
+      <div><%= message %></div>
+    <% end %>
+  </div>
 
-  <p>
+  <div>
     <%= form.submit %>
-  </p>
-
+  </div>
 <% end %>
 ```
 
-Everything except for the `form_with` declaration remained the same.
-The reason we can use this shorter `form_with` declaration
-to stand in for either of the other forms is that `@article` is a *resource*
-corresponding to a full set of RESTful routes, and Rails is able to infer
-which URI and method to use.
-For more information about this use of `form_with`, see [Resource-oriented style]
-(https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with-label-Resource-oriented+style).
+The above code is the same as our form in `app/views/articles/new.html.erb`,
+except that all occurrences of `@article` have been replaced with `article`.
+Because partials are shared code, it is best practice that they do not depend on
+specific instance variables set by a controller action. Instead, we will pass
+the article to the partial as a local variable.
 
-Now, let's update the `app/views/articles/new.html.erb` view to use this new
-partial, rewriting it completely:
+Let's update `app/views/articles/new.html.erb` to use the partial via [`render`](
+https://api.rubyonrails.org/classes/ActionView/Helpers/RenderingHelper.html#method-i-render):
 
 ```html+erb
 <h1>New Article</h1>
 
-<%= render 'form' %>
-
-<%= link_to 'Back', articles_path %>
+<%= render "form", article: @article %>
 ```
 
-Then do the same for the `app/views/articles/edit.html.erb` view:
+NOTE: A partial's filename must be prefixed **with** an underscore, e.g.
+`_form.html.erb`. But when rendering, it is referenced **without** the
+underscore, e.g. `render "form"`.
+
+And now, let's create a very similar `app/views/articles/edit.html.erb`:
 
 ```html+erb
 <h1>Edit Article</h1>
 
-<%= render 'form' %>
-
-<%= link_to 'Back', articles_path %>
+<%= render "form", article: @article %>
 ```
+
+TIP: To learn more about partials, see [Layouts and Rendering in Rails § Using
+Partials](layouts_and_rendering.html#using-partials).
 
 ### Deleting Articles
 
