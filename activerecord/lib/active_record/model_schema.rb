@@ -502,6 +502,7 @@ module ActiveRecord
           defined?(@schema_loaded) && @schema_loaded
         end
 
+        # Lazily loads @columns_hash and sets @schema_loaded to true
         def load_schema
           return if schema_loaded?
           @load_schema_monitor.synchronize do
@@ -516,6 +517,8 @@ module ActiveRecord
           end
         end
 
+        # Rebuilds @columns_hash from the connection's schema cache, removing/ignoring columns named in
+        # ignored_columns. Warns of deprecated column types.
         def load_schema!
           unless table_name
             raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
@@ -537,6 +540,7 @@ module ActiveRecord
           end
         end
 
+        # Resets instance state values, and calls direct_descendants' reload_schema_from_cache, as well
         def reload_schema_from_cache
           @arel_table = nil
           @column_names = nil
