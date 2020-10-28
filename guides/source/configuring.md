@@ -1067,7 +1067,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_record.collection_cache_versioning`: `false`
 - `config.active_record.has_many_inversing`: `false`
 - `config.active_support.use_authenticated_message_encryption`: `false`
-- `config.active_support.use_sha1_digests`: `false`
+- `config.active_support.hash_digest_class`: `::Digest::MD5`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
 
 ### Configuring a Database

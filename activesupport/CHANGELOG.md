@@ -60,6 +60,12 @@
 
     *Adrianna Chang*
 
+*   Allow the digest class used to generate non-sensitive digests to be configured with `config.active_support.hash_digest_class`.
+
+    `config.active_support.use_sha1_digests` is deprecated in favour of `config.active_support.hash_digest_class = ::Digest::SHA1`.
+
+    *Dirkjan Bussink*
+
 *   Fix bug to make memcached write_entry expire correctly with unless_exist
 
     *Jye Lee*
