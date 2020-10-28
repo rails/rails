@@ -1,3 +1,7 @@
+*   Remove deprecated file `active_support/core_ext/module/reachable`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `Module#parent_name`, `Module#parent` and `Module#parents`.
 
     *Rafael Mendonça França*

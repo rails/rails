@@ -292,6 +292,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated `Module#parent_name`, `Module#parent` and `Module#parents`.
 
+*   Remove deprecated file `active_support/core_ext/module/reachable`.
+
 ### Deprecations
 
 ### Notable changes
