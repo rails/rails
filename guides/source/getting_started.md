@@ -611,6 +611,79 @@ acknowledges this, and provides many features to help simplify code doing CRUD.
 Let's begin exploring these features by adding more functionality to our
 application.
 
+### Showing a Single Article
+
+We currently have a view that lists all articles in our database. Let's add a
+new view that shows the title and body of a single article.
+
+We start by adding a new route that maps to a new controller action (which we
+will add next). Open `config/routes.rb`, and insert the last route shown here:
+
+```ruby
+Rails.application.routes.draw do
+  root "articles#index"
+
+  get "/articles", to: "articles#index"
+  get "/articles/:id", to: "articles#show"
+end
+```
+
+The new route is another `get` route, but it has something extra in its path:
+`:id`. This designates a route *parameter*. A route parameter captures a segment
+of the request's path, and puts that value into the `params` Hash, which is
+accessible by the controller action. For example, when handling a request like
+`GET http://localhost:3000/articles/1`, `1` would be captured as the value for
+`:id`, which would then be accessible as `params[:id]` in the `show` action of
+`ArticlesController`.
+
+Let's add that `show` action now, below the `index` action in
+`app/controllers/articles_controller.rb`:
+
+```ruby
+class ArticlesController < ApplicationController
+  def index
+    @articles = Article.all
+  end
+
+  def show
+    @article = Article.find(params[:id])
+  end
+end
+```
+
+The `show` action calls `Article.find` ([mentioned
+previously](#using-a-model-to-interact-with-the-database)) with the ID captured
+by the route parameter. The returned article is stored in the `@article`
+instance variable, so it is accessible by the view. By default, the `show`
+action will render `app/views/articles/show.html.erb`.
+
+Let's create `app/views/articles/show.html.erb`, with the following contents:
+
+```html+erb
+<h1><%= @article.title %></h1>
+
+<p><%= @article.body %></p>
+```
+
+Now we can see the article when we visit <http://localhost:3000/articles/1>!
+
+To finish up, let's add a convenient way to get to an article's page. We'll link
+each article's title in `app/views/articles/index.html.erb` to its page:
+
+```html+erb
+<h1>Articles</h1>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li>
+      <a href="/articles/<%= article.id %>">
+        <%= article.title %>
+      </a>
+    </li>
+  <% end %>
+</ul>
+```
+
 In the Blog application, you will now create a new _resource_. A resource is the
 term used for a collection of similar objects, such as articles, people, or
 animals.
@@ -992,134 +1065,6 @@ private
 TIP: For more information, refer to the reference above and
 [this blog article about Strong Parameters]
 (https://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
-
-### Showing Articles
-
-If you submit the form again now, Rails will complain about not finding the
-`show` action. That's not very useful though, so let's add the `show` action
-before proceeding.
-
-As we have seen in the output of `bin/rails routes`, the route for `show` action is
-as follows:
-
-```
-article GET    /articles/:id(.:format)      articles#show
-```
-
-The special syntax `:id` tells rails that this route expects an `:id`
-parameter, which in our case will be the id of the article.
-
-As we did before, we need to add the `show` action in
-`app/controllers/articles_controller.rb` and its respective view.
-
-NOTE: A frequent practice is to place the standard CRUD actions in each
-controller in the following order: `index`, `show`, `new`, `edit`, `create`, `update`
-and `destroy`. You may use any order you choose, but keep in mind that these
-are public methods; as mentioned earlier in this guide, they must be placed
-before declaring `private` visibility in the controller.
-
-Given that, let's add the `show` action, as follows:
-
-```ruby
-class ArticlesController < ApplicationController
-  def show
-    @article = Article.find(params[:id])
-  end
-
-  def new
-  end
-
-  # snippet for brevity
-```
-
-A couple of things to note. We use `Article.find` to find the article we're
-interested in, passing in `params[:id]` to get the `:id` parameter from the
-request. We also use an instance variable (prefixed with `@`) to hold a
-reference to the article object. We do this because Rails will pass all instance
-variables to the view.
-
-Now, create a new file `app/views/articles/show.html.erb` with the following
-content:
-
-```html+erb
-<p>
-  <strong>Title:</strong>
-  <%= @article.title %>
-</p>
-
-<p>
-  <strong>Text:</strong>
-  <%= @article.text %>
-</p>
-```
-
-With this change, you should finally be able to create new articles.
-Visit <http://localhost:3000/articles/new> and give it a try!
-
-![Show action for articles](images/getting_started/show_action_for_articles.png)
-
-### Adding Links
-
-You can now create, show, and list articles. Now let's add some links to
-navigate through pages.
-
-Open `app/views/welcome/index.html.erb` and modify it as follows:
-
-```html+erb
-<h1>Hello, Rails!</h1>
-<%= link_to 'My Blog', controller: 'articles' %>
-```
-
-The `link_to` method is one of Rails' built-in view helpers. It creates a
-hyperlink based on text to display and where to go - in this case, to the path
-for articles.
-
-Let's add links to the other views as well, starting with adding this
-"New Article" link to `app/views/articles/index.html.erb`, placing it above the
-`<table>` tag:
-
-```erb
-<%= link_to 'New article', new_article_path %>
-```
-
-This link will allow you to bring up the form that lets you create a new article.
-
-Now, add another link in `app/views/articles/new.html.erb`, underneath the
-form, to go back to the `index` action:
-
-```erb
-<%= form_with scope: :article, url: articles_path, local: true do |form| %>
-  ...
-<% end %>
-
-<%= link_to 'Back', articles_path %>
-```
-
-Finally, add a link to the `app/views/articles/show.html.erb` template to
-go back to the `index` action as well, so that people who are viewing a single
-article can go back and view the whole list again:
-
-```html+erb
-<p>
-  <strong>Title:</strong>
-  <%= @article.title %>
-</p>
-
-<p>
-  <strong>Text:</strong>
-  <%= @article.text %>
-</p>
-
-<%= link_to 'Back', articles_path %>
-```
-
-TIP: If you want to link to an action in the same controller, you don't need to
-specify the `:controller` option, as Rails will use the current controller by
-default.
-
-TIP: In the development environment (which is what you're working in by
-default), Rails reloads your application with every browser request, so there's
-no need to stop and restart the web server when a change is made.
 
 ### Adding Some Validation
 
