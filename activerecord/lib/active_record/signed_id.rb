@@ -10,7 +10,7 @@ module ActiveRecord
       # :singleton-method:
       # Set the secret used for the signed id verifier instance when using Active Record outside of Rails.
       # Within Rails, this is automatically set using the Rails application key generator.
-      mattr_accessor :signed_id_verifier_secret, instance_writer: false
+      mattr_accessor :signed_id_verifier_secret, :signed_id_digest, instance_writer: false
     end
 
     module ClassMethods
@@ -76,7 +76,7 @@ module ActiveRecord
           if secret.nil?
             raise ArgumentError, "You must set ActiveRecord::Base.signed_id_verifier_secret to use signed ids"
           else
-            ActiveSupport::MessageVerifier.new secret, digest: "SHA256", serializer: JSON
+            ActiveSupport::MessageVerifier.new secret, digest: signed_id_digest, serializer: JSON
           end
         end
       end

@@ -290,5 +290,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
         self.signed_id_verifier_secret ||= -> { Rails.application.key_generator.generate_key("active_record/signed_id") }
       end
     end
+
+    initializer "active_record.set_signed_id_digest" do
+      ActiveSupport.on_load(:active_record) do
+        self.signed_id_digest ||= -> { Rails.application.config.active_support.hash_digest_class || Digest::SHA256 }
+      end
+    end
   end
 end
