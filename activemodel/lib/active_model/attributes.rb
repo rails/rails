@@ -120,6 +120,7 @@ module ActiveModel
     end
 
     private
+      # Writes a value to an attribute by name following aliases if necessary.
       def write_attribute(attr_name, value)
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
@@ -132,6 +133,7 @@ module ActiveModel
       end
       alias :attribute= :_write_attribute
 
+      # Reads a value from an attribute by name following aliases if necessary.
       def read_attribute(attr_name)
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
