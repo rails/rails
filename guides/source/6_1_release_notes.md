@@ -300,6 +300,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated file `active_support/core_ext/hash/compact`.
 
+*   Remove deprecated file `active_support/core_ext/hash/transform_values`.
+
 ### Deprecations
 
 ### Notable changes
