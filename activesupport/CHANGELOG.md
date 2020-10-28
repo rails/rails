@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveSupport::Multibyte::Chars#consumes?` and `ActiveSupport::Multibyte::Chars#normalize`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated file `active_support/core_ext/range/include_range`.
 
     *Rafael Mendonça França*
