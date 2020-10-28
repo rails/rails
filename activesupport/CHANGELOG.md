@@ -1,3 +1,7 @@
+*   Remove deprecated fallback to `I18n.default_local` when `config.i18n.fallbacks` is empty.
+
+    *Rafael Mendonça França*
+
 *   Remove entries from local cache on `RedisCacheStore#delete_matched`
 
     Fixes #38627

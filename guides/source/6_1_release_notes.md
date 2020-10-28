@@ -284,6 +284,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated fallback to `I18n.default_local` when `config.i18n.fallbacks` is empty.
+
 ### Deprecations
 
 ### Notable changes
