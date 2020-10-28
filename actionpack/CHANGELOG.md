@@ -1,3 +1,11 @@
+*   Deprecate `config.action_dispatch.return_only_media_type_on_content_type`.
+
+    *Rafael Mendonça França*
+
+*   Change `ActionDispatch::Response#content_type` to return the full Content-Type header.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionDispatch::Http::ParameterFilter`.
 
     *Rafael Mendonça França*

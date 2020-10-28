@@ -61,7 +61,11 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate `config.action_dispatch.return_only_media_type_on_content_type`.
+
 ### Notable changes
+
+*   Change `ActionDispatch::Response#content_type` to return the full Content-Type header.
 
 Action View
 -----------

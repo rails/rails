@@ -136,7 +136,6 @@ module Rails
 
           if respond_to?(:action_dispatch)
             action_dispatch.use_cookies_with_metadata = true
-            action_dispatch.return_only_media_type_on_content_type = false
           end
 
           if respond_to?(:action_mailer)

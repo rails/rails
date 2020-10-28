@@ -616,15 +616,6 @@ module RequestForgeryProtectionTests
     end
   end
 
-  def test_should_not_trigger_content_type_deprecation
-    original = ActionDispatch::Response.return_only_media_type_on_content_type
-    ActionDispatch::Response.return_only_media_type_on_content_type = true
-
-    assert_not_deprecated { get :same_origin_js, xhr: true }
-  ensure
-    ActionDispatch::Response.return_only_media_type_on_content_type = original
-  end
-
   def test_should_not_raise_error_if_token_is_not_a_string
     assert_blocked do
       patch :index, params: { custom_authenticity_token: { foo: "bar" } }
