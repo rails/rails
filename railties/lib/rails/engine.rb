@@ -707,10 +707,15 @@ module Rails
         config.autoload_once_paths
       end
 
+      # Returns @_all_autoload_paths, lazily setting it by concatenating and de-duplicating
+      # config.autoload_paths, config.eager_load_paths, and config.autoload_once_paths
       def _all_autoload_paths
         @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
       end
 
+      # Returns @_all_load_paths, lazily setting (and de-duplicating) them if needed
+      # - always config.paths.load_paths
+      # - adds _all_autoload_paths or not per add_autoload_paths_to_load_path
       def _all_load_paths(add_autoload_paths_to_load_path)
         @_all_load_paths ||= begin
           load_paths  = config.paths.load_paths
