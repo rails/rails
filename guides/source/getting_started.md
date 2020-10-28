@@ -825,96 +825,68 @@ renders the specified view for the current request.
 It is important to use `redirect_to` after mutating the database or application state.
 Otherwise, if the user refreshes the page, the browser will make the same request, and the mutation will be repeated.
 
-### The first form
+#### Using a Form Builder
 
-To create a form within this template, you will use a *form
-builder*. The primary form builder for Rails is provided by a helper
-method called `form_with`. To use this method, add this code into
-`app/views/articles/new.html.erb`:
+We will use a feature of Rails called a *form builder* to create our form. Using
+a form builder, we can write a minimal amount of code to output a form that is
+fully configured and follows Rails conventions.
+
+Let's create `app/views/articles/new.html.erb` with the following contents:
 
 ```html+erb
-<%= form_with scope: :article, local: true do |form| %>
-  <p>
+<h1>New Article</h1>
+
+<%= form_with model: @article, local: true do |form| %>
+  <div>
     <%= form.label :title %><br>
     <%= form.text_field :title %>
-  </p>
+  </div>
 
-  <p>
-    <%= form.label :text %><br>
-    <%= form.text_area :text %>
-  </p>
+  <div>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %>
+  </div>
 
-  <p>
+  <div>
     <%= form.submit %>
-  </p>
+  </div>
 <% end %>
 ```
 
-If you refresh the page now, you'll see the exact same form from our example above.
+The [`form_with`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with)
+helper method instantiates a form builder. In the `form_with` block we call
+methods like [`label`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-label)
+and [`text_field`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-text_field)
+on the form builder to output the appropriate form elements.
 
-When you call `form_with`, you pass it an identifying scope for this
-form. In this case, it's the symbol `:article`. This tells the `form_with`
-helper what this form is for. Inside the block for this method, the
-`FormBuilder` object - represented by `form` - is used to build two labels and two
-text fields, one each for the title and text of an article. Finally, a call to
-`submit` on the `form` object will create a submit button for the form.
+NOTE: By default, `form_with` creates a form that submits via Ajax to avoid full
+page reloads. To make this guide easier to follow, we have disabled that feature
+by using `local: true` in the above code.
 
-There's one problem with this form though. If you inspect the HTML that is
-generated, by viewing the source of the page, you will see that the `action`
-attribute for the form is pointing at `/articles/new`. This is a problem because
-this route goes to the very page that you're on right at the moment, and that
-route should only be used to display the form for a new article.
+The resulting output from our `form_with` call will look like:
 
-The form needs to use a different URL in order to go somewhere else.
-This can be done quite simply with the `:url` option of `form_with`.
-Typically in Rails, the action that is used for new form submissions
-like this is called "create", and so the form should be pointed to that action.
+```html
+<form action="/articles" accept-charset="UTF-8" method="post">
+  <input type="hidden" name="authenticity_token" value="...">
 
-Edit the `form_with` line inside `app/views/articles/new.html.erb` to look like
-this:
+  <div>
+    <label for="article_title">Title</label><br>
+    <input type="text" name="article[title]" id="article_title">
+  </div>
 
-```html+erb
-<%= form_with scope: :article, url: articles_path, local: true do |form| %>
+  <div>
+    <label for="article_body">Body</label><br>
+    <textarea name="article[body]" id="article_body"></textarea>
+  </div>
+
+  <div>
+    <input type="submit" name="commit" value="Create Article" data-disable-with="Create Article">
+  </div>
+</form>
 ```
 
-In this example, the `articles_path` helper is passed to the `:url` option.
-To see what Rails will do with this, we look back at the output of
-`bin/rails routes`:
-
-```bash
-$ bin/rails routes
-      Prefix Verb   URI Pattern                  Controller#Action
-welcome_index GET    /welcome/index(.:format)     welcome#index
-     articles GET    /articles(.:format)          articles#index
-              POST   /articles(.:format)          articles#create
-  new_article GET    /articles/new(.:format)      articles#new
- edit_article GET    /articles/:id/edit(.:format) articles#edit
-      article GET    /articles/:id(.:format)      articles#show
-              PATCH  /articles/:id(.:format)      articles#update
-              PUT    /articles/:id(.:format)      articles#update
-              DELETE /articles/:id(.:format)      articles#destroy
-         root GET    /                            welcome#index
-```
-
-The `articles_path` helper tells Rails to point the form to the URI Pattern
-associated with the `articles` prefix; and the form will (by default) send a
-`POST` request to that route. This is associated with the `create` action of
-the current controller, the `ArticlesController`.
-
-With the form and its associated route defined, you will be able to fill in the
-form and then click the submit button to begin the process of creating a new
-article, so go ahead and do that. When you submit the form, you should see a
-familiar error:
-
-![Unknown action create for ArticlesController]
-(images/getting_started/unknown_action_create_for_articles.png)
-
-You now need to create the `create` action within the `ArticlesController` for
-this to work.
-
-NOTE: By default `form_with` submits forms using Ajax thereby skipping full page
-redirects. To make this guide easier to get into we've disabled that with
-`local: true` for now.
+TIP: To learn more about form builders, see [Action View Form Helpers](
+form_helpers.html).
 
 ### Saving Data in the Controller
 
