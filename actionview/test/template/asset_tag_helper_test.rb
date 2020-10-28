@@ -528,6 +528,13 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal expected, @response.headers["Link"]
   end
 
+  def test_should_set_preload_links_with_cross_origin
+    stylesheet_link_tag("http://example.com/style.css", crossorigin: "use-credentials")
+    javascript_include_tag("http://example.com/all.js", crossorigin: true)
+    expected = "<http://example.com/style.css>; rel=preload; as=style; crossorigin=use-credentials; nopush,<http://example.com/all.js>; rel=preload; as=script; crossorigin=anonymous; nopush"
+    assert_equal expected, @response.headers["Link"]
+  end
+
   def test_image_path
     ImagePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
