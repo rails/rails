@@ -30,8 +30,8 @@ for learning Ruby:
 * [Official Ruby Programming Language website](https://www.ruby-lang.org/en/documentation/)
 * [List of Free Programming Books](https://github.com/EbookFoundation/free-programming-books/blob/master/free-programming-books.md#ruby)
 
-Be aware that some resources, while still excellent, cover versions of Ruby as old as
-1.6, and commonly 1.8, and will not include some syntax that you will see in day-to-day
+Be aware that some resources, while still excellent, cover older versions of
+Ruby, and may not include some syntax that you will see in day-to-day
 development with Rails.
 
 What is Rails?
@@ -63,6 +63,7 @@ The Rails philosophy includes two major guiding principles:
 
 Creating a New Rails Project
 ----------------------------
+
 The best way to read this guide is to follow it step by step. All steps are
 essential to run this example application and no additional code or steps are
 needed.
@@ -71,9 +72,9 @@ By following along with this guide, you'll create a Rails project called
 `blog`, a (very) simple weblog. Before you can start building the application,
 you need to make sure that you have Rails itself installed.
 
-TIP: The examples below use `$` to represent your terminal prompt in a UNIX-like OS,
+NOTE: The examples below use `$` to represent your terminal prompt in a UNIX-like OS,
 though it may have been customized to appear differently. If you are using Windows,
-your prompt will look something like `c:\source_code>`
+your prompt will look something like `C:\source_code>`.
 
 ### Installing Rails
 
@@ -87,8 +88,8 @@ proper prerequisites installed. These include:
 
 #### Installing Ruby
 
-Open up a command line prompt. On macOS open Terminal.app, on Windows choose
-"Run" from your Start menu and type 'cmd.exe'. Any commands prefaced with a
+Open up a command line prompt. On macOS open Terminal.app; on Windows choose
+"Run" from your Start menu and type `cmd.exe`. Any commands prefaced with a
 dollar sign `$` should be run in the command line. Verify that you have a
 current version of Ruby installed:
 
@@ -170,7 +171,7 @@ which will provide you with the foundation of a fresh Rails application so that
 you don't have to write it yourself.
 
 To use this generator, open a terminal, navigate to a directory where you have
-rights to create files, and type:
+rights to create files, and run:
 
 ```bash
 $ rails new blog
@@ -182,10 +183,11 @@ install the gem dependencies that are already mentioned in `Gemfile` using
 
 NOTE: If you're using Windows Subsystem for Linux then there are currently some
 limitations on file system notifications that mean you should disable the `spring`
-and `listen` gems which you can do by running `rails new blog --skip-spring --skip-listen`.
+and `listen` gems which you can do by running `rails new blog --skip-spring --skip-listen`
+instead.
 
 TIP: You can see all of the command line options that the Rails application
-builder accepts by running `rails new -h`.
+generator accepts by running `rails new --help`.
 
 After you create the blog application, switch to its folder:
 
@@ -193,30 +195,30 @@ After you create the blog application, switch to its folder:
 $ cd blog
 ```
 
-The `blog` directory has a number of auto-generated files and folders that make
+The `blog` directory will have a number of generated files and folders that make
 up the structure of a Rails application. Most of the work in this tutorial will
 happen in the `app` folder, but here's a basic rundown on the function of each
-of the files and folders that Rails created by default:
+of the files and folders that Rails creates by default:
 
 | File/Folder | Purpose |
 | ----------- | ------- |
 |app/|Contains the controllers, models, views, helpers, mailers, channels, jobs, and assets for your application. You'll focus on this folder for the remainder of this guide.|
-|bin/|Contains the rails script that starts your app and can contain other scripts you use to set up, update, deploy, or run your application.|
-|config/|Configure your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
-|config.ru|Rack configuration for Rack based servers used to start the application. For more information about Rack, see the [Rack website](https://rack.github.io/).|
+|bin/|Contains the `rails` script that starts your app and can contain other scripts you use to set up, update, deploy, or run your application.|
+|config/|Contains configuration for your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
+|config.ru|Rack configuration for Rack-based servers used to start the application. For more information about Rack, see the [Rack website](https://rack.github.io/).|
 |db/|Contains your current database schema, as well as the database migrations.|
 |Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see the [Bundler website](https://bundler.io).|
 |lib/|Extended modules for your application.|
 |log/|Application log files.|
 |package.json|This file allows you to specify what npm dependencies are needed for your Rails application. This file is used by Yarn. For more information about Yarn, see the [Yarn website](https://yarnpkg.com/lang/en/).|
-|public/|The only folder seen by the world as-is. Contains static files and compiled assets.|
+|public/|Contains static files and compiled assets. When your app is running, this directory will be exposed as-is.|
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing `Rakefile`, you should add your own tasks by adding files to the `lib/tasks` directory of your application.|
 |README.md|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
 |storage/|Active Storage files for Disk Service. This is covered in [Active Storage Overview](active_storage_overview.html).|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
 |tmp/|Temporary files (like cache and pid files).|
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
-|.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more info about ignoring files.
+|.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more info about ignoring files.|
 |.ruby-version|This file contains the default Ruby version.|
 
 Hello, Rails!
@@ -229,7 +231,7 @@ get your Rails application server running.
 
 You actually have a functional Rails application already. To see it, you need to
 start a web server on your development machine. You can do this by running the
-following in the `blog` directory:
+following command in the `blog` directory:
 
 ```bash
 $ bin/rails server
@@ -246,16 +248,14 @@ Usually macOS and Windows come with a JavaScript runtime installed.
 default to the `Gemfile` in apps generated under JRuby. You can investigate
 all the supported runtimes at [ExecJS](https://github.com/rails/execjs#readme).
 
-This will fire up Puma, a web server distributed with Rails by default. To see
+This will start up Puma, a web server distributed with Rails by default. To see
 your application in action, open a browser window and navigate to
 <http://localhost:3000>. You should see the Rails default information page:
 
 ![Yay! You're on Rails! screenshot](images/getting_started/rails_welcome.png)
 
-TIP: To stop the web server, hit Ctrl+C in the terminal window where it's
-running. To verify the server has stopped you should see your command prompt
-cursor again. For most UNIX-like systems including macOS this will be a
-dollar sign `$`. In the development environment, Rails does not generally
+When you want to stop the web server, hit Ctrl+C in the terminal window where
+it's running. In the development environment, Rails does not generally
 require you to restart the server; changes you make in files will be
 automatically picked up by the server.
 
