@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveSupport::LoggerThreadSafeLevel#after_initialize`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `LoggerSilence` constant.
 
     *Rafael Mendonça França*

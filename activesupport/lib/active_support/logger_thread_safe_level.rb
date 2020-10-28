@@ -21,13 +21,6 @@ module ActiveSupport
       EOT
     end
 
-    def after_initialize
-      ActiveSupport::Deprecation.warn(
-        "Logger don't need to call #after_initialize directly anymore. It will be deprecated without replacement in " \
-        "Rails 6.1."
-      )
-    end
-
     def local_log_id
       Fiber.current.__id__
     end

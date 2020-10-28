@@ -288,6 +288,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated `LoggerSilence` constant.
 
+*   Remove deprecated `ActiveSupport::LoggerThreadSafeLevel#after_initialize`.
+
 ### Deprecations
 
 ### Notable changes
