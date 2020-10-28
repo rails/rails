@@ -308,27 +308,17 @@ module ActiveRecord
             assert_equal "primary_shard_one_replica", ActiveRecord::Base.connection_pool.db_config.name
             assert_equal "secondary_shard_one_replica", SecondaryBase.connection_pool.db_config.name
 
-            SecondaryBase.connected_to(role: :writing, shard: :default) do
-              # Note: Currently there is only granular shard swapping, not role swapping
-              # so this switches the shard only for SecondaryBase but role for both
-              assert_equal "primary_shard_one", ActiveRecord::Base.connection_pool.db_config.name
+            ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
+              assert_equal "primary", ActiveRecord::Base.connection_pool.db_config.name
               assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
 
-              ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
-                assert_equal "primary", ActiveRecord::Base.connection_pool.db_config.name
-                assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
-              end
-
-              SecondaryBase.connected_to(role: :reading, shard: :shard_two) do
-                # granular switching means only SecondaryBase uses shard_two
-                assert_equal "primary_shard_one_replica", ActiveRecord::Base.connection_pool.db_config.name
+              ActiveRecord::Base.connected_to(role: :reading, shard: :shard_two) do
+                # ActiveRecord::Base has no shard_two
                 assert_equal "secondary_shard_two_replica", SecondaryBase.connection_pool.db_config.name
               end
 
               ActiveRecord::Base.connected_to(role: :writing) do
-                # shard is inherited for AR::Base from outer most block :shard_one
-                assert_equal "primary_shard_one", ActiveRecord::Base.connection_pool.db_config.name
-                # shard is inherited for SecondaryBase by second block :default
+                assert_equal "primary", ActiveRecord::Base.connection_pool.db_config.name
                 assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
               end
             end
@@ -559,13 +549,13 @@ module ActiveRecord
           shard_one_latch.count_down
         end
 
-        SecondaryBase.connected_to(shard: :one, role: :secondary) do
+        ActiveRecord::Base.connected_to(shard: :one, role: :secondary) do
           shard_default_latch.count_down
 
           assert_equal "shard_key_one_secondary", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
-          assert_equal "shard_key_default_secondary_b", ShardConnectionTestModelB.connection.select_value("SELECT shard_key from shard_connection_test_models")
+          assert_equal "shard_key_one_secondary_b", ShardConnectionTestModelB.connection.select_value("SELECT shard_key from shard_connection_test_models")
 
-          SomeOtherBase.connected_to(shard: :one, role: :secondary) do
+          ActiveRecord::Base.connected_to(shard: :one, role: :secondary) do
             assert_equal "shard_key_one_secondary", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
             assert_equal "shard_key_one_secondary_b", ShardConnectionTestModelB.connection.select_value("SELECT shard_key from shard_connection_test_models")
           end

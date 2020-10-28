@@ -1632,7 +1632,7 @@ class BasicsTest < ActiveRecord::TestCase
       Bird.connected_to(role: :reading) { }
     end
 
-    assert_equal "`connected_to` can only be called on ActiveRecord::Base", error.message
+    assert_equal "`connected_to` can only be called on ActiveRecord::Base with legacy connection handling.", error.message
   ensure
     clean_up_legacy_connection_handlers
     ActiveRecord::Base.legacy_connection_handling = old_value
@@ -1643,7 +1643,7 @@ class BasicsTest < ActiveRecord::TestCase
       Bird.connected_to(role: :reading, shard: :default) { }
     end
 
-    assert_equal "calling `connected_to` with `role` and `shard` is only allowed on ActiveRecord::Base or abstract classes", error.message
+    assert_equal "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes.", error.message
   end
 
   test "can call connected_to with role and shard on abstract classes" do

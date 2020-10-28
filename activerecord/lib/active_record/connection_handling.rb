@@ -135,17 +135,21 @@ module ActiveRecord
     #
     # The database kwarg is deprecated and will be removed in 6.2.0 without replacement.
     def connected_to(database: nil, role: nil, shard: nil, prevent_writes: false, &blk)
-      if shard && role && (!abstract_class? || self != Base)
-        raise NotImplementedError, "calling `connected_to` with `role` and `shard` is only allowed on ActiveRecord::Base or abstract classes" unless abstract_class? || self == Base
-      elsif legacy_connection_handling && self != Base
-        raise NotImplementedError, "`connected_to` can only be called on ActiveRecord::Base"
-      elsif database
-        ActiveSupport::Deprecation.warn("The database key in `connected_to` is deprecated. It will be removed in Rails 6.2.0 without replacement.")
+      if legacy_connection_handling
+        if self != Base
+          raise NotImplementedError, "`connected_to` can only be called on ActiveRecord::Base with legacy connection handling."
+        end
+      else
+        if self != Base && !abstract_class
+          raise NotImplementedError, "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes."
+        end
       end
 
       if database && (role || shard)
         raise ArgumentError, "`connected_to` cannot accept a `database` argument with any other arguments."
       elsif database
+        ActiveSupport::Deprecation.warn("The database key in `connected_to` is deprecated. It will be removed in Rails 6.2.0 without replacement.")
+
         if database.is_a?(Hash)
           role, database = database.first
           role = role.to_sym
