@@ -628,7 +628,7 @@ module ActiveRecord
           end
         end
 
-        # See https://dev.mysql.com/doc/refman/en/server-error-reference.html
+        # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
         ER_DB_CREATE_EXISTS     = 1007
         ER_FILSORT_ABORT        = 1028
         ER_DUP_ENTRY            = 1062
