@@ -1062,180 +1062,75 @@ To finish up, let's link to that page from the bottom of
 <%= link_to "New Article", new_article_path %>
 ```
 
-### Updating Articles
+### Updating an Article
 
-We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating
-articles.
+We've covered the "CR" of CRUD. Now let's move on to the "U" (Update). Updating
+a resource is very similar to creating a resource. They are both multi-step
+processes. First, the user requests a form to edit the data. Then, the user
+submits the form. If there are no errors, then the resource is updated. Else,
+the form is redisplayed with error messages, and the process is repeated.
 
-The first step we'll take is adding an `edit` action to the
-`ArticlesController`, generally between the `new` and `create`
-actions, as shown:
-
-```ruby
-def new
-  @article = Article.new
-end
-
-def edit
-  @article = Article.find(params[:id])
-end
-
-def create
-  @article = Article.new(article_params)
-
-  if @article.save
-    redirect_to @article
-  else
-    render 'new'
-  end
-end
-```
-
-NOTE:  We're using `edit` to render a view. For the actual
-saving of the changes to the Article, we'll add an `update` action later.
-
-
-The view will contain a form similar to the one we used when creating
-new articles. Create a file called `app/views/articles/edit.html.erb` and make
-it look as follows:
-
-```html+erb
-<h1>Edit Article</h1>
-
-<%= form_with model: @article, local: true do |form| %>
-
-  <% if @article.errors.any? %>
-    <div id="error_explanation">
-      <h2>
-        <%= pluralize(@article.errors.count, "error") %> prohibited
-        this article from being saved:
-      </h2>
-      <ul>
-        <% @article.errors.full_messages.each do |msg| %>
-          <li><%= msg %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
-
-  <p>
-    <%= form.label :title %><br>
-    <%= form.text_field :title %>
-  </p>
-
-  <p>
-    <%= form.label :text %><br>
-    <%= form.text_area :text %>
-  </p>
-
-  <p>
-    <%= form.submit %>
-  </p>
-
-<% end %>
-
-<%= link_to 'Back', articles_path %>
-```
-
-This time we point the form to the `update` action, which is not defined yet
-but will be very soon.
-
-Passing the article object to the `form_with` method will automatically set the URL for
-submitting the edited article form. This option tells Rails that we want this
-form to be submitted via the `PATCH` HTTP method, which is the HTTP method you're
-expected to use to **update** resources according to the REST protocol.
-
-Also, passing a model object to `form_with`, like `model: @article` in the edit
-view above, will cause form helpers to fill in form fields with the corresponding
-values of the object.  Passing in a symbol scope such as `scope: :article`, as
-was done in the new view, only creates empty form fields.
-More details can be found in [form_with documentation]
-(https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with).
-
-Next, we need to create the `update` action in
-`app/controllers/articles_controller.rb`.
-Add it between the `create` action and the `private` method:
+These steps are conventionally handled by a controller's `edit` and `update`
+actions. Let's add a typical implementation of these actions to
+`app/controllers/articles_controller.rb`, below the `create` action:
 
 ```ruby
-def edit
-  @article = Article.find(params[:id])
-end
-
-def create
-  @article = Article.new(article_params)
-
-  if @article.save
-    redirect_to @article
-  else
-    render 'new'
+class ArticlesController < ApplicationController
+  def index
+    @articles = Article.all
   end
-end
 
-def update
-  @article = Article.find(params[:id])
-
-  if @article.update(article_params)
-    redirect_to @article
-  else
-    render 'edit'
+  def show
+    @article = Article.find(params[:id])
   end
-end
 
-private
-  def article_params
-    params.require(:article).permit(:title, :text)
+  def new
+    @article = Article.new
   end
+
+  def create
+    @article = Article.new(article_params)
+
+    if @article.save
+      redirect_to @article
+    else
+      render :new
+    end
+  end
+
+  def edit
+    @article = Article.find(params[:id])
+  end
+
+  def update
+    @article = Article.find(params[:id])
+
+    if @article.update(article_params)
+      redirect_to @article
+    else
+      render :edit
+    end
+  end
+
+  private
+    def article_params
+      params.require(:article).permit(:title, :body)
+    end
+end
 ```
 
-The new method, `update`, is used when you want to update a record
-that already exists, and it accepts a hash containing the attributes
-that you want to update. As before, if there was an error updating the
-article we want to show the form back to the user.
+Notice how the `edit` and `update` actions resemble the `new` and `create`
+actions.
 
-We reuse the `article_params` method that we defined earlier for the create
-action.
+The `edit` action fetches the article from the database, and stores it in
+`@article` so that it can be used when building the form. By default, the `edit`
+action will render `app/views/articles/edit.html.erb`.
 
-TIP: It is not necessary to pass all the attributes to `update`. For example,
-if `@article.update(title: 'A new title')` was called, Rails would only update
-the `title` attribute, leaving all other attributes untouched.
-
-Finally, we want to show a link to the `edit` action in the list of all the
-articles, so let's add that now to `app/views/articles/index.html.erb` to make
-it appear next to the "Show" link:
-
-```html+erb
-<table>
-  <tr>
-    <th>Title</th>
-    <th>Text</th>
-    <th colspan="2"></th>
-  </tr>
-
-  <% @articles.each do |article| %>
-    <tr>
-      <td><%= article.title %></td>
-      <td><%= article.text %></td>
-      <td><%= link_to 'Show', article_path(article) %></td>
-      <td><%= link_to 'Edit', edit_article_path(article) %></td>
-    </tr>
-  <% end %>
-</table>
-```
-
-And we'll also add one to the `app/views/articles/show.html.erb` template as
-well, so that there's also an "Edit" link on an article's page. Add this at the
-bottom of the template:
-
-```html+erb
-...
-
-<%= link_to 'Edit', edit_article_path(@article) %> |
-<%= link_to 'Back', articles_path %>
-```
-
-And here's how our app looks so far:
-
-![Index action with edit link](images/getting_started/index_action_with_edit_link.png)
+The `update` action (re-)fetches the article from the database, and attempts
+to update it with the submitted form data filtered by `article_params`. If no
+validations fail and the update is successful, the action redirects the browser
+to the article's page. Else, the action redisplays the form, with error
+messages, by rendering `app/views/articles/edit.html.erb`.
 
 ### Using partials to clean up duplication in views
 
