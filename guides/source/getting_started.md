@@ -888,85 +888,61 @@ The resulting output from our `form_with` call will look like:
 TIP: To learn more about form builders, see [Action View Form Helpers](
 form_helpers.html).
 
-### Saving Data in the Controller
+#### Using Strong Parameters
 
-Back in `ArticlesController`, we need to change the `create` action
-to use the new `Article` model to save the data in the database.
-Open `app/controllers/articles_controller.rb` and change the `create` action to
-look like this:
+Submitted form data is put into the `params` Hash, alongside captured route
+parameters. Thus, the `create` action can access the submitted title via
+`params[:article][:title]` and the submitted body via `params[:article][:body]`.
+We could pass these values individually to `Article.new`, but that would be
+verbose and possibly error-prone. And it would become worse as we add more
+fields.
 
-```ruby
-def create
-  @article = Article.new(params[:article])
+Instead, we will pass a single Hash that contains the values. However, we must
+still specify what values are allowed in that Hash. Otherwise, a malicious user
+could potentially submit extra form fields and overwrite private data. In fact,
+if we pass the unfiltered `params[:article]` Hash directly to `Article.new`,
+Rails will raise a `ForbiddenAttributesError` to alert us about the problem.
+So we will use a feature of Rails called *Strong Parameters* to filter `params`.
+Think of it as [strong typing](https://en.wikipedia.org/wiki/Strong_and_weak_typing)
+for `params`.
 
-  @article.save
-  redirect_to @article
-end
-```
-
-Here's what's going on: every Rails model can be initialized with its
-respective attributes, which are automatically mapped to the respective
-database columns. In the first line we do just that (remember that
-`params[:article]` contains the attributes we're interested in). Then,
-`@article.save` is responsible for saving the model in the database. Finally,
-we redirect the user to the `show` action, which we'll define later.
-
-TIP: You might be wondering why the `A` in `Article.new` is capitalized above, whereas most other references to articles in this guide have used lowercase. In this context, we are referring to the class named `Article` that is defined in `app/models/article.rb`. Class names in Ruby must begin with a capital letter.
-
-TIP: As we'll see later, `@article.save` returns a boolean indicating whether
-the article was saved or not.
-
-If you now go to <http://localhost:3000/articles/new> you'll *almost* be able
-to create an article. Try it! You should get an error that looks like this:
-
-![Forbidden attributes for new article]
-(images/getting_started/forbidden_attributes_for_new_article.png)
-
-Rails has several security features that help you write secure applications,
-and you're running into one of them now. This one is called [strong parameters](action_controller_overview.html#strong-parameters),
-which requires us to tell Rails exactly which parameters are allowed into our
-controller actions.
-
-Why do you have to bother? The ability to grab and automatically assign all
-controller parameters to your model in one shot makes the programmer's job
-easier, but this convenience also allows malicious use. What if a request to
-the server was crafted to look like a new article form submit but also included
-extra fields with values that violated your application's integrity? They would
-be 'mass assigned' into your model and then into the database along with the
-good stuff - potentially breaking your application or worse.
-
-We have to define our permitted controller parameters to prevent wrongful mass
-assignment. In this case, we want to both allow and require the `title` and
-`text` parameters for valid use of `create`. The syntax for this introduces
-`require` and `permit`. The change will involve one line in the `create`
-action:
+Let's add a private method to the bottom of `app/controllers/articles_controller.rb`
+named `article_params` that filters `params`. And let's change `create` to use
+it:
 
 ```ruby
-  @article = Article.new(params.require(:article).permit(:title, :text))
-```
-
-This is often factored out into its own method so it can be reused by multiple
-actions in the same controller, for example `create` and `update`. Above and
-beyond mass assignment issues, the method is often made `private` to make sure
-it can't be called outside its intended context. Here is the result:
-
-```ruby
-def create
-  @article = Article.new(article_params)
-
-  @article.save
-  redirect_to @article
-end
-
-private
-  def article_params
-    params.require(:article).permit(:title, :text)
+class ArticlesController < ApplicationController
+  def index
+    @articles = Article.all
   end
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+  def new
+    @article = Article.new
+  end
+
+  def create
+    @article = Article.new(article_params)
+
+    if @article.save
+      redirect_to @article
+    else
+      render :new
+    end
+  end
+
+  private
+    def article_params
+      params.require(:article).permit(:title, :body)
+    end
+end
 ```
 
-TIP: For more information, refer to the reference above and
-[this blog article about Strong Parameters]
-(https://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
+TIP: To learn more about Strong Parameters, see [Action Controller Overview §
+Strong Parameters](action_controller_overview.html#strong-parameters).
 
 ### Adding Some Validation
 
