@@ -684,54 +684,90 @@ each article's title in `app/views/articles/index.html.erb` to its page:
 </ul>
 ```
 
-In the Blog application, you will now create a new _resource_. A resource is the
-term used for a collection of similar objects, such as articles, people, or
-animals.
-You can create, read, update, and destroy items for a resource and these
-operations are referred to as _CRUD_ operations.
+### Resourceful Routing
 
-Rails provides a `resources` method which can be used to declare a standard REST
-resource. You need to add the _article resource_ to the
-`config/routes.rb` so the file will look as follows:
+So far, we've covered the "R" (Read) of CRUD. We will eventually cover the "C"
+(Create), "U" (Update), and "D" (Delete). As you might have guessed, we will do
+so by adding new routes, controller actions, and views. Whenever we have such a
+combination of routes, controller actions, and views that work together to
+perform CRUD operations on an entity, we call that entity a *resource*. For
+example, in our application, we would say an article is a resource.
+
+Rails provides a routes method named [`resources`](
+https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-resources)
+that maps all of the conventional routes for a collection of resources, such as
+articles. So before we proceed to the "C", "U", and "D" sections, let's replace
+the two `get` routes in `config/routes.rb` with `resources`:
 
 ```ruby
 Rails.application.routes.draw do
-  get 'welcome/index'
+  root "articles#index"
 
   resources :articles
-
-  root 'welcome#index'
 end
 ```
 
-If you run `bin/rails routes`, you'll see that it has defined routes for all the
-standard RESTful actions.  The meaning of the prefix column (and other columns)
-will be seen later, but for now notice that Rails has inferred the
-singular form `article` and makes meaningful use of the distinction.
+We can inspect what routes are mapped by running the `bin/rails routes` command:
 
 ```bash
 $ bin/rails routes
-       Prefix Verb   URI Pattern                  Controller#Action
-welcome_index GET    /welcome/index(.:format)     welcome#index
-     articles GET    /articles(.:format)          articles#index
-              POST   /articles(.:format)          articles#create
-  new_article GET    /articles/new(.:format)      articles#new
- edit_article GET    /articles/:id/edit(.:format) articles#edit
-      article GET    /articles/:id(.:format)      articles#show
-              PATCH  /articles/:id(.:format)      articles#update
-              PUT    /articles/:id(.:format)      articles#update
-              DELETE /articles/:id(.:format)      articles#destroy
-         root GET    /                            welcome#index
+      Prefix Verb   URI Pattern                  Controller#Action
+        root GET    /                            articles#index
+    articles GET    /articles(.:format)          articles#index
+ new_article GET    /articles/new(.:format)      articles#new
+     article GET    /articles/:id(.:format)      articles#show
+             POST   /articles(.:format)          articles#create
+edit_article GET    /articles/:id/edit(.:format) articles#edit
+             PATCH  /articles/:id(.:format)      articles#update
+             DELETE /articles/:id(.:format)      articles#destroy
 ```
 
-In the next section, you will add the ability to create new articles in your
-application and be able to view them. This is the "C" and the "R" from CRUD:
-create and read. The form for doing this will look like this:
+The `resources` method also sets up URL and path helper methods that we can use
+to keep our code from depending on a specific route configuration. The values
+in the "Prefix" column above plus a suffix of `_url` or `_path` form the names
+of these helpers. For example, the `article_path` helper returns
+`"/articles/#{article.id}"` when given an article. We can use it to tidy up our
+links in `app/views/articles/index.html.erb`:
 
-![The new article form](images/getting_started/new_article.png)
+```html+erb
+<h1>Articles</h1>
 
-It will look a little basic for now, but that's ok. We'll look at improving the
-styling for it afterwards.
+<ul>
+  <% @articles.each do |article| %>
+    <li>
+      <a href="<%= article_path(article) %>">
+        <%= article.title %>
+      </a>
+    </li>
+  <% end %>
+</ul>
+```
+
+However, we will take this one step further by using the [`link_to`](
+https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
+helper. The `link_to` helper renders a link with its first argument as the
+link's text and its second argument as the link's destination. If we pass a
+model object as the second argument, `link_to` will call the appropriate path
+helper to convert the object to a path. For example, if we pass an article,
+`link_to` will call `article_path`. So `app/views/articles/index.html.erb`
+becomes:
+
+```html+erb
+<h1>Articles</h1>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li>
+      <%= link_to article.title, article %>
+    </li>
+  <% end %>
+</ul>
+```
+
+Nice!
+
+TIP: To learn more about routing, see [Rails Routing from the Outside In](
+routing.html).
 
 ### Laying down the Groundwork
 
