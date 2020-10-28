@@ -343,51 +343,28 @@ and see our text displayed!
 
 ### Setting the Application Home Page
 
-Now that we have made the controller and view, we need to tell Rails when we
-want "Hello, Rails!" to show up. In our case, we want it to show up when we
-navigate to the root URL of our site, <http://localhost:3000>. At the moment,
-"Yay! You're on Rails!" is occupying that spot.
+At the moment, <http://localhost:3000> still displays "Yay! You're on Rails!".
+Let's display our "Hello, Rails!" text at <http://localhost:3000> as well. To do
+so, we will add a route that maps the *root path* of our application to the
+appropriate controller and action.
 
-Next, you have to tell Rails where your actual home page is located.
-
-Open the file `config/routes.rb` in your editor.
-
-```ruby
-Rails.application.routes.draw do
-  get 'welcome/index'
-
-  # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
-end
-```
-
-This is your application's _routing file_ which holds entries in a special
-[DSL (domain-specific language)](https://en.wikipedia.org/wiki/Domain-specific_language)
-that tells Rails how to connect incoming requests to
-controllers and actions.
-Edit this file by adding the line of code `root 'welcome#index'`.
-It should look something like the following:
+Let's open `config/routes.rb`, and add the following `root` route to the top of
+the `Rails.application.routes.draw` block:
 
 ```ruby
 Rails.application.routes.draw do
-  get 'welcome/index'
+  root "articles#index"
 
-  root 'welcome#index'
+  get "/articles", to: "articles#index"
 end
 ```
 
-`root 'welcome#index'` tells Rails to map requests to the root of the
-application to the welcome controller's index action and `get 'welcome/index'`
-tells Rails to map requests to <http://localhost:3000/welcome/index> to the
-welcome controller's index action. This was created earlier when you ran the
-controller generator (`bin/rails generate controller Welcome index`).
+Now we can see our "Hello, Rails!" text when we visit <http://localhost:3000>,
+confirming that the `root` route is also mapped to the `index` action of
+`ArticlesController`.
 
-Launch the web server again if you stopped it to generate the controller (`bin/rails
-server`) and navigate to <http://localhost:3000> in your browser. You'll see the
-"Hello, Rails!" message you put into `app/views/welcome/index.html.erb`,
-indicating that this new route is indeed going to `WelcomeController`'s `index`
-action and is rendering the view correctly.
-
-TIP: For more information about routing, refer to [Rails Routing from the Outside In](routing.html).
+TIP: To learn more about routing, see [Rails Routing from the Outside In](
+routing.html).
 
 Getting Up and Running
 ----------------------
