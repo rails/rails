@@ -544,6 +544,62 @@ active_record_querying.html).
 Models are the final piece of the MVC puzzle. Next, we will connect all of the
 pieces together.
 
+### Showing a List of Articles
+
+Let's go back to our controller in `app/controllers/articles_controller.rb`, and
+change the `index` action to fetch all articles from the database:
+
+```ruby
+class ArticlesController < ApplicationController
+  def index
+    @articles = Article.all
+  end
+end
+```
+
+Controller instance variables can be accessed by the view. That means we can
+reference `@articles` in `app/views/articles/index.html.erb`. Let's open that
+file, and replace its contents with:
+
+```html+erb
+<h1>Articles</h1>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li>
+      <%= article.title %>
+    </li>
+  <% end %>
+</ul>
+```
+
+The above code is a mixture of HTML and *ERB*. ERB is a templating system that
+evaluates Ruby code embedded in a document. Here, we can see two types of ERB
+tags: `<% %>` and `<%= %>`. The `<% %>` tag means "evaluate the enclosed Ruby
+code." The `<%= %>` tag means "evaluate the enclosed Ruby code, and output the
+value it returns." Anything you could write in a regular Ruby program can go
+inside these ERB tags, though it's usually best to keep the contents of ERB tags
+short, for readability.
+
+Since we don't want to output the value returned by `@articles.each`, we've
+enclosed that code in `<% %>`. But, since we *do* want to output the value
+returned by `article.title` (for each article), we've enclosed that code in
+`<%= %>`.
+
+We can see the final result by visiting <http://localhost:3000>. (Remember that
+`bin/rails server` must be running!) Here's what happens when we do that:
+
+1. The browser makes a request: `GET http://localhost:3000`.
+2. Our Rails application receives this request.
+3. The Rails router maps the root route to the `index` action of `ArticlesController`.
+4. The `index` action uses the `Article` model to fetch all articles in the database.
+5. Rails automatically renders the `app/views/articles/index.html.erb` view.
+6. The ERB code in the view is evaluated to output HTML.
+7. The server sends a response containing the HTML back to the browser.
+
+We've connected all the MVC pieces together, and we have our first controller
+action! Next, we'll move on to the second action.
+
 Getting Up and Running
 ----------------------
 
@@ -996,62 +1052,6 @@ With this change, you should finally be able to create new articles.
 Visit <http://localhost:3000/articles/new> and give it a try!
 
 ![Show action for articles](images/getting_started/show_action_for_articles.png)
-
-### Listing all Articles
-
-We still need a way to list all our articles, so let's do that.
-The route for this as per output of `bin/rails routes` is:
-
-```
-articles GET    /articles(.:format)          articles#index
-```
-
-Add the corresponding `index` action for that route inside the
-`ArticlesController` in the `app/controllers/articles_controller.rb` file.
-When we write an `index` action, the usual practice is to place it as the
-first method in the controller. Let's do it:
-
-```ruby
-class ArticlesController < ApplicationController
-  def index
-    @articles = Article.all
-  end
-
-  def show
-    @article = Article.find(params[:id])
-  end
-
-  def new
-  end
-
-  # snippet for brevity
-```
-
-And then finally, add the view for this action, located at
-`app/views/articles/index.html.erb`:
-
-```html+erb
-<h1>Listing Articles</h1>
-
-<table>
-  <tr>
-    <th>Title</th>
-    <th>Text</th>
-    <th></th>
-  </tr>
-
-  <% @articles.each do |article| %>
-    <tr>
-      <td><%= article.title %></td>
-      <td><%= article.text %></td>
-      <td><%= link_to 'Show', article_path(article) %></td>
-    </tr>
-  <% end %>
-</table>
-```
-
-Now if you go to <http://localhost:3000/articles> you will see a list of all the
-articles that you have created.
 
 ### Adding Links
 
