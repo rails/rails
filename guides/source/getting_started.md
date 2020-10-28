@@ -378,6 +378,38 @@ make it easier to reason about. Rails follows this design pattern by convention.
 Since we have a controller and a view to work with, let's generate the next
 piece: a model.
 
+### Generating a Model
+
+A *model* is a Ruby class that is used to represent data. Additionally, models
+can interact with the application's database through a feature of Rails called
+*Active Record*.
+
+To define a model, we will use the model generator:
+
+```bash
+$ bin/rails generate model Article title:string body:text
+```
+
+NOTE: Model names are **singular**, because an instantiated model represents a
+single data record. To help remember this convention, think of how you would
+call the model's constructor: we want to write `Article.new(...)`, **not**
+`Articles.new(...)`.
+
+This will create several files:
+
+```
+invoke  active_record
+create    db/migrate/<timestamp>_create_articles.rb
+create    app/models/article.rb
+invoke    test_unit
+create      test/models/article_test.rb
+create      test/fixtures/articles.yml
+```
+
+The two files we'll focus on are the migration file
+(`db/migrate/<timestamp>_create_articles.rb`) and the model file
+(`app/models/article.rb`).
+
 Getting Up and Running
 ----------------------
 
@@ -685,31 +717,6 @@ If you re-submit the form one more time, you'll see something that looks like th
 This action is now displaying the parameters for the article that are coming in
 from the form. However, this isn't really all that helpful. Yes, you can see the
 parameters but nothing in particular is being done with them.
-
-### Creating the Article Model
-
-Models in Rails use a singular name, and their corresponding database tables
-use a plural name. Rails provides a generator for creating models, which most
-Rails developers tend to use when creating new models. To create the new model,
-run this command in your terminal:
-
-```bash
-$ bin/rails generate model Article title:string text:text
-```
-
-With that command we told Rails that we want an `Article` model, together
-with a _title_ attribute of type string, and a _text_ attribute
-of type text. Those attributes are automatically added to the `articles`
-table in the database and mapped to the `Article` model.
-
-Rails responded by creating a bunch of files. For now, we're only interested
-in `app/models/article.rb` and `db/migrate/20140120191729_create_articles.rb`
-(your name could be a bit different). The latter is responsible for creating
-the database structure, which is what we'll look at next.
-
-TIP: Active Record is smart enough to automatically map column names to model
-attributes, which means you don't have to declare attributes inside Rails
-models, as that will be done automatically by Active Record.
 
 ### Running a Migration
 
