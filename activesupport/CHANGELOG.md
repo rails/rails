@@ -1,3 +1,7 @@
+*   Remove deprecated `LoggerSilence` constant.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated fallback to `I18n.default_local` when `config.i18n.fallbacks` is empty.
 
     *Rafael Mendonça França*

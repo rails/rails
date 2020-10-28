@@ -286,6 +286,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated fallback to `I18n.default_local` when `config.i18n.fallbacks` is empty.
 
+*   Remove deprecated `LoggerSilence` constant.
+
 ### Deprecations
 
 ### Notable changes
