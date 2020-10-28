@@ -410,6 +410,61 @@ The two files we'll focus on are the migration file
 (`db/migrate/<timestamp>_create_articles.rb`) and the model file
 (`app/models/article.rb`).
 
+### Database Migrations
+
+*Migrations* are used to alter the structure of an application's database. In
+Rails applications, migrations are written in Ruby so that they can be
+database-agnostic.
+
+Let's take a look at the contents of our new migration file:
+
+```ruby
+class CreateArticles < ActiveRecord::Migration[6.0]
+  def change
+    create_table :articles do |t|
+      t.string :title
+      t.text :body
+
+      t.timestamps
+    end
+  end
+end
+```
+
+The call to `create_table` specifies how the `articles` table should be
+constructed. By default, the `create_table` method adds an `id` column as an
+auto-incrementing primary key. So the first record in the table will have an
+`id` of 1, the next record will have an `id` of 2, and so on.
+
+Inside the block for `create_table`, two columns are defined: `title` and
+`body`. These were added by the generator because we included them in our
+generate command (`bin/rails generate model Article title:string body:text`).
+
+On the last line of the block is a call to `t.timestamps`. This method defines
+two additional columns named `created_at` and `updated_at`. As we will see,
+Rails will manage these for us, setting the values when we create or update a
+model object.
+
+Let's run our migration with the following command:
+
+```bash
+$ bin/rails db:migrate
+```
+
+The command will display output indicating that the table was created:
+
+```
+==  CreateArticles: migrating ===================================
+-- create_table(:articles)
+   -> 0.0018s
+==  CreateArticles: migrated (0.0018s) ==========================
+```
+
+TIP: To learn more about migrations, see [Active Record Migrations](
+active_record_migrations.html).
+
+Now we can interact with the table using our model.
+
 Getting Up and Running
 ----------------------
 
@@ -717,63 +772,6 @@ If you re-submit the form one more time, you'll see something that looks like th
 This action is now displaying the parameters for the article that are coming in
 from the form. However, this isn't really all that helpful. Yes, you can see the
 parameters but nothing in particular is being done with them.
-
-### Running a Migration
-
-As we've just seen, `bin/rails generate model` created a _database migration_ file
-inside the `db/migrate` directory. Migrations are Ruby classes that are
-designed to create and modify database tables. Rails uses
-rake commands to run migrations, and it's possible to undo a migration after
-it's been applied to your database. Migration filenames include a timestamp to
-ensure that they're processed in the order that they were created.
-
-If you look in the `db/migrate/YYYYMMDDHHMMSS_create_articles.rb` file
-(remember, yours will have a slightly different name), here's what you'll find:
-
-```ruby
-class CreateArticles < ActiveRecord::Migration[6.0]
-  def change
-    create_table :articles do |t|
-      t.string :title
-      t.text :text
-
-      t.timestamps
-    end
-  end
-end
-```
-
-The above migration creates a method named `change` which will be called when
-you run this migration. The action defined in this method is also reversible,
-which means Rails knows how to reverse the change made by this migration,
-in case you want to reverse it later. When you run this migration it will create
-an `articles` table with one string column and a text column. It also creates
-two timestamp fields to allow Rails to track article creation and update times.
-
-TIP: For more information about migrations, refer to [Active Record Migrations]
-(active_record_migrations.html).
-
-At this point, you can use a rails command to run the migration:
-
-```bash
-$ bin/rails db:migrate
-```
-
-Rails will execute this migration command and tell you it created the Articles
-table.
-
-```
-==  CreateArticles: migrating ==================================================
--- create_table(:articles)
-   -> 0.0019s
-==  CreateArticles: migrated (0.0020s) =========================================
-```
-
-NOTE. Because you're working in the development environment by default, this
-command will apply to the database defined in the `development` section of your
-`config/database.yml` file. If you would like to execute migrations in another
-environment, for instance in production, you must explicitly pass it when
-invoking the command: `bin/rails db:migrate RAILS_ENV=production`.
 
 ### Saving Data in the Controller
 
