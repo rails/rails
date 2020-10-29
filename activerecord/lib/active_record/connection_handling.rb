@@ -172,6 +172,23 @@ module ActiveRecord
       end
     end
 
+    # Use a specified connection.
+    #
+    # This method is useful for ensuring that a specific connection is
+    # being used. For example, when booting a console in readonly mode.
+    #
+    # It is not recommended to use this method in a request since it
+    # does not yield to a block like `connected_to`.
+    def connecting_to(role: default_role, shard: default_shard, prevent_writes: false)
+      if legacy_connection_handling
+        raise NotImplementedError, "`connecting_to` is not available with `legacy_connection_handling`."
+      end
+
+      prevent_writes = true if role == reading_role
+
+      self.connected_to_stack << { role: role, shard: shard, prevent_writes: prevent_writes, klass: self }
+    end
+
     def while_preventing_writes(enabled = true, &block)
       connected_to(role: current_role, prevent_writes: enabled, &block)
     end
