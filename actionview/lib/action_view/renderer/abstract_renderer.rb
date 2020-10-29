@@ -158,7 +158,7 @@ module ActionView
 
       def extract_details(options) # :doc:
         details = nil
-        details_arguments.each do |key|
+        @lookup_context.registered_details.each do |key|
           value = options[key]
 
           if value
@@ -166,10 +166,6 @@ module ActionView
           end
         end
         details || NO_DETAILS
-      end
-
-      def details_arguments
-        @lookup_context.registered_details
       end
 
       def prepend_formats(formats) # :doc:

@@ -3,13 +3,6 @@
 module ActionView
   class TemplateRenderer < AbstractRenderer #:nodoc:
     def render(context, options)
-      options.assert_valid_keys(
-        :body, :plain, :html, :file, :inline, :template, :renderable,
-        :layout, :locals, :prefixes,
-        :type,
-        *details_arguments
-      )
-
       @details = extract_details(options)
       template = determine_template(options)
 
