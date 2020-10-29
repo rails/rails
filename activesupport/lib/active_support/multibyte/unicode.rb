@@ -10,13 +10,6 @@ module ActiveSupport
       # information about normalization.
       NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
 
-      NORMALIZATION_FORM_ALIASES = { # :nodoc:
-        c: :nfc,
-        d: :nfd,
-        kc: :nfkc,
-        kd: :nfkd
-      }
-
       # The Unicode version that is supported by the implementation
       UNICODE_VERSION = RbConfig::CONFIG["UNICODE_VERSION"]
 
@@ -25,34 +18,7 @@ module ActiveSupport
       # in NORMALIZATION_FORMS.
       #
       #   ActiveSupport::Multibyte::Unicode.default_normalization_form = :c
-      attr_accessor :default_normalization_form
-      @default_normalization_form = :kc
-
-      # Unpack the string at grapheme boundaries. Returns a list of character
-      # lists.
-      #
-      #   Unicode.unpack_graphemes('क्षि') # => [[2325, 2381], [2359], [2367]]
-      #   Unicode.unpack_graphemes('Café') # => [[67], [97], [102], [233]]
-      def unpack_graphemes(string)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          ActiveSupport::Multibyte::Unicode#unpack_graphemes is deprecated and will be
-          removed from Rails 6.1. Use string.scan(/\X/).map(&:codepoints) instead.
-        MSG
-
-        string.scan(/\X/).map(&:codepoints)
-      end
-
-      # Reverse operation of unpack_graphemes.
-      #
-      #   Unicode.pack_graphemes(Unicode.unpack_graphemes('क्षि')) # => 'क्षि'
-      def pack_graphemes(unpacked)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          ActiveSupport::Multibyte::Unicode#pack_graphemes is deprecated and will be
-          removed from Rails 6.1. Use array.flatten.pack("U*") instead.
-        MSG
-
-        unpacked.flatten.pack("U*")
-      end
+      attr_accessor :default_normalization_form # TODO: Deprecate
 
       # Decompose composed characters to the decomposed form.
       def decompose(type, codepoints)
@@ -104,46 +70,6 @@ module ActiveSupport
           reader.finish
 
           out.encode!(Encoding::UTF_8)
-        end
-      end
-
-      # Returns the KC normalization of the string by default. NFKC is
-      # considered the best normalization form for passing strings to databases
-      # and validations.
-      #
-      # * <tt>string</tt> - The string to perform normalization on.
-      # * <tt>form</tt> - The form you want to normalize in. Should be one of
-      #   the following: <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>.
-      #   Default is ActiveSupport::Multibyte::Unicode.default_normalization_form.
-      def normalize(string, form = nil)
-        form ||= @default_normalization_form
-
-        # See https://www.unicode.org/reports/tr15, Table 1
-        if alias_form = NORMALIZATION_FORM_ALIASES[form]
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            ActiveSupport::Multibyte::Unicode#normalize is deprecated and will be
-            removed from Rails 6.1. Use String#unicode_normalize(:#{alias_form}) instead.
-          MSG
-
-          string.unicode_normalize(alias_form)
-        else
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            ActiveSupport::Multibyte::Unicode#normalize is deprecated and will be
-            removed from Rails 6.1. Use String#unicode_normalize instead.
-          MSG
-
-          raise ArgumentError, "#{form} is not a valid normalization variant", caller
-        end
-      end
-
-      %w(downcase upcase swapcase).each do |method|
-        define_method(method) do |string|
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          ActiveSupport::Multibyte::Unicode##{method} is deprecated and
-          will be removed from Rails 6.1. Use String methods directly.
-          MSG
-
-          string.public_send(method)
         end
       end
 

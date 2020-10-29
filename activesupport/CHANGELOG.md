@@ -1,3 +1,11 @@
+*   Remove deprecated `ActiveSupport::Multibyte::Unicode.pack_graphemes`,
+    `ActiveSupport::Multibyte::Unicode.unpack_graphemes`,
+    `ActiveSupport::Multibyte::Unicode.normalize`,
+    `ActiveSupport::Multibyte::Unicode.downcase`,
+    `ActiveSupport::Multibyte::Unicode.upcase` and `ActiveSupport::Multibyte::Unicode.swapcase`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveSupport::Multibyte::Chars#consumes?` and `ActiveSupport::Multibyte::Chars#normalize`.
 
     *Rafael Mendonça França*

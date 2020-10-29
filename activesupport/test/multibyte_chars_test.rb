@@ -678,36 +678,6 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
     assert_equal BYTE_STRING.dup.mb_chars.class, ActiveSupport::Multibyte::Chars
   end
 
-  def test_unicode_normalize_deprecation
-    # String#unicode_normalize default form is `:nfc`, and
-    # different than Multibyte::Unicode default, `:nkfc`.
-    # Deprecation should suggest the right form if no params
-    # are given and default is used.
-    assert_deprecated(/unicode_normalize\(:nfkc\)/) do
-      ActiveSupport::Multibyte::Unicode.normalize("")
-    end
-
-    assert_deprecated(/unicode_normalize\(:nfd\)/) do
-      ActiveSupport::Multibyte::Unicode.normalize("", :d)
-    end
-  end
-
-  def test_unicode_deprecations
-    assert_deprecated { ActiveSupport::Multibyte::Unicode.downcase("") }
-    assert_deprecated { ActiveSupport::Multibyte::Unicode.upcase("") }
-    assert_deprecated { ActiveSupport::Multibyte::Unicode.swapcase("") }
-  end
-
-  def test_normalize_non_unicode_string
-    # Fullwidth Latin Capital Letter A in Windows 31J
-    str = "\u{ff21}".encode(Encoding::Windows_31J)
-    assert_raise Encoding::CompatibilityError do
-      ActiveSupport::Deprecation.silence do
-        ActiveSupport::Multibyte::Unicode.normalize(str)
-      end
-    end
-  end
-
   private
     def string_from_classes(classes)
       # Characters from the character classes as described in UAX #29

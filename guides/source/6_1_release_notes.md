@@ -306,6 +306,12 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated `ActiveSupport::Multibyte::Chars#consumes?` and `ActiveSupport::Multibyte::Chars#normalize`.
 
+*   Remove deprecated `ActiveSupport::Multibyte::Unicode.pack_graphemes`,
+    `ActiveSupport::Multibyte::Unicode.unpack_graphemes`,
+    `ActiveSupport::Multibyte::Unicode.normalize`,
+    `ActiveSupport::Multibyte::Unicode.downcase`,
+    `ActiveSupport::Multibyte::Unicode.upcase` and `ActiveSupport::Multibyte::Unicode.swapcase`.
+
 ### Deprecations
 
 ### Notable changes
