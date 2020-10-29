@@ -1,3 +1,11 @@
+*   Raise error when asset_url is used outside of views.
+
+    Instead of getting the error `NoMethodError: undefined method 'protocol' for nil:NilClass` when
+    ActionController::Base.helpers.asset_url(IMAGE_NAME) is called somewhere other than a view (where
+    request object cannot be accessed), this ensures that an informative error message is raised.
+
+    *Fai Wong*
+
 *   `ActionView::Helpers::TranslationHelper#translate` accepts a block, yielding
     the translated text and the fully resolved translation key:
 
