@@ -1,3 +1,7 @@
+*   Fix `cast_value` for PostgreSQL column type `:money`. Now it can handle wider set of currency strings.
+
+    *Petr  Mlčoch*
+
 *   Allow double-dash comment syntax when querying read-only databases
 
     *James Adam*

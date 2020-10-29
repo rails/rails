@@ -58,10 +58,15 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     assert_equal(12345678.12, type.cast(+"$12.345.678,12"))
     assert_equal(12345678.12, type.cast(+"12,345,678.12"))
     assert_equal(12345678.12, type.cast(+"12.345.678,12"))
+
     assert_equal(-1.15, type.cast(+"-$1.15"))
     assert_equal(-2.25, type.cast(+"($2.25)"))
     assert_equal(-1.15, type.cast(+"-1.15"))
     assert_equal(-2.25, type.cast(+"(2.25)"))
+
+    assert_equal(12345678.12, type.cast(+"12 345 678.12 Kč"))
+    assert_equal(12345678.12, type.cast(+"12 345 678,12 Kč"))
+    assert_equal(12345678.12, type.cast(+"12345678.123 OMR")) # yep .003 is vanished
   end
 
   def test_schema_dumping

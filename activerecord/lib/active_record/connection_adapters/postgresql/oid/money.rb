@@ -16,20 +16,25 @@ module ActiveRecord
           def cast_value(value)
             return value unless ::String === value
 
-            # Because money output is formatted according to the locale, there are two
-            # cases to consider (note the decimal separators):
+            # Because money output is formatted according to the locale, there are many
+            # cases to consider (note the separators an units):
             #  (1) $12,345,678.12
             #  (2) $12.345.678,12
+            #  (3) 12 345 678,12 Kč
             # Negative values are represented as follows:
-            #  (3) -$2.55
-            #  (4) ($2.55)
+            #  (4) -$2.55
+            #  (5) ($2.55)
+            value = value.sub(/^\((.+)\)$/, '-\1') # (5)
 
-            value = value.sub(/^\((.+)\)$/, '-\1') # (4)
-            case value
-            when /^-?\D*[\d,]+\.\d{2}$/  # (1)
-              value.gsub!(/[^-\d.]/, "")
-            when /^-?\D*[\d.]+,\d{2}$/  # (2)
-              value.gsub!(/[^-\d,]/, "").sub!(/,/, ".")
+            number_with_sign_and_separators = value.gsub(/[^\-\.\,0-9]/, "")
+            decimal_fragment = number_with_sign_and_separators.match(/([\,\.])(\d*)$/)
+
+            value = if decimal_fragment.nil?
+              number_with_sign_and_separators
+            elsif decimal_fragment[1] == "." # (1)
+              number_with_sign_and_separators.gsub(",", "")
+            else # (2,3)
+              number_with_sign_and_separators.gsub(".", "").gsub(",", ".")
             end
 
             super(value)
