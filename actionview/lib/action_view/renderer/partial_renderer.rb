@@ -256,13 +256,6 @@ module ActionView
 
     def initialize(lookup_context, options)
       super(lookup_context)
-
-      options.assert_valid_keys(
-        :partial, :template, :renderable, :layout,
-        :locals, :collection, :object, :as, :cached, :spacer_template,
-        *details_arguments
-      )
-
       @options = options
       @locals  = @options[:locals] || {}
       @details = extract_details(@options)

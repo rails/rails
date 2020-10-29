@@ -68,16 +68,6 @@ module RenderTestCases
     assert_match(/You invoked render but did not give any of (.+) option\./, e.message)
   end
 
-  def test_render_throws_exception_when_given_partial_and_invalid_options
-    e = assert_raises(ArgumentError) { @view.render(template: "test/hello_world", invalid_option: true) }
-    assert_includes e.message, "Unknown key: :invalid_option"
-  end
-
-  def test_render_throws_exception_when_given_template_and_invalid_options
-    e = assert_raises(ArgumentError) { @view.render(partial: "test/partial", invalid_option: true) }
-    assert_includes e.message, "Unknown key: :invalid_option"
-  end
-
   def test_render_template
     assert_equal "Hello world!", @view.render(template: "test/hello_world")
   end
@@ -749,7 +739,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
 
   def test_render_utf8_template_with_magic_comment
     with_external_encoding Encoding::ASCII_8BIT do
-      result = @view.render(template: "test/utf8_magic", formats: [:html])
+      result = @view.render(template: "test/utf8_magic", formats: [:html], layouts: "layouts/yield")
       assert_equal Encoding::UTF_8, result.encoding
       assert_equal "\nРусский \nтекст\n\nUTF-8\nUTF-8\nUTF-8\n", result
     end
@@ -757,7 +747,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
 
   def test_render_utf8_template_with_default_external_encoding
     with_external_encoding Encoding::UTF_8 do
-      result = @view.render(template: "test/utf8", formats: [:html])
+      result = @view.render(template: "test/utf8", formats: [:html], layouts: "layouts/yield")
       assert_equal Encoding::UTF_8, result.encoding
       assert_equal "Русский текст\n\nUTF-8\nUTF-8\nUTF-8\n", result
     end
@@ -765,14 +755,14 @@ class LazyViewRenderTest < ActiveSupport::TestCase
 
   def test_render_utf8_template_with_incompatible_external_encoding
     with_external_encoding Encoding::SHIFT_JIS do
-      e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/utf8", formats: [:html], layout: "layouts/yield") }
+      e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/utf8", formats: [:html], layouts: "layouts/yield") }
       assert_match "Your template was not saved as valid Shift_JIS", e.cause.message
     end
   end
 
   def test_render_utf8_template_with_partial_with_incompatible_encoding
     with_external_encoding Encoding::SHIFT_JIS do
-      e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/utf8_magic_with_bare_partial", formats: [:html], layout: "layouts/yield") }
+      e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/utf8_magic_with_bare_partial", formats: [:html], layouts: "layouts/yield") }
       assert_match "Your template was not saved as valid Shift_JIS", e.cause.message
     end
   end

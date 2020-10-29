@@ -39,7 +39,7 @@ module AbstractController
 
       def render(options = {})
         if options.is_a?(String)
-          options = { action: options }
+          options = { _template_name: options }
         end
         super
       end
@@ -49,7 +49,7 @@ module AbstractController
 
     class Me2 < RenderingController
       def index
-        render "index"
+        render "index.erb"
       end
 
       def index_to_string
@@ -58,7 +58,7 @@ module AbstractController
 
       def action_with_ivars
         @my_ivar = "Hello"
-        render "action_with_ivars"
+        render "action_with_ivars.erb"
       end
 
       def naked_render
@@ -200,7 +200,7 @@ module AbstractController
         end
 
         def render_to_body(options = {})
-          options[:layout] = options[:layout] || _default_layout({})
+          options[:_layout] = options[:layout] || _default_layout({})
           super
         end
     end
