@@ -149,8 +149,25 @@ def disable_extension!(extension, connection)
   connection.reconnect!
 end
 
+def clean_up_legacy_connection_handlers
+  handler = ActiveRecord::Base.default_connection_handler
+  ActiveRecord::Base.connection_handlers = {}
+
+  handler.connection_pool_names.each do |name|
+    next if ["ActiveRecord::Base", "ARUnit2Model", "Contact", "ContactSti"].include?(name)
+
+    handler.send(:owner_to_pool_manager).delete(name)
+  end
+end
+
 def clean_up_connection_handler
-  ActiveRecord::Base.connection_handlers = { ActiveRecord::Base.writing_role => ActiveRecord::Base.default_connection_handler }
+  handler = ActiveRecord::Base.connection_handler
+  handler.instance_variable_get(:@owner_to_pool_manager).each do |owner, pool_manager|
+    pool_manager.role_names.each do |role_name|
+      next if role_name == ActiveRecord::Base.default_role
+      pool_manager.remove_role(role_name)
+    end
+  end
 end
 
 def load_schema

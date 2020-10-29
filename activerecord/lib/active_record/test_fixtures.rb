@@ -189,18 +189,32 @@ module ActiveRecord
       # need to share a connection pool so that the reading connection
       # can see data in the open transaction on the writing connection.
       def setup_shared_connection_pool
-        writing_handler = ActiveRecord::Base.connection_handlers[ActiveRecord::Base.writing_role]
+        if ActiveRecord::Base.legacy_connection_handling
+          writing_handler = ActiveRecord::Base.connection_handlers[ActiveRecord::Base.writing_role]
 
-        ActiveRecord::Base.connection_handlers.values.each do |handler|
-          if handler != writing_handler
-            handler.connection_pool_names.each do |name|
-              writing_pool_manager = writing_handler.send(:owner_to_pool_manager)[name]
-              return unless writing_pool_manager
+          ActiveRecord::Base.connection_handlers.values.each do |handler|
+            if handler != writing_handler
+              handler.connection_pool_names.each do |name|
+                writing_pool_manager = writing_handler.send(:owner_to_pool_manager)[name]
+                return unless writing_pool_manager
 
-              writing_pool_config = writing_pool_manager.get_pool_config(:default)
+                writing_pool_config = writing_pool_manager.get_pool_config(nil, :default)
 
-              pool_manager = handler.send(:owner_to_pool_manager)[name]
-              pool_manager.set_pool_config(:default, writing_pool_config)
+                pool_manager = handler.send(:owner_to_pool_manager)[name]
+                pool_manager.set_pool_config(nil, :default, writing_pool_config)
+              end
+            end
+          end
+        else
+          handler = ActiveRecord::Base.connection_handler
+
+          handler.connection_pool_names.each do |name|
+            pool_manager = handler.send(:owner_to_pool_manager)[name]
+            pool_manager.shard_names.each do |shard_name|
+              writing_pool_config = pool_manager.get_pool_config(ActiveRecord::Base.writing_role, shard_name)
+              pool_manager.role_names.each do |role|
+                pool_manager.set_pool_config(role, shard_name, writing_pool_config)
+              end
             end
           end
         end

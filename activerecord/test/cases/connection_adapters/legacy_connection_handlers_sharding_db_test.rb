@@ -5,31 +5,38 @@ require "models/person"
 
 module ActiveRecord
   module ConnectionAdapters
-    class ConnectionHandlersShardingDbTest < ActiveRecord::TestCase
+    class LegacyConnectionHandlersShardingDbTest < ActiveRecord::TestCase
       self.use_transactional_tests = false
 
       fixtures :people
 
       def setup
-        @handler = ConnectionHandler.new
+        @legacy_setting = ActiveRecord::Base.legacy_connection_handling
+        ActiveRecord::Base.legacy_connection_handling = true
+        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+
+        @handlers = { writing: ConnectionHandler.new, reading: ConnectionHandler.new }
+        @rw_handler = @handlers[:writing]
+        @ro_handler = @handlers[:reading]
         @owner_name = "ActiveRecord::Base"
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        @rw_pool = @handler.establish_connection(db_config)
-        @ro_pool = @handler.establish_connection(db_config, role: :reading)
+
+        @rw_pool = @handlers[:writing].establish_connection(db_config)
+        @ro_pool = @handlers[:reading].establish_connection(db_config)
       end
 
       def teardown
-        clean_up_connection_handler
+        clean_up_legacy_connection_handlers
+        ActiveRecord::Base.legacy_connection_handling = @legacy_setting
       end
 
       unless in_memory_db?
         def test_establishing_a_connection_in_connected_to_block_uses_current_role_and_shard
           ActiveRecord::Base.connected_to(role: :writing, shard: :shard_one) do
             db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-            ActiveRecord::Base.establish_connection(db_config)
-            assert_nothing_raised { Person.first }
+            SecondaryBase.establish_connection(db_config)
 
-            assert_equal [:default, :shard_one], ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").instance_variable_get(:@name_to_role_mapping).values.flat_map(&:keys).uniq
+            assert_equal [:shard_one], ActiveRecord::Base.connection_handlers[:writing].send(:owner_to_pool_manager).fetch("ActiveRecord::ConnectionAdapters::LegacyConnectionHandlersShardingDbTest::SecondaryBase").instance_variable_get(:@name_to_pool_config).keys
           end
         end
 
@@ -50,14 +57,16 @@ module ActiveRecord
             shard_one: { writing: :primary_shard_one }
           })
 
-          base_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base")
-          default_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base", shard: :default)
+          connection_handlers = ActiveRecord::Base.connection_handlers
+
+          base_pool = connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base")
+          default_pool = connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base", shard: :default)
 
           assert_equal base_pool, default_pool
           assert_equal "test/db/primary.sqlite3", default_pool.db_config.database
           assert_equal "primary", default_pool.db_config.name
 
-          assert_not_nil pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base", shard: :shard_one)
+          assert_not_nil pool = connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base", shard: :shard_one)
           assert_equal "test/db/primary_shard_one.sqlite3", pool.db_config.database
           assert_equal "primary_shard_one", pool.db_config.name
         ensure
@@ -85,23 +94,25 @@ module ActiveRecord
             shard_one: { writing: :primary_shard_one, reading: :primary_shard_one_replica }
           })
 
-          default_writing_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base", shard: :default)
-          base_writing_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base")
+          connection_handlers = ActiveRecord::Base.connection_handlers
+
+          default_writing_pool = connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base", shard: :default)
+          base_writing_pool = connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base")
           assert_equal base_writing_pool, default_writing_pool
           assert_equal "test/db/primary.sqlite3", default_writing_pool.db_config.database
           assert_equal "primary", default_writing_pool.db_config.name
 
-          default_reading_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading, shard: :default)
-          base_reading_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading)
+          default_reading_pool = connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base", shard: :default)
+          base_reading_pool = connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base")
           assert_equal base_reading_pool, default_reading_pool
           assert_equal "test/db/primary.sqlite3", default_reading_pool.db_config.database
           assert_equal "primary_replica", default_reading_pool.db_config.name
 
-          assert_not_nil pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base", shard: :shard_one)
+          assert_not_nil pool = connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base", shard: :shard_one)
           assert_equal "test/db/primary_shard_one.sqlite3", pool.db_config.database
           assert_equal "primary_shard_one", pool.db_config.name
 
-          assert_not_nil pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading, shard: :shard_one)
+          assert_not_nil pool = connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base", shard: :shard_one)
           assert_equal "test/db/primary_shard_one.sqlite3", pool.db_config.database
           assert_equal "primary_shard_one_replica", pool.db_config.name
         ensure
@@ -130,6 +141,8 @@ module ActiveRecord
           })
 
           ActiveRecord::Base.connected_to(role: :reading, shard: :default) do
+            @ro_handler = ActiveRecord::Base.connection_handler
+            assert_equal ActiveRecord::Base.connection_handler, ActiveRecord::Base.connection_handlers[:reading]
             assert_equal :reading, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :reading, shard: :default)
             assert_not ActiveRecord::Base.connected_to?(role: :writing, shard: :default)
@@ -139,6 +152,8 @@ module ActiveRecord
           end
 
           ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
+            assert_equal ActiveRecord::Base.connection_handler, ActiveRecord::Base.connection_handlers[:writing]
+            assert_not_equal @ro_handler, ActiveRecord::Base.connection_handler
             assert_equal :writing, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :writing, shard: :default)
             assert_not ActiveRecord::Base.connected_to?(role: :reading, shard: :default)
@@ -148,6 +163,8 @@ module ActiveRecord
           end
 
           ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
+            @ro_handler = ActiveRecord::Base.connection_handler
+            assert_equal ActiveRecord::Base.connection_handler, ActiveRecord::Base.connection_handlers[:reading]
             assert_equal :reading, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :reading, shard: :shard_one)
             assert_not ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one)
@@ -157,6 +174,8 @@ module ActiveRecord
           end
 
           ActiveRecord::Base.connected_to(role: :writing, shard: :shard_one) do
+            assert_equal ActiveRecord::Base.connection_handler, ActiveRecord::Base.connection_handlers[:writing]
+            assert_not_equal @ro_handler, ActiveRecord::Base.connection_handler
             assert_equal :writing, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one)
             assert_not ActiveRecord::Base.connected_to?(role: :reading, shard: :shard_one)
@@ -212,10 +231,6 @@ module ActiveRecord
           ENV["RAILS_ENV"] = previous_env
         end
 
-        class SecondaryBase < ActiveRecord::Base
-          self.abstract_class = true
-        end
-
         def test_connected_to_raises_without_a_shard_or_role
           error = assert_raises(ArgumentError) do
             ActiveRecord::Base.connected_to { }
@@ -231,11 +246,11 @@ module ActiveRecord
         end
 
         def test_retrieve_connection_pool_with_invalid_shard
-          assert_not_nil @handler.retrieve_connection_pool("ActiveRecord::Base")
-          assert_nil @handler.retrieve_connection_pool("ActiveRecord::Base", shard: :foo)
+          assert_not_nil @rw_handler.retrieve_connection_pool("ActiveRecord::Base")
+          assert_nil @rw_handler.retrieve_connection_pool("ActiveRecord::Base", shard: :foo)
 
-          assert_not_nil @handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading)
-          assert_nil @handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading, shard: :foo)
+          assert_not_nil @ro_handler.retrieve_connection_pool("ActiveRecord::Base")
+          assert_nil @ro_handler.retrieve_connection_pool("ActiveRecord::Base", shard: :foo)
         end
 
         def test_calling_connected_to_on_a_non_existent_shard_raises
@@ -250,6 +265,71 @@ module ActiveRecord
           end
 
           assert_equal "No connection pool for 'ActiveRecord::Base' found for the 'foo' shard.", error.message
+        end
+
+        def test_retrieves_proper_connection_with_nested_connected_to_on_abstract_classes
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+          config = {
+            "default_env" => {
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3", "replica" => true },
+              "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" },
+              "primary_shard_one_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3", "replica" => true },
+              "primary_shard_two" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_two.sqlite3" },
+              "primary_shard_two_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_two.sqlite3", "replica" => true },
+              "secondary" => { "adapter" => "sqlite3", "database" => "test/db/secondary.sqlite3" },
+              "secondary_replica" => { "adapter" => "sqlite3", "database" => "test/db/secondary.sqlite3", "replica" => true },
+              "secondary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/secondary_shard_one.sqlite3" },
+              "secondary_shard_one_replica" => { "adapter" => "sqlite3", "database" => "test/db/secondary_shard_one.sqlite3", "replica" => true },
+              "secondary_shard_two" => { "adapter" => "sqlite3", "database" => "test/db/secondary_shard_two.sqlite3" },
+              "secondary_shard_two_replica" => { "adapter" => "sqlite3", "database" => "test/db/secondary_shard_two.sqlite3", "replica" => true }
+            }
+          }
+
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          ActiveRecord::Base.connects_to(shards: {
+            default: { writing: :primary, reading: :primary_replica },
+            shard_one: { writing: :primary_shard_one, reading: :primary_shard_one_replica }
+          })
+
+          SecondaryBase.connects_to(shards: {
+            default: { writing: :secondary, reading: :secondary_replica },
+            shard_one: { writing: :secondary_shard_one, reading: :secondary_shard_one_replica },
+            shard_two: { writing: :secondary_shard_two, reading: :secondary_shard_two_replica }
+          })
+
+          assert_equal "primary", ActiveRecord::Base.connection_pool.db_config.name
+          assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
+
+          ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
+            # ActiveRecord:Base is a global switch for passed values
+            assert_equal "primary_shard_one_replica", ActiveRecord::Base.connection_pool.db_config.name
+            assert_equal "secondary_shard_one_replica", SecondaryBase.connection_pool.db_config.name
+
+            ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
+              assert_equal "primary", ActiveRecord::Base.connection_pool.db_config.name
+              assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
+
+              ActiveRecord::Base.connected_to(role: :reading, shard: :shard_two) do
+                # ActiveRecord::Base has no shard_two
+                assert_equal "secondary_shard_two_replica", SecondaryBase.connection_pool.db_config.name
+              end
+
+              ActiveRecord::Base.connected_to(role: :writing) do
+                assert_equal "primary", ActiveRecord::Base.connection_pool.db_config.name
+                assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
+              end
+            end
+          end
+
+          assert_equal "primary", ActiveRecord::Base.connection_pool.db_config.name
+          assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
+        ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ActiveRecord::Base.establish_connection(:arunit)
+          ENV["RAILS_ENV"] = previous_env
         end
       end
 
@@ -295,8 +375,10 @@ module ActiveRecord
           end
         end
 
-        # Create a record on :default
-        ShardConnectionTestModel.create!(shard_key: "foo")
+        ActiveRecord::Base.connected_to(role: :writing) do
+          # Create a record on :default
+          ShardConnectionTestModel.create!(shard_key: "foo")
+        end
 
         # Make sure we can read it when explicitly connecting to :default
         ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
@@ -335,14 +417,18 @@ module ActiveRecord
         shard_one_latch = Concurrent::CountDownLatch.new
         shard_default_latch = Concurrent::CountDownLatch.new
 
-        ShardConnectionTestModel.connection
+        ActiveRecord::Base.connected_to(role: :writing) do
+          ShardConnectionTestModel.connection
+        end
 
         thread = Thread.new do
-          ShardConnectionTestModel.connection
+          ActiveRecord::Base.connected_to(role: :writing) do
+            ShardConnectionTestModel.connection
 
-          shard_default_latch.wait
-          assert_equal "shard_key_default", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
-          shard_one_latch.count_down
+            shard_default_latch.wait
+            assert_equal "shard_key_default", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
+            shard_one_latch.count_down
+          end
         end
 
         ActiveRecord::Base.connected_to(role: :writing, shard: :one) do
@@ -463,18 +549,19 @@ module ActiveRecord
           shard_one_latch.count_down
         end
 
-        SecondaryBase.connected_to(shard: :one, role: :secondary) do
+        ActiveRecord::Base.connected_to(shard: :one, role: :secondary) do
           shard_default_latch.count_down
-          assert_equal "shard_key_one_secondary", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
-          assert_equal "shard_key_default_b", ShardConnectionTestModelB.connection.select_value("SELECT shard_key from shard_connection_test_models")
 
-          SomeOtherBase.connected_to(shard: :one, role: :secondary) do
+          assert_equal "shard_key_one_secondary", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
+          assert_equal "shard_key_one_secondary_b", ShardConnectionTestModelB.connection.select_value("SELECT shard_key from shard_connection_test_models")
+
+          ActiveRecord::Base.connected_to(shard: :one, role: :secondary) do
             assert_equal "shard_key_one_secondary", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
             assert_equal "shard_key_one_secondary_b", ShardConnectionTestModelB.connection.select_value("SELECT shard_key from shard_connection_test_models")
           end
+
           shard_one_latch.wait
         end
-
         thread.join
       ensure
         tf_shard_one.close
