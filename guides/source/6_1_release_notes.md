@@ -312,6 +312,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
     `ActiveSupport::Multibyte::Unicode.downcase`,
     `ActiveSupport::Multibyte::Unicode.upcase` and `ActiveSupport::Multibyte::Unicode.swapcase`.
 
+*   Remove deprecated `ActiveSupport::Notifications::Instrumenter#end=`.
+
 ### Deprecations
 
 *   Deprecate `ActiveSupport::Multibyte::Unicode.default_normalization_form`.

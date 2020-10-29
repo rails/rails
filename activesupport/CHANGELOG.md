@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveSupport::Notifications::Instrumenter#end=`.
+
+    *Rafael Mendonça França*
+
 *   Deprecate `ActiveSupport::Multibyte::Unicode.default_normalization_form`.
 
     *Rafael Mendonça França*
