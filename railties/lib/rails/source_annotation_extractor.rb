@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
-
 module Rails
   # Implements the logic behind <tt>Rails::Command::NotesCommand</tt>. See <tt>rails notes --help</tt> for usage information.
   #

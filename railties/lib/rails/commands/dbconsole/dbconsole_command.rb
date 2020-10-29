@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
 require "active_support/core_ext/string/filters"
 require "rails/command/environment_argument"
 
