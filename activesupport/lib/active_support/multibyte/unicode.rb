@@ -5,20 +5,20 @@ module ActiveSupport
     module Unicode
       extend self
 
-      # A list of all available normalization forms.
-      # See https://www.unicode.org/reports/tr15/tr15-29.html for more
-      # information about normalization.
-      NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
-
       # The Unicode version that is supported by the implementation
       UNICODE_VERSION = RbConfig::CONFIG["UNICODE_VERSION"]
 
-      # The default normalization used for operations that require
-      # normalization. It can be set to any of the normalizations
-      # in NORMALIZATION_FORMS.
-      #
-      #   ActiveSupport::Multibyte::Unicode.default_normalization_form = :c
-      attr_accessor :default_normalization_form # TODO: Deprecate
+      def default_normalization_form
+        ActiveSupport::Deprecation.warn(
+          "ActiveSupport::Multibyte::Unicode.default_normalization_form is deprecated and will be removed in Rails 6.1"
+        )
+      end
+
+      def default_normalization_form=(_)
+        ActiveSupport::Deprecation.warn(
+          "ActiveSupport::Multibyte::Unicode.default_normalization_form= is deprecated and will be removed in Rails 6.1"
+        )
+      end
 
       # Decompose composed characters to the decomposed form.
       def decompose(type, codepoints)

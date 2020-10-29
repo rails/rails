@@ -1,3 +1,7 @@
+*   Deprecate `ActiveSupport::Multibyte::Unicode.default_normalization_form`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveSupport::Multibyte::Unicode.pack_graphemes`,
     `ActiveSupport::Multibyte::Unicode.unpack_graphemes`,
     `ActiveSupport::Multibyte::Unicode.normalize`,

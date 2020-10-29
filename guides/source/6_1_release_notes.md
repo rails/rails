@@ -314,6 +314,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate `ActiveSupport::Multibyte::Unicode.default_normalization_form`.
+
 ### Notable changes
 
 Active Job
