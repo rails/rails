@@ -1651,4 +1651,41 @@ class BasicsTest < ActiveRecord::TestCase
       assert AbstractCompany.connected_to?(role: :reading, shard: :default)
     end
   end
+
+  test "#connecting_to with role" do
+    AbstractCompany.connecting_to(role: :reading)
+
+    assert AbstractCompany.connected_to?(role: :reading)
+    assert AbstractCompany.current_preventing_writes
+  ensure
+    ActiveRecord::Base.connected_to_stack.pop
+  end
+
+  test "#connecting_to with role and shard" do
+    AbstractCompany.connecting_to(role: :reading, shard: :default)
+
+    assert AbstractCompany.connected_to?(role: :reading, shard: :default)
+  ensure
+    ActiveRecord::Base.connected_to_stack.pop
+  end
+
+  test "#connecting_to with prevent_writes" do
+    AbstractCompany.connecting_to(role: :writing, prevent_writes: true)
+
+    assert AbstractCompany.connected_to?(role: :writing)
+    assert AbstractCompany.current_preventing_writes
+  ensure
+    ActiveRecord::Base.connected_to_stack.pop
+  end
+
+  test "#connecting_to doesn't work with legacy connection handling" do
+    old_value = ActiveRecord::Base.legacy_connection_handling
+    ActiveRecord::Base.legacy_connection_handling = true
+
+    assert_raises NotImplementedError do
+      AbstractCompany.connecting_to(role: :writing, prevent_writes: true)
+    end
+  ensure
+    ActiveRecord::Base.legacy_connection_handling = old_value
+  end
 end
