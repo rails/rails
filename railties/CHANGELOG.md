@@ -1,3 +1,7 @@
+*   Remove depreated `rake notes` tasks.
+
+    *Rafael Mendonça França*
+
 *   Return a 405 Method Not Allowed response when a request uses an unknown HTTP method.
 
     Fixes #38998.

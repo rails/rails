@@ -33,6 +33,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Remove depreated `rake notes` tasks.
+
 ### Deprecations
 
 ### Notable changes
