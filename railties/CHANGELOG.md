@@ -1,3 +1,7 @@
+*   Remove deprecated `server` argument from the rails server command.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `SOURCE_ANNOTATION_DIRECTORIES` environment variable support from `rails notes`.
 
     *Rafael Mendonça França*

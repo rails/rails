@@ -39,6 +39,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated `SOURCE_ANNOTATION_DIRECTORIES` environment variable support from `rails notes`.
 
+*   Remove deprecated `server` argument from the rails server command.
+
 ### Deprecations
 
 ### Notable changes
