@@ -480,18 +480,6 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/account.rb", expected_file
   end
 
-  def test_passing_required_to_model_generator_is_deprecated
-    assert_deprecated do
-      run_generator ["account", "supplier:references{required}"]
-    end
-
-    assert_migration "db/migrate/create_accounts.rb" do |m|
-      assert_method :change, m do |up|
-        assert_match(/t\.references :supplier,.*\snull: false/, up)
-      end
-    end
-  end
-
   def test_null_false_is_added_for_references_by_default
     run_generator ["account", "user:references"]
 
