@@ -1,3 +1,20 @@
+*   ARIA Array and Hash attributes are treated as space separated `DOMTokenList`
+    values. This is useful when declaring lists of label text identifiers in
+    `aria-labelledby` or `aria-describedby`.
+
+        tag.input type: 'checkbox', name: 'published', aria: {
+          invalid: @post.errors[:published].any?,
+          labelledby: ['published_context', 'published_label'],
+          describedby: { published_errors: @post.errors[:published].any? }
+        }
+        #=> <input
+              type="checkbox" name="published" aria-invalid="true"
+              aria-labelledby="published_context published_label"
+              aria-describedby="published_errors"
+            >
+
+    *Sean Doyle*
+
 *   Remove deprecated `escape_whitelist` from `ActionView::Template::Handlers::ERB`.
 
     *Rafael Mendonça França*
