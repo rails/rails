@@ -45,6 +45,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated `rake dev:cache` tasks.
 
+*   Remove deprecated `rake routes` tasks.
+
 ### Deprecations
 
 ### Notable changes

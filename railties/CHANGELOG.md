@@ -2,6 +2,10 @@
 
     *Rafael Mendonça França*
 
+*   Remove deprecated `rake routes` tasks.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support for using the `HOST` environment variable to specify the server IP.
 
     *Rafael Mendonça França*
