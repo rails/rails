@@ -1,3 +1,7 @@
+*   Remove deprecated `connection` option in the `rails dbconsole` command.
+
+    *Rafael Mendonça França*
+
 *   Remove depreated `rake notes` tasks.
 
     *Rafael Mendonça França*

@@ -33,7 +33,9 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
-*   Remove depreated `rake notes` tasks.
+*   Remove deprecated `rake notes` tasks.
+
+*   Remove deprecated `connection` option in the `rails dbconsole` command.
 
 ### Deprecations
 
