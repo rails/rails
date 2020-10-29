@@ -339,6 +339,36 @@ module ActiveRecord
         end
       end
 
+      def cache_version_query(collection, id_column: collection.primary_key, timestamp_column: :updated_at) # :nodoc:
+        timestamp_col = visitor.compile(collection.arel_attribute(timestamp_column))
+        id_col = visitor.compile(collection.arel_attribute(id_column))
+
+        if collection.has_limit_or_offset?
+          collection_table = Arel::Table.new("cache_key_collection")
+          aggregates_table = Arel::Table.new("cache_key_aggregates")
+          query = collection.select("#{id_col} AS collection_cache_key_id, #{timestamp_col} AS collection_cache_key_timestamp")
+          collection_query = Arel::Nodes::SqlLiteral.new "(#{ query.to_sql })"
+          aggregates_query = collection_table.project("COUNT(*) AS collection_size, MAX(collection_cache_key_timestamp) AS timestamp")
+          collection_common_table_expr = Arel::Nodes::As.new(collection_table, collection_query)
+          aggregates_common_table_expr = Arel::Nodes::As.new(aggregates_table, aggregates_query)
+          collection_size_minus_one = Arel::Nodes::Subtraction.new(aggregates_table[:collection_size], 1)
+          last_id_offset = aggregates_table.project(collection_size_minus_one)
+
+          select_values = [
+            aggregates_table[:collection_size],
+            aggregates_table[:timestamp],
+            collection_table.project(collection_table[:collection_cache_key_id]).take(1).as("first_id"),
+            collection_table.project(collection_table[:collection_cache_key_id]).take(1).skip(last_id_offset).as("last_id")
+          ]
+
+          aggregates_table
+            .project(select_values)
+            .with(collection_common_table_expr, aggregates_common_table_expr)
+        else
+          super
+        end
+      end
+
       private
         # See https://www.sqlite.org/limits.html,
         # the default value is 999 when not configured.

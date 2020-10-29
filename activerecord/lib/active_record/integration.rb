@@ -159,8 +159,8 @@ module ActiveRecord
         end
       end
 
-      def collection_cache_key(collection = all, timestamp_column = :updated_at) # :nodoc:
-        collection.send(:compute_cache_key, timestamp_column)
+      def collection_cache_key(collection = all, id_column: primary_key, timestamp_column: :updated_at) # :nodoc:
+        collection.send(:compute_cache_key, id_column: id_column, timestamp_column: timestamp_column)
       end
     end
 
