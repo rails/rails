@@ -214,6 +214,7 @@ module ActiveRecord
             pool_manager.shard_names.each do |shard_name|
               writing_pool_config = pool_manager.get_pool_config(ActiveRecord::Base.writing_role, shard_name)
               pool_manager.role_names.each do |role|
+                next unless pool_manager.get_pool_config(role, shard_name)
                 pool_manager.set_pool_config(role, shard_name, writing_pool_config)
               end
             end
