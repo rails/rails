@@ -28,6 +28,18 @@ class SignedIdTest < ActiveRecord::TestCase
     assert_nil Account.where("1=0").find_signed(@account.signed_id)
   end
 
+  test "find signed record on join with find_by_sql" do
+    account = Account.find_by_sql("SELECT * FROM accounts INNER JOIN companies ON companies.id = accounts.firm_id").first
+    signed_id = account.signed_id expires_in: 15.minutes, purpose: :password_reset
+    assert_equal account, account.find_signed(signed_id)
+  end
+
+  test "find signed record on join" do
+    firm = Firm.joins(:account).where(accounts: { credit_limit: 50 }).first
+    signed_id = firm.signed_id expires_in: 15.minutes, purpose: :password_reset
+    assert_equal firm, firm.find_signed(signed_id)
+  end
+
   test "find signed record with custom primary key" do
     assert_equal @toy, Toy.find_signed(@toy.signed_id)
   end
@@ -53,6 +65,18 @@ class SignedIdTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) do
       Account.where("1=0").find_signed!(@account.signed_id)
     end
+  end
+
+  test "find signed record with a bang on join with find_by_sql" do
+    account = Account.find_by_sql("SELECT * FROM accounts INNER JOIN companies ON companies.id = accounts.firm_id").first
+    signed_id = account.signed_id expires_in: 15.minutes, purpose: :password_reset
+    assert_equal account, account.find_signed!(signed_id)
+  end
+
+  test "find signed record with a bang on join" do
+    firm = Firm.joins(:account).where(accounts: { credit_limit: 50 }).first
+    signed_id = firm.signed_id expires_in: 15.minutes, purpose: :password_reset
+    assert_equal firm, firm.find_signed!(signed_id)
   end
 
   test "fail to find record from broken signed id" do
