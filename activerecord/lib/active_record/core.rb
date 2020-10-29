@@ -131,6 +131,12 @@ module ActiveRecord
       # potentially cause memory bloat.
       mattr_accessor :warn_on_records_fetched_greater_than, instance_writer: false
 
+      ##
+      # :singleton-method:
+      # Show a warning when Rails couldn't parse your database.yml
+      # for multiple databases.
+      mattr_accessor :suppress_multiple_database_warning, instance_writer: false, default: false
+
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
       class_attribute :belongs_to_required_by_default, instance_accessor: false

@@ -154,7 +154,9 @@ module ActiveRecord
         begin
           Rails.application.config.load_database_yaml
         rescue
-          $stderr.puts "Rails couldn't infer whether you are using multiple databases from your database.yml and can't generate the tasks for the non-primary databases. If you'd like to use this feature, please simplify your ERB."
+          unless ActiveRecord::Base.suppress_multiple_database_warning
+            $stderr.puts "Rails couldn't infer whether you are using multiple databases from your database.yml and can't generate the tasks for the non-primary databases. If you'd like to use this feature, please simplify your ERB."
+          end
 
           {}
         end
