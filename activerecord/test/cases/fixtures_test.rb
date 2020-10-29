@@ -951,12 +951,31 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     assert(connection.rollback_transaction_called, "Expected <mock connection>#rollback_transaction to be called but was not")
   end
 
+  def test_transaction_created_on_connection_notification_for_shard
+    connection = Class.new do
+      attr_accessor :pool
+
+      def transaction_open?; end
+      def begin_transaction(*args); end
+      def rollback_transaction(*args); end
+    end.new
+
+    connection.pool = Class.new do
+      def lock_thread=(lock_thread); end
+    end.new
+
+    assert_called_with(connection, :begin_transaction, [joinable: false, _lazy: false]) do
+      fire_connection_notification(connection, shard: :shard_two)
+    end
+  end
+
   private
-    def fire_connection_notification(connection)
-      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book"], returns: connection) do
+    def fire_connection_notification(connection, shard: ActiveRecord::Base.default_shard)
+      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book", { shard: shard }], returns: connection) do
         message_bus = ActiveSupport::Notifications.instrumenter
         payload = {
           spec_name: "book",
+          shard: shard,
           config: nil,
         }
 

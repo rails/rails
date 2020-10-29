@@ -131,11 +131,12 @@ module ActiveRecord
         # When connections are established in the future, begin a transaction too
         @connection_subscriber = ActiveSupport::Notifications.subscribe("!connection.active_record") do |_, _, _, _, payload|
           spec_name = payload[:spec_name] if payload.key?(:spec_name)
+          shard = payload[:shard] if payload.key?(:shard)
           setup_shared_connection_pool
 
           if spec_name
             begin
-              connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name)
+              connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name, shard: shard)
             rescue ConnectionNotEstablished
               connection = nil
             end

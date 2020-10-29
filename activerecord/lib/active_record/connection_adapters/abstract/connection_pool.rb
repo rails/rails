@@ -1044,6 +1044,7 @@ module ActiveRecord
         payload = {}
         if pool_config
           payload[:spec_name] = pool_config.connection_specification_name
+          payload[:shard] = shard
           payload[:config] = db_config.configuration_hash
         end
 
