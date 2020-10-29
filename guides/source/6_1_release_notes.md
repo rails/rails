@@ -37,6 +37,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated `connection` option in the `rails dbconsole` command.
 
+*   Remove deprecated `SOURCE_ANNOTATION_DIRECTORIES` environment variable support from `rails notes`.
+
 ### Deprecations
 
 ### Notable changes

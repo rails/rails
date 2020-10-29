@@ -1,3 +1,7 @@
+*   Remove deprecated `SOURCE_ANNOTATION_DIRECTORIES` environment variable support from `rails notes`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `connection` option in the `rails dbconsole` command.
 
     *Rafael Mendonça França*
