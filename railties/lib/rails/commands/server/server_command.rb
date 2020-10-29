@@ -220,15 +220,6 @@ module Rails
           else
             default_host = environment == "development" ? "localhost" : "0.0.0.0"
 
-            if ENV["HOST"] && !ENV["BINDING"]
-              ActiveSupport::Deprecation.warn(<<-MSG.squish)
-                Using the `HOST` environment variable to specify the IP is deprecated and will be removed in Rails 6.1.
-                Please use `BINDING` environment variable instead.
-              MSG
-
-              return ENV["HOST"]
-            end
-
             ENV.fetch("BINDING", default_host)
           end
         end

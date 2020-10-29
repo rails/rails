@@ -41,6 +41,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated `server` argument from the rails server command.
 
+*   Remove deprecated support for using the `HOST` environment variable to specify the server IP.
+
 ### Deprecations
 
 ### Notable changes

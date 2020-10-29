@@ -96,15 +96,6 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
     end
   end
 
-  def test_environment_with_host
-    switch_env "HOST", "1.2.3.4" do
-      assert_deprecated do
-        options = parse_arguments
-        assert_equal "1.2.3.4", options[:Host]
-      end
-    end
-  end
-
   def test_environment_with_binding
     switch_env "BINDING", "1.2.3.4" do
       options = parse_arguments

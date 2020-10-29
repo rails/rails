@@ -1,3 +1,7 @@
+*   Remove deprecated support for using the `HOST` environment variable to specify the server IP.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `server` argument from the rails server command.
 
     *Rafael Mendonça França*
