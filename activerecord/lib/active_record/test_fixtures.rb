@@ -199,10 +199,11 @@ module ActiveRecord
                 writing_pool_manager = writing_handler.send(:owner_to_pool_manager)[name]
                 return unless writing_pool_manager
 
-                writing_pool_config = writing_pool_manager.get_pool_config(nil, :default)
-
                 pool_manager = handler.send(:owner_to_pool_manager)[name]
-                pool_manager.set_pool_config(nil, :default, writing_pool_config)
+                pool_manager.shard_names.each do |shard_name|
+                  writing_pool_config = writing_pool_manager.get_pool_config(nil, shard_name)
+                  pool_manager.set_pool_config(nil, shard_name, writing_pool_config)
+                end
               end
             end
           end

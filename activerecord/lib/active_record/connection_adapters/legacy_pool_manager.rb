@@ -7,6 +7,10 @@ module ActiveRecord
         @name_to_pool_config = {}
       end
 
+      def shard_names
+        @name_to_pool_config.keys
+      end
+
       def pool_configs(_ = nil)
         @name_to_pool_config.values
       end
