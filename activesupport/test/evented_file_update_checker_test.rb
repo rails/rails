@@ -2,6 +2,7 @@
 
 require_relative "abstract_unit"
 require "pathname"
+require "weakref"
 require_relative "file_update_checker_shared_tests"
 
 class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
@@ -46,10 +47,6 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     touch_reader, touch_writer = IO.pipe
 
     pid = fork do
-      assert_predicate checker, :updated?
-
-      # Clear previous check value.
-      checker.execute
       assert_not_predicate checker, :updated?
 
       # Fork is booted, ready for file to be touched
@@ -75,6 +72,18 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     assert_predicate checker, :updated?
 
     Process.wait(pid)
+  end
+
+  test "can be garbage collected" do
+    previous_threads = Thread.list
+    checker_ref = WeakRef.new(ActiveSupport::EventedFileUpdateChecker.new([], tmpdir => ".rb") { })
+    listener_threads = Thread.list - previous_threads
+
+    wait # Wait for listener thread to start processing events.
+    GC.start
+
+    assert_not_predicate checker_ref, :weakref_alive?
+    assert_empty Thread.list & listener_threads
   end
 
   test "should detect changes through symlink" do
@@ -120,114 +129,24 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     assert_not_predicate checker, :updated?
     assert_not checker.execute_if_updated
   end
-end
 
-class EventedFileUpdateCheckerPathHelperTest < ActiveSupport::TestCase
-  def pn(path)
-    Pathname.new(path)
-  end
+  test "does not stop other checkers when nonexistent directory is added later" do
+    dir1 = File.join(tmpdir, "app")
+    dir2 = File.join(tmpdir, "test")
 
-  setup do
-    @ph = ActiveSupport::EventedFileUpdateChecker::PathHelper.new
-  end
+    Dir.mkdir(dir2)
 
-  test "#xpath returns the expanded path as a Pathname object" do
-    assert_equal pn(__FILE__).expand_path, @ph.xpath(__FILE__)
-  end
+    checker1 = new_checker([], dir1 => ".rb") { }
+    checker2 = new_checker([], dir2 => ".rb") { }
 
-  test "#normalize_extension returns a bare extension as is" do
-    assert_equal "rb", @ph.normalize_extension("rb")
-  end
+    Dir.mkdir(dir1)
 
-  test "#normalize_extension removes a leading dot" do
-    assert_equal "rb", @ph.normalize_extension(".rb")
-  end
+    touch(File.join(dir1, "a.rb"))
+    assert_predicate checker1, :updated?
 
-  test "#normalize_extension supports symbols" do
-    assert_equal "rb", @ph.normalize_extension(:rb)
-  end
+    assert_not_predicate checker2, :updated?
 
-  test "#longest_common_subpath finds the longest common subpath, if there is one" do
-    paths = %w(
-      /foo/bar
-      /foo/baz
-      /foo/bar/baz/woo/zoo
-    ).map { |path| pn(path) }
-
-    assert_equal pn("/foo"), @ph.longest_common_subpath(paths)
-  end
-
-  test "#longest_common_subpath returns the root directory as an edge case" do
-    paths = %w(
-      /foo/bar
-      /foo/baz
-      /foo/bar/baz/woo/zoo
-      /wadus
-    ).map { |path| pn(path) }
-
-    assert_equal pn("/"), @ph.longest_common_subpath(paths)
-  end
-
-  test "#longest_common_subpath returns nil for an empty collection" do
-    assert_nil @ph.longest_common_subpath([])
-  end
-
-  test "#filter_out_descendants returns the same collection if there are no descendants (empty)" do
-    assert_equal [], @ph.filter_out_descendants([])
-  end
-
-  test "#filter_out_descendants returns the same collection if there are no descendants (one)" do
-    assert_equal ["/foo"], @ph.filter_out_descendants(["/foo"])
-  end
-
-  test "#filter_out_descendants returns the same collection if there are no descendants (several)" do
-    paths = %w(
-      /Rails.root/app/controllers
-      /Rails.root/app/models
-      /Rails.root/app/helpers
-    ).map { |path| pn(path) }
-
-    assert_equal paths, @ph.filter_out_descendants(paths)
-  end
-
-  test "#filter_out_descendants filters out descendants preserving order" do
-    paths = %w(
-      /Rails.root/app/controllers
-      /Rails.root/app/controllers/concerns
-      /Rails.root/app/models
-      /Rails.root/app/models/concerns
-      /Rails.root/app/helpers
-    ).map { |path| pn(path) }
-
-    assert_equal paths.values_at(0, 2, 4), @ph.filter_out_descendants(paths)
-  end
-
-  test "#filter_out_descendants works on path units" do
-    paths = %w(
-      /foo/bar
-      /foo/barrrr
-    ).map { |path| pn(path) }
-
-    assert_equal paths, @ph.filter_out_descendants(paths)
-  end
-
-  test "#filter_out_descendants deals correctly with the root directory" do
-    paths = %w(
-      /
-      /foo
-      /foo/bar
-    ).map { |path| pn(path) }
-
-    assert_equal paths.values_at(0), @ph.filter_out_descendants(paths)
-  end
-
-  test "#filter_out_descendants preserves duplicates" do
-    paths = %w(
-      /foo
-      /foo/bar
-      /foo
-    ).map { |path| pn(path) }
-
-    assert_equal paths.values_at(0, 2), @ph.filter_out_descendants(paths)
+    touch(File.join(dir2, "a.rb"))
+    assert_predicate checker2, :updated?
   end
 end
