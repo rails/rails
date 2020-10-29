@@ -47,6 +47,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated `rake routes` tasks.
 
+*   Remove deprecated `rake initializers` tasks.
+
 ### Deprecations
 
 ### Notable changes

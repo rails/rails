@@ -5,7 +5,6 @@ require "rake"
 # Load Rails Rakefile extensions
 %w(
   framework
-  initializers
   log
   middleware
   misc
