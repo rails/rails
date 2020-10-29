@@ -43,6 +43,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated support for using the `HOST` environment variable to specify the server IP.
 
+*   Remove deprecated `rake dev:cache` tasks.
+
 ### Deprecations
 
 ### Notable changes

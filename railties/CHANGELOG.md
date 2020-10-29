@@ -1,3 +1,7 @@
+*   Remove deprecated `rake dev:cache` tasks.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support for using the `HOST` environment variable to specify the server IP.
 
     *Rafael Mendonça França*
