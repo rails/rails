@@ -1453,6 +1453,21 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       assert_equal rw_conn, ro_conn
     end
 
+    def test_only_existing_connections_are_replaced
+      ActiveRecord::Base.connects_to shards: {
+        default: { writing: :default, reading: :readonly },
+        two: { writing: :default }
+      }
+
+      setup_shared_connection_pool
+
+      assert_raises(ActiveRecord::ConnectionNotEstablished) do
+        ActiveRecord::Base.connected_to(role: :reading, shard: :two) do
+          ActiveRecord::Base.retrieve_connection
+        end
+      end
+    end
+
     private
       def config
         { "default" => default_config, "readonly" => readonly_config }
@@ -1514,6 +1529,21 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       ro_conn = reading.connection_pool_list.first.connection
 
       assert_equal rw_conn, ro_conn
+    end
+
+    def test_only_existing_connections_are_replaced
+      ActiveRecord::Base.connects_to shards: {
+        default: { writing: :default, reading: :readonly },
+        two: { writing: :default }
+      }
+
+      setup_shared_connection_pool
+
+      assert_raises(ActiveRecord::ConnectionNotEstablished) do
+        ActiveRecord::Base.connected_to(role: :reading, shard: :two) do
+          ActiveRecord::Base.retrieve_connection
+        end
+      end
     end
 
     private
