@@ -5,6 +5,12 @@ Ruby on Rails 6.1 Release Notes
 
 Highlights in Rails 6.1:
 
+* Per-database Connection Switching
+* Horizontal Sharding
+* Strict Loading Associations
+* Delegated Types
+* Destroy Associations Async
+
 These release notes cover only the major changes. To learn about various bug
 fixes and changes, please refer to the change logs or check out the [list of
 commits](https://github.com/rails/rails/commits/master) in the main Rails
@@ -25,6 +31,27 @@ guide.
 
 Major Features
 --------------
+
+### Per-database Connection Switching
+
+Rails 6.1 provides you with the ability to [switch connections per-database](https://github.com/rails/rails/pull/40370). In 6.0 if you switched to the `reading` role then all database connections also switched to the reading role. Now in 6.1 if you set `legacy_connection_handling` to `false` in your configuration, Rails will allow you to switch connections for a single database by calling `connected_to` on the corresponding abstract class.
+
+### Horizontal Sharding
+
+Rails 6.0 provided the ability to functionally partition (multiple partitions, different schemas) your database but wasn't able to support horizontal sharding (same schema, multiple partitions). Rails wasn't able to support horizonal sharding because models in Active Record could only have one connection per-role per-class. This is now fixed and [horizontal sharding](https://github.com/rails/rails/pull/38531) with Rails is available.
+
+### Strict Loading Associations
+
+[Strict loading associations](https://github.com/rails/rails/pull/37400) allows you to ensure that all
+your associations are loaded eagerly and stop N+1's before they happen.
+
+### Delegated Types
+
+[Delegated Types](https://github.com/rails/rails/pull/39341) is an alternative to single-table inheritance. This is helpful for representing class hierarchies allowing the superclass to be a concrete class that is represented by its own table. Each subclass has its own table for additional attributes.
+
+### Destroy Associations Async
+
+[Destroy associations async](https://github.com/rails/rails/pull/40157) adds the ability for applications to `destroy` associations in a background job. This can help you avoid timeouts and other performance issues in your application when destroying data.
 
 Railties
 --------
@@ -292,6 +319,11 @@ Please refer to the [Changelog][active-model] for detailed changes.
 ### Deprecations
 
 ### Notable changes
+
+*   Active Model's errors are now objects with an interface that allows your application to more
+    easily handle and interact with errors thrown by models.
+    [The feature](https://github.com/rails/rails/pull/32313) includes a query interface, enables
+    more precise testing, and access to error details.
 
 Active Support
 --------------
