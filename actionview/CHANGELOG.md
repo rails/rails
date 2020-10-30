@@ -1,3 +1,11 @@
+*   Rename the new `TagHelper#class_names` method to `TagHelper#token_list`,
+    and make the original available as an alias.
+
+        token_list("foo", "foo bar")
+        # => "foo bar"
+
+    *Sean Doyle*
+
 *   ARIA Array and Hash attributes are treated as space separated `DOMTokenList`
     values. This is useful when declaring lists of label text identifiers in
     `aria-labelledby` or `aria-describedby`.
@@ -53,7 +61,7 @@
 
 *   Remove deprecated support to pass an object that is not a `ActionView::LookupContext` as the first argument
     in `ActionView::Base#initialize`.
- 
+
     *Rafael Mendonça França*
 
 *   Remove deprecated `format` argument `ActionView::Base#initialize`.
