@@ -1,3 +1,23 @@
+*   Arel: Add support for FILTER clause (SQL:2003)
+
+    Currently supported by PostgreSQL 9.4+ and SQLite 3.30+
+
+    Example usage:
+
+        Model.all.pluck(
+          Arel.star.count.as('records_total').to_sql,
+          Arel.star.count.filter(Model.arel_table[:some_column].not_eq(nil)).as('records_filtered').to_sql,
+        )
+
+    Example result:
+
+        SELECT
+          COUNT(*) AS records_total,
+          COUNT(*) FILTER (WHERE "some_column" IS NOT NULL) AS records_filtered
+        FROM models
+
+    *Andrey Novikov*
+
 *   Two change tracking methods are added for `belongs_to` associations.
 
     The `association_changed?` method (assuming an association named `:association`) returns true
