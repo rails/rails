@@ -15,9 +15,9 @@ module ActionDispatch
   # The unique request id can be used to trace a request end-to-end and would typically end up being part of log files
   # from multiple pieces of the stack.
   class RequestId
-    def initialize(app, header: nil)
+    def initialize(app, header:)
       @app = app
-      @header = header || "X-Request-Id"
+      @header = header
     end
 
     def call(env)

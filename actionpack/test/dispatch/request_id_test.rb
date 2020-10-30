@@ -33,7 +33,7 @@ class RequestIdTest < ActiveSupport::TestCase
   end
 
   private
-    def stub_request(env = {}, header: nil)
+    def stub_request(env = {}, header: "X-Request-Id")
       ActionDispatch::RequestId.new(lambda { |environment| [ 200, environment, [] ] }, header: header).call(env)
       ActionDispatch::Request.new(env)
     end
@@ -68,7 +68,7 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
   end
 
   private
-    def with_test_route_set(header: nil)
+    def with_test_route_set(header: "X-Request-Id")
       with_routing do |set|
         set.draw do
           get "/", to: ::RequestIdResponseTest::TestController.action(:index)
