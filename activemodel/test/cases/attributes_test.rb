@@ -14,19 +14,6 @@ module ActiveModel
       attribute :string_with_default, :string, default: "default string"
       attribute :date_field, :date, default: -> { Date.new(2016, 1, 1) }
       attribute :boolean_field, :boolean
-
-      alias_attribute :integer, :integer_field
-      alias_attribute :string, :string_field
-
-      def method_that_writes_to_an_attribute
-        value = read_attribute(:integer_field)
-        write_attribute(:string_field, value.to_s)
-      end
-
-      def method_that_writes_to_an_attribute_using_aliases
-        value = read_attribute(:integer)
-        write_attribute(:string, value.to_s)
-      end
     end
 
     class ChildModelForAttributesTest < ModelForAttributesTest
@@ -141,20 +128,6 @@ module ActiveModel
       data.freeze
       assert data.frozen?
       assert_raise(FrozenError) { data.integer_field = 1 }
-    end
-
-    test "attributes can be read and written using the public API" do
-      data = ModelForAttributesTest.new(integer_field: 20)
-      data.method_that_writes_to_an_attribute
-
-      assert_equal "20", data.string_field
-    end
-
-    test "attributes can be read and written using the public API even with aliases" do
-      data = ModelForAttributesTest.new(integer: 20)
-      data.method_that_writes_to_an_attribute
-
-      assert_equal "20", data.string
     end
   end
 end
