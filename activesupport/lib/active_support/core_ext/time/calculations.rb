@@ -107,6 +107,20 @@ class Time
     subsec
   end
 
+  unless Time.method_defined?(:floor)
+    def floor(precision = 0)
+      change(nsec: 0) + subsec.floor(precision)
+    end
+  end
+
+  # Restricted Ruby version due to a bug in `Time#ceil`
+  # See https://bugs.ruby-lang.org/issues/17025 for more details
+  if RUBY_VERSION <= "2.7.1"
+    def ceil(precision = 0)
+      change(nsec: 0) + subsec.ceil(precision)
+    end
+  end
+
   # Returns a new Time where one or more of the elements have been changed according
   # to the +options+ parameter. The time options (<tt>:hour</tt>, <tt>:min</tt>,
   # <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly, so if only
