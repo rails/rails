@@ -133,8 +133,6 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 *   Remove deprecated `find_file` from `ActionView::ViewPaths`.
 
-*   Require that `ActionView::Base` subclasses implement `#compiled_method_container`.
-
 *   Remove deprecated support to pass an object that is not a `ActionView::LookupContext` as the first argument
     in `ActionView::Base#initialize`.
 
@@ -153,8 +151,6 @@ Please refer to the [Changelog][action-view] for detailed changes.
 *   Remove deprecated `ActionView::Template#updated_at`.
 
 *   Remove deprecated `updated_at` argument required on `ActionView::Template#initialize`.
-
-*   Make `locals` argument required on `ActionView::Template#initialize`.
 
 *   Remove deprecated `ActionView::Template.finalize_compiled_template_methods`.
 
@@ -176,6 +172,10 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Notable changes
 
+*   Require that `ActionView::Base` subclasses implement `#compiled_method_container`.
+
+*   Make `locals` argument required on `ActionView::Template#initialize`.
+
 Action Mailer
 -------------
 
@@ -195,9 +195,6 @@ Active Record
 Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Removals
-
-*   MySQL: Uniqueness validator now respects default database collation,
-    no longer enforce case sensitive comparison by default.
 
 *   Remove deprecated methods from `ActiveRecord::ConnectionAdapters::DatabaseLimits`.
 
@@ -239,6 +236,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Deprecate `ActiveRecord::Base.allow_unsafe_raw_sql`.
 
 ### Notable changes
+
+*   MySQL: Uniqueness validator now respects default database collation,
+    no longer enforce case sensitive comparison by default.
 
 *   `relation.create` does no longer leak scope to class level querying methods
     in initialization block and callbacks.
