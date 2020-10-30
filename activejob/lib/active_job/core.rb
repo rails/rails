@@ -85,6 +85,7 @@ module ActiveJob
       @priority   = self.class.priority
       @executions = 0
       @exception_executions = {}
+      @timezone   = Time.zone.try(:name)
     end
     ruby2_keywords(:initialize) if respond_to?(:ruby2_keywords, true)
 
@@ -101,7 +102,7 @@ module ActiveJob
         "executions" => executions,
         "exception_executions" => exception_executions,
         "locale"     => I18n.locale.to_s,
-        "timezone"   => Time.zone.try(:name),
+        "timezone"   => timezone,
         "enqueued_at" => Time.now.utc.iso8601
       }
     end
