@@ -15,12 +15,6 @@
 
     *Nick Wolf*
 
-*   Deprecate `config.active_support.use_sha1_digests`
-
-    `config.active_support.use_sha1_digests` is deprecated. It is replaced with `config.active_support.hash_digest_class` which allows setting the desired Digest instead. The Rails version defaults have been updated to use this new method as well so the behavior there is unchanged.
-
-    *Dirkjan Bussink*
-
 *   Change the default logging level from :debug to :info to avoid inadvertent exposure of personally
     identifiable information (PII) in production environments.
 
