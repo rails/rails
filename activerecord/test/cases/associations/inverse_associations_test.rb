@@ -697,6 +697,17 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_equal old_inversed_man.object_id, new_inversed_man.object_id
   end
 
+  def test_inversed_instance_should_load_after_autosave_if_it_is_not_already_loaded
+    man = Man.create!
+    man.create_autosave_face!
+
+    man.autosave_face.reload # clear cached load of autosave_man
+    man.autosave_face.description = "new description"
+    man.save!
+
+    assert_not_nil man.autosave_face.autosave_man
+  end
+
   def test_should_not_try_to_set_inverse_instances_when_the_inverse_is_a_has_many
     i = interests(:llama_wrangling)
     m = i.polymorphic_man

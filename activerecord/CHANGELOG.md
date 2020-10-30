@@ -1,3 +1,9 @@
+*   Allow the inverse of a `has_one` association that was previously autosaved to be loaded.
+
+    Fixes #34255.
+
+    *Steven Weber*
+
 *   Reset statement cache for association if `table_name` is changed.
 
     Fixes #36453.
