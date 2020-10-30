@@ -363,7 +363,7 @@
     otherwise specified. This will reduce memory pressure for applications which
     do not generally mutate string properties of Active Record objects.
 
-    *Sean Griffin*
+    *Sean Griffin*, *Ryuta Kamizono*
 
 *   Deprecate `map!` and `collect!` on `ActiveRecord::Result`.
 
