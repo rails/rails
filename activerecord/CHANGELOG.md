@@ -1,3 +1,13 @@
+*   Optimise the length of index names for polymorphic references by using the reference name rather than the type and id column names.
+
+    Because the default behaviour when adding an index with multiple columns is to use all column names in the index name, this could frequently lead to overly long index names for polymorphic references which would fail the migration if it exceeded the database limit.
+
+    This change reduces the chance of that happening by using the reference name, e.g. `index_my_table_on_my_reference`.
+
+    Fixes #38655.
+
+    *Luke Redpath*
+
 *   MySQL: Uniqueness validator now respects default database collation,
     no longer enforce case sensitive comparison by default.
 
