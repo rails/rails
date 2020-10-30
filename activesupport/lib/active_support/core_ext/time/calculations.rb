@@ -6,6 +6,7 @@ require "active_support/time_with_zone"
 require "active_support/core_ext/time/zones"
 require "active_support/core_ext/date_and_time/calculations"
 require "active_support/core_ext/date/calculations"
+require "active_support/core_ext/module/remove_method"
 
 class Time
   include DateAndTime::Calculations
@@ -116,6 +117,7 @@ class Time
   # Restricted Ruby version due to a bug in `Time#ceil`
   # See https://bugs.ruby-lang.org/issues/17025 for more details
   if RUBY_VERSION <= "2.7.1"
+    remove_possible_method :ceil
     def ceil(precision = 0)
       change(nsec: 0) + subsec.ceil(precision)
     end
