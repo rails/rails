@@ -981,9 +981,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     form_with(model: Post.new) do |f|
       concat(
         f.label(:title) do |builder|
-          concat tag.span(builder, {
+          concat tag.span(builder,
             class: ("new_record" unless builder.object.persisted?)
-          })
+          )
         end
       )
     end
