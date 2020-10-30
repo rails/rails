@@ -26,11 +26,13 @@ module ActionView
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
       BOOLEAN_ATTRIBUTES.freeze
 
-      TAG_PREFIXES = ["aria", "data", :aria, :data].to_set.freeze
+      ARIA_PREFIXES = ["aria", :aria].to_set.freeze
+      DATA_PREFIXES = ["data", :data].to_set.freeze
 
       TAG_TYPES = {}
       TAG_TYPES.merge! BOOLEAN_ATTRIBUTES.index_with(:boolean)
-      TAG_TYPES.merge! TAG_PREFIXES.index_with(:prefix)
+      TAG_TYPES.merge! DATA_PREFIXES.index_with(:data)
+      TAG_TYPES.merge! ARIA_PREFIXES.index_with(:aria)
       TAG_TYPES.freeze
 
       PRE_CONTENT_STRINGS             = Hash.new { "" }
@@ -72,9 +74,18 @@ module ActionView
           sep    = " "
           options.each_pair do |key, value|
             type = TAG_TYPES[key]
-            if type == :prefix && value.is_a?(Hash)
+            if type == :data && value.is_a?(Hash)
               value.each_pair do |k, v|
                 next if v.nil?
+                output << sep
+                output << prefix_tag_option(key, k, v, escape)
+              end
+            elsif type == :aria && value.is_a?(Hash)
+              value.each_pair do |k, v|
+                next if v.nil?
+
+                v = (v.is_a?(Array) || v.is_a?(Hash)) ? safe_join(TagHelper.build_tag_values(v), " ") : v.to_s
+
                 output << sep
                 output << prefix_tag_option(key, k, v, escape)
               end
@@ -165,8 +176,8 @@ module ActionView
       #   tag.input type: 'text', disabled: true
       #   # => <input type="text" disabled="disabled">
       #
-      # HTML5 <tt>data-*</tt> attributes can be set with a single +data+ key
-      # pointing to a hash of sub-attributes.
+      # HTML5 <tt>data-*</tt> and <tt>aria-*</tt> attributes can be set with a
+      # single +data+ or +aria+ key pointing to a hash of sub-attributes.
       #
       # To play nicely with JavaScript conventions, sub-attributes are dasherized.
       #
