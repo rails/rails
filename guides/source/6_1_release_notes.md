@@ -402,6 +402,10 @@ Please refer to the [Changelog][action-text] for detailed changes.
     editor and fill it with given HTML content.
     ([Pull Request](https://github.com/rails/rails/pull/35885))
 
+*   Add `ActionText::FixtureSet.attachment` to generate
+    `<action-text-attachment>` elements in database fixtures.
+    ([Pull Request](https://github.com/rails/rails/pull/40289))
+
 Action Mailbox
 ----------
 

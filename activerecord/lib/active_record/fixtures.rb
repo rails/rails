@@ -585,6 +585,14 @@ module ActiveRecord
         end
       end
 
+      def signed_global_id(fixture_set_name, label, column_type: :integer, **options)
+        identifier = identify(label, column_type)
+        model_name = default_fixture_model_name(fixture_set_name)
+        uri = URI::GID.build([GlobalID.app, model_name, identifier, {}])
+
+        SignedGlobalID.new(uri, **options)
+      end
+
       # Superclass for the evaluation contexts used by ERB fixtures.
       def context_class
         @context_class ||= Class.new
