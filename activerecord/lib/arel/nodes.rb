@@ -28,6 +28,7 @@ require "arel/nodes/with"
 # binary
 require "arel/nodes/binary"
 require "arel/nodes/equality"
+require "arel/nodes/filter"
 require "arel/nodes/in"
 require "arel/nodes/join_source"
 require "arel/nodes/delete_statement"
