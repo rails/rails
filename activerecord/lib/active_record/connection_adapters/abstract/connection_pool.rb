@@ -1009,6 +1009,10 @@ module ActiveRecord
       # See `READ_QUERY` for the queries that are blocked by this
       # method.
       def while_preventing_writes(enabled = true)
+        unless ActiveRecord::Base.legacy_connection_handling
+          raise NotImplementedError, "`while_preventing_writes` is only available on the connection_handler with legacy_connection_handling"
+        end
+
         original, self.prevent_writes = self.prevent_writes, enabled
         yield
       ensure

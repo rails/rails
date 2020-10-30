@@ -189,8 +189,23 @@ module ActiveRecord
       self.connected_to_stack << { role: role, shard: shard, prevent_writes: prevent_writes, klass: self }
     end
 
+    # Prevent writing to the database regardless of role.
+    #
+    # In some cases you may want to prevent writes to the database
+    # even if you are on a database that can write. `while_preventing_writes`
+    # will prevent writes to the database for the duration of the block.
+    #
+    # This method does not provide the same protection as a readonly
+    # user and is meant to be a safeguard against accidental writes.
+    #
+    # See `READ_QUERY` for the queries that are blocked by this
+    # method.
     def while_preventing_writes(enabled = true, &block)
-      connected_to(role: current_role, prevent_writes: enabled, &block)
+      if legacy_connection_handling
+        connection_handler.while_preventing_writes(enabled)
+      else
+        connected_to(role: current_role, prevent_writes: enabled, &block)
+      end
     end
 
     # Returns true if role is the current connected role.
