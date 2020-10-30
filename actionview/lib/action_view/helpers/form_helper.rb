@@ -2496,10 +2496,22 @@ module ActionView
       #   #      <strong>Ask me!</strong>
       #   #    </button>
       #
+      #   button do |text|
+      #     content_tag(:strong, text)
+      #   end
+      #   # => <button name='button' type='submit'>
+      #   #      <strong>Create post</strong>
+      #   #    </button>
+      #
       def button(value = nil, options = {}, &block)
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value
-        @template.button_tag(value, options, &block)
+
+        if block_given?
+          value = @template.capture { yield(value) }
+        end
+
+        @template.button_tag(value, options)
       end
 
       def emitted_hidden_id? # :nodoc:

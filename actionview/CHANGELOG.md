@@ -1,3 +1,8 @@
+*   Yield translated strings to calls of `ActionView::FormBuilder#button`
+    when a block is given.
+
+    *Sean Doyle*
+
 *   Alias `ActionView::Helpers::Tags::Label::LabelBuilder#translation` to
     `#to_s` so that `form.label` calls can yield that value to their blocks.
 
