@@ -1447,8 +1447,22 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
     end
 
     def test_writing_and_reading_connections_are_the_same
-      rw_conn = ActiveRecord::Base.connection_handler.connection_pool_list(:writing).first.connection
-      ro_conn = ActiveRecord::Base.connection_handler.connection_pool_list(:reading).first.connection
+      handler = ActiveRecord::Base.connection_handler
+      rw_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :writing).connection
+      ro_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading).connection
+
+      assert_equal rw_conn, ro_conn
+    end
+
+    def test_writing_and_reading_connections_are_the_same_for_non_default_shards
+      ActiveRecord::Base.connects_to shards: {
+        default: { writing: :default, reading: :readonly },
+        two: { writing: :default, reading: :readonly }
+      }
+
+      handler = ActiveRecord::Base.connection_handler
+      rw_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :writing, shard: :two).connection
+      ro_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading, shard: :two).connection
 
       assert_equal rw_conn, ro_conn
     end
@@ -1525,8 +1539,23 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       writing = ActiveRecord::Base.connection_handlers[:writing]
       reading = ActiveRecord::Base.connection_handlers[:reading]
 
-      rw_conn = writing.connection_pool_list.first.connection
-      ro_conn = reading.connection_pool_list.first.connection
+      rw_conn = writing.retrieve_connection_pool("ActiveRecord::Base").connection
+      ro_conn = reading.retrieve_connection_pool("ActiveRecord::Base").connection
+
+      assert_equal rw_conn, ro_conn
+    end
+
+    def test_writing_and_reading_connections_are_the_same_for_non_default_shards_with_legacy_handling
+      ActiveRecord::Base.connects_to shards: {
+        default: { writing: :default, reading: :readonly },
+        two: { writing: :default, reading: :readonly }
+      }
+
+      writing = ActiveRecord::Base.connection_handlers[:writing]
+      reading = ActiveRecord::Base.connection_handlers[:reading]
+
+      rw_conn = writing.retrieve_connection_pool("ActiveRecord::Base", shard: :two).connection
+      ro_conn = reading.retrieve_connection_pool("ActiveRecord::Base", shard: :two).connection
 
       assert_equal rw_conn, ro_conn
     end
