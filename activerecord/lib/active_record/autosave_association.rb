@@ -463,7 +463,7 @@ module ActiveRecord
               unless reflection.through_reflection
                 record[reflection.foreign_key] = key
                 if inverse_reflection = reflection.inverse_of
-                  record.association(inverse_reflection.name).loaded!
+                  record.association(inverse_reflection.name).inversed_from(self)
                 end
               end
 
