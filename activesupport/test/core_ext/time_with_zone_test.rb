@@ -1162,12 +1162,10 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
     assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
   end
 
-  def test_end_of_period_timezone_equality_with_DateTime
+  def test_time_at_precision
     Time.use_zone "UTC" do
-      without_time_zone = "2019-01-01 00:00:00Z".to_time.end_of_month
-      zoned = without_time_zone.in_time_zone
-
-      assert_equal(Time.zone.at(without_time_zone), Time.zone.at(zoned))
+      time = "2019-01-01 00:00:00Z".to_time.end_of_month
+      assert_equal Time.at(time), Time.at(time.in_time_zone)
     end
   end
 
