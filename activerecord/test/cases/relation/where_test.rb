@@ -171,9 +171,10 @@ module ActiveRecord
       treasure = Treasure.create!(name: "my_treasure")
       PriceEstimate.create!(estimate_of: treasure, price: 2, currency: "USD")
 
-      result = Treasure.joins(:price_estimates).where.not(price_estimates: { price: 2, currency: "USD" })
+      expected = [treasures(:diamond), sapphire, sapphire]
+      actual = Treasure.joins(:price_estimates).where.not(price_estimates: { price: 2, currency: "USD" })
 
-      assert_equal [treasures(:diamond), sapphire, sapphire], result
+      assert_equal expected.sort_by(&:id), actual.sort_by(&:id)
     end
 
     def test_polymorphic_nested_array_where
