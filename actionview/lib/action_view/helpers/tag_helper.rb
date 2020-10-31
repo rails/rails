@@ -84,7 +84,15 @@ module ActionView
               value.each_pair do |k, v|
                 next if v.nil?
 
-                v = (v.is_a?(Array) || v.is_a?(Hash)) ? safe_join(TagHelper.build_tag_values(v), " ") : v.to_s
+                case v
+                when Array, Hash
+                  tokens = TagHelper.build_tag_values(v)
+                  next if tokens.none?
+
+                  v = safe_join(tokens, " ")
+                else
+                  v = v.to_s
+                end
 
                 output << sep
                 output << prefix_tag_option(key, k, v, escape)
