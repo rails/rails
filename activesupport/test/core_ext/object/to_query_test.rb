@@ -97,7 +97,7 @@ class ToQueryTest < ActiveSupport::TestCase
   end
 
   def test_hash_not_sorted_lexicographically_if_option_specified
-    hash={type: "human", name: "Nakshay"}
+    hash = { type: "human", name: "Nakshay" }
     assert_equal "type=human&name=Nakshay", hash.to_query(preserve_order: true)
   end
 
@@ -107,7 +107,7 @@ class ToQueryTest < ActiveSupport::TestCase
   end
 
   def test_hash_with_namespace_and_preserve_order_options_provided
-    hash={type: "human", name: "Nakshay"}
+    hash = { type: "human", name: "Nakshay" }
     expected = "earth[type]=human&earth[name]=Nakshay"
     actual = hash.to_query(preserve_order: true, namespace: "earth")
     assert_equal expected, URI.decode_www_form_component(actual)
