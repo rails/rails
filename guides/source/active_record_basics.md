@@ -339,10 +339,14 @@ A quick example to illustrate:
 class User < ApplicationRecord
   validates :name, presence: true
 end
+```
 
-user = User.new
-user.save  # => false
-user.save! # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+```irb
+irb> user = User.new
+irb> user.save
+=> false
+irb> user.save!
+ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 You can learn more about validations in the [Active Record Validations

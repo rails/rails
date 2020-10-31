@@ -749,12 +749,14 @@ end
 
 Active Record will attempt to automatically identify that these two models share a bi-directional association based on the association name. In this way, Active Record will only load one copy of the `Author` object, making your application more efficient and preventing inconsistent data:
 
-```ruby
-a = Author.first
-b = a.books.first
-a.first_name == b.author.first_name # => true
-a.first_name = 'David'
-a.first_name == b.author.first_name # => true
+```irb
+irb> a = Author.first
+irb> b = a.books.first
+irb> a.first_name == b.author.first_name
+=> true
+irb> a.first_name = 'David'
+irb> a.first_name == b.author.first_name
+=> true
 ```
 
 Active Record supports automatic identification for most associations with standard names. However, Active Record will not automatically identify bi-directional associations that contain a scope or any of the following options:
@@ -776,12 +778,14 @@ end
 
 Active Record will no longer automatically recognize the bi-directional association:
 
-```ruby
-a = Author.first
-b = a.books.first
-a.first_name == b.writer.first_name # => true
-a.first_name = 'David'
-a.first_name == b.writer.first_name # => false
+```irb
+irb> a = Author.first
+irb> b = a.books.first
+irb> a.first_name == b.writer.first_name
+=> true
+irb> a.first_name = 'David'
+irb> a.first_name == b.writer.first_name
+=> false
 ```
 
 Active Record provides the `:inverse_of` option so you can explicitly declare bi-directional associations:
@@ -798,12 +802,14 @@ end
 
 By including the `:inverse_of` option in the `has_many` association declaration, Active Record will now recognize the bi-directional association:
 
-```ruby
-a = Author.first
-b = a.books.first
-a.first_name == b.writer.first_name # => true
-a.first_name = 'David'
-a.first_name == b.writer.first_name # => true
+```irb
+irb> a = Author.first
+irb> b = a.books.first
+irb> a.first_name == b.writer.first_name
+=> true
+irb> a.first_name = 'David'
+irb> a.first_name == b.writer.first_name
+=> true
 ```
 
 Detailed Association Reference
@@ -1952,13 +1958,17 @@ class Person < ApplicationRecord
   has_many :readings
   has_many :articles, through: :readings
 end
+```
 
-person = Person.create(name: 'John')
-article   = Article.create(name: 'a1')
-person.articles << article
-person.articles << article
-person.articles.inspect # => [#<Article id: 5, name: "a1">, #<Article id: 5, name: "a1">]
-Reading.all.inspect     # => [#<Reading id: 12, person_id: 5, article_id: 5>, #<Reading id: 13, person_id: 5, article_id: 5>]
+```irb
+irb> person = Person.create(name: 'John')
+irb> article = Article.create(name: 'a1')
+irb> person.articles << article
+irb> person.articles << article
+irb> person.articles.to_a
+=> [#<Article id: 5, name: "a1">, #<Article id: 5, name: "a1">]
+irb> Reading.all.to_a
+=> [#<Reading id: 12, person_id: 5, article_id: 5>, #<Reading id: 13, person_id: 5, article_id: 5>]
 ```
 
 In the above case there are two readings and `person.articles` brings out both of
@@ -1971,13 +1981,17 @@ class Person
   has_many :readings
   has_many :articles, -> { distinct }, through: :readings
 end
+```
 
-person = Person.create(name: 'Honda')
-article   = Article.create(name: 'a1')
-person.articles << article
-person.articles << article
-person.articles.inspect # => [#<Article id: 7, name: "a1">]
-Reading.all.inspect     # => [#<Reading id: 16, person_id: 7, article_id: 7>, #<Reading id: 17, person_id: 7, article_id: 7>]
+```irb
+irb> person = Person.create(name: 'Honda')
+irb> article = Article.create(name: 'a1')
+irb> person.articles << article
+irb> person.articles << article
+irb> person.articles.to_a
+=> [#<Article id: 7, name: "a1">]
+irb> Reading.all.to_a
+=> [#<Reading id: 16, person_id: 7, article_id: 7>, #<Reading id: 17, person_id: 7, article_id: 7>]
 ```
 
 In the above case there are still two readings. However `person.articles` shows
@@ -1997,11 +2011,12 @@ add_index :readings, [:person_id, :article_id], unique: true
 Once you have this unique index, attempting to add the article to a person twice
 will raise an `ActiveRecord::RecordNotUnique` error:
 
-```ruby
-person = Person.create(name: 'Honda')
-article = Article.create(name: 'a1')
-person.articles << article
-person.articles << article # => ActiveRecord::RecordNotUnique
+```irb
+irb> person = Person.create(name: 'Honda')
+irb> article = Article.create(name: 'a1')
+irb> person.articles << article
+irb> person.articles << article
+ActiveRecord::RecordNotUnique
 ```
 
 Note that checking for uniqueness using something like `include?` is subject

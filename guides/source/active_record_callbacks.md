@@ -141,12 +141,14 @@ class User < ApplicationRecord
     puts "You have found an object!"
   end
 end
+```
 
->> User.new
+```irb
+irb> User.new
 You have initialized an object!
 => #<User id: nil>
 
->> User.first
+irb> User.first
 You have found an object!
 You have initialized an object!
 => #<User id: 1>
@@ -162,11 +164,13 @@ class User < ApplicationRecord
     puts "You have touched an object"
   end
 end
+```
 
->> u = User.create(name: 'Kuldeep')
+```irb
+irb> u = User.create(name: 'Kuldeep')
 => #<User id: 1, name: "Kuldeep", created_at: "2013-11-25 12:17:49", updated_at: "2013-11-25 12:17:49">
 
->> u.touch
+irb> u.touch
 You have touched an object
 => true
 ```
@@ -190,12 +194,13 @@ class Company < ApplicationRecord
       puts 'Employee/Company was touched'
     end
 end
+```
 
->> @employee = Employee.last
+```irb
+irb> @employee = Employee.last
 => #<Employee id: 1, company_id: 1, created_at: "2013-11-25 17:04:22", updated_at: "2013-11-25 17:05:05">
 
-# triggers @employee.company.touch
->> @employee.touch
+irb> @employee.touch # triggers @employee.company.touch
 An Employee was touched
 Employee/Company was touched
 => true
@@ -293,12 +298,14 @@ class Article < ApplicationRecord
     puts 'Article destroyed'
   end
 end
+```
 
->> user = User.first
+```irb
+irb> user = User.first
 => #<User id: 1>
->> user.articles.create!
+irb> user.articles.create!
 => #<Article id: 1, user_id: 1>
->> user.destroy
+irb> user.destroy
 Article destroyed
 => #<User id: 1>
 ```
@@ -475,13 +482,13 @@ class User < ApplicationRecord
     puts 'User was saved to database'
   end
 end
+```
 
-# prints nothing
->> @user = User.create
+```irb
+irb> @user = User.create # prints nothing
 
-# updating @user
->> @user.save
-=> User was saved to database
+irb> @user.save # updating @user
+User was saved to database
 ```
 
 There is also an alias for using the `after_commit` callback for both create and update together:
@@ -497,12 +504,12 @@ class User < ApplicationRecord
     puts 'User was saved to database'
   end
 end
+```
 
-# creating a User
->> @user = User.create
-=> User was saved to database
+```irb
+irb> @user = User.create # creating a User
+User was saved to database
 
-# updating @user
->> @user.save
-=> User was saved to database
+irb> @user.save # updating @user
+User was saved to database
 ```

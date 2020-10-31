@@ -368,22 +368,22 @@ Inside the `bin/rails console` you have access to the `app` and `helper` instanc
 
 With the `app` method you can access named route helpers, as well as do requests.
 
-```ruby
->> app.root_path
+```irb
+irb> app.root_path
 => "/"
 
->> app.get _
+irb> app.get _
 Started GET "/" for 127.0.0.1 at 2014-06-19 10:41:57 -0300
 ...
 ```
 
 With the `helper` method it is possible to access Rails and your application's helpers.
 
-```ruby
->> helper.time_ago_in_words 30.days.ago
+```irb
+irb> helper.time_ago_in_words 30.days.ago
 => "about 1 month"
 
->> helper.my_custom_helper
+irb> helper.my_custom_helper
 => "my custom helper"
 ```
 

@@ -822,8 +822,8 @@ constants.
 For example, if you're in a console session and edit some file behind the
 scenes, the code can be reloaded with the `reload!` command:
 
-```
-> reload!
+```irb
+irb> reload!
 ```
 
 When the application runs, code is reloaded when something relevant to this
@@ -1248,10 +1248,10 @@ warning: toplevel constant Image referenced by Hotel::Image
 
 This surprising constant resolution can be observed with any qualifying class:
 
-```
-2.1.5 :001 > String::Array
+```irb
+irb(main):001:0> String::Array
 (irb):1: warning: toplevel constant Array referenced by String::Array
- => Array
+=> Array
 ```
 
 WARNING. To find this gotcha the qualifying namespace has to be a class,

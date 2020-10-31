@@ -1077,8 +1077,7 @@ development:
 This will connect to the database named `blog_development` using the `postgresql` adapter. This same information can be stored in a URL and provided via an environment variable like this:
 
 ```ruby
-> puts ENV['DATABASE_URL']
-postgresql://localhost/blog_development?pool=5
+ENV['DATABASE_URL'] # => "postgresql://localhost/blog_development?pool=5"
 ```
 
 The `config/database.yml` file contains sections for three different environments in which Rails can run by default:

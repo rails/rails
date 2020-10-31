@@ -414,9 +414,8 @@ more information regarding this).
 Other plugins may add additional modules. You can get a list of all modules
 included into `ActionController::API` in the rails console:
 
-```bash
-$ bin/rails c
->> ActionController::API.ancestors - ActionController::Metal.ancestors
+```irb
+irb> ActionController::API.ancestors - ActionController::Metal.ancestors
 => [ActionController::API,
     ActiveRecord::Railties::ControllerRuntime,
     ActionDispatch::Routing::RouteSet::MountedHelpers,
