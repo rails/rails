@@ -81,7 +81,8 @@ class Hash
   #
   # This method is also aliased as +to_param+.
   def to_query(options = {})
-    if options.is_a?(Hash)
+    valid_options = Set[:namespace, :preserve_order].freeze
+    if options.is_a?(Hash) && options.all? { |key, _value| valid_options.include?(key) }
       # support newer contract with an options hash
       namespace = options[:namespace]
       preserve_order = options[:preserve_order]
