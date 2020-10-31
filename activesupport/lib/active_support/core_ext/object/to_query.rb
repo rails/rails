@@ -59,6 +59,8 @@ class Array
 end
 
 class Hash
+  @@valid_options_for_to_query = Set[:namespace, :preserve_order].freeze
+
   # Returns a string representation of the receiver suitable for use as a URL
   # query string:
   #
@@ -70,18 +72,32 @@ class Hash
   #   {name: 'David', nationality: 'Danish'}.to_query('user')
   #   # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
   #
-  # The string pairs "key=value" that conform the query string
-  # are sorted lexicographically in ascending order.
+  # An options hash can be passed in place of namespace,
+  # with support for the following keys:
+  #  :namespace, as described above
+  #  :preserve_order, to rely on existing hash ordering
+  #  for the string pairs "key=value"
+  #
+  # The string pairs "key=value" that form the query string
+  # are sorted lexicographically in ascending order by default.
   #
   # This method is also aliased as +to_param+.
-  def to_query(namespace = nil)
+  def to_query(options_or_namespace = nil)
+    if options_or_namespace.is_a?(Hash) && options_or_namespace.all? { |key, _value| @@valid_options_for_to_query.include?(key) }
+      # support newer contract with an options hash
+      namespace = options_or_namespace[:namespace]
+      preserve_order = options_or_namespace[:preserve_order]
+    else
+      # support older contract with a single namespace argument
+      namespace = options_or_namespace
+      preserve_order = false
+    end
     query = collect do |key, value|
       unless (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
         value.to_query(namespace ? "#{namespace}[#{key}]" : key)
       end
     end.compact
-
-    query.sort! unless namespace.to_s.include?("[]")
+    query.sort! unless preserve_order || namespace.to_s.include?("[]")
     query.join("&")
   end
 
