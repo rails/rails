@@ -114,8 +114,8 @@ class ToQueryTest < ActiveSupport::TestCase
   end
 
   def test_hash_as_a_key
-    inner = { weird_key: 'yes' }
-    weird_hash = { inner => 'my weird value' }
+    inner = { weird_key: "yes" }
+    weird_hash = { inner => "my weird value" }
     expected = "weird_key%3Dyes=my+weird+value"
     assert_equal expected, weird_hash.to_query
   end
