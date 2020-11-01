@@ -264,9 +264,11 @@ module ActionController
       def _extract_parameters(parameters)
         if include_only = _wrapper_options.include
           parameters.slice(*include_only)
+        elsif _wrapper_options.exclude
+          exclude = _wrapper_options.exclude + EXCLUDE_PARAMETERS
+          parameters.except(*exclude)
         else
-          exclude = _wrapper_options.exclude || []
-          parameters.except(*(exclude + EXCLUDE_PARAMETERS))
+          parameters.except(*EXCLUDE_PARAMETERS)
         end
       end
 
