@@ -36,7 +36,11 @@ export class AttachmentUpload {
   }
 
   get directUploadUrl() {
-    return this.element.dataset.directUploadUrl
+    const uploadUrl = this.element.dataset.directUploadUrl
+    if (!uploadUrl) {
+      throw new Error(`The field (${this.element}) is missing a directUploadUrl data value. Did you use a Rails helper to create this field?`)
+    }
+    return uploadUrl
   }
 
   get blobUrlTemplate() {
