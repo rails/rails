@@ -167,24 +167,6 @@ module ActiveRecord
         @@connection_handlers = handlers
       end
 
-      def self.current_shard # :nodoc:
-        connected_to_stack.reverse_each do |hash|
-          return hash[:shard] if hash[:shard] && hash[:klass] == Base
-          return hash[:shard] if hash[:shard] && hash[:klass] == abstract_base_class
-        end
-
-        default_shard
-      end
-
-      def self.current_preventing_writes # :nodoc:
-        connected_to_stack.reverse_each do |hash|
-          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klass] == Base
-          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klass] == abstract_base_class
-        end
-
-        false
-      end
-
       # Returns the symbol representing the current connected role.
       #
       #   ActiveRecord::Base.connected_to(role: :writing) do
@@ -204,6 +186,48 @@ module ActiveRecord
           end
 
           default_role
+        end
+      end
+
+
+      # Returns the symbol representing the current connected shard.
+      #
+      #   ActiveRecord::Base.connected_to(role: :reading) do
+      #     ActiveRecord::Base.current_shard #=> :default
+      #   end
+      #
+      #   ActiveRecord::Base.connected_to(role: :writing, shard: :one) do
+      #     ActiveRecord::Base.current_shard #=> :one
+      #   end
+      def self.current_shard
+        connected_to_stack.reverse_each do |hash|
+          return hash[:shard] if hash[:shard] && hash[:klass] == Base
+          return hash[:shard] if hash[:shard] && hash[:klass] == abstract_base_class
+        end
+
+        default_shard
+      end
+
+      # Returns the symbol representing the current setting for
+      # preventing writes.
+      #
+      #   ActiveRecord::Base.connected_to(role: :reading) do
+      #     ActiveRecord::Base.current_preventing_writes #=> true
+      #   end
+      #
+      #   ActiveRecord::Base.connected_to(role: :writing) do
+      #     ActiveRecord::Base.current_preventing_writes #=> false
+      #   end
+      def self.current_preventing_writes
+        if legacy_connection_handling
+          connection_handler.prevent_writes
+        else
+          connected_to_stack.reverse_each do |hash|
+            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klass] == Base
+            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klass] == abstract_base_class
+          end
+
+          false
         end
       end
 
