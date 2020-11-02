@@ -1,10 +1,10 @@
 *   Pass in `base` instead of `base_class` to Error.human_attribute_name
 
-    *Filipe Sabella*
-
     This is useful in cases where the `human_attribute_name` method depends
     on other attributes' values of the class under validation to derive what the
-    attirbute name should be.
+    attribute name should be.
+
+    *Filipe Sabella*
 
 *   Deprecate marshalling load from legacy attributes format.
 
