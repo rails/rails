@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
 *   Pass in `base` instead of `base_class` to Error.human_attribute_name
 
     This is useful in cases where the `human_attribute_name` method depends

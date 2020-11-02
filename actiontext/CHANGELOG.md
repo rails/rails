@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
 *   Declare `ActionText::FixtureSet.attachment` to generate an
     `<action-text-attachment sgid="..."></action-text-attachment>` element with
     a valid `sgid` attribute.

@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
 *   Yield translated strings to calls of `ActionView::FormBuilder#button`
     when a block is given.
 

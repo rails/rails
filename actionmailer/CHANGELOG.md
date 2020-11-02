@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
 *   Remove deprecated `ActionMailer::Base.receive` in favor of [Action Mailbox](https://github.com/rails/rails/tree/master/actionmailbox).
 
     *Rafael Mendonça França*

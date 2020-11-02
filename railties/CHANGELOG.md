@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
 *   Added `Railtie#server` hook called when Rails starts a server.
     This is useful in case your application or a library needs to run
     another process next to the Rails server. This is quite common in development

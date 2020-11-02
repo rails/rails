@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
 *   Updated `ActiveSupport::Cache::MemCacheStore` docs to reflect support for `$MEMCACHE_SERVERS`.
 
     *Sam Bostock*

@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
 *   Allow `ActionDispatch::HostAuthorization` to exclude specific requests.
 
     Host Authorization checks can be skipped for specific requests. This allows for health check requests to be permitted for requests with missing or non-matching host headers.

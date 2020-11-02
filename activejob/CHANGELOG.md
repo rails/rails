@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
 *   Recover nano precision when serializing `Time`, `TimeWithZone` and `DateTime` objects.
 
     *Alan Tan*

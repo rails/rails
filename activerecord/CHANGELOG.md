@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
 *   Add `connected_to_many` API.
 
     This API allows applications to connect to multiple databases at once without switching all of them or implementing a deeply nested stack.

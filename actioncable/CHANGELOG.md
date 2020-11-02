@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
 *   `ActionCable::Connection::Base` now allows intercepting unhandled exceptions
     with `rescue_from` before they are logged, which is useful for error reporting
     tools and other integrations.
