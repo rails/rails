@@ -1688,4 +1688,34 @@ class BasicsTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.legacy_connection_handling = old_value
   end
+
+  test "#connected_to_many doesn't work with legacy connection handling" do
+    old_value = ActiveRecord::Base.legacy_connection_handling
+    ActiveRecord::Base.legacy_connection_handling = true
+
+    assert_raises NotImplementedError do
+      ActiveRecord::Base.connected_to_many([AbstractCompany], role: :writing)
+    end
+  ensure
+    ActiveRecord::Base.legacy_connection_handling = old_value
+  end
+
+  test "#connected_to_many cannot be called on anything but ActiveRecord::Base" do
+    assert_raises NotImplementedError do
+      AbstractCompany.connected_to_many([AbstractCompany], role: :writing)
+    end
+  end
+
+  test "#connected_to_many cannot be called with classes that include ActiveRecord::Base" do
+    assert_raises NotImplementedError do
+      ActiveRecord::Base.connected_to_many([ActiveRecord::Base], role: :writing)
+    end
+  end
+
+  test "#connected_to_many sets prevent_writes if role is reading" do
+    ActiveRecord::Base.connected_to_many([AbstractCompany], role: :reading) do
+      assert AbstractCompany.current_preventing_writes
+      assert_not ActiveRecord::Base.current_preventing_writes
+    end
+  end
 end
