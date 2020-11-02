@@ -15,7 +15,7 @@ module ActiveSupport
 
       # Builds and returns output string.
       def serialize
-        parts, sign = normalize
+        parts = normalize
         return "PT0S" if parts.empty?
 
         output = +"P"
@@ -30,7 +30,7 @@ module ActiveSupport
           time << "#{sprintf(@precision ? "%0.0#{@precision}f" : '%g', parts[:seconds])}S"
         end
         output << "T#{time}" unless time.empty?
-        "#{sign}#{output}"
+        output
       end
 
       private
@@ -48,13 +48,7 @@ module ActiveSupport
             parts[:days] += parts.delete(:weeks) * SECONDS_PER_WEEK / SECONDS_PER_DAY
           end
 
-          # If all parts are negative - let's make a negative duration
-          sign = ""
-          if parts.values.all? { |v| v < 0 }
-            sign = "-"
-            parts.transform_values!(&:-@)
-          end
-          [parts, sign]
+          parts
         end
 
         def week_mixed_with_date?(parts)

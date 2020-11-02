@@ -618,12 +618,13 @@ class DurationTest < ActiveSupport::TestCase
       ["P1Y1M21D",      1.year + 1.month + 3.week        ],
       ["P1Y1M",         1.year + 1.month                 ],
       ["P1Y1M1D",       1.year + 1.month + 1.day         ],
-      ["-P1Y1D",        -1.year - 1.day                  ],
+      ["P-1Y-1D",       -1.year - 1.day                  ],
       ["P1Y-1DT-1S",    1.year - 1.day - 1.second        ], # Parts with different signs are exists in PostgreSQL interval datatype.
       ["PT1S",          1.second                         ],
       ["PT1.4S",        (1.4).seconds                    ],
       ["P1Y1M1DT1H",    1.year + 1.month + 1.day + 1.hour],
       ["PT0S",          0.minutes                        ],
+      ["PT-0.2S",       (-0.2).seconds                   ],
     ]
     expectations.each do |expected_output, duration|
       assert_equal expected_output, duration.iso8601, expected_output.inspect
@@ -651,7 +652,7 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_iso8601_output_and_reparsing
     patterns = %w[
-      P1Y P0.5Y P0,5Y P1Y1M P1Y0.5M P1Y0,5M P1Y1M1D P1Y1M0.5D P1Y1M0,5D P1Y1M1DT1H P1Y1M1DT0.5H P1Y1M1DT0,5H P1W +P1Y -P1Y
+      P1Y P0.5Y P0,5Y P1Y1M P1Y0.5M P1Y0,5M P1Y1M1D P1Y1M0.5D P1Y1M0,5D P1Y1M1DT1H P1Y1M1DT0.5H P1Y1M1DT0,5H P1W +P1Y -P1Y P-1Y
       P1Y1M1DT1H1M P1Y1M1DT1H0.5M P1Y1M1DT1H0,5M P1Y1M1DT1H1M1S P1Y1M1DT1H1M1.0S P1Y1M1DT1H1M1,0S P-1Y-2M3DT-4H-5M-6S
     ]
     # That could be weird, but if we parse P1Y1M0.5D and output it to ISO 8601, we'll get P1Y1MT12.0H.

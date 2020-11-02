@@ -1,3 +1,24 @@
+*   Calling `iso8601` on negative durations retains the negative sign on individual
+    digits instead of prepending it.
+
+    This change is required so we can interoperate with PostgreSQL, which prefers
+    negative signs for each component.
+
+    Compatibility with other iso8601 parsers which support leading negatives as well
+    as negatives per component is still retained.
+
+    Before:
+
+        (-1.year - 1.day).iso8601
+        # => "-P1Y1D"
+
+    After:
+
+        (-1.year - 1.day).iso8601
+        # => "P-1Y-1D"
+
+    *Vipul A M*
+
 *   Remove deprecated `ActiveSupport::Notifications::Instrumenter#end=`.
 
     *Rafael Mendonça França*
