@@ -202,7 +202,7 @@ module ActiveRecord
     # method.
     def while_preventing_writes(enabled = true, &block)
       if legacy_connection_handling
-        connection_handler.while_preventing_writes(enabled)
+        connection_handler.while_preventing_writes(enabled, &block)
       else
         connected_to(role: current_role, prevent_writes: enabled, &block)
       end
