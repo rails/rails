@@ -890,6 +890,8 @@ module ActiveRecord
       #   rename_index :people, 'index_people_on_last_name', 'index_users_on_last_name'
       #
       def rename_index(table_name, old_name, new_name)
+        old_name = old_name.to_s
+        new_name = new_name.to_s
         validate_index_length!(table_name, new_name)
 
         # this is a naive implementation; some DBs may support this more efficiently (PostgreSQL, for instance)
