@@ -436,6 +436,11 @@ in controllers and views. This defaults to `false`.
   controls whether a record fails validation if `belongs_to` association is not
   present.
 
+* `config.active_record.action_on_strict_loading_violation` enables raising or
+  logging an exception if strict_loading is set on an association. The default
+  value is `:raise` in all environments. It can be changed to `:log` to send
+  violations to the logger instead of raising.
+
 * `config.active_record.strict_loading_by_default` is a boolean value
   that either enables or disables strict_loading mode by default.
   Defaults to `false`.

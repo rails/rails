@@ -1,3 +1,11 @@
+*   Add option to raise or log for `ActiveRecord::StrictLoadingViolationError`.
+
+    Some applications may not want to raise an error in production if using `strict_loading`. This would allow an application to set strict loading to log for the production environment while still raising in development and test environments.
+
+    Set `config.active_record.action_on_strict_loading_violation` to `:log` errors instead of raising.
+
+    *Eileen M. Uchitelle*
+
 *   Allow the inverse of a `has_one` association that was previously autosaved to be loaded.
 
     Fixes #34255.

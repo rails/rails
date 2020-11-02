@@ -208,11 +208,11 @@ module ActiveRecord
       private
         def find_target
           if owner.strict_loading?
-            raise StrictLoadingViolationError, "#{owner.class} is marked as strict_loading and #{klass} cannot be lazily loaded."
+            Base.strict_loading_violation!(owner: owner.class, association: klass)
           end
 
           if reflection.strict_loading?
-            raise StrictLoadingViolationError, "The #{reflection.name} association is marked as strict_loading and cannot be lazily loaded."
+            Base.strict_loading_violation!(owner: owner.class, association: reflection.name)
           end
 
           scope = self.scope

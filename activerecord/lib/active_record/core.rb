@@ -133,6 +133,12 @@ module ActiveRecord
 
       class_attribute :belongs_to_required_by_default, instance_accessor: false
 
+      ##
+      # :singleton-method:
+      # Set the application to log or raise when an association violates strict loading.
+      # Defaults to :raise.
+      mattr_accessor :action_on_strict_loading_violation, instance_accessor: false, default: :raise
+
       class_attribute :strict_loading_by_default, instance_accessor: false, default: false
 
       mattr_accessor :writing_role, instance_accessor: false, default: :writing
@@ -263,6 +269,17 @@ module ActiveRecord
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
       self.default_role = writing_role
       self.default_shard = :default
+
+      def self.strict_loading_violation!(owner:, association:) # :nodoc:
+        case action_on_strict_loading_violation
+        when :raise
+          message = "`#{association}` called on `#{owner}` is marked for strict_loading and cannot be lazily loaded."
+          raise ActiveRecord::StrictLoadingViolationError.new(message)
+        when :log
+          name = "strict_loading_violation.active_record"
+          ActiveSupport::Notifications.instrument(name, owner: owner, association: association)
+        end
+      end
     end
 
     module ClassMethods
