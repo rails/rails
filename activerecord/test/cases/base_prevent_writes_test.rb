@@ -87,6 +87,12 @@ class BasePreventWritesTest < ActiveRecord::TestCase
 
       assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
     end
+
+    test "current_preventing_writes" do
+      ActiveRecord::Base.while_preventing_writes do
+        assert ActiveRecord::Base.current_preventing_writes, "expected connection current_preventing_writes to return true"
+      end
+    end
   end
 
   class BasePreventWritesLegacyTest < ActiveRecord::TestCase
@@ -211,6 +217,12 @@ class BasePreventWritesTest < ActiveRecord::TestCase
         end
 
         assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
+      end
+    end
+
+    test "current_preventing_writes" do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
+        assert ActiveRecord::Base.current_preventing_writes, "expected connection current_preventing_writes to return true"
       end
     end
   end
