@@ -106,7 +106,7 @@ module ActiveSupport
     def initialize(secret, digest: nil, serializer: nil)
       raise ArgumentError, "Secret should not be nil." unless secret
       @secret = secret
-      @digest = digest || "SHA1"
+      @digest = digest || "SHA256"
       @serializer = serializer || Marshal
     end
 
