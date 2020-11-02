@@ -1,3 +1,27 @@
+*   Add `connected_to_many` API.
+
+    This API allows applications to connect to multiple databases at once without switching all of them or implementing a deeply nested stack.
+
+    Before:
+
+      AnimalsRecord.connected_to(role: :reading) do
+        MealsRecord.connected_to(role: :reading) do
+          Dog.first # read from animals replica
+          Dinner.first # read from meals replica
+          Person.first # read from primary writer
+        end
+      end
+
+    After:
+
+      ActiveRecord::Base.connected_to_many([AnimalsRecord, MealsRecord], role: :reading) do
+        Dog.first # read from animals replica
+        Dinner.first # read from meals replica
+        Person.first # read from primary writer
+      end
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Add option to raise or log for `ActiveRecord::StrictLoadingViolationError`.
 
     Some applications may not want to raise an error in production if using `strict_loading`. This would allow an application to set strict loading to log for the production environment while still raising in development and test environments.

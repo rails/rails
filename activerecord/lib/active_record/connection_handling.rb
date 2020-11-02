@@ -172,6 +172,36 @@ module ActiveRecord
       end
     end
 
+    # Connects a role and/or shard to the provided connection names. Optionally `prevent_writes`
+    # can be passed to block writes on a connection. `reading` will automatically set
+    # `prevent_writes` to true.
+    #
+    # `connected_to_many` is an alternative to deeply nested `connected_to` blocks.
+    #
+    # Usage:
+    #
+    #   ActiveRecord::Base.connected_to(AnimalsRecord, MealsRecord], role: :reading) do
+    #     Dog.first # Read from animals replica
+    #     Dinner.first # Read from meals replica
+    #     Person.first # Read from primary writer
+    #   end
+    def connected_to_many(classes, role:, shard: nil, prevent_writes: false)
+      if legacy_connection_handling
+        raise NotImplementedError, "connected_to_many is not available with legacy connection handling"
+      end
+
+      if self != Base || classes.include?(Base)
+        raise NotImplementedError, "connected_to_many can only be called on ActiveRecord::Base."
+      end
+
+      prevent_writes = true if role == reading_role
+
+      connected_to_stack << { role: role, shard: shard, prevent_writes: prevent_writes, klasses: classes }
+      yield
+    ensure
+      connected_to_stack.pop
+    end
+
     # Use a specified connection.
     #
     # This method is useful for ensuring that a specific connection is
@@ -186,7 +216,7 @@ module ActiveRecord
 
       prevent_writes = true if role == reading_role
 
-      self.connected_to_stack << { role: role, shard: shard, prevent_writes: prevent_writes, klass: self }
+      self.connected_to_stack << { role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self] }
     end
 
     # Prevent writing to the database regardless of role.
@@ -341,12 +371,12 @@ module ActiveRecord
         if ActiveRecord::Base.legacy_connection_handling
           with_handler(role.to_sym) do
             connection_handler.while_preventing_writes(prevent_writes) do
-              self.connected_to_stack << { shard: shard, klass: self }
+              self.connected_to_stack << { shard: shard, klasses: [self] }
               yield
             end
           end
         else
-          self.connected_to_stack << { role: role, shard: shard, prevent_writes: prevent_writes, klass: self }
+          self.connected_to_stack << { role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self] }
           return_value = yield
           return_value.load if return_value.is_a? ActiveRecord::Relation
           return_value

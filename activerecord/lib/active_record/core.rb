@@ -187,14 +187,13 @@ module ActiveRecord
           connection_handlers.key(connection_handler) || default_role
         else
           connected_to_stack.reverse_each do |hash|
-            return hash[:role] if hash[:role] && hash[:klass] == Base
-            return hash[:role] if hash[:role] && hash[:klass] == abstract_base_class
+            return hash[:role] if hash[:role] && hash[:klasses].include?(Base)
+            return hash[:role] if hash[:role] && hash[:klasses].include?(abstract_base_class)
           end
 
           default_role
         end
       end
-
 
       # Returns the symbol representing the current connected shard.
       #
@@ -207,8 +206,8 @@ module ActiveRecord
       #   end
       def self.current_shard
         connected_to_stack.reverse_each do |hash|
-          return hash[:shard] if hash[:shard] && hash[:klass] == Base
-          return hash[:shard] if hash[:shard] && hash[:klass] == abstract_base_class
+          return hash[:shard] if hash[:shard] && hash[:klasses].include?(Base)
+          return hash[:shard] if hash[:shard] && hash[:klasses].include?(abstract_base_class)
         end
 
         default_shard
@@ -229,8 +228,8 @@ module ActiveRecord
           connection_handler.prevent_writes
         else
           connected_to_stack.reverse_each do |hash|
-            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klass] == Base
-            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klass] == abstract_base_class
+            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
+            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(abstract_base_class)
           end
 
           false
