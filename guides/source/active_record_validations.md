@@ -23,9 +23,13 @@ Here's an example of a very simple validation:
 class Person < ApplicationRecord
   validates :name, presence: true
 end
+```
 
-Person.create(name: "John Doe").valid? # => true
-Person.create(name: nil).valid? # => false
+```irb
+irb> Person.create(name: "John Doe").valid?
+=> true
+irb> Person.create(name: nil).valid?
+=> false
 ```
 
 As you can see, our validation lets us know that our `Person` is not valid
@@ -85,17 +89,17 @@ end
 
 We can see how it works by looking at some `bin/rails console` output:
 
-```ruby
->> p = Person.new(name: "John Doe")
+```irb
+irb> p = Person.new(name: "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
 
->> p.new_record?
+irb> p.new_record?
 => true
 
->> p.save
+irb> p.save
 => true
 
->> p.new_record?
+irb> p.new_record?
 => false
 ```
 
@@ -168,9 +172,13 @@ As you saw above:
 class Person < ApplicationRecord
   validates :name, presence: true
 end
+```
 
-Person.create(name: "John Doe").valid? # => true
-Person.create(name: nil).valid? # => false
+```irb
+irb> Person.create(name: "John Doe").valid?
+=> true
+irb> Person.create(name: nil).valid?
+=> false
 ```
 
 After Active Record has performed validations, any errors found can be accessed
@@ -182,34 +190,36 @@ Note that an object instantiated with `new` will not report errors
 even if it's technically invalid, because validations are automatically run
 only when the object is saved, such as with the `create` or `save` methods.
 
-```ruby
+```
 class Person < ApplicationRecord
   validates :name, presence: true
 end
+```
 
->> p = Person.new
-# => #<Person id: nil, name: nil>
->> p.errors.size
-# => 0
+```irb
+irb> p = Person.new
+=> #<Person id: nil, name: nil>
+irb> p.errors.size
+=> 0
 
->> p.valid?
-# => false
->> p.errors.objects.first.full_message
-# => "Name can't be blank"
+irb> p.valid?
+=> false
+irb> p.errors.objects.first.full_message
+=> "Name can't be blank"
 
->> p = Person.create
-# => #<Person id: nil, name: nil>
->> p.errors.objects.first.full_message
-# => "Name can't be blank"
+irb> p = Person.create
+=> #<Person id: nil, name: nil>
+irb> p.errors.objects.first.full_message
+=> "Name can't be blank"
 
->> p.save
-# => false
+irb> p.save
+=> false
 
->> p.save!
-# => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+irb> p.save!
+ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 
->> Person.create!
-# => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+irb> Person.create!
+ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 `invalid?` is the inverse of `valid?`. It triggers your validations,
@@ -232,9 +242,13 @@ whether there are errors found on an individual attribute of the object.
 class Person < ApplicationRecord
   validates :name, presence: true
 end
+```
 
->> Person.new.errors[:name].any? # => false
->> Person.create.errors[:name].any? # => true
+```irb
+irb> Person.new.errors[:name].any?
+=> false
+irb> Person.create.errors[:name].any?
+=> true
 ```
 
 We'll cover validation errors in greater depth in the [Working with Validation
@@ -774,9 +788,13 @@ empty string for example.
 class Topic < ApplicationRecord
   validates :title, length: { is: 5 }, allow_blank: true
 end
+```
 
-Topic.create(title: "").valid?  # => true
-Topic.create(title: nil).valid? # => true
+```irb
+irb> Topic.create(title: "").valid?
+=> true
+irb> Topic.create(title: nil).valid?
+=> true
 ```
 
 ### `:message`
@@ -847,12 +865,16 @@ class Person < ApplicationRecord
   validates :email, uniqueness: true, on: :account_setup
   validates :age, numericality: true, on: :account_setup
 end
+```
 
-person = Person.new(age: 'thirty-three')
-person.valid? # => true
-person.valid?(:account_setup) # => false
-person.errors.messages
- # => {:email=>["has already been taken"], :age=>["is not a number"]}
+```irb
+irb> person = Person.new(age: 'thirty-three')
+irb> person.valid?
+=> true
+irb> person.valid?(:account_setup)
+=> false
+irb> person.errors.messages
+=> {:email=>["has already been taken"], :age=>["is not a number"]}
 ```
 
 `person.valid?(:account_setup)` executes both the validations without saving
@@ -868,11 +890,14 @@ class Person < ApplicationRecord
   validates :age, numericality: true, on: :account_setup
   validates :name, presence: true
 end
+```
 
-person = Person.new
-person.valid?(:account_setup) # => false
-person.errors.messages
- # => {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can't be blank"]}
+```irb
+irb> person = Person.new
+irb> person.valid?(:account_setup)
+=> false
+irb> person.errors.messages
+=> {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can't be blank"]}
 ```
 
 Strict Validations
@@ -885,8 +910,11 @@ You can also specify validations to be strict and raise
 class Person < ApplicationRecord
   validates :name, presence: { strict: true }
 end
+```
 
-Person.new.valid?  # => ActiveModel::StrictValidationFailed: Name can't be blank
+```irb
+irb> Person.new.valid?
+ActiveModel::StrictValidationFailed: Name can't be blank
 ```
 
 There is also the ability to pass a custom exception to the `:strict` option.
@@ -895,8 +923,11 @@ There is also the ability to pass a custom exception to the `:strict` option.
 class Person < ApplicationRecord
   validates :token, presence: true, uniqueness: true, strict: TokenGenerationException
 end
+```
 
-Person.new.valid?  # => TokenGenerationException: Token can't be blank
+```irb
+irb> Person.new.valid?
+TokenGenerationException: Token can't be blank
 ```
 
 Conditional Validation
@@ -1099,15 +1130,20 @@ each error is represented by an `ActiveModel::Error` object.
 class Person < ApplicationRecord
   validates :name, presence: true, length: { minimum: 3 }
 end
+```
 
-person = Person.new
-person.valid? # => false
-person.errors.full_messages
- # => ["Name can't be blank", "Name is too short (minimum is 3 characters)"]
+```irb
+irb> person = Person.new
+irb> person.valid?
+=> false
+irb> person.errors.full_messages
+=> ["Name can't be blank", "Name is too short (minimum is 3 characters)"]
 
-person = Person.new(name: "John Doe")
-person.valid? # => true
-person.errors.full_messages # => []
+irb> person = Person.new(name: "John Doe")
+irb> person.valid?
+=> true
+irb> person.errors.full_messages
+=> []
 ```
 
 ### `errors[]`
@@ -1118,19 +1154,26 @@ person.errors.full_messages # => []
 class Person < ApplicationRecord
   validates :name, presence: true, length: { minimum: 3 }
 end
+```
 
-person = Person.new(name: "John Doe")
-person.valid? # => true
-person.errors[:name] # => []
+```irb>
+irb> person = Person.new(name: "John Doe")
+irb> person.valid?
+=> true
+irb> person.errors[:name]
+=> []
 
-person = Person.new(name: "JD")
-person.valid? # => false
-person.errors[:name] # => ["is too short (minimum is 3 characters)"]
+irb> person = Person.new(name: "JD")
+irb> person.valid?
+=> false
+irb> person.errors[:name]
+=> ["is too short (minimum is 3 characters)"]
 
-person = Person.new
-person.valid? # => false
-person.errors[:name]
- # => ["can't be blank", "is too short (minimum is 3 characters)"]
+irb> person = Person.new
+irb> person.valid?
+=> false
+irb> person.errors[:name]
+=> ["can't be blank", "is too short (minimum is 3 characters)"]
 ```
 
 ### `errors.where` and error object
@@ -1143,27 +1186,41 @@ Sometimes we may need more information about each error beside its message. Each
 class Person < ApplicationRecord
   validates :name, presence: true, length: { minimum: 3 }
 end
+```
 
-person = Person.new
-person.valid? # => false
+```irb
+irb> person = Person.new
+irb> person.valid?
+=> false
 
->> person.errors.where(:name) # errors linked to :name attribute
->> person.errors.where(:name, :too_short) # further filtered to only :too_short type error
+irb> person.errors.where(:name)
+=> [ ... ] # all errors for :name attribute
+
+irb> person.errors.where(:name, :too_short)
+=> [ ... ] # :too_short errors for :name attribute
 ```
 
 You can read various information from these error objects:
 
-```ruby
->> error = person.errors.where(:name).last
->> error.attribute # => :name
->> error.type # => :too_short
->> error.options[:count] # => 3
+```irb
+irb> error = person.errors.where(:name).last
+
+irb> error.attribute
+=> :name
+irb> error.type
+=> :too_short
+irb> error.options[:count]
+=> 3
 ```
 
 You can also generate the error message:
 
->> error.message # => "is too short (minimum is 3 characters)"
->> error.full_message # => "Name is too short (minimum is 3 characters)"
+```irb
+irb> error.message
+=> "is too short (minimum is 3 characters)"
+irb> error.full_message
+=> "Name is too short (minimum is 3 characters)"
+```
 
 The `full_message` method generates a more user-friendly message, with the capitalized attribute name prepended.
 
@@ -1177,10 +1234,14 @@ class Person < ApplicationRecord
     errors.add :name, :too_plain, message: "is not cool enough"
   end
 end
+```
 
-person = Person.create
-person.errors.where(:name).first.type # => :too_plain
-person.errors.where(:name).first.full_message # => "Name is not cool enough"
+```irb
+irb> person = Person.create
+irb> person.errors.where(:name).first.type
+=> :too_plain
+irb> person.errors.where(:name).first.full_message
+=> "Name is not cool enough"
 ```
 
 ### `errors[:base]`
@@ -1193,9 +1254,12 @@ class Person < ApplicationRecord
     errors.add :base, :invalid, message: "This person is invalid because ..."
   end
 end
+```
 
-person = Person.create
-person.errors.where(:base).first.full_message # => "This person is invalid because ..."
+```irb
+irb> person = Person.create
+irb> person.errors.where(:base).first.full_message
+=> "This person is invalid because ..."
 ```
 
 ### `errors.clear`
@@ -1206,17 +1270,24 @@ The `clear` method is used when you intentionally want to clear the `errors` col
 class Person < ApplicationRecord
   validates :name, presence: true, length: { minimum: 3 }
 end
+```
 
-person = Person.new
-person.valid? # => false
-person.errors.empty? # => false
+```irb
+irb> person = Person.new
+irb> person.valid?
+=> false
+irb> person.errors.empty?
+=> false
 
-person.errors.clear
-person.errors.empty? # => true
+irb> person.errors.clear
+irb> person.errors.empty?
+=> true
 
-person.save # => false
+irb> person.save
+=> false
 
-person.errors.empty? # => false
+irb> person.errors.empty?
+=> false
 ```
 
 ### `errors.size`
@@ -1227,14 +1298,20 @@ The `size` method returns the total number of errors for the object.
 class Person < ApplicationRecord
   validates :name, presence: true, length: { minimum: 3 }
 end
+```
 
-person = Person.new
-person.valid? # => false
-person.errors.size # => 2
+```irb
+irb> person = Person.new
+irb> person.valid?
+=> false
+irb> person.errors.size
+=> 2
 
-person = Person.new(name: "Andrea", email: "andrea@example.com")
-person.valid? # => true
-person.errors.size # => 0
+irb> person = Person.new(name: "Andrea", email: "andrea@example.com")
+irb> person.valid?
+=> true
+irb> person.errors.size
+=> 0
 ```
 
 Displaying Validation Errors in Views

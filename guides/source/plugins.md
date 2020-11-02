@@ -137,8 +137,8 @@ To test that your method does what it says it does, run the unit tests with `bin
 
 To see this in action, change to the `test/dummy` directory, start `bin/rails console`, and commence squawking:
 
-```ruby
->> "Hello World".to_squawk
+```irb
+irb> "Hello World".to_squawk
 => "squawk! Hello World"
 ```
 

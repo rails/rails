@@ -439,8 +439,8 @@ If you'd rather play around in the console, `bin/rails console` will also work j
 like a Rails application. Remember: the `Article` model is namespaced, so to
 reference it you must call it as `Blorgh::Article`.
 
-```ruby
->> Blorgh::Article.find(1)
+```irb
+irb> Blorgh::Article.find(1)
 => #<Blorgh::Article id: 1 ...>
 ```
 

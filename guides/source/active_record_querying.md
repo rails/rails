@@ -138,10 +138,10 @@ Active Record provides several different ways of retrieving a single object.
 
 Using the `find` method, you can retrieve the object corresponding to the specified _primary key_ that matches any supplied options. For example:
 
-```ruby
+```irb
 # Find the customer with primary key (id) 10.
-customer = Customer.find(10)
-# => #<Customer id: 10, first_name: "Ryan">
+irb> customer = Customer.find(10)
+=> #<Customer id: 10, first_name: "Ryan">
 ```
 
 The SQL equivalent of the above is:
@@ -154,10 +154,10 @@ The `find` method will raise an `ActiveRecord::RecordNotFound` exception if no m
 
 You can also use this method to query for multiple objects. Call the `find` method and pass in an array of primary keys. The return will be an array containing all of the matching records for the supplied _primary keys_. For example:
 
-```ruby
+```irb
 # Find the customers with primary keys 1 and 10.
-customers = Customer.find([1, 10]) # Or even Customer.find(1, 10)
-# => [#<Customer id: 1, first_name: "Lifo">, #<Customer id: 10, first_name: "Ryan">]
+irb> customers = Customer.find([1, 10]) # OR Customer.find(1, 10)
+=> [#<Customer id: 1, first_name: "Lifo">, #<Customer id: 10, first_name: "Ryan">]
 ```
 
 The SQL equivalent of the above is:
@@ -172,9 +172,9 @@ WARNING: The `find` method will raise an `ActiveRecord::RecordNotFound` exceptio
 
 The `take` method retrieves a record without any implicit ordering. For example:
 
-```ruby
-customer = Customer.take
-# => #<Customer id: 1, first_name: "Lifo">
+```irb
+irb> customer = Customer.take
+=> #<Customer id: 1, first_name: "Lifo">
 ```
 
 The SQL equivalent of the above is:
@@ -187,12 +187,9 @@ The `take` method returns `nil` if no record is found and no exception will be r
 
 You can pass in a numerical argument to the `take` method to return up to that number of results. For example
 
-```ruby
-customers = Customer.take(2)
-# => [
-#   #<Customer id: 1, first_name: "Lifo">,
-#   #<Customer id: 220, first_name: "Sara">
-# ]
+```irb
+irb> customers = Customer.take(2)
+=> [#<Customer id: 1, first_name: "Lifo">, #<Customer id: 220, first_name: "Sara">]
 ```
 
 The SQL equivalent of the above is:
@@ -209,9 +206,9 @@ TIP: The retrieved record may vary depending on the database engine.
 
 The `first` method finds the first record ordered by primary key (default). For example:
 
-```ruby
-customer = Customer.first
-# => #<Customer id: 1, first_name: "Lifo">
+```irb
+irb> customer = Customer.first
+=> #<Customer id: 1, first_name: "Lifo">
 ```
 
 The SQL equivalent of the above is:
@@ -226,13 +223,9 @@ If your [default scope](active_record_querying.html#applying-a-default-scope) co
 
 You can pass in a numerical argument to the `first` method to return up to that number of results. For example
 
-```ruby
-customers = Customer.first(3)
-# => [
-#   #<Customer id: 1, first_name: "Lifo">,
-#   #<Customer id: 2, first_name: "Fifo">,
-#   #<Customer id: 3, first_name: "Filo">
-# ]
+```irb
+irb> customers = Customer.first(3)
+=> [#<Customer id: 1, first_name: "Lifo">, #<Customer id: 2, first_name: "Fifo">, #<Customer id: 3, first_name: "Filo">]
 ```
 
 The SQL equivalent of the above is:
@@ -243,9 +236,9 @@ SELECT * FROM customers ORDER BY customers.id ASC LIMIT 3
 
 On a collection that is ordered using `order`, `first` will return the first record ordered by the specified attribute for `order`.
 
-```ruby
-customer = Customer.order(:first_name).first
-# => #<Customer id: 2, first_name: "Fifo">
+```irb
+irb> customer = Customer.order(:first_name).first
+=> #<Customer id: 2, first_name: "Fifo">
 ```
 
 The SQL equivalent of the above is:
@@ -260,9 +253,9 @@ The `first!` method behaves exactly like `first`, except that it will raise `Act
 
 The `last` method finds the last record ordered by primary key (default). For example:
 
-```ruby
-customer = Customer.last
-# => #<Customer id: 221, first_name: "Russel">
+```irb
+irb> customer = Customer.last
+=> #<Customer id: 221, first_name: "Russel">
 ```
 
 The SQL equivalent of the above is:
@@ -277,13 +270,9 @@ If your [default scope](active_record_querying.html#applying-a-default-scope) co
 
 You can pass in a numerical argument to the `last` method to return up to that number of results. For example
 
-```ruby
-customers = Customer.last(3)
-# => [
-#   #<Customer id: 219, first_name: "James">,
-#   #<Customer id: 220, first_name: "Sara">,
-#   #<Customer id: 221, first_name: "Russel">
-# ]
+```irb
+irb> customers = Customer.last(3)
+=> [#<Customer id: 219, first_name: "James">, #<Customer id: 220, first_name: "Sara">, #<Customer id: 221, first_name: "Russel">]
 ```
 
 The SQL equivalent of the above is:
@@ -294,9 +283,9 @@ SELECT * FROM customers ORDER BY customers.id DESC LIMIT 3
 
 On a collection that is ordered using `order`, `last` will return the last record ordered by the specified attribute for `order`.
 
-```ruby
-customer = Customer.order(:first_name).last
-# => #<Customer id: 220, first_name: "Sara">
+```irb
+irb> customer = Customer.order(:first_name).last
+=> #<Customer id: 220, first_name: "Sara">
 ```
 
 The SQL equivalent of the above is:
@@ -311,12 +300,12 @@ The `last!` method behaves exactly like `last`, except that it will raise `Activ
 
 The `find_by` method finds the first record matching some conditions. For example:
 
-```ruby
-Customer.find_by first_name: 'Lifo'
-# => #<Customer id: 1, first_name: "Lifo">
+```irb
+irb> Customer.find_by first_name: 'Lifo'
+=> #<Customer id: 1, first_name: "Lifo">
 
-Customer.find_by first_name: 'Jon'
-# => nil
+irb> Customer.find_by first_name: 'Jon'
+=> nil
 ```
 
 It is equivalent to writing:
@@ -333,9 +322,9 @@ SELECT * FROM customers WHERE (customers.first_name = 'Lifo') LIMIT 1
 
 The `find_by!` method behaves exactly like `find_by`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found. For example:
 
-```ruby
-Customer.find_by! first_name: 'does not exist'
-# => ActiveRecord::RecordNotFound
+```irb
+irb> Customer.find_by! first_name: 'does not exist'
+ActiveRecord::RecordNotFound
 ```
 
 This is equivalent to writing:
@@ -681,9 +670,9 @@ Customer.order("orders_count ASC", "created_at DESC")
 
 If you want to call `order` multiple times, subsequent orders will be appended to the first:
 
-```ruby
-Customer.order("orders_count ASC").order("created_at DESC")
-# SELECT * FROM customers ORDER BY orders_count ASC, created_at DESC
+```irb
+irb> Customer.order("orders_count ASC").order("created_at DESC")
+SELECT * FROM customers ORDER BY orders_count ASC, created_at DESC
 ```
 
 WARNING: In most database systems, on selecting fields with `distinct` from a result set using methods like `select`, `pluck` and `ids`; the `order` method will raise an `ActiveRecord::StatementInvalid` exception unless the field(s) used in `order` clause are included in the select list. See the next section for selecting fields from the result set.
@@ -732,11 +721,11 @@ SELECT DISTINCT last_name FROM customers
 You can also remove the uniqueness constraint:
 
 ```ruby
+# Returns unique last_names
 query = Customer.select(:last_name).distinct
-# => Returns unique last_names
 
+# Returns all last_names, even if there are duplicates
 query.distinct(false)
-# => Returns all last_names, even if there are duplicates
 ```
 
 Limit and Offset
@@ -793,9 +782,9 @@ GROUP BY created_at
 
 To get the total of grouped items on a single query, call `count` after the `group`.
 
-```ruby
-Order.group(:status).count
-# => { 'being_packed' => 7, 'shipped' => 12 }
+```irb
+irb> Order.group(:status).count
+=> {"being_packed"=>7, "shipped"=>12}
 ```
 
 The SQL that would be executed would be something like this:
@@ -1387,15 +1376,17 @@ end
 
 To call this `out_of_print` scope we can call it on either the class:
 
-```ruby
-Book.out_of_print # => [all books out of print]
+```irb
+irb> Book.out_of_print
+=> #<ActiveRecord::Relation> # all out of print books
 ```
 
 Or on an association consisting of `Book` objects:
 
-```ruby
-author = Author.first
-author.books.out_of_print # => [all out of print books by this author]
+```irb
+irb> author = Author.first
+irb> author.books.out_of_print
+=> #<ActiveRecord::Relation> # all out of print books by `author`
 ```
 
 Scopes are also chainable within scopes:
@@ -1419,8 +1410,8 @@ end
 
 Call the scope as if it were a class method:
 
-```ruby
-Book.costs_more_than(100.10)
+```irb
+irb> Book.costs_more_than(100.10)
 ```
 
 However, this is just duplicating the functionality that would be provided to you by a class method.
@@ -1435,8 +1426,8 @@ end
 
 These methods will still be accessible on the association objects:
 
-```ruby
-author.books.costs_more_than(100.10)
+```irb
+irb> author.books.costs_more_than(100.10)
 ```
 
 ### Using conditionals
@@ -1498,9 +1489,13 @@ updating a record. E.g.:
 class Book < ApplicationRecord
   default_scope { where(out_of_print: false) }
 end
+```
 
-Book.new          # => #<Book id: nil, out_of_print: false>
-Book.unscoped.new # => #<Book id: nil, out_of_print: nil>
+```irb
+irb> Book.new
+=> #<Book id: nil, out_of_print: false>
+irb> Book.unscoped.new
+=> #<Book id: nil, out_of_print: nil>
 ```
 
 Be aware that, when given in the `Array` format, `default_scope` query arguments
@@ -1510,8 +1505,11 @@ cannot be converted to a `Hash` for default attribute assignment. E.g.:
 class Book < ApplicationRecord
   default_scope { where("out_of_print = ?", false) }
 end
+```
 
-Book.new # => #<Book id: nil, out_of_print: nil>
+```irb
+irb> Book.new
+=> #<Book id: nil, out_of_print: nil>
 ```
 
 ### Merging of scopes
@@ -1526,25 +1524,27 @@ class Book < ApplicationRecord
   scope :recent, -> { where('year_published >= ?', Date.current.year - 50 )}
   scope :old, -> { where('year_published < ?', Date.current.year - 50 )}
 end
+```
 
-Book.out_of_print.old
-# SELECT books.* FROM books WHERE books.out_of_print = 'true' AND books.year_published < 1969
+```irb
+irb> Book.out_of_print.old
+SELECT books.* FROM books WHERE books.out_of_print = 'true' AND books.year_published < 1969
 ```
 
 We can mix and match `scope` and `where` conditions and the final SQL
 will have all conditions joined with `AND`.
 
-```ruby
-Book.in_print.where('price < 100')
-# SELECT books.* FROM books WHERE books.out_of_print = 'false' AND books.price < 100
+```irb
+irb> Book.in_print.where('price < 100')
+SELECT books.* FROM books WHERE books.out_of_print = 'false' AND books.price < 100
 ```
 
 If we do want the last `where` clause to win then `Relation#merge` can
 be used.
 
-```ruby
-Book.in_print.merge(Book.out_of_print)
-# SELECT books.* FROM books WHERE books.out_of_print = true
+```irb
+irb> Book.in_print.merge(Book.out_of_print)
+SELECT books.* FROM books WHERE books.out_of_print = true
 ```
 
 One important caveat is that `default_scope` will be prepended in
@@ -1557,15 +1557,17 @@ class Book < ApplicationRecord
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
 end
+```
 
-Book.all
-# SELECT books.* FROM books WHERE (year_published >= 1969)
+```irb
+irb> Book.all
+SELECT books.* FROM books WHERE (year_published >= 1969)
 
-Book.in_print
-# SELECT books.* FROM books WHERE (year_published >= 1969) AND books.out_of_print = true
+irb> Book.in_print
+SELECT books.* FROM books WHERE (year_published >= 1969) AND books.out_of_print = true
 
-Book.where('price > 50')
-# SELECT books.* FROM books WHERE (year_published >= 1969) AND (price > 50)
+irb> Book.where('price > 50')
+SELECT books.* FROM books WHERE (year_published >= 1969) AND (price > 50)
 ```
 
 As you can see above the `default_scope` is being merged in both
@@ -1583,21 +1585,19 @@ Book.unscoped.load
 
 This method removes all scoping and will do a normal query on the table.
 
-```ruby
-Book.unscoped.all
-# SELECT books.* FROM books
+```irb
+irb> Book.unscoped.all
+SELECT books.* FROM books
 
-Book.where(out_of_print: true).unscoped.all
-# SELECT books.* FROM books
+irb> Book.where(out_of_print: true).unscoped.all
+SELECT books.* FROM books
 ```
 
 `unscoped` can also accept a block:
 
-```ruby
-Book.unscoped {
-  Book.out_of_print
-}
-# SELECT books.* FROM books WHERE books.out_of_print
+```irb
+irb> Book.unscoped { Book.out_of_print }
+SELECT books.* FROM books WHERE books.out_of_print
 ```
 
 Dynamic Finders
@@ -1637,34 +1637,31 @@ end
 
 These [scopes](#scopes) are created automatically and can be used to find all objects with or wihout a particular value for `status`:
 
-```ruby
-Order.shipped
-# finds all orders with status == :shipped
-Order.not_shipped
-# finds all orders with status != :shipped
-...
+```irb
+irb> Order.shipped
+=> #<ActiveRecord::Relation> # all orders with status == :shipped
+irb> Order.not_shipped
+=> #<ActiveRecord::Relation> # all orders with status != :shipped
 ```
 
 These instace methods are created automatically and query whether the model has that value for the `status` enum:
 
-```ruby
-order = Order.first
-order.shipped?
-# Returns true if status == :shipped
-order.complete?
-# Returns true if status == :complete
-...
+```irb
+irb> order = Order.shipped.first
+irb> order.shipped?
+=> true
+irb> order.complete?
+=> false
 ```
 
 These instance methods are created automatically and will first update the value of `status` to the named value
  and then query whether or not the status has been successfully set to the value:
 
-```ruby
-order = Order.first
-order.shipped!
-# =>  UPDATE "orders" SET "status" = ?, "updated_at" = ? WHERE "orders"."id" = ?  [["status", 0], ["updated_at", "2019-01-24 07:13:08.524320"], ["id", 1]]
-# => true
-...
+```irb
+irb> order = Order.first
+irb> order.shipped!
+UPDATE "orders" SET "status" = ?, "updated_at" = ? WHERE "orders"."id" = ?  [["status", 0], ["updated_at", "2019-01-24 07:13:08.524320"], ["id", 1]]
+=> true
 ```
 
 Full documentation about enums can be found [here](https://api.rubyonrails.org/classes/ActiveRecord/Enum.html).
@@ -1737,9 +1734,9 @@ The `find_or_create_by` method checks whether a record with the specified attrib
 
 Suppose you want to find a customer named 'Andy', and if there's none, create one. You can do so by running:
 
-```ruby
-Customer.find_or_create_by(first_name: 'Andy')
-# => #Customer id: 5, first_name: "Andy", last_name: nil, title: nil, visits: 0, orders_count: nil, lock_version: 0, created_at: "2019-01-17 07:06:45", updated_at: "2019-01-17 07:06:45"
+```irb
+irb> Customer.find_or_create_by(first_name: 'Andy')
+=> #<Customer id: 5, first_name: "Andy", last_name: nil, title: nil, visits: 0, orders_count: nil, lock_version: 0, created_at: "2019-01-17 07:06:45", updated_at: "2019-01-17 07:06:45">
 ```
 
 The SQL generated by this method looks like this:
@@ -1787,9 +1784,9 @@ validates :orders_count, presence: true
 
 to your `Customer` model. If you try to create a new `Customer` without passing an `orders_count`, the record will be invalid and an exception will be raised:
 
-```ruby
-Customer.find_or_create_by!(first_name: 'Andy')
-# => ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
+```irb
+irb> Customer.find_or_create_by!(first_name: 'Andy')
+ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
 ```
 
 ### `find_or_initialize_by`
@@ -1800,15 +1797,15 @@ means that a new model instance will be created in memory but won't be
 saved to the database. Continuing with the `find_or_create_by` example, we
 now want the customer named 'Nina':
 
-```ruby
-nina = Customer.find_or_initialize_by(first_name: 'Nina')
-# => #<Customer id: nil, first_name: "Nina", orders_count: 0, locked: true, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
+```irb
+irb> nina = Customer.find_or_initialize_by(first_name: 'Nina')
+=> #<Customer id: nil, first_name: "Nina", orders_count: 0, locked: true, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
 
-nina.persisted?
-# => false
+irb> nina.persisted?
+=> false
 
-nina.new_record?
-# => true
+irb> nina.new_record?
+=> true
 ```
 
 Because the object is not yet stored in the database, the SQL generated looks like this:
@@ -1819,9 +1816,9 @@ SELECT * FROM customers WHERE (customers.first_name = 'Nina') LIMIT 1
 
 When you want to save it to the database, just call `save`:
 
-```ruby
-nina.save
-# => true
+```irb
+irb> nina.save
+=> true
 ```
 
 Finding by SQL
@@ -1829,15 +1826,9 @@ Finding by SQL
 
 If you'd like to use your own SQL to find records in a table you can use `find_by_sql`. The `find_by_sql` method will return an array of objects even if the underlying query returns just a single record. For example you could run this query:
 
-```ruby
-Customer.find_by_sql("SELECT * FROM customers
-  INNER JOIN orders ON customers.id = orders.customer_id
-  ORDER BY customers.created_at desc")
-# =>  [
-#   #<Customer id: 1, first_name: "Lucas" ...>,
-#   #<Customer id: 2, first_name: "Jan" ...>,
-#   ...
-# ]
+```irb
+irb> Customer.find_by_sql("SELECT * FROM customers INNER JOIN orders ON customers.id = orders.customer_id ORDER BY customers.created_at desc")
+=> [#<Customer id: 1, first_name: "Lucas" ...>, #<Customer id: 2, first_name: "Jan" ...>, ...]
 ```
 
 `find_by_sql` provides you with a simple way of making custom calls to the database and retrieving instantiated objects.
@@ -1849,30 +1840,27 @@ objects from the database using custom SQL just like `find_by_sql` but will not 
 This method will return an instance of `ActiveRecord::Result` class and calling `to_a` on this
 object would return you an array of hashes where each hash indicates a record.
 
-```ruby
-Customer.connection.select_all("SELECT first_name, created_at FROM customers WHERE id = '1'").to_hash
-# => [
-#   {"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"},
-#   {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}
-# ]
+```irb
+irb> Customer.connection.select_all("SELECT first_name, created_at FROM customers WHERE id = '1'").to_hash
+=> [{"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"}, {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}]
 ```
 
 ### `pluck`
 
 `pluck` can be used to query single or multiple columns from the underlying table of a model. It accepts a list of column names as an argument and returns an array of values of the specified columns with the corresponding data type.
 
-```ruby
-Book.where(out_of_print: true).pluck(:id)
-# SELECT id FROM books WHERE out_of_print = false
-# => [1, 2, 3]
+```irb
+irb> Book.where(out_of_print: true).pluck(:id)
+SELECT id FROM books WHERE out_of_print = false
+=> [1, 2, 3]
 
-Order.distinct.pluck(:status)
-# SELECT DISTINCT status FROM orders
-# => ['shipped', 'being_packed', 'cancelled']
+irb> Order.distinct.pluck(:status)
+SELECT DISTINCT status FROM orders
+=> ["shipped", "being_packed", "cancelled"]
 
-Customer.pluck(:id, :first_name)
-# SELECT customers.id, customers.name FROM customers
-# => [[1, 'David'], [2, 'Fran'], [3, 'Jose']]
+irb> Customer.pluck(:id, :first_name)
+SELECT customers.id, customers.name FROM customers
+=> [[1, "David"], [2, "Fran"], [3, "Jose"]]
 ```
 
 `pluck` makes it possible to replace code like:
@@ -1904,63 +1892,66 @@ class Customer < ApplicationRecord
     "I am #{first_name}"
   end
 end
+```
 
-Customer.select(:first_name).map &:name
-# => ["I am David", "I am Jeremy", "I am Jose"]
+```irb
+irb> Customer.select(:first_name).map &:name
+=> ["I am David", "I am Jeremy", "I am Jose"]
 
-Customer.pluck(:first_name)
-# => ["David", "Jeremy", "Jose"]
+irb> Customer.pluck(:first_name)
+=> ["David", "Jeremy", "Jose"]
 ```
 
 You are not limited to querying fields from a single table, you can query multiple tables as well.
 
-```
-Order.joins(:customer, :books).pluck("orders.created_at, customers.email,  books.title")
+```irb
+irb> Order.joins(:customer, :books).pluck("orders.created_at, customers.email,  books.title")
 ```
 
 Furthermore, unlike `select` and other `Relation` scopes, `pluck` triggers an immediate
 query, and thus cannot be chained with any further scopes, although it can work with
 scopes already constructed earlier:
 
-```ruby
-Customer.pluck(:first_name).limit(1)
-# => NoMethodError: undefined method `limit' for #<Array:0x007ff34d3ad6d8>
+```irb
+irb> Customer.pluck(:first_name).limit(1)
+NoMethodError: undefined method `limit' for #<Array:0x007ff34d3ad6d8>
 
-Customer.limit(1).pluck(:first_name)
-# => ["David"]
+irb> Customer.limit(1).pluck(:first_name)
+=> ["David"]
 ```
 
 NOTE: You should also know that using `pluck` will trigger eager loading if the relation object contains include values, even if the eager loading is not necessary for the query. For example:
 
-```ruby
-# store association for reusing it
-assoc = Customer.includes(:reviews)
-assoc.pluck(:id)
-# SELECT "customers"."id" FROM "customers" LEFT OUTER JOIN "reviews" ON "reviews"."id" = "customers"."review_id"
+```irb
+irb> assoc = Customer.includes(:reviews)
+irb> assoc.pluck(:id)
+SELECT "customers"."id" FROM "customers" LEFT OUTER JOIN "reviews" ON "reviews"."id" = "customers"."review_id"
 ```
 
 One way to avoid this is to `unscope` the includes:
 
-```ruby
-assoc.unscope(:includes).pluck(:id)
+```irb
+irb> assoc.unscope(:includes).pluck(:id)
 ```
 
 ### `ids`
 
 `ids` can be used to pluck all the IDs for the relation using the table's primary key.
 
-```ruby
-Customer.ids
-# SELECT id FROM customers
+```irb
+irb> Customer.ids
+SELECT id FROM customers
 ```
 
 ```ruby
 class Customer < ApplicationRecord
   self.primary_key = "customer_id"
 end
+```
 
-Customer.ids
-# SELECT customer_id FROM customers
+```irb
+irb> Customer.ids
+SELECT customer_id FROM customers
 ```
 
 Existence of Objects
@@ -2025,22 +2016,22 @@ This section uses `count` as an example method in this preamble, but the options
 
 All calculation methods work directly on a model:
 
-```ruby
-Customer.count
-# SELECT COUNT(*) FROM customers
+```irb
+irb> Customer.count
+SELECT COUNT(*) FROM customers
 ```
 
 Or on a relation:
 
-```ruby
-Customer.where(first_name: 'Ryan').count
-# SELECT COUNT(*) FROM customers WHERE (first_name = 'Ryan')
+```irb
+irb> Customer.where(first_name: 'Ryan').count
+SELECT COUNT(*) FROM customers WHERE (first_name = 'Ryan')
 ```
 
 You can also use various finder methods on a relation for performing complex calculations:
 
-```ruby
-Customer.includes("orders").where(first_name: 'Ryan', orders: { status: 'shipped' }).count
+```irb
+irb> Customer.includes("orders").where(first_name: 'Ryan', orders: { status: 'shipped' }).count
 ```
 
 Which will execute:
