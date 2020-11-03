@@ -1,3 +1,6 @@
-APP_PATH = File.expand_path('../config/application', __dir__)
+unless defined?(APP_PATH)
+  APP_PATH = File.expand_path('../config/application', __dir__)
+end
+
 require_relative "../config/boot"
 require "rails/commands"
