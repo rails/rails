@@ -40,6 +40,13 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_equal expected.path, e.path
   end
 
+  def test_depend_on_message
+    e = assert_raises(LoadError) do
+      ActiveSupport::Dependencies.depend_on "omgwtfbbq"
+    end
+    assert_equal "No such file to load -- omgwtfbbq.rb", e.message
+  end
+
   def test_require_dependency_accepts_an_object_which_implements_to_path
     o = Object.new
     def o.to_path; "dependencies/service_one"; end
