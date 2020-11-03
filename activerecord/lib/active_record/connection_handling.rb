@@ -180,12 +180,14 @@ module ActiveRecord
     #
     # Usage:
     #
-    #   ActiveRecord::Base.connected_to(AnimalsRecord, MealsRecord], role: :reading) do
+    #   ActiveRecord::Base.connected_to_many(AnimalsRecord, MealsRecord, role: :reading) do
     #     Dog.first # Read from animals replica
     #     Dinner.first # Read from meals replica
     #     Person.first # Read from primary writer
     #   end
-    def connected_to_many(classes, role:, shard: nil, prevent_writes: false)
+    def connected_to_many(*classes, role:, shard: nil, prevent_writes: false)
+      classes = classes.flatten
+
       if legacy_connection_handling
         raise NotImplementedError, "connected_to_many is not available with legacy connection handling"
       end

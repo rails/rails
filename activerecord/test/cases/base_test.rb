@@ -1718,4 +1718,19 @@ class BasicsTest < ActiveRecord::TestCase
       assert_not ActiveRecord::Base.current_preventing_writes
     end
   end
+
+  test "#connected_to_many with a single argument for classes" do
+    ActiveRecord::Base.connected_to_many(AbstractCompany, role: :reading) do
+      assert AbstractCompany.current_preventing_writes
+      assert_not ActiveRecord::Base.current_preventing_writes
+    end
+  end
+
+  test "#connected_to_many with a multiple classes without brackets works" do
+    ActiveRecord::Base.connected_to_many(AbstractCompany, FirstAbstractClass, role: :reading) do
+      assert AbstractCompany.current_preventing_writes
+      assert FirstAbstractClass.current_preventing_writes
+      assert_not ActiveRecord::Base.current_preventing_writes
+    end
+  end
 end
