@@ -462,4 +462,11 @@ class ValidationsTest < ActiveModel::TestCase
     assert_predicate t, :invalid?
     assert_equal ["Title is missing. You have failed me for the last time, Admiral."], t.errors[:title]
   end
+
+  def test_absent_attribute
+    Topic.validates :i_dont_exist, presence: true
+    assert_raises(ActiveModel::AbsentAttributeError) do
+      Topic.new.valid?
+    end
+  end
 end
