@@ -665,14 +665,14 @@
 
     *Ryuta Kamizono*
 
-*   Inspect time attributes with subsec.
+*   Inspect time attributes with subsec and time zone offset.
 
     ```ruby
     p Knot.create
-    => #<Knot id: 1, created_at: "2016-05-05 01:29:47.116928000">
+    => #<Knot id: 1, created_at: "2016-05-05 01:29:47.116928000 +0000">
     ```
 
-    *akinomaeni*
+    *akinomaeni*, *Jonathan Hefner*
 
 *   Deprecate passing a column to `type_cast`.
 
