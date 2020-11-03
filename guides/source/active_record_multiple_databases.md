@@ -361,11 +361,12 @@ using sharding both a `role` and `shard` must be passed:
 
 ```ruby
 ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
-  @id = Person.create! # creates a record in shard one
+  @id = Person.create! # Creates a record in shard default
 end
 
 ActiveRecord::Base.connected_to(role: :writing, shard: :shard_one) do
-  Person.find(@id) # can't find record, doesn't exist
+  Person.find(@id) # Can't find record, doesn't exist because it was created
+                   # in the default shard
 end
 ```
 
@@ -374,7 +375,7 @@ role and the shard with the `connected_to` API.
 
 ```ruby
 ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
-  Person.first # lookup record from read replica of shard one
+  Person.first # Lookup record from read replica of shard one
 end
 ```
 
