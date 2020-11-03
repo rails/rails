@@ -399,8 +399,11 @@ module ActiveModel
     #       @data[key]
     #     end
     #   end
-    alias :read_attribute_for_validation :send
-
+    def read_attribute_for_validation(attr)
+      raise AbsentAttributeError.new(self, attr) unless self.respond_to?(attr)
+      send(attr)
+    end
+    
   private
     def run_validations!
       _run_validate_callbacks
@@ -429,6 +432,27 @@ module ActiveModel
       @model = model
       errors = @model.errors.full_messages.join(", ")
       super(I18n.t(:"#{@model.class.i18n_scope}.errors.messages.model_invalid", errors: errors, default: :"errors.messages.model_invalid"))
+    end
+  end
+
+  # Raised when an attribute is not present for validation.
+  #
+  #   class Person
+  #     include ActiveModel::Validations
+  #
+  #     validates_presence_of :missing_attribute
+  #   end
+  #
+  #   person = Person.new
+  #   person.name = 'Charles'
+  #   person.valid?
+  #   # => ActiveModel::AbsentAttributeError: Attribute missing_attribute does not exist for Person.
+  class AbsentAttributeError < StandardError
+    attr_reader :record, :attribute
+
+    def initialize(record, attribute)
+      @attribute = attribute
+      super("Attribute #{attribute} does not exist for #{record.class}.")
     end
   end
 end
