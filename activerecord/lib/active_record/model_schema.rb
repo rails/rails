@@ -303,7 +303,7 @@ module ActiveRecord
       # has been deployed and run. Using this two step approach to dropping columns ensures there
       # is no code that raises errors due to having a cached schema in memory at the time the
       # schema migration is run.
-
+      #
       # For example, given a model where you want to drop the "category" attribute, first mark it
       # as ignored:
       #
