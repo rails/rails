@@ -851,6 +851,15 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_array
+    @continent = Continent.new
+    @continent.countries = ["Africa", "Europe"]
+    assert_dom_equal(
+      %(<select name="continent[countries]" id="continent_countries"><option selected="selected" value="Africa">Africa</option>\n<option selected="selected" value="Europe">Europe</option>\n<option value="America">America</option></select>),
+      select("continent", "countries", %W(Africa Europe America), { multiple: true })
+    )
+  end
+
   def test_required_select
     assert_dom_equal(
       %(<select id="post_category" name="post[category]" required="required"><option value="" label=" "></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
