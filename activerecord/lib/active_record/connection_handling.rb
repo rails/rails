@@ -132,9 +132,7 @@ module ActiveRecord
     #   ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one_replica) do
     #     Dog.first # finds first Dog record stored on the shard one replica
     #   end
-    #
-    # The database kwarg is deprecated and will be removed in 6.2.0 without replacement.
-    def connected_to(database: nil, role: nil, shard: nil, prevent_writes: false, &blk)
+    def connected_to(role: nil, shard: nil, prevent_writes: false, &blk)
       if legacy_connection_handling
         if self != Base
           raise NotImplementedError, "`connected_to` can only be called on ActiveRecord::Base with legacy connection handling."
@@ -145,31 +143,15 @@ module ActiveRecord
         end
       end
 
-      if database && (role || shard)
-        raise ArgumentError, "`connected_to` cannot accept a `database` argument with any other arguments."
-      elsif database
-        ActiveSupport::Deprecation.warn("The database key in `connected_to` is deprecated. It will be removed in Rails 6.2.0 without replacement.")
-
-        if database.is_a?(Hash)
-          role, database = database.first
-          role = role.to_sym
-        end
-
-        db_config, owner_name = resolve_config_for_connection(database)
-        handler = lookup_connection_handler(role)
-
-        handler.establish_connection(db_config, owner_name: owner_name, role: role)
-
-        with_handler(role, &blk)
-      elsif role || shard
-        unless role
-          raise ArgumentError, "`connected_to` cannot accept a `shard` argument without a `role`."
-        end
-
-        with_role_and_shard(role, shard, prevent_writes, &blk)
-      else
+      unless role || shard
         raise ArgumentError, "must provide a `shard` and/or `role`."
       end
+
+      unless role
+        raise ArgumentError, "`connected_to` cannot accept a `shard` argument without a `role`."
+      end
+
+      with_role_and_shard(role, shard, prevent_writes, &blk)
     end
 
     # Connects a role and/or shard to the provided connection names. Optionally `prevent_writes`
