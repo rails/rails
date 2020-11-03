@@ -296,6 +296,18 @@ class InverseHasOneTests < ActiveRecord::TestCase
     assert_equal human.name, face.human.name, "Name of human should be the same after changes to replaced-child-owned instance"
   end
 
+  def test_child_instance_should_be_shared_with_replaced_via_accessor_parent
+    human = Human.first
+    face = Face.create!(description: "haunted", human: Human.last)
+    face.human = human
+    assert_equal face, human.face
+    assert_equal face.description, human.face.description, "Description of the face should be the same before changes to child instance"
+    face.description = "Bongo"
+    assert_equal face.description, human.face.description, "Description of the face should be the same after changes to chield instance"
+    human.face.description = "Mungo"
+    assert_equal face.description, human.face.description, "Description of the face should be the same after changes to replaced-parent-owned instance"
+  end
+
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Human.first.confused_face }
   end
