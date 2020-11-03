@@ -862,7 +862,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_gem "spring"
     assert_file "bin/spring", %r{^\s*require "spring/binstub"}
-    assert_file "config/boot.rb", %r{^\s*load .+\bbin/spring"}
+    assert_file "bin/rails", %r{^\s*load .+"spring"}
+    assert_file "bin/rake", %r{^\s*load .+"spring"}
     assert_file("config/environments/test.rb") do |contents|
       assert_match("config.cache_classes = false", contents)
       assert_match("config.action_view.cache_template_loading = true", contents)
@@ -893,7 +894,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file("config/environments/test.rb") do |contents|
       assert_match("config.cache_classes = true", contents)
     end
-    assert_file "config/boot.rb" do |contents|
+    assert_file "bin/rails" do |contents|
+      assert_no_match %r{spring}, contents
+    end
+    assert_file "bin/rake" do |contents|
       assert_no_match %r{spring}, contents
     end
   end
