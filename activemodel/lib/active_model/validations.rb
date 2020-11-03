@@ -403,7 +403,7 @@ module ActiveModel
       raise AbsentAttributeError.new(self, attr) unless self.respond_to?(attr)
       send(attr)
     end
-    
+
   private
     def run_validations!
       _run_validate_callbacks
