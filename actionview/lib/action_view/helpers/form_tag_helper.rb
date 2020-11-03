@@ -167,8 +167,8 @@ module ActionView
       # * <tt>:size</tt> - The number of visible characters that will fit in the input.
       # * <tt>:maxlength</tt> - The maximum number of characters that the browser will allow the user to enter.
       # * <tt>:placeholder</tt> - The text contained in the field by default which is removed when the field receives focus.
-      #   If set to true, use a translation is found in the current I18n locale
-      #   (through helpers.placeholders.<modelname>.<attribute>).
+      #   If set to true, use the translation found in the current I18n locale
+      #   (through helpers.placeholder.<modelname>.<attribute>).
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
