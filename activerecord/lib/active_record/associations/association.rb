@@ -131,6 +131,11 @@ module ActiveRecord
       end
 
       def inversed_from(record)
+        self.target = record
+        @inversed = !!record
+      end
+
+      def inversed_from_queries(record)
         if inversable?(record)
           self.target = record
           @inversed = true
@@ -138,7 +143,6 @@ module ActiveRecord
           @inversed = false
         end
       end
-      alias :inversed_from_queries :inversed_from
 
       # Returns the class of the target. belongs_to polymorphic overrides this to look at the
       # polymorphic_type field on the owner.
