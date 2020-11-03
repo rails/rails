@@ -403,8 +403,8 @@ It's also possible to swap connections granularly for shards.
 
 ```ruby
 AnimalsRecord.connected_to(role: :reading, shard: :shard_one) do
-  Dog.first # Will read from shard_one_replica. If no connection exists for
-  shard_one_replica, a ConnectionNotEstablished error will be raised
+  Dog.first # Will read from shard_one_replica. If no connection exists for shard_one_replica,
+  # a ConnectionNotEstablished error will be raised
   Person.first # Will read from primary writer
 end
 ```
