@@ -20,6 +20,50 @@ class Author < ActiveRecord::Base
       Rating.joins(:comment).merge(self)
     end
   end
+
+  has_many :comments_with_order, -> { ordered_by_post_id }, through: :posts, source: :comments
+  has_many :no_joins_comments, through: :posts, disable_joins: :true, source: :comments
+
+  has_many :comments_with_foreign_key, through: :posts, source: :comments, foreign_key: :post_id
+  has_many :no_joins_comments_with_foreign_key, through: :posts, disable_joins: :true, source: :comments, foreign_key: :post_id
+
+  has_many :members,
+    through: :comments_with_order,
+    source: :origin,
+    source_type: "Member"
+
+  has_many :no_joins_members,
+    through: :comments_with_order,
+    source: :origin,
+    source_type: "Member",
+    disable_joins: true
+
+  has_many :ordered_members,
+    -> { order(id: :desc) },
+    through: :comments_with_order,
+    source: :origin,
+    source_type: "Member"
+
+  has_many :no_joins_ordered_members,
+    -> { order(id: :desc) },
+    through: :comments_with_order,
+    source: :origin,
+    source_type: "Member",
+    disable_joins: true
+
+  has_many :ratings, through: :comments
+  has_many :good_ratings,
+    -> { where("ratings.value > 5") },
+    through: :comments,
+    source: :ratings
+
+  has_many :no_joins_ratings, through: :no_joins_comments, disable_joins: :true, source: :ratings
+  has_many :no_joins_good_ratings,
+    -> { where("ratings.value > 5") },
+    through: :comments,
+    source: :ratings,
+    disable_joins: true
+
   has_many :comments_containing_the_letter_e, through: :posts, source: :comments
   has_many :comments_with_order_and_conditions, -> { order("comments.body").where("comments.body like 'Thank%'") }, through: :posts, source: :comments
   has_many :comments_with_include, -> { includes(:post).where(posts: { type: "Post" }) }, through: :posts, source: :comments

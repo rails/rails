@@ -37,6 +37,9 @@ class Member < ActiveRecord::Base
 
   belongs_to :admittable, polymorphic: true
   has_one :premium_club, through: :admittable
+
+  scope :unnamed, -> { where(name: nil)  }
+  scope :with_member_type_id, -> (id) { where(member_type_id: id) }
 end
 
 class SelfMember < ActiveRecord::Base

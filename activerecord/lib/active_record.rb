@@ -93,6 +93,7 @@ module ActiveRecord
 
     autoload :Relation
     autoload :AssociationRelation
+    autoload :DisableJoinsAssociationRelation
     autoload :NullRelation
 
     autoload_under "relation" do

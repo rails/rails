@@ -33,7 +33,7 @@ module ActiveRecord
     # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
     # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
     class Association #:nodoc:
-      attr_reader :owner, :target, :reflection
+      attr_reader :owner, :target, :reflection, :disable_joins
 
       delegate :options, to: :reflection
 
@@ -41,6 +41,7 @@ module ActiveRecord
         reflection.check_validity!
 
         @owner, @reflection = owner, reflection
+        @disable_joins = @reflection.options[:disable_joins] || false
 
         reset
         reset_scope
@@ -97,7 +98,9 @@ module ActiveRecord
       end
 
       def scope
-        if (scope = klass.current_scope) && scope.try(:proxy_association) == self
+        if disable_joins
+          DisableJoinsAssociationScope.create.scope(self)
+        elsif (scope = klass.current_scope) && scope.try(:proxy_association) == self
           scope.spawn
         elsif scope = klass.global_current_scope
           target_scope.merge!(association_scope).merge!(scope)
@@ -250,7 +253,11 @@ module ActiveRecord
         # actually gets built.
         def association_scope
           if klass
-            @association_scope ||= AssociationScope.scope(self)
+            @association_scope ||= if disable_joins
+              DisableJoinsAssociationScope.scope(self)
+            else
+              AssociationScope.scope(self)
+            end
           end
         end
 
