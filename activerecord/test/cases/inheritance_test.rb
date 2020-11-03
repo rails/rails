@@ -320,7 +320,6 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_new_with_abstract_class
     e = assert_raises(NotImplementedError) do
-
       AbstractCompany.new
     end
     assert_equal("AbstractCompany is an abstract class and cannot be instantiated.", e.message)
