@@ -317,7 +317,11 @@ module ActiveRecord
           end
           raise
         ensure
-          if !error && transaction
+          if error
+            # @connection still holds an open transaction, so we must not
+            # put it back in the pool for reuse
+            @connection.discard! unless transaction.state.rolledback?
+          elsif transaction
             if Thread.current.status == "aborting"
               rollback_transaction
             else
