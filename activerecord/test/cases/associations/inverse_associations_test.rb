@@ -509,6 +509,24 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_not_predicate human.interests, :loaded?
   end
 
+  def test_find_on_child_instance_with_id_should_set_inverse_instances
+    human = Human.create!
+    interest = Interest.create!(human: human)
+
+    child = human.interests.find(interest.id)
+    assert_predicate child.association(:human), :loaded?
+  end
+
+  def test_find_on_child_instances_with_ids_should_set_inverse_instances
+    human = Human.create!
+    interests = Array.new(2) { Interest.create!(human: human) }
+
+    children = human.interests.find(interests.pluck(:id))
+    children.each do |child|
+      assert_predicate child.association(:human), :loaded?
+    end
+  end
+
   def test_raise_record_not_found_error_when_invalid_ids_are_passed
     # delete all interest records to ensure that hard coded invalid_id(s)
     # are indeed invalid.
