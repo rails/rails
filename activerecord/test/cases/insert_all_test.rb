@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/author"
 require "models/book"
+require "models/cart"
 require "models/speedometer"
 require "models/subscription"
 require "models/subscriber"
@@ -208,6 +209,33 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_and_upsert_all_works_with_composite_primary_keys_when_unique_by_is_provided
+    skip unless supports_insert_conflict_target?
+
+    assert_difference "Cart.count", 2 do
+      Cart.insert_all [{ id: 1, shop_id: 1, title: "My cart" }], unique_by: [:shop_id, :id]
+
+      Cart.upsert_all [{ id: 3, shop_id: 2, title: "My other cart" }], unique_by: [:shop_id, :id]
+    end
+
+    error = assert_raises ArgumentError do
+      Cart.insert_all! [{ id: 2, shop_id: 1, title: "My cart" }]
+    end
+    assert_match "No unique index found for id", error.message
+  end
+
+  def test_insert_all_and_upsert_all_works_with_composite_primary_keys_when_unique_by_is_not_provided
+    skip unless supports_insert_on_duplicate_skip? && !supports_insert_conflict_target?
+
+    assert_difference "Cart.count", 3 do
+      Cart.insert_all [{ id: 1, shop_id: 1, title: "My cart" }]
+
+      Cart.insert_all! [{ id: 2, shop_id: 1, title: "My cart 2" }]
+
+      Cart.upsert_all [{ id: 3, shop_id: 2, title: "My other cart" }]
+    end
+  end
+
   def test_insert_logs_message_including_model_name
     skip unless supports_insert_conflict_target?
 
@@ -260,8 +288,18 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal "New edition", Book.find(1).name
   end
 
-  def test_upsert_all_updates_existing_record_by_configured_primary_key
-    skip unless supports_insert_on_duplicate_update?
+  def test_upsert_all_does_notupdates_existing_record_by_when_there_is_no_key
+    skip unless supports_insert_on_duplicate_update? && !supports_insert_conflict_target?
+
+    Speedometer.create!(speedometer_id: "s3", name: "Very fast")
+
+    Speedometer.upsert_all [{ speedometer_id: "s3", name: "New Speedometer" }]
+
+    assert_equal "Very fast", Speedometer.find("s3").name
+  end
+
+  def test_upsert_all_updates_existing_record_by_configured_primary_key_fails_when_database_supports_insert_conflict_target
+    skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target?
 
     error = assert_raises ArgumentError do
       Speedometer.upsert_all [{ speedometer_id: "s1", name: "New Speedometer" }]
