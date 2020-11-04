@@ -467,6 +467,10 @@ in controllers and views. This defaults to `false`.
 * `config.active_record.has_many_inversing` enables setting the inverse record
   when traversing `belongs_to` to `has_many` associations.
 
+* `config.active_record.legacy_connection_handling` allows to enable new connection
+   handling API. For applications using multiple databases, this new API provides
+   support for granular connection swapping.
+
 * `config.active_record.destroy_association_async_job` allows specifying the job that will be used to destroy the associated records in background. It defaults to `ActiveRecord::DestroyAssociationAsyncJob`.
 
 * `config.active_record.queues.destroy` allows specifying the Active Job queue to use for destroy jobs. It defaults to `:active_record_destroy`.
@@ -1010,6 +1014,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 #### For '6.1', defaults from previous versions below and:
 
 - `config.active_record.has_many_inversing`: `true`
+- `config.active_record.legacy_connection_handling`: `false`
 - `config.active_storage.track_variants`: `true`
 - `config.active_job.retry_jitter`: `0.15`
 - `config.active_job.skip_after_callbacks_if_terminated`: `true`
@@ -1062,6 +1067,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_job.skip_after_callbacks_if_terminated`: `false`
 - `config.active_record.collection_cache_versioning`: `false`
 - `config.active_record.has_many_inversing`: `false`
+- `config.active_record.legacy_connection_handling`: `true`
 - `config.active_support.use_authenticated_message_encryption`: `false`
 - `config.active_support.hash_digest_class`: `::Digest::MD5`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
