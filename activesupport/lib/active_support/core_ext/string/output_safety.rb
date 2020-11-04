@@ -40,6 +40,16 @@ class ERB
     end
     module_function :unwrapped_html_escape
 
+    # A utility method for unescaping HTML tag characters.
+    #
+    #   puts html_unescape('is a &gt; 0 &amp; a &lt; 10?')
+    #   # => is a > 0 & a < 10?
+    def html_unescape(s) # :nodoc:
+      s = s.to_s
+      CGI.unescapeHTML(ActiveSupport::Multibyte::Unicode.tidy_bytes(s))
+    end
+    module_function :html_unescape
+
     # A utility method for escaping HTML without affecting existing escaped entities.
     #
     #   html_escape_once('1 < 2 &amp; 3')
