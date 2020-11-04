@@ -152,6 +152,16 @@ ActiveRecord::Schema.define do
 
   create_table :carriers, force: true
 
+  create_table :carts, force: true, primary_key: [:shop_id, :id] do |t|
+    if current_adapter?(:Mysql2Adapter)
+      t.bigint :id, index: true, auto_increment: true, null: false
+    else
+      t.bigint :id, index: true, null: false
+    end
+    t.bigint :shop_id
+    t.string :title
+  end
+
   create_table :categories, force: true do |t|
     t.string :name, null: false
     t.string :type
