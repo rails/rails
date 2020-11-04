@@ -19,6 +19,14 @@ class MemoryStoreTest < ActiveSupport::TestCase
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
+
+  def test_large_string_with_default_compression_settings
+    assert_uncompressed(LARGE_STRING)
+  end
+
+  def test_large_object_with_default_compression_settings
+    assert_uncompressed(LARGE_OBJECT)
+  end
 end
 
 class MemoryStorePruningTest < ActiveSupport::TestCase

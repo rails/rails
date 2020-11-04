@@ -196,6 +196,14 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_large_string_with_default_compression_settings
+    assert_compressed(LARGE_STRING)
+  end
+
+  def test_large_object_with_default_compression_settings
+    assert_compressed(LARGE_OBJECT)
+  end
+
   private
     def random_string(length)
       (0...length).map { (65 + rand(26)).chr }.join
