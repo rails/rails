@@ -30,6 +30,53 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal title_change, topic.changes["title"]
   end
 
+  if !in_memory_db?
+    def test_rollback_dirty_changes_even_with_raise_during_rollback_removes_from_pool
+      topic = topics(:fifth)
+
+      connection = Topic.connection
+
+      Topic.connection.class_eval do
+        alias :real_exec_rollback_db_transaction :exec_rollback_db_transaction
+        define_method(:exec_rollback_db_transaction) do
+          raise
+        end
+      end
+
+      ActiveRecord::Base.transaction do
+        topic.update(title: "Rails is broken")
+        raise ActiveRecord::Rollback
+      end
+
+      assert_not connection.active?
+      assert_not Topic.connection_pool.connections.include?(connection)
+    end
+
+    def test_rollback_dirty_changes_even_with_raise_during_rollback_doesnt_commit_transaction
+      topic = topics(:fifth)
+
+      Topic.connection.class_eval do
+        alias :real_exec_rollback_db_transaction :exec_rollback_db_transaction
+        define_method(:exec_rollback_db_transaction) do
+          raise
+        end
+      end
+
+      ActiveRecord::Base.transaction do
+        topic.update(title: "Rails is broken")
+        raise ActiveRecord::Rollback
+      end
+
+      topic.reload
+
+      ActiveRecord::Base.transaction do
+        topic.update(content: "Ruby on Rails - modified")
+      end
+
+      assert_equal "The Fifth Topic of the day", topic.reload.title
+    end
+  end
+
   def test_rollback_dirty_changes_multiple_saves
     topic = topics(:fifth)
 

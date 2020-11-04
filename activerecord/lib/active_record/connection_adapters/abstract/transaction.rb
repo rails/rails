@@ -317,25 +317,31 @@ module ActiveRecord
           end
           raise
         ensure
-          if !error && transaction
-            if Thread.current.status == "aborting"
-              rollback_transaction
+          if transaction
+            if error
+              # @connection still holds an open transaction, so we must not
+              # put it back in the pool for reuse
+              @connection.throw_away! unless transaction.state.rolledback?
             else
-              if !completed && transaction.written
-                ActiveSupport::Deprecation.warn(<<~EOW)
-                  Using `return`, `break` or `throw` to exit a transaction block is
-                  deprecated without replacement. If the `throw` came from
-                  `Timeout.timeout(duration)`, pass an exception class as a second
-                  argument so it doesn't use `throw` to abort its block. This results
-                  in the transaction being committed, but in the next release of Rails
-                  it will rollback.
-                EOW
-              end
-              begin
-                commit_transaction
-              rescue Exception
-                rollback_transaction(transaction) unless transaction.state.completed?
-                raise
+              if Thread.current.status == "aborting"
+                rollback_transaction
+              else
+                if !completed && transaction.written
+                  ActiveSupport::Deprecation.warn(<<~EOW)
+                    Using `return`, `break` or `throw` to exit a transaction block is
+                    deprecated without replacement. If the `throw` came from
+                    `Timeout.timeout(duration)`, pass an exception class as a second
+                    argument so it doesn't use `throw` to abort its block. This results
+                    in the transaction being committed, but in the next release of Rails
+                    it will rollback.
+                  EOW
+                end
+                begin
+                  commit_transaction
+                rescue Exception
+                  rollback_transaction(transaction) unless transaction.state.completed?
+                  raise
+                end
               end
             end
           end

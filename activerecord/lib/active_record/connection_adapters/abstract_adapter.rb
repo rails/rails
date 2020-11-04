@@ -501,6 +501,12 @@ module ActiveRecord
         # this should be overridden by concrete adapters
       end
 
+      # Removes the connection from the pool and disconnect it.
+      def throw_away!
+        pool.remove self
+        disconnect!
+      end
+
       # Clear any caching the database adapter may be doing.
       def clear_cache!
         @lock.synchronize { @statements.clear } if @statements
