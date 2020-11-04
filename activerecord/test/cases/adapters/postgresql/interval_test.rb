@@ -18,18 +18,16 @@ class PostgresqlIntervalTest < ActiveRecord::PostgreSQLTestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-    begin
-      @connection.transaction do
-        @connection.create_table("interval_data_types") do |t|
-          t.interval "maximum_term"
-          t.interval "minimum_term", precision: 3
-          t.interval "default_term", default: "P3Y"
-          t.interval "all_terms", array: true
-          t.interval "legacy_term"
-        end
-        @connection.create_table("deprecated_interval_data_types") do |t|
-          t.interval "duration"
-        end
+    @connection.transaction do
+      @connection.create_table("interval_data_types") do |t|
+        t.interval "maximum_term"
+        t.interval "minimum_term", precision: 3
+        t.interval "default_term", default: "P3Y"
+        t.interval "all_terms", array: true
+        t.interval "legacy_term"
+      end
+      @connection.create_table("deprecated_interval_data_types") do |t|
+        t.interval "duration"
       end
     end
     @column_max = IntervalDataType.columns_hash["maximum_term"]

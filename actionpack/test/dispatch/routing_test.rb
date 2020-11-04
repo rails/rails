@@ -4559,9 +4559,7 @@ end
 
 class TestInvalidUrls < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
-    def self.binary_params_for?(action)
-      action == "show"
-    end
+    param_encoding :show, :id, Encoding::ASCII_8BIT
 
     def show
       render plain: "foo#show"
@@ -4595,7 +4593,7 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
     end
   end
 
-  test "params encoded with binary_params_for? are treated as ASCII 8bit" do
+  test "params param_encoding uses ASCII 8bit" do
     with_routing do |set|
       set.draw do
         get "/foo/show(/:id)", to: "test_invalid_urls/foo#show"

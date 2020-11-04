@@ -715,7 +715,7 @@ module ActiveSupport
             logger.debug "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}"
           end
 
-          payload = { key: key }
+          payload = { key: key, store: self.class.name }
           payload.merge!(options) if options.is_a?(Hash)
           ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) { yield(payload) }
         end

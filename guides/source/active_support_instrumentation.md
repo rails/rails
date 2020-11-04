@@ -437,6 +437,7 @@ Active Support
 | Key                | Value                                             |
 | ------------------ | ------------------------------------------------- |
 | `:key`             | Key used in the store                             |
+| `:store`           | Name of the store class                           |
 | `:hit`             | If this read is a hit                             |
 | `:super_operation` | :fetch is added when a read is used with `#fetch` |
 
@@ -444,15 +445,17 @@ Active Support
 
 This event is only used when `#fetch` is called with a block.
 
-| Key    | Value                 |
-| ------ | --------------------- |
-| `:key` | Key used in the store |
+| Key      | Value                   |
+| -------- | ----------------------- |
+| `:key`   | Key used in the store   |
+| `:store` | Name of the store class |
 
 INFO. Options passed to fetch will be merged with the payload when writing to the store
 
 ```ruby
 {
-  key: 'name-of-complicated-computation'
+  key: "name-of-complicated-computation",
+  store: "ActiveSupport::Cache::MemCacheStore"
 }
 ```
 
@@ -461,53 +464,61 @@ INFO. Options passed to fetch will be merged with the payload when writing to th
 
 This event is only used when `#fetch` is called with a block.
 
-| Key    | Value                 |
-| ------ | --------------------- |
-| `:key` | Key used in the store |
+| Key      | Value                   |
+| -------- | ----------------------- |
+| `:key`   | Key used in the store   |
+| `:store` | Name of the store class |
 
 INFO. Options passed to fetch will be merged with the payload.
 
 ```ruby
 {
-  key: 'name-of-complicated-computation'
+  key: "name-of-complicated-computation",
+  store: "ActiveSupport::Cache::MemCacheStore"
 }
 ```
 
 ### cache_write.active_support
 
-| Key    | Value                 |
-| ------ | --------------------- |
-| `:key` | Key used in the store |
+| Key      | Value                   |
+| -------- | ----------------------- |
+| `:key`   | Key used in the store   |
+| `:store` | Name of the store class |
 
 INFO. Cache stores may add their own keys
 
 ```ruby
 {
-  key: 'name-of-complicated-computation'
+  key: "name-of-complicated-computation",
+  store: "ActiveSupport::Cache::MemCacheStore"
 }
 ```
 
 ### cache_delete.active_support
 
-| Key    | Value                 |
-| ------ | --------------------- |
-| `:key` | Key used in the store |
+| Key      | Value                   |
+| -------- | ----------------------- |
+| `:key`   | Key used in the store   |
+| `:store` | Name of the store class |
 
 ```ruby
 {
-  key: 'name-of-complicated-computation'
+  key: "name-of-complicated-computation",
+  store: "ActiveSupport::Cache::MemCacheStore"
 }
 ```
 
 ### cache_exist?.active_support
 
-| Key    | Value                 |
-| ------ | --------------------- |
-| `:key` | Key used in the store |
+| Key      | Value                   |
+| -------- | ----------------------- |
+| `:key`   | Key used in the store   |
+| `:store` | Name of the store class |
 
 ```ruby
 {
-  key: 'name-of-complicated-computation'
+  key: "name-of-complicated-computation",
+  store: "ActiveSupport::Cache::MemCacheStore"
 }
 ```
 
@@ -685,6 +696,8 @@ INFO. The only ActiveStorage service that provides this hook so far is GCS.
 | Key          | Value               |
 | ------------ | ------------------- |
 | `:key`       | Secure token        |
+
+### transform.active_storage
 
 Railties
 --------

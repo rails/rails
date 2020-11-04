@@ -46,6 +46,11 @@ module ApplicationTests
       assert_equal 404, last_response.status
     end
 
+    test "renders unknown http methods as 405" do
+      request "/", { "REQUEST_METHOD" => "NOT_AN_HTTP_METHOD" }
+      assert_equal 405, last_response.status
+    end
+
     test "uses custom exceptions app" do
       add_to_config <<-RUBY
         config.exceptions_app = lambda do |env|

@@ -1942,6 +1942,12 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  test "loading query is annotated in #inspect" do
+    assert_sql(%r(/\* loading for inspect \*/)) do
+      Post.all.inspect
+    end
+  end
+
   test "already-loaded relations don't perform a new query in #inspect" do
     relation = Post.limit(2)
     relation.to_a

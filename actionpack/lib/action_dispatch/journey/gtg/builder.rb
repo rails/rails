@@ -34,7 +34,7 @@ module ActionDispatch
               from = state_id[s]
 
               if u.all? { |pos| pos == DUMMY }
-                to   = state_id[Object.new]
+                to = state_id[Object.new]
                 dtrans[from, to] = sym
                 dtrans.add_accepting(to)
 

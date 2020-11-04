@@ -1,3 +1,24 @@
+*   Speed up `ActiveSupport::SecurityUtils.fixed_length_secure_compare` by using
+    `OpenSSL.fixed_length_secure_compare`, if available.
+
+    *Nate Matykiewicz*
+
+*   `ActiveSupport::Cache::MemCacheStore` now checks `ENV["MEMCACHE_SERVERS"]` before falling back to `"localhost:11211"` if configured without any addresses.
+
+    ```ruby
+    config.cache_store = :mem_cache_store
+
+    # is now equivalent to
+
+    config.cache_store = :mem_cache_store, ENV["MEMCACHE_SERVERS"] || "localhost:11211"
+
+    # instead of
+
+    config.cache_store = :mem_cache_store, "localhost:11211" # ignores ENV["MEMCACHE_SERVERS"]
+    ```
+
+    *Sam Bostock*
+
 *   `ActiveSupport::Subscriber#attach_to` now accepts an `inherit_all:` argument. When set to true,
     it allows a subscriber to receive events for methods defined in the subscriber's ancestor class(es).
 

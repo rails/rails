@@ -31,7 +31,7 @@ module ActiveRecord
 
       # Returns the primary key column's value before type cast.
       def id_before_type_cast
-        read_attribute_before_type_cast(@primary_key)
+        attribute_before_type_cast(@primary_key)
       end
 
       # Returns the primary key column's previous value.

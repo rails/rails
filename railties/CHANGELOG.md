@@ -1,3 +1,20 @@
+*   Return a 405 Method Not Allowed response when a request uses an unknown HTTP method.
+
+    Fixes #38998.
+
+    *Loren Norman*
+
+*   Make railsrc file location xdg-specification compliant
+
+    `rails new` will now look for the default `railsrc` file at
+    `$XDG_CONFIG_HOME/rails/railsrc` (or `~/.config/rails/railsrc` if
+    `XDG_CONFIG_HOME` is not set).  If this file does not exist, `rails new`
+    will fall back to `~/.railsrc`.
+
+    The fallback behaviour means this does not cause any breaking changes.
+
+    *Nick Wolf*
+
 *   Deprecate `config.active_support.use_sha1_digests`
 
     `config.active_support.use_sha1_digests` is deprecated. It is replaced with `config.active_support.hash_digest_class` which allows setting the desired Digest instead. The Rails version defaults have been updated to use this new method as well so the behavior there is unchanged.

@@ -732,7 +732,7 @@ module ActiveRecord
     end
 
     def inspect
-      subject = loaded? ? records : self
+      subject = loaded? ? records : annotate("loading for inspect")
       entries = subject.take([limit_value, 11].compact.min).map!(&:inspect)
 
       entries[10] = "..." if entries.size == 11

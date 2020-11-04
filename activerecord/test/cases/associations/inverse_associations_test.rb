@@ -639,6 +639,18 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     end
   end
 
+  def test_with_has_many_inversing_should_have_single_record_when_setting_record_through_attribute_in_build_method
+    with_has_many_inversing do
+      human = Human.create!
+      human.interests.build(
+        human: human
+      )
+      assert_equal 1, human.interests.size
+      human.save!
+      assert_equal 1, human.interests.size
+    end
+  end
+
   def test_with_has_many_inversing_does_not_trigger_association_callbacks_on_set_when_the_inverse_is_a_has_many
     with_has_many_inversing do
       human = interests(:trainspotting).human_with_callbacks

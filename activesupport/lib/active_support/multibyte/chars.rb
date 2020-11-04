@@ -152,7 +152,7 @@ module ActiveSupport #:nodoc:
             removed from Rails 6.1. Use #unicode_normalize(:#{alias_form}) instead.
           MSG
 
-          send(:unicode_normalize, alias_form)
+          unicode_normalize(alias_form)
         else
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             ActiveSupport::Multibyte::Chars#normalize is deprecated and will be
@@ -202,7 +202,7 @@ module ActiveSupport #:nodoc:
 
       %w(reverse tidy_bytes).each do |method|
         define_method("#{method}!") do |*args|
-          @wrapped_string = send(method, *args).to_s
+          @wrapped_string = public_send(method, *args).to_s
           self
         end
       end

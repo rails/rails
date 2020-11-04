@@ -1,3 +1,21 @@
+*   Add `values_at` method.
+
+    Returns an array containing the values associated with the given methods.
+
+    ```ruby
+    topic = Topic.first
+    topic.values_at(:title, :author_name)
+    # => ["Budget", "Jason"]
+    ```
+
+    Similar to `Hash#values_at` but on an Active Record instance.
+
+    *Guillaume Briday*
+
+*   Fix `read_attribute_before_type_cast` to consider attribute aliases.
+
+    *Marcelo Lauxen*
+
 *   Support passing record to uniqueness validator `:conditions` callable:
 
     ```ruby

@@ -115,7 +115,7 @@ module ActiveModel
 
         if record.respond_to?(came_from_user)
           if record.public_send(came_from_user)
-            raw_value = record.read_attribute_before_type_cast(attr_name)
+            raw_value = record.public_send(:"#{attr_name}_before_type_cast")
           elsif record.respond_to?(:read_attribute)
             raw_value = record.read_attribute(attr_name)
           end

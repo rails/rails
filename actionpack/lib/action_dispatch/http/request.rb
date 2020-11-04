@@ -76,7 +76,7 @@ module ActionDispatch
     PASS_NOT_FOUND = Class.new { # :nodoc:
       def self.action(_); self; end
       def self.call(_); [404, { "X-Cascade" => "pass" }, []]; end
-      def self.binary_params_for?(action); false; end
+      def self.custom_encoding_for(action, param); nil; end
     }
 
     def controller_class
@@ -136,6 +136,8 @@ module ActionDispatch
     HTTP_METHODS.each { |method|
       HTTP_METHOD_LOOKUP[method] = method.underscore.to_sym
     }
+
+    alias raw_request_method request_method # :nodoc:
 
     # Returns the HTTP \method that the application should see.
     # In the case where the \method was overridden by a middleware

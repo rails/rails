@@ -157,7 +157,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
               end
             end
 
-            connection_pool.set_schema_cache(cache.dup)
+            connection_pool.set_schema_cache(cache)
           end
         end
       end

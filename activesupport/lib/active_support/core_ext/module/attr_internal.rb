@@ -30,7 +30,7 @@ class Module
     def attr_internal_define(attr_name, type)
       internal_name = attr_internal_ivar_name(attr_name).delete_prefix("@")
       # use native attr_* methods as they are faster on some Ruby implementations
-      send("attr_#{type}", internal_name)
+      public_send("attr_#{type}", internal_name)
       attr_name, internal_name = "#{attr_name}=", "#{internal_name}=" if type == :writer
       alias_method attr_name, internal_name
       remove_method internal_name
