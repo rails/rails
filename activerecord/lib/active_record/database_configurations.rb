@@ -193,7 +193,7 @@ module ActiveRecord
           raise AdapterNotSpecified, <<~MSG
             The `#{name}` database is not configured for the `#{default_env}` environment.
 
-              Available databases configurations are:
+              Available database configurations are:
 
               #{build_configuration_sentence}
           MSG
