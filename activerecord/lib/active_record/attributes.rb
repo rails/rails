@@ -273,6 +273,8 @@ module ActiveRecord
         def decorate_attribute_type(attr_name, **default)
           type, options = attributes_to_define_after_schema_loads[attr_name]
 
+          default.with_defaults!(default: options[:default]) if options&.key?(:default)
+
           attribute(attr_name, **default) do |cast_type|
             if type && !type.is_a?(Proc)
               cast_type = _lookup_cast_type(attr_name, type, options)
