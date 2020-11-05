@@ -41,6 +41,12 @@ module ActiveRecord
         # * +class_name_or_coder+ - Optional, a coder object, which responds to +.load+ and +.dump+
         #   or a class name that the object type should be equal to.
         #
+        # ==== Options
+        #
+        # +default+ The default value to use when no value is provided. If this option
+        # is not passed, the previous default value (if any) will be used.
+        # Otherwise, the default will be +nil+.
+        #
         # ==== Example
         #
         #   # Serialize a preferences attribute.
@@ -57,7 +63,7 @@ module ActiveRecord
         #   class User < ActiveRecord::Base
         #     serialize :preferences, Hash
         #   end
-        def serialize(attr_name, class_name_or_coder = Object)
+        def serialize(attr_name, class_name_or_coder = Object, **options)
           # When ::JSON is used, force it to go through the Active Support JSON encoder
           # to ensure special objects (e.g. Active Record models) are dumped correctly
           # using the #as_json hook.
@@ -69,7 +75,7 @@ module ActiveRecord
             Coders::YAMLColumn.new(attr_name, class_name_or_coder)
           end
 
-          decorate_attribute_type(attr_name.to_s) do |cast_type|
+          decorate_attribute_type(attr_name.to_s, **options) do |cast_type|
             if type_incompatible_with_serialize?(cast_type, class_name_or_coder)
               raise ColumnNotSerializableError.new(attr_name, cast_type)
             end
