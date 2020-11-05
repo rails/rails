@@ -41,6 +41,27 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal(myobj, topic.content)
   end
 
+  def test_serialized_attribute_with_default
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      serialize(:content, Hash, default: { key: "value" })
+    end
+
+    t = klass.new
+    assert_equal({ key: "value" }, t.content)
+  end
+
+  def test_serialized_attribute_on_custom_attribute_with_default
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      attribute :content, default: { key: "value" }
+      serialize :content, Hash
+    end
+
+    t = klass.new
+    assert_equal({ key: "value" }, t.content)
+  end
+
   def test_serialized_attribute_in_base_class
     Topic.serialize("content", Hash)
 
