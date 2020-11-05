@@ -23,7 +23,8 @@ module ActiveJob
           "class"   => JobWrapper,
           "wrapped" => job.class,
           "queue"   => job.queue_name,
-          "args"    => [ job.serialize ]
+          "args"    => [ job.serialize ],
+          "retry"   => 3
       end
 
       def enqueue_at(job, timestamp) #:nodoc:
@@ -32,7 +33,8 @@ module ActiveJob
           "wrapped" => job.class,
           "queue"   => job.queue_name,
           "args"    => [ job.serialize ],
-          "at"      => timestamp
+          "at"      => timestamp,
+          "retry"   => 3
       end
 
       class JobWrapper #:nodoc:
