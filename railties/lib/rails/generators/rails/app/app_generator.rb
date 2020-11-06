@@ -265,7 +265,7 @@ module Rails
     class AppGenerator < AppBase
       # :stopdoc:
 
-      WEBPACKS = %w( react vue angular elm stimulus )
+      WEBPACKS = %w( react vue angular elm stimulus ember meteor )
 
       add_shared_options_for "application"
 
