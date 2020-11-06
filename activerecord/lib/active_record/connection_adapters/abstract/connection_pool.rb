@@ -381,7 +381,7 @@ module ActiveRecord
         # registry of which thread owns which connection. Connection ownership is tracked by
         # the +connection.owner+ attr on each +connection+ instance.
         # The invariant works like this: if there is mapping of <tt>thread => conn</tt>,
-        # then that +thread+ does indeed own that +conn+. However, an absence of a such
+        # then that +thread+ does indeed own that +conn+. However, an absence of such
         # mapping does not mean that the +thread+ doesn't own the said connection. In
         # that case +conn.owner+ attr should be consulted.
         # Access and modification of <tt>@thread_cached_conns</tt> does not require
