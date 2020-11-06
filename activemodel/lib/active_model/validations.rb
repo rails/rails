@@ -163,10 +163,10 @@ module ActiveModel
         if options.key?(:on)
           options = options.dup
           options[:on] = Array(options[:on])
-          options[:if] = Array(options[:if])
-          options[:if].unshift ->(o) {
-            !(options[:on] & Array(o.validation_context)).empty?
-          }
+          options[:if] = [
+            ->(o) { !(options[:on] & Array(o.validation_context)).empty? },
+            *options[:if]
+          ]
         end
 
         set_callback(:validate, *args, options, &block)
