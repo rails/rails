@@ -30,7 +30,7 @@ module ActionCable
 
       ActiveSupport.on_load(:action_cable) do
         if (config_path = Pathname.new(app.config.paths["config/cable"].first)).exist?
-          self.cable = Rails.application.config_for(config_path).with_indifferent_access
+          self.cable = Rails.application.config_for(config_path).to_h.with_indifferent_access
         end
 
         previous_connection_class = connection_class
