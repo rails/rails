@@ -427,10 +427,6 @@ module ActiveRecord
         TypeCaster::Map.new(self)
       end
 
-      def _internal? # :nodoc:
-        false
-      end
-
       def cached_find_by_statement(key, &block) # :nodoc:
         cache = @find_by_statement_cache[connection.prepared_statements]
         cache.compute_if_absent(key) { StatementCache.create(connection, &block) }

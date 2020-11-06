@@ -15,10 +15,6 @@ module ActiveRecord
         ActiveRecord::Base.connection.use_metadata_table?
       end
 
-      def _internal?
-        true
-      end
-
       def primary_key
         "key"
       end

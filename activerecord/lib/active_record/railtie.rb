@@ -166,10 +166,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
           if app.config.eager_load
             begin
               descendants.each do |model|
-                # SchemaMigration and InternalMetadata both override `table_exists?`
-                # to bypass the schema cache, so skip them to avoid the extra queries.
-                next if model._internal?
-
                 # If the schema cache was loaded from a dump, we can use it without connecting
                 schema_cache = model.connection_pool.schema_cache
 

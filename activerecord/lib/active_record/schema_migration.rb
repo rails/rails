@@ -10,10 +10,6 @@ module ActiveRecord
   # to be executed the next time.
   class SchemaMigration < ActiveRecord::Base # :nodoc:
     class << self
-      def _internal?
-        true
-      end
-
       def primary_key
         "version"
       end
