@@ -164,7 +164,7 @@ false` as an argument. This technique should be used with caution.
 Before saving an Active Record object, Rails runs your validations.
 If these validations produce any errors, Rails does not save the object.
 
-You can also run these validations on your own. `valid?` triggers your validations
+You can also run these validations on your own. [`valid?`][] triggers your validations
 and returns true if no errors were found in the object, and false otherwise.
 As you saw above:
 
@@ -182,7 +182,7 @@ irb> Person.create(name: nil).valid?
 ```
 
 After Active Record has performed validations, any errors found can be accessed
-through the `errors` instance method, which returns a collection of errors.
+through the [`errors`][] instance method, which returns a collection of errors.
 By definition, an object is valid if this collection is empty after running
 validations.
 
@@ -222,13 +222,17 @@ irb> Person.create!
 ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
-`invalid?` is the inverse of `valid?`. It triggers your validations,
+[`invalid?`][] is the inverse of `valid?`. It triggers your validations,
 returning true if any errors were found in the object, and false otherwise.
+
+[`errors`]: https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-errors
+[`invalid?`]: https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-invalid-3F
+[`valid?`]: https://api.rubyonrails.org/classes/ActiveRecord/Validations.html#method-i-valid-3F
 
 ### `errors[]`
 
 To verify whether or not a particular attribute of an object is valid, you can
-use `errors[:attribute]`. It returns an array of all the error messages for
+use [`errors[:attribute]`][Errors#squarebrackets]. It returns an array of all the error messages for
 `:attribute`. If there are no errors on the specified attribute, an empty array
 is returned.
 
@@ -253,6 +257,8 @@ irb> Person.create.errors[:name].any?
 
 We'll cover validation errors in greater depth in the [Working with Validation
 Errors](#working-with-validation-errors) section.
+
+[Errors#squarebrackets]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-5B-5D
 
 Validation Helpers
 ------------------
@@ -332,9 +338,11 @@ This validation will work with all of the association types.
 CAUTION: Don't use `validates_associated` on both ends of your associations.
 They would call each other in an infinite loop.
 
-The default error message for `validates_associated` is _"is invalid"_. Note
+The default error message for [`validates_associated`][] is _"is invalid"_. Note
 that each associated object will contain its own `errors` collection; errors do
 not bubble up to the calling model.
+
+[`validates_associated`]: https://api.rubyonrails.org/classes/ActiveRecord/Validations/ClassMethods.html#method-i-validates_associated
 
 ### `confirmation`
 
@@ -684,7 +692,7 @@ end
 NOTE: Errors added to `record.errors[:base]` relate to the state of the record
 as a whole, and not to a specific attribute.
 
-The `validates_with` helper takes a class, or a list of classes to use for
+The [`validates_with`][] helper takes a class, or a list of classes to use for
 validation. There is no default error message for `validates_with`. You must
 manually add errors to the record's errors collection in the validator class.
 
@@ -738,11 +746,13 @@ class GoodnessValidator
 end
 ```
 
+[`validates_with`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_with
+
 ### `validates_each`
 
 This helper validates attributes against a block. It doesn't have a predefined
 validation function. You should create one using a block, and every attribute
-passed to `validates_each` will be tested against it. In the following example,
+passed to [`validates_each`][] will be tested against it. In the following example,
 we don't want names and surnames to begin with lower case.
 
 ```ruby
@@ -757,6 +767,8 @@ The block receives the record, the attribute's name, and the attribute's value.
 You can do anything you like to check for valid data within the block. If your
 validation fails, you should add an error to the model, therefore
 making it invalid.
+
+[`validates_each`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_each
 
 Common Validation Options
 -------------------------
@@ -980,7 +992,7 @@ validates :password, confirmation: true, unless: -> { password.blank? }
 ### Grouping Conditional validations
 
 Sometimes it is useful to have multiple validations use one condition. It can
-be easily achieved using `with_options`.
+be easily achieved using [`with_options`][].
 
 ```ruby
 class User < ApplicationRecord
@@ -993,6 +1005,8 @@ end
 
 All validations inside of the `with_options` block will have automatically
 passed the condition `if: :is_admin?`
+
+[`with_options`]: https://api.rubyonrails.org/classes/Object.html#method-i-with_options
 
 ### Combining Validation Conditions
 
@@ -1019,7 +1033,7 @@ write your own validators or validation methods as you prefer.
 
 ### Custom Validators
 
-Custom validators are classes that inherit from `ActiveModel::Validator`. These
+Custom validators are classes that inherit from [`ActiveModel::Validator`][]. These
 classes must implement the `validate` method which takes a record as an argument
 and performs the validation on it. The custom validator is called using the
 `validates_with` method.
@@ -1063,12 +1077,13 @@ end
 As shown in the example, you can also combine standard validations with your
 own custom validators.
 
+[`ActiveModel::Validator`]: https://api.rubyonrails.org/classes/ActiveModel/Validator.html
+
 ### Custom Methods
 
 You can also create methods that verify the state of your models and add
 errors to the `errors` collection when they are invalid. You must then
-register these methods by using the `validate`
-([API](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate))
+register these methods by using the [`validate`][]
 class method, passing in the symbols for the validation methods' names.
 
 You can pass more than one symbol for each class method and the respective
@@ -1112,19 +1127,23 @@ class Invoice < ApplicationRecord
 end
 ```
 
+[`validate`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate
+
 Working with Validation Errors
 ------------------------------
 
-The `valid?` and `invalid?` methods only provide a summary status on validity. However you can dig deeper into each individual error by using various methods from the `errors` collection.
+The [`valid?`][] and [`invalid?`][] methods only provide a summary status on validity. However you can dig deeper into each individual error by using various methods from the [`errors`][] collection.
 
-The following is a list of the most commonly used methods. Please refer to the `ActiveModel::Errors` documentation for a list of all the available methods.
+The following is a list of the most commonly used methods. Please refer to the [`ActiveModel::Errors`][] documentation for a list of all the available methods.
+
+[`ActiveModel::Errors`]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html
 
 ### `errors`
 
 The gateway through which you can drill down into various details of each error.
 
 This returns an instance of the class `ActiveModel::Errors` containing all errors,
-each error is represented by an `ActiveModel::Error` object.
+each error is represented by an [`ActiveModel::Error`][] object.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1146,9 +1165,11 @@ irb> person.errors.full_messages
 => []
 ```
 
+[`ActiveModel::Error`]: https://api.rubyonrails.org/classes/ActiveModel/Error.html
+
 ### `errors[]`
 
-`errors[]` is used when you want to check the error messages for a specific attribute. It returns an array of strings with all error messages for the given attribute, each string with one error message. If there are no errors related to the attribute, it returns an empty array.
+[`errors[]`][Errors#squarebrackets] is used when you want to check the error messages for a specific attribute. It returns an array of strings with all error messages for the given attribute, each string with one error message. If there are no errors related to the attribute, it returns an empty array.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1178,7 +1199,7 @@ irb> person.errors[:name]
 
 ### `errors.where` and error object
 
-Sometimes we may need more information about each error beside its message. Each error is encapsulated as an `ActiveModel::Error` object, and `where` method is the most common way of access.
+Sometimes we may need more information about each error beside its message. Each error is encapsulated as an `ActiveModel::Error` object, and [`where`][] method is the most common way of access.
 
 `where` returns an array of error objects, filtered by various degree of conditions.
 
@@ -1222,11 +1243,14 @@ irb> error.full_message
 => "Name is too short (minimum is 3 characters)"
 ```
 
-The `full_message` method generates a more user-friendly message, with the capitalized attribute name prepended.
+The [`full_message`][] method generates a more user-friendly message, with the capitalized attribute name prepended.
+
+[`full_message`]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-full_message
+[`where`]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-where
 
 ### `errors.add`
 
-The `add` method creates the error object by taking the `attribute`, the error `type` and additional options hash. This is useful for writing your own validator.
+The [`add`][] method creates the error object by taking the `attribute`, the error `type` and additional options hash. This is useful for writing your own validator.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1243,6 +1267,8 @@ irb> person.errors.where(:name).first.type
 irb> person.errors.where(:name).first.full_message
 => "Name is not cool enough"
 ```
+
+[`add`]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-add
 
 ### `errors[:base]`
 
