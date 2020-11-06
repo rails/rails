@@ -656,6 +656,56 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::InternalMetadata.create_table
   end
 
+  def test_internal_metadata_create_table_wont_be_affected_by_schema_cache
+    ActiveRecord::InternalMetadata.drop_table
+    assert_not_predicate ActiveRecord::InternalMetadata, :table_exists?
+
+    ActiveRecord::InternalMetadata.connection.transaction do
+      ActiveRecord::InternalMetadata.create_table
+      assert_predicate ActiveRecord::InternalMetadata, :table_exists?
+
+      ActiveRecord::InternalMetadata[:version] = "foo"
+      assert_equal "foo", ActiveRecord::InternalMetadata[:version]
+      raise ActiveRecord::Rollback
+    end
+
+    ActiveRecord::InternalMetadata.connection.transaction do
+      ActiveRecord::InternalMetadata.create_table
+      assert_predicate ActiveRecord::InternalMetadata, :table_exists?
+
+      ActiveRecord::InternalMetadata[:version] = "bar"
+      assert_equal "bar", ActiveRecord::InternalMetadata[:version]
+      raise ActiveRecord::Rollback
+    end
+  ensure
+    ActiveRecord::InternalMetadata.create_table
+  end
+
+  def test_schema_migration_create_table_wont_be_affected_by_schema_cache
+    ActiveRecord::SchemaMigration.drop_table
+    assert_not_predicate ActiveRecord::SchemaMigration, :table_exists?
+
+    ActiveRecord::SchemaMigration.connection.transaction do
+      ActiveRecord::SchemaMigration.create_table
+      assert_predicate ActiveRecord::SchemaMigration, :table_exists?
+
+      schema_migration = ActiveRecord::SchemaMigration.create!(version: "foo")
+      assert_equal "foo", schema_migration[:version]
+      raise ActiveRecord::Rollback
+    end
+
+    ActiveRecord::SchemaMigration.connection.transaction do
+      ActiveRecord::SchemaMigration.create_table
+      assert_predicate ActiveRecord::SchemaMigration, :table_exists?
+
+      schema_migration = ActiveRecord::SchemaMigration.create!(version: "bar")
+      assert_equal "bar", schema_migration[:version]
+      raise ActiveRecord::Rollback
+    end
+  ensure
+    ActiveRecord::SchemaMigration.create_table
+  end
+
   def test_proper_table_name_on_migration
     reminder_class = new_isolated_reminder_class
     migration = ActiveRecord::Migration.new

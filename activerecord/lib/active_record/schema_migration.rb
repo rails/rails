@@ -23,11 +23,9 @@ module ActiveRecord
       end
 
       def create_table
-        unless table_exists?
-          version_options = connection.internal_string_options_for_primary_key
-
+        unless connection.table_exists?(table_name)
           connection.create_table(table_name, id: false) do |t|
-            t.string :version, **version_options
+            t.string :version, **connection.internal_string_options_for_primary_key
           end
         end
       end
