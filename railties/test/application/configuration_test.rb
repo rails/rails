@@ -2453,6 +2453,14 @@ module ApplicationTests
       assert_nil ActiveStorage.queues[:purge]
     end
 
+    test "ActionCable.server.config.cable is set when missing configuration for the current environment" do
+      quietly do
+        app "missing"
+      end
+
+      assert_kind_of ActiveSupport::HashWithIndifferentAccess, ActionCable.server.config.cable
+    end
+
     test "ActionMailbox.logger is Rails.logger by default" do
       app "development"
 
