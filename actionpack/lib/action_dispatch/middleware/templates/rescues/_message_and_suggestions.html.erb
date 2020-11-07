@@ -1,5 +1,7 @@
 <% if exception.respond_to?(:original_message) && exception.respond_to?(:corrections) %>
-  <h2><%= h exception.original_message %></h2>
+  <div class="exception-message">
+    <%= simple_format h(exception.original_message), { class: "message" }, wrapper_tag: "div" %>
+  </div>
   <%
     # The 'did_you_mean' gem can raise exceptions when calling #corrections on
     # the exception. If it does there are no corrections to show.
@@ -14,5 +16,7 @@
     </ul>
   <% end %>
 <% else %>
-  <h2><%= h exception.message %></h2>
+  <div class="exception-message">
+    <%= simple_format h(exception.message), { class: "message" }, wrapper_tag: "div" %>
+  </div>
 <% end %>
