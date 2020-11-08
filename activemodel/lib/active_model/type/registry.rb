@@ -33,8 +33,8 @@ module ActiveModel
           Registration
         end
 
-        def find_registration(symbol, *args)
-          registrations.find { |r| r.matches?(symbol, *args) }
+        def find_registration(symbol, *args, **kwargs)
+          registrations.find { |r| r.matches?(symbol, *args, **kwargs) }
         end
     end
 
