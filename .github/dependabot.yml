@@ -1,0 +1,10 @@
+version: 1
+updates:
+  - package-ecosystem: "bundler"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "javascript"
+    directory: "/"
+    schedule:
+      interval: "monthly"
