@@ -181,19 +181,19 @@ module ActiveRecord
       end
 
       # this method must only be called while holding connection pool's mutex
-      def lease
+      def lease(thread = Thread.current)
         if in_use?
           msg = +"Cannot lease connection, "
-          if @owner == Thread.current
+          if @owner == thread
             msg << "it is already leased by the current thread."
           else
             msg << "it is already in use by a different thread: #{@owner}. " \
-                   "Current thread: #{Thread.current}."
+                   "Current thread: #{thread}."
           end
           raise ActiveRecordError, msg
         end
 
-        @owner = Thread.current
+        @owner = thread
       end
 
       def schema_cache
@@ -206,12 +206,12 @@ module ActiveRecord
       end
 
       # this method must only be called while holding connection pool's mutex
-      def expire
+      def expire(thread = Thread.current)
         if in_use?
-          if @owner != Thread.current
+          if @owner != thread
             raise ActiveRecordError, "Cannot expire connection, " \
               "it is owned by a different thread: #{@owner}. " \
-              "Current thread: #{Thread.current}."
+              "Current thread: #{thread}."
           end
 
           @idle_since = Concurrent.monotonic_time
@@ -222,12 +222,12 @@ module ActiveRecord
       end
 
       # this method must only be called while holding connection pool's mutex (and a desire for segfaults)
-      def steal! # :nodoc:
+      def steal!(thread = Thread.current) # :nodoc:
         if in_use?
-          if @owner != Thread.current
+          if @owner != thread
             pool.send :remove_connection_from_thread_cache, self, @owner
 
-            @owner = Thread.current
+            @owner = thread
           end
         else
           raise ActiveRecordError, "Cannot steal connection, it is not currently leased."

@@ -280,7 +280,7 @@ module ActiveRecord
         private
           def internal_poll(timeout)
             conn = super
-            conn.lease if conn
+            conn.lease(@lock.send(:current_thread)) if conn
             conn
           end
       end
@@ -439,7 +439,7 @@ module ActiveRecord
       # This method only works for connections that have been obtained through
       # #connection or #with_connection methods, connections obtained through
       # #checkout will not be automatically released.
-      def release_connection(owner_thread = Thread.current)
+      def release_connection(owner_thread = current_thread)
         if conn = @thread_cached_conns.delete(connection_cache_key(owner_thread))
           checkin conn
         end
@@ -450,7 +450,7 @@ module ActiveRecord
       # exists checkout a connection, yield it to the block, and checkin the
       # connection when finished.
       def with_connection
-        unless conn = @thread_cached_conns[connection_cache_key(Thread.current)]
+        unless conn = @thread_cached_conns[connection_cache_key(current_thread)]
           conn = connection
           fresh_connection = true
         end
@@ -490,7 +490,7 @@ module ActiveRecord
           synchronize do
             @connections.each do |conn|
               if conn.in_use?
-                conn.steal!
+                conn.steal!(current_thread)
                 checkin conn
               end
               conn.disconnect!
@@ -542,7 +542,7 @@ module ActiveRecord
           synchronize do
             @connections.each do |conn|
               if conn.in_use?
-                conn.steal!
+                conn.steal!(current_thread)
                 checkin conn
               end
               conn.disconnect! if conn.requires_reloading?
@@ -594,7 +594,7 @@ module ActiveRecord
             remove_connection_from_thread_cache conn
 
             conn._run_checkin_callbacks do
-              conn.expire
+              conn.expire(current_thread)
             end
 
             @available.add conn
@@ -642,7 +642,7 @@ module ActiveRecord
           @connections.select do |conn|
             conn.in_use? && !conn.owner.alive?
           end.each do |conn|
-            conn.steal!
+            conn.steal!(current_thread)
           end
         end
 
@@ -667,7 +667,7 @@ module ActiveRecord
           @connections.select do |conn|
             !conn.in_use? && conn.seconds_idle >= minimum_idle
           end.each do |conn|
-            conn.lease
+            conn.lease(current_thread)
 
             @available.delete conn
             @connections.delete conn
@@ -748,13 +748,13 @@ module ActiveRecord
         def attempt_to_checkout_all_existing_connections(raise_on_acquisition_timeout = true)
           collected_conns = synchronize do
             # account for our own connections
-            @connections.select { |conn| conn.owner == Thread.current }
+            @connections.select { |conn| conn.owner == current_thread }
           end
 
           newly_checked_out = []
           timeout_time      = Concurrent.monotonic_time + (@checkout_timeout * 2)
 
-          @available.with_a_bias_for(Thread.current) do
+          @available.with_a_bias_for(current_thread) do
             loop do
               synchronize do
                 return if collected_conns.size == @connections.size && @now_connecting == 0
@@ -801,7 +801,7 @@ module ActiveRecord
 
           thread_report = []
           @connections.each do |conn|
-            unless conn.owner == Thread.current
+            unless conn.owner == current_thread
               thread_report << "#{conn} is owned by #{conn.owner}"
             end
           end
@@ -903,7 +903,7 @@ module ActiveRecord
                 if conn
                   adopt_connection(conn)
                   # returned conn needs to be already leased
-                  conn.lease
+                  conn.lease(current_thread)
                 end
                 @now_connecting -= 1
               end

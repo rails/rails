@@ -81,6 +81,25 @@ module ActiveRecord
         assert_equal 0, active_connections(pool).size
       end
 
+      def test_with_connection_lock_thread
+        pool.lock_thread = true
+
+        connection = pool.connection
+        assert_equal 1, active_connections(pool).size
+
+        Thread.new {
+          pool.with_connection do |conn|
+            assert_equal connection, conn
+            assert_equal 1, active_connections(pool).size
+          end
+        }.join
+
+        assert_equal 1, active_connections(pool).size
+
+        connection.close
+        assert_equal 0, active_connections(pool).size
+      end
+
       def test_active_connection_in_use
         assert_not_predicate pool, :active_connection?
         main_thread = pool.connection
