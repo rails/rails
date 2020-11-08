@@ -86,34 +86,53 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 
 ### Creating an Object
 
-* `before_validation`
-* `after_validation`
-* `before_save`
-* `around_save`
-* `before_create`
-* `around_create`
-* `after_create`
-* `after_save`
-* `after_commit/after_rollback`
+* [`before_validation`][]
+* [`after_validation`][]
+* [`before_save`][]
+* [`around_save`][]
+* [`before_create`][]
+* [`around_create`][]
+* [`after_create`][]
+* [`after_save`][]
+* [`after_commit`][] / [`after_rollback`][]
+
+[`after_create`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_create
+[`after_commit`]: https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_commit
+[`after_rollback`]: https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_rollback
+[`after_save`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_save
+[`after_validation`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/Callbacks/ClassMethods.html#method-i-after_validation
+[`around_create`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-around_create
+[`around_save`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-around_save
+[`before_create`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_create
+[`before_save`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_save
+[`before_validation`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/Callbacks/ClassMethods.html#method-i-before_validation
 
 ### Updating an Object
 
-* `before_validation`
-* `after_validation`
-* `before_save`
-* `around_save`
-* `before_update`
-* `around_update`
-* `after_update`
-* `after_save`
-* `after_commit/after_rollback`
+* [`before_validation`][]
+* [`after_validation`][]
+* [`before_save`][]
+* [`around_save`][]
+* [`before_update`][]
+* [`around_update`][]
+* [`after_update`][]
+* [`after_save`][]
+* [`after_commit`][] / [`after_rollback`][]
+
+[`after_update`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_update
+[`around_update`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-around_update
+[`before_update`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_update
 
 ### Destroying an Object
 
-* `before_destroy`
-* `around_destroy`
-* `after_destroy`
-* `after_commit/after_rollback`
+* [`before_destroy`][]
+* [`around_destroy`][]
+* [`after_destroy`][]
+* [`after_commit`][] / [`after_rollback`][]
+
+[`after_destroy`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_destroy
+[`around_destroy`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-around_destroy
+[`before_destroy`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_destroy
 
 WARNING. `after_save` runs both on create and update, but always _after_ the more specific callbacks `after_create` and `after_update`, no matter the order in which the macro calls were executed.
 
@@ -125,9 +144,9 @@ the records are deleted by `dependent: :destroy`.
 
 ### `after_initialize` and `after_find`
 
-The `after_initialize` callback will be called whenever an Active Record object is instantiated, either by directly using `new` or when a record is loaded from the database. It can be useful to avoid the need to directly override your Active Record `initialize` method.
+The [`after_initialize`][] callback will be called whenever an Active Record object is instantiated, either by directly using `new` or when a record is loaded from the database. It can be useful to avoid the need to directly override your Active Record `initialize` method.
 
-The `after_find` callback will be called whenever Active Record loads a record from the database. `after_find` is called before `after_initialize` if both are defined.
+The [`after_find`][] callback will be called whenever Active Record loads a record from the database. `after_find` is called before `after_initialize` if both are defined.
 
 The `after_initialize` and `after_find` callbacks have no `before_*` counterparts, but they can be registered just like the other Active Record callbacks.
 
@@ -154,9 +173,12 @@ You have initialized an object!
 => #<User id: 1>
 ```
 
+[`after_find`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_find
+[`after_initialize`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_initialize
+
 ### `after_touch`
 
-The `after_touch` callback will be called whenever an Active Record object is touched.
+The [`after_touch`][] callback will be called whenever an Active Record object is touched.
 
 ```ruby
 class User < ApplicationRecord
@@ -205,6 +227,8 @@ An Employee was touched
 Employee/Company was touched
 => true
 ```
+
+[`after_touch`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_touch
 
 Running Callbacks
 -----------------
@@ -419,7 +443,7 @@ You can declare as many callbacks as you want inside your callback classes.
 Transaction Callbacks
 ---------------------
 
-There are two additional callbacks that are triggered by the completion of a database transaction: `after_commit` and `after_rollback`. These callbacks are very similar to the `after_save` callback except that they don't execute until after database changes have either been committed or rolled back. They are most useful when your active record models need to interact with external systems which are not part of the database transaction.
+There are two additional callbacks that are triggered by the completion of a database transaction: [`after_commit`][] and [`after_rollback`][]. These callbacks are very similar to the `after_save` callback except that they don't execute until after database changes have either been committed or rolled back. They are most useful when your active record models need to interact with external systems which are not part of the database transaction.
 
 Consider, for example, the previous example where the `PictureFile` model needs to delete a file after the corresponding record is destroyed. If anything raises an exception after the `after_destroy` callback is called and the transaction rolls back, the file will have been deleted and the model will be left in an inconsistent state. For example, suppose that `picture_file_2` in the code below is not valid and the `save!` method raises an error.
 
@@ -450,9 +474,9 @@ don't supply the `:on` option the callback will fire for every action.
 Since using the `after_commit` callback only on create, update, or delete is
 common, there are aliases for those operations:
 
-* `after_create_commit`
-* `after_update_commit`
-* `after_destroy_commit`
+* [`after_create_commit`][]
+* [`after_update_commit`][]
+* [`after_destroy_commit`][]
 
 ```ruby
 class PictureFile < ApplicationRecord
@@ -493,7 +517,7 @@ User was saved to database
 
 There is also an alias for using the `after_commit` callback for both create and update together:
 
-* `after_save_commit`
+* [`after_save_commit`][]
 
 ```ruby
 class User < ApplicationRecord
@@ -513,3 +537,8 @@ User was saved to database
 irb> @user.save # updating @user
 User was saved to database
 ```
+
+[`after_create_commit`]: https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_create_commit
+[`after_destroy_commit`]: https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_destroy_commit
+[`after_save_commit`]: https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_save_commit
+[`after_update_commit`]: https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_update_commit
