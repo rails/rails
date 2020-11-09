@@ -202,6 +202,8 @@ module ActiveRecord
                 pool_manager = handler.send(:owner_to_pool_manager)[name]
                 pool_manager.shard_names.each do |shard_name|
                   writing_pool_config = writing_pool_manager.get_pool_config(nil, shard_name)
+                  next unless writing_pool_config
+
                   pool_manager.set_pool_config(nil, shard_name, writing_pool_config)
                 end
               end
@@ -214,6 +216,8 @@ module ActiveRecord
             pool_manager = handler.send(:owner_to_pool_manager)[name]
             pool_manager.shard_names.each do |shard_name|
               writing_pool_config = pool_manager.get_pool_config(ActiveRecord::Base.writing_role, shard_name)
+              next unless writing_pool_config
+
               pool_manager.role_names.each do |role|
                 next unless pool_manager.get_pool_config(role, shard_name)
                 pool_manager.set_pool_config(role, shard_name, writing_pool_config)

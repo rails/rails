@@ -1482,6 +1482,14 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       end
     end
 
+    def test_connections_with_no_writing_role_are_skipped
+      AbstractCompany.connects_to(database: { reading: :readonly })
+      handler = ActiveRecord::Base.connection_handler
+      assert_not_nil handler.retrieve_connection_pool("AbstractCompany", role: :reading)
+    ensure
+      AbstractCompany.connected_to(role: :reading) { AbstractCompany.remove_connection }
+    end
+
     private
       def config
         { "default" => default_config, "readonly" => readonly_config }
@@ -1573,6 +1581,14 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
           ActiveRecord::Base.retrieve_connection
         end
       end
+    end
+
+    def test_connections_with_no_writing_role_are_skipped
+      AbstractCompany.connects_to(database: { reading: :readonly })
+      reading_handler = ActiveRecord::Base.connection_handlers[:reading]
+      assert_not_nil reading_handler.retrieve_connection_pool("AbstractCompany")
+    ensure
+      ActiveRecord::Base.connected_to(role: :reading) { AbstractCompany.remove_connection }
     end
 
     private
