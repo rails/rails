@@ -296,6 +296,18 @@ class InverseHasOneTests < ActiveRecord::TestCase
     assert_equal human.name, face.human.name, "Name of human should be the same after changes to replaced-child-owned instance"
   end
 
+  def test_child_instance_should_be_shared_with_replaced_via_accessor_parent
+    human = Human.first
+    face = Face.create!(description: "haunted", human: Human.last)
+    face.human = human
+    assert_equal face, human.face
+    assert_equal face.description, human.face.description, "Description of the face should be the same before changes to child instance"
+    face.description = "Bongo"
+    assert_equal face.description, human.face.description, "Description of the face should be the same after changes to chield instance"
+    human.face.description = "Mungo"
+    assert_equal face.description, human.face.description, "Description of the face should be the same after changes to replaced-parent-owned instance"
+  end
+
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Human.first.confused_face }
   end
@@ -497,6 +509,24 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_not_predicate human.interests, :loaded?
   end
 
+  def test_find_on_child_instance_with_id_should_set_inverse_instances
+    human = Human.create!
+    interest = Interest.create!(human: human)
+
+    child = human.interests.find(interest.id)
+    assert_predicate child.association(:human), :loaded?
+  end
+
+  def test_find_on_child_instances_with_ids_should_set_inverse_instances
+    human = Human.create!
+    interests = Array.new(2) { Interest.create!(human: human) }
+
+    children = human.interests.find(interests.pluck(:id))
+    children.each do |child|
+      assert_predicate child.association(:human), :loaded?
+    end
+  end
+
   def test_raise_record_not_found_error_when_invalid_ids_are_passed
     # delete all interest records to ensure that hard coded invalid_id(s)
     # are indeed invalid.
@@ -658,6 +688,24 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     end
   end
 
+  def test_unscope_does_not_set_inverse_when_incorrect
+    interest = interests(:trainspotting)
+    human = interest.human
+    created_human = Human.create(name: "wrong human")
+    found_interest = created_human.interests.or(human.interests).detect { |this_interest| interest.id == this_interest.id }
+
+    assert_equal human, found_interest.human
+  end
+
+  def test_or_does_not_set_inverse_when_incorrect
+    interest = interests(:trainspotting)
+    human = interest.human
+    created_human = Human.create(name: "wrong human")
+    found_interest = created_human.interests.unscope(:where).detect { |this_interest| interest.id == this_interest.id }
+
+    assert_equal human, found_interest.human
+  end
+
   def test_child_instance_should_be_shared_with_replaced_via_accessor_parent
     face = Face.first
     human = Human.new(name: "Charles")
@@ -761,6 +809,17 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     new_inversed_human = face.human
 
     assert_same old_inversed_human, new_inversed_human
+  end
+
+  def test_inversed_instance_should_load_after_autosave_if_it_is_not_already_loaded
+    human = Human.create!
+    human.create_autosave_face!
+
+    human.autosave_face.reload # clear cached load of autosave_human
+    human.autosave_face.description = "new description"
+    human.save!
+
+    assert_not_nil human.autosave_face.autosave_human
   end
 
   def test_should_not_try_to_set_inverse_instances_when_the_inverse_is_a_has_many

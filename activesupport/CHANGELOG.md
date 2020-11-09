@@ -1,3 +1,97 @@
+*   Ensure `MemoryStore` disables compression by default. Reverts behavior of
+    `MemoryStore` to its prior rails `5.1` behavior.
+
+    *Max Gurewitz*
+
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
+*   Calling `iso8601` on negative durations retains the negative sign on individual
+    digits instead of prepending it.
+
+    This change is required so we can interoperate with PostgreSQL, which prefers
+    negative signs for each component.
+
+    Compatibility with other iso8601 parsers which support leading negatives as well
+    as negatives per component is still retained.
+
+    Before:
+
+        (-1.year - 1.day).iso8601
+        # => "-P1Y1D"
+
+    After:
+
+        (-1.year - 1.day).iso8601
+        # => "P-1Y-1D"
+
+    *Vipul A M*
+
+*   Remove deprecated `ActiveSupport::Notifications::Instrumenter#end=`.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `ActiveSupport::Multibyte::Unicode.default_normalization_form`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveSupport::Multibyte::Unicode.pack_graphemes`,
+    `ActiveSupport::Multibyte::Unicode.unpack_graphemes`,
+    `ActiveSupport::Multibyte::Unicode.normalize`,
+    `ActiveSupport::Multibyte::Unicode.downcase`,
+    `ActiveSupport::Multibyte::Unicode.upcase` and `ActiveSupport::Multibyte::Unicode.swapcase`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveSupport::Multibyte::Chars#consumes?` and `ActiveSupport::Multibyte::Chars#normalize`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated file `active_support/core_ext/range/include_range`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated file `active_support/core_ext/hash/transform_values`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated file `active_support/core_ext/hash/compact`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated file `active_support/core_ext/array/prepend_and_append`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated file `active_support/core_ext/numeric/inquiry`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated file `active_support/core_ext/module/reachable`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Module#parent_name`, `Module#parent` and `Module#parents`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveSupport::LoggerThreadSafeLevel#after_initialize`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `LoggerSilence` constant.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated fallback to `I18n.default_local` when `config.i18n.fallbacks` is empty.
+
+    *Rafael Mendonça França*
+
+*   Remove entries from local cache on `RedisCacheStore#delete_matched`
+
+    Fixes #38627
+
+    *ojab*
+
 *   Speed up `ActiveSupport::SecurityUtils.fixed_length_secure_compare` by using
     `OpenSSL.fixed_length_secure_compare`, if available.
 
@@ -53,6 +147,12 @@
     ```
 
     *Adrianna Chang*
+
+*   Allow the digest class used to generate non-sensitive digests to be configured with `config.active_support.hash_digest_class`.
+
+    `config.active_support.use_sha1_digests` is deprecated in favour of `config.active_support.hash_digest_class = ::Digest::SHA1`.
+
+    *Dirkjan Bussink*
 
 *   Fix bug to make memcached write_entry expire correctly with unless_exist
 

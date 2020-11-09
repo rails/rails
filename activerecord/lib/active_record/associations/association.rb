@@ -134,7 +134,15 @@ module ActiveRecord
         self.target = record
         @inversed = !!record
       end
-      alias :inversed_from_queries :inversed_from
+
+      def inversed_from_queries(record)
+        if inversable?(record)
+          self.target = record
+          @inversed = true
+        else
+          @inversed = false
+        end
+      end
 
       # Returns the class of the target. belongs_to polymorphic overrides this to look at the
       # polymorphic_type field on the owner.
@@ -204,11 +212,11 @@ module ActiveRecord
       private
         def find_target
           if owner.strict_loading?
-            raise StrictLoadingViolationError, "#{owner.class} is marked as strict_loading and #{klass} cannot be lazily loaded."
+            Base.strict_loading_violation!(owner: owner.class, association: klass)
           end
 
           if reflection.strict_loading?
-            raise StrictLoadingViolationError, "The #{reflection.name} association is marked as strict_loading and cannot be lazily loaded."
+            Base.strict_loading_violation!(owner: owner.class, association: reflection.name)
           end
 
           scope = self.scope
@@ -324,6 +332,19 @@ module ActiveRecord
 
         def enqueue_destroy_association(options)
           owner.class.destroy_association_async_job&.perform_later(**options)
+        end
+
+        def inversable?(record)
+          record &&
+            ((!record.persisted? || !owner.persisted?) || matches_foreign_key?(record))
+        end
+
+        def matches_foreign_key?(record)
+          if foreign_key_for?(record)
+            record.read_attribute(reflection.foreign_key) == owner.id
+          else
+            owner.read_attribute(reflection.foreign_key) == record.id
+          end
         end
     end
   end

@@ -589,7 +589,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
-    assert_gem "puma", "'~> 4.1'"
+    assert_gem "puma", "'~> 5.0'"
   end
 
   def test_generator_if_skip_puma_is_given
@@ -787,7 +787,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/\Agem 'web-console', '>= 4\.0\.3'\z/, content)
+      assert_no_match(/\Agem 'web-console', '>= 4\.1\.0'\z/, content)
     end
   end
 
@@ -796,7 +796,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/\Agem 'web-console', '>= 4\.0\.3'\z/, content)
+      assert_no_match(/\Agem 'web-console', '>= 4\.1\.0'\z/, content)
     end
   end
 
@@ -805,7 +805,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/\Agem 'web-console', '>= 4\.0\.3'\z/, content)
+      assert_no_match(/\Agem 'web-console', '>= 4\.1\.0'\z/, content)
     end
   end
 
@@ -856,13 +856,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_spring
+    jruby_skip "spring doesn't run on JRuby"
+
     run_generator
+
     assert_gem "spring"
+    assert_file "bin/spring", %r{^\s*require "spring/binstub"}
+    assert_file "config/boot.rb", %r{^\s*load .+\bbin/spring"}
     assert_file("config/environments/test.rb") do |contents|
       assert_match("config.cache_classes = false", contents)
       assert_match("config.action_view.cache_template_loading = true", contents)
     end
-    assert_file "config/boot.rb", %r{^\s*load .+/bin/spring"}
   end
 
   def test_bundler_binstub
@@ -871,21 +875,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_bundler_command_called("binstubs bundler")
   end
 
-  def test_spring_binstub
-    jruby_skip "spring doesn't run on JRuby"
-
-    generator([destination_root], skip_webpack_install: true)
-
-    assert_bundler_command_called("exec spring binstub")
-  end
-
   def test_spring_no_fork
-    jruby_skip "spring doesn't run on JRuby"
-    assert_called_with(Process, :respond_to?, [[:fork], [:fork], [:fork], [:fork]], returns: false) do
+    respond_to = Process.method(:respond_to?)
+    respond_to_stub = -> (name) { name != :fork && respond_to[name] }
+    Process.stub(:respond_to?, respond_to_stub) do
       run_generator
-
-      assert_no_gem "spring"
     end
+
+    assert_no_gem "spring"
   end
 
   def test_skip_spring
@@ -897,7 +894,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match("config.cache_classes = true", contents)
     end
     assert_file "config/boot.rb" do |contents|
-      assert_no_match %r{bin/spring}, contents
+      assert_no_match %r{spring}, contents
     end
   end
 
@@ -1100,33 +1097,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_after_bundle_callback
-    path = "http://example.org/rails_template"
-    template = +%{ after_bundle { run 'echo ran after_bundle' } }
-    template.instance_eval "def read; self; end" # Make the string respond to read
+    sequence = []
 
-    check_open = -> *args do
-      assert_equal [ path, "Accept" => "application/x-thor-template" ], args
-      template
+    bundle_command_stub = -> *args do
+      sequence << [:bundle_command, *args]
     end
 
-    sequence = ["git init", "install", "binstubs bundler", "exec spring binstub", "webpacker:install", "echo ran after_bundle"]
-    @sequence_step ||= 0
-    ensure_bundler_first = -> command, options = nil do
-      assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
-      @sequence_step += 1
+    generator([destination_root], skip_webpack_install: true).send(:after_bundle) do
+      sequence << [:after_bundle_callback]
     end
 
-    generator([destination_root], template: path).stub(:open, check_open, template) do
-      generator.stub(:bundle_command, ensure_bundler_first) do
-        generator.stub(:run, ensure_bundler_first) do
-          generator.stub(:rails_command, ensure_bundler_first) do
-            quietly { generator.invoke_all }
-          end
-        end
-      end
+    generator.stub(:bundle_command, bundle_command_stub) do
+      quietly { generator.invoke_all }
     end
 
-    assert_equal 6, @sequence_step
+    assert_operator sequence.length, :>, 1
+    assert_equal [:after_bundle_callback], sequence.last
   end
 
   def test_gitignore

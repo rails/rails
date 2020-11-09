@@ -89,7 +89,7 @@ module ActiveRecord
             WHERE name = #{quote_table_name(table_name)} AND type = 'table'
           SQL
 
-          table_sql.scan(/CONSTRAINT\s+(?<name>\w+)\s+CHECK\s+\((?<expression>(:?[^()]|\(\g<expression>\))+)\)/i).map do |name, expression|
+          table_sql.to_s.scan(/CONSTRAINT\s+(?<name>\w+)\s+CHECK\s+\((?<expression>(:?[^()]|\(\g<expression>\))+)\)/i).map do |name, expression|
             CheckConstraintDefinition.new(table_name, expression, name: name)
           end
         end

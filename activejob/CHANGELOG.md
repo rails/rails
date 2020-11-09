@@ -1,3 +1,17 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
+*   Recover nano precision when serializing `Time`, `TimeWithZone` and `DateTime` objects.
+
+    *Alan Tan*
+
+*   Deprecate `config.active_job.return_false_on_aborted_enqueue`.
+
+    *Rafael Mendonça França*
+
+*   Return `false` when enqueuing a job is aborted.
+
+    *Rafael Mendonça França*
+
 *   While using `perform_enqueued_jobs` test helper enqueued jobs must be stored for the later check with
     `assert_enqueued_with`.
 
@@ -59,7 +73,7 @@
     ```
 
     A new message will be logged in case a job couldn't be enqueued, either because the callback chain was halted or
-    because an exception happened during enqueing. (i.e. Redis is down when you try to enqueue your job)
+    because an exception happened during enqueuing. (i.e. Redis is down when you try to enqueue your job)
 
     *Edouard Chin*
 

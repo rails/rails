@@ -297,6 +297,35 @@ module ActiveRecord
 
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
+      #
+      # A common usage pattern for this method is to ensure all references to an attribute
+      # have been removed and deployed, before a migration to drop the column from the database
+      # has been deployed and run. Using this two step approach to dropping columns ensures there
+      # is no code that raises errors due to having a cached schema in memory at the time the
+      # schema migration is run.
+      #
+      # For example, given a model where you want to drop the "category" attribute, first mark it
+      # as ignored:
+      #
+      #   class Project < ActiveRecord::Base
+      #     # schema:
+      #     #   id         :bigint
+      #     #   name       :string, limit: 255
+      #     #   category   :string, limit: 255
+      #
+      #     self.ignored_columns = [:category]
+      #   end
+      #
+      # The schema still contains `category`, but now the model omits it, so any meta-driven code or
+      # schema caching will not attempt to use the column:
+      #
+      #   Project.columns_hash["category"] => nil
+      #
+      # You will get an error if accessing that attribute directly, so ensure all usages of the
+      # column are removed (automated tests can help you find any usages).
+      #
+      #   user = Project.create!(name: "First Project")
+      #   user.category # => raises NoMethodError
       def ignored_columns=(columns)
         reload_schema_from_cache
         @ignored_columns = columns.map(&:to_s).freeze

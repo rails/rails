@@ -151,7 +151,7 @@ module ActionView #:nodoc:
     # Specify whether rendering within namespaced controllers should prefix
     # the partial paths for ActiveModel objects with the namespace.
     # (e.g., an Admin::PostsController would render @post using /admin/posts/_post.erb)
-    cattr_accessor :prefix_partial_path_with_controller_namespace, default: true
+    class_attribute :prefix_partial_path_with_controller_namespace, default: true
 
     # Specify default_formats that can be rendered.
     cattr_accessor :default_formats
@@ -213,21 +213,6 @@ module ActionView #:nodoc:
 
     # :stopdoc:
 
-    def self.build_lookup_context(context)
-      case context
-      when ActionView::Renderer
-        context.lookup_context
-      when Array
-        ActionView::LookupContext.new(context)
-      when ActionView::PathSet
-        ActionView::LookupContext.new(context)
-      when nil
-        ActionView::LookupContext.new([])
-      else
-        raise NotImplementedError, context.class.name
-      end
-    end
-
     def self.empty
       with_view_paths([])
     end
@@ -240,29 +225,12 @@ module ActionView #:nodoc:
       new context, assigns, controller
     end
 
-    NULL = Object.new
-
     # :startdoc:
 
-    def initialize(lookup_context = nil, assigns = {}, controller = nil, formats = NULL) #:nodoc:
+    def initialize(lookup_context, assigns, controller) #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
-      unless formats == NULL
-        ActiveSupport::Deprecation.warn <<~eowarn.squish
-        Passing formats to ActionView::Base.new is deprecated
-        eowarn
-      end
-
-      case lookup_context
-      when ActionView::LookupContext
-        @lookup_context = lookup_context
-      else
-        ActiveSupport::Deprecation.warn <<~eowarn.squish
-        ActionView::Base instances should be constructed with a lookup context,
-        assignments, and a controller.
-        eowarn
-        @lookup_context = self.class.build_lookup_context(lookup_context)
-      end
+      @lookup_context = lookup_context
 
       @view_renderer = ActionView::Renderer.new @lookup_context
       @current_template = nil
@@ -282,15 +250,11 @@ module ActionView #:nodoc:
     end
 
     def compiled_method_container
-      if self.class == ActionView::Base
-        ActiveSupport::Deprecation.warn <<~eowarn.squish
-          ActionView::Base instances must implement `compiled_method_container`
-          or use the class method `with_empty_template_cache` for constructing
-          an ActionView::Base instance that has an empty cache.
-        eowarn
-      end
-
-      self.class
+      raise NotImplementedError, <<~msg.squish
+        Subclasses of ActionView::Base must implement `compiled_method_container`
+        or use the class method `with_empty_template_cache` for constructing
+        an ActionView::Base subclass that has an empty cache.
+      msg
     end
 
     def in_rendering_context(options)

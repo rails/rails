@@ -1,3 +1,54 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
+*   Added `Railtie#server` hook called when Rails starts a server.
+    This is useful in case your application or a library needs to run
+    another process next to the Rails server. This is quite common in development
+    for instance to run the Webpack or the React server.
+
+    It can be used like this:
+
+    ```ruby
+      class MyRailtie < Rails::Railtie
+        server do
+          WebpackServer.run
+        end
+      end
+    ```
+
+    *Edouard Chin*
+
+*   Remove deprecated `rake dev:cache` tasks.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `rake routes` tasks.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `rake initializers` tasks.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support for using the `HOST` environment variable to specify the server IP.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `server` argument from the rails server command.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `SOURCE_ANNOTATION_DIRECTORIES` environment variable support from `rails notes`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `connection` option in the `rails dbconsole` command.
+
+    *Rafael Mendonça França*
+
+*   Remove depreated `rake notes` tasks.
+
+    *Rafael Mendonça França*
+
 *   Return a 405 Method Not Allowed response when a request uses an unknown HTTP method.
 
     Fixes #38998.
@@ -14,12 +65,6 @@
     The fallback behaviour means this does not cause any breaking changes.
 
     *Nick Wolf*
-
-*   Deprecate `config.active_support.use_sha1_digests`
-
-    `config.active_support.use_sha1_digests` is deprecated. It is replaced with `config.active_support.hash_digest_class` which allows setting the desired Digest instead. The Rails version defaults have been updated to use this new method as well so the behavior there is unchanged.
-
-    *Dirkjan Bussink*
 
 *   Change the default logging level from :debug to :info to avoid inadvertent exposure of personally
     identifiable information (PII) in production environments.
@@ -67,7 +112,6 @@
     ```
 
     *Eileen M. Uchitelle*, *John Crepezzi*
-
 
 *   Accept params from url to prepopulate the Inbound Emails form in Rails conductor.
 

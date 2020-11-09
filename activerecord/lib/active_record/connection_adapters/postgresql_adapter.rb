@@ -344,11 +344,6 @@ module ActiveRecord
         true
       end
 
-      def supports_ranges?
-        true
-      end
-      deprecate :supports_ranges?
-
       def supports_materialized_views?
         true
       end

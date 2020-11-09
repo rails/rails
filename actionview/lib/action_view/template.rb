@@ -8,14 +8,6 @@ module ActionView
   class Template
     extend ActiveSupport::Autoload
 
-    def self.finalize_compiled_template_methods
-      ActiveSupport::Deprecation.warn "ActionView::Template.finalize_compiled_template_methods is deprecated and has no effect"
-    end
-
-    def self.finalize_compiled_template_methods=(_)
-      ActiveSupport::Deprecation.warn "ActionView::Template.finalize_compiled_template_methods= is deprecated and has no effect"
-    end
-
     # === Encodings in ActionView::Template
     #
     # ActionView::Template is one of a few sources of potential
@@ -122,15 +114,10 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_reader :identifier, :handler, :original_encoding, :updated_at
+    attr_reader :identifier, :handler
     attr_reader :variable, :format, :variant, :locals, :virtual_path
 
-    def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, virtual_path: nil, updated_at: nil)
-      unless locals
-        ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a locals parameter"
-        locals = []
-      end
-
+    def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
       @source            = source
       @identifier        = identifier
       @handler           = handler
@@ -144,26 +131,10 @@ module ActionView
         $1.to_sym
       end
 
-      if updated_at
-        ActiveSupport::Deprecation.warn "ActionView::Template#updated_at is deprecated"
-        @updated_at        = updated_at
-      else
-        @updated_at        = Time.now
-      end
       @format            = format
       @variant           = variant
       @compile_mutex     = Mutex.new
     end
-
-    deprecate :original_encoding
-    deprecate :updated_at
-    deprecate def virtual_path=(_); end
-    deprecate def locals=(_); end
-    deprecate def formats=(_); end
-    deprecate def formats; Array(format); end
-    deprecate def variants=(_); end
-    deprecate def variants; [variant]; end
-    deprecate def refresh(_); self; end
 
     # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it starts rendering.
@@ -253,11 +224,11 @@ module ActionView
     # to ensure that references to the template object can be marshalled as well. This means forgoing
     # the marshalling of the compiler mutex and instantiating that again on unmarshalling.
     def marshal_dump # :nodoc:
-      [ @source, @identifier, @handler, @compiled, @locals, @virtual_path, @updated_at, @format, @variant ]
+      [ @source, @identifier, @handler, @compiled, @locals, @virtual_path, @format, @variant ]
     end
 
     def marshal_load(array) # :nodoc:
-      @source, @identifier, @handler, @compiled, @locals, @virtual_path, @updated_at, @format, @variant = *array
+      @source, @identifier, @handler, @compiled, @locals, @virtual_path, @format, @variant = *array
       @compile_mutex = Mutex.new
     end
 
@@ -283,15 +254,6 @@ module ActionView
           end
 
           @compiled = true
-        end
-      end
-
-      class LegacyTemplate < DelegateClass(Template) # :nodoc:
-        attr_reader :source
-
-        def initialize(template, source)
-          super(template)
-          @source = source
         end
       end
 

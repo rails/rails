@@ -200,6 +200,14 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         @cache.decrement "dar", 1, expires_in: 60
       end
     end
+
+    def test_large_string_with_default_compression_settings
+      assert_compressed(LARGE_STRING)
+    end
+
+    def test_large_object_with_default_compression_settings
+      assert_compressed(LARGE_OBJECT)
+    end
   end
 
   class ConnectionPoolBehaviourTest < StoreTest

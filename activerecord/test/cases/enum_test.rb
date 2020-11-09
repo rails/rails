@@ -290,13 +290,23 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate Book.illustrator_visibility_invisible.create, :illustrator_visibility_invisible?
   end
 
-  test "_before_type_cast" do
+  test "attribute_before_type_cast" do
     assert_equal 2, @book.status_before_type_cast
     assert_equal "published", @book.status
 
     @book.status = "published"
 
     assert_equal "published", @book.status_before_type_cast
+    assert_equal "published", @book.status
+  end
+
+  test "attribute_for_database" do
+    assert_equal 2, @book.status_for_database
+    assert_equal "published", @book.status
+
+    @book.status = "published"
+
+    assert_equal 2, @book.status_for_database
     assert_equal "published", @book.status
   end
 
@@ -585,6 +595,16 @@ class EnumTest < ActiveRecord::TestCase
 
   test "data type of Enum type" do
     assert_equal :integer, Book.type_for_attribute("status").type
+  end
+
+  test "enum on custom attribute with default" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      attribute :status, default: 2
+      enum status: [:proposed, :written, :published]
+    end
+
+    assert_equal "published", klass.new.status
   end
 
   test "overloaded default" do

@@ -8,13 +8,6 @@ ActiveRecord::Schema.define do
   #                                                                     #
   # ------------------------------------------------------------------- #
 
-  case_sensitive_options =
-    if current_adapter?(:Mysql2Adapter)
-      { collation: "utf8mb4_bin" }
-    else
-      {}
-    end
-
   create_table :accounts, force: true do |t|
     t.references :firm, index: false
     t.string  :firm_name
@@ -115,7 +108,7 @@ ActiveRecord::Schema.define do
     t.column :font_size, :integer, **default_zero
     t.column :difficulty, :integer, **default_zero
     t.column :cover, :string, default: "hard"
-    t.string :isbn, **case_sensitive_options
+    t.string :isbn
     t.string :external_id
     t.datetime :published_on
     t.boolean :boolean_status
@@ -158,6 +151,16 @@ ActiveRecord::Schema.define do
   end
 
   create_table :carriers, force: true
+
+  create_table :carts, force: true, primary_key: [:shop_id, :id] do |t|
+    if current_adapter?(:Mysql2Adapter)
+      t.bigint :id, index: true, auto_increment: true, null: false
+    else
+      t.bigint :id, index: true, null: false
+    end
+    t.bigint :shop_id
+    t.string :title
+  end
 
   create_table :categories, force: true do |t|
     t.string :name, null: false
@@ -290,7 +293,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :dashboards, force: true, id: false do |t|
-    t.string :dashboard_id, **case_sensitive_options
+    t.string :dashboard_id
     t.string :name
   end
 
@@ -403,7 +406,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :essays, force: true do |t|
-    t.string :name, **case_sensitive_options
+    t.string :name
     t.string :writer_id
     t.string :writer_type
     t.string :category_id
@@ -412,7 +415,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :events, force: true do |t|
-    t.string :title, limit: 5, **case_sensitive_options
+    t.string :title, limit: 5
   end
 
   create_table :eyes, force: true do |t|
@@ -454,7 +457,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :guids, force: true do |t|
-    t.column :key, :string, **case_sensitive_options
+    t.column :key, :string
   end
 
   create_table :guitars, force: true do |t|
@@ -462,8 +465,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :inept_wizards, force: true do |t|
-    t.column :name, :string, null: false, **case_sensitive_options
-    t.column :city, :string, null: false, **case_sensitive_options
+    t.column :name, :string, null: false
+    t.column :city, :string, null: false
     t.column :type, :string
   end
 
@@ -988,8 +991,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :topics, force: true do |t|
-    t.string   :title, limit: 250, **case_sensitive_options
-    t.string   :author_name, **case_sensitive_options
+    t.string   :title, limit: 250
+    t.string   :author_name
     t.string   :author_email_address
     if supports_datetime_with_precision?
       t.datetime :written_on, precision: 6
@@ -1001,10 +1004,10 @@ ActiveRecord::Schema.define do
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
     if current_adapter?(:OracleAdapter)
-      t.string   :content, limit: 4000, **case_sensitive_options
+      t.string   :content, limit: 4000
       t.string   :important, limit: 4000
     else
-      t.text     :content, **case_sensitive_options
+      t.text     :content
       t.text     :important
     end
     t.boolean  :approved, default: true

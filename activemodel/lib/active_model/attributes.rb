@@ -115,7 +115,7 @@ module ActiveModel
     end
 
     def freeze
-      @attributes = @attributes.clone.freeze
+      @attributes = @attributes.clone.freeze unless frozen?
       super
     end
 

@@ -116,19 +116,6 @@ module ActiveRecord
     end
     alias :blank? :empty?
 
-    def each
-      throw_getter_deprecation(:each)
-      configurations.each { |config|
-        yield [config.env_name, config.configuration_hash]
-      }
-    end
-
-    def first
-      throw_getter_deprecation(:first)
-      config = configurations.first
-      [config.env_name, config.configuration_hash]
-    end
-
     # Returns fully resolved connection, accepts hash, string or symbol.
     # Always returns a DatabaseConfiguration::DatabaseConfig
     #
@@ -206,7 +193,7 @@ module ActiveRecord
           raise AdapterNotSpecified, <<~MSG
             The `#{name}` database is not configured for the `#{default_env}` environment.
 
-              Available databases configurations are:
+              Available database configurations are:
 
               #{build_configuration_sentence}
           MSG
@@ -280,38 +267,6 @@ module ActiveRecord
         url = ENV[name_env_key]
         url ||= ENV["DATABASE_URL"] if name == "primary"
         url
-      end
-
-      def method_missing(method, *args, &blk)
-        case method
-        when :fetch
-          throw_getter_deprecation(method)
-          configs_for(env_name: args.first)
-        when :values
-          throw_getter_deprecation(method)
-          configurations.map(&:configuration_hash)
-        when :[]=
-          throw_setter_deprecation(method)
-
-          env_name = args[0]
-          config = args[1]
-
-          remaining_configs = configurations.reject { |db_config| db_config.env_name == env_name }
-          new_config = build_configs(env_name => config)
-          new_configs = remaining_configs + new_config
-
-          ActiveRecord::Base.configurations = new_configs
-        else
-          raise NotImplementedError, "`ActiveRecord::Base.configurations` in Rails 6 now returns an object instead of a hash. The `#{method}` method is not supported. Please use `configs_for` or consult the documentation for supported methods."
-        end
-      end
-
-      def throw_setter_deprecation(method)
-        ActiveSupport::Deprecation.warn("Setting `ActiveRecord::Base.configurations` with `#{method}` is deprecated. Use `ActiveRecord::Base.configurations=` directly to set the configurations instead.")
-      end
-
-      def throw_getter_deprecation(method)
-        ActiveSupport::Deprecation.warn("`ActiveRecord::Base.configurations` no longer returns a hash. Methods that act on the hash like `#{method}` are deprecated and will be removed in Rails 6.1. Use the `configs_for` method to collect and iterate over the database configurations.")
       end
   end
 end

@@ -37,7 +37,7 @@ module ActiveRecord
       include Savepoints
 
       SIMPLE_INT = /\A\d+\z/
-      COMMENT_REGEX = %r{/\*(?:[^\*]|\*[^/])*\*/}m
+      COMMENT_REGEX = %r{(?:\-\-.*\n)*|/\*(?:[^\*]|\*[^/])*\*/}m
 
       attr_accessor :pool
       attr_reader :visitor, :owner, :logger, :lock
@@ -116,7 +116,11 @@ module ActiveRecord
       # Returns true if the connection is a replica, or if +prevent_writes+
       # is set to true.
       def preventing_writes?
-        replica? || ActiveRecord::Base.connection_handler.prevent_writes
+        if ActiveRecord::Base.legacy_connection_handling
+          replica? || ActiveRecord::Base.connection_handler.prevent_writes
+        else
+          replica? || ActiveRecord::Base.current_preventing_writes
+        end
       end
 
       def migrations_paths # :nodoc:
@@ -331,13 +335,6 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support creating foreign key constraints
-      # in the same statement as creating the table?
-      def supports_foreign_keys_in_create?
-        supports_foreign_keys?
-      end
-      deprecate :supports_foreign_keys_in_create?
-
       # Does this adapter support creating check constraints?
       def supports_check_constraints?
         false
@@ -372,12 +369,6 @@ module ActiveRecord
       def supports_comments_in_create?
         false
       end
-
-      # Does this adapter support multi-value insert?
-      def supports_multi_insert?
-        true
-      end
-      deprecate :supports_multi_insert?
 
       # Does this adapter support virtual columns?
       def supports_virtual_columns?
@@ -510,6 +501,12 @@ module ActiveRecord
         # this should be overridden by concrete adapters
       end
 
+      # Removes the connection from the pool and disconnect it.
+      def throw_away!
+        pool.remove self
+        disconnect!
+      end
+
       # Clear any caching the database adapter may be doing.
       def clear_cache!
         @lock.synchronize { @statements.clear } if @statements
@@ -538,7 +535,7 @@ module ActiveRecord
         @connection
       end
 
-      def default_uniqueness_comparison(attribute, value, klass) # :nodoc:
+      def default_uniqueness_comparison(attribute, value) # :nodoc:
         attribute.eq(value)
       end
 

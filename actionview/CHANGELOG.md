@@ -1,3 +1,149 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
+*   Yield translated strings to calls of `ActionView::FormBuilder#button`
+    when a block is given.
+
+    *Sean Doyle*
+
+*   Alias `ActionView::Helpers::Tags::Label::LabelBuilder#translation` to
+    `#to_s` so that `form.label` calls can yield that value to their blocks.
+
+    *Sean Doyle*
+
+*   Rename the new `TagHelper#class_names` method to `TagHelper#token_list`,
+    and make the original available as an alias.
+
+        token_list("foo", "foo bar")
+        # => "foo bar"
+
+    *Sean Doyle*
+
+*   ARIA Array and Hash attributes are treated as space separated `DOMTokenList`
+    values. This is useful when declaring lists of label text identifiers in
+    `aria-labelledby` or `aria-describedby`.
+
+        tag.input type: 'checkbox', name: 'published', aria: {
+          invalid: @post.errors[:published].any?,
+          labelledby: ['published_context', 'published_label'],
+          describedby: { published_errors: @post.errors[:published].any? }
+        }
+        #=> <input
+              type="checkbox" name="published" aria-invalid="true"
+              aria-labelledby="published_context published_label"
+              aria-describedby="published_errors"
+            >
+
+    *Sean Doyle*
+
+*   Remove deprecated `escape_whitelist` from `ActionView::Template::Handlers::ERB`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `find_all_anywhere` from `ActionView::Resolver`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `formats` from `ActionView::Template::HTML`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `formats` from `ActionView::Template::RawFile`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `formats` from `ActionView::Template::Text`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `find_file` from `ActionView::PathSet`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `rendered_format` from `ActionView::LookupContext`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `find_file` from `ActionView::ViewPaths`.
+
+    *Rafael Mendonça França*
+
+*   Require that `ActionView::Base` subclasses implement `#compiled_method_container`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to pass an object that is not a `ActionView::LookupContext` as the first argument
+    in `ActionView::Base#initialize`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `format` argument `ActionView::Base#initialize`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionView::Template#refresh`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionView::Template#original_encoding`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionView::Template#variants`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionView::Template#formats`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionView::Template#virtual_path=`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionView::Template#updated_at`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `updated_at` argument required on `ActionView::Template#initialize`.
+
+    *Rafael Mendonça França*
+
+*   Make `locals` argument required on `ActionView::Template#initialize`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionView::Template.finalize_compiled_template_methods`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.action_view.finalize_compiled_template_methods`
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to calling `ActionView::ViewPaths#with_fallback` with a block.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing absolute paths to `render template:`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing relative paths to `render file:`.
+
+    *Rafael Mendonça França*
+
+*   Remove support to template handlers that don't accept two arguments.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated pattern argument in `ActionView::Template::PathResolver`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to call private methods from object in some view helpers.
+
+    *Rafael Mendonça França*
+
 *   `ActionView::Helpers::TranslationHelper#translate` accepts a block, yielding
     the translated text and the fully resolved translation key:
 

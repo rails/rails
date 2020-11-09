@@ -344,16 +344,23 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p class=\"song play>\">limelight</p>", str
   end
 
-  def test_class_names
-    assert_equal "song play", class_names(["song", { "play": true }])
-    assert_equal "song", class_names({ "song": true, "play": false })
-    assert_equal "song", class_names([{ "song": true }, { "play": false }])
-    assert_equal "song", class_names({ song: true, play: false })
-    assert_equal "song", class_names([{ song: true }, nil, false])
-    assert_equal "song", class_names(["song", { foo: false }])
-    assert_equal "song play", class_names({ "song": true, "play": true })
-    assert_equal "", class_names({ "song": false, "play": false })
-    assert_equal "123", class_names(nil, "", false, 123, { "song": false, "play": false })
+  def test_token_list_and_class_names
+    [:token_list, :class_names].each do |helper_method|
+      helper = ->(*arguments) { public_send(helper_method, *arguments) }
+
+      assert_equal "song play", helper.(["song", { "play": true }])
+      assert_equal "song", helper.({ "song": true, "play": false })
+      assert_equal "song", helper.([{ "song": true }, { "play": false }])
+      assert_equal "song", helper.({ song: true, play: false })
+      assert_equal "song", helper.([{ song: true }, nil, false])
+      assert_equal "song", helper.(["song", { foo: false }])
+      assert_equal "song play", helper.({ "song": true, "play": true })
+      assert_equal "", helper.({ "song": false, "play": false })
+      assert_equal "123", helper.(nil, "", false, 123, { "song": false, "play": false })
+      assert_equal "song", helper.("song", "song")
+      assert_equal "song", helper.("song song")
+      assert_equal "song", helper.("song\nsong")
+    end
   end
 
   def test_content_tag_with_data_attributes
@@ -441,11 +448,12 @@ class TagHelperTest < ActionView::TestCase
 
   def test_aria_attributes
     ["aria", :aria].each { |aria|
-      assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="[1,2,3]" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
-        tag("a", aria => { a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
-      assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="[1,2,3]" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
-        tag.a(aria: { a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
+      assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-truthy="true" aria-falsey="false" aria-array="1 2 3" aria-hash="a b" aria-tokens="a b" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
+        tag("a", aria => { nil: nil, a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, truthy: true, falsey: false, string: "hello", symbol: :foo, array: [1, 2, 3], empty_array: [], hash: { a: true, b: "truthy", falsey: false, nil: nil }, empty_hash: {}, tokens: ["a", { b: true, c: false }], empty_tokens: [{ a: false }], string_with_quotes: 'double"quote"party"' })
     }
+
+    assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-truthy="true" aria-falsey="false" aria-array="1 2 3" aria-hash="a b" aria-tokens="a b" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
+    tag.a(aria: { nil: nil, a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, truthy: true, falsey: false, string: "hello", symbol: :foo, array: [1, 2, 3], empty_array: [], hash: { a: true, b: "truthy", falsey: false, nil: nil }, empty_hash: {}, tokens: ["a", { b: true, c: false }], empty_tokens: [{ a: false }], string_with_quotes: 'double"quote"party"' })
   end
 
   def test_link_to_data_nil_equal

@@ -83,13 +83,18 @@ module RailsGuides
         end
 
         def clipboard_content(code, language)
-          if language == "bash"
-            prompt_regexp = /^\$ /
-            code = code.split("\n").
-              select { |line| line =~ prompt_regexp }.
-              map { |line| line.gsub(prompt_regexp, "") }.
-              join("\n")
+          prompt_regexp =
+            case language
+            when "bash"
+              /^\$ /
+            when "irb"
+              /^irb.*?> /
+            end
+
+          if prompt_regexp
+            code = code.lines.grep(prompt_regexp).join.gsub(prompt_regexp, "")
           end
+
           ERB::Util.h(code)
         end
 

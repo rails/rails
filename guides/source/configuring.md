@@ -281,7 +281,7 @@ Every Rails application comes with a standard set of middleware which it uses in
 * `Rack::Runtime` sets an `X-Runtime` header, containing the time (in seconds) taken to execute the request.
 * `Rails::Rack::Logger` notifies the logs that the request has begun. After request is complete, flushes all the logs.
 * `ActionDispatch::ShowExceptions` rescues any exception returned by the application and renders nice exception pages if the request is local or if `config.consider_all_requests_local` is set to `true`. If `config.action_dispatch.show_exceptions` is set to `false`, exceptions will be raised regardless.
-* `ActionDispatch::RequestId` makes a unique X-Request-Id header available to the response and enables the `ActionDispatch::Request#uuid` method.
+* `ActionDispatch::RequestId` makes a unique X-Request-Id header available to the response and enables the `ActionDispatch::Request#uuid` method. Configurable with `config.action_dispatch.request_id_header`.
 * `ActionDispatch::RemoteIp` checks for IP spoofing attacks and gets valid `client_ip` from request headers. Configurable with the `config.action_dispatch.ip_spoofing_check`, and `config.action_dispatch.trusted_proxies` options.
 * `Rack::Sendfile` intercepts responses whose body is being served from a file and replaces it with a server specific X-Sendfile header. Configurable with `config.action_dispatch.x_sendfile_header`.
 * `ActionDispatch::Callbacks` runs the prepare callbacks before serving the request.
@@ -436,6 +436,11 @@ in controllers and views. This defaults to `false`.
   controls whether a record fails validation if `belongs_to` association is not
   present.
 
+* `config.active_record.action_on_strict_loading_violation` enables raising or
+  logging an exception if strict_loading is set on an association. The default
+  value is `:raise` in all environments. It can be changed to `:log` to send
+  violations to the logger instead of raising.
+
 * `config.active_record.strict_loading_by_default` is a boolean value
   that either enables or disables strict_loading mode by default.
   Defaults to `false`.
@@ -461,6 +466,10 @@ in controllers and views. This defaults to `false`.
 
 * `config.active_record.has_many_inversing` enables setting the inverse record
   when traversing `belongs_to` to `has_many` associations.
+
+* `config.active_record.legacy_connection_handling` allows to enable new connection
+   handling API. For applications using multiple databases, this new API provides
+   support for granular connection swapping.
 
 * `config.active_record.destroy_association_async_job` allows specifying the job that will be used to destroy the associated records in background. It defaults to `ActiveRecord::DestroyAssociationAsyncJob`.
 
@@ -624,10 +633,6 @@ Defaults to `'signed cookie'`.
   ```
 
   Any exceptions that are not configured will be mapped to 500 Internal Server Error.
-
-* `config.action_dispatch.return_only_media_type_on_content_type` change the
-  return value of `ActionDispatch::Response#content_type` to the Content-Type
-  header without modification. Defaults to `false`.
 
 * `config.action_dispatch.cookies_same_site_protection` configures the default
   value of the `SameSite` attribute when setting cookies. When set to `nil`, the
@@ -898,8 +903,6 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.custom_serializers` allows to set custom argument serializers. Defaults to `[]`.
 
-* `config.active_job.return_false_on_aborted_enqueue` change the return value of `#enqueue` to false instead of the job instance when the enqueuing is aborted.
-
 * `config.active_job.log_arguments` controls if the arguments of a job are logged. Defaults to `true`.
 
 * `config.active_job.retry_jitter` controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs.
@@ -1011,6 +1014,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 #### For '6.1', defaults from previous versions below and:
 
 - `config.active_record.has_many_inversing`: `true`
+- `config.active_record.legacy_connection_handling`: `false`
 - `config.active_storage.track_variants`: `true`
 - `config.active_job.retry_jitter`: `0.15`
 - `config.active_job.skip_after_callbacks_if_terminated`: `true`
@@ -1024,9 +1028,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.autoloader`: `:zeitwerk`
 - `config.action_view.default_enforce_utf8`: `false`
 - `config.action_dispatch.use_cookies_with_metadata`: `true`
-- `config.action_dispatch.return_only_media_type_on_content_type`: `false`
 - `config.action_mailer.delivery_job`: `"ActionMailer::MailDeliveryJob"`
-- `config.active_job.return_false_on_aborted_enqueue`: `true`
 - `config.active_storage.queues.analysis`: `:active_storage_analysis`
 - `config.active_storage.queues.purge`: `:active_storage_purge`
 - `config.active_storage.replace_on_assign_to_many`: `true`
@@ -1062,12 +1064,12 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.action_mailer.delivery_job`: `ActionMailer::DeliveryJob`
 - `config.action_view.form_with_generates_ids`: `false`
 - `config.active_job.retry_jitter`: `0.0`
-- `config.active_job.return_false_on_aborted_enqueue`: `false`
 - `config.active_job.skip_after_callbacks_if_terminated`: `false`
 - `config.active_record.collection_cache_versioning`: `false`
 - `config.active_record.has_many_inversing`: `false`
+- `config.active_record.legacy_connection_handling`: `true`
 - `config.active_support.use_authenticated_message_encryption`: `false`
-- `config.active_support.use_sha1_digests`: `false`
+- `config.active_support.hash_digest_class`: `::Digest::MD5`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
 
 ### Configuring a Database
@@ -1086,8 +1088,7 @@ development:
 This will connect to the database named `blog_development` using the `postgresql` adapter. This same information can be stored in a URL and provided via an environment variable like this:
 
 ```ruby
-> puts ENV['DATABASE_URL']
-postgresql://localhost/blog_development?pool=5
+ENV['DATABASE_URL'] # => "postgresql://localhost/blog_development?pool=5"
 ```
 
 The `config/database.yml` file contains sections for three different environments in which Rails can run by default:
@@ -1463,7 +1464,7 @@ Rails has 5 initialization events which can be hooked into (listed in the order 
 
 * `before_initialize`: This is run directly before the initialization process of the application occurs with the `:bootstrap_hook` initializer near the beginning of the Rails initialization process.
 
-* `to_prepare`: Run after the initializers are run for all Railties (including the application itself), but before eager loading and the middleware stack is built. More importantly, will run upon every request in `development`, but only once (during boot-up) in `production` and `test`.
+* `to_prepare`: Run after the initializers are run for all Railties (including the application itself), but before eager loading and the middleware stack is built. More importantly, will run upon every code reload in `development`, but only once (during boot-up) in `production` and `test`.
 
 * `before_eager_load`: This is run directly before eager loading occurs, which is the default behavior for the `production` environment and not for the `development` environment.
 

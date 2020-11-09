@@ -15,8 +15,10 @@ module ActionController
         @_parameter_encodings = Hash.new { |h, k| h[k] = {} }
       end
 
-      def custom_encoding_for(action, param) # :nodoc:
-        @_parameter_encodings[action.to_s][param.to_s]
+      def action_encoding_template(action) # :nodoc:
+        if @_parameter_encodings.has_key?(action.to_s)
+          @_parameter_encodings[action.to_s]
+        end
       end
 
       # Specify that a given action's parameters should all be encoded as
@@ -47,8 +49,8 @@ module ActionController
         @_parameter_encodings[action.to_s] = Hash.new { Encoding::ASCII_8BIT }
       end
 
-      # Specify the encoding for a a parameter on an action
-      # If not specified the default is UTF-8
+      # Specify the encoding for a parameter on an action.
+      # If not specified the default is UTF-8.
       #
       # You can specify a binary (ASCII_8BIT) parameter with:
       #

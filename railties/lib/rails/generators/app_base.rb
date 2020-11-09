@@ -200,7 +200,7 @@ module Rails
       def web_server_gemfile_entry # :doc:
         return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 4.1", comment)
+        GemfileEntry.new("puma", "~> 5.0", comment)
       end
 
       def include_all_railties? # :doc:
@@ -438,12 +438,6 @@ module Rails
       def generate_bundler_binstub
         if bundle_install?
           bundle_command("binstubs bundler")
-        end
-      end
-
-      def generate_spring_binstub
-        if bundle_install? && spring_install?
-          bundle_command("exec spring binstub")
         end
       end
 

@@ -246,18 +246,6 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     end
   end
 
-  def test_connection_options_is_deprecate
-    command = Rails::Command::DbconsoleCommand.new([], ["-c", "custom"])
-    Rails::DBConsole.stub(:start, nil) do
-      assert_deprecated("`connection` option is deprecated") do
-        command.perform
-      end
-    end
-
-    assert_equal "custom", command.options["connection"]
-    assert_equal "custom", command.options["database"]
-  end
-
   def test_print_help_short
     stdout = capture(:stdout) do
       Rails::Command.invoke(:dbconsole, ["-h"])

@@ -133,9 +133,7 @@ In a Rails console there is no file watcher active regardless of the value of `c
 
 However, you can force a reload in the console by executing `reload!`:
 
-```bash
-$ bin/rails c
-Loading development environment (Rails 6.0.0)
+```irb
 irb(main):001:0> User.object_id
 => 70136277390120
 irb(main):002:0> reload!
@@ -172,12 +170,12 @@ Let's see other situations that involve stale class or module objects.
 
 Check this Rails console session:
 
-```ruby
-> joe = User.new
-> reload!
-> alice = User.new
-> joe.class == alice.class
-false
+```irb
+irb> joe = User.new
+irb> reload!
+irb> alice = User.new
+irb> joe.class == alice.class
+=> false
 ```
 
 `joe` is an instance of the original `User` class. When there is a reload, the `User` constant evaluates to a different, reloaded class. `alice` is an instance of the current one, but `joe` is not, his class is stale. You may define `joe` again, start an IRB subsession, or just launch a new console instead of calling `reload!`.

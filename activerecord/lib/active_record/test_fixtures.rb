@@ -131,11 +131,12 @@ module ActiveRecord
         # When connections are established in the future, begin a transaction too
         @connection_subscriber = ActiveSupport::Notifications.subscribe("!connection.active_record") do |_, _, _, _, payload|
           spec_name = payload[:spec_name] if payload.key?(:spec_name)
+          shard = payload[:shard] if payload.key?(:shard)
           setup_shared_connection_pool
 
           if spec_name
             begin
-              connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name)
+              connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name, shard: shard)
             rescue ConnectionNotEstablished
               connection = nil
             end
@@ -189,18 +190,34 @@ module ActiveRecord
       # need to share a connection pool so that the reading connection
       # can see data in the open transaction on the writing connection.
       def setup_shared_connection_pool
-        writing_handler = ActiveRecord::Base.connection_handlers[ActiveRecord::Base.writing_role]
+        if ActiveRecord::Base.legacy_connection_handling
+          writing_handler = ActiveRecord::Base.connection_handlers[ActiveRecord::Base.writing_role]
 
-        ActiveRecord::Base.connection_handlers.values.each do |handler|
-          if handler != writing_handler
-            handler.connection_pool_names.each do |name|
-              writing_pool_manager = writing_handler.send(:owner_to_pool_manager)[name]
-              return unless writing_pool_manager
+          ActiveRecord::Base.connection_handlers.values.each do |handler|
+            if handler != writing_handler
+              handler.connection_pool_names.each do |name|
+                writing_pool_manager = writing_handler.send(:owner_to_pool_manager)[name]
+                return unless writing_pool_manager
 
-              writing_pool_config = writing_pool_manager.get_pool_config(:default)
+                pool_manager = handler.send(:owner_to_pool_manager)[name]
+                pool_manager.shard_names.each do |shard_name|
+                  writing_pool_config = writing_pool_manager.get_pool_config(nil, shard_name)
+                  pool_manager.set_pool_config(nil, shard_name, writing_pool_config)
+                end
+              end
+            end
+          end
+        else
+          handler = ActiveRecord::Base.connection_handler
 
-              pool_manager = handler.send(:owner_to_pool_manager)[name]
-              pool_manager.set_pool_config(:default, writing_pool_config)
+          handler.connection_pool_names.each do |name|
+            pool_manager = handler.send(:owner_to_pool_manager)[name]
+            pool_manager.shard_names.each do |shard_name|
+              writing_pool_config = pool_manager.get_pool_config(ActiveRecord::Base.writing_role, shard_name)
+              pool_manager.role_names.each do |role|
+                next unless pool_manager.get_pool_config(role, shard_name)
+                pool_manager.set_pool_config(role, shard_name, writing_pool_config)
+              end
             end
           end
         end

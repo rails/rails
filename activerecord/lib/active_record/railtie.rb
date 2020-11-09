@@ -31,9 +31,6 @@ module ActiveRecord
     config.active_record.maintain_test_schema = true
     config.active_record.has_many_inversing = false
 
-    config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
-    config.active_record.sqlite3.represent_boolean_as_integer = nil
-
     config.active_record.queues = ActiveSupport::InheritableOptions.new(destroy: :active_record_destroy)
 
     config.eager_load_namespaces << ActiveRecord
@@ -169,10 +166,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
           if app.config.eager_load
             begin
               descendants.each do |model|
-                # SchemaMigration and InternalMetadata both override `table_exists?`
-                # to bypass the schema cache, so skip them to avoid the extra queries.
-                next if model._internal?
-
                 # If the schema cache was loaded from a dump, we can use it without connecting
                 schema_cache = model.connection_pool.schema_cache
 
@@ -186,7 +179,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
                 end
               end
             rescue ActiveRecordError => error
-              # Regardless of wether there was already a connection or not, we rescue any database
+              # Regardless of whether there was already a connection or not, we rescue any database
               # error because it is critical that the application can boot even if the database
               # is unhealthy.
               warn "Failed to define attribute methods because of #{error.class}: #{error.message}"
@@ -208,16 +201,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
       ActiveSupport.on_load(:active_record) do
         configs = app.config.active_record
 
-        represent_boolean_as_integer = configs.sqlite3.delete(:represent_boolean_as_integer)
-
-        unless represent_boolean_as_integer.nil?
-          ActiveSupport.on_load(:active_record_sqlite3adapter) do
-            ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = represent_boolean_as_integer
-          end
-        end
-
-        configs.delete(:sqlite3)
-
         configs.each do |k, v|
           send "#{k}=", v
         end
@@ -228,7 +211,9 @@ To keep using the current cache store, you can turn off cache versioning entirel
     # and then establishes the connection.
     initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
-        self.connection_handlers = { writing_role => ActiveRecord::Base.default_connection_handler }
+        if ActiveRecord::Base.legacy_connection_handling
+          self.connection_handlers = { writing_role => ActiveRecord::Base.default_connection_handler }
+        end
         self.configurations = Rails.application.config.database_configuration
         establish_connection
       end

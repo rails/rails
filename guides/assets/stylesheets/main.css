@@ -763,8 +763,8 @@ div.important p, div.caution p, div.warning p, div.note p, div.info p {
   margin-bottom: 1em;
 }
 
-/* When triple-clicking shell code, select only the command, not the prompt */
-code.highlight.console span.w {
+/* When triple-clicking console code, select only the command, not the prompt */
+code.highlight.console span.w, code.highlight.irb span.w {
   display: table-cell;
 }
 

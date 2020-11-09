@@ -1,3 +1,204 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
+*   Add `connected_to_many` API.
+
+    This API allows applications to connect to multiple databases at once without switching all of them or implementing a deeply nested stack.
+
+    Before:
+
+      AnimalsRecord.connected_to(role: :reading) do
+        MealsRecord.connected_to(role: :reading) do
+          Dog.first # read from animals replica
+          Dinner.first # read from meals replica
+          Person.first # read from primary writer
+        end
+      end
+
+    After:
+
+      ActiveRecord::Base.connected_to_many([AnimalsRecord, MealsRecord], role: :reading) do
+        Dog.first # read from animals replica
+        Dinner.first # read from meals replica
+        Person.first # read from primary writer
+      end
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Add option to raise or log for `ActiveRecord::StrictLoadingViolationError`.
+
+    Some applications may not want to raise an error in production if using `strict_loading`. This would allow an application to set strict loading to log for the production environment while still raising in development and test environments.
+
+    Set `config.active_record.action_on_strict_loading_violation` to `:log` errors instead of raising.
+
+    *Eileen M. Uchitelle*
+
+*   Allow the inverse of a `has_one` association that was previously autosaved to be loaded.
+
+    Fixes #34255.
+
+    *Steven Weber*
+
+*   Optimise the length of index names for polymorphic references by using the reference name rather than the type and id column names.
+
+    Because the default behaviour when adding an index with multiple columns is to use all column names in the index name, this could frequently lead to overly long index names for polymorphic references which would fail the migration if it exceeded the database limit.
+
+    This change reduces the chance of that happening by using the reference name, e.g. `index_my_table_on_my_reference`.
+
+    Fixes #38655.
+
+    *Luke Redpath*
+
+*   MySQL: Uniqueness validator now respects default database collation,
+    no longer enforce case sensitive comparison by default.
+
+    *Ryuta Kamizono*
+
+*   Remove deprecated methods from `ActiveRecord::ConnectionAdapters::DatabaseLimits`.
+
+    `column_name_length`
+    `table_name_length`
+    `columns_per_table`
+    `indexes_per_table`
+    `columns_per_multicolumn_index`
+    `sql_query_length`
+    `joins_per_query`
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::AbstractAdapter#supports_multi_insert?`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::AbstractAdapter#supports_foreign_keys_in_create?`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter#supports_ranges?`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Base#update_attributes` and `ActiveRecord::Base#update_attributes!`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `migrations_path` argument in `ActiveRecord::ConnectionAdapter::SchemaStatements#assume_migrated_upto_version`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.active_record.sqlite3.represent_boolean_as_integer`.
+
+    *Rafael Mendonça França*
+
+*   `relation.create` does no longer leak scope to class level querying methods
+    in initialization block and callbacks.
+
+    Before:
+
+        User.where(name: "John").create do |john|
+          User.find_by(name: "David") # => nil
+        end
+
+    After:
+
+        User.where(name: "John").create do |john|
+          User.find_by(name: "David") # => #<User name: "David", ...>
+        end
+
+    *Ryuta Kamizono*
+
+*   Named scope chain does no longer leak scope to class level querying methods.
+
+        class User < ActiveRecord::Base
+          scope :david, -> { User.where(name: "David") }
+        end
+
+    Before:
+
+        User.where(name: "John").david
+        # SELECT * FROM users WHERE name = 'John' AND name = 'David'
+
+    After:
+
+        User.where(name: "John").david
+        # SELECT * FROM users WHERE name = 'David'
+
+    *Ryuta Kamizono*
+
+*   Remove deprecated methods from `ActiveRecord::DatabaseConfigurations`.
+
+    `fetch`
+    `each`
+    `first`
+    `values`
+    `[]=`
+
+    *Rafael Mendonça França*
+
+*   `where.not` now generates NAND predicates instead of NOR.
+
+     Before:
+
+         User.where.not(name: "Jon", role: "admin")
+         # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
+
+     After:
+
+         User.where.not(name: "Jon", role: "admin")
+         # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Result#to_hash` method.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `ActiveRecord::Base.allow_unsafe_raw_sql`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support for using unsafe raw SQL in `ActiveRecord::Relation` methods.
+
+    *Rafael Mendonça França*
+
+*   Allow users to silence the "Rails couldn't infer whether you are using multiple databases..."
+    message using `config.active_record.suppress_multiple_database_warning`.
+
+    *Omri Gabay*
+
+*   Connections can be granularly switched for abstract classes when `connected_to` is called.
+
+    This change allows `connected_to` to switch a `role` and/or `shard` for a single abstract class instead of all classes globally. Applications that want to use the new feature need to set `config.active_record.legacy_connection_handling` to `false` in their application configuration.
+
+    Example usage:
+
+    Given an application we have a `User` model that inherits from `ApplicationRecord` and a `Dog` model that inherits from `AnimalsRecord`. `AnimalsRecord` and `ApplicationRecord` have writing and reading connections as well as shard `default`, `one`, and `two`.
+
+    ```ruby
+    ActiveRecord::Base.connected_to(role: :reading) do
+      User.first # reads from default replica
+      Dog.first # reads from default replica
+
+      AnimalsRecord.connected_to(role: :writing, shard: :one) do
+        User.first # reads from default replica
+        Dog.first # reads from shard one primary
+      end
+
+      User.first # reads from default replica
+      Dog.first # reads from default replica
+
+      ApplicationRecord.connected_to(role: :writing, shard: :two) do
+        User.first # reads from shard two primary
+        Dog.first # reads from default replica
+      end
+    end
+    ```
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Allow double-dash comment syntax when querying read-only databases
+
+    *James Adam*
+
 *   Add `values_at` method.
 
     Returns an array containing the values associated with the given methods.
@@ -202,7 +403,7 @@
     otherwise specified. This will reduce memory pressure for applications which
     do not generally mutate string properties of Active Record objects.
 
-    *Sean Griffin*
+    *Sean Griffin*, *Ryuta Kamizono*
 
 *   Deprecate `map!` and `collect!` on `ActiveRecord::Result`.
 
@@ -464,14 +665,14 @@
 
     *Ryuta Kamizono*
 
-*   Inspect time attributes with subsec.
+*   Inspect time attributes with subsec and time zone offset.
 
     ```ruby
     p Knot.create
-    => #<Knot id: 1, created_at: "2016-05-05 01:29:47.116928000">
+    => #<Knot id: 1, created_at: "2016-05-05 01:29:47.116928000 +0000">
     ```
 
-    *akinomaeni*
+    *akinomaeni*, *Jonathan Hefner*
 
 *   Deprecate passing a column to `type_cast`.
 

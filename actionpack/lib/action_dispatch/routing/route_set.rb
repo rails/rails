@@ -597,14 +597,14 @@ module ActionDispatch
         if route.segment_keys.include?(:controller)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 6.1.
+            will be removed in Rails 6.2.
           MSG
         end
 
         if route.segment_keys.include?(:action)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 6.1.
+            will be removed in Rails 6.2.
           MSG
         end
 
@@ -766,11 +766,9 @@ module ActionDispatch
         end
 
         route_name = options.delete :use_route
-        path = path_for(options, route_name, [])
-
-        uri = URI.parse(path)
-        params = Rack::Utils.parse_nested_query(uri.query).symbolize_keys
-        [uri.path, params.keys]
+        generator = generate(route_name, options, recall)
+        path_info = path_for(options, route_name, [])
+        [URI(path_info).path, generator.params.except(:_recall).keys]
       end
 
       def generate(route_name, options, recall = {}, method_name = nil)

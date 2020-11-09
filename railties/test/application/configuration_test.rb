@@ -1626,6 +1626,11 @@ module ApplicationTests
       assert_not ActiveRecord::Base.verbose_query_logs
     end
 
+    test "config.active_record.suppress_multiple_database_warning is false by default in development" do
+      app "development"
+      assert_not ActiveRecord::Base.suppress_multiple_database_warning
+    end
+
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
       make_basic_app do |application|
         application.config.annotations.register_extensions("coffee") do |tag|
@@ -1863,6 +1868,23 @@ module ApplicationTests
       app_file "config/database.yml", ""
       app "development"
       assert_equal({}, Rails.application.config.load_database_yaml)
+    end
+
+    test "setup_initial_database_yaml does not print a warning if config.active_record.suppress_multiple_database_warning is true" do
+      app_file "config/database.yml", <<-YAML
+        <%= Rails.env %>:
+          username: bobby
+          adapter: sqlite3
+          database: 'dev_db'
+      YAML
+      add_to_config <<-RUBY
+        config.active_record.suppress_multiple_database_warning = true
+      RUBY
+      app "development"
+
+      assert_silent do
+        ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
+      end
     end
 
     test "raises with proper error message if no database configuration found" do
@@ -2287,27 +2309,6 @@ module ApplicationTests
       assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
     end
 
-    test "ActionView::Template.finalize_compiled_template_methods is true by default" do
-      app "test"
-      assert_deprecated do
-        ActionView::Template.finalize_compiled_template_methods
-      end
-    end
-
-    test "ActionView::Template.finalize_compiled_template_methods can be configured via config.action_view.finalize_compiled_template_methods" do
-      app_file "config/environments/test.rb", <<-RUBY
-      Rails.application.configure do
-        config.action_view.finalize_compiled_template_methods = false
-      end
-      RUBY
-
-      app "test"
-
-      assert_deprecated do
-        ActionView::Template.finalize_compiled_template_methods
-      end
-    end
-
     test "ActiveJob::Base.retry_jitter is 0.15 by default for new apps" do
       app "development"
 
@@ -2327,33 +2328,6 @@ module ApplicationTests
       Rails.application.config.active_job.retry_jitter = 0.22
 
       assert_equal 0.22, ActiveJob::Base.retry_jitter
-    end
-
-    test "ActiveJob::Base.return_false_on_aborted_enqueue is true by default" do
-      app "development"
-
-      assert_equal true, ActiveJob::Base.return_false_on_aborted_enqueue
-    end
-
-    test "ActiveJob::Base.return_false_on_aborted_enqueue is false in the 5.x defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "5.2"'
-
-      app "development"
-
-      assert_equal false, ActiveJob::Base.return_false_on_aborted_enqueue
-    end
-
-    test "ActiveJob::Base.return_false_on_aborted_enqueue can be configured in the new framework defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.active_job.return_false_on_aborted_enqueue = true
-      RUBY
-
-      app "development"
-
-      assert_equal true, ActiveJob::Base.return_false_on_aborted_enqueue
     end
 
     test "ActiveJob::Base.skip_after_callbacks_if_terminated is true by default" do
@@ -2479,31 +2453,12 @@ module ApplicationTests
       assert_nil ActiveStorage.queues[:purge]
     end
 
-    test "ActionDispatch::Response.return_only_media_type_on_content_type is false by default" do
-      app "development"
+    test "ActionCable.server.config.cable is set when missing configuration for the current environment" do
+      quietly do
+        app "missing"
+      end
 
-      assert_equal false, ActionDispatch::Response.return_only_media_type_on_content_type
-    end
-
-    test "ActionDispatch::Response.return_only_media_type_on_content_type is true in the 5.x defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "5.2"'
-
-      app "development"
-
-      assert_equal true, ActionDispatch::Response.return_only_media_type_on_content_type
-    end
-
-    test "ActionDispatch::Response.return_only_media_type_on_content_type can be configured in the new framework defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.action_dispatch.return_only_media_type_on_content_type = false
-      RUBY
-
-      app "development"
-
-      assert_equal false, ActionDispatch::Response.return_only_media_type_on_content_type
+      assert_kind_of ActiveSupport::HashWithIndifferentAccess, ActionCable.server.config.cable
     end
 
     test "ActionMailbox.logger is Rails.logger by default" do
@@ -2691,6 +2646,21 @@ module ApplicationTests
       app "development"
 
       assert_equal false, Rails.application.config.assets.unknown_asset_fallback
+    end
+
+    test "legacy_connection_handling is false by default for new apps" do
+      app "development"
+
+      assert_equal false, Rails.application.config.active_record.legacy_connection_handling
+    end
+
+    test "legacy_connection_handling is not set before 6.1" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.0"'
+
+      app "development"
+
+      assert_nil Rails.application.config.active_record.legacy_connection_handling
     end
 
     private

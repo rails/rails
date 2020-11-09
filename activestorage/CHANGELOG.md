@@ -1,7 +1,25 @@
+## Rails 6.1.0.rc1 (November 02, 2020) ##
+
+*   Remove deprecated support to pass `:combine_options` operations to `ActiveStorage::Transformers::ImageProcessing`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveStorage::Transformers::MiniMagickTransformer`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.active_storage.queue`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveStorage::Downloading`.
+
+    *Rafael Mendonça França*
+
 *   Add per-environment configuration support
 
     *Pietro Moro*
-    
+
 *   The Poppler PDF previewer renders a preview image using the original
     document's crop box rather than its media box, hiding print margins. This
     matches the behavior of the MuPDF previewer.

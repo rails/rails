@@ -108,60 +108,10 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
 end
 
 class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
-  unless in_memory_db?
-    def test_setting_configurations_hash
-      old_config = ActiveRecord::Base.configurations
-      config = { "adapter" => "sqlite3" }
-
-      assert_deprecated do
-        ActiveRecord::Base.configurations["readonly"] = config
-      end
-
-      assert_equal ["arunit", "arunit2", "arunit_without_prepared_statements", "readonly"], ActiveRecord::Base.configurations.configs_for.map(&:env_name).sort
-    ensure
-      ActiveRecord::Base.configurations = old_config
-      ActiveRecord::Base.establish_connection :arunit
-    end
-  end
-
   def test_can_turn_configurations_into_a_hash_and_is_deprecated
     assert_deprecated do
       assert ActiveRecord::Base.configurations.to_h.is_a?(Hash), "expected to be a hash but was not."
       assert_equal ["arunit", "arunit2", "arunit_without_prepared_statements"].sort, ActiveRecord::Base.configurations.to_h.keys.sort
-    end
-  end
-
-  def test_each_is_deprecated
-    assert_deprecated do
-      all_configs = ActiveRecord::Base.configurations.values
-      ActiveRecord::Base.configurations.each do |env_name, config|
-        assert_includes ["arunit", "arunit2", "arunit_without_prepared_statements"], env_name
-        assert_includes all_configs, config
-      end
-    end
-  end
-
-  def test_first_is_deprecated
-    first_config = ActiveRecord::Base.configurations.configurations.map(&:configuration_hash).first
-    assert_deprecated do
-      env_name, config = ActiveRecord::Base.configurations.first
-      assert_equal "arunit", env_name
-      assert_equal first_config, config
-    end
-  end
-
-  def test_fetch_is_deprecated
-    assert_deprecated do
-      db_config = ActiveRecord::Base.configurations.fetch("arunit").first
-      assert_equal "arunit", db_config.env_name
-      assert_equal "primary", db_config.name
-    end
-  end
-
-  def test_values_are_deprecated
-    config_hashes = ActiveRecord::Base.configurations.configurations.map(&:configuration_hash)
-    assert_deprecated do
-      assert_equal config_hashes, ActiveRecord::Base.configurations.values
     end
   end
 
@@ -172,8 +122,8 @@ class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
   end
 
   def test_unsupported_method_raises
-    assert_raises NotImplementedError do
-      ActiveRecord::Base.configurations.select { |a| a == "foo" }
+    assert_raises NoMethodError do
+      ActiveRecord::Base.configurations.fetch(:foo)
     end
   end
 

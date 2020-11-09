@@ -21,7 +21,7 @@ if ActiveRecord::Base.connection.supports_check_constraints?
         end
 
         teardown do
-          @connection.drop_table "trades", if_exists: true
+          @connection.drop_table "trades", if_exists: true rescue nil
         end
 
         def test_check_constraints
@@ -54,6 +54,13 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           else
             assert_equal "quantity > 0", constraint.expression
           end
+        end
+
+        def test_add_check_constraint_with_non_existent_table_raises
+          e = assert_raises(ActiveRecord::StatementInvalid) do
+            @connection.add_check_constraint :refunds, "quantity > 0", name: "quantity_check"
+          end
+          assert_match(/refunds/, e.message)
         end
 
         def test_added_check_constraint_ensures_valid_values

@@ -74,17 +74,6 @@ module ActiveSupport #:nodoc:
         @wrapped_string.respond_to?(method, include_private)
       end
 
-      # Returns +true+ when the proxy class can handle the string. Returns
-      # +false+ otherwise.
-      def self.consumes?(string)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          ActiveSupport::Multibyte::Chars.consumes? is deprecated and will be
-          removed from Rails 6.1. Use string.is_utf8? instead.
-        MSG
-
-        string.encoding == Encoding::UTF_8
-      end
-
       # Works just like <tt>String#split</tt>, with the exception that the items
       # in the resulting list are Chars instances instead of String. This makes
       # chaining methods easier.
@@ -134,34 +123,6 @@ module ActiveSupport #:nodoc:
         chars(downcase.to_s.gsub(/\b('?\S)/u) { $1.upcase })
       end
       alias_method :titlecase, :titleize
-
-      # Returns the KC normalization of the string by default. NFKC is
-      # considered the best normalization form for passing strings to databases
-      # and validations.
-      #
-      # * <tt>form</tt> - The form you want to normalize in. Should be one of the following:
-      #   <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>. Default is
-      #   ActiveSupport::Multibyte::Unicode.default_normalization_form
-      def normalize(form = nil)
-        form ||= Unicode.default_normalization_form
-
-        # See https://www.unicode.org/reports/tr15, Table 1
-        if alias_form = Unicode::NORMALIZATION_FORM_ALIASES[form]
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            ActiveSupport::Multibyte::Chars#normalize is deprecated and will be
-            removed from Rails 6.1. Use #unicode_normalize(:#{alias_form}) instead.
-          MSG
-
-          unicode_normalize(alias_form)
-        else
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            ActiveSupport::Multibyte::Chars#normalize is deprecated and will be
-            removed from Rails 6.1. Use #unicode_normalize instead.
-          MSG
-
-          raise ArgumentError, "#{form} is not a valid normalization variant", caller
-        end
-      end
 
       # Performs canonical decomposition on all the characters.
       #

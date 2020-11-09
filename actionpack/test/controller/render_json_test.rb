@@ -133,22 +133,4 @@ class RenderJsonTest < ActionController::TestCase
     get :render_json_without_options
     assert_equal '{"a":"b"}', @response.body
   end
-
-  def test_should_not_trigger_content_type_deprecation
-    original = ActionDispatch::Response.return_only_media_type_on_content_type
-    ActionDispatch::Response.return_only_media_type_on_content_type = true
-
-    assert_not_deprecated { get :render_json_hello_world }
-  ensure
-    ActionDispatch::Response.return_only_media_type_on_content_type = original
-  end
-
-  def test_should_not_trigger_content_type_deprecation_with_callback
-    original = ActionDispatch::Response.return_only_media_type_on_content_type
-    ActionDispatch::Response.return_only_media_type_on_content_type = true
-
-    assert_not_deprecated { get :render_json_hello_world_with_callback, xhr: true }
-  ensure
-    ActionDispatch::Response.return_only_media_type_on_content_type = original
-  end
 end

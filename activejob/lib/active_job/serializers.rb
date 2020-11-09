@@ -9,6 +9,7 @@ module ActiveJob
     extend ActiveSupport::Autoload
 
     autoload :ObjectSerializer
+    autoload :TimeObjectSerializer
     autoload :SymbolSerializer
     autoload :DurationSerializer
     autoload :DateTimeSerializer

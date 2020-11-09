@@ -70,7 +70,7 @@ module ActiveRecord
           return relation.none! if bind.unboundable?
 
           if !options.key?(:case_sensitive) || bind.nil?
-            klass.connection.default_uniqueness_comparison(attr, bind, klass)
+            klass.connection.default_uniqueness_comparison(attr, bind)
           elsif options[:case_sensitive]
             klass.connection.case_sensitive_comparison(attr, bind)
           else

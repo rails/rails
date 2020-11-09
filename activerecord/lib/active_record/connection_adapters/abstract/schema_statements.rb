@@ -890,6 +890,8 @@ module ActiveRecord
       #   rename_index :people, 'index_people_on_last_name', 'index_users_on_last_name'
       #
       def rename_index(table_name, old_name, new_name)
+        old_name = old_name.to_s
+        new_name = new_name.to_s
         validate_index_length!(table_name, new_name)
 
         # this is a naive implementation; some DBs may support this more efficiently (PostgreSQL, for instance)
@@ -1190,13 +1192,7 @@ module ActiveRecord
         { primary_key: true }
       end
 
-      def assume_migrated_upto_version(version, migrations_paths = nil)
-        unless migrations_paths.nil?
-          ActiveSupport::Deprecation.warn(<<~MSG.squish)
-            Passing migrations_paths to #assume_migrated_upto_version is deprecated and will be removed in Rails 6.1.
-          MSG
-        end
-
+      def assume_migrated_upto_version(version)
         version = version.to_i
         sm_table = quote_table_name(schema_migration.table_name)
 

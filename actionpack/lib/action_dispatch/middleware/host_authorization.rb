@@ -4,7 +4,12 @@ require "action_dispatch/http/request"
 
 module ActionDispatch
   # This middleware guards from DNS rebinding attacks by explicitly permitting
-  # the hosts a request can be sent to.
+  # the hosts a request can be sent to, and is passed the options set in
+  # +config.host_authorization+.
+  #
+  # Requests can opt-out of Host Authorization with +exclude+:
+  #
+  #    config.host_authorization = { exclude: ->(request) { request.path =~ /healthcheck/ } }
   #
   # When a request comes to an unauthorized host, the +response_app+
   # application will be executed and rendered. If no +response_app+ is given, a
@@ -66,9 +71,20 @@ module ActionDispatch
       }, [body]]
     end
 
-    def initialize(app, hosts, response_app = nil)
+    def initialize(app, hosts, deprecated_response_app = nil, exclude: nil, response_app: nil)
       @app = app
       @permissions = Permissions.new(hosts)
+      @exclude = exclude
+
+      unless deprecated_response_app.nil?
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `action_dispatch.hosts_response_app` is deprecated and will be ignored in Rails 6.2.
+          Use the Host Authorization `response_app` setting instead.
+        MSG
+
+        response_app ||= deprecated_response_app
+      end
+
       @response_app = response_app || DEFAULT_RESPONSE_APP
     end
 
@@ -77,7 +93,7 @@ module ActionDispatch
 
       request = Request.new(env)
 
-      if authorized?(request)
+      if authorized?(request) || excluded?(request)
         mark_as_authorized(request)
         @app.call(env)
       else
@@ -92,6 +108,10 @@ module ActionDispatch
 
         @permissions.allows?(origin_host) &&
           (forwarded_host.blank? || @permissions.allows?(forwarded_host))
+      end
+
+      def excluded?(request)
+        @exclude && @exclude.call(request)
       end
 
       def mark_as_authorized(request)

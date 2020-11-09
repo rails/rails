@@ -365,6 +365,18 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_with_button_yields_translation
+    form_with(model: @post) do |f|
+      concat(f.button { |value| concat content_tag(:span, value) })
+    end
+
+    expected = whole_form("/posts/123", method: :patch) do
+      "<button name='button' type='submit'><span>Update Post</span></button>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_with_not_outputting_ids
     old_value = ActionView::Helpers::FormHelper.form_with_generates_ids
     ActionView::Helpers::FormHelper.form_with_generates_ids = false
@@ -940,6 +952,54 @@ class FormWithActsLikeFormForTest < FormWithTest
       "<textarea name='post[][body]' id='post__body' >\nBack to the hill and over it again!</textarea>" \
       "<input name='post[][secret]' type='hidden' value='0' />" \
       "<input name='post[][secret]' checked='checked' type='checkbox' value='1' id='post__secret' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_label_passes_translation_to_block_version
+    form_with(model: Post.new) do |f|
+      concat(
+        f.label(:title) do |label|
+          concat content_tag(:span, label)
+        end
+      )
+    end
+
+    expected = whole_form("/posts") do
+      %(<label for="post_title"><span>Title</span></label>)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_label_passes_label_tag_builder_to_block_version
+    form_with(model: Post.new) do |f|
+      concat(
+        f.label(:title) do |builder|
+          concat content_tag(:span, builder.translation)
+        end
+      )
+    end
+
+    expected = whole_form("/posts") do
+      %(<label for="post_title"><span>Title</span></label>)
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_label_accesses_object_through_label_tag_builder
+    form_with(model: Post.new) do |f|
+      concat(
+        f.label(:title) do |builder|
+          concat tag.span(builder, class: ("new_record" unless builder.object.persisted?))
+        end
+      )
+    end
+
+    expected = whole_form("/posts") do
+      %(<label for="post_title"><span class="new_record">Title</span></label>)
     end
 
     assert_dom_equal expected, output_buffer

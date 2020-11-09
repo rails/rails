@@ -26,11 +26,13 @@ module ActionView
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
       BOOLEAN_ATTRIBUTES.freeze
 
-      TAG_PREFIXES = ["aria", "data", :aria, :data].to_set.freeze
+      ARIA_PREFIXES = ["aria", :aria].to_set.freeze
+      DATA_PREFIXES = ["data", :data].to_set.freeze
 
       TAG_TYPES = {}
       TAG_TYPES.merge! BOOLEAN_ATTRIBUTES.index_with(:boolean)
-      TAG_TYPES.merge! TAG_PREFIXES.index_with(:prefix)
+      TAG_TYPES.merge! DATA_PREFIXES.index_with(:data)
+      TAG_TYPES.merge! ARIA_PREFIXES.index_with(:aria)
       TAG_TYPES.freeze
 
       PRE_CONTENT_STRINGS             = Hash.new { "" }
@@ -72,9 +74,26 @@ module ActionView
           sep    = " "
           options.each_pair do |key, value|
             type = TAG_TYPES[key]
-            if type == :prefix && value.is_a?(Hash)
+            if type == :data && value.is_a?(Hash)
               value.each_pair do |k, v|
                 next if v.nil?
+                output << sep
+                output << prefix_tag_option(key, k, v, escape)
+              end
+            elsif type == :aria && value.is_a?(Hash)
+              value.each_pair do |k, v|
+                next if v.nil?
+
+                case v
+                when Array, Hash
+                  tokens = TagHelper.build_tag_values(v)
+                  next if tokens.none?
+
+                  v = safe_join(tokens, " ")
+                else
+                  v = v.to_s
+                end
+
                 output << sep
                 output << prefix_tag_option(key, k, v, escape)
               end
@@ -165,8 +184,8 @@ module ActionView
       #   tag.input type: 'text', disabled: true
       #   # => <input type="text" disabled="disabled">
       #
-      # HTML5 <tt>data-*</tt> attributes can be set with a single +data+ key
-      # pointing to a hash of sub-attributes.
+      # HTML5 <tt>data-*</tt> and <tt>aria-*</tt> attributes can be set with a
+      # single +data+ or +aria+ key pointing to a hash of sub-attributes.
       #
       # To play nicely with JavaScript conventions, sub-attributes are dasherized.
       #
@@ -294,18 +313,23 @@ module ActionView
         end
       end
 
-      # Returns a string of class names built from +args+.
+      # Returns a string of tokens built from +args+.
       #
       # ==== Examples
-      #   class_names("foo", "bar")
+      #   token_list("foo", "bar")
       #    # => "foo bar"
-      #   class_names({ foo: true, bar: false })
+      #   token_list("foo", "foo bar")
+      #    # => "foo bar"
+      #   token_list({ foo: true, bar: false })
       #    # => "foo"
-      #   class_names(nil, false, 123, "", "foo", { bar: true })
+      #   token_list(nil, false, 123, "", "foo", { bar: true })
       #    # => "123 foo bar"
-      def class_names(*args)
-        safe_join(build_tag_values(*args), " ")
+      def token_list(*args)
+        tokens = build_tag_values(*args).flat_map { |value| value.to_s.split(/\s+/) }.uniq
+
+        safe_join(tokens, " ")
       end
+      alias_method :class_names, :token_list
 
       # Returns a CDATA section with the given +content+. CDATA sections
       # are used to escape blocks of text containing characters which would

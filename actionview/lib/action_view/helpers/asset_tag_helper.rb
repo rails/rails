@@ -88,16 +88,20 @@ module ActionView
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         preload_links = []
         nopush = options["nopush"].nil? ? true : options.delete("nopush")
+        crossorigin = options.delete("crossorigin")
+        crossorigin = "anonymous" if crossorigin == true
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
           unless options["defer"]
             preload_link = "<#{href}>; rel=preload; as=script"
+            preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; nopush" if nopush
             preload_links << preload_link
           end
           tag_options = {
-            "src" => href
+            "src" => href,
+            "crossorigin" => crossorigin
           }.merge!(options)
           if tag_options["nonce"] == true
             tag_options["nonce"] = content_security_policy_nonce
@@ -142,16 +146,20 @@ module ActionView
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "host", "skip_pipeline").symbolize_keys
         preload_links = []
+        crossorigin = options.delete("crossorigin")
+        crossorigin = "anonymous" if crossorigin == true
         nopush = options["nopush"].nil? ? true : options.delete("nopush")
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_stylesheet(source, path_options)
           preload_link = "<#{href}>; rel=preload; as=style"
+          preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
           preload_link += "; nopush" if nopush
           preload_links << preload_link
           tag_options = {
             "rel" => "stylesheet",
             "media" => "screen",
+            "crossorigin" => crossorigin,
             "href" => href
           }.merge!(options)
           tag(:link, tag_options)

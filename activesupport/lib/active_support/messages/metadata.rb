@@ -7,7 +7,7 @@ module ActiveSupport
     class Metadata #:nodoc:
       def initialize(message, expires_at = nil, purpose = nil)
         @message, @purpose = message, purpose
-        @expires_at = expires_at.is_a?(String) ? Time.iso8601(expires_at) : expires_at
+        @expires_at = expires_at.is_a?(String) ? parse_expires_at(expires_at) : expires_at
       end
 
       def as_json(options = {})
@@ -66,6 +66,14 @@ module ActiveSupport
 
         def fresh?
           @expires_at.nil? || Time.now.utc < @expires_at
+        end
+
+        def parse_expires_at(expires_at)
+          if ActiveSupport.use_standard_json_time_format
+            Time.iso8601(expires_at)
+          else
+            Time.parse(expires_at)
+          end
         end
     end
   end

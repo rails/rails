@@ -87,11 +87,17 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_private_value_method
-    assert_deprecated("Using private methods from view helpers is deprecated (calling private Struct::Post#secret)") {  options_from_collection_for_select(dummy_posts, "secret", "title") }
+    e = assert_raise(NoMethodError) do
+      options_from_collection_for_select(dummy_posts, "secret", "title")
+    end
+    assert_match(/private method/, e.message)
   end
 
   def test_collection_options_with_private_text_method
-    assert_deprecated("Using private methods from view helpers is deprecated (calling private Struct::Post#secret)") {  options_from_collection_for_select(dummy_posts, "author_name", "secret") }
+    e = assert_raise(NoMethodError) do
+      options_from_collection_for_select(dummy_posts, "author_name", "secret")
+    end
+    assert_match(/private method/, e.message)
   end
 
   def test_collection_options_with_preselected_value
@@ -842,6 +848,15 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<select name=\"post[category]\" id=\"post_category\"><option value=\"\">none</option>\n<option value=\"1\">programming</option>\n<option value=\"2\">economics</option></select>",
       select("post", "category", { none: nil, programming: 1, economics: 2 }, { selected: nil })
+    )
+  end
+
+  def test_select_with_array
+    @continent = Continent.new
+    @continent.countries = ["Africa", "Europe"]
+    assert_dom_equal(
+      %(<select name="continent[countries]" id="continent_countries"><option selected="selected" value="Africa">Africa</option>\n<option selected="selected" value="Europe">Europe</option>\n<option value="America">America</option></select>),
+      select("continent", "countries", %W(Africa Europe America), { multiple: true })
     )
   end
 

@@ -129,5 +129,11 @@ module ActiveModel
       assert data.frozen?
       assert_raise(FrozenError) { data.integer_field = 1 }
     end
+
+    test "attributes can be frozen again" do
+      data = ModelForAttributesTest.new
+      data.freeze
+      assert_nothing_raised { data.freeze }
+    end
   end
 end

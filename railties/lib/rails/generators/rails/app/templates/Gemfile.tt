@@ -49,7 +49,7 @@ group :development do
   <%- if options.dev? || options.edge? || options.master? -%>
   gem 'web-console', github: 'rails/web-console'
   <%- else -%>
-  gem 'web-console', '>= 4.0.3'
+  gem 'web-console', '>= 4.1.0'
   <%- end -%>
   # Display performance information such as SQL time and flame graphs for each request in your browser.
   # Can be configured to work on production as well see: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md

@@ -492,6 +492,7 @@ module ActiveRecord
       end
 
       class ConnectionTestModel < ActiveRecord::Base
+        self.abstract_class = true
       end
 
       def test_connection_notification_is_called
@@ -501,8 +502,23 @@ module ActiveRecord
         end
         ConnectionTestModel.establish_connection :arunit
 
-        assert_equal [:config, :spec_name], payloads[0].keys.sort
+        assert_equal [:config, :shard, :spec_name], payloads[0].keys.sort
         assert_equal "ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel", payloads[0][:spec_name]
+        assert_equal ActiveRecord::Base.default_shard, payloads[0][:shard]
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscription) if subscription
+      end
+
+      def test_connection_notification_is_called_for_shard
+        payloads = []
+        subscription = ActiveSupport::Notifications.subscribe("!connection.active_record") do |name, started, finished, unique_id, payload|
+          payloads << payload
+        end
+        ConnectionTestModel.connects_to shards: { shard_two: { writing: :arunit } }
+
+        assert_equal [:config, :shard, :spec_name], payloads[0].keys.sort
+        assert_equal "ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel", payloads[0][:spec_name]
+        assert_equal :shard_two, payloads[0][:shard]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end

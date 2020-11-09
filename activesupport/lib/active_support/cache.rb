@@ -324,7 +324,7 @@ module ActiveSupport
 
           entry = nil
           instrument(:read, name, options) do |payload|
-            cached_entry = read_entry(key, **options) unless options[:force]
+            cached_entry = read_entry(key, **options, event: payload) unless options[:force]
             entry = handle_expired_entry(cached_entry, key, options)
             entry = nil if entry && entry.mismatched?(normalize_version(name, options))
             payload[:super_operation] = :fetch if payload
@@ -358,7 +358,7 @@ module ActiveSupport
         version = normalize_version(name, options)
 
         instrument(:read, name, options) do |payload|
-          entry = read_entry(key, **options)
+          entry = read_entry(key, **options, event: payload)
 
           if entry
             if entry.expired?
@@ -390,7 +390,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument :read_multi, names, options do |payload|
-          read_multi_entries(names, **options).tap do |results|
+          read_multi_entries(names, **options, event: payload).tap do |results|
             payload[:hits] = results.keys
           end
         end
@@ -500,8 +500,8 @@ module ActiveSupport
       def exist?(name, options = nil)
         options = merged_options(options)
 
-        instrument(:exist?, name) do
-          entry = read_entry(normalize_key(name, options), **options)
+        instrument(:exist?, name) do |payload|
+          entry = read_entry(normalize_key(name, options), **options, event: payload)
           (entry && !entry.expired? && !entry.mismatched?(normalize_version(name, options))) || false
         end
       end

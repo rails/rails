@@ -43,14 +43,10 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "monochrome with default variant_processor" do
-    ActiveStorage.variant_processor = nil
-
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(monochrome: true).processed
     image = read_image(variant)
     assert_match(/Gray/, image.colorspace)
-  ensure
-    ActiveStorage.variant_processor = :mini_magick
   end
 
   test "disabled variation of JPEG blob" do
@@ -64,58 +60,14 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_match(/RGB/, image.colorspace)
   end
 
-  test "disabled variation of JPEG blob with :combine_options" do
+  test "variation with :combine_options is not supported" do
     blob = create_file_blob(filename: "racecar.jpg")
-    variant = ActiveSupport::Deprecation.silence do
+    assert_raises(ArgumentError) do
       blob.variant(combine_options: {
         resize: "100x100",
         monochrome: false
       }).processed
     end
-    assert_match(/racecar\.jpg/, variant.url)
-
-    image = read_image(variant)
-    assert_equal 100, image.width
-    assert_equal 67, image.height
-    assert_match(/RGB/, image.colorspace)
-  end
-
-  test "disabled variation using :combine_options" do
-    ActiveStorage.variant_processor = nil
-    blob = create_file_blob(filename: "racecar.jpg")
-    variant = ActiveSupport::Deprecation.silence do
-      blob.variant(combine_options: {
-        crop: "100x100+0+0",
-        monochrome: false
-      }).processed
-    end
-    assert_match(/racecar\.jpg/, variant.url)
-
-    image = read_image(variant)
-    assert_equal 100, image.width
-    assert_equal 100, image.height
-    assert_match(/RGB/, image.colorspace)
-  ensure
-    ActiveStorage.variant_processor = :mini_magick
-  end
-
-  test "center-weighted crop of JPEG blob using :combine_options" do
-    ActiveStorage.variant_processor = nil
-    blob = create_file_blob(filename: "racecar.jpg")
-    variant = ActiveSupport::Deprecation.silence do
-      blob.variant(combine_options: {
-        gravity: "center",
-        resize: "100x100^",
-        crop: "100x100+0+0",
-      }).processed
-    end
-    assert_match(/racecar\.jpg/, variant.url)
-
-    image = read_image(variant)
-    assert_equal 100, image.width
-    assert_equal 100, image.height
-  ensure
-    ActiveStorage.variant_processor = :mini_magick
   end
 
   test "center-weighted crop of JPEG blob using :resize_to_fill" do
