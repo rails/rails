@@ -1,3 +1,19 @@
+*   Build predicate conditions with objects that delegate `#id` and primary key:
+
+    ```ruby
+    class AdminAuthor
+      delegate_missing_to :@author
+
+      def initialize(author)
+        @author = author
+      end
+    end
+
+    Post.where(author: AdminAuthor.new(author))
+    ```
+
+    *Sean Doyle*
+
 *   Allow constructors (`build_association` and `create_association`) on
     `has_one :through` associations.
 

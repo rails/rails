@@ -810,6 +810,26 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, authors.to_a.length
   end
 
+  def test_where_with_ar_relation
+    author = Post.last.author
+    posts = Post.all.where(author: author)
+    assert_equal 3, posts.to_a.length
+  end
+
+  def test_where_id_with_delegated_ar_object
+    decorator = Class.new(SimpleDelegator)
+    author = Author.first
+    assert_equal 1, Author.where(id: decorator.new(author)).to_a.length
+    assert_equal 1, Author.where(id: [decorator.new(author)]).to_a.length
+  end
+
+  def test_where_relation_with_delegated_ar_object
+    decorator = Class.new(SimpleDelegator)
+    author = Post.last.author
+    assert_equal 3, Post.where(author: decorator.new(author)).to_a.length
+    assert_equal 3, Post.where(author: [decorator.new(author)]).to_a.length
+  end
+
   def test_find_with_list_of_ar
     author = Author.first
     authors = Author.find([author.id])
