@@ -624,18 +624,27 @@ No CORS configuration is required for the Disk service since it shares your appâ
 
 #### Example: S3 CORS configuration
 
-```xml
-<CORSConfiguration>
-  <CORSRule>
-    <AllowedOrigin>https://www.example.com</AllowedOrigin>
-    <AllowedMethod>PUT</AllowedMethod>
-    <AllowedHeader>Origin</AllowedHeader>
-    <AllowedHeader>Content-Type</AllowedHeader>
-    <AllowedHeader>Content-MD5</AllowedHeader>
-    <AllowedHeader>Content-Disposition</AllowedHeader>
-    <MaxAgeSeconds>3600</MaxAgeSeconds>
-  </CORSRule>
-</CORSConfiguration>
+```json
+[
+  {
+    "AllowedHeaders": [
+      "*"
+    ],
+    "AllowedMethods": [
+      "PUT"
+    ],
+    "AllowedOrigins": [
+      "https://www.example.com"
+    ],
+    "ExposeHeaders": [
+      "Origin",
+      "Content-Type",
+      "Content-MD5",
+      "Content-Disposition"
+    ],
+    "MaxAgeSeconds": 3600
+  }
+]
 ```
 
 #### Example: Google Cloud Storage CORS configuration
