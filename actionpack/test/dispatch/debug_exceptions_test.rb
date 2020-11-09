@@ -629,7 +629,9 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
       # Assert correct error
       assert_response 500
-      assert_select "h2", /error in framework/
+      assert_select "div.exception-message" do
+        assert_select "div", /error in framework/
+      end
 
       # assert source view line is the call to method_that_raises
       assert_select "div.source:not(.hidden)" do
@@ -637,7 +639,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       end
 
       # assert first source view (hidden) that throws the error
-      assert_select "div.source:first" do
+      assert_select "div.source" do
         assert_select "pre .line.active", /raise StandardError\.new/
       end
 
@@ -680,7 +682,9 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
       # Assert correct error
       assert_response 500
-      assert_select "h2", /Third error/
+      assert_select "div.exception-message" do
+        assert_select "div", /Third error/
+      end
 
       # assert source view line shows the last error
       assert_select "div.source:not(.hidden)" do
@@ -749,7 +753,9 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/nil_annoted_source_code_error", headers: { "action_dispatch.show_exceptions" => true, "action_dispatch.logger" => logger }
 
     assert_select "header h1", /DebugExceptionsTest::Boomer::NilAnnotedSourceCodeError/
-    assert_select "#container h2", /nil annoted_source_code/
+    assert_select "#container div.exception-message" do
+      assert_select "div", /nil annoted_source_code/
+    end
   end
 
   test "debug exceptions app shows diagnostics for template errors that contain UTF-8 characters" do
