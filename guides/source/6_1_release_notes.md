@@ -38,7 +38,7 @@ Rails 6.1 provides you with the ability to [switch connections per-database](htt
 
 ### Horizontal Sharding
 
-Rails 6.0 provided the ability to functionally partition (multiple partitions, different schemas) your database but wasn't able to support horizontal sharding (same schema, multiple partitions). Rails wasn't able to support horizonal sharding because models in Active Record could only have one connection per-role per-class. This is now fixed and [horizontal sharding](https://github.com/rails/rails/pull/38531) with Rails is available.
+Rails 6.0 provided the ability to functionally partition (multiple partitions, different schemas) your database but wasn't able to support horizontal sharding (same schema, multiple partitions). Rails wasn't able to support horizontal sharding because models in Active Record could only have one connection per-role per-class. This is now fixed and [horizontal sharding](https://github.com/rails/rails/pull/38531) with Rails is available.
 
 ### Strict Loading Associations
 
