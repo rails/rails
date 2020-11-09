@@ -1,3 +1,20 @@
+*   Build predicate conditions with objects that delegate `#id` and primary key:
+
+    ```ruby
+    class AdminAuthor
+      delegate_missing_to :@author
+
+      def initialize(author)
+        @author = author
+      end
+    end
+
+    Post.where(author: AdminAuthor.new(author))
+    ```
+
+    *Sean Doyle*
+
+
 ## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Add `connected_to_many` API.
