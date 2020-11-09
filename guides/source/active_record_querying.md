@@ -93,35 +93,35 @@ To retrieve objects from the database, Active Record provides several finder met
 
 The methods are:
 
-* `annotate`
-* `find`
-* `create_with`
-* `distinct`
-* `eager_load`
-* `extending`
-* `extract_associated`
-* `from`
-* `group`
-* `having`
-* `includes`
-* `joins`
-* `left_outer_joins`
-* `limit`
-* `lock`
-* `none`
-* `offset`
-* `optimizer_hints`
-* `order`
-* `preload`
-* `readonly`
-* `references`
-* `reorder`
-* `reselect`
-* `reverse_order`
-* `select`
-* `where`
+* [`annotate`][]
+* [`find`][]
+* [`create_with`][]
+* [`distinct`][]
+* [`eager_load`][]
+* [`extending`][]
+* [`extract_associated`][]
+* [`from`][]
+* [`group`][]
+* [`having`][]
+* [`includes`][]
+* [`joins`][]
+* [`left_outer_joins`][]
+* [`limit`][]
+* [`lock`][]
+* [`none`][]
+* [`offset`][]
+* [`optimizer_hints`][]
+* [`order`][]
+* [`preload`][]
+* [`readonly`][]
+* [`references`][]
+* [`reorder`][]
+* [`reselect`][]
+* [`reverse_order`][]
+* [`select`][]
+* [`where`][]
 
-Finder methods that return a collection, such as `where` and `group`, return an instance of `ActiveRecord::Relation`.  Methods that find a single entity, such as `find` and `first`, return a single instance of the model.
+Finder methods that return a collection, such as `where` and `group`, return an instance of [`ActiveRecord::Relation`][].  Methods that find a single entity, such as `find` and `first`, return a single instance of the model.
 
 The primary operation of `Model.find(options)` can be summarized as:
 
@@ -130,13 +130,42 @@ The primary operation of `Model.find(options)` can be summarized as:
 * Instantiate the equivalent Ruby object of the appropriate model for every resulting row.
 * Run `after_find` and then `after_initialize` callbacks, if any.
 
+[`ActiveRecord::Relation`]: https://api.rubyonrails/classes/ActiveRecord/Relation.html
+[`annotate`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-annotate
+[`create_with`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-create_with
+[`distinct`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-distinct
+[`eager_load`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-eager_load
+[`extending`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-extending
+[`extract_associated`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-extract_associated
+[`find`]: https://api.rubyonrails/classes/ActiveRecord/FinderMethods.html#method-i-find
+[`from`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-from
+[`group`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-group
+[`having`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-having
+[`includes`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-includes
+[`joins`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-joins
+[`left_outer_joins`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-left_outer_joins
+[`limit`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-limit
+[`lock`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-lock
+[`none`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-none
+[`offset`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-offset
+[`optimizer_hints`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-optimizer_hints
+[`order`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-order
+[`preload`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-preload
+[`readonly`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-readonly
+[`references`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-references
+[`reorder`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-reorder
+[`reselect`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-reselect
+[`reverse_order`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-reverse_order
+[`select`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-select
+[`where`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-where
+
 ### Retrieving a Single Object
 
 Active Record provides several different ways of retrieving a single object.
 
 #### `find`
 
-Using the `find` method, you can retrieve the object corresponding to the specified _primary key_ that matches any supplied options. For example:
+Using the [`find`][] method, you can retrieve the object corresponding to the specified _primary key_ that matches any supplied options. For example:
 
 ```irb
 # Find the customer with primary key (id) 10.
@@ -170,7 +199,7 @@ WARNING: The `find` method will raise an `ActiveRecord::RecordNotFound` exceptio
 
 #### `take`
 
-The `take` method retrieves a record without any implicit ordering. For example:
+The [`take`][] method retrieves a record without any implicit ordering. For example:
 
 ```irb
 irb> customer = Customer.take
@@ -198,13 +227,16 @@ The SQL equivalent of the above is:
 SELECT * FROM customers LIMIT 2
 ```
 
-The `take!` method behaves exactly like `take`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
+The [`take!`][] method behaves exactly like `take`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
 
 TIP: The retrieved record may vary depending on the database engine.
 
+[`take`]: https://api.rubyonrails/classes/ActiveRecord/FinderMethods.html#method-i-take
+[`take!`]: https://api.rubyonrails/classes/ActiveRecord/FinderMethods.html#method-i-take-21
+
 #### `first`
 
-The `first` method finds the first record ordered by primary key (default). For example:
+The [`first`][] method finds the first record ordered by primary key (default). For example:
 
 ```irb
 irb> customer = Customer.first
@@ -247,11 +279,14 @@ The SQL equivalent of the above is:
 SELECT * FROM customers ORDER BY customers.first_name ASC LIMIT 1
 ```
 
-The `first!` method behaves exactly like `first`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
+The [`first!`][] method behaves exactly like `first`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
+
+[`first`]: https://api.rubyonrails/classes/ActiveRecord/FinderMethods.html#method-i-first
+[`first!`]: https://api.rubyonrails/classes/ActiveRecord/FinderMethods.html#method-i-first-21
 
 #### `last`
 
-The `last` method finds the last record ordered by primary key (default). For example:
+The [`last`][] method finds the last record ordered by primary key (default). For example:
 
 ```irb
 irb> customer = Customer.last
@@ -294,11 +329,14 @@ The SQL equivalent of the above is:
 SELECT * FROM customers ORDER BY customers.first_name DESC LIMIT 1
 ```
 
-The `last!` method behaves exactly like `last`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
+The [`last!`][] method behaves exactly like `last`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
+
+[`last`]: https://api.rubyonrails/classes/ActiveRecord/FinderMethods.html#method-i-last
+[`last!`]: https://api.rubyonrails/classes/ActiveRecord/FinderMethods.html#method-i-last-21
 
 #### `find_by`
 
-The `find_by` method finds the first record matching some conditions. For example:
+The [`find_by`][] method finds the first record matching some conditions. For example:
 
 ```irb
 irb> Customer.find_by first_name: 'Lifo'
@@ -320,7 +358,7 @@ The SQL equivalent of the above is:
 SELECT * FROM customers WHERE (customers.first_name = 'Lifo') LIMIT 1
 ```
 
-The `find_by!` method behaves exactly like `find_by`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found. For example:
+The [`find_by!`][] method behaves exactly like `find_by`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found. For example:
 
 ```irb
 irb> Customer.find_by! first_name: 'does not exist'
@@ -332,6 +370,9 @@ This is equivalent to writing:
 ```ruby
 Customer.where(first_name: 'does not exist').take!
 ```
+
+[`find_by`]: https://api.rubyonrails/classes/ActiveRecord/FinderMethods.html#method-i-find_by
+[`find_by!`]: https://api.rubyonrails/classes/ActiveRecord/FinderMethods.html#method-i-find_by-21
 
 ### Retrieving Multiple Objects in Batches
 
@@ -354,7 +395,7 @@ TIP: The `find_each` and `find_in_batches` methods are intended for use in the b
 
 #### `find_each`
 
-The `find_each` method retrieves records in batches and then yields _each_ one to the block. In the following example, `find_each` retrieves customers in batches of 1000 and yields them to the block one by one:
+The [`find_each`][] method retrieves records in batches and then yields _each_ one to the block. In the following example, `find_each` retrieves customers in batches of 1000 and yields them to the block one by one:
 
 ```ruby
 Customer.find_each do |customer|
@@ -380,6 +421,8 @@ If an order is present in the receiver the behaviour depends on the flag
 raised, otherwise the order is ignored and a warning issued, which is the
 default. This can be overridden with the option `:error_on_ignore`, explained
 below.
+
+[`find_each`]: https://api.rubyonrails/classes/ActiveRecord/Batches.html#method-i-find_each
 
 ##### Options for `find_each`
 
@@ -429,7 +472,7 @@ order is present in the relation.
 
 #### `find_in_batches`
 
-The `find_in_batches` method is similar to `find_each`, since both retrieve batches of records. The difference is that `find_in_batches` yields _batches_ to the block as an array of models, instead of individually. The following example will yield to the supplied block an array of up to 1000 customers at a time, with the final block containing any remaining customers:
+The [`find_in_batches`][] method is similar to `find_each`, since both retrieve batches of records. The difference is that `find_in_batches` yields _batches_ to the block as an array of models, instead of individually. The following example will yield to the supplied block an array of up to 1000 customers at a time, with the final block containing any remaining customers:
 
 ```ruby
 # Give add_customers an array of 1000 customers at a time.
@@ -449,6 +492,8 @@ end
 
 as long as they have no ordering, since the method needs to force an order
 internally to iterate.
+
+[`find_in_batches`]: https://api.rubyonrails/classes/ActiveRecord/Batches.html#method-i-find_in_batches
 
 ##### Options for `find_in_batches`
 
@@ -491,7 +536,7 @@ The `error_on_ignore` option overrides the application config to specify if an e
 Conditions
 ----------
 
-The `where` method allows you to specify conditions to limit the records returned, representing the `WHERE`-part of the SQL statement. Conditions can either be specified as a string, array, or hash.
+The [`where`][] method allows you to specify conditions to limit the records returned, representing the `WHERE`-part of the SQL statement. Conditions can either be specified as a string, array, or hash.
 
 ### Pure String Conditions
 
@@ -606,7 +651,7 @@ SELECT * FROM customers WHERE (customers.orders_count IN (1,3,5))
 
 ### NOT Conditions
 
-`NOT` SQL queries can be built by `where.not`:
+`NOT` SQL queries can be built by [`where.not`][]:
 
 ```ruby
 Customer.where.not(orders_count: [1,3,5])
@@ -618,9 +663,11 @@ In other words, this query can be generated by calling `where` with no argument,
 SELECT * FROM customers WHERE (customers.orders_count NOT IN (1,3,5))
 ```
 
+[`where.not`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods/WhereChain.html#method-i-not
+
 ### OR Conditions
 
-`OR` conditions between two relations can be built by calling `or` on the first
+`OR` conditions between two relations can be built by calling [`or`][] on the first
 relation, and passing the second one as an argument.
 
 ```ruby
@@ -631,10 +678,12 @@ Customer.where(last_name: 'Smith').or(Customer.where(orders_count: [1,3,5]))
 SELECT * FROM customers WHERE (customers.last_name = 'Smith' OR customers.orders_count IN (1,3,5))
 ```
 
+[`or`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-or
+
 Ordering
 --------
 
-To retrieve records from the database in a specific order, you can use the `order` method.
+To retrieve records from the database in a specific order, you can use the [`order`][] method.
 
 For example, if you're getting a set of records and want to order them in ascending order by the `created_at` field in your table:
 
@@ -682,7 +731,7 @@ Selecting Specific Fields
 
 By default, `Model.find` selects all the fields from the result set using `select *`.
 
-To select only a subset of fields from the result set, you can specify the subset via the `select` method.
+To select only a subset of fields from the result set, you can specify the subset via the [`select`][] method.
 
 For example, to select only `isbn` and `out_of_print` columns:
 
@@ -706,7 +755,7 @@ ActiveModel::MissingAttributeError: missing attribute: <attribute>
 
 Where `<attribute>` is the attribute you asked for. The `id` method will not raise the `ActiveRecord::MissingAttributeError`, so just be careful when working with associations because they need the `id` method to function properly.
 
-If you would like to only grab a single record per unique value in a certain field, you can use `distinct`:
+If you would like to only grab a single record per unique value in a certain field, you can use [`distinct`][]:
 
 ```ruby
 Customer.select(:last_name).distinct
@@ -731,7 +780,7 @@ query.distinct(false)
 Limit and Offset
 ----------------
 
-To apply `LIMIT` to the SQL fired by the `Model.find`, you can specify the `LIMIT` using `limit` and `offset` methods on the relation.
+To apply `LIMIT` to the SQL fired by the `Model.find`, you can specify the `LIMIT` using [`limit`][] and [`offset`][] methods on the relation.
 
 You can use `limit` to specify the number of records to be retrieved, and use `offset` to specify the number of records to skip before starting to return the records. For example
 
@@ -760,7 +809,7 @@ SELECT * FROM customers LIMIT 5 OFFSET 30
 Group
 -----
 
-To apply a `GROUP BY` clause to the SQL fired by the finder, you can use the `group` method.
+To apply a `GROUP BY` clause to the SQL fired by the finder, you can use the [`group`][] method.
 
 For example, if you want to find a collection of the dates on which orders were created:
 
@@ -780,7 +829,7 @@ GROUP BY created_at
 
 ### Total of grouped items
 
-To get the total of grouped items on a single query, call `count` after the `group`.
+To get the total of grouped items on a single query, call [`count`][] after the `group`.
 
 ```irb
 irb> Order.group(:status).count
@@ -795,10 +844,12 @@ FROM orders
 GROUP BY status
 ```
 
+[`count`]: https://api.rubyonrails/classes/ActiveRecord/Calculations.html#method-i-count
+
 Having
 ------
 
-SQL uses the `HAVING` clause to specify conditions on the `GROUP BY` fields. You can add the `HAVING` clause to the SQL fired by the `Model.find` by adding the `having` method to the find.
+SQL uses the `HAVING` clause to specify conditions on the `GROUP BY` fields. You can add the `HAVING` clause to the SQL fired by the `Model.find` by adding the [`having`][] method to the find.
 
 For example:
 
@@ -834,7 +885,7 @@ Overriding Conditions
 
 ### `unscope`
 
-You can specify certain conditions to be removed using the `unscope` method. For example:
+You can specify certain conditions to be removed using the [`unscope`][] method. For example:
 
 ```ruby
 Book.where('id > 100').limit(20).order('id desc').unscope(:order)
@@ -864,9 +915,11 @@ Book.order('id desc').merge(Book.unscope(:order))
 # SELECT books.* FROM books
 ```
 
+[`unscope`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-unscope
+
 ### `only`
 
-You can also override conditions using the `only` method. For example:
+You can also override conditions using the [`only`][] method. For example:
 
 ```ruby
 Book.where('id > 10').limit(20).order('id desc').only(:order, :where)
@@ -882,9 +935,11 @@ SELECT * FROM books WHERE id > 10 ORDER BY id DESC LIMIT 20
 
 ```
 
+[`only`]: https://api.rubyonrails/classes/ActiveRecord/SpawnMethods.html#method-i-only
+
 ### `reselect`
 
-The `reselect` method overrides an existing select statement. For example:
+The [`reselect`][] method overrides an existing select statement. For example:
 
 ```ruby
 Book.select(:title, :isbn).reselect(:created_at)
@@ -910,7 +965,7 @@ SELECT `books`.`title`, `books`.`isbn`, `books`.`created_at` FROM `books`
 
 ### `reorder`
 
-The `reorder` method overrides the default scope order. For example if the class definition includes this:
+The [`reorder`][] method overrides the default scope order. For example if the class definition includes this:
 
 ```ruby
 class Author < ApplicationRecord
@@ -946,7 +1001,7 @@ SELECT * FROM books WHERE author_id = 10 ORDER BY year_published ASC
 
 ### `reverse_order`
 
-The `reverse_order` method reverses the ordering clause if specified.
+The [`reverse_order`][] method reverses the ordering clause if specified.
 
 ```ruby
 Customer.where("orders_count > 10").order(:last_name).reverse_order
@@ -974,7 +1029,7 @@ The `reverse_order` method accepts **no** arguments.
 
 ### `rewhere`
 
-The `rewhere` method overrides an existing, named `where` condition. For example:
+The [`rewhere`][] method overrides an existing, named `where` condition. For example:
 
 ```ruby
 Book.where(out_of_print: true).rewhere(out_of_print: false)
@@ -998,10 +1053,12 @@ the SQL executed would be:
 SELECT * FROM books WHERE `out_of_print` = 1 AND `out_of_print` = 0
 ```
 
+[`rewhere`]: https://api.rubyonrails/classes/ActiveRecord/QueryMethods.html#method-i-rewhere
+
 Null Relation
 -------------
 
-The `none` method returns a chainable relation with no records. Any subsequent conditions chained to the returned relation will continue generating empty relations. This is useful in scenarios where you need a chainable response to a method or a scope that could return zero results.
+The [`none`][] method returns a chainable relation with no records. Any subsequent conditions chained to the returned relation will continue generating empty relations. This is useful in scenarios where you need a chainable response to a method or a scope that could return zero results.
 
 ```ruby
 Order.none # returns an empty Relation and fires no queries.
@@ -1028,7 +1085,7 @@ end
 Readonly Objects
 ----------------
 
-Active Record provides the `readonly` method on a relation to explicitly disallow modification of any of the returned objects. Any attempt to alter a readonly record will not succeed, raising an `ActiveRecord::ReadOnlyRecord` exception.
+Active Record provides the [`readonly`][] method on a relation to explicitly disallow modification of any of the returned objects. Any attempt to alter a readonly record will not succeed, raising an `ActiveRecord::ReadOnlyRecord` exception.
 
 ```ruby
 customer = Customer.readonly.first
@@ -1136,7 +1193,7 @@ While `joins` should be used for `INNER JOIN` or custom queries,
 
 ### `joins`
 
-There are multiple ways to use the `joins` method.
+There are multiple ways to use the [`joins`][] method.
 
 #### Using a String SQL Fragment
 
@@ -1249,7 +1306,7 @@ This will find all customers who have orders that were created yesterday, again 
 ### `left_outer_joins`
 
 If you want to select a set of records whether or not they have associated
-records you can use the `left_outer_joins` method.
+records you can use the [`left_outer_joins`][] method.
 
 ```ruby
 Customer.left_outer_joins(:reviews).distinct.select('customers.*, COUNT(reviews.*) AS reviews_count').group('customers.id')
@@ -1287,7 +1344,7 @@ This code looks fine at the first sight. But the problem lies within the total n
 
 **Solution to N + 1 queries problem**
 
-Active Record lets you specify in advance all the associations that are going to be loaded. This is possible by specifying the `includes` method of the `Model.find` call. With `includes`, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
+Active Record lets you specify in advance all the associations that are going to be loaded. This is possible by specifying the [`includes`][] method of the `Model.find` call. With `includes`, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
 
 Revisiting the above case, we could rewrite `Book.limit(10)` to eager load authors:
 
@@ -1366,7 +1423,7 @@ Scopes
 
 Scoping allows you to specify commonly-used queries which can be referenced as method calls on the association objects or models. With these scopes, you can use every method previously covered such as `where`, `joins` and `includes`. All scope bodies should return an `ActiveRecord::Relation` or `nil` to allow for further methods (such as other scopes) to be called on it.
 
-To define a simple scope, we use the `scope` method inside the class, passing the query that we'd like to run when this scope is called:
+To define a simple scope, we use the [`scope`][] method inside the class, passing the query that we'd like to run when this scope is called:
 
 ```ruby
 class Book < ApplicationRecord
@@ -1397,6 +1454,8 @@ class Book < ApplicationRecord
   scope :out_of_print_and_expensive, -> { out_of_print.where("price > 500") }
 end
 ```
+
+[`scope`]: https://api.rubyonrails/classes/ActiveRecord/Scoping/Named/ClassMethods.html#method-i-scope
 
 ### Passing in arguments
 
@@ -1455,7 +1514,7 @@ However, there is one important caveat: A scope will always return an `ActiveRec
 ### Applying a default scope
 
 If we wish for a scope to be applied across all queries to the model we can use the
-`default_scope` method within the model itself.
+[`default_scope`][] method within the model itself.
 
 ```ruby
 class Book < ApplicationRecord
@@ -1512,6 +1571,8 @@ irb> Book.new
 => #<Book id: nil, out_of_print: nil>
 ```
 
+[`default_scope`]: https://api.rubyonrails/classes/ActiveRecord/Scoping/Default/ClassMethods.html#method-i-default_scope
+
 ### Merging of scopes
 
 Just like `where` clauses, scopes are merged using `AND` conditions.
@@ -1539,7 +1600,7 @@ irb> Book.in_print.where('price < 100')
 SELECT books.* FROM books WHERE books.out_of_print = 'false' AND books.price < 100
 ```
 
-If we do want the last `where` clause to win then `Relation#merge` can
+If we do want the last `where` clause to win then [`merge`][] can
 be used.
 
 ```irb
@@ -1573,9 +1634,11 @@ SELECT books.* FROM books WHERE (year_published >= 1969) AND (price > 50)
 As you can see above the `default_scope` is being merged in both
 `scope` and `where` conditions.
 
+[`merge`]: https://api.rubyonrails/classes/ActiveRecord/SpawnMethods.html#method-i-merge
+
 ### Removing All Scoping
 
-If we wish to remove scoping for any reason we can use the `unscoped` method. This is
+If we wish to remove scoping for any reason we can use the [`unscoped`][] method. This is
 especially useful if a `default_scope` is specified in the model and should not be
 applied for this particular query.
 
@@ -1600,6 +1663,8 @@ irb> Book.unscoped { Book.out_of_print }
 SELECT books.* FROM books WHERE books.out_of_print
 ```
 
+[`unscoped`]: https://api.rubyonrails/classes/ActiveRecord/Scoping/Default/ClassMethods.html#method-i-unscoped
+
 Dynamic Finders
 ---------------
 
@@ -1617,7 +1682,7 @@ For example, `Customer.find_by_first_name_and_orders_count("Ryan", 5)`.
 Enums
 -----
 
-An `enum` lets you define an Array of values for an attribute and refer to them by name.  The actual value stored in the database is an integer that has been mapped to one of the values.
+An enum lets you define an Array of values for an attribute and refer to them by name.  The actual value stored in the database is an integer that has been mapped to one of the values.
 
 Declaring an enum will:
 
@@ -1625,9 +1690,9 @@ Declaring an enum will:
 * Create an instance method that can be used to determine if an object has a particular value for the enum
 * Create an instance method that can be used to change the enum value of an object
 
-for all possible values of an `enum`.
+for all possible values of an enum.
 
-For example, given this `enum` declaration:
+For example, given this [`enum`][] declaration:
 
 ```ruby
 class Order < ApplicationRecord
@@ -1666,6 +1731,8 @@ UPDATE "orders" SET "status" = ?, "updated_at" = ? WHERE "orders"."id" = ?  [["s
 
 Full documentation about enums can be found [here](https://api.rubyonrails.org/classes/ActiveRecord/Enum.html).
 
+[`enum`]: https://api.rubyonrails/classes/ActiveRecord/Enum.html#method-i-enum
+
 Understanding Method Chaining
 -----------------------------
 
@@ -1673,7 +1740,7 @@ The Active Record pattern implements [Method Chaining](https://en.wikipedia.org/
 which allow us to use multiple Active Record methods together in a simple and straightforward way.
 
 You can chain methods in a statement when the previous method called returns an
-`ActiveRecord::Relation`, like `all`, `where`, and `joins`. Methods that return
+[`ActiveRecord::Relation`][], like `all`, `where`, and `joins`. Methods that return
 a single object (see [Retrieving a Single Object Section](#retrieving-a-single-object))
 have to be at the end of the statement.
 
@@ -1730,7 +1797,7 @@ It's common that you need to find a record or create it if it doesn't exist. You
 
 ### `find_or_create_by`
 
-The `find_or_create_by` method checks whether a record with the specified attributes exists. If it doesn't, then `create` is called. Let's see an example.
+The [`find_or_create_by`][] method checks whether a record with the specified attributes exists. If it doesn't, then `create` is called. Let's see an example.
 
 Suppose you want to find a customer named 'Andy', and if there's none, create one. You can do so by running:
 
@@ -1774,9 +1841,11 @@ end
 The block will only be executed if the customer is being created. The
 second time we run this code, the block will be ignored.
 
+[`find_or_create_by`]: https://api.rubyonrails/classes/ActiveRecord/Relation.html#method-i-find_or_create_by
+
 ### `find_or_create_by!`
 
-You can also use `find_or_create_by!` to raise an exception if the new record is invalid. Validations are not covered on this guide, but let's assume for a moment that you temporarily add
+You can also use [`find_or_create_by!`][] to raise an exception if the new record is invalid. Validations are not covered on this guide, but let's assume for a moment that you temporarily add
 
 ```ruby
 validates :orders_count, presence: true
@@ -1789,9 +1858,11 @@ irb> Customer.find_or_create_by!(first_name: 'Andy')
 ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
 ```
 
+[`find_or_create_by!`]: https://api.rubyonrails/classes/ActiveRecord/Relation.html#method-i-find_or_create_by-21
+
 ### `find_or_initialize_by`
 
-The `find_or_initialize_by` method will work just like
+The [`find_or_initialize_by`][] method will work just like
 `find_or_create_by` but it will call `new` instead of `create`. This
 means that a new model instance will be created in memory but won't be
 saved to the database. Continuing with the `find_or_create_by` example, we
@@ -1821,10 +1892,12 @@ irb> nina.save
 => true
 ```
 
+[`find_or_initialize_by`]: https://api.rubyonrails/classes/ActiveRecord/Relation.html#method-i-find_or_initialize_by
+
 Finding by SQL
 --------------
 
-If you'd like to use your own SQL to find records in a table you can use `find_by_sql`. The `find_by_sql` method will return an array of objects even if the underlying query returns just a single record. For example you could run this query:
+If you'd like to use your own SQL to find records in a table you can use [`find_by_sql`][]. The `find_by_sql` method will return an array of objects even if the underlying query returns just a single record. For example you could run this query:
 
 ```irb
 irb> Customer.find_by_sql("SELECT * FROM customers INNER JOIN orders ON customers.id = orders.customer_id ORDER BY customers.created_at desc")
@@ -1833,9 +1906,11 @@ irb> Customer.find_by_sql("SELECT * FROM customers INNER JOIN orders ON customer
 
 `find_by_sql` provides you with a simple way of making custom calls to the database and retrieving instantiated objects.
 
+[`find_by_sql`]: https://api.rubyonrails/classes/ActiveRecord/Querying.html#method-i-find_by_sql
+
 ### `select_all`
 
-`find_by_sql` has a close relative called `connection#select_all`. `select_all` will retrieve
+`find_by_sql` has a close relative called [`connection.select_all`][]. `select_all` will retrieve
 objects from the database using custom SQL just like `find_by_sql` but will not instantiate them.
 This method will return an instance of `ActiveRecord::Result` class and calling `to_a` on this
 object would return you an array of hashes where each hash indicates a record.
@@ -1845,9 +1920,11 @@ irb> Customer.connection.select_all("SELECT first_name, created_at FROM customer
 => [{"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"}, {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}]
 ```
 
+[`connection.select_all`]: https://api.rubyonrails/classes/ActiveRecord/ConnectionAdapters/DatabaseStatements.html#method-i-select_all
+
 ### `pluck`
 
-`pluck` can be used to query single or multiple columns from the underlying table of a model. It accepts a list of column names as an argument and returns an array of values of the specified columns with the corresponding data type.
+[`pluck`][] can be used to query single or multiple columns from the underlying table of a model. It accepts a list of column names as an argument and returns an array of values of the specified columns with the corresponding data type.
 
 ```irb
 irb> Book.where(out_of_print: true).pluck(:id)
@@ -1934,9 +2011,11 @@ One way to avoid this is to `unscope` the includes:
 irb> assoc.unscope(:includes).pluck(:id)
 ```
 
+[`pluck`]: https://api.rubyonrails/classes/ActiveRecord/Calculations.html#method-i-pluck
+
 ### `ids`
 
-`ids` can be used to pluck all the IDs for the relation using the table's primary key.
+[`ids`][] can be used to pluck all the IDs for the relation using the table's primary key.
 
 ```irb
 irb> Customer.ids
@@ -1954,10 +2033,12 @@ irb> Customer.ids
 SELECT customer_id FROM customers
 ```
 
+[`ids`]: https://api.rubyonrails/classes/ActiveRecord/Calculations.html#method-i-ids
+
 Existence of Objects
 --------------------
 
-If you simply want to check for the existence of the object there's a method called `exists?`.
+If you simply want to check for the existence of the object there's a method called [`exists?`][].
 This method will query the database using the same query as `find`, but instead of returning an
 object or collection of objects it will return either `true` or `false`.
 
@@ -2009,10 +2090,12 @@ Customer.first.orders.any?
 Customer.first.orders.many?
 ```
 
+[`exists?`]: https://api.rubyonrails/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F
+
 Calculations
 ------------
 
-This section uses `count` as an example method in this preamble, but the options described apply to all sub-sections.
+This section uses [`count`][] as an example method in this preamble, but the options described apply to all sub-sections.
 
 All calculation methods work directly on a model:
 
@@ -2052,7 +2135,7 @@ For options, please see the parent section, [Calculations](#calculations).
 
 ### Average
 
-If you want to see the average of a certain number in one of your tables you can call the `average` method on the class that relates to the table. This method call will look something like this:
+If you want to see the average of a certain number in one of your tables you can call the [`average`][] method on the class that relates to the table. This method call will look something like this:
 
 ```ruby
 Order.average("subtotal")
@@ -2062,9 +2145,11 @@ This will return a number (possibly a floating point number such as 3.14159265) 
 
 For options, please see the parent section, [Calculations](#calculations).
 
+[`average`]: https://api.rubyonrails/classes/ActiveRecord/Calculations.html#method-i-average
+
 ### Minimum
 
-If you want to find the minimum value of a field in your table you can call the `minimum` method on the class that relates to the table. This method call will look something like this:
+If you want to find the minimum value of a field in your table you can call the [`minimum`][] method on the class that relates to the table. This method call will look something like this:
 
 ```ruby
 Order.minimum("subtotal")
@@ -2072,9 +2157,11 @@ Order.minimum("subtotal")
 
 For options, please see the parent section, [Calculations](#calculations).
 
+[`minimum`]: https://api.rubyonrails/classes/ActiveRecord/Calculations.html#method-i-minimum
+
 ### Maximum
 
-If you want to find the maximum value of a field in your table you can call the `maximum` method on the class that relates to the table. This method call will look something like this:
+If you want to find the maximum value of a field in your table you can call the [`maximum`][] method on the class that relates to the table. This method call will look something like this:
 
 ```ruby
 Order.maximum("subtotal")
@@ -2082,9 +2169,11 @@ Order.maximum("subtotal")
 
 For options, please see the parent section, [Calculations](#calculations).
 
+[`maximum`]: https://api.rubyonrails/classes/ActiveRecord/Calculations.html#method-i-maximum
+
 ### Sum
 
-If you want to find the sum of a field for all records in your table you can call the `sum` method on the class that relates to the table. This method call will look something like this:
+If you want to find the sum of a field for all records in your table you can call the [`sum`][] method on the class that relates to the table. This method call will look something like this:
 
 ```ruby
 Order.sum("subtotal")
@@ -2092,10 +2181,12 @@ Order.sum("subtotal")
 
 For options, please see the parent section, [Calculations](#calculations).
 
+[`sum`]: https://api.rubyonrails/classes/ActiveRecord/Calculations.html#method-i-sum
+
 Running EXPLAIN
 ---------------
 
-You can run EXPLAIN on the queries triggered by relations. EXPLAIN output varies for each database.
+You can run [`explain`][] on a relation. EXPLAIN output varies for each database.
 
 For example, running
 
@@ -2196,6 +2287,8 @@ and may yield this for PostgreSQL:
    Index Cond: (id = '1'::bigint)
 (2 rows)
 ```
+
+[`explain`]: https://api.rubyonrails/classes/ActiveRecord/Relation.html#method-i-explain
 
 ### Interpreting EXPLAIN
 
