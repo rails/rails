@@ -179,7 +179,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
                 end
               end
             rescue ActiveRecordError => error
-              # Regardless of wether there was already a connection or not, we rescue any database
+              # Regardless of whether there was already a connection or not, we rescue any database
               # error because it is critical that the application can boot even if the database
               # is unhealthy.
               warn "Failed to define attribute methods because of #{error.class}: #{error.message}"

@@ -73,7 +73,7 @@
     ```
 
     A new message will be logged in case a job couldn't be enqueued, either because the callback chain was halted or
-    because an exception happened during enqueing. (i.e. Redis is down when you try to enqueue your job)
+    because an exception happened during enqueuing. (i.e. Redis is down when you try to enqueue your job)
 
     *Edouard Chin*
 
