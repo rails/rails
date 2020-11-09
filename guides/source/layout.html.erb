@@ -20,9 +20,9 @@
   <meta property="og:type" content="website" />
 </head>
 <body class="guide">
-  <% if @edge %>
+  <% if badge_version = @edge ? "edge" : @version %>
   <div>
-    <div id="edge-badge">edge</div>
+    <div id="version-badge"><%= badge_version %></div>
   </div>
   <% end %>
   <div id="topNav">
