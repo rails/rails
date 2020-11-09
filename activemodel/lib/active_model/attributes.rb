@@ -42,6 +42,23 @@ module ActiveModel
         attribute_types.keys
       end
 
+      # Returns a string representation including attributes
+      #
+      #   class Person
+      #     include ActiveModel::Attributes
+      #
+      #     attribute :name, :string
+      #     attribute :age, :integer
+      #   end
+      #
+      #  Person.inspect
+      #  # => Person(name: string, age: integer)
+      def inspect
+        attr_types = self.attribute_types.map { |name, type| "#{name}: #{type.type || 'value'}" }
+
+        "#{super}(#{attr_types.join(', ')})"
+      end
+
       private
         def define_method_attribute=(name, owner:)
           ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(

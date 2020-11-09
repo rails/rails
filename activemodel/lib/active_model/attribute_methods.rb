@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/date/conversions"
+require "active_support/core_ext/date_time/conversions"
 require "concurrent/map"
 
 module ActiveModel
