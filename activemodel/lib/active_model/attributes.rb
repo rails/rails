@@ -54,7 +54,7 @@ module ActiveModel
       #  Person.inspect
       #  # => Person(name: string, age: integer)
       def inspect
-        attr_types = self.attribute_types.map { |name, type| "#{name}: #{type.type || 'value'}" }
+        attr_types = attribute_types.map { |name, type| "#{name}: #{type.type || 'value'}" }
 
         "#{super}(#{attr_types.join(', ')})"
       end

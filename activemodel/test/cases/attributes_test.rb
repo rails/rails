@@ -14,6 +14,7 @@ module ActiveModel
       attribute :string_with_default, :string, default: "default string"
       attribute :date_field, :date, default: -> { Date.new(2016, 1, 1) }
       attribute :boolean_field, :boolean
+      attribute :value_field
     end
 
     class ChildModelForAttributesTest < ModelForAttributesTest
@@ -31,7 +32,8 @@ module ActiveModel
                "decimal_field: decimal, " \
                "string_with_default: string, " \
                "date_field: date, " \
-               "boolean_field: boolean" \
+               "boolean_field: boolean, " \
+               "value_field: value" \
                ")"
 
       assert_equal output, ModelForAttributesTest.inspect
@@ -66,7 +68,8 @@ module ActiveModel
         integer_field: 1.1,
         string_field: 1.1,
         decimal_field: 1.1,
-        boolean_field: 1.1
+        boolean_field: 1.1,
+        value_field: 1.1
       )
 
       expected_attributes = {
@@ -75,7 +78,8 @@ module ActiveModel
         decimal_field: BigDecimal("1.1"),
         string_with_default: "default string",
         date_field: Date.new(2016, 1, 1),
-        boolean_field: true
+        boolean_field: true,
+        value_field: 1.1
       }.stringify_keys
 
       assert_equal expected_attributes, data.attributes
@@ -88,7 +92,8 @@ module ActiveModel
         "decimal_field",
         "string_with_default",
         "date_field",
-        "boolean_field"
+        "boolean_field",
+        "value_field"
       ]
 
       assert_equal names, ModelForAttributesTest.attribute_names
