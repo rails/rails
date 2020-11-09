@@ -1635,7 +1635,7 @@ class Order < ApplicationRecord
 end
 ```
 
-These [scopes](#scopes) are created automatically and can be used to find all objects with or wihout a particular value for `status`:
+These [scopes](#scopes) are created automatically and can be used to find all objects with or without a particular value for `status`:
 
 ```irb
 irb> Order.shipped
@@ -1644,7 +1644,7 @@ irb> Order.not_shipped
 => #<ActiveRecord::Relation> # all orders with status != :shipped
 ```
 
-These instace methods are created automatically and query whether the model has that value for the `status` enum:
+These instance methods are created automatically and query whether the model has that value for the `status` enum:
 
 ```irb
 irb> order = Order.shipped.first
