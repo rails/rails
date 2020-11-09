@@ -39,6 +39,28 @@ module ActiveModel
       assert_equal output, ModelForAttributesTest.inspect
     end
 
+    test "inspecting an instance" do
+      instance = ModelForAttributesTest.new(
+        integer_field: 42,
+        string_field: "Rails FTW",
+        decimal_field: 12.3,
+        boolean_field: true,
+        value_field: "Yay"
+      )
+
+      output = "#<ActiveModel::AttributesTest::ModelForAttributesTest " \
+               "integer_field: 42, " \
+               'string_field: "Rails FTW", ' \
+               "decimal_field: 0.123e2, " \
+               'string_with_default: "default string", ' \
+               'date_field: "2016-01-01", ' \
+               "boolean_field: true, " \
+               'value_field: "Yay"' \
+               ">"
+
+      assert_equal output, instance.inspect
+    end
+
     test "properties assignment" do
       data = ModelForAttributesTest.new(
         integer_field: "2.3",

@@ -134,6 +134,26 @@ module ActiveModel
       @attributes.keys
     end
 
+    # Returns a string representation including attributes
+    #
+    #   class Person
+    #     include ActiveModel::Attributes
+    #
+    #     attribute :name, :string
+    #     attribute :age, :integer
+    #   end
+    #
+    #  person = Person.new(name: "David", age: 41)
+    #  person.inspect
+    #  # => #<Person name: "David", age: 41>
+    def inspect
+      inspection = attributes.map do |name, value|
+        "#{name}: #{format_for_inspect(name, value)}"
+      end.join(", ")
+
+      "#<#{self.class} #{inspection}>"
+    end
+
     def freeze
       @attributes = @attributes.clone.freeze unless frozen?
       super
