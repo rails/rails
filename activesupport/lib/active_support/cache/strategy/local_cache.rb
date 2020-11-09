@@ -135,7 +135,7 @@ module ActiveSupport
                 hit = false
                 super
               end
-              options[:event][:store] = cache.class.name if hit
+              options[:event][:store] = cache.class.name if hit && options[:event]
               value
             else
               super
