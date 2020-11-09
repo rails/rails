@@ -98,17 +98,17 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
-  def test_increment_expires_in
+  def test_increment_expires_in_and_initial
     cache = lookup_store(raw: true, namespace: nil)
-    assert_called_with client(cache), :incr, [ "foo", 1, 60 ] do
-      cache.increment("foo", 1, expires_in: 60)
+    assert_called_with client(cache), :incr, [ "foo", 1, 60, 1 ] do
+      cache.increment("foo", 1, expires_in: 60, initial: 1)
     end
   end
 
-  def test_decrement_expires_in
+  def test_decrement_expires_in_and_initial
     cache = lookup_store(raw: true, namespace: nil)
-    assert_called_with client(cache), :decr, [ "foo", 1, 60 ] do
-      cache.decrement("foo", 1, expires_in: 60)
+    assert_called_with client(cache), :decr, [ "foo", 1, 60, 0 ] do
+      cache.decrement("foo", 1, expires_in: 60, initial: 0)
     end
   end
 
