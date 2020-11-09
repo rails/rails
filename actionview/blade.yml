@@ -9,3 +9,4 @@ build:
     - rails-ujs.js
   path: lib/assets/compiled
   clean: true
+  js_compressor: uglifier
