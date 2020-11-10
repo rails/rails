@@ -311,8 +311,7 @@ that were connected via `connects_to` with the role name of `reading`.
 Note that `connected_to` with a role will look up an existing connection and switch
 using the connection specification name. This means that if you pass an unknown role
 like `connected_to(role: :nonexistent)` you will get an error that says
-`ActiveRecord::ConnectionNotEstablished (No connection pool with 'AnimalsBase' found
-for the 'nonexistent' role.)`
+`ActiveRecord::ConnectionNotEstablished (No connection pool for 'ActiveRecord::Base' found for the 'non_existent' role.)`
 
 ## Horizontal sharding
 
