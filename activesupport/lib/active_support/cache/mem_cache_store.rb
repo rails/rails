@@ -103,8 +103,8 @@ module ActiveSupport
       # Increment a cached value. This method uses the memcached incr atomic
       # operator and can only be used on values written with the :raw option.
       # Calling it on a value not stored with :raw will fail and return nil.
-      # With the :initial option, its vlaue is used for a new counter.
-      # Otherwise, an operation to a nonexistant value will fail and return nil.
+      # With the :initial option, its value is used for a new counter.
+      # Otherwise, an operation to a nonexistent value will fail and return nil.
       def increment(name, amount = 1, options = nil)
         options = merged_options(options)
         instrument(:increment, name, amount: amount) do
@@ -116,9 +116,9 @@ module ActiveSupport
 
       # Decrement a cached value. This method uses the memcached decr atomic
       # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will fail and returns nil.
-      # With the :initial option, its vlaue is used for a new counter.
-      # Otherwise, an operation to a nonexistant value will fail and return nil.
+      # Calling it on a value not stored with :raw will fail and return nil.
+      # With the :initial option, its value is used for a new counter.
+      # Otherwise, an operation to a nonexistent value will fail and return nil.
       def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
         instrument(:decrement, name, amount: amount) do
