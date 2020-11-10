@@ -23,6 +23,10 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :schema_cache
+
+      def owner_name
+        nil
+      end
     end
 
     # Connection pool base class for managing Active Record database
@@ -356,7 +360,7 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :size, :reaper, :pool_config
+      attr_reader :db_config, :size, :reaper, :pool_config, :owner_name
 
       delegate :schema_cache, :schema_cache=, to: :pool_config
 
@@ -371,6 +375,7 @@ module ActiveRecord
 
         @pool_config = pool_config
         @db_config = pool_config.db_config
+        @owner_name = pool_config.connection_specification_name
 
         @checkout_timeout = db_config.checkout_timeout
         @idle_timeout = db_config.idle_timeout
