@@ -23,7 +23,24 @@ module ActionDispatch
     def call(env)
       req = ActionDispatch::Request.new env
       req.request_id = make_request_id(req.headers[@header])
-      @app.call(env).tap { |_status, headers, _body| headers[@header] = req.request_id }
+
+      response = @app.call(env)
+
+      status, headers, body = response
+
+      if headers.frozen?
+        headers = headers.dup
+
+        if response.frozen?
+          response = [status, headers, body]
+        else
+          response[1] = headers
+        end
+      end
+
+      headers[@header] = req.request_id
+
+      response
     end
 
     private
