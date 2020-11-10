@@ -12,14 +12,6 @@ GIT
     mysql2 (0.5.3)
 
 GIT
-  remote: https://github.com/guard/listen.git
-  revision: 26f5848feb1fa0d1a754fa3d272a05233e797ea0
-  specs:
-    listen (3.3.0.pre.2)
-      rb-fsevent (~> 0.10, >= 0.10.3)
-      rb-inotify (~> 0.9, >= 0.9.10)
-
-GIT
   remote: https://github.com/matthewd/websocket-client-simple.git
   revision: e161305f1a466b9398d86df3b1731b03362da91b
   branch: close-race
@@ -315,6 +307,9 @@ GEM
       mustache
       nokogiri
     libxml-ruby (3.2.0)
+    listen (3.3.0)
+      rb-fsevent (~> 0.10, >= 0.10.3)
+      rb-inotify (~> 0.9, >= 0.9.10)
     loofah (2.7.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -583,7 +578,7 @@ DEPENDENCIES
   json (>= 2.0.0)
   kindlerb (~> 1.2.0)
   libxml-ruby
-  listen (~> 3.2)!
+  listen (~> 3.3)
   minitest-bisect
   minitest-reporters
   minitest-retry
