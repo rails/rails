@@ -45,7 +45,7 @@ end
 
 # Active Support
 gem "dalli"
-gem "listen", "~> 3.2", require: false, github: "guard/listen"
+gem "listen", "~> 3.3", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
 gem "rexml", require: false
