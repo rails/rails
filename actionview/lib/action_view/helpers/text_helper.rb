@@ -52,10 +52,12 @@ module ActionView
       #       # will either display "Logged in!" or a login link
       #   %>
       def concat(string)
+        return unless string.is_a? String
         output_buffer << string
       end
 
       def safe_concat(string)
+        return unless string.is_a? String
         output_buffer.respond_to?(:safe_concat) ? output_buffer.safe_concat(string) : concat(string)
       end
 
