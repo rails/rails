@@ -1,3 +1,7 @@
+*   Add support for stylesheets and ERB views to `rails stats`.
+
+    *Joel Hawksley*
+
 *   Allow appended root routes to take precedence over internal welcome controller.
 
     *Gannon McGibbon*

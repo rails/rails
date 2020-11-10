@@ -218,6 +218,59 @@ class CodeStatisticsCalculatorTest < ActiveSupport::TestCase
     assert_equal 0, @code_statistics_calculator.methods
   end
 
+  test "skip ERB comments" do
+    code = <<-'CODE'
+      <!-- This is an HTML comment -->
+      <%# This is a great comment! %>
+      <div>
+        <%= hello %>
+
+      </div>
+    CODE
+
+    @code_statistics_calculator.add_by_io(StringIO.new(code), :erb)
+
+    assert_equal 6, @code_statistics_calculator.lines
+    assert_equal 3, @code_statistics_calculator.code_lines
+    assert_equal 0, @code_statistics_calculator.classes
+    assert_equal 0, @code_statistics_calculator.methods
+  end
+
+  test "skip CSS comments" do
+    code = <<-'CODE'
+      /* My cool CSS */
+      .selector {
+        background-color: blue;
+
+      }
+    CODE
+
+    @code_statistics_calculator.add_by_io(StringIO.new(code), :css)
+
+    assert_equal 5, @code_statistics_calculator.lines
+    assert_equal 3, @code_statistics_calculator.code_lines
+    assert_equal 0, @code_statistics_calculator.classes
+    assert_equal 0, @code_statistics_calculator.methods
+  end
+
+  test "skip SCSS comments" do
+    code = <<-'CODE'
+      // My cool SCSS
+      /* My cool SCSS */
+      .selector {
+        background-color: blue;
+
+      }
+    CODE
+
+    @code_statistics_calculator.add_by_io(StringIO.new(code), :scss)
+
+    assert_equal 6, @code_statistics_calculator.lines
+    assert_equal 3, @code_statistics_calculator.code_lines
+    assert_equal 0, @code_statistics_calculator.classes
+    assert_equal 0, @code_statistics_calculator.methods
+  end
+
   test "calculate number of CoffeeScript methods" do
     code = <<-'CODE'
       square = (x) -> x * x

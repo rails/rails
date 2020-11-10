@@ -40,7 +40,7 @@ class CodeStatistics #:nodoc:
       Hash[@pairs.map { |pair| [pair.first, calculate_directory_statistics(pair.last)] }]
     end
 
-    def calculate_directory_statistics(directory, pattern = /^(?!\.).*?\.(rb|js|ts|coffee|rake)$/)
+    def calculate_directory_statistics(directory, pattern = /^(?!\.).*?\.(rb|js|ts|css|scss|coffee|rake|erb)$/)
       stats = CodeStatisticsCalculator.new
 
       Dir.foreach(directory) do |file_name|
