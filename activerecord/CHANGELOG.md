@@ -129,7 +129,7 @@
 
 *   Named scope chain does no longer leak scope to class level querying methods.
 
-        class User < ActiveRecord::Base
+        class User < ApplicationRecord
           scope :david, -> { User.where(name: "David") }
         end
 
@@ -299,7 +299,7 @@
 *   Allow associations supporting the `dependent:` key to take `dependent: :destroy_async`.
 
     ```ruby
-    class Account < ActiveRecord::Base
+    class Account < ApplicationRecord
         belongs_to :supplier, dependent: :destroy_async
     end
     ```
@@ -341,7 +341,7 @@
 *   Allow `where` references association names as joined table name aliases.
 
     ```ruby
-    class Comment < ActiveRecord::Base
+    class Comment < ApplicationRecord
       enum label: [:default, :child]
       has_many :children, class_name: "Comment", foreign_key: :parent_id
     end
@@ -390,7 +390,7 @@
 *   Allow attribute's default to be configured but keeping its own type.
 
     ```ruby
-    class Post < ActiveRecord::Base
+    class Post < ApplicationRecord
       attribute :written_at, default: -> { Time.now.utc }
     end
 
@@ -406,7 +406,7 @@
 *   Allow default to be configured for Enum.
 
     ```ruby
-    class Book < ActiveRecord::Base
+    class Book < ApplicationRecord
       enum status: [:proposed, :written, :published], _default: :published
     end
 
