@@ -341,7 +341,8 @@ module ActiveRecord
 
         def matches_foreign_key?(record)
           if foreign_key_for?(record)
-            record.read_attribute(reflection.foreign_key) == owner.id
+            record.read_attribute(reflection.foreign_key) == owner.id ||
+              (foreign_key_for?(owner) && owner.read_attribute(reflection.foreign_key) == record.id)
           else
             owner.read_attribute(reflection.foreign_key) == record.id
           end
