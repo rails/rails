@@ -587,7 +587,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
     end
   end
 
-  def test_association_stuff
+  def test_inverse_works_when_the_association_self_references_the_same_object
     comment = comments(:greetings)
     Comment.create!(parent: comment, post_id: comment.post_id, body: "New Comment")
 
