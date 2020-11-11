@@ -257,7 +257,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Named scope chain does no longer leak scope to class level querying methods.
 
-        class User < ActiveRecord::Base
+        class User < ApplicationRecord
           scope :david, -> { User.where(name: "David") }
         end
 

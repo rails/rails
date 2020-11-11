@@ -104,7 +104,7 @@ create_table :store_listings, force: true do |t|
 end
 
 # app/models/store_listing.rb
-class StoreListing < ActiveRecord::Base
+class StoreListing < ApplicationRecord
 end
 
 store_listing = StoreListing.new(price_in_cents: '10.1')
@@ -113,7 +113,7 @@ store_listing = StoreListing.new(price_in_cents: '10.1')
 store_listing.price_in_cents # => BigDecimal.new(10.1)
 StoreListing.new.my_string # => "original default"
 
-class StoreListing < ActiveRecord::Base
+class StoreListing < ApplicationRecord
   attribute :price_in_cents, :integer # custom type
   attribute :my_string, :string, default: "new default" # default value
   attribute :my_default_proc, :datetime, default: -> { Time.now } # default value
