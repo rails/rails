@@ -124,4 +124,20 @@ class ActionText::FormHelperTest < ActionView::TestCase
       "</form>",
       output_buffer
   end
+
+  test "form with invalid rich text area" do
+    model = ValidatedMessage.new.tap(&:validate)
+
+    form_with url: "/messages", model: model, scope: :message do |form|
+      form.rich_text_area :body
+    end
+
+    assert_dom_equal \
+      '<form action="/messages" accept-charset="UTF-8" data-remote="true" method="post">' \
+        '<input type="hidden" name="message[body]" id="message_body_trix_input_validated_message" />' \
+        '<trix-editor aria-invalid="true" id="message_body" input="message_body_trix_input_validated_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
+        "</trix-editor>" \
+      "</form>",
+      output_buffer
+  end
 end

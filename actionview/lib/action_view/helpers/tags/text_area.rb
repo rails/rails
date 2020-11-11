@@ -16,6 +16,8 @@ module ActionView
             options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
           end
 
+          @validator.validate!(options)
+
           content_tag("textarea", options.delete("value") { value_before_type_cast }, options)
         end
       end

@@ -25,6 +25,8 @@ module ActionView
             options_for_select(@choices, option_tags_options)
           end
 
+          @validator.validate!(@html_options)
+
           select_content_tag(option_tags, @options, @html_options)
         end
 

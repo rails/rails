@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "action_view/helpers/tags/validator"
+
 module ActionView
   module Helpers
     module Tags # :nodoc:
@@ -18,6 +20,7 @@ module ActionView
           @skip_default_ids = options.delete(:skip_default_ids)
           @allow_method_names_outside_object = options.delete(:allow_method_names_outside_object)
           @options = options
+          @validator = Validator.new(@object, @method_name)
 
           if Regexp.last_match
             @generate_indexed_names = true

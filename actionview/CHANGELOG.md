@@ -1,3 +1,10 @@
+*   When rendering fields for an ActiveModel-enabled form, encode the validity of
+    the field to the [aria-invalid][] attribute.
+
+    *Sean Doyle*
+
+[aria-invalid]: https://www.w3.org/TR/wai-aria-1.1/#aria-invalid
+
 ## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Yield translated strings to calls of `ActionView::FormBuilder#button`

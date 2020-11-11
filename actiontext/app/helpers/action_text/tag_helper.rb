@@ -46,6 +46,7 @@ module ActionView::Helpers
       options = @options.stringify_keys
       add_default_name_and_id(options)
       options["input"] ||= dom_id(object, [options["id"], :trix_input].compact.join("_")) if object
+      @validator.validate!(options)
       @template_object.rich_text_area_tag(options.delete("name"), options.fetch("value") { editable_value }, options.except("value"))
     end
 

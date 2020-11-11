@@ -17,7 +17,10 @@ module ActionView
           options = @options.stringify_keys
           options["type"]     = "radio"
           options["value"]    = @tag_value
-          options["checked"] = "checked" if input_checked?(options)
+          if input_checked?(options)
+            options["checked"] = "checked"
+            @validator.validate!(options)
+          end
           add_default_name_and_id_for_value(@tag_value, options)
           tag("input", options)
         end
