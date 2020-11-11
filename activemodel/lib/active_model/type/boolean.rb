@@ -20,6 +20,7 @@ module ActiveModel
         "f", :f,
         "F", :F,
         "false", :false,
+        "False", :False,
         "FALSE", :FALSE,
         "off", :off,
         "OFF", :OFF,
