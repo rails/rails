@@ -51,7 +51,7 @@ module ActiveRecord
 
       def initialize(*)
         super
-        @query_cache         = Hash.new { |h, sql| h[sql] = {} }
+        @query_cache         = {}
         @query_cache_enabled = false
       end
 
@@ -107,17 +107,18 @@ module ActiveRecord
       private
         def cache_sql(sql, name, binds)
           @lock.synchronize do
-            result =
-              if @query_cache[sql].key?(binds)
-                ActiveSupport::Notifications.instrument(
-                  "sql.active_record",
-                  cache_notification_info(sql, name, binds)
-                )
-                @query_cache[sql][binds]
-              else
-                @query_cache[sql][binds] = yield
+            if @query_cache.key?(sql) && @query_cache[sql].key?(binds)
+              ActiveSupport::Notifications.instrument(
+                "sql.active_record",
+                cache_notification_info(sql, name, binds)
+              )
+            else
+              @query_cache = @query_cache.clone.tap do |qc|
+                qc[sql] ||= {}
+                qc[sql][binds] = yield
               end
-            result.dup
+            end
+            @query_cache[sql][binds].dup
           end
         end
 
