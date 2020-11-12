@@ -284,7 +284,7 @@ module ActiveRecord
       end
 
       def add_reference(table_name, ref_name, **options) # :nodoc:
-        super(table_name, ref_name, type: :integer, **options)
+        super(table_name, ref_name, type: :bigint, **options)
       end
       alias :add_belongs_to :add_reference
 
