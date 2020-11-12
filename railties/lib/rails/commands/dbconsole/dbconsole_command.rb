@@ -73,17 +73,17 @@ module Rails
       when "sqlserver"
         args = []
 
-        args += ["-D", "#{db_config.database}"] if db_config.database
+        args += ["-d", "#{db_config.database}"] if db_config.database
         args += ["-U", "#{config[:username]}"] if config[:username]
         args += ["-P", "#{config[:password]}"] if config[:password]
 
         if config[:host]
-          host_arg = +"#{config[:host]}"
-          host_arg << ":#{config[:port]}" if config[:port]
+          host_arg = +"tcp:#{config[:host]}"
+          host_arg << ",#{config[:port]}" if config[:port]
           args += ["-S", host_arg]
         end
 
-        find_cmd_and_exec("sqsh", *args)
+        find_cmd_and_exec("sqlcmd", *args)
 
       else
         abort "Unknown command-line client for #{db_config.database}."
