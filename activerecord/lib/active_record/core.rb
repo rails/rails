@@ -324,7 +324,7 @@ module ActiveRecord
         hash = args.first
         return super unless Hash === hash
 
-        values = hash.values.map! { |value| value.is_a?(Base) ? value.id : value }
+        values = hash.values.map! { |value| value.respond_to?(:id) ? value.id : value }
         return super if values.any? { |v| StatementCache.unsupported_value?(v) }
 
         keys = hash.keys.map! do |key|
