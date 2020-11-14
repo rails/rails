@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 module ActionController #:nodoc:
-  # HTTP Feature Policy is a web standard for defining a mechanism to
-  # allow and deny the use of browser features in its own context, and
+  # HTTP Permissions Policy is a web standard for defining a mechanism to
+  # allow and deny the use of browser permissions in its own context, and
   # in content within any <iframe> elements in the document.
   #
-  # Full details of HTTP Feature Policy specification and guidelines can
+  # Full details of HTTP Permissions Policy specification and guidelines can
   # be found at MDN:
   #
   # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy
@@ -13,7 +13,7 @@ module ActionController #:nodoc:
   # Examples of usage:
   #
   #   # Global policy
-  #   Rails.application.config.feature_policy do |f|
+  #   Rails.application.config.permissions_policy do |f|
   #     f.camera      :none
   #     f.gyroscope   :none
   #     f.microphone  :none
@@ -24,20 +24,20 @@ module ActionController #:nodoc:
   #
   #   # Controller level policy
   #   class PagesController < ApplicationController
-  #     feature_policy do |p|
+  #     permissions_policy do |p|
   #       p.geolocation "https://example.com"
   #     end
   #   end
-  module FeaturePolicy
+  module PermissionsPolicy
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def feature_policy(**options, &block)
+      def permissions_policy(**options, &block)
         before_action(options) do
           if block_given?
-            policy = request.feature_policy.clone
+            policy = request.permissions_policy.clone
             yield policy
-            request.feature_policy = policy
+            request.permissions_policy = policy
           end
         end
       end

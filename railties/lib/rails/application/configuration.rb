@@ -73,7 +73,7 @@ module Rails
         @autoloader                              = :classic
         @disable_sandbox                         = false
         @add_autoload_paths_to_load_path         = true
-        @feature_policy                          = nil
+        @permissions_policy                      = nil
         @rake_eager_load                         = false
       end
 
@@ -325,11 +325,11 @@ module Rails
         end
       end
 
-      def feature_policy(&block)
+      def permissions_policy(&block)
         if block_given?
-          @feature_policy = ActionDispatch::FeaturePolicy.new(&block)
+          @permissions_policy = ActionDispatch::PermissionsPolicy.new(&block)
         else
-          @feature_policy
+          @permissions_policy
         end
       end
 

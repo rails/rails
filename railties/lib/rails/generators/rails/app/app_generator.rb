@@ -138,7 +138,7 @@ module Rails
       rack_cors_config_exist         = File.exist?("config/initializers/cors.rb")
       assets_config_exist            = File.exist?("config/initializers/assets.rb")
       csp_config_exist               = File.exist?("config/initializers/content_security_policy.rb")
-      feature_policy_config_exist    = File.exist?("config/initializers/feature_policy.rb")
+      permissions_policy_config_exist = File.exist?("config/initializers/permissions_policy.rb")
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
@@ -174,8 +174,8 @@ module Rails
           remove_file "config/initializers/content_security_policy.rb"
         end
 
-        unless feature_policy_config_exist
-          remove_file "config/initializers/feature_policy.rb"
+        unless permissions_policy_config_exist
+          remove_file "config/initializers/permissions_policy.rb"
         end
       end
     end
@@ -527,7 +527,7 @@ module Rails
         if options[:api]
           remove_file "config/initializers/cookies_serializer.rb"
           remove_file "config/initializers/content_security_policy.rb"
-          remove_file "config/initializers/feature_policy.rb"
+          remove_file "config/initializers/permissions_policy.rb"
         end
       end
 
