@@ -3,6 +3,10 @@
 
     *Max Gurewitz*
 
+*   Add support to clear specific namespaces in `MemoryStore` using `.clear(namespace:)`
+
+    *Doug Edey
+
 ## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Calling `iso8601` on negative durations retains the negative sign on individual

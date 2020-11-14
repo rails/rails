@@ -27,6 +27,26 @@ class MemoryStoreTest < ActiveSupport::TestCase
   def test_large_object_with_default_compression_settings
     assert_uncompressed(LARGE_OBJECT)
   end
+
+  def test_clear_responds_to_namespace_option
+    @cache.write("key_name", "a", namespace: "a")
+    @cache.write("key_name", "b", namespace: "b")
+
+    @cache.clear(namespace: "a")
+
+    assert_not @cache.exist?("key_name", namespace: "a")
+    assert @cache.exist?("key_name", namespace: "b")
+  end
+
+  def test_clear_clears_all_namespaces
+    @cache.write("key_name", "a", namespace: "a")
+    @cache.write("key_name", "b", namespace: "b")
+
+    @cache.clear
+
+    assert_not @cache.exist?("key_name", namespace: "a")
+    assert_not @cache.exist?("key_name", namespace: "b")
+  end
 end
 
 class MemoryStorePruningTest < ActiveSupport::TestCase

@@ -62,8 +62,12 @@ module ActiveSupport
       # Delete all data stored in a given cache store.
       def clear(options = nil)
         synchronize do
-          @data.clear
-          @cache_size = 0
+          if options && options[:namespace]
+            delete_matched(//, options)
+          else
+            @data.clear
+            @cache_size = 0
+          end
         end
       end
 
