@@ -46,7 +46,7 @@ module ApplicationTests
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
         "ActionDispatch::ContentSecurityPolicy::Middleware",
-        "ActionDispatch::FeaturePolicy::Middleware",
+        "ActionDispatch::PermissionsPolicy::Middleware",
         "Rack::Head",
         "Rack::ConditionalGet",
         "Rack::ETag",
