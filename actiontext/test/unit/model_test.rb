@@ -86,4 +86,12 @@ class ActionText::ModelTest < ActiveSupport::TestCase
       assert_kind_of ActionText::RichText, message.content
     end
   end
+
+  test "has_rich_text raises if strict loading and lazy loading" do
+    Message.create!(subject: "Greetings")
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      messages = Message.all
+      messages.as_json(include: :eager_loaded_body)
+    end
+  end
 end
