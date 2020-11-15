@@ -567,7 +567,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     }.call({})
   end
 
-  def test_clear_query_cache_is_called_on_all_connections
+  def test_clear_query_cache_is_called_on_peer_connections
     skip "with in memory db, reading role won't be able to see database on writing role" if in_memory_db?
 
     ActiveRecord::Base.connected_to(role: :reading) do
@@ -592,6 +592,35 @@ class QueryCacheTest < ActiveRecord::TestCase
       ActiveRecord::Base.connected_to(role: :reading) do
         @topic = Topic.first
         assert_equal "Topic title", @topic.title
+      end
+    }
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  class SecondaryBase < ActiveRecord::Base
+    self.abstract_class = true
+  end
+
+  class SecondaryTask < SecondaryBase
+    self.table_name = "tasks"
+  end
+
+  def test_clear_query_cache_is_not_called_on_other_connections
+    skip "with in memory db, reading role won't be able to see database on writing role" if in_memory_db?
+
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+    SecondaryBase.establish_connection(db_config)
+
+    mw = middleware { |env|
+      SecondaryTask.first
+
+      Topic.first.update!(title: "Topic title")
+
+      assert_no_queries do
+        SecondaryTask.first
       end
     }
 

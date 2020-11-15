@@ -18,11 +18,16 @@ module ActiveRecord
           method_names.each do |method_name|
             base.class_eval <<-end_code, __FILE__, __LINE__ + 1
               def #{method_name}(*)
-                ActiveRecord::Base.clear_query_caches_for_current_thread
+                pool.clear_query_caches_for_peer_connections
                 super
               end
             end_code
           end
+        end
+      end
+
+      module NullConnectionPoolConfiguration
+        def clear_query_caches_for_peer_connections
         end
       end
 
@@ -44,6 +49,10 @@ module ActiveRecord
 
         def query_cache_enabled
           @query_cache_enabled[connection_cache_key(current_thread)]
+        end
+
+        def clear_query_caches_for_peer_connections
+          ActiveRecord::Base.clear_query_caches_for_peer_connections(pool_config.connection_specification_name)
         end
       end
 

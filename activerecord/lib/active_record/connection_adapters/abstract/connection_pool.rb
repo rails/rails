@@ -30,6 +30,7 @@ module ActiveRecord
 
     class NullPool # :nodoc:
       include ConnectionAdapters::AbstractPool
+      include QueryCache::NullConnectionPoolConfiguration
 
       attr_accessor :schema_cache
 
