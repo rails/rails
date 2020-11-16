@@ -37,16 +37,20 @@ module Arel # :nodoc: all
     def between(other)
       if unboundable?(other.begin) == 1 || unboundable?(other.end) == -1
         self.in([])
+      elsif open_ended?(other.begin) && open_ended?(other.end)
+        not_in([])
       elsif open_ended?(other.begin)
-        if open_ended?(other.end)
-          not_in([])
-        elsif other.exclude_end?
+        if other.exclude_end?
           lt(other.end)
         else
           lteq(other.end)
         end
       elsif open_ended?(other.end)
-        gteq(other.begin)
+        if other.exclude_end?
+          gt(other.begin)
+        else
+          gteq(other.begin)
+        end
       elsif other.exclude_end?
         gteq(other.begin).and(lt(other.end))
       else

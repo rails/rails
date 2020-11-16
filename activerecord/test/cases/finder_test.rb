@@ -1062,8 +1062,20 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [1, 2, 6, 7, 8], Comment.where(id: [1..2, 6..8]).to_a.map(&:id).sort
   end
 
-  def test_find_on_hash_conditions_with_open_ended_range
+  def test_find_on_hash_conditions_with_beginless_range
     assert_equal [1, 2, 3], Comment.where(id: Float::INFINITY..3).to_a.map(&:id).sort
+  end
+
+  def test_find_on_hash_conditions_with_exclusive_beginless_range
+    assert_equal [1, 2], Comment.where(id: Float::INFINITY...3).to_a.map(&:id).sort
+  end
+
+  def test_find_on_hash_conditions_with_endless_range
+    assert_equal [10, 11, 12], Comment.where(id: 10..Float::INFINITY).to_a.map(&:id).sort
+  end
+
+  def test_find_on_hash_conditions_with_exclusive_endless_range
+    assert_equal [11, 12], Comment.where(id: 10...Float::INFINITY).to_a.map(&:id).sort
   end
 
   def test_find_on_hash_conditions_with_numeric_range_for_string

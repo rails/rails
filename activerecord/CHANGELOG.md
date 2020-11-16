@@ -1,3 +1,30 @@
+*   Make exclusive endless ranges produce `gt` queries:
+
+    Currently, `where` with exclusive, endless ranges produces the same, `gteq`,
+    queries as `where` with inclusive, endless ranges:
+    
+    ```
+    irb(main):001:0> Thing.where(id: 42..::Float::INFINITY).count
+       (0.2ms)  SELECT COUNT(*) FROM "things" WHERE "things"."id" >= ?  [["age", 18]]
+    => 2
+    irb(main):002:0> Thing.where(id: 42...::Float::INFINITY).count
+       (0.2ms)  SELECT COUNT(*) FROM "things" WHERE "things"."id" >= ?  [["age", 18]]
+    => 2
+    ```
+
+    After this change, `where` with exclusive, endless ranges produces `gt` queries:
+
+    ```
+    irb(main):001:0> Thing.where(id: 42..::Float::INFINITY).count
+       (0.2ms)  SELECT COUNT(*) FROM "things" WHERE "things"."id" >= ?  [["age", 18]]
+    => 2
+    irb(main):002:0> Thing.where(id: 42...::Float::INFINITY).count
+       (0.2ms)  SELECT COUNT(*) FROM "things" WHERE "things"."id" > ?  [["age", 18]]
+    => 1
+    ```
+
+    *Raghu Betina*
+
 *   Build predicate conditions with objects that delegate `#id` and primary key:
 
     ```ruby

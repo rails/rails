@@ -638,12 +638,52 @@ module Arel
           )
         end
 
+        it "can be constructed with a quoted range ending at Infinity" do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(quoted_range(0, ::Float::INFINITY, false))
+
+          _(node).must_equal Nodes::GreaterThanOrEqual.new(
+            attribute,
+            Nodes::Quoted.new(0)
+          )
+        end
+
+        it "can be constructed with an exclusive range ending at Infinity" do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(0...::Float::INFINITY)
+
+          _(node).must_equal Nodes::GreaterThan.new(
+            attribute,
+            Nodes::Casted.new(0, attribute)
+          )
+        end
+
+        it "can be constructed with a quoted exclusive range ending at Infinity" do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(quoted_range(0, ::Float::INFINITY, true))
+
+          _(node).must_equal Nodes::GreaterThan.new(
+            attribute,
+            Nodes::Quoted.new(0)
+          )
+        end
+
         if RUBY_VERSION >= "2.7"
           it "can be constructed with a range implicitly starting at Infinity" do
             attribute = Attribute.new nil, nil
             node = attribute.between(eval("..0")) # eval for backwards compatibility
 
             _(node).must_equal Nodes::LessThanOrEqual.new(
+              attribute,
+              Nodes::Casted.new(0, attribute)
+            )
+          end
+
+          it "can be constructed with an exclusive range implicitly starting at Infinity" do
+            attribute = Attribute.new nil, nil
+            node = attribute.between(eval("...0")) # eval for backwards compatibility
+
+            _(node).must_equal Nodes::LessThan.new(
               attribute,
               Nodes::Casted.new(0, attribute)
             )
@@ -656,6 +696,16 @@ module Arel
             node = attribute.between(eval("0..")) # Use eval for compatibility with Ruby < 2.6 parser
 
             _(node).must_equal Nodes::GreaterThanOrEqual.new(
+              attribute,
+              Nodes::Casted.new(0, attribute)
+            )
+          end
+
+          it "can be constructed with an exclusive range implicitly ending at Infinity" do
+            attribute = Attribute.new nil, nil
+            node = attribute.between(eval("(0...)")) # Use eval for compatibility with Ruby < 2.6 parser
+
+            _(node).must_equal Nodes::GreaterThan.new(
               attribute,
               Nodes::Casted.new(0, attribute)
             )
