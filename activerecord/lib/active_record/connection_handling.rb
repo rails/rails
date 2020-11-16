@@ -355,11 +355,11 @@ module ActiveRecord
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name
 
-        owner_name = primary_class? ? Base.name : name
-        self.connection_specification_name = owner_name
+        owner = primary_class? ? Base : self
+        owner.connection_specification_name = owner.name
 
         db_config = Base.configurations.resolve(config_or_env)
-        [db_config, owner_name]
+        [db_config, owner.name]
       end
 
       def with_handler(handler_key, &blk)

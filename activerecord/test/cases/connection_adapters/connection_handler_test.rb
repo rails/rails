@@ -275,6 +275,42 @@ module ActiveRecord
         ActiveRecord::Base.connection_specification_name = "ActiveRecord::Base"
       end
 
+      unless in_memory_db?
+        def test_connects_to_on_application_record_sets_connection_specification_name_on_active_record_base
+          Object.const_set :ApplicationRecord, ApplicationRecord
+
+          old_config = ActiveRecord::Base.configurations
+          config = { "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" } }
+          ActiveRecord::Base.configurations = config
+
+          ApplicationRecord.connects_to database: { writing: :primary }
+          assert_equal "ActiveRecord::Base", ApplicationRecord.connection_specification_name
+
+          ActiveRecord::Base.connection_specification_name = "readonly"
+          assert_equal "readonly", ApplicationRecord.connection_specification_name
+        ensure
+          ActiveRecord::Base.configurations = old_config
+          ActiveRecord::Base.establish_connection(:arunit)
+
+          ActiveRecord::Base.connection_specification_name = "ActiveRecord::Base"
+          Object.send :remove_const, :ApplicationRecord
+        end
+      end
+
+      def test_connection_specification_name_can_be_set_on_application_record_directly
+        Object.const_set :ApplicationRecord, ApplicationRecord
+
+        assert_equal "ActiveRecord::Base", MyClass.connection_specification_name
+
+        ApplicationRecord.connection_specification_name = "readonly"
+        assert_equal "ActiveRecord::Base", ActiveRecord::Base.connection_specification_name
+        assert_equal "readonly", ApplicationRecord.connection_specification_name
+        assert_equal "readonly", MyClass.connection_specification_name
+      ensure
+        ApplicationRecord.connection_specification_name = nil
+        Object.send :remove_const, :ApplicationRecord
+      end
+
       def test_remove_connection_should_not_remove_parent
         klass2 = Class.new(Base) { def self.name; "klass2"; end }
         klass2.remove_connection
