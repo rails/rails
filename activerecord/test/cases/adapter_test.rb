@@ -244,7 +244,7 @@ module ActiveRecord
 
         assert_deprecated do
           id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
-          assert_equal 1, id
+          assert_equal({ 'id' => 1 }, id)
         end
 
         assert_deprecated do
@@ -273,7 +273,7 @@ module ActiveRecord
         bind_param = Arel::Nodes::BindParam.new(nil)
 
         id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
-        assert_equal 1, id
+        assert_equal({ 'id' => 1 }, id)
 
         updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal 1, updated
@@ -293,7 +293,7 @@ module ActiveRecord
         bind_param = Arel::Nodes::BindParam.new(nil)
 
         id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
-        assert_equal 1, id
+        assert_equal({ 'id' => 1 }, id)
 
         updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal 1, updated

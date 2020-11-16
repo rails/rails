@@ -77,7 +77,7 @@ module ActiveRecord
           end
 
           if pk = suppress_composite_primary_key(pk)
-            returning.unshift(pk)
+            returning.unshift(quote_column_name(pk))
           end
 
           if returning.present?

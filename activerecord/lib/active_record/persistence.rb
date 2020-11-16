@@ -377,7 +377,7 @@ module ActiveRecord
       def _insert_record(values) # :nodoc:
         primary_key = self.primary_key
         primary_key_value = nil
-        returning = self.returning_attributes.to_a
+        returning = self.returning_attributes.to_a.dup
 
         if prefetch_primary_key? && primary_key
           values[primary_key] ||= begin
