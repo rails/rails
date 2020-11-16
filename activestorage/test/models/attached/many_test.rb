@@ -570,12 +570,12 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_not_predicate @user, :changed_for_autosave?
   end
 
-  test "clearing change on reload" do
+  test "keeping change on reload" do
     @user.highlights = [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ]
     assert @user.highlights.attached?
 
     @user.reload
-    assert_not @user.highlights.attached?
+    assert @user.highlights.attached?
   end
 
   test "overriding attached reader" do

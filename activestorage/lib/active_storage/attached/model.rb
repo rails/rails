@@ -206,7 +206,7 @@ module ActiveStorage
     end
 
     def reload(*) #:nodoc:
-      super.tap { @attachment_changes = nil }
+      super
     end
   end
 end

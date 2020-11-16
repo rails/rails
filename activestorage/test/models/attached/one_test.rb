@@ -554,12 +554,12 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_not_predicate @user, :changed_for_autosave?
   end
 
-  test "clearing change on reload" do
+  test "keeping change on reload" do
     @user.avatar = create_blob(filename: "funky.jpg")
     assert @user.avatar.attached?
 
     @user.reload
-    assert_not @user.avatar.attached?
+    assert @user.avatar.attached?
   end
 
   test "overriding attached reader" do
