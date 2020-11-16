@@ -1,3 +1,7 @@
+*   Implement `strict_loading` on ActiveStorage associations.
+
+    *David Angulo*
+
 ## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Remove deprecated support to pass `:combine_options` operations to `ActiveStorage::Transformers::ImageProcessing`.
