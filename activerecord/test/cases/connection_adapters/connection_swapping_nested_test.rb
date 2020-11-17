@@ -349,6 +349,71 @@ module ActiveRecord
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
         end
+
+        def test_prevent_writes_can_be_changed_granularly
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+          # replica: true is purposefully left out so we can test the pools behavior
+          config = {
+            "default_env" => {
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "secondary" => { "adapter" => "sqlite3", "database" => "test/db/secondary.sqlite3" },
+              "secondary_replica" => { "adapter" => "sqlite3", "database" => "test/db/secondary_replica.sqlite3" }
+            }
+          }
+
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          PrimaryBase.connects_to database: { writing: :primary, reading: :primary_replica }
+          SecondaryBase.connects_to database: { writing: :secondary, reading: :secondary_replica }
+
+          # Switch everything to writing
+          ActiveRecord::Base.connected_to(role: :writing) do
+            assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
+            assert_not_predicate PrimaryBase.connection, :preventing_writes?
+            assert_not_predicate SecondaryBase.connection, :preventing_writes?
+
+            # Switch only primary to reading
+            PrimaryBase.connected_to(role: :reading) do
+              assert_predicate PrimaryBase.connection, :preventing_writes?
+              assert_not_predicate SecondaryBase.connection, :preventing_writes?
+
+              # Switch global to reading
+              ActiveRecord::Base.connected_to(role: :reading) do
+                assert_predicate PrimaryBase.connection, :preventing_writes?
+                assert_predicate SecondaryBase.connection, :preventing_writes?
+
+                # Switch only secondary to writing
+                SecondaryBase.connected_to(role: :writing) do
+                  assert_predicate PrimaryBase.connection, :preventing_writes?
+                  assert_not_predicate SecondaryBase.connection, :preventing_writes?
+                end
+
+                # Ensure restored to global reading
+                assert_predicate PrimaryBase.connection, :preventing_writes?
+                assert_predicate SecondaryBase.connection, :preventing_writes?
+              end
+
+              # Switch everything to writing
+              ActiveRecord::Base.connected_to(role: :writing) do
+                assert_not_predicate PrimaryBase.connection, :preventing_writes?
+                assert_not_predicate SecondaryBase.connection, :preventing_writes?
+              end
+
+              assert_predicate PrimaryBase.connection, :preventing_writes?
+              assert_not_predicate SecondaryBase.connection, :preventing_writes?
+            end
+
+            # Ensure restored to global writing
+            assert_not_predicate PrimaryBase.connection, :preventing_writes?
+            assert_not_predicate SecondaryBase.connection, :preventing_writes?
+          end
+        ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ActiveRecord::Base.establish_connection(:arunit)
+          ENV["RAILS_ENV"] = previous_env
+        end
       end
     end
   end

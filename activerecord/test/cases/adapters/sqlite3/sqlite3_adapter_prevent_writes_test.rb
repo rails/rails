@@ -11,9 +11,7 @@ module ActiveRecord
       self.use_transactional_tests = false
 
       def setup
-        @conn = Base.sqlite3_connection database: ":memory:",
-                                        adapter: "sqlite3",
-                                        timeout: 100
+        @conn = ActiveRecord::Base.connection
       end
 
       def test_errors_when_an_insert_query_is_called_while_preventing_writes
@@ -100,9 +98,7 @@ module ActiveRecord
         @old_value = ActiveRecord::Base.legacy_connection_handling
         ActiveRecord::Base.legacy_connection_handling = true
 
-        @conn = Base.sqlite3_connection database: ":memory:",
-                                        adapter: "sqlite3",
-                                        timeout: 100
+        @conn = ActiveRecord::Base.connection
 
         @connection_handler = ActiveRecord::Base.connection_handler
       end
