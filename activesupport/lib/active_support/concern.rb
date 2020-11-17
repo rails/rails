@@ -102,11 +102,11 @@ module ActiveSupport
   #
   # === Prepending concerns
   #
-  # Just like `include`, concerns also support `prepend` with a corresponding
-  # `prepended do` callback. `module ClassMethods` or `class_methods do` are
+  # Just like <tt>include</tt>, concerns also support <tt>prepend</tt> with a corresponding
+  # <tt>prepended do</tt> callback. <tt>module ClassMethods</tt> or <tt>class_methods do</tt> are
   # prepended as well.
   #
-  # `prepend` is also used for any dependencies.
+  # <tt>prepend</tt> is also used for any dependencies.
   module Concern
     class MultipleIncludedBlocks < StandardError #:nodoc:
       def initialize
