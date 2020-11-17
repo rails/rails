@@ -54,10 +54,10 @@ class TestFixturesTest < ActiveRecord::TestCase
       test_result = klass.new("test_run_successfuly").run
       assert_predicate(test_result, :passed?)
     ensure
-      ActiveRecord::Base.legacy_connection_handling = old_value
-      ActiveRecord::Base.connection_handler = old_handler
       clean_up_legacy_connection_handlers
+      ActiveRecord::Base.connection_handler = old_handler
       FileUtils.rm_r(tmp_dir)
+      ActiveRecord::Base.legacy_connection_handling = old_value
     end
 
     def test_doesnt_rely_on_active_support_test_case_specific_methods
