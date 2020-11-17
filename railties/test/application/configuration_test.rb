@@ -2129,6 +2129,19 @@ module ApplicationTests
       assert_equal "unicorn", Rails.application.config.my_custom_config[:key]
     end
 
+    test "config_for handles YAML patches (like safe_yaml) that disable the symbolize_names option" do
+      app_file "config/custom.yml", <<~RUBY
+        development:
+          key: value
+      RUBY
+
+      app "development"
+
+      YAML.stub :load, { "development" => { "key" => "value" } } do
+        assert_equal({ key: "value" }, Rails.application.config_for(:custom))
+      end
+    end
+
     test "api_only is false by default" do
       app "development"
       assert_not Rails.application.config.api_only
