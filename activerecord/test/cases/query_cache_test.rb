@@ -695,8 +695,10 @@ class QueryCacheTest < ActiveRecord::TestCase
 
     mw.call({})
   ensure
-    clean_up_legacy_connection_handlers
-    ActiveRecord::Base.legacy_connection_handling = old_value
+    unless in_memory_db?
+      clean_up_legacy_connection_handlers
+      ActiveRecord::Base.legacy_connection_handling = old_value
+    end
   end
 
   def test_clear_query_cache_is_called_on_all_connections
