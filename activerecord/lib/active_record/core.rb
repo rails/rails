@@ -166,10 +166,18 @@ module ActiveRecord
       end
 
       def self.connection_handlers
+        unless legacy_connection_handling
+          raise NotImplementedError, "The new connection handling does not support accessing multiple connection handlers."
+        end
+
         @@connection_handlers ||= {}
       end
 
       def self.connection_handlers=(handlers)
+        unless legacy_connection_handling
+          raise NotImplementedError, "The new connection handling does not setting support multiple connection handlers."
+        end
+
         @@connection_handlers = handlers
       end
 
