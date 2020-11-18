@@ -385,7 +385,7 @@ class LengthValidationTest < ActiveModel::TestCase
     assert_predicate t, :invalid?
   end
 
-  def test_validates_length_of_using_minimum_0_should_not_allow_nil
+  def test_validates_length_of_using_minimum_0_should_allow_nil
     Topic.validates_length_of :title, minimum: 0
     t = Topic.new
     assert_predicate t, :invalid?
@@ -455,5 +455,23 @@ class LengthValidationTest < ActiveModel::TestCase
 
     t.title = ""
     assert_predicate t, :valid?
+  end
+
+  def test_validates_length_of_using_proc_as_minimum_nil_with_instance_variable
+    Topic.define_method(:min_title_length) { 5 }
+    Topic.validates_length_of :title, minimum: Proc.new(&:min_title_length)
+
+    t = Topic.new("title" => "valid", "content" => "whatever")
+    assert_predicate t, :valid?
+
+    t.title = "not"
+    assert_predicate t, :invalid?
+    assert_predicate t.errors[:title], :any?
+    assert_equal ["is too short (minimum is 5 characters)"], t.errors[:title]
+
+    t.title = nil
+    assert_predicate t, :invalid?
+    assert_predicate t.errors[:title], :any?
+    assert_equal ["is too short (minimum is 5 characters)"], t.errors[:title]
   end
 end

@@ -65,7 +65,7 @@ module ActiveModel
 
       private
         def skip_nil_check?(key)
-          key == :maximum && options[:allow_nil].nil? && options[:allow_blank].nil?
+          %i(maximum minimum).include?(key) && options[key] != 0 && options[:allow_nil].nil? && options[:allow_blank].nil?
         end
     end
 
