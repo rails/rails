@@ -3,10 +3,10 @@
 require "active_support/core_ext/object/deep_dup"
 
 module ActionDispatch #:nodoc:
-  class FeaturePolicy
+  class PermissionsPolicy
     class Middleware
       CONTENT_TYPE = "Content-Type"
-      POLICY       = "Feature-Policy"
+      POLICY       = "Permissions-Policy"
 
       def initialize(app)
         @app = app
@@ -19,7 +19,7 @@ module ActionDispatch #:nodoc:
         return response unless html_response?(headers)
         return response if policy_present?(headers)
 
-        if policy = request.feature_policy
+        if policy = request.permissions_policy
           headers[POLICY] = policy.build(request.controller_instance)
         end
 
@@ -47,13 +47,13 @@ module ActionDispatch #:nodoc:
     end
 
     module Request
-      POLICY = "action_dispatch.feature_policy"
+      POLICY = "action_dispatch.permissions_policy"
 
-      def feature_policy
+      def permissions_policy
         get_header(POLICY)
       end
 
-      def feature_policy=(policy)
+      def permissions_policy=(policy)
         set_header(POLICY, policy)
       end
     end
@@ -63,8 +63,8 @@ module ActionDispatch #:nodoc:
       none: "'none'",
     }.freeze
 
-    # List of available features can be found at
-    # https://github.com/WICG/feature-policy/blob/master/features.md#policy-controlled-features
+    # List of available permissions can be found at
+    # https://github.com/w3c/webappsec-permissions-policy/blob/master/features.md#policy-controlled-features
     DIRECTIVES = {
       accelerometer:        "accelerometer",
       ambient_light_sensor: "ambient-light-sensor",
@@ -121,14 +121,14 @@ module ActionDispatch #:nodoc:
           when String, Proc
             source
           else
-            raise ArgumentError, "Invalid HTTP feature policy source: #{source.inspect}"
+            raise ArgumentError, "Invalid HTTP permissions policy source: #{source.inspect}"
           end
         end
       end
 
       def apply_mapping(source)
         MAPPINGS.fetch(source) do
-          raise ArgumentError, "Unknown HTTP feature policy source mapping: #{source.inspect}"
+          raise ArgumentError, "Unknown HTTP permissions policy source mapping: #{source.inspect}"
         end
       end
 
@@ -156,12 +156,12 @@ module ActionDispatch #:nodoc:
           source.to_s
         when Proc
           if context.nil?
-            raise RuntimeError, "Missing context for the dynamic feature policy source: #{source.inspect}"
+            raise RuntimeError, "Missing context for the dynamic permissions policy source: #{source.inspect}"
           else
             context.instance_exec(&source)
           end
         else
-          raise RuntimeError, "Unexpected feature policy source: #{source.inspect}"
+          raise RuntimeError, "Unexpected permissions policy source: #{source.inspect}"
         end
       end
   end
