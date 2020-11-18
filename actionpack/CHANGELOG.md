@@ -1,3 +1,19 @@
+*   Support for the HTTP header `Feature-Policy` has been revised to reflect
+    its [rename](https://github.com/w3c/webappsec-permissions-policy/pull/379) to [`Permissions-Policy`](https://w3c.github.io/webappsec-permissions-policy/#permissions-policy-http-header-field).
+
+    ```ruby
+    Rails.application.config.permissions_policy do |p|
+      p.camera     :none
+      p.gyroscope  :none
+      p.microphone :none
+      p.usb        :none
+      p.fullscreen :self
+      p.payment    :self, "https://secure-example.com"
+    end
+    ```
+
+    *Julien Grillot*
+
 ## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Allow `ActionDispatch::HostAuthorization` to exclude specific requests.
