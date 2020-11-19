@@ -34,7 +34,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_nil last_response.headers["Permissions-Policy"]
+      assert_nil last_response.headers["Feature-Policy"]
     end
 
     test "global permissions policy in an initializer" do
@@ -124,7 +124,7 @@ module ApplicationTests
 
       get "/"
       assert_equal 200, last_response.status
-      assert_nil last_response.headers["Permissions-Policy"]
+      assert_nil last_response.headers["Feature-Policy"]
     end
 
     test "override permissions policy using different directives in a controller" do
@@ -185,7 +185,7 @@ module ApplicationTests
     private
       def assert_policy(expected)
         assert_equal 200, last_response.status
-        assert_equal expected, last_response.headers["Permissions-Policy"]
+        assert_equal expected, last_response.headers["Feature-Policy"]
       end
   end
 end

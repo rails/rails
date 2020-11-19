@@ -137,6 +137,6 @@ class PermissionsPolicyIntegrationTest < ActionDispatch::IntegrationTest
 
     def assert_policy(expected)
       assert_response :success
-      assert_equal expected, response.headers["Permissions-Policy"]
+      assert_equal expected, response.headers["Feature-Policy"]
     end
 end
