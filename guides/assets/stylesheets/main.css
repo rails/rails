@@ -768,10 +768,10 @@ code.highlight.console span.w, code.highlight.irb span.w {
   display: table-cell;
 }
 
-/* Edge Badge
+/* Version Badge
 --------------------------------------- */
 
-#edge-badge {
+#version-badge {
   position: fixed;
   right: 0;
   top: 0;

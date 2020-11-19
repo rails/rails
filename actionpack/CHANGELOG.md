@@ -338,7 +338,7 @@
     Example global policy:
 
     ```ruby
-    Rails.application.config.feature_policy do |f|
+    Rails.application.config.permissions_policy do |f|
       f.camera      :none
       f.gyroscope   :none
       f.microphone  :none
@@ -352,7 +352,7 @@
 
     ```ruby
     class PagesController < ApplicationController
-      feature_policy do |p|
+      permissions_policy do |p|
         p.geolocation "https://example.com"
       end
     end

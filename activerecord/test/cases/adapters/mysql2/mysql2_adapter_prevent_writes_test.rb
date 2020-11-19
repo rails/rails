@@ -11,8 +11,8 @@ class Mysql2AdapterPreventWritesTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_errors_when_an_insert_query_is_called_while_preventing_writes
-    assert_raises(ActiveRecord::ReadOnlyError) do
-      ActiveRecord::Base.while_preventing_writes do
+    ActiveRecord::Base.while_preventing_writes do
+      assert_raises(ActiveRecord::ReadOnlyError) do
         @conn.insert("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
       end
     end
@@ -21,8 +21,8 @@ class Mysql2AdapterPreventWritesTest < ActiveRecord::Mysql2TestCase
   def test_errors_when_an_update_query_is_called_while_preventing_writes
     @conn.insert("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
-    assert_raises(ActiveRecord::ReadOnlyError) do
-      ActiveRecord::Base.while_preventing_writes do
+    ActiveRecord::Base.while_preventing_writes do
+      assert_raises(ActiveRecord::ReadOnlyError) do
         @conn.update("UPDATE `engines` SET `engines`.`car_id` = '9989' WHERE `engines`.`car_id` = '138853948594'")
       end
     end
@@ -31,8 +31,8 @@ class Mysql2AdapterPreventWritesTest < ActiveRecord::Mysql2TestCase
   def test_errors_when_a_delete_query_is_called_while_preventing_writes
     @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
-    assert_raises(ActiveRecord::ReadOnlyError) do
-      ActiveRecord::Base.while_preventing_writes do
+    ActiveRecord::Base.while_preventing_writes do
+      assert_raises(ActiveRecord::ReadOnlyError) do
         @conn.execute("DELETE FROM `engines` where `engines`.`car_id` = '138853948594'")
       end
     end
@@ -41,8 +41,8 @@ class Mysql2AdapterPreventWritesTest < ActiveRecord::Mysql2TestCase
   def test_errors_when_a_replace_query_is_called_while_preventing_writes
     @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
-    assert_raises(ActiveRecord::ReadOnlyError) do
-      ActiveRecord::Base.while_preventing_writes do
+    ActiveRecord::Base.while_preventing_writes do
+      assert_raises(ActiveRecord::ReadOnlyError) do
         @conn.execute("REPLACE INTO `engines` SET `engines`.`car_id` = '249823948'")
       end
     end
@@ -117,8 +117,8 @@ class Mysql2AdapterPreventWritesLegacyTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_errors_when_an_insert_query_is_called_while_preventing_writes
-    assert_raises(ActiveRecord::ReadOnlyError) do
-      @connection_handler.while_preventing_writes do
+    @connection_handler.while_preventing_writes do
+      assert_raises(ActiveRecord::ReadOnlyError) do
         @conn.insert("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
       end
     end
@@ -127,8 +127,8 @@ class Mysql2AdapterPreventWritesLegacyTest < ActiveRecord::Mysql2TestCase
   def test_errors_when_an_update_query_is_called_while_preventing_writes
     @conn.insert("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
-    assert_raises(ActiveRecord::ReadOnlyError) do
-      @connection_handler.while_preventing_writes do
+    @connection_handler.while_preventing_writes do
+      assert_raises(ActiveRecord::ReadOnlyError) do
         @conn.update("UPDATE `engines` SET `engines`.`car_id` = '9989' WHERE `engines`.`car_id` = '138853948594'")
       end
     end
@@ -137,8 +137,8 @@ class Mysql2AdapterPreventWritesLegacyTest < ActiveRecord::Mysql2TestCase
   def test_errors_when_a_delete_query_is_called_while_preventing_writes
     @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
-    assert_raises(ActiveRecord::ReadOnlyError) do
-      @connection_handler.while_preventing_writes do
+    @connection_handler.while_preventing_writes do
+      assert_raises(ActiveRecord::ReadOnlyError) do
         @conn.execute("DELETE FROM `engines` where `engines`.`car_id` = '138853948594'")
       end
     end
@@ -147,8 +147,8 @@ class Mysql2AdapterPreventWritesLegacyTest < ActiveRecord::Mysql2TestCase
   def test_errors_when_a_replace_query_is_called_while_preventing_writes
     @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
-    assert_raises(ActiveRecord::ReadOnlyError) do
-      @connection_handler.while_preventing_writes do
+    @connection_handler.while_preventing_writes do
+      assert_raises(ActiveRecord::ReadOnlyError) do
         @conn.execute("REPLACE INTO `engines` SET `engines`.`car_id` = '249823948'")
       end
     end

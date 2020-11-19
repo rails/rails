@@ -325,7 +325,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
 end
 
 class InverseHasManyTests < ActiveRecord::TestCase
-  fixtures :humans, :interests, :posts, :authors, :author_addresses
+  fixtures :humans, :interests, :posts, :authors, :author_addresses, :comments
 
   def test_parent_instance_should_be_shared_with_every_child_on_find
     human = humans(:gordon)
@@ -585,6 +585,14 @@ class InverseHasManyTests < ActiveRecord::TestCase
       assert_predicate Human.includes(:interests).first.interests, :any?
       assert_predicate Human.joins(:interests).includes(:interests).first.interests, :any?
     end
+  end
+
+  def test_inverse_works_when_the_association_self_references_the_same_object
+    comment = comments(:greetings)
+    Comment.create!(parent: comment, post_id: comment.post_id, body: "New Comment")
+
+    comment.body = "OMG"
+    assert_equal comment.body, comment.children.first.parent.body
   end
 end
 

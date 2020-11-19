@@ -764,10 +764,10 @@ div.important p, div.caution p, div.warning p, div.note p, div.info p {
   margin-bottom: 1em;
 }
 
-/* Edge Badge
+/* Version Badge
 --------------------------------------- */
 
-#edge-badge {
+#version-badge {
   position: fixed;
   right: 0px;
   top: 0px;

@@ -243,7 +243,7 @@ module Rails
 
       if yaml.exist?
         require "erb"
-        all_configs    = ActiveSupport::ConfigurationFile.parse(yaml, symbolize_names: true)
+        all_configs    = ActiveSupport::ConfigurationFile.parse(yaml).deep_symbolize_keys
         config, shared = all_configs[env.to_sym], all_configs[:shared]
 
         if config.is_a?(Hash)
@@ -286,7 +286,7 @@ module Rails
           "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only,
           "action_dispatch.content_security_policy_nonce_generator" => config.content_security_policy_nonce_generator,
           "action_dispatch.content_security_policy_nonce_directives" => config.content_security_policy_nonce_directives,
-          "action_dispatch.feature_policy" => config.feature_policy,
+          "action_dispatch.permissions_policy" => config.permissions_policy,
         )
       end
     end

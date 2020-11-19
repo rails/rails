@@ -32,5 +32,7 @@ class TimezonesTest < ActiveSupport::TestCase
     end
 
     assert_equal "Happy New Year!", JobBuffer.last_value
+  ensure
+    Time.zone = nil
   end
 end

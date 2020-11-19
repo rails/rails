@@ -11,15 +11,13 @@ module ActiveRecord
       self.use_transactional_tests = false
 
       def setup
-        @conn = Base.sqlite3_connection database: ":memory:",
-                                        adapter: "sqlite3",
-                                        timeout: 100
+        @conn = ActiveRecord::Base.connection
       end
 
       def test_errors_when_an_insert_query_is_called_while_preventing_writes
         with_example_table "id int, data string" do
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            ActiveRecord::Base.while_preventing_writes do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
               @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
             end
           end
@@ -30,8 +28,8 @@ module ActiveRecord
         with_example_table "id int, data string" do
           @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            ActiveRecord::Base.while_preventing_writes do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
               @conn.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
             end
           end
@@ -42,8 +40,8 @@ module ActiveRecord
         with_example_table "id int, data string" do
           @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            ActiveRecord::Base.while_preventing_writes do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
               @conn.execute("DELETE FROM ex where data = '138853948594'")
             end
           end
@@ -54,8 +52,8 @@ module ActiveRecord
         with_example_table "id int, data string" do
           @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            ActiveRecord::Base.while_preventing_writes do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
               @conn.execute("REPLACE INTO ex (data) VALUES ('249823948')")
             end
           end
@@ -100,9 +98,7 @@ module ActiveRecord
         @old_value = ActiveRecord::Base.legacy_connection_handling
         ActiveRecord::Base.legacy_connection_handling = true
 
-        @conn = Base.sqlite3_connection database: ":memory:",
-                                        adapter: "sqlite3",
-                                        timeout: 100
+        @conn = ActiveRecord::Base.connection
 
         @connection_handler = ActiveRecord::Base.connection_handler
       end
@@ -113,8 +109,8 @@ module ActiveRecord
 
       def test_errors_when_an_insert_query_is_called_while_preventing_writes
         with_example_table "id int, data string" do
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
               @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
             end
           end
@@ -125,8 +121,8 @@ module ActiveRecord
         with_example_table "id int, data string" do
           @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
               @conn.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
             end
           end
@@ -137,8 +133,8 @@ module ActiveRecord
         with_example_table "id int, data string" do
           @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
               @conn.execute("DELETE FROM ex where data = '138853948594'")
             end
           end
@@ -149,8 +145,8 @@ module ActiveRecord
         with_example_table "id int, data string" do
           @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
               @conn.execute("REPLACE INTO ex (data) VALUES ('249823948')")
             end
           end

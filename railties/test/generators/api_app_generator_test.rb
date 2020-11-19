@@ -96,7 +96,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/initializers/cookies_serializer.rb"
     assert_no_file "config/initializers/assets.rb"
     assert_no_file "config/initializers/content_security_policy.rb"
-    assert_no_file "config/initializers/feature_policy.rb"
+    assert_no_file "config/initializers/permissions_policy.rb"
   end
 
   def test_app_update_does_not_generate_unnecessary_bin_files
@@ -172,7 +172,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          config/initializers/assets.rb
          config/initializers/cookies_serializer.rb
          config/initializers/content_security_policy.rb
-         config/initializers/feature_policy.rb
+         config/initializers/permissions_policy.rb
          lib/assets
          test/helpers
          tmp/cache/assets

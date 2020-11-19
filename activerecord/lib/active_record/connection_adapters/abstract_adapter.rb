@@ -113,14 +113,20 @@ module ActiveRecord
 
       # Determines whether writes are currently being prevents.
       #
-      # Returns true if the connection is a replica, or if +prevent_writes+
-      # is set to true.
+      # Returns true if the connection is a replica.
+      #
+      # If the application is using legacy handling, returns
+      # true if `connection_handler.prevent_writes` is set.
+      #
+      # If the application is using the new connection handling
+      # will return true based on `current_preventing_writes`.
       def preventing_writes?
-        if ActiveRecord::Base.legacy_connection_handling
-          replica? || ActiveRecord::Base.connection_handler.prevent_writes
-        else
-          replica? || ActiveRecord::Base.current_preventing_writes
-        end
+        return true if replica?
+        return ActiveRecord::Base.connection_handler.prevent_writes if ActiveRecord::Base.legacy_connection_handling
+        return false if owner_name.nil?
+
+        klass = self.owner_name.safe_constantize
+        klass&.current_preventing_writes
       end
 
       def migrations_paths # :nodoc:
@@ -194,6 +200,10 @@ module ActiveRecord
         end
 
         @owner = Thread.current
+      end
+
+      def owner_name # :nodoc:
+        @pool.owner_name
       end
 
       def schema_cache

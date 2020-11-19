@@ -4,7 +4,7 @@ require "isolation/abstract_unit"
 require "rack/test"
 
 module ApplicationTests
-  class FeaturePolicyTest < ActiveSupport::TestCase
+  class PermissionsPolicyTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 
@@ -16,7 +16,7 @@ module ApplicationTests
       teardown_app
     end
 
-    test "feature policy is not enabled by default" do
+    test "permissions policy is not enabled by default" do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
           def index
@@ -34,10 +34,10 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_nil last_response.headers["Feature-Policy"]
+      assert_nil last_response.headers["Permissions-Policy"]
     end
 
-    test "global feature policy in an initializer" do
+    test "global permissions policy in an initializer" do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
           def index
@@ -46,8 +46,8 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/feature_policy.rb", <<-RUBY
-        Rails.application.config.feature_policy do |p|
+      app_file "config/initializers/permissions_policy.rb", <<-RUBY
+        Rails.application.config.permissions_policy do |p|
           p.geolocation :none
         end
       RUBY
@@ -64,10 +64,10 @@ module ApplicationTests
       assert_policy "geolocation 'none'"
     end
 
-    test "override feature policy using same directive in a controller" do
+    test "override permissions policy using same directive in a controller" do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
-          feature_policy do |p|
+          permissions_policy do |p|
             p.geolocation "https://example.com"
           end
 
@@ -77,8 +77,8 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/feature_policy.rb", <<-RUBY
-        Rails.application.config.feature_policy do |p|
+      app_file "config/initializers/permissions_policy.rb", <<-RUBY
+        Rails.application.config.permissions_policy do |p|
           p.geolocation :none
         end
       RUBY
@@ -95,10 +95,10 @@ module ApplicationTests
       assert_policy "geolocation https://example.com"
     end
 
-    test "override feature policy by unsetting a directive in a controller" do
+    test "override permissions policy by unsetting a directive in a controller" do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
-          feature_policy do |p|
+          permissions_policy do |p|
             p.geolocation nil
           end
 
@@ -108,8 +108,8 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/feature_policy.rb", <<-RUBY
-        Rails.application.config.feature_policy do |p|
+      app_file "config/initializers/permissions_policy.rb", <<-RUBY
+        Rails.application.config.permissions_policy do |p|
           p.geolocation :none
         end
       RUBY
@@ -124,13 +124,13 @@ module ApplicationTests
 
       get "/"
       assert_equal 200, last_response.status
-      assert_nil last_response.headers["Feature-Policy"]
+      assert_nil last_response.headers["Permissions-Policy"]
     end
 
-    test "override feature policy using different directives in a controller" do
+    test "override permissions policy using different directives in a controller" do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
-          feature_policy do |p|
+          permissions_policy do |p|
             p.geolocation nil
             p.payment     "https://secure.example.com"
             p.autoplay    :none
@@ -142,8 +142,8 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/initializers/feature_policy.rb", <<-RUBY
-        Rails.application.config.feature_policy do |p|
+      app_file "config/initializers/permissions_policy.rb", <<-RUBY
+        Rails.application.config.permissions_policy do |p|
           p.geolocation :none
         end
       RUBY
@@ -160,9 +160,9 @@ module ApplicationTests
       assert_policy "payment https://secure.example.com; autoplay 'none'"
     end
 
-    test "global feature policy added to rack app" do
-      app_file "config/initializers/feature_policy.rb", <<-RUBY
-        Rails.application.config.feature_policy do |p|
+    test "global permissions policy added to rack app" do
+      app_file "config/initializers/permissions_policy.rb", <<-RUBY
+        Rails.application.config.permissions_policy do |p|
           p.payment :none
         end
       RUBY
@@ -185,7 +185,7 @@ module ApplicationTests
     private
       def assert_policy(expected)
         assert_equal 200, last_response.status
-        assert_equal expected, last_response.headers["Feature-Policy"]
+        assert_equal expected, last_response.headers["Permissions-Policy"]
       end
   end
 end

@@ -7,37 +7,37 @@ require "byebug"
 class BasePreventWritesTest < ActiveRecord::TestCase
   if !in_memory_db?
     test "creating a record raises if preventing writes" do
-      error = assert_raises ActiveRecord::ReadOnlyError do
-        ActiveRecord::Base.while_preventing_writes do
+      ActiveRecord::Base.while_preventing_writes do
+        error = assert_raises ActiveRecord::ReadOnlyError do
           Bird.create! name: "Bluejay"
         end
-      end
 
-      assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, error.message
+        assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, error.message
+      end
     end
 
     test "updating a record raises if preventing writes" do
       bird = Bird.create! name: "Bluejay"
 
-      error = assert_raises ActiveRecord::ReadOnlyError do
-        ActiveRecord::Base.while_preventing_writes do
+      ActiveRecord::Base.while_preventing_writes do
+        error = assert_raises ActiveRecord::ReadOnlyError do
           bird.update! name: "Robin"
         end
-      end
 
-      assert_match %r/\AWrite query attempted while in readonly mode: UPDATE /, error.message
+        assert_match %r/\AWrite query attempted while in readonly mode: UPDATE /, error.message
+      end
     end
 
     test "deleting a record raises if preventing writes" do
       bird = Bird.create! name: "Bluejay"
 
-      error = assert_raises ActiveRecord::ReadOnlyError do
-        ActiveRecord::Base.while_preventing_writes do
+      ActiveRecord::Base.while_preventing_writes do
+        error = assert_raises ActiveRecord::ReadOnlyError do
           bird.destroy!
         end
-      end
 
-      assert_match %r/\AWrite query attempted while in readonly mode: DELETE /, error.message
+        assert_match %r/\AWrite query attempted while in readonly mode: DELETE /, error.message
+      end
     end
 
     test "selecting a record does not raise if preventing writes" do
@@ -67,25 +67,25 @@ class BasePreventWritesTest < ActiveRecord::TestCase
     end
 
     test "preventing writes applies to all connections in block" do
-      conn1_error = assert_raises ActiveRecord::ReadOnlyError do
-        ActiveRecord::Base.while_preventing_writes do
+      ActiveRecord::Base.while_preventing_writes do
+        conn1_error = assert_raises ActiveRecord::ReadOnlyError do
           assert_equal ActiveRecord::Base.connection, Bird.connection
           assert_not_equal ARUnit2Model.connection, Bird.connection
           Bird.create!(name: "Bluejay")
         end
+
+        assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn1_error.message
       end
 
-      assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn1_error.message
-
-      conn2_error = assert_raises ActiveRecord::ReadOnlyError do
-        ActiveRecord::Base.while_preventing_writes do
+      ActiveRecord::Base.while_preventing_writes do
+        conn2_error = assert_raises ActiveRecord::ReadOnlyError do
           assert_not_equal ActiveRecord::Base.connection, Professor.connection
           assert_equal ARUnit2Model.connection, Professor.connection
           Professor.create!(name: "Professor Bluejay")
         end
-      end
 
-      assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
+        assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
+      end
     end
 
     test "current_preventing_writes" do
@@ -110,37 +110,37 @@ class BasePreventWritesTest < ActiveRecord::TestCase
 
     if !in_memory_db?
       test "creating a record raises if preventing writes" do
-        error = assert_raises ActiveRecord::ReadOnlyError do
-          ActiveRecord::Base.connection_handler.while_preventing_writes do
+        ActiveRecord::Base.connection_handler.while_preventing_writes do
+          error = assert_raises ActiveRecord::ReadOnlyError do
             Bird.create! name: "Bluejay"
           end
-        end
 
-        assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, error.message
+          assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, error.message
+        end
       end
 
       test "updating a record raises if preventing writes" do
         bird = Bird.create! name: "Bluejay"
 
-        error = assert_raises ActiveRecord::ReadOnlyError do
-          ActiveRecord::Base.connection_handler.while_preventing_writes do
+        ActiveRecord::Base.connection_handler.while_preventing_writes do
+          error = assert_raises ActiveRecord::ReadOnlyError do
             bird.update! name: "Robin"
           end
-        end
 
-        assert_match %r/\AWrite query attempted while in readonly mode: UPDATE /, error.message
+          assert_match %r/\AWrite query attempted while in readonly mode: UPDATE /, error.message
+        end
       end
 
       test "deleting a record raises if preventing writes" do
         bird = Bird.create! name: "Bluejay"
 
-        error = assert_raises ActiveRecord::ReadOnlyError do
-          ActiveRecord::Base.connection_handler.while_preventing_writes do
+        ActiveRecord::Base.connection_handler.while_preventing_writes do
+          error = assert_raises ActiveRecord::ReadOnlyError do
             bird.destroy!
           end
-        end
 
-        assert_match %r/\AWrite query attempted while in readonly mode: DELETE /, error.message
+          assert_match %r/\AWrite query attempted while in readonly mode: DELETE /, error.message
+        end
       end
 
       test "selecting a record does not raise if preventing writes" do
@@ -170,53 +170,53 @@ class BasePreventWritesTest < ActiveRecord::TestCase
       end
 
       test "preventing writes applies to all connections on a handler" do
-        conn1_error = assert_raises ActiveRecord::ReadOnlyError do
-          ActiveRecord::Base.connection_handler.while_preventing_writes do
+        ActiveRecord::Base.connection_handler.while_preventing_writes do
+          conn1_error = assert_raises ActiveRecord::ReadOnlyError do
             assert_equal ActiveRecord::Base.connection, Bird.connection
             assert_not_equal ARUnit2Model.connection, Bird.connection
             Bird.create!(name: "Bluejay")
           end
+
+          assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn1_error.message
         end
 
-        assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn1_error.message
-
-        conn2_error = assert_raises ActiveRecord::ReadOnlyError do
-          ActiveRecord::Base.connection_handler.while_preventing_writes do
+        ActiveRecord::Base.connection_handler.while_preventing_writes do
+          conn2_error = assert_raises ActiveRecord::ReadOnlyError do
             assert_not_equal ActiveRecord::Base.connection, Professor.connection
             assert_equal ARUnit2Model.connection, Professor.connection
             Professor.create!(name: "Professor Bluejay")
           end
-        end
 
-        assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
+          assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
+        end
       end
 
       test "preventing writes with multiple handlers" do
         ActiveRecord::Base.connects_to(database: { writing: :arunit, reading: :arunit })
 
-        conn1_error = assert_raises ActiveRecord::ReadOnlyError do
-          ActiveRecord::Base.connected_to(role: :writing) do
+        ActiveRecord::Base.connected_to(role: :writing) do
+          conn1_error = assert_raises ActiveRecord::ReadOnlyError do
             assert_equal :writing, ActiveRecord::Base.current_role
 
             ActiveRecord::Base.connection_handler.while_preventing_writes do
               Bird.create!(name: "Bluejay")
             end
           end
+
+          assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn1_error.message
         end
 
-        assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn1_error.message
-
-        conn2_error = assert_raises ActiveRecord::ReadOnlyError do
-          ActiveRecord::Base.connected_to(role: :reading) do
+        ActiveRecord::Base.connected_to(role: :reading) do
+          conn2_error = assert_raises ActiveRecord::ReadOnlyError do
             assert_equal :reading, ActiveRecord::Base.current_role
 
             ActiveRecord::Base.connection_handler.while_preventing_writes do
               Bird.create!(name: "Bluejay")
             end
           end
-        end
 
-        assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
+          assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
+        end
       end
 
       test "current_preventing_writes" do

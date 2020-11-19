@@ -195,16 +195,18 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_uniqueness_with_polymorphic_object_scope
-    Essay.validates_uniqueness_of(:name, scope: :writer)
+    repair_validations(Essay) do
+      Essay.validates_uniqueness_of(:name, scope: :writer)
 
-    a = Author.create(name: "Sergey")
-    p = Person.create(first_name: "Sergey")
+      a = Author.create(name: "Sergey")
+      p = Person.create(first_name: "Sergey")
 
-    e1 = a.essays.create(name: "Essay")
-    assert e1.valid?, "Saving e1"
+      e1 = a.essays.create(name: "Essay")
+      assert e1.valid?, "Saving e1"
 
-    e2 = p.essays.create(name: "Essay")
-    assert e2.valid?, "Saving e2"
+      e2 = p.essays.create(name: "Essay")
+      assert e2.valid?, "Saving e2"
+    end
   end
 
   def test_validate_uniqueness_with_composed_attribute_scope

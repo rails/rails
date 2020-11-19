@@ -49,9 +49,28 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_not_nil new_member.club
   end
 
+  def test_association_create_constructor_creates_through_record
+    new_member = Member.create(name: "Chris")
+    new_member.create_club
+    assert_not_nil new_member.current_membership
+    assert_not_nil new_member.club
+  end
+
   def test_creating_association_builds_through_record
     new_member = Member.create(name: "Chris")
     new_club = new_member.association(:club).build
+    assert new_member.current_membership
+    assert_equal new_club, new_member.club
+    assert_predicate new_club, :new_record?
+    assert_predicate new_member.current_membership, :new_record?
+    assert new_member.save
+    assert_predicate new_club, :persisted?
+    assert_predicate new_member.current_membership, :persisted?
+  end
+
+  def test_association_build_constructor_builds_through_record
+    new_member = Member.create(name: "Chris")
+    new_club = new_member.build_club
     assert new_member.current_membership
     assert_equal new_club, new_member.club
     assert_predicate new_club, :new_record?
