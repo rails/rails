@@ -416,7 +416,6 @@ module ActiveRecord
         super
         @type = -(options[:foreign_type]&.to_s || "#{options[:as]}_type") if options[:as]
         @foreign_type = -(options[:foreign_type]&.to_s || "#{name}_type") if options[:polymorphic]
-        @constructable = calculate_constructable(macro, options)
 
         if options[:class_name] && options[:class_name].class == Class
           raise ArgumentError, "A class was passed to `:class_name` but we are expecting a string."
@@ -431,8 +430,8 @@ module ActiveRecord
         klass.cached_find_by_statement(key, &block)
       end
 
-      def constructable? # :nodoc:
-        @constructable
+      def constructable?
+        true
       end
 
       def join_table
@@ -583,10 +582,6 @@ module ActiveRecord
       end
 
       private
-        def calculate_constructable(macro, options)
-          true
-        end
-
         # Attempts to find the inverse association name automatically.
         # If it cannot find a suitable inverse association name, it returns
         # +nil+.
@@ -726,13 +721,13 @@ module ActiveRecord
         foreign_type
       end
 
+      def constructable?
+        !polymorphic?
+      end
+
       private
         def can_find_inverse_of_automatically?(_)
           !polymorphic? && super
-        end
-
-        def calculate_constructable(macro, options)
-          !polymorphic?
         end
     end
 
