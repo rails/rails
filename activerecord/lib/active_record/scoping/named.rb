@@ -42,8 +42,8 @@ module ActiveRecord
         end
 
         # Returns a scope for the model with default scopes.
-        def default_scoped(scope = relation)
-          build_default_scope(scope) || scope
+        def default_scoped(scope = relation, all_queries: nil)
+          build_default_scope(scope, all_queries: all_queries) || scope
         end
 
         def default_extensions # :nodoc:

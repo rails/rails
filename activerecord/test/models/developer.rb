@@ -140,6 +140,16 @@ class DeveloperWithSelect < ActiveRecord::Base
   default_scope { select("name") }
 end
 
+class DeveloperwithDefaultMentorScopeNot < ActiveRecord::Base
+  self.table_name = "developers"
+  default_scope -> { where(mentor_id: 1) }
+end
+
+class DeveloperWithDefaultMentorScopeAllQueries < ActiveRecord::Base
+  self.table_name = "developers"
+  default_scope -> { where(mentor_id: 1) }, all_queries: true
+end
+
 class DeveloperWithIncludes < ActiveRecord::Base
   self.table_name = "developers"
   has_many :audit_logs, foreign_key: :developer_id

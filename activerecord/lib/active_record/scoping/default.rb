@@ -2,6 +2,15 @@
 
 module ActiveRecord
   module Scoping
+    class DefaultScope # :nodoc:
+      attr_reader :scope, :all_queries
+
+      def initialize(scope, all_queries = nil)
+        @scope = scope
+        @all_queries = all_queries
+      end
+    end
+
     module Default
       extend ActiveSupport::Concern
 
@@ -54,10 +63,25 @@ module ActiveRecord
           #   Article.all # => SELECT * FROM articles WHERE published = true
           #
           # The #default_scope is also applied while creating/building a record.
-          # It is not applied while updating a record.
+          # It is not applied while updating or deleting a record.
           #
           #   Article.new.published    # => true
           #   Article.create.published # => true
+          #
+          # To apply a #default_scope when updating or deleting a record, add
+          # `all_queries: true`:
+          #
+          #   class Article < ActiveRecord::Base
+          #     default_scope { where(blog_id: 1) }, all_queries: true
+          #   end
+          #
+          # Applying a default scope to all queries will ensure that records
+          # are always queried by the additional conditions. Note that only
+          # where clauses apply, as it does not make sense to add order to
+          # queries that return a single object by primary key.
+          #
+          #   Article.find(1).destroy
+          #   => DELETE ... FROM `articles` where ID = 1 AND blog_id = 1;
           #
           # (You can also pass any object which responds to +call+ to the
           # +default_scope+ macro, and it will be called when building the
@@ -85,7 +109,7 @@ module ActiveRecord
           #       # Should return a scope, you can call 'super' here etc.
           #     end
           #   end
-          def default_scope(scope = nil, &block) # :doc:
+          def default_scope(scope = nil, all_queries: nil, &block) # :doc:
             scope = block if block_given?
 
             if scope.is_a?(Relation) || !scope.respond_to?(:call)
@@ -96,10 +120,12 @@ module ActiveRecord
                 "self.default_scope.)"
             end
 
-            self.default_scopes += [scope]
+            default_scope = DefaultScope.new(scope, all_queries)
+
+            self.default_scopes += [default_scope]
           end
 
-          def build_default_scope(relation = relation())
+          def build_default_scope(relation = relation(), all_queries: nil)
             return if abstract_class?
 
             if default_scope_override.nil?
@@ -115,12 +141,24 @@ module ActiveRecord
               end
             elsif default_scopes.any?
               evaluate_default_scope do
-                default_scopes.inject(relation) do |default_scope, scope|
-                  scope = scope.respond_to?(:to_proc) ? scope : scope.method(:call)
-                  default_scope.instance_exec(&scope) || default_scope
+                default_scopes.inject(relation) do |default_scope, scope_obj|
+                  if execute_scope?(all_queries, scope_obj)
+                    scope = scope_obj.scope.respond_to?(:to_proc) ? scope_obj.scope : scope_obj.scope.method(:call)
+
+                    default_scope.instance_exec(&scope) || default_scope
+                  end
                 end
               end
             end
+          end
+
+          # If all_queries is nil, only execute on select and insert queries.
+          #
+          # If all_queries is true, check if the default_scope object has
+          # all_queries set, then execute on all queries; select, insert, update
+          # and delete.
+          def execute_scope?(all_queries, default_scope_obj)
+            all_queries.nil? || all_queries && default_scope_obj.all_queries
           end
 
           def ignore_default_scope?

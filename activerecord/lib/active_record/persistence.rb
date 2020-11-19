@@ -378,6 +378,10 @@ module ActiveRecord
       def _update_record(values, constraints) # :nodoc:
         constraints = _substitute_values(constraints).map { |attr, bind| attr.eq(bind) }
 
+        if default_scopes.any? && !default_scoped(all_queries: true).where_clause.empty?
+          constraints << default_scoped(all_queries: true).where_clause.ast
+        end
+
         um = arel_table.where(
           constraints.reduce(&:and)
         ).compile_update(_substitute_values(values), primary_key)
@@ -387,6 +391,10 @@ module ActiveRecord
 
       def _delete_record(constraints) # :nodoc:
         constraints = _substitute_values(constraints).map { |attr, bind| attr.eq(bind) }
+
+        if default_scopes.any? && !default_scoped(all_queries: true).where_clause.empty?
+          constraints << default_scoped(all_queries: true).where_clause.ast
+        end
 
         dm = Arel::DeleteManager.new
         dm.from(arel_table)
