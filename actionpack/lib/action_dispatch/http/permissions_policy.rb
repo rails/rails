@@ -6,7 +6,12 @@ module ActionDispatch #:nodoc:
   class PermissionsPolicy
     class Middleware
       CONTENT_TYPE = "Content-Type"
-      POLICY       = "Permissions-Policy"
+      # The Feature-Policy header has been renamed to Permissions-Policy.
+      # The Permissions-Policy requires a different implementation and isn't
+      # yet supported by all browsers. To avoid having to rename this
+      # middleware in the future we use the new name for the middleware but
+      # keep the old header name and implementation for now.
+      POLICY       = "Feature-Policy"
 
       def initialize(app)
         @app = app
