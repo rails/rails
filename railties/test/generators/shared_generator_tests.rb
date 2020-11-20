@@ -325,7 +325,7 @@ module SharedGeneratorTests
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']sprockets\/railtie["']/
 
     assert_file "Gemfile" do |content|
-      assert_no_match(/sass-rails/, content)
+      assert_no_match(/sassc-rails/, content)
     end
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|

@@ -13,7 +13,7 @@ gem "capybara", ">= 3.26"
 gem "selenium-webdriver", ">= 3.141.592"
 
 gem "rack-cache", "~> 1.2"
-gem "sass-rails"
+gem "sassc-rails", "~> 2.1", ">= 2.1.1"
 gem "turbolinks", "~> 5"
 gem "webpacker", "~> 5.0", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
 # require: false so bcrypt is loaded only when has_secure_password is used.

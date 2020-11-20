@@ -443,8 +443,6 @@ GEM
     rubyzip (2.3.0)
     rufus-scheduler (3.6.0)
       fugit (~> 1.1, >= 1.1.6)
-    sass-rails (6.0.0)
-      sassc-rails (~> 2.1, >= 2.1.1)
     sassc (2.4.0)
       ffi (~> 1.9)
     sassc (2.4.0-x64-mingw32)
@@ -605,7 +603,7 @@ DEPENDENCIES
   rubocop-packaging
   rubocop-performance
   rubocop-rails
-  sass-rails
+  sassc-rails (~> 2.1, >= 2.1.1)
   sdoc (~> 2.0)
   selenium-webdriver (>= 3.141.592)
   sequel

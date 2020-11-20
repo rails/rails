@@ -601,7 +601,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_has_assets_gems
     run_generator
 
-    assert_gem "sass-rails"
+    assert_gem "sassc-rails"
   end
 
   def test_action_cable_redis_gems

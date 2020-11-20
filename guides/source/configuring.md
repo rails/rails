@@ -171,7 +171,7 @@ numbers. It also filters out sensitive values of database columns when call `#in
 * `config.assets.enabled` a flag that controls whether the asset
 pipeline is enabled. It is set to `true` by default.
 
-* `config.assets.css_compressor` defines the CSS compressor to use. It is set by default by `sass-rails`. The unique alternative value at the moment is `:yui`, which uses the `yui-compressor` gem.
+* `config.assets.css_compressor` defines the CSS compressor to use. It is set by default by `sassc-rails`. The unique alternative value at the moment is `:yui`, which uses the `yui-compressor` gem.
 
 * `config.assets.js_compressor` defines the JavaScript compressor to use. Possible values are `:closure`, `:uglifier` and `:yui` which require the use of the `closure-compiler`, `uglifier` or `yui-compressor` gems respectively.
 

@@ -33,12 +33,12 @@ passing the `--skip-sprockets` option.
 $ rails new appname --skip-sprockets
 ```
 
-Rails automatically adds the [`sass-rails`](https://github.com/rails/sass-rails)
+Rails automatically adds the [`sassc-rails`](https://github.com/sass/sassc-rails)
 gem to your `Gemfile`, which is used by Sprockets for
 [Sass](https://sass-lang.com) compilation:
 
 ```ruby
-gem 'sass-rails'
+gem 'sassc-rails'
 ```
 
 Using the `--skip-sprockets` option will prevent Rails from adding
@@ -62,7 +62,7 @@ config.assets.css_compressor = :yui
 config.assets.js_compressor = :uglifier
 ```
 
-NOTE: The `sass-rails` gem is automatically used for CSS compression if included
+NOTE: The `sassc-rails` gem is automatically used for CSS compression if included
 in the `Gemfile` and no `config.assets.css_compressor` option is set.
 
 
@@ -176,9 +176,9 @@ in `app/assets` are never served directly in production.
 ### Controller Specific Assets
 
 When you generate a scaffold or a controller, Rails also generates a
-Cascading Style Sheet file (or SCSS file if `sass-rails` is in the `Gemfile`)
+Cascading Style Sheet file (or SCSS file if `sassc-rails` is in the `Gemfile`)
 for that controller. Additionally, when generating a scaffold, Rails generates
-the file `scaffolds.css` (or `scaffolds.scss` if `sass-rails` is in the
+the file `scaffolds.css` (or `scaffolds.scss` if `sassc-rails` is in the
 `Gemfile`.)
 
 For example, if you generate a `ProjectsController`, Rails will also add a new
@@ -389,7 +389,7 @@ Note that the closing tag cannot be of the style `-%>`.
 #### CSS and Sass
 
 When using the asset pipeline, paths to assets must be re-written and
-`sass-rails` provides `-url` and `-path` helpers (hyphenated in Sass,
+`sassc-rails` provides `-url` and `-path` helpers (hyphenated in Sass,
 underscored in Ruby) for the following asset classes: image, font, video, audio,
 JavaScript and stylesheet.
 
@@ -489,7 +489,17 @@ NOTE. If you want to use multiple Sass files, you should generally use the [Sass
 instead of these Sprockets directives. When using Sprockets directives, Sass files exist within
 their own scope, making variables or mixins only available within the document they were defined in.
 
-You can do file globbing as well using `@import "*"`, and `@import "**/*"` to add the whole tree which is equivalent to how `require_tree` works. Check the [sass-rails documentation](https://github.com/rails/sass-rails#features) for more info and important caveats.
+There is a special import syntax that allows you to glob imports relative to
+the folder of the stylesheet that is doing the importing.
+
+* `@import "*"` will import all the files in the folder.
+* `@import "**/*"` will import all the files in the tree, equivalent to how `require_tree` works.
+
+Any valid ruby glob may be used. The imports are sorted alphabetically.
+
+NOTE: It is recommended that you only use file globbing when importing pure library
+files (containing mixins and variables) because it is difficult to control the
+cascade ordering for imports that contain styles using this approach.
 
 You can have as many manifest files as you need. For example, the `admin.css`
 and `admin.js` manifest could contain the JS and CSS files that are used for the
@@ -516,7 +526,7 @@ was a controller called "projects", which generated an
 `app/assets/stylesheets/projects.scss` file.
 
 In development mode, or if the asset pipeline is disabled, when this file is
-requested it is processed by the processor provided by the `sass-rails` gem and
+requested it is processed by the processor provided by the `sassc-rails` gem and
 then sent back to the browser as CSS. When asset pipelining is enabled, this
 file is preprocessed and placed in the `public/assets` directory for serving by
 either the Rails app or web server.
@@ -1064,7 +1074,7 @@ gem.
 ```ruby
 config.assets.css_compressor = :yui
 ```
-The other option for compressing CSS if you have the sass-rails gem installed is
+The other option for compressing CSS if you have the sassc-rails gem installed is
 
 ```ruby
 config.assets.css_compressor = :sass
