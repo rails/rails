@@ -1,11 +1,11 @@
-*   Extend `ActionView::RecordIdentifier#dom_id` to accept variable arguments and
-    keyword arguments to build an identifier list.
+*   Declare `ActionView::RecordIdentifier#dom_ids` to accept variable arguments
+    and keyword arguments to build an identifier list.
 
     For example, reference multiple elements from within an aria-labelledby
     attribute:
 
-        tag.button "Edit", aria: { labelledby: dom_id(@post, [:edit, {custom: true}, :title] }
-        # => <button aria-labelledby="edit_post_1 custom_post_1 title_post_1">Edit</button>
+        tag.button "Edit", id: dom_id(@post, :edit), aria: { labelledby: dom_ids(@post, [:edit, {custom: true}, :title] }
+        # => <button id="edit_post_1" aria-labelledby="edit_post_1 custom_post_1 title_post_1">Edit</button>
 
     *Sean Doyle*
 

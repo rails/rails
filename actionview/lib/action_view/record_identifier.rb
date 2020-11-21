@@ -87,38 +87,44 @@ module ActionView
     #
     #   dom_id(Post.find(45), :edit) # => "edit_post_45"
     #   dom_id(Post.new, :custom)    # => "custom_post"
-    #
+    def dom_id(record, prefix = nil)
+      if record_id = record_key_for_dom_id(record)
+        "#{dom_class(record, prefix)}#{JOIN}#{record_id}"
+      else
+        dom_class(record, prefix || NEW)
+      end
+    end
+
     # If you need to prepend multiple prefixes at a time, pass them as an Array
     # or as arguments:
     #
-    #   dom_id(Post.find(45), :edit, custom: true)                # => "edit_post_45 custom_post_45"
-    #   dom_id(Post.new, :edit, custom: true)                     # => "edit_post custom_post"
+    #   dom_ids(Post.find(45), :edit, custom: true)                # => "edit_post_45 custom_post_45"
+    #   dom_ids(Post.new, :edit, custom: true)                     # => "edit_post custom_post"
     #
-    #   dom_id(Post.find(45), [:edit, { custom: true }, :title])  # => "edit_post_45 custom_post_45 title_post_45"
-    #   dom_id(Post.new, [:edit, { custom: true }, :title])       # => "edit_post custom_post title_post"
+    #   dom_ids(Post.find(45), [:edit, { custom: true }, :title])  # => "edit_post_45 custom_post_45 title_post_45"
+    #   dom_ids(Post.new, [:edit, { custom: true }, :title])       # => "edit_post custom_post title_post"
     #
     # For example, reference multiple elements from within an aria-labelledby
     # attribute:
     #
-    #   tag.button "Edit", aria: { labelledby: dom_id(@post, [:edit, { custom: true }, :title] }
-    #   # => <button aria-labelledby="edit_post_1 custom_post_1 title_post_1">Edit</button>
-    #
-    def dom_id(record, *prefixes, **conditional_prefixes)
+    #   tag.button "Edit", id: dom_id(@post, :edit), aria: { labelledby: dom_ids(@post, [:edit, { custom: true }, :title] }
+    #   # => <button id="edit_post_1" aria-labelledby="edit_post_1 custom_post_1 title_post_1">Edit</button>
+    def dom_ids(record, *prefixes, **conditional_prefixes)
       prefixes = (Array.wrap(prefixes) + [conditional_prefixes].compact_blank).flatten
 
       if prefixes.any?
         identifiers = prefixes.map do |prefix|
           case prefix
           when Hash
-            prefix.transform_keys { |key| _dom_id(record, key) }
+            prefix.transform_keys { |key| dom_id(record, key) }
           else
-            _dom_id(record, prefix.presence)
+            dom_id(record, prefix.presence)
           end
         end
 
         ActionView::Helpers::TagHelper.build_tag_values(identifiers).join(LIST)
       else
-        _dom_id(record)
+        dom_id(record)
       end
     end
 
@@ -134,14 +140,6 @@ module ActionView
     def record_key_for_dom_id(record) # :doc:
       key = convert_to_model(record).to_key
       key ? key.join(JOIN) : key
-    end
-
-    def _dom_id(record, prefix = nil)
-      if record_id = record_key_for_dom_id(record)
-        "#{dom_class(record, prefix)}#{JOIN}#{record_id}"
-      else
-        dom_class(record, prefix || NEW)
-      end
     end
   end
 end
