@@ -31,6 +31,16 @@ class RecordIdentifierTest < ActiveSupport::TestCase
     assert_equal "edit_#{@singular}_1", dom_id(@record, :edit)
   end
 
+  def test_dom_id_with_argument_prefixes
+    @record.save
+    assert_equal "#{@singular}_1 edit_#{@singular}_1 delete_#{@singular}_1", dom_id(@record, nil, :edit, :delete, new: !@record.persisted?)
+  end
+
+  def test_dom_id_with_array_prefixes
+    @record.save
+    assert_equal "#{@singular}_1 edit_#{@singular}_1 delete_#{@singular}_1", dom_id(@record, [nil, :edit, { new: !@record.persisted? }, :delete])
+  end
+
   def test_dom_class
     assert_equal @singular, dom_class(@record)
   end
@@ -72,6 +82,16 @@ class RecordIdentifierWithoutActiveModelTest < ActiveSupport::TestCase
   def test_dom_id_with_prefix
     @record.save
     assert_equal "edit_airplane_1", dom_id(@record, :edit)
+  end
+
+  def test_dom_id_with_argument_prefixes
+    @record.save
+    assert_equal "airplane_1 custom_airplane_1 edit_airplane_1", dom_id(@record, nil, :custom, :edit, new: false)
+  end
+
+  def test_dom_id_with_array_prefixes
+    @record.save
+    assert_equal "airplane_1 custom_airplane_1 edit_airplane_1", dom_id(@record, nil, [:custom, { new: false }, :edit])
   end
 
   def test_dom_class
