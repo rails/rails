@@ -135,7 +135,7 @@ module ActiveSupport #:nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
       capitalize chomp chop delete delete_prefix delete_suffix
-      downcase lstrip next reverse rstrip slice squeeze strip
+      downcase lstrip next reverse rstrip scrub slice squeeze strip
       succ swapcase tr tr_s unicode_normalize upcase
     )
 

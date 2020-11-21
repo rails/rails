@@ -88,6 +88,7 @@ class SafeBufferTest < ActiveSupport::TestCase
     next: nil,
     reverse: nil,
     rstrip: nil,
+    scrub: nil,
     slice: "foo",
     squeeze: nil,
     strip: nil,
