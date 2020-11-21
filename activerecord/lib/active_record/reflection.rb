@@ -430,10 +430,6 @@ module ActiveRecord
         klass.cached_find_by_statement(key, &block)
       end
 
-      def constructable?
-        true
-      end
-
       def join_table
         @join_table ||= -(options[:join_table]&.to_s || derive_join_table)
       end
@@ -720,10 +716,6 @@ module ActiveRecord
 
       def join_foreign_type
         foreign_type
-      end
-
-      def constructable?
-        !polymorphic?
       end
 
       private
