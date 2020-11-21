@@ -1,3 +1,9 @@
+*   Fix odd behavior of inverse_of with multiple belongs_to to same class.
+
+    Fixes #35204.
+
+    *Tomoyuki Kai*
+
 *   Build predicate conditions with objects that delegate `#id` and primary key:
 
     ```ruby

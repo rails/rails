@@ -873,6 +873,11 @@ ActiveRecord::Schema.define do
     t.integer :lock_version, default: 0
   end
 
+  create_table :rooms, force: true do |t|
+    t.references :user
+    t.references :owner
+  end
+
   disable_referential_integrity do
     create_table :seminars, force: :cascade do |t|
       t.string :name
