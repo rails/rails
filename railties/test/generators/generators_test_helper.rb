@@ -48,6 +48,12 @@ module GeneratorsTestHelper
     end
   end
 
+  def run_generator_instance
+    capture(:stdout) do
+      generator.invoke_all
+    end
+  end
+
   def with_database_configuration(database_name = "secondary")
     original_configurations = ActiveRecord::Base.configurations
     ActiveRecord::Base.configurations = {

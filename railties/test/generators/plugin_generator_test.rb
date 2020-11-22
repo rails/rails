@@ -205,22 +205,34 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generation_runs_bundle_install
-    assert_generates_without_bundler
+    generator([destination_root])
+    run_generator_instance
+
+    assert_empty @bundle_commands
   end
 
   def test_dev_option
-    assert_generates_without_bundler(dev: true)
+    generator([destination_root], dev: true)
+    run_generator_instance
+
+    assert_empty @bundle_commands
     rails_path = File.expand_path("../../..", Rails.root)
     assert_file "Gemfile", /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
-    assert_generates_without_bundler(edge: true)
+    generator([destination_root], edge: true)
+    run_generator_instance
+
+    assert_empty @bundle_commands
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
 
   def test_generation_does_not_run_bundle_install_with_full_and_mountable
-    assert_generates_without_bundler(mountable: true, full: true, dev: true)
+    generator([destination_root], mountable: true, full: true, dev: true)
+    run_generator_instance
+
+    assert_empty @bundle_commands
     assert_no_file "#{destination_root}/Gemfile.lock"
   end
 
@@ -779,20 +791,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
         assert_match(/group :development do\n  gem 'activerecord-jdbcsqlite3-adapter'\nend/, contents)
       else
         assert_match(/group :development do\n  gem 'sqlite3'\nend/, contents)
-      end
-    end
-
-    def assert_generates_without_bundler(options = {})
-      generator([destination_root], options)
-
-      command_check = -> command do
-        if command == "install"
-          flunk "`install` expected to not be called."
-        end
-      end
-
-      generator.stub :bundle_command, command_check do
-        quietly { generator.invoke_all }
       end
     end
 end

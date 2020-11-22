@@ -107,12 +107,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_skip_bundle
-    assert_not_called(generator([destination_root], skip_bundle: true, skip_webpack_install: true), :bundle_command) do
-      quietly { generator.invoke_all }
-      # skip_bundle is only about running bundle install, ensure the Gemfile is still
-      # generated.
-      assert_file "Gemfile"
-    end
+    generator([destination_root], skip_bundle: true, skip_webpack_install: true)
+    run_generator_instance
+
+    assert_empty @bundle_commands
+    # skip_bundle is only about running bundle install so ensure the Gemfile is still generated
+    assert_file "Gemfile"
   end
 
   def test_assets
@@ -811,8 +811,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generation_runs_bundle_install
     generator([destination_root], skip_webpack_install: true)
+    run_generator_instance
 
-    assert_bundler_command_called("install")
+    assert_equal 1, @bundle_commands.count("install")
   end
 
   def test_generation_use_original_bundle_environment
@@ -835,23 +836,26 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_dev_option
     generator([destination_root], dev: true, skip_webpack_install: true)
+    run_generator_instance
 
-    assert_bundler_command_called("install")
+    assert_equal 1, @bundle_commands.count("install")
     rails_path = File.expand_path("../../..", Rails.root)
     assert_file "Gemfile", /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
     generator([destination_root], edge: true, skip_webpack_install: true)
+    run_generator_instance
 
-    assert_bundler_command_called("install")
+    assert_equal 1, @bundle_commands.count("install")
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
 
   def test_master_option
     generator([destination_root], master: true, skip_webpack_install: true)
+    run_generator_instance
 
-    assert_bundler_command_called("install")
+    assert_equal 1, @bundle_commands.count("install")
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']master["']$}
   end
 
@@ -871,8 +875,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_bundler_binstub
     generator([destination_root], skip_webpack_install: true)
+    run_generator_instance
 
-    assert_bundler_command_called("binstubs bundler")
+    assert_equal 1, @bundle_commands.count("binstubs bundler")
   end
 
   def test_spring_no_fork
@@ -913,19 +918,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_skip_javascript_option
+    generator([destination_root], skip_javascript: true)
+
     command_check = -> command, *_ do
       if command == "webpacker:install"
         flunk "`webpacker:install` expected to not be called."
       end
     end
 
-    generator([destination_root], skip_javascript: true).stub(:rails_command, command_check) do
-      generator.stub :bundle_command, nil do
-        quietly { generator.invoke_all }
-      end
+    generator.stub(:rails_command, command_check) do
+      run_generator_instance
     end
 
     assert_no_gem "webpacker"
+
     assert_file "config/initializers/content_security_policy.rb" do |content|
       assert_no_match(/policy\.connect_src/, content)
     end
@@ -936,9 +942,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_webpack_option_with_js_framework
+    generator([destination_root], webpack: "react")
+
     webpacker_called = 0
     react_called = 0
-
     command_check = -> command, *_ do
       case command
       when "webpacker:install"
@@ -948,10 +955,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    generator([destination_root], webpack: "react").stub(:rails_command, command_check) do
-      generator.stub :bundle_command, nil do
-        quietly { generator.invoke_all }
-      end
+    generator.stub(:rails_command, command_check) do
+      run_generator_instance
     end
 
     assert_equal 1, webpacker_called, "`webpacker:install` expected to be called once, but was called #{webpacker_called} times."
@@ -960,16 +965,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_skip_webpack_install
+    generator([destination_root], skip_webpack_install: true)
+
     command_check = -> command do
       if command == "webpacker:install"
         flunk "`webpacker:install` expected to not be called."
       end
     end
 
-    generator([destination_root], skip_webpack_install: true).stub(:rails_command, command_check) do
-      generator.stub :bundle_command, nil do
-        quietly { generator.invoke_all }
-      end
+    generator.stub(:rails_command, command_check) do
+      run_generator_instance
     end
 
     assert_gem "webpacker"
@@ -1097,22 +1102,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_after_bundle_callback
-    sequence = []
-
-    bundle_command_stub = -> *args do
-      sequence << [:bundle_command, *args]
-    end
-
     generator([destination_root], skip_webpack_install: true).send(:after_bundle) do
-      sequence << [:after_bundle_callback]
+      @bundle_commands_before_callback = @bundle_commands.dup
     end
 
-    generator.stub(:bundle_command, bundle_command_stub) do
-      quietly { generator.invoke_all }
-    end
+    run_generator_instance
 
-    assert_operator sequence.length, :>, 1
-    assert_equal [:after_bundle_callback], sequence.last
+    assert_not_empty @bundle_commands_before_callback
+    assert_equal @bundle_commands_before_callback, @bundle_commands
   end
 
   def test_gitignore
@@ -1219,21 +1216,5 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_file "config/environments/development.rb" do |content|
         assert_match(/^\s*# config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
       end
-    end
-
-    def assert_bundler_command_called(target_command)
-      called = 0
-
-      command_check = -> (command, env = {}) do
-        if command == target_command
-          called += 1
-        end
-      end
-
-      generator.stub :bundle_command, command_check do
-        quietly { generator.invoke_all }
-      end
-
-      assert_equal 1, called, "`#{target_command}` expected to be called once, but was called #{called} times."
     end
 end
