@@ -64,6 +64,7 @@ module ActionDispatch
     autoload :ExceptionWrapper
     autoload :Executor
     autoload :Flash
+    autoload :Instrumentation
     autoload :PublicExceptions
     autoload :Reloader
     autoload :RemoteIp

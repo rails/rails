@@ -31,15 +31,8 @@ module Rails
 
       private
         def call_app(request, env) # :doc:
-          instrumenter = ActiveSupport::Notifications.instrumenter
-          instrumenter.start "request.action_dispatch", request: request
           logger.info { started_request_message(request) }
-          status, headers, body = @app.call(env)
-          body = ::Rack::BodyProxy.new(body) { finish(request) }
-          [status, headers, body]
-        rescue Exception
-          finish(request)
-          raise
+          @app.call(env)
         ensure
           ActiveSupport::LogSubscriber.flush_all!
         end
@@ -64,11 +57,6 @@ module Rails
               tag
             end
           end
-        end
-
-        def finish(request)
-          instrumenter = ActiveSupport::Notifications.instrumenter
-          instrumenter.finish "request.action_dispatch", request: request
         end
 
         def logger
