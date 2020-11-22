@@ -5,6 +5,8 @@ require "models/author"
 require "models/binary"
 require "models/cake_designer"
 require "models/car"
+require "models/category"
+require "models/categorization"
 require "models/chef"
 require "models/post"
 require "models/comment"
@@ -18,7 +20,8 @@ require "support/stubs/strong_parameters"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :comments, :edges, :authors, :author_addresses, :binaries, :essays, :cars, :treasures, :price_estimates, :topics
+    fixtures :authors, :author_addresses, :categories, :categorizations, :cars, :treasures, :price_estimates,
+      :binaries, :edges, :essays, :posts, :comments, :topics
 
     def test_type_casting_nested_joins
       comment = comments(:eager_other_comment1)
@@ -27,6 +30,7 @@ module ActiveRecord
 
     def test_where_with_through_association
       assert_equal [authors(:david)], Author.joins(:comments).where(comments: comments(:greetings))
+      assert_equal [authors(:bob)], Author.joins(:categories).where(categories: categories(:technology))
     end
 
     def test_type_cast_is_not_evaluated_at_relation_build_time

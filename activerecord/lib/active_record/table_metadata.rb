@@ -10,6 +10,10 @@ module ActiveRecord
       @reflection = reflection
     end
 
+    def primary_key
+      klass&.primary_key
+    end
+
     def type(column_name)
       arel_table.type_for_attribute(column_name)
     end

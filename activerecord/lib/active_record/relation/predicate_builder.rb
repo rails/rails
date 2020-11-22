@@ -100,7 +100,7 @@ module ActiveRecord
               end
             elsif associated_table.through_association?
               next associated_table.predicate_builder.expand_from_hash(
-                associated_table.join_foreign_key => value
+                associated_table.primary_key => value
               )
             end
 
