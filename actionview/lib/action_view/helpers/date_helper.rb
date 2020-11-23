@@ -188,7 +188,7 @@ module ActionView
         options = options_with_scope(options)
         distance = to_time - from_time
         result = ((current_time - from_time) / distance) * 100
-        number_with_precision(result, options).to_s + '%'
+        number_with_precision(result, options).to_s + "%"
       end
 
       # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based
