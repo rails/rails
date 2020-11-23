@@ -179,6 +179,18 @@ module ActionView
 
       alias_method :distance_of_time_in_words_to_now, :time_ago_in_words
 
+      # distance_of_time_in_percent("01-01-2020".to_time, Time.now, "31-12-2020".to_time)
+      # => '49%'
+      # distance_of_time_in_percent("01-01-2020".to_time, Time.now, "31-12-2020".to_time, precision: 1)
+      # => '49.9%'
+      def distance_of_time_in_percent(from_time, current_time, to_time, options = {})
+        options[:precision] ||= 0
+        options = options_with_scope(options)
+        distance = to_time - from_time
+        result = ((current_time - from_time) / distance) * 100
+        number_with_precision(result, options).to_s + '%'
+      end
+
       # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based
       # attribute (identified by +method+) on an object assigned to the template (identified by +object+).
       #
