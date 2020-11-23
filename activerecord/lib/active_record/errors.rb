@@ -118,6 +118,16 @@ module ActiveRecord
     end
   end
 
+  # Raised when Active Record finds multiple records but only expected one.
+  class SoleRecordExceeded < ActiveRecordError
+    attr_reader :record
+
+    def initialize(record = nil)
+      @record = record
+      super "Wanted only one #{record&.name || "record"}"
+    end
+  end
+
   # Superclass for all database execution errors.
   #
   # Wraps the underlying database error as +cause+.

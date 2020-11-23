@@ -625,6 +625,29 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_sole
+    assert_equal topics(:first), Topic.where("title = 'The First Topic'").sole
+    assert_equal topics(:first), Topic.find_sole_by("title = 'The First Topic'")
+  end
+
+  def test_sole_failing_none
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+      Topic.where("title = 'This title does not exist'").sole
+    end
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+      Topic.find_sole_by("title = 'This title does not exist'")
+    end
+  end
+
+  def test_sole_failing_many
+    assert_raises_with_message ActiveRecord::SoleRecordExceeded, "Wanted only one Topic" do
+      Topic.where("author_name = 'Carl'").sole
+    end
+    assert_raises_with_message ActiveRecord::SoleRecordExceeded, "Wanted only one Topic" do
+      Topic.find_sole_by("author_name = 'Carl'")
+    end
+  end
+
   def test_first
     assert_equal topics(:second).title, Topic.where("title = 'The Second Topic of the day'").first.title
   end
