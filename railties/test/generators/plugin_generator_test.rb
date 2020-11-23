@@ -23,7 +23,7 @@ DEFAULT_PLUGIN_FILES = %w(
 
 class PluginGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
-  destination File.join(Rails.root, "tmp/bukkits")
+  destination File.join(destination_root, "bukkits")
   arguments [destination_root]
 
   def application_path

@@ -12,32 +12,33 @@ module ActionText
         rails_command "app:binstub:yarn", inline: true
 
         say "Installing JavaScript dependencies", :green
-        run "bin/yarn add #{js_dependencies.map { |name, version| "#{name}@#{version}" }.join(" ")}",
-          abort_on_failure: true, capture: true
+        yarn_command "add #{js_dependencies.map { |name, version| "#{name}@#{version}" }.join(" ")}", capture: true
       end
 
       def append_dependencies_to_package_file
-        if (app_javascript_pack_path = Pathname.new("app/javascript/packs/application.js")).exist?
-          js_dependencies.each_key do |dependency|
-            line = %[require("#{dependency}")]
+        in_root do
+          if (app_javascript_pack_path = Pathname.new("app/javascript/packs/application.js")).exist?
+            js_dependencies.each_key do |dependency|
+              line = %[require("#{dependency}")]
 
-            unless app_javascript_pack_path.read.include? line
-              say "Adding #{dependency} to #{app_javascript_pack_path}", :green
-              append_to_file app_javascript_pack_path, "\n#{line}"
+              unless app_javascript_pack_path.read.include? line
+                say "Adding #{dependency} to #{app_javascript_pack_path}", :green
+                append_to_file app_javascript_pack_path, "\n#{line}"
+              end
             end
+          else
+            say <<~WARNING, :red
+              WARNING: Action Text can't locate your JavaScript bundle to add its package dependencies.
+
+              Add these lines to any bundles:
+
+              require("trix")
+              require("@rails/actiontext")
+
+              Alternatively, install and setup the webpacker gem then rerun `bin/rails action_text:install`
+              to have these dependencies added automatically.
+            WARNING
           end
-        else
-          say <<~WARNING, :red
-            WARNING: Action Text can't locate your JavaScript bundle to add its package dependencies.
-
-            Add these lines to any bundles:
-
-            require("trix")
-            require("@rails/actiontext")
-
-            Alternatively, install and setup the webpacker gem then rerun `bin/rails action_text:install`
-            to have these dependencies added automatically.
-          WARNING
         end
       end
 
@@ -61,6 +62,10 @@ module ActionText
           js_package = JSON.load(Pathname.new("#{GEM_ROOT}/package.json"))
           js_package["peerDependencies"].merge \
             js_package["name"] => "^#{js_package["version"]}"
+        end
+
+        def yarn_command(command, config = {})
+          in_root { run "bin/yarn #{command}", abort_on_failure: true, **config }
         end
     end
   end
