@@ -64,6 +64,12 @@ module ActionController
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(response.location)}\">redirected</a>.</body></html>"
     end
 
+    # Soft deprecated alias for <tt>redirect_back_or_to</tt> where the fallback_location location is supplied as a kwarg instead
+    # of the first positional argument.
+    def redirect_back(fallback_location:, allow_other_host: true, **args)
+      redirect_back_or_to fallback_location, allow_other_host: allow_other_host, **args
+    end
+
     # Redirects the browser to the page that issued the request (the referrer)
     # if possible, otherwise redirects to the provided default fallback
     # location.
@@ -73,21 +79,20 @@ module ActionController
     # subject to browser security settings and user preferences. If the request
     # is missing this header, the <tt>fallback_location</tt> will be used.
     #
-    #   redirect_back fallback_location: { action: "show", id: 5 }
-    #   redirect_back fallback_location: @post
-    #   redirect_back fallback_location: "http://www.rubyonrails.org"
-    #   redirect_back fallback_location: "/images/screenshot.jpg"
-    #   redirect_back fallback_location: posts_url
-    #   redirect_back fallback_location: proc { edit_post_url(@post) }
-    #   redirect_back fallback_location: '/', allow_other_host: false
+    #   redirect_back_or_to { action: "show", id: 5 }
+    #   redirect_back_or_to @post
+    #   redirect_back_or_to "http://www.rubyonrails.org"
+    #   redirect_back_or_to "/images/screenshot.jpg"
+    #   redirect_back_or_to posts_url
+    #   redirect_back_or_to proc { edit_post_url(@post) }
+    #   redirect_back_or_to '/', allow_other_host: false
     #
     # ==== Options
-    # * <tt>:fallback_location</tt> - The default fallback location that will be used on missing +Referer+ header.
     # * <tt>:allow_other_host</tt> - Allow or disallow redirection to the host that is different to the current host, defaults to true.
     #
     # All other options that can be passed to #redirect_to are accepted as
     # options and the behavior is identical.
-    def redirect_back(fallback_location:, allow_other_host: true, **args)
+    def redirect_back_or_to(fallback_location, allow_other_host: true, **args)
       referer = request.headers["Referer"]
       redirect_to_referer = referer && (allow_other_host || _url_host_allowed?(referer))
       redirect_to redirect_to_referer ? referer : fallback_location, **args

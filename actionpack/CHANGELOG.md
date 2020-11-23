@@ -1,3 +1,11 @@
+## Unreleased
+
+*   Add `redirect_back_or_to(fallback_location, **)` as a more aesthetically pleasing version of `redirect_back_or_to fallback_location:, **`.
+    The old method name is retained without explicit deprecation.
+    
+    *DHH*
+
+
 ## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Allow `ActionDispatch::HostAuthorization` to exclude specific requests.
