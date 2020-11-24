@@ -280,15 +280,26 @@ module ActiveRecord
       #   people.update(group: "masters")
       #
       # Note: Updating a large number of records will run an UPDATE
-      # query for each record, which may cause a performance issue.
+      # query for each record(duplicates will be merged together first),
+      # which may cause a performance issue.
       # When running callbacks is not needed for each record update,
       # it is preferred to use {update_all}[rdoc-ref:Relation#update_all]
       # for updating all records in a single query.
       def update(id = :all, attributes)
         if id.is_a?(Array)
-          id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
-            object.update(attributes[idx])
-          }
+          raise(ArgumentError, "the list of ids and the list of attributes do not have " \
+                "the same length.  id: #{id.size} attributes: #{attributes.size}") if id.size != attributes.size
+
+          merged_attributes = Hash.new { |hash, key| hash[key] = {} }
+          id.size.times { |i| merged_attributes[id[i]].merge!(attributes[i]) }
+
+          records = {}
+          find(id).each do |record|
+            record.update(merged_attributes[record.id])
+            records[record.id] = record
+          end
+
+          id.map { |i| records[i] }
         elsif id == :all
           all.each { |record| record.update(attributes) }
         else
