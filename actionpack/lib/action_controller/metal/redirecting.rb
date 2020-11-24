@@ -64,7 +64,7 @@ module ActionController
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(response.location)}\">redirected</a>.</body></html>"
     end
 
-    # Soft deprecated alias for <tt>redirect_back_or_to</tt> where the fallback_location location is supplied as a kwarg instead
+    # Soft deprecated alias for <tt>redirect_back_or_to</tt> where the fallback_location location is supplied as a keyword argument instead
     # of the first positional argument.
     def redirect_back(fallback_location:, allow_other_host: true, **args)
       redirect_back_or_to fallback_location, allow_other_host: allow_other_host, **args
