@@ -22,21 +22,17 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
 end
 
 class ActiveSupport::TestCase
-  def assert_queries(num)
+  def assert_queries(expected_count)
     ActiveRecord::Base.connection.materialize_transactions
-    count = 0
-    queries = []
 
-    ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _start, _finish, _id, payload|
-      unless ["SCHEMA", "TRANSACTION"].include? payload[:name]
-        count += 1
-        queries << payload[:sql]
-      end
+    queries = []
+    ActiveSupport::Notifications.subscribe("sql.active_record") do |*, sql:, name:, **|
+      queries << sql unless %w[ SCHEMA TRANSACTION ].include?(name)
     end
 
-    result = yield
-    assert_equal num, count, "#{count} instead of #{num} queries were executed. #{queries.inspect}"
-    result
+    yield.tap do
+      assert_equal expected_count, queries.size, "#{queries.size} instead of #{expected_count} queries were executed. #{queries.inspect}"
+    end
   end
 
   def assert_no_queries(&block)
