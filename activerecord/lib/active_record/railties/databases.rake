@@ -455,6 +455,14 @@ db_namespace = namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.load_schema_current(ActiveRecord::Base.schema_format, ENV["SCHEMA"])
     end
 
+    task load_if_ruby: ["db:create", :environment] do
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        Using `bin/rails db:schema:load_if_ruby` is deprecated and will be removed in Rails 6.2.
+        Configure the format using `config.active_record.schema_format = :ruby` to use `schema.rb` and run `bin/rails db:schema:load` instead.
+      MSG
+      db_namespace["schema:load"].invoke if ActiveRecord::Base.schema_format == :ruby
+    end
+
     namespace :dump do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
         desc "Creates a database schema file (either db/schema.rb or db/structure.sql, depending on `config.active_record.schema_format`) for #{name} database"
@@ -527,6 +535,14 @@ db_namespace = namespace :db do
         Configure the format using `config.active_record.schema_format = :sql` to use `structure.sql` and run `bin/rails db:schema:load` instead.
       MSG
       db_namespace["schema:load"].invoke
+    end
+
+    task load_if_sql: ["db:create", :environment] do
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        Using `bin/rails db:structure:load_if_sql` is deprecated and will be removed in Rails 6.2.
+        Configure the format using `config.active_record.schema_format = :sql` to use `structure.sql` and run `bin/rails db:schema:load` instead.
+      MSG
+      db_namespace["schema:load"].invoke if ActiveRecord::Base.schema_format == :sql
     end
 
     namespace :dump do
