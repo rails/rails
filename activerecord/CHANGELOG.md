@@ -1,3 +1,9 @@
+*   Only warn about negative enums if a positive form that would cause conflicts exists.
+
+    Fixes #39065.
+
+    *Alex Ghiculescu*
+
 *   Add option to run `default_scope` on all queries.
 
     Previously, a `default_scope` would only run on select or insert queries. In some cases, like non-Rails tenant sharding solutions, it may be desirable to run `default_scope` on all queries in order to ensure queries are including a foreign key for the shard (ie `blog_id`).
