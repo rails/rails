@@ -53,7 +53,7 @@ module ActionText
 
       private
         def rich_text_association_names
-          reflect_on_all_associations(:has_one).select { |r| r.name =~ /^rich_text_/ }.collect(&:name)
+          reflect_on_all_associations(:has_one).collect(&:name).select { |n| n.start_with?("rich_text_") }
         end
     end
   end
