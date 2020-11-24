@@ -1,6 +1,6 @@
 ## Unreleased
 
-*   Add `redirect_back_or_to(fallback_location, **)` as a more aesthetically pleasing version of `redirect_back_or_to fallback_location:, **`.
+*   Add `redirect_back_or_to(fallback_location, **)` as a more aesthetically pleasing version of `redirect_back fallback_location:, **`.
     The old method name is retained without explicit deprecation.
     
     *DHH*
