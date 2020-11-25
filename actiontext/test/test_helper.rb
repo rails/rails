@@ -26,8 +26,8 @@ class ActiveSupport::TestCase
     ActiveRecord::Base.connection.materialize_transactions
 
     queries = []
-    ActiveSupport::Notifications.subscribe("sql.active_record") do |*, sql:, name:, **|
-      queries << sql unless %w[ SCHEMA TRANSACTION ].include?(name)
+    ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      queries << payload[:sql] unless %w[ SCHEMA TRANSACTION ].include?(payload[:name])
     end
 
     yield.tap do
