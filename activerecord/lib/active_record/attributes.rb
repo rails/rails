@@ -12,6 +12,9 @@ module ActiveRecord
     end
 
     module ClassMethods
+      ##
+      # :call-seq: attribute(name, cast_type = nil, **options)
+      #
       # Defines an attribute with a type on this model. It will override the
       # type of existing attributes if needed. This allows control over how
       # values are converted to and from SQL when assigned to a model. It also
