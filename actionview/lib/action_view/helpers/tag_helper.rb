@@ -9,7 +9,6 @@ module ActionView
     # Provides methods to generate HTML tags programmatically both as a modern
     # HTML5 compliant builder style and legacy XHTML compliant tags.
     module TagHelper
-      extend ActiveSupport::Concern
       include CaptureHelper
       include OutputSafetyHelper
 
