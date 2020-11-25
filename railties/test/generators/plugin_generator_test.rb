@@ -53,7 +53,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_correct_file_in_lib_folder_of_hyphenated_plugin_name
     run_generator [File.join(destination_root, "hyphenated-name")]
     assert_no_file "hyphenated-name/lib/hyphenated-name.rb"
-    assert_no_file "hyphenated-name/lib/hyphenated_name.rb"
     assert_file "hyphenated-name/lib/hyphenated/name.rb", /module Hyphenated\n  module Name\n    # Your code goes here\.\.\.\n  end\nend/
   end
 
