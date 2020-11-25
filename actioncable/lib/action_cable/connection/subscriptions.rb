@@ -33,7 +33,7 @@ module ActionCable
 
         subscription_klass = id_options[:channel].safe_constantize
 
-        if subscription_klass && ActionCable::Channel::Base >= subscription_klass
+        if subscription_klass && ActionCable::Channel::Base > subscription_klass
           subscription = subscription_klass.new(connection, id_key, id_options)
           subscriptions[id_key] = subscription
           subscription.subscribe_to_channel
