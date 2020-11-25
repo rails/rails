@@ -79,7 +79,7 @@ module ActionController
     # subject to browser security settings and user preferences. If the request
     # is missing this header, the <tt>fallback_location</tt> will be used.
     #
-    #   redirect_back_or_to { action: "show", id: 5 }
+    #   redirect_back_or_to({ action: "show", id: 5 })
     #   redirect_back_or_to @post
     #   redirect_back_or_to "http://www.rubyonrails.org"
     #   redirect_back_or_to "/images/screenshot.jpg"
