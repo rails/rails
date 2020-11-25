@@ -44,6 +44,21 @@ Project = Struct.new(:description, :person) do
   delegate :to_f, to: :description, allow_nil: true
 end
 
+Projects = Struct.new(:active, :archived)
+
+Milestones = Struct.new(:projects) do
+  delegate :active, to: :projects, suffix: nil
+end
+
+Developments = Struct.new(:projects) do
+  delegate :active, to: :projects, suffix: false
+end
+
+Customer = Struct.new(:projects) do
+  delegate :active, :archived, to: :projects, suffix: true
+  delegate :active, :archived, to: :projects, suffix: :portfolio_items
+end
+
 Developer = Struct.new(:client) do
   delegate :name, to: :client, prefix: nil
 end
@@ -264,6 +279,58 @@ class ModuleTest < ActiveSupport::TestCase
           @client = client
         end
         delegate :name, :address, to: :@client, prefix: true
+      end
+    end
+  end
+
+  def test_delegation_target_when_suffix_is_true
+    assert_nothing_raised do
+      Name.send :delegate, :go, to: :you, suffix: true
+    end
+    assert_nothing_raised do
+      Name.send :delegate, :go, to: :_you, suffix: true
+    end
+    assert_raise(ArgumentError) do
+      Name.send :delegate, :go, to: :You, suffix: true
+    end
+    assert_raise(ArgumentError) do
+      Name.send :delegate, :go, to: :@you, suffix: true
+    end
+  end
+
+  def test_delegation_suffix
+    active = [Project.new("Active Project", @david)]
+    archived = [Project.new("Archived Project", @david)]
+    projects = Projects.new(active, archived)
+    customer = Customer.new(projects)
+    assert_equal active, customer.active_projects
+    assert_equal archived, customer.archived_projects
+  end
+
+  def test_delegation_custom_suffix
+    active = [Project.new("Active Project", @david)]
+    archived = [Project.new("Archived Project", @david)]
+    projects = Projects.new(active, archived)
+    customer = Customer.new(projects)
+    assert_equal active, customer.active_portfolio_items
+    assert_equal archived, customer.archived_portfolio_items
+  end
+
+  def test_delegation_suffix_with_nil_or_false
+    active = [Project.new("Active Project", @david)]
+    projects = Projects.new(active)
+
+    assert_equal active, Milestones.new(projects).active
+    assert_equal active, Developments.new(projects).active
+  end
+
+  def test_delegation_suffix_with_instance_variable
+    assert_raise ArgumentError do
+      Class.new do
+        def initialize(projects)
+          @projects = projects
+        end
+        delegate :all, to: :@projects, suffix: true
       end
     end
   end

@@ -168,20 +168,22 @@ class Module
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
-  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil)
+  def delegate(*methods, to: nil, prefix: nil, suffix: nil, allow_nil: nil, private: nil)
     unless to
       raise ArgumentError, "Delegation needs a target. Supply a keyword argument 'to' (e.g. delegate :hello, to: :greeter)."
     end
 
-    if prefix == true && /^[^a-z_]/.match?(to)
-      raise ArgumentError, "Can only automatically set the delegation prefix when delegating to a method."
+    if (prefix == true || suffix == true) && /^[^a-z_]/.match?(to)
+      raise ArgumentError, "Can only automatically set the delegation prefix/suffix when delegating to a method."
     end
 
-    method_prefix = \
-      if prefix
-        "#{prefix == true ? to : prefix}_"
-      else
-        ""
+    method_prefix, method_suffix = \
+      [prefix, suffix].map do |part|
+        if part
+          part == true ? to : part
+        else
+          nil
+        end
       end
 
     location = caller_locations(1, 1).first
@@ -194,7 +196,7 @@ class Module
     method_names = []
 
     methods.map do |method|
-      method_name = prefix ? "#{method_prefix}#{method}" : method
+      method_name = [method_prefix, method, method_suffix].compact.join("_")
       method_names << method_name.to_sym
 
       # Attribute writer methods only accept one argument. Makes sure []=
