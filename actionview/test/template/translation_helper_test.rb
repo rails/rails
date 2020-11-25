@@ -158,11 +158,6 @@ class TranslationHelperTest < ActiveSupport::TestCase
     I18n.exception_handler = old_exception_handler
   end
 
-  def test_hash_default
-    default = { separator: ".", delimiter: "," }
-    assert_equal default, translate(:'special.number.format', default: default)
-  end
-
   def test_translation_returning_an_array
     expected = %w(foo bar)
     assert_equal expected, translate(:"translations.array")
@@ -326,6 +321,27 @@ class TranslationHelperTest < ActiveSupport::TestCase
   def test_translate_with_string_default
     translation = translate(:'translations.missing', default: "A Generic String")
     assert_equal "A Generic String", translation
+  end
+
+  def test_translate_with_interpolated_string_default
+    translation = translate(:"translations.missing", default: "An %{kind} String", kind: "Interpolated")
+    assert_equal "An Interpolated String", translation
+  end
+
+  def test_translate_with_hash_default
+    hash = { one: "%{count} thing", other: "%{count} things" }
+    assert_equal hash, translate(:"translations.missing", default: hash)
+  end
+
+  def test_translate_with_hash_default_and_count
+    hash = { one: "%{count} thing", other: "%{count} things" }
+    assert_equal "1 thing", translate(:"translations.missing", default: hash, count: 1)
+    assert_equal "2 things", translate(:"translations.missing", default: hash, count: 2)
+  end
+
+  def test_translate_with_proc_default
+    translation = translate(:"translations.missing", default: Proc.new { "From Proc" })
+    assert_equal "From Proc", translation
   end
 
   def test_translate_with_object_default
