@@ -206,6 +206,18 @@ That block runs when the application boots, and every time code is reloaded.
 
 NOTE: For historical reasons, this callback may run twice. The code it executes must be idempotent.
 
+However, if you do not need to reload the class, it is easier to define it in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice, it does not belong to the autoload paths by default but it belongs to `$LOAD_PATH`. Then, in the place the class is needed at boot time, just perform a regular `require` to load it.
+
+For example, there is no point in defining reloadable Rack middleware, because changes would not be reflected in the instance stored in the middleware stack anyway. If `lib/my_app/middleware/foo.rb` defines a middleware class, then in `config/application.rb` you write:
+
+```ruby
+require "my_app/middleware/foo"
+...
+config.middleware.use MyApp::Middleware::Foo
+```
+
+To have changes in that middleware reflected, you need to restart the server.
+
 
 Eager Loading
 -------------
