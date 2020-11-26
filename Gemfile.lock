@@ -497,7 +497,7 @@ GEM
     stackprof (0.2.16)
     sucker_punch (2.1.2)
       concurrent-ruby (~> 1.0)
-    thin (1.7.2)
+    thin (1.8.0)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
