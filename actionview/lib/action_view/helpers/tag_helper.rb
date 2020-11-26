@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/output_safety"
 require "set"
 require "action_view/helpers/capture_helper"
