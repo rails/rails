@@ -67,13 +67,15 @@ module ActiveJob
     end
 
     def concurrency_limit_instance
-      @concurrency_limit_instance ||= Limit.new(self.class.concurrency_limit)
+      Limit.new(self.class.concurrency_limit)
     end
 
     def concurrency_reached?
-      return false unless concurrency_limit_instance
+      concurrency_limit_information = concurrency_limit_instance
 
-      if concurrency_limit_instance.locking? || concurrency_limit_instance.enqueue_limit?
+      return false unless concurrency_limit_information
+
+      if concurrency_limit_information.locking? || concurrency_limit_information.enqueue_limit?
         self.class.queue_adapter.concurrency_reached?(self)
       end
     end
