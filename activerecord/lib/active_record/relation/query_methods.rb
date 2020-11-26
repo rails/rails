@@ -66,12 +66,11 @@ module ActiveRecord
       #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
       #    # WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
-      def missing(*args)
-        args.each do |arg|
-          reflection = @scope.klass._reflect_on_association(arg)
-          opts = { reflection.table_name => { reflection.association_primary_key => nil } }
-          @scope.left_outer_joins!(arg)
-          @scope.where!(opts)
+      def missing(*associations)
+        associations.each do |association|
+          reflection = @scope.klass._reflect_on_association(association)
+          @scope.left_outer_joins!(association)
+          @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
         end
 
         @scope
