@@ -18,8 +18,6 @@ module ActionView
     #   stylesheet_link_tag("application")
     #   # => <link href="/assets/application.css?body=1" media="screen" rel="stylesheet" />
     module AssetTagHelper
-      extend ActiveSupport::Concern
-
       include AssetUrlHelper
       include TagHelper
 
