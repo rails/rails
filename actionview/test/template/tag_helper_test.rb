@@ -130,6 +130,7 @@ class TagHelperTest < ActionView::TestCase
                  tag.p("<script>evil_js</script>")
     assert_equal "<p><script>evil_js</script></p>",
                  tag.p("<script>evil_js</script>", escape_attributes: false)
+    assert_equal '<input pattern="\w+">', tag.input(pattern: /\w+/)
   end
 
   def test_tag_builder_nested

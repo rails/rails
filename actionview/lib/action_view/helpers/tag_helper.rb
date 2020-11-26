@@ -121,6 +121,8 @@ module ActionView
           when Array, Hash
             value = TagHelper.build_tag_values(value) if key.to_s == "class"
             value = escape ? safe_join(value, " ") : value.join(" ")
+          when Regexp
+            value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
           else
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
           end
