@@ -153,7 +153,7 @@ CREATE TABLE products (
 );
 ```
 
-Schema above declares a table with two columns: `id` and `name`. Each row of
+The schema above declares a table with two columns: `id` and `name`. Each row of
 this table represents a certain product with these two parameters. Thus, you
 would be able to write code like the following:
 
