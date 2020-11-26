@@ -38,6 +38,41 @@ module ApplicationTests
         "Rails::Rack::Logger",
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::DebugExceptions",
+        "ActionDispatch::Reloader",
+        "ActionDispatch::Callbacks",
+        "ActiveRecord::Migration::CheckPending",
+        "ActionDispatch::Cookies",
+        "ActionDispatch::Session::CookieStore",
+        "ActionDispatch::Flash",
+        "ActionDispatch::ContentSecurityPolicy::Middleware",
+        "ActionDispatch::PermissionsPolicy::Middleware",
+        "Rack::Head",
+        "Rack::ConditionalGet",
+        "Rack::ETag",
+        "Rack::TempfileReaper"
+      ], middleware
+    end
+
+    test "default middleware stack when requests are local" do
+      add_to_config "config.consider_all_requests_local = true"
+      add_to_config "config.active_record.migration_error = :page_load"
+
+      boot!
+
+      assert_equal [
+        "Webpacker::DevServerProxy",
+        "ActionDispatch::HostAuthorization",
+        "Rack::Sendfile",
+        "ActionDispatch::Static",
+        "ActionDispatch::Executor",
+        "ActiveSupport::Cache::Strategy::LocalCache",
+        "Rack::Runtime",
+        "Rack::MethodOverride",
+        "ActionDispatch::RequestId",
+        "ActionDispatch::RemoteIp",
+        "Rails::Rack::Logger",
+        "ActionDispatch::ShowExceptions",
+        "ActionDispatch::DebugExceptions",
         "ActionDispatch::ActionableExceptions",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
@@ -72,7 +107,6 @@ module ApplicationTests
         "Rails::Rack::Logger",
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::DebugExceptions",
-        "ActionDispatch::ActionableExceptions",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
         "Rack::Head",
