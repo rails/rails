@@ -12,6 +12,22 @@ module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
     fixtures :posts, :comments, :authors, :humans, :essays
 
+    def test_associated_with_association
+      Post.where.associated(:author).tap do |relation|
+        assert_includes     relation, posts(:welcome)
+        assert_includes     relation, posts(:sti_habtm)
+        assert_not_includes relation, posts(:authorless)
+      end
+    end
+
+    def test_associated_with_multiple_associations
+      Post.where.associated(:author, :comments).tap do |relation|
+        assert_includes     relation, posts(:welcome)
+        assert_not_includes relation, posts(:sti_habtm)
+        assert_not_includes relation, posts(:authorless)
+      end
+    end
+
     def test_missing_with_association
       assert posts(:authorless).author.blank?
       assert_equal [posts(:authorless)], Post.where.missing(:author).to_a

@@ -1,3 +1,17 @@
+*   Add `where.associated` to check for the presence of an association.
+
+    ```ruby
+    # Before:
+    account.users.joins(:contact).where.not(contact_id: nil)
+
+    # After:
+    account.users.where.associated(:contact)
+    ```
+
+    Also mirrors `where.missing`.
+
+    *Kasper Timm Hansen*
+
 *   Fix odd behavior of inverse_of with multiple belongs_to to same class.
 
     Fixes #35204.
