@@ -512,6 +512,9 @@
     var elements = root.querySelectorAll(selector);
     return toArray$1(elements);
   }
+  function isFunc(func) {
+    return func && {}.toString.call(func) === "[object Function]";
+  }
   function findElement(root, selector) {
     if (typeof root == "string") {
       selector = root;
@@ -688,7 +691,7 @@
             return;
           }
           var blob = new BlobRecord(_this.file, checksum, _this.url);
-          notify(_this.delegate, "directUploadWillCreateBlobWithXHR", blob.xhr);
+          notify(_this.delegate, "directUploadWillStoreFileWithXHR", blob.xhr);
           blob.create(function(error) {
             if (error) {
               callback(error);
@@ -709,12 +712,21 @@
     } ]);
     return DirectUpload;
   }();
-  function notify(object, methodName) {
-    if (object && typeof object[methodName] == "function") {
-      for (var _len = arguments.length, messages = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-        messages[_key - 2] = arguments[_key];
-      }
-      return object[methodName].apply(object, messages);
+  var notifyError = function notifyError() {
+    throw new Error("Delgate must either be a callback or a class or object that implements directUploadWillStoreFileWithXHR.");
+  };
+  function notify(obj, methodName) {
+    if (obj === undefined || typeof obj === "string" || Array.isArray(obj) || typeof obj === "boolean" || obj === null) {
+      notifyError();
+    }
+    for (var _len = arguments.length, messages = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+      messages[_key - 2] = arguments[_key];
+    }
+    if (typeof obj[methodName] === "function") {
+      return obj[methodName].apply(obj, messages);
+    }
+    if (isFunc(obj)) {
+      return obj.apply(undefined, messages);
     }
   }
   var DirectUploadController = function() {

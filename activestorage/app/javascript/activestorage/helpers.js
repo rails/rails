@@ -14,6 +14,10 @@ export function findElements(root, selector) {
   return toArray(elements)
 }
 
+export function isFunc(func) {
+  return func && {}.toString.call(func) === "[object Function]"
+}
+
 export function findElement(root, selector) {
   if (typeof root == "string") {
     selector = root

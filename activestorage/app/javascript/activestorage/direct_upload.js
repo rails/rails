@@ -1,6 +1,9 @@
 import { FileChecksum } from "./file_checksum"
 import { BlobRecord } from "./blob_record"
 import { BlobUpload } from "./blob_upload"
+import {
+  isFunc,
+} from "../../javascript/activestorage/helpers"
 
 let id = 0
 
@@ -20,7 +23,7 @@ export class DirectUpload {
       }
 
       const blob = new BlobRecord(this.file, checksum, this.url)
-      notify(this.delegate, "directUploadWillCreateBlobWithXHR", blob.xhr)
+      notify(this.delegate, "directUploadWillStoreFileWithXHR", blob.xhr)
 
       blob.create(error => {
         if (error) {
@@ -41,8 +44,26 @@ export class DirectUpload {
   }
 }
 
-function notify(object, methodName, ...messages) {
-  if (object && typeof object[methodName] == "function") {
-    return object[methodName](...messages)
+const notifyError = () => {
+  throw new Error(
+    "Delgate must either be a callback or a class or object that implements directUploadWillStoreFileWithXHR."
+  )
+}
+
+function notify(obj, methodName, ...messages) {
+  if (
+    obj === undefined ||
+    typeof obj === "string" ||
+    Array.isArray(obj) ||
+    typeof obj === "boolean" || obj === null
+
+  ) {
+    notifyError()
+  }
+  if (typeof obj[methodName] === "function") {
+    return obj[methodName](...messages)
+  }
+  if (isFunc(obj)) {
+    return obj(...messages)
   }
 }

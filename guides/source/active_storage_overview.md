@@ -839,10 +839,7 @@ const uploadFile = (file) => {
 }
 ```
 
-If you need to track the progress of the file upload, you can pass a third
-parameter to the `DirectUpload` constructor. During the upload, DirectUpload
-will call the object's `directUploadWillStoreFileWithXHR` method. You can then
-bind your own progress handler on the XHR.
+If you need to track the progress of the file upload, you can pass a third parameter to the `DirectUpload` constructor. The third parameter can either be a callback or an object/class that implements `directUploadWillStoreFileWithXHR`. During the upload, DirectUpload will either call the object's/class' `directUploadWillStoreFileWithXHR` method or the provided callback. You can then bind your own progress handler on the XHR.
 
 ```js
 import { DirectUpload } from "@rails/activestorage"
@@ -872,6 +869,25 @@ class Uploader {
     // Use event.loaded and event.total to update the progress bar
   }
 }
+```
+
+Or using a callback
+
+```js
+const file = new File([""], "filename");
+const url = `https://localhost:3000/rails/active_storage/direct_uploads`
+const callback = (request) => 	request.upload.addEventListener("progress", event => console.log('uploading', event))
+
+const upload = new DirectUpload(file, url, callback);
+
+upload.create((error, blob) => {
+  if (error) {
+    // Handle the error
+  } else {
+    // do something else
+    //
+  }
+})
 ```
 
 Discarding Files Stored During System Tests
