@@ -156,6 +156,8 @@ module ActiveSupport
 
         if date_or_time.is_a?(Date) && !date_or_time.is_a?(DateTime)
           now = date_or_time.midnight.to_time
+        elsif date_or_time.is_a?(String)
+          now = Time.zone.parse(date_or_time)
         else
           now = date_or_time.to_time.change(usec: 0)
         end
