@@ -78,10 +78,6 @@ group :cable do
   gem "redis-namespace", github: "resque/redis-namespace"
 
   gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
-
-  gem "blade", require: false, platforms: [:ruby]
-  gem "blade-sauce_labs_plugin", require: false, platforms: [:ruby]
-  gem "sprockets-export", require: false
 end
 
 # Active Storage
@@ -100,6 +96,12 @@ gem "webmock"
 group :ujs do
   gem "qunit-selenium"
   gem "webdrivers"
+end
+
+# Action View
+group :view do
+  gem "blade", require: false, platforms: [:ruby]
+  gem "sprockets-export", require: false
 end
 
 # Add your own local bundler stuff.
