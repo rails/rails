@@ -48,6 +48,34 @@ module ActiveRecord
         @scope
       end
 
+      # Returns a new relation with joins and where clause to identify
+      # associated relations.
+      #
+      # For example, posts that are associated to a related author:
+      #
+      #    Post.where.associated(:author)
+      #    # SELECT "posts".* FROM "posts"
+      #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+      #    # WHERE "authors"."id" IS NOT NULL
+      #
+      # Additionally, multiple relations can be combined. This will return posts
+      # associated to both an author and any comments:
+      #
+      #    Post.where.associated(:author, :comments)
+      #    # SELECT "posts".* FROM "posts"
+      #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+      #    # INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+      #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
+      def associated(*associations)
+        associations.each do |association|
+          reflection = @scope.klass._reflect_on_association(association)
+          @scope.joins!(association)
+          self.not(reflection.table_name => { reflection.association_primary_key => nil })
+        end
+
+        @scope
+      end
+
       # Returns a new relation with left outer joins and where clause to identify
       # missing relations.
       #
