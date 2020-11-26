@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
 require "rails-dom-testing"
+require "action_dispatch/testing/assertions/response"
+require "action_dispatch/testing/assertions/routing"
 
 module ActionDispatch
   module Assertions
-    autoload :ResponseAssertions, "action_dispatch/testing/assertions/response"
-    autoload :RoutingAssertions, "action_dispatch/testing/assertions/routing"
-
     include ResponseAssertions
     include RoutingAssertions
     include Rails::Dom::Testing::Assertions
