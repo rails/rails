@@ -2,6 +2,8 @@
 
 require "active_support/core_ext/string/output_safety"
 require "set"
+require "action_view/helpers/capture_helper"
+require "action_view/helpers/output_safety_helper"
 
 module ActionView
   # = Action View Tag Helpers

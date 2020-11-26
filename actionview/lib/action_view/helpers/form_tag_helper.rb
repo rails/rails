@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "cgi"
+require "action_view/helpers/url_helper"
+require "action_view/helpers/text_helper"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/symbol/starts_ends_with"

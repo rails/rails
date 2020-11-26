@@ -2,6 +2,7 @@
 
 require "cgi"
 require "action_view/helpers/date_helper"
+require "action_view/helpers/url_helper"
 require "action_view/helpers/form_tag_helper"
 require "action_view/helpers/active_model_helper"
 require "action_view/model_naming"
