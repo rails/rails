@@ -3,6 +3,7 @@
 require_relative "abstract_unit"
 require "active_support/core_ext/date_time"
 require "active_support/core_ext/numeric/time"
+require "active_support/core_ext/string/conversions"
 require_relative "time_zone_test_helpers"
 
 class TimeTravelTest < ActiveSupport::TestCase
@@ -77,6 +78,20 @@ class TimeTravelTest < ActiveSupport::TestCase
           expected_time = 5.minutes.ago
 
           travel_to 5.minutes.ago do
+            assert_equal expected_time.to_s(:db), Time.zone.now.to_s(:db)
+          end
+        end
+      end
+    end
+  end
+
+  def test_time_helper_travel_to_with_string_for_time_zone
+    with_env_tz "US/Eastern" do
+      with_tz_default ActiveSupport::TimeZone["UTC"] do
+        Time.stub(:now, Time.now) do
+          expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+
+          travel_to "2004-11-24 01:04:44" do
             assert_equal expected_time.to_s(:db), Time.zone.now.to_s(:db)
           end
         end
