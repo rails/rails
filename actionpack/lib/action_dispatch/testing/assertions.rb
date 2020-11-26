@@ -7,8 +7,6 @@ module ActionDispatch
     autoload :ResponseAssertions, "action_dispatch/testing/assertions/response"
     autoload :RoutingAssertions, "action_dispatch/testing/assertions/routing"
 
-    extend ActiveSupport::Concern
-
     include ResponseAssertions
     include RoutingAssertions
     include Rails::Dom::Testing::Assertions
