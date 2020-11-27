@@ -330,11 +330,7 @@ module Rails
       def webpacker_gemfile_entry
         return [] if options[:skip_javascript]
 
-        if options.dev? || options.edge? || options.master?
-          GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
-        else
-          GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
-        end
+        GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
       end
 
       def jbuilder_gemfile_entry
