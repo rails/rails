@@ -1,3 +1,10 @@
+*   Transforms a Hash into HTML Attributes, ready to be interpolated into ERB.
+
+        <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %> >
+        # => <input type="text" aria-label="Search">
+
+    *Sean Doyle*
+
 ## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Yield translated strings to calls of `ActionView::FormBuilder#button`

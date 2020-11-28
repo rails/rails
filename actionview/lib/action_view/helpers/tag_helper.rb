@@ -51,6 +51,15 @@ module ActionView
           @view_context = view_context
         end
 
+        # Transforms a Hash into HTML Attributes, ready to be interpolated into
+        # ERB.
+        #
+        #   <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %> >
+        #   # => <input type="text" aria-label="Search">
+        def attributes(attributes)
+          tag_options(attributes.to_h).to_s.strip.html_safe
+        end
+
         def p(*arguments, **options, &block)
           tag_string(:p, *arguments, **options, &block)
         end
