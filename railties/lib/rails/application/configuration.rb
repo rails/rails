@@ -181,6 +181,10 @@ module Rails
             action_controller.urlsafe_csrf_tokens = true
           end
 
+          if respond_to?(:action_view)
+            action_view.form_with_generates_remote_forms = false
+          end
+
           ActiveSupport.utc_to_local_returns_utc_offset_times = true
         else
           raise "Unknown version #{target_version.to_s.inspect}"

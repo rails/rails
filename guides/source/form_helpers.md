@@ -33,7 +33,7 @@ The main form helper is [`form_with`](https://api.rubyonrails.org/classes/Action
 When called without arguments like this, it creates a form tag which, when submitted, will POST to the current page. For instance, assuming the current page is a home page, the generated HTML will look like this:
 
 ```html
-<form accept-charset="UTF-8" action="/" data-remote="true" method="post">
+<form accept-charset="UTF-8" action="/" method="post">
   <input name="authenticity_token" type="hidden" value="J7CBxfHalt49OSHp27hblqK20c9PgwJ108nDHX/8Cts=" />
   Form contents
 </form>
@@ -64,7 +64,7 @@ To create this form you will use `form_with` and the form builder object it yiel
 This will generate the following HTML:
 
 ```html
-<form action="/search" method="get" data-remote="true" accept-charset="UTF-8" >
+<form action="/search" method="get" accept-charset="UTF-8" >
   <label for="query">Search for:</label>
   <input id="query" name="query" type="text" />
   <input name="commit" type="submit" value="Search" data-disable-with="Search" />
@@ -217,7 +217,7 @@ The following form:
 Outputs:
 
 ```html
-<form action="/articles/42" method="post" data-remote="true" accept-charset="UTF-8" >
+<form action="/articles/42" method="post" accept-charset="UTF-8" >
   <input name="authenticity_token" type="hidden" value="..." />
   <input type="text" name="article[title]" id="article_title" value="My Title" />
   <textarea name="article[body]" id="article_body" cols="60" rows="10">
@@ -252,7 +252,7 @@ You can create a similar binding without actually creating `<form>` tags with th
 which produces the following output:
 
 ```html
-<form action="/people" accept-charset="UTF-8" data-remote="true" method="post">
+<form action="/people" accept-charset="UTF-8" method="post">
   <input type="hidden" name="authenticity_token" value="bL13x72pldyDD8bgtkjKQakJCpd4A8JdXGbfksxBDHdf1uC0kCMqe2tvVdUYfidJt0fj3ihC4NxiVHv8GVYxJA==" />
   <input type="text" name="person[name]" id="person_name" />
   <input type="text" name="contact_detail[phone_number]" id="contact_detail_phone_number" />
@@ -320,7 +320,7 @@ form_with(url: search_path, method: "patch")
 Output:
 
 ```html
-<form accept-charset="UTF-8" action="/search" data-remote="true" method="post">
+<form accept-charset="UTF-8" action="/search" method="post">
   <input name="_method" type="hidden" value="patch" />
   <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
   ...
@@ -329,7 +329,7 @@ Output:
 
 When parsing POSTed data, Rails will take into account the special `_method` parameter and act as if the HTTP method was the one specified inside it ("PATCH" in this example).
 
-IMPORTANT: All forms using `form_with` implement `remote: true` by default. These forms will submit data using an XHR (Ajax) request. To disable this include `local: true`. To dive deeper see [Working with JavaScript in Rails](working_with_javascript_in_rails.html#remote-elements) guide.
+IMPORTANT: In Rails 6.0 and 5.2, all forms using `form_with` implement `remote: true` by default. These forms will submit data using an XHR (Ajax) request. To disable this include `local: true`. To dive deeper see [Working with JavaScript in Rails](working_with_javascript_in_rails.html#remote-elements) guide.
 
 Making Select Boxes with Ease
 -----------------------------
@@ -777,7 +777,7 @@ Let's say we want to render a form with a set of fields for each of a person's a
 Assuming the person had two addresses, with ids 23 and 45 this would create output similar to this:
 
 ```html
-<form accept-charset="UTF-8" action="/people/1" data-remote="true" method="post">
+<form accept-charset="UTF-8" action="/people/1" method="post">
   <input name="_method" type="hidden" value="patch" />
   <input id="person_name" name="person[name]" type="text" />
   <input id="person_address_23_city" name="person[address][23][city]" type="text" />

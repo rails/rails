@@ -823,7 +823,7 @@ The way this is done is to add a non-guessable token which is only known to your
 If you generate a form like this:
 
 ```erb
-<%= form_with model: @user, local: true do |form| %>
+<%= form_with model: @user do |form| %>
   <%= form.text_field :username %>
   <%= form.text_field :password %>
 <% end %>

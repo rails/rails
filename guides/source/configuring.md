@@ -700,7 +700,7 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.debug_missing_translation` determines whether to wrap the missing translations key in a `<span>` tag or not. This defaults to `true`.
 
-* `config.action_view.form_with_generates_remote_forms` determines whether `form_with` generates remote forms or not. This defaults to `true`.
+* `config.action_view.form_with_generates_remote_forms` determines whether `form_with` generates remote forms or not.
 
 * `config.action_view.form_with_generates_ids` determines whether `form_with` generates ids on inputs.
 
@@ -1024,6 +1024,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.action_dispatch.ssl_default_redirect_status` = `308`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `true`
 - `config.action_controller.urlsafe_csrf_tokens`: `true`
+- `config.action_view.form_with_generates_remote_forms`: `false`
 
 #### For '6.0', defaults from previous versions below and:
 
