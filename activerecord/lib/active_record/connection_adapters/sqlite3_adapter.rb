@@ -545,6 +545,14 @@ module ActiveRecord
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
 
+        def extract_precision(sql_type)
+          if /\A(?:date)?time(?:stamp)?\b/.match?(sql_type)
+            super || 0
+          else
+            super
+          end
+        end
+
         class SQLite3Integer < Type::Integer # :nodoc:
           private
             def _limit
