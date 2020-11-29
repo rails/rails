@@ -689,12 +689,12 @@ Action Mailer allows for you to specify a [`before_action`][], [`after_action`][
 * Filters can be specified with a block or a symbol to a method in the mailer
   class similar to controllers.
 
-* You could use a `before_action` to populate the mail object with defaults,
-  delivery_method_options or insert default headers and attachments.
+* You could use a `before_action` to set instance variables, populate the mail
+  object with defaults, or insert default headers and attachments.
 
 ```ruby
 class InvitationsMailer < ApplicationMailer
-  before_action { @inviter, @invitee = params[:inviter], params[:invitee] }
+  before_action :set_inviter_and_invitee
   before_action { @account = params[:inviter].account }
 
   default to:       -> { @invitee.email_address },
@@ -711,11 +711,21 @@ class InvitationsMailer < ApplicationMailer
 
     mail subject: "#{@inviter.name.familiar} added you to a project in Basecamp (#{@account.name})"
   end
+
+  private
+
+  def set_inviter_and_invitee
+    @inviter = params[:inviter]
+    @invitee = params[:invitee]
+  end
 end
 ```
 
 * You could use an `after_action` to do similar setup as a `before_action` but
   using instance variables set in your mailer action.
+  
+* Using an `after_action` callback also enables you to override delivery method
+  settings by updating `mail.delivery_method.settings`.
 
 ```ruby
 class UserMailer < ApplicationMailer
