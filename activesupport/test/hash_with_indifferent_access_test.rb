@@ -433,6 +433,19 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
+  def test_indifferent_deep_transform_keys
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@nested_strings).deep_transform_keys { |k| k * 2 }
+
+    assert_equal({ "aa" => { "bb" => { "cc" => 3 } } }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@nested_strings).deep_transform_keys { |k| k.to_sym }
+
+    assert_equal(3, hash[:a][:b][:c])
+    assert_equal(3, hash["a"]["b"]["c"])
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
   def test_indifferent_transform_keys_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
     indifferent_strings.transform_keys! { |k| k * 2 }
@@ -446,6 +459,21 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal(1, indifferent_strings[:a])
     assert_equal(1, indifferent_strings["a"])
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
+  end
+
+  def test_indifferent_deep_transform_keys_bang
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@nested_strings)
+    hash.deep_transform_keys! { |k| k * 2 }
+
+    assert_equal({ "aa" => { "bb" => { "cc" => 3 } } }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@nested_strings)
+    hash.deep_transform_keys! { |k| k.to_sym }
+
+    assert_equal(3, hash[:a][:b][:c])
+    assert_equal(3, hash["a"]["b"]["c"])
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
   def test_indifferent_transform_values

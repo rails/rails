@@ -1,3 +1,7 @@
+*   `HashWithIndifferentAccess#deep_transform_keys` now returns a `HashWithIndifferentAccess` instead of a `Hash`.
+
+    *Nathaniel Woodthorpe*
+
 *   Ensure `MemoryStore` disables compression by default. Reverts behavior of
     `MemoryStore` to its prior rails `5.1` behavior.
 
