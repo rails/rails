@@ -533,7 +533,7 @@ It's important to know that the file is not yet available in the `after_create` 
 Analyzing Files
 ---------------
 
-Active Storage [analyzes](https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyze) files once they've been uploaded by queuing a job in Active Job. Analyzed files will store additional information in the metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling [`analyzed?`][] on it.
+Active Storage analyzes files once they've been uploaded by queuing a job in Active Job. Analyzed files will store additional information in the metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling [`analyzed?`][] on it.
 
 Image analysis provides `width` and `height` attributes. Video analysis provides these, as well as `duration`, `angle`, and `display_aspect_ratio`.
 
@@ -541,37 +541,69 @@ Analysis requires the `mini_magick` gem. Video analysis also requires the [FFmpe
 
 [`analyzed?`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyzed-3F
 
-Transforming Images
--------------------
+Displaying Images, Videos, and PDFs
+---------------
 
+Active Storage supports representing a variety of files. You can call
+[`representation`][] on an attachment to display an image variant, or a
+preview of a video or PDF. Before calling `representation`, check if the
+attachment can be represented by calling [`representable?`]. Some file formats
+can't be previewed by ActiveStorage out of the box (eg. Word documents); if
+`representable?` returns false you may want to [link to](#linking-to-files)
+the file instead.
+
+```erb
+<ul>
+  <% @message.files.each do |file| %>
+    <li>
+      <% if file.representable? %>
+        <%= image_tag file.representation(resize_to_limit: [100, 100]) %>
+      <% else %>
+        <%= link_to rails_blob_path(file, disposition: "attachment") do %>
+          <%= image_tag "placeholder.png", alt: "Download file" %>
+        <% end %>
+      <% end %>
+    </li>
+  <% end %>
+</ul>
+```
+
+Internally, `representation` calls `variant` for images, and `preview` for
+previewable files. You can also call these methods directly.
+
+[`representable?`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-representable-3F
+[`representation`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-representation
+
+### Transforming Images
+
+Transforming images allows you to display the image at your choice of dimensions.
 To enable variants, add the `image_processing` gem to your `Gemfile`:
 
 ```ruby
 gem 'image_processing'
 ```
 
-To create a variation of an image, call [`variant`][] on the attachment. You can pass any transformation to the method supported by the processor. The default processor for Active Storage is MiniMagick, but you can also use [Vips](https://www.rubydoc.info/gems/ruby-vips/Vips/Image).
-
-When the browser hits the variant URL, Active Storage will lazily transform the
-original blob into the specified format and redirect to its new service
+To create a variation of an image, call [`variant`][] on the attachment. You
+can pass any transformation supported by the variant processor to the method.
+When the browser hits the variant URL, Active Storage will lazily transform
+the original blob into the specified format and redirect to its new service
 location.
 
 ```erb
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
-To switch to the Vips processor, you would add the following to
-`config/application.rb`:
+The default processor for Active Storage is MiniMagick, but you can also use
+[Vips][]. To switch to Vips, add the following to `config/application.rb`:
 
 ```ruby
-# Use Vips for processing variants.
 config.active_storage.variant_processor = :vips
 ```
 
 [`variant`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-variant
+[Vips]: https://www.rubydoc.info/gems/ruby-vips/Vips/Image
 
-Previewing Files
-----------------
+### Previewing Files
 
 Some non-image files can be previewed: that is, they can be presented as images.
 For example, a video file can be previewed by extracting its first frame. Out of
@@ -579,14 +611,11 @@ the box, Active Storage supports previewing videos and PDF documents. To create
 a link to a lazily-generated preview, use the attachment's [`preview`][] method:
 
 ```erb
-<ul>
-  <% @message.files.each do |file| %>
-    <li>
-      <%= image_tag file.preview(resize_to_limit: [100, 100]) %>
-    </li>
-  <% end %>
-</ul>
+<%= image_tag message.video.preview(resize_to_limit: [100, 100]) %>
 ```
+
+To add support for another format, add your own previewer. See the
+[`ActiveStorage::Preview`][] documentation for more information.
 
 WARNING: Extracting previews requires third-party applications: FFmpeg v3.4+ for
 video and muPDF for PDFs, and on macOS also XQuartz and Poppler.
@@ -595,6 +624,7 @@ use the built-in previewers. Before you install and use third-party software,
 make sure you understand the licensing implications of doing so.
 
 [`preview`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-preview
+[`ActiveStorage::Preview`]: https://api.rubyonrails.org/classes/ActiveStorage/Preview.html
 
 Direct Uploads
 --------------
