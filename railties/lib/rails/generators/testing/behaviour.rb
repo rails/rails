@@ -82,7 +82,7 @@ module Rails
         # Create a Rails::Generators::GeneratedAttribute by supplying the
         # attribute type and, optionally, the attribute name:
         #
-        #   create_generated_attribute(:string, 'name')
+        #   create_generated_attribute(:string, "name")
         def create_generated_attribute(attribute_type, name = "test", index = nil)
           Rails::Generators::GeneratedAttribute.parse([name, attribute_type, index].compact.join(":"))
         end

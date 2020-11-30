@@ -82,7 +82,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     %w(edit new).each do |view|
-      assert_file "app/views/product_lines/#{view}.html.erb", /render 'form', product_line: @product_line/
+      assert_file "app/views/product_lines/#{view}.html.erb", /render "form", product_line: @product_line/
     end
 
     assert_file "app/views/product_lines/_form.html.erb" do |test|
@@ -282,10 +282,10 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Views
     assert_file "app/views/admin/roles/index.html.erb" do |content|
-      assert_match("'Show', admin_role", content)
-      assert_match("'Edit', edit_admin_role_path(admin_role)", content)
-      assert_match("'Destroy', admin_role", content)
-      assert_match("'New Admin Role', new_admin_role_path", content)
+      assert_match('"Show", admin_role', content)
+      assert_match('"Edit", edit_admin_role_path(admin_role)', content)
+      assert_match('"Destroy", admin_role', content)
+      assert_match('"New Admin Role", new_admin_role_path', content)
     end
 
     %w(edit new show _form).each do |view|
@@ -572,17 +572,17 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "test/controllers/users_controller_test.rb" do |content|
-      assert_match(/password: 'secret'/, content)
-      assert_match(/password_confirmation: 'secret'/, content)
+      assert_match(/password: "secret"/, content)
+      assert_match(/password_confirmation: "secret"/, content)
     end
 
     assert_file "test/system/users_test.rb" do |content|
-      assert_match(/fill_in "Password", with: 'secret'/, content)
-      assert_match(/fill_in "Password confirmation", with: 'secret'/, content)
+      assert_match(/fill_in "Password", with: "secret"/, content)
+      assert_match(/fill_in "Password confirmation", with: "secret"/, content)
     end
 
     assert_file "test/fixtures/users.yml" do |content|
-      assert_match(/password_digest: <%= BCrypt::Password.create\('secret'\) %>/, content)
+      assert_match(/password_digest: <%= BCrypt::Password.create\("secret"\) %>/, content)
     end
   end
 

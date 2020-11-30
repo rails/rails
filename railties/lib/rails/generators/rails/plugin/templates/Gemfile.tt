@@ -1,8 +1,8 @@
-source 'https://rubygems.org'
+source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 <% if options[:skip_gemspec] -%>
-<%= '# ' if options.dev? || options.edge? || options.master? -%>gem 'rails', '<%= Array(rails_version_specifier).join("', '") %>'
+<%= "# " if options.dev? || options.edge? || options.master? -%>gem "rails", "<%= Array(rails_version_specifier).join("", "") %>"
 <% else -%>
 # Specify your gem's dependencies in <%= name %>.gemspec.
 gemspec
@@ -10,7 +10,7 @@ gemspec
 <% unless options[:skip_active_record] -%>
 
 group :development do
-  gem '<%= gem_for_database[0] %>'
+  gem "<%= gem_for_database[0] %>"
 end
 <% end -%>
 
@@ -23,19 +23,19 @@ end
 
 # <%= gem.comment %>
 <% end -%>
-<%= gem.commented_out ? '# ' : '' %>gem '<%= gem.name %>'<%= %(, '#{gem.version}') if gem.version -%>
+<%= gem.commented_out ? "# " : "" %>gem "<%= gem.name %>"<%= %(, "#{gem.version}") if gem.version -%>
 <% if gem.options.any? -%>
 , <%= gem.options.map { |k,v|
-  "#{k}: #{v.inspect}" }.join(', ') %>
+  "#{k}: #{v.inspect}" }.join(", ") %>
 <% end -%>
 <% end -%>
 
 <% end -%>
-<% if RUBY_ENGINE == 'ruby' -%>
+<% if RUBY_ENGINE == "ruby" -%>
 # To use a debugger
-# gem 'byebug', group: [:development, :test]
+# gem "byebug", group: [:development, :test]
 <% end -%>
 <% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince|java/) -%>
 
-gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 <% end -%>

@@ -118,8 +118,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_assets
     run_generator
 
-    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', media: 'all', 'data-turbolinks-track': 'reload'/)
-    assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+'application', 'data-turbolinks-track': 'reload'/)
+    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+"application", media: "all", "data-turbolinks-track": "reload"/)
+    assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+"application", "data-turbolinks-track": "reload"/)
     assert_file("app/assets/stylesheets/application.css")
     assert_file("app/javascript/packs/application.js")
   end
@@ -294,7 +294,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "bin/setup" do |content|
       # Does not comment yarn install
-      assert_match(/(?=[^#]*?) system! 'bin\/yarn'/, content)
+      assert_match(/(?=[^#]*?) system! "bin\/yarn"/, content)
     end
   end
 
@@ -310,7 +310,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_file "#{app_root}/bin/yarn"
 
       assert_file "#{app_root}/bin/setup" do |content|
-        assert_no_match(/system! 'bin\/yarn'/, content)
+        assert_no_match(/system! "bin\/yarn"/, content)
       end
     end
   end
@@ -375,7 +375,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_gem_for_active_storage
     run_generator
-    assert_file "Gemfile", /^# gem 'image_processing'/
+    assert_file "Gemfile", /^# gem "image_processing"/
   end
 
   def test_gem_for_active_storage_when_skip_active_storage_is_given
@@ -665,8 +665,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/javascript"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_match(/stylesheet_link_tag\s+'application', media: 'all' %>/, contents)
-      assert_no_match(/javascript_pack_tag\s+'application'/, contents)
+      assert_match(/stylesheet_link_tag\s+"application", media: "all" %>/, contents)
+      assert_no_match(/javascript_pack_tag\s+"application"/, contents)
     end
   end
 
@@ -786,8 +786,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--dev", "--skip-bundle"]
 
     assert_file "Gemfile" do |content|
-      assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/\Agem 'web-console', '>= 4\.1\.0'\z/, content)
+      assert_match(/gem "web-console",\s+github: "rails\/web-console"/, content)
+      assert_no_match(/\Agem "web-console", '>= 4\.1\.0'\z/, content)
     end
   end
 
@@ -795,8 +795,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--edge"]
 
     assert_file "Gemfile" do |content|
-      assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/\Agem 'web-console', '>= 4\.1\.0'\z/, content)
+      assert_match(/gem "web-console",\s+github: "rails\/web-console"/, content)
+      assert_no_match(/\Agem "web-console", '>= 4\.1\.0'\z/, content)
     end
   end
 
@@ -804,8 +804,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--master"]
 
     assert_file "Gemfile" do |content|
-      assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/\Agem 'web-console', '>= 4\.1\.0'\z/, content)
+      assert_match(/gem "web-console",\s+github: "rails\/web-console"/, content)
+      assert_no_match(/\Agem "web-console", '>= 4\.1\.0'\z/, content)
     end
   end
 
@@ -838,21 +838,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_bundler_command_called("install")
     rails_path = File.expand_path("../../..", Rails.root)
-    assert_file "Gemfile", /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
+    assert_file "Gemfile", /^gem\s+['"]rails["'],\s+path:\s+['"]#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
     generator([destination_root], edge: true, skip_webpack_install: true)
 
     assert_bundler_command_called("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
+    assert_file "Gemfile", %r{^gem\s+['"]rails["'],\s+github:\s+['"]#{Regexp.escape("rails/rails")}["']$}
   end
 
   def test_master_option
     generator([destination_root], master: true, skip_webpack_install: true)
 
     assert_bundler_command_called("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']master["']$}
+    assert_file "Gemfile", %r{^gem\s+['"]rails["'],\s+github:\s+['"]#{Regexp.escape("rails/rails")}["'],\s+branch:\s+['"]master["']$}
   end
 
   def test_spring
@@ -1034,7 +1034,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file "Gemfile" do |content|
-      assert_match(/ruby '#{RUBY_VERSION}'/, content)
+      assert_match(/ruby "#{RUBY_VERSION}"/, content)
     end
     assert_file ".ruby-version" do |content|
       if ENV["RBENV_VERSION"]
@@ -1079,7 +1079,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_psych_gem
     run_generator
-    gem_regex = /gem 'psych',\s+'~> 2\.0',\s+platforms: :rbx/
+    gem_regex = /gem "psych",\s+"~> 2\.0",\s+platforms: :rbx/
 
     assert_file "Gemfile" do |content|
       if defined?(Rubinius)
@@ -1163,13 +1163,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/require "bootsnap\/setup"/, content)
     end
     assert_file "#{app_root}/config/application.rb" do |content|
-      assert_match(/#\s+require\s+["']active_job\/railtie["']/, content)
-      assert_match(/#\s+require\s+["']active_storage\/engine["']/, content)
-      assert_match(/#\s+require\s+["']action_mailer\/railtie["']/, content)
-      assert_match(/#\s+require\s+["']action_mailbox\/engine["']/, content)
-      assert_match(/#\s+require\s+["']action_text\/engine["']/, content)
-      assert_match(/#\s+require\s+["']action_cable\/engine["']/, content)
-      assert_match(/\s+require\s+["']sprockets\/railtie["']/, content)
+      assert_match(/#\s+require\s+['"]active_job\/railtie["']/, content)
+      assert_match(/#\s+require\s+['"]active_storage\/engine["']/, content)
+      assert_match(/#\s+require\s+['"]action_mailer\/railtie["']/, content)
+      assert_match(/#\s+require\s+['"]action_mailbox\/engine["']/, content)
+      assert_match(/#\s+require\s+['"]action_text\/engine["']/, content)
+      assert_match(/#\s+require\s+['"]action_cable\/engine["']/, content)
+      assert_match(/\s+require\s+['"]sprockets\/railtie["']/, content)
     end
 
     assert_no_gem "webpacker", app_root

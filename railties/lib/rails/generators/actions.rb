@@ -336,7 +336,7 @@ module Rails
           if value.include?("'")
             value.inspect
           else
-            "'#{value}'"
+            '"' + value + '"'
           end
         end
 

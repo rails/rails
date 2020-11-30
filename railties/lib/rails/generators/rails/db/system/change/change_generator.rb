@@ -55,7 +55,7 @@ module Rails
             end
 
             def gem_entry_for(*gem_name_and_version)
-              gem_name_and_version.map! { |segment| "'#{segment}'" }
+              gem_name_and_version.map! { |segment| '"' + segment + '"' }
               "gem #{gem_name_and_version.join(", ")}"
             end
         end

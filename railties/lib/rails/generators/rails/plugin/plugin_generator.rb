@@ -170,7 +170,7 @@ task default: :test
 
       gemfile_in_app_path = File.join(rails_app_path, "Gemfile")
       if File.exist? gemfile_in_app_path
-        entry = "\ngem '#{name}', path: '#{relative_path}'"
+        entry = '\ngem "' + name + '", path: "' + relative_path + '"'
         append_file gemfile_in_app_path, entry
       end
     end
@@ -397,8 +397,8 @@ task default: :test
 require "rake/testtask"
 
 Rake::TestTask.new(:test) do |t|
-  t.libs << 'test'
-  t.pattern = 'test/**/*_test.rb'
+  t.libs << "test"
+  t.pattern = "test/**/*_test.rb"
   t.verbose = false
 end
         RUBY

@@ -1,7 +1,7 @@
 # PostgreSQL. Versions 9.3 and up are supported.
 #
 # Configure Using Gemfile
-# gem 'activerecord-jdbcpostgresql-adapter'
+# gem "activerecord-jdbcpostgresql-adapter"
 #
 default: &default
   adapter: postgresql
@@ -58,7 +58,7 @@ test:
 # URL environment variable explicitly:
 #
 #   production:
-#     url: <%%= ENV['MY_APP_DATABASE_URL'] %>
+#     url: <%%= ENV["MY_APP_DATABASE_URL"] %>
 #
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
@@ -67,4 +67,4 @@ production:
   <<: *default
   database: <%= app_name %>_production
   username: <%= app_name %>
-  password: <%%= ENV['<%= app_name.upcase %>_DATABASE_PASSWORD'] %>
+  password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>

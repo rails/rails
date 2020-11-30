@@ -12,11 +12,11 @@ module Rails
         copy_gemfile
       end
 
-      test "generate benchmark" do
+      def test_generate_benchmark
         run_generator ["my_benchmark"]
 
         assert_file("Gemfile") do |content|
-          assert_match "gem 'benchmark-ips'", content
+          assert_match 'gem "benchmark-ips"', content
         end
 
         assert_file("script/benchmarks/my_benchmark.rb") do |content|
@@ -39,7 +39,7 @@ module Rails
         end
       end
 
-      test "generate benchmark with no name" do
+      def test_generate_benchmark_with_no_name
         output = capture(:stderr) do
           run_generator []
         end
@@ -49,7 +49,7 @@ module Rails
         MSG
       end
 
-      test "generate benchmark with reports" do
+      def test_generate_benchmark_with_reports
         run_generator ["my_benchmark", "with_patch", "without_patch"]
 
         assert_file("script/benchmarks/my_benchmark.rb") do |content|
@@ -72,12 +72,12 @@ module Rails
         end
       end
 
-      test "generate benchmark twice only adds ips gem once" do
+      def test_generate_benchmark_twice_only_adds_ips_gem_once
         run_generator ["my_benchmark"]
         run_generator ["my_benchmark"]
 
         assert_file("Gemfile") do |content|
-          occurrences = content.scan("gem 'benchmark-ips'").count
+          occurrences = content.scan('gem "benchmark-ips"').count
           assert_equal 1, occurrences, "Should only have benchmark-ips present once"
         end
       end

@@ -65,7 +65,7 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_routes_should_not_be_namespaced
     run_generator
-    assert_file "config/routes.rb", /get 'account\/foo'/, /get 'account\/bar'/
+    assert_file "config/routes.rb", /get "account\/foo"/, /get "account\/bar"/
   end
 
   def test_invokes_default_template_engine_even_with_no_action
@@ -101,7 +101,7 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
     run_generator ["admin/account"]
     assert_file "app/models/test_app/admin.rb", /module TestApp/, /module Admin/
     assert_file "app/models/test_app/admin.rb", /def self\.table_name_prefix/
-    assert_file "app/models/test_app/admin.rb", /'test_app_admin_'/
+    assert_file "app/models/test_app/admin.rb", /"test_app_admin_"/
     assert_file "app/models/test_app/admin/account.rb", /module TestApp/, /class Admin::Account < ApplicationRecord/
   end
 

@@ -281,7 +281,7 @@ module Rails
           version = super
 
           if version.is_a?(Array)
-            version.join("', '")
+            version.join('", "')
           else
             version
           end

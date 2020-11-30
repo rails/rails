@@ -1,14 +1,14 @@
 # This command will automatically be run when you run "rails" with Rails gems
 # installed from the root of your application.
 
-ENGINE_ROOT = File.expand_path('..', __dir__)
-ENGINE_PATH = File.expand_path('../lib/<%= namespaced_name -%>/engine', __dir__)
+ENGINE_ROOT = File.expand_path("..", __dir__)
+ENGINE_PATH = File.expand_path("../lib/<%= namespaced_name -%>/engine", __dir__)
 <% if with_dummy_app? -%>
-APP_PATH = File.expand_path('../<%= dummy_path -%>/config/application', __dir__)
+APP_PATH = File.expand_path("../<%= dummy_path -%>/config/application", __dir__)
 <% end -%>
 
 # Set up gems listed in the Gemfile.
-ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
+ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../Gemfile", __dir__)
 require "bundler/setup" if File.exist?(ENV["BUNDLE_GEMFILE"])
 
 <% if include_all_railties? -%>

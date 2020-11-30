@@ -40,12 +40,12 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "Gemfile" do |content|
-      assert_no_match(/gem 'sass-rails'/, content)
-      assert_no_match(/gem 'web-console'/, content)
-      assert_no_match(/gem 'capybara'/, content)
-      assert_no_match(/gem 'selenium-webdriver'/, content)
-      assert_match(/# gem 'jbuilder'/, content)
-      assert_match(/# gem 'rack-cors'/, content)
+      assert_no_match(/gem "sass-rails"/, content)
+      assert_no_match(/gem "web-console"/, content)
+      assert_no_match(/gem "capybara"/, content)
+      assert_no_match(/gem "selenium-webdriver"/, content)
+      assert_match(/# gem "jbuilder"/, content)
+      assert_match(/# gem "rack-cors"/, content)
     end
 
     assert_file "config/application.rb", /config\.api_only = true/
@@ -61,7 +61,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_if_skip_action_cable_is_given
     run_generator [destination_root, "--api", "--skip-action-cable"]
-    assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
+    assert_file "config/application.rb", /#\s+require\s+[""]action_cable\/engine[""]/
     assert_no_file "config/cable.yml"
     assert_no_file "app/channels"
     assert_file "Gemfile" do |content|
@@ -71,7 +71,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_if_skip_action_mailer_is_given
     run_generator [destination_root, "--api", "--skip-action-mailer"]
-    assert_file "config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/
+    assert_file "config/application.rb", /#\s+require\s+[""]action_mailer\/railtie[""]/
     assert_file "config/environments/development.rb" do |content|
       assert_no_match(/config\.action_mailer/, content)
     end

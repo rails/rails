@@ -16,7 +16,7 @@ module Rails
             )
           end
 
-          test "change to invalid database" do
+          def test_change_to_invalid_database
             output = capture(:stderr) do
               run_generator ["--to", "invalid-db"]
             end
@@ -30,7 +30,7 @@ module Rails
             MSG
           end
 
-          test "change to postgresql" do
+          def test_change_to_postgresql
             run_generator ["--to", "postgresql"]
 
             assert_file("config/database.yml") do |content|
@@ -40,11 +40,11 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use pg as the database for Active Record", content
-              assert_match "gem 'pg', '~> 1.1'", content
+              assert_match 'gem "pg", "~> 1.1"', content
             end
           end
 
-          test "change to mysql" do
+          def test_change_to_mysql
             run_generator ["--to", "mysql"]
 
             assert_file("config/database.yml") do |content|
@@ -54,11 +54,11 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use mysql2 as the database for Active Record", content
-              assert_match "gem 'mysql2', '~> 0.5'", content
+              assert_match 'gem "mysql2", "~> 0.5"', content
             end
           end
 
-          test "change to sqlite3" do
+          def test_change_to_sqlite3
             run_generator ["--to", "sqlite3"]
 
             assert_file("config/database.yml") do |content|
@@ -68,11 +68,11 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use sqlite3 as the database for Active Record", content
-              assert_match "gem 'sqlite3', '~> 1.4'", content
+              assert_match 'gem "sqlite3", "~> 1.4"', content
             end
           end
 
-          test "change from versioned gem to other versioned gem" do
+          def test_change_from_versioned_gem_to_other_versioned_gem
             run_generator ["--to", "sqlite3"]
             run_generator ["--to", "mysql", "--force"]
 
@@ -83,7 +83,7 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use mysql2 as the database for Active Record", content
-              assert_match "gem 'mysql2', '~> 0.5'", content
+              assert_match 'gem "mysql2", "~> 0.5"', content
             end
           end
         end

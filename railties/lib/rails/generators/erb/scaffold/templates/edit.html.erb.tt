@@ -1,6 +1,6 @@
 <h1>Editing <%= singular_table_name.titleize %></h1>
 
-<%%= render 'form', <%= singular_table_name %>: @<%= singular_table_name %> %>
+<%%= render "form", <%= singular_table_name %>: @<%= singular_table_name %> %>
 
-<%%= link_to 'Show', @<%= singular_table_name %> %> |
-<%%= link_to 'Back', <%= index_helper %>_path %>
+<%%= link_to "Show", @<%= singular_table_name %> %> |
+<%%= link_to "Back", <%= index_helper %>_path %>
