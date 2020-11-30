@@ -183,7 +183,7 @@ module ActiveRecord
 
         attr = attribute_alias?(name) ? attribute_alias(name) : name
 
-        decorate_attribute_type(attr, **default) do |subtype|
+        attribute(attr, **default) do |subtype|
           EnumType.new(attr, enum_values, subtype)
         end
 
