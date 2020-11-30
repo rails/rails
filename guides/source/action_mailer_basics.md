@@ -594,7 +594,7 @@ As the `:asset_host` usually is consistent across the application you can
 configure it globally in `config/application.rb`:
 
 ```ruby
-config.action_mailer.asset_host = 'http://example.com'
+config.asset_host = 'http://example.com'
 ```
 
 Now you can display an image inside your email.

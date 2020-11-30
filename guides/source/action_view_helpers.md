@@ -23,11 +23,11 @@ The following is only a brief overview summary of the helpers available in Actio
 
 This module provides methods for generating HTML that links views to assets such as images, JavaScript files, stylesheets, and feeds.
 
-By default, Rails links to these assets on the current host in the public folder, but you can direct Rails to link to assets from a dedicated assets server by setting `config.action_controller.asset_host` in the application configuration, typically in `config/environments/production.rb`. For example, let's say your asset host is `assets.example.com`:
+By default, Rails links to these assets on the current host in the public folder, but you can direct Rails to link to assets from a dedicated assets server by setting `config.asset_host` in the application configuration, typically in `config/environments/production.rb`. For example, let's say your asset host is `assets.example.com`:
 
 ```ruby
-config.action_controller.asset_host = "assets.example.com"
-image_tag("rails.png") 
+config.asset_host = "assets.example.com"
+image_tag("rails.png")
 # => <img src="http://assets.example.com/images/rails.png" />
 ```
 
@@ -36,7 +36,7 @@ image_tag("rails.png")
 Returns a link tag that browsers and feed readers can use to auto-detect an RSS, Atom, or JSON feed.
 
 ```ruby
-auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", { title: "RSS Feed" }) 
+auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", { title: "RSS Feed" })
 # => <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="http://www.example.com/feed.rss" />
 ```
 
@@ -51,7 +51,7 @@ image_path("edit.png") # => /assets/edit.png
 Fingerprint will be added to the filename if config.assets.digest is set to true.
 
 ```ruby
-image_path("edit.png") 
+image_path("edit.png")
 # => /assets/edit-2d1a2db63fc738690021fedb5a65b68e.png
 ```
 
@@ -76,7 +76,7 @@ image_tag("icon.png") # => <img src="/assets/icon.png" />
 Returns an HTML script tag for each of the sources provided. You can pass in the filename (`.js` extension is optional) of JavaScript files that exist in your `app/assets/javascripts` directory for inclusion into the current page or you can pass the full path relative to your document root.
 
 ```ruby
-javascript_include_tag "common" 
+javascript_include_tag "common"
 # => <script src="/assets/common.js"></script>
 ```
 
@@ -93,7 +93,7 @@ javascript_path "common" # => /assets/common.js
 Computes the URL to a JavaScript asset in the `app/assets/javascripts` directory. This will call `javascript_path` internally and merge with your current host or your asset host.
 
 ```ruby
-javascript_url "common" 
+javascript_url "common"
 # => http://www.example.com/assets/common.js
 ```
 
@@ -102,7 +102,7 @@ javascript_url "common"
 Returns a stylesheet link tag for the sources specified as arguments. If you don't specify an extension, `.css` will be appended automatically.
 
 ```ruby
-stylesheet_link_tag "application" 
+stylesheet_link_tag "application"
 # => <link href="/assets/application.css" media="screen" rel="stylesheet" />
 ```
 
@@ -119,7 +119,7 @@ stylesheet_path "application" # => /assets/application.css
 Computes the URL to a stylesheet asset in the `app/assets/stylesheets` directory. This will call `stylesheet_path` internally and merge with your current host or your asset host.
 
 ```ruby
-stylesheet_url "application" 
+stylesheet_url "application"
 # => http://www.example.com/assets/application.css
 ```
 
@@ -256,9 +256,9 @@ For example, let's say we have a standard application layout, but also a special
 Reports the approximate distance in time between two Time or Date objects or integers as seconds. Set `include_seconds` to true if you want more detailed approximations.
 
 ```ruby
-distance_of_time_in_words(Time.now, Time.now + 15.seconds) 
+distance_of_time_in_words(Time.now, Time.now + 15.seconds)
 # => less than a minute
-distance_of_time_in_words(Time.now, Time.now + 15.seconds, include_seconds: true) 
+distance_of_time_in_words(Time.now, Time.now + 15.seconds, include_seconds: true)
 # => less than 20 seconds
 ```
 
