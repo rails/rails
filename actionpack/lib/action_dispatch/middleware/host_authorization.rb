@@ -51,9 +51,9 @@ module ActionDispatch
 
         def sanitize_string(host)
           if host.start_with?(".")
-            /\A(.+\.)?#{Regexp.escape(host[1..-1])}\z/
+            /\A(.+\.)?#{Regexp.escape(host[1..-1])}\z/i
           else
-            host
+            /\A#{host}\z/i
           end
         end
     end
