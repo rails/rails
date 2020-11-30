@@ -42,6 +42,50 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal "Success", body
   end
 
+  test "hosts are matched case insensitive" do
+    @app = ActionDispatch::HostAuthorization.new(App, "Example.local")
+
+    get "/", env: {
+      "HOST" => "example.local",
+    }
+
+    assert_response :ok
+    assert_equal "Success", body
+  end
+
+  test "hosts are matched case insensitive with titlecased host" do
+    @app = ActionDispatch::HostAuthorization.new(App, "example.local")
+
+    get "/", env: {
+      "HOST" => "Example.local",
+    }
+
+    assert_response :ok
+    assert_equal "Success", body
+  end
+
+  test "hosts are matched case insensitive with hosts array" do
+    @app = ActionDispatch::HostAuthorization.new(App, ["Example.local"])
+
+    get "/", env: {
+      "HOST" => "example.local",
+    }
+
+    assert_response :ok
+    assert_equal "Success", body
+  end
+
+  test "regex matches are not title cased" do
+    @app = ActionDispatch::HostAuthorization.new(App, [/www.Example.local/])
+
+    get "/", env: {
+      "HOST" => "www.example.local",
+    }
+
+    assert_response :forbidden
+    assert_match "Blocked host: www.example.local", response.body
+  end
+
   test "passes requests to allowed hosts with domain name notation" do
     @app = ActionDispatch::HostAuthorization.new(App, ".example.com")
 
