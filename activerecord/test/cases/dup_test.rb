@@ -145,7 +145,7 @@ module ActiveRecord
 
     def test_dup_with_default_scope
       prev_default_scopes = Topic.default_scopes
-      Topic.default_scopes = [proc { Topic.where(approved: true) }]
+      Topic.default_scopes = [ActiveRecord::Scoping::DefaultScope.new(proc { Topic.where(approved: true) })]
       topic = Topic.new(approved: false)
       assert_not topic.dup.approved?, "should not be overridden by default scopes"
     ensure
