@@ -337,7 +337,7 @@ module ActiveRecord
 
       private
         def precision_implicit_default
-          if current_adapter?(:Mysql2Adapter)
+          if current_adapter?(:Mysql2Adapter, :SQLite3Adapter)
             { precision: 0 }
           else
             { precision: nil }

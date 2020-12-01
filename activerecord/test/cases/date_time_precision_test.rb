@@ -45,7 +45,7 @@ if supports_datetime_with_precision?
       assert_equal 123456000, foo.updated_at.nsec
     end
 
-    unless current_adapter?(:Mysql2Adapter)
+    unless current_adapter?(:Mysql2Adapter, :SQLite3Adapter)
       def test_no_datetime_precision_isnt_truncated_on_assignment
         @connection.create_table(:foos, force: true)
         @connection.add_column :foos, :created_at, :datetime
