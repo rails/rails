@@ -153,12 +153,12 @@ module ActiveSupport #:nodoc:
 
     def [](*args)
       if html_safe?
-        new_safe_buffer = super
+        new_string = super
 
-        if new_safe_buffer
-          new_safe_buffer.instance_variable_set :@html_safe, true
-        end
+        return unless new_string
 
+        new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
+        new_safe_buffer.instance_variable_set :@html_safe, true
         new_safe_buffer
       else
         to_str[*args]
@@ -214,7 +214,8 @@ module ActiveSupport #:nodoc:
     end
 
     def *(*)
-      new_safe_buffer = super
+      new_string = super
+      new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
       new_safe_buffer.instance_variable_set(:@html_safe, @html_safe)
       new_safe_buffer
     end
