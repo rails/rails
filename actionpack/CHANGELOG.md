@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc2 (December 01, 2020) ##
+
 *   Support for the HTTP header `Feature-Policy` has been revised to reflect
     its [rename](https://github.com/w3c/webappsec-permissions-policy/pull/379) to [`Permissions-Policy`](https://w3c.github.io/webappsec-permissions-policy/#permissions-policy-http-header-field).
 

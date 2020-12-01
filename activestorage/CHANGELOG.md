@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc2 (December 01, 2020) ##
+
 *   Implement `strict_loading` on ActiveStorage associations.
 
     *David Angulo*

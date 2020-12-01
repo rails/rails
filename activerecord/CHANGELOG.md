@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc2 (December 01, 2020) ##
+
 *   Fix odd behavior of inverse_of with multiple belongs_to to same class.
 
     Fixes #35204.

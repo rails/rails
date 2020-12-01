@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc2 (December 01, 2020) ##
+
 *   Ensure `MemoryStore` disables compression by default. Reverts behavior of
     `MemoryStore` to its prior rails `5.1` behavior.
 

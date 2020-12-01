@@ -1,3 +1,5 @@
+## Rails 6.1.0.rc2 (December 01, 2020) ##
+
 *   Change form_with to generate non-remote forms by default.
 
     `form_with` would generate a remote form by default. This would confuse

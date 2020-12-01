@@ -1,3 +1,8 @@
+## Rails 6.1.0.rc2 (December 01, 2020) ##
+
+*   No changes.
+
+
 ## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Sendgrid ingress now passes through the envelope recipient as `X-Original-To`.
