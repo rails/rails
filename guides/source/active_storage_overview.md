@@ -296,7 +296,7 @@ Attaching Files to Records
 
 ### `has_one_attached`
 
-The `has_one_attached` macro sets up a one-to-one mapping between records and
+The [`has_one_attached`][] macro sets up a one-to-one mapping between records and
 files. Each record can have one file attached to it.
 
 For example, suppose your application has a `User` model. If you want each user to
@@ -329,13 +329,13 @@ class SignupController < ApplicationController
 end
 ```
 
-Call `avatar.attach` to attach an avatar to an existing user:
+Call [`avatar.attach`][Attached::One#attach] to attach an avatar to an existing user:
 
 ```ruby
 user.avatar.attach(params[:avatar])
 ```
 
-Call `avatar.attached?` to determine whether a particular user has an avatar:
+Call [`avatar.attached?`][Attached::One#attached?] to determine whether a particular user has an avatar:
 
 ```ruby
 user.avatar.attached?
@@ -350,9 +350,13 @@ class User < ApplicationRecord
 end
 ```
 
+[`has_one_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached
+[Attached::One#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attach
+[Attached::One#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attached-3F
+
 ### `has_many_attached`
 
-The `has_many_attached` macro sets up a one-to-many relationship between records
+The [`has_many_attached`][] macro sets up a one-to-many relationship between records
 and files. Each record can have many files attached to it.
 
 For example, suppose your application has a `Message` model. If you want each
@@ -380,13 +384,13 @@ class MessagesController < ApplicationController
 end
 ```
 
-Call `images.attach` to add new images to an existing message:
+Call [`images.attach`][Attached::Many#attach] to add new images to an existing message:
 
 ```ruby
 @message.images.attach(params[:images])
 ```
 
-Call `images.attached?` to determine whether a particular message has any images:
+Call [`images.attached?`][Attached::Many#attached?] to determine whether a particular message has any images:
 
 ```ruby
 @message.images.attached?
@@ -399,6 +403,10 @@ class Message < ApplicationRecord
   has_many_attached :images, service: :s3
 end
 ```
+
+[`has_many_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_many_attached
+[Attached::Many#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attach
+[Attached::Many#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attached-3F
 
 ### Attaching File/IO Objects
 
@@ -439,8 +447,9 @@ file’s content type automatically, it defaults to application/octet-stream.
 Removing Files
 --------------
 
-To remove an attachment from a model, call `purge` on the attachment. Removal
-can be done in the background if your application is setup to use Active Job.
+To remove an attachment from a model, call [`purge`][Attached::One#purge] on the
+attachment. If your application is set up to use Active Job, removal can be done
+in the background instead by calling [`purge_later`][Attached::One#purge_later].
 Purging deletes the blob and the file from the storage service.
 
 ```ruby
@@ -450,6 +459,9 @@ user.avatar.purge
 # Destroy the associated models and actual resource files async, via Active Job.
 user.avatar.purge_later
 ```
+
+[Attached::One#purge]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge
+[Attached::One#purge_later]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge_later
 
 Linking to Files
 ----------------
@@ -486,7 +498,7 @@ Downloading Files
 -----------------
 
 Sometimes you need to process a blob after it’s uploaded—for example, to convert
-it to a different format. Use `ActiveStorage::Blob#download` to read a blob’s
+it to a different format. Use the attachment's [`download`][Blob#download] method to read a blob’s
 binary data into memory:
 
 ```ruby
@@ -494,8 +506,8 @@ binary = user.avatar.download
 ```
 
 You might want to download a blob to a file on disk so an external program (e.g.
-a virus scanner or media transcoder) can operate on it. Use
-`ActiveStorage::Blob#open` to download a blob to a tempfile on disk:
+a virus scanner or media transcoder) can operate on it. Use the attachment's
+[`open`][Blob#open] method to download a blob to a tempfile on disk:
 
 ```ruby
 message.video.open do |file|
@@ -506,14 +518,19 @@ end
 
 It's important to know that the file is not yet available in the `after_create` callback but in the `after_create_commit` only.
 
+[Blob#download]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-download
+[Blob#open]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-open
+
 Analyzing Files
 ---------------
 
-Active Storage [analyzes](https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyze) files once they've been uploaded by queuing a job in Active Job. Analyzed files will store additional information in the metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling `analyzed?` on it.
+Active Storage [analyzes](https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyze) files once they've been uploaded by queuing a job in Active Job. Analyzed files will store additional information in the metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling [`analyzed?`][] on it.
 
 Image analysis provides `width` and `height` attributes. Video analysis provides these, as well as `duration`, `angle`, and `display_aspect_ratio`.
 
 Analysis requires the `mini_magick` gem. Video analysis also requires the [FFmpeg](https://www.ffmpeg.org/) library, which you must include separately.
+
+[`analyzed?`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyzed-3F
 
 Transforming Images
 -------------------
@@ -524,7 +541,7 @@ To enable variants, add the `image_processing` gem to your `Gemfile`:
 gem 'image_processing'
 ```
 
-To create a variation of an image, call `variant` on the `Blob`. You can pass any transformation to the method supported by the processor. The default processor for Active Storage is MiniMagick, but you can also use [Vips](https://www.rubydoc.info/gems/ruby-vips/Vips/Image).
+To create a variation of an image, call [`variant`][] on the attachment. You can pass any transformation to the method supported by the processor. The default processor for Active Storage is MiniMagick, but you can also use [Vips](https://www.rubydoc.info/gems/ruby-vips/Vips/Image).
 
 When the browser hits the variant URL, Active Storage will lazily transform the
 original blob into the specified format and redirect to its new service
@@ -542,12 +559,15 @@ To switch to the Vips processor, you would add the following to
 config.active_storage.variant_processor = :vips
 ```
 
+[`variant`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-variant
+
 Previewing Files
 ----------------
 
 Some non-image files can be previewed: that is, they can be presented as images.
 For example, a video file can be previewed by extracting its first frame. Out of
-the box, Active Storage supports previewing videos and PDF documents.
+the box, Active Storage supports previewing videos and PDF documents. To create
+a link to a lazily-generated preview, use the attachment's [`preview`][] method:
 
 ```erb
 <ul>
@@ -565,6 +585,7 @@ These libraries are not provided by Rails. You must install them yourself to
 use the built-in previewers. Before you install and use third-party software,
 make sure you understand the licensing implications of doing so.
 
+[`preview`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-preview
 
 Direct Uploads
 --------------
