@@ -64,7 +64,7 @@ module ActiveSupport
       self
     end
 
-    def initialize(constructor = {})
+    def initialize(constructor = nil)
       if constructor.respond_to?(:to_hash)
         super()
         update(constructor)
@@ -72,6 +72,8 @@ module ActiveSupport
         hash = constructor.is_a?(Hash) ? constructor : constructor.to_hash
         self.default = hash.default if hash.default
         self.default_proc = hash.default_proc if hash.default_proc
+      elsif constructor.nil?
+        super()
       else
         super(constructor)
       end
