@@ -836,7 +836,7 @@ Let's create `app/views/articles/new.html.erb` with the following contents:
 ```html+erb
 <h1>New Article</h1>
 
-<%= form_with model: @article, local: true do |form| %>
+<%= form_with model: @article do |form| %>
   <div>
     <%= form.label :title %><br>
     <%= form.text_field :title %>
@@ -858,10 +858,6 @@ helper method instantiates a form builder. In the `form_with` block we call
 methods like [`label`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-label)
 and [`text_field`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-text_field)
 on the form builder to output the appropriate form elements.
-
-NOTE: By default, `form_with` creates a form that submits via Ajax to avoid full
-page reloads. To make this guide easier to follow, we have disabled that feature
-by using `local: true` in the above code.
 
 The resulting output from our `form_with` call will look like:
 
@@ -980,7 +976,7 @@ display any error messages for `title` and `body`:
 ```html+erb
 <h1>New Article</h1>
 
-<%= form_with model: @article, local: true do |form| %>
+<%= form_with model: @article do |form| %>
   <div>
     <%= form.label :title %><br>
     <%= form.text_field :title %>
@@ -1144,7 +1140,7 @@ view called a *partial*. Let's create `app/views/articles/_form.html.erb` with
 the following contents:
 
 ```html+erb
-<%= form_with model: article, local: true do |form| %>
+<%= form_with model: article do |form| %>
   <div>
     <%= form.label :title %><br>
     <%= form.text_field :title %>
@@ -1494,7 +1490,7 @@ So first, we'll wire up the Article show template
 </ul>
 
 <h2>Add a comment:</h2>
-<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
+<%= form_with model: [ @article, @article.comments.build ] do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1573,7 +1569,7 @@ add that to the `app/views/articles/show.html.erb`.
 <% end %>
 
 <h2>Add a comment:</h2>
-<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
+<%= form_with model: [ @article, @article.comments.build ] do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1637,7 +1633,7 @@ following:
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
+<%= form_with model: [ @article, @article.comments.build ] do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1664,7 +1660,7 @@ Let us also move that new comment section out to its own partial. Again, you
 create a file `app/views/comments/_form.html.erb` containing:
 
 ```html+erb
-<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
+<%= form_with model: [ @article, @article.comments.build ] do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>

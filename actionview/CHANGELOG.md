@@ -1,3 +1,14 @@
+*   Change form_with to generate non-remote forms by default.
+
+    `form_with` would generate a remote form by default. This would confuse
+    users because they were forced to handle remote requests.
+
+    All new 6.1 applications will generate non-remote forms by default.
+    When upgrading a 6.0 application you can enable remote forms by default by
+    setting `config.action_view.form_with_generates_remote_forms` to `true`.
+
+    *Petrik de Heus*
+
 *   `ActionView::Helpers::FormBuilder#id` returns the value
     of the `<form>` element's `id` attribute. With a `method` argument, returns
     the `id` attribute for a form field with that name.
