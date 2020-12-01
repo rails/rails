@@ -538,7 +538,7 @@ directory at `app/views/blorgh/comments` and in it a new file called
 
 ```html+erb
 <h3>New comment</h3>
-<%= form_with model: [@article, @article.comments.build], local: true do |form| %>
+<%= form_with model: [@article, @article.comments.build] do |form| %>
   <p>
     <%= form.label :text %><br>
     <%= form.text_area :text %>
