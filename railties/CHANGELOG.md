@@ -1,3 +1,8 @@
+*   Removed manifest.js and application.css in app/assets
+    folder when --skip-sprockets option passed as flag to rails.
+
+    *Cindy Gao*
+
 *   Add support for stylesheets and ERB views to `rails stats`.
 
     *Joel Hawksley*

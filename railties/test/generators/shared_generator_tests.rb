@@ -320,6 +320,8 @@ module SharedGeneratorTests
     run_generator [destination_root, "--skip-sprockets"]
 
     assert_no_file "#{application_path}/config/initializers/assets.rb"
+    assert_no_file "#{application_path}/app/assets/config/manifest.js"
+    assert_no_file "#{application_path}/app/assets/stylesheets/application.css"
 
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']sprockets\/railtie["']/
 
