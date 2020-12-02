@@ -31,7 +31,13 @@ class FilterAttributesTest < ActiveRecord::TestCase
     end
   end
 
-  test "string filter_attributes perform pertial match" do
+  test "filter_attributes affects attribute_for_inspect" do
+    Admin::User.all.each do |user|
+      assert_equal "[FILTERED]", user.attribute_for_inspect(:name)
+    end
+  end
+
+  test "string filter_attributes perform partial match" do
     ActiveRecord::Base.filter_attributes = ["n"]
     Admin::Account.all.each do |account|
       assert_includes account.inspect, "name: [FILTERED]"

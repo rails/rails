@@ -672,14 +672,7 @@ module ActiveRecord
       inspection = if defined?(@attributes) && @attributes
         self.class.attribute_names.collect do |name|
           if _has_attribute?(name)
-            attr = _read_attribute(name)
-            value = if attr.nil?
-              attr.inspect
-            else
-              attr = format_for_inspect(attr)
-              inspection_filter.filter_param(name, attr)
-            end
-            "#{name}: #{value}"
+            "#{name}: #{attribute_for_inspect(name)}"
           end
         end.compact.join(", ")
       else

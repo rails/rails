@@ -1,3 +1,8 @@
+*   Change `attribute_for_inspect` to take `filter_attributes` in consideration.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 6.1.0.rc2 (December 01, 2020) ##
 
 *   Fix odd behavior of inverse_of with multiple belongs_to to same class.
