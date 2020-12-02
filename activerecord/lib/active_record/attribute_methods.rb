@@ -285,7 +285,7 @@ module ActiveRecord
       attr_name = attr_name.to_s
       attr_name = self.class.attribute_aliases[attr_name] || attr_name
       value = _read_attribute(attr_name)
-      format_for_inspect(value)
+      format_for_inspect(attr_name, value)
     end
 
     # Returns +true+ if the specified +attribute+ has been set by the user or by a
@@ -407,13 +407,19 @@ module ActiveRecord
         end
       end
 
-      def format_for_inspect(value)
-        if value.is_a?(String) && value.length > 50
-          "#{value[0, 50]}...".inspect
-        elsif value.is_a?(Date) || value.is_a?(Time)
-          %("#{value.to_s(:inspect)}")
-        else
+      def format_for_inspect(name, value)
+        if value.nil?
           value.inspect
+        else
+          inspected_value = if value.is_a?(String) && value.length > 50
+            "#{value[0, 50]}...".inspect
+          elsif value.is_a?(Date) || value.is_a?(Time)
+            %("#{value.to_s(:inspect)}")
+          else
+            value.inspect
+          end
+
+          inspection_filter.filter_param(name, inspected_value)
         end
       end
 
