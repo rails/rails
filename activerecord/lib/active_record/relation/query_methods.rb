@@ -1505,7 +1505,7 @@ module ActiveRecord
             v1 = v1.uniq
             v2 = v2.uniq
           end
-          v1 == v2 || (!v1 || v1.empty?) && (!v2 || v2.empty?)
+          v1 == v2
         end
       end
   end
