@@ -13,7 +13,10 @@ module ActiveRecord
         const_get(name)
       end
 
-      V6_1 = Current
+      V6_2 = Current
+
+      class V6_1 < V6_2
+      end
 
       class V6_0 < V6_1
         class ReferenceDefinition < ConnectionAdapters::ReferenceDefinition

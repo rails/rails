@@ -186,6 +186,8 @@ module Rails
           end
 
           ActiveSupport.utc_to_local_returns_utc_offset_times = true
+        when "6.2"
+          load_defaults "6.1"
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

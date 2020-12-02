@@ -1,6 +1,6 @@
 {
   "name": "@rails/actiontext",
-  "version": "6.1.0-rc1",
+  "version": "6.2.0-alpha",
   "description": "Edit and display rich text in Rails applications",
   "main": "app/javascript/actiontext/index.js",
   "files": [
