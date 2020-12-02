@@ -88,7 +88,8 @@ logic beyond authentication and authorization. The client of a WebSocket
 connection is called the connection *consumer*. An individual user will create
 one consumer-connection pair per browser tab, window, or device they have open.
 
-Connections are instances of `ApplicationCable::Connection`. In this class, you
+Connections are instances of `ApplicationCable::Connection`, which extends
+[`ActionCable::Connection::Base`][]. In `ApplicationCable::Connection`, you
 authorize the incoming connection, and proceed to establish it if the user can
 be identified.
 
@@ -116,7 +117,7 @@ module ApplicationCable
 end
 ```
 
-Here `identified_by` is a connection identifier that can be used to find the
+Here [`identified_by`][] designates a connection identifier that can be used to find the
 specific connection later. Note that anything marked as an identifier will automatically
 create a delegate by the same name on any channel instances created off the connection.
 
@@ -138,12 +139,14 @@ can use this approach:
 verified_user = User.find_by(id: cookies.encrypted['_session']['user_id'])
 ```
 
+[`ActionCable::Connection::Base`]: https://api.rubyonrails.org/classes/ActionCable/Connection/Base.html
+[`identified_by`]: https://api.rubyonrails.org/classes/ActionCable/Connection/Identification/ClassMethods.html#method-i-identified_by
+
 #### Exception Handling
 
 By default, unhandled exceptions are caught and logged to Rails' logger. If you would like to
 globally intercept these exceptions and report them to an external bug tracking service, for
-example, you can do so with
-[`rescue_from`](https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from).
+example, you can do so with [`rescue_from`][]:
 
 ```ruby
 # app/channels/application_cable/connection.rb
@@ -160,11 +163,13 @@ module ApplicationCable
 end
 ```
 
+[`rescue_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from
+
 ### Channels
 
 A *channel* encapsulates a logical unit of work, similar to what a controller does in a
 regular MVC setup. By default, Rails creates a parent `ApplicationCable::Channel` class
-for encapsulating shared logic between your channels.
+(which extends [`ActionCable::Channel::Base`][]) for encapsulating shared logic between your channels.
 
 #### Parent Channel Setup
 
@@ -189,6 +194,8 @@ class AppearanceChannel < ApplicationCable::Channel
 end
 ```
 
+[`ActionCable::Channel::Base`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Base.html
+
 A consumer could then be subscribed to either or both of these channels.
 
 #### Subscriptions
@@ -209,7 +216,7 @@ end
 
 #### Exception Handling
 
-As with `ActionCable::Connection::Base`, you can also use `rescue_from` on a
+As with `ApplicationCable::Connection`, you can also use [`rescue_from`][] on a
 specific channel to handle raised exceptions:
 
 ```ruby
@@ -300,9 +307,9 @@ consumer.subscriptions.create({ channel: "ChatChannel", room: "2nd Room" })
 ### Streams
 
 *Streams* provide the mechanism by which channels route published content
-(broadcasts) to their subscribers. The following example would
-subscribe to the broadcasting `chat_Best Room` if the room parameter
-is `Best Room`:
+(broadcasts) to their subscribers. For example, the following code uses
+[`stream_from`][] to subscribe to the broadcasting named `chat_Best Room` when
+the value of the `:room` parameter is `"Best Room"`:
 
 ```ruby
 # app/channels/chat_channel.rb
@@ -313,10 +320,18 @@ class ChatChannel < ApplicationCable::Channel
 end
 ```
 
-If you have a stream that is related to a model, then the broadcasting used
-can be generated from the channel and model. The following example would
-subscribe to a broadcasting like `comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`,
-where `Z2lkOi8vVGVzdEFwcC9Qb3N0LzE` is the GlobalID of the Post model.
+Then, elsewhere in your Rails application, you can broadcast to such a room by
+calling [`broadcast`][]:
+
+```ruby
+ActionCable.server.broadcast("chat_Best Room", body: "This Room is Best Room.")
+```
+
+If you have a stream that is related to a model, then the broadcasting name
+can be generated from the channel and model. For example, the following code
+uses [`stream_for`][] to subscribe to a broadcasting like
+`comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`, where `Z2lkOi8vVGVzdEFwcC9Qb3N0LzE` is
+the GlobalID of the Post model.
 
 ```ruby
 class CommentsChannel < ApplicationCable::Channel
@@ -327,13 +342,18 @@ class CommentsChannel < ApplicationCable::Channel
 end
 ```
 
-You can then broadcast to this channel like this:
+You can then broadcast to this channel by calling [`broadcast_to`][]:
 
 ```ruby
 CommentsChannel.broadcast_to(@post, @comment)
 ```
 
-### Broadcasting
+[`broadcast`]: https://api.rubyonrails.org/classes/ActionCable/Server/Broadcasting.html#method-i-broadcast
+[`broadcast_to`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Broadcasting/ClassMethods.html#method-i-broadcast_to
+[`stream_for`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Streams.html#method-i-stream_for
+[`stream_from`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Streams.html#method-i-stream_from
+
+### Broadcastings
 
 A *broadcasting* is a pub/sub link where anything transmitted by a publisher
 is routed directly to the channel subscribers who are streaming that named
@@ -342,25 +362,6 @@ broadcasting. Each channel can be streaming zero or more broadcastings.
 Broadcastings are purely an online queue and time-dependent. If a consumer is
 not streaming (subscribed to a given channel), they'll not get the broadcast
 should they connect later.
-
-Broadcasts are called elsewhere in your Rails application:
-
-```ruby
-WebNotificationsChannel.broadcast_to(
-  current_user,
-  title: 'New things!',
-  body: 'All the news fit to print'
-)
-```
-
-The `WebNotificationsChannel.broadcast_to` call places a message in the current
-subscription adapter's pubsub queue under a separate broadcasting name for each user.
-The default pubsub queue for Action Cable is `redis` in production and `async` in development and
-test environments. For a user with an ID of 1, the broadcasting name would be `web_notifications:1`.
-
-The channel has been instructed to stream everything that arrives at
-`web_notifications:1` directly to the client by invoking the `received`
-callback.
 
 ### Subscriptions
 
@@ -745,9 +746,11 @@ in the development environment.
 
 ### Consumer Configuration
 
-To configure the URL, add a call to `action_cable_meta_tag` in your HTML layout
+To configure the URL, add a call to [`action_cable_meta_tag`][] in your HTML layout
 HEAD. This uses a URL or path typically set via `config.action_cable.url` in the
 environment configuration files.
+
+[`action_cable_meta_tag`]: https://api.rubyonrails.org/classes/ActionCable/Helpers/ActionCableHelper.html#method-i-action_cable_meta_tag
 
 ### Worker Pool Configuration
 
