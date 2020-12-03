@@ -74,8 +74,8 @@ class ActiveStorage::Blob < ActiveStorage::Record
     # that was created ahead of the upload itself on form submission.
     #
     # The signed ID is also used to create stable URLs for the blob through the BlobsController.
-    def find_signed!(id, record: nil)
-      super(id, purpose: :blob_id)
+    def find_signed!(id, record: nil, purpose: :blob_id)
+      super(id, purpose: purpose)
     end
 
     def build_after_upload(io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) #:nodoc:
@@ -143,8 +143,8 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
-  def signed_id
-    super(purpose: :blob_id)
+  def signed_id(purpose: :blob_id)
+    super
   end
 
   # Returns the key pointing to the file on the service that's associated with this blob. The key is the
