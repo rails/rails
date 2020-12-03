@@ -325,6 +325,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       quietly { generator.update_config_files }
 
       assert_no_file "#{app_root}/config/initializers/assets.rb"
+      assert_no_file "#{app_root}/app/assets/config/manifest.js"
+      assert_no_file "#{app_root}/app/assets/stylesheets/application.css"
     end
   end
 
