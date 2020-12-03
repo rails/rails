@@ -8,11 +8,9 @@ module Rails
       include ActiveSupport::Callbacks
 
       attr_reader :route_sets, :paths, :external_routes
-      attr_accessor :eager_load, :after_load_paths
+      attr_accessor :eager_load
+      attr_writer :run_after_load_paths # :nodoc:
       delegate :execute_if_updated, :execute, :updated?, to: :updater
-
-      define_callbacks :load_paths
-      set_callback :load_paths, :after, :run_after_load_paths
 
       def initialize
         @paths      = []
@@ -49,13 +47,12 @@ module Rails
       end
 
       def load_paths
-        run_callbacks :load_paths do
-          paths.each { |path| load(path) }
-        end
+        paths.each { |path| load(path) }
+        run_after_load_paths.call
       end
 
       def run_after_load_paths
-        after_load_paths.call if after_load_paths.respond_to?(:call)
+        @run_after_load_paths ||= -> {}
       end
 
       def finalize!

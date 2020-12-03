@@ -181,7 +181,7 @@ module Rails
             get "/rails/info"            => "rails/info#index",      internal: true
           end
 
-          routes_reloader.after_load_paths = -> do
+          routes_reloader.run_after_load_paths = -> do
             app.routes.append do
               get "/" => "rails/welcome#index", internal: true
             end
