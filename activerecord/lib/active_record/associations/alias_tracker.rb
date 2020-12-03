@@ -32,9 +32,11 @@ module ActiveRecord
             quoted_name ||= connection.quote_table_name(name)
 
             # Table names + table aliases
-            join.left.scan(
-              /JOIN(?:\s+\w+)?\s+(?:\S+\s+)?(?:#{quoted_name}|#{name})\sON/i
-            ).size
+            text_outside_parentheses(join.left).reduce(0) do |acc, part|
+              acc + part.scan(
+                /JOIN(?:\s+\w+)?\s+(?:\S+\s+)?(?:#{quoted_name}|#{name})\sON/i
+              ).size
+            end
           elsif join.is_a?(Arel::Nodes::Join)
             join.left.name == name ? 1 : 0
           else
@@ -76,6 +78,20 @@ module ActiveRecord
       attr_reader :aliases
 
       private
+        def self.text_outside_parentheses(input)
+          return to_enum(__method__, input) unless block_given?
+          depth = 0
+          pointer = 0
+          parts = input.split(/\(|\)/)
+          adds = {?( => 1, ?) => -1 }
+          parts.each_with_index do |part, index|
+            yield(part) if depth == 0
+            pointer += part.size
+            divider = input[pointer + index]
+            depth += adds.fetch(divider) if divider
+          end
+        end
+
         def truncate(name)
           name.slice(0, @connection.table_alias_length - 2)
         end

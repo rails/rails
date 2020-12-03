@@ -80,7 +80,19 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_left_outer_joins_with_string_join
-    assert_equal 16, Author.left_outer_joins(:posts).joins("LEFT OUTER JOIN comments ON comments.post_id = posts.id").count
+    assert_equal 16, Author.left_outer_joins(:posts).joins("LEFT OUTER JOIN comments ON comments.post_id = posts.id").where.not(posts: { title: nil }).count
+  end
+
+  def test_left_outer_joins_with_sub_query_string_join
+    assert_equal 16, Author.left_outer_joins(:posts).joins("LEFT OUTER JOIN (SELECT * FROM comments LEFT OUTER JOIN posts ON comments.post_id = posts.id) c ON c.post_id = posts.id").where.not(posts: { title: nil }).count
+  end
+
+  def test_left_outer_joins_with_sub_query_with_join_string_join
+    assert_equal 16, Author.left_outer_joins(:posts).joins("LEFT OUTER JOIN (#{Comment.joins(:post).to_sql}) c ON c.post_id = posts.id").count
+  end
+
+  def test_left_outer_joins_with_sub_query_with_join_string_join_with_root_condition
+    assert_equal 16, Author.left_outer_joins(:posts).joins("LEFT OUTER JOIN (#{Comment.joins(:post).to_sql}) c ON c.post_id = posts.id").where.not(posts: { title: nil }).count
   end
 
   def test_left_outer_joins_with_arel_join
