@@ -52,7 +52,7 @@ module Rails
       end
 
       def run_after_load_paths
-        @run_after_load_paths ||= -> {}
+        @run_after_load_paths ||= -> { }
       end
 
       def finalize!
