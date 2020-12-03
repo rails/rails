@@ -283,12 +283,36 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
 
     get "/c"
-    assert_equal "5", last_response.body
+    assert_equal "3", last_response.body
 
     app_file "db/schema.rb", ""
 
     get "/c"
-    assert_equal "11", last_response.body
+    assert_equal "7", last_response.body
+  end
+
+  test "routes are only loaded once on boot" do
+    add_to_config <<-RUBY
+      config.cache_classes = false
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      $counter ||= 0
+      $counter += 1
+      Rails.application.routes.draw do
+        get '/c', to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+      end
+    RUBY
+
+    boot_app "development"
+
+    require "rack/test"
+    extend Rack::Test::Methods
+
+    require "#{rails_root}/config/environment"
+
+    get "/c"
+    assert_equal "1", last_response.body
   end
 
   test "columns migrations also trigger reloading" do

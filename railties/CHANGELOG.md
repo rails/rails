@@ -1,3 +1,7 @@
+*   Only execute route reloads once on boot for development environment
+
+    *Louis Cloutier*
+
 *   Removed manifest.js and application.css in app/assets
     folder when --skip-sprockets option passed as flag to rails.
 

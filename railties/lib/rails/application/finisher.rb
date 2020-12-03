@@ -173,6 +173,22 @@ module Rails
         end
       end
 
+      initializer :add_internal_routes do |app|
+        if Rails.env.development?
+          app.routes.prepend do
+            get "/rails/info/properties" => "rails/info#properties", internal: true
+            get "/rails/info/routes"     => "rails/info#routes",     internal: true
+            get "/rails/info"            => "rails/info#index",      internal: true
+          end
+
+          routes_reloader.after_load_paths = -> do
+            app.routes.append do
+              get "/" => "rails/welcome#index", internal: true
+            end
+          end
+        end
+      end
+
       # Set routes reload after the finisher hook to ensure routes added in
       # the hook are taken into account.
       initializer :set_routes_reloader_hook do |app|
@@ -192,22 +208,6 @@ module Rails
           # some sort of reloaders dependency support, to be added.
           require_unload_lock!
           reloader.execute
-        end
-      end
-
-      initializer :add_builtin_route do |app|
-        if Rails.env.development?
-          app.routes.prepend do
-            get "/rails/info/properties" => "rails/info#properties", internal: true
-            get "/rails/info/routes"     => "rails/info#routes", internal: true
-            get "/rails/info"            => "rails/info#index", internal: true
-          end
-
-          app.routes.append do
-            get "/"                      => "rails/welcome#index", internal: true
-          end
-
-          routes_reloader.execute
         end
       end
 
