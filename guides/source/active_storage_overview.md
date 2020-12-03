@@ -611,10 +611,16 @@ directly from the client to the cloud.
     ActiveStorage.start()
     ```
 
-2. Annotate file inputs with the direct upload URL.
+2. Add `direct_upload: true` to your [`file_field`](form_helpers.html#uploading-files).
 
     ```erb
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>
+    ```
+    
+    If you aren't using a [FormBuilder](form_helpers.html#customizing-form-builders), add the data attribute directly:
+
+    ```erb
+    <input type=file data-direct-upload-url="<%= rails_direct_uploads_url %>" />
     ```
 
 3. Configure CORS on third-party storage services to allow direct upload requests.
