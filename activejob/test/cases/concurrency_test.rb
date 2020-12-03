@@ -16,7 +16,7 @@ class ConcurrencyTest < ActiveJob::TestCase
     assert_equal ["Job enqueued with key: ConcurrencyJob:false"], JobBuffer.values
   end
 
-  test "the lock key is cleared after a succssful run" do
+  test "the lock key is cleared after a successful run" do
     perform_enqueued_jobs do
       ConcurrencyJob.perform_later("raising" => false)
       assert_equal ["Job enqueued with key: ConcurrencyJob:false"], JobBuffer.values

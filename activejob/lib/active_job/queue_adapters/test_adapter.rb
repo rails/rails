@@ -39,7 +39,7 @@ module ActiveJob
         @concurrency_count ||= Hash.new { |k, v| k[v] = 0 }
 
         lock_key = job.concurrency_key
-        enqueue_limit = job.concurrency_limit_instance.enqueue_limit
+        enqueue_limit = job.concurrency_strategy_instance.enqueue_limit
 
         if @concurrency_count[lock_key].nil?
           @concurrency_count[lock_key] += 1

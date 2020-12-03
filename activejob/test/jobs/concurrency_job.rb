@@ -5,7 +5,7 @@ require_relative "../support/job_buffer"
 class ConcurrencyJobRetryError < StandardError; end
 
 class ConcurrencyJob < ActiveJob::Base
-  concurrency(limit: 1, keys: ["raising"])
+  exclusively_with(keys: ["raising"])
 
   retry_on ConcurrencyJobRetryError do |job, error|
     puts job.inspect
