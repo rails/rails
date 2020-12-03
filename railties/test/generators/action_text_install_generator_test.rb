@@ -29,6 +29,13 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     assert_match %r"^add .*trix@", yarn_commands
   end
 
+  test "throws warning for incomplete webpacker configuration" do
+    output = run_generator_instance
+    expected = "WARNING: Action Text can't locate your JavaScript bundle to add its package dependencies."
+
+    assert_match expected, output
+  end
+
   test "loads JavaScript dependencies in application.js" do
     application_js = Pathname("app/javascript/packs/application.js").expand_path(destination_root)
     application_js.dirname.mkpath
