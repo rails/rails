@@ -17,7 +17,7 @@ module Rails
       def add_routes
         return if options[:skip_routes]
         return if actions.empty?
-        routing_code = actions.map { |action| "get '#{file_name}/#{action}'" }.join("\n")
+        routing_code = actions.map { |action| "get \"#{file_name}/#{action}\"" }.join("\n")
         route routing_code, namespace: regular_class_path
       end
 
