@@ -5,3 +5,6 @@
 # Once upgraded flip defaults one by one to migrate to the new default.
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
+
+# button_to view helpers consistently render <button> elements.
+# Rails.application.config.action_view.button_to_generates_button_tag = false

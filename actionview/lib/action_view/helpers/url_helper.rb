@@ -29,6 +29,8 @@ module ActionView
         end
       end
 
+      mattr_accessor :button_to_generates_button_tag, default: false
+
       # Basic implementation of url_for to allow use helpers without routes existence
       def url_for(options = nil) # :nodoc:
         case options
@@ -250,12 +252,12 @@ module ActionView
       # ==== Examples
       #   <%= button_to "New", action: "new" %>
       #   # => "<form method="post" action="/controller/new" class="button_to">
-      #   #      <input value="New" type="submit" />
+      #   #      <button type="submit">New</button>
       #   #    </form>"
       #
       #   <%= button_to "New", new_article_path %>
       #   # => "<form method="post" action="/articles/new" class="button_to">
-      #   #      <input value="New" type="submit" />
+      #   #      <button type="submit">New</button>
       #   #    </form>"
       #
       #   <%= button_to [:make_happy, @user] do %>
@@ -269,13 +271,13 @@ module ActionView
       #
       #   <%= button_to "New", { action: "new" }, form_class: "new-thing" %>
       #   # => "<form method="post" action="/controller/new" class="new-thing">
-      #   #      <input value="New" type="submit" />
+      #   #      <button type="submit">New</button>
       #   #    </form>"
       #
       #
       #   <%= button_to "Create", { action: "create" }, remote: true, form: { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
-      #   #      <input value="Create" type="submit" />
+      #   #      <button type="submit">Create</button>
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
       #
@@ -284,7 +286,7 @@ module ActionView
       #                                   method: :delete, data: { confirm: "Are you sure?" } %>
       #   # => "<form method="post" action="/images/delete/1" class="button_to">
       #   #      <input type="hidden" name="_method" value="delete" />
-      #   #      <input data-confirm='Are you sure?' value="Delete Image" type="submit" />
+      #   #      <button data-confirm='Are you sure?' type="submit">Delete Image</button>
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
       #
@@ -293,7 +295,7 @@ module ActionView
       #             method: :delete, remote: true, data: { confirm: 'Are you sure?', disable_with: 'loading...' }) %>
       #   # => "<form class='button_to' method='post' action='http://www.example.com' data-remote='true'>
       #   #       <input name='_method' value='delete' type='hidden' />
-      #   #       <input value='Destroy' type='submit' data-disable-with='loading...' data-confirm='Are you sure?' />
+      #   #       <button type='submit' data-disable-with='loading...' data-confirm='Are you sure?'>Destroy</button>
       #   #       <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #     </form>"
       #   #
@@ -327,8 +329,8 @@ module ActionView
         html_options = convert_options_to_data_attributes(options, html_options)
         html_options["type"] = "submit"
 
-        button = if block_given?
-          content_tag("button", html_options, &block)
+        button = if block_given? || button_to_generates_button_tag
+          content_tag("button", name || url, html_options, &block)
         else
           html_options["value"] = name || url
           tag("input", html_options)

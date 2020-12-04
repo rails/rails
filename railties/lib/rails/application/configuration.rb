@@ -203,6 +203,10 @@ module Rails
           ActiveSupport.utc_to_local_returns_utc_offset_times = true
         when "6.2"
           load_defaults "6.1"
+
+          if respond_to?(:action_view)
+            action_view.button_to_generates_button_tag = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
