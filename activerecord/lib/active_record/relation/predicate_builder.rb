@@ -32,9 +32,9 @@ module ActiveRecord
     def self.references(attributes)
       attributes.each_with_object([]) do |(key, value), result|
         if value.is_a?(Hash)
-          result << key
+          result << Arel.sql(key)
         elsif key.include?(".")
-          result << key.split(".").first
+          result << Arel.sql(key.split(".").first)
         end
       end
     end

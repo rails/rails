@@ -84,7 +84,7 @@ module ActiveRecord
         @references = {}
 
         references.each do |table_name|
-          @references[table_name.to_sym] = table_name if table_name.is_a?(String)
+          @references[table_name.to_sym] = table_name if table_name.is_a?(Arel::Nodes::SqlLiteral)
         end unless references.empty?
 
         joins = make_join_constraints(join_root, join_type)
