@@ -663,10 +663,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_array_on_the_eagers
-    posts = Post.includes(:author, :comments).limit(2).references(:author).where("authors.name = ?", "David")
+    posts = Post.includes(:author, :comments).limit(2).references("author").where("authors.name = ?", "David")
     assert_equal 2, posts.size
 
-    count = Post.includes(:author, :comments).limit(2).references(:author).where("authors.name = ?", "David").count
+    count = Post.includes(:author, :comments).limit(2).references("author").where("authors.name = ?", "David").count
     assert_equal posts.size, count
   end
 
