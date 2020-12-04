@@ -1,3 +1,15 @@
+*   Add benchmark method that can be called from anywhere.
+
+    This method is used as a quick way to measure & log the speed of some code.
+    However, it was previously available only in specific contexts, mainly views and controllers.
+    The new Rails.benchmark can be used in the rest of your app: services, API wrappers, models, etc.
+
+        def test
+          Rails.benchmark("test") { ... }
+        end
+
+    *Simon Perepelitsa*
+
 *   Removed manifest.js and application.css in app/assets
     folder when --skip-sprockets option passed as flag to rails.
 
