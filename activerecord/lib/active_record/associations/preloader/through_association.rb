@@ -4,8 +4,6 @@ module ActiveRecord
   module Associations
     class Preloader
       class ThroughAssociation < Association # :nodoc:
-        PRELOADER = ActiveRecord::Associations::Preloader.new(associate_by_default: false)
-
         def initialize(*)
           super
           @already_loaded = owners.first.association(through_reflection.name).loaded?
@@ -44,7 +42,7 @@ module ActiveRecord
 
         private
           def source_preloaders
-            @source_preloaders ||= PRELOADER.preload(middle_records, source_reflection.name, scope)
+            @source_preloaders ||= ActiveRecord::Associations::Preloader.new(records: middle_records, associations: source_reflection.name, scope: scope, associate_by_default: false).call
           end
 
           def middle_records
@@ -52,7 +50,7 @@ module ActiveRecord
           end
 
           def through_preloaders
-            @through_preloaders ||= PRELOADER.preload(owners, through_reflection.name, through_scope)
+            @through_preloaders ||= ActiveRecord::Associations::Preloader.new(records: owners, associations: through_reflection.name, scope: through_scope, associate_by_default: false).call
           end
 
           def through_reflection

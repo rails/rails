@@ -763,11 +763,9 @@ module ActiveRecord
     def preload_associations(records) # :nodoc:
       preload = preload_values
       preload += includes_values unless eager_loading?
-      preloader = nil
       scope = strict_loading_value ? StrictLoadingScope : nil
       preload.each do |associations|
-        preloader ||= build_preloader
-        preloader.preload records, associations, scope
+        ActiveRecord::Associations::Preloader.new(records: records, associations: associations, scope: scope).call
       end
     end
 
@@ -867,10 +865,6 @@ module ActiveRecord
         else
           yield
         end
-      end
-
-      def build_preloader
-        ActiveRecord::Associations::Preloader.new
       end
 
       def references_eager_loaded_tables?

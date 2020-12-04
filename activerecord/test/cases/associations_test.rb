@@ -361,8 +361,20 @@ class PreloaderTest < ActiveRecord::TestCase
   def test_preload_with_scope
     post = posts(:welcome)
 
-    preloader = ActiveRecord::Associations::Preloader.new
-    preloader.preload([post], :comments, Comment.where(body: "Thank you for the welcome"))
+    preloader = ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments, scope: Comment.where(body: "Thank you for the welcome"))
+    preloader.call
+
+    assert_predicate post.comments, :loaded?
+    assert_equal [comments(:greetings)], post.comments
+  end
+
+  def test_legacy_preload_with_scope
+    post = posts(:welcome)
+
+    assert_deprecated do
+      preloader = ActiveRecord::Associations::Preloader.new
+      preloader.preload([post], :comments, Comment.where(body: "Thank you for the welcome"))
+    end
 
     assert_predicate post.comments, :loaded?
     assert_equal [comments(:greetings)], post.comments
