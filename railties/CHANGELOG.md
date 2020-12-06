@@ -1,3 +1,7 @@
+*   Use correct install flags with Yarn 2.
+
+    *Markus Doits*
+
 *   Removed manifest.js and application.css in app/assets
     folder when --skip-sprockets option passed as flag to rails.
 
