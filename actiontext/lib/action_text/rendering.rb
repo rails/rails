@@ -8,6 +8,7 @@ module ActionText
     extend ActiveSupport::Concern
 
     included do
+      cattr_accessor :default_renderer, instance_accessor: false
       thread_cattr_accessor :renderer, instance_accessor: false
       delegate :render, to: :class
     end
@@ -22,7 +23,7 @@ module ActionText
       end
 
       def render(*args, &block)
-        renderer.render_to_string(*args, &block)
+        (renderer || default_renderer).render_to_string(*args, &block)
       end
     end
   end

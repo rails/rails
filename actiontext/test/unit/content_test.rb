@@ -116,6 +116,15 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_not defined?(::ApplicationController)
   end
 
+  test "renders with layout when in a new thread" do
+    html = "<h1>Hello world</h1>"
+    rendered = nil
+    Thread.new { rendered = content_from_html(html).to_rendered_html_with_layout }.join
+
+    assert_includes rendered, html
+    assert_match %r/\A#{Regexp.escape '<div class="trix-content">'}/, rendered
+  end
+
   private
     def content_from_html(html)
       ActionText::Content.new(html).tap do |content|

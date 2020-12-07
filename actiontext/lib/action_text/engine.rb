@@ -46,7 +46,7 @@ module ActionText
 
     initializer "action_text.renderer" do
       ActiveSupport.on_load(:action_text_content) do
-        self.renderer = Class.new(ActionController::Base).renderer
+        self.default_renderer = Class.new(ActionController::Base).renderer
       end
 
       %i[action_controller_base action_mailer].each do |abstract_controller|
