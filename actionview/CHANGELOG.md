@@ -1,3 +1,11 @@
+*   SanitizeHelper.sanitized_allowed_attributes and SanitizeHelper.sanitized_allowed_tags
+    call safe_list_sanitizer's class method
+
+    Fixes #39586
+
+    *Taufiq Muhammadi*
+
+
 ## Rails 6.0.3.4 (October 07, 2020) ##
 
 *   No changes.
