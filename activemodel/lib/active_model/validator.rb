@@ -147,9 +147,10 @@ module ActiveModel
     # override +validate_each+ with validation logic.
     def validate(record)
       attributes.each do |attribute|
-        value = read_attribute_for_validation(record, attribute)
-        next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
-        validate_each(record, attribute, value)
+        catch(:allowed) do
+          value = read_attribute_for_validation(record, attribute)
+          validate_each(record, attribute, value)
+        end
       end
     end
 
@@ -167,7 +168,9 @@ module ActiveModel
 
     private
       def read_attribute_for_validation(record, attr_name)
-        record.read_attribute_for_validation(attr_name)
+        value = record.read_attribute_for_validation(attr_name)
+        throw(:allowed) if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
+        value
       end
   end
 
