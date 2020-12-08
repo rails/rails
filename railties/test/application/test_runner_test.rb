@@ -1044,7 +1044,7 @@ module ApplicationTests
       def exercise_parallelization_regardless_of_machine_core_count(with:)
         app_path("test/test_helper.rb") do |file_name|
           file = File.read(file_name)
-          file.sub!(/parallelize\(([^\)]*)\)/, "parallelize(workers: 2, with: :#{with})")
+          file.sub!(/parallelize\(([^)]*)\)/, "parallelize(workers: 2, with: :#{with})")
           File.write(file_name, file)
         end
       end

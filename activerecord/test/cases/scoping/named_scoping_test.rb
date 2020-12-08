@@ -194,7 +194,7 @@ class NamedScopingTest < ActiveRecord::TestCase
       e = assert_raises ArgumentError do
         Class.new(Post).class_eval { scope name, -> { where(approved: true) } }
       end
-      assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
+      assert_match(/You tried to define a scope named "#{name}" on the model/, e.message)
     end
   end
 
@@ -380,12 +380,12 @@ class NamedScopingTest < ActiveRecord::TestCase
       e = assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
         klass.class_eval { scope name, -> { where(approved: true) } }
       end
-      assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
+      assert_match(/You tried to define a scope named "#{name}" on the model/, e.message)
 
       e = assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
         subklass.class_eval { scope name, -> { where(approved: true) } }
       end
-      assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
+      assert_match(/You tried to define a scope named "#{name}" on the model/, e.message)
     end
 
     non_conflicts.each do |name|

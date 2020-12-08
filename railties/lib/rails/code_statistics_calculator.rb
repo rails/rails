@@ -12,13 +12,13 @@ class CodeStatisticsCalculator #:nodoc:
       method: /^\s*def\s+[_a-z]/,
     },
     erb: {
-      line_comment: %r{((^\s*<%#.*%>)|(<\!--.*-->))},
+      line_comment: %r{((^\s*<%#.*%>)|(<!--.*-->))},
     },
     css: {
-      line_comment: %r{^\s*\/\*.*\*\/},
+      line_comment: %r{^\s*/\*.*\*/},
     },
     scss: {
-      line_comment: %r{((^\s*\/\*.*\*\/)|(^\s*\/\/))},
+      line_comment: %r{((^\s*/\*.*\*/)|(^\s*//))},
     },
     js: {
       line_comment: %r{^\s*//},

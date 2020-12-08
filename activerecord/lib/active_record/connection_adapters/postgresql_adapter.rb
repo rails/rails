@@ -591,7 +591,7 @@ module ActiveRecord
         def extract_value_from_default(default)
           case default
             # Quoted types
-          when /\A[\(B]?'(.*)'.*::"?([\w. ]+)"?(?:\[\])?\z/m
+          when /\A[(B]?'(.*)'.*::"?([\w. ]+)"?(?:\[\])?\z/m
             # The default 'now'::date is CURRENT_DATE
             if $1 == "now" && $2 == "date"
               nil

@@ -148,7 +148,7 @@ module Rails
 
           def namespaced_commands
             commands.keys.map do |key|
-              if command_root_namespace.match?(/(\A|\:)#{key}\z/)
+              if command_root_namespace.match?(/(\A|:)#{key}\z/)
                 command_root_namespace
               else
                 "#{command_root_namespace}:#{key}"
