@@ -79,7 +79,7 @@ module ActiveSupport
     end
 
     def self.new(logger)
-      logger = logger.dup
+      logger = logger.clone
 
       if logger.formatter
         logger.formatter = logger.formatter.dup
