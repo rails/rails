@@ -1149,6 +1149,29 @@ module ApplicationTests
       assert_equal "test_default", ActionMailer::Base.class_variable_get(:@@deliver_later_queue_name)
     end
 
+    test "ActionMailer::DeliveryJob queue name is :mailers without the Rails defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      require "mail"
+      _ = ActionMailer::Base
+
+      assert_equal :mailers, ActionMailer::Base.class_variable_get(:@@deliver_later_queue_name)
+    end
+
+    test "ActionMailer::DeliveryJob queue name is nil by default in 6.1" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "development"
+
+      require "mail"
+      _ = ActionMailer::Base
+
+      assert_nil ActionMailer::Base.class_variable_get(:@@deliver_later_queue_name)
+    end
+
     test "valid timezone is setup correctly" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
@@ -2438,10 +2461,22 @@ module ApplicationTests
       assert_equal true, ActiveSupport.utc_to_local_returns_utc_offset_times
     end
 
-    test "ActiveStorage.queues[:analysis] is :active_storage_analysis by default" do
+    test "ActiveStorage.queues[:analysis] is :active_storage_analysis by default in 6.0" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.0"'
+
       app "development"
 
       assert_equal :active_storage_analysis, ActiveStorage.queues[:analysis]
+    end
+
+    test "ActiveStorage.queues[:analysis] is nil by default in 6.1" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "development"
+
+      assert_nil ActiveStorage.queues[:analysis]
     end
 
     test "ActiveStorage.queues[:analysis] is nil without Rails 6 defaults" do
@@ -2452,10 +2487,22 @@ module ApplicationTests
       assert_nil ActiveStorage.queues[:analysis]
     end
 
-    test "ActiveStorage.queues[:purge] is :active_storage_purge by default" do
+    test "ActiveStorage.queues[:purge] is :active_storage_purge by default in 6.0" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.0"'
+
       app "development"
 
       assert_equal :active_storage_purge, ActiveStorage.queues[:purge]
+    end
+
+    test "ActiveStorage.queues[:purge] is nil by default in 6.1" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "development"
+
+      assert_nil ActiveStorage.queues[:purge]
     end
 
     test "ActiveStorage.queues[:purge] is nil without Rails 6 defaults" do
@@ -2464,6 +2511,20 @@ module ApplicationTests
       app "development"
 
       assert_nil ActiveStorage.queues[:purge]
+    end
+
+    test "ActiveStorage.queues[:mirror] is nil without Rails 6 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_nil ActiveStorage.queues[:mirror]
+    end
+
+    test "ActiveStorage.queues[:mirror] is nil by default" do
+      app "development"
+
+      assert_nil ActiveStorage.queues[:mirror]
     end
 
     test "ActionCable.server.config.cable is set when missing configuration for the current environment" do
@@ -2513,10 +2574,22 @@ module ApplicationTests
       assert_equal 14.days, ActionMailbox.incinerate_after
     end
 
-    test "ActionMailbox.queues[:incineration] is :action_mailbox_incineration by default" do
+    test "ActionMailbox.queues[:incineration] is :action_mailbox_incineration by default in 6.0" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.0"'
+
       app "development"
 
       assert_equal :action_mailbox_incineration, ActionMailbox.queues[:incineration]
+    end
+
+    test "ActionMailbox.queues[:incineration] is nil by default in 6.1" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "development"
+
+      assert_nil ActionMailbox.queues[:incineration]
     end
 
     test "ActionMailbox.queues[:incineration] can be configured" do
@@ -2529,10 +2602,22 @@ module ApplicationTests
       assert_equal :another_queue, ActionMailbox.queues[:incineration]
     end
 
-    test "ActionMailbox.queues[:routing] is :action_mailbox_routing by default" do
+    test "ActionMailbox.queues[:routing] is :action_mailbox_routing by default in 6.0" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.0"'
+
       app "development"
 
       assert_equal :action_mailbox_routing, ActionMailbox.queues[:routing]
+    end
+
+    test "ActionMailbox.queues[:routing] is nil by default in 6.1" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "development"
+
+      assert_nil ActionMailbox.queues[:routing]
     end
 
     test "ActionMailbox.queues[:routing] can be configured" do

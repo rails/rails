@@ -1,3 +1,9 @@
+*   Change default queue name of the incineration (`:action_mailbox_incineration`) and
+    routing (`:action_mailbox_routing`) jobs to be the job adapter's default (`:default`).
+
+    *Rafael Mendonça França*
+
+
 ## Rails 6.1.0.rc2 (December 01, 2020) ##
 
 *   No changes.

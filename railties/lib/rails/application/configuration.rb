@@ -185,6 +185,20 @@ module Rails
             action_view.form_with_generates_remote_forms = false
           end
 
+          if respond_to?(:active_storage)
+            active_storage.queues.analysis = nil
+            active_storage.queues.purge = nil
+          end
+
+          if respond_to?(:action_mailbox)
+            action_mailbox.queues.incineration = nil
+            action_mailbox.queues.routing = nil
+          end
+
+          if respond_to?(:action_mailer)
+            action_mailer.deliver_later_queue_name = nil
+          end
+
           ActiveSupport.utc_to_local_returns_utc_offset_times = true
         else
           raise "Unknown version #{target_version.to_s.inspect}"
