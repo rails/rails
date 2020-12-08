@@ -31,7 +31,7 @@ module ActiveRecord
     config.active_record.maintain_test_schema = true
     config.active_record.has_many_inversing = false
 
-    config.active_record.queues = ActiveSupport::InheritableOptions.new(destroy: :active_record_destroy)
+    config.active_record.queues = ActiveSupport::InheritableOptions.new
 
     config.eager_load_namespaces << ActiveRecord
 
