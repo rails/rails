@@ -19,7 +19,6 @@ module ResqueJobsManager
   end
 
   def start_workers
-    sleep 1
     @resque_thread = Thread.new do
       w = Resque::Worker.new("integration_tests")
       w.term_child = true
