@@ -1,3 +1,9 @@
+*   Change default queue name of the deliver (`:mailers`) job to be the job adapter's
+    default (`:default`).
+
+    *Rafael Mendonça França*
+
+
 ## Rails 6.1.0.rc2 (December 01, 2020) ##
 
 *   No changes.

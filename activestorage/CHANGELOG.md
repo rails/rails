@@ -1,3 +1,9 @@
+*   Change default queue name of the analysis (`:active_storage_analysis`) and
+    purge (`:active_storage_purge`) jobs to be the job adapter's default (`:default`).
+
+    *Rafael Mendonça França*
+
+
 ## Rails 6.1.0.rc2 (December 01, 2020) ##
 
 *   Implement `strict_loading` on ActiveStorage associations.
