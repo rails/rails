@@ -69,6 +69,7 @@ module ActionView
       #
       def translate(key, **options)
         return key.map { |k| translate(k, **options) } if key.is_a?(Array)
+        key = key.to_s unless key.is_a?(Symbol)
 
         alternatives = if options.key?(:default)
           options[:default].is_a?(Array) ? options.delete(:default).compact : [options.delete(:default)]
