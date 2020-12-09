@@ -33,6 +33,12 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal "", ActiveSupport::Inflector.pluralize("")
   end
 
+  def test_pluralize_with_fallback
+    I18n.stub(:default_locale, :"en-GB") do
+      assert_equal "days", ActiveSupport::Inflector.pluralize("days")
+    end
+  end
+
   test "uncountability of ascii word" do
     word = "HTTP"
     ActiveSupport::Inflector.inflections do |inflect|
