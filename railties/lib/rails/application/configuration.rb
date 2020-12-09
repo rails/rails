@@ -207,6 +207,10 @@ module Rails
           if respond_to?(:action_view)
             action_view.button_to_generates_button_tag = true
           end
+
+          if respond_to?(:active_support)
+            active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

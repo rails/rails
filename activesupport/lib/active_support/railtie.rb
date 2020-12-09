@@ -98,5 +98,13 @@ module ActiveSupport
         end
       end
     end
+
+    initializer "active_support.set_key_generator_hash_digest_class" do |app|
+      config.after_initialize do
+        if klass = app.config.active_support.key_generator_hash_digest_class
+          ActiveSupport::KeyGenerator.hash_digest_class = klass
+        end
+      end
+    end
   end
 end
