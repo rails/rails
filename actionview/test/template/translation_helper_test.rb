@@ -71,6 +71,12 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal "Tue, 08 Jul 2008 12:18:38 +0000", localize(@time, locale: "en")
   end
 
+  def test_converts_key_to_string_as_necessary
+    key = Struct.new(:to_s).new("translations.foo")
+    assert_equal "Foo", translate(key)
+    assert_equal key, translate(:"translations.missing", default: key)
+  end
+
   def test_returns_missing_translation_message_without_span_wrap
     old_value = ActionView::Base.debug_missing_translation
     ActionView::Base.debug_missing_translation = false
