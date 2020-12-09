@@ -1,3 +1,11 @@
+*   Add `config.action_view.image_loading` to configure the default value of
+    the `image_tag` `:loading` option.
+
+    By setting `config.action_view.image_loading = "lazy"`, an application can opt in to
+    lazy loading images sitewide, without changing view code.
+
+    *Jonathan Hefner*
+
 *   `ActionView::Helpers::FormBuilder#id` returns the value
     of the `<form>` element's `id` attribute. With a `method` argument, returns
     the `id` attribute for a form field with that name.
