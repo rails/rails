@@ -35,7 +35,7 @@ class InflectorTest < ActiveSupport::TestCase
 
   def test_pluralize_with_fallback
     I18n.stub(:default_locale, :"en-GB") do
-      assert_equal "days", ActiveSupport::Inflector.pluralize("days")
+      assert_equal "days", ActiveSupport::Inflector.pluralize("day")
     end
   end
 
