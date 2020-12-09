@@ -1289,7 +1289,7 @@ You can specify conditions on the joined tables using the regular [Array](#array
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
-Customer.joins(:orders).where('orders.created_at' => time_range)
+Customer.joins(:orders).where('orders.created_at' => time_range).distinct
 ```
 
 This will find all customers who have orders that were created yesterday, using a `BETWEEN` SQL expression to compare `created_at`.
@@ -1298,7 +1298,26 @@ An alternative and cleaner syntax is to nest the hash conditions:
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
-Customer.joins(:orders).where(orders: { created_at: time_range })
+Customer.joins(:orders).where(orders: { created_at: time_range }).distinct
+```
+
+For more advanced conditions or to reuse an existing named scope, `Relation#merge` may be used. First, let's add a new named scope to the Order model:
+
+```ruby
+class Order < ApplicationRecord
+  belongs_to :customer
+
+  scope :created_in_time_range, ->(time_range) {
+    where(created_at: time_range)
+  }
+end
+```
+
+Now we can use `Relation#merge` to merge in the `created_in_time_range` scope:
+
+```ruby
+time_range = (Time.now.midnight - 1.day)..Time.now.midnight
+Customer.joins(:orders).merge(Order.created_in_time_range(time_range)).distinct
 ```
 
 This will find all customers who have orders that were created yesterday, again using a `BETWEEN` SQL expression.
