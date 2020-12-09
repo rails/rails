@@ -173,6 +173,7 @@ module ActiveRecord
 
         _enum_methods_module.module_eval do
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
+          value_method_names = []
           pairs.each do |label, value|
             if enum_prefix == true
               prefix = "#{name}_"
@@ -186,6 +187,7 @@ module ActiveRecord
             end
 
             value_method_name = "#{prefix}#{label}#{suffix}"
+            value_method_names << value_method_name
             enum_values[label] = value
             label = label.to_s
 
@@ -200,8 +202,6 @@ module ActiveRecord
             # scope :active, -> { where(status: 0) }
             # scope :not_active, -> { where.not(status: 0) }
             if enum_scopes != false
-              klass.send(:detect_negative_condition!, value_method_name)
-
               klass.send(:detect_enum_conflict!, name, value_method_name, true)
               klass.scope value_method_name, -> { where(attr => value) }
 
@@ -209,6 +209,7 @@ module ActiveRecord
               klass.scope "not_#{value_method_name}", -> { where.not(attr => value) }
             end
           end
+          klass.send(:detect_negative_enum_conditions!, value_method_names) if enum_scopes != false
         end
         enum_values.freeze
       end
@@ -264,10 +265,16 @@ module ActiveRecord
         }
       end
 
-      def detect_negative_condition!(method_name)
-        if method_name.start_with?("not_") && logger
-          logger.warn "An enum element in #{self.name} uses the prefix 'not_'." \
-            " This will cause a conflict with auto generated negative scopes."
+      def detect_negative_enum_conditions!(method_names)
+        return unless logger
+
+        method_names.select { |m| m.start_with?("not_") }.each do |potential_not|
+          inverted_form = potential_not.sub("not_", "")
+          if method_names.include?(inverted_form)
+            logger.warn "Enum element '#{potential_not}' in #{self.name} uses the prefix 'not_'." \
+              " This has caused a conflict with auto generated negative scopes." \
+              " Avoid using enum elements starting with 'not' where the positive form is also an element."
+          end
         end
       end
   end

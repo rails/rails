@@ -1,3 +1,9 @@
+*   Only warn about negative enums if a positive form that would cause conflicts exists.
+
+    Fixes #39065.
+
+    *Alex Ghiculescu*
+
 *   Allow the inverse of a `has_one` association that was previously autosaved to be loaded.
 
     Fixes #34255.
