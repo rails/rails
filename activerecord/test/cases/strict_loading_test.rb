@@ -86,6 +86,27 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_strict_loading_is_ignored_in_validation_context
+    with_strict_loading_by_default(Developer) do
+      developer = Developer.first
+      assert_predicate developer, :strict_loading?
+
+      assert_nothing_raised do
+        AuditLogRequired.create! developer_id: developer.id, message: "i am a message"
+      end
+    end
+  end
+
+  def test_strict_loading_with_reflection_is_ignored_in_validation_context
+    with_strict_loading_by_default(Developer) do
+      developer = Developer.first
+      assert_predicate developer, :strict_loading?
+
+      developer.required_audit_logs.build(message: "I am message")
+      developer.save!
+    end
+  end
+
   def test_preload_audit_logs_are_strict_loading_because_parent_is_strict_loading
     developer = Developer.first
 
