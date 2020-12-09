@@ -110,4 +110,12 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     assert_not_predicate subject, :valid?
   end
+
+  def test_allow_nil_works_for_casted_value
+    model_class.validates_numericality_of(:bank_balance, greater_than: 0, allow_nil: true)
+
+    subject = model_class.new(bank_balance: "")
+
+    assert_predicate subject, :valid?
+  end
 end
