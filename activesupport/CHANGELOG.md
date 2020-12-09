@@ -1,11 +1,9 @@
-## Rails 6.1.0.rc2 (December 01, 2020) ##
+## Rails 6.1.0 (December 09, 2020) ##
 
 *   Ensure `MemoryStore` disables compression by default. Reverts behavior of
     `MemoryStore` to its prior rails `5.1` behavior.
 
     *Max Gurewitz*
-
-## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Calling `iso8601` on negative durations retains the negative sign on individual
     digits instead of prepending it.

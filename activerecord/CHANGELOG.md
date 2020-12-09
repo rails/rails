@@ -1,3 +1,5 @@
+## Rails 6.1.0 (December 09, 2020) ##
+
 *   Only warn about negative enums if a positive form that would cause conflicts exists.
 
     Fixes #39065.
@@ -7,9 +9,6 @@
 *   Change `attribute_for_inspect` to take `filter_attributes` in consideration.
 
     *Rafael Mendonça França*
-
-
-## Rails 6.1.0.rc2 (December 01, 2020) ##
 
 *   Fix odd behavior of inverse_of with multiple belongs_to to same class.
 
@@ -32,9 +31,6 @@
     ```
 
     *Sean Doyle*
-
-
-## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Add `connected_to_many` API.
 

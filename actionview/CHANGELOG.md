@@ -1,12 +1,11 @@
+## Rails 6.1.0 (December 09, 2020) ##
+
 *   SanitizeHelper.sanitized_allowed_attributes and SanitizeHelper.sanitized_allowed_tags
     call safe_list_sanitizer's class method
 
     Fixes #39586
 
     *Taufiq Muhammadi*
-
-
-## Rails 6.1.0.rc2 (December 01, 2020) ##
 
 *   Change form_with to generate non-remote forms by default.
 
@@ -18,9 +17,6 @@
     setting `config.action_view.form_with_generates_remote_forms` to `true`.
 
     *Petrik de Heus*
-
-
-## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Yield translated strings to calls of `ActionView::FormBuilder#button`
     when a block is given.

@@ -1,15 +1,9 @@
+## Rails 6.1.0 (December 09, 2020) ##
+
 *   Change default queue name of the incineration (`:action_mailbox_incineration`) and
     routing (`:action_mailbox_routing`) jobs to be the job adapter's default (`:default`).
 
     *Rafael Mendonça França*
-
-
-## Rails 6.1.0.rc2 (December 01, 2020) ##
-
-*   No changes.
-
-
-## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Sendgrid ingress now passes through the envelope recipient as `X-Original-To`.
 
