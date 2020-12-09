@@ -108,9 +108,7 @@ module ActiveModel
         end
       end
 
-      def read_attribute_for_validation(record, attr_name)
-        value = super
-
+      def read_attribute_for_validation(record, attr_name, value)
         return value if record_attribute_changed_in_place?(record, attr_name)
 
         came_from_user = :"#{attr_name}_came_from_user?"
