@@ -149,7 +149,7 @@ module ActiveModel
       attributes.each do |attribute|
         value = record.read_attribute_for_validation(attribute)
         next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
-        value = read_attribute_for_validation(record, attribute, value)
+        value = prepare_value_for_validation(value, record, attribute)
         validate_each(record, attribute, value)
       end
     end
@@ -167,7 +167,7 @@ module ActiveModel
     end
 
     private
-      def read_attribute_for_validation(record, attr_name, value)
+      def prepare_value_for_validation(value, record, attr_name)
         value
       end
   end
