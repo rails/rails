@@ -1,3 +1,9 @@
+*   Only warn about negative enums if a positive form that would cause conflicts exists.
+
+    Fixes #39065.
+
+    *Alex Ghiculescu*
+
 *   Change `attribute_for_inspect` to take `filter_attributes` in consideration.
 
     *Rafael Mendonça França*
