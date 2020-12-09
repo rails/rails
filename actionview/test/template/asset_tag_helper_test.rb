@@ -569,6 +569,16 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal("Cannot pass a :size option with a :height or :width option", exception.message)
   end
 
+  def test_image_tag_loading_attribute_default_value
+    original_image_loading = ActionView::Helpers::AssetTagHelper.image_loading
+    ActionView::Helpers::AssetTagHelper.image_loading = "lazy"
+
+    assert_dom_equal %(<img src="" loading="lazy" />), image_tag("")
+    assert_dom_equal %(<img src="" loading="eager" />), image_tag("", loading: "eager")
+  ensure
+    ActionView::Helpers::AssetTagHelper.image_loading = original_image_loading
+  end
+
   def test_favicon_link_tag
     FaviconLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
