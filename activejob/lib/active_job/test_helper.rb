@@ -8,7 +8,7 @@ module ActiveJob
     delegate :enqueued_jobs, :enqueued_jobs=,
       :performed_jobs, :performed_jobs=,
       to: :queue_adapter
-    
+
     include ActiveSupport::Testing::Assertions
 
     module TestQueueAdapter
