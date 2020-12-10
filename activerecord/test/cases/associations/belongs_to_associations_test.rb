@@ -449,17 +449,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_polymorphic_association_class
     sponsor = Sponsor.new
-    assert_nil sponsor.association(:sponsorable).send(:klass)
+    assert_nil sponsor.association(:sponsorable).klass
     sponsor.association(:sponsorable).reload
     assert_nil sponsor.sponsorable
 
     sponsor.sponsorable_type = "" # the column doesn't have to be declared NOT NULL
-    assert_nil sponsor.association(:sponsorable).send(:klass)
+    assert_nil sponsor.association(:sponsorable).klass
     sponsor.association(:sponsorable).reload
     assert_nil sponsor.sponsorable
 
     sponsor.sponsorable = Member.new name: "Bert"
-    assert_equal Member, sponsor.association(:sponsorable).send(:klass)
+    assert_equal Member, sponsor.association(:sponsorable).klass
   end
 
   def test_with_polymorphic_and_condition
@@ -1110,7 +1110,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     error = assert_raise ArgumentError do
       Class.new(Author).belongs_to :special_author_address, dependent: :nullify
     end
-    assert_equal error.message, "The :dependent option must be one of [:destroy, :delete], but is :nullify"
+    assert_equal error.message, "The :dependent option must be one of [:destroy, :delete, :destroy_async], but is :nullify"
   end
 
   class DestroyableBook < ActiveRecord::Base

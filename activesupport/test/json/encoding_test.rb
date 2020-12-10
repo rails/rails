@@ -164,7 +164,6 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal({ "foo" => { "foo" => "hello" } }, JSON.parse(json))
   end
 
-
   def test_hash_should_pass_encoding_options_to_children_in_as_json
     person = {
       name: "John",

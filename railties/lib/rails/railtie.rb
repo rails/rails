@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/initializable"
+require "active_support/descendants_tracker"
 require "active_support/inflector"
 require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/module/delegation"
@@ -108,6 +109,23 @@ module Rails
   # Since filenames on the load path are shared across gems, be sure that files you load
   # through a railtie have unique names.
   #
+  # == Run another program when the Rails server starts
+  #
+  # In development, it's very usual to have to run another process next to the Rails Server. In example
+  # you might want to start the Webpack or React server. Or maybe you need to run your job scheduler process
+  # like Sidekiq. This is usually done by opening a new shell and running the program from here.
+  #
+  # Rails allow you to specify a +server+ block which will get called when a Rails server starts.
+  # This way, your users don't need to remember to have to open a new shell and run another program, making
+  # this less confusing for everyone.
+  # It can be used like this:
+  #
+  # class MyRailtie < Rails::Railtie
+  #   server do
+  #     WebpackServer.start
+  #   end
+  # end
+  #
   # == Application and Engine
   #
   # An engine is nothing more than a railtie with some initializers already set. And since
@@ -118,6 +136,7 @@ module Rails
   class Railtie
     autoload :Configuration, "rails/railtie/configuration"
 
+    extend ActiveSupport::DescendantsTracker
     include Initializable
 
     ABSTRACT_RAILTIES = %w(Rails::Railtie Rails::Engine Rails::Application)
@@ -127,13 +146,7 @@ module Rails
       delegate :config, to: :instance
 
       def subclasses
-        @subclasses ||= []
-      end
-
-      def inherited(base)
-        unless base.abstract_railtie?
-          subclasses << base
-        end
+        super.reject(&:abstract_railtie?)
       end
 
       def rake_tasks(&blk)
@@ -150,6 +163,10 @@ module Rails
 
       def generators(&blk)
         register_block_for(:generators, &blk)
+      end
+
+      def server(&blk)
+        register_block_for(:server, &blk)
       end
 
       def abstract_railtie?
@@ -244,6 +261,10 @@ module Rails
       def run_tasks_blocks(app) #:nodoc:
         extend Rake::DSL
         each_registered_block(:rake_tasks) { |block| instance_exec(app, &block) }
+      end
+
+      def run_server_blocks(app) #:nodoc:
+        each_registered_block(:server) { |block| block.call(app) }
       end
 
     private

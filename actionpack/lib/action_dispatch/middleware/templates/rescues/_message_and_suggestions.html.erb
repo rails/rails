@@ -1,0 +1,22 @@
+<% if exception.respond_to?(:original_message) && exception.respond_to?(:corrections) %>
+  <div class="exception-message">
+    <%= simple_format h(exception.original_message), { class: "message" }, wrapper_tag: "div" %>
+  </div>
+  <%
+    # The 'did_you_mean' gem can raise exceptions when calling #corrections on
+    # the exception. If it does there are no corrections to show.
+    corrections = exception.corrections rescue []
+  %>
+  <% if corrections.any? %>
+    <b>Did you mean?</b>
+    <ul>
+    <% corrections.each do |correction| %>
+      <li style="list-style-type: none"><%= h correction %></li>
+    <% end %>
+    </ul>
+  <% end %>
+<% else %>
+  <div class="exception-message">
+    <%= simple_format h(exception.message), { class: "message" }, wrapper_tag: "div" %>
+  </div>
+<% end %>

@@ -876,13 +876,6 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal topic.title, Topic.find(1234).title
   end
 
-  def test_update_attributes
-    topic = Topic.find(1)
-    assert_deprecated do
-      topic.update_attributes("title" => "The First Topic Updated")
-    end
-  end
-
   def test_update_parameters
     topic = Topic.find(1)
     assert_nothing_raised do
@@ -913,13 +906,6 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { reply.update!(title: nil, content: "Have a nice evening") }
   ensure
     Reply.clear_validators!
-  end
-
-  def test_update_attributes!
-    reply = Reply.find(2)
-    assert_deprecated do
-      reply.update_attributes!("title" => "The Second Topic of the day updated")
-    end
   end
 
   def test_destroyed_returns_boolean

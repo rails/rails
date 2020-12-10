@@ -6,6 +6,7 @@ require "active_support/time_with_zone"
 require "active_support/core_ext/time/zones"
 require "active_support/core_ext/date_and_time/calculations"
 require "active_support/core_ext/date/calculations"
+require "active_support/core_ext/module/remove_method"
 
 class Time
   include DateAndTime::Calculations
@@ -47,7 +48,9 @@ class Time
       # Time.at can be called with a time or numerical value
       time_or_number = args.first
 
-      if time_or_number.is_a?(ActiveSupport::TimeWithZone) || time_or_number.is_a?(DateTime)
+      if time_or_number.is_a?(ActiveSupport::TimeWithZone)
+        at_without_coercion(time_or_number.to_r).getlocal
+      elsif time_or_number.is_a?(DateTime)
         at_without_coercion(time_or_number.to_f).getlocal
       else
         at_without_coercion(time_or_number)
@@ -103,6 +106,21 @@ class Time
   #   Time.new(2012, 8, 29, 0, 0, 0.5).sec_fraction # => (1/2)
   def sec_fraction
     subsec
+  end
+
+  unless Time.method_defined?(:floor)
+    def floor(precision = 0)
+      change(nsec: 0) + subsec.floor(precision)
+    end
+  end
+
+  # Restricted Ruby version due to a bug in `Time#ceil`
+  # See https://bugs.ruby-lang.org/issues/17025 for more details
+  if RUBY_VERSION <= "2.8"
+    remove_possible_method :ceil
+    def ceil(precision = 0)
+      change(nsec: 0) + subsec.ceil(precision)
+    end
   end
 
   # Returns a new Time where one or more of the elements have been changed according

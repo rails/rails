@@ -18,8 +18,8 @@ module ActionDispatch
 
         def transition_table
           dtrans   = TransitionTable.new
-          marked   = {}
-          state_id = Hash.new { |h, k| h[k] = h.length }
+          marked   = {}.compare_by_identity
+          state_id = Hash.new { |h, k| h[k] = h.length }.compare_by_identity
           dstates  = [firstpos(root)]
 
           until dstates.empty?
@@ -34,7 +34,7 @@ module ActionDispatch
               from = state_id[s]
 
               if u.all? { |pos| pos == DUMMY }
-                to   = state_id[Object.new]
+                to = state_id[Object.new]
                 dtrans[from, to] = sym
                 dtrans.add_accepting(to)
 
@@ -124,7 +124,7 @@ module ActionDispatch
 
         private
           def build_followpos
-            table = Hash.new { |h, k| h[k] = [] }
+            table = Hash.new { |h, k| h[k] = [] }.compare_by_identity
             @ast.each do |n|
               case n
               when Nodes::Cat

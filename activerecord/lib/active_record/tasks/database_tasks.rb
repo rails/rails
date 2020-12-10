@@ -38,12 +38,12 @@ module ActiveRecord
     module DatabaseTasks
       ##
       # :singleton-method:
-      # Extra flags passed to database CLI tool (mysqldump/pg_dump) when calling db:structure:dump
+      # Extra flags passed to database CLI tool (mysqldump/pg_dump) when calling db:schema:dump
       mattr_accessor :structure_dump_flags, instance_accessor: false
 
       ##
       # :singleton-method:
-      # Extra flags passed to database CLI tool when calling db:structure:load
+      # Extra flags passed to database CLI tool when calling db:schema:load
       mattr_accessor :structure_load_flags, instance_accessor: false
 
       extend self
@@ -154,7 +154,9 @@ module ActiveRecord
         begin
           Rails.application.config.load_database_yaml
         rescue
-          $stderr.puts "Rails couldn't infer whether you are using multiple databases from your database.yml and can't generate the tasks for the non-primary databases. If you'd like to use this feature, please simplify your ERB."
+          unless ActiveRecord::Base.suppress_multiple_database_warning
+            $stderr.puts "Rails couldn't infer whether you are using multiple databases from your database.yml and can't generate the tasks for the non-primary databases. If you'd like to use this feature, please simplify your ERB."
+          end
 
           {}
         end
@@ -407,21 +409,21 @@ module ActiveRecord
         end
       end
 
-      def dump_filename(name, format = ActiveRecord::Base.schema_format)
-        filename = if name == "primary"
+      def dump_filename(db_config_name, format = ActiveRecord::Base.schema_format)
+        filename = if ActiveRecord::Base.configurations.primary?(db_config_name)
           schema_file_type(format)
         else
-          "#{name}_#{schema_file_type(format)}"
+          "#{db_config_name}_#{schema_file_type(format)}"
         end
 
         ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
       end
 
-      def cache_dump_filename(name, schema_cache_path: nil)
-        filename = if name == "primary"
+      def cache_dump_filename(db_config_name, schema_cache_path: nil)
+        filename = if ActiveRecord::Base.configurations.primary?(db_config_name)
           "schema_cache.yml"
         else
-          "#{name}_schema_cache.yml"
+          "#{db_config_name}_schema_cache.yml"
         end
 
         schema_cache_path || ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
@@ -494,7 +496,7 @@ module ActiveRecord
 
         def each_current_configuration(environment, name = nil)
           environments = [environment]
-          environments << "test" if environment == "development" && !ENV["DATABASE_URL"]
+          environments << "test" if environment == "development" && !ENV["SKIP_TEST_DATABASE"] && !ENV["DATABASE_URL"]
 
           environments.each do |env|
             ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|

@@ -32,6 +32,7 @@ module CacheInstrumentationBehavior
     assert_equal :fetch_multi, events[0].payload[:super_operation]
     assert_equal ["a", "b"], events[0].payload[:key]
     assert_equal ["b"], events[0].payload[:hits]
+    assert_equal @cache.class.name, events[0].payload[:store]
   end
 
   def test_instrumentation_empty_fetch_multi
@@ -43,6 +44,7 @@ module CacheInstrumentationBehavior
     assert_equal :fetch_multi, events[0].payload[:super_operation]
     assert_equal [], events[0].payload[:key]
     assert_equal [], events[0].payload[:hits]
+    assert_equal @cache.class.name, events[0].payload[:store]
   end
 
   def test_read_multi_instrumentation
@@ -55,6 +57,7 @@ module CacheInstrumentationBehavior
     assert_equal %w[ cache_read_multi.active_support ], events.map(&:name)
     assert_equal ["a", "b"], events[0].payload[:key]
     assert_equal ["b"], events[0].payload[:hits]
+    assert_equal @cache.class.name, events[0].payload[:store]
   end
 
   def test_empty_read_multi_instrumentation
@@ -65,6 +68,7 @@ module CacheInstrumentationBehavior
     assert_equal %w[ cache_read_multi.active_support ], events.map(&:name)
     assert_equal [], events[0].payload[:key]
     assert_equal [], events[0].payload[:hits]
+    assert_equal @cache.class.name, events[0].payload[:store]
   end
 
   private

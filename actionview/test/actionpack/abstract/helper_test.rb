@@ -50,14 +50,6 @@ module AbstractController
       end
     end
 
-    class AbstractInvalidHelpers < AbstractHelpers
-      include ActionController::Helpers
-
-      path = File.expand_path("../../fixtures/helpers_missing", __dir__)
-      $:.unshift(path)
-      self.helpers_path = path
-    end
-
     class TestHelpers < ActiveSupport::TestCase
       def setup
         @controller = AbstractHelpers.new
@@ -110,7 +102,7 @@ module AbstractController
 
     class InvalidHelpersTest < ActiveSupport::TestCase
       def test_controller_raise_error_about_missing_helper
-        e = assert_raise(NameError) { AbstractInvalidHelpers.helper(:missing) }
+        e = assert_raise(NameError) { AbstractHelpers.helper(:missing) }
         assert_equal "uninitialized constant MissingHelper", e.message
       end
     end

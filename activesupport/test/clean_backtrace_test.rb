@@ -42,17 +42,6 @@ class BacktraceCleanerSilencerTest < ActiveSupport::TestCase
   end
 end
 
-class BacktraceCleanerShouldNeverReturnEmpty < ActiveSupport::TestCase
-  test "backtrace should return a backtrace no matter what" do
-    @bc = ActiveSupport::BacktraceCleaner.new
-    @bc.add_silencer { |line| true }
-
-    bt = %w[ first second third ]
-
-    assert_equal bt, @bc.clean(bt.dup)
-  end
-end
-
 class BacktraceCleanerMultipleSilencersTest < ActiveSupport::TestCase
   def setup
     @bc = ActiveSupport::BacktraceCleaner.new
@@ -114,14 +103,20 @@ class BacktraceCleanerDefaultFilterAndSilencerTest < ActiveSupport::TestCase
   end
 
   test "should silence gems from the backtrace" do
-    backtrace = [ "#{Gem.path[0]}/gems/nosuchgem-1.2.3/lib/foo.rb", "other/file.rb" ]
+    backtrace = [ "#{Gem.path[0]}/gems/nosuchgem-1.2.3/lib/foo.rb" ]
     result = @bc.clean(backtrace)
-    assert_equal %w[other/file.rb], result
+    assert_empty result
   end
 
   test "should silence stdlib" do
-    backtrace = ["#{RbConfig::CONFIG["rubylibdir"]}/lib/foo.rb", "other/file.rb"]
+    backtrace = ["#{RbConfig::CONFIG["rubylibdir"]}/lib/foo.rb"]
     result = @bc.clean(backtrace)
-    assert_equal %w[other/file.rb], result
+    assert_empty result
+  end
+
+  test "should preserve lines that have a subpath matching a gem path" do
+    backtrace = [Gem.default_dir, *Gem.path].map { |path| "/parent#{path}/gems/nosuchgem-1.2.3/lib/foo.rb" }
+
+    assert_equal backtrace, @bc.clean(backtrace)
   end
 end

@@ -378,6 +378,10 @@ module ActiveRecord
       def _update_record(values, constraints) # :nodoc:
         constraints = _substitute_values(constraints).map { |attr, bind| attr.eq(bind) }
 
+        if default_scopes.any? && !default_scoped(all_queries: true).where_clause.empty?
+          constraints << default_scoped(all_queries: true).where_clause.ast
+        end
+
         um = arel_table.where(
           constraints.reduce(&:and)
         ).compile_update(_substitute_values(values), primary_key)
@@ -387,6 +391,10 @@ module ActiveRecord
 
       def _delete_record(constraints) # :nodoc:
         constraints = _substitute_values(constraints).map { |attr, bind| attr.eq(bind) }
+
+        if default_scopes.any? && !default_scoped(all_queries: true).where_clause.empty?
+          constraints << default_scoped(all_queries: true).where_clause.ast
+        end
 
         dm = Arel::DeleteManager.new
         dm.from(arel_table)
@@ -569,12 +577,15 @@ module ActiveRecord
     # If you want to change the sti column as well, use #becomes! instead.
     def becomes(klass)
       became = klass.allocate
-      became.send(:initialize)
-      became.instance_variable_set(:@attributes, @attributes)
-      became.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
-      became.instance_variable_set(:@new_record, new_record?)
-      became.instance_variable_set(:@destroyed, destroyed?)
-      became.errors.copy!(errors)
+
+      became.send(:initialize) do |becoming|
+        becoming.instance_variable_set(:@attributes, @attributes)
+        becoming.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
+        becoming.instance_variable_set(:@new_record, new_record?)
+        becoming.instance_variable_set(:@destroyed, destroyed?)
+        becoming.errors.copy!(errors)
+      end
+
       became
     end
 
@@ -626,9 +637,6 @@ module ActiveRecord
       end
     end
 
-    alias update_attributes update
-    deprecate update_attributes: "please, use update instead"
-
     # Updates its receiver just like #update but calls #save! instead
     # of +save+, so an exception is raised if the record is invalid and saving will fail.
     def update!(attributes)
@@ -639,9 +647,6 @@ module ActiveRecord
         save!
       end
     end
-
-    alias update_attributes! update!
-    deprecate update_attributes!: "please, use update! instead"
 
     # Equivalent to <code>update_columns(name => value)</code>.
     def update_column(name, value)

@@ -16,11 +16,11 @@ module ActiveSupport
       PERIOD = "."
       COMMA = ","
 
-      SIGN_MARKER = /\A\-|\+|/
+      SIGN_MARKER = /\A-|\+|/
       DATE_MARKER = /P/
       TIME_MARKER = /T/
-      DATE_COMPONENT = /(\-?\d+(?:[.,]\d+)?)(Y|M|D|W)/
-      TIME_COMPONENT = /(\-?\d+(?:[.,]\d+)?)(H|M|S)/
+      DATE_COMPONENT = /(-?\d+(?:[.,]\d+)?)(Y|M|D|W)/
+      TIME_COMPONENT = /(-?\d+(?:[.,]\d+)?)(H|M|S)/
 
       DATE_TO_PART = { "Y" => :years, "M" => :months, "W" => :weeks, "D" => :days }
       TIME_TO_PART = { "H" => :hours, "M" => :minutes, "S" => :seconds }

@@ -40,7 +40,7 @@ module ActiveModel
         options.slice(*CHECKS.keys).each do |option, option_value|
           case option
           when :odd, :even
-            unless value.to_i.send(CHECKS[option])
+            unless value.to_i.public_send(CHECKS[option])
               record.errors.add(attr_name, option, **filtered_options(value))
             end
           else
@@ -53,7 +53,7 @@ module ActiveModel
 
             option_value = parse_as_number(option_value, precision, scale)
 
-            unless value.send(CHECKS[option], option_value)
+            unless value.public_send(CHECKS[option], option_value)
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
           end
@@ -108,14 +108,14 @@ module ActiveModel
         end
       end
 
-      def read_attribute_for_validation(record, attr_name)
-        return super if record_attribute_changed_in_place?(record, attr_name)
+      def prepare_value_for_validation(value, record, attr_name)
+        return value if record_attribute_changed_in_place?(record, attr_name)
 
         came_from_user = :"#{attr_name}_came_from_user?"
 
         if record.respond_to?(came_from_user)
           if record.public_send(came_from_user)
-            raw_value = record.read_attribute_before_type_cast(attr_name)
+            raw_value = record.public_send(:"#{attr_name}_before_type_cast")
           elsif record.respond_to?(:read_attribute)
             raw_value = record.read_attribute(attr_name)
           end
@@ -126,7 +126,7 @@ module ActiveModel
           end
         end
 
-        raw_value || super
+        raw_value || value
       end
 
       def record_attribute_changed_in_place?(record, attr_name)
@@ -181,6 +181,7 @@ module ActiveModel
       # * <tt>:less_than</tt>
       # * <tt>:less_than_or_equal_to</tt>
       # * <tt>:only_integer</tt>
+      # * <tt>:other_than</tt>
       #
       # For example:
       #

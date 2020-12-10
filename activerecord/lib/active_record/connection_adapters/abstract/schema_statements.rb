@@ -722,7 +722,7 @@ module ActiveRecord
       #
       # generates:
       #
-      #   CREATE INDEX suppliers_name_index ON suppliers(name)
+      #   CREATE INDEX index_suppliers_on_name ON suppliers(name)
       #
       # ====== Creating a index which already exists
       #
@@ -730,7 +730,7 @@ module ActiveRecord
       #
       # generates:
       #
-      #   CREATE INDEX IF NOT EXISTS suppliers_name_index ON suppliers(name)
+      #   CREATE INDEX IF NOT EXISTS index_suppliers_on_name ON suppliers(name)
       #
       # Note: Not supported by MySQL.
       #
@@ -740,7 +740,7 @@ module ActiveRecord
       #
       # generates:
       #
-      #   CREATE UNIQUE INDEX accounts_branch_id_party_id_index ON accounts(branch_id, party_id)
+      #   CREATE UNIQUE INDEX index_accounts_on_branch_id_and_party_id ON accounts(branch_id, party_id)
       #
       # ====== Creating a named index
       #
@@ -770,7 +770,7 @@ module ActiveRecord
       #
       # ====== Creating an index with a sort order (desc or asc, asc is the default)
       #
-      #   add_index(:accounts, [:branch_id, :party_id, :surname], order: {branch_id: :desc, party_id: :asc})
+      #   add_index(:accounts, [:branch_id, :party_id, :surname], name: 'by_branch_desc_party', order: {branch_id: :desc, party_id: :asc})
       #
       # generates:
       #
@@ -890,6 +890,8 @@ module ActiveRecord
       #   rename_index :people, 'index_people_on_last_name', 'index_users_on_last_name'
       #
       def rename_index(table_name, old_name, new_name)
+        old_name = old_name.to_s
+        new_name = new_name.to_s
         validate_index_length!(table_name, new_name)
 
         # this is a naive implementation; some DBs may support this more efficiently (PostgreSQL, for instance)
@@ -1142,6 +1144,11 @@ module ActiveRecord
       #
       #   ALTER TABLE "products" ADD CONSTRAINT price_check CHECK (price > 0)
       #
+      # The +options+ hash can include the following keys:
+      # [<tt>:name</tt>]
+      #   The constraint name. Defaults to <tt>chk_rails_<identifier></tt>.
+      # [<tt>:validate</tt>]
+      #   (PostgreSQL only) Specify whether or not the constraint should be validated. Defaults to +true+.
       def add_check_constraint(table_name, expression, **options)
         return unless supports_check_constraints?
 
@@ -1185,13 +1192,7 @@ module ActiveRecord
         { primary_key: true }
       end
 
-      def assume_migrated_upto_version(version, migrations_paths = nil)
-        unless migrations_paths.nil?
-          ActiveSupport::Deprecation.warn(<<~MSG.squish)
-            Passing migrations_paths to #assume_migrated_upto_version is deprecated and will be removed in Rails 6.1.
-          MSG
-        end
-
+      def assume_migrated_upto_version(version)
         version = version.to_i
         sm_table = quote_table_name(schema_migration.table_name)
 

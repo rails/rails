@@ -106,7 +106,6 @@ module ActionView
         SameCollectionIterator.new(collection, partial, iter_vars)
       end
 
-
       template = find_template(partial, @locals.keys + iter_vars)
 
       layout = if !block && (layout = @options[:layout])

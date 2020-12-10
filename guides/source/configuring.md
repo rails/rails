@@ -60,13 +60,13 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.asset_host` sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints built-in in browsers using different domain aliases. Shorter version of `config.action_controller.asset_host`.
 
-* `config.autoload_once_paths` accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if `config.cache_classes` is `false`, which is the case in development mode by default. Otherwise, all autoloading happens only once. All elements of this array must also be in `autoload_paths`. Default is an empty array.
+* `config.autoload_once_paths` accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if `config.cache_classes` is `false`, which is the default in the development environment. Otherwise, all autoloading happens only once. All elements of this array must also be in `autoload_paths`. Default is an empty array.
 
-* `config.autoload_paths` accepts an array of paths from which Rails will autoload constants. Default is all directories under `app`. It is no longer recommended to adjust this. See [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html#autoload-paths)
+* `config.autoload_paths` accepts an array of paths from which Rails will autoload constants. Default is an empty array. Since [Rails 6](upgrading_ruby_on_rails.html#autoloading), it is not recommended to adjust this. See [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html#autoload-paths).
 
 * `config.add_autoload_paths_to_load_path` says whether autoload paths have to be added to `$LOAD_PATH`. This flag is `true` by default, but it is recommended to be set to `false` in `:zeitwerk` mode early, in `config/application.rb`. Zeitwerk uses absolute paths internally, and applications running in `:zeitwerk` mode do not need `require_dependency`, so models, controllers, jobs, etc. do not need to be in `$LOAD_PATH`. Setting this to `false` saves Ruby from checking these directories when resolving `require` calls with relative paths, and saves Bootsnap work and RAM, since it does not need to build an index for them.
 
-* `config.cache_classes` controls whether or not application classes and modules should be reloaded if they change. Defaults to `false` in development mode, and `true` in production mode. In `test` mode, the default is `false` if Spring is installed, `true` otherwise.
+* `config.cache_classes` controls whether or not application classes and modules should be reloaded if they change. Defaults to `false` in the development environment, and `true` in production. In the test environment, the default is `false` if Spring is installed, `true` otherwise.
 
 * `config.beginning_of_week` sets the default beginning of week for the
 application. Accepts a valid day of week as a symbol (e.g. `:monday`).
@@ -75,7 +75,7 @@ application. Accepts a valid day of week as a symbol (e.g. `:monday`).
 
 * `config.colorize_logging` specifies whether or not to use ANSI color codes when logging information. Defaults to `true`.
 
-* `config.consider_all_requests_local` is a flag. If `true` then any error will cause detailed debugging information to be dumped in the HTTP response, and the `Rails::Info` controller will show the application runtime context in `/rails/info/properties`. `true` by default in development and test environments, and `false` in production mode. For finer-grained control, set this to `false` and implement `show_detailed_exceptions?` in controllers to specify which requests should provide debugging information on errors.
+* `config.consider_all_requests_local` is a flag. If `true` then any error will cause detailed debugging information to be dumped in the HTTP response, and the `Rails::Info` controller will show the application runtime context in `/rails/info/properties`. `true` by default in the development and test environments, and `false` in production. For finer-grained control, set this to `false` and implement `show_detailed_exceptions?` in controllers to specify which requests should provide debugging information on errors.
 
 * `config.console` allows you to set class that will be used as console you run `bin/rails console`. It's best to run it in `console` block:
 
@@ -102,7 +102,7 @@ application. Accepts a valid day of week as a symbol (e.g. `:monday`).
 
 * `config.exceptions_app` sets the exceptions application invoked by the ShowException middleware when an exception happens. Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
 
-* `config.debug_exception_response_format` sets the format used in responses when errors occur in development mode. Defaults to `:api` for API only apps and `:default` for normal apps.
+* `config.debug_exception_response_format` sets the format used in responses when errors occur in the development environment. Defaults to `:api` for API only apps and `:default` for normal apps.
 
 * `config.file_watcher` is the class used to detect file updates in the file system when `config.reload_classes_only_on_change` is `true`. Rails ships with `ActiveSupport::FileUpdateChecker`, the default, and `ActiveSupport::EventedFileUpdateChecker` (this one depends on the [listen](https://github.com/guard/listen) gem). Custom classes must conform to the `ActiveSupport::FileUpdateChecker` API.
 
@@ -114,11 +114,9 @@ numbers. It also filters out sensitive values of database columns when call `#in
 
 * `config.javascript_path` sets the path where your app's JavaScript lives relative to the `app` directory. The default is `javascript`, used by [webpacker](https://github.com/rails/webpacker). An app's configured `javascript_path` will be excluded from `autoload_paths`.
 
-* `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes. If you are setting a value for `config.logger` you must manually pass the value of your formatter to your logger before it is wrapped in an `ActiveSupport::TaggedLogging` instance, Rails will not do it for you.
+* `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all environments. If you are setting a value for `config.logger` you must manually pass the value of your formatter to your logger before it is wrapped in an `ActiveSupport::TaggedLogging` instance, Rails will not do it for you.
 
-* `config.log_level` defines the verbosity of the Rails logger. This option
-defaults to `:debug` for all environments. The available log levels are: `:debug`,
-`:info`, `:warn`, `:error`, `:fatal`, and `:unknown`.
+* `config.log_level` defines the verbosity of the Rails logger. This option defaults to `:debug` for all environments except production, where it defaults to `:info`. The available log levels are: `:debug`, `:info`, `:warn`, `:error`, `:fatal`, and `:unknown`.
 
 * `config.log_tags` accepts a list of: methods that the `request` object responds to, a `Proc` that accepts the `request` object, or something that responds to `to_s`. This makes it easy to tag log lines with debug information like subdomain and request id - both very helpful in debugging multi-user production applications.
 
@@ -149,7 +147,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get a random generated key in test and development environments, other environments should set one in `config/credentials.yml.enc`.
 
-* `config.public_file_server.enabled` configures Rails to serve static files from the public directory. This option defaults to `true`, but in the production environment it is set to `false` because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production mode using WEBrick (it is not recommended to use WEBrick in production) set the option to `true`. Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
+* `config.public_file_server.enabled` configures Rails to serve static files from the public directory. This option defaults to `true`, but in the production environment it is set to `false` because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production using WEBrick (it is not recommended to use WEBrick in production) set the option to `true`. Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
 
 * `config.session_store` specifies what class to use to store the session. Possible values are `:cookie_store` which is the default, `:mem_cache_store`, and `:disabled`. The last one tells Rails not to deal with sessions. Defaults to a cookie store with application name as the session key. Custom session stores can also be specified:
 
@@ -161,7 +159,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `config.time_zone` sets the default time zone for the application and enables time zone awareness for Active Record.
 
-* `config.autoloader` sets the autoloading mode. This option defaults to `:zeitwerk` if `6.0` is specified in `config.load_defaults`. Applications can still use the classic autoloader by setting this value to `:classic` after loading the framework defaults:
+* `config.autoloader` sets the autoloading mode. This option defaults to `:zeitwerk` when `config.load_defaults` is called with `6.0` or greater. Applications can still use the classic autoloader by setting this value to `:classic` after loading the framework defaults:
 
     ```ruby
     config.load_defaults 6.0
@@ -263,7 +261,7 @@ Every Rails application comes with a standard set of middleware which it uses in
    # `beta1.product.com`.
    Rails.application.config.hosts << /.*\.product\.com/
    ```
-   
+
    The provided regexp will be wrapped with both anchors (`\A` and `\z`) so it
    must match the entire hostname. `/product.com/`, for example, once anchored,
    would fail to match `www.product.com`.
@@ -283,7 +281,7 @@ Every Rails application comes with a standard set of middleware which it uses in
 * `Rack::Runtime` sets an `X-Runtime` header, containing the time (in seconds) taken to execute the request.
 * `Rails::Rack::Logger` notifies the logs that the request has begun. After request is complete, flushes all the logs.
 * `ActionDispatch::ShowExceptions` rescues any exception returned by the application and renders nice exception pages if the request is local or if `config.consider_all_requests_local` is set to `true`. If `config.action_dispatch.show_exceptions` is set to `false`, exceptions will be raised regardless.
-* `ActionDispatch::RequestId` makes a unique X-Request-Id header available to the response and enables the `ActionDispatch::Request#uuid` method.
+* `ActionDispatch::RequestId` makes a unique X-Request-Id header available to the response and enables the `ActionDispatch::Request#uuid` method. Configurable with `config.action_dispatch.request_id_header`.
 * `ActionDispatch::RemoteIp` checks for IP spoofing attacks and gets valid `client_ip` from request headers. Configurable with the `config.action_dispatch.ip_spoofing_check`, and `config.action_dispatch.trusted_proxies` options.
 * `Rack::Sendfile` intercepts responses whose body is being served from a file and replaces it with a server specific X-Sendfile header. Configurable with `config.action_dispatch.x_sendfile_header`.
 * `ActionDispatch::Callbacks` runs the prepare callbacks before serving the request.
@@ -429,7 +427,7 @@ in controllers and views. This defaults to `false`.
   `config/environments/production.rb` which is generated by Rails. The
   default value is `true` if this configuration is not set.
 
-* `config.active_record.dump_schemas` controls which database schemas will be dumped when calling `db:structure:dump`.
+* `config.active_record.dump_schemas` controls which database schemas will be dumped when calling `db:schema:dump`.
   The options are `:schema_search_path` (the default) which dumps any schemas listed in `schema_search_path`,
   `:all` which always dumps all schemas regardless of the `schema_search_path`,
   or a string of comma separated schemas.
@@ -437,6 +435,11 @@ in controllers and views. This defaults to `false`.
 * `config.active_record.belongs_to_required_by_default` is a boolean value and
   controls whether a record fails validation if `belongs_to` association is not
   present.
+
+* `config.active_record.action_on_strict_loading_violation` enables raising or
+  logging an exception if strict_loading is set on an association. The default
+  value is `:raise` in all environments. It can be changed to `:log` to send
+  violations to the logger instead of raising.
 
 * `config.active_record.strict_loading_by_default` is a boolean value
   that either enables or disables strict_loading mode by default.
@@ -460,10 +463,17 @@ in controllers and views. This defaults to `false`.
   to be reused when the object being cached of type `ActiveRecord::Relation`
   changes by moving the volatile information (max updated at and count) of
   the relation's cache key into the cache version to support recycling cache key.
-  Defaults to `false`.
 
 * `config.active_record.has_many_inversing` enables setting the inverse record
-  when traversing `belongs_to` to `has_many` associations. Defaults to `false`.
+  when traversing `belongs_to` to `has_many` associations.
+
+* `config.active_record.legacy_connection_handling` allows to enable new connection
+   handling API. For applications using multiple databases, this new API provides
+   support for granular connection swapping.
+
+* `config.active_record.destroy_association_async_job` allows specifying the job that will be used to destroy the associated records in background. It defaults to `ActiveRecord::DestroyAssociationAsyncJob`.
+
+* `config.active_record.queues.destroy` allows specifying the Active Job queue to use for destroy jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). It defaults to `nil`.
 
 The MySQL adapter adds one additional configuration option:
 
@@ -491,9 +501,9 @@ The schema dumper adds two additional configuration options:
 
 `config.action_controller` includes a number of configuration settings:
 
-* `config.action_controller.asset_host` sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself.
+* `config.action_controller.asset_host` sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself. You should only use this if you have a different configuration for Action Mailer, otherwise use `config.asset_host`.
 
-* `config.action_controller.perform_caching` configures whether the application should perform the caching features provided by the Action Controller component or not. Set to `false` in development mode, `true` in production. If it's not specified, the default will be `true`.
+* `config.action_controller.perform_caching` configures whether the application should perform the caching features provided by the Action Controller component or not. Set to `false` in the development environment, `true` in production. If it's not specified, the default will be `true`.
 
 * `config.action_controller.default_static_extension` configures the extension used for cached pages. Defaults to `.html`.
 
@@ -503,15 +513,15 @@ The schema dumper adds two additional configuration options:
 
 * `config.action_controller.request_forgery_protection_token` sets the token parameter name for RequestForgery. Calling `protect_from_forgery` sets it to `:authenticity_token` by default.
 
-* `config.action_controller.allow_forgery_protection` enables or disables CSRF protection. By default this is `false` in test mode and `true` in all other modes.
+* `config.action_controller.allow_forgery_protection` enables or disables CSRF protection. By default this is `false` in the test environment and `true` in all other environments.
 
 * `config.action_controller.forgery_protection_origin_check` configures whether the HTTP `Origin` header should be checked against the site's origin as an additional CSRF defense.
 
 * `config.action_controller.per_form_csrf_tokens` configures whether CSRF tokens are only valid for the method/action they were generated for.
 
-* `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController::Base`. This is false by default.
+* `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController::Base`.
 
-* `config.action_controller.urlsafe_csrf_tokens` configures whether generated CSRF tokens are URL-safe. Defaults to `false`.
+* `config.action_controller.urlsafe_csrf_tokens` configures whether generated CSRF tokens are URL-safe.
 
 * `config.action_controller.relative_url_root` can be used to tell Rails that you are [deploying to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
@@ -624,13 +634,17 @@ Defaults to `'signed cookie'`.
 
   Any exceptions that are not configured will be mapped to 500 Internal Server Error.
 
-* `config.action_dispatch.return_only_media_type_on_content_type` change the
-  return value of `ActionDispatch::Response#content_type` to the Content-Type
-  header without modification. Defaults to `false`.
-
 * `config.action_dispatch.cookies_same_site_protection` configures the default
-  value of the `SameSite` attribute when setting cookies. Defaults to `nil`,
-  which means the `SameSite` attribute is not added.
+  value of the `SameSite` attribute when setting cookies. When set to `nil`, the
+  `SameSite` attribute is not added. To allow the value of the `SameSite` attribute
+  to be configured dynamically based on the request, a proc may be specified.
+  For example:
+
+    ```ruby
+    config.action_dispatch.cookies_same_site_protection = ->(request) do
+      :strict unless request.user_agent == "TestAgent"
+    end
+    ```
 
 * `config.action_dispatch.ssl_default_redirect_status` configures the default
   HTTP status code used when redirecting non-GET/HEAD requests from HTTP to HTTPS
@@ -686,11 +700,13 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.debug_missing_translation` determines whether to wrap the missing translations key in a `<span>` tag or not. This defaults to `true`.
 
-* `config.action_view.form_with_generates_remote_forms` determines whether `form_with` generates remote forms or not. This defaults to `true`.
+* `config.action_view.form_with_generates_remote_forms` determines whether `form_with` generates remote forms or not.
 
-* `config.action_view.form_with_generates_ids` determines whether `form_with` generates ids on inputs. This defaults to `false`.
+* `config.action_view.form_with_generates_ids` determines whether `form_with` generates ids on inputs.
 
 * `config.action_view.default_enforce_utf8` determines whether forms are generated with a hidden tag that forces older versions of Internet Explorer to submit forms encoded in UTF-8. This defaults to `false`.
+
+* `config.action_view.image_loading` specifies a default value for the `loading` attribute of `<img>` tags rendered by the `image_tag` helper. For example, when set to `"lazy"`, `<img>` tags rendered by `image_tag` will include `loading="lazy"`, which [instructs the browser to wait until an image is near the viewport to load it](https://html.spec.whatwg.org/#lazy-loading-attributes). (This value can still be overridden per image by passing e.g. `loading: "eager"` to `image_tag`.) Defaults to `nil`.
 
 * `config.action_view.annotate_rendered_view_with_filenames` determines whether to annotate rendered view with template file names. This defaults to `false`.
 
@@ -711,14 +727,16 @@ Defaults to `'signed cookie'`.
    config.action_mailbox.incinerate_after = 14.days
    ```
 
-* `config.action_mailbox.queues.incineration` accepts a symbol indicating the Active Job queue to use for incineration jobs. It defaults to `:action_mailbox_incineration`.
+* `config.action_mailbox.queues.incineration` accepts a symbol indicating the Active Job queue to use for incineration jobs. When this option is `nil`, incineration jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). It defaults to `:action_mailbox_incineration`.
 
-* `config.action_mailbox.queues.routing` accepts a symbol indicating the Active Job queue to use for routing jobs. It defaults to `:action_mailbox_routing`.
+* `config.action_mailbox.queues.routing` accepts a symbol indicating the Active Job queue to use for routing jobs. When this option is `nil`, routing jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). It defaults to `:action_mailbox_routing`.
 
 
 ### Configuring Action Mailer
 
 There are a number of settings available on `config.action_mailer`:
+
+* `config.action_mailer.asset_host` sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself. You should only use this if you have a different configuration for Action Controller, otherwise use `config.asset_host`.
 
 * `config.action_mailer.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Action Mailer. Set to `nil` to disable logging.
 
@@ -795,7 +813,7 @@ There are a number of settings available on `config.action_mailer`:
 
 * `config.action_mailer.perform_caching` specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
 
-* `config.action_mailer.delivery_job` specifies delivery job for mail. Defaults to `ActionMailer::DeliveryJob`.
+* `config.action_mailer.delivery_job` specifies delivery job for mail.
 
 
 ### Configuring Active Support
@@ -812,9 +830,9 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.time_precision` sets the precision of JSON encoded time values. Defaults to `3`.
 
-* `config.active_support.use_sha1_digests` specifies whether to use SHA-1 instead of MD5 to generate non-sensitive digests, such as the ETag header. Defaults to false.
+* `config.active_support.hash_digest_class` allows configuring the digest class to use to generate non-sensitive digests, such as the ETag header.
 
-* `config.active_support.use_authenticated_message_encryption` specifies whether to use AES-256-GCM authenticated encryption as the default cipher for encrypting messages instead of AES-256-CBC. This is false by default.
+* `config.active_support.use_authenticated_message_encryption` specifies whether to use AES-256-GCM authenticated encryption as the default cipher for encrypting messages instead of AES-256-CBC.
 
 * `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
@@ -832,7 +850,7 @@ There are a few configuration options available in Active Support:
 
 * `ActiveSupport.utc_to_local_returns_utc_offset_times` configures
   `ActiveSupport::TimeZone.utc_to_local` to return a time with a UTC offset
-  instead of a UTC time incorporating that offset. Defaults to `false`.
+  instead of a UTC time incorporating that offset.
 
 ### Configuring Active Job
 
@@ -889,15 +907,13 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.custom_serializers` allows to set custom argument serializers. Defaults to `[]`.
 
-* `config.active_job.return_false_on_aborted_enqueue` change the return value of `#enqueue` to false instead of the job instance when the enqueuing is aborted. Defaults to `false`.
-
 * `config.active_job.log_arguments` controls if the arguments of a job are logged. Defaults to `true`.
 
-* `config.active_job.retry_jitter` controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs. Defaults to `0.0`.
+* `config.active_job.retry_jitter` controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs.
 
 * `config.active_job.skip_after_callbacks_if_terminated` controls whether
   `after_enqueue` / `after_perform` callbacks run when a `before_enqueue` /
-  `before_perform` callback halts with `throw :abort`. Defaults to `false`.
+  `before_perform` callback halts with `throw :abort`.
 
 ### Configuring Action Cable
 
@@ -942,19 +958,19 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 * `config.active_storage.content_types_allowed_inline` accepts an array of strings indicating the content types that Active Storage allows to serve as inline. The default is `%w(image/png image/gif image/jpg image/jpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)`.
 
-* `config.active_storage.queues.analysis` accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+* `config.active_storage.queues.analysis` accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
 
    ```ruby
    config.active_storage.queues.analysis = :low_priority
    ```
 
-* `config.active_storage.queues.purge` accepts a symbol indicating the Active Job queue to use for purge jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+* `config.active_storage.queues.purge` accepts a symbol indicating the Active Job queue to use for purge jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
 
   ```ruby
   config.active_storage.queues.purge = :low_priority
   ```
 
-* `config.active_storage.queues.mirror` accepts a symbol indicating the Active Job queue to use for direct upload mirroring jobs. The default is `:active_storage_mirror`.
+* `config.active_storage.queues.mirror` accepts a symbol indicating the Active Job queue to use for direct upload mirroring jobs. When this option is `nil`, mirroring jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
 
   ```ruby
   config.active_storage.queues.mirror = :low_priority
@@ -999,51 +1015,72 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 `config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, '6.0' also gets the new defaults from every version before it.
 
-#### For '6.1', new defaults from previous versions below and:
+#### For '6.1', defaults from previous versions below and:
 
 - `config.active_record.has_many_inversing`: `true`
+- `config.active_record.legacy_connection_handling`: `false`
 - `config.active_storage.track_variants`: `true`
+- `config.active_storage.queues.analysis`: `nil`
+- `config.active_storage.queues.purge`: `nil`
+- `config.action_mailbox.queues.incineration`: `nil`
+- `config.action_mailbox.queues.routing`: `nil`
+- `config.action_mailer.deliver_later_queue_name`: `nil`
 - `config.active_job.retry_jitter`: `0.15`
 - `config.active_job.skip_after_callbacks_if_terminated`: `true`
 - `config.action_dispatch.cookies_same_site_protection`: `:lax`
 - `config.action_dispatch.ssl_default_redirect_status` = `308`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `true`
 - `config.action_controller.urlsafe_csrf_tokens`: `true`
+- `config.action_view.form_with_generates_remote_forms`: `false`
 
-#### For '6.0', new defaults from previous versions below and:
+#### For '6.0', defaults from previous versions below and:
 
 - `config.autoloader`: `:zeitwerk`
 - `config.action_view.default_enforce_utf8`: `false`
 - `config.action_dispatch.use_cookies_with_metadata`: `true`
-- `config.action_dispatch.return_only_media_type_on_content_type`: `false`
 - `config.action_mailer.delivery_job`: `"ActionMailer::MailDeliveryJob"`
-- `config.active_job.return_false_on_aborted_enqueue`: `true`
 - `config.active_storage.queues.analysis`: `:active_storage_analysis`
 - `config.active_storage.queues.purge`: `:active_storage_purge`
 - `config.active_storage.replace_on_assign_to_many`: `true`
 - `config.active_record.collection_cache_versioning`: `true`
 
-#### For '5.2', new defaults from previous versions below and:
+#### For '5.2', defaults from previous versions below and:
 
 - `config.active_record.cache_versioning`: `true`
 - `config.action_dispatch.use_authenticated_cookie_encryption`: `true`
 - `config.active_support.use_authenticated_message_encryption`: `true`
-- `config.active_support.use_sha1_digests`: `true`
+- `config.active_support.hash_digest_class`: `::Digest::SHA1`
 - `config.action_controller.default_protect_from_forgery`: `true`
 - `config.action_view.form_with_generates_ids`: `true`
 
-#### For '5.1', new defaults from previous versions below and:
+#### For '5.1', defaults from previous versions below and:
 
 - `config.assets.unknown_asset_fallback`: `false`
 - `config.action_view.form_with_generates_remote_forms`: `true`
 
-#### For '5.0':
+#### For '5.0', baseline defaults from below and:
 
 - `config.action_controller.per_form_csrf_tokens`: `true`
 - `config.action_controller.forgery_protection_origin_check`: `true`
 - `ActiveSupport.to_time_preserves_timezone`: `true`
 - `config.active_record.belongs_to_required_by_default`: `true`
 - `config.ssl_options`: `{ hsts: { subdomains: true } }`
+
+#### Baseline defaults:
+
+- `config.action_controller.default_protect_from_forgery`: `false`
+- `config.action_controller.urlsafe_csrf_tokens`: `false`
+- `config.action_dispatch.cookies_same_site_protection`: `nil`
+- `config.action_mailer.delivery_job`: `ActionMailer::DeliveryJob`
+- `config.action_view.form_with_generates_ids`: `false`
+- `config.active_job.retry_jitter`: `0.0`
+- `config.active_job.skip_after_callbacks_if_terminated`: `false`
+- `config.active_record.collection_cache_versioning`: `false`
+- `config.active_record.has_many_inversing`: `false`
+- `config.active_record.legacy_connection_handling`: `true`
+- `config.active_support.use_authenticated_message_encryption`: `false`
+- `config.active_support.hash_digest_class`: `::Digest::MD5`
+- `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
 
 ### Configuring a Database
 
@@ -1061,8 +1098,7 @@ development:
 This will connect to the database named `blog_development` using the `postgresql` adapter. This same information can be stored in a URL and provided via an environment variable like this:
 
 ```ruby
-> puts ENV['DATABASE_URL']
-postgresql://localhost/blog_development?pool=5
+ENV['DATABASE_URL'] # => "postgresql://localhost/blog_development?pool=5"
 ```
 
 The `config/database.yml` file contains sections for three different environments in which Rails can run by default:
@@ -1366,7 +1402,7 @@ You can find more information in the [Unicorn readme](https://bogomips.org/unico
 
 Once you've configured the application server, you must proxy requests to it by configuring your web server appropriately. For example your NGINX config may include:
 
-```
+```nginx
 upstream application_server {
   server 0.0.0.0:8080;
 }
@@ -1408,13 +1444,26 @@ Some parts of Rails can also be configured externally by supplying environment v
 Using Initializer Files
 -----------------------
 
-After loading the framework and any gems in your application, Rails turns to loading initializers. An initializer is any Ruby file stored under `config/initializers` in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks and gems are loaded, such as options to configure settings for these parts.
+After loading the framework and any gems in your application, Rails turns to
+loading initializers. An initializer is any Ruby file stored under
+`config/initializers` in your application. You can use initializers to hold
+configuration settings that should be made after all of the frameworks and gems
+are loaded, such as options to configure settings for these parts.
 
-NOTE: There is no guarantee that your initializers will run after all the gem initializers, so any initialization code that depends on a given gem having been initialized should go into a `config.after_initialize` block.
+The files in `config/initializers` (and any subdirectories of
+`config/initializers`) are sorted and loaded one by one as part of
+the `load_config_initializers` initializer.
 
-NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the initializers folder on down.
+If an initializer has code that relies on code in another initializer, you can
+combine them into a single initializer instead. This makes the dependencies more
+explicit, and can help surface new concepts within your application. Rails also
+supports numbering of initializer file names, but this can lead to file name
+churn. Explicitly loading initializers with `require` is not recommended, since
+it will cause the initializer to get loaded twice.
 
-TIP: While Rails supports numbering of initializer file names for load ordering purposes, a better technique is to place any code that need to load in a specific order within the same file. This reduces file name churn, makes dependencies more explicit, and can help surface new concepts within your application.
+NOTE: There is no guarantee that your initializers will run after all the gem
+initializers, so any initialization code that depends on a given gem having been
+initialized should go into a `config.after_initialize` block.
 
 Initialization events
 ---------------------
@@ -1425,7 +1474,7 @@ Rails has 5 initialization events which can be hooked into (listed in the order 
 
 * `before_initialize`: This is run directly before the initialization process of the application occurs with the `:bootstrap_hook` initializer near the beginning of the Rails initialization process.
 
-* `to_prepare`: Run after the initializers are run for all Railties (including the application itself), but before eager loading and the middleware stack is built. More importantly, will run upon every request in `development`, but only once (during boot-up) in `production` and `test`.
+* `to_prepare`: Run after the initializers are run for all Railties (including the application itself), but before eager loading and the middleware stack is built. More importantly, will run upon every code reload in `development`, but only once (during boot-up) in `production` and `test`.
 
 * `before_eager_load`: This is run directly before eager loading occurs, which is the default behavior for the `production` environment and not for the `development` environment.
 
@@ -1491,7 +1540,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `bootstrap_hook`: Runs all configured `before_initialize` blocks.
 
-* `i18n.callbacks`: In the development environment, sets up a `to_prepare` callback which will call `I18n.reload!` if any of the locales have changed since the last request. In production mode this callback will only run on the first request.
+* `i18n.callbacks`: In the development environment, sets up a `to_prepare` callback which will call `I18n.reload!` if any of the locales have changed since the last request. In production this callback will only run on the first request.
 
 * `active_support.deprecation_behavior`: Sets up deprecation reporting for environments, defaulting to `:log` for development, `:notify` for production, and `:stderr` for test. If a value isn't set for `config.active_support.deprecation` then this initializer will prompt the user to configure this line in the current environment's `config/environments` file. Can be set to an array of values. This initializer also sets up behaviors for disallowed deprecations, defaulting to `:raise` for development and test and `:log` for production. Disallowed deprecation warnings default to an empty array.
 
@@ -1716,7 +1765,7 @@ evented file system monitor to detect changes when `config.cache_classes` is
 
 ```ruby
 group :development do
-  gem 'listen', '~> 3.2'
+  gem 'listen', '~> 3.3'
 end
 ```
 

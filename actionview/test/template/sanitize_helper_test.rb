@@ -40,4 +40,17 @@ class SanitizeHelperTest < ActionView::TestCase
   def test_sanitize_is_marked_safe
     assert_predicate sanitize("<html><script></script></html>"), :html_safe?
   end
+
+  def test_sanitized_allowed_tags_class_method
+    expected = Set.new(["strong", "em", "b", "i", "p", "code", "pre", "tt", "samp", "kbd", "var",
+      "sub", "sup", "dfn", "cite", "big", "small", "address", "hr", "br", "div", "span", "h1", "h2",
+      "h3", "h4", "h5", "h6", "ul", "ol", "li", "dl", "dt", "dd", "abbr", "acronym", "a", "img",
+      "blockquote", "del", "ins"])
+    assert_equal(expected, self.class.sanitized_allowed_tags)
+  end
+
+  def test_sanitized_allowed_attributes_class_method
+    expected = Set.new(["href", "src", "width", "height", "alt", "cite", "datetime", "title", "class", "name", "xml:lang", "abbr"])
+    assert_equal(expected, self.class.sanitized_allowed_attributes)
+  end
 end

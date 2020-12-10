@@ -12,6 +12,7 @@ require "models/category"
 require "models/reply"
 require "models/contact"
 require "models/keyboard"
+require "models/numeric_data"
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   include InTimeZone
@@ -298,13 +299,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "write_attribute" do
     topic = Topic.new
-    topic.send(:write_attribute, :title, "Still another topic")
+    topic.write_attribute :title, "Still another topic"
     assert_equal "Still another topic", topic.title
 
     topic[:title] = "Still another topic: part 2"
     assert_equal "Still another topic: part 2", topic.title
 
-    topic.send(:write_attribute, "title", "Still another topic: part 3")
+    topic.write_attribute "title", "Still another topic: part 3"
     assert_equal "Still another topic: part 3", topic.title
 
     topic["title"] = "Still another topic: part 4"
@@ -395,13 +396,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       super(attr_name, value.downcase)
     end
 
-    topic.send(:write_attribute, :title, "Yet another topic")
+    topic.write_attribute :title, "Yet another topic"
     assert_equal "yet another topic", topic.title
 
     topic[:title] = "Yet another topic: part 2"
     assert_equal "yet another topic: part 2", topic.title
 
-    topic.send(:write_attribute, "title", "Yet another topic: part 3")
+    topic.write_attribute "title", "Yet another topic: part 3"
     assert_equal "yet another topic: part 3", topic.title
 
     topic["title"] = "Yet another topic: part 4"
@@ -566,9 +567,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       meth = "#{prefix}title"
       assert_respond_to topic, meth
-      assert_equal ["title"], topic.send(meth)
-      assert_equal ["title", "a"], topic.send(meth, "a")
-      assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
+      assert_equal ["title"], topic.public_send(meth)
+      assert_equal ["title", "a"], topic.public_send(meth, "a")
+      assert_equal ["title", 1, 2, 3], topic.public_send(meth, 1, 2, 3)
     end
   end
 
@@ -580,9 +581,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       meth = "title#{suffix}"
       assert_respond_to topic, meth
-      assert_equal ["title"], topic.send(meth)
-      assert_equal ["title", "a"], topic.send(meth, "a")
-      assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
+      assert_equal ["title"], topic.public_send(meth)
+      assert_equal ["title", "a"], topic.public_send(meth, "a")
+      assert_equal ["title", 1, 2, 3], topic.public_send(meth, 1, 2, 3)
     end
   end
 
@@ -594,9 +595,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       meth = "#{prefix}title#{suffix}"
       assert_respond_to topic, meth
-      assert_equal ["title"], topic.send(meth)
-      assert_equal ["title", "a"], topic.send(meth, "a")
-      assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
+      assert_equal ["title"], topic.public_send(meth)
+      assert_equal ["title", "a"], topic.public_send(meth, "a")
+      assert_equal ["title", 1, 2, 3], topic.public_send(meth, 1, 2, 3)
     end
   end
 
@@ -1085,6 +1086,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "generated attribute methods ancestors have correct module" do
     mod = Topic.send(:generated_attribute_methods)
     assert_equal "Topic::GeneratedAttributeMethods", mod.inspect
+  end
+
+  test "read_attribute_before_type_cast with aliased attribute" do
+    model = NumericData.new(new_bank_balance: "abcd")
+    assert_equal "abcd", model.read_attribute_before_type_cast("new_bank_balance")
   end
 
   private

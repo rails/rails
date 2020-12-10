@@ -135,17 +135,34 @@ module ActiveRecord
 
     action "Run pending migrations" do
       ActiveRecord::Tasks::DatabaseTasks.migrate
+
+      if ActiveRecord::Base.dump_schema_after_migration
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema(
+          ActiveRecord::Base.connection_db_config
+        )
+      end
     end
 
     def initialize(message = nil)
-      if !message && defined?(Rails.env)
-        super("Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate RAILS_ENV=#{::Rails.env}")
-      elsif !message
-        super("Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate")
-      else
-        super
-      end
+      super(message || detailed_migration_message)
     end
+
+    private
+      def detailed_migration_message
+        message = "Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate"
+        message += " RAILS_ENV=#{::Rails.env}" if defined?(Rails.env)
+        message += "\n\n"
+
+        pending_migrations = ActiveRecord::Base.connection.migration_context.open.pending_migrations
+
+        message += "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}\n\n"
+
+        pending_migrations.each do |pending_migration|
+          message += "#{pending_migration.basename}\n"
+        end
+
+        message
+      end
   end
 
   class ConcurrentMigrationError < MigrationError #:nodoc:
@@ -850,7 +867,7 @@ module ActiveRecord
           change
         end
       else
-        send(direction)
+        public_send(direction)
       end
     ensure
       @connection = nil
@@ -1183,7 +1200,7 @@ module ActiveRecord
 
         finish = migrator.migrations[start_index + steps]
         version = finish ? finish.version : 0
-        send(direction, version)
+        public_send(direction, version)
       end
   end
 
@@ -1397,6 +1414,8 @@ module ActiveRecord
         )
 
         pool.with_connection { |connection| yield(connection) }
+      ensure
+        pool&.disconnect!
       end
 
       MIGRATOR_SALT = 2053462845

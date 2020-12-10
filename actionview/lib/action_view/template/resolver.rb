@@ -156,9 +156,6 @@ module ActionView
       end
     end
 
-    alias :find_all_anywhere :find_all
-    deprecate :find_all_anywhere
-
     def find_all_with_query(query) # :nodoc:
       @cache.cache_query(query) { find_template_paths(File.join(@path, query)) }
     end
@@ -199,22 +196,17 @@ module ActionView
     EXTENSIONS = { locale: ".", formats: ".", variants: "+", handlers: "." }
     DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}"
 
-    def initialize(pattern = nil)
-      if pattern
-        ActiveSupport::Deprecation.warn "Specifying a custom path for #{self.class} is deprecated. Implement a custom Resolver subclass instead."
-        @pattern = pattern
-      else
-        @pattern = DEFAULT_PATTERN
-      end
+    def initialize
+      @pattern = DEFAULT_PATTERN
       @unbound_templates = Concurrent::Map.new
       @path_parser = PathParser.new
-      super()
+      super
     end
 
     def clear_cache
       @unbound_templates.clear
       @path_parser = PathParser.new
-      super()
+      super
     end
 
     private
@@ -330,9 +322,9 @@ module ActionView
   class FileSystemResolver < PathResolver
     attr_reader :path
 
-    def initialize(path, pattern = nil)
+    def initialize(path)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
-      super(pattern)
+      super()
       @path = File.expand_path(path)
     end
 

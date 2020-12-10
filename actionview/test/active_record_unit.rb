@@ -58,7 +58,7 @@ class ActiveRecordTestConnector
           ActiveRecord::Base.configurations = { "sqlite3_ar_integration" => options }
           ActiveRecord::Base.connection
 
-          Object.send(:const_set, :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name("type")) unless Object.const_defined?(:QUOTED_TYPE)
+          Object.const_set :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name("type") unless Object.const_defined?(:QUOTED_TYPE)
         else
           raise "Can't setup connection since ActiveRecord isn't loaded."
         end

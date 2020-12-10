@@ -18,8 +18,9 @@ class Hash
 
   # Removes and returns the key/value pairs matching the given keys.
   #
-  #   { a: 1, b: 2, c: 3, d: 4 }.extract!(:a, :b) # => {:a=>1, :b=>2}
-  #   { a: 1, b: 2 }.extract!(:a, :x)             # => {:a=>1}
+  #   hash = { a: 1, b: 2, c: 3, d: 4 }
+  #   hash.extract!(:a, :b) # => {:a=>1, :b=>2}
+  #   hash                  # => {:c=>3, :d=>4}
   def extract!(*keys)
     keys.each_with_object(self.class.new) { |key, result| result[key] = delete(key) if has_key?(key) }
   end

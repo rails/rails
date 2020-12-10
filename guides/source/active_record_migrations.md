@@ -140,8 +140,8 @@ also start fleshing out the migration.
 
 If the migration name is of the form "AddColumnToTable" or
 "RemoveColumnFromTable" and is followed by a list of column names and
-types then a migration containing the appropriate `add_column` and
-`remove_column` statements will be created.
+types then a migration containing the appropriate [`add_column`][] and
+[`remove_column`][] statements will be created.
 
 ```bash
 $ bin/rails generate migration AddPartNumberToProducts part_number:string
@@ -157,13 +157,13 @@ class AddPartNumberToProducts < ActiveRecord::Migration[6.0]
 end
 ```
 
-If you'd like to add an index on the new column, you can do that as well:
+If you'd like to add an index on the new column, you can do that as well.
 
 ```bash
 $ bin/rails generate migration AddPartNumberToProducts part_number:string:index
 ```
 
-will generate
+will generate the appropriate `add_column` and [`add_index`][] statements:
 
 ```ruby
 class AddPartNumberToProducts < ActiveRecord::Migration[6.0]
@@ -242,7 +242,7 @@ Also, the generator accepts column type as `references` (also available as
 $ bin/rails generate migration AddUserRefToProducts user:references
 ```
 
-generates
+generates the following [`add_reference`][] call:
 
 ```ruby
 class AddUserRefToProducts < ActiveRecord::Migration[6.0]
@@ -253,7 +253,6 @@ end
 ```
 
 This migration will create a `user_id` column and appropriate index.
-For more `add_reference` options, visit the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference).
 
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
 
@@ -273,6 +272,11 @@ class CreateJoinTableCustomerProduct < ActiveRecord::Migration[6.0]
   end
 end
 ```
+
+[`add_column`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column
+[`add_index`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_index
+[`add_reference`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference
+[`remove_column`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_column
 
 ### Model Generators
 
@@ -334,7 +338,7 @@ get to work!
 
 ### Creating a Table
 
-The `create_table` method is one of the most fundamental, but most of the time,
+The [`create_table`][] method is one of the most fundamental, but most of the time,
 will be generated for you from using a model or scaffold generator. A typical
 use would be
 
@@ -368,9 +372,11 @@ comments in migrations for applications with large databases as it helps people
 to understand data model and generate documentation.
 Currently only the MySQL and PostgreSQL adapters support comments.
 
+[`create_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-create_table
+
 ### Creating a Join Table
 
-The migration method `create_join_table` creates an HABTM (has and belongs to
+The migration method [`create_join_table`][] creates an HABTM (has and belongs to
 many) join table. A typical use would be:
 
 ```ruby
@@ -406,9 +412,11 @@ create_join_table :products, :categories do |t|
 end
 ```
 
+[`create_join_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-create_join_table
+
 ### Changing Tables
 
-A close cousin of `create_table` is `change_table`, used for changing existing
+A close cousin of `create_table` is [`change_table`][], used for changing existing
 tables. It is used in a similar fashion to `create_table` but the object
 yielded to the block knows more tricks. For example:
 
@@ -424,9 +432,11 @@ end
 removes the `description` and `name` columns, creates a `part_number` string
 column and adds an index on it. Finally it renames the `upccode` column.
 
+[`change_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_table
+
 ### Changing Columns
 
-Like the `remove_column` and `add_column` Rails provides the `change_column`
+Like the `remove_column` and `add_column` Rails provides the [`change_column`][]
 migration method.
 
 ```ruby
@@ -436,7 +446,7 @@ change_column :products, :part_number, :text
 This changes the column `part_number` on products table to be a `:text` field.
 Note that `change_column` command is irreversible.
 
-Besides `change_column`, the `change_column_null` and `change_column_default`
+Besides `change_column`, the [`change_column_null`][] and [`change_column_default`][]
 methods are used specifically to change a not null constraint and default
 values of a column.
 
@@ -451,6 +461,10 @@ value of the `:approved` field from true to false.
 NOTE: You could also write the above `change_column_default` migration as
 `change_column_default :products, :approved, false`, but unlike the previous
 example, this would make your migration irreversible.
+
+[`change_column`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_column
+[`change_column_default`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_column_default
+[`change_column_null`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_column_null
 
 ### Column Modifiers
 
@@ -511,7 +525,7 @@ remove_foreign_key :accounts, name: :special_fk_name
 
 ### When Helpers aren't Enough
 
-If the helpers provided by Active Record aren't enough you can use the `execute`
+If the helpers provided by Active Record aren't enough you can use the [`execute`][]
 method to execute arbitrary SQL:
 
 ```ruby
@@ -528,6 +542,8 @@ and
 [`ActiveRecord::ConnectionAdapters::Table`](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html)
 (which provides the methods available on the object yielded by `change_table`).
 
+[`execute`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/DatabaseStatements.html#method-i-execute
+
 ### Using the `change` Method
 
 The `change` method is the primary way of writing migrations. It works for the
@@ -535,29 +551,29 @@ majority of cases, where Active Record knows how to reverse the migration
 automatically. Currently, the `change` method supports only these migration
 definitions:
 
-* add_column
-* add_foreign_key
-* add_index
-* add_reference
-* add_timestamps
-* change_column_default (must supply a :from and :to option)
-* change_column_null
-* create_join_table
-* create_table
-* disable_extension
-* drop_join_table
-* drop_table (must supply a block)
-* enable_extension
-* remove_column (must supply a type)
-* remove_foreign_key (must supply a second table)
-* remove_index
-* remove_reference
-* remove_timestamps
-* rename_column
-* rename_index
-* rename_table
+* [`add_column`][]
+* [`add_foreign_key`][]
+* [`add_index`][]
+* [`add_reference`][]
+* [`add_timestamps`][]
+* [`change_column_default`][] (must supply a :from and :to option)
+* [`change_column_null`][]
+* [`create_join_table`][]
+* [`create_table`][]
+* `disable_extension`
+* [`drop_join_table`][]
+* [`drop_table`][] (must supply a block)
+* `enable_extension`
+* [`remove_column`][] (must supply a type)
+* [`remove_foreign_key`][] (must supply a second table)
+* [`remove_index`][]
+* [`remove_reference`][]
+* [`remove_timestamps`][]
+* [`rename_column`][]
+* [`rename_index`][]
+* [`rename_table`][]
 
-`change_table` is also reversible, as long as the block does not call `change`,
+[`change_table`][] is also reversible, as long as the block does not call `change`,
 `change_default` or `remove`.
 
 `remove_column` is reversible if you supply the column type as the third
@@ -571,10 +587,22 @@ remove_column :posts, :slug, :string, null: false, default: ''
 If you're going to need to use any other methods, you should use `reversible`
 or write the `up` and `down` methods instead of using the `change` method.
 
+[`add_foreign_key`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_foreign_key
+[`add_timestamps`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_timestamps
+[`drop_join_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-drop_join_table
+[`drop_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-drop_table
+[`remove_foreign_key`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_foreign_key
+[`remove_index`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_index
+[`remove_reference`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_reference
+[`remove_timestamps`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_timestamps
+[`rename_column`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-rename_column
+[`rename_index`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-rename_index
+[`rename_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-rename_table
+
 ### Using `reversible`
 
 Complex migrations may require processing that Active Record doesn't know how
-to reverse. You can use `reversible` to specify what to do when running a
+to reverse. You can use [`reversible`][] to specify what to do when running a
 migration and what else to do when reverting it. For example:
 
 ```ruby
@@ -617,6 +645,8 @@ example, it might destroy some data. In such cases, you can raise
 `ActiveRecord::IrreversibleMigration` in your `down` block. If someone tries
 to revert your migration, an error message will be displayed saying that it
 can't be done.
+
+[`reversible`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-reversible
 
 ### Using the `up`/`down` Methods
 
@@ -669,7 +699,7 @@ can't be done.
 
 ### Reverting Previous Migrations
 
-You can use Active Record's ability to rollback migrations using the `revert` method:
+You can use Active Record's ability to rollback migrations using the [`revert`][] method:
 
 ```ruby
 require_relative "20121212123456_example_migration"
@@ -724,6 +754,8 @@ but this would have involved a few more steps: reversing the order
 of `create_table` and `reversible`, replacing `create_table`
 by `drop_table`, and finally replacing `up` by `down` and vice-versa.
 This is all taken care of by `revert`.
+
+[`revert`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-revert
 
 Running Migrations
 ------------------
@@ -843,11 +875,11 @@ A migration creating a table and adding an index might produce output like this
 
 Several methods are provided in migrations that allow you to control all this:
 
-| Method               | Purpose
-| -------------------- | -------
-| suppress_messages    | Takes a block as an argument and suppresses any output generated by the block.
-| say                  | Takes a message argument and outputs it as is. A second boolean argument can be passed to specify whether to indent or not.
-| say_with_time        | Outputs text along with how long it took to run its block. If the block returns an integer it assumes it is the number of rows affected.
+| Method                     | Purpose
+| -------------------------- | -------
+| [`suppress_messages`][]    | Takes a block as an argument and suppresses any output generated by the block.
+| [`say`][]                  | Takes a message argument and outputs it as is. A second boolean argument can be passed to specify whether to indent or not.
+| [`say_with_time`][]        | Outputs text along with how long it took to run its block. If the block returns an integer it assumes it is the number of rows affected.
 
 For example, this migration:
 
@@ -889,6 +921,10 @@ generates the following output
 
 If you want Active Record to not output anything, then running `bin/rails db:migrate
 VERBOSE=false` will suppress all output.
+
+[`say`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-say
+[`say_with_time`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-say_with_time
+[`suppress_messages`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-suppress_messages
 
 Changing Existing Migrations
 ----------------------------
@@ -978,7 +1014,7 @@ using a tool specific to the database into `db/structure.sql`. For example, for
 PostgreSQL, the `pg_dump` utility is used. For MySQL and MariaDB, this file will
 contain the output of `SHOW CREATE TABLE` for the various tables.
 
-To load the schema from `db/structure.sql`, run `bin/rails db:structure:load`.
+To load the schema from `db/structure.sql`, run `bin/rails db:schema:load`.
 Loading this file is done by executing the SQL statements it contains. By
 definition, this will create a perfect copy of the database's structure.
 

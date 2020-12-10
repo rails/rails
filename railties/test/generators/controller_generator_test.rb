@@ -11,7 +11,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_help_does_not_show_invoked_generators_options_if_they_already_exist
     content = run_generator ["--help"]
-    assert_no_match(/Helper options\:/, content)
+    assert_no_match(/Helper options:/, content)
   end
 
   def test_controller_skeleton_is_created
@@ -20,7 +20,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_check_class_collision
-    Object.send :const_set, :ObjectController, Class.new
+    Object.const_set :ObjectController, Class.new
     content = capture(:stderr) { run_generator ["object"] }
     assert_match(/The name 'ObjectController' is either already used in your application or reserved/, content)
   ensure

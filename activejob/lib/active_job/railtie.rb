@@ -13,26 +13,25 @@ module ActiveJob
       ActiveSupport.on_load(:active_job) { self.logger = ::Rails.logger }
     end
 
-    initializer "active_job.custom_serializers" do |app|
-      config.after_initialize do
-        custom_serializers = app.config.active_job.delete(:custom_serializers)
+    initializer "active_job.set_configs" do
+      config.after_initialize do |app|
+        options = app.config.active_job
+        options.queue_adapter ||= :async
+
+        custom_serializers = options.delete(:custom_serializers)
         ActiveJob::Serializers.add_serializers custom_serializers
-      end
-    end
 
-    initializer "active_job.set_configs" do |app|
-      options = app.config.active_job
-      options.queue_adapter ||= :async
+        ActiveSupport.on_load(:active_job) do
+          options.each { |k, v| send("#{k}=", v) }
+        end
 
-      ActiveSupport.on_load(:active_job) do
-        options.each do  |k, v|
-          k = "#{k}="
-          send(k, v) if respond_to? k
+        ActiveSupport.on_load(:action_dispatch_integration_test) do
+          include ActiveJob::TestHelper
         end
       end
 
-      ActiveSupport.on_load(:action_dispatch_integration_test) do
-        include ActiveJob::TestHelper
+      ActiveSupport.on_load(:active_record) do
+        self.destroy_association_async_job = ActiveRecord::DestroyAssociationAsyncJob
       end
     end
 

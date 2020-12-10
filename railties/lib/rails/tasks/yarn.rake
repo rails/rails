@@ -8,7 +8,15 @@ namespace :yarn do
     node_env = ENV.fetch("NODE_ENV") do
       valid_node_envs.include?(Rails.env) ? Rails.env : "production"
     end
-    system({ "NODE_ENV" => node_env }, "#{Rails.root}/bin/yarn install --no-progress --frozen-lockfile")
+
+    yarn_flags =
+      if `#{Rails.root}/bin/yarn --version`.start_with?("1")
+        "--no-progress --frozen-lockfile"
+      else
+        "--immutable"
+      end
+
+    system({ "NODE_ENV" => node_env }, "#{Rails.root}/bin/yarn install #{yarn_flags}")
   end
 end
 

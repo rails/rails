@@ -155,8 +155,23 @@ module ActiveRecord
 
     module ClassMethods # :nodoc:
       private
+        if Module.method(:method_defined?).arity == 1 # MRI 2.5 and older
+          using Module.new {
+            refine Module do
+              def method_defined?(method, inherit = true)
+                if inherit
+                  super(method)
+                else
+                  instance_methods(false).include?(method.to_sym)
+                end
+              end
+            end
+          }
+        end
+
         def define_non_cyclic_method(name, &block)
-          return if instance_methods(false).include?(name)
+          return if method_defined?(name, false)
+
           define_method(name) do |*args|
             result = true; @_already_called ||= {}
             # Loop prevention for validation of associations
@@ -442,13 +457,13 @@ module ActiveRecord
           if autosave && record.marked_for_destruction?
             record.destroy
           elsif autosave != false
-            key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
+            key = reflection.options[:primary_key] ? public_send(reflection.options[:primary_key]) : id
 
-            if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
+            if (autosave && record.changed_for_autosave?) || record_changed?(reflection, record, key)
               unless reflection.through_reflection
                 record[reflection.foreign_key] = key
                 if inverse_reflection = reflection.inverse_of
-                  record.association(inverse_reflection.name).loaded!
+                  record.association(inverse_reflection.name).inversed_from(self)
                 end
               end
 
@@ -491,7 +506,7 @@ module ActiveRecord
             saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
 
             if association.updated?
-              association_id = record.send(reflection.options[:primary_key] || :id)
+              association_id = record.public_send(reflection.options[:primary_key] || :id)
               self[reflection.foreign_key] = association_id
               association.loaded!
             end

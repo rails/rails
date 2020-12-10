@@ -14,8 +14,6 @@ module ActionView
   # only once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
     attr_accessor :prefixes, :rendered_format
-    deprecate :rendered_format
-    deprecate :rendered_format=
 
     mattr_accessor :fallbacks, default: FallbackFileSystemResolver.instances
 
@@ -130,9 +128,6 @@ module ActionView
       end
       alias :find_template :find
 
-      alias :find_file :find
-      deprecate :find_file
-
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
         @view_paths.find_all(*args_for_lookup(name, prefixes, partial, keys, options))
       end
@@ -153,18 +148,10 @@ module ActionView
         view_paths = build_view_paths((@view_paths.paths + self.class.fallbacks).uniq)
 
         if block_given?
-          ActiveSupport::Deprecation.warn <<~eowarn.squish
-          Calling `with_fallbacks` with a block is deprecated.  Call methods on
+          raise ArgumentError, <<~eowarn.squish
+          Calling `with_fallbacks` with a block is not supported. Call methods on
           the lookup context returned by `with_fallbacks` instead.
           eowarn
-
-          begin
-            _view_paths = @view_paths
-            @view_paths = view_paths
-            yield
-          ensure
-            @view_paths = _view_paths
-          end
         else
           ActionView::LookupContext.new(view_paths, @details, @prefixes)
         end

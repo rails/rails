@@ -227,6 +227,16 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_kind_of Cabbage, cabbage
   end
 
+  def test_becomes_sets_variables_before_initialization_callbacks
+    vegetable = Vegetable.create!(name: "yelling carrot")
+    assert_kind_of Vegetable, vegetable
+    assert_equal "yelling carrot", vegetable.name
+
+    yelling_veggie = vegetable.becomes(YellingVegetable)
+    assert_equal "YELLING CARROT", yelling_veggie.name, "YellingVegetable name should be YELLING CARROT"
+    assert_equal "YELLING CARROT", vegetable.name, "Vegetable name should be YELLING CARROT after becoming a YellingVegetable"
+  end
+
   def test_becomes_and_change_tracking_for_inheritance_columns
     cucumber = Vegetable.find(1)
     cabbage = cucumber.becomes!(Cabbage)

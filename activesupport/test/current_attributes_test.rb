@@ -126,6 +126,14 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     assert_equal "account/1", Current.account
   end
 
+  setup { @testing_teardown = false }
+  teardown { assert_equal 42, Session.current if @testing_teardown }
+
+  test "accessing attributes in teardown" do
+    Session.current = 42
+    @testing_teardown = true
+  end
+
   test "delegation" do
     Current.person = Person.new(42, "David", "Central Time (US & Canada)")
     assert_equal "Central Time (US & Canada)", Current.time_zone

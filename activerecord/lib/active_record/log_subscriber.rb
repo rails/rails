@@ -19,6 +19,15 @@ module ActiveRecord
       rt
     end
 
+    def strict_loading_violation(event)
+      debug do
+        owner = event.payload[:owner]
+        association = event.payload[:association]
+
+        color("Strict loading violation: #{association} lazily loaded on #{owner}.", RED)
+      end
+    end
+
     def sql(event)
       self.class.runtime += event.duration
       return unless logger.debug?

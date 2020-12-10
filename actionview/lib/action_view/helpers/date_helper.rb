@@ -197,8 +197,8 @@ module ActionView
       #   and +:name+ (string). A format string would be something like "%{name} (%<number>02d)" for example.
       #   See <tt>Kernel.sprintf</tt> for documentation on format sequences.
       # * <tt>:date_separator</tt>    - Specifies a string to separate the date fields. Default is "" (i.e. nothing).
-      # * <tt>:time_separator</tt>    - Specifies a string to separate the time fields. Default is "" (i.e. nothing).
-      # * <tt>:datetime_separator</tt>- Specifies a string to separate the date and time fields. Default is "" (i.e. nothing).
+      # * <tt>:time_separator</tt>    - Specifies a string to separate the time fields. Default is " : ".
+      # * <tt>:datetime_separator</tt>- Specifies a string to separate the date and time fields. Default is " &mdash; ".
       # * <tt>:start_year</tt>        - Set the start year for the year select. Default is <tt>Date.today.year - 5</tt> if
       #   you are creating new record. While editing existing record, <tt>:start_year</tt> defaults to
       #   the current selected year minus 5.
@@ -1125,7 +1125,7 @@ module ActionView
         # Returns the id attribute for the input tag.
         #  => "post_written_on_1i"
         def input_id_from_type(type)
-          id = input_name_from_type(type).gsub(/([\[\(])|(\]\[)/, "_").gsub(/[\]\)]/, "")
+          id = input_name_from_type(type).gsub(/([\[(])|(\]\[)/, "_").gsub(/[\])]/, "")
           id = @options[:namespace] + "_" + id if @options[:namespace]
 
           id
@@ -1138,7 +1138,7 @@ module ActionView
           first_visible = order.find { |type| !@options[:"discard_#{type}"] }
           order.reverse_each do |type|
             separator = separator(type) unless type == first_visible # don't add before first visible field
-            select.insert(0, separator.to_s + send("select_#{type}").to_s)
+            select.insert(0, separator.to_s + public_send("select_#{type}").to_s)
           end
           select.html_safe
         end

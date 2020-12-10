@@ -5,6 +5,19 @@ require "rails/test_unit/reporter"
 require "rails/test_unit/runner"
 
 module Minitest
+  class BacktraceFilterWithFallback
+    def initialize(preferred, fallback)
+      @preferred = preferred
+      @fallback = fallback
+    end
+
+    def filter(backtrace)
+      filtered = @preferred.filter(backtrace)
+      filtered = @fallback.filter(backtrace) if filtered.empty?
+      filtered
+    end
+  end
+
   class SuppressedSummaryReporter < SummaryReporter
     # Disable extra failure output after a run if output is inline.
     def aggregated_results(*)
@@ -40,7 +53,9 @@ module Minitest
   def self.plugin_rails_init(options)
     unless options[:full_backtrace] || ENV["BACKTRACE"]
       # Plugin can run without Rails loaded, check before filtering.
-      Minitest.backtrace_filter = ::Rails.backtrace_cleaner if ::Rails.respond_to?(:backtrace_cleaner)
+      if ::Rails.respond_to?(:backtrace_cleaner)
+        Minitest.backtrace_filter = BacktraceFilterWithFallback.new(::Rails.backtrace_cleaner, Minitest.backtrace_filter)
+      end
     end
 
     # Suppress summary reports when outputting inline rerun snippets.

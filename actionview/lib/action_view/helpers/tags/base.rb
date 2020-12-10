@@ -117,19 +117,7 @@ module ActionView
           end
 
           def tag_id(index = nil)
-            # a little duplication to construct fewer strings
-            case
-            when @object_name.empty?
-              sanitized_method_name.dup
-            when index
-              "#{sanitized_object_name}_#{index}_#{sanitized_method_name}"
-            else
-              "#{sanitized_object_name}_#{sanitized_method_name}"
-            end
-          end
-
-          def sanitized_object_name
-            @sanitized_object_name ||= @object_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").delete_suffix("_")
+            @template_object.field_id(@object_name, @method_name, index: index)
           end
 
           def sanitized_method_name
@@ -137,7 +125,7 @@ module ActionView
           end
 
           def sanitized_value(value)
-            value.to_s.gsub(/[\s\.]/, "_").gsub(/[^-[[:word:]]]/, "").downcase
+            value.to_s.gsub(/[\s.]/, "_").gsub(/[^-[[:word:]]]/, "").downcase
           end
 
           def select_content_tag(option_tags, options, html_options)

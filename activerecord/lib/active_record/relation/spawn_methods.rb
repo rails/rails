@@ -69,8 +69,8 @@ module ActiveRecord
 
     private
       def relation_with(values)
-        result = Relation.create(klass, values: values)
-        result.extend(*extending_values) if extending_values.any?
+        result = spawn
+        result.instance_variable_set(:@values, values)
         result
       end
   end

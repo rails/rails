@@ -6,6 +6,7 @@ module ActiveStorage
 
     def initialize(name, record, attachables)
       @name, @record, @attachables = name, record, Array(attachables)
+      blobs.each(&:identify_without_saving)
     end
 
     def attachments

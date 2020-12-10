@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/time"
-require "active_support/deprecation"
 
 module Rails
   module Generators
@@ -51,11 +50,6 @@ module Rails
               type = $1
               provided_options = $2.split(/[,.-]/)
               options = Hash[provided_options.map { |opt| [opt.to_sym, true] }]
-
-              if options[:required]
-                ActiveSupport::Deprecation.warn("Passing {required} option has no effect on the model generator. It will be removed in Rails 6.1.\n")
-                options.delete(:required)
-              end
 
               return type, options
             else

@@ -315,9 +315,25 @@ module ActiveRecord
       end
 
       relation = construct_relation_for_exists(conditions)
+      return false if relation.where_clause.contradiction?
 
       skip_query_cache_if_necessary { connection.select_rows(relation.arel, "#{name} Exists?").size == 1 }
     end
+
+    # Returns true if the relation contains the given record or false otherwise.
+    #
+    # No query is performed if the relation is loaded; the given record is
+    # compared to the records in memory. If the relation is unloaded, an
+    # efficient existence query is performed, as in #exists?.
+    def include?(record)
+      if loaded? || offset_value || limit_value
+        records.include?(record)
+      else
+        record.is_a?(klass) && exists?(record.id)
+      end
+    end
+
+    alias :member? :include?
 
     # This method is called whenever no records are found with either a single
     # id or multiple ids and raises an ActiveRecord::RecordNotFound exception.
@@ -336,7 +352,7 @@ module ActiveRecord
         error = +"Couldn't find #{name}"
         error << " with#{conditions}" if conditions
         raise RecordNotFound.new(error, name, key)
-      elsif Array(ids).size == 1
+      elsif Array.wrap(ids).size == 1
         error = "Couldn't find #{name} with '#{key}'=#{ids}#{conditions}"
         raise RecordNotFound.new(error, name, key, ids)
       else

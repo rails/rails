@@ -573,6 +573,14 @@ class StringConversionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_timestamp_string_to_time
+    exception = assert_raises(ArgumentError) do
+      "1604326192".to_time
+    end
+
+    assert_equal "argument out of range", exception.message
+  end
+
   def test_string_to_time_utc_offset
     with_env_tz "US/Eastern" do
       if ActiveSupport.to_time_preserves_timezone

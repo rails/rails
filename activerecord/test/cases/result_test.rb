@@ -51,16 +51,6 @@ module ActiveRecord
       ], result.to_a
     end
 
-    test "to_hash (deprecated) returns row_hashes" do
-      assert_deprecated do
-        assert_equal [
-          { "col_1" => "row 1 col 1", "col_2" => "row 1 col 2" },
-          { "col_1" => "row 2 col 1", "col_2" => "row 2 col 2" },
-          { "col_1" => "row 3 col 1", "col_2" => "row 3 col 2" },
-        ], result.to_hash
-      end
-    end
-
     test "first returns first row as a hash" do
       assert_equal(
         { "col_1" => "row 1 col 1", "col_2" => "row 1 col 2" }, result.first)

@@ -5,7 +5,10 @@ Action View Helpers
 
 After reading this guide, you will know:
 
-* What helpers are provided by Action View.
+* How to format dates, strings and numbers
+* How to link to images, videos, stylesheets, etc...
+* How to sanitize content
+* How to localize content
 
 --------------------------------------------------------------------------------
 
@@ -20,11 +23,11 @@ The following is only a brief overview summary of the helpers available in Actio
 
 This module provides methods for generating HTML that links views to assets such as images, JavaScript files, stylesheets, and feeds.
 
-By default, Rails links to these assets on the current host in the public folder, but you can direct Rails to link to assets from a dedicated assets server by setting `config.action_controller.asset_host` in the application configuration, typically in `config/environments/production.rb`. For example, let's say your asset host is `assets.example.com`:
+By default, Rails links to these assets on the current host in the public folder, but you can direct Rails to link to assets from a dedicated assets server by setting `config.asset_host` in the application configuration, typically in `config/environments/production.rb`. For example, let's say your asset host is `assets.example.com`:
 
 ```ruby
-config.action_controller.asset_host = "assets.example.com"
-image_tag("rails.png") 
+config.asset_host = "assets.example.com"
+image_tag("rails.png")
 # => <img src="http://assets.example.com/images/rails.png" />
 ```
 
@@ -33,7 +36,7 @@ image_tag("rails.png")
 Returns a link tag that browsers and feed readers can use to auto-detect an RSS, Atom, or JSON feed.
 
 ```ruby
-auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", { title: "RSS Feed" }) 
+auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", { title: "RSS Feed" })
 # => <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="http://www.example.com/feed.rss" />
 ```
 
@@ -48,7 +51,7 @@ image_path("edit.png") # => /assets/edit.png
 Fingerprint will be added to the filename if config.assets.digest is set to true.
 
 ```ruby
-image_path("edit.png") 
+image_path("edit.png")
 # => /assets/edit-2d1a2db63fc738690021fedb5a65b68e.png
 ```
 
@@ -73,7 +76,7 @@ image_tag("icon.png") # => <img src="/assets/icon.png" />
 Returns an HTML script tag for each of the sources provided. You can pass in the filename (`.js` extension is optional) of JavaScript files that exist in your `app/assets/javascripts` directory for inclusion into the current page or you can pass the full path relative to your document root.
 
 ```ruby
-javascript_include_tag "common" 
+javascript_include_tag "common"
 # => <script src="/assets/common.js"></script>
 ```
 
@@ -90,7 +93,7 @@ javascript_path "common" # => /assets/common.js
 Computes the URL to a JavaScript asset in the `app/assets/javascripts` directory. This will call `javascript_path` internally and merge with your current host or your asset host.
 
 ```ruby
-javascript_url "common" 
+javascript_url "common"
 # => http://www.example.com/assets/common.js
 ```
 
@@ -99,7 +102,7 @@ javascript_url "common"
 Returns a stylesheet link tag for the sources specified as arguments. If you don't specify an extension, `.css` will be appended automatically.
 
 ```ruby
-stylesheet_link_tag "application" 
+stylesheet_link_tag "application"
 # => <link href="/assets/application.css" media="screen" rel="stylesheet" />
 ```
 
@@ -116,7 +119,7 @@ stylesheet_path "application" # => /assets/application.css
 Computes the URL to a stylesheet asset in the `app/assets/stylesheets` directory. This will call `stylesheet_path` internally and merge with your current host or your asset host.
 
 ```ruby
-stylesheet_url "application" 
+stylesheet_url "application"
 # => http://www.example.com/assets/application.css
 ```
 
@@ -248,124 +251,15 @@ For example, let's say we have a standard application layout, but also a special
 
 ### DateHelper
 
-#### date_select
-
-Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based attribute.
-
-```ruby
-date_select("article", "published_on")
-```
-
-#### datetime_select
-
-Returns a set of select tags (one for year, month, day, hour, and minute) pre-selected for accessing a specified datetime-based attribute.
-
-```ruby
-datetime_select("article", "published_on")
-```
-
 #### distance_of_time_in_words
 
 Reports the approximate distance in time between two Time or Date objects or integers as seconds. Set `include_seconds` to true if you want more detailed approximations.
 
 ```ruby
-distance_of_time_in_words(Time.now, Time.now + 15.seconds) 
+distance_of_time_in_words(Time.now, Time.now + 15.seconds)
 # => less than a minute
-distance_of_time_in_words(Time.now, Time.now + 15.seconds, include_seconds: true) 
+distance_of_time_in_words(Time.now, Time.now + 15.seconds, include_seconds: true)
 # => less than 20 seconds
-```
-
-#### select_date
-
-Returns a set of HTML select-tags (one for year, month, and day) pre-selected with the `date` provided.
-
-```ruby
-# Generates a date select that defaults to the date provided (six days after today)
-select_date(Time.today + 6.days)
-
-# Generates a date select that defaults to today (no specified date)
-select_date()
-```
-
-#### select_datetime
-
-Returns a set of HTML select-tags (one for year, month, day, hour, and minute) pre-selected with the `datetime` provided.
-
-```ruby
-# Generates a datetime select that defaults to the datetime provided (four days after today)
-select_datetime(Time.now + 4.days)
-
-# Generates a datetime select that defaults to today (no specified datetime)
-select_datetime()
-```
-
-#### select_day
-
-Returns a select tag with options for each of the days 1 through 31 with the current day selected.
-
-```ruby
-# Generates a select field for days that defaults to the day for the date provided
-select_day(Time.today + 2.days)
-
-# Generates a select field for days that defaults to the number given
-select_day(5)
-```
-
-#### select_hour
-
-Returns a select tag with options for each of the hours 0 through 23 with the current hour selected.
-
-```ruby
-# Generates a select field for hours that defaults to the hours for the time provided
-select_hour(Time.now + 6.hours)
-```
-
-#### select_minute
-
-Returns a select tag with options for each of the minutes 0 through 59 with the current minute selected.
-
-```ruby
-# Generates a select field for minutes that defaults to the minutes for the time provided.
-select_minute(Time.now + 10.minutes)
-```
-
-#### select_month
-
-Returns a select tag with options for each of the months January through December with the current month selected.
-
-```ruby
-# Generates a select field for months that defaults to the current month
-select_month(Date.today)
-```
-
-#### select_second
-
-Returns a select tag with options for each of the seconds 0 through 59 with the current second selected.
-
-```ruby
-# Generates a select field for seconds that defaults to the seconds for the time provided
-select_second(Time.now + 16.seconds)
-```
-
-#### select_time
-
-Returns a set of HTML select-tags (one for hour and minute).
-
-```ruby
-# Generates a time select that defaults to the time provided
-select_time(Time.now)
-```
-
-#### select_year
-
-Returns a select tag with options for each of the five years on each side of the current, which is selected. The five year radius can be changed using the `:start_year` and `:end_year` keys in the `options`.
-
-```ruby
-# Generates a select field for five years on either side of Date.today that defaults to the current year
-select_year(Date.today)
-
-# Generates a select field from 1900 to 2009 that defaults to the current year
-select_year(Date.today, start_year: 1900, end_year: 2009)
 ```
 
 #### time_ago_in_words
@@ -374,15 +268,6 @@ Like `distance_of_time_in_words`, but where `to_time` is fixed to `Time.now`.
 
 ```ruby
 time_ago_in_words(3.minutes.from_now) # => 3 minutes
-```
-
-#### time_select
-
-Returns a set of select tags (one for hour, minute, and optionally second) pre-selected for accessing a specified time-based attribute. The selects are prepared for multi-parameter assignment to an Active Record object.
-
-```ruby
-# Creates a time select tag that, when POSTed, will be stored in the order variable in the submitted attribute
-time_select("order", "submitted")
 ```
 
 ### DebugHelper
@@ -409,565 +294,8 @@ third:
 
 Form helpers are designed to make working with models much easier compared to using just standard HTML elements by providing a set of methods for creating forms based on your models. This helper generates the HTML for forms, providing a method for each sort of input (e.g., text, password, select, and so on). When the form is submitted (i.e., when the user hits the submit button or form.submit is called via JavaScript), the form inputs will be bundled into the params object and passed back to the controller.
 
-There are two types of form helpers: those that specifically work with model attributes and those that don't. This helper deals with those that work with model attributes; to see an example of form helpers that don't work with model attributes, check the `ActionView::Helpers::FormTagHelper` documentation.
-
-The core method of this helper, `form_with`, gives you the ability to create a form for a model instance; for example, let's say that you have a model Person and want to create a new instance of it:
-
-```html+erb
-<!-- Note: a @person variable will have been created in the controller (e.g. @person = Person.new) -->
-<%= form_with model: @person do |form| %>
-  <%= form.text_field :first_name %>
-  <%= form.text_field :last_name %>
-  <%= submit_tag 'Create' %>
-<% end %>
-```
-
-The HTML generated for this would be:
-
-```html
-<form class="new_person" id="new_person" action="/people" accept-charset="UTF-8" method="post">
-  <input name="utf8" type="hidden" value="&#x2713;" />
-  <input type="hidden" name="authenticity_token" value="lTuvBzs7ANygT0NFinXj98tfw3Emfm65wwYLbUvoWsK2pngccIQSUorM2C035M9dZswXgWTvKwFS8W5TVblpYw==" />
-  <input type="text" name="person[first_name]" id="person_first_name" />
-  <input type="text" name="person[last_name]" id="person_last_name" />
-  <input type="submit" name="commit" value="Create" data-disable-with="Create" />
-</form>
-```
-
-The params object created when this form is submitted would look like:
-
-```ruby
-{"utf8" => "✓", "authenticity_token" => "lTuvBzs7ANygT0NFinXj98tfw3Emfm65wwYLbUvoWsK2pngccIQSUorM2C035M9dZswXgWTvKwFS8W5TVblpYw==", "person" => {"first_name" => "William", "last_name" => "Smith"}, "commit" => "Create", "controller" => "people", "action" => "create"}
-```
-
-The params hash has a nested person value, which can therefore be accessed with `params[:person]` in the controller.
-
-#### check_box
-
-Returns a checkbox tag tailored for accessing a specified attribute.
-
-```ruby
-# Let's say that @article.validated? is 1:
-check_box("article", "validated")
-# => <input type="checkbox" id="article_validated" name="article[validated]" value="1" />
-#    <input name="article[validated]" type="hidden" value="0" />
-```
-
-#### fields_for
-
-Creates a scope around a specific model object. This makes `fields_for` suitable for specifying additional model objects in the same form:
-
-```html+erb
-<%= form_with model: @person do |person_form| %>
-  First name: <%= person_form.text_field :first_name %>
-  Last name : <%= person_form.text_field :last_name %>
-
-  <%= fields_for @person.permission do |permission_fields| %>
-    Admin?  : <%= permission_fields.check_box :admin %>
-  <% end %>
-<% end %>
-```
-
-#### file_field
-
-Returns a file upload input tag tailored for accessing a specified attribute.
-
-```ruby
-file_field(:user, :avatar)
-# => <input type="file" id="user_avatar" name="user[avatar]" />
-```
-
-#### form_with
-
-Creates a form builder to work with. If a `model` argument is specified, form fields will be scoped to that model, and form field values will be prepopulated with corresponding model attributes.
-
-```html+erb
-<%= form_with model: @article do |form| %>
-  <%= form.label :title, 'Title' %>:
-  <%= form.text_field :title %><br>
-  <%= form.label :body, 'Body' %>:
-  <%= form.text_area :body %><br>
-<% end %>
-```
-
-#### hidden_field
-
-Returns a hidden input tag tailored for accessing a specified attribute.
-
-```ruby
-hidden_field(:user, :token)
-# => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}" />
-```
-
-#### label
-
-Returns a label tag tailored for labelling an input field for a specified attribute.
-
-```ruby
-label(:article, :title)
-# => <label for="article_title">Title</label>
-```
-
-#### password_field
-
-Returns an input tag of the "password" type tailored for accessing a specified attribute.
-
-```ruby
-password_field(:login, :pass)
-# => <input type="text" id="login_pass" name="login[pass]" value="#{@login.pass}" />
-```
-
-#### radio_button
-
-Returns a radio button tag for accessing a specified attribute.
-
-```ruby
-# Let's say that @article.category returns "rails":
-radio_button("article", "category", "rails")
-radio_button("article", "category", "java")
-# => <input type="radio" id="article_category_rails" name="article[category]" value="rails" checked="checked" />
-#    <input type="radio" id="article_category_java" name="article[category]" value="java" />
-```
-
-#### text_area
-
-Returns a textarea opening and closing tag set tailored for accessing a specified attribute.
-
-```ruby
-text_area(:comment, :text, size: "20x30")
-# => <textarea cols="20" rows="30" id="comment_text" name="comment[text]">
-#      #{@comment.text}
-#    </textarea>
-```
-
-#### text_field
-
-Returns an input tag of the "text" type tailored for accessing a specified attribute.
-
-```ruby
-text_field(:article, :title)
-# => <input type="text" id="article_title" name="article[title]" value="#{@article.title}" />
-```
-
-#### email_field
-
-Returns an input tag of the "email" type tailored for accessing a specified attribute.
-
-```ruby
-email_field(:user, :email)
-# => <input type="email" id="user_email" name="user[email]" value="#{@user.email}" />
-```
-
-#### url_field
-
-Returns an input tag of the "url" type tailored for accessing a specified attribute.
-
-```ruby
-url_field(:user, :url)
-# => <input type="url" id="user_url" name="user[url]" value="#{@user.url}" />
-```
-
-### FormOptionsHelper
-
-Provides a number of methods for turning different kinds of containers into a set of option tags.
-
-#### collection_select
-
-Returns `select` and `option` tags for the collection of existing return values of `method` for `object`'s class.
-
-Example object structure for use with this method:
-
-```ruby
-class Article < ApplicationRecord
-  belongs_to :author
-end
-
-class Author < ApplicationRecord
-  has_many :articles
-  def name_with_initial
-    "#{first_name.first}. #{last_name}"
-  end
-end
-```
-
-Sample usage (selecting the associated Author for an instance of Article, `@article`):
-
-```ruby
-collection_select(:article, :author_id, Author.all, :id, :name_with_initial, { prompt: true })
-```
-
-If `@article.author_id` is 1, this would return:
-
-```html
-<select name="article[author_id]">
-  <option value="">Please select</option>
-  <option value="1" selected="selected">D. Heinemeier Hansson</option>
-  <option value="2">D. Thomas</option>
-  <option value="3">M. Clark</option>
-</select>
-```
-
-#### collection_radio_buttons
-
-Returns `radio_button` tags for the collection of existing return values of `method` for `object`'s class.
-
-Example object structure for use with this method:
-
-```ruby
-class Article < ApplicationRecord
-  belongs_to :author
-end
-
-class Author < ApplicationRecord
-  has_many :articles
-  def name_with_initial
-    "#{first_name.first}. #{last_name}"
-  end
-end
-```
-
-Sample usage (selecting the associated Author for an instance of Article, `@article`):
-
-```ruby
-collection_radio_buttons(:article, :author_id, Author.all, :id, :name_with_initial)
-```
-
-If `@article.author_id` is 1, this would return:
-
-```html
-<input id="article_author_id_1" name="article[author_id]" type="radio" value="1" checked="checked" />
-<label for="article_author_id_1">D. Heinemeier Hansson</label>
-<input id="article_author_id_2" name="article[author_id]" type="radio" value="2" />
-<label for="article_author_id_2">D. Thomas</label>
-<input id="article_author_id_3" name="article[author_id]" type="radio" value="3" />
-<label for="article_author_id_3">M. Clark</label>
-```
-
-Recovering some option passed (e.g. programmatically checking an object from collection):
-
-```ruby
-collection_radio_buttons(:article, :author_id, Author.all, :id, :name_with_initial, {checked: Author.last})
-```
-
-In this case, the last object from the collection will be checked:
-
-```html
-<input id="article_author_id_1" name="article[author_id]" type="radio" value="1" />
-<label for="article_author_id_1">D. Heinemeier Hansson</label>
-<input id="article_author_id_2" name="article[author_id]" type="radio" value="2" />
-<label for="article_author_id_2">D. Thomas</label>
-<input id="article_author_id_3" name="article[author_id]" type="radio" value="3" checked="checked" />
-<label for="article_author_id_3">M. Clark</label>
-```
-
-To access the passed options programmatically (e.g. adding a custom class if checked):
-
-**Sample html.erb**
-
-```html+erb
-<%= collection_radio_buttons(:article, :author_id, Author.all, :id, :name_with_initial, {checked: Author.last, required: true} do |rb| %>
-      <%= rb.label(class: "#{'my-custom-class' if rb.value == Author.last.id}") { rb.radio_button + rb.text } %>
-<% end %>
-```
-
-
-#### collection_check_boxes
-
-Returns `check_box` tags for the collection of existing return values of `method` for `object`'s class.
-
-Example object structure for use with this method:
-
-```ruby
-class Article < ApplicationRecord
-  has_and_belongs_to_many :authors
-end
-
-class Author < ApplicationRecord
-  has_and_belongs_to_many :articles
-  def name_with_initial
-    "#{first_name.first}. #{last_name}"
-  end
-end
-```
-
-Sample usage (selecting the associated Authors for an instance of Article, `@article`):
-
-```ruby
-collection_check_boxes(:article, :author_ids, Author.all, :id, :name_with_initial)
-```
-
-If `@article.author_ids` is [1], this would return:
-
-```html
-<input id="article_author_ids_1" name="article[author_ids][]" type="checkbox" value="1" checked="checked" />
-<label for="article_author_ids_1">D. Heinemeier Hansson</label>
-<input id="article_author_ids_2" name="article[author_ids][]" type="checkbox" value="2" />
-<label for="article_author_ids_2">D. Thomas</label>
-<input id="article_author_ids_3" name="article[author_ids][]" type="checkbox" value="3" />
-<label for="article_author_ids_3">M. Clark</label>
-<input name="article[author_ids][]" type="hidden" value="" />
-```
-
-#### option_groups_from_collection_for_select
-
-Returns a string of `option` tags, like `options_from_collection_for_select`, but groups them by `optgroup` tags based on the object relationships of the arguments.
-
-Example object structure for use with this method:
-
-```ruby
-class Continent < ApplicationRecord
-  has_many :countries
-  # attribs: id, name
-end
-
-class Country < ApplicationRecord
-  belongs_to :continent
-  # attribs: id, name, continent_id
-end
-```
-
-Sample usage:
-
-```ruby
-option_groups_from_collection_for_select(@continents, :countries, :name, :id, :name, 3)
-```
-
-Possible output:
-
-```html
-<optgroup label="Africa">
-  <option value="1">Egypt</option>
-  <option value="4">Rwanda</option>
-  ...
-</optgroup>
-<optgroup label="Asia">
-  <option value="3" selected="selected">China</option>
-  <option value="12">India</option>
-  <option value="5">Japan</option>
-  ...
-</optgroup>
-```
-
-NOTE: Only the `optgroup` and `option` tags are returned, so you still have to wrap the output in an appropriate `select` tag.
-
-#### options_for_select
-
-Accepts a container (hash, array, enumerable, your type) and returns a string of option tags.
-
-```ruby
-options_for_select([ "VISA", "MasterCard" ])
-# => <option>VISA</option> <option>MasterCard</option>
-```
-
-NOTE: Only the `option` tags are returned, you have to wrap this call in a regular HTML `select` tag.
-
-#### options_from_collection_for_select
-
-Returns a string of option tags that have been compiled by iterating over the `collection` and assigning the result of a call to the `value_method` as the option value and the `text_method` as the option text.
-
-```ruby
-options_from_collection_for_select(collection, value_method, text_method, selected = nil)
-```
-
-For example, imagine a loop iterating over each person in `@project.people` to generate an input tag:
-
-```ruby
-options_from_collection_for_select(@project.people, "id", "name")
-# => <option value="#{person.id}">#{person.name}</option>
-```
-
-NOTE: Only the `option` tags are returned, you have to wrap this call in a regular HTML `select` tag.
-
-#### select
-
-Create a select tag and a series of contained option tags for the provided object and method.
-
-Example:
-
-```ruby
-select("article", "person_id", Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: true })
-```
-
-If `@article.person_id` is 1, this would become:
-
-```html
-<select name="article[person_id]">
-  <option value="" label=" "></option>
-  <option value="1" selected="selected">David</option>
-  <option value="2">Eileen</option>
-  <option value="3">Rafael</option>
-</select>
-```
-
-#### time_zone_options_for_select
-
-Returns a string of option tags for pretty much any time zone in the world.
-
-#### time_zone_select
-
-Returns select and option tags for the given object and method, using `time_zone_options_for_select` to generate the list of option tags.
-
-```ruby
-time_zone_select("user", "time_zone")
-```
-
-#### date_field
-
-Returns an input tag of the "date" type tailored for accessing a specified attribute.
-
-```ruby
-date_field("user", "dob")
-```
-
-### FormTagHelper
-
-Provides a number of methods for creating form tags that are not scoped to model objects. Instead, you provide the names and values manually.
-
-#### check_box_tag
-
-Creates a check box form input tag.
-
-```ruby
-check_box_tag 'accept'
-# => <input id="accept" name="accept" type="checkbox" value="1" />
-```
-
-#### field_set_tag
-
-Creates a field set for grouping HTML form elements.
-
-```html+erb
-<%= field_set_tag do %>
-  <p><%= text_field_tag 'name' %></p>
-<% end %>
-# => <fieldset><p><input id="name" name="name" type="text" /></p></fieldset>
-```
-
-#### file_field_tag
-
-Creates a file upload field.
-
-```html+erb
-<%= form_with url: new_account_avatar_path(@account), multipart: true do %>
-  <label for="file">Avatar:</label> <%= file_field_tag 'avatar' %>
-  <%= submit_tag %>
-<% end %>
-```
-
-Example output:
-
-```ruby
-file_field_tag 'attachment'
-# => <input id="attachment" name="attachment" type="file" />
-```
-
-#### hidden_field_tag
-
-Creates a hidden form input field used to transmit data that would be lost due to HTTP's statelessness or data that should be hidden from the user.
-
-```ruby
-hidden_field_tag 'token', 'VUBJKB23UIVI1UU1VOBVI@'
-# => <input id="token" name="token" type="hidden" value="VUBJKB23UIVI1UU1VOBVI@" />
-```
-
-#### image_submit_tag
-
-Displays an image which when clicked will submit the form.
-
-```ruby
-image_submit_tag("login.png")
-# => <input src="/images/login.png" type="image" />
-```
-
-#### label_tag
-
-Creates a label field.
-
-```ruby
-label_tag 'name'
-# => <label for="name">Name</label>
-```
-
-#### password_field_tag
-
-Creates a password field, a masked text field that will hide the users input behind a mask character.
-
-```ruby
-password_field_tag 'pass'
-# => <input id="pass" name="pass" type="password" />
-```
-
-#### radio_button_tag
-
-Creates a radio button; use groups of radio buttons named the same to allow users to select from a group of options.
-
-```ruby
-radio_button_tag 'favorite_color', 'maroon'
-# => <input id="favorite_color_maroon" name="favorite_color" type="radio" value="maroon" />
-```
-
-#### select_tag
-
-Creates a dropdown selection box.
-
-```ruby
-select_tag "people", "<option>David</option>"
-# => <select id="people" name="people"><option>David</option></select>
-```
-
-#### submit_tag
-
-Creates a submit button with the text provided as the caption.
-
-```ruby
-submit_tag "Publish this article"
-# => <input name="commit" type="submit" value="Publish this article" />
-```
-
-#### text_area_tag
-
-Creates a text input area; use a textarea for longer text inputs such as blog posts or descriptions.
-
-```ruby
-text_area_tag 'article'
-# => <textarea id="article" name="article"></textarea>
-```
-
-#### text_field_tag
-
-Creates a standard text field; use these text fields to input smaller chunks of text like a username or a search query.
-
-```ruby
-text_field_tag 'name'
-# => <input id="name" name="name" type="text" />
-```
-
-#### email_field_tag
-
-Creates a standard input field of email type.
-
-```ruby
-email_field_tag 'email'
-# => <input id="email" name="email" type="email" />
-```
-
-#### url_field_tag
-
-Creates a standard input field of url type.
-
-```ruby
-url_field_tag 'url'
-# => <input id="url" name="url" type="url" />
-```
-
-#### date_field_tag
-
-Creates a standard input field of date type.
-
-```ruby
-date_field_tag "dob"
-# => <input id="dob" name="dob" type="date" />
-```
+You can learn more about form helpers in the [Action View Form Helpers
+Guide](form_helpers.html).
 
 ### JavaScriptHelper
 

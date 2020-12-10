@@ -781,7 +781,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
       Post.find(post_id).update_columns type: class_name
       klass = Object.const_set(class_name, Class.new(ActiveRecord::Base))
       klass.table_name = "posts"
-      klass.send(association, association_name, as: :taggable, dependent: dependency)
+      klass.public_send(association, association_name, as: :taggable, dependent: dependency)
       klass.find(post_id)
     end
 end

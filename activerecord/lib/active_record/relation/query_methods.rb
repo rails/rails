@@ -8,8 +8,6 @@ require "active_support/core_ext/array/wrap"
 
 module ActiveRecord
   module QueryMethods
-    extend ActiveSupport::Concern
-
     include ActiveModel::ForbiddenAttributesProtection
 
     # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
@@ -39,26 +37,40 @@ module ActiveRecord
       #
       #    User.where.not(name: %w(Ko1 Nobu))
       #    # SELECT * FROM users WHERE name NOT IN ('Ko1', 'Nobu')
+      #
+      #    User.where.not(name: "Jon", role: "admin")
+      #    # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
       def not(opts, *rest)
         where_clause = @scope.send(:build_where_clause, opts, rest)
 
-        if not_behaves_as_nor?(opts)
-          ActiveSupport::Deprecation.warn(<<~MSG.squish)
-            NOT conditions will no longer behave as NOR in Rails 6.1.
-            To continue using NOR conditions, NOT each condition individually
-            (`#{
-              opts.flat_map { |key, value|
-                if value.is_a?(Hash) && value.size > 1
-                  value.map { |k, v| ".where.not(#{key.inspect} => { #{k.inspect} => ... })" }
-                else
-                  ".where.not(#{key.inspect} => ...)"
-                end
-              }.join
-            }`).
-          MSG
-          @scope.where_clause += where_clause.invert(:nor)
-        else
-          @scope.where_clause += where_clause.invert
+        @scope.where_clause += where_clause.invert
+
+        @scope
+      end
+
+      # Returns a new relation with joins and where clause to identify
+      # associated relations.
+      #
+      # For example, posts that are associated to a related author:
+      #
+      #    Post.where.associated(:author)
+      #    # SELECT "posts".* FROM "posts"
+      #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+      #    # WHERE "authors"."id" IS NOT NULL
+      #
+      # Additionally, multiple relations can be combined. This will return posts
+      # associated to both an author and any comments:
+      #
+      #    Post.where.associated(:author, :comments)
+      #    # SELECT "posts".* FROM "posts"
+      #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+      #    # INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+      #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
+      def associated(*associations)
+        associations.each do |association|
+          reflection = @scope.klass._reflect_on_association(association)
+          @scope.joins!(association)
+          self.not(reflection.table_name => { reflection.association_primary_key => nil })
         end
 
         @scope
@@ -82,24 +94,15 @@ module ActiveRecord
       #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
       #    # WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
-      def missing(*args)
-        args.each do |arg|
-          reflection = @scope.klass._reflect_on_association(arg)
-          opts = { reflection.table_name => { reflection.association_primary_key => nil } }
-          @scope.left_outer_joins!(arg)
-          @scope.where!(opts)
+      def missing(*associations)
+        associations.each do |association|
+          reflection = @scope.klass._reflect_on_association(association)
+          @scope.left_outer_joins!(association)
+          @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
         end
 
         @scope
       end
-
-      private
-        def not_behaves_as_nor?(opts)
-          return false unless opts.is_a?(Hash)
-
-          opts.any? { |k, v| v.is_a?(Hash) && v.size > 1 } ||
-            opts.size > 1
-        end
     end
 
     FROZEN_EMPTY_ARRAY = [].freeze
@@ -238,8 +241,6 @@ module ActiveRecord
     end
 
     def references!(*table_names) # :nodoc:
-      table_names.map!(&:to_s)
-
       self.references_values |= table_names
       self
     end
@@ -298,7 +299,7 @@ module ActiveRecord
     end
 
     def _select!(*fields) # :nodoc:
-      self.select_values += fields
+      self.select_values |= fields
       self
     end
 
@@ -382,7 +383,7 @@ module ActiveRecord
     # Same as #order but operates on relation in-place instead of copying.
     def order!(*args) # :nodoc:
       preprocess_order_args(args) unless args.empty?
-      self.order_values += args
+      self.order_values |= args
       self
     end
 
@@ -405,6 +406,7 @@ module ActiveRecord
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
       preprocess_order_args(args) unless args.all?(&:blank?)
+      args.uniq!
       self.reordering_value = true
       self.order_values = args
       self
@@ -654,13 +656,13 @@ module ActiveRecord
     #
     # If the condition is any blank-ish object, then #where is a no-op and returns
     # the current relation.
-    def where(opts = :chain, *rest)
-      if :chain == opts
+    def where(*args)
+      if args.empty?
         WhereChain.new(spawn)
-      elsif opts.blank?
+      elsif args.length == 1 && args.first.blank?
         self
       else
-        spawn.where!(opts, *rest)
+        spawn.where!(*args)
       end
     end
 
@@ -1034,8 +1036,7 @@ module ActiveRecord
     end
 
     def reverse_order! # :nodoc:
-      orders = order_values.uniq
-      orders.compact_blank!
+      orders = order_values.compact_blank
       self.order_values = reverse_sql_order(orders)
       self
     end
@@ -1157,7 +1158,7 @@ module ActiveRecord
       def build_arel(aliases)
         arel = Arel::SelectManager.new(table)
 
-        build_joins(arel, aliases)
+        build_joins(arel.join_sources, aliases)
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
@@ -1252,7 +1253,7 @@ module ActiveRecord
         end
 
         joins.each_with_index do |join, i|
-          joins[i] = table.create_string_join(Arel.sql(join.strip)) if join.is_a?(String)
+          joins[i] = Arel::Nodes::StringJoin.new(Arel.sql(join.strip)) if join.is_a?(String)
         end
 
         while joins.first.is_a?(Arel::Nodes::Join)
@@ -1278,8 +1279,8 @@ module ActiveRecord
         return buckets, Arel::Nodes::InnerJoin
       end
 
-      def build_joins(manager, aliases)
-        return if joins_values.empty? && left_outer_joins_values.empty?
+      def build_joins(join_sources, aliases = nil)
+        return join_sources if joins_values.empty? && left_outer_joins_values.empty?
 
         buckets, join_type = build_join_buckets
 
@@ -1288,21 +1289,21 @@ module ActiveRecord
         leading_joins     = buckets[:leading_join]
         join_nodes        = buckets[:join_node]
 
-        join_sources = manager.join_sources
         join_sources.concat(leading_joins) unless leading_joins.empty?
 
         unless association_joins.empty? && stashed_joins.empty?
           alias_tracker = alias_tracker(leading_joins + join_nodes, aliases)
           join_dependency = construct_join_dependency(association_joins, join_type)
-          join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker))
+          join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker, references_values))
         end
 
         join_sources.concat(join_nodes) unless join_nodes.empty?
+        join_sources
       end
 
       def build_select(arel)
         if select_values.any?
-          arel.project(*arel_columns(select_values.uniq))
+          arel.project(*arel_columns(select_values))
         elsif klass.ignored_columns.any?
           arel.project(*klass.column_names.map { |field| table[field] })
         else
@@ -1362,6 +1363,8 @@ module ActiveRecord
             o.desc
           when Arel::Nodes::Ordering
             o.reverse
+          when Arel::Nodes::NodeExpression
+            o.desc
           when String
             if does_not_support_reverse?(o)
               raise IrreversibleOrderError, "Order #{o.inspect} cannot be reversed automatically"
@@ -1388,9 +1391,7 @@ module ActiveRecord
       end
 
       def build_order(arel)
-        orders = order_values.uniq
-        orders.compact_blank!
-
+        orders = order_values.compact_blank
         arel.order(*orders) unless orders.empty?
       end
 
@@ -1429,9 +1430,9 @@ module ActiveRecord
             arg.map { |field, dir|
               case field
               when Arel::Nodes::SqlLiteral
-                field.send(dir.downcase)
+                field.public_send(dir.downcase)
               else
-                order_column(field.to_s).send(dir.downcase)
+                order_column(field.to_s).public_send(dir.downcase)
               end
             }
           else
@@ -1504,9 +1505,9 @@ module ActiveRecord
       #   check_if_method_has_arguments!("references", args)
       #   ...
       # end
-      def check_if_method_has_arguments!(method_name, args, message = "The method .#{method_name}() must contain arguments.")
+      def check_if_method_has_arguments!(method_name, args, message = nil)
         if args.blank?
-          raise ArgumentError, message
+          raise ArgumentError, message || "The method .#{method_name}() must contain arguments."
         elsif block_given?
           yield args
         else
@@ -1529,7 +1530,7 @@ module ActiveRecord
             v1 = v1.uniq
             v2 = v2.uniq
           end
-          v1 == v2 || (!v1 || v1.empty?) && (!v2 || v2.empty?)
+          v1 == v2
         end
       end
   end

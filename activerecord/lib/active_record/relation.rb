@@ -67,10 +67,9 @@ module ActiveRecord
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
     def new(attributes = nil, &block)
-      block = _deprecated_scope_block("new", &block)
-      scoping { klass.new(attributes, &block) }
+      block = current_scope_restoring_block(&block)
+      scoping { _new(attributes, &block) }
     end
-
     alias build new
 
     # Tries to create a new record with the same scoped attributes
@@ -96,8 +95,8 @@ module ActiveRecord
       if attributes.is_a?(Array)
         attributes.collect { |attr| create(attr, &block) }
       else
-        block = _deprecated_scope_block("create", &block)
-        scoping { klass.create(attributes, &block) }
+        block = current_scope_restoring_block(&block)
+        scoping { _create(attributes, &block) }
       end
     end
 
@@ -111,8 +110,8 @@ module ActiveRecord
       if attributes.is_a?(Array)
         attributes.collect { |attr| create!(attr, &block) }
       else
-        block = _deprecated_scope_block("create!", &block)
-        scoping { klass.create!(attributes, &block) }
+        block = current_scope_restoring_block(&block)
+        scoping { _create!(attributes, &block) }
       end
     end
 
@@ -407,9 +406,9 @@ module ActiveRecord
       already_in_scope? ? yield : _scoping(self) { yield }
     end
 
-    def _exec_scope(name, *args, &block) # :nodoc:
+    def _exec_scope(*args, &block) # :nodoc:
       @delegate_to_klass = true
-      _scoping(_deprecated_spawn(name)) { instance_exec(*args, &block) || self }
+      _scoping(nil) { instance_exec(*args, &block) || self }
     ensure
       @delegate_to_klass = false
     end
@@ -651,7 +650,6 @@ module ActiveRecord
 
     def reset
       @delegate_to_klass = false
-      @_deprecated_scope_source = nil
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @offsets = @take = nil
       @records = [].freeze
@@ -732,7 +730,7 @@ module ActiveRecord
     end
 
     def inspect
-      subject = loaded? ? records : self
+      subject = loaded? ? records : annotate("loading for inspect")
       entries = subject.take([limit_value, 11].compact.min).map!(&:inspect)
 
       entries[10] = "..." if entries.size == 11
@@ -773,11 +771,7 @@ module ActiveRecord
       end
     end
 
-    attr_reader :_deprecated_scope_source # :nodoc:
-
     protected
-      attr_writer :_deprecated_scope_source # :nodoc:
-
       def load_records(records)
         @records = records.freeze
         @loaded = true
@@ -789,21 +783,27 @@ module ActiveRecord
 
     private
       def already_in_scope?
-        @delegate_to_klass && begin
-          scope = klass.current_scope(true)
-          scope && !scope._deprecated_scope_source
-        end
+        @delegate_to_klass && klass.current_scope(true)
       end
 
-      def _deprecated_spawn(name)
-        spawn.tap { |scope| scope._deprecated_scope_source = name }
-      end
-
-      def _deprecated_scope_block(name, &block)
+      def current_scope_restoring_block(&block)
+        current_scope = klass.current_scope(true)
         -> record do
-          klass.current_scope = _deprecated_spawn(name)
+          klass.current_scope = current_scope
           yield record if block_given?
         end
+      end
+
+      def _new(attributes, &block)
+        klass.new(attributes, &block)
+      end
+
+      def _create(attributes, &block)
+        klass.create(attributes, &block)
+      end
+
+      def _create!(attributes, &block)
+        klass.create!(attributes, &block)
       end
 
       def _scoping(scope)
@@ -874,27 +874,27 @@ module ActiveRecord
       end
 
       def references_eager_loaded_tables?
-        joined_tables = arel.join_sources.map do |join|
+        joined_tables = build_joins([]).flat_map do |join|
           if join.is_a?(Arel::Nodes::StringJoin)
             tables_in_string(join.left)
           else
-            [join.left.table_name, join.left.table_alias]
+            join.left.name
           end
         end
 
-        joined_tables += [table.name, table.table_alias]
+        joined_tables << table.name
 
         # always convert table names to downcase as in Oracle quoted table names are in uppercase
-        joined_tables = joined_tables.flatten.compact.map(&:downcase).uniq
+        joined_tables.map!(&:downcase)
 
-        (references_values - joined_tables).any?
+        !(references_values.map(&:to_s) - joined_tables).empty?
       end
 
       def tables_in_string(string)
         return [] if string.blank?
         # always convert table names to downcase as in Oracle quoted table names are in uppercase
         # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
-        string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map(&:downcase).uniq - ["raw_sql_"]
+        string.scan(/[a-zA-Z_][.\w]+(?=.?\.)/).map!(&:downcase) - ["raw_sql_"]
       end
   end
 end

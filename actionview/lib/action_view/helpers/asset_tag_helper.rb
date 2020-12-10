@@ -18,10 +18,10 @@ module ActionView
     #   stylesheet_link_tag("application")
     #   # => <link href="/assets/application.css?body=1" media="screen" rel="stylesheet" />
     module AssetTagHelper
-      extend ActiveSupport::Concern
-
       include AssetUrlHelper
       include TagHelper
+
+      mattr_accessor :image_loading
 
       # Returns an HTML script tag for each of the +sources+ provided.
       #
@@ -86,13 +86,22 @@ module ActionView
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
-        early_hints_links = []
+        preload_links = []
+        nopush = options["nopush"].nil? ? true : options.delete("nopush")
+        crossorigin = options.delete("crossorigin")
+        crossorigin = "anonymous" if crossorigin == true
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
-          early_hints_links << "<#{href}>; rel=preload; as=script"
+          unless options["defer"]
+            preload_link = "<#{href}>; rel=preload; as=script"
+            preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
+            preload_link += "; nopush" if nopush
+            preload_links << preload_link
+          end
           tag_options = {
-            "src" => href
+            "src" => href,
+            "crossorigin" => crossorigin
           }.merge!(options)
           if tag_options["nonce"] == true
             tag_options["nonce"] = content_security_policy_nonce
@@ -100,7 +109,7 @@ module ActionView
           content_tag("script", "", tag_options)
         }.join("\n").html_safe
 
-        request.send_early_hints("Link" => early_hints_links.join("\n")) if respond_to?(:request) && request
+        send_preload_links_header(preload_links)
 
         sources_tags
       end
@@ -136,20 +145,27 @@ module ActionView
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "host", "skip_pipeline").symbolize_keys
-        early_hints_links = []
+        preload_links = []
+        crossorigin = options.delete("crossorigin")
+        crossorigin = "anonymous" if crossorigin == true
+        nopush = options["nopush"].nil? ? true : options.delete("nopush")
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_stylesheet(source, path_options)
-          early_hints_links << "<#{href}>; rel=preload; as=style"
+          preload_link = "<#{href}>; rel=preload; as=style"
+          preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
+          preload_link += "; nopush" if nopush
+          preload_links << preload_link
           tag_options = {
             "rel" => "stylesheet",
             "media" => "screen",
+            "crossorigin" => crossorigin,
             "href" => href
           }.merge!(options)
           tag(:link, tag_options)
         }.join("\n").html_safe
 
-        request.send_early_hints("Link" => early_hints_links.join("\n")) if respond_to?(:request) && request
+        send_preload_links_header(preload_links)
 
         sources_tags
       end
@@ -281,12 +297,12 @@ module ActionView
           crossorigin: crossorigin
         }.merge!(options.symbolize_keys))
 
-        early_hints_link = "<#{href}>; rel=preload; as=#{as_type}"
-        early_hints_link += "; type=#{mime_type}" if mime_type
-        early_hints_link += "; crossorigin=#{crossorigin}" if crossorigin
-        early_hints_link += "; nopush" if nopush
+        preload_link = "<#{href}>; rel=preload; as=#{as_type}"
+        preload_link += "; type=#{mime_type}" if mime_type
+        preload_link += "; crossorigin=#{crossorigin}" if crossorigin
+        preload_link += "; nopush" if nopush
 
-        request.send_early_hints("Link" => early_hints_link) if respond_to?(:request) && request
+        send_preload_links_header([preload_link])
 
         link_tag
       end
@@ -351,6 +367,9 @@ module ActionView
         end
 
         options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
+
+        options[:loading] ||= image_loading if image_loading
+
         tag("img", options)
       end
 
@@ -480,6 +499,16 @@ module ActionView
             "track"
           elsif (type = mime_type.to_s.split("/")[0]) && type.in?(%w(audio video font))
             type
+          end
+        end
+
+        def send_preload_links_header(preload_links)
+          if respond_to?(:request) && request
+            request.send_early_hints("Link" => preload_links.join("\n"))
+          end
+
+          if respond_to?(:response) && response
+            response.headers["Link"] = [response.headers["Link"].presence, *preload_links].compact.join(",")
           end
         end
     end

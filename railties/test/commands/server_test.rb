@@ -44,10 +44,6 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
     assert_no_match(/Maybe you meant/, output)
   end
 
-  def test_using_positional_argument_deprecation
-    assert_match(/DEPRECATION WARNING/, run_command("tin"))
-  end
-
   def test_using_known_server_that_isnt_in_the_gemfile
     assert_match(/Could not load server "unicorn". Maybe you need to the add it to the Gemfile/, run_command("-u", "unicorn"))
   end
@@ -97,15 +93,6 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
     switch_env "PORT", "1234" do
       options = parse_arguments
       assert_equal 1234, options[:Port]
-    end
-  end
-
-  def test_environment_with_host
-    switch_env "HOST", "1.2.3.4" do
-      assert_deprecated do
-        options = parse_arguments
-        assert_equal "1.2.3.4", options[:Host]
-      end
     end
   end
 

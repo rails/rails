@@ -1961,7 +1961,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       firm.clients = []
     end
 
-    assert_equal [], firm.send("clients=", [])
+    assert_equal [], firm.public_send("clients=", [])
   end
 
   def test_transactions_when_replacing_on_persisted
@@ -2562,9 +2562,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   test "first_or_initialize adds the record to the association" do
     firm = Firm.create! name: "omg"
     client = firm.clients_of_firm.where(name: "lol").first_or_initialize do
-      assert_deprecated do
-        assert_equal 0, Client.count
-      end
+      assert_equal 5, Client.count
     end
     assert_equal "lol", client.name
     assert_equal [client], firm.clients_of_firm
@@ -2574,9 +2572,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = Firm.create! name: "omg"
     firm.clients_of_firm.load_target
     client = firm.clients_of_firm.where(name: "lol").first_or_create do
-      assert_deprecated do
-        assert_equal 0, Client.count
-      end
+      assert_equal 5, Client.count
     end
     assert_equal "lol", client.name
     assert_equal [client], firm.clients_of_firm
@@ -2587,9 +2583,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = Firm.create! name: "omg"
     firm.clients_of_firm.load_target
     client = firm.clients_of_firm.where(name: "lol").first_or_create! do
-      assert_deprecated do
-        assert_equal 0, Client.count
-      end
+      assert_equal 5, Client.count
     end
     assert_equal "lol", client.name
     assert_equal [client], firm.clients_of_firm

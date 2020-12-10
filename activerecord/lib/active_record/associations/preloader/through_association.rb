@@ -4,7 +4,7 @@ module ActiveRecord
   module Associations
     class Preloader
       class ThroughAssociation < Association # :nodoc:
-        PRELOADER = ActiveRecord::Associations::Preloader.new
+        PRELOADER = ActiveRecord::Associations::Preloader.new(associate_by_default: false)
 
         def initialize(*)
           super

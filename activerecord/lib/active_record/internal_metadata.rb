@@ -15,10 +15,6 @@ module ActiveRecord
         ActiveRecord::Base.connection.use_metadata_table?
       end
 
-      def _internal?
-        true
-      end
-
       def primary_key
         "key"
       end
@@ -43,11 +39,9 @@ module ActiveRecord
       def create_table
         return unless enabled?
 
-        unless table_exists?
-          key_options = connection.internal_string_options_for_primary_key
-
+        unless connection.table_exists?(table_name)
           connection.create_table(table_name, id: false) do |t|
-            t.string :key, **key_options
+            t.string :key, **connection.internal_string_options_for_primary_key
             t.string :value
             t.timestamps
           end

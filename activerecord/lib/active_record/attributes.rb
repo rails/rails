@@ -12,6 +12,9 @@ module ActiveRecord
     end
 
     module ClassMethods
+      ##
+      # :call-seq: attribute(name, cast_type = nil, **options)
+      #
       # Defines an attribute with a type on this model. It will override the
       # type of existing attributes if needed. This allows control over how
       # values are converted to and from SQL when assigned to a model. It also
@@ -205,14 +208,21 @@ module ActiveRecord
       # tracking is performed. The methods +changed?+ and +changed_in_place?+
       # will be called from ActiveModel::Dirty. See the documentation for those
       # methods in ActiveModel::Type::Value for more details.
-      def attribute(name, cast_type = nil, **options, &block)
+      def attribute(name, cast_type = nil, **options, &decorator)
         name = name.to_s
         reload_schema_from_cache
 
-        self.attributes_to_define_after_schema_loads =
-          attributes_to_define_after_schema_loads.merge(
-            name => [cast_type || block, options]
-          )
+        prev_cast_type, prev_options, prev_decorator = attributes_to_define_after_schema_loads[name]
+
+        unless cast_type && prev_cast_type
+          cast_type ||= prev_cast_type
+          options = prev_options || options if options.empty?
+          decorator ||= prev_decorator
+        end
+
+        self.attributes_to_define_after_schema_loads = attributes_to_define_after_schema_loads.merge(
+          name => [cast_type, options, decorator]
+        )
       end
 
       # This is the low level API which sits beneath +attribute+. It only
@@ -245,8 +255,16 @@ module ActiveRecord
 
       def load_schema! # :nodoc:
         super
-        attributes_to_define_after_schema_loads.each do |name, (type, options)|
-          define_attribute(name, _lookup_cast_type(name, type, options), **options.slice(:default))
+        attributes_to_define_after_schema_loads.each do |name, (type, options, decorator)|
+          if type.is_a?(Symbol)
+            type = ActiveRecord::Type.lookup(type, **options.except(:default), adapter: ActiveRecord::Type.adapter_name_from(self))
+          elsif type.nil?
+            type = type_for_attribute(name)
+          end
+
+          type = decorator[type] if decorator
+
+          define_attribute(name, type, **options.slice(:default))
         end
       end
 
@@ -268,30 +286,6 @@ module ActiveRecord
             default_attribute = ActiveModel::Attribute.from_database(name, value, type)
           end
           _default_attributes[name] = default_attribute
-        end
-
-        def decorate_attribute_type(attr_name, **default)
-          type, options = attributes_to_define_after_schema_loads[attr_name]
-
-          attribute(attr_name, **default) do |cast_type|
-            if type && !type.is_a?(Proc)
-              cast_type = _lookup_cast_type(attr_name, type, options)
-            end
-
-            yield cast_type
-          end
-        end
-
-        def _lookup_cast_type(name, type, options)
-          case type
-          when Symbol
-            adapter_name = ActiveRecord::Type.adapter_name_from(self)
-            ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
-          when Proc
-            type[type_for_attribute(name)]
-          else
-            type || type_for_attribute(name)
-          end
         end
     end
   end

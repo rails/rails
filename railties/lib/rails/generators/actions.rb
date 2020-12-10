@@ -111,11 +111,11 @@ module Rails
       # file in <tt>config/environments</tt>.
       #
       #   environment do
-      #     "config.action_controller.asset_host = 'cdn.provider.com'"
+      #     "config.asset_host = 'cdn.provider.com'"
       #   end
       #
       #   environment(nil, env: "development") do
-      #     "config.action_controller.asset_host = 'localhost:3000'"
+      #     "config.asset_host = 'localhost:3000'"
       #   end
       def environment(data = nil, options = {})
         sentinel = "class Application < Rails::Application\n"

@@ -51,10 +51,13 @@ module ActiveRecord
         @connection = connection
       end
 
-      def aliased_table_for(arel_table)
-        if aliases[arel_table.name] == 0
+      def aliased_table_for(arel_table, table_name = nil)
+        table_name ||= arel_table.name
+
+        if aliases[table_name] == 0
           # If it's zero, we can have our table_name
-          aliases[arel_table.name] = 1
+          aliases[table_name] = 1
+          arel_table = arel_table.alias(table_name) if arel_table.name != table_name
         else
           # Otherwise, we need to use an alias
           aliased_name = @connection.table_alias_for(yield)

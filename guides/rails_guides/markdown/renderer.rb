@@ -13,11 +13,14 @@ module RailsGuides
       def block_code(code, language)
         formatter = Rouge::Formatters::HTML.new
         lexer = ::Rouge::Lexer.find_fancy(lexer_language(language))
-        code = formatter.format(lexer.lex(code))
-        <<-HTML
-<div class="code_container">
-<pre><code class="highlight #{lexer_language(language)}">#{code}</code></pre>
-</div>
+        formatted_code = formatter.format(lexer.lex(code))
+        clipboard_id = "clipboard-#{SecureRandom.hex(16)}"
+        <<~HTML
+          <div class="code_container">
+          <pre><code class="highlight #{lexer_language(language)}">#{formatted_code}</code></pre>
+          <textarea class="clipboard-content" id="#{clipboard_id}">#{clipboard_content(code, language)}</textarea>
+          <button class="clipboard-button" data-clipboard-target="##{clipboard_id}">Copy</button>
+          </div>
         HTML
       end
 
@@ -77,6 +80,22 @@ module RailsGuides
           else
             ::Rouge::Lexer.find(code_type) ? code_type : "plaintext"
           end
+        end
+
+        def clipboard_content(code, language)
+          prompt_regexp =
+            case language
+            when "bash"
+              /^\$ /
+            when "irb"
+              /^irb.*?> /
+            end
+
+          if prompt_regexp
+            code = code.lines.grep(prompt_regexp).join.gsub(prompt_regexp, "")
+          end
+
+          ERB::Util.h(code)
         end
 
         def convert_notes(body)

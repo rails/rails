@@ -89,7 +89,7 @@ module ActiveRecord
 
           begin
             locking_column = self.class.locking_column
-            previous_lock_value = read_attribute_before_type_cast(locking_column)
+            previous_lock_value = attribute_before_type_cast(locking_column)
             attribute_names = attribute_names.dup if attribute_names.frozen?
             attribute_names << locking_column
 
@@ -121,7 +121,7 @@ module ActiveRecord
 
           affected_rows = self.class._delete_record(
             @primary_key => id_in_database,
-            locking_column => read_attribute_before_type_cast(locking_column)
+            locking_column => attribute_before_type_cast(locking_column)
           )
 
           if affected_rows != 1

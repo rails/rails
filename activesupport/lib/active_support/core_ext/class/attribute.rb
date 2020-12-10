@@ -102,7 +102,6 @@ class Class
         end
       RUBY
 
-
       class_methods << <<~RUBY
         silence_redefinition_of_method def #{name}=(value)
           redefine_method(:#{name}) { value } if singleton_class?

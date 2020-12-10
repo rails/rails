@@ -251,7 +251,7 @@ module ActiveRecord
           attribute = object.send(store_attribute)
           unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)
             attribute = IndifferentCoder.as_indifferent_hash(attribute)
-            object.send :"#{store_attribute}=", attribute
+            object.public_send :"#{store_attribute}=", attribute
           end
           attribute
         end

@@ -21,15 +21,25 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
-        def join_constraints(foreign_table, foreign_klass, join_type, alias_tracker, &block)
+        def join_constraints(foreign_table, foreign_klass, join_type, alias_tracker)
           joins = []
-          tables = reflection.chain.map(&block)
-          @table = tables.first
+          chain = []
+
+          reflection.chain.each do |reflection|
+            table, terminated = yield reflection
+            @table ||= table
+
+            if terminated
+              foreign_table, foreign_klass = table, reflection.klass
+              break
+            end
+
+            chain << [reflection, table]
+          end
 
           # The chain starts with the target table, but we want to end with it here (makes
           # more sense in this context), so we reverse
-          reflection.chain.reverse_each.with_index(1) do |reflection, i|
-            table = tables[-i]
+          chain.reverse_each do |reflection, table|
             klass = reflection.klass
 
             join_scope = reflection.join_scope(table, foreign_table, foreign_klass)
@@ -50,7 +60,7 @@ module ActiveRecord
               end
             end
 
-            joins << table.create_join(table, table.create_on(nodes), join_type)
+            joins << join_type.new(table, Arel::Nodes::On.new(nodes))
 
             if others && !others.empty?
               joins.concat arel.join_sources
@@ -79,7 +89,7 @@ module ActiveRecord
         private
           def append_constraints(join, constraints)
             if join.is_a?(Arel::Nodes::StringJoin)
-              join_string = table.create_and(constraints.unshift(join.left))
+              join_string = Arel::Nodes::And.new(constraints.unshift join.left)
               join.left = Arel.sql(base_klass.connection.visitor.compile(join_string))
             else
               right = join.right

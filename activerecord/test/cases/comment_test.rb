@@ -143,7 +143,7 @@ if ActiveRecord::Base.connection.supports_comments?
         assert_match %r[t\.integer\s+"rating",\s+precision: 38,\s+comment: "I am running out of imagination"], output
       else
         assert_match %r[t\.integer\s+"rating",\s+comment: "I am running out of imagination"], output
-        assert_match %r[t\.index\s+.+\s+comment: "\\\"Very important\\\" index that powers all the performance.\\nAnd it's fun!"], output
+        assert_match %r[t\.index\s+.+\s+comment: "\\"Very important\\" index that powers all the performance.\\nAnd it's fun!"], output
         assert_match %r[t\.index\s+.+\s+name: "idx_obvious",\s+comment: "We need to see obvious comments"], output
       end
     end

@@ -25,9 +25,9 @@ module ActiveModel
         end
 
         if value.is_a?(Array)
-          value.all? { |v| members.send(inclusion_method(members), v) }
+          value.all? { |v| members.public_send(inclusion_method(members), v) }
         else
-          members.send(inclusion_method(members), value)
+          members.public_send(inclusion_method(members), value)
         end
       end
 

@@ -677,7 +677,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   def test_ruby_19_weekday_name_query_methods
     %w(sunday? monday? tuesday? wednesday? thursday? friday? saturday?).each do |name|
       assert_respond_to @twz, name
-      assert_equal @twz.send(name), @twz.method(name).call
+      assert_equal @twz.public_send(name), @twz.method(name).call
     end
   end
 
@@ -1160,6 +1160,13 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
       Time.use_zone("No such timezone exists") { }
     end
     assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
+  end
+
+  def test_time_at_precision
+    Time.use_zone "UTC" do
+      time = "2019-01-01 00:00:00Z".to_time.end_of_month
+      assert_equal Time.at(time), Time.at(time.in_time_zone)
+    end
   end
 
   def test_time_zone_getter_and_setter

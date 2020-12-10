@@ -698,12 +698,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 7, Company.includes(:contracts).sum(:developer_id)
   end
 
-  if current_adapter?(:Mysql2Adapter)
-    def test_from_option_with_specified_index
-      assert_equal Edge.count(:all), Edge.from("edges USE INDEX(unique_edge_index)").count(:all)
-      assert_equal Edge.where("sink_id < 5").count(:all),
-          Edge.from("edges USE INDEX(unique_edge_index)").where("sink_id < 5").count(:all)
-    end
+  def test_from_option_with_specified_index
+    edges = Edge.from("edges /*! USE INDEX(unique_edge_index) */")
+    assert_equal Edge.count(:all), edges.count(:all)
+    assert_equal Edge.where("sink_id < 5").count(:all), edges.where("sink_id < 5").count(:all)
   end
 
   def test_from_option_with_table_different_than_class

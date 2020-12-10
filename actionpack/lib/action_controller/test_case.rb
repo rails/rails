@@ -74,21 +74,14 @@ module ActionController
       non_path_parameters = {}
       path_parameters = {}
 
-      if parameters[:format] == :json
-        parameters = JSON.load(JSON.dump(parameters))
-        query_string_keys = query_string_keys.map(&:to_s)
-      end
-
       parameters.each do |key, value|
         if query_string_keys.include?(key)
           non_path_parameters[key] = value
         else
-          unless parameters["format"] == "json"
-            if value.is_a?(Array)
-              value = value.map(&:to_param)
-            else
-              value = value.to_param
-            end
+          if value.is_a?(Array)
+            value = value.map(&:to_param)
+          else
+            value = value.to_param
           end
 
           path_parameters[key.to_sym] = value
@@ -502,7 +495,6 @@ module ActionController
         setup_request(controller_class_name, action, parameters, session, flash, xhr)
         process_controller_response(action, cookies, xhr)
       end
-
 
       def controller_class_name
         @controller.class.anonymous? ? "anonymous" : @controller.class.controller_path
