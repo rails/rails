@@ -1,3 +1,28 @@
+*   Makes `ActiveRecord::AttributeMethods::Query` respect the getter overrides defined in the model. 
+
+    Fixes #40771.
+
+    Before:
+
+    ```ruby
+      class User
+
+        def admin
+          false # Overriding the getter to always return false
+        end
+
+      end
+
+      user = User.first
+      user.update(admin: true)
+
+      user.admin # false (as expected, due to the getter overwrite)
+      user.admin? # true (not expected, returned the DB column value)
+
+    ```
+
+    After this commit, `user.admin?` above returns false, as expected.
+
 *   Allow delegated_type to be specified primary_key and foreign_key.
 
     Since delegated_type assumes that the foreign_key ends with `_id`,

@@ -137,6 +137,23 @@ module ActiveRecord #:nodoc:
   #   anonymous = User.new(name: "")
   #   anonymous.name? # => false
   #
+  # Query methods will also respect any overwrites of default accessors:
+  #
+  #   class User
+  #     # Has admin boolean column
+  #     def admin
+  #       false
+  #     end
+  #   end
+  #
+  #   user.update(admin: true)
+  #
+  #   user.read_attribute(:admin)  # => true, gets the column value
+  #   user[:admin] # => true, also gets the column value
+  #
+  #   user.admin   # => false, due to the getter overwrite
+  #   user.admin?  # => false, due to the getter overwrite
+  #
   # == Accessing attributes before they have been typecasted
   #
   # Sometimes you want to be able to read the raw attribute data without having the column-determined
