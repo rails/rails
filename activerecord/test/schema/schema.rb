@@ -1101,6 +1101,10 @@ ActiveRecord::Schema.define do
     t.string :title
   end
 
+  create_table :strict_zines, force: true do |t|
+    t.string :title
+  end
+
   create_table :wheels, force: true do |t|
     t.integer :size
     t.references :wheelable, polymorphic: true

@@ -6,6 +6,8 @@ require "models/computer"
 require "models/mentor"
 require "models/project"
 require "models/ship"
+require "models/strict_zine"
+require "models/interest"
 
 class StrictLoadingTest < ActiveRecord::TestCase
   fixtures :developers
@@ -416,4 +418,21 @@ class StrictLoadingTest < ActiveRecord::TestCase
         ActiveRecord::Base.logger = old_logger
       end
     end
+end
+
+class StrictLoadingFixturesTest < ActiveRecord::TestCase
+  fixtures :strict_zines
+
+  test "strict loading violations are ignored on fixtures" do
+    ActiveRecord::FixtureSet.reset_cache
+    create_fixtures("strict_zines")
+
+    assert_nothing_raised do
+      strict_zines(:going_out).interests.to_a
+    end
+
+    assert_raises(ActiveRecord::StrictLoadingViolationError) do
+      StrictZine.first.interests.to_a
+    end
+  end
 end
