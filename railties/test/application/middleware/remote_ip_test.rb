@@ -63,20 +63,35 @@ module ApplicationTests
       assert_equal "4.2.42.42", remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "4.2.42.42")
     end
 
-    test "the user can set trusted proxies" do
+    test "the user can set trusted proxies with an enumerable of case equality comparable values" do
       make_basic_app do |app|
-        app.config.action_dispatch.trusted_proxies = /^4\.2\.42\.42$/
+        app.config.action_dispatch.trusted_proxies = [IPAddr.new("4.2.42.0/24"), /^4\.2\.42\.43$/, "4.2.42.44"]
       end
 
-      assert_equal "1.1.1.1", remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "4.2.42.42")
+      assert_not_deprecated do
+        assert_equal "1.1.1.1",
+                     remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "4.2.42.42,4.2.42.43,4.2.42.44")
+      end
     end
 
-    test "the user can set trusted proxies with an IPAddr argument" do
+    test "setting trusted proxies replaces the default set of trusted proxies" do
+      make_basic_app do |app|
+        app.config.action_dispatch.trusted_proxies = [IPAddr.new("4.2.42.0/24")]
+      end
+
+      assert_equal "10.0.0.0",
+                   remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "10.0.0.0,4.2.42.42")
+    end
+
+    test "setting trusted proxies to a single value (deprecated) adds value to default trusted proxies" do
       make_basic_app do |app|
         app.config.action_dispatch.trusted_proxies = IPAddr.new("4.2.42.0/24")
       end
 
-      assert_equal "1.1.1.1", remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "10.0.0.0,4.2.42.42")
+      assert_deprecated(/Setting config\.action_dispatch\.trusted_proxies to a single value/) do
+        assert_equal "1.1.1.1",
+                     remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "10.0.0.0,4.2.42.42")
+      end
     end
   end
 end
