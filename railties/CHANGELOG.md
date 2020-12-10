@@ -1,3 +1,11 @@
+*   Modified scaffold generator template so that running
+    `rails g scaffold Author` no longer generates tests called "creating
+    a Author", "updating a Author", and "destroying a Author"
+
+    Fixes #40744.
+
+    *Michael Duchemin*
+
 *   Add benchmark method that can be called from anywhere.
 
     This method is used as a quick way to measure & log the speed of some code.

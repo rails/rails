@@ -864,7 +864,7 @@ You can also run `bin/rails test:all` to run all tests, including system tests.
 Now let's test the flow for creating a new article in our blog.
 
 ```ruby
-test "creating an article" do
+test "should create Article" do
   visit articles_path
 
   click_on "New Article"
