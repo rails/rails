@@ -200,6 +200,22 @@ video.preview(resize_to_limit: [100, 100])
 video.preview(resize_to_fill: [100, 100])
 ```
 
+### Environment config files need explicit `require` for some Active Support Core Extensions
+
+Application configuration now happens before Active Support is fully loaded, which means your `config/environments/*.rb` won't be able to access all core extensions.
+
+For example, if you are using something like
+
+```ruby
+'Cache-Control' => "public, max-age=#{2.days.to_i}"
+```
+
+you will need the respective `require`
+
+```ruby
+require "active_support/core_ext/integer/time"
+```
+
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------
 
