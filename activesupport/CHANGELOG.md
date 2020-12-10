@@ -3,6 +3,10 @@
 
     *Vipul A M*
 
+*   `ActiveSupport::Inflector#clear` now clears acronyms, and `inflector.clear(:acronyms)` is now supported.
+
+    *Alex Ghiculescu*
+
 *   `HashWithIndifferentAccess#deep_transform_keys` now returns a `HashWithIndifferentAccess` instead of a `Hash`.
 
     *Nathaniel Woodthorpe*

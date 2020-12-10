@@ -76,8 +76,7 @@ module ActiveSupport
       attr_reader :acronyms_camelize_regex, :acronyms_underscore_regex # :nodoc:
 
       def initialize
-        @plurals, @singulars, @uncountables, @humans, @acronyms = [], [], Uncountables.new, [], {}
-        define_acronym_regex_patterns
+        clear(:all)
       end
 
       # Private, for the test suite.
@@ -222,17 +221,25 @@ module ActiveSupport
       # Clears the loaded inflections within a given scope (default is
       # <tt>:all</tt>). Give the scope as a symbol of the inflection type, the
       # options are: <tt>:plurals</tt>, <tt>:singulars</tt>, <tt>:uncountables</tt>,
-      # <tt>:humans</tt>.
+      # <tt>:humans</tt>, <tt>:acronyms</tt>.
       #
       #   clear :all
       #   clear :plurals
       def clear(scope = :all)
-        case scope
-        when :all
-          @plurals, @singulars, @uncountables, @humans = [], [], Uncountables.new, []
+        if scope == :all
+          @plurals, @singulars, @uncountables, @humans, @acronyms = [], [], Uncountables.new, [], {}
         else
-          instance_variable_set "@#{scope}", []
+          value = case scope
+                  when :plurals, :singulars, :humans
+                    []
+                  when :uncountables
+                    Uncountables.new
+                  when :acronyms
+                    {}
+          end
+          instance_variable_set "@#{scope}", value
         end
+        define_acronym_regex_patterns if [:all, :acronyms].include?(scope)
       end
 
       private

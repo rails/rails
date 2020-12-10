@@ -477,6 +477,7 @@ class InflectorTest < ActiveSupport::TestCase
   def test_clear_all
     ActiveSupport::Inflector.inflections do |inflect|
       # ensure any data is present
+      inflect.acronym("HTTP")
       inflect.plural(/(quiz)$/i, '\1zes')
       inflect.singular(/(database)s$/i, '\1')
       inflect.uncountable("series")
@@ -484,6 +485,7 @@ class InflectorTest < ActiveSupport::TestCase
 
       inflect.clear :all
 
+      assert_empty inflect.acronyms
       assert_empty inflect.plurals
       assert_empty inflect.singulars
       assert_empty inflect.uncountables
@@ -494,6 +496,7 @@ class InflectorTest < ActiveSupport::TestCase
   def test_clear_with_default
     ActiveSupport::Inflector.inflections do |inflect|
       # ensure any data is present
+      inflect.acronym("HTTP")
       inflect.plural(/(quiz)$/i, '\1zes')
       inflect.singular(/(database)s$/i, '\1')
       inflect.uncountable("series")
@@ -501,10 +504,26 @@ class InflectorTest < ActiveSupport::TestCase
 
       inflect.clear
 
+      assert_empty inflect.acronyms
       assert_empty inflect.plurals
       assert_empty inflect.singulars
       assert_empty inflect.uncountables
       assert_empty inflect.humans
+    end
+  end
+
+  def test_clear_all_rests_camelize_and_underscore_regexes
+    ActiveSupport::Inflector.inflections do |inflect|
+      # ensure any data is present
+      inflect.acronym("HTTP")
+      assert_equal "http_s", "HTTPS".underscore
+      assert_equal "Https", "https".camelize
+
+      inflect.clear :all
+
+      assert_empty inflect.acronyms
+      assert_equal "https", "HTTPS".underscore
+      assert_equal "Https", "https".camelize
     end
   end
 
@@ -561,13 +580,21 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-  %w(plurals singulars uncountables humans acronyms).each do |scope|
+  %w(plurals singulars uncountables humans).each do |scope|
     define_method("test_clear_inflections_with_#{scope}") do
       # clear the inflections
       ActiveSupport::Inflector.inflections do |inflect|
-        inflect.clear(scope)
+        inflect.clear(scope.to_sym)
         assert_equal [], inflect.public_send(scope)
       end
+    end
+  end
+
+  def test_clear_inflections_with_acronyms
+    # clear the inflections
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.clear(:acronyms)
+      assert_equal({}, inflect.acronyms)
     end
   end
 end
