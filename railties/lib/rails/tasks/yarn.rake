@@ -10,13 +10,13 @@ namespace :yarn do
     end
 
     yarn_flags =
-      if `#{Rails.root}/bin/yarn --version`.start_with?("1")
+      if `"#{Rails.root}/bin/yarn" --version`.start_with?("1")
         "--no-progress --frozen-lockfile"
       else
         "--immutable"
       end
 
-    system({ "NODE_ENV" => node_env }, "#{Rails.root}/bin/yarn install #{yarn_flags}")
+    system({ "NODE_ENV" => node_env }, "\"#{Rails.root}/bin/yarn\" install #{yarn_flags}")
   end
 end
 
