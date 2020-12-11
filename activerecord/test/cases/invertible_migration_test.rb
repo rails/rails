@@ -18,6 +18,7 @@ module ActiveRecord
         create_table("horses") do |t|
           t.column :content, :text
           t.column :remind_at, :datetime
+          t.column :place_id, :integer
         end
       end
     end
@@ -195,6 +196,12 @@ module ActiveRecord
     class RevertNamedIndexMigration2 < SilentMigration
       def change
         add_index :horses, :content, name: "horses_index_named"
+      end
+    end
+
+    class RevertNonNamedExpressionIndexMigration < SilentMigration
+      def change
+        add_index :horses, "remind_at, place_id"
       end
     end
 
@@ -483,6 +490,20 @@ module ActiveRecord
         assert_not connection.index_exists?(:horses, :content, name: "horses_index_named"),
               "horses_index_named index should not exist"
       end
+    end
+
+    def test_migrate_revert_add_index_without_name_on_expression
+      InvertibleMigration.new.migrate(:up)
+      RevertNonNamedExpressionIndexMigration.new.migrate(:up)
+
+      connection = ActiveRecord::Base.connection
+      assert connection.index_exists?(:horses, [:remind_at, :place_id]),
+             "index on remind_at and place_id should exist"
+
+      RevertNonNamedExpressionIndexMigration.new.migrate(:down)
+
+      assert_not connection.index_exists?(:horses, [:remind_at, :place_id]),
+             "index on remind_at and place_id should not exist"
     end
 
     def test_up_only

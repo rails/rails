@@ -1,3 +1,16 @@
+*   Allow adding nonnamed expression indexes to be revertible.
+
+    Fixes #40732.
+
+    Previously, the following code would raise an error, when executed while rolling back,
+    and the index name should be specified explicitly. Now, the index name is inferred
+    automatically.
+    ```ruby
+    add_index(:items, "to_tsvector('english', description)")
+    ```
+
+    *fatkodima*
+
 *   Only warn about negative enums if a positive form that would cause conflicts exists.
 
     Fixes #39065.
