@@ -206,7 +206,11 @@ module ActiveStorage
     end
 
     def reload(*) #:nodoc:
-      super.tap { @attachment_changes = nil }
+      super.tap do
+        @attachment_changes&.delete_if do |_, attached|
+          attached.respond_to?(:uploaded) ? attached.uploaded : true
+        end
+      end
     end
   end
 end

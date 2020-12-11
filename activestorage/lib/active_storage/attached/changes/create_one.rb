@@ -5,10 +5,10 @@ require "action_dispatch/http/upload"
 
 module ActiveStorage
   class Attached::Changes::CreateOne #:nodoc:
-    attr_reader :name, :record, :attachable
+    attr_reader :name, :record, :attachable, :uploaded
 
     def initialize(name, record, attachable)
-      @name, @record, @attachable = name, record, attachable
+      @name, @record, @attachable, @uploaded = name, record, attachable, false
       blob.identify_without_saving
     end
 
@@ -27,6 +27,7 @@ module ActiveStorage
       when Hash
         blob.upload_without_unfurling(attachable.fetch(:io))
       end
+      @uploaded = true
     end
 
     def save

@@ -107,6 +107,28 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_equal blob, ActiveStorage::Blob.find_signed!(signed_id_generated_old_way)
   end
 
+  test "to-upload blob for one attached works when reloading withing a transaction" do
+    file_to_upload = Rack::Test::UploadedFile.new(file_fixture("racecar.jpg"))
+
+    @user.transaction do
+      @user.avatar.attach(file_to_upload)
+      @user.reload
+    end
+
+    assert @user.avatar.service.exist?(@user.avatar.key)
+  end
+
+  test "to-upload blob for many attached works when reloading withing a transaction" do
+    file_to_upload = Rack::Test::UploadedFile.new(file_fixture("racecar.jpg"))
+
+    @user.transaction do
+      @user.highlights.attach(file_to_upload)
+      @user.reload
+    end
+
+    assert @user.highlights.all? { |attachment| attachment.service.exist?(attachment.key) }
+  end
+
   private
     def assert_blob_identified_before_owner_validated(owner, blob, content_type)
       validated_content_type = nil

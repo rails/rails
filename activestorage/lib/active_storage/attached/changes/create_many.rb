@@ -2,10 +2,10 @@
 
 module ActiveStorage
   class Attached::Changes::CreateMany #:nodoc:
-    attr_reader :name, :record, :attachables
+    attr_reader :name, :record, :attachables, :uploaded
 
     def initialize(name, record, attachables)
-      @name, @record, @attachables = name, record, Array(attachables)
+      @name, @record, @attachables, @uploaded = name, record, Array(attachables), false
       blobs.each(&:identify_without_saving)
     end
 
@@ -19,6 +19,7 @@ module ActiveStorage
 
     def upload
       subchanges.each(&:upload)
+      @uploaded = true
     end
 
     def save
