@@ -16,7 +16,7 @@ module ActiveStorage
       @client = Aws::S3::Resource.new(**options)
       @bucket = @client.bucket(bucket)
 
-      @multipart_upload_threshold = upload.fetch(:multipart_threshold, 100.megabytes)
+      @multipart_upload_threshold = upload.delete(:multipart_threshold) || 100.megabytes
       @public = public
 
       @upload_options = upload
