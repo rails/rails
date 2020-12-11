@@ -17,6 +17,10 @@ namespace :yarn do
       end
 
     system({ "NODE_ENV" => node_env }, "\"#{Rails.root}/bin/yarn\" install #{yarn_flags}")
+  rescue Errno::ENOENT
+    $stderr.puts "bin/yarn was not found."
+    $stderr.puts "Please run `bundle exec rails app:update:bin` to create it."
+    exit 1
   end
 end
 
