@@ -29,7 +29,7 @@ require "models/parrot"
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects, :computers, :authors, :author_addresses,
-           :posts, :tags, :taggings, :comments, :sponsors, :members
+           :essays, :posts, :tags, :taggings, :comments, :sponsors, :members
 
   def test_belongs_to
     client = Client.find(3)
@@ -38,6 +38,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       assert_equal first_firm, client.firm
       assert_equal first_firm.name, client.firm.name
     end
+  end
+
+  def test_where_with_custom_primary_key
+    assert_equal [authors(:david)], Author.where(owned_essay: essays(:david_modest_proposal))
   end
 
   def test_assigning_belongs_to_on_destroyed_object
