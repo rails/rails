@@ -8,7 +8,7 @@ gemfile(true) do
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   # Activate the gem you are reporting the issue against.
-  gem "activerecord", "6.0.3"
+  gem "activerecord", "6.1.0"
   gem "sqlite3"
 end
 
