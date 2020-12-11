@@ -210,7 +210,7 @@ module ActiveSupport
     end
 
     def initialize(value, parts) #:nodoc:
-      @value, @parts = value, parts
+      @value, @parts = value, parts.to_h
       @parts.reject! { |k, v| v.zero? } unless value == 0
     end
 

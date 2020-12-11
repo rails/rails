@@ -126,6 +126,12 @@ class DurationTest < ActiveSupport::TestCase
     assert_nothing_raised { Date.today - Date.today }
   end
 
+  def test_constructor_accepts_parts_as_arrays
+    duration = ActiveSupport::Duration.new(1, [[:seconds, 1]])
+    assert_equal 1.second, duration
+    assert_equal 2.seconds, duration + 1
+  end
+
   def test_unary_plus
     assert_equal (+ 1.second), 1.second
     assert_instance_of ActiveSupport::Duration, + 1.second
