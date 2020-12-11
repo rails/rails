@@ -773,9 +773,12 @@ module ActiveRecord
 
     def find
       raise FixtureClassNotFound, "No class attached to find." unless model_class
-      model_class.unscoped do
+      object = model_class.unscoped do
         model_class.find(fixture[model_class.primary_key])
       end
+      # Fixtures can't be eagerly loaded
+      object.instance_variable_set(:@strict_loading, false)
+      object
     end
   end
 end
