@@ -1387,8 +1387,14 @@ module ActiveRecord
 
           checks = []
 
+          if !options.key?(:name) && column_name.is_a?(String) && /\W/.match?(column_name)
+            options[:name] = index_name(table_name, column_name)
+            column_names = []
+          else
+            column_names = index_column_names(column_name || options[:column])
+          end
+
           checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name)
-          column_names = index_column_names(column_name || options[:column])
 
           if column_names.present?
             checks << lambda { |i| index_name(table_name, i.columns) == index_name(table_name, column_names) }
