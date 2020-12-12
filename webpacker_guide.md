@@ -165,6 +165,10 @@ You can also access the image by directly referencing the file from a CSS file i
 
 ## Webpacker in Rails Engines
 
+As of Webpacker version 5, Webpacker is not "engine-aware," which means Webpacker does not have feature-parity with Sprockets when it comes to use within Rails engines. The [Webpacker engine guides](https://github.com/rails/webpacker/blob/master/docs/engines.md) provide some detailed workarounds to add Webpacker-support and developing locally against an engine with Webpacker.
+
+Gem authors of Rails engines who wish to support consumers using Webpacker are encouraged to distribute frontend assets as an NPM package in addition to the gem itself and provide instructions (or an installer) to demonstrate how host apps should integrate. A good example of this approach is [Alchemy CMS](https://github.com/AlchemyCMS/alchemy_cms).
+
 ## Running Webpacker in Development
 
 Webpacker ships with two binstub files to run in development: `./bin/webpack` and `./bin/webpack-dev-server`. Both are thin wrappers around the standard `webpack.js` and `webpack-dev-server.js` executables and ensure that the right configuration files and environmental variables are loaded based on your environment.
