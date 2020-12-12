@@ -2,7 +2,7 @@
 
 This guide will show you how to install and use Webpacker to package  JavaScript, CSS, and other assets for the client-side of your Rails application.
 
-After reading this guide, you will know: 
+After reading this guide, you will know:
 
 * What Webpacker does and why it is different from Sprockets.
 * How to install Webpacker and integrate it with your framework of choice.
@@ -75,7 +75,7 @@ INFO. It's possible to install frameworks not included in this list. These are b
 |TypeScript        |`rails webpacker:install:typescript`|Sets up Typescript for your project using Babel's TypeScript support|
 |Vue               |`rails webpacker:install:vue`       |Sets up VueJS                                     |
 
-For More information about the existing integrations, see https://github.com/rails/webpacker/blob/master/docs/integrations.md. 
+For More information about the existing integrations, see https://github.com/rails/webpacker/blob/master/docs/integrations.md.
 
 ## Using Webpacker for JavaScript
 
@@ -109,17 +109,15 @@ app/javascript:
       └── logo.svg
 ```
 
-Typically the pack file itself is largely a manifest that uses `import` or `require` to load the necessary files and may also do some initialization. 
+Typically the pack file itself is largely a manifest that uses `import` or `require` to load the necessary files and may also do some initialization.
 
 If you want to change these directories, you can adjust the `source_path` (default `app/javascript`) and `source_entry_path` (default `packs`) in the `configuration/webpacker.yml` file.
 
 Within source files, `import` statements are resolved relative to the file doing the import, so `import Bar from "./foo"` finds a `foo.js` file in the same directory as the current file, while `import Bar from "../src/foo"` finds a file in a sibling directory named `src`.
 
-### Babel and TypeScript
-
 ## Using Webpacker for CSS
 
-Out of the box, Webpacker supports CSS and SCSS using the PostCSS processor. 
+Out of the box, Webpacker supports CSS and SCSS using the PostCSS processor.
 
 To include CSS code in your packs, first include your CSS files in your top level pack file as though it was a JavaScript file. So if your CSS top-level manifest is in `app/javascript/styles/styles.scss`, you can import it with `import styles/styles`. This tells webpack to include your CSS file in the download. To actually load it in the page, you need to include a `<stylesheet_pack_tag "application">`, where the `application` is the same pack name that you were using. (Note, the docs still say you need to use `stylesheet_pack_tag`, but experimenting suggests that the CSS will load without it.)
 
@@ -149,7 +147,7 @@ To reference Webpacker static assets from a Rails view, the assets need to be ex
 const images = require.context("../images", true)
 const imagePath = name => images(name, true)
 ```
- 
+
 Static assets will be output into a directory under `public/packs/media`. For example, an image located and imported at `app/javascript/images/my-image.jpg` will be output at `public/packs/media/images/my-image-abcd1234.jpg`. To render an image tag for this image in a Rails view, use `image_pack_tag 'media/images/my-image.jpg`.
 
 The Webpacker ActionView helpers for static assets correspond to asset pipeline helpers according to the following table:
@@ -177,7 +175,7 @@ By default, Webpacker compiles automatically on demand in development when a Rai
 
 If you want to use live code reloading, or you have enough JavaScript that on-demand compilation is too slow, you'll need to run `./bin/webpack-dev-server` or `ruby ./bin/webpack-dev-server`. This process will watch for changes in the `app/javascript/packs/*.js` files and automatically recompile and reload the browser to match.
 
-Windows users will need to run these commands in a terminal separate from `bundle exec rails s`. 
+Windows users will need to run these commands in a terminal separate from `bundle exec rails s`.
 
 Once you start this development server, Webpacker will automatically start proxying all webpack asset requests to this server. When you stop the server, it'll revert back to on-demand compilation.
 
@@ -204,77 +202,7 @@ Webpacker has three environments by default `development`, `test`, and `producti
 
 Webpacker adds a `Webpacker:compile` task to the `assets:precompile` rake task, so any existing deploy pipeline that was using `assets:precompile` should work. The compile task will compile the packs and place them in `public/packs`.
 
-### Webpacker and Docker
-
-# Docker
-
-To setup webpacker with a dockerized Rails application for local development using docker-compose.
-
-Ensure nodejs and yarn are installed as dependencies in the Dockerfile:
-
-```dockerfile
-FROM ruby:2.7.1
-
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash \
- && apt-get update && apt-get install -y nodejs && rm -rf /var/lib/apt/lists/* \
- && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
- && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
- && apt-get update && apt-get install -y yarn && rm -rf /var/lib/apt/lists/*
-
-# Rest of the commands....
-```
-
-Add a new service for the webpack-dev-server in docker-compose.yml:
-
-```Dockerfile
-version: '3'
-services:
-  webpacker:
-    build: .
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - RAILS_ENV=${RAILS_ENV:-development}
-      - WEBPACKER_DEV_SERVER_HOST=webpacker
-    command: ./bin/webpack-dev-server
-    volumes:
-      - .:/app
-    ports:
-      - "3035:3035"
-```
-
-Ensure the rails app service specifies the WEBPACKER_DEV_SERVER_HOST=webpacker environment variable:
-
-```Dockerfile
-  web:
-    build:
-      context: .
-    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
-    volumes:
-      - .:/app
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - RAILS_ENV=${RAILS_ENV:-development}
-      - WEBPACKER_DEV_SERVER_HOST=webpacker
-```
-
-Lastly, rebuild your container:
-
-```bash
-docker-compose up --build
-```
-
-For production dockerized setup, make sure `rake asssets:precompile` is run in the Dockerfile to ensure assets, including the webpacker manifest.json file, are built in the container.
-
-
-## Extending and Customizing Webpacker
-
-## Troubleshooting Common Problems
-
-## Upgrading Webpacker
-
-## Credits
+## Additional Documentation
 
 * [Webpacker Documentation](https://github.com/rails/webpacker)
 * Niklas Häusele
