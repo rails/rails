@@ -31,8 +31,8 @@ module ActiveRecord
         end
 
         def convert_to_id(value)
-          if value.respond_to?(:id)
-            value.id
+          if value.respond_to?(primary_key)
+            value.public_send(primary_key)
           else
             value
           end
