@@ -94,7 +94,22 @@ require("channels")
 
 You'll need to include a pack that requires these packages to use them in your Rails application.
 
-Beyond the use of the `app/javascript/packs` directory for packs, Webpacker does not place any restrictions or make any suggestions on how to structure your source code. Typically the pack file itself is largely a manifest that uses `import` or `require` to load the necessary files and may also do some initialization. 
+It is important to note that only webpack entry files should be placed in the `app/javascript/packs` directory; webpack will create a separate dependency graph for each entry point so a large number of packs will increase compilation overhead. The rest of your asset source code should live outside this directory though Webpacker does not place any restrictions or make any suggestions on how to structure your source code. Here is an example:
+```sh
+app/javascript:
+  ├── packs:
+  │   # only webpack entry files here
+  │   └── application.js
+  │   └── application.css
+  └── src:
+  │   └── my_component.js
+  └── stylesheets:
+  │   └── my_styles.css
+  └── images:
+      └── logo.svg
+```
+
+Typically the pack file itself is largely a manifest that uses `import` or `require` to load the necessary files and may also do some initialization. 
 
 If you want to change these directories, you can adjust the `source_path` (default `app/javascript`) and `source_entry_path` (default `packs`) in the `configuration/webpacker.yml` file.
 
