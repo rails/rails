@@ -24,6 +24,7 @@ Webpacker is a Rails wrapper around the [webpack](https://webpack.js.org) build 
 
 The goal of webpack, or any front-end build system, is to allow you to write your front-end code in a way that is convenient for developers and then package that code in a way that is convenient for browsers. With webpack, you can manage JavaScript, CSS, and static assets like files or fonts. Webpack will allow you to write your code, reference other code in your application, transform you code, and combine your code into easily downloadable packs.
 
+See the [webpack documentation](https://webpack.js.org) for information.
 ### How is Webpacker Different from Sprockets?
 
 Rails also ships with Sprockets, an asset-packaging tool whose features overlap with Webpacker. Both tools will compile your JavaScript into into browser-friendly files, and minify and fingerprint them in production. Both tools allow you to incrementally change files in development.
