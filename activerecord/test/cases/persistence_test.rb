@@ -1073,6 +1073,20 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal parrot.updated_at, updated_at
   end
 
+  def test_touched_true
+    parrot = Parrot.create!(name: "Cat")
+
+    parrot.touch(time: 1.day.from_now)
+
+    assert_equal true, parrot.touched?
+  end
+
+  def test_touched_false
+    parrot = Parrot.create!(name: "Cat")
+
+    assert_equal false, parrot.touched?
+  end
+
   def test_reset_column_information_resets_children
     child_class = Class.new(Topic)
     child_class.new # force schema to load

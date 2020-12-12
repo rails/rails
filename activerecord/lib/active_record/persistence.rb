@@ -872,6 +872,17 @@ module ActiveRecord
       end
     end
 
+    def touched?
+      _raise_record_not_touched_error unless persisted?
+
+      timestamp_values = all_timestamp_attributes_in_model.map do |attr_name|
+        _read_attribute(attr_name)
+      end
+
+      # All timestamps are equal
+      timestamp_values.uniq.length > 1
+    end
+
   private
     # A hook to be overridden by association modules.
     def destroy_associations
