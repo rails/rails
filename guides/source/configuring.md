@@ -850,7 +850,7 @@ There are a few configuration options available in Active Support:
 
 * `ActiveSupport.utc_to_local_returns_utc_offset_times` configures
   `ActiveSupport::TimeZone.utc_to_local` to return a time with a UTC offset
-  instead of a UTC time incorporating that offset.
+  instead of a UTC time incorporating that offset. The default is `false`.
 
 ### Configuring Active Job
 
