@@ -204,6 +204,4 @@ Webpacker adds a `Webpacker:compile` task to the `assets:precompile` rake task, 
 
 ## Additional Documentation
 
-* [Webpacker Documentation](https://github.com/rails/webpacker)
-* Niklas Häusele
-* [The React-Rails Sprockets or Webpacker Page](https://github.com/reactjs/react-rails/wiki/Choosing-Sprockets-or-Webpacker), edited by Greg Myers, was useful.
+For more information on advanced topics, such as using Webpacker with popular frameworks, consult the [Webpacker Documentation](https://github.com/rails/webpacker).
