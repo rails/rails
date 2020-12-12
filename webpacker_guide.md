@@ -187,6 +187,68 @@ Webpacker adds a `Webpacker:compile` task to the `assets:precompile` rake task, 
 
 ### Webpacker and Docker
 
+# Docker
+
+To setup webpacker with a dockerized Rails application for local development using docker-compose.
+
+Ensure nodejs and yarn are installed as dependencies in the Dockerfile:
+
+```dockerfile
+FROM ruby:2.7.1
+
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash \
+ && apt-get update && apt-get install -y nodejs && rm -rf /var/lib/apt/lists/* \
+ && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+ && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
+ && apt-get update && apt-get install -y yarn && rm -rf /var/lib/apt/lists/*
+
+# Rest of the commands....
+```
+
+Add a new service for the webpack-dev-server in docker-compose.yml:
+
+```Dockerfile
+version: '3'
+services:
+  webpacker:
+    build: .
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - RAILS_ENV=${RAILS_ENV:-development}
+      - WEBPACKER_DEV_SERVER_HOST=webpacker
+    command: ./bin/webpack-dev-server
+    volumes:
+      - .:/app
+    ports:
+      - "3035:3035"
+```
+
+Ensure the rails app service specifies the WEBPACKER_DEV_SERVER_HOST=webpacker environment variable:
+
+```Dockerfile
+  web:
+    build:
+      context: .
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - RAILS_ENV=${RAILS_ENV:-development}
+      - WEBPACKER_DEV_SERVER_HOST=webpacker
+```
+
+Lastly, rebuild your container:
+
+```bash
+docker-compose up --build
+```
+
+For production dockerized setup, make sure `rake asssets:precompile` is run in the Dockerfile to ensure assets, including the webpacker manifest.json file, are built in the container.
+
+
 ## Extending and Customizing Webpacker
 
 ## Troubleshooting Common Problems
