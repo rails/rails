@@ -308,7 +308,7 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 *   Add `Blob.create_and_upload` to create a new blob and upload the given `io`
     to the service.
     ([Pull Request](https://github.com/rails/rails/pull/34827))
-*   ActiveStorage::Blob#service_name column added, activestorage upgrade migration needed, `rails active_storage:update`
+*   ActiveStorage::Blob#service_name column was added, ( `bin/rails app:update` required ).
 
 Active Model
 ------------
