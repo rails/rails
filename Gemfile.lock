@@ -530,6 +530,7 @@ GEM
       activesupport (>= 4.2)
       rack-proxy (>= 0.6.1)
       railties (>= 4.2)
+    webrick (1.7.0)
     websocket (1.2.8)
     websocket-driver (0.7.1)
       websocket-extensions (>= 0.1.0)
@@ -616,6 +617,7 @@ DEPENDENCIES
   webdrivers
   webmock
   webpacker (~> 4.0)
+  webrick
   websocket-client-simple!
 
 BUNDLED WITH
