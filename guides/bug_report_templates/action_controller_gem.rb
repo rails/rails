@@ -8,7 +8,7 @@ gemfile(true) do
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   # Activate the gem you are reporting the issue against.
-  gem "rails", "6.0.3"
+  gem "rails", "6.1.0"
 end
 
 require "rack/test"
