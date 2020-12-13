@@ -533,6 +533,7 @@ GEM
       rack-proxy (>= 0.6.1)
       railties (>= 5.2)
       semantic_range (>= 2.3.0)
+    webrick (1.7.0)
     websocket (1.2.8)
     websocket-driver (0.7.3)
       websocket-extensions (>= 0.1.0)
@@ -620,6 +621,7 @@ DEPENDENCIES
   webdrivers
   webmock
   webpacker (~> 5.0)
+  webrick
   websocket-client-simple!
 
 BUNDLED WITH
