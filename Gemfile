@@ -50,8 +50,9 @@ gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
 gem "rexml", require: false
 
-# for railties app_generator_test
+# for railties
 gem "bootsnap", ">= 1.4.4", require: false
+gem "webrick", require: false
 
 # Active Job
 group :job do
