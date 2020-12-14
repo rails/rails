@@ -33,6 +33,10 @@ module ActiveRecord
       assert_equal [authors(:bob)], Author.joins(:categories).where(categories: categories(:technology))
     end
 
+    def test_where_with_aliased_association
+      assert_equal [comments(:does_it_hurt)], Comment.where(entry: posts(:thinking))
+    end
+
     def test_type_cast_is_not_evaluated_at_relation_build_time
       posts = nil
 
