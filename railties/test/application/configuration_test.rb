@@ -2362,6 +2362,23 @@ module ApplicationTests
       assert_equal "lazy", ActionView::Helpers::AssetTagHelper.image_loading
     end
 
+    test "ActionView::Helpers::AssetTagHelper.image_decoding is nil by default" do
+      app "development"
+      assert_nil ActionView::Helpers::AssetTagHelper.image_decoding
+    end
+
+    test "ActionView::Helpers::AssetTagHelper.image_decoding can be configured via config.action_view.image_decoding" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.action_view.image_decoding = "async"
+        end
+      RUBY
+
+      app "development"
+
+      assert_equal "async", ActionView::Helpers::AssetTagHelper.image_decoding
+    end
+
     test "raises when unknown configuration option is set for ActiveJob" do
       add_to_config <<-RUBY
         config.active_job.unknown = "test"
