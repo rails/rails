@@ -52,6 +52,17 @@ module ActiveRecord
           self.current_scope = nil
         end
 
+        # Checks if the model has any default scopes. If all_queries
+        # is set to true, the method will check if there are any
+        # default_scopes for the model  where `all_queries` is true.
+        def default_scopes?(all_queries: false)
+          if all_queries
+            self.default_scopes.map(&:all_queries).include?(true)
+          else
+            self.default_scopes.any?
+          end
+        end
+
         private
           # Use this macro in your model to set a default scope for all operations on
           # the model.

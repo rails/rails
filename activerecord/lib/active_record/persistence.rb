@@ -378,7 +378,7 @@ module ActiveRecord
       def _update_record(values, constraints) # :nodoc:
         constraints = _substitute_values(constraints).map { |attr, bind| attr.eq(bind) }
 
-        if default_scopes.any? && !default_scoped(all_queries: true).where_clause.empty?
+        if default_scopes?(all_queries: true)
           constraints << default_scoped(all_queries: true).where_clause.ast
         end
 
@@ -392,7 +392,7 @@ module ActiveRecord
       def _delete_record(constraints) # :nodoc:
         constraints = _substitute_values(constraints).map { |attr, bind| attr.eq(bind) }
 
-        if default_scopes.any? && !default_scoped(all_queries: true).where_clause.empty?
+        if default_scopes?(all_queries: true)
           constraints << default_scoped(all_queries: true).where_clause.ast
         end
 
@@ -808,12 +808,11 @@ module ActiveRecord
     def reload(options = nil)
       self.class.connection.clear_query_cache
 
-      fresh_object =
-        if options && options[:lock]
-          self.class.unscoped { self.class.lock(options[:lock]).find(id) }
-        else
-          self.class.unscoped { self.class.find(id) }
-        end
+      fresh_object = if self.class.default_scopes?(all_queries: true) && !(options && options[:unscoped])
+        find_record(options)
+      else
+        self.class.unscoped { find_record(options) }
+      end
 
       @attributes = fresh_object.instance_variable_get(:@attributes)
       @new_record = false
@@ -873,6 +872,14 @@ module ActiveRecord
     end
 
   private
+    def find_record(options)
+      if options && options[:lock]
+        self.class.lock(options[:lock]).find(id)
+      else
+        self.class.find(id)
+      end
+    end
+
     # A hook to be overridden by association modules.
     def destroy_associations
     end

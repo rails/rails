@@ -158,6 +158,29 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match(/mentor_id/, destroy_sql)
   end
 
+  def test_default_scope_doesnt_run_on_reload
+    Mentor.create!
+    dev = DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
+    reload_sql = capture_sql { dev.reload }.first
+
+    assert_no_match(/mentor_id/, reload_sql)
+  end
+
+  def test_default_scope_with_all_queries_runs_on_reload
+    Mentor.create!
+    dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen")
+    reload_sql = capture_sql { dev.reload }.first
+
+    assert_match(/mentor_id/, reload_sql)
+  end
+
+  def test_default_scope_with_all_queries_doesnt_run_on_destroy_when_unscoped
+    dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen", mentor_id: 2)
+    reload_sql = capture_sql { dev.reload({ unscoped: true }) }.first
+
+    assert_no_match(/mentor_id/, reload_sql)
+  end
+
   def test_scope_overwrites_default
     expected = Developer.all.merge!(order: "salary DESC, name DESC").to_a.collect(&:name)
     received = DeveloperOrderedBySalary.by_name.to_a.collect(&:name)
