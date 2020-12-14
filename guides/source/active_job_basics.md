@@ -386,7 +386,7 @@ ActiveJob supports the following types of arguments by default:
 
 ### GlobalID
 
-Active Job supports GlobalID for parameters. This makes it possible to pass live
+Active Job supports [GlobalID](https://github.com/rails/globalid/blob/master/README.md) for parameters. This makes it possible to pass live
 Active Record objects to your job instead of class/id pairs, which you then have
 to manually deserialize. Before, jobs would look like this:
 
