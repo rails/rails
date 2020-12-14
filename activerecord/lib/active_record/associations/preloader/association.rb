@@ -11,9 +11,16 @@ module ActiveRecord
           @preload_scope = preload_scope
           @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
           @model         = owners.first && owners.first.class
+
+          @already_loaded = owners.all? { |o| o.association(reflection.name).loaded? }
         end
 
         def run
+          if @already_loaded
+            fetch_from_preloaded_records
+            return self
+          end
+
           records = records_by_owner
 
           owners.each do |owner|
@@ -37,6 +44,14 @@ module ActiveRecord
 
         private
           attr_reader :owners, :reflection, :preload_scope, :model, :klass
+
+          def fetch_from_preloaded_records
+            @records_by_owner = owners.index_with do |owner|
+              Array(owner.association(reflection.name).target)
+            end
+
+            @preloaded_records = records_by_owner.flat_map(&:last)
+          end
 
           def load_records
             # owners can be duplicated when a relation has a collection association join
