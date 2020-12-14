@@ -20,7 +20,7 @@ class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTe
       post <%= index_helper %>_url, params: { <%= "#{singular_table_name}: { #{attributes_string} }" %> }, as: :json
     end
 
-    assert_response 201
+    assert_response :created
   end
 
   test "should show <%= singular_table_name %>" do
@@ -30,7 +30,7 @@ class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTe
 
   test "should update <%= singular_table_name %>" do
     patch <%= show_helper %>, params: { <%= "#{singular_table_name}: { #{attributes_string} }" %> }, as: :json
-    assert_response 200
+    assert_response :success
   end
 
   test "should destroy <%= singular_table_name %>" do
@@ -38,7 +38,7 @@ class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTe
       delete <%= show_helper %>, as: :json
     end
 
-    assert_response 204
+    assert_response :no_content
   end
 end
 <% end -%>
