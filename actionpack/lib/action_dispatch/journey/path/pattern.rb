@@ -50,6 +50,9 @@ module ActionDispatch
             back = terminals[index-1]
             fwd = terminals[index+1]
 
+            # we also don't support this yet, constraints must be regexps
+            return false if s.regexp.is_a?(Array)
+
             return false if back.literal?
             return false if !fwd.nil? && fwd.literal?
           }
