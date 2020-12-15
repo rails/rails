@@ -69,9 +69,8 @@ module ActiveRecord
         #
         # * +attr_name+ - The field name that should be serialized.
         # * +class_name_or_coder+ - Optional, may be be +Array+ or +Hash+ or
-        #                           +JSON+ or a custom coder class or module
-        #                           which responds to +.load+ and
-        #                           +.dump+. See table above.
+        #   +JSON+ or a custom coder class or module which responds to +.load+
+        #   and +.dump+. See table above.
         #
         # ==== Options
         #
