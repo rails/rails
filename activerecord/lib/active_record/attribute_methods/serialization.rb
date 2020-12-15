@@ -50,9 +50,9 @@ module ActiveRecord
         #
         # ==== Custom coders
         # A custom coder class or module may be given. This must have +self.load+
-        # and +self.dump+ class/module methods. +self.dump(object)+ will be called
+        # and +self.dump+ class/module methods. <tt>self.dump(object)</tt> will be called
         # to serialize an object and should return the serialized value to be
-        # stored in the database (+nil+ to store as +NULL+). +self.load(string)+
+        # stored in the database (+nil+ to store as +NULL+). <tt>self.load(string)</tt>
         # will be called to reverse the process and load (unserialize) from the
         # database.
         #
@@ -69,9 +69,8 @@ module ActiveRecord
         #
         # * +attr_name+ - The field name that should be serialized.
         # * +class_name_or_coder+ - Optional, may be be +Array+ or +Hash+ or
-        #                           +JSON+ or a custom coder class or module
-        #                           which responds to +.load+ and
-        #                           +.dump+. See table above.
+        #   +JSON+ or a custom coder class or module which responds to +.load+
+        #   and +.dump+. See table above.
         #
         # ==== Options
         #
