@@ -1791,9 +1791,9 @@ We can add our status validation to the concern, but this is slightly more compl
 module Visible
   extend ActiveSupport::Concern
 
-  included do
-    VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = ['public', 'private', 'archived']
 
+  included do
     validates :status, inclusion: { in: VALID_STATUSES }
   end
 
@@ -1867,6 +1867,51 @@ Our blog has <%= Article.public_count %> articles and counting!
 </ul>
 
 <%= link_to "New Article", new_article_path %>
+```
+
+There are a few more steps to be carried out before our application works with the addition of `status` column. First, let's run the following migrations to add `status` to `Articles` and `Comments`:
+
+```bash
+$ bin/rails generate migration AddStatusToArticles status:string
+$ bin/rails generate migration AddStatusToComments status:string
+```
+
+TIP: To learn more about migrations, see [Active Record Migrations](
+active_record_migrations.html).
+
+We also have to permit the `:status` key as part of the strong parameter, in `app/controllers/articles_controller.rb`:
+
+```ruby
+private
+    def article_params
+      params.require(:comment).permit(:commenter, :body, :status)
+    end
+```
+
+and in `app/controllers/comments_controller.rb`:
+
+```ruby
+private
+    def comment_params
+      params.require(:comment).permit(:commenter, :body, :status)
+    end
+```
+
+To finish up, we will add a select box to the forms, and let the user select the status when they create a new article or post a new comment. We can also specify the default status as `public`. In `app/views/articles/_form.html.erb`, we can add:
+
+```html+erb
+<div>
+  <%= form.label :status %><br>
+  <%= form.select :status, ['public', 'private', 'archived'], selected: 'public' %>
+</div>
+```
+
+and in `app/views/comments/_form.html.erb`:
+```html+erb
+<p>
+  <%= form.label :status %><br>
+  <%= form.select :status, ['public', 'private', 'archived'], selected: 'public' %>
+</p>
 ```
 
 Deleting Comments
