@@ -1907,6 +1907,7 @@ To finish up, we will add a select box to the forms, and let the user select the
 ```
 
 and in `app/views/comments/_form.html.erb`:
+
 ```html+erb
 <p>
   <%= form.label :status %><br>
