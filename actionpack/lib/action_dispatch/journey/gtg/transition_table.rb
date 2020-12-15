@@ -10,11 +10,15 @@ module ActionDispatch
 
         attr_reader :memos
 
+        DEFAULT_EXP = /[^.\/?]+/
+        DEFAULT_EXP_ANCHORED = Regexp.new(/\A#{DEFAULT_EXP}\Z/)
+
         def initialize
-          @regexp_states = {}
-          @string_states = {}
-          @accepting     = {}
-          @memos         = Hash.new { |h, k| h[k] = [] }
+          @stdparam_states = {}
+          @regexp_states   = {}
+          @string_states   = {}
+          @accepting       = {}
+          @memos           = Hash.new { |h, k| h[k] = [] }
         end
 
         def add_accepting(state)
@@ -41,21 +45,50 @@ module ActionDispatch
           Array(t)
         end
 
-        def move(t, a)
+        def move(t, full_string, start_index, end_index)
           return [] if t.empty?
 
-          regexps = []
           strings = []
+          regexps = []
 
-          t.each { |s|
-            if states = @regexp_states[s]
-              states.each { |re, v| regexps << v if re.match?(a) && !v.nil? }
+          tok = full_string.slice(start_index, end_index - start_index)
+          token_matches_default_component = DEFAULT_EXP_ANCHORED.match?(tok)
+
+          t.each { |s, previous_start|
+            # In the simple case of a "default" param regex do this fast-path
+            # and add all next states.
+            if previous_start.nil? && token_matches_default_component && states = @stdparam_states[s]
+              states.each { |re, v| regexps << [v, nil].freeze if !v.nil? }
             end
 
-            if states = @string_states[s]
-              strings << states[a] unless states[a].nil?
+            # For regexes that aren't the "default" style, they may potentially
+            # not be terminated by the first "token" [./?], so we need to continue
+            # to attempt to match this regexp as well as any successful paths that
+            # continue out of it. both paths could be valid.
+            if states = @regexp_states[s]
+              states.each { |re, v|
+                next if v.nil?
+
+                slice_start = if previous_start.nil?
+                  start_index
+                else
+                  previous_start
+                end
+
+                # if we match, we can try moving past this
+                slice_length = end_index - slice_start
+                regexps << [v, nil].freeze if re.match?(full_string.slice(slice_start, slice_length))
+                # and regardless, we must continue accepting tokens.
+                # we need to remember where we started as well so we can take bigger slices.
+                regexps << [s, slice_start].freeze
+              }
+            end
+
+            if previous_start.nil? && states = @string_states[s]
+              strings << [states[tok], nil].freeze unless states[tok].nil?
             end
           }
+
           strings.concat regexps
         end
 
@@ -69,9 +102,10 @@ module ActionDispatch
           end
 
           {
-            regexp_states: simple_regexp,
-            string_states: @string_states,
-            accepting:     @accepting
+            regexp_states:   simple_regexp,
+            string_states:   @string_states,
+            stdparam_states: @stdparam_states,
+            accepting:       @accepting
           }
         end
 
@@ -125,17 +159,24 @@ module ActionDispatch
 
         def []=(from, to, sym)
           to_mappings = states_hash_for(sym)[from] ||= {}
+          if sym.is_a? Regexp
+            # we must match the whole string to a token boundary
+            sym = Regexp.new(/\A#{sym}\Z/)
+          end
           to_mappings[sym] = to
         end
 
         def states
           ss = @string_states.keys + @string_states.values.flat_map(&:values)
+          ps = @stdparam_states.keys + @stdparam_states.values.flat_map(&:values)
           rs = @regexp_states.keys + @regexp_states.values.flat_map(&:values)
-          (ss + rs).uniq
+          (ss + ps + rs).uniq
         end
 
         def transitions
           @string_states.flat_map { |from, hash|
+            hash.map { |s, to| [from, s, to] }
+          } + @stdparam_states.flat_map { |from, hash|
             hash.map { |s, to| [from, s, to] }
           } + @regexp_states.flat_map { |from, hash|
             hash.map { |s, to| [from, s, to] }
@@ -148,7 +189,11 @@ module ActionDispatch
             when String
               @string_states
             when Regexp
-              @regexp_states
+              if sym == DEFAULT_EXP
+                @stdparam_states
+              else
+                @regexp_states
+              end
             else
               raise ArgumentError, "unknown symbol: %s" % sym.class
             end
