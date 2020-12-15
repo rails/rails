@@ -20,7 +20,7 @@ module ActiveRecord
       # a certain time period.
       #
       # You set the time period that the signed id is valid for during generation, using the instance method
-      # +signed_id(expires_in: 15.minutes)+. If the time has elapsed before a signed find is attempted,
+      # <tt>signed_id(expires_in: 15.minutes)</tt>. If the time has elapsed before a signed find is attempted,
       # the signed id will no longer be valid, and nil is returned.
       #
       # It's possible to further restrict the use of a signed id with a purpose. This helps when you have a
