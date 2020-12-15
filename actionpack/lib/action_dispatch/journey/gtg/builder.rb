@@ -104,7 +104,7 @@ module ActionDispatch
         def lastpos(node)
           case node
           when Nodes::Star
-            firstpos(node.left)
+            lastpos(node.left)
           when Nodes::Or
             node.children.flat_map { |c| lastpos(c) }.tap(&:uniq!)
           when Nodes::Cat
@@ -130,10 +130,6 @@ module ActionDispatch
               when Nodes::Cat
                 lastpos(n.left).each do |i|
                   table[i] += firstpos(n.right)
-                end
-              when Nodes::Star
-                lastpos(n).each do |i|
-                  table[i] += firstpos(n)
                 end
               end
             end
