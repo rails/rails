@@ -48,8 +48,7 @@ module ActionDispatch
         def move(t, full_string, start_index, end_index)
           return [] if t.empty?
 
-          strings = []
-          regexps = []
+          next_states = Set.new
 
           tok = full_string.slice(start_index, end_index - start_index)
           token_matches_default_component = DEFAULT_EXP_ANCHORED.match?(tok)
@@ -58,7 +57,7 @@ module ActionDispatch
             # In the simple case of a "default" param regex do this fast-path
             # and add all next states.
             if previous_start.nil? && token_matches_default_component && states = @stdparam_states[s]
-              states.each { |re, v| regexps << [v, nil].freeze if !v.nil? }
+              states.each { |re, v| next_states.add [v, nil].freeze if !v.nil? }
             end
 
             # For regexes that aren't the "default" style, they may potentially
@@ -77,19 +76,19 @@ module ActionDispatch
 
                 # if we match, we can try moving past this
                 slice_length = end_index - slice_start
-                regexps << [v, nil].freeze if re.match?(full_string.slice(slice_start, slice_length))
+                next_states.add [v, nil].freeze if re.match?(full_string.slice(slice_start, slice_length))
                 # and regardless, we must continue accepting tokens.
                 # we need to remember where we started as well so we can take bigger slices.
-                regexps << [s, slice_start].freeze
+                next_states.add [s, slice_start].freeze
               }
             end
 
             if previous_start.nil? && states = @string_states[s]
-              strings << [states[tok], nil].freeze unless states[tok].nil?
+              next_states.add [states[tok], nil].freeze unless states[tok].nil?
             end
           }
 
-          strings.concat regexps
+          next_states
         end
 
         def as_json(options = nil)
