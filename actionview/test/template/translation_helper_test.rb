@@ -77,6 +77,16 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal key, translate(:"translations.missing", default: key)
   end
 
+  def test_returns_nil_for_nil_key_without_default
+    assert_nil translate(nil)
+  end
+
+  def test_returns_default_for_nil_key_with_default
+    assert_equal "Foo", translate(nil, default: "Foo")
+    assert_equal "Foo", translate(nil, default: :"translations.foo")
+    assert_predicate translate(nil, default: :"translations.html"), :html_safe?
+  end
+
   def test_returns_missing_translation_message_without_span_wrap
     old_value = ActionView::Base.debug_missing_translation
     ActionView::Base.debug_missing_translation = false

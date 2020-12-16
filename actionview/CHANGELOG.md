@@ -1,3 +1,9 @@
+*   The `translate` helper now resolves `default` values when a `nil` key is
+    specified, instead of always returning `nil`.
+
+    *Jonathan Hefner*
+
+
 ## Rails 6.1.0 (December 09, 2020) ##
 
 *   SanitizeHelper.sanitized_allowed_attributes and SanitizeHelper.sanitized_allowed_tags
