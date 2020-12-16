@@ -580,8 +580,9 @@ def initialize!(group = :default) #:nodoc:
 end
 ```
 
-As you can see, you can only initialize an app once. The initializers are run through
-the `run_initializers` method which is defined in `railties/lib/rails/initializable.rb`:
+You can only initialize an app once. The Railtie [initializers](configuring.html#initializers)
+are run through the `run_initializers` method which is defined in
+`railties/lib/rails/initializable.rb`:
 
 ```ruby
 def run_initializers(group = :default, *args)
@@ -605,6 +606,9 @@ prepare the application (like initializing the logger) while the `finisher`
 initializers (like building the middleware stack) are run last. The `railtie`
 initializers are the initializers which have been defined on the `Rails::Application`
 itself and are run between the `bootstrap` and `finishers`.
+
+*Note:* Do not confuse Railtie initializers overall with the [load_config_initializers](https://edgeguides.rubyonrails.org/configuring.html#using-initializer-files)
+initializer instance or its associated config initializers in `config/initializers`.
 
 After this is done we go back to `Rack::Server`.
 
