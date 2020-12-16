@@ -26,6 +26,7 @@ require "models/department"
 require "models/cake_designer"
 require "models/drink_designer"
 require "models/recipe"
+require "models/user_with_invalid_relation"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -135,6 +136,19 @@ class ReflectionTest < ActiveRecord::TestCase
     end
     reflection = ActiveRecord::Reflection.create(:has_many, "plurales_irregulares", nil, {}, ActiveRecord::Base)
     assert_equal "PluralIrregular", reflection.class_name
+  end
+
+  def test_reflection_klass_is_not_ar_subclass
+    [:account_invalid,
+     :account_class_name,
+     :info_invalids,
+     :infos_class_name,
+     :infos_through_class_name,
+    ].each do |rel|
+      assert_raise(ArgumentError) do
+        UserWithInvalidRelation.reflect_on_association(rel).klass
+      end
+    end
   end
 
   def test_aggregation_reflection
