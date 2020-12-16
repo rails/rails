@@ -1257,7 +1257,7 @@ This produces:
 ```sql
 SELECT books.* FROM books
   INNER JOIN reviews ON reviews.book_id = book.id
-  INNER JOIN customer ON customers.id = reviews.customer_id
+  INNER JOIN customers ON customers.id = reviews.customer_id
 ```
 
 Or, in English: "return all books that have a review by a customer."
