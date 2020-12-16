@@ -459,6 +459,9 @@ in controllers and views. This defaults to `false`.
   having to send a query to the database to get this information.
   Defaults to `true`.
 
+* `config.active_record.cache_versioning` indicates whether to use a stable `#cache_key`
+  method that is accompanied by a changing version in the `#cache_version` method.
+
 * `config.active_record.collection_cache_versioning` enables the same cache key
   to be reused when the object being cached of type `ActiveRecord::Relation`
   changes by moving the volatile information (max updated at and count) of
@@ -1074,6 +1077,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_job.retry_jitter`: `0.0`
 - `config.active_job.skip_after_callbacks_if_terminated`: `false`
 - `config.active_record.collection_cache_versioning`: `false`
+- `config.active_record.cache_versioning`: `false`
 - `config.active_record.has_many_inversing`: `false`
 - `config.active_record.legacy_connection_handling`: `true`
 - `config.active_support.use_authenticated_message_encryption`: `false`
