@@ -69,7 +69,7 @@ module ActionView
       #
       def translate(key, **options)
         return key.map { |k| translate(k, **options) } if key.is_a?(Array)
-        key = key.to_s unless key.is_a?(Symbol)
+        key = key&.to_s unless key.is_a?(Symbol)
 
         alternatives = if options.key?(:default)
           options[:default].is_a?(Array) ? options.delete(:default).compact : [options.delete(:default)]
@@ -78,13 +78,12 @@ module ActionView
         options[:raise] = true if options[:raise].nil? && ActionView::Base.raise_on_missing_translations
         default = MISSING_TRANSLATION
 
-        translation = while key
+        translation = while key || alternatives.present?
           if alternatives.blank? && !options[:raise].nil?
             default = NO_DEFAULT # let I18n handle missing translation
           end
 
           key = scope_key_by_partial(key)
-          first_key ||= key
 
           if html_safe_translation_key?(key)
             html_safe_options ||= html_escape_translation_options(options)
@@ -97,10 +96,11 @@ module ActionView
 
           break alternatives.first if alternatives.present? && !alternatives.first.is_a?(Symbol)
 
+          first_key ||= key
           key = alternatives&.shift
         end
 
-        if key.nil?
+        if key.nil? && !first_key.nil?
           translation = missing_translation(first_key, options)
           key = first_key
         end
@@ -130,7 +130,7 @@ module ActionView
         end
 
         def scope_key_by_partial(key)
-          if key.start_with?(".")
+          if key&.start_with?(".")
             if @current_template&.virtual_path
               @_scope_key_by_partial_cache ||= {}
               @_scope_key_by_partial_cache[@current_template.virtual_path] ||= @current_template.virtual_path.gsub(%r{/_?}, ".")

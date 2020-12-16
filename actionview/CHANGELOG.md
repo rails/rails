@@ -1,3 +1,8 @@
+*   The `translate` helper now resolves `default` values when a `nil` key is
+    specified, instead of always returning `nil`.
+
+    *Jonathan Hefner*
+
 *   Add `config.action_view.image_loading` to configure the default value of
     the `image_tag` `:loading` option.
 
