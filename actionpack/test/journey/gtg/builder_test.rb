@@ -60,6 +60,23 @@ module ActionDispatch
           assert_equal 2, memos.length
         end
 
+        def test_catchall
+          table = tt %w{
+            /
+            /*unmatched_route
+          }
+
+          sim = Simulator.new table
+
+          # matches just the /*unmatched_route
+          memos = sim.memos "/test"
+          assert_equal 1, memos.length
+
+          # matches just the /
+          memos = sim.memos "/"
+          assert_equal 1, memos.length
+        end
+
         private
           def ast(strings)
             parser = Journey::Parser.new
