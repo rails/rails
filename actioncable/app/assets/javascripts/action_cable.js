@@ -110,7 +110,13 @@
     ConnectionMonitor.prototype.getPollInterval = function getPollInterval() {
       var _constructor$pollInte = this.constructor.pollInterval, min = _constructor$pollInte.min, max = _constructor$pollInte.max, multiplier = _constructor$pollInte.multiplier;
       var interval = multiplier * Math.log(this.reconnectAttempts + 1);
-      return Math.round(clamp(interval, min, max) * 1e3);
+      var seconds = void 0;
+      if (this.reconnectAttempts === 0) {
+        seconds = Math.random() * (max - min) + min;
+      } else {
+        seconds = clamp(interval, min, max);
+      }
+      return Math.round(seconds * 1e3);
     };
     ConnectionMonitor.prototype.reconnectIfStale = function reconnectIfStale() {
       if (this.connectionIsStale()) {

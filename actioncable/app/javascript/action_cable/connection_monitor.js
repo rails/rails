@@ -77,7 +77,14 @@ class ConnectionMonitor {
   getPollInterval() {
     const {min, max, multiplier} = this.constructor.pollInterval
     const interval = multiplier * Math.log(this.reconnectAttempts + 1)
-    return Math.round(clamp(interval, min, max) * 1000)
+    let seconds
+    
+    if (this.reconnectAttempts === 0){
+      seconds = Math.random() * (max - min) + min
+    } else {
+      seconds = clamp(interval, min, max)
+    }
+    return Math.round(seconds * 1000)
   }
 
   reconnectIfStale() {
