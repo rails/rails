@@ -72,6 +72,9 @@ The new Rails version might have different configuration defaults than the previ
 
 To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults.rb`. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
 
+Upgrading from Rails 6.1 to Rails 6.2
+-------------------------------------
+
 Upgrading from Rails 6.0 to Rails 6.1
 -------------------------------------
 
