@@ -22,6 +22,7 @@ module ActionView
       include TagHelper
 
       mattr_accessor :image_loading
+      mattr_accessor :image_decoding
 
       # Returns an HTML script tag for each of the +sources+ provided.
       #
@@ -376,6 +377,7 @@ module ActionView
         options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
 
         options[:loading] ||= image_loading if image_loading
+        options[:decoding] ||= image_decoding if image_decoding
 
         tag("img", options)
       end

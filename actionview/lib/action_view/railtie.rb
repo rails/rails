@@ -11,6 +11,7 @@ module ActionView
     config.action_view.debug_missing_translation = true
     config.action_view.default_enforce_utf8 = nil
     config.action_view.image_loading = nil
+    config.action_view.image_decoding = nil
 
     config.eager_load_namespaces << ActionView
 
@@ -40,6 +41,7 @@ module ActionView
 
     config.after_initialize do |app|
       ActionView::Helpers::AssetTagHelper.image_loading = app.config.action_view.delete(:image_loading)
+      ActionView::Helpers::AssetTagHelper.image_decoding = app.config.action_view.delete(:image_decoding)
     end
 
     config.after_initialize do |app|

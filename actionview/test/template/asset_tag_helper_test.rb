@@ -587,6 +587,16 @@ class AssetTagHelperTest < ActionView::TestCase
     ActionView::Helpers::AssetTagHelper.image_loading = original_image_loading
   end
 
+  def test_image_tag_decoding_attribute_default_value
+    original_image_decoding = ActionView::Helpers::AssetTagHelper.image_decoding
+    ActionView::Helpers::AssetTagHelper.image_decoding = "async"
+
+    assert_dom_equal %(<img src="" decoding="async" />), image_tag("")
+    assert_dom_equal %(<img src="" decoding="sync" />), image_tag("", decoding: "sync")
+  ensure
+    ActionView::Helpers::AssetTagHelper.image_decoding = original_image_decoding
+  end
+
   def test_favicon_link_tag
     FaviconLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
