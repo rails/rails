@@ -239,7 +239,8 @@ class AssetTagHelperTest < ActionView::TestCase
     %(preload_link_tag '//example.com/map?callback=initMap', as: 'fetch', type: 'application/javascript') => %(<link rel="preload" href="//example.com/map?callback=initMap" as="fetch" type="application/javascript" />),
     %(preload_link_tag '//example.com/font.woff2') => %(<link rel="preload" href="//example.com/font.woff2" as="font" type="font/woff2" crossorigin="anonymous"/>),
     %(preload_link_tag '//example.com/font.woff2', crossorigin: 'use-credentials') => %(<link rel="preload" href="//example.com/font.woff2" as="font" type="font/woff2" crossorigin="use-credentials" />),
-    %(preload_link_tag '/media/audio.ogg', nopush: true) => %(<link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg" />)
+    %(preload_link_tag '/media/audio.ogg', nopush: true) => %(<link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg" />),
+    %(preload_link_tag '/style.css', integrity: 'sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs') => %(<link rel="preload" href="/style.css" as="style" type="text/css" integrity="sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs">),
   }
 
   VideoPathToTag = {
@@ -532,6 +533,13 @@ class AssetTagHelperTest < ActionView::TestCase
     stylesheet_link_tag("http://example.com/style.css", crossorigin: "use-credentials")
     javascript_include_tag("http://example.com/all.js", crossorigin: true)
     expected = "<http://example.com/style.css>; rel=preload; as=style; crossorigin=use-credentials; nopush,<http://example.com/all.js>; rel=preload; as=script; crossorigin=anonymous; nopush"
+    assert_equal expected, @response.headers["Link"]
+  end
+
+  def test_should_set_preload_links_with_integrity_hashes
+    stylesheet_link_tag("http://example.com/style.css", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs")
+    javascript_include_tag("http://example.com/all.js", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs")
+    expected = "<http://example.com/style.css>; rel=preload; as=style; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush,<http://example.com/all.js>; rel=preload; as=script; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush"
     assert_equal expected, @response.headers["Link"]
   end
 
