@@ -235,6 +235,10 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Deprecate `ActiveRecord::Base.allow_unsafe_raw_sql`.
 
+*   Deprecate `database` kwarg on `connected_to`.
+
+*   Deprecate `connection_handlers` when `legacy_connection_handling` is set to false.
+
 ### Notable changes
 
 *   MySQL: Uniqueness validator now respects default database collation,
@@ -282,6 +286,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
          User.where.not(name: "Jon", role: "admin")
          # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
+
+* To use the new per-database connection handling applications must change `legacy_connection_handling` to false and remove deprecated accessors on `connection_handlers`. Public methods for `connects_to` and `connected_to` require no changes.
 
 Active Storage
 --------------

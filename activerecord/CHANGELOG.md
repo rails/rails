@@ -1,3 +1,7 @@
+*   Remove deprecated `database` kwarg from `connected_to`.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Allow adding nonnamed expression indexes to be revertible.
 
     Fixes #40732.
