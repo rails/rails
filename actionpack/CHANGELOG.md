@@ -1,3 +1,8 @@
+*   Change the request method to a `GET` when passing failed requests down to `config.exceptions_app`.
+
+    *Alex Robbin*
+
+
 ## Rails 6.1.0 (December 09, 2020) ##
 
 *   Support for the HTTP header `Feature-Policy` has been revised to reflect
