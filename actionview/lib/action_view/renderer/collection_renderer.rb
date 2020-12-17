@@ -144,7 +144,7 @@ module ActionView
           "render_collection.action_view",
           identifier: identifier,
           layout: layout && layout.virtual_path,
-          count: collection.size
+          count: collection.to_a.size
         ) do |payload|
           spacer = if @options.key?(:spacer_template)
             spacer_template = find_template(@options[:spacer_template], @locals.keys)
