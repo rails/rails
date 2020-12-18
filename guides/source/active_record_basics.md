@@ -153,7 +153,7 @@ CREATE TABLE products (
 );
 ```
 
-Schema above declares a table with two columns: `id` and `name`. Each row of
+The schema above declares a table with two columns: `id` and `name`. Each row of
 this table represents a certain product with these two parameters. Thus, you
 would be able to write code like the following:
 
@@ -339,10 +339,14 @@ A quick example to illustrate:
 class User < ApplicationRecord
   validates :name, presence: true
 end
+```
 
-user = User.new
-user.save  # => false
-user.save! # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+```irb
+irb> user = User.new
+irb> user.save
+=> false
+irb> user.save!
+ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 You can learn more about validations in the [Active Record Validations

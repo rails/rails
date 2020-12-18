@@ -79,7 +79,7 @@ module ActiveModel
           # when there is an error, the message is added to the password attribute instead
           # so that the error message will make sense to the end-user.
           validate do |record|
-            record.errors.add(attribute, :blank) unless record.send("#{attribute}_digest").present?
+            record.errors.add(attribute, :blank) unless record.public_send("#{attribute}_digest").present?
           end
 
           validates_length_of attribute, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
@@ -94,11 +94,11 @@ module ActiveModel
 
         define_method("#{attribute}=") do |unencrypted_password|
           if unencrypted_password.nil?
-            self.send("#{attribute}_digest=", nil)
+            self.public_send("#{attribute}_digest=", nil)
           elsif !unencrypted_password.empty?
             instance_variable_set("@#{attribute}", unencrypted_password)
             cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
-            self.send("#{attribute}_digest=", BCrypt::Password.create(unencrypted_password, cost: cost))
+            self.public_send("#{attribute}_digest=", BCrypt::Password.create(unencrypted_password, cost: cost))
           end
         end
 
@@ -117,7 +117,7 @@ module ActiveModel
         #   user.authenticate_password('notright')      # => false
         #   user.authenticate_password('mUc3m00RsqyRe') # => user
         define_method("authenticate_#{attribute}") do |unencrypted_password|
-          attribute_digest = send("#{attribute}_digest")
+          attribute_digest = public_send("#{attribute}_digest")
           BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
         end
 

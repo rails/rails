@@ -520,8 +520,7 @@ XmlMini.backend = 'LibXML'
 The `Time` and `TimeWithZone` classes include an `xmlschema` method to return the time in an XML-friendly string. As of Rails 2.3, `TimeWithZone` supports the same argument for specifying the number of digits in the fractional second part of the returned string that `Time` does:
 
 ```ruby
->> Time.zone.now.xmlschema(6)
-=> "2009-01-16T13:00:06.13653Z"
+Time.zone.now.xmlschema(6) # => "2009-01-16T13:00:06.13653Z"
 ```
 
 * Lead Contributor: [Nicholas Dainty](http://www.workingwithrails.com/person/13536-nicholas-dainty)

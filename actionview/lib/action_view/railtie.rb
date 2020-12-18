@@ -6,13 +6,12 @@ require "rails"
 module ActionView
   # = Action View Railtie
   class Railtie < Rails::Engine # :nodoc:
-    NULL_OPTION = Object.new
-
     config.action_view = ActiveSupport::OrderedOptions.new
     config.action_view.embed_authenticity_token_in_remote_forms = nil
     config.action_view.debug_missing_translation = true
     config.action_view.default_enforce_utf8 = nil
-    config.action_view.finalize_compiled_template_methods = NULL_OPTION
+    config.action_view.image_loading = nil
+    config.action_view.image_decoding = nil
 
     config.eager_load_namespaces << ActionView
 
@@ -41,6 +40,11 @@ module ActionView
     end
 
     config.after_initialize do |app|
+      ActionView::Helpers::AssetTagHelper.image_loading = app.config.action_view.delete(:image_loading)
+      ActionView::Helpers::AssetTagHelper.image_decoding = app.config.action_view.delete(:image_decoding)
+    end
+
+    config.after_initialize do |app|
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k, v|
           if k == :raise_on_missing_translations
@@ -50,16 +54,6 @@ module ActionView
               "Note that this new setting also affects how missing translations are handled in controllers."
           end
           send "#{k}=", v
-        end
-      end
-    end
-
-    initializer "action_view.finalize_compiled_template_methods" do |app|
-      ActiveSupport.on_load(:action_view) do
-        option = app.config.action_view.delete(:finalize_compiled_template_methods)
-
-        if option != NULL_OPTION
-          ActiveSupport::Deprecation.warn "action_view.finalize_compiled_template_methods is deprecated and has no effect"
         end
       end
     end

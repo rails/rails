@@ -259,7 +259,7 @@ module ActiveRecord
         end
 
         batch_relation = relation.where(
-          bind_attribute(primary_key, primary_key_offset) { |attr, bind| order == :desc ? attr.lt(bind) : attr.gt(bind) }
+          predicate_builder[primary_key, primary_key_offset, order == :desc ? :lt : :gt]
         )
       end
     end
@@ -272,15 +272,15 @@ module ActiveRecord
       end
 
       def apply_start_limit(relation, start, order)
-        relation.where(bind_attribute(primary_key, start) { |attr, bind| order == :desc ? attr.lteq(bind) : attr.gteq(bind) })
+        relation.where(predicate_builder[primary_key, start, order == :desc ? :lteq : :gteq])
       end
 
       def apply_finish_limit(relation, finish, order)
-        relation.where(bind_attribute(primary_key, finish) { |attr, bind| order == :desc ? attr.gteq(bind) : attr.lteq(bind) })
+        relation.where(predicate_builder[primary_key, finish, order == :desc ? :gteq : :lteq])
       end
 
       def batch_order(order)
-        arel_attribute(primary_key).public_send(order)
+        table[primary_key].public_send(order)
       end
 
       def act_on_ignored_order(error_on_ignore)

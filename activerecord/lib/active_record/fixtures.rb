@@ -585,6 +585,14 @@ module ActiveRecord
         end
       end
 
+      def signed_global_id(fixture_set_name, label, column_type: :integer, **options)
+        identifier = identify(label, column_type)
+        model_name = default_fixture_model_name(fixture_set_name)
+        uri = URI::GID.build([GlobalID.app, model_name, identifier, {}])
+
+        SignedGlobalID.new(uri, **options)
+      end
+
       # Superclass for the evaluation contexts used by ERB fixtures.
       def context_class
         @context_class ||= Class.new
@@ -765,9 +773,12 @@ module ActiveRecord
 
     def find
       raise FixtureClassNotFound, "No class attached to find." unless model_class
-      model_class.unscoped do
+      object = model_class.unscoped do
         model_class.find(fixture[model_class.primary_key])
       end
+      # Fixtures can't be eagerly loaded
+      object.instance_variable_set(:@strict_loading, false)
+      object
     end
   end
 end

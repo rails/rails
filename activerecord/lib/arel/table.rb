@@ -14,8 +14,9 @@ module Arel # :nodoc: all
     # TableAlias and Table both have a #table_name which is the name of the underlying table
     alias :table_name :name
 
-    def initialize(name, as: nil, type_caster: nil)
+    def initialize(name, as: nil, klass: nil, type_caster: klass&.type_caster)
       @name = name.to_s
+      @klass = klass
       @type_caster = type_caster
 
       # Sometime AR sends an :as parameter to table, to let the table know
@@ -79,8 +80,10 @@ module Arel # :nodoc: all
       from.having expr
     end
 
-    def [](name)
-      ::Arel::Attribute.new self, name
+    def [](name, table = self)
+      name = name.to_s if name.is_a?(Symbol)
+      name = @klass.attribute_aliases[name] || name if @klass
+      Attribute.new(table, name)
     end
 
     def hash

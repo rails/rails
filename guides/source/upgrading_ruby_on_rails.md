@@ -72,6 +72,9 @@ The new Rails version might have different configuration defaults than the previ
 
 To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults.rb`. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
 
+Upgrading from Rails 6.1 to Rails 6.2
+-------------------------------------
+
 Upgrading from Rails 6.0 to Rails 6.1
 -------------------------------------
 
@@ -174,7 +177,31 @@ prefix = "foo/bar".camelize
 
 This change is backwards compatible for the majority of applications, in which case you do not need to do anything.
 
-Technically, however, controllers could configure `helpers_path` to point to a directoy in `$LOAD_PATH` that was not in the autoload paths. That use case is no longer supported out of the box. If the helper module is not autoloadable, the application is responsible for loading it before calling `helper`.
+Technically, however, controllers could configure `helpers_path` to point to a directory in `$LOAD_PATH` that was not in the autoload paths. That use case is no longer supported out of the box. If the helper module is not autoloadable, the application is responsible for loading it before calling `helper`.
+
+### Redirection to HTTPS from HTTP will now use the 308 HTTP status code
+
+The default HTTP status code used in `ActionDispatch::SSL` when redirecting non-GET/HEAD requests from HTTP to HTTPS has been changed to `308` as defined in https://tools.ietf.org/html/rfc7538.
+
+### Active Storage now requires Image Processing
+
+When processing variants in Active Storage, it's now required to have the [image_processing gem](https://github.com/janko-m/image_processing) bundled instead of directly using `mini_magick`. Image Processing is configured by default to use `mini_magick` behind the scenes, so the easiest way to upgrade is by replacing the `mini_magick` gem for the `image_processing` gem and making sure to remove the explicit usage of `combine_options` since it's no longer needed.
+
+That said, it's recommended to change the calls to raw `resize` for `image_processing` macros as they also sharpen the thumbnail after resizing. For example, instead of:
+
+```ruby
+video.preview(resize: "100x100")
+video.preview(resize: "100x100>")
+video.preview(resize: "100x100^")
+```
+
+you can respectively do:
+
+```ruby
+video.preview(resize_to_fit: [100, 100])
+video.preview(resize_to_limit: [100, 100])
+video.preview(resize_to_fill: [100, 100])
+```
 
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------
@@ -490,7 +517,7 @@ By opting-out you optimize `$LOAD_PATH` lookups (less directories to check), and
 
 #### Thread-safety
 
-In classic mode, constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe when autoloading is enabled, as it is common in `development` mode.
+In classic mode, constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe when autoloading is enabled, as it is common in the development environment.
 
 Constant autoloading is thread-safe in `zeitwerk` mode. For example, you can now autoload in multi-threaded scripts executed by the `runner` command.
 
@@ -664,7 +691,7 @@ model behavior.
 When upgrading from Rails 4.2 to Rails 5.0, you need to create an
 `application_record.rb` file in `app/models/` and add the following content:
 
-```
+```ruby
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 end
@@ -705,7 +732,7 @@ behavior has changed to now inherit from `ApplicationJob`.
 When upgrading from Rails 4.2 to Rails 5.0, you need to create an
 `application_job.rb` file in `app/jobs/` and add the following content:
 
-```
+```ruby
 class ApplicationJob < ActiveJob::Base
 end
 ```
@@ -746,8 +773,7 @@ are also fine because the file defining them will have been eager loaded while b
 
 For the vast majority of applications this change needs no action. But in the
 very rare event that your application needs autoloading while running in
-production mode, set `Rails.application.config.enable_dependency_loading` to
-true.
+production, set `Rails.application.config.enable_dependency_loading` to true.
 
 ### XML Serialization
 
@@ -854,7 +880,7 @@ should also extend the module with `ActiveSupport::Concern`. Alternatively, you 
 to include `ActionController::Live` directly to the controller once the `StreamingSupport` is included.
 
 This means that if your application used to have its own streaming module, the following code
-would break in production mode:
+would break in production:
 
 ```ruby
 # This is a work-around for streamed controllers performing authentication with Warden/Devise.
@@ -884,8 +910,8 @@ end
 
 This can be turned off per-association with `optional: true`.
 
-This default will be automatically configured in new applications. If existing application
-want to add this feature it will need to be turned on in an initializer.
+This default will be automatically configured in new applications. If an existing application
+wants to add this feature it will need to be turned on in an initializer:
 
     config.active_record.belongs_to_required_by_default = true
 
@@ -1245,7 +1271,7 @@ secrets, you need to:
 
 2. Use your existing `secret_key_base` from the `secret_token.rb` initializer to
    set the SECRET_KEY_BASE environment variable for whichever users running the
-   Rails application in production mode. Alternatively, you can simply copy the existing
+   Rails application in production. Alternatively, you can simply copy the existing
    `secret_key_base` from the `secret_token.rb` initializer to `secrets.yml`
    under the `production` section, replacing '<%= ENV["SECRET_KEY_BASE"] %>'.
 
@@ -1354,9 +1380,13 @@ class FooBar
     { foo: 'bar' }
   end
 end
+```
 
->> FooBar.new.to_json # => "{\"foo\":\"bar\"}"
->> JSON.generate(FooBar.new, quirks_mode: true) # => "\"#<FooBar:0x007fa80a481610>\""
+```irb
+irb> FooBar.new.to_json
+=> "{\"foo\":\"bar\"}"
+irb> JSON.generate(FooBar.new, quirks_mode: true)
+=> "\"#<FooBar:0x007fa80a481610>\""
 ```
 
 #### New JSON encoder
@@ -1379,7 +1409,7 @@ gem to your `Gemfile`.
 now returns millisecond precision by default. If you need to keep old behavior with no millisecond
 precision, set the following in an initializer:
 
-```
+```ruby
 ActiveSupport::JSON::Encoding.time_precision = 0
 ```
 
@@ -1623,7 +1653,7 @@ However, you will need to make a change if you are using `form_for` to update
 a resource in conjunction with a custom route using the `PUT` HTTP method:
 
 ```ruby
-resources :users, do
+resources :users do
   put :update_name, on: :member
 end
 ```
@@ -1643,15 +1673,15 @@ end
 If the action is not being used in a public API and you are free to change the
 HTTP method, you can update your route to use `patch` instead of `put`:
 
-`PUT` requests to `/users/:id` in Rails 4 get routed to `update` as they are
-today. So, if you have an API that gets real PUT requests it is going to work.
-The router also routes `PATCH` requests to `/users/:id` to the `update` action.
-
 ```ruby
 resources :users do
   patch :update_name, on: :member
 end
 ```
+
+`PUT` requests to `/users/:id` in Rails 4 get routed to `update` as they are
+today. So, if you have an API that gets real PUT requests it is going to work.
+The router also routes `PATCH` requests to `/users/:id` to the `update` action.
 
 If the action is being used in a public API and you can't change to HTTP method
 being used, you can update your form to use the `PUT` method instead:
@@ -1670,7 +1700,7 @@ used with `PATCH`](http://www.rfc-editor.org/errata_search.php?rfc=5789). One
 such format is [JSON Patch](https://tools.ietf.org/html/rfc6902). While Rails
 does not support JSON Patch natively, it's easy enough to add support:
 
-```
+```ruby
 # in your controller
 def update
   respond_to do |format|

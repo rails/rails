@@ -1,8 +1,18 @@
+require 'pathname'
+
 APP_ROOT = File.expand_path('..', __dir__)
 Dir.chdir(APP_ROOT) do
-  exec "yarn", *ARGV
-rescue Errno::ENOENT
-  $stderr.puts "Yarn executable was not detected in the system."
-  $stderr.puts "Download Yarn at https://yarnpkg.com/en/docs/install"
-  exit 1
+  executable_path = ENV["PATH"].split(File::PATH_SEPARATOR).find do |path|
+    normalized_path = File.expand_path(path)
+
+    normalized_path != __dir__ && File.executable?(Pathname.new(normalized_path).join('yarn'))
+  end
+
+  if executable_path
+    exec File.expand_path(Pathname.new(executable_path).join('yarn')), *ARGV
+  else
+    $stderr.puts "Yarn executable was not detected in the system."
+    $stderr.puts "Download Yarn at https://yarnpkg.com/en/docs/install"
+    exit 1
+  end
 end

@@ -82,20 +82,6 @@ module Rails
         end
       end
 
-      initializer :add_builtin_route do |app|
-        if Rails.env.development?
-          app.routes.prepend do
-            get "/rails/info/properties" => "rails/info#properties", internal: true
-            get "/rails/info/routes"     => "rails/info#routes", internal: true
-            get "/rails/info"            => "rails/info#index", internal: true
-          end
-
-          app.routes.append do
-            get "/"                      => "rails/welcome#index", internal: true
-          end
-        end
-      end
-
       # Setup default session store if not already set in config/application.rb
       initializer :setup_default_session_store, before: :build_middleware_stack do |app|
         unless app.config.session_store?
@@ -183,6 +169,22 @@ module Rails
             # is required for proper operation
 
             app.executor.register_hook(InterlockHook, outer: true)
+          end
+        end
+      end
+
+      initializer :add_internal_routes do |app|
+        if Rails.env.development?
+          app.routes.prepend do
+            get "/rails/info/properties" => "rails/info#properties", internal: true
+            get "/rails/info/routes"     => "rails/info#routes",     internal: true
+            get "/rails/info"            => "rails/info#index",      internal: true
+          end
+
+          routes_reloader.run_after_load_paths = -> do
+            app.routes.append do
+              get "/" => "rails/welcome#index", internal: true
+            end
           end
         end
       end

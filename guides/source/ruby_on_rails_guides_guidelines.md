@@ -160,7 +160,7 @@ Please validate the generated HTML with:
 $ bundle exec rake guides:validate
 ```
 
-Particularly, titles get an ID generated from their content and this often leads to duplicates. Please set `WARNINGS=1` when generating guides to detect them. The warning messages suggest a solution.
+Particularly, titles get an ID generated from their content and this often leads to duplicates.
 
 Kindle Guides
 -------------

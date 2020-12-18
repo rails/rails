@@ -72,6 +72,7 @@ class Developer < ActiveRecord::Base
                           class_name: "SpecialProject"
 
   has_many :audit_logs
+  has_many :required_audit_logs, class_name: "AuditLogRequired"
   has_many :strict_loading_audit_logs, -> { strict_loading }, class_name: "AuditLog"
   has_many :strict_loading_opt_audit_logs, strict_loading: true, class_name: "AuditLog"
   has_many :contracts
@@ -125,6 +126,11 @@ class AuditLog < ActiveRecord::Base
   belongs_to :unvalidated_developer, class_name: "Developer"
 end
 
+class AuditLogRequired < ActiveRecord::Base
+  self.table_name = "audit_logs"
+  belongs_to :developer, required: true
+end
+
 class DeveloperWithBeforeDestroyRaise < ActiveRecord::Base
   self.table_name = "developers"
   has_and_belongs_to_many :projects, join_table: "developers_projects", foreign_key: "developer_id"
@@ -138,6 +144,16 @@ end
 class DeveloperWithSelect < ActiveRecord::Base
   self.table_name = "developers"
   default_scope { select("name") }
+end
+
+class DeveloperwithDefaultMentorScopeNot < ActiveRecord::Base
+  self.table_name = "developers"
+  default_scope -> { where(mentor_id: 1) }
+end
+
+class DeveloperWithDefaultMentorScopeAllQueries < ActiveRecord::Base
+  self.table_name = "developers"
+  default_scope -> { where(mentor_id: 1) }, all_queries: true
 end
 
 class DeveloperWithIncludes < ActiveRecord::Base
@@ -156,6 +172,8 @@ class DeveloperFilteredOnJoins < ActiveRecord::Base
 end
 
 class DeveloperOrderedBySalary < ActiveRecord::Base
+  include Developer::TimestampAliases
+
   self.table_name = "developers"
   default_scope { order("salary DESC") }
 

@@ -2,8 +2,7 @@
 
 $: << File.expand_path("test", COMPONENT_ROOT)
 
-require "bundler"
-Bundler.setup
+require "bundler/setup"
 
 require "rails/test_unit/runner"
 require "rails/test_unit/reporter"

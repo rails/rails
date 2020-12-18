@@ -295,6 +295,17 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal("application/xml; charset=utf-16", resp.headers["Content-Type"])
   end
 
+  test "respect no-store cache-control" do
+    resp = ActionDispatch::Response.new.tap { |response|
+      response.cache_control[:public] = true
+      response.cache_control[:no_store] = true
+      response.body = "Hello"
+    }
+    resp.to_a
+
+    assert_equal("no-store", resp.headers["Cache-Control"])
+  end
+
   test "read content type with default charset utf-8" do
     resp = ActionDispatch::Response.new(200, "Content-Type" => "text/xml")
     assert_equal("utf-8", resp.charset)
@@ -592,34 +603,5 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal('text/csv; header=present; charset="utf-16"', @response.content_type)
     assert_equal("text/csv; header=present", @response.media_type)
     assert_equal("utf-16", @response.charset)
-  end
-
-  test "`content type` returns header that excludes `charset` when specified `return_only_media_type_on_content_type`" do
-    original = ActionDispatch::Response.return_only_media_type_on_content_type
-    ActionDispatch::Response.return_only_media_type_on_content_type = true
-
-    @app = lambda { |env|
-      if env["PATH_INFO"] == "/with_parameters"
-        [200, { "Content-Type" => "text/csv; header=present; charset=utf-16" }, [""]]
-      else
-        [200, { "Content-Type" => "text/csv; charset=utf-16" }, [""]]
-      end
-    }
-
-    get "/"
-    assert_response :success
-
-    assert_deprecated do
-      assert_equal("text/csv", @response.content_type)
-    end
-
-    get "/with_parameters"
-    assert_response :success
-
-    assert_deprecated do
-      assert_equal("text/csv; header=present", @response.content_type)
-    end
-  ensure
-    ActionDispatch::Response.return_only_media_type_on_content_type = original
   end
 end

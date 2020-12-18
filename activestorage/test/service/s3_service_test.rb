@@ -156,6 +156,20 @@ if SERVICE_CONFIGURATIONS[:s3]
       end
     end
 
+    test "uploading a small object with multipart_threshold configured" do
+      service = build_service(upload: { multipart_threshold: 5.megabytes })
+
+      begin
+        key  = SecureRandom.base58(24)
+        data = SecureRandom.bytes(3.megabytes)
+
+        service.upload key, StringIO.new(data), checksum: Digest::MD5.base64digest(data)
+        assert data == service.download(key)
+      ensure
+        service.delete key
+      end
+    end
+
     private
       def build_service(configuration)
         ActiveStorage::Service.configure :s3, SERVICE_CONFIGURATIONS.deep_merge(s3: configuration)

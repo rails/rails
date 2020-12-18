@@ -125,6 +125,29 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 0.001.to_r / 1000000, time.sec_fraction.to_f
   end
 
+  def test_floor
+    time = Time.utc(2016, 4, 23, 0, 0, "0.123456789".to_r)
+
+    assert_equal "0".to_r, time.floor.subsec
+    assert_equal "0.1".to_r, time.floor(1).subsec
+    assert_equal "0.12".to_r, time.floor(2).subsec
+    assert_equal "0.123456789".to_r, time.floor(9).subsec
+    assert_equal "0.123456789".to_r, time.floor(10).subsec
+  end
+
+  def test_ceil
+    time = Time.utc(2016, 4, 30, 23, 59, "59.123456789".to_r)
+
+    assert_equal "0".to_r, time.ceil.subsec
+    assert_equal Time.utc(2016, 5, 1, 0, 0), time.ceil
+
+    assert_equal "0.124".to_r, time.ceil(3).subsec
+    assert_equal "0.12346".to_r, time.ceil(5).subsec
+    assert_equal "0.12345679".to_r, time.ceil(8).subsec
+    assert_equal "0.123456789".to_r, time.ceil(9).subsec
+    assert_equal "0.123456789".to_r.to_f, time.ceil(11).subsec.to_f
+  end
+
   def test_beginning_of_day
     assert_equal Time.local(2005, 2, 4, 0, 0, 0), Time.local(2005, 2, 4, 10, 10, 10).beginning_of_day
     with_env_tz "US/Eastern" do

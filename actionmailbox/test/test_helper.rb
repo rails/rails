@@ -10,8 +10,6 @@ require "rails/test_help"
 require "byebug"
 require "webmock/minitest"
 
-Minitest.backtrace_filter = Minitest::BacktraceFilter.new
-
 require "rails/test_unit/reporter"
 Rails::TestUnitReporter.executable = "bin/test"
 

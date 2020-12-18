@@ -41,7 +41,7 @@ module ActionDispatch
       end
 
       def test_regexp_first_precedence
-        get "/whois/:domain", domain: /\w+\.[\w\.]+/, to: "foo#bar"
+        get "/whois/:domain", domain: /\w+\.[\w.]+/, to: "foo#bar"
         get "/whois/:id(.:format)", to: "foo#baz"
 
         env = rails_env "PATH_INFO" => "/whois/example.com"

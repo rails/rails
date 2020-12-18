@@ -182,7 +182,7 @@ module ActionController
     #
     # You can also pass an object that responds to +maximum+, such as a
     # collection of active records. In this case +last_modified+ will be set by
-    # calling +maximum(:updated_at)+ on the collection (the timestamp of the
+    # calling <tt>maximum(:updated_at)</tt> on the collection (the timestamp of the
     # most recently updated record) and the +etag+ by passing the object itself.
     #
     #   def index

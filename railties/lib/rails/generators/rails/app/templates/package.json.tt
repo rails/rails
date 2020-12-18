@@ -1,5 +1,5 @@
 {
-  "name": "<%= app_name %>",
+  "name": "<%= app_name.underscore.dasherize %>",
   "private": true,
   "dependencies": {
     "@rails/ujs": "^6.0.0"<% unless options[:skip_turbolinks] %>,

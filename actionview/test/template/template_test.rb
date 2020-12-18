@@ -120,13 +120,6 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "hellopartialhello", render
   end
 
-  def test_refresh_is_deprecated
-    @template = new_template("Hello", virtual_path: "test/foo/bar", locals: [:key])
-    assert_deprecated do
-      assert_same @template, @template.refresh(@context)
-    end
-  end
-
   def test_resulting_string_is_utf8
     @template = new_template
     assert_equal Encoding::UTF_8, render.encoding

@@ -153,7 +153,8 @@ module Enumerable
     if keys.many?
       map { |element| keys.map { |key| element[key] } }
     else
-      map { |element| element[keys.first] }
+      key = keys.first
+      map { |element| element[key] }
     end
   end
 

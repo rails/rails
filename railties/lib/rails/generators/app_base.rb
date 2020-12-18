@@ -161,7 +161,7 @@ module Rails
       end
 
       def build(meth, *args) # :doc:
-        builder.send(meth, *args) if builder.respond_to?(meth)
+        builder.public_send(meth, *args) if builder.respond_to?(meth)
       end
 
       def create_root # :doc:
@@ -200,7 +200,7 @@ module Rails
       def web_server_gemfile_entry # :doc:
         return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 4.1", comment)
+        GemfileEntry.new("puma", "~> 5.0", comment)
       end
 
       def include_all_railties? # :doc:
@@ -330,11 +330,7 @@ module Rails
       def webpacker_gemfile_entry
         return [] if options[:skip_javascript]
 
-        if options.dev? || options.edge? || options.master?
-          GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
-        else
-          GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
-        end
+        GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
       end
 
       def jbuilder_gemfile_entry
@@ -438,12 +434,6 @@ module Rails
       def generate_bundler_binstub
         if bundle_install?
           bundle_command("binstubs bundler")
-        end
-      end
-
-      def generate_spring_binstub
-        if bundle_install? && spring_install?
-          bundle_command("exec spring binstub")
         end
       end
 

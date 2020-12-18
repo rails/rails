@@ -21,7 +21,7 @@ class RedirectSSLTest < SSLTest
   end
 
   def assert_redirected(redirect: {}, from: "http://a/b?c=d", to: from.sub("http", "https"))
-    redirect = { status: 301, body: [] }.merge(redirect)
+    redirect = { body: [] }.merge(redirect)
 
     self.app = build_app ssl_options: { redirect: redirect }
 
@@ -64,8 +64,22 @@ class RedirectSSLTest < SSLTest
     assert_post_redirected
   end
 
-  test "redirect with non-301 status" do
-    assert_redirected redirect: { status: 307 }
+  test "redirect with custom status" do
+    assert_redirected redirect: { status: 308 }
+  end
+
+  test "redirect with ssl_default_redirect_status" do
+    self.app = build_app(ssl_options: { ssl_default_redirect_status: 308 })
+
+    get "http://a/b?c=d"
+
+    assert_response 301
+    assert_redirected_to "https://a/b?c=d"
+
+    post "http://a/b?c=d"
+
+    assert_response 308
+    assert_redirected_to "https://a/b?c=d"
   end
 
   test "redirect with custom body" do

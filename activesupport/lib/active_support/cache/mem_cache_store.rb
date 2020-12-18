@@ -26,6 +26,8 @@ module ActiveSupport
     # MemCacheStore implements the Strategy::LocalCache strategy which implements
     # an in-memory cache inside of a block.
     class MemCacheStore < Store
+      DEFAULT_CODER = NullCoder # Dalli automatically Marshal values
+
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         private
@@ -51,16 +53,18 @@ module ActiveSupport
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
       # Creates a new Dalli::Client instance with specified addresses and options.
-      # By default address is equal localhost:11211.
+      # If no addresses are provided, we give nil to Dalli::Client, so it uses its fallbacks:
+      # - ENV["MEMCACHE_SERVERS"] (if defined)
+      # - "127.0.0.1:11211"        (otherwise)
       #
       #   ActiveSupport::Cache::MemCacheStore.build_mem_cache
-      #     # => #<Dalli::Client:0x007f98a47d2028 @servers=["localhost:11211"], @options={}, @ring=nil>
+      #     # => #<Dalli::Client:0x007f98a47d2028 @servers=["127.0.0.1:11211"], @options={}, @ring=nil>
       #   ActiveSupport::Cache::MemCacheStore.build_mem_cache('localhost:10290')
       #     # => #<Dalli::Client:0x007f98a47b3a60 @servers=["localhost:10290"], @options={}, @ring=nil>
       def self.build_mem_cache(*addresses) # :nodoc:
         addresses = addresses.flatten
         options = addresses.extract_options!
-        addresses = ["localhost:11211"] if addresses.empty?
+        addresses = nil if addresses.empty?
         pool_options = retrieve_pool_options(options)
 
         if pool_options.empty?
@@ -77,8 +81,8 @@ module ActiveSupport
       #
       #   ActiveSupport::Cache::MemCacheStore.new("localhost", "server-downstairs.localnetwork:8229")
       #
-      # If no addresses are specified, then MemCacheStore will connect to
-      # localhost port 11211 (the default memcached port).
+      # If no addresses are provided, but ENV['MEMCACHE_SERVERS'] is defined, it will be used instead. Otherwise,
+      # MemCacheStore will connect to localhost:11211 (the default memcached port).
       def initialize(*addresses)
         addresses = addresses.flatten
         options = addresses.extract_options!
@@ -141,15 +145,16 @@ module ActiveSupport
 
         # Write an entry to the cache.
         def write_entry(key, entry, **options)
-          method = options && options[:unless_exist] ? :add : :set
-          value = options[:raw] ? entry.value.to_s : entry
+          method = options[:unless_exist] ? :add : :set
+          value = options[:raw] ? entry.value.to_s : serialize_entry(entry)
           expires_in = options[:expires_in].to_i
-          if expires_in > 0 && !options[:raw]
+          if options[:race_condition_ttl] && expires_in > 0 && !options[:raw]
             # Set the memcache expire a few minutes in the future to support race condition ttls on read
             expires_in += 5.minutes
           end
           rescue_error_with false do
-            @data.with { |c| c.send(method, key, value, expires_in, **options) }
+            # The value "compress: false" prevents duplicate compression within Dalli.
+            @data.with { |c| c.send(method, key, value, expires_in, **options, compress: false) }
           end
         end
 
@@ -187,10 +192,10 @@ module ActiveSupport
           key
         end
 
-        def deserialize_entry(entry)
-          if entry
-            entry.is_a?(Entry) ? entry : Entry.new(entry)
-          end
+        def deserialize_entry(payload)
+          entry = super
+          entry = Entry.new(entry, compress: false) if entry && !entry.is_a?(Entry)
+          entry
         end
 
         def rescue_error_with(fallback)

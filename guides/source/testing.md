@@ -320,7 +320,7 @@ specify to make your test failure messages clearer.
 | `assert_in_delta( expected, actual, [delta], [msg] )`            | Ensures that the numbers `expected` and `actual` are within `delta` of each other.|
 | `assert_not_in_delta( expected, actual, [delta], [msg] )`        | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
 | `assert_in_epsilon ( expected, actual, [epsilon], [msg] )`       | Ensures that the numbers `expected` and `actual` have a relative error less than `epsilon`.|
-| `assert_not_in_epsilon ( expected, actual, [epsilon], [msg] )`   | Ensures that the numbers `expected` and `actual` don't have a relative error less than `epsilon`.|
+| `assert_not_in_epsilon ( expected, actual, [epsilon], [msg] )`   | Ensures that the numbers `expected` and `actual` have a relative error not less than `epsilon`.|
 | `assert_throws( symbol, [msg] ) { block }`                       | Ensures that the given block throws the symbol.|
 | `assert_raises( exception1, exception2, ... ) { block }`         | Ensures that the given block raises one of the given exceptions.|
 | `assert_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is an instance of `class`.|
@@ -1763,25 +1763,6 @@ class ProductTest < ActiveSupport::TestCase
   test "billing job scheduling" do
     assert_enqueued_with(job: BillingJob) do
       product.charge(account)
-    end
-  end
-end
-```
-
-### Asserting Time Arguments in Jobs
-
-When serializing job arguments, `Time`, `DateTime`, and `ActiveSupport::TimeWithZone` lose microsecond precision. This means comparing deserialized time with actual time doesn't always work. To compensate for the loss of precision, `assert_enqueued_with` and `assert_performed_with` will remove microseconds from time objects in argument assertions.
-
-```ruby
-require "test_helper"
-
-class ProductTest < ActiveSupport::TestCase
-  include ActiveJob::TestHelper
-
-  test "that product is reserved at a given time" do
-    now = Time.now
-    assert_performed_with(job: ReservationJob, args: [product, now]) do
-      product.reserve(now)
     end
   end
 end

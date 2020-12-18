@@ -50,7 +50,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_calling_merge_at_first_in_scope
     Topic.class_eval do
-      scope :calling_merge_at_first_in_scope, Proc.new { merge(Topic.unscoped.replied) }
+      scope :calling_merge_at_first_in_scope, Proc.new { merge(Topic.replied) }
     end
     assert_equal Topic.calling_merge_at_first_in_scope.to_a, Topic.replied.to_a
   end
@@ -194,7 +194,7 @@ class NamedScopingTest < ActiveRecord::TestCase
       e = assert_raises ArgumentError do
         Class.new(Post).class_eval { scope name, -> { where(approved: true) } }
       end
-      assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
+      assert_match(/You tried to define a scope named "#{name}" on the model/, e.message)
     end
   end
 
@@ -380,12 +380,12 @@ class NamedScopingTest < ActiveRecord::TestCase
       e = assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
         klass.class_eval { scope name, -> { where(approved: true) } }
       end
-      assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
+      assert_match(/You tried to define a scope named "#{name}" on the model/, e.message)
 
       e = assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
         subklass.class_eval { scope name, -> { where(approved: true) } }
       end
-      assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
+      assert_match(/You tried to define a scope named "#{name}" on the model/, e.message)
     end
 
     non_conflicts.each do |name|
@@ -410,8 +410,8 @@ class NamedScopingTest < ActiveRecord::TestCase
       scope :"title containing space", ->(space: " ") { where("title LIKE '%#{space}%'") }
       scope :approved, -> { where(approved: true) }
     end
-    assert_equal klass.where("title LIKE '% %'"), klass.send(:"title containing space", space: " ")
-    assert_equal klass.approved.where("title LIKE '% %'"), klass.approved.send(:"title containing space", space: " ")
+    assert_equal klass.where("title LIKE '% %'"), klass.public_send(:"title containing space", space: " ")
+    assert_equal klass.approved.where("title LIKE '% %'"), klass.approved.public_send(:"title containing space", space: " ")
   end
 
   def test_find_all_should_behave_like_select
@@ -479,9 +479,12 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_class_method_in_scope
-    assert_deprecated do
-      assert_equal [topics(:second)], topics(:first).approved_replies.ordered
-    end
+    assert_equal topics(:second, :fourth), topics(:first).approved_replies.ordered
+  end
+
+  def test_chaining_doesnt_leak_conditions_to_another_scopes
+    expected = Topic.where(approved: false).where(id: Topic.children.select(:parent_id))
+    assert_equal expected.to_a, Topic.rejected.has_children.to_a
   end
 
   def test_nested_scoping
@@ -590,7 +593,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
     [:destroy_all, :reset, :delete_all].each do |method|
       before = post.comments.containing_the_letter_e
-      post.association(:comments).send(method)
+      post.association(:comments).public_send(method)
       assert_not_same before, post.comments.containing_the_letter_e, "CollectionAssociation##{method} should reset the named scopes cache"
     end
   end

@@ -4,13 +4,6 @@ module ActiveRecord
   module Associations
     class Preloader
       class ThroughAssociation < Association # :nodoc:
-        PRELOADER = ActiveRecord::Associations::Preloader.new
-
-        def initialize(*)
-          super
-          @already_loaded = owners.first.association(through_reflection.name).loaded?
-        end
-
         def preloaded_records
           @preloaded_records ||= source_preloaders.flat_map(&:preloaded_records)
         end
@@ -23,7 +16,7 @@ module ActiveRecord
           @records_by_owner = owners.each_with_object({}) do |owner, result|
             through_records = through_records_by_owner[owner] || []
 
-            if @already_loaded
+            if owners.first.association(through_reflection.name).loaded?
               if source_type = reflection.options[:source_type]
                 through_records = through_records.select do |record|
                   record[reflection.foreign_type] == source_type
@@ -44,7 +37,7 @@ module ActiveRecord
 
         private
           def source_preloaders
-            @source_preloaders ||= PRELOADER.preload(middle_records, source_reflection.name, scope)
+            @source_preloaders ||= ActiveRecord::Associations::Preloader.new(records: middle_records, associations: source_reflection.name, scope: scope, associate_by_default: false).call
           end
 
           def middle_records
@@ -52,7 +45,7 @@ module ActiveRecord
           end
 
           def through_preloaders
-            @through_preloaders ||= PRELOADER.preload(owners, through_reflection.name, through_scope)
+            @through_preloaders ||= ActiveRecord::Associations::Preloader.new(records: owners, associations: through_reflection.name, scope: through_scope, associate_by_default: false).call
           end
 
           def through_reflection

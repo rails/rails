@@ -236,6 +236,10 @@ class EnumTest < ActiveRecord::TestCase
     assert_nil @book.reload.status
   end
 
+  test "deserialize nil value to enum which defines nil value to hash" do
+    assert_equal "forgotten", books(:ddd).last_read
+  end
+
   test "assign nil value" do
     @book.status = nil
     assert_nil @book.status
@@ -286,13 +290,23 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate Book.illustrator_visibility_invisible.create, :illustrator_visibility_invisible?
   end
 
-  test "_before_type_cast" do
+  test "attribute_before_type_cast" do
     assert_equal 2, @book.status_before_type_cast
     assert_equal "published", @book.status
 
     @book.status = "published"
 
     assert_equal "published", @book.status_before_type_cast
+    assert_equal "published", @book.status
+  end
+
+  test "attribute_for_database" do
+    assert_equal 2, @book.status_for_database
+    assert_equal "published", @book.status
+
+    @book.status = "published"
+
+    assert_equal 2, @book.status_for_database
     assert_equal "published", @book.status
   end
 
@@ -341,7 +355,7 @@ class EnumTest < ActiveRecord::TestCase
       e = assert_raises(ArgumentError) do
         klass.class_eval { enum name => ["value_#{i}"] }
       end
-      assert_match(/You tried to define an enum named \"#{name}\" on the model/, e.message)
+      assert_match(/You tried to define an enum named "#{name}" on the model/, e.message)
     end
   end
 
@@ -583,6 +597,25 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal :integer, Book.type_for_attribute("status").type
   end
 
+  test "enum on custom attribute with default" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      attribute :status, default: 2
+      enum status: [:proposed, :written, :published]
+    end
+
+    assert_equal "published", klass.new.status
+  end
+
+  test "overloaded default" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written, :published], _default: :published
+    end
+
+    assert_equal "published", klass.new.status
+  end
+
   test "scopes can be disabled" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
@@ -592,14 +625,39 @@ class EnumTest < ActiveRecord::TestCase
     assert_raises(NoMethodError) { klass.proposed }
   end
 
-  test "enums with a negative condition log a warning" do
+  test "scopes are named like methods" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "cats"
+      enum breed: { "American Bobtail" => 0, "Balinese-Javanese" => 1 }
+    end
+
+    assert_respond_to klass, :American_Bobtail
+    assert_respond_to klass, :Balinese_Javanese
+  end
+
+  test "capital characters for enum names" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "computers"
+      enum extendedWarranty: [:extendedSilver, :extendedGold]
+    end
+
+    computer = klass.extendedSilver.build
+    assert_predicate computer, :extendedSilver?
+    assert_not_predicate computer, :extendedGold?
+  end
+
+  test "enum logs a warning if auto-generated negative scopes would clash with other enum names" do
     old_logger = ActiveRecord::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
 
     ActiveRecord::Base.logger = logger
 
-    expected_message = "An enum element in Book uses the prefix 'not_'."\
-      " This will cause a conflict with auto generated negative scopes."
+    expected_message_1 = "Enum element 'not_sent' in Book uses the prefix 'not_'."\
+      " This has caused a conflict with auto generated negative scopes."\
+      " Avoid using enum elements starting with 'not' where the positive form is also an element."
+
+    # this message comes from ActiveRecord::Scoping::Named, but it's worth noting that both occur in this case
+    expected_message_2 = "Creating scope :not_sent. Overwriting existing method Book.not_sent."
 
     Class.new(ActiveRecord::Base) do
       def self.name
@@ -610,7 +668,76 @@ class EnumTest < ActiveRecord::TestCase
       end
     end
 
-    assert_match(expected_message, logger.logged(:warn).first)
+    assert_includes(logger.logged(:warn), expected_message_1)
+    assert_includes(logger.logged(:warn), expected_message_2)
+  ensure
+    ActiveRecord::Base.logger = old_logger
+  end
+
+  test "enum logs a warning if auto-generated negative scopes would clash with other enum names regardless of order" do
+    old_logger = ActiveRecord::Base.logger
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+
+    ActiveRecord::Base.logger = logger
+
+    expected_message_1 = "Enum element 'not_sent' in Book uses the prefix 'not_'."\
+      " This has caused a conflict with auto generated negative scopes."\
+      " Avoid using enum elements starting with 'not' where the positive form is also an element."
+
+    # this message comes from ActiveRecord::Scoping::Named, but it's worth noting that both occur in this case
+    expected_message_2 = "Creating scope :not_sent. Overwriting existing method Book.not_sent."
+
+    Class.new(ActiveRecord::Base) do
+      def self.name
+        "Book"
+      end
+      silence_warnings do
+        enum status: [:not_sent, :sent]
+      end
+    end
+
+    assert_includes(logger.logged(:warn), expected_message_1)
+    assert_includes(logger.logged(:warn), expected_message_2)
+  ensure
+    ActiveRecord::Base.logger = old_logger
+  end
+
+  test "enum doesn't log a warning if no clashes detected" do
+    old_logger = ActiveRecord::Base.logger
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+
+    ActiveRecord::Base.logger = logger
+
+    Class.new(ActiveRecord::Base) do
+      def self.name
+        "Book"
+      end
+      silence_warnings do
+        enum status: [:not_sent]
+      end
+    end
+
+    assert_empty(logger.logged(:warn))
+  ensure
+    ActiveRecord::Base.logger = old_logger
+  end
+
+  test "enum doesn't log a warning if opting out of scopes" do
+    old_logger = ActiveRecord::Base.logger
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+
+    ActiveRecord::Base.logger = logger
+
+    Class.new(ActiveRecord::Base) do
+      def self.name
+        "Book"
+      end
+      silence_warnings do
+        enum status: [:not_sent, :sent], _scopes: false
+      end
+    end
+
+    assert_empty(logger.logged(:warn))
   ensure
     ActiveRecord::Base.logger = old_logger
   end

@@ -1,4 +1,5 @@
 require:
+  - rubocop-packaging
   - rubocop-performance
   - rubocop-rails
 
@@ -12,7 +13,6 @@ AllCops:
     - '**/templates/**/*'
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
-    - 'railties/test/fixtures/tmp/**/*'
     - 'actionmailbox/test/dummy/**/*'
     - 'actiontext/test/dummy/**/*'
     - '**/node_modules/**/*'
@@ -117,6 +117,9 @@ Layout/SpaceAroundEqualsInParameterDefault:
   Enabled: true
 
 Layout/SpaceAroundKeyword:
+  Enabled: true
+
+Layout/SpaceAroundOperators:
   Enabled: true
 
 Layout/SpaceBeforeComma:
@@ -231,6 +234,9 @@ Style/RedundantBegin:
 Style/RedundantReturn:
   Enabled: true
   AllowMultipleReturnValues: true
+
+Style/RedundantRegexpEscape:
+  Enabled: true
 
 Style/Semicolon:
   Enabled: true

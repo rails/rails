@@ -69,6 +69,8 @@ module ActiveRecord
       attr_reader :scope_attributes
 
       def find_unique_index_for(unique_by)
+        return unique_by if !connection.supports_insert_conflict_target?
+
         name_or_columns = unique_by || model.primary_key
         match = Array(name_or_columns).map(&:to_s)
 

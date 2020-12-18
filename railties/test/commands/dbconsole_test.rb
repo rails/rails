@@ -194,7 +194,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_sqlserver
     start(adapter: "sqlserver", database: "db", username: "user", password: "secret", host: "localhost", port: 1433)
     assert_not aborted
-    assert_equal ["sqsh", "-D", "db", "-U", "user", "-P", "secret", "-S", "localhost:1433"], dbconsole.find_cmd_and_exec_args
+    assert_equal ["sqlcmd", "-d", "db", "-U", "user", "-P", "secret", "-S", "tcp:localhost,1433"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_unknown_command_line_client
@@ -244,18 +244,6 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
       assert_includes e.message, "'primary' database is not configured for 'test'."
     end
-  end
-
-  def test_connection_options_is_deprecate
-    command = Rails::Command::DbconsoleCommand.new([], ["-c", "custom"])
-    Rails::DBConsole.stub(:start, nil) do
-      assert_deprecated("`connection` option is deprecated") do
-        command.perform
-      end
-    end
-
-    assert_equal "custom", command.options["connection"]
-    assert_equal "custom", command.options["database"]
   end
 
   def test_print_help_short

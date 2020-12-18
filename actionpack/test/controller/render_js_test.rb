@@ -32,13 +32,4 @@ class RenderJSTest < ActionController::TestCase
     get :show_partial, format: "js", xhr: true
     assert_equal "partial js", @response.body
   end
-
-  def test_should_not_trigger_content_type_deprecation
-    original = ActionDispatch::Response.return_only_media_type_on_content_type
-    ActionDispatch::Response.return_only_media_type_on_content_type = true
-
-    assert_not_deprecated { get :render_vanilla_js_hello, xhr: true }
-  ensure
-    ActionDispatch::Response.return_only_media_type_on_content_type = original
-  end
 end

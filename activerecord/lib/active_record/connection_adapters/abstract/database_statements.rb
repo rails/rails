@@ -68,6 +68,8 @@ module ActiveRecord
         else
           select(sql, name, binds)
         end
+      rescue ::RangeError
+        ActiveRecord::Result.new([], [])
       end
 
       # Returns a record hash with the column names as keys and column values
@@ -150,6 +152,10 @@ module ActiveRecord
 
       def exec_insert_all(sql, name) # :nodoc:
         exec_query(sql, name)
+      end
+
+      def explain(arel, binds = []) # :nodoc:
+        raise NotImplementedError
       end
 
       # Executes an INSERT query and returns the new record's ID

@@ -126,7 +126,7 @@ module ActionController
     # ==== Returns
     # * <tt>string</tt>
     def self.controller_name
-      @controller_name ||= name.demodulize.delete_suffix("Controller").underscore
+      @controller_name ||= (name.demodulize.delete_suffix("Controller").underscore unless anonymous?)
     end
 
     def self.make_response!(request)
@@ -135,7 +135,7 @@ module ActionController
       end
     end
 
-    def self.binary_params_for?(action) # :nodoc:
+    def self.action_encoding_template(action) # :nodoc:
       false
     end
 

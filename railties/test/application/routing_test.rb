@@ -82,6 +82,30 @@ module ApplicationTests
       assert_equal "foo", last_response.body
     end
 
+    test "appended root takes precedence over internal welcome controller" do
+      controller :foo, <<-RUBY
+        class FooController < ApplicationController
+          def index
+            render plain: "foo"
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+        end
+
+        Rails.application.routes.append do
+          get "/", to: "foo#index"
+        end
+      RUBY
+
+      app("development")
+      get "/"
+
+      assert_equal "foo", last_response.body
+    end
+
     test "rails/welcome in production" do
       app("production")
       get "/"

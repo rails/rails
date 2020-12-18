@@ -283,7 +283,7 @@ module ActiveRecord
       end
 
       def operation_over_aggregate_column(column, operation, distinct)
-        operation == "count" ? column.count(distinct) : column.send(operation)
+        operation == "count" ? column.count(distinct) : column.public_send(operation)
       end
 
       def execute_simple_calculation(operation, column_name, distinct) #:nodoc:

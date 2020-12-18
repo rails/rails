@@ -46,6 +46,25 @@ module ApplicationTests
       assert_equal 404, last_response.status
     end
 
+    test "renders unknown http methods as 405" do
+      request "/", { "REQUEST_METHOD" => "NOT_AN_HTTP_METHOD" }
+      assert_equal 405, last_response.status
+    end
+
+    test "renders unknown http methods as 405 when routes are used as the custom exceptions app" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+        end
+      RUBY
+
+      add_to_config "config.exceptions_app = self.routes"
+
+      app.config.action_dispatch.show_exceptions = true
+
+      request "/", { "REQUEST_METHOD" => "NOT_AN_HTTP_METHOD" }
+      assert_equal 405, last_response.status
+    end
+
     test "uses custom exceptions app" do
       add_to_config <<-RUBY
         config.exceptions_app = lambda do |env|

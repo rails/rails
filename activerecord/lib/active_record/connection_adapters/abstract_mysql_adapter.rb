@@ -424,26 +424,30 @@ module ActiveRecord
       end
 
       def check_constraints(table_name)
-        scope = quoted_scope(table_name)
+        if supports_check_constraints?
+          scope = quoted_scope(table_name)
 
-        chk_info = exec_query(<<~SQL, "SCHEMA")
-          SELECT cc.constraint_name AS 'name',
-                 cc.check_clause AS 'expression'
-          FROM information_schema.check_constraints cc
-          JOIN information_schema.table_constraints tc
-          USING (constraint_schema, constraint_name)
-          WHERE tc.table_schema = #{scope[:schema]}
-            AND tc.table_name = #{scope[:name]}
-            AND cc.constraint_schema = #{scope[:schema]}
-        SQL
+          chk_info = exec_query(<<~SQL, "SCHEMA")
+            SELECT cc.constraint_name AS 'name',
+                  cc.check_clause AS 'expression'
+            FROM information_schema.check_constraints cc
+            JOIN information_schema.table_constraints tc
+            USING (constraint_schema, constraint_name)
+            WHERE tc.table_schema = #{scope[:schema]}
+              AND tc.table_name = #{scope[:name]}
+              AND cc.constraint_schema = #{scope[:schema]}
+          SQL
 
-        chk_info.map do |row|
-          options = {
-            name: row["name"]
-          }
-          expression = row["expression"]
-          expression = expression[1..-2] unless mariadb? # remove parentheses added by mysql
-          CheckConstraintDefinition.new(table_name, expression, options)
+          chk_info.map do |row|
+            options = {
+              name: row["name"]
+            }
+            expression = row["expression"]
+            expression = expression[1..-2] unless mariadb? # remove parentheses added by mysql
+            CheckConstraintDefinition.new(table_name, expression, options)
+          end
+        else
+          raise NotImplementedError
         end
       end
 
@@ -496,21 +500,6 @@ module ActiveRecord
             AND table_name = #{scope[:name]}
           ORDER BY seq_in_index
         SQL
-      end
-
-      def default_uniqueness_comparison(attribute, value, klass) # :nodoc:
-        column = column_for_attribute(attribute)
-
-        if column.collation && !column.case_sensitive? && !value.nil?
-          ActiveSupport::Deprecation.warn(<<~MSG.squish)
-            Uniqueness validator will no longer enforce case sensitive comparison in Rails 6.1.
-            To continue case sensitive comparison on the :#{attribute.name} attribute in #{klass} model,
-            pass `case_sensitive: true` option explicitly to the uniqueness validator.
-          MSG
-          attribute.eq(Arel::Nodes::Bin.new(value))
-        else
-          super
-        end
       end
 
       def case_sensitive_comparison(attribute, value) # :nodoc:
@@ -624,7 +613,7 @@ module ActiveRecord
           end
         end
 
-        # See https://dev.mysql.com/doc/refman/en/server-error-reference.html
+        # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
         ER_DB_CREATE_EXISTS     = 1007
         ER_FILSORT_ABORT        = 1028
         ER_DUP_ENTRY            = 1062
@@ -646,6 +635,12 @@ module ActiveRecord
 
         def translate_exception(exception, message:, sql:, binds:)
           case error_number(exception)
+          when nil
+            if exception.message.match?(/MySQL client is not connected/i)
+              ConnectionNotEstablished.new(exception)
+            else
+              super
+            end
           when ER_DB_CREATE_EXISTS
             DatabaseAlreadyExists.new(message, sql: sql, binds: binds)
           when ER_DUP_ENTRY
@@ -843,6 +838,10 @@ module ActiveRecord
         def version_string(full_version_string)
           full_version_string.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
         end
+
+        # Alias MysqlString to work Mashal.load(File.read("legacy_record.dump")).
+        # TODO: Remove the constant alias once Rails 6.1 has released.
+        MysqlString = Type::String # :nodoc:
 
         ActiveRecord::Type.register(:immutable_string, adapter: :mysql2) do |_, **args|
           Type::ImmutableString.new(true: "1", false: "0", **args)

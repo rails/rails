@@ -18,7 +18,7 @@ module ActiveRecord
 
         # Quotes strings for use in SQL input.
         def quote_string(s) #:nodoc:
-          @connection.escape(s)
+          PG::Connection.escape(s)
         end
 
         # Checks the following cases:

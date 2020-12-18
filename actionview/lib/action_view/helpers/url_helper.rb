@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "action_view/helpers/javascript_helper"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/string/output_safety"
+require "action_view/helpers/tag_helper"
 
 module ActionView
   # = Action View URL Helpers
@@ -177,7 +177,7 @@ module ActionView
       #   # => <a href="/searches?query=ruby+on+rails">Ruby on Rails search</a>
       #
       #   link_to "Nonsense search", searches_path(foo: "bar", baz: "quux")
-      #   # => <a href="/searches?foo=bar&amp;baz=quux">Nonsense search</a>
+      #   # => <a href="/searches?foo=bar&baz=quux">Nonsense search</a>
       #
       # The only option specific to +link_to+ (<tt>:method</tt>) is used as follows:
       #
@@ -549,14 +549,14 @@ module ActionView
         return false unless request.get? || request.head?
 
         check_parameters ||= options.is_a?(Hash) && options.delete(:check_parameters)
-        url_string = URI.parser.unescape(url_for(options)).force_encoding(Encoding::BINARY)
+        url_string = URI::DEFAULT_PARSER.unescape(url_for(options)).force_encoding(Encoding::BINARY)
 
         # We ignore any extra parameters in the request_uri if the
         # submitted URL doesn't have any either. This lets the function
         # work with things like ?order=asc
         # the behaviour can be disabled with check_parameters: true
         request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
-        request_uri = URI.parser.unescape(request_uri).force_encoding(Encoding::BINARY)
+        request_uri = URI::DEFAULT_PARSER.unescape(request_uri).force_encoding(Encoding::BINARY)
 
         if url_string.start_with?("/") && url_string != "/"
           url_string.chomp!("/")

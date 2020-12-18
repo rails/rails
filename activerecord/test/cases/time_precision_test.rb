@@ -88,8 +88,10 @@ if supports_datetime_with_precision?
         t.time :start,  precision: 0
         t.time :finish, precision: 4
       end
+
       time = ::Time.utc(2000, 1, 1, 12, 30, 0, 999999)
       Foo.create!(start: time, finish: time)
+
       assert foo = Foo.find_by(start: time)
       assert_equal 1, Foo.where(finish: time).count
       assert_equal time.to_s, foo.start.to_s

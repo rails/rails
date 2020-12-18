@@ -5,6 +5,8 @@ require "models/author"
 require "models/binary"
 require "models/cake_designer"
 require "models/car"
+require "models/category"
+require "models/categorization"
 require "models/chef"
 require "models/post"
 require "models/comment"
@@ -18,7 +20,8 @@ require "support/stubs/strong_parameters"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :comments, :edges, :authors, :author_addresses, :binaries, :essays, :cars, :treasures, :price_estimates, :topics
+    fixtures :authors, :author_addresses, :categories, :categorizations, :cars, :treasures, :price_estimates,
+      :binaries, :edges, :essays, :posts, :comments, :topics
 
     def test_type_casting_nested_joins
       comment = comments(:eager_other_comment1)
@@ -27,6 +30,11 @@ module ActiveRecord
 
     def test_where_with_through_association
       assert_equal [authors(:david)], Author.joins(:comments).where(comments: comments(:greetings))
+      assert_equal [authors(:bob)], Author.joins(:categories).where(categories: categories(:technology))
+    end
+
+    def test_where_with_aliased_association
+      assert_equal [comments(:does_it_hurt)], Comment.where(entry: posts(:thinking))
     end
 
     def test_type_cast_is_not_evaluated_at_relation_build_time
@@ -158,11 +166,7 @@ module ActiveRecord
       all = [treasures(:diamond), sapphire, cars(:honda), sapphire]
       assert_equal all, PriceEstimate.all.sort_by(&:id).map(&:estimate_of)
 
-      actual = PriceEstimate.where.yield_self do |where_chain|
-        where_chain.stub(:not_behaves_as_nor?, false) do
-          where_chain.not(estimate_of_type: sapphire.class.polymorphic_name, estimate_of_id: sapphire.id)
-        end
-      end
+      actual = PriceEstimate.where.not(estimate_of_type: sapphire.class.polymorphic_name, estimate_of_id: sapphire.id)
       only = PriceEstimate.where(estimate_of_type: sapphire.class.polymorphic_name, estimate_of_id: sapphire.id)
 
       expected = all - [sapphire]
@@ -170,43 +174,15 @@ module ActiveRecord
       assert_equal all - expected, only.sort_by(&:id).map(&:estimate_of)
     end
 
-    def test_where_not_polymorphic_id_and_type_as_nor_is_deprecated
+    def test_where_not_association_as_nand
       sapphire = treasures(:sapphire)
-
-      all = [treasures(:diamond), sapphire, cars(:honda), sapphire]
-      assert_equal all, PriceEstimate.all.sort_by(&:id).map(&:estimate_of)
-
-      message = <<~MSG.squish
-        NOT conditions will no longer behave as NOR in Rails 6.1.
-        To continue using NOR conditions, NOT each condition individually
-        (`.where.not(:estimate_of_type => ...).where.not(:estimate_of_id => ...)`).
-      MSG
-      actual = assert_deprecated(message) do
-        PriceEstimate.where.not(estimate_of_type: sapphire.class.polymorphic_name, estimate_of_id: sapphire.id)
-      end
-      only = PriceEstimate.where(estimate_of_type: sapphire.class.polymorphic_name, estimate_of_id: sapphire.id)
-
-      expected = all - [sapphire]
-      # NOT (estimate_of_type = 'Treasure' OR estimate_of_id = sapphire.id) matches only `cars(:honda)` unfortunately.
-      assert_not_equal expected, actual.sort_by(&:id).map(&:estimate_of)
-      assert_equal all - expected, only.sort_by(&:id).map(&:estimate_of)
-    end
-
-    def test_where_not_association_as_nor_is_deprecated
       treasure = Treasure.create!(name: "my_treasure")
       PriceEstimate.create!(estimate_of: treasure, price: 2, currency: "USD")
-      PriceEstimate.create!(estimate_of: treasure, price: 2, currency: "EUR")
 
-      message = <<~MSG.squish
-        NOT conditions will no longer behave as NOR in Rails 6.1.
-        To continue using NOR conditions, NOT each condition individually
-        (`.where.not(:price_estimates => { :price => ... }).where.not(:price_estimates => { :currency => ... })`).
-      MSG
-      assert_deprecated(message) do
-        result = Treasure.joins(:price_estimates).where.not(price_estimates: { price: 2, currency: "USD" })
+      expected = [treasures(:diamond), sapphire, sapphire]
+      actual = Treasure.joins(:price_estimates).where.not(price_estimates: { price: 2, currency: "USD" })
 
-        assert_predicate result, :empty?
-      end
+      assert_equal expected.sort_by(&:id), actual.sort_by(&:id)
     end
 
     def test_polymorphic_nested_array_where

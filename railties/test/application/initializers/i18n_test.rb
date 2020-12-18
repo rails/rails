@@ -237,7 +237,7 @@ fr:
     test "config.i18n.fallbacks.map = { :ca => :'es-ES' } initializes fallbacks with a mapping ca => es-ES" do
       I18n::Railtie.config.i18n.fallbacks.map = { ca: :'es-ES' }
       load_app
-      assert_fallbacks ca: [:ca, :"es-ES", :es, :en]
+      assert_fallbacks ca: [:ca, :"es-ES", :es]
     end
 
     test "[shortcut] config.i18n.fallbacks = [:'en-US'] initializes fallbacks with en-US as a fallback default" do
@@ -249,7 +249,7 @@ fr:
     test "[shortcut] config.i18n.fallbacks = [{ :ca => :'es-ES' }] initializes fallbacks with a mapping ca => es-ES" do
       I18n::Railtie.config.i18n.fallbacks = [{ ca: :'es-ES' }]
       load_app
-      assert_fallbacks ca: [:ca, :"es-ES", :es, :en]
+      assert_fallbacks ca: [:ca, :"es-ES", :es]
     end
 
     test "[shortcut] config.i18n.fallbacks = [:'en-US', { :ca => :'es-ES' }] initializes fallbacks with the given arguments" do

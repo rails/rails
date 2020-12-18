@@ -16,16 +16,6 @@ module ActionView
         # Do not escape templates of these mime types.
         class_attribute :escape_ignore_list, default: ["text/plain"]
 
-        [self, singleton_class].each do |base|
-          base.alias_method :escape_whitelist, :escape_ignore_list
-          base.alias_method :escape_whitelist=, :escape_ignore_list=
-
-          base.deprecate(
-            escape_whitelist: "use #escape_ignore_list instead",
-            :escape_whitelist= => "use #escape_ignore_list= instead"
-          )
-        end
-
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
 
         def self.call(template, source)
@@ -40,21 +30,12 @@ module ActionView
           true
         end
 
-        # Line number to pass to #module_eval
-        #
-        # If we're annotating the template, we need to offset the starting
-        # line number passed to #module_eval so that errors in the template
-        # will be raised on the correct line.
-        def start_line(template)
-          annotate?(template) ? -1 : 0
-        end
-
         def call(template, source)
           # First, convert to BINARY, so in case the encoding is
           # wrong, we can still find an encoding tag
           # (<%# encoding %>) inside the String using a regular
           # expression
-          template_source = source.dup.force_encoding(Encoding::ASCII_8BIT)
+          template_source = source.b
 
           erb = template_source.gsub(ENCODING_TAG, "")
           encoding = $2
@@ -69,19 +50,15 @@ module ActionView
             trim: (self.class.erb_trim_mode == "-")
           }
 
-          if annotate?(template)
-            options[:preamble] = "@output_buffer.safe_append='<!-- BEGIN #{template.short_identifier} -->\n';"
-            options[:postamble] = "@output_buffer.safe_append='<!-- END #{template.short_identifier} -->\n';@output_buffer.to_s"
+          if ActionView::Base.annotate_rendered_view_with_filenames && template.format == :html
+            options[:preamble] = "@output_buffer.safe_append='<!-- BEGIN #{template.short_identifier} -->';"
+            options[:postamble] = "@output_buffer.safe_append='<!-- END #{template.short_identifier} -->';@output_buffer.to_s"
           end
 
           self.class.erb_implementation.new(erb, options).src
         end
 
       private
-        def annotate?(template)
-          ActionView::Base.annotate_rendered_view_with_filenames && template.format == :html
-        end
-
         def valid_encoding(string, encoding)
           # If a magic encoding comment was found, tag the
           # String with this encoding. This is for a case

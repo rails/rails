@@ -20,7 +20,7 @@ module ActiveRecord
       # a certain time period.
       #
       # You set the time period that the signed id is valid for during generation, using the instance method
-      # +signed_id(expires_in: 15.minutes)+. If the time has elapsed before a signed find is attempted,
+      # <tt>signed_id(expires_in: 15.minutes)</tt>. If the time has elapsed before a signed find is attempted,
       # the signed id will no longer be valid, and nil is returned.
       #
       # It's possible to further restrict the use of a signed id with a purpose. This helps when you have a
@@ -47,9 +47,9 @@ module ActiveRecord
         end
       end
 
-      # Works like +find_signed+, but will raise a +ActiveSupport::MessageVerifier::InvalidSignature+
+      # Works like +find_signed+, but will raise an +ActiveSupport::MessageVerifier::InvalidSignature+
       # exception if the +signed_id+ has either expired, has a purpose mismatch, is for another record,
-      # or has been tampered with. It will also raise a +ActiveRecord::RecordNotFound+ exception if
+      # or has been tampered with. It will also raise an +ActiveRecord::RecordNotFound+ exception if
       # the valid signed id can't find a record.
       #
       # === Examples
@@ -90,7 +90,7 @@ module ActiveRecord
 
       # :nodoc:
       def combine_signed_id_purposes(purpose)
-        [ name.underscore, purpose.to_s ].compact_blank.join("/")
+        [ base_class.name.underscore, purpose.to_s ].compact_blank.join("/")
       end
     end
 

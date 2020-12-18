@@ -65,7 +65,7 @@ After the installation is complete, a Rails app using Webpacker should have the 
 
     Additionally, this `actiontext.scss` file should be imported into your stylesheet pack.
 
-    ```
+    ```scss
     // application.scss
     @import "./actiontext.scss";
     ```
@@ -114,7 +114,7 @@ end
 
 ## Avoid N+1 queries
 
-If you wish to preload the dependent `ActionText::RichText` model, you can use the named scope:
+If you wish to preload the dependent `ActionText::RichText` model, assuming your rich text field is named 'content', you can use the named scope:
 
 ```ruby
 Message.all.with_rich_text_content # Preload the body without attachments.

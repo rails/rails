@@ -473,8 +473,8 @@ which contains these lines:
 */
 ```
 
-Rails create `app/assets/stylesheets/application.css` regardless of whether the
---skip-sprockets option is used when creating a new Rails application. This is
+Rails creates `app/assets/stylesheets/application.css` regardless of whether the
+`--skip-sprockets` option is used when creating a new Rails application. This is
 so you can easily add asset pipelining later if you like.
 
 The directives that work in JavaScript files also work in stylesheets
@@ -882,11 +882,11 @@ valid CDN provider at the time of this writing). Now that you have configured
 your CDN server, you need to tell browsers to use your CDN to grab assets
 instead of your Rails server directly. You can do this by configuring Rails to
 set your CDN as the asset host instead of using a relative path. To set your
-asset host in Rails, you need to set `config.action_controller.asset_host` in
+asset host in Rails, you need to set `config.asset_host` in
 `config/environments/production.rb`:
 
 ```ruby
-config.action_controller.asset_host = 'mycdnsubdomain.fictional-cdn.com'
+config.asset_host = 'mycdnsubdomain.fictional-cdn.com'
 ```
 
 NOTE: You only need to provide the "host", this is the subdomain and root
@@ -898,8 +898,8 @@ You can also set this value through an [environment
 variable](https://en.wikipedia.org/wiki/Environment_variable) to make running a
 staging copy of your site easier:
 
-```
-config.action_controller.asset_host = ENV['CDN_HOST']
+```ruby
+config.asset_host = ENV['CDN_HOST']
 ```
 
 
@@ -1013,7 +1013,7 @@ the cache will store the object before invalidating the cache. The `max-age`
 value is set to seconds with a maximum possible value of `31536000` which is one
 year. You can do this in your Rails application by setting
 
-```
+```ruby
 config.public_file_server.headers = {
   'Cache-Control' => 'public, max-age=31536000'
 }

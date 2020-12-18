@@ -96,6 +96,11 @@ module ActiveSupport
       def flush_all!
         logger.flush if logger.respond_to?(:flush)
       end
+
+      private
+        def fetch_public_methods(subscriber, inherit_all)
+          subscriber.public_methods(inherit_all) - LogSubscriber.public_instance_methods(true)
+        end
     end
 
     def logger

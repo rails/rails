@@ -247,7 +247,6 @@ XML
     assert_equal JSON.parse(@response.body)["foo"], "bar"
   end
 
-
   def test_body_stream
     params = Hash[:page, { name: "page name" }, "some key", 123]
 
@@ -611,6 +610,12 @@ XML
     post :test_params, params: { foo: { bar: [] } }, as: :json
 
     assert_equal({ "bar" => [] }, JSON.load(response.body)["foo"])
+  end
+
+  def test_using_as_json_with_path_parameters
+    post :test_params, params: { id: "12345" }, as: :json
+
+    assert_equal("12345", @request.path_parameters[:id])
   end
 
   def test_mutating_content_type_headers_for_plain_text_files_sets_the_header

@@ -378,7 +378,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     prev_default_scope = Club.default_scopes
 
     [:includes, :preload, :joins, :eager_load].each do |q|
-      Club.default_scopes = [proc { Club.send(q, :category) }]
+      Club.default_scopes = [ActiveRecord::Scoping::DefaultScope.new(proc { Club.public_send(q, :category) })]
       assert_equal categories(:general), members(:groucho).reload.club_category
     end
   ensure

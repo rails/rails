@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
+require "chdir_helpers"
 
 module ApplicationTests
   class BinSetupTest < ActiveSupport::TestCase
-    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::Isolation, ChdirHelpers
 
     setup :build_app
     teardown :teardown_app
@@ -28,7 +29,7 @@ module ApplicationTests
     end
 
     def test_bin_setup_output
-      Dir.chdir(app_path) do
+      chdir(app_path) do
         # SQLite3 seems to auto-create the database on first checkout.
         rails "db:system:change", "--to=postgresql"
         rails "db:drop", allow_failure: true
@@ -41,12 +42,20 @@ module ApplicationTests
         output.sub!(/^Resolving dependencies\.\.\.\n/, "")
         # Suppress Bundler platform warnings from output
         output.gsub!(/^The dependency .* will be unused .*\.\n/, "")
+        # Ignores dynamic data by yarn
+        output.sub!(/^yarn install v.*?$/, "yarn install")
+        output.sub!(/^\[.*?\] Resolving packages\.\.\.$/, "[1/4] Resolving packages...")
+        output.sub!(/^Done in \d+\.\d+s\.\n/, "Done in 0.00s.\n")
         # Ignore warnings such as `Psych.safe_load is deprecated`
         output.gsub!(/^warning:\s.*\n/, "")
 
         assert_equal(<<~OUTPUT, output)
           == Installing dependencies ==
           The Gemfile's dependencies are satisfied
+          yarn install
+          [1/4] Resolving packages...
+          success Already up-to-date.
+          Done in 0.00s.
 
           == Preparing database ==
           Created database 'app_development'

@@ -120,7 +120,7 @@ class Sink < ActiveRecord::Base
 end
 
 class Source < ActiveRecord::Base
-  self.table_name = "men"
+  self.table_name = "humans"
   has_and_belongs_to_many :sinks, join_table: :edges
 end
 

@@ -349,6 +349,49 @@ module ActiveSupport
     def to_i
       @value.to_i
     end
+    alias :in_seconds :to_i
+
+    # Returns the amount of minutes a duration covers as a float
+    #
+    #   1.day.in_minutes # => 1440.0
+    def in_minutes
+      in_seconds / SECONDS_PER_MINUTE.to_f
+    end
+
+    # Returns the amount of hours a duration covers as a float
+    #
+    #   1.day.in_hours # => 24.0
+    def in_hours
+      in_seconds / SECONDS_PER_HOUR.to_f
+    end
+
+    # Returns the amount of days a duration covers as a float
+    #
+    #   12.hours.in_days # => 0.5
+    def in_days
+      in_seconds / SECONDS_PER_DAY.to_f
+    end
+
+    # Returns the amount of weeks a duration covers as a float
+    #
+    #   2.months.in_weeks # => 8.696
+    def in_weeks
+      in_seconds / SECONDS_PER_WEEK.to_f
+    end
+
+    # Returns the amount of months a duration covers as a float
+    #
+    #   9.weeks.in_months # => 2.07
+    def in_months
+      in_seconds / SECONDS_PER_MONTH.to_f
+    end
+
+    # Returns the amount of years a duration covers as a float
+    #
+    #   30.days.in_years # => 0.082
+    def in_years
+      in_seconds / SECONDS_PER_YEAR.to_f
+    end
 
     # Returns +true+ if +other+ is also a Duration instance, which has the
     # same parts as this one.

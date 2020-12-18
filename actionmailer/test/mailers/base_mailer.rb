@@ -44,6 +44,12 @@ class BaseMailer < ActionMailer::Base
     mail
   end
 
+  def inline_and_other_attachments
+    attachments.inline["logo.png"] = "\312\213\254\232"
+    attachments["certificate.pdf"] = "This is test File content"
+    mail
+  end
+
   def attachment_with_content(hash = {})
     attachments["invoice.pdf"] = "This is test File content"
     mail(hash)

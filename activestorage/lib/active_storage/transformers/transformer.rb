@@ -8,9 +8,6 @@ module ActiveStorage
     #
     # * ActiveStorage::Transformers::ImageProcessingTransformer:
     #   backed by ImageProcessing, a common interface for MiniMagick and ruby-vips
-    #
-    # * ActiveStorage::Transformers::MiniMagickTransformer:
-    #   backed by MiniMagick, a wrapper around the ImageMagick CLI
     class Transformer
       attr_reader :transformations
 

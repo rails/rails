@@ -31,9 +31,8 @@ module ActiveRecord
         end
 
         def convert_to_id(value)
-          case value
-          when Base
-            value._read_attribute(primary_key)
+          if value.respond_to?(primary_key)
+            value.public_send(primary_key)
           else
             value
           end

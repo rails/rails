@@ -193,8 +193,6 @@ module ActionController #:nodoc:
   # To be described.
   #
   module Streaming
-    extend ActiveSupport::Concern
-
     private
       # Set proper cache control and transfer encoding when streaming
       def _process_options(options)

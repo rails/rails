@@ -44,6 +44,7 @@ Having a way to reproduce your issue will be very helpful for others to help con
 * Template for Action Pack (controllers, routing) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_master.rb)
 * Template for Active Job issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_job_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_job_master.rb)
 * Template for Active Storage issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_storage_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_storage_master.rb)
+* Template for Action Mailbox issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_mailbox_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_mailbox_master.rb)
 * Generic template for other issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/generic_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/generic_master.rb)
 
 These templates include the boilerplate code to set up a test case against either a released version of Rails (`*_gem.rb`) or edge Rails (`*_master.rb`).
@@ -140,7 +141,7 @@ changes to the master branch.
 
 When working with documentation, please take into account the [API Documentation Guidelines](api_documentation_guidelines.html) and the [Ruby on Rails Guides Guidelines](ruby_on_rails_guides_guidelines.html).
 
-NOTE: For documentation changes, your commit message should include [ci skip]. This will skip running the test suite, helping us to cut down on our server costs. Keep in mind that you should only skip CI when your change touches documentation exclusively.
+NOTE: For documentation changes, your pull request title should include [ci skip]. This will skip running the test suite, helping us to cut down on our server costs. Keep in mind that you should only skip CI when your change touches documentation exclusively.
 
 Translating Rails Guides
 ------------------------
@@ -170,7 +171,7 @@ NOTE: The Redcarpet Gem doesn't work with JRuby.
 Translation efforts we know about (various versions):
 
 * **Italian**: [https://github.com/rixlabs/docrails](https://github.com/rixlabs/docrails)
-* **Spanish**: [https://github.com/gramos/docrails/wiki](https://github.com/gramos/docrails/wiki)
+* **Spanish**: [https://github.com/latinadeveloper/railsguides.es](https://github.com/latinadeveloper/railsguides.es)
 * **Polish**: [https://github.com/apohllo/docrails](https://github.com/apohllo/docrails)
 * **French** : [https://github.com/railsfrance/docrails](https://github.com/railsfrance/docrails)
 * **Czech** : [https://github.com/rubyonrails-cz/docrails/tree/czech](https://github.com/rubyonrails-cz/docrails/tree/czech)
@@ -620,6 +621,11 @@ While you're waiting for feedback on your pull request, open up a few other
 pull requests and give someone else some! I'm sure they'll appreciate it in
 the same way that you appreciate feedback on your patches.
 
+Note that your pull request may be marked as "Approved" by somebody who does not
+have access to merge it. Further changes may still be required before members of
+the core or committer teams accept it. To prevent confusion, when giving
+feedback on someone else's pull request please avoid marking it as "Approved."
+
 ### Iterate as Necessary
 
 It's entirely possible that the feedback you get will suggest changes. Don't get discouraged: the whole point of contributing to an active open source project is to tap into the knowledge of the community. If people are encouraging you to tweak your code, then it's worth making the tweaks and resubmitting. If the feedback is that your code doesn't belong in the core, you might still think about releasing it as a gem.
@@ -675,6 +681,8 @@ $ git checkout 4-0-stable
 ```
 
 TIP: You may want to [put your Git branch name in your shell prompt](http://qugstart.com/blog/git-and-svn/add-colored-git-branch-name-to-your-shell-prompt/) to make it easier to remember which version of the code you're working with.
+
+NOTE: Before working on older versions, please check the [maintenance policy](maintenance_policy.html).
 
 #### Backporting
 

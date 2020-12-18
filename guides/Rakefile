@@ -7,7 +7,6 @@ namespace :guides do
   namespace :generate do
     desc "Generate HTML guides"
     task :html do
-      ENV["WARNINGS"] = "1" # authors can't disable this
       ruby "-Eutf-8:utf-8", "rails_guides.rb"
     end
 

@@ -358,20 +358,41 @@ class CookiesTest < ActionController::TestCase
     @request.env["action_dispatch.encrypted_signed_cookie_salt"] = ENCRYPTED_SIGNED_COOKIE_SALT
     @request.env["action_dispatch.authenticated_encrypted_cookie_salt"] = AUTHENTICATED_ENCRYPTED_COOKIE_SALT
 
-    @request.env["action_dispatch.cookies_same_site_protection"] = :lax
+    @request.env["action_dispatch.cookies_same_site_protection"] = proc { :lax }
     @request.host = "www.nextangle.com"
   end
 
   def test_setting_cookie_with_no_protection
-    @request.env["action_dispatch.cookies_same_site_protection"] = :none
+    @request.env["action_dispatch.cookies_same_site_protection"] = proc { :none }
 
     get :authenticate
     assert_cookie_header "user_name=david; path=/; SameSite=None"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
+  def test_setting_cookie_with_protection_proc_normal_user_agent
+    @request.env["action_dispatch.cookies_same_site_protection"] = Proc.new do |request|
+      :strict unless request.user_agent == "spooky browser"
+    end
+
+    get :authenticate
+    assert_cookie_header "user_name=david; path=/; SameSite=Strict"
+    assert_equal({ "user_name" => "david" }, @response.cookies)
+  end
+
+  def test_setting_cookie_with_protection_proc_special_user_agent
+    @request.env["action_dispatch.cookies_same_site_protection"] = Proc.new do |request|
+      :strict unless request.user_agent == "spooky browser"
+    end
+
+    request.user_agent = "spooky browser"
+    get :authenticate
+    assert_cookie_header "user_name=david; path=/"
+    assert_equal({ "user_name" => "david" }, @response.cookies)
+  end
+
   def test_setting_cookie_with_misspelled_protection_raises
-    @request.env["action_dispatch.cookies_same_site_protection"] = :funky
+    @request.env["action_dispatch.cookies_same_site_protection"] = proc { :funky }
 
     error = assert_raise ArgumentError do
       get :authenticate
@@ -380,7 +401,7 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_setting_cookie_with_strict
-    @request.env["action_dispatch.cookies_same_site_protection"] = :strict
+    @request.env["action_dispatch.cookies_same_site_protection"] = proc { :strict }
 
     get :authenticate
     assert_cookie_header "user_name=david; path=/; SameSite=Strict"

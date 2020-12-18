@@ -48,7 +48,7 @@ class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCa
     author = authors(:david)
     # this can fail on adapters which require ORDER BY expressions to be included in the SELECT expression
     # if the reorder clauses are not correctly handled
-    assert author.posts_with_comments_sorted_by_comment_id.where("comments.id > 0").reorder("posts.comments_count DESC", "posts.tags_count DESC").last
+    assert author.posts_with_comments_sorted_by_comment_id.where("comments.id > 0").reorder("posts.comments_count": :desc, "posts.tags_count": :desc).last
   end
 end
 
@@ -1961,7 +1961,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       firm.clients = []
     end
 
-    assert_equal [], firm.send("clients=", [])
+    assert_equal [], firm.public_send("clients=", [])
   end
 
   def test_transactions_when_replacing_on_persisted
@@ -2151,7 +2151,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_calling_first_or_last_on_existing_record_with_build_should_load_association
+  def test_calling_first_nth_or_last_on_existing_record_with_build_should_load_association
     firm = companies(:first_firm)
     firm.clients.build(name: "Foo")
     assert_not_predicate firm.clients, :loaded?
@@ -2163,6 +2163,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_predicate firm.clients, :loaded?
+
+    author = Author.create!(name: "Carl")
+    third  = topics(:third)
+    fourth = topics(:fourth).becomes(Topic)
+
+    new_topic = author.topics_without_type.build
+
+    assert_not_predicate author.topics_without_type, :loaded?
+
+    assert_queries(1) do
+      if current_adapter?(:Mysql2Adapter, :SQLite3Adapter)
+        assert_equal fourth, author.topics_without_type.first
+        assert_equal third, author.topics_without_type.second
+      end
+      assert_equal new_topic, author.topics_without_type.last
+    end
+
+    assert_predicate author.topics_without_type, :loaded?
   end
 
   def test_calling_first_nth_or_last_on_existing_record_with_create_should_not_load_association
@@ -2544,9 +2562,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   test "first_or_initialize adds the record to the association" do
     firm = Firm.create! name: "omg"
     client = firm.clients_of_firm.where(name: "lol").first_or_initialize do
-      assert_deprecated do
-        assert_equal 0, Client.count
-      end
+      assert_equal 5, Client.count
     end
     assert_equal "lol", client.name
     assert_equal [client], firm.clients_of_firm
@@ -2556,9 +2572,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = Firm.create! name: "omg"
     firm.clients_of_firm.load_target
     client = firm.clients_of_firm.where(name: "lol").first_or_create do
-      assert_deprecated do
-        assert_equal 0, Client.count
-      end
+      assert_equal 5, Client.count
     end
     assert_equal "lol", client.name
     assert_equal [client], firm.clients_of_firm
@@ -2569,9 +2583,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = Firm.create! name: "omg"
     firm.clients_of_firm.load_target
     client = firm.clients_of_firm.where(name: "lol").first_or_create! do
-      assert_deprecated do
-        assert_equal 0, Client.count
-      end
+      assert_equal 5, Client.count
     end
     assert_equal "lol", client.name
     assert_equal [client], firm.clients_of_firm

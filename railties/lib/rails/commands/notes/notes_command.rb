@@ -10,7 +10,6 @@ module Rails
       def perform(*)
         require_application_and_environment!
 
-        deprecation_warning
         display_annotations
       end
 
@@ -23,16 +22,7 @@ module Rails
         end
 
         def directories
-          Rails::SourceAnnotationExtractor::Annotation.directories + source_annotation_directories
-        end
-
-        def deprecation_warning
-          return if source_annotation_directories.empty?
-          ActiveSupport::Deprecation.warn("`SOURCE_ANNOTATION_DIRECTORIES` is deprecated and will be removed in Rails 6.1. You can add default directories by using config.annotations.register_directories instead.")
-        end
-
-        def source_annotation_directories
-          ENV["SOURCE_ANNOTATION_DIRECTORIES"].to_s.split(",")
+          Rails::SourceAnnotationExtractor::Annotation.directories
         end
     end
   end

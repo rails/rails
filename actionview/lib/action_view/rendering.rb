@@ -145,7 +145,7 @@ module ActionView
           if action.respond_to?(:permitted?) && action.permitted?
             options = action
           elsif action.respond_to?(:render_in)
-            options[:object] = action
+            options[:renderable] = action
           else
             options[:partial] = action
           end

@@ -6,6 +6,8 @@ require "models/computer"
 require "models/mentor"
 require "models/project"
 require "models/ship"
+require "models/strict_zine"
+require "models/interest"
 
 class StrictLoadingTest < ActiveRecord::TestCase
   fixtures :developers
@@ -83,6 +85,27 @@ class StrictLoadingTest < ActiveRecord::TestCase
       assert_raises ActiveRecord::StrictLoadingViolationError do
         dev.audit_logs.to_a
       end
+    end
+  end
+
+  def test_strict_loading_is_ignored_in_validation_context
+    with_strict_loading_by_default(Developer) do
+      developer = Developer.first
+      assert_predicate developer, :strict_loading?
+
+      assert_nothing_raised do
+        AuditLogRequired.create! developer_id: developer.id, message: "i am a message"
+      end
+    end
+  end
+
+  def test_strict_loading_with_reflection_is_ignored_in_validation_context
+    with_strict_loading_by_default(Developer) do
+      developer = Developer.first
+      assert_predicate developer, :strict_loading?
+
+      developer.required_audit_logs.build(message: "I am message")
+      developer.save!
     end
   end
 
@@ -359,6 +382,38 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_strict_loading_violation_raises_by_default
+    assert_equal :raise, ActiveRecord::Base.action_on_strict_loading_violation
+
+    developer = Developer.first
+    assert_not_predicate developer, :strict_loading?
+
+    developer.strict_loading!
+    assert_predicate developer, :strict_loading?
+
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      developer.audit_logs.to_a
+    end
+  end
+
+  def test_strict_loading_violation_can_log_instead_of_raise
+    old_value = ActiveRecord::Base.action_on_strict_loading_violation
+    ActiveRecord::Base.action_on_strict_loading_violation = :log
+    assert_equal :log, ActiveRecord::Base.action_on_strict_loading_violation
+
+    developer = Developer.first
+    assert_not_predicate developer, :strict_loading?
+
+    developer.strict_loading!
+    assert_predicate developer, :strict_loading?
+
+    assert_logged("Strict loading violation: AuditLog lazily loaded on Developer.") do
+      developer.audit_logs.to_a
+    end
+  ensure
+    ActiveRecord::Base.action_on_strict_loading_violation = old_value
+  end
+
   private
     def with_strict_loading_by_default(model)
       previous_strict_loading_by_default = model.strict_loading_by_default
@@ -369,4 +424,36 @@ class StrictLoadingTest < ActiveRecord::TestCase
     ensure
       model.strict_loading_by_default = previous_strict_loading_by_default
     end
+
+    def assert_logged(message)
+      old_logger = ActiveRecord::Base.logger
+      log = StringIO.new
+      ActiveRecord::Base.logger = Logger.new(log)
+
+      begin
+        yield
+
+        log.rewind
+        assert_match message, log.read
+      ensure
+        ActiveRecord::Base.logger = old_logger
+      end
+    end
+end
+
+class StrictLoadingFixturesTest < ActiveRecord::TestCase
+  fixtures :strict_zines
+
+  test "strict loading violations are ignored on fixtures" do
+    ActiveRecord::FixtureSet.reset_cache
+    create_fixtures("strict_zines")
+
+    assert_nothing_raised do
+      strict_zines(:going_out).interests.to_a
+    end
+
+    assert_raises(ActiveRecord::StrictLoadingViolationError) do
+      StrictZine.first.interests.to_a
+    end
+  end
 end

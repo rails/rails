@@ -51,7 +51,7 @@ module I18n
         when :raise_on_missing_translations
           forward_raise_on_missing_translations_config(app)
         else
-          I18n.send("#{setting}=", value)
+          I18n.public_send("#{setting}=", value)
         end
       end
 
@@ -101,19 +101,6 @@ module I18n
         else # TrueClass
           [I18n.default_locale]
         end
-
-      if args.empty? || args.first.is_a?(Hash)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Using I18n fallbacks with an empty `defaults` sets the defaults to
-          include the `default_locale`. This behavior will change in Rails 6.1.
-          If you desire the default locale to be included in the defaults, please
-          explicitly configure it with `config.i18n.fallbacks.defaults =
-          [I18n.default_locale]` or `config.i18n.fallbacks = [I18n.default_locale,
-          {...}]`. If you want to opt-in to the new behavior, use
-          `config.i18n.fallbacks.defaults = [nil, {...}]`.
-        MSG
-        args.unshift I18n.default_locale
-      end
 
       I18n.fallbacks = I18n::Locale::Fallbacks.new(*args)
     end

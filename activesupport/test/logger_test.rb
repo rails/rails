@@ -120,7 +120,7 @@ class LoggerTest < ActiveSupport::TestCase
     Logger::Severity.constants.each do |level|
       next if level.to_s == "UNKNOWN"
       @logger.level = Logger::Severity.const_get(level) - 1
-      assert @logger.send("#{level.downcase}?"), "didn't know if it was #{level.downcase}? or below"
+      assert @logger.public_send("#{level.downcase}?"), "didn't know if it was #{level.downcase}? or below"
     end
   end
 

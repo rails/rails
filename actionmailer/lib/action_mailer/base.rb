@@ -848,6 +848,7 @@ module ActionMailer
       @_mail_was_called = true
 
       create_parts_from_responses(message, responses)
+      wrap_inline_attachments(message)
 
       # Set up content type, reapply charset and handle parts order
       message.content_type = set_content_type(message, content_type, headers[:content_type])
@@ -877,7 +878,7 @@ module ActionMailer
         when user_content_type.present?
           user_content_type
         when m.has_attachments?
-          if m.attachments.detect(&:inline?)
+          if m.attachments.all?(&:inline?)
             ["multipart", "related", params]
           else
             ["multipart", "mixed", params]
@@ -975,6 +976,27 @@ module ActionMailer
           raise ActionView::MissingTemplate.new(paths, name, paths, false, "mailer")
         else
           templates.uniq(&:format).each(&block)
+        end
+      end
+
+      def wrap_inline_attachments(message)
+        # If we have both types of attachment, wrap all the inline attachments
+        # in multipart/related, but not the actual attachments
+        if message.attachments.detect(&:inline?) && message.attachments.detect { |a| !a.inline? }
+          related = Mail::Part.new
+          related.content_type = "multipart/related"
+          mixed = [ related ]
+
+          message.parts.each do |p|
+            if p.attachment? && !p.inline?
+              mixed << p
+            else
+              related.add_part(p)
+            end
+          end
+
+          message.parts.clear
+          mixed.each { |c| message.add_part(c) }
         end
       end
 

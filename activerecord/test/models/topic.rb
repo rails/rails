@@ -13,6 +13,9 @@ class Topic < ActiveRecord::Base
   scope :true, -> { where(approved: true) }
   scope :false, -> { where(approved: false) }
 
+  scope :children, -> { where.not(parent_id: nil) }
+  scope :has_children, -> { where(id: Topic.children.select(:parent_id)) }
+
   scope :scope_with_lambda, lambda { all }
 
   scope :by_lifo, -> { where(author_name: "lifo") }

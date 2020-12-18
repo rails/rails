@@ -80,6 +80,32 @@ module Notifications
     ensure
       ActiveSupport::Notifications.notifier = old_notifier
     end
+
+    def test_subscribe_with_a_single_arity_lambda_listener
+      event_name = nil
+      listener = ->(event) do
+        event_name = event.name
+      end
+
+      @notifier.subscribe(&listener)
+      ActiveSupport::Notifications.instrument("event_name")
+
+      assert_equal "event_name", event_name
+    end
+
+    def test_subscribe_with_a_single_arity_callable_listener
+      event_name = nil
+      listener = Class.new do
+        define_method :call do |event|
+          event_name = event.name
+        end
+      end
+
+      @notifier.subscribe(nil, listener.new)
+      ActiveSupport::Notifications.instrument("event_name")
+
+      assert_equal "event_name", event_name
+    end
   end
 
   class TimedAndMonotonicTimedSubscriberTest < TestCase

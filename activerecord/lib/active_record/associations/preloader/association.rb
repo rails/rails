@@ -4,25 +4,29 @@ module ActiveRecord
   module Associations
     class Preloader
       class Association #:nodoc:
-        def initialize(klass, owners, reflection, preload_scope)
+        def initialize(klass, owners, reflection, preload_scope, associate_by_default = true)
           @klass         = klass
           @owners        = owners.uniq(&:__id__)
           @reflection    = reflection
           @preload_scope = preload_scope
+          @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
           @model         = owners.first && owners.first.class
+
+          @already_loaded = owners.all? { |o| o.association(reflection.name).loaded? }
         end
 
         def run
-          if !preload_scope || preload_scope.empty_scope?
-            owners.each do |owner|
-              associate_records_to_owner(owner, records_by_owner[owner] || [])
-            end
-          else
-            # Custom preload scope is used and
-            # the association cannot be marked as loaded
-            # Loading into a Hash instead
-            records_by_owner
+          if @already_loaded
+            fetch_from_preloaded_records
+            return self
           end
+
+          records = records_by_owner
+
+          owners.each do |owner|
+            associate_records_to_owner(owner, records[owner] || [])
+          end if @associate
+
           self
         end
 
@@ -40,6 +44,14 @@ module ActiveRecord
 
         private
           attr_reader :owners, :reflection, :preload_scope, :model, :klass
+
+          def fetch_from_preloaded_records
+            @records_by_owner = owners.index_with do |owner|
+              Array(owner.association(reflection.name).target)
+            end
+
+            @preloaded_records = records_by_owner.flat_map(&:last)
+          end
 
           def load_records
             # owners can be duplicated when a relation has a collection association join

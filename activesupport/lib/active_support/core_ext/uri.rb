@@ -19,7 +19,11 @@ end
 module URI
   class << self
     def parser
-      @parser ||= URI::Parser.new
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        URI.parser is deprecated and will be removed in Rails 6.2.
+        Use `URI::DEFAULT_PARSER` instead.
+      MSG
+      URI::DEFAULT_PARSER
     end
   end
 end

@@ -141,7 +141,7 @@ module ActiveRecord
       self.inheritance_column = "type"
       self.ignored_columns = [].freeze
 
-      delegate :type_for_attribute, to: :class
+      delegate :type_for_attribute, :column_for_attribute, to: :class
 
       initialize_load_schema_monitor
     end
@@ -297,6 +297,35 @@ module ActiveRecord
 
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
+      #
+      # A common usage pattern for this method is to ensure all references to an attribute
+      # have been removed and deployed, before a migration to drop the column from the database
+      # has been deployed and run. Using this two step approach to dropping columns ensures there
+      # is no code that raises errors due to having a cached schema in memory at the time the
+      # schema migration is run.
+      #
+      # For example, given a model where you want to drop the "category" attribute, first mark it
+      # as ignored:
+      #
+      #   class Project < ActiveRecord::Base
+      #     # schema:
+      #     #   id         :bigint
+      #     #   name       :string, limit: 255
+      #     #   category   :string, limit: 255
+      #
+      #     self.ignored_columns = [:category]
+      #   end
+      #
+      # The schema still contains `category`, but now the model omits it, so any meta-driven code or
+      # schema caching will not attempt to use the column:
+      #
+      #   Project.columns_hash["category"] => nil
+      #
+      # You will get an error if accessing that attribute directly, so ensure all usages of the
+      # column are removed (automated tests can help you find any usages).
+      #
+      #   user = Project.create!(name: "First Project")
+      #   user.category # => raises NoMethodError
       def ignored_columns=(columns)
         reload_schema_from_cache
         @ignored_columns = columns.map(&:to_s).freeze
@@ -397,6 +426,26 @@ module ActiveRecord
           attribute_types.fetch(attr_name, &block)
         else
           attribute_types[attr_name]
+        end
+      end
+
+      # Returns the column object for the named attribute.
+      # Returns an +ActiveRecord::ConnectionAdapters::NullColumn+ if the
+      # named attribute does not exist.
+      #
+      #   class Person < ActiveRecord::Base
+      #   end
+      #
+      #   person = Person.new
+      #   person.column_for_attribute(:name) # the result depends on the ConnectionAdapter
+      #   # => #<ActiveRecord::ConnectionAdapters::Column:0x007ff4ab083980 @name="name", @sql_type="varchar(255)", @null=true, ...>
+      #
+      #   person.column_for_attribute(:nothing)
+      #   # => #<ActiveRecord::ConnectionAdapters::NullColumn:0xXXX @name=nil, @sql_type=nil, @cast_type=#<Type::Value>, ...>
+      def column_for_attribute(name)
+        name = name.to_s
+        columns_hash.fetch(name) do
+          ConnectionAdapters::NullColumn.new(name)
         end
       end
 
@@ -507,6 +556,7 @@ module ActiveRecord
           @columns_hash.each do |name, column|
             type = connection.lookup_cast_type_from_column(column)
             type = _convert_type_from_options(type)
+            warn_if_deprecated_type(column)
             define_attribute(
               name,
               type,
@@ -564,6 +614,32 @@ module ActiveRecord
             type.to_immutable_string
           else
             type
+          end
+        end
+
+        def warn_if_deprecated_type(column)
+          return if attributes_to_define_after_schema_loads.key?(column.name)
+          return unless column.respond_to?(:oid)
+
+          if column.array?
+            array_arguments = ", array: true"
+          else
+            array_arguments = ""
+          end
+
+          if column.sql_type.start_with?("interval")
+            precision_arguments = column.precision.presence && ", precision: #{column.precision}"
+            ActiveSupport::Deprecation.warn(<<~WARNING)
+              The behavior of the `:interval` type will be changing in Rails 6.2
+              to return an `ActiveSupport::Duration` object. If you'd like to keep
+              the old behavior, you can add this line to #{self.name} model:
+
+                attribute :#{column.name}, :string#{precision_arguments}#{array_arguments}
+
+              If you'd like the new behavior today, you can add this line:
+
+                attribute :#{column.name}, :interval#{precision_arguments}#{array_arguments}
+            WARNING
           end
         end
     end

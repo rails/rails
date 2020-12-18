@@ -29,27 +29,30 @@ gem "uglifier", ">= 1.3.0", require: false
 gem "json", ">= 2.0.0"
 
 group :rubocop do
-  gem "rubocop", ">= 0.47", require: false
+  gem "rubocop", ">= 0.90", require: false
+  gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
   gem "rubocop-rails", require: false
 end
 
 group :doc do
-  gem "sdoc", "~> 1.1"
+  gem "sdoc", ">= 2.0.3"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
-  gem "w3c_validators"
+  gem "w3c_validators", "~> 1.3.6"
   gem "kindlerb", "~> 1.2.0"
+  gem "rouge"
 end
 
 # Active Support
 gem "dalli"
-gem "listen", "~> 3.2", require: false
+gem "listen", "~> 3.3", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
 gem "rexml", require: false
 
-# for railties app_generator_test
+# for railties
 gem "bootsnap", ">= 1.4.4", require: false
+gem "webrick", require: false
 
 # Active Job
 group :job do
@@ -73,13 +76,9 @@ group :cable do
   gem "hiredis", require: false
   gem "redis", "~> 4.0", require: false
 
-  gem "redis-namespace"
+  gem "redis-namespace", github: "resque/redis-namespace"
 
   gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
-
-  gem "blade", require: false, platforms: [:ruby]
-  gem "blade-sauce_labs_plugin", require: false, platforms: [:ruby]
-  gem "sprockets-export", require: false
 end
 
 # Active Storage
@@ -98,6 +97,12 @@ gem "webmock"
 group :ujs do
   gem "qunit-selenium"
   gem "webdrivers"
+end
+
+# Action View
+group :view do
+  gem "blade", require: false, platforms: [:ruby]
+  gem "sprockets-export", require: false
 end
 
 # Add your own local bundler stuff.
@@ -128,7 +133,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 
   group :db do
     gem "pg", "~> 1.1"
-    gem "mysql2", "~> 0.5"
+    gem "mysql2", "~> 0.5", github: "brianmario/mysql2"
   end
 end
 

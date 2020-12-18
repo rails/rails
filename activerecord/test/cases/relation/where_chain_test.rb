@@ -3,15 +3,30 @@
 require "cases/helper"
 require "models/post"
 require "models/author"
-require "models/man"
+require "models/human"
 require "models/essay"
 require "models/comment"
 require "models/categorization"
 
-
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
-    fixtures :posts, :comments, :authors, :men, :essays
+    fixtures :posts, :comments, :authors, :humans, :essays
+
+    def test_associated_with_association
+      Post.where.associated(:author).tap do |relation|
+        assert_includes     relation, posts(:welcome)
+        assert_includes     relation, posts(:sti_habtm)
+        assert_not_includes relation, posts(:authorless)
+      end
+    end
+
+    def test_associated_with_multiple_associations
+      Post.where.associated(:author, :comments).tap do |relation|
+        assert_includes     relation, posts(:welcome)
+        assert_not_includes relation, posts(:sti_habtm)
+        assert_not_includes relation, posts(:authorless)
+      end
+    end
 
     def test_missing_with_association
       assert posts(:authorless).author.blank?
@@ -105,8 +120,8 @@ module ActiveRecord
     end
 
     def test_rewhere_with_polymorphic_association
-      relation = Essay.where(writer: authors(:david)).rewhere(writer: men(:steve))
-      expected = Essay.where(writer: men(:steve))
+      relation = Essay.where(writer: authors(:david)).rewhere(writer: humans(:steve))
+      expected = Essay.where(writer: humans(:steve))
 
       assert_equal expected.to_a, relation.to_a
     end

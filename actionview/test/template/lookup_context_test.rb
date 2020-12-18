@@ -17,16 +17,6 @@ class LookupContextTest < ActiveSupport::TestCase
     I18n.locale = :en
   end
 
-  test "rendered_format is deprecated" do
-    assert_deprecated do
-      @lookup_context.rendered_format = "foo"
-    end
-
-    assert_deprecated do
-      assert_equal "foo", @lookup_context.rendered_format
-    end
-  end
-
   test "allows to override default_formats with ActionView::Base.default_formats" do
     formats = ActionView::Base.default_formats
     ActionView::Base.default_formats = [:foo, :bar]
@@ -140,14 +130,6 @@ class LookupContextTest < ActiveSupport::TestCase
   test "adds fallbacks to view paths when required" do
     assert_equal 1, @lookup_context.view_paths.size
 
-    assert_deprecated do
-      @lookup_context.with_fallbacks do
-        assert_equal 3, @lookup_context.view_paths.size
-        assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[0]
-        assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[1]
-      end
-    end
-
     @lookup_context = @lookup_context.with_fallbacks
 
     assert_equal 3, @lookup_context.view_paths.size
@@ -155,17 +137,10 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[1]
   end
 
-  test "add fallbacks just once in nested fallbacks calls" do
-    assert_deprecated do
-      @lookup_context.with_fallbacks do
-        @lookup_context.with_fallbacks do
-          assert_equal 3, @lookup_context.view_paths.size
-        end
-      end
+  test "with_fallbacks with block raises an ArgumentError" do
+    assert_raises(ArgumentError) do
+      @lookup_context.with_fallbacks { }
     end
-
-    @lookup_context = @lookup_context.with_fallbacks.with_fallbacks
-    assert_equal 3, @lookup_context.view_paths.size
   end
 
   test "generates a new details key for each details hash" do

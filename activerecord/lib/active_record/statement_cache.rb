@@ -149,7 +149,7 @@ module ActiveRecord
 
       klass.find_by_sql(sql, bind_values, preparable: true, &block)
     rescue ::RangeError
-      nil
+      []
     end
 
     def self.unsupported_value?(value)

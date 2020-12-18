@@ -5,6 +5,7 @@ require "active_support/core_ext/hash/except"
 require "active_support/core_ext/hash/slice"
 begin
   require "i18n"
+  require "i18n/backend/fallbacks"
 rescue LoadError => e
   $stderr.puts "The i18n gem is not available. Please add it to your Gemfile and run bundle install"
   raise e

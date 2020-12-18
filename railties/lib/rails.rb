@@ -25,6 +25,7 @@ end
 
 module Rails
   extend ActiveSupport::Autoload
+  extend ActiveSupport::Benchmarkable
 
   autoload :Info
   autoload :InfoController

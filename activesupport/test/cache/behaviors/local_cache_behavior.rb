@@ -1,6 +1,23 @@
 # frozen_string_literal: true
 
 module LocalCacheBehavior
+  def test_instrumentation_with_local_cache
+    events = with_instrumentation "write" do
+      @cache.write("foo", "bar")
+    end
+    assert_equal @cache.class.name, events[0].payload[:store]
+
+    events = with_instrumentation "read" do
+      @cache.with_local_cache do
+        @cache.read("foo")
+        @cache.read("foo")
+      end
+    end
+
+    expected = [@cache.class.name, "ActiveSupport::Cache::Strategy::LocalCache::LocalStore"]
+    assert_equal expected, events.map { |p| p.payload[:store] }
+  end
+
   def test_local_writes_are_persistent_on_the_remote_cache
     retval = @cache.with_local_cache do
       @cache.write("foo", "bar")
@@ -99,6 +116,24 @@ module LocalCacheBehavior
       @cache.write("foo", "bar")
       @cache.delete("foo")
       assert_nil @cache.read("foo")
+    end
+  end
+
+  def test_local_cache_of_delete_matched
+    begin
+      @cache.delete_matched("*")
+    rescue NotImplementedError
+      skip
+    end
+
+    @cache.with_local_cache do
+      @cache.write("foo", "bar")
+      @cache.write("fop", "bar")
+      @cache.write("bar", "foo")
+      @cache.delete_matched("fo*")
+      assert_not @cache.exist?("foo")
+      assert_not @cache.exist?("fop")
+      assert_equal "foo", @cache.read("bar")
     end
   end
 

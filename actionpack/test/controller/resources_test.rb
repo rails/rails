@@ -1124,7 +1124,7 @@ class ResourcesTest < ActionController::TestCase
               if collection_methods
                 collection do
                   collection_methods.each do |name, method|
-                    send(method, name)
+                    public_send(method, name)
                   end
                 end
               end
@@ -1132,7 +1132,7 @@ class ResourcesTest < ActionController::TestCase
               if member_methods
                 member do
                   member_methods.each do |name, method|
-                    send(method, name)
+                    public_send(method, name)
                   end
                 end
               end
@@ -1326,7 +1326,7 @@ class ResourcesTest < ActionController::TestCase
     end
 
     def assert_named_route(expected, route, options)
-      actual = @controller.send(route, options) rescue $!.class.name
+      actual = @controller.public_send(route, options) rescue $!.class.name
       assert_equal expected, actual, "Error on route: #{route}(#{options.inspect})"
     end
 

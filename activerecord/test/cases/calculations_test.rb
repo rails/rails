@@ -698,12 +698,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 7, Company.includes(:contracts).sum(:developer_id)
   end
 
-  if current_adapter?(:Mysql2Adapter)
-    def test_from_option_with_specified_index
-      assert_equal Edge.count(:all), Edge.from("edges USE INDEX(unique_edge_index)").count(:all)
-      assert_equal Edge.where("sink_id < 5").count(:all),
-          Edge.from("edges USE INDEX(unique_edge_index)").where("sink_id < 5").count(:all)
-    end
+  def test_from_option_with_specified_index
+    edges = Edge.from("edges /*! USE INDEX(unique_edge_index) */")
+    assert_equal Edge.count(:all), edges.count(:all)
+    assert_equal Edge.where("sink_id < 5").count(:all), edges.where("sink_id < 5").count(:all)
   end
 
   def test_from_option_with_table_different_than_class
@@ -1004,6 +1002,14 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_pluck_loaded_relation_aliased_attribute
+    companies = Company.order(:id).limit(3).load
+
+    assert_queries(0) do
+      assert_equal ["37signals", "Summit", "Microsoft"], companies.pluck(:new_name)
+    end
+  end
+
   def test_pick_one
     assert_equal "The First Topic", Topic.order(:id).pick(:heading)
     assert_no_queries do
@@ -1046,6 +1052,14 @@ class CalculationsTest < ActiveRecord::TestCase
 
     assert_queries 1 do
       assert_equal "37signals", companies.pick(Arel.sql("DISTINCT name"))
+    end
+  end
+
+  def test_pick_loaded_relation_aliased_attribute
+    companies = Company.order(:id).limit(3).load
+
+    assert_no_queries do
+      assert_equal "37signals", companies.pick(:new_name)
     end
   end
 

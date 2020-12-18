@@ -83,6 +83,15 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "Dull story\n[OMG] Cool story\n[BCX] Funky time\n", @output.string
   end
 
+  test "keeps each tag in their own thread even when pushed directly" do
+    Thread.new do
+      @logger.push_tags("OMG")
+      @logger.info "Cool story"
+    end.join
+    @logger.info "Funky time"
+    assert_equal "[OMG] Cool story\nFunky time\n", @output.string
+  end
+
   test "keeps each tag in their own instance" do
     other_output = StringIO.new
     other_logger = ActiveSupport::TaggedLogging.new(MyLogger.new(other_output))
@@ -204,5 +213,17 @@ class TaggedLoggingWithoutBlockTest < ActiveSupport::TestCase
     logger.info "Junky time!"
 
     assert_equal "[BCX] [Jason] Funky time\n[BCX] Junky time!\n", @output.string
+  end
+
+  test "keeps broadcasting functionality" do
+    broadcast_output = StringIO.new
+    broadcast_logger = ActiveSupport::TaggedLogging.new(Logger.new(broadcast_output))
+    @logger.extend(ActiveSupport::Logger.broadcast(broadcast_logger))
+
+    tagged_logger = @logger.tagged("OMG")
+    tagged_logger.info "Broadcasting..."
+
+    assert_equal "[OMG] Broadcasting...\n", @output.string
+    assert_equal "[OMG] Broadcasting...\n", broadcast_output.string
   end
 end
