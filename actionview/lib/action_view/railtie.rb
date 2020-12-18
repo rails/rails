@@ -42,6 +42,7 @@ module ActionView
     config.after_initialize do |app|
       ActionView::Helpers::AssetTagHelper.image_loading = app.config.action_view.delete(:image_loading)
       ActionView::Helpers::AssetTagHelper.image_decoding = app.config.action_view.delete(:image_decoding)
+      ActionView::Helpers::AssetTagHelper.preload_links_header = app.config.action_view.delete(:preload_links_header)
     end
 
     config.after_initialize do |app|
