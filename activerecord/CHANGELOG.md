@@ -1,3 +1,10 @@
+*   Restore possibility of passing `false` to :polymorphic option of `belongs_to`.
+
+    Previously, passing `false` would trigger the option validation logic
+    to throw an error saying :polymorphic would not be a valid option.
+
+    *glaszig*
+
 *   Remove deprecated `database` kwarg from `connected_to`.
 
     *Eileen M. Uchitelle*, *John Crepezzi*
