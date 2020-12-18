@@ -425,5 +425,12 @@ module ActiveRecord
     def test_where_with_unsupported_arguments
       assert_raises(ArgumentError) { Author.where(42) }
     end
+
+    def test_invert_where
+      author = authors(:david)
+      posts = author.posts.where.not(id: 1)
+
+      assert_equal 1, posts.invert_where.first.id
+    end
   end
 end
