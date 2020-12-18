@@ -9,6 +9,8 @@ module ActiveJob
       :performed_jobs, :performed_jobs=,
       to: :queue_adapter
 
+    include ActiveSupport::Testing::Assertions
+
     module TestQueueAdapter
       extend ActiveSupport::Concern
 
