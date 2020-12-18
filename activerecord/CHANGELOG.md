@@ -1,3 +1,12 @@
+*   Allow delegated_type to be specified primary_key and foreign_key.
+
+    Since delegated_type assumes that the foreign_key ends with `_id`,
+    `singular_id` defined by it does not work when the foreign_key does
+    not end with `id`. This change fixes it by taking into account
+    `primary_key` and `foreign_key` in the options.
+
+    *Ryota Egusa*
+
 *   Restore possibility of passing `false` to :polymorphic option of `belongs_to`.
 
     Previously, passing `false` would trigger the option validation logic
