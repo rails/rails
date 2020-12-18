@@ -22,7 +22,7 @@ module ActiveSupport
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
-    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl, :coder]
+    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl, :coder, :skip_nil]
 
     module Strategy
       autoload :LocalCache, "active_support/cache/strategy/local_cache"
