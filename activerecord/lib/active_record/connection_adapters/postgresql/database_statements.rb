@@ -57,7 +57,7 @@ module ActiveRecord
               ftype = result.ftype i
               fmod  = result.fmod i
               case type = get_oid_type(ftype, fmod, fname)
-              when Type::Integer, Type::Float, Type::Decimal, Type::String, Type::DateTime, Type::Boolean
+              when Type::Integer, Type::Float, OID::Decimal, Type::String, Type::DateTime, Type::Boolean
                 # skip if a column has already been type casted by pg decoders
               else types[fname] = type
               end
