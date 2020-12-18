@@ -1,3 +1,10 @@
+*   Restore possibility of passing `false` to :polymorphic option of `belongs_to`.
+
+    Previously, passing `false` would trigger the option validation logic
+    to throw an error saying :polymorphic would not be a valid option.
+
+    *glaszig*
+
 *   Allow adding nonnamed expression indexes to be revertible.
 
     Fixes #40732.
