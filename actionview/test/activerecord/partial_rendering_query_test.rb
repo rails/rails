@@ -10,9 +10,13 @@ class PartialRenderingQueryTest < ActiveRecordTestCase
 
     @queries = []
 
-    ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+    @subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
       @queries << payload[:sql] unless %w[ SCHEMA TRANSACTION ].include?(payload[:name])
     end
+  end
+
+  def teardown
+    ActiveSupport::Notifications.unsubscribe(@subscriber)
   end
 
   def test_render_with_relation_collection
