@@ -1354,6 +1354,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal toy, sponsor.reload.sponsorable
   end
 
+  def test_polymorphic_with_false
+    assert_nothing_raised do
+      Class.new(ActiveRecord::Base) do
+        def self.name; "Post"; end
+        belongs_to :category, polymorphic: false
+      end
+    end
+  end
+
   test "stale tracking doesn't care about the type" do
     apple = Firm.create("name" => "Apple")
     citibank = Account.create("credit_limit" => 10)
