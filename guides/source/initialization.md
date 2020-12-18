@@ -607,7 +607,7 @@ initializers (like building the middleware stack) are run last. The `railtie`
 initializers are the initializers which have been defined on the `Rails::Application`
 itself and are run between the `bootstrap` and `finishers`.
 
-*Note:* Do not confuse Railtie initializers overall with the [load_config_initializers](https://edgeguides.rubyonrails.org/configuring.html#using-initializer-files)
+*Note:* Do not confuse Railtie initializers overall with the [load_config_initializers](configuring.html#using-initializer-files)
 initializer instance or its associated config initializers in `config/initializers`.
 
 After this is done we go back to `Rack::Server`.
