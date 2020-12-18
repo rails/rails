@@ -47,6 +47,10 @@ module ActionView
       def size
         @collection.size
       end
+
+      def length
+        @collection.respond_to?(:length) ? @collection.length : size
+      end
     end
 
     class SameCollectionIterator < CollectionIterator # :nodoc:
@@ -144,7 +148,7 @@ module ActionView
           "render_collection.action_view",
           identifier: identifier,
           layout: layout && layout.virtual_path,
-          count: collection.to_a.size
+          count: collection.length
         ) do |payload|
           spacer = if @options.key?(:spacer_template)
             spacer_template = find_template(@options[:spacer_template], @locals.keys)
