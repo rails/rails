@@ -1371,7 +1371,9 @@ module ActiveRecord
         #
         #   * <tt>nil</tt> do nothing (default).
         #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed.
-        #   * <tt>:destroy_async</tt> destroys all the associated objects in a background job.
+        #   * <tt>:destroy_async</tt> destroys all the associated objects in a background job. <b>WARNING:</b> Do not use
+        #     this option if the association is backed by foreign key constraints in your database. The foreign key
+        #     constraint actions will occur inside the same transaction that deletes its owner.
         #   * <tt>:delete_all</tt> causes all the associated objects to be deleted directly from the database (so callbacks will not be executed).
         #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Polymorphic type will also be nullified
         #     on polymorphic associations. Callbacks are not executed.
@@ -1523,7 +1525,9 @@ module ActiveRecord
         #
         #   * <tt>nil</tt> do nothing (default).
         #   * <tt>:destroy</tt> causes the associated object to also be destroyed
-        #   * <tt>:destroy_async</tt> causes all the associated object to be destroyed in a background job.
+        #   * <tt>:destroy_async</tt> causes the associated object to be destroyed in a background job. <b>WARNING:</b> Do not use
+        #     this option if the association is backed by foreign key constraints in your database. The foreign key
+        #     constraint actions will occur inside the same transaction that deletes its owner.
         #   * <tt>:delete</tt> causes the associated object to be deleted directly from the database (so callbacks will not execute)
         #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Polymorphic type column is also nullified
         #     on polymorphic associations. Callbacks are not executed.
