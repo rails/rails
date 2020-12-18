@@ -86,6 +86,9 @@ module ActiveSupport
       def initialize(*addresses)
         addresses = addresses.flatten
         options = addresses.extract_options!
+        if options.key?(:cache_nils)
+          options[:skip_nil] = !options.delete(:cache_nils)
+        end
         super(options)
 
         unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
