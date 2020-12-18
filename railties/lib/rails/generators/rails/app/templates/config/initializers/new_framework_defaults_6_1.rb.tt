@@ -61,3 +61,7 @@
 
 # Set the default queue name for the mail deliver job to the queue adapter default.
 # Rails.application.config.action_mailer.deliver_later_queue_name = nil
+
+# Generate a `Link` header that gives a hint to modern browsers about
+# preloading assets when using `javascript_include_tag` and `stylesheet_link_tag`.
+# Rails.application.config.action_view.preload_links_header = true
