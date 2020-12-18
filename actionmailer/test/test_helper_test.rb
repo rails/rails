@@ -34,6 +34,14 @@ end
 class TestHelperMailerTest < ActionMailer::TestCase
   include ActiveSupport::Testing::Stream
 
+  setup do
+    @previous_deliver_later_queue_name = ActionMailer::Base.deliver_later_queue_name
+  end
+
+  teardown do
+    ActionMailer::Base.deliver_later_queue_name = @previous_delivery_method
+  end
+
   def test_setup_sets_right_action_mailer_options
     assert_equal :test, ActionMailer::Base.delivery_method
     assert ActionMailer::Base.perform_deliveries
@@ -310,6 +318,54 @@ class TestHelperMailerTest < ActionMailer::TestCase
   def test_assert_enqueued_email_with
     assert_nothing_raised do
       assert_enqueued_email_with TestHelperMailer, :test do
+        silence_stream($stdout) do
+          TestHelperMailer.test.deliver_later
+        end
+      end
+    end
+  end
+
+  def test_assert_enqueued_email_with_when_deliver_later_queue_name_is_nil
+    ActionMailer::Base.deliver_later_queue_name = nil
+
+    assert_nothing_raised do
+      assert_enqueued_email_with TestHelperMailer, :test do
+        silence_stream($stdout) do
+          TestHelperMailer.test.deliver_later
+        end
+      end
+    end
+  end
+
+  def test_assert_enqueued_email_with_when_deliver_later_queue_name_with_non_default_name
+    ActionMailer::Base.deliver_later_queue_name = "sample_mailer_queue_name"
+
+    assert_nothing_raised do
+      assert_enqueued_email_with TestHelperMailer, :test do
+        silence_stream($stdout) do
+          TestHelperMailer.test.deliver_later
+        end
+      end
+    end
+  end
+
+  def test_assert_enqueued_email_with_when_deliver_later_queue_name_is_symbol
+    ActionMailer::Base.deliver_later_queue_name = :mailers
+
+    assert_nothing_raised do
+      assert_enqueued_email_with TestHelperMailer, :test do
+        silence_stream($stdout) do
+          TestHelperMailer.test.deliver_later
+        end
+      end
+    end
+  end
+
+  def test_assert_enqueued_email_with_when_queue_arg_is_symbol
+    ActionMailer::Base.deliver_later_queue_name = "mailers"
+
+    assert_nothing_raised do
+      assert_enqueued_email_with TestHelperMailer, :test, queue: :mailers do
         silence_stream($stdout) do
           TestHelperMailer.test.deliver_later
         end
