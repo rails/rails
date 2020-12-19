@@ -1,4 +1,4 @@
-require "application_system_test_case"
+require 'application_system_test_case'
 
 <% module_namespacing do -%>
 class <%= class_name.pluralize %>Test < ApplicationSystemTestCase
