@@ -2,6 +2,7 @@
 
 require "tzinfo"
 require "concurrent/map"
+require "active_support"
 
 module ActiveSupport
   # The TimeZone class serves as a wrapper around TZInfo::Timezone instances.
