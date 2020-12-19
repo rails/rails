@@ -753,6 +753,21 @@ module ActionController
       self
     end
 
+    # Returns a new <tt>ActionController::Parameters</tt> instance with the
+    # results of running +block+ once for every value. This includes the values
+    # from the root hash and from all nested hashes and arrays. The keys are unchanged.
+    def deep_transform_values(&block)
+      @parameters.deep_transform_values(&block)
+    end
+
+    # Returns the <tt>ActionController::Parameters</tt> instance changing its values.
+    # This includes the values from the root hash and from all nested hashes and arrays.
+    # The keys are unchanged.
+    def deep_transform_values!(&block)
+      @parameters.deep_transform_values!(&block)
+      self
+    end
+
     # Deletes a key-value pair from +Parameters+ and returns the value. If
     # +key+ is not found, returns +nil+ (or, with optional code block, yields
     # +key+ and returns the result). Cf. +#extract!+, which returns the
