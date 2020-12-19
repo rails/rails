@@ -120,11 +120,11 @@ module Rails
   # this less confusing for everyone.
   # It can be used like this:
   #
-  # class MyRailtie < Rails::Railtie
-  #   server do
-  #     WebpackServer.start
+  #   class MyRailtie < Rails::Railtie
+  #     server do
+  #       WebpackServer.start
+  #     end
   #   end
-  # end
   #
   # == Application and Engine
   #
