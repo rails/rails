@@ -1144,7 +1144,7 @@ the following contents:
   <div>
     <%= form.label :title %><br>
     <%= form.text_field :title %>
-    <%= article.errors.full_messages_for(:title).each do |message| %>
+    <% article.errors.full_messages_for(:title).each do |message| %>
       <div><%= message %></div>
     <% end %>
   </div>
@@ -1152,7 +1152,7 @@ the following contents:
   <div>
     <%= form.label :body %><br>
     <%= form.text_area :body %><br>
-    <%= article.errors.full_messages_for(:body).each do |message| %>
+    <% article.errors.full_messages_for(:body).each do |message| %>
       <div><%= message %></div>
     <% end %>
   </div>
