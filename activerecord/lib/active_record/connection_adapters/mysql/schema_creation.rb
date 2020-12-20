@@ -45,10 +45,9 @@ module ActiveRecord
           end
 
           def add_table_options!(create_sql, o)
-            create_sql = super
             create_sql << " DEFAULT CHARSET=#{o.charset}" if o.charset
             create_sql << " COLLATE=#{o.collation}" if o.collation
-            add_sql_comment!(create_sql, o.comment)
+            add_sql_comment!(super, o.comment)
           end
 
           def add_column_options!(sql, options)

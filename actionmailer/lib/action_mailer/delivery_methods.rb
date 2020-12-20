@@ -49,7 +49,7 @@ module ActionMailer
       #     arguments: '-i'
       def add_delivery_method(symbol, klass, default_options = {})
         class_attribute(:"#{symbol}_settings") unless respond_to?(:"#{symbol}_settings")
-        send(:"#{symbol}_settings=", default_options)
+        public_send(:"#{symbol}_settings=", default_options)
         self.delivery_methods = delivery_methods.merge(symbol.to_sym => klass).freeze
       end
 

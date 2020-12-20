@@ -144,8 +144,7 @@ The `direct` method allows creation of custom URL helpers.
 ``` ruby
 direct(:homepage) { "http://www.rubyonrails.org" }
 
->> homepage_url
-=> "http://www.rubyonrails.org"
+homepage_url # => "http://www.rubyonrails.org"
 ```
 
 The return value of the block must be a valid argument for the `url_for`

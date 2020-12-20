@@ -15,7 +15,7 @@ module ActionMailer
     before_perform do
       ActiveSupport::Deprecation.warn <<~MSG.squish
         Sending mail with DeliveryJob and Parameterized::DeliveryJob
-        is deprecated and will be removed in Rails 6.1.
+        is deprecated and will be removed in Rails 6.2.
         Please use MailDeliveryJob instead.
       MSG
     end

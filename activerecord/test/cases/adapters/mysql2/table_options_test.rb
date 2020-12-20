@@ -50,6 +50,16 @@ class Mysql2TableOptionsTest < ActiveRecord::Mysql2TestCase
     assert_match expected, output
   end
 
+  test "charset and partitioned table options" do
+    @connection.create_table "mysql_table_options", primary_key: ["id", "account_id"], charset: "utf8mb4", collation: "utf8mb4_bin", options: "ENGINE=InnoDB\n/*!50100 PARTITION BY HASH (`account_id`)\nPARTITIONS 128 */", force: :cascade do |t|
+      t.bigint "id", null: false, auto_increment: true
+      t.bigint "account_id", null: false, unsigned: true
+    end
+    output = dump_table_schema("mysql_table_options")
+    expected = /create_table "mysql_table_options", primary_key: \["id", "account_id"\], charset: "utf8mb4", collation: "utf8mb4_bin", options: "ENGINE=InnoDB\\n(\/\*!50100)? PARTITION BY HASH \(`account_id`\)\\nPARTITIONS 128( \*\/)?", force: :cascade/
+    assert_match expected, output
+  end
+
   test "schema dump works with NO_TABLE_OPTIONS sql mode" do
     skip "As of MySQL 5.7.22, NO_TABLE_OPTIONS is deprecated. It will be removed in a future version of MySQL." if @connection.database_version >= "5.7.22"
 

@@ -21,7 +21,7 @@ if ActiveRecord::Base.connection.supports_check_constraints?
         end
 
         teardown do
-          @connection.drop_table "trades", if_exists: true
+          @connection.drop_table "trades", if_exists: true rescue nil
         end
 
         def test_check_constraints
@@ -56,11 +56,55 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           end
         end
 
+        def test_add_check_constraint_with_non_existent_table_raises
+          e = assert_raises(ActiveRecord::StatementInvalid) do
+            @connection.add_check_constraint :refunds, "quantity > 0", name: "quantity_check"
+          end
+          assert_match(/refunds/, e.message)
+        end
+
         def test_added_check_constraint_ensures_valid_values
           @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check"
 
           assert_raises(ActiveRecord::StatementInvalid) do
             Trade.create(quantity: -1)
+          end
+        end
+
+        if ActiveRecord::Base.connection.supports_validate_constraints?
+          def test_not_valid_check_constraint
+            Trade.create(quantity: -1)
+
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", validate: false
+
+            assert_raises(ActiveRecord::StatementInvalid) do
+              Trade.create(quantity: -1)
+            end
+          end
+
+          def test_validate_check_constraint_by_name
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", validate: false
+            assert_not_predicate @connection.check_constraints("trades").first, :validated?
+
+            @connection.validate_check_constraint :trades, name: "quantity_check"
+            assert_predicate @connection.check_constraints("trades").first, :validated?
+          end
+
+          def test_validate_non_existing_check_constraint_raises
+            assert_raises ArgumentError do
+              @connection.validate_check_constraint :trades, name: "quantity_check"
+            end
+          end
+        else
+          # Check constraint should still be created, but should not be invalid
+          def test_add_invalid_check_constraint
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", validate: false
+
+            check_constraints = @connection.check_constraints("trades")
+            assert_equal 1, check_constraints.size
+
+            cc = check_constraints.first
+            assert_predicate cc, :validated?
           end
         end
 

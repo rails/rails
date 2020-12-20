@@ -75,7 +75,7 @@ module ActiveModel
             usec = $7.to_i
             usec_len = $7&.length
             if usec_len&.< 6
-              usec *= 10 ** (6 - usec_len)
+              usec *= 10**(6 - usec_len)
             end
 
             if $8

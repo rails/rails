@@ -6,8 +6,8 @@ module ActiveSupport::CurrentAttributes::TestHelper # :nodoc:
     super
   end
 
-  def before_teardown
-    ActiveSupport::CurrentAttributes.reset_all
+  def after_teardown
     super
+    ActiveSupport::CurrentAttributes.reset_all
   end
 end

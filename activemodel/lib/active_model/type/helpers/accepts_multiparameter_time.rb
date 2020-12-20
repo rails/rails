@@ -39,7 +39,7 @@ module ActiveModel
             end
             return unless values_hash[1] && values_hash[2] && values_hash[3]
             values = values_hash.sort.map!(&:last)
-            ::Time.send(default_timezone, *values)
+            ::Time.public_send(default_timezone, *values)
           end
           private :value_from_multiparameter_assignment
         end

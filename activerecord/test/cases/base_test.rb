@@ -78,6 +78,23 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Post::GeneratedRelationMethods", mod.inspect
   end
 
+  def test_arel_attribute_normalization
+    assert_equal Post.arel_table["body"], Post.arel_table[:body]
+    assert_equal Post.arel_table["body"], Post.arel_table[:text]
+  end
+
+  def test_deprecated_arel_attribute
+    assert_deprecated do
+      assert_equal Post.arel_table["body"], Post.arel_attribute(:body)
+    end
+  end
+
+  def test_deprecated_arel_attribute_on_relation
+    assert_deprecated do
+      assert_equal Post.arel_table["body"], Post.all.arel_attribute(:body)
+    end
+  end
+
   def test_incomplete_schema_loading
     topic = Topic.first
     payload = { foo: 42 }
@@ -689,12 +706,12 @@ class BasicsTest < ActiveRecord::TestCase
   def test_non_valid_identifier_column_name
     weird = Weird.create("a$b" => "value")
     weird.reload
-    assert_equal "value", weird.send("a$b")
+    assert_equal "value", weird.public_send("a$b")
     assert_equal "value", weird.read_attribute("a$b")
 
     weird.update_columns("a$b" => "value2")
     weird.reload
-    assert_equal "value2", weird.send("a$b")
+    assert_equal "value2", weird.public_send("a$b")
     assert_equal "value2", weird.read_attribute("a$b")
   end
 
@@ -1394,6 +1411,21 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal attrs, topic.slice(attrs.keys)
   end
 
+  def test_values_at
+    company = Company.new(name: "37signals", rating: 1)
+
+    assert_equal [ "37signals", 1, "I am Jack's profound disappointment" ],
+      company.values_at(:name, :rating, :arbitrary_method)
+    assert_equal [ "I am Jack's profound disappointment", 1, "37signals" ],
+      company.values_at(:arbitrary_method, :rating, :name)
+  end
+
+  def test_values_at_accepts_array_argument
+    topic = Topic.new(title: "Budget", author_name: "Jason")
+
+    assert_equal %w( Budget Jason ), topic.values_at(%w( title author_name ))
+  end
+
   def test_default_values_are_deeply_dupped
     company = Company.new
     company.description << "foo"
@@ -1584,126 +1616,121 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.protected_environments = previous_protected_environments
   end
 
-  test "creating a record raises if preventing writes" do
-    error = assert_raises ActiveRecord::ReadOnlyError do
-      ActiveRecord::Base.connection_handler.while_preventing_writes do
-        Bird.create! name: "Bluejay"
-      end
+  test "cannot call connects_to on non-abstract or non-ActiveRecord::Base classes" do
+    error = assert_raises(NotImplementedError) do
+      Bird.connects_to(database: { writing: :arunit })
     end
 
-    assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, error.message
+    assert_equal "`connects_to` can only be called on ActiveRecord::Base or abstract classes", error.message
   end
 
-  test "updating a record raises if preventing writes" do
-    bird = Bird.create! name: "Bluejay"
+  test "cannot call connected_to on subclasses of ActiveRecord::Base with legacy connection handling" do
+    old_value = ActiveRecord::Base.legacy_connection_handling
+    ActiveRecord::Base.legacy_connection_handling = true
 
-    error = assert_raises ActiveRecord::ReadOnlyError do
-      ActiveRecord::Base.connection_handler.while_preventing_writes do
-        bird.update! name: "Robin"
-      end
-    end
-
-    assert_match %r/\AWrite query attempted while in readonly mode: UPDATE /, error.message
-  end
-
-  test "deleting a record raises if preventing writes" do
-    bird = Bird.create! name: "Bluejay"
-
-    error = assert_raises ActiveRecord::ReadOnlyError do
-      ActiveRecord::Base.connection_handler.while_preventing_writes do
-        bird.destroy!
-      end
-    end
-
-    assert_match %r/\AWrite query attempted while in readonly mode: DELETE /, error.message
-  end
-
-  test "selecting a record does not raise if preventing writes" do
-    bird = Bird.create! name: "Bluejay"
-
-    ActiveRecord::Base.connection_handler.while_preventing_writes do
-      assert_equal bird, Bird.where(name: "Bluejay").first
-    end
-  end
-
-  test "an explain query does not raise if preventing writes" do
-    Bird.create!(name: "Bluejay")
-
-    ActiveRecord::Base.connection_handler.while_preventing_writes do
-      assert_queries(2) { Bird.where(name: "Bluejay").explain }
-    end
-  end
-
-  test "an empty transaction does not raise if preventing writes" do
-    ActiveRecord::Base.connection_handler.while_preventing_writes do
-      assert_queries(2, ignore_none: true) do
-        Bird.transaction do
-          ActiveRecord::Base.connection.materialize_transactions
-        end
-      end
-    end
-  end
-
-  test "cannot call connected_to on subclasses of ActiveRecord::Base" do
     error = assert_raises(NotImplementedError) do
       Bird.connected_to(role: :reading) { }
     end
 
-    assert_equal "connected_to can only be called on ActiveRecord::Base", error.message
+    assert_equal "`connected_to` can only be called on ActiveRecord::Base with legacy connection handling.", error.message
+  ensure
+    clean_up_legacy_connection_handlers
+    ActiveRecord::Base.legacy_connection_handling = old_value
   end
 
-  test "preventing writes applies to all connections on a handler" do
-    conn1_error = assert_raises ActiveRecord::ReadOnlyError do
-      ActiveRecord::Base.connection_handler.while_preventing_writes do
-        assert_equal ActiveRecord::Base.connection, Bird.connection
-        assert_not_equal ARUnit2Model.connection, Bird.connection
-        Bird.create!(name: "Bluejay")
-      end
+  test "cannot call connected_to with role and shard on non-abstract classes" do
+    error = assert_raises(NotImplementedError) do
+      Bird.connected_to(role: :reading, shard: :default) { }
     end
 
-    assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn1_error.message
-
-    conn2_error = assert_raises ActiveRecord::ReadOnlyError do
-      ActiveRecord::Base.connection_handler.while_preventing_writes do
-        assert_not_equal ActiveRecord::Base.connection, Professor.connection
-        assert_equal ARUnit2Model.connection, Professor.connection
-        Professor.create!(name: "Professor Bluejay")
-      end
-    end
-
-    assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
+    assert_equal "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes.", error.message
   end
 
-  unless in_memory_db?
-    test "preventing writes with multiple handlers" do
-      ActiveRecord::Base.connects_to(database: { writing: :arunit, reading: :arunit })
+  test "can call connected_to with role and shard on abstract classes" do
+    AbstractCompany.connected_to(role: :reading, shard: :default) do
+      assert AbstractCompany.connected_to?(role: :reading, shard: :default)
+    end
+  end
 
-      conn1_error = assert_raises ActiveRecord::ReadOnlyError do
-        ActiveRecord::Base.connected_to(role: :writing) do
-          assert_equal :writing, ActiveRecord::Base.current_role
+  test "#connecting_to with role" do
+    AbstractCompany.connecting_to(role: :reading)
 
-          ActiveRecord::Base.connection_handler.while_preventing_writes do
-            Bird.create!(name: "Bluejay")
-          end
-        end
-      end
+    assert AbstractCompany.connected_to?(role: :reading)
+    assert AbstractCompany.current_preventing_writes
+  ensure
+    ActiveRecord::Base.connected_to_stack.pop
+  end
 
-      assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn1_error.message
+  test "#connecting_to with role and shard" do
+    AbstractCompany.connecting_to(role: :reading, shard: :default)
 
-      conn2_error = assert_raises ActiveRecord::ReadOnlyError do
-        ActiveRecord::Base.connected_to(role: :reading) do
-          assert_equal :reading, ActiveRecord::Base.current_role
+    assert AbstractCompany.connected_to?(role: :reading, shard: :default)
+  ensure
+    ActiveRecord::Base.connected_to_stack.pop
+  end
 
-          ActiveRecord::Base.connection_handler.while_preventing_writes do
-            Bird.create!(name: "Bluejay")
-          end
-        end
-      end
+  test "#connecting_to with prevent_writes" do
+    AbstractCompany.connecting_to(role: :writing, prevent_writes: true)
 
-      assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
-    ensure
-      ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
-      ActiveRecord::Base.establish_connection(:arunit)
+    assert AbstractCompany.connected_to?(role: :writing)
+    assert AbstractCompany.current_preventing_writes
+  ensure
+    ActiveRecord::Base.connected_to_stack.pop
+  end
+
+  test "#connecting_to doesn't work with legacy connection handling" do
+    old_value = ActiveRecord::Base.legacy_connection_handling
+    ActiveRecord::Base.legacy_connection_handling = true
+
+    assert_raises NotImplementedError do
+      AbstractCompany.connecting_to(role: :writing, prevent_writes: true)
+    end
+  ensure
+    ActiveRecord::Base.legacy_connection_handling = old_value
+  end
+
+  test "#connected_to_many doesn't work with legacy connection handling" do
+    old_value = ActiveRecord::Base.legacy_connection_handling
+    ActiveRecord::Base.legacy_connection_handling = true
+
+    assert_raises NotImplementedError do
+      ActiveRecord::Base.connected_to_many([AbstractCompany], role: :writing)
+    end
+  ensure
+    ActiveRecord::Base.legacy_connection_handling = old_value
+  end
+
+  test "#connected_to_many cannot be called on anything but ActiveRecord::Base" do
+    assert_raises NotImplementedError do
+      AbstractCompany.connected_to_many([AbstractCompany], role: :writing)
+    end
+  end
+
+  test "#connected_to_many cannot be called with classes that include ActiveRecord::Base" do
+    assert_raises NotImplementedError do
+      ActiveRecord::Base.connected_to_many([ActiveRecord::Base], role: :writing)
+    end
+  end
+
+  test "#connected_to_many sets prevent_writes if role is reading" do
+    ActiveRecord::Base.connected_to_many([AbstractCompany], role: :reading) do
+      assert AbstractCompany.current_preventing_writes
+      assert_not ActiveRecord::Base.current_preventing_writes
+    end
+  end
+
+  test "#connected_to_many with a single argument for classes" do
+    ActiveRecord::Base.connected_to_many(AbstractCompany, role: :reading) do
+      assert AbstractCompany.current_preventing_writes
+      assert_not ActiveRecord::Base.current_preventing_writes
+    end
+  end
+
+  test "#connected_to_many with a multiple classes without brackets works" do
+    ActiveRecord::Base.connected_to_many(AbstractCompany, FirstAbstractClass, role: :reading) do
+      assert AbstractCompany.current_preventing_writes
+      assert FirstAbstractClass.current_preventing_writes
+      assert_not ActiveRecord::Base.current_preventing_writes
     end
   end
 end

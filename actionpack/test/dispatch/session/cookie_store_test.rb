@@ -360,14 +360,14 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   def test_session_store_without_domain
     with_test_route_set do
       get "/set_session_value"
-      assert_no_match(/domain\=/, headers["Set-Cookie"])
+      assert_no_match(/domain=/, headers["Set-Cookie"])
     end
   end
 
   def test_session_store_with_nil_domain
     with_test_route_set(domain: nil) do
       get "/set_session_value"
-      assert_no_match(/domain\=/, headers["Set-Cookie"])
+      assert_no_match(/domain=/, headers["Set-Cookie"])
     end
   end
 

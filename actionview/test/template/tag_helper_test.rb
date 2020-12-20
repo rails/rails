@@ -97,6 +97,12 @@ class TagHelperTest < ActionView::TestCase
       tag.p(disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true, allowpaymentrequest: true, nomodule: true, playsinline: true)
   end
 
+  def test_tag_builder_with_options_builds_p_elements
+    html = tag.with_options(id: "with-options") { |t| t.p("content") }
+
+    assert_dom_equal '<p id="with-options">content</p>', html
+  end
+
   def test_tag_builder_do_not_modify_html_safe_options
     html_safe_str = '"'.html_safe
     assert_equal "<p value=\"&quot;\" />", tag("p", value: html_safe_str)
@@ -124,6 +130,7 @@ class TagHelperTest < ActionView::TestCase
                  tag.p("<script>evil_js</script>")
     assert_equal "<p><script>evil_js</script></p>",
                  tag.p("<script>evil_js</script>", escape_attributes: false)
+    assert_equal '<input pattern="\w+">', tag.input(pattern: /\w+/)
   end
 
   def test_tag_builder_nested
@@ -338,16 +345,23 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p class=\"song play>\">limelight</p>", str
   end
 
-  def test_class_names
-    assert_equal "song play", class_names(["song", { "play": true }])
-    assert_equal "song", class_names({ "song": true, "play": false })
-    assert_equal "song", class_names([{ "song": true }, { "play": false }])
-    assert_equal "song", class_names({ song: true, play: false })
-    assert_equal "song", class_names([{ song: true }, nil, false])
-    assert_equal "song", class_names(["song", { foo: false }])
-    assert_equal "song play", class_names({ "song": true, "play": true })
-    assert_equal "", class_names({ "song": false, "play": false })
-    assert_equal "123", class_names(nil, "", false, 123, { "song": false, "play": false })
+  def test_token_list_and_class_names
+    [:token_list, :class_names].each do |helper_method|
+      helper = ->(*arguments) { public_send(helper_method, *arguments) }
+
+      assert_equal "song play", helper.(["song", { "play": true }])
+      assert_equal "song", helper.({ "song": true, "play": false })
+      assert_equal "song", helper.([{ "song": true }, { "play": false }])
+      assert_equal "song", helper.({ song: true, play: false })
+      assert_equal "song", helper.([{ song: true }, nil, false])
+      assert_equal "song", helper.(["song", { foo: false }])
+      assert_equal "song play", helper.({ "song": true, "play": true })
+      assert_equal "", helper.({ "song": false, "play": false })
+      assert_equal "123", helper.(nil, "", false, 123, { "song": false, "play": false })
+      assert_equal "song", helper.("song", "song")
+      assert_equal "song", helper.("song song")
+      assert_equal "song", helper.("song\nsong")
+    end
   end
 
   def test_content_tag_with_data_attributes
@@ -376,6 +390,30 @@ class TagHelperTest < ActionView::TestCase
   def test_escape_once
     assert_equal "1 &lt; 2 &amp; 3", escape_once("1 < 2 &amp; 3")
     assert_equal " &#X27; &#x27; &#x03BB; &#X03bb; &quot; &#39; &lt; &gt; ", escape_once(" &#X27; &#x27; &#x03BB; &#X03bb; \" ' < > ")
+  end
+
+  def test_tag_attributes_inlines_html_attributes
+    expected_output = <<~HTML.strip
+      <input type="text" name="name" aria-hidden="false" aria-label="label" data-input-value="data" required="required">
+    HTML
+
+    assert_equal expected_output, render_erb(<<~HTML.strip)
+      <input type="text" <%= tag.attributes value: nil, name: "name", "aria-hidden": false, aria: { label: "label" }, data: { input_value: "data" }, required: true %>>
+    HTML
+  end
+
+  def test_tag_attributes_escapes_values
+    assert_not_includes "<script>alert()</script>", render_erb(<<~HTML.strip)
+      <input type="text" <%= tag.attributes xss: '"><script>alert()</script>' %>>
+    HTML
+  end
+
+  def test_tag_attributes_nil
+    assert_equal %(<input type="text" >), render_erb(%(<input type="text" <%= tag.attributes nil %>>))
+  end
+
+  def test_tag_attributes_empty
+    assert_equal %(<input type="text" >), render_erb(%(<input type="text" <%= tag.attributes({}) %>>))
   end
 
   def test_tag_honors_html_safe_for_param_values
@@ -435,11 +473,12 @@ class TagHelperTest < ActionView::TestCase
 
   def test_aria_attributes
     ["aria", :aria].each { |aria|
-      assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="[1,2,3]" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
-        tag("a", aria => { a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
-      assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="[1,2,3]" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
-        tag.a(aria: { a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
+      assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-truthy="true" aria-falsey="false" aria-array="1 2 3" aria-hash="a b" aria-tokens="a b" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
+        tag("a", aria => { nil: nil, a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, truthy: true, falsey: false, string: "hello", symbol: :foo, array: [1, 2, 3], empty_array: [], hash: { a: true, b: "truthy", falsey: false, nil: nil }, empty_hash: {}, tokens: ["a", { b: true, c: false }], empty_tokens: [{ a: false }], string_with_quotes: 'double"quote"party"' })
     }
+
+    assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-truthy="true" aria-falsey="false" aria-array="1 2 3" aria-hash="a b" aria-tokens="a b" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
+    tag.a(aria: { nil: nil, a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, truthy: true, falsey: false, string: "hello", symbol: :foo, array: [1, 2, 3], empty_array: [], hash: { a: true, b: "truthy", falsey: false, nil: nil }, empty_hash: {}, tokens: ["a", { b: true, c: false }], empty_tokens: [{ a: false }], string_with_quotes: 'double"quote"party"' })
   end
 
   def test_link_to_data_nil_equal

@@ -33,6 +33,13 @@ class DeleteAllTest < ActiveRecord::TestCase
     assert_not_predicate davids, :loaded?
   end
 
+  def test_delete_all_with_index_hint
+    davids = Author.where(name: "David").from("#{Author.quoted_table_name} /*! USE INDEX (PRIMARY) */")
+
+    assert_difference("Author.count", -1) { davids.delete_all }
+    assert_not_predicate davids, :loaded?
+  end
+
   def test_delete_all_loaded
     davids = Author.where(name: "David")
 

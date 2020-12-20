@@ -46,7 +46,7 @@ module ActionView::Helpers
       options = @options.stringify_keys
       add_default_name_and_id(options)
       options["input"] ||= dom_id(object, [options["id"], :trix_input].compact.join("_")) if object
-      @template_object.rich_text_area_tag(options.delete("name"), editable_value, options)
+      @template_object.rich_text_area_tag(options.delete("name"), options.fetch("value") { editable_value }, options.except("value"))
     end
 
     def editable_value
@@ -60,12 +60,19 @@ module ActionView::Helpers
     #
     # ==== Options
     # * <tt>:class</tt> - Defaults to "trix-content" which ensures default styling is applied.
+    # * <tt>:value</tt> - Adds a default value to the HTML input tag.
     #
     # ==== Example
     #   form_with(model: @message) do |form|
     #     form.rich_text_area :content
     #   end
     #   # <input type="hidden" name="message[content]" id="message_content_trix_input_message_1">
+    #   # <trix-editor id="content" input="message_content_trix_input_message_1" class="trix-content" ...></trix-editor>
+    #
+    #   form_with(model: @message) do |form|
+    #     form.rich_text_area :content, value: "<h1>Default message</h1>"
+    #   end
+    #   # <input type="hidden" name="message[content]" id="message_content_trix_input_message_1" value="<h1>Default message</h1>">
     #   # <trix-editor id="content" input="message_content_trix_input_message_1" class="trix-content" ...></trix-editor>
     def rich_text_area(object_name, method, options = {})
       Tags::ActionText.new(object_name, method, self, options).render

@@ -81,7 +81,7 @@ The section _Customizing Inflections_ below documents ways to override this defa
 
 Please, check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#file-structure) for further details.
 
-Autoload paths
+Autoload Paths
 --------------
 
 We refer to the list of application directories whose contents are to be autoloaded as _autoload paths_. For example, `app/models`. Such directories represent the root namespace: `Object`.
@@ -133,9 +133,7 @@ In a Rails console there is no file watcher active regardless of the value of `c
 
 However, you can force a reload in the console by executing `reload!`:
 
-```bash
-$ bin/rails c
-Loading development environment (Rails 6.0.0)
+```irb
 irb(main):001:0> User.object_id
 => 70136277390120
 irb(main):002:0> reload!
@@ -172,12 +170,12 @@ Let's see other situations that involve stale class or module objects.
 
 Check this Rails console session:
 
-```
-> joe = User.new
-> reload!
-> alice = User.new
-> joe.class == alice.class
-false
+```irb
+irb> joe = User.new
+irb> reload!
+irb> alice = User.new
+irb> joe.class == alice.class
+=> false
 ```
 
 `joe` is an instance of the original `User` class. When there is a reload, the `User` constant evaluates to a different, reloaded class. `alice` is an instance of the current one, but `joe` is not, his class is stale. You may define `joe` again, start an IRB subsession, or just launch a new console instead of calling `reload!`.
@@ -198,7 +196,7 @@ Bottom line: **do not cache reloadable classes or modules**.
 
 Applications can safely autoload constants during boot using a reloader callback:
 
-```
+```ruby
 Rails.application.reloader.to_prepare do
   $PAYMENT_GATEWAY = Rails.env.production? ? RealGateway : MockedGateway
 end
@@ -207,6 +205,18 @@ end
 That block runs when the application boots, and every time code is reloaded.
 
 NOTE: For historical reasons, this callback may run twice. The code it executes must be idempotent.
+
+However, if you do not need to reload the class, it is easier to define it in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice, it does not belong to the autoload paths by default but it belongs to `$LOAD_PATH`. Then, in the place the class is needed at boot time, just perform a regular `require` to load it.
+
+For example, there is no point in defining reloadable Rack middleware, because changes would not be reflected in the instance stored in the middleware stack anyway. If `lib/my_app/middleware/foo.rb` defines a middleware class, then in `config/application.rb` you write:
+
+```ruby
+require "my_app/middleware/foo"
+...
+config.middleware.use MyApp::Middleware::Foo
+```
+
+To have changes in that middleware reflected, you need to restart the server.
 
 
 Eager Loading
@@ -378,6 +388,60 @@ You can check if `zeitwerk` mode is enabled with
 ```ruby
 Rails.autoloaders.zeitwerk_enabled?
 ```
+
+Differences with Classic Mode
+-----------------------------
+
+### Ruby Constant Lookup Compliance
+
+`classic` mode cannot match constant lookup semantics due to fundamental limitations of the technique it is based on, whereas `zeitwerk` mode works like Ruby.
+
+For example, in `classic` mode defining classes or modules in namespaces with qualified constants this way
+
+```ruby
+class Admin::UsersController < ApplicationController
+end
+```
+
+was not recommended because the resolution of constants inside their body was britle. You'd better write them in this style:
+
+```ruby
+module Admin
+  class UsersController < ApplicationController
+  end
+end
+```
+
+In `zeitwerk` mode that does not matter anymore, you can pick either style.
+
+The resolution of a constant could depend on load order, the definition of a class or module object could depend on load order, there was edge cases with singleton classes, oftentimes you had to use `require_dependency` as a workaround, .... The guide for `classic` mode documents [these issues](autoloading_and_reloading_constants_classic_mode.html#common-gotchas).
+
+All these problems are solved in `zeitwerk` mode, it just works as expected, and `require_dependency` should not be used anymore, it is no longer needed.
+
+### Less File Lookups
+
+In `classic` mode, every single missing constant triggers a file lookup that walks the autoload paths.
+
+In `zeitwerk` mode there is only one pass. That pass is done once, not per missing constant, and so it is generally more performant. Subdirectories are visited only if their namespace is used.
+
+### Underscore vs Camelize
+
+Inflections go the other way around.
+
+In `classic` mode, given a missing constant Rails _underscores_ its name and performs a file lookup. On the other hand, `zeitwerk` mode checks first the file system, and _camelizes_ file names to know the constant those files are expected to define.
+
+While in common names these operations match, if acronyms or custom inflection rules are configured, they may not. For example, by default `"HTMLParser".underscore` is `"html_parser"`, and `"html_parser".camelize` is `"HtmlParser"`.
+
+### More Differences
+
+There are some other subtle differences, please check [this section of _Upgrading Ruby on Rails_](upgrading_ruby_on_rails.html#autoloading) guide for details.
+
+Classic Mode is Deprecated
+--------------------------
+
+By now, it is still possible to use `classic` mode. However, `classic` is deprecated and will be eventually removed.
+
+New applications should use `zeitwerk` mode (which is the default), and applications being upgrade are strongly encouraged to migrate to `zeitwerk` mode. Please check the [_Upgrading Ruby on Rails_](upgrading_ruby_on_rails.html#autoloading) guide for details.
 
 Opting Out
 ----------

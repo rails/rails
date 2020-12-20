@@ -356,11 +356,27 @@ class EachTest < ActiveRecord::TestCase
     assert_equal Post.all.pluck(:title), ["updated-title"] * Post.count
   end
 
+  def test_in_batches_update_all_returns_rows_affected
+    assert_equal 11, Post.in_batches(of: 2).update_all(title: "updated-title")
+  end
+
+  def test_in_batches_update_all_returns_zero_when_no_batches
+    assert_equal 0, Post.where("1=0").in_batches(of: 2).update_all(title: "updated-title")
+  end
+
   def test_in_batches_delete_all_should_not_delete_records_in_other_batches
     not_deleted_count = Post.where("id <= 2").count
     Post.where("id > 2").in_batches(of: 2).delete_all
     assert_equal 0, Post.where("id > 2").count
     assert_equal not_deleted_count, Post.count
+  end
+
+  def test_in_batches_delete_all_returns_rows_affected
+    assert_equal 11, Post.in_batches(of: 2).delete_all
+  end
+
+  def test_in_batches_delete_all_returns_zero_when_no_batches
+    assert_equal 0, Post.where("1=0").in_batches(of: 2).delete_all
   end
 
   def test_in_batches_should_not_be_loaded

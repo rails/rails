@@ -54,7 +54,7 @@ class TestController < ActionController::Base
   end
 
   def hello_world_file
-    render file: File.expand_path("../../fixtures/actionpack/hello", __dir__), formats: [:html]
+    render file: File.expand_path("../../fixtures/actionpack/hello.html", __dir__)
   end
 
   # :ported:
@@ -121,41 +121,31 @@ class TestController < ActionController::Base
   end
 
   # :ported:
-  def render_file_with_instance_variables
+  def render_template_with_instance_variables
     @secret = "in the sauce"
-    path = File.expand_path("../../fixtures/test/render_file_with_ivar", __dir__)
-    render file: path
+    render template: "test/render_template_with_ivar"
   end
 
   # :ported:
   def render_file_not_using_full_path
-    @secret = "in the sauce"
-    render file: "test/render_file_with_ivar"
+    render file: "test/render_template_with_ivar"
   end
 
-  def render_file_not_using_full_path_with_dot_in_path
+  def render_template_with_dot_in_path
     @secret = "in the sauce"
-    render file: "test/dot.directory/render_file_with_ivar"
+    render template: "test/dot.directory/render_template_with_ivar"
   end
 
   def render_file_using_pathname
-    @secret = "in the sauce"
-    render file: Pathname.new(__dir__).join("..", "..", "fixtures", "test", "dot.directory", "render_file_with_ivar")
+    render file: Pathname.new(__dir__).join("..", "..", "fixtures", "test", "dot.directory", "render_template_with_ivar.erb")
   end
 
   def render_file_from_template
-    @secret = "in the sauce"
-    @path = File.expand_path("../../fixtures/test/render_file_with_ivar", __dir__)
+    @path = File.expand_path("../../fixtures/test/render_template_with_ivar.erb", __dir__)
   end
 
-  def render_file_with_locals
-    path = File.expand_path("../../fixtures/test/render_file_with_locals", __dir__)
-    render file: path, locals: { secret: "in the sauce" }
-  end
-
-  def render_file_as_string_with_locals
-    path = File.expand_path("../../fixtures/test/render_file_with_locals", __dir__)
-    render file: path, locals: { secret: "in the sauce" }
+  def render_template_with_locals
+    render template: "test/render_template_with_locals", locals: { secret: "in the sauce" }
   end
 
   def accessing_request_in_template
@@ -217,7 +207,7 @@ class TestController < ActionController::Base
   end
 
   def render_line_offset
-    render inline: "<% raise %>", locals: { foo: "bar" }
+    render template: "test/raise"
   end
 
   def heading
@@ -336,7 +326,7 @@ class TestController < ActionController::Base
   end
 
   def render_to_string_with_exception
-    render_to_string file: "exception that will not be caught - this will certainly not work"
+    render_to_string template: "exception that will not be caught - this will certainly not work"
   end
 
   def render_to_string_with_caught_exception
@@ -372,7 +362,7 @@ class TestController < ActionController::Base
 
   # :ported:
   def render_with_explicit_template_with_locals
-    render template: "test/render_file_with_locals", locals: { secret: "area51" }
+    render template: "test/render_template_with_locals", locals: { secret: "area51" }
   end
 
   # :ported:
@@ -705,13 +695,12 @@ class RenderTest < ActionController::TestCase
     get :render_call_to_partial_with_layout, to: "test#render_call_to_partial_with_layout"
     get :render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout, to: "test#render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout"
     get :render_custom_code, to: "test#render_custom_code"
-    get :render_file_as_string_with_locals, to: "test#render_file_as_string_with_locals"
     get :render_file_from_template, to: "test#render_file_from_template"
     get :render_file_not_using_full_path, to: "test#render_file_not_using_full_path"
-    get :render_file_not_using_full_path_with_dot_in_path, to: "test#render_file_not_using_full_path_with_dot_in_path"
+    get :render_template_with_dot_in_path, to: "test#render_template_with_dot_in_path"
     get :render_file_using_pathname, to: "test#render_file_using_pathname"
-    get :render_file_with_instance_variables, to: "test#render_file_with_instance_variables"
-    get :render_file_with_locals, to: "test#render_file_with_locals"
+    get :render_template_with_instance_variables, to: "test#render_template_with_instance_variables"
+    get :render_template_with_locals, to: "test#render_template_with_locals"
     get :render_hello_world, to: "test#render_hello_world"
     get :render_hello_world_from_variable, to: "test#render_hello_world_from_variable"
     get :render_hello_world_with_forward_slash, to: "test#render_hello_world_with_forward_slash"
@@ -870,66 +859,45 @@ class RenderTest < ActionController::TestCase
   end
 
   # :ported:
-  def test_render_file_with_instance_variables
-    assert_deprecated do
-      get :render_file_with_instance_variables
-    end
+  def test_render_template_with_instance_variables
+    get :render_template_with_instance_variables
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   def test_render_file
-    assert_deprecated do
-      get :hello_world_file
-    end
+    get :hello_world_file
     assert_equal "Hello world!", @response.body
   end
 
   # :ported:
   def test_render_file_not_using_full_path
-    assert_deprecated do
+    assert_raise(ArgumentError) do
       get :render_file_not_using_full_path
     end
-    assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:
-  def test_render_file_not_using_full_path_with_dot_in_path
-    assert_deprecated do
-      get :render_file_not_using_full_path_with_dot_in_path
-    end
+  def test_render_template_with_dot_in_path
+    get :render_template_with_dot_in_path
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:
   def test_render_file_using_pathname
-    assert_deprecated do
-      get :render_file_using_pathname
-    end
-    assert_equal "The secret is in the sauce\n", @response.body
+    get :render_file_using_pathname
+    assert_equal "The secret is <%= @secret %>\n", @response.body
   end
 
   # :ported:
-  def test_render_file_with_locals
-    assert_deprecated do
-      get :render_file_with_locals
-    end
-    assert_equal "The secret is in the sauce\n", @response.body
-  end
-
-  # :ported:
-  def test_render_file_as_string_with_locals
-    assert_deprecated do
-      get :render_file_as_string_with_locals
-    end
+  def test_render_template_with_locals
+    get :render_template_with_locals
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :assessed:
   def test_render_file_from_template
-    assert_deprecated do
-      get :render_file_from_template
-    end
-    assert_equal "The secret is in the sauce\n", @response.body
+    get :render_file_from_template
+    assert_equal "The secret is &lt;%= @secret %&gt;\n", @response.body
   end
 
   # :ported:
@@ -1148,18 +1116,14 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_bad_render_to_string_still_throws_exception
-    assert_deprecated do
-      assert_raise(ActionView::MissingTemplate) do
-        get :render_to_string_with_exception
-      end
+    assert_raise(ActionView::MissingTemplate) do
+      get :render_to_string_with_exception
     end
   end
 
   def test_render_to_string_that_throws_caught_exception_doesnt_break_assigns
-    assert_deprecated do
-      assert_nothing_raised do
-        get :render_to_string_with_caught_exception
-      end
+    assert_nothing_raised do
+      get :render_to_string_with_caught_exception
     end
     assert_equal "i'm before the render", @controller.instance_variable_get(:@before)
     assert_equal "i'm after the render", @controller.instance_variable_get(:@after)
@@ -1459,15 +1423,10 @@ class RenderTest < ActionController::TestCase
 
     get :greeting
 
-    lines = @response.body.split("\n")
-
-    assert_includes lines.first, "<!-- BEGIN"
-    assert_includes lines.first, "test/fixtures/actionpack/test/greeting.html.erb -->"
-
-    assert_includes lines[1], "This is grand!"
-
-    assert_includes lines.last, "<!-- END"
-    assert_includes lines.last, "test/fixtures/actionpack/test/greeting.html.erb -->"
+    assert_includes @response.body, "<!-- BEGIN"
+    assert_includes @response.body, "<!-- END"
+    assert_includes @response.body, "test/fixtures/actionpack/test/greeting.html.erb"
+    assert_includes @response.body, "This is grand!"
   ensure
     ActionView::Base.annotate_rendered_view_with_filenames = false
   end

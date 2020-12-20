@@ -253,7 +253,7 @@ module ActiveRecord
       end
 
       def test_connection_specification_name_should_fallback_to_parent
-        Object.send :const_set, :ApplicationRecord, ApplicationRecord
+        Object.const_set :ApplicationRecord, ApplicationRecord
 
         klassA = Class.new(Base)
         klassB = Class.new(klassA)

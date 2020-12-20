@@ -20,23 +20,19 @@ module ActiveRecord
           case values.length
           when 0 then NullPredicate
           when 1 then predicate_builder.build(attribute, values.first)
-          else
-            if nils.empty? && ranges.empty?
-              return Arel::Nodes::HomogeneousIn.new(values, attribute, :in)
-            else
-              attribute.in values.map { |v|
-                predicate_builder.build_bind_attribute(attribute.name, v)
-              }
-            end
+          else Arel::Nodes::HomogeneousIn.new(values, attribute, :in)
           end
 
         unless nils.empty?
-          values_predicate = values_predicate.or(predicate_builder.build(attribute, nil))
+          values_predicate = values_predicate.or(attribute.eq(nil))
         end
 
-        array_predicates = ranges.map { |range| predicate_builder.build(attribute, range) }
-        array_predicates.unshift(values_predicate)
-        array_predicates.inject(&:or)
+        if ranges.empty?
+          values_predicate
+        else
+          array_predicates = ranges.map! { |range| predicate_builder.build(attribute, range) }
+          array_predicates.inject(values_predicate, &:or)
+        end
       end
 
       private

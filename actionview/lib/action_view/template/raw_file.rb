@@ -20,9 +20,6 @@ module ActionView #:nodoc:
       def render(*args)
         ::File.read(@filename)
       end
-
-      def formats; Array(format); end
-      deprecate :formats
     end
   end
 end

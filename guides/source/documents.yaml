@@ -232,10 +232,14 @@
       url: upgrading_ruby_on_rails.html
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
     -
-      name: Version 6.1 - May 2020
+      name: Version 6.2 - ?
+      url: 6_2_release_notes.html
+      description: Release notes for Rails 6.2.
+      work_in_progress: true
+    -
+      name: Version 6.1 - December 2020
       url: 6_1_release_notes.html
       description: Release notes for Rails 6.1.
-      work_in_progress: true
     -
       name: Version 6.0 - August 2019
       url: 6_0_release_notes.html

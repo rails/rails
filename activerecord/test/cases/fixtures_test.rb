@@ -951,12 +951,31 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     assert(connection.rollback_transaction_called, "Expected <mock connection>#rollback_transaction to be called but was not")
   end
 
+  def test_transaction_created_on_connection_notification_for_shard
+    connection = Class.new do
+      attr_accessor :pool
+
+      def transaction_open?; end
+      def begin_transaction(*args); end
+      def rollback_transaction(*args); end
+    end.new
+
+    connection.pool = Class.new do
+      def lock_thread=(lock_thread); end
+    end.new
+
+    assert_called_with(connection, :begin_transaction, [joinable: false, _lazy: false]) do
+      fire_connection_notification(connection, shard: :shard_two)
+    end
+  end
+
   private
-    def fire_connection_notification(connection)
-      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book"], returns: connection) do
+    def fire_connection_notification(connection, shard: ActiveRecord::Base.default_shard)
+      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book", { shard: shard }], returns: connection) do
         message_bus = ActiveSupport::Notifications.instrumenter
         payload = {
           spec_name: "book",
+          shard: shard,
           config: nil,
         }
 
@@ -1111,13 +1130,13 @@ class FoxyFixturesTest < ActiveRecord::TestCase
 
   def test_populates_timestamp_columns
     TIMESTAMP_COLUMNS.each do |property|
-      assert_not_nil(parrots(:george).send(property), "should set #{property}")
+      assert_not_nil(parrots(:george).public_send(property), "should set #{property}")
     end
   end
 
   def test_does_not_populate_timestamp_columns_if_model_has_set_record_timestamps_to_false
     TIMESTAMP_COLUMNS.each do |property|
-      assert_nil(ships(:black_pearl).send(property), "should not set #{property}")
+      assert_nil(ships(:black_pearl).public_send(property), "should not set #{property}")
     end
   end
 
@@ -1125,7 +1144,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     last = nil
 
     TIMESTAMP_COLUMNS.each do |property|
-      current = parrots(:george).send(property)
+      current = parrots(:george).public_send(property)
       last ||= current
 
       assert_equal(last, current)
@@ -1399,21 +1418,22 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
 
     def setup
       @old_handler = ActiveRecord::Base.connection_handler
-      @old_handlers = ActiveRecord::Base.connection_handlers
       @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(ENV["RAILS_ENV"], "readonly", readonly_config)
 
       handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
       handler.establish_connection(db_config)
-      ActiveRecord::Base.connection_handlers = {}
       ActiveRecord::Base.connection_handler = handler
+
       ActiveRecord::Base.connects_to(database: { writing: :default, reading: :readonly })
+
+      setup_shared_connection_pool
     end
 
     def teardown
       ActiveRecord::Base.configurations = @prev_configs
       ActiveRecord::Base.connection_handler = @old_handler
-      ActiveRecord::Base.connection_handlers = @old_handlers
+      clean_up_connection_handler
     end
 
     def test_uses_writing_connection_for_fixtures
@@ -1427,10 +1447,132 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
     end
 
     def test_writing_and_reading_connections_are_the_same
-      rw_conn = ActiveRecord::Base.connection_handlers[:writing].connection_pool_list.first.connection
-      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
+      handler = ActiveRecord::Base.connection_handler
+      rw_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :writing).connection
+      ro_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading).connection
 
       assert_equal rw_conn, ro_conn
+    end
+
+    def test_writing_and_reading_connections_are_the_same_for_non_default_shards
+      ActiveRecord::Base.connects_to shards: {
+        default: { writing: :default, reading: :readonly },
+        two: { writing: :default, reading: :readonly }
+      }
+
+      handler = ActiveRecord::Base.connection_handler
+      rw_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :writing, shard: :two).connection
+      ro_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading, shard: :two).connection
+
+      assert_equal rw_conn, ro_conn
+    end
+
+    def test_only_existing_connections_are_replaced
+      ActiveRecord::Base.connects_to shards: {
+        default: { writing: :default, reading: :readonly },
+        two: { writing: :default }
+      }
+
+      setup_shared_connection_pool
+
+      assert_raises(ActiveRecord::ConnectionNotEstablished) do
+        ActiveRecord::Base.connected_to(role: :reading, shard: :two) do
+          ActiveRecord::Base.retrieve_connection
+        end
+      end
+    end
+
+    private
+      def config
+        { "default" => default_config, "readonly" => readonly_config }
+      end
+
+      def default_config
+        { "adapter" => "sqlite3", "database" => "test/fixtures/fixture_database.sqlite3" }
+      end
+
+      def readonly_config
+        default_config.merge("replica" => true)
+      end
+  end
+
+  class MultipleFixtureLegacyConnectionsTest < ActiveRecord::TestCase
+    include ActiveRecord::TestFixtures
+
+    fixtures :dogs
+
+    def setup
+      @old_value = ActiveRecord::Base.legacy_connection_handling
+      ActiveRecord::Base.legacy_connection_handling = true
+
+      @old_handler = ActiveRecord::Base.connection_handler
+      @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+      db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(ENV["RAILS_ENV"], "readonly", readonly_config)
+
+      handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+      handler.establish_connection(db_config)
+      ActiveRecord::Base.connection_handlers = {}
+      ActiveRecord::Base.connection_handler = handler
+      ActiveRecord::Base.connects_to(database: { writing: :default, reading: :readonly })
+
+      setup_shared_connection_pool
+    end
+
+    def teardown
+      ActiveRecord::Base.configurations = @prev_configs
+      ActiveRecord::Base.connection_handler = @old_handler
+      clean_up_legacy_connection_handlers
+      ActiveRecord::Base.legacy_connection_handling = false
+    end
+
+    def test_uses_writing_connection_for_fixtures
+      ActiveRecord::Base.connected_to(role: :reading) do
+        Dog.first
+
+        assert_nothing_raised do
+          ActiveRecord::Base.connected_to(role: :writing) { Dog.create! alias: "Doggo" }
+        end
+      end
+    end
+
+    def test_writing_and_reading_connections_are_the_same_with_legacy_handling
+      writing = ActiveRecord::Base.connection_handlers[:writing]
+      reading = ActiveRecord::Base.connection_handlers[:reading]
+
+      rw_conn = writing.retrieve_connection_pool("ActiveRecord::Base").connection
+      ro_conn = reading.retrieve_connection_pool("ActiveRecord::Base").connection
+
+      assert_equal rw_conn, ro_conn
+    end
+
+    def test_writing_and_reading_connections_are_the_same_for_non_default_shards_with_legacy_handling
+      ActiveRecord::Base.connects_to shards: {
+        default: { writing: :default, reading: :readonly },
+        two: { writing: :default, reading: :readonly }
+      }
+
+      writing = ActiveRecord::Base.connection_handlers[:writing]
+      reading = ActiveRecord::Base.connection_handlers[:reading]
+
+      rw_conn = writing.retrieve_connection_pool("ActiveRecord::Base", shard: :two).connection
+      ro_conn = reading.retrieve_connection_pool("ActiveRecord::Base", shard: :two).connection
+
+      assert_equal rw_conn, ro_conn
+    end
+
+    def test_only_existing_connections_are_replaced
+      ActiveRecord::Base.connects_to shards: {
+        default: { writing: :default, reading: :readonly },
+        two: { writing: :default }
+      }
+
+      setup_shared_connection_pool
+
+      assert_raises(ActiveRecord::ConnectionNotEstablished) do
+        ActiveRecord::Base.connected_to(role: :reading, shard: :two) do
+          ActiveRecord::Base.retrieve_connection
+        end
+      end
     end
 
     private

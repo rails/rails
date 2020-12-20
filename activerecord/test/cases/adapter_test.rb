@@ -12,7 +12,6 @@ module ActiveRecord
     def setup
       @connection = ActiveRecord::Base.connection
       @connection.materialize_transactions
-      @connection_handler = ActiveRecord::Base.connection_handler
     end
 
     ##
@@ -176,79 +175,6 @@ module ActiveRecord
       end
     end
 
-    def test_preventing_writes_predicate
-      assert_not_predicate @connection, :preventing_writes?
-
-      @connection_handler.while_preventing_writes do
-        assert_predicate @connection, :preventing_writes?
-      end
-
-      assert_not_predicate @connection, :preventing_writes?
-    end
-
-    def test_errors_when_an_insert_query_is_called_while_preventing_writes
-      assert_no_queries do
-        assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection_handler.while_preventing_writes do
-            @connection.transaction do
-              @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
-            end
-          end
-        end
-      end
-    end
-
-    def test_errors_when_an_update_query_is_called_while_preventing_writes
-      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
-
-      assert_no_queries do
-        assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection_handler.while_preventing_writes do
-            @connection.transaction do
-              @connection.update("UPDATE subscribers SET nick = '9989' WHERE nick = '138853948594'")
-            end
-          end
-        end
-      end
-    end
-
-    def test_errors_when_a_delete_query_is_called_while_preventing_writes
-      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
-
-      assert_no_queries do
-        assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection_handler.while_preventing_writes do
-            @connection.transaction do
-              @connection.delete("DELETE FROM subscribers WHERE nick = '138853948594'")
-            end
-          end
-        end
-      end
-    end
-
-    def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
-      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
-
-      @connection_handler.while_preventing_writes do
-        result = @connection.select_all("SELECT subscribers.* FROM subscribers WHERE nick = '138853948594'")
-        assert_equal 1, result.length
-      end
-    end
-
-    if ActiveRecord::Base.connection.supports_common_table_expressions?
-      def test_doesnt_error_when_a_read_query_with_a_cte_is_called_while_preventing_writes
-        @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
-
-        @connection_handler.while_preventing_writes do
-          result = @connection.select_all(<<~SQL)
-            WITH matching_subscribers AS (SELECT subscribers.* FROM subscribers WHERE nick = '138853948594')
-            SELECT * FROM matching_subscribers
-          SQL
-          assert_equal 1, result.length
-        end
-      end
-    end
-
     def test_uniqueness_violations_are_translated_to_specific_exception
       @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
       error = assert_raises(ActiveRecord::RecordNotUnique) do
@@ -404,42 +330,6 @@ module ActiveRecord
 
     test "type_to_sql returns a String for unmapped types" do
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
-    end
-
-    def test_supports_foreign_keys_in_create_is_deprecated
-      assert_deprecated { @connection.supports_foreign_keys_in_create? }
-    end
-
-    def test_supports_multi_insert_is_deprecated
-      assert_deprecated { @connection.supports_multi_insert? }
-    end
-
-    def test_column_name_length_is_deprecated
-      assert_deprecated { @connection.column_name_length }
-    end
-
-    def test_table_name_length_is_deprecated
-      assert_deprecated { @connection.table_name_length }
-    end
-
-    def test_columns_per_table_is_deprecated
-      assert_deprecated { @connection.columns_per_table }
-    end
-
-    def test_indexes_per_table_is_deprecated
-      assert_deprecated { @connection.indexes_per_table }
-    end
-
-    def test_columns_per_multicolumn_index_is_deprecated
-      assert_deprecated { @connection.columns_per_multicolumn_index }
-    end
-
-    def test_sql_query_length_is_deprecated
-      assert_deprecated { @connection.sql_query_length }
-    end
-
-    def test_joins_per_query_is_deprecated
-      assert_deprecated { @connection.joins_per_query }
     end
 
     def test_allowed_index_name_length_is_deprecated

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/object/deep_dup"
 require "active_model/attribute_set/builder"
 require "active_model/attribute_set/yaml_encoder"

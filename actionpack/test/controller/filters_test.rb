@@ -393,11 +393,9 @@ class FilterTest < ActionController::TestCase
   end
 
   class BeforeAfterClassFilterController < PrependingController
-    begin
-      filter = AroundFilter.new
-      before_action filter
-      after_action filter
-    end
+    filter = AroundFilter.new
+    before_action filter
+    after_action filter
   end
 
   class MixedFilterController < PrependingController

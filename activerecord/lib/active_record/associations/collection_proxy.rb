@@ -46,7 +46,7 @@ module ActiveRecord
       # Returns +true+ if the association has been loaded, otherwise +false+.
       #
       #   person.pets.loaded? # => false
-      #   person.pets
+      #   person.pets.records
       #   person.pets.loaded? # => true
       def loaded?
         @association.loaded?
@@ -1090,6 +1090,11 @@ module ActiveRecord
         @offsets = @take = nil
         @scope = nil
         self
+      end
+
+      def inspect # :nodoc:
+        load_target if find_from_target?
+        super
       end
 
       delegate_methods = [

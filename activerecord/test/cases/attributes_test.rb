@@ -68,15 +68,47 @@ module ActiveRecord
       assert_equal "the overloaded default", klass.new.overloaded_string_with_limit
     end
 
+    test "attributes with overridden types keep their type when a default value is configured separately" do
+      child = Class.new(OverloadedType) do
+        attribute :overloaded_float, default: "123"
+      end
+
+      assert_equal OverloadedType.type_for_attribute("overloaded_float"), child.type_for_attribute("overloaded_float")
+      assert_equal 123, child.new.overloaded_float
+    end
+
     test "extra options are forwarded to the type caster constructor" do
       klass = Class.new(OverloadedType) do
-        attribute :starts_at, :datetime, precision: 3, limit: 2, scale: 1
+        attribute :starts_at, :datetime, precision: 3, limit: 2, scale: 1, default: -> { Time.now.utc }
       end
 
       starts_at_type = klass.type_for_attribute(:starts_at)
+
       assert_equal 3, starts_at_type.precision
       assert_equal 2, starts_at_type.limit
       assert_equal 1, starts_at_type.scale
+
+      assert_kind_of Type::DateTime, starts_at_type
+      assert_instance_of Time, klass.new.starts_at
+    end
+
+    test "time zone aware attribute" do
+      with_timezone_config aware_attributes: true, zone: "Pacific Time (US & Canada)" do
+        klass = Class.new(OverloadedType) do
+          attribute :starts_at, :datetime, precision: 3, default: -> { Time.now.utc }
+          attribute :ends_at, default: -> { Time.now.utc }
+        end
+
+        starts_at_type = klass.type_for_attribute(:starts_at)
+        ends_at_type   = klass.type_for_attribute(:ends_at)
+
+        assert_instance_of AttributeMethods::TimeZoneConversion::TimeZoneConverter, starts_at_type
+        assert_instance_of AttributeMethods::TimeZoneConversion::TimeZoneConverter, ends_at_type
+        assert_kind_of Type::DateTime, starts_at_type.__getobj__
+        assert_kind_of Type::DateTime, ends_at_type.__getobj__
+        assert_instance_of ActiveSupport::TimeWithZone, klass.new.starts_at
+        assert_instance_of ActiveSupport::TimeWithZone, klass.new.ends_at
+      end
     end
 
     test "nonexistent attribute" do
@@ -270,6 +302,15 @@ module ActiveRecord
       model = child.last
 
       assert_equal 123, model.non_existent_decimal
+    end
+
+    test "attributes not backed by database columns keep their type when a default value is configured separately" do
+      child = Class.new(OverloadedType) do
+        attribute :non_existent_decimal, default: "123"
+      end
+
+      assert_equal OverloadedType.type_for_attribute("non_existent_decimal"), child.type_for_attribute("non_existent_decimal")
+      assert_equal 123, child.new.non_existent_decimal
     end
 
     test "attributes not backed by database columns properly interact with mutation and dirty" do

@@ -15,7 +15,6 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     Rails.application.config.active_record.belongs_to_required_by_default = true
   end
 
-
   def teardown
     Rails.application.config.active_record.belongs_to_required_by_default = @old_belongs_to_required_by_default
   end
@@ -49,6 +48,54 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_no_migration "db/migrate/create_accounts.rb"
   end
 
+  def test_model_with_database_option
+    with_database_configuration do
+      run_generator ["account", "--database", "secondary"]
+      assert_file "app/models/secondary_record.rb", /class SecondaryRecord < ApplicationRecord/
+      assert_file "app/models/account.rb", /class Account < SecondaryRecord/
+      assert_migration "db/secondary_migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
+    end
+  end
+
+  def test_model_with_parent_and_database_option
+    with_database_configuration do
+      run_generator ["account", "--parent", "Admin::Account", "--database", "secondary"]
+      assert_file "app/models/account.rb", /class Account < Admin::Account/
+      assert_migration "db/secondary_migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
+    end
+  end
+
+  def test_model_with_no_migration_and_database_option
+    with_database_configuration do
+      run_generator ["account", "--migration", "false", "--database", "secondary"]
+      assert_file "app/models/account.rb", /class Account < SecondaryRecord/
+      assert_no_migration "db/secondary_migrate/create_accounts.rb"
+    end
+  end
+
+  def test_model_with_no_migration_option
+    run_generator ["account", "--migration", "false"]
+    assert_file "app/models/account.rb", /class Account < ApplicationRecord/
+    assert_no_migration "db/migrate/create_accounts.rb"
+  end
+
+  def test_model_with_parent_option_database_option_and_no_migration_option
+    with_database_configuration do
+      run_generator ["account", "--migration", "false", "--database", "secondary", "--migration", "false", "--parent", "Admin::Account"]
+      assert_file "app/models/account.rb", /class Account < Admin::Account/
+      assert_no_migration "db/secondary_migrate/create_accounts.rb"
+    end
+  end
+
+  def test_model_with_underscored_database_option
+    with_database_configuration("admin_accounts") do
+      run_generator ["account", "--database", "admin_accounts"]
+      assert_file "app/models/admin_accounts_record.rb", /class AdminAccountsRecord < ApplicationRecord/
+      assert_file "app/models/account.rb", /class Account < AdminAccountsRecord/
+      assert_migration "db/admin_accounts_migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
+    end
+  end
+
   def test_plural_names_are_singularized
     content = run_generator ["accounts"]
     assert_file "app/models/account.rb", /class Account < ApplicationRecord/
@@ -66,6 +113,16 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     regular_content = run_generator ["account"]
     assert_no_match("[WARNING] Rails cannot recover singular form from its plural form", regular_content)
+  end
+
+  def test_impossible_inflection_rules_raises_an_error
+    content = capture(:stderr) { run_generator ["BFF"] }
+    message = <<~MESSAGE
+      Rails cannot recover the underscored form from its camelcase form 'BFF'.
+      Please use an underscored name instead, either 'bff' or 'bf_f'.
+      Or setup custom inflection rules for this noun before running the generator in config/initializers/inflections.rb.
+    MESSAGE
+    assert_match message, content
   end
 
   def test_model_with_underscored_parent_option
@@ -401,7 +458,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_database_puts_migrations_in_configured_folder
-    with_secondary_database_configuration do
+    with_database_configuration do
       run_generator ["account", "--database=secondary"]
       assert_migration "db/secondary_migrate/create_accounts.rb" do |content|
         assert_method :change, content do |change|
@@ -412,7 +469,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_database_puts_migrations_in_configured_folder_with_aliases
-    with_secondary_database_configuration do
+    with_database_configuration do
       run_generator ["account", "--db=secondary"]
       assert_migration "db/secondary_migrate/create_accounts.rb" do |content|
         assert_method :change, content do |change|
@@ -431,18 +488,6 @@ class ModelGeneratorTest < Rails::Generators::TestCase
       end
     FILE
     assert_file "app/models/account.rb", expected_file
-  end
-
-  def test_passing_required_to_model_generator_is_deprecated
-    assert_deprecated do
-      run_generator ["account", "supplier:references{required}"]
-    end
-
-    assert_migration "db/migrate/create_accounts.rb" do |m|
-      assert_method :change, m do |up|
-        assert_match(/t\.references :supplier,.*\snull: false/, up)
-      end
-    end
   end
 
   def test_null_false_is_added_for_references_by_default

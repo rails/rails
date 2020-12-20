@@ -115,29 +115,15 @@ module ActiveModel
     end
 
     def freeze
-      @attributes = @attributes.clone.freeze
+      @attributes = @attributes.clone.freeze unless frozen?
       super
     end
 
     private
-      def write_attribute(attr_name, value)
-        name = attr_name.to_s
-        name = self.class.attribute_aliases[name] || name
-
-        @attributes.write_from_user(name, value)
-      end
-
       def _write_attribute(attr_name, value)
         @attributes.write_from_user(attr_name, value)
       end
       alias :attribute= :_write_attribute
-
-      def read_attribute(attr_name)
-        name = attr_name.to_s
-        name = self.class.attribute_aliases[name] || name
-
-        @attributes.fetch_value(name)
-      end
 
       def attribute(attr_name)
         @attributes.fetch_value(attr_name)

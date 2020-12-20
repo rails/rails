@@ -375,7 +375,12 @@ module ActiveSupport #:nodoc:
       require_or_load(path || file_name)
     rescue LoadError => load_error
       if file_name = load_error.message[/ -- (.*?)(\.rb)?$/, 1]
-        load_error.message.replace(message % file_name)
+        load_error_message = if load_error.respond_to?(:original_message)
+          load_error.original_message
+        else
+          load_error.message
+        end
+        load_error_message.replace(message % file_name)
         load_error.copy_blame!(load_error)
       end
       raise
@@ -533,7 +538,8 @@ module ActiveSupport #:nodoc:
     # it is not possible to load the constant into from_mod, try its parent
     # module using +const_missing+.
     def load_missing_constant(from_mod, const_name)
-      unless qualified_const_defined?(from_mod.name) && Inflector.constantize(from_mod.name).equal?(from_mod)
+      from_mod_name = real_mod_name(from_mod)
+      unless qualified_const_defined?(from_mod_name) && Inflector.constantize(from_mod_name).equal?(from_mod)
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
 

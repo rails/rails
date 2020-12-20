@@ -12,7 +12,7 @@ module ActiveRecord
     end
 
     teardown do
-      ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+      clean_up_connection_handler
     end
 
     def test_empty_session

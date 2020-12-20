@@ -447,6 +447,29 @@ module ActiveRecord
       ENV["RAILS_ENV"] = old_env
     end
 
+    def test_creates_development_database_without_test_database_when_skip_test_database
+      old_env = ENV["RAILS_ENV"]
+      ENV["RAILS_ENV"] = "development"
+      ENV["SKIP_TEST_DATABASE"] = "true"
+
+      with_stubbed_configurations_establish_connection do
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :create,
+          [
+            [config_for("development", "primary")]
+          ],
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.create_current(
+            ActiveSupport::StringInquirer.new("development")
+          )
+        end
+      end
+    ensure
+      ENV["RAILS_ENV"] = old_env
+      ENV.delete("SKIP_TEST_DATABASE")
+    end
+
     def test_establishes_connection_for_the_given_environments
       ActiveRecord::Tasks::DatabaseTasks.stub(:create, nil) do
         assert_called_with(ActiveRecord::Base, :establish_connection, [:development]) do
@@ -905,25 +928,6 @@ module ActiveRecord
     end
 
     class DatabaseTasksMigrateTest < DatabaseTasksMigrationTestCase
-      def test_can_migrate_from_pending_migration_error_action_dispatch
-        verbose, version = ENV["VERBOSE"], ENV["VERSION"]
-        ENV["VERSION"] = "2"
-        ENV["VERBOSE"] = "false"
-
-        # run down migration because it was already run on copied db
-        assert_empty capture_migration_output
-
-        ENV.delete("VERSION")
-        ENV.delete("VERBOSE")
-
-        # re-run up migration
-        assert_includes(capture(:stdout) do
-          ActiveSupport::ActionableError.dispatch ActiveRecord::PendingMigrationError, "Run pending migrations"
-        end, "migrating")
-      ensure
-        ENV["VERBOSE"], ENV["VERSION"] = verbose, version
-      end
-
       def test_migrate_set_and_unset_empty_values_for_verbose_and_version_env_vars
         verbose, version = ENV["VERBOSE"], ENV["VERSION"]
 
@@ -1112,7 +1116,7 @@ module ActiveRecord
       def teardown
         SchemaMigration.delete_all
         InternalMetadata.delete_all
-        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+        clean_up_connection_handler
       end
 
       def test_truncate_tables
@@ -1287,7 +1291,7 @@ module ActiveRecord
     def test_charset_current
       old_configurations = ActiveRecord::Base.configurations
       configurations = {
-        "production"  => { "database" => "prod-db" }
+        "production" => { "database" => "prod-db" }
       }
 
       ActiveRecord::Base.configurations = configurations
@@ -1320,7 +1324,7 @@ module ActiveRecord
     def test_collation_current
       old_configurations = ActiveRecord::Base.configurations
       configurations = {
-        "production"  => { "database" => "prod-db" }
+        "production" => { "database" => "prod-db" }
       }
 
       ActiveRecord::Base.configurations = configurations

@@ -11,7 +11,7 @@ SIGNED_ID_VERIFIER_TEST_SECRET = -> { "This is normally set by the railtie initi
 ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
 
 class SignedIdTest < ActiveRecord::TestCase
-  fixtures :accounts, :toys
+  fixtures :accounts, :toys, :companies
 
   setup do
     @account = Account.first
@@ -22,11 +22,21 @@ class SignedIdTest < ActiveRecord::TestCase
     assert_equal @account, Account.find_signed(@account.signed_id)
   end
 
+  test "find signed record on relation" do
+    assert_equal @account, Account.where("1=1").find_signed(@account.signed_id)
+
+    assert_nil Account.where("1=0").find_signed(@account.signed_id)
+  end
+
   test "find signed record with custom primary key" do
     assert_equal @toy, Toy.find_signed(@toy.signed_id)
   end
 
-  test "raise UnknownPrimaryKey when model have no primary key" do
+  test "find signed record for single table inheritance (STI Models)" do
+    assert_equal Company.first, Company.find_signed(Company.first.signed_id)
+  end
+
+  test "find signed record raises UnknownPrimaryKey when a model has no primary key" do
     error = assert_raises(ActiveRecord::UnknownPrimaryKey) do
       Matey.find_signed("this will not be even verified")
     end
@@ -35,6 +45,22 @@ class SignedIdTest < ActiveRecord::TestCase
 
   test "find signed record with a bang" do
     assert_equal @account, Account.find_signed!(@account.signed_id)
+  end
+
+  test "find signed record with a bang on relation" do
+    assert_equal @account, Account.where("1=1").find_signed!(@account.signed_id)
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Account.where("1=0").find_signed!(@account.signed_id)
+    end
+  end
+
+  test "find signed record with a bang with custom primary key" do
+    assert_equal @toy, Toy.find_signed!(@toy.signed_id)
+  end
+
+  test "find signed record with a bang for single table inheritance (STI Models)" do
+    assert_equal Company.first, Company.find_signed!(Company.first.signed_id)
   end
 
   test "fail to find record from broken signed id" do
@@ -57,10 +83,24 @@ class SignedIdTest < ActiveRecord::TestCase
     assert_nil Account.find_signed signed_id
   end
 
+  test "find signed record with purpose" do
+    assert_equal @account, Account.find_signed(@account.signed_id(purpose: :v1), purpose: :v1)
+  end
+
+  test "fail to find signed record with purpose" do
+    assert_nil Account.find_signed(@account.signed_id(purpose: :v1))
+
+    assert_nil Account.find_signed(@account.signed_id(purpose: :v1), purpose: :v2)
+  end
+
   test "finding record from broken signed id raises on the bang" do
     assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
       Account.find_signed! "this will blow up"
     end
+  end
+
+  test "find signed record with a bang within expiration date" do
+    assert_equal @account, Account.find_signed!(@account.signed_id(expires_in: 1.minute))
   end
 
   test "finding signed record outside expiration date raises on the bang" do
@@ -78,6 +118,20 @@ class SignedIdTest < ActiveRecord::TestCase
 
     assert_raises(ActiveRecord::RecordNotFound) do
       Account.find_signed!(signed_id)
+    end
+  end
+
+  test "find signed record with bang with purpose" do
+    assert_equal @account, Account.find_signed!(@account.signed_id(purpose: :v1), purpose: :v1)
+  end
+
+  test "find signed record with bang with purpose raises" do
+    assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
+      Account.find_signed!(@account.signed_id(purpose: :v1))
+    end
+
+    assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
+      Account.find_signed!(@account.signed_id(purpose: :v1), purpose: :v2)
     end
   end
 

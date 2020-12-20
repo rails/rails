@@ -439,8 +439,8 @@ If you'd rather play around in the console, `bin/rails console` will also work j
 like a Rails application. Remember: the `Article` model is namespaced, so to
 reference it you must call it as `Blorgh::Article`.
 
-```ruby
->> Blorgh::Article.find(1)
+```irb
+irb> Blorgh::Article.find(1)
 => #<Blorgh::Article id: 1 ...>
 ```
 
@@ -465,7 +465,7 @@ commenting functionality as well. To do this, you'll need to generate a comment
 model, a comment controller, and then modify the articles scaffold to display
 comments and allow people to create new ones.
 
-From the application root, run the model generator. Tell it to generate a
+From the engine root, run the model generator. Tell it to generate a
 `Comment` model, with the related table having two columns: an `article_id` integer
 and `text` text column.
 
@@ -538,7 +538,7 @@ directory at `app/views/blorgh/comments` and in it a new file called
 
 ```html+erb
 <h3>New comment</h3>
-<%= form_with model: [@article, @article.comments.build], local: true do |form| %>
+<%= form_with model: [@article, @article.comments.build] do |form| %>
   <p>
     <%= form.label :text %><br>
     <%= form.text_area :text %>
@@ -561,7 +561,7 @@ end
 This creates a nested route for the comments, which is what the form requires.
 
 The route now exists, but the controller that this route goes to does not. To
-create it, run this command from the application root:
+create it, run this command from the engine root:
 
 ```bash
 $ bin/rails generate controller comments
@@ -1338,7 +1338,7 @@ were inside the engine:
 You can also specify these assets as dependencies of other assets using Asset
 Pipeline require statements in processed files:
 
-```
+```css
 /*
  *= require blorgh/style
 */
@@ -1512,10 +1512,12 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActionDispatch::SystemTestCase`     | `action_dispatch_system_test_case`   |
 | `ActionMailbox::Base`                | `action_mailbox`                     |
 | `ActionMailbox::InboundEmail`        | `action_mailbox_inbound_email`       |
+| `ActionMailbox::Record`              | `action_mailbox_record`              |
 | `ActionMailbox::TestCase`            | `action_mailbox_test_case`           |
 | `ActionMailer::Base`                 | `action_mailer`                      |
 | `ActionMailer::TestCase`             | `action_mailer_test_case`            |
 | `ActionText::Content`                | `action_text_content`                |
+| `ActionText::Record`                 | `action_text_record`                 |
 | `ActionText::RichText`               | `action_text_rich_text`              |
 | `ActionView::Base`                   | `action_view`                        |
 | `ActionView::TestCase`               | `action_view_test_case`              |
@@ -1524,6 +1526,7 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActiveRecord::Base`                 | `active_record`                      |
 | `ActiveStorage::Attachment`          | `active_storage_attachment`          |
 | `ActiveStorage::Blob`                | `active_storage_blob`                |
+| `ActiveStorage::Record`              | `active_storage_record`              |
 | `ActiveSupport::TestCase`            | `active_support_test_case`           |
 | `i18n`                               | `i18n`                               |
 

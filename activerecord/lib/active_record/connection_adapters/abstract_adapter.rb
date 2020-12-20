@@ -37,7 +37,7 @@ module ActiveRecord
       include Savepoints
 
       SIMPLE_INT = /\A\d+\z/
-      COMMENT_REGEX = %r{/\*(?:[^\*]|\*[^/])*\*/}m
+      COMMENT_REGEX = %r{(?:--.*\n)*|/\*(?:[^*]|\*[^/])*\*/}m
 
       attr_accessor :pool
       attr_reader :visitor, :owner, :logger, :lock
@@ -69,7 +69,7 @@ module ActiveRecord
       def self.build_read_query_regexp(*parts) # :nodoc:
         parts += DEFAULT_READ_QUERY
         parts = parts.map { |part| /#{part}/i }
-        /\A(?:[\(\s]|#{COMMENT_REGEX})*#{Regexp.union(*parts)}/
+        /\A(?:[(\s]|#{COMMENT_REGEX})*#{Regexp.union(*parts)}/
       end
 
       def self.quoted_column_names # :nodoc:
@@ -113,10 +113,20 @@ module ActiveRecord
 
       # Determines whether writes are currently being prevents.
       #
-      # Returns true if the connection is a replica, or if +prevent_writes+
-      # is set to true.
+      # Returns true if the connection is a replica.
+      #
+      # If the application is using legacy handling, returns
+      # true if `connection_handler.prevent_writes` is set.
+      #
+      # If the application is using the new connection handling
+      # will return true based on `current_preventing_writes`.
       def preventing_writes?
-        replica? || ActiveRecord::Base.connection_handler.prevent_writes
+        return true if replica?
+        return ActiveRecord::Base.connection_handler.prevent_writes if ActiveRecord::Base.legacy_connection_handling
+        return false if owner_name.nil?
+
+        klass = self.owner_name.safe_constantize
+        klass&.current_preventing_writes
       end
 
       def migrations_paths # :nodoc:
@@ -190,6 +200,10 @@ module ActiveRecord
         end
 
         @owner = Thread.current
+      end
+
+      def owner_name # :nodoc:
+        @pool.owner_name
       end
 
       def schema_cache
@@ -331,13 +345,6 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support creating foreign key constraints
-      # in the same statement as creating the table?
-      def supports_foreign_keys_in_create?
-        supports_foreign_keys?
-      end
-      deprecate :supports_foreign_keys_in_create?
-
       # Does this adapter support creating check constraints?
       def supports_check_constraints?
         false
@@ -372,12 +379,6 @@ module ActiveRecord
       def supports_comments_in_create?
         false
       end
-
-      # Does this adapter support multi-value insert?
-      def supports_multi_insert?
-        true
-      end
-      deprecate :supports_multi_insert?
 
       # Does this adapter support virtual columns?
       def supports_virtual_columns?
@@ -510,6 +511,12 @@ module ActiveRecord
         # this should be overridden by concrete adapters
       end
 
+      # Removes the connection from the pool and disconnect it.
+      def throw_away!
+        pool.remove self
+        disconnect!
+      end
+
       # Clear any caching the database adapter may be doing.
       def clear_cache!
         @lock.synchronize { @statements.clear } if @statements
@@ -538,7 +545,7 @@ module ActiveRecord
         @connection
       end
 
-      def default_uniqueness_comparison(attribute, value, klass) # :nodoc:
+      def default_uniqueness_comparison(attribute, value) # :nodoc:
         attribute.eq(value)
       end
 

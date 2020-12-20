@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
-
 module Rails
   # Implements the logic behind <tt>Rails::Command::NotesCommand</tt>. See <tt>rails notes --help</tt> for usage information.
   #
@@ -58,13 +56,6 @@ module Rails
         s = +"[#{line.to_s.rjust(options[:indent])}] "
         s << "[#{tag}] " if options[:tag]
         s << text
-      end
-
-      # Used in annotations.rake
-      #:nodoc:
-      def self.notes_task_deprecation_warning
-        ActiveSupport::Deprecation.warn("This rake task is deprecated and will be removed in Rails 6.1. \nRefer to `rails notes --help` for more information.\n")
-        puts "\n"
       end
     end
 
@@ -155,8 +146,3 @@ module Rails
     end
   end
 end
-
-# Remove this deprecated class in the next minor version
-#:nodoc:
-SourceAnnotationExtractor = ActiveSupport::Deprecation::DeprecatedConstantProxy.
-  new("SourceAnnotationExtractor", "Rails::SourceAnnotationExtractor")

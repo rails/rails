@@ -7,6 +7,8 @@ module ActionDispatch
     module MimeNegotiation
       extend ActiveSupport::Concern
 
+      class InvalidType < ::Mime::Type::InvalidMimeType; end
+
       RESCUABLE_MIME_FORMAT_ERRORS = [
         ActionController::BadRequest,
         ActionDispatch::Http::Parameters::ParseError,
@@ -19,12 +21,14 @@ module ActionDispatch
       # The MIME type of the HTTP request, such as Mime[:xml].
       def content_mime_type
         fetch_header("action_dispatch.request.content_type") do |k|
-          v = if get_header("CONTENT_TYPE") =~ /^([^,\;]*)/
+          v = if get_header("CONTENT_TYPE") =~ /^([^,;]*)/
             Mime::Type.lookup($1.strip.downcase)
           else
             nil
           end
           set_header k, v
+        rescue ::Mime::Type::InvalidMimeType => e
+          raise InvalidType, e.message
         end
       end
 
@@ -47,6 +51,8 @@ module ActionDispatch
             Mime::Type.parse(header)
           end
           set_header k, v
+        rescue ::Mime::Type::InvalidMimeType => e
+          raise InvalidType, e.message
         end
       end
 

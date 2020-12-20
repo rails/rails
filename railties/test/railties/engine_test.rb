@@ -879,29 +879,40 @@ en:
       assert Bukkits::Engine.config.bukkits_seeds_loaded
     end
 
-    test "jobs are ran inline while loading seeds with async adapter configured" do
+    test "loading seed data is wrapped by the executor" do
       app_file "db/seeds.rb", <<-RUBY
-        Rails.application.config.seed_queue_adapter = ActiveJob::Base.queue_adapter
+        Rails.application.config.seeding_wrapped_by_executor = Rails.application.executor.active?
       RUBY
 
       boot_rails
       Rails.application.load_seed
 
-      assert_instance_of ActiveJob::QueueAdapters::InlineAdapter, Rails.application.config.seed_queue_adapter
-      assert_instance_of ActiveJob::QueueAdapters::AsyncAdapter, ActiveJob::Base.queue_adapter
+      assert_predicate Rails.application.config, :seeding_wrapped_by_executor
     end
 
-    test "jobs are ran with original adapter while loading seeds with custom adapter configured" do
+    test "inline jobs do not clear CurrentAttributes when loading seed data" do
       app_file "db/seeds.rb", <<-RUBY
-        Rails.application.config.seed_queue_adapter = ActiveJob::Base.queue_adapter
+        class SeedsAttributes < ActiveSupport::CurrentAttributes
+          attribute :foo
+        end
+
+        class SeedsJob < ActiveJob::Base
+          self.queue_adapter = :inline
+          def perform
+            Rails.application.config.seeds_job_ran = true
+          end
+        end
+
+        SeedsAttributes.foo = 42
+        SeedsJob.perform_later
+        Rails.application.config.seeds_attributes_foo = SeedsAttributes.foo
       RUBY
 
       boot_rails
-      Rails.application.config.active_job.queue_adapter = :delayed_job
       Rails.application.load_seed
 
-      assert_instance_of ActiveJob::QueueAdapters::DelayedJobAdapter, Rails.application.config.seed_queue_adapter
-      assert_instance_of ActiveJob::QueueAdapters::DelayedJobAdapter, ActiveJob::Base.queue_adapter
+      assert Rails.application.config.seeds_job_ran
+      assert_equal 42, Rails.application.config.seeds_attributes_foo
     end
 
     test "seed data can be loaded when ActiveJob is not present" do

@@ -126,7 +126,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   test "diff enroll diffing" do
     assert_match("successfully enrolled", run_diff_command(enroll: true))
 
-    assert_equal <<~EOM, File.read(app_path(".gitattributes"))
+    assert_includes File.read(app_path(".gitattributes")), <<~EOM
       config/credentials/*.yml.enc diff=rails_credentials
       config/credentials.yml.enc diff=rails_credentials
     EOM
@@ -177,7 +177,6 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
 
     assert_match(encrypted_content, run_diff_command(content_path))
   end
-
 
   private
     def run_edit_command(editor: "cat", environment: nil, **options)

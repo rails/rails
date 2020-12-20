@@ -29,4 +29,9 @@ class MetalControllerInstanceTests < ActiveSupport::TestCase
   ensure
     ActionDispatch::Response.default_headers = original_default_headers
   end
+
+  def test_inspect
+    controller = SimpleController.new
+    assert_match(/\A#<MetalControllerInstanceTests::SimpleController:0x[0-9a-f]+>\z/, controller.inspect)
+  end
 end

@@ -38,6 +38,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
+      class_attribute :store_full_class_name, instance_writer: false, default: true
+
       # Determines whether to store the full constant name including namespace when using STI.
       # This is true, by default.
       class_attribute :store_full_sti_class, instance_writer: false, default: true
@@ -164,14 +166,14 @@ module ActiveRecord
 
       # Returns the value to be stored in the inheritance column for STI.
       def sti_name
-        store_full_sti_class ? name : name.demodulize
+        store_full_sti_class && store_full_class_name ? name : name.demodulize
       end
 
       # Returns the class for the provided +type_name+.
       #
       # It is used to find the class correspondent to the value stored in the inheritance column.
       def sti_class_for(type_name)
-        if store_full_sti_class
+        if store_full_sti_class && store_full_class_name
           ActiveSupport::Dependencies.constantize(type_name)
         else
           compute_type(type_name)
@@ -186,14 +188,18 @@ module ActiveRecord
 
       # Returns the value to be stored in the polymorphic type column for Polymorphic Associations.
       def polymorphic_name
-        base_class.name
+        store_full_class_name ? base_class.name : base_class.name.demodulize
       end
 
       # Returns the class for the provided +name+.
       #
       # It is used to find the class correspondent to the value stored in the polymorphic type column.
       def polymorphic_class_for(name)
-        name.constantize
+        if store_full_class_name
+          ActiveSupport::Dependencies.constantize(name)
+        else
+          compute_type(name)
+        end
       end
 
       def inherited(subclass)
@@ -260,7 +266,7 @@ module ActiveRecord
         end
 
         def type_condition(table = arel_table)
-          sti_column = arel_attribute(inheritance_column, table)
+          sti_column = table[inheritance_column]
           sti_names  = ([self] + descendants).map(&:sti_name)
 
           predicate_builder.build(sti_column, sti_names)

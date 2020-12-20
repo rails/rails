@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "action_view/helpers/javascript_helper"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/string/output_safety"
+require "action_view/helpers/tag_helper"
 
 module ActionView
   # = Action View URL Helpers
@@ -177,7 +177,7 @@ module ActionView
       #   # => <a href="/searches?query=ruby+on+rails">Ruby on Rails search</a>
       #
       #   link_to "Nonsense search", searches_path(foo: "bar", baz: "quux")
-      #   # => <a href="/searches?foo=bar&amp;baz=quux">Nonsense search</a>
+      #   # => <a href="/searches?foo=bar&baz=quux">Nonsense search</a>
       #
       # The only option specific to +link_to+ (<tt>:method</tt>) is used as follows:
       #

@@ -16,15 +16,45 @@ module ActiveRecord
       end
 
       module ClassMethods
-        # If you have an attribute that needs to be saved to the database as an
-        # object, and retrieved as the same object, then specify the name of that
-        # attribute using this method and it will be handled automatically. The
-        # serialization is done through YAML. If +class_name+ is specified, the
-        # serialized object must be of that class on assignment and retrieval.
-        # Otherwise SerializationTypeMismatch will be raised.
+        # If you have an attribute that needs to be saved to the database as a
+        # serialized object, and retrieved by deserializing into the same object,
+        # then specify the name of that attribute using this method and serialization
+        # will be handled automatically.
         #
-        # Empty objects as <tt>{}</tt>, in the case of +Hash+, or <tt>[]</tt>, in the case of
-        # +Array+, will always be persisted as null.
+        # The serialization format may be YAML, JSON, or any custom format using a
+        # custom coder class.
+        #
+        # === Serialization formats
+        #
+        #   serialize attr_name [, class_name_or_coder]
+        #
+        #                        |                           |  database storage   |
+        #   class_name_or_coder  | attribute read/write type | serialized | NULL   |
+        #   ---------------------+---------------------------+------------+--------+
+        #     <not given>        | any value that supports   |    YAML    |        |
+        #                        |   .to_yaml                |            |        |
+        #                        |                           |            |        |
+        #   Array                | Array **                  |    YAML    |  []    |
+        #                        |                           |            |        |
+        #   Hash                 | Hash **                   |    YAML    |  {}    |
+        #                        |                           |            |        |
+        #   JSON                 | any value that supports   |    JSON    |        |
+        #                        |   .to_json                |            |        |
+        #                        |                           |            |        |
+        #   <custom coder class> | any value supported by    |   custom   | custom |
+        #                        | the custom coder class    |            |        |
+        #
+        # ** If +class_name_or_coder+ is +Array+ or +Hash+, values retrieved will
+        # always be of that type, and any value assigned must be of that type or
+        # +SerializationTypeMismatch+ will be raised.
+        #
+        # ==== Custom coders
+        # A custom coder class or module may be given. This must have +self.load+
+        # and +self.dump+ class/module methods. <tt>self.dump(object)</tt> will be called
+        # to serialize an object and should return the serialized value to be
+        # stored in the database (+nil+ to store as +NULL+). <tt>self.load(string)</tt>
+        # will be called to reverse the process and load (unserialize) from the
+        # database.
         #
         # Keep in mind that database adapters handle certain serialization tasks
         # for you. For instance: +json+ and +jsonb+ types in PostgreSQL will be
@@ -38,12 +68,19 @@ module ActiveRecord
         # ==== Parameters
         #
         # * +attr_name+ - The field name that should be serialized.
-        # * +class_name_or_coder+ - Optional, a coder object, which responds to +.load+ and +.dump+
-        #   or a class name that the object type should be equal to.
+        # * +class_name_or_coder+ - Optional, may be be +Array+ or +Hash+ or
+        #   +JSON+ or a custom coder class or module which responds to +.load+
+        #   and +.dump+. See table above.
+        #
+        # ==== Options
+        #
+        # +default+ The default value to use when no value is provided. If this option
+        # is not passed, the previous default value (if any) will be used.
+        # Otherwise, the default will be +nil+.
         #
         # ==== Example
         #
-        #   # Serialize a preferences attribute.
+        #   # Serialize a preferences attribute using YAML coder.
         #   class User < ActiveRecord::Base
         #     serialize :preferences
         #   end
@@ -57,7 +94,29 @@ module ActiveRecord
         #   class User < ActiveRecord::Base
         #     serialize :preferences, Hash
         #   end
-        def serialize(attr_name, class_name_or_coder = Object)
+        #
+        #   # Serialize preferences using a custom coder.
+        #   class Rot13JSON
+        #     def self.rot13(string)
+        #       string.tr("a-zA-Z", "n-za-mN-ZA-M")
+        #     end
+        #
+        #     # returns serialized string that will be stored in the database
+        #     def self.dump(object)
+        #       ActiveSupport::JSON.encode(object).rot13
+        #     end
+        #
+        #     # reverses the above, turning the serialized string from the database
+        #     # back into its original value
+        #     def self.load(string)
+        #       ActiveSupport::JSON.decode(string.rot13)
+        #     end
+        #   end
+        #
+        #   class User < ActiveRecord::Base
+        #     serialize :preferences, Rot13JSON
+        #   end
+        def serialize(attr_name, class_name_or_coder = Object, **options)
           # When ::JSON is used, force it to go through the Active Support JSON encoder
           # to ensure special objects (e.g. Active Record models) are dumped correctly
           # using the #as_json hook.
@@ -69,12 +128,12 @@ module ActiveRecord
             Coders::YAMLColumn.new(attr_name, class_name_or_coder)
           end
 
-          decorate_attribute_type(attr_name, :serialize) do |type|
-            if type_incompatible_with_serialize?(type, class_name_or_coder)
-              raise ColumnNotSerializableError.new(attr_name, type)
+          attribute(attr_name, **options) do |cast_type|
+            if type_incompatible_with_serialize?(cast_type, class_name_or_coder)
+              raise ColumnNotSerializableError.new(attr_name, cast_type)
             end
 
-            Type::Serialized.new(type, coder)
+            Type::Serialized.new(cast_type, coder)
           end
         end
 

@@ -93,12 +93,11 @@ module Rails
 
         def missing_credentials_message
           if credentials.key.nil?
-            "Missing '#{key_path}' to decrypt credentials. See `rails credentials:help`"
+            "Missing '#{key_path}' to decrypt credentials. See `bin/rails credentials:help`"
           else
-            "File '#{content_path}' does not exist. Use `rails credentials:edit` to change that."
+            "File '#{content_path}' does not exist. Use `bin/rails credentials:edit` to change that."
           end
         end
-
 
         def content_path
           @content_path ||= options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : "config/credentials.yml.enc"

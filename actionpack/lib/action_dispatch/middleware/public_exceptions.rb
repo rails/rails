@@ -23,7 +23,7 @@ module ActionDispatch
       status       = request.path_info[1..-1].to_i
       begin
         content_type = request.formats.first
-      rescue Mime::Type::InvalidMimeType
+      rescue ActionDispatch::Http::MimeNegotiation::InvalidType
         content_type = Mime[:text]
       end
       body = { status: status, error: Rack::Utils::HTTP_STATUS_CODES.fetch(status, Rack::Utils::HTTP_STATUS_CODES[500]) }

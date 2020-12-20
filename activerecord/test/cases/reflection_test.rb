@@ -26,6 +26,7 @@ require "models/department"
 require "models/cake_designer"
 require "models/drink_designer"
 require "models/recipe"
+require "models/user_with_invalid_relation"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -135,6 +136,19 @@ class ReflectionTest < ActiveRecord::TestCase
     end
     reflection = ActiveRecord::Reflection.create(:has_many, "plurales_irregulares", nil, {}, ActiveRecord::Base)
     assert_equal "PluralIrregular", reflection.class_name
+  end
+
+  def test_reflection_klass_is_not_ar_subclass
+    [:account_invalid,
+     :account_class_name,
+     :info_invalids,
+     :infos_class_name,
+     :infos_through_class_name,
+    ].each do |rel|
+      assert_raise(ArgumentError) do
+        UserWithInvalidRelation.reflect_on_association(rel).klass
+      end
+    end
   end
 
   def test_aggregation_reflection
@@ -514,74 +528,7 @@ class ReflectionTest < ActiveRecord::TestCase
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)
       options.each do |method, value|
-        assert_equal(value, reflection.send(method))
+        assert_equal(value, reflection.public_send(method))
       end
     end
-end
-
-class UncastableReflectionTest < ActiveRecord::TestCase
-  class Book < ActiveRecord::Base
-  end
-
-  class Subscription < ActiveRecord::Base
-    belongs_to :subscriber
-    belongs_to :book
-  end
-
-  class Subscriber < ActiveRecord::Base
-    self.primary_key = "nick"
-    has_many :subscriptions
-    has_one :subscription
-    has_many :books, through: :subscriptions
-    has_one :book, through: :subscription
-  end
-
-  setup do
-    @subscriber = Subscriber.create!(nick: "unique")
-  end
-
-  teardown do
-    Book._reflections.clear
-    Book.clear_reflections_cache
-    silence_warnings do
-      Subscriber.has_many :books, through: :subscriptions
-      Subscriber.has_one :book, through: :subscription
-    end
-  end
-
-  test "uncastable has_many through: reflection" do
-    error = assert_raises(NotImplementedError) { @subscriber.books }
-    assert_equal <<~MSG.squish, error.message
-      In order to correctly type cast UncastableReflectionTest::Subscriber.nick,
-      UncastableReflectionTest::Book needs to define a :subscriptions association.
-    MSG
-  end
-
-  test "uncastable has_one through: reflection" do
-    error = assert_raises(NotImplementedError) { @subscriber.book }
-
-    assert_equal <<~MSG.squish, error.message
-      In order to correctly type cast UncastableReflectionTest::Subscriber.nick,
-      UncastableReflectionTest::Book needs to define a :subscription association.
-    MSG
-  end
-
-  test "fixing uncastable has_many through: reflection with has_many" do
-    silence_warnings do
-      Book.has_many :subscriptions
-    end
-    @subscriber.books
-  end
-
-  test "fixing uncastable has_one through: reflection with has_many" do
-    silence_warnings do
-      Book.has_many :subscriptions
-    end
-    @subscriber.book
-  end
-
-  test "fixing uncastable has_one through: reflection with has_one" do
-    Book.has_one :subscription
-    @subscriber.book
-  end
 end

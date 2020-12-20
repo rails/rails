@@ -24,7 +24,7 @@ module ActionMailbox
   #
   #   inbound_email.mail.from # => 'david@loudthinking.com'
   #   inbound_email.source # Returns the full rfc822 source of the email as text
-  class InboundEmail < ActiveRecord::Base
+  class InboundEmail < Record
     self.table_name = "action_mailbox_inbound_emails"
 
     include Incineratable, MessageId, Routable

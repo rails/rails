@@ -237,10 +237,9 @@ class LayoutSetInResponseTest < ActionController::TestCase
 
   def test_absolute_pathed_layout
     @controller = AbsolutePathLayoutController.new
-    assert_deprecated do
+    assert_raises(ArgumentError) do
       get :hello
     end
-    assert_equal "layout_test.erb hello.erb", @response.body.strip
   end
 end
 

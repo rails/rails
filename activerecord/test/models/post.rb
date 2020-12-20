@@ -28,7 +28,7 @@ class Post < ActiveRecord::Base
 
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :titled_with_an_apostrophe, -> { where("title LIKE '%''%'") }
-  scope :ranked_by_comments, -> { order(arel_attribute(:comments_count).desc) }
+  scope :ranked_by_comments, -> { order(table[:comments_count].desc) }
 
   scope :limit_by, lambda { |l| limit(l) }
   scope :locked, -> { lock }
@@ -291,6 +291,7 @@ class PostWithAfterCreateCallback < ActiveRecord::Base
   self.inheritance_column = :disabled
   self.table_name = "posts"
   has_many :comments, foreign_key: :post_id
+  has_and_belongs_to_many :categories, foreign_key: :post_id
 
   after_create do |post|
     update_attribute(:author_id, comments.first.id)
@@ -339,10 +340,6 @@ class FakeKlass
       sql
     end
 
-    def arel_attribute(name, table)
-      table[name]
-    end
-
     def disallow_raw_sql!(*args)
       # noop
     end
@@ -357,6 +354,10 @@ class FakeKlass
 
     def predicate_builder
       Post.predicate_builder
+    end
+
+    def finder_needs_type_condition?
+      false
     end
 
     def base_class?

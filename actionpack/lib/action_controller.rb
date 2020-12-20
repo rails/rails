@@ -29,7 +29,7 @@ module ActionController
     autoload :DefaultHeaders
     autoload :EtagWithTemplateDigest
     autoload :EtagWithFlash
-    autoload :FeaturePolicy
+    autoload :PermissionsPolicy
     autoload :Flash
     autoload :Head
     autoload :Helpers

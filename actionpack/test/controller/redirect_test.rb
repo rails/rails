@@ -65,19 +65,23 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_back_with_status
-    redirect_back(fallback_location: "/things/stuff", status: 307)
+    redirect_back_or_to "/things/stuff", status: 307
   end
 
   def redirect_back_with_status_and_fallback_location_to_another_host
-    redirect_back(fallback_location: "http://www.rubyonrails.org/", status: 307)
+    redirect_back_or_to "http://www.rubyonrails.org/", status: 307
   end
 
   def safe_redirect_back_with_status
-    redirect_back(fallback_location: "/things/stuff", status: 307, allow_other_host: false)
+    redirect_back_or_to "/things/stuff", status: 307, allow_other_host: false
   end
 
   def safe_redirect_back_with_status_and_fallback_location_to_another_host
-    redirect_back(fallback_location: "http://www.rubyonrails.org/", status: 307, allow_other_host: false)
+    redirect_back_or_to "http://www.rubyonrails.org/", status: 307, allow_other_host: false
+  end
+
+  def redirect_back_with_explicit_fallback_kwarg
+    redirect_back(fallback_location: "/things/stuff", status: 307)
   end
 
   def host_redirect
@@ -324,6 +328,16 @@ class RedirectTest < ActionController::TestCase
 
     assert_response 307
     assert_equal "http://www.rubyonrails.org/", redirect_to_url
+  end
+
+  def test_redirect_back_with_explicit_fallback_kwarg
+    referer = "http://www.example.com/coming/from"
+    @request.env["HTTP_REFERER"] = referer
+
+    get :redirect_back_with_explicit_fallback_kwarg
+
+    assert_response 307
+    assert_equal referer, redirect_to_url
   end
 
   def test_redirect_to_record

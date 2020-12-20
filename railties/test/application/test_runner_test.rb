@@ -511,28 +511,6 @@ module ApplicationTests
       end
     end
 
-    def test_shows_filtered_backtrace_by_default
-      create_backtrace_test
-
-      assert_match "Rails::BacktraceCleaner", run_test_command("test/unit/backtrace_test.rb")
-    end
-
-    def test_backtrace_option
-      create_backtrace_test
-
-      assert_match "Minitest::BacktraceFilter", run_test_command("test/unit/backtrace_test.rb -b")
-      assert_match "Minitest::BacktraceFilter",
-        run_test_command("test/unit/backtrace_test.rb --backtrace")
-    end
-
-    def test_show_full_backtrace_using_backtrace_environment_variable
-      create_backtrace_test
-
-      switch_env "BACKTRACE", "true" do
-        assert_match "Minitest::BacktraceFilter", run_test_command("test/unit/backtrace_test.rb")
-      end
-    end
-
     def test_run_app_without_rails_loaded
       # Simulate a real Rails app boot.
       app_file "config/boot.rb", <<-RUBY
@@ -956,18 +934,6 @@ module ApplicationTests
         RUBY
       end
 
-      def create_backtrace_test
-        app_file "test/unit/backtrace_test.rb", <<-RUBY
-          require "test_helper"
-
-          class BacktraceTest < ActiveSupport::TestCase
-            def test_backtrace
-              puts Minitest.backtrace_filter
-            end
-          end
-        RUBY
-      end
-
       def create_schema
         app_file "db/schema.rb", ""
       end
@@ -1078,7 +1044,7 @@ module ApplicationTests
       def exercise_parallelization_regardless_of_machine_core_count(with:)
         app_path("test/test_helper.rb") do |file_name|
           file = File.read(file_name)
-          file.sub!(/parallelize\(([^\)]*)\)/, "parallelize(workers: 2, with: :#{with})")
+          file.sub!(/parallelize\(([^)]*)\)/, "parallelize(workers: 2, with: :#{with})")
           File.write(file_name, file)
         end
       end

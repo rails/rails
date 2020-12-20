@@ -31,7 +31,7 @@ module ActionDispatch
         message ||= generate_response_message(type)
 
         if RESPONSE_PREDICATES.keys.include?(type)
-          assert @response.send(RESPONSE_PREDICATES[type]), message
+          assert @response.public_send(RESPONSE_PREDICATES[type]), message
         else
           assert_equal AssertionResponse.new(type).code, @response.response_code, message
         end

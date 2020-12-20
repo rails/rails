@@ -18,7 +18,7 @@ FileUtils.chdir APP_ROOT do
 <% unless options.skip_javascript? -%>
 
   # Install JavaScript dependencies
-  # system('bin/yarn')
+  system! 'bin/yarn'
 <% end -%>
 <% unless options.skip_active_record? -%>
 

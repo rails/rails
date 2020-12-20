@@ -142,13 +142,36 @@ module ActionMailer
         else
           job = @mailer_class.delivery_job
 
-          if job <= MailDeliveryJob
+          if use_new_args?(job)
             job.set(options).perform_later(
               @mailer_class.name, @action.to_s, delivery_method.to_s, args: @args)
+          elsif job <= DeliveryJob
+            job.set(options).perform_later(
+              @mailer_class.name, @action.to_s, delivery_method.to_s, *@args)
           else
+            ActiveSupport::Deprecation.warn(<<~EOM)
+              In Rails 6.2, Action Mailer will pass the mail arguments inside the `:args` keyword argument.
+              The `perform` method of the #{job} needs to change and forward the mail arguments
+              from the `args` keyword argument.
+
+              The `perform` method should now look like:
+
+              `def perform(mailer, mail_method, delivery, args:)`
+            EOM
+
             job.set(options).perform_later(
               @mailer_class.name, @action.to_s, delivery_method.to_s, *@args)
           end
+        end
+      end
+
+      def use_new_args?(job)
+        parameters = job.public_instance_method(:perform).parameters
+
+        parameters.find do |key, name|
+          return true if key == :keyreq && name == :args
+
+          key == :keyrest
         end
       end
   end

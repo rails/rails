@@ -7,8 +7,19 @@ module AbstractController
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_helpers, default: define_helpers_module(self)
       class_attribute :_helper_methods, default: Array.new
+
+      # This is here so that it is always higher in the inheritance chain than
+      # the definition in lib/action_view/rendering.rb
+      redefine_singleton_method(:_helpers) do
+        if @_helpers ||= nil
+          @_helpers
+        else
+          superclass._helpers
+        end
+      end
+
+      self._helpers = define_helpers_module(self)
     end
 
     class MissingHelperError < LoadError
@@ -25,16 +36,23 @@ module AbstractController
       end
     end
 
+    def _helpers
+      self.class._helpers
+    end
+
     module ClassMethods
       # When a class is inherited, wrap its helper module in a new module.
       # This ensures that the parent class's module can be changed
       # independently of the child class's.
       def inherited(klass)
-        helpers = _helpers
-        klass._helpers = define_helpers_module(klass, helpers)
+        # Inherited from parent by default
+        klass._helpers = nil
+
         klass.class_eval { default_helper_module! } unless klass.anonymous?
         super
       end
+
+      attr_writer :_helpers
 
       # Declare a controller method as a helper. For example, the following
       # makes the +current_user+ and +logged_in?+ controller methods available
@@ -65,7 +83,7 @@ module AbstractController
         file, line = location.path, location.lineno
 
         methods.each do |method|
-          _helpers.class_eval <<-ruby_eval, file, line
+          _helpers_for_modification.class_eval <<-ruby_eval, file, line
             def #{method}(*args, &block)                    # def current_user(*args, &block)
               controller.send(:'#{method}', *args, &block)  #   controller.send(:'current_user', *args, &block)
             end                                             # end
@@ -127,10 +145,11 @@ module AbstractController
       #
       def helper(*args, &block)
         modules_for_helpers(args).each do |mod|
-          _helpers.include(mod)
+          next if _helpers.include?(mod)
+          _helpers_for_modification.include(mod)
         end
 
-        _helpers.module_eval(&block) if block_given?
+        _helpers_for_modification.module_eval(&block) if block_given?
       end
 
       # Clears up all existing helpers in this class, only keeping the helper
@@ -159,6 +178,13 @@ module AbstractController
             raise ArgumentError, "helper must be a String, Symbol, or Module"
           end
         end
+      end
+
+      def _helpers_for_modification
+        unless @_helpers
+          self._helpers = define_helpers_module(self, superclass._helpers)
+        end
+        _helpers
       end
 
       private

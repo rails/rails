@@ -104,9 +104,25 @@ _SQL
     t.decimal :decimal_array_default, array: true, default: [1.23, 3.45]
   end
 
+  create_table :uuid_comments, force: true, id: false do |t|
+    t.uuid :uuid, primary_key: true, **uuid_default
+    t.string :content
+  end
+
+  create_table :uuid_entries, force: true, id: false do |t|
+    t.uuid :uuid, primary_key: true, **uuid_default
+    t.string :entryable_type, null: false
+    t.uuid :entryable_uuid, null: false
+  end
+
   create_table :uuid_items, force: true, id: false do |t|
     t.uuid :uuid, primary_key: true, **uuid_default
     t.string :title
+  end
+
+  create_table :uuid_messages, force: true, id: false do |t|
+    t.uuid :uuid, primary_key: true, **uuid_default
+    t.string :subject
   end
 
   if supports_partitioned_indexes?

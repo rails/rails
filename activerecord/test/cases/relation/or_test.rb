@@ -61,7 +61,15 @@ module ActiveRecord
       assert_equal expected, Post.order("body asc").where("id = 1").or(Post.order("body asc").where(id: [2, 3])).to_a
     end
 
-    def test_or_with_incompatible_relations
+    def test_or_with_incompatible_single_value_relations
+      error = assert_raises ArgumentError do
+        Post.distinct.where("id = 1").or(Post.where(id: [2, 3])).to_a
+      end
+
+      assert_equal "Relation passed to #or must be structurally compatible. Incompatible values: [:distinct]", error.message
+    end
+
+    def test_or_with_incompatible_multi_value_relations
       error = assert_raises ArgumentError do
         Post.order("body asc").where("id = 1").or(Post.order("id desc").where(id: [2, 3])).to_a
       end
@@ -109,6 +117,11 @@ module ActiveRecord
     def test_or_inside_named_scope
       expected = Post.where("body LIKE '\%a\%' OR title LIKE ?", "%'%").order("id DESC").to_a
       assert_equal expected, Post.order(id: :desc).typographically_interesting
+    end
+
+    def test_or_with_sti_relation
+      expected = Post.where("id = 1 or id = 2").sort_by(&:id)
+      assert_equal expected, Post.where(id: 1).or(SpecialPost.all).sort_by(&:id)
     end
 
     def test_or_on_loaded_relation

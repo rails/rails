@@ -9,6 +9,7 @@
   <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbolinks-track="reload">
   <link href="images/favicon.ico" rel="shortcut icon" type="image/x-icon" />
   <script src="javascripts/turbolinks.js" data-turbolinks-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbolinks-track="reload"></script>
   <script src="javascripts/guides.js" data-turbolinks-track="reload"></script>
   <meta property="og:title" content="<%= yield(:page_title) %>" />
   <meta name="description" content="<%= yield(:description) %>" />
@@ -19,9 +20,9 @@
   <meta property="og:type" content="website" />
 </head>
 <body class="guide">
-  <% if @edge %>
+  <% if badge_version = @edge ? "edge" : @version %>
   <div>
-    <div id="edge-badge">edge</div>
+    <div id="version-badge"><%= badge_version %></div>
   </div>
   <% end %>
   <div id="topNav">

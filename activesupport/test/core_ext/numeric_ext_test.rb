@@ -411,10 +411,4 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   def test_in_milliseconds
     assert_equal 10_000, 10.seconds.in_milliseconds
   end
-
-  def test_requiring_inquiry_is_deprecated
-    assert_deprecated do
-      require "active_support/core_ext/numeric/inquiry"
-    end
-  end
 end

@@ -4,6 +4,7 @@ require "cases/helper"
 require "models/person"
 require "models/traffic_light"
 require "models/post"
+require "models/binary_field"
 
 class SerializedAttributeTest < ActiveRecord::TestCase
   fixtures :topics, :posts
@@ -38,6 +39,27 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     topic.reload
     assert_equal(myobj, topic.content)
+  end
+
+  def test_serialized_attribute_with_default
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      serialize(:content, Hash, default: { key: "value" })
+    end
+
+    t = klass.new
+    assert_equal({ key: "value" }, t.content)
+  end
+
+  def test_serialized_attribute_on_custom_attribute_with_default
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      attribute :content, default: { key: "value" }
+      serialize :content, Hash
+    end
+
+    t = klass.new
+    assert_equal({ key: "value" }, t.content)
   end
 
   def test_serialized_attribute_in_base_class
@@ -315,6 +337,38 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic.reload
 
     assert_equal({}, topic.content)
+  end
+
+  if current_adapter?(:Mysql2Adapter)
+    def test_is_not_changed_when_stored_in_mysql_blob
+      value = %w(Fée)
+      model = BinaryField.create!(normal_blob: value, normal_text: value)
+      model.reload
+
+      model.normal_text = value
+      assert_not_predicate model, :normal_text_changed?
+
+      model.normal_blob = value
+      assert_not_predicate model, :normal_blob_changed?
+    end
+
+    class FrozenBinaryField < BinaryField
+      class FrozenCoder < ActiveRecord::Coders::YAMLColumn
+        def dump(obj)
+          super&.freeze
+        end
+      end
+      serialize :normal_blob, FrozenCoder.new(:normal_blob, Array)
+    end
+
+    def test_is_not_changed_when_stored_in_mysql_blob_frozen_payload
+      value = %w(Fée)
+      model = FrozenBinaryField.create!(normal_blob: value, normal_text: value)
+      model.reload
+
+      model.normal_blob = value
+      assert_not_predicate model, :normal_blob_changed?
+    end
   end
 
   def test_values_cast_from_nil_are_persisted_as_nil

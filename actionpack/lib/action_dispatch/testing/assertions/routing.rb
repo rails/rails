@@ -91,7 +91,6 @@ module ActionDispatch
         else
           expected_path = "/#{expected_path}" unless expected_path.start_with?("/")
         end
-        # Load routes.rb if it hasn't been loaded.
 
         options = options.clone
         generated_path, query_string_keys = @routes.generate_extras(options, defaults)
@@ -183,7 +182,7 @@ module ActionDispatch
       # ROUTES TODO: These assertions should really work in an integration context
       def method_missing(selector, *args, &block)
         if defined?(@controller) && @controller && defined?(@routes) && @routes && @routes.named_routes.route_defined?(selector)
-          @controller.send(selector, *args, &block)
+          @controller.public_send(selector, *args, &block)
         else
           super
         end
@@ -199,7 +198,8 @@ module ActionDispatch
             method = :get
           end
 
-          request = ActionController::TestRequest.create @controller.class
+          controller = @controller if defined?(@controller)
+          request = ActionController::TestRequest.create controller&.class
 
           if %r{://}.match?(path)
             fail_on(URI::InvalidURIError, msg) do

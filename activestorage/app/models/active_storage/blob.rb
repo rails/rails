@@ -14,7 +14,7 @@
 # Blobs are intended to be immutable in as-so-far as their reference to a specific file goes. You're allowed to
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
-class ActiveStorage::Blob < ActiveRecord::Base
+class ActiveStorage::Blob < ActiveStorage::Record
   # We use constant paths in the following include calls to avoid a gotcha of
   # classic mode: If the parent application defines a top-level Analyzable, for
   # example, and ActiveStorage::Blob::Analyzable is not yet loaded, a bare
@@ -35,7 +35,6 @@ class ActiveStorage::Blob < ActiveRecord::Base
   include ActiveStorage::Blob::Representable
 
   self.table_name = "active_storage_blobs"
-  self.signed_id_verifier = ActiveStorage.verifier
 
   MINIMUM_TOKEN_LENGTH = 28
 
@@ -52,6 +51,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   after_initialize do
     self.service_name ||= self.class.service.name
   end
+
+  after_update_commit :update_service_metadata, if: :content_type_previously_changed?
 
   before_destroy(prepend: true) do
     raise ActiveRecord::InvalidForeignKey if attachments.exists?
@@ -73,8 +74,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
     # that was created ahead of the upload itself on form submission.
     #
     # The signed ID is also used to create stable URLs for the blob through the BlobsController.
-    def find_signed!(id, record: nil)
-      super(id, purpose: :blob_id)
+    def find_signed!(id, record: nil, purpose: :blob_id)
+      super(id, purpose: purpose)
     end
 
     def build_after_upload(io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) #:nodoc:
@@ -128,14 +129,22 @@ class ActiveStorage::Blob < ActiveRecord::Base
     end
 
     # Customize signed ID purposes for backwards compatibility.
-    def combine_signed_id_purposes(purpose)
+    def combine_signed_id_purposes(purpose) #:nodoc:
       purpose.to_s
+    end
+
+    # Customize the default signed ID verifier for backwards compatibility.
+    #
+    # We override the reader (.signed_id_verifier) instead of just calling the writer (.signed_id_verifier=)
+    # to guard against the case where ActiveStorage.verifier isn't yet initialized at load time.
+    def signed_id_verifier #:nodoc:
+      @signed_id_verifier ||= ActiveStorage.verifier
     end
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
-  def signed_id
-    super(purpose: :blob_id)
+  def signed_id(purpose: :blob_id)
+    super
   end
 
   # Returns the key pointing to the file on the service that's associated with this blob. The key is the
@@ -179,10 +188,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # the URL should only be exposed as a redirect from a stable, possibly authenticated URL. Hiding the
   # URL behind a redirect also allows you to change services without updating all URLs.
   def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline, filename: nil, **options)
-    filename = ActiveStorage::Filename.wrap(filename || self.filename)
-
-    service.url key, expires_in: expires_in, filename: filename, content_type: content_type_for_service_url,
-      disposition: forced_disposition_for_service_url || disposition, **options
+    service.url key, expires_in: expires_in, filename: ActiveStorage::Filename.wrap(filename || self.filename),
+      content_type: content_type_for_serving, disposition: forced_disposition_for_serving || disposition, **options
   end
 
   alias_method :service_url, :url
@@ -197,6 +204,16 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # Returns a Hash of headers for +service_url_for_direct_upload+ requests.
   def service_headers_for_direct_upload
     service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum
+  end
+
+  def content_type_for_serving #:nodoc:
+    forcibly_serve_as_binary? ? ActiveStorage.binary_content_type : content_type
+  end
+
+  def forced_disposition_for_serving #:nodoc:
+    if forcibly_serve_as_binary? || !allowed_inline?
+      :attachment
+    end
   end
 
 
@@ -307,14 +324,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
       ActiveStorage.content_types_allowed_inline.include?(content_type)
     end
 
-    def content_type_for_service_url
-      forcibly_serve_as_binary? ? ActiveStorage.binary_content_type : content_type
-    end
-
-    def forced_disposition_for_service_url
-      if forcibly_serve_as_binary? || !allowed_inline?
-        :attachment
-      end
+    def web_image?
+      ActiveStorage.web_image_content_types.include?(content_type)
     end
 
     def service_metadata
@@ -325,6 +336,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
       else
         { content_type: content_type }
       end
+    end
+
+    def update_service_metadata
+      service.update_metadata key, **service_metadata if service_metadata.any?
     end
 end
 

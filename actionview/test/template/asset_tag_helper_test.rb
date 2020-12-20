@@ -9,23 +9,33 @@ ActionView::Template::Types.delegate_to Mime
 class AssetTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
-  attr_reader :request
+  attr_reader :request, :response
+
+  class FakeRequest
+    attr_accessor :script_name
+    def protocol() "http://" end
+    def ssl?() false end
+    def host_with_port() "localhost" end
+    def base_url() "http://www.example.com" end
+    def send_early_hints(links) end
+  end
+
+  class FakeResponse
+    def headers
+      @headers ||= {}
+    end
+  end
 
   def setup
     super
 
     @controller = BasicController.new
 
-    @request = Class.new do
-      attr_accessor :script_name
-      def protocol() "http://" end
-      def ssl?() false end
-      def host_with_port() "localhost" end
-      def base_url() "http://www.example.com" end
-      def send_early_hints(links) end
-    end.new
-
+    @request = FakeRequest.new
     @controller.request = @request
+
+    @response = FakeResponse.new
+    @controller.response = @response
   end
 
   def url_for(*args)
@@ -229,7 +239,8 @@ class AssetTagHelperTest < ActionView::TestCase
     %(preload_link_tag '//example.com/map?callback=initMap', as: 'fetch', type: 'application/javascript') => %(<link rel="preload" href="//example.com/map?callback=initMap" as="fetch" type="application/javascript" />),
     %(preload_link_tag '//example.com/font.woff2') => %(<link rel="preload" href="//example.com/font.woff2" as="font" type="font/woff2" crossorigin="anonymous"/>),
     %(preload_link_tag '//example.com/font.woff2', crossorigin: 'use-credentials') => %(<link rel="preload" href="//example.com/font.woff2" as="font" type="font/woff2" crossorigin="use-credentials" />),
-    %(preload_link_tag '/media/audio.ogg', nopush: true) => %(<link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg" />)
+    %(preload_link_tag '/media/audio.ogg', nopush: true) => %(<link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg" />),
+    %(preload_link_tag '/style.css', integrity: 'sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs') => %(<link rel="preload" href="/style.css" as="style" type="text/css" integrity="sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs">),
   }
 
   VideoPathToTag = {
@@ -499,6 +510,39 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_dom_equal %(<script src="/javascripts/foo.js"></script>), javascript_include_tag("foo.js")
   end
 
+  def test_should_set_preload_links
+    stylesheet_link_tag("http://example.com/style.css")
+    javascript_include_tag("http://example.com/all.js")
+    expected = "<http://example.com/style.css>; rel=preload; as=style; nopush,<http://example.com/all.js>; rel=preload; as=script; nopush"
+    assert_equal expected, @response.headers["Link"]
+  end
+
+  def test_should_not_preload_links_with_defer
+    javascript_include_tag("http://example.com/all.js", defer: true)
+    assert_equal "", @response.headers["Link"]
+  end
+
+  def test_should_allow_caller_to_remove_nopush
+    stylesheet_link_tag("http://example.com/style.css", nopush: false)
+    javascript_include_tag("http://example.com/all.js", nopush: false)
+    expected = "<http://example.com/style.css>; rel=preload; as=style,<http://example.com/all.js>; rel=preload; as=script"
+    assert_equal expected, @response.headers["Link"]
+  end
+
+  def test_should_set_preload_links_with_cross_origin
+    stylesheet_link_tag("http://example.com/style.css", crossorigin: "use-credentials")
+    javascript_include_tag("http://example.com/all.js", crossorigin: true)
+    expected = "<http://example.com/style.css>; rel=preload; as=style; crossorigin=use-credentials; nopush,<http://example.com/all.js>; rel=preload; as=script; crossorigin=anonymous; nopush"
+    assert_equal expected, @response.headers["Link"]
+  end
+
+  def test_should_set_preload_links_with_integrity_hashes
+    stylesheet_link_tag("http://example.com/style.css", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs")
+    javascript_include_tag("http://example.com/all.js", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs")
+    expected = "<http://example.com/style.css>; rel=preload; as=style; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush,<http://example.com/all.js>; rel=preload; as=script; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush"
+    assert_equal expected, @response.headers["Link"]
+  end
+
   def test_image_path
     ImagePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
@@ -531,6 +575,26 @@ class AssetTagHelperTest < ActionView::TestCase
     end
 
     assert_equal("Cannot pass a :size option with a :height or :width option", exception.message)
+  end
+
+  def test_image_tag_loading_attribute_default_value
+    original_image_loading = ActionView::Helpers::AssetTagHelper.image_loading
+    ActionView::Helpers::AssetTagHelper.image_loading = "lazy"
+
+    assert_dom_equal %(<img src="" loading="lazy" />), image_tag("")
+    assert_dom_equal %(<img src="" loading="eager" />), image_tag("", loading: "eager")
+  ensure
+    ActionView::Helpers::AssetTagHelper.image_loading = original_image_loading
+  end
+
+  def test_image_tag_decoding_attribute_default_value
+    original_image_decoding = ActionView::Helpers::AssetTagHelper.image_decoding
+    ActionView::Helpers::AssetTagHelper.image_decoding = "async"
+
+    assert_dom_equal %(<img src="" decoding="async" />), image_tag("")
+    assert_dom_equal %(<img src="" decoding="sync" />), image_tag("", decoding: "sync")
+  ensure
+    ActionView::Helpers::AssetTagHelper.image_decoding = original_image_decoding
   end
 
   def test_favicon_link_tag

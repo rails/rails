@@ -61,16 +61,16 @@ module ActionController
       get :basic_sse
 
       wait_for_response_stream_close
-      assert_match(/data: {\"name\":\"John\"}/, response.body)
-      assert_match(/data: {\"name\":\"Ryan\"}/, response.body)
+      assert_match(/data: {"name":"John"}/, response.body)
+      assert_match(/data: {"name":"Ryan"}/, response.body)
     end
 
     def test_sse_with_event_name
       get :sse_with_event
 
       wait_for_response_stream_close
-      assert_match(/data: {\"name\":\"John\"}/, response.body)
-      assert_match(/data: {\"name\":\"Ryan\"}/, response.body)
+      assert_match(/data: {"name":"John"}/, response.body)
+      assert_match(/data: {"name":"Ryan"}/, response.body)
       assert_match(/event: send-name/, response.body)
     end
 
@@ -79,10 +79,10 @@ module ActionController
 
       wait_for_response_stream_close
       first_response, second_response = response.body.split("\n\n")
-      assert_match(/data: {\"name\":\"John\"}/, first_response)
+      assert_match(/data: {"name":"John"}/, first_response)
       assert_match(/retry: 1000/, first_response)
 
-      assert_match(/data: {\"name\":\"Ryan\"}/, second_response)
+      assert_match(/data: {"name":"Ryan"}/, second_response)
       assert_match(/retry: 1500/, second_response)
     end
 
@@ -91,10 +91,10 @@ module ActionController
 
       wait_for_response_stream_close
       first_response, second_response = response.body.split("\n\n")
-      assert_match(/data: {\"name\":\"John\"}/, first_response)
+      assert_match(/data: {"name":"John"}/, first_response)
       assert_match(/id: 1/, first_response)
 
-      assert_match(/data: {\"name\":\"Ryan\"}/, second_response)
+      assert_match(/data: {"name":"Ryan"}/, second_response)
       assert_match(/id: 2/, second_response)
     end
 
@@ -512,7 +512,7 @@ class LiveStreamRouterTest < ActionDispatch::IntegrationTest
     get "/test"
 
     assert_response :ok
-    assert_match(/data: {\"name\":\"John\"}/, response.body)
-    assert_match(/data: {\"name\":\"Ryan\"}/, response.body)
+    assert_match(/data: {"name":"John"}/, response.body)
+    assert_match(/data: {"name":"Ryan"}/, response.body)
   end
 end

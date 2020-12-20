@@ -6,12 +6,7 @@ module ActionView #:nodoc:
     class HTML #:nodoc:
       attr_reader :type
 
-      def initialize(string, type = nil)
-        unless type
-          ActiveSupport::Deprecation.warn "ActionView::Template::HTML#initialize requires a type parameter"
-          type = :html
-        end
-
+      def initialize(string, type)
         @string = string.to_s
         @type   = type
       end
@@ -33,9 +28,6 @@ module ActionView #:nodoc:
       def format
         @type
       end
-
-      def formats; Array(format); end
-      deprecate :formats
     end
   end
 end

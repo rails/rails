@@ -13,7 +13,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       mixin = model.generated_association_methods
       name = reflection.name
 
-      define_constructors(mixin, name) if reflection.constructable?
+      define_constructors(mixin, name) unless reflection.polymorphic?
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def reload_#{name}

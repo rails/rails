@@ -290,11 +290,11 @@ module AbstractController
           controller = kls.new
           assert_respond_to controller, :home_url
           assert_equal "http://www.basecamphq.com/home/sweet/home/again",
-            controller.send(:home_url, host: "www.basecamphq.com", user: "again")
+            controller.home_url(host: "www.basecamphq.com", user: "again")
 
-          assert_equal("/home/sweet/home/alabama", controller.send(:home_path, user: "alabama", host: "unused"))
-          assert_equal("http://www.basecamphq.com/home/sweet/home/alabama", controller.send(:home_url, user: "alabama", host: "www.basecamphq.com"))
-          assert_equal("http://www.basecamphq.com/this/is/verbose", controller.send(:no_args_url, host: "www.basecamphq.com"))
+          assert_equal("/home/sweet/home/alabama", controller.home_path(user: "alabama", host: "unused"))
+          assert_equal("http://www.basecamphq.com/home/sweet/home/alabama", controller.home_url(user: "alabama", host: "www.basecamphq.com"))
+          assert_equal("http://www.basecamphq.com/this/is/verbose", controller.no_args_url(host: "www.basecamphq.com"))
         end
       end
 
@@ -308,7 +308,7 @@ module AbstractController
           controller = kls.new
 
           assert_equal "http://www.basecamphq.com/subdir/home/sweet/home/again",
-            controller.send(:home_url, host: "www.basecamphq.com", user: "again", script_name: "/subdir")
+            controller.home_url(host: "www.basecamphq.com", user: "again", script_name: "/subdir")
         end
       end
 
@@ -418,9 +418,9 @@ module AbstractController
 
           controller = kls.new
           params = { action: :index, controller: :posts, format: :xml }
-          assert_equal("http://www.basecamphq.com/posts.xml", controller.send(:url_for, params))
+          assert_equal("http://www.basecamphq.com/posts.xml", controller.url_for(params))
           params[:format] = nil
-          assert_equal("http://www.basecamphq.com/", controller.send(:url_for, params))
+          assert_equal("http://www.basecamphq.com/", controller.url_for(params))
         end
       end
 
@@ -472,7 +472,7 @@ module AbstractController
 
           controller = kls.new
           assert_equal("http://www.basecamphq.com/admin/posts/new?param=value",
-            controller.send(:url_for, [:new, :admin, :post, { param: "value" }])
+            controller.url_for([:new, :admin, :post, { param: "value" }])
           )
         end
       end

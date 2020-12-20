@@ -84,7 +84,7 @@ class ERB
     # use inside HTML attributes.
     #
     # If your JSON is being used downstream for insertion into the DOM, be aware of
-    # whether or not it is being inserted via +html()+. Most jQuery plugins do this.
+    # whether or not it is being inserted via <tt>html()</tt>. Most jQuery plugins do this.
     # If that is the case, be sure to +html_escape+ or +sanitize+ any user-generated
     # content returned by your JSON.
     #
@@ -134,7 +134,7 @@ module ActiveSupport #:nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
       capitalize chomp chop delete delete_prefix delete_suffix
-      downcase lstrip next reverse rstrip slice squeeze strip
+      downcase lstrip next reverse rstrip scrub slice squeeze strip
       succ swapcase tr tr_s unicode_normalize upcase
     )
 
@@ -152,12 +152,12 @@ module ActiveSupport #:nodoc:
 
     def [](*args)
       if html_safe?
-        new_safe_buffer = super
+        new_string = super
 
-        if new_safe_buffer
-          new_safe_buffer.instance_variable_set :@html_safe, true
-        end
+        return unless new_string
 
+        new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
+        new_safe_buffer.instance_variable_set :@html_safe, true
         new_safe_buffer
       else
         to_str[*args]
@@ -213,7 +213,8 @@ module ActiveSupport #:nodoc:
     end
 
     def *(*)
-      new_safe_buffer = super
+      new_string = super
+      new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
       new_safe_buffer.instance_variable_set(:@html_safe, @html_safe)
       new_safe_buffer
     end

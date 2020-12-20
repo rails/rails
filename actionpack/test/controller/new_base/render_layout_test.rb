@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "test_renderable"
 
 module ControllerLayouts
   class ImplicitController < ::ApplicationController
@@ -17,6 +18,10 @@ module ControllerLayouts
 
     def override
       render template: "basic", layout: "override"
+    end
+
+    def override_renderable
+      render TestRenderable.new, layout: "override"
     end
 
     def layout_false
@@ -36,6 +41,10 @@ module ControllerLayouts
     def index
       render template: "basic"
     end
+
+    def renderable
+      render TestRenderable.new
+    end
   end
 
   class RenderLayoutTest < Rack::TestCase
@@ -50,6 +59,20 @@ module ControllerLayouts
       get "/controller_layouts/implicit_name/index"
 
       assert_body "Implicit Hello world! Layout"
+      assert_status 200
+    end
+
+    test "rendering a renderable object, using the implicit layout" do
+      get "/controller_layouts/implicit_name/renderable"
+
+      assert_body "Implicit Hello, World! Layout"
+      assert_status 200
+    end
+
+    test "rendering a renderable object, using the override layout" do
+      get "/controller_layouts/implicit/override_renderable"
+
+      assert_body "Override! Hello, World!"
       assert_status 200
     end
 

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "action_view/helpers/tag_helper"
-
 module ActionView
   module Helpers #:nodoc:
     module JavaScriptHelper

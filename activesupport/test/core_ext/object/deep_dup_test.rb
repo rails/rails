@@ -56,4 +56,14 @@ class DeepDupTest < ActiveSupport::TestCase
     dup = hash.deep_dup
     assert_equal 1, dup.keys.length
   end
+
+  def test_deep_dup_with_mutable_frozen_key
+    key = { array: [] }.freeze
+    hash = { key => :value }
+
+    dup = hash.deep_dup
+    dup.transform_keys { |k| k[:array] << :array_element }
+
+    assert_not_equal hash.keys, dup.keys
+  end
 end

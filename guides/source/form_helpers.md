@@ -22,7 +22,7 @@ NOTE: This guide is not intended to be a complete documentation of available for
 Dealing with Basic Forms
 ------------------------
 
-The main form helper is `form_with`.
+The main form helper is [`form_with`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with).
 
 ```erb
 <%= form_with do |form| %>
@@ -33,7 +33,7 @@ The main form helper is `form_with`.
 When called without arguments like this, it creates a form tag which, when submitted, will POST to the current page. For instance, assuming the current page is a home page, the generated HTML will look like this:
 
 ```html
-<form accept-charset="UTF-8" action="/" data-remote="true" method="post">
+<form accept-charset="UTF-8" action="/" method="post">
   <input name="authenticity_token" type="hidden" value="J7CBxfHalt49OSHp27hblqK20c9PgwJ108nDHX/8Cts=" />
   Form contents
 </form>
@@ -64,7 +64,7 @@ To create this form you will use `form_with` and the form builder object it yiel
 This will generate the following HTML:
 
 ```html
-<form action="/search" method="get" data-remote="true" accept-charset="UTF-8" >
+<form action="/search" method="get" accept-charset="UTF-8" >
   <label for="query">Search for:</label>
   <input id="query" name="query" type="text" />
   <input name="commit" type="submit" value="Search" data-disable-with="Search" />
@@ -108,7 +108,7 @@ This generates the following:
 <label for="pet_cat">I own a cat</label>
 ```
 
-The first parameter to `check_box` is the name of the input. The second parameter is the value of the input. This value will be included in the form data (and be present in `params`) when the checkbox is checked.
+The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input. The second parameter is the value of the input. This value will be included in the form data (and be present in `params`) when the checkbox is checked.
 
 #### Radio Buttons
 
@@ -130,7 +130,7 @@ Output:
 <label for="age_adult">I am over 21</label>
 ```
 
-As with `check_box`, the second parameter to `radio_button` is the value of the input. Because these two radio buttons share the same name (`age`), the user will only be able to select one of them, and `params[:age]` will contain either `"child"` or `"adult"`.
+As with `check_box`, the second parameter to [`radio_button`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-radio_button) is the value of the input. Because these two radio buttons share the same name (`age`), the user will only be able to select one of them, and `params[:age]` will contain either `"child"` or `"adult"`.
 
 NOTE: Always use labels for checkbox and radio buttons. They associate text with a specific option and,
 by expanding the clickable region,
@@ -217,7 +217,7 @@ The following form:
 Outputs:
 
 ```html
-<form action="/articles/42" method="post" data-remote="true" accept-charset="UTF-8" >
+<form action="/articles/42" method="post" accept-charset="UTF-8" >
   <input name="authenticity_token" type="hidden" value="..." />
   <input type="text" name="article[title]" id="article_title" value="My Title" />
   <textarea name="article[body]" id="article_body" cols="60" rows="10">
@@ -238,7 +238,7 @@ TIP: Conventionally your inputs will mirror model attributes. However, they don'
 
 #### The `fields_for` Helper
 
-You can create a similar binding without actually creating `<form>` tags with the `fields_for` helper. This is useful for editing additional model objects with the same form. For example, if you had a `Person` model with an associated `ContactDetail` model, you could create a form for creating both like so:
+You can create a similar binding without actually creating `<form>` tags with the [`fields_for`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-fields_for) helper. This is useful for editing additional model objects with the same form. For example, if you had a `Person` model with an associated `ContactDetail` model, you could create a form for creating both like so:
 
 ```erb
 <%= form_with model: @person do |person_form| %>
@@ -252,7 +252,7 @@ You can create a similar binding without actually creating `<form>` tags with th
 which produces the following output:
 
 ```html
-<form action="/people" accept-charset="UTF-8" data-remote="true" method="post">
+<form action="/people" accept-charset="UTF-8" method="post">
   <input type="hidden" name="authenticity_token" value="bL13x72pldyDD8bgtkjKQakJCpd4A8JdXGbfksxBDHdf1uC0kCMqe2tvVdUYfidJt0fj3ihC4NxiVHv8GVYxJA==" />
   <input type="text" name="person[name]" id="person_name" />
   <input type="text" name="contact_detail[phone_number]" id="contact_detail_phone_number" />
@@ -320,7 +320,7 @@ form_with(url: search_path, method: "patch")
 Output:
 
 ```html
-<form accept-charset="UTF-8" action="/search" data-remote="true" method="post">
+<form accept-charset="UTF-8" action="/search" method="post">
   <input name="_method" type="hidden" value="patch" />
   <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
   ...
@@ -329,17 +329,17 @@ Output:
 
 When parsing POSTed data, Rails will take into account the special `_method` parameter and act as if the HTTP method was the one specified inside it ("PATCH" in this example).
 
-IMPORTANT: All forms using `form_with` implement `remote: true` by default. These forms will submit data using an XHR (Ajax) request. To disable this include `local: true`. To dive deeper see [Working with JavaScript in Rails](working_with_javascript_in_rails.html#remote-elements) guide.
+IMPORTANT: In Rails 6.0 and 5.2, all forms using `form_with` implement `remote: true` by default. These forms will submit data using an XHR (Ajax) request. To disable this include `local: true`. To dive deeper see [Working with JavaScript in Rails](working_with_javascript_in_rails.html#remote-elements) guide.
 
 Making Select Boxes with Ease
 -----------------------------
 
 Select boxes in HTML require a significant amount of markup - one `<option>` element for each option to choose from. So Rails provides helper methods to reduce this burden.
 
-For example, let's say we have a list of cities for the user to choose from. We can use the `select` helper like so:
+For example, let's say we have a list of cities for the user to choose from. We can use the [`select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-select) helper like so:
 
 ```erb
-<%= form.select :city, ["Berlin", "Lisbon", "Madrid"] %>
+<%= form.select :city, ["Berlin", "Chicago", "Madrid"] %>
 ```
 
 Output:
@@ -347,15 +347,15 @@ Output:
 ```html
 <select name="city" id="city">
   <option value="Berlin">Berlin</option>
-  <option value="Lisbon">Lisbon</option>
+  <option value="Chicago">Chicago</option>
   <option value="Madrid">Madrid</option>
 </select>
 ```
 
-Of course, we can also designate `<option>` values that differ from their labels:
+We can also designate `<option>` values that differ from their labels:
 
 ```erb
-<%= form.select :city, [["Berlin", "BE"], ["Lisbon", "LX"], ["Madrid", "MD"]] %>
+<%= form.select :city, [["Berlin", "BE"], ["Chicago", "CHI"], ["Madrid", "MD"]] %>
 ```
 
 Output:
@@ -363,17 +363,17 @@ Output:
 ```html
 <select name="city" id="city">
   <option value="BE">Berlin</option>
-  <option value="LX">Lisbon</option>
+  <option value="CHI">Chicago</option>
   <option value="MD">Madrid</option>
 </select>
 ```
 
-This way, the user will see the full city name, but `params[:city]` will be one of `"BE"`, `"LX"`, or `"MD"`.
+This way, the user will see the full city name, but `params[:city]` will be one of `"BE"`, `"CHI"`, or `"MD"`.
 
-Finally, we can specify a default choice for the select box with the `:selected` argument:
+Lastly, we can specify a default choice for the select box with the `:selected` argument:
 
 ```erb
-<%= form.select :city, [["Berlin", "BE"], ["Lisbon", "LX"], ["Madrid", "MD"]], selected: "LX" %>
+<%= form.select :city, [["Berlin", "BE"], ["Chicago", "CHI"], ["Madrid", "MD"]], selected: "CHI" %>
 ```
 
 Output:
@@ -381,8 +381,35 @@ Output:
 ```html
 <select name="city" id="city">
   <option value="BE">Berlin</option>
-  <option value="LX" selected="selected">Lisbon</option>
+  <option value="CHI" selected="selected">Chicago</option>
   <option value="MD">Madrid</option>
+</select>
+```
+
+### Option Groups
+
+In some cases we may want to improve the user experience by grouping related options together. We can do so by passing a `Hash` (or comparable `Array`) to `select`:
+
+```erb
+<%= form.select :city,
+      {
+        "Europe" => [ ["Berlin", "BE"], ["Madrid", "MD"] ],
+        "North America" => [ ["Chicago", "CHI"] ],
+      },
+      selected: "CHI" %>
+```
+
+Output:
+
+```html
+<select name="city" id="city">
+  <optgroup label="Europe">
+    <option value="BE">Berlin</option>
+    <option value="MD">Madrid</option>
+  </optgroup>
+  <optgroup label="North America">
+    <option value="CHI" selected="selected">Chicago</option>
+  </optgroup>
 </select>
 ```
 
@@ -398,7 +425,7 @@ The following form:
 
 ```erb
 <%= form_with model: @person do |form| %>
-  <%= form.select :city, [["Berlin", "BE"], ["Lisbon", "LX"], ["Madrid", "MD"]] %>
+  <%= form.select :city, [["Berlin", "BE"], ["Chicago", "CHI"], ["Madrid", "MD"]] %>
 <% end %>
 ```
 
@@ -407,7 +434,7 @@ Outputs a select box like:
 ```html
 <select name="person[city]" id="person_city">
   <option value="BE">Berlin</option>
-  <option value="LX">Lisbon</option>
+  <option value="CHI">Chicago</option>
   <option value="MD" selected="selected">Madrid</option>
 </select>
 ```
@@ -416,94 +443,101 @@ Notice that the appropriate option was automatically marked `selected="selected"
 
 ### Time Zone and Country Select
 
-To leverage time zone support in Rails, you have to ask your users what time zone they are in. Doing so would require generating select options from a list of pre-defined [`ActiveSupport::TimeZone`](https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects, but you can simply use the `time_zone_select` helper that already wraps this:
+To leverage time zone support in Rails, you have to ask your users what time zone they are in. Doing so would require generating select options from a list of pre-defined [`ActiveSupport::TimeZone`](https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects, but you can simply use the [`time_zone_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_zone_select) helper that already wraps this:
 
 ```erb
-<%= time_zone_select(:person, :time_zone) %>
+<%= form.time_zone_select :time_zone %>
 ```
-
-There is also `time_zone_options_for_select` helper for a more manual (therefore more customizable) way of doing this. Read the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormOptionsHelper.html#method-i-time_zone_options_for_select) to learn about the possible arguments for these two methods.
 
 Rails _used_ to have a `country_select` helper for choosing countries, but this has been extracted to the [country_select plugin](https://github.com/stefanpenner/country_select).
 
 Using Date and Time Form Helpers
 --------------------------------
 
-If you do not wish to use HTML5 date and time inputs, Rails provides alternative date and time form helpers that output plain select boxes. With these helpers, a select box is output for each temporal component (e.g. year, month, day, etc), so there will be no single value in the `params` hash that contains the full date or time.
-
-### Barebones Helpers
-
-The `select_*` family of helpers take as their first argument an instance of `Date`, `Time`, or `DateTime` that is used as the currently selected value. You may omit this parameter, in which case the current date is used. For example:
-
-```erb
-<%= select_date Date.today, prefix: :start_date %>
-```
-
-outputs (with actual option values omitted for brevity)
-
-```html
-<select id="start_date_year" name="start_date[year]">
-</select>
-<select id="start_date_month" name="start_date[month]">
-</select>
-<select id="start_date_day" name="start_date[day]">
-</select>
-```
-
-The above inputs would result in `params[:start_date]` being a hash with keys `:year`, `:month`, `:day`. To get an actual `Date`, `Time`, or `DateTime` object you would have to extract these values and pass them to the appropriate constructor, for example:
+If you do not wish to use HTML5 date and time inputs, Rails provides alternative date and time form helpers that render plain select boxes. These helpers render a select box for each temporal component (e.g. year, month, day, etc). For example, if we have a `@person` model object like:
 
 ```ruby
-Date.civil(params[:start_date][:year].to_i, params[:start_date][:month].to_i, params[:start_date][:day].to_i)
+@person = Person.new(birth_date: Date.new(1995, 12, 21))
 ```
 
-The `:prefix` option is the key used to retrieve the hash of date components from the `params` hash. Here it was set to `start_date`, if omitted it will default to `date`.
-
-### Model Object Helpers
-
-`select_date` does not work well with forms that update or create Active Record objects as Active Record expects each element of the `params` hash to correspond to one attribute.
-The model object helpers for dates and times submit parameters with special names; when Active Record sees parameters with such names it knows they must be combined with the other parameters and given to a constructor appropriate to the column type. For example:
+The following form:
 
 ```erb
-<%= date_select :person, :birth_date %>
+<%= form_with model: @person do |form| %>
+  <%= form.date_select :birth_date %>
+<% end %>
 ```
 
-outputs (with actual option values omitted for brevity)
+Outputs select boxes like:
 
 ```html
-<select id="person_birth_date_1i" name="person[birth_date(1i)]">
+<select name="person[birth_date(1i)]" id="person_birth_date_1i">
+  <option value="1990">1990</option>
+  <option value="1991">1991</option>
+  <option value="1992">1992</option>
+  <option value="1993">1993</option>
+  <option value="1994">1994</option>
+  <option value="1995" selected="selected">1995</option>
+  <option value="1996">1996</option>
+  <option value="1997">1997</option>
+  <option value="1998">1998</option>
+  <option value="1999">1999</option>
+  <option value="2000">2000</option>
 </select>
-<select id="person_birth_date_2i" name="person[birth_date(2i)]">
+<select name="person[birth_date(2i)]" id="person_birth_date_2i">
+  <option value="1">January</option>
+  <option value="2">February</option>
+  <option value="3">March</option>
+  <option value="4">April</option>
+  <option value="5">May</option>
+  <option value="6">June</option>
+  <option value="7">July</option>
+  <option value="8">August</option>
+  <option value="9">September</option>
+  <option value="10">October</option>
+  <option value="11">November</option>
+  <option value="12" selected="selected">December</option>
 </select>
-<select id="person_birth_date_3i" name="person[birth_date(3i)]">
+<select name="person[birth_date(3i)]" id="person_birth_date_3i">
+  <option value="1">1</option>
+  ...
+  <option value="21" selected="selected">21</option>
+  ...
+  <option value="31">31</option>
 </select>
 ```
 
-which results in a `params` hash like
+Notice that, when the form is submitted, there will be no single value in the `params` hash that contains the full date. Instead, there will be several values with special names like `"birth_date(1i)"`. Active Record knows how to assemble these specially-named values into a full date or time, based on the declared type of the model attribute. So we can pass `params[:person]` to e.g. `Person.new` or `Person#update` just like we would if the form used a single field to represent the full date.
 
-```ruby
-{'person' => {'birth_date(1i)' => '2008', 'birth_date(2i)' => '11', 'birth_date(3i)' => '22'}}
-```
+In addition to the [`date_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-date_select) helper, Rails provides [`time_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_select) and [`datetime_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-datetime_select).
 
-When this is passed to `Person.new` (or `update`), Active Record spots that these parameters should all be used to construct the `birth_date` attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as `Date.civil`.
+### Select Boxes for Individual Temporal Components
 
-### Common Options
-
-Both families of helpers use the same core set of functions to generate the individual select tags and so both accept largely the same options. In particular, by default Rails will generate year options 5 years either side of the current year. If this is not an appropriate range, the `:start_year` and `:end_year` options override this. For an exhaustive list of the available options, refer to the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html).
-
-As a rule of thumb you should be using `date_select` when working with model objects and `select_date` in other cases, such as a search form which filters results by date.
-
-### Individual Components
-
-Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component `select_year`, `select_month`, `select_day`, `select_hour`, `select_minute`, `select_second`. These helpers are fairly straightforward. By default they will generate an input field named after the time component (for example, "year" for `select_year`, "month" for `select_month` etc.) although this can be overridden with the `:field_name` option. The `:prefix` option works in the same way that it does for `select_date` and `select_time` and has the same default value.
-
-The first parameter specifies which value should be selected and can either be an instance of a `Date`, `Time`, or `DateTime`, in which case the relevant component will be extracted, or a numerical value. For example:
+Rails also provides helpers to render select boxes for individual temporal components: [`select_year`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_year), [`select_month`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_month), [`select_day`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_day), [`select_hour`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_hour), [`select_minute`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_minute), and [`select_second`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_second).  These helpers are "bare" methods, meaning they are not called on a form builder instance.  For example:
 
 ```erb
-<%= select_year(2009) %>
-<%= select_year(Time.new(2009)) %>
+<%= select_year 1999, prefix: "party" %>
 ```
 
-will produce the same output and the value chosen by the user can be retrieved by `params[:date][:year]`.
+Outputs a select box like:
+
+```html
+<select name="party[year]" id="party_year">
+  <option value="1994">1994</option>
+  <option value="1995">1995</option>
+  <option value="1996">1996</option>
+  <option value="1997">1997</option>
+  <option value="1998">1998</option>
+  <option value="1999" selected="selected">1999</option>
+  <option value="2000">2000</option>
+  <option value="2001">2001</option>
+  <option value="2002">2002</option>
+  <option value="2003">2003</option>
+  <option value="2004">2004</option>
+</select>
+```
+
+For each of these helpers, you may specify a date or time object instead of a number as the default value, and the appropriate temporal component will be extracted and used.
 
 Choices from a Collection of Arbitrary Objects
 ----------------------------------------------
@@ -514,7 +548,7 @@ Often, we want to generate a set of choices in a form from a collection of objec
 City.order(:name).to_a
 # => [
 #      #<City id: 3, name: "Berlin">,
-#      #<City id: 1, name: "Lisbon">,
+#      #<City id: 1, name: "Chicago">,
 #      #<City id: 2, name: "Madrid">
 #    ]
 ```
@@ -534,7 +568,7 @@ Output:
 ```html
 <select name="city_id" id="city_id">
   <option value="3">Berlin</option>
-  <option value="1">Lisbon</option>
+  <option value="1">Chicago</option>
   <option value="2">Madrid</option>
 </select>
 ```
@@ -555,7 +589,7 @@ Output:
 <input type="radio" name="city_id" value="3" id="city_id_3">
 <label for="city_id_3">Berlin</label>
 <input type="radio" name="city_id" value="1" id="city_id_1">
-<label for="city_id_1">Lisbon</label>
+<label for="city_id_1">Chicago</label>
 <input type="radio" name="city_id" value="2" id="city_id_2">
 <label for="city_id_2">Madrid</label>
 ```
@@ -574,7 +608,7 @@ Output:
 <input type="checkbox" name="city_id[]" value="3" id="city_id_3">
 <label for="city_id_3">Berlin</label>
 <input type="checkbox" name="city_id[]" value="1" id="city_id_1">
-<label for="city_id_1">Lisbon</label>
+<label for="city_id_1">Chicago</label>
 <input type="checkbox" name="city_id[]" value="2" id="city_id_2">
 <label for="city_id_2">Madrid</label>
 ```
@@ -582,7 +616,7 @@ Output:
 Uploading Files
 ---------------
 
-A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the rendered form's enctype attribute **must** be set to "multipart/form-data". If you use `form_with` with `:model`, this is done automatically:
+A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. File upload fields can be rendered with the [`file_field`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-file_field) helper. The most important thing to remember with file uploads is that the rendered form's enctype attribute **must** be set to "multipart/form-data". If you use `form_with` with `:model`, this is done automatically:
 
 ```erb
 <%= form_with model: @person do |form| %>
@@ -696,7 +730,7 @@ will result in the `params` hash being
 {'person' => {'address' => {'city' => 'New York'}}}
 ```
 
-Normally Rails ignores duplicate parameter names. If the parameter name contains an empty set of square brackets `[]` then they will be accumulated in an array. If you wanted users to be able to input multiple phone numbers, you could place this in the form:
+Normally Rails ignores duplicate parameter names. If the parameter name ends with an empty set of square brackets `[]` then they will be accumulated in an array. If you wanted users to be able to input multiple phone numbers, you could place this in the form:
 
 ```html
 <input name="person[phone_number][]" type="text"/>
@@ -743,7 +777,7 @@ Let's say we want to render a form with a set of fields for each of a person's a
 Assuming the person had two addresses, with ids 23 and 45 this would create output similar to this:
 
 ```html
-<form accept-charset="UTF-8" action="/people/1" data-remote="true" method="post">
+<form accept-charset="UTF-8" action="/people/1" method="post">
   <input name="_method" type="hidden" value="patch" />
   <input id="person_name" name="person[name]" type="text" />
   <input id="person_address_23_city" name="person[address][23][city]" type="text" />
@@ -818,7 +852,7 @@ Many apps grow beyond simple forms editing a single object. For example, when cr
 
 ### Configuring the Model
 
-Active Record provides model level support via the `accepts_nested_attributes_for` method:
+Active Record provides model level support via the [`accepts_nested_attributes_for`](https://api.rubyonrails.org/classes/ActiveRecord/NestedAttributes/ClassMethods.html#method-i-accepts_nested_attributes_for) method:
 
 ```ruby
 class Person < ApplicationRecord
@@ -967,7 +1001,24 @@ As a convenience you can instead pass the symbol `:all_blank` which will create 
 
 Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an 'Add new address' button. Rails does not provide any built-in support for this. When generating new sets of fields you must ensure the key of the associated array is unique - the current JavaScript date (milliseconds since the [epoch](https://en.wikipedia.org/wiki/Unix_time)) is a common choice.
 
-Using form_for and form_tag
----------------------------
+Using Tag Helpers Without a Form Builder
+----------------------------------------
 
-Before `form_with` was introduced in Rails 5.1 its functionality used to be split between `form_tag` and `form_for`. Both are now soft-deprecated. Documentation on their usage can be found in [older versions of this guide](https://guides.rubyonrails.org/v5.2/form_helpers.html).
+In case you need to render form fields outside of the context of a form builder, Rails provides tag helpers for common form elements. For example, [`check_box_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html#method-i-check_box_tag):
+
+```erb
+<%= check_box_tag "accept" %>
+```
+
+Output:
+
+```html
+<input type="checkbox" name="accept" id="accept" value="1" />
+```
+
+Generally, these helpers have the same name as their form builder counterparts plus a `_tag` suffix.  For a complete list, see the [`FormTagHelper` API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
+
+Using `form_tag` and `form_for`
+-------------------------------
+
+Before `form_with` was introduced in Rails 5.1 its functionality used to be split between [`form_tag`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag) and [`form_for`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormHelper.html#method-i-form_for). Both are now soft-deprecated. Documentation on their usage can be found in [older versions of this guide](https://guides.rubyonrails.org/v5.2/form_helpers.html).

@@ -63,8 +63,8 @@ module ActiveSupport
           when Array
             data.map! { |d| convert_dates_from(d) }
           when Hash
-            data.each do |key, value|
-              data[key] = convert_dates_from(value)
+            data.transform_values! do |value|
+              convert_dates_from(value)
             end
           else
             data

@@ -8,7 +8,7 @@ module ActiveModel
   class Name
     include Comparable
 
-    attr_reader :singular, :plural, :element, :collection,
+    attr_accessor :singular, :plural, :element, :collection,
       :singular_route_key, :route_key, :param_key, :i18n_key,
       :name
 

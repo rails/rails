@@ -32,9 +32,9 @@ module ActiveRecord
     def self.references(attributes)
       attributes.each_with_object([]) do |(key, value), result|
         if value.is_a?(Hash)
-          result << key
+          result << Arel.sql(key)
         elsif key.include?(".")
-          result << key.split(".").first
+          result << Arel.sql(key.split(".").first)
         end
       end
     end
@@ -54,8 +54,12 @@ module ActiveRecord
       @handlers.unshift([klass, handler])
     end
 
+    def [](attr_name, value, operator = nil)
+      build(table.arel_table[attr_name], value, operator)
+    end
+
     def build(attribute, value, operator = nil)
-      value = value.id if value.is_a?(Base)
+      value = value.id if value.respond_to?(:id)
       if operator ||= table.type(attribute.name).force_equality?(value) && :eq
         bind = build_bind_attribute(attribute.name, value)
         attribute.public_send(operator, bind)
@@ -65,12 +69,12 @@ module ActiveRecord
     end
 
     def build_bind_attribute(column_name, value)
-      attr = Relation::QueryAttribute.new(column_name.to_s, value, table.type(column_name))
+      attr = Relation::QueryAttribute.new(column_name, value, table.type(column_name))
       Arel::Nodes::BindParam.new(attr)
     end
 
     def resolve_arel_attribute(table_name, column_name, &block)
-      table.associated_table(table_name, &block).arel_attribute(column_name)
+      table.associated_table(table_name, &block).arel_table[column_name]
     end
 
     protected
@@ -96,7 +100,7 @@ module ActiveRecord
               end
             elsif associated_table.through_association?
               next associated_table.predicate_builder.expand_from_hash(
-                associated_table.join_foreign_key => value
+                associated_table.primary_key => value
               )
             end
 
@@ -114,18 +118,18 @@ module ActiveRecord
               values = values.map do |object|
                 object.respond_to?(aggr_attr) ? object.public_send(aggr_attr) : object
               end
-              build(table.arel_attribute(column_name), values)
+              self[column_name, values]
             else
               queries = values.map do |object|
                 mapping.map do |field_attr, aggregate_attr|
-                  build(table.arel_attribute(field_attr), object.try!(aggregate_attr))
+                  self[field_attr, object.try!(aggregate_attr)]
                 end
               end
 
               grouping_queries(queries)
             end
           else
-            build(table.arel_attribute(key), value)
+            self[key, value]
           end
         end
       end
