@@ -4,7 +4,14 @@
   <meta charset="utf-8" />
   <title><%= @page_title %></title>
   <style>
-    body { background-color: #fff; color: #333; }
+    body {
+      background-color: #FAFAFA;
+      color: #333;
+      color-scheme: light dark;
+      supported-color-schemes: light dark;
+      margin: 0;
+      padding: 1.5em;
+    }
 
     body, p, ol, ul, td {
       font-family: helvetica, verdana, arial, sans-serif;
@@ -13,17 +20,23 @@
     }
 
     pre {
-      background-color: #eee;
-      padding: 10px;
       font-size: 11px;
       white-space: pre-wrap;
     }
 
-    a { color: #000; }
+    a { color: #980905; }
     a:visited { color: #666; }
-    a:hover { color: #fff; background-color:#000; }
+    a:hover { color: #C00; }
 
-    h2 { padding-left: 10px; }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #222;
+        color: #ECECEC;
+      }
+
+      a { color: #C00; }
+      a:hover { color: #E9382B; }
+    }
 
     <%= yield :style %>
   </style>
