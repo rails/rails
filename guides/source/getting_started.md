@@ -980,7 +980,7 @@ display any error messages for `title` and `body`:
   <div>
     <%= form.label :title %><br>
     <%= form.text_field :title %>
-    <%= @article.errors.full_messages_for(:title).each do |message| %>
+    <% @article.errors.full_messages_for(:title).each do |message| %>
       <div><%= message %></div>
     <% end %>
   </div>
@@ -988,7 +988,7 @@ display any error messages for `title` and `body`:
   <div>
     <%= form.label :body %><br>
     <%= form.text_area :body %><br>
-    <%= @article.errors.full_messages_for(:body).each do |message| %>
+    <% @article.errors.full_messages_for(:body).each do |message| %>
       <div><%= message %></div>
     <% end %>
   </div>
