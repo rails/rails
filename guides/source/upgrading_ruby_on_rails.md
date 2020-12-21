@@ -103,7 +103,6 @@ You can call `with_indifferent_access` on the return value of `config_for` if yo
 Rails.application.config_for(:example).with_indifferent_access.dig('options', 'key')
 ```
 
-
 ### Response's Content-Type when using `respond_to#any`
 
 The Content-Type header returned in the response can differ from what Rails 6.0 returned,
@@ -1182,7 +1181,6 @@ gem 'rails-deprecated_sanitizer'
 
 The [`TagAssertions` module](https://api.rubyonrails.org/v4.1/classes/ActionDispatch/Assertions/TagAssertions.html) (containing methods such as `assert_tag`), [has been deprecated](https://github.com/rails/rails/blob/6061472b8c310158a2a2e8e9a6b81a1aef6b60fe/actionpack/lib/action_dispatch/testing/assertions/dom.rb) in favor of the `assert_select` methods from the `SelectorAssertions` module, which has been extracted into the [rails-dom-testing gem](https://github.com/rails/rails-dom-testing).
 
-
 ### Masked Authenticity Tokens
 
 In order to mitigate SSL attacks, `form_authenticity_token` is now masked so that it varies with each request.  Thus, tokens are validated by unmasking and then decrypting.  As a result, any strategies for verifying requests from non-rails forms that relied on a static session CSRF token have to take this into account.
@@ -1298,10 +1296,10 @@ secrets, you need to:
     ```
 
 2. Use your existing `secret_key_base` from the `secret_token.rb` initializer to
-   set the SECRET_KEY_BASE environment variable for whichever users running the
+   set the `SECRET_KEY_BASE` environment variable for whichever users running the
    Rails application in production. Alternatively, you can simply copy the existing
    `secret_key_base` from the `secret_token.rb` initializer to `secrets.yml`
-   under the `production` section, replacing '<%= ENV["SECRET_KEY_BASE"] %>'.
+   under the `production` section, replacing `<%= ENV["SECRET_KEY_BASE"] %>`.
 
 3. Remove the `secret_token.rb` initializer.
 
@@ -1501,6 +1499,7 @@ module FixtureFileHelpers
     Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
   end
 end
+
 ActiveRecord::FixtureSet.context_class.include FixtureFileHelpers
 ```
 

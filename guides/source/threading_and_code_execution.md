@@ -301,7 +301,6 @@ Rails.application.executor.wrap do
 end
 ```
 
-
 ### ActionDispatch::DebugLocks
 
 If your application is deadlocking and you think the Load Interlock may be

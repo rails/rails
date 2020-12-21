@@ -616,7 +616,7 @@ Output:
 Uploading Files
 ---------------
 
-A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. File upload fields can be rendered with the [`file_field`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-file_field) helper. The most important thing to remember with file uploads is that the rendered form's enctype attribute **must** be set to "multipart/form-data". If you use `form_with` with `:model`, this is done automatically:
+A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. File upload fields can be rendered with the [`file_field`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-file_field) helper. The most important thing to remember with file uploads is that the rendered form's `enctype` attribute **must** be set to "multipart/form-data". If you use `form_with` with `:model`, this is done automatically:
 
 ```erb
 <%= form_with model: @person do |form| %>
@@ -632,7 +632,7 @@ If you use `form_with` without `:model`, you must set it yourself:
 <% end %>
 ```
 
-Note that, in accordance with `form_with` conventions, the field names in two forms above will also differ.  That is, the field name in the first form will be `person[picture]` (accessible via `params[:person][:picture]`), and the field name in the second form will be just `picture` (accessible via `params[:picture]`).
+Note that, in accordance with `form_with` conventions, the field names in the two forms above will also differ.  That is, the field name in the first form will be `person[picture]` (accessible via `params[:person][:picture]`), and the field name in the second form will be just `picture` (accessible via `params[:picture]`).
 
 ### What Gets Uploaded
 
@@ -652,7 +652,7 @@ Once a file has been uploaded, there are a multitude of potential tasks, ranging
 Customizing Form Builders
 -------------------------
 
-The object yielded by `form_with` and `fields_for` is an instance of [`ActionView::Helpers::FormBuilder`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html). Form builders encapsulate the notion of displaying form elements for a single object. While you can write helpers for your forms in the usual way, you can also create subclass `ActionView::Helpers::FormBuilder` and add the helpers there. For example:
+The object yielded by `form_with` and `fields_for` is an instance of [`ActionView::Helpers::FormBuilder`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html). Form builders encapsulate the notion of displaying form elements for a single object. While you can write helpers for your forms in the usual way, you can also create a subclass of `ActionView::Helpers::FormBuilder`, and add the helpers there. For example,
 
 ```erb
 <%= form_with model: @person do |form| %>
@@ -687,13 +687,13 @@ def labeled_form_with(model: nil, scope: nil, url: nil, format: nil, **options, 
 end
 ```
 
-The form builder used also determines what happens when you do
+The form builder used also determines what happens when you do:
 
 ```erb
 <%= render partial: f %>
 ```
 
-If `f` is an instance of `ActionView::Helpers::FormBuilder` then this will render the `form` partial, setting the partial's object to the form builder. If the form builder is of class `LabellingFormBuilder` then the `labelling_form` partial would be rendered instead.
+If `f` is an instance of `ActionView::Helpers::FormBuilder`, then this will render the `form` partial, setting the partial's object to the form builder. If the form builder is of class `LabellingFormBuilder`, then the `labelling_form` partial would be rendered instead.
 
 Understanding Parameter Naming Conventions
 ------------------------------------------
@@ -755,7 +755,7 @@ We can mix and match these two concepts. One element of a hash might be an array
 
 This would result in `params[:person][:addresses]` being an array of hashes with keys `line1`, `line2`, and `city`.
 
-There's a restriction, however, while hashes can be nested arbitrarily, only one level of "arrayness" is allowed. Arrays can usually be replaced by hashes; for example, instead of having an array of model objects, one can have a hash of model objects keyed by their id, an array index, or some other parameter.
+There's a restriction, however: while hashes can be nested arbitrarily, only one level of "arrayness" is allowed. Arrays can usually be replaced by hashes; for example, instead of having an array of model objects, one can have a hash of model objects keyed by their id, an array index, or some other parameter.
 
 WARNING: Array parameters do not play well with the `check_box` helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The `check_box` helper fakes this by creating an auxiliary hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted and if it is checked then both are submitted but the value submitted by the checkbox takes precedence.
 
@@ -999,7 +999,7 @@ As a convenience you can instead pass the symbol `:all_blank` which will create 
 
 ### Adding Fields on the Fly
 
-Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an 'Add new address' button. Rails does not provide any built-in support for this. When generating new sets of fields you must ensure the key of the associated array is unique - the current JavaScript date (milliseconds since the [epoch](https://en.wikipedia.org/wiki/Unix_time)) is a common choice.
+Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an "Add new address" button. Rails does not provide any built-in support for this. When generating new sets of fields you must ensure the key of the associated array is unique - the current JavaScript date (milliseconds since the [epoch](https://en.wikipedia.org/wiki/Unix_time)) is a common choice.
 
 Using Tag Helpers Without a Form Builder
 ----------------------------------------

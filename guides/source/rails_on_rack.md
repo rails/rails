@@ -52,7 +52,7 @@ The `Rails::Server` inherits from `Rack::Server` and calls the `Rack::Server#sta
 ```ruby
 class Server < ::Rack::Server
   def start
-    ...
+    # ...
     super
   end
 end
