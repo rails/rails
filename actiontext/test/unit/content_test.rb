@@ -28,7 +28,7 @@ class ActionText::ContentTest < ActiveSupport::TestCase
   end
 
   test "extracts attachables" do
-    attachable = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    attachable = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)
 
     content = content_from_html(html)
@@ -56,7 +56,7 @@ class ActionText::ContentTest < ActiveSupport::TestCase
   end
 
   test "identifies destroyed attachables as missing" do
-    attachable = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    attachable = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}"></action-text-attachment>)
     attachable.destroy!
     content = content_from_html(html)
