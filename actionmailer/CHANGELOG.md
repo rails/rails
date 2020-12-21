@@ -1,5 +1,3 @@
-## Unreleased
-
 *   Add `locale` argument for `ActionMailer::Base#mail`.
 
     *Christian Schmidt*
