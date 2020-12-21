@@ -774,14 +774,16 @@ module ActiveSupport
       attr_reader :version
 
       DEFAULT_COMPRESS_LIMIT = 1.kilobyte
+      EXPIRES_IN_AT_REGEX = /^([0-1]?[0-9]|[2][0-3]):([0-5][0-9])(:[0-5][0-9])?$/
+      ONE_DAY = 86_400
 
       # Creates a new cache entry for the specified value. Options supported are
-      # +:compress+, +:compress_threshold+, +:version+ and +:expires_in+.
-      def initialize(value, compress: true, compress_threshold: DEFAULT_COMPRESS_LIMIT, version: nil, expires_in: nil, **)
+      # +:compress+, +:compress_threshold+, +:version+, +:expires_in+ and +expires_in_at+.
+      def initialize(value, compress: true, compress_threshold: DEFAULT_COMPRESS_LIMIT, version: nil, expires_in: nil, expires_in_at: nil, **)
         @value      = value
         @version    = version
         @created_at = Time.now.to_f
-        @expires_in = expires_in && expires_in.to_f
+        @expires_in = expires_in_at ? calculate_expires_in(expires_in, expires_in_at) : expires_in && expires_in.to_f
 
         compress!(compress_threshold) if compress
       end
@@ -838,6 +840,17 @@ module ActiveSupport
       end
 
       private
+        def calculate_expires_in(expires_in, expires_in_at)
+          raise ArgumentError, "Only one option `expires_in` or `expires_every` can be transmitted" if expires_in && expires_in_at
+          raise ArgumentError, "Wrong format of `expires_every` should be `00:00`" if (expires_in_at =~ EXPIRES_IN_AT_REGEX).nil?
+
+          parse_expires_in_at = Time.strptime(expires_in_at, "%H:%M").to_f
+          if parse_expires_in_at > @created_at
+            parse_expires_in_at - @created_at
+          else
+            (parse_expires_in_at + ONE_DAY) - @created_at
+          end
+        end
         def compress!(compress_threshold)
           case @value
           when nil, true, false, Numeric

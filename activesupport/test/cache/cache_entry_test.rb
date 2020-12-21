@@ -12,5 +12,22 @@ class CacheEntryTest < ActiveSupport::TestCase
     Time.stub(:now, Time.now + 61) do
       assert entry.expired?, "entry is expired"
     end
+    Time.stub(:now, Time.strptime("00:00", "%H:%M")) do
+      entry = ActiveSupport::Cache::Entry.new("value", expires_in_at: "00:05")
+      assert_not entry.expired?, "entry not expired"
+    end
+
+    entry = ActiveSupport::Cache::Entry.new("value", expires_in_at: "00:05")
+    Time.stub(:now, Time.strptime("00:06", "%H:%M") + 86_400) do
+      assert entry.expired?, "entry is expired"
+    end
+
+    assert_raises ArgumentError do
+      entry = ActiveSupport::Cache::Entry.new("value", expires_in_at: "00:05", expires_in: 60)
+    end
+
+    assert_raises ArgumentError do
+      entry = ActiveSupport::Cache::Entry.new("value", expires_in_at: "wrong format")
+    end
   end
 end
