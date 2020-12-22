@@ -628,6 +628,32 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_match(/Cannot configure service :unknown for User#featured_photos/, error.message)
   end
 
+  test "attaching existing blobs to an existing record with custom primary_key" do
+    message = Message.create!(body: <<~BODY)
+      This is the body of a message that will soon have a banner_img attached to it.
+    BODY
+
+    message.attachments.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+    assert_equal "funky.jpg", message.attachments.first.filename.to_s
+    assert_equal "town.jpg", message.attachments.second.filename.to_s
+
+    assert_not_empty message.attachments_attachments
+    assert_equal message.attachments_blobs.count, 2
+  end
+
+  test "attaching new blobs from Hashes to an existing record with custom primary_key" do
+    message = Message.create!(body: <<~BODY)
+      This is the body of a message that will soon have a banner_img attached to it.
+    BODY
+
+    message.attachments.attach(
+      { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpg" },
+      { io: StringIO.new("THINGS"), filename: "town.jpg", content_type: "image/jpeg" })
+
+    assert_equal "funky.jpg", message.attachments.first.filename.to_s
+    assert_equal "town.jpg", message.attachments.second.filename.to_s
+  end
+
   private
     def append_on_assign
       ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many

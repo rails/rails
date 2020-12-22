@@ -128,4 +128,9 @@ class Group < ActiveRecord::Base
   accepts_nested_attributes_for :users
 end
 
+class Message < ActiveRecord::Base
+  has_one_attached :banner_img, primary_key: "integer_id"
+  has_many_attached :attachments, primary_key: "integer_id"
+end
+
 require_relative "../../tools/test_common"

@@ -609,4 +609,24 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
     assert_match(/Cannot configure service :unknown for User#featured_photo/, error.message)
   end
+
+  test "attaching a new blob from a hash with a custom primary_key" do
+    message = Message.create!(body: <<~BODY)
+      This is the body of a message that will soon have a banner_img attached to it.
+    BODY
+
+    message.banner_img.attach io: StringIO.new("STUFF"), filename: "image.jpg", content_type: "image/jpeg"
+
+    assert_equal "image.jpg", message.banner_img.filename.to_s
+  end
+
+  test "attaching a new blob from an uploaded file with a custom primary_key" do
+    message = Message.create!(body: <<~BODY)
+      This is the body of a message that will soon have a banner_img attached to it.
+    BODY
+
+    message.banner_img.attach fixture_file_upload("racecar.jpg")
+
+    assert_equal "racecar.jpg", message.banner_img.filename.to_s
+  end
 end
