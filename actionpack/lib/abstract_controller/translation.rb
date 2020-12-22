@@ -15,7 +15,7 @@ module AbstractController
     # to translate many keys within the same controller / action and gives you a
     # simple framework for scoping them consistently.
     def translate(key, **options)
-      if key.start_with?(".")
+      if key&.start_with?(".")
         path = controller_path.tr("/", ".")
         defaults = [:"#{path}#{key}"]
         defaults << options[:default] if options[:default]
