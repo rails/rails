@@ -160,7 +160,7 @@ $PAYMENT_GATEWAY = Rails.env.production? ? RealGateway : MockedGateway
 # DO NOT DO THIS.
 ```
 
-The idea would be to use `$PAYMENT_GATEWAY` in the code, and let the initializer set that to the actual implementation dependending on the environment.
+The idea would be to use `$PAYMENT_GATEWAY` in the code, and let the initializer set that to the actual implementation depending on the environment.
 
 On reload, `MockedGateway` is reloaded, but `$PAYMENT_GATEWAY` is not updated because initializers only run on boot. Therefore, it won't reflect the changes.
 
@@ -403,7 +403,7 @@ class Admin::UsersController < ApplicationController
 end
 ```
 
-was not recommended because the resolution of constants inside their body was britle. You'd better write them in this style:
+was not recommended because the resolution of constants inside their body was brittle. You'd better write them in this style:
 
 ```ruby
 module Admin
