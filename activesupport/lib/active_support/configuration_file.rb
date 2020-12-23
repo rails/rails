@@ -33,7 +33,7 @@ module ActiveSupport
 
         File.read(content_path).tap do |content|
           if content.include?("\u00A0")
-            warn "File contains invisible non-breaking spaces, you may want to remove those"
+            warn "#{content_path} contains invisible non-breaking spaces, you may want to remove those"
           end
         end
       end
