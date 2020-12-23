@@ -16,7 +16,7 @@ module ActiveModel
     end
 
     module ClassMethods
-      def attribute(name, type = Type::Value.new, **options)
+      def attribute(name, type = Type.default_value, **options)
         name = name.to_s
         if type.is_a?(Symbol)
           type = ActiveModel::Type.lookup(type, **options.except(:default))
