@@ -37,11 +37,15 @@ that are supported by the PostgreSQL adapter.
 create_table :documents do |t|
   t.binary 'payload'
 end
+```
 
+```ruby
 # app/models/document.rb
 class Document < ApplicationRecord
 end
+```
 
+```ruby
 # Usage
 data = File.read(Rails.root + "tmp/output.pdf")
 Document.create payload: data
@@ -61,11 +65,15 @@ create_table :books do |t|
 end
 add_index :books, :tags, using: 'gin'
 add_index :books, :ratings, using: 'gin'
+```
 
+```ruby
 # app/models/book.rb
 class Book < ApplicationRecord
 end
+```
 
+```ruby
 # Usage
 Book.create title: "Brave New World",
             tags: ["fantasy", "fiction"],
@@ -348,12 +356,16 @@ create_table :comments, id: :uuid do |t|
   # t.belongs_to :post, type: :uuid
   t.references :post, type: :uuid
 end
+```
 
+```ruby
 # app/models/post.rb
 class Post < ApplicationRecord
   has_many :comments
 end
+```
 
+```ruby
 # app/models/comment.rb
 class Comment < ApplicationRecord
   belongs_to :post
@@ -502,11 +514,15 @@ create_table :documents do |t|
 end
 
 add_index :documents, "to_tsvector('english', title || ' ' || body)", using: :gin, name: 'documents_idx'
+```
 
+```ruby
 # app/models/document.rb
 class Document < ApplicationRecord
 end
+```
 
+```ruby
 # Usage
 Document.create(title: "Cats and Dogs", body: "are nice!")
 

@@ -909,7 +909,9 @@ module Blog
     "blog_"
   end
 end
+```
 
+```ruby
 # app/models/blog/post.rb
 module Blog
   class Post < ApplicationRecord
@@ -949,11 +951,15 @@ these classes:
 # app/models/polygon.rb
 class Polygon < ApplicationRecord
 end
+```
 
+```ruby
 # app/models/triangle.rb
 class Triangle < Polygon
 end
+```
 
+```ruby
 # app/models/rectangle.rb
 class Rectangle < Polygon
 end
@@ -1157,7 +1163,9 @@ module BellX1
   class FlightModel < FlightModel
   end
 end
+```
 
+```ruby
 # app/models/bell_x1/aircraft.rb
 module BellX1
   class Aircraft
@@ -1211,11 +1219,15 @@ Given
 # app/models/hotel.rb
 class Hotel
 end
+```
 
+```ruby
 # app/models/image.rb
 class Image
 end
+```
 
+```ruby
 # app/models/hotel/image.rb
 class Hotel
   class Image < Image
@@ -1267,7 +1279,9 @@ module Hotel
   class Services
   end
 end
+```
 
+```ruby
 # app/models/hotel/geo_location.rb
 module Hotel
   class GeoLocation

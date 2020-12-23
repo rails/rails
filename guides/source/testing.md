@@ -634,11 +634,13 @@ define a reference node between two different fixtures. Here's an example with
 a `belongs_to`/`has_many` association:
 
 ```yaml
-# In fixtures/categories.yml
+# fixtures/categories.yml
 about:
   name: About
+```
 
-# In fixtures/articles.yml
+```yaml
+# fixtures/articles.yml
 first:
   title: Welcome to Rails!
   body: Hello world!
@@ -1884,7 +1886,9 @@ class ChatRelayJob < ApplicationJob
     ChatChannel.broadcast_to room, text: message
   end
 end
+```
 
+```ruby
 # test/jobs/chat_relay_job_test.rb
 require "test_helper"
 
