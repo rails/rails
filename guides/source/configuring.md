@@ -1010,7 +1010,9 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 * `config.active_storage.draw_routes` can be used to toggle Active Storage route generation. The default is `true`.
 
-* `config.active_storage.resolve_model_to_route` can be used to globally change how Active Storage files are delivered. Allowed values are:
+* `config.active_storage.resolve_model_to_route` can be used to globally change how Active Storage files are delivered.
+
+  Allowed values are:
   * `:rails_storage_redirect`: Redirect to signed, short-lived service URLs.
   * `:rails_storage_proxy`: Proxy files by downloading them.
 
