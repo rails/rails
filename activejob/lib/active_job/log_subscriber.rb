@@ -54,8 +54,10 @@ module ActiveJob
       job = event.payload[:job]
       ex = event.payload[:exception_object]
       if ex
-        error do
-          "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message}):\n" + Array(ex.backtrace).join("\n")
+        unless job.class.rescue_handlers.any? { |handler| handler[0] == event.payload[:exception][0] }
+          error do
+            "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message}):\n" + Array(ex.backtrace).join("\n")
+          end
         end
       elsif event.payload[:aborted]
         error do
