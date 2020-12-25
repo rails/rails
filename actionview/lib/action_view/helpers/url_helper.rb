@@ -203,7 +203,7 @@ module ActionView
         url = url_for(options)
 
         if method.present?
-          href, rel, classes = %w[href rel class].map { |name| html_options.delete(name) }
+          href, rel, classes = %w[href rel class].map { |attribute| html_options.delete(attribute) }
           defaults = {
             "class" => class_names(classes, link_to_class).presence,
             "role" => "link",
