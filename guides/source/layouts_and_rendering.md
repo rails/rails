@@ -590,15 +590,19 @@ In this application:
 Similar to the Layout Inheritance logic, if a template or partial is not found in the conventional path, the controller will look for a template or partial to render in its inheritance chain. For example:
 
 ```ruby
-# in app/controllers/application_controller
+# app/controllers/application_controller.rb
 class ApplicationController < ActionController::Base
 end
+```
 
-# in app/controllers/admin_controller
+```ruby
+# app/controllers/admin_controller.rb
 class AdminController < ApplicationController
 end
+```
 
-# in app/controllers/admin/products_controller
+```ruby
+# app/controllers/admin/products_controller.rb
 class Admin::ProductsController < AdminController
   def index
   end

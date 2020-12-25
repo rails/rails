@@ -290,11 +290,15 @@ require "sti_preload"
 class Shape < ApplicationRecord
   include StiPreload # Only in the root class.
 end
+```
 
+```ruby
 # app/models/polygon.rb
 class Polygon < Shape
 end
+```
 
+```ruby
 # app/models/triangle.rb
 class Triangle < Polygon
 end

@@ -113,7 +113,9 @@ class InvitationsMailer < ApplicationMailer
     mail subject: "#{@inviter.name} invited you to their Basecamp (#{@account.name})"
   end
 end
+```
 
+```ruby
 InvitationsMailer.with(inviter: person_a, invitee: person_b)
                  .account_invitation.deliver_later
 ```

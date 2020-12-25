@@ -261,7 +261,9 @@ like yaffles.
 class Hickwall < ApplicationRecord
   acts_as_yaffle
 end
+```
 
+```ruby
 # test/dummy/app/models/wickwall.rb
 
 class Wickwall < ApplicationRecord
@@ -284,7 +286,9 @@ module Yaffle
     end
   end
 end
+```
 
+```ruby
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base
@@ -340,7 +344,9 @@ module Yaffle
     end
   end
 end
+```
 
+```ruby
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base
@@ -413,7 +419,9 @@ module Yaffle
     end
   end
 end
+```
 
+```ruby
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base

@@ -1226,7 +1226,9 @@ class Video < ApplicationRecord
     identifier
   end
 end
+```
 
+```ruby
 video = Video.find_by(identifier: "Roman-Holiday")
 edit_video_path(video) # => "/videos/Roman-Holiday/edit"
 ```
@@ -1247,7 +1249,9 @@ Rails.application.routes.draw do
 
   draw(:admin) # Will load another route file located in `config/routes/admin.rb`
 end
+```
 
+```ruby
 # config/routes/admin.rb
 
 namespace :admin do

@@ -1199,7 +1199,9 @@ class Notifier < ActionMailer::Base
     mail(to: user.email, ...)
   end
 end
+```
 
+```ruby
 mail = Notifier.notify(user, ...) # Notifier#notify is not yet called at this point
 mail = mail.deliver_now           # Prints "Called"
 ```
@@ -1724,7 +1726,7 @@ such format is [JSON Patch](https://tools.ietf.org/html/rfc6902). While Rails
 does not support JSON Patch natively, it's easy enough to add support:
 
 ```ruby
-# in your controller
+# in your controller:
 def update
   respond_to do |format|
     format.json do
@@ -1737,8 +1739,10 @@ def update
     end
   end
 end
+```
 
-# In config/initializers/json_patch.rb:
+```ruby
+# config/initializers/json_patch.rb
 Mime::Type.register 'application/json-patch+json', :json_patch
 ```
 
