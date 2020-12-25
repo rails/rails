@@ -269,29 +269,13 @@ It is possible to customize the behavior of elements with a `data-remote`
 attribute without writing a line of JavaScript. You can specify extra `data-`
 attributes to accomplish this.
 
-#### `data-method`
+#### `data-url`, `data-params`, and `data-method`
 
-Activating hyperlinks always results in an HTTP GET request. However, if your
-application is [RESTful](https://en.wikipedia.org/wiki/Representational_State_Transfer),
-some links are in fact actions that change data on the server, and must be
-performed with non-GET requests. This attribute allows marking up such links
-with an explicit method such as "post", "put" or "delete".
-
-The way it works is that, when the link is activated, it constructs a hidden form
-in the document with the "action" attribute corresponding to "href" value of the
-link, and the method corresponding to `data-method` value, and submits that form.
-
-NOTE: Because submitting forms with HTTP methods other than GET and POST isn't
-widely supported across browsers, all other HTTP methods are actually sent over
-POST with the intended method indicated in the `_method` parameter. Rails
-automatically detects and compensates for this.
-
-#### `data-url` and `data-params`
-
-Certain elements of your page aren't actually referring to any URL, but you may want
-them to trigger Ajax calls. Specifying the `data-url` attribute along with
+Certain elements of your page aren't actually referring to any URL, but you may
+want them to trigger Ajax calls. Specifying the `data-url` attribute along with
 the `data-remote` one will trigger an Ajax call to the given URL. You can also
-specify extra parameters through the `data-params` attribute.
+specify the HTTP verb or extra parameters through the `data-method` and
+`data-params` attributes.
 
 This can be useful to trigger an action on check-boxes for instance:
 
