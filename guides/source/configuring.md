@@ -232,47 +232,47 @@ The full set of methods that can be used in this block are as follows:
 
 Every Rails application comes with a standard set of middleware which it uses in this order in the development environment:
 
-* `ActionDispatch::HostAuthorization` prevents against DNS rebinding and other `Host` header attacks.
-   It is included in the development environment by default with the following configuration:
+*   `ActionDispatch::HostAuthorization` prevents against DNS rebinding and other `Host` header attacks.
+    It is included in the development environment by default with the following configuration:
 
-   ```ruby
-   Rails.application.config.hosts = [
-     IPAddr.new("0.0.0.0/0"), # All IPv4 addresses.
-     IPAddr.new("::/0"),      # All IPv6 addresses.
-     "localhost"              # The localhost reserved domain.
-   ]
-   ```
+    ```ruby
+    Rails.application.config.hosts = [
+      IPAddr.new("0.0.0.0/0"), # All IPv4 addresses.
+      IPAddr.new("::/0"),      # All IPv6 addresses.
+      "localhost"              # The localhost reserved domain.
+    ]
+    ```
 
-   In other environments `Rails.application.config.hosts` is empty and no
-   `Host` header checks will be done. If you want to guard against header
-   attacks on production, you have to manually permit the allowed hosts
-   with:
+    In other environments `Rails.application.config.hosts` is empty and no
+    `Host` header checks will be done. If you want to guard against header
+    attacks on production, you have to manually permit the allowed hosts
+    with:
 
-   ```ruby
-   Rails.application.config.hosts << "product.com"
-   ```
+    ```ruby
+    Rails.application.config.hosts << "product.com"
+    ```
 
-   The host of a request is checked against the `hosts` entries with the case
-   operator (`#===`), which lets `hosts` support entries of type `Regexp`,
-   `Proc` and `IPAddr` to name a few. Here is an example with a regexp.
+    The host of a request is checked against the `hosts` entries with the case
+    operator (`#===`), which lets `hosts` support entries of type `Regexp`,
+    `Proc` and `IPAddr` to name a few. Here is an example with a regexp.
 
-   ```ruby
-   # Allow requests from subdomains like `www.product.com` and
-   # `beta1.product.com`.
-   Rails.application.config.hosts << /.*\.product\.com/
-   ```
+    ```ruby
+    # Allow requests from subdomains like `www.product.com` and
+    # `beta1.product.com`.
+    Rails.application.config.hosts << /.*\.product\.com/
+    ```
 
-   The provided regexp will be wrapped with both anchors (`\A` and `\z`) so it
-   must match the entire hostname. `/product.com/`, for example, once anchored,
-   would fail to match `www.product.com`.
+    The provided regexp will be wrapped with both anchors (`\A` and `\z`) so it
+    must match the entire hostname. `/product.com/`, for example, once anchored,
+    would fail to match `www.product.com`.
 
-   A special case is supported that allows you to permit all sub-domains:
+    A special case is supported that allows you to permit all sub-domains:
 
-   ```ruby
-   # Allow requests from subdomains like `www.product.com` and
-   # `beta1.product.com`.
-   Rails.application.config.hosts << ".product.com"
-   ```
+    ```ruby
+    # Allow requests from subdomains like `www.product.com` and
+    # `beta1.product.com`.
+    Rails.application.config.hosts << ".product.com"
+    ```
 
 * `ActionDispatch::SSL` forces every request to be served using HTTPS. Enabled if `config.force_ssl` is set to `true`. Options passed to this can be configured by setting `config.ssl_options`.
 * `ActionDispatch::Static` is used to serve static assets. Disabled if `config.public_file_server.enabled` is `false`. Set `config.public_file_server.index_name` if you need to serve a static directory index file that is not named `index`. For example, to serve `main.html` instead of `index.html` for directory requests, set `config.public_file_server.index_name` to `"main"`.
@@ -471,8 +471,8 @@ in controllers and views. This defaults to `false`.
   when traversing `belongs_to` to `has_many` associations.
 
 * `config.active_record.legacy_connection_handling` allows to enable new connection
-   handling API. For applications using multiple databases, this new API provides
-   support for granular connection swapping.
+  handling API. For applications using multiple databases, this new API provides
+  support for granular connection swapping.
 
 * `config.active_record.destroy_association_async_job` allows specifying the job that will be used to destroy the associated records in background. It defaults to `ActiveRecord::DestroyAssociationAsyncJob`.
 
@@ -613,29 +613,46 @@ Defaults to `'signed cookie'`.
 
 * `config.action_dispatch.rescue_responses` configures what exceptions are assigned to an HTTP status. It accepts a hash and you can specify pairs of exception/status. By default, this is defined as:
 
-  ```ruby
-  config.action_dispatch.rescue_responses = {
-    'ActionController::RoutingError'               => :not_found,
-    'AbstractController::ActionNotFound'           => :not_found,
-    'ActionController::MethodNotAllowed'           => :method_not_allowed,
-    'ActionController::UnknownHttpMethod'          => :method_not_allowed,
-    'ActionController::NotImplemented'             => :not_implemented,
-    'ActionController::UnknownFormat'              => :not_acceptable,
-    'ActionController::InvalidAuthenticityToken'   => :unprocessable_entity,
-    'ActionController::InvalidCrossOriginRequest'  => :unprocessable_entity,
-    'ActionDispatch::Http::Parameters::ParseError' => :bad_request,
-    'ActionController::BadRequest'                 => :bad_request,
-    'ActionController::ParameterMissing'           => :bad_request,
-    'Rack::QueryParser::ParameterTypeError'        => :bad_request,
-    'Rack::QueryParser::InvalidParameterError'     => :bad_request,
-    'ActiveRecord::RecordNotFound'                 => :not_found,
-    'ActiveRecord::StaleObjectError'               => :conflict,
-    'ActiveRecord::RecordInvalid'                  => :unprocessable_entity,
-    'ActiveRecord::RecordNotSaved'                 => :unprocessable_entity
-  }
-  ```
+    ```ruby
+    config.action_dispatch.rescue_responses = {
+      'ActionController::RoutingError'
+        => :not_found,
+      'AbstractController::ActionNotFound'
+        => :not_found,
+      'ActionController::MethodNotAllowed'
+        => :method_not_allowed,
+      'ActionController::UnknownHttpMethod'
+        => :method_not_allowed,
+      'ActionController::NotImplemented'
+        => :not_implemented,
+      'ActionController::UnknownFormat'
+        => :not_acceptable,
+      'ActionController::InvalidAuthenticityToken'
+        => :unprocessable_entity,
+      'ActionController::InvalidCrossOriginRequest'
+        => :unprocessable_entity,
+      'ActionDispatch::Http::Parameters::ParseError'
+        => :bad_request,
+      'ActionController::BadRequest'
+        => :bad_request,
+      'ActionController::ParameterMissing'
+        => :bad_request,
+      'Rack::QueryParser::ParameterTypeError'
+        => :bad_request,
+      'Rack::QueryParser::InvalidParameterError'
+        => :bad_request,
+      'ActiveRecord::RecordNotFound'
+        => :not_found,
+      'ActiveRecord::StaleObjectError'
+        => :conflict,
+      'ActiveRecord::RecordInvalid'
+        => :unprocessable_entity,
+      'ActiveRecord::RecordNotSaved'
+        => :unprocessable_entity
+    }
+    ```
 
-  Any exceptions that are not configured will be mapped to 500 Internal Server Error.
+    Any exceptions that are not configured will be mapped to 500 Internal Server Error.
 
 * `config.action_dispatch.cookies_same_site_protection` configures the default
   value of the `SameSite` attribute when setting cookies. When set to `nil`, the
@@ -717,16 +734,16 @@ Defaults to `'signed cookie'`.
 
 * `config.action_mailbox.logger` contains the logger used by Action Mailbox. It accepts a logger conforming to the interface of Log4r or the default Ruby Logger class. The default is `Rails.logger`.
 
-  ```ruby
-  config.action_mailbox.logger = ActiveSupport::Logger.new(STDOUT)
-  ```
+    ```ruby
+    config.action_mailbox.logger = ActiveSupport::Logger.new(STDOUT)
+    ```
 
 * `config.action_mailbox.incinerate_after` accepts an `ActiveSupport::Duration` indicating how long after processing `ActionMailbox::InboundEmail` records should be destroyed. It defaults to `30.days`.
 
-   ```ruby
-   # Incinerate inbound emails 14 days after processing.
-   config.action_mailbox.incinerate_after = 14.days
-   ```
+    ```ruby
+    # Incinerate inbound emails 14 days after processing.
+    config.action_mailbox.incinerate_after = 14.days
+    ```
 
 * `config.action_mailbox.queues.incineration` accepts a symbol indicating the Active Job queue to use for incineration jobs. When this option is `nil`, incineration jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). It defaults to `:action_mailbox_incineration`.
 
@@ -946,9 +963,9 @@ You can find more detailed configuration options in the
     * `:mutool` - The location of the mutool executable.
     * `:ffmpeg` - The location of the ffmpeg executable.
 
-   ```ruby
-   config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
-   ```
+    ```ruby
+    config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
+    ```
 
 * `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/pjpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp)`.
 
@@ -961,42 +978,43 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 * `config.active_storage.queues.analysis` accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
 
-   ```ruby
-   config.active_storage.queues.analysis = :low_priority
-   ```
+    ```ruby
+    config.active_storage.queues.analysis = :low_priority
+    ```
 
 * `config.active_storage.queues.purge` accepts a symbol indicating the Active Job queue to use for purge jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
 
-  ```ruby
-  config.active_storage.queues.purge = :low_priority
-  ```
+    ```ruby
+    config.active_storage.queues.purge = :low_priority
+    ```
 
 * `config.active_storage.queues.mirror` accepts a symbol indicating the Active Job queue to use for direct upload mirroring jobs. When this option is `nil`, mirroring jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
 
-  ```ruby
-  config.active_storage.queues.mirror = :low_priority
-  ```
+    ```ruby
+    config.active_storage.queues.mirror = :low_priority
+    ```
 
 * `config.active_storage.logger` can be used to set the logger used by Active Storage. Accepts a logger conforming to the interface of Log4r or the default Ruby Logger class.
 
-  ```ruby
-  config.active_storage.logger = ActiveSupport::Logger.new(STDOUT)
-  ```
+    ```ruby
+    config.active_storage.logger = ActiveSupport::Logger.new(STDOUT)
+    ```
 
 * `config.active_storage.service_urls_expire_in` determines the default expiry of URLs generated by:
-  * `ActiveStorage::Blob#url`
-  * `ActiveStorage::Blob#service_url_for_direct_upload`
-  * `ActiveStorage::Variant#url`
 
-  The default is 5 minutes.
+    * `ActiveStorage::Blob#url`
+    * `ActiveStorage::Blob#service_url_for_direct_upload`
+    * `ActiveStorage::Variant#url`
+
+    The default is 5 minutes.
 
 * `config.active_storage.routes_prefix` can be used to set the route prefix for the routes served by Active Storage. Accepts a string that will be prepended to the generated routes.
 
-  ```ruby
-  config.active_storage.routes_prefix = '/files'
-  ```
+    ```ruby
+    config.active_storage.routes_prefix = '/files'
+    ```
 
-  The default is `/rails/active_storage`.
+    The default is `/rails/active_storage`.
 
 * `config.active_storage.replace_on_assign_to_many` determines whether assigning to a collection of attachments declared with `has_many_attached` replaces any existing attachments or appends to them. The default is `true`.
 
@@ -1006,11 +1024,12 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 * `config.active_storage.resolve_model_to_route` can be used to globally change how Active Storage files are delivered.
 
-  Allowed values are:
-  * `:rails_storage_redirect`: Redirect to signed, short-lived service URLs.
-  * `:rails_storage_proxy`: Proxy files by downloading them.
+    Allowed values are:
 
-  The default is `:rails_storage_redirect`.
+    * `:rails_storage_redirect`: Redirect to signed, short-lived service URLs.
+    * `:rails_storage_proxy`: Proxy files by downloading them.
+
+    The default is `:rails_storage_redirect`.
 
 ### Results of `config.load_defaults`
 

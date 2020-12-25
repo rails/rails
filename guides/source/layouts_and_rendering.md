@@ -1209,27 +1209,27 @@ To pass a local variable to a partial in only specific cases use the `local_assi
 
 * `index.html.erb`
 
-  ```erb
-  <%= render user.articles %>
-  ```
+    ```erb
+    <%= render user.articles %>
+    ```
 
 * `show.html.erb`
 
-  ```erb
-  <%= render article, full: true %>
-  ```
+    ```erb
+    <%= render article, full: true %>
+    ```
 
 * `_article.html.erb`
 
-  ```erb
-  <h2><%= article.title %></h2>
+    ```erb
+    <h2><%= article.title %></h2>
 
-  <% if local_assigns[:full] %>
-    <%= simple_format article.body %>
-  <% else %>
-    <%= truncate article.body %>
-  <% end %>
-  ```
+    <% if local_assigns[:full] %>
+      <%= simple_format article.body %>
+    <% else %>
+      <%= truncate article.body %>
+    <% end %>
+    ```
 
 This way it is possible to use the partial without the need to declare all local variables.
 
