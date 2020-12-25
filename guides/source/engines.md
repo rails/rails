@@ -1341,7 +1341,7 @@ Pipeline require statements in processed files:
 ```css
 /*
  *= require blorgh/style
-*/
+ */
 ```
 
 INFO. Remember that in order to use languages like Sass or CoffeeScript, you
