@@ -361,13 +361,13 @@ escaped so that the generated output is valid ERB code.
 For example, the following escaped ERB tag would be needed in the template
 (note the extra `%`)...
 
-```ruby
+```erb
 <%%= stylesheet_include_tag :application %>
 ```
 
 ...to generate the following output:
 
-```ruby
+```erb
 <%= stylesheet_include_tag :application %>
 ```
 

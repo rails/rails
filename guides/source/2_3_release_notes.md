@@ -434,7 +434,7 @@ grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]],
 
 returns
 
-```ruby
+```html
 <option value="">Choose a product...</option>
 <optgroup label="Hats">
   <option value="Baseball Cap">Baseball Cap</option>
