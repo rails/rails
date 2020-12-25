@@ -109,17 +109,17 @@ Caching is not used in the following scenarios:
 - The model uses single table inheritance
 - `find` with a list of ids, e.g.:
 
-  ```ruby
-  # not cached
-  Post.find(1, 2, 3)
-  Post.find([1,2])
-  ```
+    ```ruby
+    # not cached
+    Post.find(1, 2, 3)
+    Post.find([1,2])
+    ```
 
 - `find_by` with SQL fragments:
 
-  ```ruby
-  Post.find_by('published_at < ?', 2.weeks.ago)
-  ```
+    ```ruby
+    Post.find_by('published_at < ?', 2.weeks.ago)
+    ```
 
 ### Web Console
 
