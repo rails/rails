@@ -1,7 +1,18 @@
+*   Remove support for generating `<a data-method="post">`, and delegate
+    `link_to ..., method: ...` calls to use `button_to` instead.
+
+        link_to("Destroy", "http://www.example.com", method: :delete)
+        # => <form action="http://www.example.com" method="post">
+        # =>   <input type="hidden" name="_method">
+        # =>   <input type="submit" role="link" value="Destroy">
+        # => </form>
+
+    *Sean Doyle*
+
 *   Add `config.action_view.preload_links_header` to allow disabling of
     the `Link` header being added by default when using `stylesheet_link_tag`
     and `javascript_include_tag`.
-    
+
     *Andrew White*
 
 *   The `translate` helper now resolves `default` values when a `nil` key is

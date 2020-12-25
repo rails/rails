@@ -50,6 +50,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   include RenderERBUtils
 
   setup :_prepare_context
+  setup { ActionView::Helpers::UrlHelper.button_to_class = "button_to" }
 
   def hash_for(options = {})
     { controller: "foo", action: "bar" }.merge!(options)
@@ -412,45 +413,70 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
-  def test_link_tag_using_post_javascript
+  def test_link_tag_using_post
     assert_dom_equal(
-      %{<a href="http://www.example.com" data-method="post" rel="nofollow">Hello</a>},
+      %{<form method="post" action="http://www.example.com"><input role="link" type="submit" value="Hello" /></form>},
       link_to("Hello", "http://www.example.com", method: :post)
     )
   end
 
-  def test_link_tag_using_delete_javascript
+  def test_link_tag_using_delete
     assert_dom_equal(
-      %{<a href="http://www.example.com" rel="nofollow" data-method="delete">Destroy</a>},
+      %{<form method="post" action="http://www.example.com"><input type="hidden" name="_method" value="delete" /><input role="link" type="submit" value="Destroy" /></form>},
       link_to("Destroy", "http://www.example.com", method: :delete)
     )
   end
 
-  def test_link_tag_using_delete_javascript_and_href
+  def test_link_tag_using_delete_and_href
     assert_dom_equal(
-      %{<a href="\#" rel="nofollow" data-method="delete">Destroy</a>},
+      %{<form method="post" action="#"><input type="hidden" name="_method" value="delete" /><input role="link" type="submit" value="Destroy" /></form>},
       link_to("Destroy", "http://www.example.com", method: :delete, href: "#")
     )
   end
 
-  def test_link_tag_using_post_javascript_and_rel
+  def test_link_tag_using_post_and_rel
     assert_dom_equal(
-      %{<a href="http://www.example.com" data-method="post" rel="example nofollow">Hello</a>},
+      %{<form method="post" action="http://www.example.com" rel="example"><input role="link" type="submit" value="Hello" /></form>},
       link_to("Hello", "http://www.example.com", method: :post, rel: "example")
     )
   end
 
-  def test_link_tag_using_post_javascript_and_confirm
+  def test_link_tag_using_post_and_confirm
     assert_dom_equal(
-      %{<a href="http://www.example.com" data-method="post" rel="nofollow" data-confirm="Are you serious?">Hello</a>},
+      %{<form method="post" action="http://www.example.com"><input role="link" type="submit" data-confirm="Are you serious?" value="Hello" /></form>},
       link_to("Hello", "http://www.example.com", method: :post, data: { confirm: "Are you serious?" })
     )
   end
 
-  def test_link_tag_using_delete_javascript_and_href_and_confirm
+  def test_link_tag_using_delete_and_href_and_confirm
     assert_dom_equal(
-      %{<a href="\#" rel="nofollow" data-confirm="Are you serious?" data-method="delete">Destroy</a>},
+      %{<form method="post" action="#"><input type="hidden" name="_method" value="delete" /><input role="link" type="submit" data-confirm="Are you serious?" value="Destroy" /></form>},
       link_to("Destroy", "http://www.example.com", method: :delete, href: "#", data: { confirm: "Are you serious?" })
+    )
+  end
+
+  def test_link_tag_using_post_with_block
+    assert_dom_equal %{<form method="post" action="/"><button role="link" type="submit"><span>Example site</span></button></form>},
+      link_to("/", method: :post) { content_tag(:span, "Example site") }
+  end
+
+  def test_link_tag_using_post_and_configured_class
+    link_to_class, ActionView::Helpers::UrlHelper.link_to_class = ActionView::Helpers::UrlHelper.link_to_class, "link-class-name"
+
+    assert_dom_equal(
+      %{<form method="post" action="/"><input class="link-class-name" role="link" type="submit" value="Hello"></form>},
+      link_to("Hello", "/", method: :post)
+    )
+  ensure
+    ActionView::Helpers::UrlHelper.link_to_class = link_to_class
+  end
+
+  def test_link_tag_using_post_and_nil_configured_class
+    ActionView::Helpers::UrlHelper.link_to_class = nil
+
+    assert_dom_equal(
+      %{<form method="post" action="/"><input role="link" type="submit" value="Hello"></form>},
+      link_to("Hello", "/", method: :post)
     )
   end
 

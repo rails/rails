@@ -23,6 +23,9 @@ module ActionView
 
       include TagHelper
 
+      cattr_accessor :button_to_class
+      cattr_accessor :link_to_class
+
       module ClassMethods
         def _url_for_modules
           ActionView::RoutingUrlFor
@@ -85,16 +88,11 @@ module ActionView
       #
       # ==== Options
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>method: symbol of HTTP verb</tt> - This modifier will dynamically
-      #   create an HTML form and immediately submit the form for processing using
-      #   the HTTP verb specified. Useful for having links perform a POST operation
-      #   in dangerous actions like deleting a record (which search bots can follow
-      #   while spidering your site). Supported verbs are <tt>:post</tt>, <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>.
-      #   Note that if the user has JavaScript disabled, the request will fall back
-      #   to using GET. If <tt>href: '#'</tt> is used and the user has JavaScript
-      #   disabled clicking the link will have no effect. If you are relying on the
-      #   POST behavior, you should check for it in your controller's action by using
-      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt>, <tt>patch?</tt>, or <tt>put?</tt>.
+      # * <tt>method: symbol of HTTP verb</tt> - When present, this modifier will
+      #   create an HTML <tt><form></tt> and <tt><input type="submit"></tt> button.
+      #   Useful for having links perform a HTTP requests other than
+      #   <tt>GET</tt> for destructive actions like deleting a record. Supported
+      #   verbs are <tt>:post</tt>, <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>.
       # * <tt>remote: true</tt> - This will allow the unobtrusive JavaScript
       #   driver to make an Ajax request to the URL in question instead of following
       #   the link. The drivers each provide mechanisms for listening for the
@@ -182,7 +180,10 @@ module ActionView
       # The only option specific to +link_to+ (<tt>:method</tt>) is used as follows:
       #
       #   link_to("Destroy", "http://www.example.com", method: :delete)
-      #   # => <a href='http://www.example.com' rel="nofollow" data-method="delete">Destroy</a>
+      #   # => <form action="http://www.example.com" method="post">
+      #   # =>   <input type="hidden" name="_method">
+      #   # =>   <input type="submit" role="link" value="Destroy">
+      #   # => </form>
       #
       # You can also use custom data attributes using the <tt>:data</tt> option:
       #
@@ -197,12 +198,24 @@ module ActionView
         html_options, options, name = options, name, block if block_given?
         options ||= {}
 
+        method = delete_from_options(:method, options) || delete_from_options(:method, html_options)
         html_options = convert_options_to_data_attributes(options, html_options)
-
         url = url_for(options)
-        html_options["href"] ||= url
+        href = html_options.delete("href")
+        rel = html_options.delete("rel")
 
-        content_tag("a", name || url, html_options, &block)
+        if method
+          classes = class_names(html_options.delete("class"), link_to_class)
+          defaults = { "class" => classes.presence, "role" => "link", "method" => method, "form_class" => "", "form" => { "rel" => rel } }
+
+          if block_given?
+            button_to(href || url, html_options.with_defaults(defaults), &block)
+          else
+            button_to(name || url, href || url, html_options.with_defaults(defaults))
+          end
+        else
+          content_tag("a", name || url, html_options.with_defaults("href" => href || url, "rel" => rel), &block)
+        end
       end
 
       # Generates a form containing a single button that submits to the URL created
@@ -311,8 +324,9 @@ module ActionView
         method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : "".html_safe
 
         form_method  = method == "get" ? "get" : "post"
+        form_class   = html_options.delete("form_class")
         form_options = html_options.delete("form") || {}
-        form_options[:class] ||= html_options.delete("form_class") || "button_to"
+        form_options[:class] ||= form_class.nil? ? button_to_class : form_class.presence
         form_options[:method] = form_method
         form_options[:action] = url
         form_options[:'data-remote'] = true if remote
@@ -671,10 +685,6 @@ module ActionView
             html_options = html_options.stringify_keys
             html_options["data-remote"] = "true" if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
-            method = html_options.delete("method")
-
-            add_method_to_attributes!(html_options, method) if method
-
             html_options
           else
             link_to_remote_options?(options) ? { "data-remote" => "true" } : {}
@@ -682,20 +692,13 @@ module ActionView
         end
 
         def link_to_remote_options?(options)
-          if options.is_a?(Hash)
-            options.delete("remote") || options.delete(:remote)
-          end
+          delete_from_options(:remote, options)
         end
 
-        def add_method_to_attributes!(html_options, method)
-          if method_not_get_method?(method) && !html_options["rel"]&.match?(/nofollow/)
-            if html_options["rel"].blank?
-              html_options["rel"] = "nofollow"
-            else
-              html_options["rel"] = "#{html_options["rel"]} nofollow"
-            end
+        def delete_from_options(key, options)
+          if options.is_a?(Hash)
+            options.delete(key.to_s) || options.delete(key)
           end
-          html_options["data-method"] = method
         end
 
         STRINGIFIED_COMMON_METHODS = {

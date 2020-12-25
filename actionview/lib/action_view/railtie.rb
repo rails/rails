@@ -40,6 +40,11 @@ module ActionView
     end
 
     config.after_initialize do |app|
+      ActionView::Helpers::UrlHelper.link_to_class = app.config.action_view.delete(:link_to_class)
+      ActionView::Helpers::UrlHelper.button_to_class = app.config.action_view.delete(:button_to_class) || "button_to"
+    end
+
+    config.after_initialize do |app|
       ActionView::Helpers::AssetTagHelper.image_loading = app.config.action_view.delete(:image_loading)
       ActionView::Helpers::AssetTagHelper.image_decoding = app.config.action_view.delete(:image_decoding)
       ActionView::Helpers::AssetTagHelper.preload_links_header = app.config.action_view.delete(:preload_links_header)

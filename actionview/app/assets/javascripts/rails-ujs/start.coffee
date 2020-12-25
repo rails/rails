@@ -6,7 +6,6 @@
   enableElement, disableElement, handleDisabledElement
   handleConfirm, preventInsignificantClick
   handleRemote, formSubmitButtonClick,
-  handleMethod
 } = Rails
 
 # For backward compatibility
@@ -41,7 +40,6 @@ Rails.start = ->
   delegate document, Rails.linkClickSelector, 'click', handleConfirm
   delegate document, Rails.linkClickSelector, 'click', disableElement
   delegate document, Rails.linkClickSelector, 'click', handleRemote
-  delegate document, Rails.linkClickSelector, 'click', handleMethod
 
   delegate document, Rails.buttonClickSelector, 'click', preventInsignificantClick
   delegate document, Rails.buttonClickSelector, 'click', handleDisabledElement
