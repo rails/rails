@@ -201,12 +201,16 @@ module ActionView
         method = delete_from_options(:method, options) || delete_from_options(:method, html_options)
         html_options = convert_options_to_data_attributes(options, html_options)
         url = url_for(options)
-        href = html_options.delete("href")
-        rel = html_options.delete("rel")
 
-        if method
-          classes = class_names(html_options.delete("class"), link_to_class)
-          defaults = { "class" => classes.presence, "role" => "link", "method" => method, "form_class" => "", "form" => { "rel" => rel } }
+        if method.present?
+          href, rel, classes = %w[href rel class].map { |name| html_options.delete(name) }
+          defaults = {
+            "class" => class_names(classes, link_to_class).presence,
+            "role" => "link",
+            "method" => method,
+            "form_class" => "",
+            "form" => { "rel" => rel }
+          }
 
           if block_given?
             button_to(href || url, html_options.with_defaults(defaults), &block)
@@ -214,7 +218,7 @@ module ActionView
             button_to(name || url, href || url, html_options.with_defaults(defaults))
           end
         else
-          content_tag("a", name || url, html_options.with_defaults("href" => href || url, "rel" => rel), &block)
+          content_tag("a", name || url, html_options.with_defaults("href" => url), &block)
         end
       end
 
