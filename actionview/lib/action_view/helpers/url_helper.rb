@@ -208,7 +208,7 @@ module ActionView
             "class" => class_names(classes, link_to_class).presence,
             "role" => "link",
             "method" => method,
-            "form_class" => "",
+            "form_class" => [],
             "form" => { "rel" => rel }
           }
 
@@ -328,9 +328,8 @@ module ActionView
         method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : "".html_safe
 
         form_method  = method == "get" ? "get" : "post"
-        form_class   = html_options.delete("form_class")
         form_options = html_options.delete("form") || {}
-        form_options[:class] ||= form_class.nil? ? button_to_class : form_class.presence
+        form_options[:class] ||= (html_options.delete("form_class") || button_to_class).presence
         form_options[:method] = form_method
         form_options[:action] = url
         form_options[:'data-remote'] = true if remote
