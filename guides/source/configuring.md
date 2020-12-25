@@ -1697,7 +1697,7 @@ These configuration points are then available through the configuration object:
 You can also use `Rails::Application.config_for` to load whole configuration files:
 
   ```yaml
-  # config/payment.yml:
+  # config/payment.yml
   production:
     environment: production
     merchant_id: production_merchant_id
@@ -1709,7 +1709,9 @@ You can also use `Rails::Application.config_for` to load whole configuration fil
     merchant_id: development_merchant_id
     public_key:  development_public_key
     private_key: development_private_key
+  ```
 
+  ```ruby
   # config/application.rb
   module MyApp
     class Application < Rails::Application

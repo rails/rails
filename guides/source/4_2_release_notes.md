@@ -396,15 +396,17 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Introduced `Rails::Application.config_for` to load a configuration for the
     current environment.
 
-    ```ruby
-    # config/exception_notification.yml:
+    ```yaml
+    # config/exception_notification.yml
     production:
       url: http://127.0.0.1:8080
       namespace: my_app_production
     development:
       url: http://localhost:3001
       namespace: my_app_development
+    ```
 
+    ```ruby
     # config/environments/production.rb
     Rails.application.configure do
       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
