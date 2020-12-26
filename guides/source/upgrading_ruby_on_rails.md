@@ -110,13 +110,15 @@ The Content-Type will now be based on the given block rather than the request's 
 Example:
 
 ```ruby
-  def my_action
-    respond_to do |format|
-      format.any { render(json: { foo: 'bar' }) }
-    end
+def my_action
+  respond_to do |format|
+    format.any { render(json: { foo: 'bar' }) }
   end
+end
+```
 
-  get('my_action.csv')
+```ruby
+get('my_action.csv')
 ```
 
 Previous behaviour was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
@@ -126,7 +128,7 @@ If your application relies on the previous incorrect behaviour, you are encourag
 which formats your action accepts, i.e.
 
 ```ruby
-  format.any(:xml, :json) { render request.format.to_sym => @people }
+format.any(:xml, :json) { render request.format.to_sym => @people }
 ```
 
 ### `ActiveSupport::Callbacks#halted_callback_hook` now receive a second argument
@@ -139,14 +141,14 @@ change without a prior deprecation cycle (for performance reasons).
 Example:
 
 ```ruby
-  class Book < ApplicationRecord
-    before_save { throw(:abort) }
-    before_create { throw(:abort) }
+class Book < ApplicationRecord
+  before_save { throw(:abort) }
+  before_create { throw(:abort) }
 
-    def halted_callback_hook(filter, callback_name) # => This method now accepts 2 arguments instead of 1
-      Rails.logger.info("Book couldn't be #{callback_name}d")
-    end
+  def halted_callback_hook(filter, callback_name) # => This method now accepts 2 arguments instead of 1
+    Rails.logger.info("Book couldn't be #{callback_name}d")
   end
+end
 ```
 
 ### The `helper` class method in controllers uses `String#constantize`

@@ -1673,70 +1673,73 @@ The key difference between these two is that you should be using `config.x` if y
 are defining _nested_ configuration (ex: `config.x.nested.hi`), and just
 `config` for _single level_ configuration (ex: `config.hello`).
 
-  ```ruby
-  config.x.payment_processing.schedule = :daily
-  config.x.payment_processing.retries  = 3
-  config.super_debugger = true
-  ```
+```ruby
+config.x.payment_processing.schedule = :daily
+config.x.payment_processing.retries  = 3
+config.super_debugger = true
+```
 
 These configuration points are then available through the configuration object:
 
-  ```ruby
-  Rails.configuration.x.payment_processing.schedule # => :daily
-  Rails.configuration.x.payment_processing.retries  # => 3
-  Rails.configuration.x.payment_processing.not_set  # => nil
-  Rails.configuration.super_debugger                # => true
-  ```
+```ruby
+Rails.configuration.x.payment_processing.schedule # => :daily
+Rails.configuration.x.payment_processing.retries  # => 3
+Rails.configuration.x.payment_processing.not_set  # => nil
+Rails.configuration.super_debugger                # => true
+```
 
 You can also use `Rails::Application.config_for` to load whole configuration files:
 
-  ```yaml
-  # config/payment.yml:
-  production:
-    environment: production
-    merchant_id: production_merchant_id
-    public_key:  production_public_key
-    private_key: production_private_key
+```yaml
+# config/payment.yml:
+production:
+  environment: production
+  merchant_id: production_merchant_id
+  public_key:  production_public_key
+  private_key: production_private_key
 
-  development:
-    environment: sandbox
-    merchant_id: development_merchant_id
-    public_key:  development_public_key
-    private_key: development_private_key
+development:
+  environment: sandbox
+  merchant_id: development_merchant_id
+  public_key:  development_public_key
+  private_key: development_private_key
+```
 
-  # config/application.rb
-  module MyApp
-    class Application < Rails::Application
-      config.payment = config_for(:payment)
-    end
+```ruby
+# config/application.rb
+module MyApp
+  class Application < Rails::Application
+    config.payment = config_for(:payment)
   end
-  ```
+end
+```
 
-  ```ruby
-  Rails.configuration.payment['merchant_id'] # => production_merchant_id or development_merchant_id
-  ```
+```ruby
+Rails.configuration.payment['merchant_id'] # => production_merchant_id or development_merchant_id
+```
+
 `Rails::Application.config_for` supports a `shared` configuration to group common
 configurations. The shared configuration will be merged into the environment
 configuration.
 
-  ```yaml
-  # config/example.yml
-  shared:
-    foo:
-      bar:
-        baz: 1
+```yaml
+# config/example.yml
+shared:
+  foo:
+    bar:
+      baz: 1
 
-  development:
-    foo:
-      bar:
-        qux: 2
-  ```
+development:
+  foo:
+    bar:
+      qux: 2
+```
 
 
-  ```ruby
-  # development environment
-  Rails.application.config_for(:example)[:foo][:bar] #=> { baz: 1, qux: 2 }
-  ```
+```ruby
+# development environment
+Rails.application.config_for(:example)[:foo][:bar] #=> { baz: 1, qux: 2 }
+```
 
 Search Engines Indexing
 -----------------------

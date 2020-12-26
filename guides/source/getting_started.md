@@ -1711,10 +1711,10 @@ Concerns are a way to make large controllers or models easier to understand and 
 
 You can use concerns in your controller or model the same way you would use any module. When you first created your app with `rails new blog`, two folders were created within `app/` along with the rest:
 
- ```
- app/controllers/concerns
- app/models/concerns
- ```
+```
+app/controllers/concerns
+app/models/concerns
+```
 
 A given blog article might have various statuses - for instance, it might be visible to everyone (i.e. `public`), or only visible to the author (i.e. `private`). It may also be hidden to all but still retrievable (i.e. `archived`). Comments may similarly be hidden or visible. This could be represented using a `status` column in each model.
 
@@ -1938,8 +1938,8 @@ So first, let's add the delete link in the
 
 <p>
   <%= link_to 'Destroy Comment', [comment.article, comment],
-               method: :delete,
-               data: { confirm: "Are you sure?" } %>
+              method: :delete,
+              data: { confirm: "Are you sure?" } %>
 </p>
 ```
 

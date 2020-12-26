@@ -210,11 +210,11 @@ CREATE TYPE full_address AS
 ```ruby
 # db/migrate/20140207133952_create_contacts.rb
 execute <<-SQL
- CREATE TYPE full_address AS
- (
-   city VARCHAR(90),
-   street VARCHAR(90)
- );
+  CREATE TYPE full_address AS
+  (
+    city VARCHAR(90),
+    street VARCHAR(90)
+  );
 SQL
 create_table :contacts do |t|
   t.column :address, :full_address
