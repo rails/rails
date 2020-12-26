@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
-require "chdir_helpers"
 
 module ApplicationTests
   module RakeTests
     class TmpTest < ActiveSupport::TestCase
-      include ActiveSupport::Testing::Isolation, ChdirHelpers
+      include ActiveSupport::Testing::Isolation
 
       def setup
         build_app
@@ -17,7 +16,7 @@ module ApplicationTests
       end
 
       test "tmp:clear clear cache, socket and screenshot files" do
-        chdir(app_path) do
+        Dir.chdir(app_path) do
           FileUtils.mkdir_p("tmp/cache")
           FileUtils.touch("tmp/cache/cache_file")
 
