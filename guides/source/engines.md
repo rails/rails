@@ -244,7 +244,7 @@ not your engine's application controller. Ruby is able to resolve the `Applicati
 The best way to prevent this from happening is to use `require_dependency` to ensure that the engine's application
 controller is loaded. For example:
 
-``` ruby
+```ruby
 # app/controllers/blorgh/articles_controller.rb:
 require_dependency "blorgh/application_controller"
 

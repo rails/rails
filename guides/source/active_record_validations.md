@@ -1177,7 +1177,7 @@ class Person < ApplicationRecord
 end
 ```
 
-```irb>
+```irb
 irb> person = Person.new(name: "John Doe")
 irb> person.valid?
 => true
@@ -1357,7 +1357,7 @@ it generates that displays the full list of errors on that model.
 Assuming we have a model that's been saved in an instance variable named
 `@article`, it looks like this:
 
-```ruby
+```html+erb
 <% if @article.errors.any? %>
   <div id="error_explanation">
     <h2><%= pluralize(@article.errors.count, "error") %> prohibited this article from being saved:</h2>

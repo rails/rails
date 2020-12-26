@@ -2183,7 +2183,7 @@ The [`collection.clear`][] method removes every object from the collection by de
 
 The [`collection.empty?`][] method returns `true` if the collection does not contain any associated objects.
 
-```ruby
+```html+erb
 <% if @part.assemblies.empty? %>
   This part is not used in any assemblies
 <% end %>

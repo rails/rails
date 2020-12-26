@@ -628,7 +628,7 @@ config.asset_host = 'http://example.com'
 
 Now you can display an image inside your email.
 
-```ruby
+```html+erb
 <%= image_tag 'image.jpg' %>
 ```
 
