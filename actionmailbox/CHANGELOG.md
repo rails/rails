@@ -1,3 +1,7 @@
+Allow for ActionMailbox to use a different storage service rather than ActiveStorage's defaults.
+
+*Matt*
+
 ## Rails 6.1.0 (December 09, 2020) ##
 
 *   Change default queue name of the incineration (`:action_mailbox_incineration`) and
