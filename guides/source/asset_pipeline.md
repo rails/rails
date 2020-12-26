@@ -468,9 +468,9 @@ which contains these lines:
 
 ```css
 /* ...
-*= require_self
-*= require_tree .
-*/
+ *= require_self
+ *= require_tree .
+ */
 ```
 
 Rails creates `app/assets/stylesheets/application.css` regardless of whether the
@@ -501,10 +501,10 @@ might concatenate three CSS files together this way:
 
 ```js
 /* ...
-*= require reset
-*= require layout
-*= require chrome
-*/
+ *= require reset
+ *= require layout
+ *= require chrome
+ */
 ```
 
 ### Preprocessing
