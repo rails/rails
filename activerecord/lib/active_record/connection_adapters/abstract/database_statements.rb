@@ -127,7 +127,7 @@ module ActiveRecord
       # Executes insert +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning = [])
+      def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning = nil)
         sql, binds = sql_for_insert(sql, pk, binds, returning)
         exec_query(sql, name, binds)
       end
@@ -165,11 +165,11 @@ module ActiveRecord
       #
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
-      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning = [])
+      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning = nil)
         sql, binds = to_sql_and_binds(arel, binds)
         value = exec_insert(sql, name, binds, pk, sequence_name, returning)
 
-        if returning.empty?
+        if returning.nil?
           id_value || last_inserted_id(value)
         else
           { "id" => id_value }.merge(last_inserted_values(value))

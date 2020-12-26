@@ -77,18 +77,19 @@ module ActiveRecord
           end
 
           if pk = suppress_composite_primary_key(pk)
-            returning.unshift(quote_column_name(pk))
-          end
-
-          if returning.present?
-            sql = "#{sql} RETURNING #{returning.join(', ')}"
+            if returning.present?
+              returning.unshift(quote_column_name(pk))
+              sql = "#{sql} RETURNING #{returning.join(', ')}"
+            else
+              sql = "#{sql} RETURNING #{quote_column_name(pk)}"
+            end
           end
 
           super
         end
         private :sql_for_insert
 
-        def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning = [])
+        def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning = nil)
           if use_insert_returning? || pk == false
             super
           else
