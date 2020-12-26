@@ -1085,13 +1085,13 @@ Partial templates - usually just called "partials" - are another device for brea
 
 To render a partial as part of a view, you use the [`render`][view.render] method within the view:
 
-```ruby
+```html+erb
 <%= render "menu" %>
 ```
 
 This will render a file named `_menu.html.erb` at that point within the view being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
 
-```ruby
+```html+erb
 <%= render "shared/menu" %>
 ```
 

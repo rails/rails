@@ -716,7 +716,9 @@ warning about this upcoming change.
 When you are ready, you can opt into the new behavior and remove the deprecation
 warning by adding the following configuration to your `config/application.rb`:
 
-    ActiveSupport.halt_callback_chains_on_return_false = false
+```ruby
+ActiveSupport.halt_callback_chains_on_return_false = false
+```
 
 Note that this option will not affect Active Support callbacks since they never
 halted the chain when any value was returned.
@@ -808,7 +810,9 @@ parameters are already permitted, then you will not need to make any changes. If
 and other methods that depend on being able to read the hash regardless of `permitted?` you will
 need to upgrade your application to first permit and then convert to a hash.
 
-    params.permit([:proceed_to, :return_to]).to_h
+```ruby
+params.permit([:proceed_to, :return_to]).to_h
+```
 
 ### `protect_from_forgery` Now Defaults to `prepend: false`
 
@@ -912,7 +916,9 @@ This can be turned off per-association with `optional: true`.
 This default will be automatically configured in new applications. If an existing application
 wants to add this feature it will need to be turned on in an initializer:
 
-    config.active_record.belongs_to_required_by_default = true
+```ruby
+config.active_record.belongs_to_required_by_default = true
+```
 
 The configuration is by default global for all your models, but you can
 override it on a per model basis. This should help you migrate all your models to have their
@@ -940,7 +946,9 @@ Rails 5 now supports per-form CSRF tokens to mitigate against code-injection att
 created by JavaScript. With this option turned on, forms in your application will each have their
 own CSRF token that is specific to the action and method for that form.
 
-    config.action_controller.per_form_csrf_tokens = true
+```ruby
+config.action_controller.per_form_csrf_tokens = true
+```
 
 #### Forgery Protection with Origin Check
 
@@ -948,40 +956,52 @@ You can now configure your application to check if the HTTP `Origin` header shou
 against the site's origin as an additional CSRF defense. Set the following in your config to
 true:
 
-    config.action_controller.forgery_protection_origin_check = true
+```ruby
+config.action_controller.forgery_protection_origin_check = true
+```
 
 #### Allow Configuration of Action Mailer Queue Name
 
 The default mailer queue name is `mailers`. This configuration option allows you to globally change
 the queue name. Set the following in your config:
 
-    config.action_mailer.deliver_later_queue_name = :new_queue_name
+```ruby
+config.action_mailer.deliver_later_queue_name = :new_queue_name
+```
 
 #### Support Fragment Caching in Action Mailer Views
 
 Set `config.action_mailer.perform_caching` in your config to determine whether your Action Mailer views
 should support caching.
 
-    config.action_mailer.perform_caching = true
+```ruby
+config.action_mailer.perform_caching = true
+```
 
 #### Configure the Output of `db:structure:dump`
 
 If you're using `schema_search_path` or other PostgreSQL extensions, you can control how the schema is
 dumped. Set to `:all` to generate all dumps, or to `:schema_search_path` to generate from schema search path.
 
-    config.active_record.dump_schemas = :all
+```ruby
+config.active_record.dump_schemas = :all
+```
 
 #### Configure SSL Options to Enable HSTS with Subdomains
 
 Set the following in your config to enable HSTS when using subdomains:
 
-    config.ssl_options = { hsts: { subdomains: true } }
+```ruby
+config.ssl_options = { hsts: { subdomains: true } }
+```
 
 #### Preserve Timezone of the Receiver
 
 When using Ruby 2.4, you can preserve the timezone of the receiver when calling `to_time`.
 
-    ActiveSupport.to_time_preserves_timezone = false
+```ruby
+ActiveSupport.to_time_preserves_timezone = false
+```
 
 ### Changes with JSON/JSONB serialization
 
@@ -1048,7 +1068,9 @@ you are ready, you can opt into the new behavior and remove the
 deprecation warning by adding following configuration to your
 `config/application.rb`:
 
-    config.active_record.raise_in_transactional_callbacks = true
+```ruby
+config.active_record.raise_in_transactional_callbacks = true
+```
 
 See [#14488](https://github.com/rails/rails/pull/14488) and
 [#16537](https://github.com/rails/rails/pull/16537) for more details.

@@ -104,7 +104,7 @@ Secrets will be decrypted in production, using a key stored either in the
 Allows specifying common parameters used for all methods in a mailer class in
 order to share instance variables, headers, and other common setup.
 
-``` ruby
+```ruby
 class InvitationsMailer < ApplicationMailer
   before_action { @inviter, @invitee = params[:inviter], params[:invitee] }
   before_action { @account = params[:inviter].account }
@@ -125,13 +125,13 @@ InvitationsMailer.with(inviter: person_a, invitee: person_b)
 Rails 5.1 adds two new methods, `resolve` and `direct`, to the routing
 DSL. The `resolve` method allows customizing polymorphic mapping of models.
 
-``` ruby
+```ruby
 resource :basket
 
 resolve("Basket") { [:basket] }
 ```
 
-``` erb
+```erb
 <%= form_for @basket do |form| %>
   <!-- basket form -->
 <% end %>
@@ -141,7 +141,7 @@ This will generate the singular URL `/basket` instead of the usual `/baskets/:id
 
 The `direct` method allows creation of custom URL helpers.
 
-``` ruby
+```ruby
 direct(:homepage) { "http://www.rubyonrails.org" }
 
 homepage_url # => "http://www.rubyonrails.org"
@@ -151,7 +151,7 @@ The return value of the block must be a valid argument for the `url_for`
 method. So, you can pass a valid string URL, Hash, Array, an
 Active Model instance, or an Active Model class.
 
-``` ruby
+```ruby
 direct :commentable do |model|
   [ model, anchor: model.dom_id ]
 end
@@ -173,7 +173,7 @@ can generate form tags based on URLs, scopes, or models.
 
 Using just a URL:
 
-``` erb
+```erb
 <%= form_with url: posts_path do |form| %>
   <%= form.text_field :title %>
 <% end %>
@@ -187,7 +187,7 @@ Using just a URL:
 
 Adding a scope prefixes the input field names:
 
-``` erb
+```erb
 <%= form_with scope: :post, url: posts_path do |form| %>
   <%= form.text_field :title %>
 <% end %>
@@ -201,7 +201,7 @@ Adding a scope prefixes the input field names:
 
 Using a model infers both the URL and scope:
 
-``` erb
+```erb
 <%= form_with model: Post.new do |form| %>
   <%= form.text_field :title %>
 <% end %>
@@ -215,7 +215,7 @@ Using a model infers both the URL and scope:
 
 An existing model makes an update form and fills out field values:
 
-``` erb
+```erb
 <%= form_with model: Post.first do |form| %>
   <%= form.text_field :title %>
 <% end %>
