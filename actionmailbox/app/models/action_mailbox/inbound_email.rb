@@ -29,7 +29,7 @@ module ActionMailbox
 
     include Incineratable, MessageId, Routable
 
-    has_one_attached :raw_email
+    has_one_attached :raw_email, service: ActionMailbox.storage_service
     enum status: %i[ pending processing delivered failed bounced ]
 
     def mail
