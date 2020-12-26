@@ -1,13 +1,10 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
-require "chdir_helpers"
 
 module ApplicationTests
   module RakeTests
     class RakeMigrationsTest < ActiveSupport::TestCase
-      include ChdirHelpers
-
       def setup
         build_app
         FileUtils.rm_rf("#{app_path}/config/environments")
@@ -268,7 +265,7 @@ module ApplicationTests
       end
 
       test "raise error on any move when current migration does not exist" do
-        chdir(app_path) do
+        Dir.chdir(app_path) do
           rails "generate", "model", "user", "username:string", "password:string"
           rails "generate", "migration", "add_email_to_users", "email:string"
           rails "db:migrate"
@@ -414,7 +411,7 @@ module ApplicationTests
       test "schema generation when dump_schema_after_migration is set" do
         add_to_config("config.active_record.dump_schema_after_migration = false")
 
-        chdir(app_path) do
+        Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           output = rails("generate", "model", "author", "name:string")
           version = output =~ %r{[^/]+db/migrate/(\d+)_create_authors\.rb} && $1
@@ -425,7 +422,7 @@ module ApplicationTests
 
         add_to_config("config.active_record.dump_schema_after_migration = true")
 
-        chdir(app_path) do
+        Dir.chdir(app_path) do
           rails "generate", "model", "reviews", "book_id:integer"
           rails "db:migrate"
 
@@ -435,7 +432,7 @@ module ApplicationTests
       end
 
       test "default schema generation after migration" do
-        chdir(app_path) do
+        Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           rails "db:migrate"
 
@@ -445,7 +442,7 @@ module ApplicationTests
       end
 
       test "migration status migrated file is deleted" do
-        chdir(app_path) do
+        Dir.chdir(app_path) do
           rails "generate", "model", "user", "username:string", "password:string"
           rails "generate", "migration", "add_email_to_users", "email:string"
           rails "db:migrate"
