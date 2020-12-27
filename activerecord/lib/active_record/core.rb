@@ -39,6 +39,12 @@ module ActiveRecord
       class_attribute :destroy_association_async_job, instance_writer: false, instance_predicate: false, default: false
 
       ##
+      # :singleton-method:
+      #
+      # Specifies the job used to destroy a record in the background
+      class_attribute :destroy_async_job, instance_writer: false, instance_predicate: false, default: false
+
+      ##
       # Contains the database configuration - as is typically stored in config/database.yml -
       # as an ActiveRecord::DatabaseConfigurations object.
       #

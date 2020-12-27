@@ -77,6 +77,7 @@ module ActiveRecord
   autoload :Validations
   autoload :SecureToken
   autoload :DestroyAssociationAsyncJob
+  autoload :DestroyAsyncJob
 
   eager_autoload do
     autoload :ConnectionAdapters

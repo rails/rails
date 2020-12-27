@@ -552,6 +552,16 @@ module ActiveRecord
       freeze
     end
 
+    # Enqueues a job that will handle the deletion of this object. The stanadard job
+    # calls destroy so all callbacks will be executed in the job.
+    def destroy_async
+      raise ActiveRecord::ActiveJobRequiredError unless self.class.destroy_async_job
+      _raise_readonly_record_error if readonly?
+      raise ActiveRecord::DestroyAsyncError unless persisted?
+      self.class.destroy_async_job&.perform_later(model_name: self.class.to_s, id: self.id)
+    end
+
+
     # Deletes the record in the database and freezes this instance to reflect
     # that no changes should be made (since they can't be persisted).
     #

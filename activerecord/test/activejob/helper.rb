@@ -13,3 +13,4 @@ ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 require_relative "../../../tools/test_common"
 
 ActiveRecord::Base.destroy_association_async_job = ActiveRecord::DestroyAssociationAsyncJob
+ActiveRecord::Base.destroy_async_job = ActiveRecord::DestroyAsyncJob
