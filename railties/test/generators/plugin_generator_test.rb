@@ -539,6 +539,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_directory "test/dummy/.git"
   end
 
+  def test_spring_binstub_is_not_generated_in_dummy_application
+    run_generator
+    assert_no_file "test/dummy/bin/spring"
+    assert_file "test/dummy/bin/rails" do |contents|
+      assert_no_match %r/spring/, contents
+    end
+  end
+
   def test_skipping_test_files
     run_generator [destination_root, "--skip-test"]
     assert_no_directory "test"
