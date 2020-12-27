@@ -93,11 +93,8 @@ module ActiveRecord
             # PriceEstimate.where(estimate_of: treasure)
             associated_table = table.associated_table(key)
             if associated_table.polymorphic_association?
-              case value.is_a?(Array) ? value.first : value
-              when Base, Relation
-                value = [value] unless value.is_a?(Array)
-                klass = PolymorphicArrayValue
-              end
+              value = [value] unless value.is_a?(Array)
+              klass = PolymorphicArrayValue
             elsif associated_table.through_association?
               next associated_table.predicate_builder.expand_from_hash(
                 associated_table.primary_key => value

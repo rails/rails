@@ -44,6 +44,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal [authors(:david)], Author.where(owned_essay: essays(:david_modest_proposal))
   end
 
+  def test_where_on_polymorphic_association_with_nil
+    assert_equal comments(:greetings), Comment.where(author: nil).first
+    assert_equal comments(:greetings), Comment.where(author: [nil]).first
+  end
+
   def test_assigning_belongs_to_on_destroyed_object
     client = Client.create!(name: "Client")
     client.destroy!
