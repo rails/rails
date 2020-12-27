@@ -103,6 +103,7 @@ task default: :test
       opts = options.transform_keys(&:to_sym).except(*DUMMY_IGNORE_OPTIONS)
       opts[:force] = force
       opts[:skip_bundle] = true
+      opts[:skip_spring] = true
       opts[:skip_listen] = true
       opts[:skip_git] = true
       opts[:skip_turbolinks] = true
