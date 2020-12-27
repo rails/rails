@@ -53,6 +53,20 @@ class Hash
       end
     end
   end
+  
+  # Validates that no required keys in a hash are missing from <tt>*required_keys</tt>, raising
+  # +ArgumentError+ for any missing keys.
+  #
+  # Note that keys are treated differently than HashWithIndifferentAccess,
+  # meaning that string and symbol keys will not match.
+  #
+  #   { name: 'Rob', age: '28' }.assert_required_keys('name', 'age') # => raises "ArgumentError: Missing required option(s): 'name', 'age'"
+  #   { name: 'Rob', years: '28' }.assert_required_keys(:name, :age) # => raises "ArgumentError: Missing required option(s): :age"
+  #   { name: 'Rob', age: '28' }.assert_required_keys(:name, :age)   # => passes, raises nothing
+  def assert_required_keys(*required_keys)
+    missing_keys = required_keys.reject { |key| key?(key) }
+    raise ArgumentError.new("Missing required option(s): #{missing_keys.join(", ")}") unless missing_keys.empty?
+  end
 
   # Returns a new hash with all keys converted by the block operation.
   # This includes the keys from the root hash and from all
