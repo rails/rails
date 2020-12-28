@@ -52,6 +52,8 @@ module ActionDispatch
     # Default to 2 years as recommended on hstspreload.org.
     HSTS_EXPIRES_IN = 63072000
 
+    PERMANENT_REDIRECT_REQUEST_METHODS = %w[GET HEAD].freeze
+
     def self.default_hsts_options
       { expires: HSTS_EXPIRES_IN, subdomains: true, preload: false }
     end
@@ -131,7 +133,7 @@ module ActionDispatch
       end
 
       def redirection_status(request)
-        if request.get? || request.head?
+        if PERMANENT_REDIRECT_REQUEST_METHODS.include?(request.raw_request_method)
           301 # Issue a permanent redirect via a GET request.
         elsif @ssl_default_redirect_status
           @ssl_default_redirect_status
