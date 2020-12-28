@@ -429,6 +429,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "a", topic[:title]
   end
 
+  test "read overriden attribute with predicate respects override" do
+    topic = Topic.new
+
+    topic.approved = true
+
+    def topic.approved; false; end
+
+    assert_not topic.approved?, "overriden approved should be false"
+  end
+
   test "string attribute predicate" do
     [nil, "", " "].each do |value|
       assert_equal false, Topic.new(author_name: value).author_name?
