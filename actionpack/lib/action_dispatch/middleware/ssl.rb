@@ -52,7 +52,7 @@ module ActionDispatch
     # Default to 2 years as recommended on hstspreload.org.
     HSTS_EXPIRES_IN = 63072000
 
-    PERMANENT_REDIRECT_REQUEST_METHODS = %w[GET HEAD].freeze
+    PERMANENT_REDIRECT_REQUEST_METHODS = %w[GET HEAD] # :nodoc:
 
     def self.default_hsts_options
       { expires: HSTS_EXPIRES_IN, subdomains: true, preload: false }
