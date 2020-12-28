@@ -3,6 +3,7 @@
 # Hack to load json gem first so we can overwrite its to_json.
 require "json"
 require "bigdecimal"
+require "ipaddr"
 require "uri/generic"
 require "pathname"
 require "active_support/core_ext/big_decimal/conversions" # for #to_s
@@ -214,6 +215,12 @@ class URI::Generic #:nodoc:
 end
 
 class Pathname #:nodoc:
+  def as_json(options = nil)
+    to_s
+  end
+end
+
+class IPAddr # :nodoc:
   def as_json(options = nil)
     to_s
   end

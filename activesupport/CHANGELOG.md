@@ -1,3 +1,21 @@
+*   Change `IPAddr#to_json` to match the behavior of the json gem returning the string representation
+    instead of the instance variables of the object.
+
+    Before:
+
+    ```ruby
+    IPAddr.new("127.0.0.1").to_json
+    # => "{\"addr\":2130706433,\"family\":2,\"mask_addr\":4294967295}"
+    ```
+
+    After:
+
+    ```ruby
+    IPAddr.new("127.0.0.1").to_json
+    # => "\"127.0.0.1\""
+    ```
+
+
 ## Rails 6.1.0 (December 09, 2020) ##
 
 *   Ensure `MemoryStore` disables compression by default. Reverts behavior of
