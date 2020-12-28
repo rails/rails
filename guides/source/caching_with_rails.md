@@ -125,7 +125,6 @@ All cached templates from previous renders will be fetched at once with much
 greater speed. Additionally, the templates that haven't yet been cached will be
 written to cache and multi fetched on the next render.
 
-
 ### Russian Doll Caching
 
 You may want to nest cached fragments inside other cached fragments. This is
@@ -316,7 +315,7 @@ class ProductsController < ApplicationController
     # Run a find query
     @products = Product.all
 
-    ...
+    # ...
 
     # Run the same query again
     @products = Product.all
@@ -513,7 +512,7 @@ connection library by additionally adding its ruby wrapper to your Gemfile:
 gem 'hiredis'
 ```
 
-Redis cache store will automatically require & use hiredis if available. No further
+Redis cache store will automatically require and use hiredis if available. No further
 configuration is needed.
 
 Finally, add the configuration in the relevant `config/environments/*.rb` file:

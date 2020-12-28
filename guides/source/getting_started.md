@@ -1704,7 +1704,6 @@ the `app/views/comments` directory.
 The `@article` object is available to any partials rendered in the view because
 we defined it as an instance variable.
 
-
 ### Using Concerns
 
 Concerns are a way to make large controllers or models easier to understand and manage. This also has the advantage of reusability when multiple models (or controllers) share the same concerns. Concerns are implemented using modules that contain methods representing a well-defined slice of the functionality that a model or controller is responsible for. In other languages, modules are often known as mixins.
@@ -1974,7 +1973,6 @@ The `destroy` action will find the article we are looking at, locate the comment
 within the `@article.comments` collection, and then remove it from the
 database and send us back to the show action for the article.
 
-
 ### Deleting Associated Objects
 
 If you delete an article, its associated comments will also need to be
@@ -2052,7 +2050,6 @@ authentication add-ons for Rails are the
 [Devise](https://github.com/plataformatec/devise) rails engine and
 the [Authlogic](https://github.com/binarylogic/authlogic) gem,
 along with a number of others.
-
 
 ### Other Security Considerations
 

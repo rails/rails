@@ -94,7 +94,6 @@ by underscores. Examples:
 | `Mouse`          | `mice`         |
 | `Person`         | `people`       |
 
-
 ### Schema Conventions
 
 Active Record uses naming conventions for the columns in database tables,
@@ -188,7 +187,7 @@ definition:
 class ProductTest < ActiveSupport::TestCase
   set_fixture_class my_products: Product
   fixtures :my_products
-  ...
+  # ...
 end
 ```
 
@@ -388,7 +387,7 @@ end
 ```
 
 Rails keeps track of which files have been committed to the database and
-provides rollback features. To actually create the table, you'd run `bin/rails db:migrate`
+provides rollback features. To actually create the table, you'd run `bin/rails db:migrate`,
 and to roll it back, `bin/rails db:rollback`.
 
 Note that the above code is database-agnostic: it will run in MySQL,

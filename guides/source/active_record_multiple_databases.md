@@ -181,7 +181,7 @@ Note that there is no command for creating the users and you'll need to do that 
 to support the readonly users for your replicas. If you want to create just the animals
 database you can run `bin/rails db:create:animals`.
 
-## Generators & Migrations
+## Generators and Migrations
 
 Migrations for multiple databases should live in their own folders prefixed with the
 name of the database key in the configuration.

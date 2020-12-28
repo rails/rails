@@ -15,7 +15,6 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-
 What is Active Job?
 -------------------
 
@@ -27,6 +26,7 @@ into small units of work and run in parallel, really.
 
 The Purpose of Active Job
 -----------------------------
+
 The main point is to ensure that all Rails apps will have a job infrastructure
 in place. We can then have framework features and other gems build on top of that,
 without having to worry about API differences between various job runners such as
@@ -144,15 +144,15 @@ module YourApp
 end
 ```
 
-You can also configure your backend on a per job basis.
+You can also configure your backend on a per job basis:
 
 ```ruby
 class GuestsCleanupJob < ApplicationJob
   self.queue_adapter = :resque
-  #....
+  # ...
 end
 
-# Now your job will use `resque` as its backend queue adapter overriding what
+# Now your job will use `resque` as its backend queue adapter, overriding what
 # was configured in `config.active_job.queue_adapter`.
 ```
 
@@ -182,7 +182,7 @@ the job to run on a specific queue using [`queue_as`][]:
 ```ruby
 class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
-  #....
+  # ...
 end
 ```
 
@@ -202,7 +202,7 @@ end
 # app/jobs/guests_cleanup_job.rb
 class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
-  #....
+  # ...
 end
 
 # Now your job will run on queue production_low_priority on your
@@ -216,7 +216,7 @@ You can also configure the prefix on a per job basis.
 class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
   self.queue_name_prefix = nil
-  #....
+  # ...
 end
 
 # Now your job's queue won't be prefixed, overriding what
@@ -240,7 +240,7 @@ end
 # app/jobs/guests_cleanup_job.rb
 class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
-  #....
+  # ...
 end
 
 # Now your job will run on queue production.low_priority on your
@@ -249,15 +249,15 @@ end
 ```
 
 If you want more control on what queue a job will be run you can pass a `:queue`
-option to `#set`:
+option to `set`:
 
 ```ruby
 MyJob.set(queue: :another_queue).perform_later(record)
 ```
 
-To control the queue from the job level you can pass a block to `#queue_as`. The
-block will be executed in the job context (so you can access `self.arguments`)
-and you must return the queue name:
+To control the queue from the job level you can pass a block to `queue_as`. The
+block will be executed in the job context (so it can access `self.arguments`),
+and it must return the queue name:
 
 ```ruby
 class ProcessVideoJob < ApplicationJob
@@ -362,7 +362,7 @@ of the `.deliver_later` emails are processed. To avoid this problem, use
 Internationalization
 --------------------
 
-Each job uses the `I18n.locale` set when the job was created. Useful if you send
+Each job uses the `I18n.locale` set when the job was created. This is useful if you send
 emails asynchronously:
 
 ```ruby
@@ -472,7 +472,7 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-If the exception is not rescued within the job, e.g. as shown above, then the job is referred to as "failed".
+If an exception from a job is not rescued, then the job is referred to as "failed".
 
 [`rescue_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from
 

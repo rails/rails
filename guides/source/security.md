@@ -64,7 +64,7 @@ Hence, the cookie serves as temporary authentication for the web application. An
 
 * Instead of stealing a cookie unknown to the attacker, they fix a user's session identifier (in the cookie) known to them. Read more about this so-called session fixation later.
 
-The main objective of most attackers is to make money. The underground prices for stolen bank login accounts range from 0.5%-10% of account balance, $0.5-$30 for credit card numbers ($20-$60 with full details), $0.1-$1.5 for identities (Name, SSN & DOB), $20-$50 for retailer accounts, and $6-$10 for cloud service provider accounts, according to the [Symantec Internet Security Threat Report (2017)](https://www.symantec.com/content/dam/symantec/docs/reports/istr-22-2017-en.pdf).
+The main objective of most attackers is to make money. The underground prices for stolen bank login accounts range from 0.5%-10% of account balance, $0.5-$30 for credit card numbers ($20-$60 with full details), $0.1-$1.5 for identities (Name, SSN, and DOB), $20-$50 for retailer accounts, and $6-$10 for cloud service provider accounts, according to the [Symantec Internet Security Threat Report (2017)](https://www.symantec.com/content/dam/symantec/docs/reports/istr-22-2017-en.pdf).
 
 ### Session Storage
 
@@ -507,7 +507,7 @@ The problem with CAPTCHAs is that they have a negative impact on the user experi
 
 Most bots are really dumb. They crawl the web and put their spam into every form's field they can find. Negative CAPTCHAs take advantage of that and include a "honeypot" field in the form which will be hidden from the human user by CSS or JavaScript.
 
-Note that negative CAPTCHAs are only effective against dumb bots and won't suffice to protect critical applications from targeted bots. Still, the negative and positive CAPTCHAs can be combined to increase the performance, e.g.,  if the "honeypot" field is not empty (bot detected), you won't need to verify the positive CAPTCHA, which would require an HTTPS request to Google ReCaptcha before computing the response.
+Note that negative CAPTCHAs are only effective against dumb bots and won't suffice to protect critical applications from targeted bots. Still, the negative and positive CAPTCHAs can be combined to increase the performance, e.g., if the "honeypot" field is not empty (bot detected), you won't need to verify the positive CAPTCHA, which would require an HTTPS request to Google ReCaptcha before computing the response.
 
 Here are some ideas how to hide honeypot fields by JavaScript and/or CSS:
 
@@ -909,7 +909,6 @@ A countermeasure is to _use the `system(command, parameters)` method which passe
 system("/bin/echo","hello; rm *")
 # prints "hello; rm *" and does not delete files
 ```
-
 
 ### Header Injection
 

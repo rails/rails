@@ -70,6 +70,7 @@ Here's the simplest way to write JavaScript. You may see it referred to as
 ```html
 <a href="#" onclick="this.style.backgroundColor='#990000';event.preventDefault();">Paint it red</a>
 ```
+
 When clicked, the link background will become red. Here's the problem: what
 happens when we have lots of JavaScript we want to execute on a click?
 

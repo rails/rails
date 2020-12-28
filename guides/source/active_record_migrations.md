@@ -174,7 +174,6 @@ class AddPartNumberToProducts < ActiveRecord::Migration[6.0]
 end
 ```
 
-
 Similarly, you can generate a migration to remove a column from the command line:
 
 ```bash
@@ -236,7 +235,7 @@ or remove from it as you see fit by editing the
 `db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb` file.
 
 Also, the generator accepts column type as `references` (also available as
-`belongs_to`). For instance:
+`belongs_to`). For example,
 
 ```bash
 $ bin/rails generate migration AddUserRefToProducts user:references
@@ -556,7 +555,7 @@ definitions:
 * [`add_index`][]
 * [`add_reference`][]
 * [`add_timestamps`][]
-* [`change_column_default`][] (must supply a :from and :to option)
+* [`change_column_default`][] (must supply a `:from` and `:to` option)
 * [`change_column_null`][]
 * [`create_join_table`][]
 * [`create_table`][]

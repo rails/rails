@@ -65,7 +65,6 @@ config.assets.js_compressor = :uglifier
 NOTE: The `sass-rails` gem is automatically used for CSS compression if included
 in the `Gemfile` and no `config.assets.css_compressor` option is set.
 
-
 ### Main Features
 
 The first feature of the pipeline is to concatenate assets, which can reduce the
@@ -126,7 +125,7 @@ The query string strategy has several disadvantages:
 query parameters**
 
     [Steve Souders recommends](https://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/),
- "...avoiding a querystring for cacheable resources". He found that in this
+"...avoiding a querystring for cacheable resources". He found that in this
 case 5-20% of requests will not be cached. Query strings in particular do not
 work at all with some CDNs for cache invalidation.
 
@@ -1064,6 +1063,7 @@ gem.
 ```ruby
 config.assets.css_compressor = :yui
 ```
+
 The other option for compressing CSS if you have the sass-rails gem installed is
 
 ```ruby
@@ -1091,8 +1091,6 @@ config.assets.js_compressor = :uglifier
 NOTE: You will need an [ExecJS](https://github.com/rails/execjs#readme)
 supported runtime in order to use `uglifier`. If you are using macOS or
 Windows you have a JavaScript runtime installed in your operating system.
-
-
 
 ### GZipping your assets
 
@@ -1125,7 +1123,6 @@ To enable this, pass a new object to the config option in `application.rb`:
 ```ruby
 config.assets.css_compressor = Transformer.new
 ```
-
 
 ### Changing the _assets_ Path
 
