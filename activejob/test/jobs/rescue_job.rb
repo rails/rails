@@ -8,7 +8,9 @@ class RescueJob < ActiveJob::Base
   rescue_from(ArgumentError) do
     JobBuffer.add("rescued from ArgumentError")
     arguments[0] = "DIFFERENT!"
-    retry_job
+    job = retry_job
+    JobBuffer.add("Retried job #{job.arguments[0]}")
+    job
   end
 
   rescue_from(ActiveJob::DeserializationError) do |e|
