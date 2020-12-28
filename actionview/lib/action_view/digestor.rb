@@ -17,7 +17,8 @@ module ActionView
         if dependencies.nil? || dependencies.empty?
           cache_key = "#{name}.#{format}"
         else
-          cache_key = [ name, format, dependencies ].flatten.compact.join(".")
+          dependencies_suffix = dependencies.flatten.tap(&:compact!).join(".")
+          cache_key = "#{name}.#{format}.#{dependencies_suffix}"
         end
 
         # this is a correctly done double-checked locking idiom

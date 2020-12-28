@@ -112,6 +112,16 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_dalli_cache_nils
+    cache = lookup_store(cache_nils: false)
+    cache.fetch("nil_foo") { nil }
+    assert_equal "bar", cache.fetch("nil_foo") { "bar" }
+
+    cache1 = lookup_store(cache_nils: true)
+    cache1.fetch("not_nil_foo") { nil }
+    assert_nil cache.fetch("not_nil_foo") { "bar" }
+  end
+
   def test_local_cache_raw_values_with_marshal
     cache = lookup_store(raw: true)
     cache.with_local_cache do

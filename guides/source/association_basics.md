@@ -889,7 +889,7 @@ The `build_association` method returns a new object of the associated type. This
 
 ```ruby
 @author = @book.build_author(author_number: 123,
-                                  author_name: "John Doe")
+                             author_name: "John Doe")
 ```
 
 ##### `create_association(attributes = {})`
@@ -898,7 +898,7 @@ The `create_association` method returns a new object of the associated type. Thi
 
 ```ruby
 @author = @book.create_author(author_number: 123,
-                                   author_name: "John Doe")
+                              author_name: "John Doe")
 ```
 
 ##### `create_association!(attributes = {})`
@@ -1011,7 +1011,7 @@ By convention, Rails assumes that the column used to hold the foreign key on thi
 ```ruby
 class Book < ApplicationRecord
   belongs_to :author, class_name: "Patron",
-                        foreign_key: "patron_id"
+                      foreign_key: "patron_id"
 end
 ```
 
@@ -1671,7 +1671,7 @@ The [`collection.build`][] method returns a single or array of new objects of th
 
 ```ruby
 @book = @author.books.build(published_at: Time.now,
-                                book_number: "A12345")
+                            book_number: "A12345")
 
 @books = @author.books.build([
   { published_at: Time.now, book_number: "A12346" },
@@ -1685,7 +1685,7 @@ The [`collection.create`][] method returns a single or array of new objects of t
 
 ```ruby
 @book = @author.books.create(published_at: Time.now,
-                                 book_number: "A12345")
+                             book_number: "A12345")
 
 @books = @author.books.create([
   { published_at: Time.now, book_number: "A12346" },
@@ -1878,7 +1878,7 @@ You can also set conditions via a hash:
 ```ruby
 class Author < ApplicationRecord
   has_many :confirmed_books, -> { where confirmed: true },
-                              class_name: "Book"
+    class_name: "Book"
 end
 ```
 
@@ -2183,7 +2183,7 @@ The [`collection.clear`][] method removes every object from the collection by de
 
 The [`collection.empty?`][] method returns `true` if the collection does not contain any associated objects.
 
-```ruby
+```html+erb
 <% if @part.assemblies.empty? %>
   This part is not used in any assemblies
 <% end %>

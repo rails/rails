@@ -113,13 +113,15 @@ The Content-Type will now be based on the given block rather than the request's 
 Example:
 
 ```ruby
-  def my_action
-    respond_to do |format|
-      format.any { render(json: { foo: 'bar' }) }
-    end
+def my_action
+  respond_to do |format|
+    format.any { render(json: { foo: 'bar' }) }
   end
+end
+```
 
-  get('my_action.csv')
+```ruby
+get('my_action.csv')
 ```
 
 Previous behaviour was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
@@ -129,7 +131,7 @@ If your application relies on the previous incorrect behaviour, you are encourag
 which formats your action accepts, i.e.
 
 ```ruby
-  format.any(:xml, :json) { render request.format.to_sym => @people }
+format.any(:xml, :json) { render request.format.to_sym => @people }
 ```
 
 ### `ActiveSupport::Callbacks#halted_callback_hook` now receive a second argument
@@ -142,14 +144,14 @@ change without a prior deprecation cycle (for performance reasons).
 Example:
 
 ```ruby
-  class Book < ApplicationRecord
-    before_save { throw(:abort) }
-    before_create { throw(:abort) }
+class Book < ApplicationRecord
+  before_save { throw(:abort) }
+  before_create { throw(:abort) }
 
-    def halted_callback_hook(filter, callback_name) # => This method now accepts 2 arguments instead of 1
-      Rails.logger.info("Book couldn't be #{callback_name}d")
-    end
+  def halted_callback_hook(filter, callback_name) # => This method now accepts 2 arguments instead of 1
+    Rails.logger.info("Book couldn't be #{callback_name}d")
   end
+end
 ```
 
 ### The `helper` class method in controllers uses `String#constantize`
@@ -267,28 +269,30 @@ Action Cable JavaScript API:
   If you are configuring these adapters you will need to make
   these changes:
 
-  ```diff
-  -    ActionCable.WebSocket = MyWebSocket
-  +    ActionCable.adapters.WebSocket = MyWebSocket
-  ```
-  ```diff
-  -    ActionCable.logger = myLogger
-  +    ActionCable.adapters.logger = myLogger
-  ```
+    ```diff
+    -    ActionCable.WebSocket = MyWebSocket
+    +    ActionCable.adapters.WebSocket = MyWebSocket
+    ```
+
+    ```diff
+    -    ActionCable.logger = myLogger
+    +    ActionCable.adapters.logger = myLogger
+    ```
 
 - The `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
   methods have been removed and replaced with the property
   `ActionCable.logger.enabled`. If you are using these methods you
   will need to make these changes:
 
-  ```diff
-  -    ActionCable.startDebugging()
-  +    ActionCable.logger.enabled = true
-  ```
-  ```diff
-  -    ActionCable.stopDebugging()
-  +    ActionCable.logger.enabled = false
-  ```
+    ```diff
+    -    ActionCable.startDebugging()
+    +    ActionCable.logger.enabled = true
+    ```
+
+    ```diff
+    -    ActionCable.stopDebugging()
+    +    ActionCable.logger.enabled = false
+    ```
 
 ### `ActionDispatch::Response#content_type` now returns the Content-Type header without modification
 
@@ -717,7 +721,9 @@ warning about this upcoming change.
 When you are ready, you can opt into the new behavior and remove the deprecation
 warning by adding the following configuration to your `config/application.rb`:
 
-    ActiveSupport.halt_callback_chains_on_return_false = false
+```ruby
+ActiveSupport.halt_callback_chains_on_return_false = false
+```
 
 Note that this option will not affect Active Support callbacks since they never
 halted the chain when any value was returned.
@@ -809,7 +815,9 @@ parameters are already permitted, then you will not need to make any changes. If
 and other methods that depend on being able to read the hash regardless of `permitted?` you will
 need to upgrade your application to first permit and then convert to a hash.
 
-    params.permit([:proceed_to, :return_to]).to_h
+```ruby
+params.permit([:proceed_to, :return_to]).to_h
+```
 
 ### `protect_from_forgery` Now Defaults to `prepend: false`
 
@@ -913,7 +921,9 @@ This can be turned off per-association with `optional: true`.
 This default will be automatically configured in new applications. If an existing application
 wants to add this feature it will need to be turned on in an initializer:
 
-    config.active_record.belongs_to_required_by_default = true
+```ruby
+config.active_record.belongs_to_required_by_default = true
+```
 
 The configuration is by default global for all your models, but you can
 override it on a per model basis. This should help you migrate all your models to have their
@@ -941,7 +951,9 @@ Rails 5 now supports per-form CSRF tokens to mitigate against code-injection att
 created by JavaScript. With this option turned on, forms in your application will each have their
 own CSRF token that is specific to the action and method for that form.
 
-    config.action_controller.per_form_csrf_tokens = true
+```ruby
+config.action_controller.per_form_csrf_tokens = true
+```
 
 #### Forgery Protection with Origin Check
 
@@ -949,40 +961,52 @@ You can now configure your application to check if the HTTP `Origin` header shou
 against the site's origin as an additional CSRF defense. Set the following in your config to
 true:
 
-    config.action_controller.forgery_protection_origin_check = true
+```ruby
+config.action_controller.forgery_protection_origin_check = true
+```
 
 #### Allow Configuration of Action Mailer Queue Name
 
 The default mailer queue name is `mailers`. This configuration option allows you to globally change
 the queue name. Set the following in your config:
 
-    config.action_mailer.deliver_later_queue_name = :new_queue_name
+```ruby
+config.action_mailer.deliver_later_queue_name = :new_queue_name
+```
 
 #### Support Fragment Caching in Action Mailer Views
 
 Set `config.action_mailer.perform_caching` in your config to determine whether your Action Mailer views
 should support caching.
 
-    config.action_mailer.perform_caching = true
+```ruby
+config.action_mailer.perform_caching = true
+```
 
 #### Configure the Output of `db:structure:dump`
 
 If you're using `schema_search_path` or other PostgreSQL extensions, you can control how the schema is
 dumped. Set to `:all` to generate all dumps, or to `:schema_search_path` to generate from schema search path.
 
-    config.active_record.dump_schemas = :all
+```ruby
+config.active_record.dump_schemas = :all
+```
 
 #### Configure SSL Options to Enable HSTS with Subdomains
 
 Set the following in your config to enable HSTS when using subdomains:
 
-    config.ssl_options = { hsts: { subdomains: true } }
+```ruby
+config.ssl_options = { hsts: { subdomains: true } }
+```
 
 #### Preserve Timezone of the Receiver
 
 When using Ruby 2.4, you can preserve the timezone of the receiver when calling `to_time`.
 
-    ActiveSupport.to_time_preserves_timezone = false
+```ruby
+ActiveSupport.to_time_preserves_timezone = false
+```
 
 ### Changes with JSON/JSONB serialization
 
@@ -1049,7 +1073,9 @@ you are ready, you can opt into the new behavior and remove the
 deprecation warning by adding following configuration to your
 `config/application.rb`:
 
-    config.active_record.raise_in_transactional_callbacks = true
+```ruby
+config.active_record.raise_in_transactional_callbacks = true
+```
 
 See [#14488](https://github.com/rails/rails/pull/14488) and
 [#16537](https://github.com/rails/rails/pull/16537) for more details.
@@ -1176,7 +1202,9 @@ class Notifier < ActionMailer::Base
     mail(to: user.email, ...)
   end
 end
+```
 
+```ruby
 mail = Notifier.notify(user, ...) # Notifier#notify is not yet called at this point
 mail = mail.deliver_now           # Prints "Called"
 ```
@@ -1701,7 +1729,7 @@ such format is [JSON Patch](https://tools.ietf.org/html/rfc6902). While Rails
 does not support JSON Patch natively, it's easy enough to add support:
 
 ```ruby
-# in your controller
+# in your controller:
 def update
   respond_to do |format|
     format.json do
@@ -1714,8 +1742,10 @@ def update
     end
   end
 end
+```
 
-# In config/initializers/json_patch.rb:
+```ruby
+# config/initializers/json_patch.rb
 Mime::Type.register 'application/json-patch+json', :json_patch
 ```
 
@@ -1760,12 +1790,12 @@ this gem such as `whitelist_attributes` or `mass_assignment_sanitizer` options.
 
 * Rails 4.0 requires that scopes use a callable object such as a Proc or lambda:
 
-```ruby
-  scope :active, where(active: true)
+    ```ruby
+      scope :active, where(active: true)
 
-  # becomes
-  scope :active, -> { where active: true }
-```
+      # becomes
+      scope :active, -> { where active: true }
+    ```
 
 * Rails 4.0 has deprecated `ActiveRecord::Fixtures` in favor of `ActiveRecord::FixtureSet`.
 
@@ -1791,15 +1821,15 @@ this gem such as `whitelist_attributes` or `mass_assignment_sanitizer` options.
 
 * Rails 4.0 has changed to default join table for `has_and_belongs_to_many` relations to strip the common prefix off the second table name. Any existing `has_and_belongs_to_many` relationship between models with a common prefix must be specified with the `join_table` option. For example:
 
-```ruby
-CatalogCategory < ActiveRecord::Base
-  has_and_belongs_to_many :catalog_products, join_table: 'catalog_categories_catalog_products'
-end
+    ```ruby
+    CatalogCategory < ActiveRecord::Base
+      has_and_belongs_to_many :catalog_products, join_table: 'catalog_categories_catalog_products'
+    end
 
-CatalogProduct < ActiveRecord::Base
-  has_and_belongs_to_many :catalog_categories, join_table: 'catalog_categories_catalog_products'
-end
-```
+    CatalogProduct < ActiveRecord::Base
+      has_and_belongs_to_many :catalog_categories, join_table: 'catalog_categories_catalog_products'
+    end
+    ```
 
 * Note that the prefix takes scopes into account as well, so relations between `Catalog::Category` and `Catalog::Product` or `Catalog::Category` and `CatalogProduct` need to be updated similarly.
 
@@ -1813,30 +1843,30 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
 * Rails 4.0 has changed `ActiveModel::Serializers::JSON.include_root_in_json` default value to `false`. Now, Active Model Serializers and Active Record objects have the same default behavior. This means that you can comment or remove the following option in the `config/initializers/wrap_parameters.rb` file:
 
-```ruby
-# Disable root element in JSON by default.
-# ActiveSupport.on_load(:active_record) do
-#   self.include_root_in_json = false
-# end
-```
+    ```ruby
+    # Disable root element in JSON by default.
+    # ActiveSupport.on_load(:active_record) do
+    #   self.include_root_in_json = false
+    # end
+    ```
 
 ### Action Pack
 
-* Rails 4.0 introduces `ActiveSupport::KeyGenerator` and uses this as a base from which to generate and verify signed cookies (among other things). Existing signed cookies generated with Rails 3.x will be transparently upgraded if you leave your existing `secret_token` in place and add the new `secret_key_base`.
+*   Rails 4.0 introduces `ActiveSupport::KeyGenerator` and uses this as a base from which to generate and verify signed cookies (among other things). Existing signed cookies generated with Rails 3.x will be transparently upgraded if you leave your existing `secret_token` in place and add the new `secret_key_base`.
 
-```ruby
-  # config/initializers/secret_token.rb
-  Myapp::Application.config.secret_token = 'existing secret token'
-  Myapp::Application.config.secret_key_base = 'new secret key base'
-```
+    ```ruby
+      # config/initializers/secret_token.rb
+      Myapp::Application.config.secret_token = 'existing secret token'
+      Myapp::Application.config.secret_key_base = 'new secret key base'
+    ```
 
-Please note that you should wait to set `secret_key_base` until you have 100% of your userbase on Rails 4.x and are reasonably sure you will not need to rollback to Rails 3.x. This is because cookies signed based on the new `secret_key_base` in Rails 4.x are not backwards compatible with Rails 3.x. You are free to leave your existing `secret_token` in place, not set the new `secret_key_base`, and ignore the deprecation warnings until you are reasonably sure that your upgrade is otherwise complete.
+    Please note that you should wait to set `secret_key_base` until you have 100% of your userbase on Rails 4.x and are reasonably sure you will not need to rollback to Rails 3.x. This is because cookies signed based on the new `secret_key_base` in Rails 4.x are not backwards compatible with Rails 3.x. You are free to leave your existing `secret_token` in place, not set the new `secret_key_base`, and ignore the deprecation warnings until you are reasonably sure that your upgrade is otherwise complete.
 
-If you are relying on the ability for external applications or JavaScript to be able to read your Rails app's signed session cookies (or signed cookies in general) you should not set `secret_key_base` until you have decoupled these concerns.
+    If you are relying on the ability for external applications or JavaScript to be able to read your Rails app's signed session cookies (or signed cookies in general) you should not set `secret_key_base` until you have decoupled these concerns.
 
-* Rails 4.0 encrypts the contents of cookie-based sessions if `secret_key_base` has been set. Rails 3.x signed, but did not encrypt, the contents of cookie-based session. Signed cookies are "secure" in that they are verified to have been generated by your app and are tamper-proof. However, the contents can be viewed by end users, and encrypting the contents eliminates this caveat/concern without a significant performance penalty.
+*   Rails 4.0 encrypts the contents of cookie-based sessions if `secret_key_base` has been set. Rails 3.x signed, but did not encrypt, the contents of cookie-based session. Signed cookies are "secure" in that they are verified to have been generated by your app and are tamper-proof. However, the contents can be viewed by end users, and encrypting the contents eliminates this caveat/concern without a significant performance penalty.
 
-Please read [Pull Request #9978](https://github.com/rails/rails/pull/9978) for details on the move to encrypted session cookies.
+    Please read [Pull Request #9978](https://github.com/rails/rails/pull/9978) for details on the move to encrypted session cookies.
 
 * Rails 4.0 removed the `ActionController::Base.asset_path` option. Use the assets pipeline feature.
 
@@ -1859,69 +1889,69 @@ or `link_to_unless`).
 
 * Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routing` work. Now all these assertions raise `Assertion` instead of `ActionController::RoutingError`.
 
-* Rails 4.0 raises an `ArgumentError` if clashing named routes are defined. This can be triggered by explicitly defined named routes or by the `resources` method. Here are two examples that clash with routes named `example_path`:
+*   Rails 4.0 raises an `ArgumentError` if clashing named routes are defined. This can be triggered by explicitly defined named routes or by the `resources` method. Here are two examples that clash with routes named `example_path`:
 
-```ruby
-  get 'one' => 'test#example', as: :example
-  get 'two' => 'test#example', as: :example
-```
+    ```ruby
+    get 'one' => 'test#example', as: :example
+    get 'two' => 'test#example', as: :example
+    ```
 
-```ruby
-  resources :examples
-  get 'clashing/:id' => 'test#example', as: :example
-```
+    ```ruby
+    resources :examples
+    get 'clashing/:id' => 'test#example', as: :example
+    ```
 
-In the first case, you can simply avoid using the same name for multiple
-routes. In the second, you can use the `only` or `except` options provided by
-the `resources` method to restrict the routes created as detailed in the
-[Routing Guide](routing.html#restricting-the-routes-created).
+    In the first case, you can simply avoid using the same name for multiple
+    routes. In the second, you can use the `only` or `except` options provided by
+    the `resources` method to restrict the routes created as detailed in the
+    [Routing Guide](routing.html#restricting-the-routes-created).
 
-* Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
+*   Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
 
-```ruby
-get Rack::Utils.escape('こんにちは'), controller: 'welcome', action: 'index'
-```
+    ```ruby
+    get Rack::Utils.escape('こんにちは'), controller: 'welcome', action: 'index'
+    ```
 
-becomes
+    becomes
 
-```ruby
-get 'こんにちは', controller: 'welcome', action: 'index'
-```
+    ```ruby
+    get 'こんにちは', controller: 'welcome', action: 'index'
+    ```
 
-* Rails 4.0 requires that routes using `match` must specify the request method. For example:
+*   Rails 4.0 requires that routes using `match` must specify the request method. For example:
 
-```ruby
-  # Rails 3.x
-  match '/' => 'root#index'
+    ```ruby
+      # Rails 3.x
+      match '/' => 'root#index'
 
-  # becomes
-  match '/' => 'root#index', via: :get
+      # becomes
+      match '/' => 'root#index', via: :get
 
-  # or
-  get '/' => 'root#index'
-```
+      # or
+      get '/' => 'root#index'
+    ```
 
-* Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per https://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
+*   Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per https://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
 
-Remember you must also remove any references to the middleware from your application code, for example:
+    Remember you must also remove any references to the middleware from your application code, for example:
 
-```ruby
-# Raise exception
-config.middleware.insert_before(Rack::Lock, ActionDispatch::BestStandardsSupport)
-```
+    ```ruby
+    # Raise exception
+    config.middleware.insert_before(Rack::Lock, ActionDispatch::BestStandardsSupport)
+    ```
 
-Also check your environment settings for `config.action_dispatch.best_standards_support` and remove it if present.
+    Also check your environment settings for `config.action_dispatch.best_standards_support` and remove it if present.
 
-* Rails 4.0 allows configuration of HTTP headers by setting `config.action_dispatch.default_headers`. The defaults are as follows:
+*   Rails 4.0 allows configuration of HTTP headers by setting `config.action_dispatch.default_headers`. The defaults are as follows:
 
-```ruby
-  config.action_dispatch.default_headers = {
-    'X-Frame-Options' => 'SAMEORIGIN',
-    'X-XSS-Protection' => '1; mode=block'
-  }
-```
+    ```ruby
+      config.action_dispatch.default_headers = {
+        'X-Frame-Options' => 'SAMEORIGIN',
+        'X-XSS-Protection' => '1; mode=block'
+      }
+    ```
 
-Please note that if your application is dependent on loading certain pages in a `<frame>` or `<iframe>`, then you may need to explicitly set `X-Frame-Options` to `ALLOW-FROM ...` or `ALLOWALL`.
+    Please note that if your application is dependent on loading certain pages in a `<frame>` or `<iframe>`, then you may need to explicitly set `X-Frame-Options` to `ALLOW-FROM ...` or `ALLOWALL`.
 
 * In Rails 4.0, precompiling assets no longer automatically copies non-JS/CSS assets from `vendor/assets` and `lib/assets`. Rails application and engine developers should put these assets in `app/assets` or configure `config.assets.precompile`.
 
@@ -1961,9 +1991,9 @@ The order in which helpers from more than one directory are loaded has changed i
 * `assets:precompile:primary` and `assets:precompile:all` have been removed. Use `assets:precompile` instead.
 * The `config.assets.compress` option should be changed to `config.assets.js_compressor` like so for instance:
 
-```ruby
-config.assets.js_compressor = :uglifier
-```
+    ```ruby
+    config.assets.js_compressor = :uglifier
+    ```
 
 ### sass-rails
 

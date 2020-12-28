@@ -176,6 +176,8 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 *   Make `locals` argument required on `ActionView::Template#initialize`.
 
+*   The `javascript_include_tag` and `stylesheet_link_tag` asset helpers generate a `Link` header that gives hints to modern browsers about preloading assets. This can be disabled by setting `config.action_view.preload_links_header` to `false`.
+
 Action Mailer
 -------------
 
@@ -249,48 +251,62 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
     Before:
 
-        User.where(name: "John").create do |john|
-          User.find_by(name: "David") # => nil
-        end
+    ```ruby
+    User.where(name: "John").create do |john|
+      User.find_by(name: "David") # => nil
+    end
+    ```
 
     After:
 
-        User.where(name: "John").create do |john|
-          User.find_by(name: "David") # => #<User name: "David", ...>
-        end
+    ```ruby
+    User.where(name: "John").create do |john|
+      User.find_by(name: "David") # => #<User name: "David", ...>
+    end
+    ```
 
 *   Named scope chain does no longer leak scope to class level querying methods.
 
-        class User < ActiveRecord::Base
-          scope :david, -> { User.where(name: "David") }
-        end
+    ```ruby
+    class User < ActiveRecord::Base
+      scope :david, -> { User.where(name: "David") }
+    end
+    ```
 
     Before:
 
-        User.where(name: "John").david
-        # SELECT * FROM users WHERE name = 'John' AND name = 'David'
+    ```ruby
+    User.where(name: "John").david
+    # SELECT * FROM users WHERE name = 'John' AND name = 'David'
+    ```
 
     After:
 
-        User.where(name: "John").david
-        # SELECT * FROM users WHERE name = 'David'
+    ```ruby
+    User.where(name: "John").david
+    # SELECT * FROM users WHERE name = 'David'
+    ```
 
 *   `where.not` now generates NAND predicates instead of NOR.
 
-     Before:
+    Before:
 
-         User.where.not(name: "Jon", role: "admin")
-         # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
+    ```ruby
+    User.where.not(name: "Jon", role: "admin")
+    # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
+    ```
 
-     After:
+    After:
 
-         User.where.not(name: "Jon", role: "admin")
-         # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
+    ```ruby
+    User.where.not(name: "Jon", role: "admin")
+    # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
+    ```
 
-*    To use the new per-database connection handling applications must change
-     `legacy_connection_handling` to false and remove deprecated accessors on
-     `connection_handlers`. Public methods for `connects_to` and `connected_to`
-     require no changes.
+*   To use the new per-database connection handling applications must change
+    `legacy_connection_handling` to false and remove deprecated accessors on
+    `connection_handlers`. Public methods for `connects_to` and `connected_to`
+    require no changes.
 
 Active Storage
 --------------

@@ -667,8 +667,8 @@ response body.
 Weak ETags have a leading `W/` to differentiate them from strong ETags.
 
 ```
-  W/"618bbc92e2d35ea1945008b42799b0e7" → Weak ETag
-  "618bbc92e2d35ea1945008b42799b0e7" → Strong ETag
+W/"618bbc92e2d35ea1945008b42799b0e7" → Weak ETag
+"618bbc92e2d35ea1945008b42799b0e7" → Strong ETag
 ```
 
 Unlike weak ETag, strong ETag implies that response should be exactly the same
@@ -677,18 +677,18 @@ large video or PDF file. Some CDNs support only strong ETags, like Akamai.
 If you absolutely need to generate a strong ETag, it can be done as follows.
 
 ```ruby
-  class ProductsController < ApplicationController
-    def show
-      @product = Product.find(params[:id])
-      fresh_when last_modified: @product.published_at.utc, strong_etag: @product
-    end
+class ProductsController < ApplicationController
+  def show
+    @product = Product.find(params[:id])
+    fresh_when last_modified: @product.published_at.utc, strong_etag: @product
   end
+end
 ```
 
 You can also set the strong ETag directly on the response.
 
 ```ruby
-  response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
+response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
 ```
 
 Caching in Development

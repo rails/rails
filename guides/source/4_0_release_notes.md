@@ -184,15 +184,15 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/a
 * `String#to_date` now raises `ArgumentError: invalid date` instead of `NoMethodError: undefined method 'div' for nil:NilClass`
   when given an invalid date. It is now the same as `Date.parse`, and it accepts more invalid dates than 3.x, such as:
 
-  ```ruby
-  # ActiveSupport 3.x
-  "asdf".to_date # => NoMethodError: undefined method `div' for nil:NilClass
-  "333".to_date # => NoMethodError: undefined method `div' for nil:NilClass
+    ```ruby
+    # ActiveSupport 3.x
+    "asdf".to_date # => NoMethodError: undefined method `div' for nil:NilClass
+    "333".to_date # => NoMethodError: undefined method `div' for nil:NilClass
 
-  # ActiveSupport 4
-  "asdf".to_date # => ArgumentError: invalid date
-  "333".to_date # => Fri, 29 Nov 2013
-  ```
+    # ActiveSupport 4
+    "asdf".to_date # => ArgumentError: invalid date
+    "333".to_date # => Fri, 29 Nov 2013
+    ```
 
 ### Deprecations
 

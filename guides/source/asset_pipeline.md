@@ -468,9 +468,9 @@ which contains these lines:
 
 ```css
 /* ...
-*= require_self
-*= require_tree .
-*/
+ *= require_self
+ *= require_tree .
+ */
 ```
 
 Rails creates `app/assets/stylesheets/application.css` regardless of whether the
@@ -501,10 +501,10 @@ might concatenate three CSS files together this way:
 
 ```js
 /* ...
-*= require reset
-*= require layout
-*= require chrome
-*/
+ *= require reset
+ *= require layout
+ *= require chrome
+ */
 ```
 
 ### Preprocessing
@@ -789,23 +789,23 @@ $ RAILS_ENV=production rails assets:precompile
 
 Note the following caveats:
 
-* If precompiled assets are available, they will be served — even if they no
-  longer match the original (uncompiled) assets, _even on the development
-  server._
+*   If precompiled assets are available, they will be served — even if they no
+    longer match the original (uncompiled) assets, _even on the development
+    server._
 
-  To ensure that the development server always compiles assets on-the-fly (and
-  thus always reflects the most recent state of the code), the development
-  environment _must be configured to keep precompiled assets in a different
-  location than production does._ Otherwise, any assets precompiled for use in
-  production will clobber requests for them in development (_i.e.,_ subsequent
-  changes you make to assets will not be reflected in the browser).
+    To ensure that the development server always compiles assets on-the-fly (and
+    thus always reflects the most recent state of the code), the development
+    environment _must be configured to keep precompiled assets in a different
+    location than production does._ Otherwise, any assets precompiled for use in
+    production will clobber requests for them in development (_i.e.,_ subsequent
+    changes you make to assets will not be reflected in the browser).
 
-  You can do this by adding the following line to
-  `config/environments/development.rb`:
+    You can do this by adding the following line to
+    `config/environments/development.rb`:
 
-  ```ruby
-  config.assets.prefix = "/dev-assets"
-  ```
+    ```ruby
+    config.assets.prefix = "/dev-assets"
+    ```
 * The asset precompile task in your deployment tool (_e.g.,_ Capistrano) should
   be disabled.
 * Any necessary compressors or minifiers must be available on your development

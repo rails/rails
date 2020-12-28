@@ -109,17 +109,17 @@ Caching is not used in the following scenarios:
 - The model uses single table inheritance
 - `find` with a list of ids, e.g.:
 
-  ```ruby
-  # not cached
-  Post.find(1, 2, 3)
-  Post.find([1,2])
-  ```
+    ```ruby
+    # not cached
+    Post.find(1, 2, 3)
+    Post.find([1,2])
+    ```
 
 - `find_by` with SQL fragments:
 
-  ```ruby
-  Post.find_by('published_at < ?', 2.weeks.ago)
-  ```
+    ```ruby
+    Post.find_by('published_at < ?', 2.weeks.ago)
+    ```
 
 ### Web Console
 
@@ -396,15 +396,17 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Introduced `Rails::Application.config_for` to load a configuration for the
     current environment.
 
-    ```ruby
-    # config/exception_notification.yml:
+    ```yaml
+    # config/exception_notification.yml
     production:
       url: http://127.0.0.1:8080
       namespace: my_app_production
     development:
       url: http://localhost:3001
       namespace: my_app_development
+    ```
 
+    ```ruby
     # config/environments/production.rb
     Rails.application.configure do
       config.middleware.use ExceptionNotifier, config_for(:exception_notification)

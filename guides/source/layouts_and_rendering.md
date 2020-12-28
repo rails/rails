@@ -590,15 +590,19 @@ In this application:
 Similar to the Layout Inheritance logic, if a template or partial is not found in the conventional path, the controller will look for a template or partial to render in its inheritance chain. For example:
 
 ```ruby
-# in app/controllers/application_controller
+# app/controllers/application_controller.rb
 class ApplicationController < ActionController::Base
 end
+```
 
-# in app/controllers/admin_controller
+```ruby
+# app/controllers/admin_controller.rb
 class AdminController < ApplicationController
 end
+```
 
-# in app/controllers/admin/products_controller
+```ruby
+# app/controllers/admin/products_controller.rb
 class Admin::ProductsController < AdminController
   def index
   end
@@ -1085,13 +1089,13 @@ Partial templates - usually just called "partials" - are another device for brea
 
 To render a partial as part of a view, you use the [`render`][view.render] method within the view:
 
-```ruby
+```html+erb
 <%= render "menu" %>
 ```
 
 This will render a file named `_menu.html.erb` at that point within the view being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
 
-```ruby
+```html+erb
 <%= render "shared/menu" %>
 ```
 
@@ -1209,27 +1213,27 @@ To pass a local variable to a partial in only specific cases use the `local_assi
 
 * `index.html.erb`
 
-  ```erb
-  <%= render user.articles %>
-  ```
+    ```erb
+    <%= render user.articles %>
+    ```
 
 * `show.html.erb`
 
-  ```erb
-  <%= render article, full: true %>
-  ```
+    ```erb
+    <%= render article, full: true %>
+    ```
 
 * `_article.html.erb`
 
-  ```erb
-  <h2><%= article.title %></h2>
+    ```erb
+    <h2><%= article.title %></h2>
 
-  <% if local_assigns[:full] %>
-    <%= simple_format article.body %>
-  <% else %>
-    <%= truncate article.body %>
-  <% end %>
-  ```
+    <% if local_assigns[:full] %>
+      <%= simple_format article.body %>
+    <% else %>
+      <%= truncate article.body %>
+    <% end %>
+    ```
 
 This way it is possible to use the partial without the need to declare all local variables.
 

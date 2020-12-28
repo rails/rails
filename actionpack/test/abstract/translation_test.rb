@@ -65,6 +65,11 @@ module AbstractController
         end
       end
 
+      def test_nil_key_lookup
+        default = "foo"
+        assert_equal default, @controller.t(nil, default: default)
+      end
+
       def test_lazy_lookup_with_symbol
         @controller.stub :action_name, :index do
           assert_equal "bar", @controller.t(:'.foo')

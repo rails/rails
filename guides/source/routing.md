@@ -780,7 +780,7 @@ Both the `matches?` method and the lambda gets the `request` object as an argume
 
 You can specify constraints in a block form. This is useful for when you need to apply the same rule to several routes. For example
 
-```
+```ruby
 class RestrictedListConstraint
   # ...Same as the example above
 end
@@ -795,7 +795,7 @@ end
 
 You also use a `lambda`:
 
-```
+```ruby
 Rails.application.routes.draw do
   constraints(lambda { |request| RestrictedList.retrieve_ips.include?(request.remote_ip) }) do
     get '*path', to: 'restricted_list#index',
@@ -967,13 +967,13 @@ end
 
 The [`resolve`][] method allows customizing polymorphic mapping of models. For example:
 
-``` ruby
+```ruby
 resource :basket
 
 resolve("Basket") { [:basket] }
 ```
 
-``` erb
+```erb
 <%= form_with model: @basket do |form| %>
   <!-- basket form -->
 <% end %>
@@ -1226,7 +1226,9 @@ class Video < ApplicationRecord
     identifier
   end
 end
+```
 
+```ruby
 video = Video.find_by(identifier: "Roman-Holiday")
 edit_video_path(video) # => "/videos/Roman-Holiday/edit"
 ```
@@ -1247,7 +1249,9 @@ Rails.application.routes.draw do
 
   draw(:admin) # Will load another route file located in `config/routes/admin.rb`
 end
+```
 
+```ruby
 # config/routes/admin.rb
 
 namespace :admin do

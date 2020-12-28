@@ -147,9 +147,9 @@ that the `products` table was created using an SQL (or one of its extensions) st
 
 ```sql
 CREATE TABLE products (
-   id int(11) NOT NULL auto_increment,
-   name varchar(255),
-   PRIMARY KEY  (id)
+  id int(11) NOT NULL auto_increment,
+  name varchar(255),
+  PRIMARY KEY  (id)
 );
 ```
 

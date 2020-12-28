@@ -188,7 +188,9 @@ Then you would create your own channel classes. For example, you could have a
 # app/channels/chat_channel.rb
 class ChatChannel < ApplicationCable::Channel
 end
+```
 
+```ruby
 # app/channels/appearance_channel.rb
 class AppearanceChannel < ApplicationCable::Channel
 end

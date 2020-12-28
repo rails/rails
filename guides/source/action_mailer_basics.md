@@ -64,7 +64,9 @@ class ApplicationMailer < ActionMailer::Base
   default from: "from@example.com"
   layout 'mailer'
 end
+```
 
+```ruby
 # app/mailers/user_mailer.rb
 class UserMailer < ApplicationMailer
 end
@@ -626,7 +628,7 @@ config.asset_host = 'http://example.com'
 
 Now you can display an image inside your email.
 
-```ruby
+```html+erb
 <%= image_tag 'image.jpg' %>
 ```
 
@@ -723,7 +725,7 @@ end
 
 * You could use an `after_action` to do similar setup as a `before_action` but
   using instance variables set in your mailer action.
-  
+
 * Using an `after_action` callback also enables you to override delivery method
   settings by updating `mail.delivery_method.settings`.
 
