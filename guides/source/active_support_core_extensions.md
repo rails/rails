@@ -3041,6 +3041,19 @@ NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
 [Hash#assert_valid_keys]: https://api.rubyonrails.org/classes/Hash.html#method-i-assert_valid_keys
 
+#### `assert_required_keys`
+
+The method [`assert_required_keys`][Hash#assert_required_keys] receives an arbitrary number of arguments, and checks whether the receiver is missing any keys in the list. If any are missing, `ArgumentError` is raised.
+
+```ruby
+{a: 1}.assert_required_keys(:a)  # passes
+{"a" => 1}.assert_required_keys(:a) # ArgumentError
+```
+
+NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
+
+[Hash#assert_valid_keys]: https://api.rubyonrails.org/classes/Hash.html#method-i-assert_valid_keys
+
 ### Working with Values
 
 #### `deep_transform_values` and `deep_transform_values!`
