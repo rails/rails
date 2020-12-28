@@ -1,3 +1,16 @@
+*   Added option `expires_in_at` to specify cache expiration time:
+
+        Rails.cache.fetch('cache_key', expires_in_at: '00:00') do
+           do somethink ...
+        end
+
+        or
+
+        Rails.cache.write('cache_key', expires_in_at: '00:00')
+
+
+    *Maxim Aleynikov*
+
 *   `HashWithIndifferentAccess#deep_transform_keys` now returns a `HashWithIndifferentAccess` instead of a `Hash`.
 
     *Nathaniel Woodthorpe*
