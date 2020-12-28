@@ -387,7 +387,7 @@ in controllers and views. This defaults to `false`.
 
 * `config.active_record.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then passed on to any new database connections made. You can retrieve this logger by calling `logger` on either an Active Record model class or an Active Record model instance. Set to `nil` to disable logging.
 
-* `config.active_record.primary_key_prefix_type` lets you adjust the naming for primary key columns. By default, Rails assumes that primary key columns are named `id` (and this configuration option doesn't need to be set.) There are two other choices:
+* `config.active_record.primary_key_prefix_type` lets you adjust the naming for primary key columns. By default, Rails assumes that primary key columns are named `id` (and this configuration option doesn't need to be set). There are two other choices:
     * `:table_name` would make the primary key for the Customer class `customerid`.
     * `:table_name_with_underscore` would make the primary key for the Customer class `customer_id`.
 
@@ -749,7 +749,6 @@ Defaults to `'signed cookie'`.
 
 * `config.action_mailbox.queues.routing` accepts a symbol indicating the Active Job queue to use for routing jobs. When this option is `nil`, routing jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). It defaults to `:action_mailbox_routing`.
 
-
 ### Configuring Action Mailer
 
 There are a number of settings available on `config.action_mailer`:
@@ -832,7 +831,6 @@ There are a number of settings available on `config.action_mailer`:
 * `config.action_mailer.perform_caching` specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
 
 * `config.action_mailer.delivery_job` specifies delivery job for mail.
-
 
 ### Configuring Active Support
 
@@ -947,7 +945,6 @@ normal Rails server.
 You can find more detailed configuration options in the
 [Action Cable Overview](action_cable_overview.html#configuration).
 
-
 ### Configuring Active Storage
 
 `config.active_storage` provides the following configuration options:
@@ -1033,7 +1030,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 ### Results of `config.load_defaults`
 
-`config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, '6.0' also gets the new defaults from every version before it.
+`config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, `6.0` also gets the new defaults from every version before it.
 
 #### For '6.1', defaults from previous versions below and:
 
@@ -1139,7 +1136,6 @@ The `config/database.yml` file can contain ERB tags `<%= %>`. Anything in the ta
 
 
 TIP: You don't have to update the database configurations manually. If you look at the options of the application generator, you will see that one of the options is named `--database`. This option allows you to choose an adapter from a list of the most used relational databases. You can even run the generator repeatedly: `cd .. && rails new blog --database=mysql`. When you confirm the overwriting of the `config/database.yml` file, your application will be configured for MySQL instead of SQLite. Detailed examples of the common database connections are below.
-
 
 ### Connection Preference
 
@@ -1386,7 +1382,6 @@ By default Rails ships with three environments: "development", "test", and "prod
 Imagine you have a server which mirrors the production environment but is only used for testing. Such a server is commonly called a "staging server". To define an environment called "staging" for this server, just create a file called `config/environments/staging.rb`. Please use the contents of any existing file in `config/environments` as a starting point and make the necessary changes from there.
 
 That environment is no different than the default ones, start a server with `bin/rails server -e staging`, a console with `bin/rails console -e staging`, `Rails.env.staging?` works, etc.
-
 
 ### Deploy to a Subdirectory (relative URL root)
 
@@ -1665,7 +1660,7 @@ development:
   timeout: 5000
 ```
 
-Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, Puma, Unicorn etc.) should behave the same. The database connection pool is initially empty. As demand for connections increases it will create them until it reaches the connection pool limit.
+Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, Puma, Unicorn, etc.) should behave the same. The database connection pool is initially empty. As demand for connections increases it will create them until it reaches the connection pool limit.
 
 Any one request will check out a connection the first time it requires access to the database. At the end of the request it will check the connection back in. This means that the additional connection slot will be available again for the next request in the queue.
 
@@ -1753,7 +1748,6 @@ development:
     bar:
       qux: 2
 ```
-
 
 ```ruby
 # development environment

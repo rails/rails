@@ -117,7 +117,7 @@ The method [`present?`][Object#present?] is equivalent to `!blank?`. This exampl
 ```ruby
 def set_conditional_cache_control!
   return if self["Cache-Control"].present?
-  ...
+  # ...
 end
 ```
 
@@ -1015,7 +1015,7 @@ NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 [Module#cattr_reader]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_reader
 [Module#cattr_writer]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_writer
 
-### Subclasses & Descendants
+### Subclasses and Descendants
 
 #### `subclasses`
 
@@ -1582,10 +1582,10 @@ Rails class and module autoloading uses `underscore` to infer the relative path 
 ```ruby
 # active_support/dependencies.rb
 def load_missing_constant(from_mod, const_name)
-  ...
+  # ...
   qualified_name = qualified_name_for from_mod, const_name
   path_suffix = qualified_name.underscore
-  ...
+  # ...
 end
 ```
 
@@ -1644,7 +1644,6 @@ Given a string with a qualified constant name, [`demodulize`][String#demodulize]
 "Admin::Hotel::ReservationUtils".demodulize # => "ReservationUtils"
 "::Inflections".demodulize                  # => "Inflections"
 "".demodulize                               # => ""
-
 ```
 
 Active Record for example uses this method to compute the name of a counter cache column:
@@ -1827,10 +1826,10 @@ def full_messages
 end
 
 def full_message
-  ...
+  # ...
   attr_name = attribute.to_s.tr('.', '_').humanize
   attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
-  ...
+  # ...
 end
 ```
 
@@ -2159,6 +2158,7 @@ NOTE: Defined in `active_support/core_ext/integer/time.rb`.
 
 Extensions to `BigDecimal`
 --------------------------
+
 ### `to_s`
 
 The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating point representation instead of engineering notation:
@@ -2438,7 +2438,7 @@ Let's see for example the definition of the `caches_action` controller macro:
 def caches_action(*actions)
   return unless cache_configured?
   options = actions.extract_options!
-  ...
+  # ...
 end
 ```
 
@@ -2947,7 +2947,7 @@ This method may be useful for example to easily accept both symbols and strings 
 def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")
   options = options.stringify_keys
   options["type"] = "checkbox"
-  ...
+  # ...
 end
 ```
 
@@ -2984,7 +2984,6 @@ In case of key collision, the value will be the one most recently inserted into 
 
 ```ruby
 {"a" => 1, a: 2}.symbolize_keys
-# The result will be
 # => {:a=>2}
 ```
 
@@ -2994,8 +2993,8 @@ This method may be useful for example to easily accept both symbols and strings 
 def rich_text_area_tag(name, value = nil, options = {})
   options = options.symbolize_keys
 
-  options[:input] ||= "trix_input_#{ActionText::TagHelper.id += 1}
-  ...
+  options[:input] ||= "trix_input_#{ActionText::TagHelper.id += 1}"
+  # ...
 end
 ```
 
@@ -3019,7 +3018,7 @@ NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
 #### `to_options` and `to_options!`
 
-The methods [`to_options`][Hash#to_options] and [`to_options!`][Hash#to_options!] are respectively aliases of `symbolize_keys` and `symbolize_keys!`.
+The methods [`to_options`][Hash#to_options] and [`to_options!`][Hash#to_options!] are aliases of `symbolize_keys` and `symbolize_keys!`, respectively.
 
 NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
@@ -3129,11 +3128,11 @@ Rails uses this method in a single place, also in the routing code. Multiline re
 
 ```ruby
 def verify_regexp_requirements(requirements)
-  ...
+  # ...
   if requirement.multiline?
     raise ArgumentError, "Regexp multiline option is not allowed in routing requirements: #{requirement.inspect}"
   end
-  ...
+  # ...
 end
 ```
 

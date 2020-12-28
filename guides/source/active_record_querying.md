@@ -896,9 +896,8 @@ The SQL that would be executed:
 ```sql
 SELECT * FROM books WHERE id > 100 LIMIT 20
 
-# Original query without `unscope`
+-- Original query without `unscope`
 SELECT * FROM books WHERE id > 100 ORDER BY id desc LIMIT 20
-
 ```
 
 You can also unscope specific `where` clauses. For example, this will remove `id` condition from the where clause:
@@ -930,9 +929,8 @@ The SQL that would be executed:
 ```sql
 SELECT * FROM books WHERE id > 10 ORDER BY id DESC
 
-# Original query without `only`
+-- Original query without `only`
 SELECT * FROM books WHERE id > 10 ORDER BY id DESC LIMIT 20
-
 ```
 
 [`only`]: https://api.rubyonrails.org/classes/ActiveRecord/SpawnMethods.html#method-i-only
@@ -1070,7 +1068,7 @@ Book.first.highlighted_reviews.average(:rating)
 # => Returns average rating of a book
 
 class Book
-  # Returns reviews if there are atleast 5,
+  # Returns reviews if there are at least 5,
   # else consider this as non-reviewed book
   def highlighted_reviews
     if reviews.count > 5
@@ -1262,7 +1260,6 @@ SELECT books.* FROM books
 
 Or, in English: "return all books that have a review by a customer."
 
-
 ##### Joining Nested Associations (Multiple Level)
 
 ```ruby
@@ -1281,7 +1278,6 @@ INNER JOIN suppliers ON suppliers.id = books.supplier_id
 ```
 
 Or, in English: "return all authors that have books with reviews _and_ have been ordered by a customer, and the suppliers for those books."
-
 
 #### Specifying Conditions on the Joined Tables
 
@@ -1739,7 +1735,7 @@ irb> order.complete?
 ```
 
 These instance methods are created automatically and will first update the value of `status` to the named value
- and then query whether or not the status has been successfully set to the value:
+and then query whether or not the status has been successfully set to the value:
 
 ```irb
 irb> order = Order.first
@@ -1765,7 +1761,7 @@ have to be at the end of the statement.
 
 There are some examples below. This guide won't cover all the possibilities, just a few as examples.
 When an Active Record method is called, the query is not immediately generated and sent to the database.
- The query is sent only when the data is actually needed. So each example below generates a single query.
+The query is sent only when the data is actually needed. So each example below generates a single query.
 
 ### Retrieving filtered data from multiple tables
 
@@ -1819,7 +1815,7 @@ It's common that you need to find a record or create it if it doesn't exist. You
 
 The [`find_or_create_by`][] method checks whether a record with the specified attributes exists. If it doesn't, then `create` is called. Let's see an example.
 
-Suppose you want to find a customer named 'Andy', and if there's none, create one. You can do so by running:
+Suppose you want to find a customer named "Andy", and if there's none, create one. You can do so by running:
 
 ```irb
 irb> Customer.find_or_create_by(first_name: 'Andy')
@@ -1980,7 +1976,7 @@ Customer.pluck(:id, :first_name)
 
 Unlike `select`, `pluck` directly converts a database result into a Ruby `Array`,
 without constructing `ActiveRecord` objects. This can mean better performance for
-a large or often-running query. However, any model method overrides will
+a large or frequently-run query. However, any model method overrides will
 not be available. For example:
 
 ```ruby
@@ -2002,7 +1998,7 @@ irb> Customer.pluck(:first_name)
 You are not limited to querying fields from a single table, you can query multiple tables as well.
 
 ```irb
-irb> Order.joins(:customer, :books).pluck("orders.created_at, customers.email,  books.title")
+irb> Order.joins(:customer, :books).pluck("orders.created_at, customers.email, books.title")
 ```
 
 Furthermore, unlike `select` and other `Relation` scopes, `pluck` triggers an immediate
@@ -2144,7 +2140,8 @@ SELECT COUNT(DISTINCT customers.id) FROM customers
   LEFT OUTER JOIN orders ON orders.customer_id = customers.id
   WHERE (customers.first_name = 'Ryan' AND orders.status = 0)
 ```
-assuming that Order has `enum status: [ :shipped, :being_packed, :cancelled ]`
+
+assuming that Order has `enum status: [ :shipped, :being_packed, :cancelled ]`.
 
 ### Count
 

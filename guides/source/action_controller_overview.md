@@ -34,7 +34,7 @@ Controller Naming Convention
 
 The naming convention of controllers in Rails favors pluralization of the last word in the controller's name, although it is not strictly required (e.g. `ApplicationController`). For example, `ClientsController` is preferable to `ClientController`, `SiteAdminsController` is preferable to `SiteAdminController` or `SitesAdminsController`, and so on.
 
-Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and will keep named route helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
+Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and will keep named route helpers' usage consistent throughout your application. See [Layouts and Rendering Guide](layouts_and_rendering.html) for more details.
 
 NOTE: The controller naming convention differs from the naming convention of models, which are expected to be named in singular form.
 
@@ -59,7 +59,7 @@ def new
 end
 ```
 
-The [Layouts & Rendering Guide](layouts_and_rendering.html) explains this in more detail.
+The [Layouts and Rendering Guide](layouts_and_rendering.html) explains this in more detail.
 
 `ApplicationController` inherits from [`ActionController::Base`][], which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the [API documentation](https://api.rubyonrails.org/classes/ActionController.html) or in the source itself.
 
@@ -196,7 +196,7 @@ These options will be used as a starting point when generating URLs, so it's pos
 
 If you define `default_url_options` in `ApplicationController`, as in the example above, these defaults will be used for all URL generation. The method can also be defined in a specific controller, in which case it only affects URLs generated there.
 
-In a given request, the method is not actually called for every single generated URL; for performance reasons, the returned hash is cached, there is at most one invocation per request.
+In a given request, the method is not actually called for every single generated URL. For performance reasons, the returned hash is cached, and there is at most one invocation per request.
 
 ### Strong Parameters
 
@@ -373,7 +373,7 @@ Your application has a session for each user in which you can store small amount
 
 * [`ActionDispatch::Session::CookieStore`][] - Stores everything on the client.
 * [`ActionDispatch::Session::CacheStore`][] - Stores the data in the Rails cache.
-* `ActionDispatch::Session::ActiveRecordStore` - Stores the data in a database using Active Record. (require `activerecord-session_store` gem).
+* `ActionDispatch::Session::ActiveRecordStore` - Stores the data in a database using Active Record (requires the `activerecord-session_store` gem).
 * [`ActionDispatch::Session::MemCacheStore`][] - Stores the data in a memcached cluster (this is a legacy implementation; consider using CacheStore instead).
 
 All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
@@ -487,7 +487,7 @@ To reset the entire session, use [`reset_session`][].
 
 ### The Flash
 
-The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for passing error messages etc.
+The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for passing error messages, etc.
 
 The flash is accessed via the [`flash`][] method. Like the session, the flash is represented as a hash.
 
@@ -769,9 +769,9 @@ You can choose not to yield and build the response yourself, in which case the a
 
 ### Other Ways to Use Filters
 
-While the most common way to use filters is by creating private methods and using *_action to add them, there are two other ways to do the same thing.
+While the most common way to use filters is by creating private methods and using `before_action`, `after_action`, or `around_action` to add them, there are two other ways to do the same thing.
 
-The first is to use a block directly with the *\_action methods. The block receives the controller as an argument. The `require_login` filter from above could be rewritten to use a block:
+The first is to use a block directly with the `*_action` methods. The block receives the controller as an argument. The `require_login` filter from above could be rewritten to use a block:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -851,9 +851,9 @@ The Request and Response Objects
 
 In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The [`request`][] method contains an instance of [`ActionDispatch::Request`][] and the [`response`][] method returns a response object representing what is going to be sent back to the client.
 
- [`ActionDispatch::Request`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html
- [`request`]: https://api.rubyonrails.org/classes/ActionController/Base.html#method-i-request
- [`response`]: https://api.rubyonrails.org/classes/ActionController/Base.html#method-i-response
+[`ActionDispatch::Request`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html
+[`request`]: https://api.rubyonrails.org/classes/ActionController/Base.html#method-i-request
+[`response`]: https://api.rubyonrails.org/classes/ActionController/Base.html#method-i-response
 
 ### The `request` Object
 
@@ -861,17 +861,17 @@ The request object contains a lot of useful information about the request coming
 
 | Property of `request`                     | Purpose                                                                          |
 | ----------------------------------------- | -------------------------------------------------------------------------------- |
-| host                                      | The hostname used for this request.                                              |
-| domain(n=2)                               | The hostname's first `n` segments, starting from the right (the TLD).            |
-| format                                    | The content type requested by the client.                                        |
-| method                                    | The HTTP method used for the request.                                            |
-| get?, post?, patch?, put?, delete?, head? | Returns true if the HTTP method is GET/POST/PATCH/PUT/DELETE/HEAD.               |
-| headers                                   | Returns a hash containing the headers associated with the request.               |
-| port                                      | The port number (integer) used for the request.                                  |
-| protocol                                  | Returns a string containing the protocol used plus "://", for example "http://". |
-| query_string                              | The query string part of the URL, i.e., everything after "?".                    |
-| remote_ip                                 | The IP address of the client.                                                    |
-| url                                       | The entire URL used for the request.                                             |
+| `host`                                    | The hostname used for this request.                                              |
+| `domain(n=2)`                             | The hostname's first `n` segments, starting from the right (the TLD).            |
+| `format`                                  | The content type requested by the client.                                        |
+| `method`                                  | The HTTP method used for the request.                                            |
+| `get?`, `post?`, `patch?`, `put?`, `delete?`, `head?` | Returns true if the HTTP method is GET/POST/PATCH/PUT/DELETE/HEAD.   |
+| `headers`                                 | Returns a hash containing the headers associated with the request.               |
+| `port`                                    | The port number (integer) used for the request.                                  |
+| `protocol`                                | Returns a string containing the protocol used plus "://", for example "http://". |
+| `query_string`                            | The query string part of the URL, i.e., everything after "?".                    |
+| `remote_ip`                               | The IP address of the client.                                                    |
+| `url`                                     | The entire URL used for the request.                                             |
 
 #### `path_parameters`, `query_parameters`, and `request_parameters`
 
@@ -887,12 +887,12 @@ The response object is not usually used directly, but is built up during the exe
 
 | Property of `response` | Purpose                                                                                             |
 | ---------------------- | --------------------------------------------------------------------------------------------------- |
-| body                   | This is the string of data being sent back to the client. This is most often HTML.                  |
-| status                 | The HTTP status code for the response, like 200 for a successful request or 404 for file not found. |
-| location               | The URL the client is being redirected to, if any.                                                  |
-| content_type           | The content type of the response.                                                                   |
-| charset                | The character set being used for the response. Default is "utf-8".                                  |
-| headers                | Headers used for the response.                                                                      |
+| `body`                 | This is the string of data being sent back to the client. This is most often HTML.                  |
+| `status`               | The HTTP status code for the response, like 200 for a successful request or 404 for file not found. |
+| `location`             | The URL the client is being redirected to, if any.                                                  |
+| `content_type`         | The content type of the response.                                                                   |
+| `charset`              | The character set being used for the response. Default is "utf-8".                                  |
+| `headers`              | Headers used for the response.                                                                      |
 
 #### Setting Custom Headers
 

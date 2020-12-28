@@ -1017,7 +1017,7 @@ You can supply a path to the audio file if you like:
 <%= audio_tag "music/first_song.mp3" %>
 ```
 
-You can also supply a hash of additional options, such as `:id`, `:class` etc.
+You can also supply a hash of additional options, such as `:id`, `:class`, etc.
 
 Like the `video_tag`, the `audio_tag` has special options:
 

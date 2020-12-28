@@ -136,7 +136,7 @@ amazon:
   http_open_timeout: 0
   http_read_timeout: 0
   retry_limit: 0
-  upload: 
+  upload:
     server_side_encryption: "" # 'aws:kms' or 'AES256'
 ```
 TIP: Set sensible client HTTP timeouts and retry limits for your application. In certain failure scenarios, the default AWS client configuration may cause connections to be held for up to several minutes and lead to request queuing.
@@ -472,7 +472,7 @@ Generate a permanent URL for the blob that points to the application. Upon
 access, a redirect to the actual service endpoint is returned. This indirection
 decouples the service URL from the actual one, and allows, for example, mirroring
 attachments in different services for high-availability. The redirection has an
-HTTP expiration of 5 min.
+HTTP expiration of 5 minutes.
 
 ```ruby
 url_for(user.avatar)
@@ -490,7 +490,7 @@ to "attachment" for some kind of files. To change this behaviour see the
 available configuration options in [Configuring Rails Applications](configuring.html#configuring-active-storage).
 
 If you need to create a link from outside of controller/view context (Background
-jobs, Cronjobs, etc.), you can access the rails_blob_path like this:
+jobs, Cronjobs, etc.), you can access the `rails_blob_path` like this:
 
 ```ruby
 Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: true)
@@ -581,7 +581,7 @@ a link to a lazily-generated preview, use the attachment's [`preview`][] method:
 </ul>
 ```
 
-WARNING: Extracting previews requires third-party applications, FFmpeg for
+WARNING: Extracting previews requires third-party applications: FFmpeg v3.4+ for
 video and muPDF for PDFs, and on macOS also XQuartz and Poppler.
 These libraries are not provided by Rails. You must install them yourself to
 use the built-in previewers. Before you install and use third-party software,
@@ -603,7 +603,6 @@ directly from the client to the cloud.
 
     ```js
     //= require activestorage
-
     ```
 
     Using the npm package:
@@ -613,13 +612,13 @@ directly from the client to the cloud.
     ActiveStorage.start()
     ```
 
-2. Add `direct_upload: true` to your [`file_field`](form_helpers.html#uploading-files).
+2. Add `direct_upload: true` to your [file field](form_helpers.html#uploading-files):
 
     ```erb
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>
     ```
-    
-    If you aren't using a [FormBuilder](form_helpers.html#customizing-form-builders), add the data attribute directly:
+
+    Or, if you aren't using a `FormBuilder`, add the data attribute directly:
 
     ```erb
     <input type=file data-direct-upload-url="<%= rails_direct_uploads_url %>" />

@@ -34,7 +34,6 @@ different Rails applications using RubyGems and Bundler if desired.
 
 ### Generate a gemified plugin.
 
-
 Rails ships with a `rails plugin new` command which creates a
 skeleton for developing any kind of Rails extension with the ability
 to run integration tests using a dummy Rails application. Create your
@@ -54,7 +53,7 @@ Testing Your Newly Generated Plugin
 -----------------------------------
 
 You can navigate to the directory that contains the plugin, run the `bundle install` command
- and run the one generated test using the `bin/test` command.
+and run the one generated test using the `bin/test` command.
 
 You should see:
 
