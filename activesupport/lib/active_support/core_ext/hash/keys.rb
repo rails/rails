@@ -64,7 +64,7 @@ class Hash
   #   { name: 'Rob', years: '28' }.assert_required_keys(:name, :age) # => raises "ArgumentError: Missing required option(s): :age"
   #   { name: 'Rob', age: '28' }.assert_required_keys(:name, :age)   # => passes, raises nothing
   def assert_required_keys(*required_keys)
-    missing_keys = required_keys.reject { |key| key?(key) }
+    missing_keys = required_keys.flatten.reject { |key| key?(key) }
     raise ArgumentError.new("Missing required option(s): #{missing_keys.join(", ")}") unless missing_keys.empty?
   end
 
