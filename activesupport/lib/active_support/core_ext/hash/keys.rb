@@ -53,7 +53,7 @@ class Hash
       end
     end
   end
-  
+
   # Validates that no required keys in a hash are missing from <tt>*required_keys</tt>, raising
   # +ArgumentError+ for any missing keys.
   #

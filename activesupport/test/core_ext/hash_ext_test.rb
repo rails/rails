@@ -270,6 +270,38 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal "Unknown key: :failore. Valid keys are: :failure", exception.message
   end
 
+  def test_assert_required_keys
+    assert_nothing_raised do
+      { failure: "stuff", funny: "business" }.assert_required_keys([ :failure, :funny ])
+      { failure: "stuff", funny: "business" }.assert_required_keys(:failure, :funny)
+    end
+    # keys that are not required may be present
+    assert_nothing_raised do
+      { failure: "stuff", funny: "business", sunny: "day" }.assert_required_keys([ :failure, :funny ])
+      { failure: "stuff", funny: "business", sunny: "day" }.assert_required_keys(:failure, :funny)
+    end
+
+    exception = assert_raise ArgumentError do
+      { failore: "stuff", funny: "business" }.assert_required_keys([ :failure, :funny ])
+    end
+    assert_equal "Missing required option(s): :failure", exception.message
+
+    exception = assert_raise ArgumentError do
+      { failore: "stuff", funny: "business" }.assert_required_keys(:failure, :funny)
+    end
+    assert_equal "Missing required option(s): :failure", exception.message
+
+    exception = assert_raise ArgumentError do
+      { failore: "stuff", funny: "business" }.assert_required_keys([ :failure ])
+    end
+    assert_equal "Missing required option(s): :failure", exception.message
+
+    exception = assert_raise ArgumentError do
+      { failore: "stuff", funny: "business" }.assert_required_keys(:failure)
+    end
+    assert_equal "Missing required option(s): :failure", exception.message
+  end
+
   def test_deep_merge
     hash_1 = { a: "a", b: "b", c: { c1: "c1", c2: "c2", c3: { d1: "d1" } } }
     hash_2 = { a: 1, c: { c1: 2, c3: { d2: "d2" } } }
