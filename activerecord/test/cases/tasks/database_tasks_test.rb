@@ -1506,19 +1506,21 @@ module ActiveRecord
     end
   end
 
-  class DatabaseTasksCheckSchemaFileDefaultsTest < ActiveRecord::TestCase
+  class DatabaseTasksCheckSchemaFileMethods < ActiveRecord::TestCase
     def test_check_schema_file_defaults
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
-        assert_equal "/tmp/schema.rb", ActiveRecord::Tasks::DatabaseTasks.schema_file
+        assert_deprecated do
+          assert_equal "/tmp/schema.rb", ActiveRecord::Tasks::DatabaseTasks.schema_file
+        end
       end
     end
-  end
 
-  class DatabaseTasksCheckSchemaFileSpecifiedFormatsTest < ActiveRecord::TestCase
     { ruby: "schema.rb", sql: "structure.sql" }.each_pair do |fmt, filename|
       define_method("test_check_schema_file_for_#{fmt}_format") do
         ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
-          assert_equal "/tmp/#{filename}", ActiveRecord::Tasks::DatabaseTasks.schema_file(fmt)
+          assert_deprecated do
+            assert_equal "/tmp/#{filename}", ActiveRecord::Tasks::DatabaseTasks.schema_file(fmt)
+          end
         end
       end
     end

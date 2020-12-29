@@ -400,6 +400,7 @@ module ActiveRecord
       def schema_file(format = ActiveRecord::Base.schema_format)
         File.join(db_dir, schema_file_type(format))
       end
+      deprecate :schema_file
 
       def schema_file_type(format = ActiveRecord::Base.schema_format)
         case format
