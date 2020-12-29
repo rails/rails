@@ -112,10 +112,9 @@ module ActiveRecord
     def sole
       found, undesired = first(2)
 
-      case
-      when found.nil?
+      if found.nil?
         raise_record_not_found_exception!
-      when undesired.present?
+      elsif undesired.present?
         raise ActiveRecord::SoleRecordExceeded.new(self)
       else
         found
