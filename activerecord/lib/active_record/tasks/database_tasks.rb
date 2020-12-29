@@ -197,34 +197,34 @@ module ActiveRecord
       def prepare_all
         seed = false
 
-        configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
+        configs_for(env_name: env).each do |db_config|
           ActiveRecord::Base.establish_connection(db_config)
 
           # Skipped when no database
-          ActiveRecord::Tasks::DatabaseTasks.migrate
+          migrate
 
           if ActiveRecord::Base.dump_schema_after_migration
-            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, ActiveRecord::Base.schema_format)
+            dump_schema(db_config, ActiveRecord::Base.schema_format)
           end
         rescue ActiveRecord::NoDatabaseError
           config_name = db_config.name
-          ActiveRecord::Tasks::DatabaseTasks.create_current(db_config.env_name, config_name)
+          create_current(db_config.env_name, config_name)
 
-          if File.exist?(ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_name))
-            ActiveRecord::Tasks::DatabaseTasks.load_schema(
+          if File.exist?(dump_filename(config_name))
+            load_schema(
               db_config,
               ActiveRecord::Base.schema_format,
               nil
             )
           else
-            ActiveRecord::Tasks::DatabaseTasks.migrate
+            migrate
           end
 
           seed = true
         end
 
         ActiveRecord::Base.establish_connection
-        ActiveRecord::Tasks::DatabaseTasks.load_seed if seed
+        load_seed if seed
       end
 
       def drop(configuration, *arguments)
