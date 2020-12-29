@@ -29,7 +29,8 @@ module ActiveRecord
       end
 
       def inversed_from(record)
-        replace_keys(record) if owner[reflection.foreign_key] != record_target_key(record)
+        target_key = record_target_key(record)
+        replace_keys(record, target_key) if owner[reflection.foreign_key] != target_key
         super
       end
 
@@ -108,8 +109,8 @@ module ActiveRecord
           reflection.counter_cache_column && owner.persisted?
         end
 
-        def replace_keys(record)
-          owner[reflection.foreign_key] = record_target_key(record)
+        def replace_keys(record, target_key = :unset)
+          owner[reflection.foreign_key] = target_key == :unset ? record_target_key(record) : target_key
         end
 
         def record_target_key(record)
