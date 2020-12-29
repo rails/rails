@@ -81,6 +81,13 @@ module ActionView
       PartialRenderer.collection_cache = app.config.action_controller.cache_store
     end
 
+    initializer "action_view.button_to_generates_button_tag" do |app|
+      ActiveSupport.on_load(:action_view) do
+        ActionView::Helpers::UrlHelper.button_to_generates_button_tag =
+          app.config.action_view.delete(:button_to_generates_button_tag)
+      end
+    end
+
     config.after_initialize do |app|
       enable_caching = if app.config.action_view.cache_template_loading.nil?
         app.config.cache_classes
