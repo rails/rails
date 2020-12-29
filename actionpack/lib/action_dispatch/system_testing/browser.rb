@@ -64,14 +64,14 @@ module ActionDispatch
 
       private
         def headless_chrome_browser_options
-          capabilities.args << "--headless"
-          capabilities.args << "--disable-gpu" if Gem.win_platform?
+          capabilities.add_argument("--headless")
+          capabilities.add_argument("--disable-gpu") if Gem.win_platform?
 
           capabilities
         end
 
         def headless_firefox_browser_options
-          capabilities.args << "-headless"
+          capabilities.add_argument("-headless")
 
           capabilities
         end

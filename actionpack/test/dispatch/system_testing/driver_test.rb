@@ -71,7 +71,8 @@ class DriverTest < ActiveSupport::TestCase
         "args" => ["start-maximized"],
         "mobileEmulation" => { "deviceName" => "iphone 6" },
         "prefs" => { "detach" => true }
-      }
+      },
+      "browserName" => "chrome"
     }
     assert_equal expected, driver_option.as_json
   end
@@ -92,7 +93,8 @@ class DriverTest < ActiveSupport::TestCase
         "args" => ["start-maximized"],
         "mobileEmulation" => { "deviceName" => "iphone 6" },
         "prefs" => { "detach" => true }
-      }
+      },
+      "browserName" => "chrome"
     }
     assert_equal expected, driver_option.as_json
   end
@@ -111,7 +113,8 @@ class DriverTest < ActiveSupport::TestCase
       "moz:firefoxOptions" => {
         "args" => ["--host=127.0.0.1"],
         "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
-      }
+      },
+      "browserName" => "firefox"
     }
     assert_equal expected, driver_option.as_json
   end
@@ -130,7 +133,8 @@ class DriverTest < ActiveSupport::TestCase
       "moz:firefoxOptions" => {
         "args" => ["--host=127.0.0.1"],
         "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
-      }
+      },
+      "browserName" => "firefox"
     }
     assert_equal expected, driver_option.as_json
   end
