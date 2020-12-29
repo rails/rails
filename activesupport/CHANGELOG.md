@@ -6,5 +6,9 @@
 
     *Ritikesh G*
 
+*   add `RedisCacheStore#stats` method similar to `MemCacheStore#stats`. Calls `redis#info` internally.
+
+    *Ritikesh G*
+
 
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/activesupport/CHANGELOG.md) for previous changes.
