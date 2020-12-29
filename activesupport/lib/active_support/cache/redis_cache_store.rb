@@ -319,6 +319,11 @@ module ActiveSupport
         end
       end
 
+      # Get info from redis servers.
+      def stats
+        redis.with { |c| c.info }
+      end
+
       def mget_capable? #:nodoc:
         set_redis_capabilities unless defined? @mget_capable
         @mget_capable
