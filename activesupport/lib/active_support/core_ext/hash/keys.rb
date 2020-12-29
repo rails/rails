@@ -65,7 +65,7 @@ class Hash
   #   { name: 'Rob', age: '28' }.assert_required_keys(:name, :age)   # => passes, raises nothing
   def assert_required_keys(*required_keys)
     missing_keys = required_keys.flatten.reject { |key| key?(key) }
-    raise ArgumentError.new("Missing required option(s): #{missing_keys.join(", ")}") unless missing_keys.empty?
+    raise ArgumentError.new("Missing required option(s): #{missing_keys.map(&:inspect).join(", ")}") unless missing_keys.empty?
   end
 
   # Returns a new hash with all keys converted by the block operation.
