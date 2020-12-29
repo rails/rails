@@ -6,7 +6,7 @@ module ActiveRecord
     class BelongsToPolymorphicAssociation < BelongsToAssociation #:nodoc:
       def inversed_from(record)
         target_type = record_target_type(record)
-        replace_type(record, target_type) if owner[reflection.foreign_type] != target_type
+        replace_type(target_type) if owner[reflection.foreign_type] != target_type
         super
       end
 
@@ -21,11 +21,11 @@ module ActiveRecord
 
       private
         def replace(record)
-          replace_type(record, record_target_type(record))
+          replace_type(record_target_type(record))
           super
         end
 
-        def replace_type(record, target_type)
+        def replace_type(target_type)
           owner[reflection.foreign_type] = target_type
         end
 
