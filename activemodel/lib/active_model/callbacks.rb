@@ -147,7 +147,7 @@ module ActiveModel
           conditional = ActiveSupport::Callbacks::Conditionals::Value.new { |v|
             v != false
           }
-          options[:if] = Array(options[:if]) << conditional
+          options[:if] = Array(options[:if]) + [conditional]
           set_callback(:"#{callback}", :after, *args, options, &block)
         end
       end
