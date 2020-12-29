@@ -60,21 +60,21 @@
 
     Before:
 
-      AnimalsRecord.connected_to(role: :reading) do
-        MealsRecord.connected_to(role: :reading) do
+        AnimalsRecord.connected_to(role: :reading) do
+          MealsRecord.connected_to(role: :reading) do
+            Dog.first # read from animals replica
+            Dinner.first # read from meals replica
+            Person.first # read from primary writer
+          end
+        end
+
+    After:
+
+        ActiveRecord::Base.connected_to_many([AnimalsRecord, MealsRecord], role: :reading) do
           Dog.first # read from animals replica
           Dinner.first # read from meals replica
           Person.first # read from primary writer
         end
-      end
-
-    After:
-
-      ActiveRecord::Base.connected_to_many([AnimalsRecord, MealsRecord], role: :reading) do
-        Dog.first # read from animals replica
-        Dinner.first # read from meals replica
-        Person.first # read from primary writer
-      end
 
     *Eileen M. Uchitelle*, *John Crepezzi*
 
@@ -192,13 +192,13 @@
 
      Before:
 
-         User.where.not(name: "Jon", role: "admin")
-         # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
+        User.where.not(name: "Jon", role: "admin")
+        # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
 
      After:
 
-         User.where.not(name: "Jon", role: "admin")
-         # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
+        User.where.not(name: "Jon", role: "admin")
+        # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
 
     *Rafael Mendonça França*
 
