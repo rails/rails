@@ -81,7 +81,7 @@ module ActiveRecord
             @updated = true
           end
 
-          replace_keys(record)
+          replace_keys(record, record_target_key(record))
 
           self.target = record
         end
@@ -109,8 +109,8 @@ module ActiveRecord
           reflection.counter_cache_column && owner.persisted?
         end
 
-        def replace_keys(record, target_key = :unset)
-          owner[reflection.foreign_key] = target_key == :unset ? record_target_key(record) : target_key
+        def replace_keys(record, target_key)
+          owner[reflection.foreign_key] = target_key
         end
 
         def record_target_key(record)

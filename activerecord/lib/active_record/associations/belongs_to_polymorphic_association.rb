@@ -4,6 +4,12 @@ module ActiveRecord
   module Associations
     # = Active Record Belongs To Polymorphic Association
     class BelongsToPolymorphicAssociation < BelongsToAssociation #:nodoc:
+      def inversed_from(record)
+        target_type = record_target_type(record)
+        replace_type(record, target_type) if owner[reflection.foreign_type] != target_type
+        super
+      end
+
       def klass
         type = owner[reflection.foreign_type]
         type.presence && owner.class.polymorphic_class_for(type)
@@ -14,9 +20,17 @@ module ActiveRecord
       end
 
       private
-        def replace_keys(record)
+        def replace(record)
+          replace_type(record, record_target_type(record))
           super
-          owner[reflection.foreign_type] = record ? record.class.polymorphic_name : nil
+        end
+
+        def replace_type(record, target_type)
+          owner[reflection.foreign_type] = target_type
+        end
+
+        def record_target_type(record)
+          record ? record.class.polymorphic_name : nil
         end
 
         def inverse_reflection_for(record)

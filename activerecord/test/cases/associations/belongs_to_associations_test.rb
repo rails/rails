@@ -1372,6 +1372,21 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal toy, sponsor.reload.sponsorable
   end
 
+  class SponsorWithTouchInverse < Sponsor
+    belongs_to :sponsorable, polymorphic: true, inverse_of: :sponsors, touch: true
+  end
+
+  def test_destroying_polymorphic_child_with_unloaded_parent_and_touch_is_possible_with_has_many_inversing
+    with_has_many_inversing do
+      toy     = Toy.create!
+      sponsor = toy.sponsors.create!
+
+      assert_difference "Sponsor.count", -1 do
+        SponsorWithTouchInverse.find(sponsor.id).destroy
+      end
+    end
+  end
+
   def test_polymorphic_with_false
     assert_nothing_raised do
       Class.new(ActiveRecord::Base) do
