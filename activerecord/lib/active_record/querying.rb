@@ -3,7 +3,7 @@
 module ActiveRecord
   module Querying
     QUERYING_METHODS = [
-      :find, :find_by, :find_by!, :take, :take!, :first, :first!, :last, :last!,
+      :find, :find_by, :find_by!, :take, :take!, :sole, :find_sole_by, :first, :first!, :last, :last!,
       :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!,
       :forty_two, :forty_two!, :third_to_last, :third_to_last!, :second_to_last, :second_to_last!,
       :exists?, :any?, :many?, :none?, :one?,

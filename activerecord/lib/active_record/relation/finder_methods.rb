@@ -104,6 +104,33 @@ module ActiveRecord
       take || raise_record_not_found_exception!
     end
 
+    # Finds the sole matching record. Raises ActiveRecord::RecordNotFound if no
+    # record is found. Raises ActiveRecord::SoleRecordExceeded if more than one
+    # record is found.
+    #
+    #   Product.where(["price = %?", price]).sole
+    def sole
+      found, undesired = first(2)
+
+      case
+      when found.nil?
+        raise_record_not_found_exception!
+      when undesired.present?
+        raise ActiveRecord::SoleRecordExceeded.new(self)
+      else
+        found
+      end
+    end
+
+    # Finds the sole matching record. Raises ActiveRecord::RecordNotFound if no
+    # record is found. Raises ActiveRecord::SoleRecordExceeded if more than one
+    # record is found.
+    #
+    #   Product.find_sole_by(["price = %?", price])
+    def find_sole_by(arg, *args)
+      where(arg, *args).sole
+    end
+
     # Find the first record (or first N records if a parameter is supplied).
     # If no order is defined it will order by primary key.
     #
