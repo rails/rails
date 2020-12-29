@@ -542,7 +542,7 @@ config.cache_store = :redis_cache_store, { url: cache_servers,
 
 ### ActiveSupport::Cache::NullStore
 
-This cache store implementation is meant to be used only in development or test environments and it never stores anything. This can be very useful in development when you have code that interacts directly with `Rails.cache` but caching may interfere with being able to see the results of code changes. With this cache store, all `fetch` and `read` operations will result in a miss.
+This cache store is scoped to each web request, and clears stored values at the end of a request. It is meant for use in development and test environments. It can be very useful when you have code that interacts directly with `Rails.cache` but caching interferes with seeing the results of code changes.
 
 ```ruby
 config.cache_store = :null_store
@@ -703,6 +703,9 @@ Development mode is now being cached.
 $ bin/rails dev:cache
 Development mode is no longer being cached.
 ```
+
+NOTE: By default, when development mode caching is *off*, Rails uses
+[`ActiveSupport::Cache::NullStore`](#activesupport-cache-nullstore).
 
 References
 ----------
