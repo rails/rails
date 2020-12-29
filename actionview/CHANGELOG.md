@@ -1,6 +1,6 @@
 *   Change `ActionView::Helpers::UrlHelper#button_to` to *always* render a
     `<button>` element, regardless of whether or not the content is passed as
-    the first argument or as a block
+    the first argument or as a block.
 
         <%= button_to "Delete", post_path(@post), method: :delete %>
         <%# => <form method="/posts/1"><input type="_method" value="delete"><button type="submit">Delete</button></form>
@@ -10,7 +10,7 @@
         <% end %>
         <%# => <form method="/posts/1"><input type="_method" value="delete"><button type="submit">Delete</button></form>
 
-    *Sean Doyle, Dusan Orlovic*
+    *Sean Doyle*, *Dusan Orlovic*
 
 *   Add `config.action_view.preload_links_header` to allow disabling of
     the `Link` header being added by default when using `stylesheet_link_tag`

@@ -1,4 +1,4 @@
-*   Makes `ActiveRecord::AttributeMethods::Query` respect the getter overrides defined in the model. 
+*   Makes `ActiveRecord::AttributeMethods::Query` respect the getter overrides defined in the model.
 
     Fixes #40771.
 

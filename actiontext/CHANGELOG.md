@@ -1,4 +1,4 @@
-*   Add `with_all_rich_text` method to eager load all rich text associations on a model at once
+*   Add `with_all_rich_text` method to eager load all rich text associations on a model at once.
 
     *Matt Swanson*, *DHH*
 
