@@ -197,7 +197,7 @@ GEM
       rack-test (>= 0.6.3)
       regexp_parser (~> 1.5)
       xpath (~> 3.2)
-    childprocess (3.0.0)
+    childprocess (4.0.0)
     coffee-script (2.4.1)
       coffee-script-source
       execjs
@@ -459,9 +459,10 @@ GEM
       tilt
     sdoc (2.0.3)
       rdoc (>= 5.0)
-    selenium-webdriver (3.142.7)
-      childprocess (>= 0.5, < 4.0)
+    selenium-webdriver (4.0.0.alpha7)
+      childprocess (>= 0.5, < 5.0)
       rubyzip (>= 1.2.2)
+      websocket (~> 1.0)
     semantic_range (2.3.0)
     sequel (5.27.0)
     serverengine (2.0.7)
@@ -608,7 +609,7 @@ DEPENDENCIES
   rubocop-rails
   sass-rails
   sdoc (>= 2.0.3)
-  selenium-webdriver (>= 3.141.592)
+  selenium-webdriver (>= 4.0.0.alpha7)
   sequel
   sidekiq
   sneakers
@@ -628,4 +629,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.1.4
+   2.2.3
