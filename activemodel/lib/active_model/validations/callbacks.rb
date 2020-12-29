@@ -56,14 +56,7 @@ module ActiveModel
         def before_validation(*args, &block)
           options = args.extract_options!
 
-          if options.key?(:on)
-            options = options.dup
-            options[:on] = Array(options[:on])
-            options[:if] = Array(options[:if])
-            options[:if].unshift ->(o) {
-              !(options[:on] & Array(o.validation_context)).empty?
-            }
-          end
+          set_options_for_callback(options)
 
           set_callback(:validation, :before, *args, options, &block)
         end
@@ -99,13 +92,7 @@ module ActiveModel
           options = options.dup
           options[:prepend] = true
 
-          if options.key?(:on)
-            options[:on] = Array(options[:on])
-            options[:if] = Array(options[:if])
-            options[:if].unshift ->(o) {
-              !(options[:on] & Array(o.validation_context)).empty?
-            }
-          end
+          set_options_for_callback(options)
 
           set_callback(:validation, :after, *args, options, &block)
         end
@@ -115,6 +102,18 @@ module ActiveModel
       # Overwrite run validations to include callbacks.
       def run_validations!
         _run_validation_callbacks { super }
+      end
+
+      def set_options_for_callback(options)
+        if options.key?(:on)
+          options[:on] = Array(options[:on])
+          options[:if] = [
+            ->(o) {
+              !(options[:on] & Array(o.validation_context)).empty?
+            },
+            *options[:if]
+          ]
+        end
       end
     end
   end
