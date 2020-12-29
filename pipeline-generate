@@ -247,7 +247,7 @@ steps_for("actioncable", "test:integration", service: "default") do |x|
   end
 end
 if REPO_ROOT.join("actionview/Rakefile").read.include?("task :ujs")
-  step_for("actionview", "test:ujs", service: "actionview", ruby: (MAX_RUBY ? ONE_RUBY : "ruby:2.7"))
+  step_for("actionview", "test:ujs", service: "actionview")
 end
 steps_for("activejob", "test:integration", service: "activejob") do |x|
   # Enable soft_fail until the problem in queue_classic is solved.
