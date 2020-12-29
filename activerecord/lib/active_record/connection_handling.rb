@@ -269,10 +269,6 @@ module ActiveRecord
       @connection_specification_name
     end
 
-    def primary_class? # :nodoc:
-      self == Base || defined?(ApplicationRecord) && self == ApplicationRecord
-    end
-
     # Returns the configuration of the associated connection as a hash:
     #
     #  ActiveRecord::Base.connection_config
@@ -337,11 +333,10 @@ module ActiveRecord
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name
 
-        owner_name = primary_class? ? Base.name : name
-        self.connection_specification_name = owner_name
+        self.connection_specification_name = name
 
         db_config = Base.configurations.resolve(config_or_env)
-        [db_config, owner_name]
+        [db_config, name]
       end
 
       def with_handler(handler_key, &blk)
