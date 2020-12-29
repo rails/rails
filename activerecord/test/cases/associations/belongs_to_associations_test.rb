@@ -25,6 +25,8 @@ require "models/admin/user"
 require "models/ship"
 require "models/treasure"
 require "models/parrot"
+require "models/book"
+require "models/citation"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -1175,6 +1177,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_predicate firm_with_condition_proxy, :stale_target?
     assert_equal companies(:another_firm), client.firm
     assert_equal companies(:another_firm), client.firm_with_condition
+  end
+
+  def test_destroying_child_with_unloaded_parent_and_foreign_key_and_touch_is_possible_with_has_many_inversing
+    with_has_many_inversing do
+      book     = Book.create!
+      citation = book.citations.create!
+
+      assert_difference "Citation.count", -1 do
+        Citation.find(citation.id).destroy
+      end
+    end
   end
 
   def test_polymorphic_reassignment_of_associated_id_updates_the_object

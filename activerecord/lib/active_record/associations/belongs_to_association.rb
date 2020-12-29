@@ -29,7 +29,7 @@ module ActiveRecord
       end
 
       def inversed_from(record)
-        replace_keys(record)
+        replace_keys(record) if owner[reflection.foreign_key] != record_target_key(record)
         super
       end
 
@@ -109,7 +109,11 @@ module ActiveRecord
         end
 
         def replace_keys(record)
-          owner[reflection.foreign_key] = record ? record._read_attribute(primary_key(record.class)) : nil
+          owner[reflection.foreign_key] = record_target_key(record)
+        end
+
+        def record_target_key(record)
+          record ? record._read_attribute(primary_key(record.class)) : nil
         end
 
         def primary_key(klass)
