@@ -361,17 +361,23 @@ db_namespace = namespace :db do
 
       # Skipped when no database
       ActiveRecord::Tasks::DatabaseTasks.migrate
+
       if ActiveRecord::Base.dump_schema_after_migration
         ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, ActiveRecord::Base.schema_format)
       end
-
     rescue ActiveRecord::NoDatabaseError
-      ActiveRecord::Tasks::DatabaseTasks.create_current(db_config.env_name, db_config.name)
-      ActiveRecord::Tasks::DatabaseTasks.load_schema(
-        db_config,
-        ActiveRecord::Base.schema_format,
-        nil
-      )
+      config_name = db_config.name
+      ActiveRecord::Tasks::DatabaseTasks.create_current(db_config.env_name, config_name)
+
+      if File.exist?(ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_name))
+        ActiveRecord::Tasks::DatabaseTasks.load_schema(
+          db_config,
+          ActiveRecord::Base.schema_format,
+          nil
+        )
+      else
+        ActiveRecord::Tasks::DatabaseTasks.migrate
+      end
 
       seed = true
     end
