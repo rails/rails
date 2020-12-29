@@ -1,3 +1,8 @@
+*   Raises an `ArgumentError` when the first argument of `ActiveSupport::Notification.subscribe` is
+    invalid.
+
+    *Vipul A M*
+
 *   `HashWithIndifferentAccess#deep_transform_keys` now returns a `HashWithIndifferentAccess` instead of a `Hash`.
 
     *Nathaniel Woodthorpe*
