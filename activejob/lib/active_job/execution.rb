@@ -51,6 +51,15 @@ module ActiveJob
       rescue_with_handler(exception) || raise
     end
 
+    def perform_now_with_instrument
+      tag_logger(self.class.name, self.job_id) do
+        instrument :perform, &method(:perform_now_without_instrument)
+      end
+    end
+
+    alias_method :perform_now_without_instrument, :perform_now
+    alias_method :perform_now, :perform_now_with_instrument
+
     def perform(*)
       fail NotImplementedError
     end

@@ -10,8 +10,8 @@ module ActiveJob
       end
 
       around_perform do |_, block|
-        instrument :perform_start
-        instrument :perform, &block
+        ActiveSupport::Notifications.instrument \
+          "perform_start.active_job", { adapter: queue_adapter, job: self }, &block
       end
     end
 

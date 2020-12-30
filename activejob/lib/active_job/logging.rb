@@ -12,7 +12,6 @@ module ActiveJob
       class_attribute :log_arguments, instance_accessor: false, default: true
 
       around_enqueue { |_, block| tag_logger(&block) }
-      around_perform { |job, block| tag_logger(job.class.name, job.job_id, &block) }
     end
 
     private
