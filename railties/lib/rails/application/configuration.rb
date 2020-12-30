@@ -183,6 +183,7 @@ module Rails
 
           if respond_to?(:action_view)
             action_view.form_with_generates_remote_forms = false
+            action_view.preload_links_header = true
           end
 
           if respond_to?(:active_storage)

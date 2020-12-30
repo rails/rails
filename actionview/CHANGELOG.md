@@ -1,3 +1,9 @@
+*   Add `config.action_view.preload_links_header` to allow disabling of
+    the `Link` header being added by default when using `stylesheet_link_tag`
+    and `javascript_include_tag`.
+    
+    *Andrew White*
+
 *   The `translate` helper now resolves `default` values when a `nil` key is
     specified, instead of always returning `nil`.
 

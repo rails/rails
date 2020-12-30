@@ -23,6 +23,8 @@ module ActionView
       include AssetUrlHelper
       include TagHelper
 
+      mattr_accessor :preload_links_header
+
       # Returns an HTML script tag for each of the +sources+ provided.
       #
       # Sources may be paths to JavaScript files. Relative paths are assumed to be relative
@@ -94,7 +96,7 @@ module ActionView
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
-          unless options["defer"]
+          if preload_links_header && !options["defer"]
             preload_link = "<#{href}>; rel=preload; as=script"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
@@ -111,7 +113,9 @@ module ActionView
           content_tag("script", "", tag_options)
         }.join("\n").html_safe
 
-        send_preload_links_header(preload_links)
+        if preload_links_header
+          send_preload_links_header(preload_links)
+        end
 
         sources_tags
       end
@@ -155,11 +159,13 @@ module ActionView
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_stylesheet(source, path_options)
-          preload_link = "<#{href}>; rel=preload; as=style"
-          preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
-          preload_link += "; integrity=#{integrity}" unless integrity.nil?
-          preload_link += "; nopush" if nopush
-          preload_links << preload_link
+          if preload_links_header
+            preload_link = "<#{href}>; rel=preload; as=style"
+            preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
+            preload_link += "; integrity=#{integrity}" unless integrity.nil?
+            preload_link += "; nopush" if nopush
+            preload_links << preload_link
+          end
           tag_options = {
             "rel" => "stylesheet",
             "media" => "screen",
@@ -169,7 +175,9 @@ module ActionView
           tag(:link, tag_options)
         }.join("\n").html_safe
 
-        send_preload_links_header(preload_links)
+        if preload_links_header
+          send_preload_links_header(preload_links)
+        end
 
         sources_tags
       end

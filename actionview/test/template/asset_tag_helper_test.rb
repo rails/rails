@@ -511,36 +511,54 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_should_set_preload_links
-    stylesheet_link_tag("http://example.com/style.css")
-    javascript_include_tag("http://example.com/all.js")
-    expected = "<http://example.com/style.css>; rel=preload; as=style; nopush,<http://example.com/all.js>; rel=preload; as=script; nopush"
-    assert_equal expected, @response.headers["Link"]
+    with_preload_links_header do
+      stylesheet_link_tag("http://example.com/style.css")
+      javascript_include_tag("http://example.com/all.js")
+      expected = "<http://example.com/style.css>; rel=preload; as=style; nopush,<http://example.com/all.js>; rel=preload; as=script; nopush"
+      assert_equal expected, @response.headers["Link"]
+    end
   end
 
   def test_should_not_preload_links_with_defer
-    javascript_include_tag("http://example.com/all.js", defer: true)
-    assert_equal "", @response.headers["Link"]
+    with_preload_links_header do
+      javascript_include_tag("http://example.com/all.js", defer: true)
+      assert_equal "", @response.headers["Link"]
+    end
   end
 
   def test_should_allow_caller_to_remove_nopush
-    stylesheet_link_tag("http://example.com/style.css", nopush: false)
-    javascript_include_tag("http://example.com/all.js", nopush: false)
-    expected = "<http://example.com/style.css>; rel=preload; as=style,<http://example.com/all.js>; rel=preload; as=script"
-    assert_equal expected, @response.headers["Link"]
+    with_preload_links_header do
+      stylesheet_link_tag("http://example.com/style.css", nopush: false)
+      javascript_include_tag("http://example.com/all.js", nopush: false)
+      expected = "<http://example.com/style.css>; rel=preload; as=style,<http://example.com/all.js>; rel=preload; as=script"
+      assert_equal expected, @response.headers["Link"]
+    end
   end
 
   def test_should_set_preload_links_with_cross_origin
-    stylesheet_link_tag("http://example.com/style.css", crossorigin: "use-credentials")
-    javascript_include_tag("http://example.com/all.js", crossorigin: true)
-    expected = "<http://example.com/style.css>; rel=preload; as=style; crossorigin=use-credentials; nopush,<http://example.com/all.js>; rel=preload; as=script; crossorigin=anonymous; nopush"
-    assert_equal expected, @response.headers["Link"]
+    with_preload_links_header do
+      stylesheet_link_tag("http://example.com/style.css", crossorigin: "use-credentials")
+      javascript_include_tag("http://example.com/all.js", crossorigin: true)
+      expected = "<http://example.com/style.css>; rel=preload; as=style; crossorigin=use-credentials; nopush,<http://example.com/all.js>; rel=preload; as=script; crossorigin=anonymous; nopush"
+      assert_equal expected, @response.headers["Link"]
+    end
   end
 
   def test_should_set_preload_links_with_integrity_hashes
-    stylesheet_link_tag("http://example.com/style.css", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs")
-    javascript_include_tag("http://example.com/all.js", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs")
-    expected = "<http://example.com/style.css>; rel=preload; as=style; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush,<http://example.com/all.js>; rel=preload; as=script; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush"
-    assert_equal expected, @response.headers["Link"]
+    with_preload_links_header do
+      stylesheet_link_tag("http://example.com/style.css", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs")
+      javascript_include_tag("http://example.com/all.js", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs")
+      expected = "<http://example.com/style.css>; rel=preload; as=style; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush,<http://example.com/all.js>; rel=preload; as=script; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush"
+      assert_equal expected, @response.headers["Link"]
+    end
+  end
+
+  def test_should_not_preload_links_when_disabled
+    with_preload_links_header(false) do
+      stylesheet_link_tag("http://example.com/style.css")
+      javascript_include_tag("http://example.com/all.js")
+      assert_nil @response.headers["Link"]
+    end
   end
 
   def test_image_path
@@ -705,6 +723,16 @@ class AssetTagHelperTest < ActionView::TestCase
       assert_equal "http://localhost/images/xml.png", image_path("xml.png")
     end
   end
+
+  private
+    def with_preload_links_header(new_preload_links_header = true)
+      original_preload_links_header = ActionView::Helpers::AssetTagHelper.preload_links_header
+      ActionView::Helpers::AssetTagHelper.preload_links_header = new_preload_links_header
+
+      yield
+    ensure
+      ActionView::Helpers::AssetTagHelper.preload_links_header = original_preload_links_header
+    end
 end
 
 class AssetTagHelperNonVhostTest < ActionView::TestCase
