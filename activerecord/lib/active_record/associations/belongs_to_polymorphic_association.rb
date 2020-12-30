@@ -5,8 +5,11 @@ module ActiveRecord
     # = Active Record Belongs To Polymorphic Association
     class BelongsToPolymorphicAssociation < BelongsToAssociation #:nodoc:
       def inversed_from(record)
+        target_key  = record_target_key(record)
         target_type = record_target_type(record)
-        replace_type(target_type) if owner[reflection.foreign_type] != target_type
+        if owner[reflection.foreign_key] != target_key || owner[reflection.foreign_type] != target_type
+          replace_keys(record, target_key, target_type)
+        end
         super
       end
 
@@ -21,11 +24,19 @@ module ActiveRecord
 
       private
         def replace(record)
-          replace_type(record_target_type(record))
-          super
+          if record
+            raise_on_type_mismatch!(record)
+            set_inverse_instance(record)
+            @updated = true
+          end
+
+          replace_keys(record_target_key(record), record_target_type(record))
+
+          self.target = record
         end
 
-        def replace_type(target_type)
+        def replace_keys(target_key, target_type)
+          super(target_key)
           owner[reflection.foreign_type] = target_type
         end
 
