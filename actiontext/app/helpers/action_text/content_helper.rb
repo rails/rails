@@ -22,17 +22,31 @@ module ActionText
       content.render_attachments do |attachment|
         unless attachment.in?(content.gallery_attachments)
           attachment.node.tap do |node|
-            node.inner_html = render(attachment, in_gallery: false).chomp
+            node.inner_html = render_action_text_attachment attachment, locals: { in_gallery: false }
           end
         end
       end.render_attachment_galleries do |attachment_gallery|
         render(layout: attachment_gallery, object: attachment_gallery) do
           attachment_gallery.attachments.map do |attachment|
-            attachment.node.inner_html = render(attachment, in_gallery: true).chomp
+            attachment.node.inner_html = render_action_text_attachment attachment, locals: { in_gallery: true }
             attachment.to_html
           end.join.html_safe
         end.chomp
       end
+    end
+
+    def render_action_text_attachment(attachment, locals: {}) #:nodoc:
+      options = { locals: locals, object: attachment, partial: attachment }
+
+      if attachment.respond_to?(:to_attachable_partial_path)
+        options[:partial] = attachment.to_attachable_partial_path
+      end
+
+      if attachment.respond_to?(:model_name)
+        options[:as] = attachment.model_name.element
+      end
+
+      render(**options).chomp
     end
   end
 end

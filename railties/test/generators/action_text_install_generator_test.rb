@@ -60,6 +60,12 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/active_storage/blobs/_blob.html.erb"
   end
 
+  test "creates Action Text content view layout" do
+    run_generator_instance
+
+    assert_file "app/views/layouts/action_text/contents/_content.html.erb"
+  end
+
   test "creates migrations" do
     run_generator_instance
 
