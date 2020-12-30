@@ -286,6 +286,28 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     )
   end
 
+  def test_assert_not_redirected_to_path
+    process :redirect_to_path
+    assert_not_redirected_to "http://test.host/route_two"
+  end
+
+  def test_assert_not_redirected_to_with_options
+    @controller = ActionPackAssertionsController.new
+
+    with_routing do |set|
+      set.draw do
+        get "nothing", to: "action_pack_assertions#nothing"
+        get "flash_me", to: "elsewhere#flash_me"
+        get "redirect_to_controller", to: "action_pack_assertions#redirect_to_controller"
+      end
+
+      process :redirect_to_controller
+      assert_not_redirected_to controller: "action_pack_assertions", action: "nothing"
+      assert_not_redirected_to "http://test.host/nothing"
+      assert_not_redirected_to %r(/nothing)
+    end
+  end
+
   def test_template_objects_exist
     process :assign_this
     assert_not @controller.instance_variable_defined?(:"@hi")

@@ -61,6 +61,30 @@ module ActionDispatch
         assert_operator redirect_expected, :===, redirect_is, message
       end
 
+      # Asserts that the response is a redirect but not to the URL matching in the given options.
+      #
+      #   # Asserts that the redirection was not to the "index" action on the WeblogController
+      #   assert_not_redirected_to controller: "weblog", action: "index"
+      #
+      #   # Asserts that the redirection was not to the named route login_url
+      #   assert_not_redirected_to login_url
+      #
+      #   # Asserts that the redirection was not to the URL for @customer
+      #   assert_not_redirected_to @customer
+      #
+      #   # Asserts that the redirection does not match the regular expression
+      #   assert_not_redirected_to %r(\Ahttp://example.org)
+      def assert_not_redirected_to(options = {}, message = nil)
+        assert_response(:redirect, message)
+        return true unless options === @response.location
+
+        redirect_is       = normalize_argument_to_redirection(@response.location)
+        redirect_expected = normalize_argument_to_redirection(options)
+
+        message ||= "Expected response not to be redirected to <#{redirect_expected}> but was redirected to <#{redirect_is}>"
+        assert_not_operator redirect_expected, :===, redirect_is, message
+      end
+
       private
         # Proxy to to_param if the object will respond to it.
         def parameterize(value)
