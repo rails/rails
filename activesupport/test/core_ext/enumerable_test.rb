@@ -326,5 +326,6 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_raise(expected_raise) { GenericEnumerable.new([]).sole }
     assert_equal 1, GenericEnumerable.new([1]).sole
     assert_raise(expected_raise) { GenericEnumerable.new([1, 2]).sole }
+    assert_raise(expected_raise) { GenericEnumerable.new([1, nil]).sole }
   end
 end
