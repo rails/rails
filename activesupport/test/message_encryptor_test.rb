@@ -95,6 +95,12 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_aead_not_decrypted(encryptor, "eHdGeExnZEwvMSt3U3dKaFl1WFo0TjVvYzA0eGpjbm5WSkt5MXlsNzhpZ0ZnbWhBWFlQZTRwaXE1bVJCS2oxMDZhYVp2dVN3V0lNZUlWQ3c2eVhQbnhnVjFmeVVubmhRKzF3WnZyWHVNMDg9LS1HSisyakJVSFlPb05ISzRMaXRzcFdBPT0=--831a1d54a3cda8a0658dc668a03dedcbce13b5ca")
   end
 
+  def test_aes_256_ecb_mode_encryption
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-ecb")
+    message = encryptor.encrypt_and_sign(@data)
+    assert_equal @data, encryptor.decrypt_and_verify(message)
+  end
+  
   def test_messing_with_aead_values_causes_failures
     encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
     text, iv, auth_tag = encryptor.encrypt_and_sign(@data).split("--")
