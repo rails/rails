@@ -188,7 +188,7 @@ module ActiveSupport
 
         cipher.decrypt
         cipher.key = @secret
-        cipher.iv  = iv
+        cipher.iv  = iv if cipher.iv.present?
         if aead_mode?
           cipher.auth_tag = auth_tag
           cipher.auth_data = ""
