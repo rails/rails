@@ -11,7 +11,7 @@
     # => #<Product ...>                    (if one Product with given price)
     # => ActiveRecord::SoleRecordExceeded  (if more than one Product with given price)
 
-    user.api_keys.find_by_sole(key: key)
+    user.api_keys.find_sole_by(key: key)
     # as above
     ```
 
