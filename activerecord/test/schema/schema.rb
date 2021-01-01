@@ -265,6 +265,7 @@ ActiveRecord::Schema.define do
     t.string :system
     t.integer :developer, null: false
     t.integer :extendedWarranty, null: false
+    t.integer :timezone
   end
 
   create_table :computers_developers, id: false, force: true do |t|
