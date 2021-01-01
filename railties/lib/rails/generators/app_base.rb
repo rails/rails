@@ -110,8 +110,9 @@ module Rails
                                            desc: "Show this help message and quit"
       end
 
-      def initialize(*args)
-        @gem_filter    = lambda { |gem| true }
+      def initialize(positional_argv, option_argv, *)
+        @argv = [*positional_argv, *option_argv]
+        @gem_filter = lambda { |gem| true }
         super
       end
 
@@ -148,9 +149,14 @@ module Rails
       end
 
       def apply_rails_template # :doc:
+        original_argv = ARGV.dup
+        ARGV.replace(@argv)
+
         apply rails_template if rails_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
+      ensure
+        ARGV.replace(original_argv)
       end
 
       def set_default_accessors! # :doc:
