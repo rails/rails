@@ -657,6 +657,17 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_predicate book, :🇪🇸?
   end
 
+  test "mangling collision for enum names" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "computers"
+      enum timezone: [:"Etc/GMT+1", :"Etc/GMT-1"]
+    end
+
+    computer = klass.public_send(:"Etc/GMT+1").build
+    assert_predicate computer, :"Etc/GMT+1?"
+    assert_not_predicate computer, :"Etc/GMT-1?"
+  end
+
   test "enum logs a warning if auto-generated negative scopes would clash with other enum names" do
     old_logger = ActiveRecord::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
