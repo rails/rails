@@ -26,7 +26,7 @@ module ActiveSupport
 
       private
         def round_without_significant(number)
-          number = number.round(precision)
+          number = number.round(precision, BigDecimal.mode(BigDecimal::ROUND_MODE))
           number = number.to_i if precision == 0 && number.finite?
           number = number.abs if number.zero? # prevent showing negative zeros
           number
