@@ -1,3 +1,10 @@
+*   Populate ARGV for app template.
+
+    Fixes #40945.
+
+    *Jonathan Hefner*
+
+
 ## Rails 6.1.0 (December 09, 2020) ##
 
 *   Added `Railtie#server` hook called when Rails starts a server.
