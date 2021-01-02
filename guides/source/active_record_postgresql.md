@@ -251,6 +251,10 @@ irb> contact.save!
 Currently there is no special support for enumerated types. They are mapped as
 normal text columns:
 
+warning: doing this will broke your schema.rb 
+if you want to adds schema.rb support to PostgreSQL enum data types
+install this [gem](https://github.com/bibendi/activerecord-postgres_enum)
+
 ```ruby
 # db/migrate/20131220144913_create_articles.rb
 def up
