@@ -197,7 +197,7 @@ module ActiveRecord
           if where_clause.contradiction?
             ActiveRecord::Result.new([], [])
           else
-            klass.connection.select_all(relation.arel, nil)
+            klass.connection.select_all(relation.arel, "#{klass.name} Pluck")
           end
         end
         type_cast_pluck_values(result, columns)
@@ -305,7 +305,7 @@ module ActiveRecord
           query_builder = relation.arel
         end
 
-        result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder) }
+        result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder, "#{@klass.name} #{operation.capitalize}") }
 
         type_cast_calculated_value(result.cast_values.first, operation) do |value|
           type = column.try(:type_caster) ||
@@ -360,7 +360,7 @@ module ActiveRecord
         relation.group_values  = group_fields
         relation.select_values = select_values
 
-        calculated_data = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, nil) }
+        calculated_data = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, "#{@klass.name} #{operation.capitalize}") }
 
         if association
           key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
