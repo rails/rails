@@ -14,20 +14,9 @@ module ActiveRecord
       end
 
       private
-        def replace_keys(record)
+        def replace_keys(record, _target_key)
           super
-          owner[reflection.foreign_type] = record_target_type(record)
-        end
-
-        def replace_keys_if_needed(record)
-          super
-
-          target_type = record_target_type(record)
-          owner[reflection.foreign_type] = target_type if owner[reflection.foreign_type] != target_type
-        end
-
-        def record_target_type(record)
-          record ? record.class.polymorphic_name : nil
+          owner[reflection.foreign_type] = record ? record.class.polymorphic_name : nil
         end
 
         def inverse_reflection_for(record)
