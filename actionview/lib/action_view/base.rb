@@ -156,9 +156,6 @@ module ActionView #:nodoc:
     # Specify default_formats that can be rendered.
     cattr_accessor :default_formats
 
-    # Specify whether an error should be raised for missing translations
-    cattr_accessor :raise_on_missing_translations, default: false
-
     # Specify whether submit_tag should automatically disable on click
     cattr_accessor :automatically_disable_submit_tag, default: true
 
@@ -170,6 +167,8 @@ module ActionView #:nodoc:
 
     class << self
       delegate :erb_trim_mode=, to: "ActionView::Template::Handlers::ERB"
+      delegate :raise_on_missing_translations, to: "AbstractController::Translation"
+      delegate :raise_on_missing_translations=, to: "AbstractController::Translation"
 
       def cache_template_loading
         ActionView::Resolver.caching?
