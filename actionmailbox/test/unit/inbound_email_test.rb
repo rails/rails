@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../test_helper"
+require "minitest/mock"
 
 module ActionMailbox
   class InboundEmailTest < ActiveSupport::TestCase
@@ -32,6 +33,16 @@ module ActionMailbox
 
       inbound_email_2 = create_inbound_email_from_source(mail.to_s)
       assert_nil inbound_email_2
+    end
+
+    test "error on upload doesn't leave behind a pending inbound email" do
+      ActiveStorage::Blob.service.stub(:upload, -> { raise "Boom!" }) do
+        assert_no_difference -> { ActionMailbox::InboundEmail.count } do
+          assert_raises do
+            create_inbound_email_from_fixture "welcome.eml"
+          end
+        end
+      end
     end
   end
 end
