@@ -751,9 +751,9 @@ Defaults to `'signed cookie'`.
     config.action_mailbox.incinerate_after = 14.days
     ```
 
-* `config.action_mailbox.queues.incineration` accepts a symbol indicating the Active Job queue to use for incineration jobs. When this option is `nil`, incineration jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). It defaults to `:action_mailbox_incineration`.
+* `config.action_mailbox.queues.incineration` accepts a symbol indicating the Active Job queue to use for incineration jobs. When this option is `nil`, incineration jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
-* `config.action_mailbox.queues.routing` accepts a symbol indicating the Active Job queue to use for routing jobs. When this option is `nil`, routing jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). It defaults to `:action_mailbox_routing`.
+* `config.action_mailbox.queues.routing` accepts a symbol indicating the Active Job queue to use for routing jobs. When this option is `nil`, routing jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
 ### Configuring Action Mailer
 
@@ -831,8 +831,7 @@ There are a number of settings available on `config.action_mailer`:
     config.action_mailer.show_previews = false
     ```
 
-* `config.action_mailer.deliver_later_queue_name` specifies the queue name for
-  mailers. By default this is `mailers`.
+* `config.action_mailer.deliver_later_queue_name` specifies the Active Job queue to use for delivery jobs. When this option is set to `nil`, delivery jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). Make sure that your Active Job adapter is also configured to process the specified queue, otherwise delivery jobs may be silently ignored.
 
 * `config.action_mailer.perform_caching` specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
 
@@ -979,13 +978,13 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 * `config.active_storage.content_types_allowed_inline` accepts an array of strings indicating the content types that Active Storage allows to serve as inline. The default is `%w(image/png image/gif image/jpg image/jpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)`.
 
-* `config.active_storage.queues.analysis` accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
+* `config.active_storage.queues.analysis` accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
     ```ruby
     config.active_storage.queues.analysis = :low_priority
     ```
 
-* `config.active_storage.queues.purge` accepts a symbol indicating the Active Job queue to use for purge jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
+* `config.active_storage.queues.purge` accepts a symbol indicating the Active Job queue to use for purge jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
     ```ruby
     config.active_storage.queues.purge = :low_priority
@@ -1098,6 +1097,9 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.action_view.form_with_generates_ids`: `false`
 - `config.active_job.retry_jitter`: `0.0`
 - `config.active_job.skip_after_callbacks_if_terminated`: `false`
+- `config.action_mailbox.queues.incineration`: `:action_mailbox_incineration`
+- `config.action_mailbox.queues.routing`: `:action_mailbox_routing`
+- `config.action_mailer.deliver_later_queue_name`: `:mailers`
 - `config.active_record.collection_cache_versioning`: `false`
 - `config.active_record.cache_versioning`: `false`
 - `config.active_record.has_many_inversing`: `false`
