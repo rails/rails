@@ -219,8 +219,6 @@ pending jobs on restart.
 If you need a persistent backend, you will need to use an Active Job adapter
 that has a persistent backend (Sidekiq, Resque, etc).
 
-NOTE: When calling `deliver_later` the job will be placed under `mailers` queue. Make sure Active Job adapter supports this queue, otherwise the job may be silently ignored preventing email delivery. You can change this queue name by specifying `config.action_mailer.deliver_later_queue_name` option.
-
 If you want to send emails right away (from a cronjob for example) just call
 `deliver_now`:
 
