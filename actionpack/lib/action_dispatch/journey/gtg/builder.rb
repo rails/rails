@@ -6,13 +6,13 @@ module ActionDispatch
   module Journey # :nodoc:
     module GTG # :nodoc:
       class Builder # :nodoc:
-        DUMMY_END_NODE = Nodes::Dummy.new
+        DUMMY = Nodes::Dummy.new
 
         attr_reader :root, :ast, :endpoints
 
         def initialize(root)
           @root      = root
-          @ast       = Nodes::Cat.new root, DUMMY_END_NODE
+          @ast       = Nodes::Cat.new root, DUMMY
           @followpos = build_followpos
         end
 
@@ -28,12 +28,12 @@ module ActionDispatch
             marked[s] = true # mark s
 
             s.group_by { |state| symbol(state) }.each do |sym, ps|
-              u = ps.flat_map { |l| @followpos[l] }.uniq
+              u = ps.flat_map { |l| @followpos[l] }
               next if u.empty?
 
               from = state_id[s]
 
-              if u.all? { |pos| pos == DUMMY_END_NODE }
+              if u.all? { |pos| pos == DUMMY }
                 to = state_id[Object.new]
                 dtrans[from, to] = sym
                 dtrans.add_accepting(to)
@@ -43,9 +43,9 @@ module ActionDispatch
                 to = state_id[u]
                 dtrans[from, to] = sym
 
-                if u.include?(DUMMY_END_NODE)
+                if u.include?(DUMMY)
                   ps.each do |state|
-                    if @followpos[state].include?(DUMMY_END_NODE)
+                    if @followpos[state].include?(DUMMY)
                       dtrans.add_memo(to, state.memo)
                     end
                   end
@@ -66,10 +66,7 @@ module ActionDispatch
           when Nodes::Group
             true
           when Nodes::Star
-            # the default star regex is /(.+)/ which is NOT nullable
-            # but since different constraints can be provided we must
-            # actually check if this is the case or not.
-            node.regexp.match?("")
+            true
           when Nodes::Or
             node.children.any? { |c| nullable?(c) }
           when Nodes::Cat
@@ -107,7 +104,7 @@ module ActionDispatch
         def lastpos(node)
           case node
           when Nodes::Star
-            lastpos(node.left)
+            firstpos(node.left)
           when Nodes::Or
             node.children.flat_map { |c| lastpos(c) }.tap(&:uniq!)
           when Nodes::Cat
@@ -133,6 +130,10 @@ module ActionDispatch
               when Nodes::Cat
                 lastpos(n.left).each do |i|
                   table[i] += firstpos(n.right)
+                end
+              when Nodes::Star
+                lastpos(n).each do |i|
+                  table[i] += firstpos(n)
                 end
               end
             end

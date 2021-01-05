@@ -14,7 +14,7 @@ module ActionDispatch
       end
 
       class Simulator # :nodoc:
-        INITIAL_STATE = [ [0, nil] ].freeze
+        INITIAL_STATE = [0].freeze
 
         attr_reader :tt
 
@@ -25,19 +25,13 @@ module ActionDispatch
         def memos(string)
           input = StringScanner.new(string)
           state = INITIAL_STATE
-          start_index = 0
 
           while sym = input.scan(%r([/.?]|[^/.?]+))
-            end_index = start_index + sym.length
-
-            state = tt.move(state, string, start_index, end_index)
-
-            start_index = end_index
+            state = tt.move(state, sym)
           end
 
-          acceptance_states = state.each_with_object([]) do |s_d, memos|
-            s, idx = s_d
-            memos.concat(tt.memo(s)) if idx.nil? && tt.accepting?(s)
+          acceptance_states = state.each_with_object([]) do |s, memos|
+            memos.concat(tt.memo(s)) if tt.accepting?(s)
           end
 
           acceptance_states.empty? ? yield : acceptance_states

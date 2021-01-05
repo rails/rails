@@ -84,8 +84,6 @@ module ActionDispatch
         @decorated_ast ||= begin
           decorated_ast = path.ast
           decorated_ast.find_all(&:terminal?).each { |n| n.memo = self }
-          # inject any regexp requirements for `star` nodes so they can be determined nullable, which requires knowing if the regex accepts an empty string.
-          decorated_ast.find_all(&:star?).each { |n| n.regexp = path.requirements[n.name.to_sym] unless path.requirements[n.name.to_sym].nil? }
           decorated_ast
         end
       end

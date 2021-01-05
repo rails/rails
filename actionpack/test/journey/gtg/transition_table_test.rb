@@ -89,7 +89,7 @@ module ActionDispatch
           sim     = GTG::Simulator.new builder.transition_table
 
           memos = sim.memos "/articles/new"
-          assert_equal Set[paths[1], paths[3]], Set.new(memos)
+          assert_equal [paths[1], paths[3]], memos
         end
 
         private
