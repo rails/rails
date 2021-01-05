@@ -408,6 +408,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :essays, force: true do |t|
+    t.string :type
     t.string :name
     t.string :writer_id
     t.string :writer_type
