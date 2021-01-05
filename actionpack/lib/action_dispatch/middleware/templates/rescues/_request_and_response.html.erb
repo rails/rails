@@ -12,7 +12,12 @@
 
 <div class="details">
   <div class="summary"><a href="#" onclick="return toggleSessionDump()">Toggle session dump</a></div>
-  <div id="session_dump" style="display:none"><pre><%= debug_hash @request.session %></pre></div>
+  <div id="session_dump" style="display:none">
+    <pre><%= debug_hash @request.session %></pre>
+    <% Rails.configuration.x.additional_error_request_env_keys.to_a.each do |key| %>
+      <pre><%= debug_hash {k => @request.env[key]} %></pre>
+    <% end %>
+  </div>
 </div>
 
 <div class="details">
