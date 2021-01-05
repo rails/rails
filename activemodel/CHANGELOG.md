@@ -1,3 +1,7 @@
+*   Add `in: range`  parameter to `numericality` validator.
+
+   *Michal Papis*
+
 *   Add `locale` argument to `ActiveModel::Name#initialize` to be used to generate the `singular`,
    `plural`, `route_key` and `singular_route_key` values.
 

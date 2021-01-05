@@ -528,6 +528,8 @@ constraints to acceptable values:
   less than or equal to %{count}"_.
 * `:other_than` - Specifies the value must be other than the supplied value.
   The default error message for this option is _"must be other than %{count}"_.
+* `:in` - Specifies the value must be in the supplied range.
+  The default error message for this option is _"must be in %{count}"_.
 * `:odd` - Specifies the value must be an odd number if set to true. The
   default error message for this option is _"must be odd"_.
 * `:even` - Specifies the value must be an even number if set to true. The
