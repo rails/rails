@@ -66,6 +66,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [comments(:eager_other_comment1)], authors(:mary).comments.merge(Post.left_joins(:comments))
   end
 
+  def test_through_association_with_through_scope_and_nested_where
+    company = Company.create!(name: "special")
+    developer = SpecialDeveloper.create!
+    SpecialContract.create!(company: company, special_developer: developer)
+
+    assert_equal [developer], company.special_developers.where.not("contracts.id": nil)
+  end
+
   def test_preload_with_nested_association
     posts = Post.where(id: [authors(:david).id, authors(:mary).id]).
       preload(:author, :author_favorites_with_scope).order(:id).to_a

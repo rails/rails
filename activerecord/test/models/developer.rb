@@ -114,6 +114,11 @@ end
 class SubDeveloper < Developer
 end
 
+class SpecialDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  has_many :special_contracts, foreign_key: "developer_id"
+end
+
 class SymbolIgnoredDeveloper < ActiveRecord::Base
   self.table_name = "developers"
   self.ignored_columns = [:first_name, :last_name]
