@@ -5,7 +5,7 @@ module ActiveRecord
     class PoolConfig # :nodoc:
       include Mutex_m
 
-      attr_reader :db_config, :connection_specification_name
+      attr_reader :db_config, :connection_klass
       attr_accessor :schema_cache
 
       INSTANCES = ObjectSpace::WeakMap.new
@@ -17,12 +17,22 @@ module ActiveRecord
         end
       end
 
-      def initialize(connection_specification_name, db_config)
+      def initialize(connection_klass, db_config)
         super()
-        @connection_specification_name = connection_specification_name
+        @connection_klass = connection_klass
         @db_config = db_config
         @pool = nil
         INSTANCES[self] = self
+      end
+
+      def connection_specification_name
+        if connection_klass.is_a?(String)
+          connection_klass
+        elsif connection_klass.primary_class?
+          "ActiveRecord::Base"
+        else
+          connection_klass.name
+        end
       end
 
       def disconnect!

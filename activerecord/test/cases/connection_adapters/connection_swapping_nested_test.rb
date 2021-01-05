@@ -414,6 +414,27 @@ module ActiveRecord
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
         end
+
+        class ApplicationRecord < ActiveRecord::Base
+          self.abstract_class = true
+        end
+
+        def test_application_record_prevent_writes_can_be_changed
+          Object.const_set(:ApplicationRecord, ApplicationRecord)
+
+          ApplicationRecord.connects_to(database: { writing: :arunit, reading: :arunit })
+
+          # Switch everything to writing
+          ActiveRecord::Base.connected_to(role: :writing) do
+            assert_not_predicate ApplicationRecord.connection, :preventing_writes?
+
+            ApplicationRecord.connected_to(role: :reading) do
+              assert_predicate ApplicationRecord.connection, :preventing_writes?
+            end
+          end
+        ensure
+          Object.send(:remove_const, :ApplicationRecord)
+        end
       end
     end
   end
