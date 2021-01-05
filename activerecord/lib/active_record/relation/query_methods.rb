@@ -1089,7 +1089,7 @@ module ActiveRecord
           self.references_values |= references unless references.empty?
 
           parts = predicate_builder.build_from_hash(opts) do |table_name|
-            lookup_reflection_from_join_dependencies(table_name)
+            lookup_table_klass_from_join_dependencies(table_name)
           end
         when Arel::Nodes::Node
           parts = [opts]
@@ -1102,9 +1102,9 @@ module ActiveRecord
       alias :build_having_clause :build_where_clause
 
     private
-      def lookup_reflection_from_join_dependencies(table_name)
+      def lookup_table_klass_from_join_dependencies(table_name)
         each_join_dependencies do |join|
-          return join.reflection if table_name == join.table_name
+          return join.base_klass if table_name == join.table_name
         end
         nil
       end
@@ -1315,7 +1315,7 @@ module ActiveRecord
         elsif field.match?(/\A\w+\.\w+\z/)
           table, column = field.split(".")
           predicate_builder.resolve_arel_attribute(table, column) do
-            lookup_reflection_from_join_dependencies(table)
+            lookup_table_klass_from_join_dependencies(table)
           end
         else
           yield field
