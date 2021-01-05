@@ -39,6 +39,27 @@ module ActionDispatch
           @spec
         end
 
+        def requirements_anchored?
+          # each required param must not be surrounded by a literal, otherwise it isn't simple to chunk-match the url piecemeal
+          terminals = ast.find_all { |t| t.is_a?(Nodes::Terminal) }
+
+          terminals.each_with_index { |s, index|
+            next if index < 1
+            next unless s.symbol?
+
+            back = terminals[index - 1]
+            fwd = terminals[index + 1]
+
+            # we also don't support this yet, constraints must be regexps
+            return false if s.regexp.is_a?(Array)
+
+            return false if back.literal?
+            return false if !fwd.nil? && fwd.literal?
+          }
+
+          true
+        end
+
         def names
           @names ||= spec.find_all(&:symbol?).map(&:name)
         end
