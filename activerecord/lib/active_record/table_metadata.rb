@@ -33,10 +33,13 @@ module ActiveRecord
         return self
       end
 
-      reflection ||= yield table_name if block_given?
+      if reflection
+        association_klass = reflection.klass unless reflection.polymorphic?
+      elsif block_given?
+        association_klass = yield table_name
+      end
 
-      if reflection && !reflection.polymorphic?
-        association_klass = reflection.klass
+      if association_klass
         arel_table = association_klass.arel_table
         arel_table = arel_table.alias(table_name) if arel_table.name != table_name
         TableMetadata.new(association_klass, arel_table, reflection)
