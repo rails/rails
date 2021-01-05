@@ -348,11 +348,6 @@ GEM
     nio4r (2.5.4-java)
     nokogiri (1.10.10)
       mini_portile2 (~> 2.4.0)
-    nokogiri (1.10.10-java)
-    nokogiri (1.10.10-x64-mingw32)
-      mini_portile2 (~> 2.4.0)
-    nokogiri (1.10.10-x86-mingw32)
-      mini_portile2 (~> 2.4.0)
     os (1.1.1)
     parallel (1.19.2)
     parser (2.7.2.0)
@@ -582,7 +577,7 @@ DEPENDENCIES
   minitest-reporters
   minitest-retry
   mysql2 (~> 0.5)!
-  nokogiri (>= 1.8.1)
+  nokogiri (>= 1.8.1, != 1.11.0)
   pg (~> 1.1)
   psych (~> 3.0)
   puma
