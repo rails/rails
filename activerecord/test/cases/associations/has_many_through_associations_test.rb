@@ -1070,14 +1070,21 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal expected, Author.eager_load(:lazy_readers_skimmers_or_not).first.lazy_readers_skimmers_or_not
   end
 
-  def test_has_many_through_with_join_scope
+  def test_has_many_through_with_through_scope_with_includes
     expected = [readers(:bob_welcome).becomes(LazyReader)]
     assert_equal expected, Author.last.lazy_readers_skimmers_or_not_2
     assert_equal expected, Author.preload(:lazy_readers_skimmers_or_not_2).last.lazy_readers_skimmers_or_not_2
     assert_equal expected, Author.eager_load(:lazy_readers_skimmers_or_not_2).last.lazy_readers_skimmers_or_not_2
   end
 
-  def test_duplicated_has_many_through_with_join_scope
+  def test_has_many_through_with_through_scope_with_joins
+    expected = [readers(:bob_welcome).becomes(LazyReader)]
+    assert_equal expected, Author.last.lazy_readers_skimmers_or_not_3
+    assert_equal expected, Author.preload(:lazy_readers_skimmers_or_not_3).last.lazy_readers_skimmers_or_not_3
+    assert_equal expected, Author.eager_load(:lazy_readers_skimmers_or_not_3).last.lazy_readers_skimmers_or_not_3
+  end
+
+  def test_duplicated_has_many_through_with_through_scope_with_joins
     Categorization.create!(author: authors(:david), post: posts(:thinking), category: categories(:technology))
 
     expected = [categorizations(:david_welcome_general)]
