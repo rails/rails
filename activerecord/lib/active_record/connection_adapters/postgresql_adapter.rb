@@ -226,12 +226,9 @@ module ActiveRecord
           @counter = 0
         end
 
-        def next_key
-          "a#{@counter + 1}"
-        end
-
-        def []=(sql, key)
-          super.tap { @counter += 1 }
+        def incremented_next_key
+          @counter += 1
+          "a#{@counter}"
         end
 
         private
@@ -746,7 +743,7 @@ module ActiveRecord
           @lock.synchronize do
             sql_key = sql_key(sql)
             unless @statements.key? sql_key
-              nextkey = @statements.next_key
+              nextkey = @statements.incremented_next_key
               begin
                 @connection.prepare nextkey, sql
               rescue => e

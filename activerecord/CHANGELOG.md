@@ -1,3 +1,7 @@
+*   Increment postgres prepared statement counter before making a prepared statement, so if the statement is aborted 
+    without Rails knowledge (e.g., if app gets kill -9d during long-running query), app won't end 
+    up in perpetual crash state for being inconsistent with Postgres.
+
 *   Add `FinderMethods#sole` and `#find_sole_by` to find and assert the
     presence of exactly one record.
 
