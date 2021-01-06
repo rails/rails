@@ -62,6 +62,7 @@ class Author < ActiveRecord::Base
   has_many :hello_posts, -> { where "posts.body = 'hello'" }, class_name: "Post"
   has_many :hello_post_comments, through: :hello_posts, source: :comments
   has_many :posts_with_no_comments, -> { where("comments.id" => nil).includes(:comments) }, class_name: "Post"
+  has_many :posts_with_no_comments_2, -> { left_joins(:comments).where("comments.id": nil) }, class_name: "Post"
 
   has_many :hello_posts_with_hash_conditions, -> { where(body: "hello") }, class_name: "Post"
   has_many :hello_post_comments_with_hash_conditions, through: :hello_posts_with_hash_conditions, source: :comments
@@ -183,6 +184,7 @@ class Author < ActiveRecord::Base
 
   has_many :lazy_readers_skimmers_or_not, through: :posts
   has_many :lazy_readers_skimmers_or_not_2, through: :posts_with_no_comments, source: :lazy_readers_skimmers_or_not
+  has_many :lazy_readers_skimmers_or_not_3, through: :posts_with_no_comments_2, source: :lazy_readers_skimmers_or_not
 
   attr_accessor :post_log
   after_initialize :set_post_log
