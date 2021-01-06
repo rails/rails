@@ -134,6 +134,16 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     end
   end
 
+  test "has_many with sti parent class destroys all children class records" do
+    book = BookDestroyAsync.create!
+    LongEssayDestroyAsync.create!(book: book)
+    ShortEssayDestroyAsync.create!(book: book)
+    book.destroy
+
+    assert_difference -> { EssayDestroyAsync.count }, -2 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+  end
 
   test "enqueues the has_many to be deleted with custom primary key" do
     dl_keyed_has_many = DlKeyedHasMany.new
