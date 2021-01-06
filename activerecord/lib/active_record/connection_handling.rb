@@ -141,6 +141,10 @@ module ActiveRecord
         if self != Base && !abstract_class
           raise NotImplementedError, "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes."
         end
+
+        if name != connection_specification_name
+          raise NotImplementedError, "calling `connected_to` is only allowed on the abstract class that established the connection."
+        end
       end
 
       unless role || shard
