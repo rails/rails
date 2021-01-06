@@ -321,7 +321,7 @@ GEM
     mini_magick (4.10.1)
     mini_mime (1.0.2)
     mini_portile2 (2.4.0)
-    minitest (5.14.2)
+    minitest (5.14.3)
     minitest-bisect (1.5.1)
       minitest-server (~> 1.0)
       path_expander (~> 1.1)
