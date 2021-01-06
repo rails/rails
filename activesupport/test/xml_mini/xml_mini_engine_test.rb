@@ -50,7 +50,7 @@ class XMLMiniEngineTest < ActiveSupport::TestCase
 
     def test_exception_thrown_on_expansion_attack
       assert_raise expansion_attack_error do
-        Hash.from_xml(<<-eoxml)
+        Hash.from_xml(<<~eoxml)
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE member [
             <!ENTITY a "&b;&b;&b;&b;&b;&b;&b;&b;&b;&b;">
