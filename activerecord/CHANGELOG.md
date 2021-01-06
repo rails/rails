@@ -1,3 +1,9 @@
+*   Increment postgres prepared statement counter before making a prepared statement, so if the statement is aborted 
+    without Rails knowledge (e.g., if app gets kill -9d during long-running query or due to Rack::Timeout), app won't end 
+    up in perpetual crash state for being inconsistent with Postgres.
+
+    *wbharding*, *Martin Tepper*
+
 *   Switch to database adapter return type for `ActiveRecord::Calculations.calculate`
     when called with `:average` (aliased as `ActiveRecord::Calculations.average`)
 

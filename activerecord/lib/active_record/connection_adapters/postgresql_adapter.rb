@@ -228,11 +228,7 @@ module ActiveRecord
         end
 
         def next_key
-          "a#{@counter + 1}"
-        end
-
-        def []=(sql, key)
-          super.tap { @counter += 1 }
+          "a#{@counter += 1}"
         end
 
         private
