@@ -18,11 +18,15 @@ class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Mi
 <%- elsif migration_action == 'join' -%>
   def change
     create_join_table :<%= join_tables.first %>, :<%= join_tables.second %> do |t|
-    <%- attributes.each do |attribute| -%>
+    <%- attributes.each_with_index do |attribute, i| -%>
       <%- if attribute.reference? -%>
       t.references :<%= attribute.name %><%= attribute.inject_options %><%= foreign_key_type %>
       <%- elsif !attribute.virtual? -%>
-      <%= '# ' unless attribute.has_index? -%>t.index <%= attribute.index_name %><%= attribute.inject_index_options %>
+        <%- if i == 0 -%>
+          <%= '# ' unless attribute.has_index? -%>t.index <%= attribute.index_name %><%= attribute.inject_index_options %>, unique: true
+        <%- else %>
+          <%= '# ' unless attribute.has_index? -%>t.index :<%= attribute.name %>
+        <%- end -%>
       <%- end -%>
     <%- end -%>
     end
