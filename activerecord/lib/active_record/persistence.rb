@@ -817,6 +817,7 @@ module ActiveRecord
       @attributes = fresh_object.instance_variable_get(:@attributes)
       @new_record = false
       @previously_new_record = false
+      @destroyed = false
       self
     end
 

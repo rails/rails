@@ -1058,6 +1058,25 @@ class PersistenceTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.disable_query_cache!
   end
 
+  def test_reload_resets_destroyed_flag
+    topic = Topic.find(1)
+
+    topic.destroy
+
+    assert_equal true, topic.destroyed?
+
+    Topic.insert(topic.attributes)
+
+    # hard reload
+    hard_reloaded_topic = Topic.find(topic.id)
+    assert_equal false, hard_reloaded_topic.destroyed?
+
+    # soft reload
+    topic.reload
+
+    assert_equal false, topic.destroyed?
+  end
+
   def test_save_touch_false
     parrot = Parrot.create!(
       name: "Bob",
