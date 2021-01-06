@@ -207,6 +207,8 @@ irb> event.ends_at
 Currently there is no special support for composite types. They are mapped to
 normal text columns:
 
+NOTE: You need to use sql.structure as your database schema as this code is database dependent.
+
 ```sql
 CREATE TYPE full_address AS
 (
@@ -251,9 +253,7 @@ irb> contact.save!
 Currently there is no special support for enumerated types. They are mapped as
 normal text columns:
 
-warning: doing this will broke your schema.rb 
-if you want to adds schema.rb support to PostgreSQL enum data types
-install this [gem](https://github.com/bibendi/activerecord-postgres_enum)
+NOTE: You need to use sql.structure as your database schema as this code is database dependent.
 
 ```ruby
 # db/migrate/20131220144913_create_articles.rb
