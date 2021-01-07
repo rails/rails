@@ -2257,18 +2257,18 @@ module ApplicationTests
       assert_equal true, ActiveSupport::MessageEncryptor.use_authenticated_message_encryption
     end
 
-    test "ActiveSupport::Digest.hash_digest_class is Digest::SHA1 by default for new apps" do
+    test "ActiveSupport::Digest.hash_digest_class is OpenSSL::Digest::SHA256 by default for new apps" do
       app "development"
 
-      assert_equal Digest::SHA1, ActiveSupport::Digest.hash_digest_class
+      assert_equal OpenSSL::Digest::SHA256, ActiveSupport::Digest.hash_digest_class
     end
 
-    test "ActiveSupport::Digest.hash_digest_class is Digest::MD5 by default for upgraded apps" do
+    test "ActiveSupport::Digest.hash_digest_class is OpenSSL::Digest::MD5 by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app "development"
 
-      assert_equal Digest::MD5, ActiveSupport::Digest.hash_digest_class
+      assert_equal OpenSSL::Digest::MD5, ActiveSupport::Digest.hash_digest_class
     end
 
     test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.use_sha1_digests" do
@@ -2280,19 +2280,19 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal Digest::SHA1, ActiveSupport::Digest.hash_digest_class
+      assert_equal OpenSSL::Digest::SHA1, ActiveSupport::Digest.hash_digest_class
     end
 
     test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.hash_digest_class" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app_file "config/initializers/custom_digest_class.rb", <<-RUBY
-        Rails.application.config.active_support.hash_digest_class = Digest::SHA256
+        Rails.application.config.active_support.hash_digest_class = OpenSSL::Digest::SHA256
       RUBY
 
       app "development"
 
-      assert_equal Digest::SHA256, ActiveSupport::Digest.hash_digest_class
+      assert_equal OpenSSL::Digest::SHA256, ActiveSupport::Digest.hash_digest_class
     end
 
     test "ActiveSupport::KeyGenerator.hash_digest_class is OpenSSL::Digest::SHA256 by default for new apps" do
