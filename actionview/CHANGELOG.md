@@ -1,7 +1,21 @@
+## Rails 6.1.1 (January 07, 2021) ##
+
+*   Fix lazy translation in partial with block.
+
+    *Marek Kasztelnik*
+
+*   Avoid extra `SELECT COUNT` queries when rendering Active Record collections.
+
+    *aar0nr*
+
+*   Link preloading keep integrity hashes in the header.
+
+    *Étienne Barrié*
+
 *   Add `config.action_view.preload_links_header` to allow disabling of
     the `Link` header being added by default when using `stylesheet_link_tag`
     and `javascript_include_tag`.
-    
+
     *Andrew White*
 
 *   The `translate` helper now resolves `default` values when a `nil` key is

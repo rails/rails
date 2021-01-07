@@ -1,3 +1,8 @@
+## Rails 6.1.1 (January 07, 2021) ##
+
+*   No changes.
+
+
 ## Rails 6.1.0 (December 09, 2020) ##
 
 *   Pass in `base` instead of `base_class` to Error.human_attribute_name

@@ -1,3 +1,13 @@
+## Rails 6.1.1 (January 07, 2021) ##
+
+*   Fix nil translation key lookup in controllers/
+
+    *Jan Klimo*
+
+*   Quietly handle unknown HTTP methods in Action Dispatch SSL middleware.
+
+    *Alex Robbin*
+
 *   Change the request method to a `GET` when passing failed requests down to `config.exceptions_app`.
 
     *Alex Robbin*

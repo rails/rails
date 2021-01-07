@@ -1,3 +1,41 @@
+## Rails 6.1.1 (January 07, 2021) ##
+
+*   Fix fixtures loading when strict loading is enabled for the association.
+
+    *Alex Ghiculescu*
+
+*   Fix `where` with custom primary key for belongs_to association.
+
+    *Ryuta Kamizono*
+
+*   Fix `where` with aliased associations.
+
+    *Ryuta Kamizono*
+
+*   Fix `composed_of` with symbol mapping.
+
+    *Ryuta Kamizono*
+
+*   Don't skip money's type cast for pluck and calculations.
+
+    *Ryuta Kamizono*
+
+*   Fix `where` on polymorphic association with non Active Record object.
+
+    *Ryuta Kamizono*
+
+*   Make sure `db:prepare` works even the schema file doesn't exist.
+
+    *Rafael Mendonça França*
+
+*   Fix complicated `has_many :through` with nested where condition.
+
+    *Ryuta Kamizono*
+
+*   Handle STI models for `has_many dependent: :destroy_async`.
+
+    *Muhammad Usman*
+
 *   Restore possibility of passing `false` to :polymorphic option of `belongs_to`.
 
     Previously, passing `false` would trigger the option validation logic

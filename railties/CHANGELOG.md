@@ -1,3 +1,9 @@
+## Rails 6.1.1 (January 07, 2021) ##
+
+*   Allow spaces in path to Yarn binstub and only run on precompile if needed.
+
+    *Markus Doits*
+
 *   Populate ARGV for app template.
 
     Fixes #40945.

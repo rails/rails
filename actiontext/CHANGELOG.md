@@ -1,3 +1,8 @@
+## Rails 6.1.1 (January 07, 2021) ##
+
+*   No changes.
+
+
 ## Rails 6.1.0 (December 09, 2020) ##
 
 *   Declare `ActionText::FixtureSet.attachment` to generate an

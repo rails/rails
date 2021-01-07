@@ -1,3 +1,10 @@
+## Rails 6.1.1 (January 07, 2021) ##
+
+*   Fix S3 multipart uploads when threshold is larger than file.
+
+    *Matt Muller*
+
+
 ## Rails 6.1.0 (December 09, 2020) ##
 
 *   Change default queue name of the analysis (`:active_storage_analysis`) and

@@ -1,3 +1,14 @@
+## Rails 6.1.1 (January 07, 2021) ##
+
+*   Make `retry_job` return the job that was created.
+
+    *Rafael Mendonça França*
+
+*   Include `ActiveSupport::Testing::Assertions` in `ActiveJob::TestHelpers`.
+
+    *Mikkel Malmberg*
+
+
 ## Rails 6.1.0 (December 09, 2020) ##
 
 *   Recover nano precision when serializing `Time`, `TimeWithZone` and `DateTime` objects.

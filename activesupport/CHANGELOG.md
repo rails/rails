@@ -1,3 +1,5 @@
+## Rails 6.1.1 (January 07, 2021) ##
+
 *   Change `IPAddr#to_json` to match the behavior of the json gem returning the string representation
     instead of the instance variables of the object.
 

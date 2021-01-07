@@ -1,3 +1,10 @@
+## Rails 6.1.1 (January 07, 2021) ##
+
+*   Sets default mailer queue to `"default"` in the mail assertions.
+
+    *Paul Keen*
+
+
 ## Rails 6.1.0 (December 09, 2020) ##
 
 *   Change default queue name of the deliver (`:mailers`) job to be the job adapter's
