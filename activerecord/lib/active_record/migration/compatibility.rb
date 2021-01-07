@@ -56,7 +56,8 @@ module ActiveRecord
         end
 
         def add_reference(table_name, ref_name, **options)
-          ReferenceDefinition.new(ref_name, **options).add_to(update_table_definition(table_name, self))
+          ReferenceDefinition.new(ref_name, **options)
+            .add_to(connection.update_table_definition(table_name, self))
         end
         alias :add_belongs_to :add_reference
 
