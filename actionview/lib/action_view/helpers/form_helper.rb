@@ -2546,6 +2546,11 @@ module ActionView
           value = @template.capture { yield(value) }
         end
 
+        formmethod = options[:formmethod]
+        if /(post|get)/i.match(formmethod).nil? && formmethod.present? && !options.key?(:name) && !options.key?(:value)
+          options.merge! formmethod: :post, name: "_method", value: formmethod
+        end
+
         @template.button_tag(value, options)
       end
 

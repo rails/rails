@@ -323,13 +323,41 @@ Output:
 <form accept-charset="UTF-8" action="/search" method="post">
   <input name="_method" type="hidden" value="patch" />
   <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
-  ...
+  <!-- ... -->
 </form>
 ```
 
 When parsing POSTed data, Rails will take into account the special `_method` parameter and act as if the HTTP method was the one specified inside it ("PATCH" in this example).
 
+When rendering a form, submission buttons can override the declared `method` attribute through the `formmethod:` keyword:
+
+```erb
+<%= form_with url: "/posts/1", method: :patch do |form| %>
+  <%= form.button "Delete", formmethod: :delete, data: { confirm: "Are you sure?" } %>
+  <%= form.button "Update" %>
+<% end %>
+```
+
+Similar to `<form>` elements, most browsers _don't support_ overriding form methods declared through [formmethod][] other than "GET" and "POST".
+
+Rails works around this issue by emulating other methods over POST through a combination of [formmethod][], [value][button-value], and [name][button-name] attributes:
+
+```html
+<form accept-charset="UTF-8" action="/posts/1" method="post">
+  <input name="_method" type="hidden" value="patch" />
+  <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
+  <!-- ... -->
+
+  <button type="submit" formmethod="post" name="_method" value="delete" data-confirm="Are you sure?">Delete</button>
+  <button type="submit" name="button">Update</button>
+</form>
+```
+
 IMPORTANT: In Rails 6.0 and 5.2, all forms using `form_with` implement `remote: true` by default. These forms will submit data using an XHR (Ajax) request. To disable this include `local: true`. To dive deeper see [Working with JavaScript in Rails](working_with_javascript_in_rails.html#remote-elements) guide.
+
+[formmethod]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod
+[button-name]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-name
+[button-value]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-value
 
 Making Select Boxes with Ease
 -----------------------------
