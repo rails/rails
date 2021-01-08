@@ -734,6 +734,8 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.preload_links_header` determines whether `javascript_include_tag` and `stylesheet_link_tag` will generate a `Link` header that preload assets.
 
+* `config.action_view.button_to_generates_button_tag` determines whether `button_to` will render `<button>` element, regardless of whether or not the content is passed as the first argument or as a block.
+
 ### Configuring Action Mailbox
 
 `config.action_mailbox` provides the following configuration options:
@@ -1040,6 +1042,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 `config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, `6.0` also gets the new defaults from every version before it.
 
 #### For '6.2', defaults from previous versions below and:
+- `config.action_view.button_to_generates_button_tag`: `true`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`
 
 #### For '6.1', defaults from previous versions below and:
@@ -1102,6 +1105,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.action_mailer.delivery_job`: `ActionMailer::DeliveryJob`
 - `config.action_view.form_with_generates_ids`: `false`
 - `config.action_view.preload_links_header`: `nil`
+- `config.action_view.button_to_generates_button_tag`: `false`
 - `config.active_job.retry_jitter`: `0.0`
 - `config.active_job.skip_after_callbacks_if_terminated`: `false`
 - `config.action_mailbox.queues.incineration`: `:action_mailbox_incineration`
