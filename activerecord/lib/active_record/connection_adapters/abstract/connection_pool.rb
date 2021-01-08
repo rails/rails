@@ -24,7 +24,7 @@ module ActiveRecord
 
       attr_accessor :schema_cache
 
-      def owner_name
+      def connection_klass
         nil
       end
     end
@@ -360,7 +360,7 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :size, :reaper, :pool_config, :owner_name
+      attr_reader :db_config, :size, :reaper, :pool_config, :connection_klass
 
       delegate :schema_cache, :schema_cache=, to: :pool_config
 
@@ -375,7 +375,7 @@ module ActiveRecord
 
         @pool_config = pool_config
         @db_config = pool_config.db_config
-        @owner_name = pool_config.connection_specification_name
+        @connection_klass = pool_config.connection_klass
 
         @checkout_timeout = db_config.checkout_timeout
         @idle_timeout = db_config.idle_timeout
@@ -1040,7 +1040,7 @@ module ActiveRecord
       end
       alias :connection_pools :connection_pool_list
 
-      def establish_connection(config, owner_name: Base.name, role: ActiveRecord::Base.current_role, shard: Base.current_shard)
+      def establish_connection(config, owner_name: Base, role: ActiveRecord::Base.current_role, shard: Base.current_shard)
         owner_name = config.to_s if config.is_a?(Symbol)
 
         pool_config = resolve_pool_config(config, owner_name)
