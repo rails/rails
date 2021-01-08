@@ -1044,6 +1044,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 #### For '6.2', defaults from previous versions below and:
 - `config.action_view.button_to_generates_button_tag`: `true`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`
+- `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA256`
 
 #### For '6.1', defaults from previous versions below and:
 
@@ -1080,7 +1081,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_record.cache_versioning`: `true`
 - `config.action_dispatch.use_authenticated_cookie_encryption`: `true`
 - `config.active_support.use_authenticated_message_encryption`: `true`
-- `config.active_support.hash_digest_class`: `::Digest::SHA1`
+- `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA1`
 - `config.action_controller.default_protect_from_forgery`: `true`
 - `config.action_view.form_with_generates_ids`: `true`
 
@@ -1116,7 +1117,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_record.has_many_inversing`: `false`
 - `config.active_record.legacy_connection_handling`: `true`
 - `config.active_support.use_authenticated_message_encryption`: `false`
-- `config.active_support.hash_digest_class`: `::Digest::MD5`
+- `config.active_support.hash_digest_class`: `OpenSSL::Digest::MD5`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA1`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
 

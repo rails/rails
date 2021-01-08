@@ -101,6 +101,13 @@ Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
 end
 ```
 
+### Digest class for ActiveSupport::Digest changing to SHA256
+
+The default digest class for ActiveSupport::Digest is changing from SHA1 to SHA256.
+This has consequences for things like Etags that will change and cache keys as well.
+Changing these keys can have impact on cache hit rates, so be careful and watch out
+for this when upgrading to the new hash.
+
 Upgrading from Rails 6.0 to Rails 6.1
 -------------------------------------
 

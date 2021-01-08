@@ -116,7 +116,7 @@ module Rails
 
           if respond_to?(:active_support)
             active_support.use_authenticated_message_encryption = true
-            active_support.hash_digest_class = ::Digest::SHA1
+            active_support.hash_digest_class = OpenSSL::Digest::SHA1
           end
 
           if respond_to?(:action_controller)
@@ -207,6 +207,7 @@ module Rails
           end
 
           if respond_to?(:active_support)
+            active_support.hash_digest_class = OpenSSL::Digest::SHA256
             active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
           end
         else
