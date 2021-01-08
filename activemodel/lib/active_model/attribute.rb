@@ -133,13 +133,14 @@ module ActiveModel
       coder["value"] = value if defined?(@value)
     end
 
-    def original_value_for_database
-      if assigned?
-        original_attribute.original_value_for_database
-      else
-        _original_value_for_database
+    protected
+      def original_value_for_database
+        if assigned?
+          original_attribute.original_value_for_database
+        else
+          _original_value_for_database
+        end
       end
-    end
 
     private
       attr_reader :original_attribute
@@ -167,7 +168,6 @@ module ActiveModel
         def _original_value_for_database
           value_before_type_cast
         end
-        private :_original_value_for_database
       end
 
       class FromUser < Attribute # :nodoc:
