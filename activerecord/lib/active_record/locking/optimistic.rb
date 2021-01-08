@@ -98,7 +98,7 @@ module ActiveRecord
             affected_rows = self.class._update_record(
               attributes_with_values(attribute_names),
               @primary_key => id_in_database,
-              locking_column => @attributes[locking_column].original_value_for_database
+              locking_column => previous_lock_value
             )
 
             if affected_rows != 1
