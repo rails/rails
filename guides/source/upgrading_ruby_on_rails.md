@@ -1529,7 +1529,7 @@ included in the newly introduced `ActiveRecord::FixtureSet.context_class`, in
 ```ruby
 module FixtureFileHelpers
   def file_sha(path)
-    Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
+    OpenSSL::Digest::SHA256.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
   end
 end
 
