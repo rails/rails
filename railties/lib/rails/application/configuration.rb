@@ -163,10 +163,6 @@ module Rails
             active_record.legacy_connection_handling = false
           end
 
-          if respond_to?(:active_storage)
-            active_storage.track_variants = true
-          end
-
           if respond_to?(:active_job)
             active_job.retry_jitter = 0.15
             active_job.skip_after_callbacks_if_terminated = true
@@ -187,6 +183,8 @@ module Rails
           end
 
           if respond_to?(:active_storage)
+            active_storage.track_variants = true
+
             active_storage.queues.analysis = nil
             active_storage.queues.purge = nil
           end
