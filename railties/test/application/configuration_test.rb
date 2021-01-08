@@ -2410,6 +2410,14 @@ module ApplicationTests
       assert_equal true, ActionView::Helpers::AssetTagHelper.preload_links_header
     end
 
+    test "ActionView::Helpers::AssetTagHelper.preload_links_header is nil by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.0"'
+      app "development"
+
+      assert_nil ActionView::Helpers::AssetTagHelper.preload_links_header
+    end
+
     test "ActionView::Helpers::AssetTagHelper.preload_links_header can be configured via config.action_view.preload_links_header" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
