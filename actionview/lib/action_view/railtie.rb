@@ -40,6 +40,13 @@ module ActionView
     end
 
     config.after_initialize do |app|
+      button_to_generates_button_tag = app.config.action_view.delete(:button_to_generates_button_tag)
+      unless button_to_generates_button_tag.nil?
+        ActionView::Helpers::UrlHelper.button_to_generates_button_tag = button_to_generates_button_tag
+      end
+    end
+
+    config.after_initialize do |app|
       ActionView::Helpers::AssetTagHelper.image_loading = app.config.action_view.delete(:image_loading)
       ActionView::Helpers::AssetTagHelper.image_decoding = app.config.action_view.delete(:image_decoding)
       ActionView::Helpers::AssetTagHelper.preload_links_header = app.config.action_view.delete(:preload_links_header)
@@ -79,13 +86,6 @@ module ActionView
 
     initializer "action_view.collection_caching", after: "action_controller.set_configs" do |app|
       PartialRenderer.collection_cache = app.config.action_controller.cache_store
-    end
-
-    initializer "action_view.button_to_generates_button_tag" do |app|
-      ActiveSupport.on_load(:action_view) do
-        ActionView::Helpers::UrlHelper.button_to_generates_button_tag =
-          app.config.action_view.delete(:button_to_generates_button_tag)
-      end
     end
 
     config.after_initialize do |app|
