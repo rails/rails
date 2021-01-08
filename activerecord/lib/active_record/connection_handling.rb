@@ -341,7 +341,7 @@ module ActiveRecord
         self.connection_specification_name = owner_name
 
         db_config = Base.configurations.resolve(config_or_env)
-        [db_config, owner_name]
+        [db_config, self]
       end
 
       def with_handler(handler_key, &blk)
