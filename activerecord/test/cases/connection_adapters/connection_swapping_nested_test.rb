@@ -434,6 +434,7 @@ module ActiveRecord
           end
         ensure
           Object.send(:remove_const, :ApplicationRecord)
+          ActiveRecord::Base.establish_connection :arunit
         end
       end
     end
