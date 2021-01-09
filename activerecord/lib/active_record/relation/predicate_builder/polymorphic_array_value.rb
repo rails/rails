@@ -9,6 +9,8 @@ module ActiveRecord
       end
 
       def queries
+        return [ associated_table.join_foreign_key => values ] if values.empty?
+
         type_to_ids_mapping.map do |type, ids|
           query = {}
           query[associated_table.join_foreign_type] = type if type
