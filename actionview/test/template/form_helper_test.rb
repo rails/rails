@@ -695,6 +695,12 @@ class FormHelperTest < ActionView::TestCase
       '<input name="post[secret]" type="hidden" value="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="on" />',
       check_box("post", "secret", {}, "on", "off")
     )
+
+    @post.secret = "on"
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="on" />',
+      check_box("post", "secret", {}, "on", "")
+    )
   end
 
   def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_boolean
