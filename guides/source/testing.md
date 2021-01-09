@@ -640,11 +640,18 @@ about:
 # fixtures/articles.yml
 first:
   title: Welcome to Rails!
-  body: Hello world!
   category: about
 ```
 
-Notice the `category` key of the `first` article found in `fixtures/articles.yml` has a value of `about`. This tells Rails to load the category `about` found in `fixtures/categories.yml`.
+```yaml
+# fixtures/action_text/rich_texts.yml
+first_content:
+  record: first (Article)
+  name: content
+  body: <div>Hello, from <strong>a fixture</strong></div>
+```
+
+Notice the `category` key of the `first` Article found in `fixtures/articles.yml` has a value of `about`, and that the `record` key of the `first_content` entry found in `fixtures/action_text/rich_texts.yml` has a value of `first (Article)`. This hints to Active Record to load the Category `about` found in `fixtures/categories.yml` for the former, and Action Text to load the Article `first` found in `fixtures/articles.yml` for the latter.
 
 NOTE: For associations to reference one another by name, you can use the fixture name instead of specifying the `id:` attribute on the associated fixtures. Rails will auto assign a primary key to be consistent between runs. For more information on this association behavior please read the [Fixtures API documentation](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
 
