@@ -170,7 +170,7 @@ class ArticlesController < ApplicationController
       logger.debug "The article was saved and now the user is going to be redirected..."
       redirect_to @article, notice: 'Article was successfully created.'
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
