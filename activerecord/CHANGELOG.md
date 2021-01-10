@@ -1,3 +1,15 @@
+*   Add `ActiveRecord::Migration.after_migrate_hook` which gets called after migrations
+
+    Example use case, store migration logs on external storage after migrations:
+
+    ```ruby
+    ActiveRecord::Migration.after_migrate_hook = -> (log, name, direction, error) do
+      upload_to_storage(log, name, direction) unless error
+    end
+    ```
+
+    *Yoann Lecuyer* (porting code from Jordan Thiercelin)
+
 *   Add `FinderMethods#sole` and `#find_sole_by` to find and assert the
     presence of exactly one record.
 
