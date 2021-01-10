@@ -480,6 +480,15 @@ module ActiveRecord
   # The phrase "Updating salaries..." would then be printed, along with the
   # benchmark for the block when the block completes.
   #
+  # == Save output
+  #
+  # You can use ActiveRecord::Migration.after_migrate_hook to save the output of
+  # the migration:
+  #
+  #   ActiveRecord::Migration.after_migrate_hook = -> (log, name, direction, error) do
+  #     upload_to_storage(log, name, direction) unless error
+  #   end
+  #
   # == Timestamped Migrations
   #
   # By default, Rails generates migrations that look like:
@@ -677,6 +686,7 @@ module ActiveRecord
     end
 
     cattr_accessor :verbose
+    cattr_accessor :after_migrate_hook
     attr_accessor :name, :version
 
     def initialize(name = self.class.name, version = nil)
@@ -686,8 +696,21 @@ module ActiveRecord
     end
 
     self.verbose = true
+    self.after_migrate_hook = nil
+    @@migrate_log = ""
     # instantiate the delegate object after initialize is defined
     self.delegate = new
+
+    def self.run_after_migrate_hook(name, direction, error = nil)
+      if @@after_migrate_hook
+        begin
+          @@after_migrate_hook.call(@@migrate_log, name, direction, error)
+        rescue => e # we don't wan't anything bad happening here to prevent the migration from finishing
+          write "Something wrong happened in the after_migrate_hook: #{e.class} #{e.message}"
+        end
+        @@migrate_log = ""
+      end
+    end
 
     # Reverses the migration commands for the given block and
     # the given migrations.
@@ -856,6 +879,8 @@ module ActiveRecord
       when :up   then announce "migrated (%.4fs)" % time.real; write
       when :down then announce "reverted (%.4fs)" % time.real; write
       end
+
+      ActiveRecord::Migration.run_after_migrate_hook(name, direction)
     end
 
     def exec_migration(conn, direction)
@@ -875,6 +900,9 @@ module ActiveRecord
 
     def write(text = "")
       puts(text) if verbose
+      if @@after_migrate_hook
+        @@migrate_log += text + "\n"
+      end
     end
 
     def announce(message)
@@ -1333,6 +1361,9 @@ module ActiveRecord
         msg = +"An error has occurred, "
         msg << "this and " if use_transaction?(migration)
         msg << "all later migrations canceled:\n\n#{e}"
+
+        ActiveRecord::Migration.run_after_migrate_hook(migration.name, @direction, e)
+
         raise StandardError, msg, e.backtrace
       end
 
