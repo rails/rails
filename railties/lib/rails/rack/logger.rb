@@ -23,8 +23,7 @@ module Rails
         request = ActionDispatch::Request.new(env)
 
         if logger.respond_to?(:tagged)
-          tags = compute_tags(request)
-          logger.tagged(tags) { call_app(request, env) }
+          logger.tagged(compute_tags(request)) { call_app(request, env) }
         else
           call_app(request, env)
         end
