@@ -801,7 +801,7 @@ class ArticlesController < ApplicationController
     if @article.save
       redirect_to @article
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 end
@@ -814,7 +814,8 @@ will render `app/views/articles/new.html.erb`, which we will create next.
 The `create` action instantiates a new article with values for the title and
 body, and attempts to save it. If the article is saved successfully, the action
 redirects the browser to the article's page at `"http://localhost:3000/articles/#{@article.id}"`.
-Else, the action redisplays the form by rendering `app/views/articles/new.html.erb`.
+Else, the action redisplays the form by rendering `app/views/articles/new.html.erb`
+with a status code 4XX for the app to work fine with [Turbo](https://github.com/hotwired/turbo-rails).
 The title and body here are dummy values. After we create the form, we will come
 back and change these.
 
@@ -926,7 +927,7 @@ class ArticlesController < ApplicationController
     if @article.save
       redirect_to @article
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -1017,7 +1018,7 @@ To understand how all of this works together, let's take another look at the
     if @article.save
       redirect_to @article
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 ```
@@ -1030,8 +1031,8 @@ messages.
 When we submit the form, the `POST /articles` request is mapped to the `create`
 action. The `create` action *does* attempt to save `@article`. Therefore,
 validations *are* checked. If any validation fails, `@article` will not be
-saved, and `app/views/articles/new.html.erb` will be rendered with error
-messages.
+saved, `app/views/articles/new.html.erb` will be rendered with error
+messages with a status code 4XX for the app to work fine with [Turbo](https://github.com/hotwired/turbo-rails).
 
 TIP: To learn more about validations, see [Active Record Validations](
 active_record_validations.html). To learn more about validation error messages,
@@ -1090,7 +1091,7 @@ class ArticlesController < ApplicationController
     if @article.save
       redirect_to @article
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -1104,7 +1105,7 @@ class ArticlesController < ApplicationController
     if @article.update(article_params)
       redirect_to @article
     else
-      render :edit
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -1125,8 +1126,9 @@ action will render `app/views/articles/edit.html.erb`.
 The `update` action (re-)fetches the article from the database, and attempts
 to update it with the submitted form data filtered by `article_params`. If no
 validations fail and the update is successful, the action redirects the browser
-to the article's page. Else, the action redisplays the form, with error
-messages, by rendering `app/views/articles/edit.html.erb`.
+to the article's page. Else, the action redisplays the form with error
+messages, by rendering `app/views/articles/edit.html.erb` with a status code 4XX
+for the app to work fine with [Turbo](https://github.com/hotwired/turbo-rails).
 
 #### Using Partials to Share View Code
 
@@ -1240,7 +1242,7 @@ class ArticlesController < ApplicationController
     if @article.save
       redirect_to @article
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -1254,7 +1256,7 @@ class ArticlesController < ApplicationController
     if @article.update(article_params)
       redirect_to @article
     else
-      render :edit
+      render :edit, status: :unprocessable_entity
     end
   end
 
