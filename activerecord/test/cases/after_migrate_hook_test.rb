@@ -73,7 +73,11 @@ class AfterMigrateHookTest < ActiveRecord::TestCase
       migrator.up
     end
 
-    assert_equal "An error has occurred, this and all later migrations canceled:\n\ndivided by 0", error.message
+    if ActiveRecord::Base.connection.supports_ddl_transactions?
+      assert_equal "An error has occurred, this and all later migrations canceled:\n\ndivided by 0", error.message
+    else
+      assert_equal "An error has occurred, all later migrations canceled:\n\ndivided by 0", error.message
+    end
 
     assert_match(/\AErrorDivisionByZero up divided by 0\n== 1 ErrorDivisionByZero: migrating ===========================================\n\z/, @log)
     @log = ""
