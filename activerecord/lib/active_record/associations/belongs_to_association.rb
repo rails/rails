@@ -111,7 +111,7 @@ module ActiveRecord
         def replace_keys(record, force: false)
           target_key = record ? record._read_attribute(primary_key(record.class)) : nil
 
-          if force || owner[reflection.foreign_key] != target_key
+          if force || owner._read_attribute(reflection.foreign_key) != target_key
             owner[reflection.foreign_key] = target_key
           end
         end
