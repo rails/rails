@@ -20,6 +20,9 @@ module ActiveRecord
             record = owner.class.human_attribute_name(reflection.name).downcase
             owner.errors.add(:base, :'restrict_dependent_destroy.has_many', record: record)
             throw(:abort)
+            if owner.destroyed_by_association.present?
+              owner.destroyed_by_association.errors.add(:base, :'restrict_dependent_destroy.has_many', record: record)
+            end
           end
 
         when :destroy
