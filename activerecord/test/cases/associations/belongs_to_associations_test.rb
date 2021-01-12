@@ -46,6 +46,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal [authors(:david)], Author.where(owned_essay: essays(:david_modest_proposal))
   end
 
+  def test_find_by_with_custom_primary_key
+    assert_equal authors(:david), Author.find_by(owned_essay: essays(:david_modest_proposal))
+  end
+
   def test_where_on_polymorphic_association_with_nil
     assert_equal comments(:greetings), Comment.where(author: nil).first
     assert_equal comments(:greetings), Comment.where(author: [nil]).first
