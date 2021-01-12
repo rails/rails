@@ -432,5 +432,9 @@ module ActiveRecord
 
       assert_equal 1, posts.invert_where.first.id
     end
+
+    def test_lazy_enumerator_filter
+      assert_equal Author.where(id: [3]), Author.where(id: [3].lazy)
+    end
   end
 end

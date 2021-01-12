@@ -1135,6 +1135,8 @@ module ActiveRecord
           opts = opts.transform_keys do |key|
             key = key.to_s
             klass.attribute_aliases[key] || key
+          end.transform_values do |value|
+            value.class == Enumerator::Lazy ? value.to_a : value
           end
           references = PredicateBuilder.references(opts)
           self.references_values |= references unless references.empty?

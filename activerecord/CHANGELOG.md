@@ -1,3 +1,15 @@
+*   Add support for `Lazy::Enumerator` in `where` clauses.
+
+    ```ruby
+        result = Post.where(id: [1, 2, 3].lazy)
+    ```
+
+    Before, `result` would be empty. Now it will contains posts with the
+    specified IDs.
+
+    Fixes #41089.
+
+    *Dan Gates*
 *   Add `FinderMethods#sole` and `#find_sole_by` to find and assert the
     presence of exactly one record.
 
