@@ -623,7 +623,9 @@ class DurationTest < ActiveSupport::TestCase
       ["PT1S",          1.second                         ],
       ["PT1.4S",        (1.4).seconds                    ],
       ["P1Y1M1DT1H",    1.year + 1.month + 1.day + 1.hour],
-      ["PT0S",          0.minutes                        ],
+      ["PT0S",          0.seconds                        ],
+      ["P0D",           0.days                           ], # 0-length duration retains its interval
+      ["P1Y",           1.year + 0.weeks + 0.days        ], # Adding 0-length parts doesn't change duration
       ["PT-0.2S",       (-0.2).seconds                   ],
     ]
     expectations.each do |expected_output, duration|
