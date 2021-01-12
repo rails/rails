@@ -231,4 +231,17 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
 
     assert_no_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
   end
+
+  test "Rollback prevents jobs from being enqueued" do
+    tag = Tag.create!(name: "Der be treasure")
+    tag2 = Tag.create!(name: "Der be rum")
+    book = BookDestroyAsync.create!
+    book.tags << [tag, tag2]
+    book.save!
+    ActiveRecord::Base.transaction do
+      book.destroy
+      raise ActiveRecord::Rollback
+    end
+    assert_no_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+  end
 end

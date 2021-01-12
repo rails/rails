@@ -209,6 +209,10 @@ module ActiveRecord
         connection.transaction(**options, &block)
       end
 
+      def transactional_job_enqueue(*args, &block)
+        after_commit(*args, &block)
+      end
+
       def before_commit(*args, &block) # :nodoc:
         set_options_for_callbacks!(args)
         set_callback(:before_commit, :before, *args, &block)
