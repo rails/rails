@@ -204,6 +204,54 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_strict_loading_has_one_reload
+    with_strict_loading_by_default(Developer) do
+      ship = Ship.create!(developer: Developer.first, name: "The Great Ship")
+      developer = Developer.preload(:ship).first
+
+      assert_predicate developer, :strict_loading?
+      assert_equal ship, developer.ship
+
+      developer.reload
+
+      assert_nothing_raised do
+        assert_equal ship, developer.ship
+      end
+    end
+  end
+
+  def test_strict_loading_with_has_many
+    with_strict_loading_by_default(Developer) do
+      devs = Developer.preload(:audit_logs).all
+
+      assert_nothing_raised do
+        devs.map(&:audit_logs).to_a
+      end
+
+      devs.reload
+
+      assert_nothing_raised do
+        devs.map(&:audit_logs).to_a
+      end
+    end
+  end
+
+  def test_strict_loading_with_has_many_singular_association_and_reload
+    with_strict_loading_by_default(Developer) do
+      dev = Developer.preload(:audit_logs).first
+
+      assert_nothing_raised do
+        dev.audit_logs.to_a
+      end
+
+      dev.reload
+
+      assert_nothing_raised do
+        dev.audit_logs.to_a
+      end
+    end
+  end
+
   def test_preload_audit_logs_are_strict_loading_because_parent_is_strict_loading
     developer = Developer.first
 
