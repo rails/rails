@@ -377,7 +377,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   test "building the association with an array" do
     speedometer = Speedometer.new(speedometer_id: "a")
     data = [{ name: "first" }, { name: "second" }]
-    speedometer.minivans.build(data)
+    speedometer.minivans.all.build(data)
 
     assert_equal 2, speedometer.minivans.size
     assert speedometer.save

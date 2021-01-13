@@ -332,6 +332,13 @@ module ActiveRecord
           persisted + memory
         end
 
+        def build_record(attributes)
+          previous = klass.current_scope(true) if block_given?
+          super
+        ensure
+          klass.current_scope = previous if previous
+        end
+
         def _create_record(attributes, raise = false, &block)
           unless owner.persisted?
             raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
