@@ -277,14 +277,14 @@ module ActiveRecord
       self.default_role = writing_role
       self.default_shard = :default
 
-      def self.strict_loading_violation!(owner:, association:) # :nodoc:
+      def self.strict_loading_violation!(owner:, reflection:) # :nodoc:
         case action_on_strict_loading_violation
         when :raise
-          message = "`#{association}` called on `#{owner}` is marked for strict_loading and cannot be lazily loaded."
+          message = "`#{owner}` is marked for strict_loading. The `#{reflection.klass}` association named `:#{reflection.name}` cannot be lazily loaded."
           raise ActiveRecord::StrictLoadingViolationError.new(message)
         when :log
           name = "strict_loading_violation.active_record"
-          ActiveSupport::Notifications.instrument(name, owner: owner, association: association)
+          ActiveSupport::Notifications.instrument(name, owner: owner, reflection: reflection)
         end
       end
     end
