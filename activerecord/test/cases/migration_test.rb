@@ -325,18 +325,18 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_add_column_with_if_not_exists_set_to_true_does_not_raise_if_types_with_an_option_match
+  def test_add_int_column_with_if_not_exists_set_to_true_does_note_raise
     migration_a = Class.new(ActiveRecord::Migration::Current) {
       def version; 100 end
       def migrate(x)
-        add_column "people", "last_name", :int, unsigned: true
+        add_column "people", "last_name", :int
       end
     }.new
 
     migration_b = Class.new(ActiveRecord::Migration::Current) {
       def version; 101 end
       def migrate(x)
-        add_column "people", "last_name", :int, unsigned: true, if_not_exists: true
+        add_column "people", "last_name", :int, if_not_exists: true
       end
     }.new
 

@@ -135,6 +135,7 @@ module ActiveRecord
       def column_exists?(table_name, column_name, type = nil, **options)
         column_name = column_name.to_s
         checks = []
+        type = :integer if type == :int
         checks << lambda { |c| c.name == column_name }
         checks << lambda { |c| c.type == type.to_sym rescue nil } if type
         column_options_keys.each do |attr|
@@ -604,7 +605,7 @@ module ActiveRecord
       #  # Ignores the method call if the column exists
       #  add_column(:shapes, :triangle, 'polygon', if_not_exists: true)
       def add_column(table_name, column_name, type, **options)
-        return if options[:if_not_exists] == true && column_exists?(table_name, column_name, type, options.slice(:unsigned))
+        return if options[:if_not_exists] == true && column_exists?(table_name, column_name, type)
 
         at = create_alter_table table_name
         at.add_column(column_name, type, **options)
