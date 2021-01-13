@@ -45,13 +45,13 @@ module ActionDispatch
 
           terminals.each_with_index { |s, index|
             next if index < 1
-            next unless s.symbol?
+            next if s.type == :DOT || s.type == :SLASH
 
             back = terminals[index - 1]
             fwd = terminals[index + 1]
 
             # we also don't support this yet, constraints must be regexps
-            return false if s.regexp.is_a?(Array)
+            return false if s.symbol? && s.regexp.is_a?(Array)
 
             return false if back.literal?
             return false if !fwd.nil? && fwd.literal?
