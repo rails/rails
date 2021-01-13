@@ -325,7 +325,7 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_add_int_column_with_if_not_exists_set_to_true_does_note_raise
+  def test_add_int_column_with_if_not_exists_set_to_true_does_not_raise
     migration_a = Class.new(ActiveRecord::Migration::Current) {
       def version; 100 end
       def migrate(x)
