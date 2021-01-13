@@ -325,6 +325,34 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_add_column_with_if_not_exists_set_to_true_does_not_raise_if_types_with_an_option_match
+    migration_a = Class.new(ActiveRecord::Migration::Current) {
+      def version; 100 end
+      def migrate(x)
+        add_column "people", "last_name", :int, unsigned: true
+      end
+    }.new
+
+    migration_b = Class.new(ActiveRecord::Migration::Current) {
+      def version; 101 end
+      def migrate(x)
+        add_column "people", "last_name", :int, unsigned: true, if_not_exists: true
+      end
+    }.new
+
+    ActiveRecord::Migrator.new(:up, [migration_a], @schema_migration, 100).migrate
+    assert_column Person, :last_name, "migration_a should have created the last_name column on people"
+
+    assert_nothing_raised do
+      ActiveRecord::Migrator.new(:up, [migration_b], @schema_migration, 101).migrate
+    end
+  ensure
+    Person.reset_column_information
+    if Person.column_names.include?("last_name")
+      Person.connection.remove_column("people", "last_name")
+    end
+  end
+
   def test_add_column_with_if_not_exists_set_to_true_still_raises_if_type_is_different
     migration_a = Class.new(ActiveRecord::Migration::Current) {
       def version; 100 end
