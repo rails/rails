@@ -211,12 +211,8 @@ module ActiveRecord
 
       private
         def find_target
-          if owner.strict_loading? && owner.validation_context.nil?
-            Base.strict_loading_violation!(owner: owner.class, association: klass)
-          end
-
-          if reflection.strict_loading? && owner.validation_context.nil?
-            Base.strict_loading_violation!(owner: owner.class, association: reflection.name)
+          if (owner.strict_loading? || reflection.strict_loading?) && owner.validation_context.nil?
+            Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
           end
 
           scope = self.scope
