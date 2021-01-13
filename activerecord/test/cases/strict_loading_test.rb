@@ -407,7 +407,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
     developer.strict_loading!
     assert_predicate developer, :strict_loading?
 
-    assert_logged("Strict loading violation: AuditLog lazily loaded on Developer.") do
+    assert_logged("Strict loading violation: Developer is marked for strict loading. The AuditLog association named :audit_logs cannot be lazily loaded.") do
       developer.audit_logs.to_a
     end
   ensure
