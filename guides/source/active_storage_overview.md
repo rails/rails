@@ -1008,3 +1008,19 @@ If you need to support a cloud service other than these, you will need to
 implement the Service. Each service extends
 [`ActiveStorage::Service`](https://github.com/rails/rails/blob/master/activestorage/lib/active_storage/service.rb)
 by implementing the methods necessary to upload and download files to the cloud.
+
+Purging Unattached Uploads
+--------------------------
+
+There are cases where a file is uploaded but never attached to a record. This can happen when using [Direct Uploads](#direct-uploads). You can query for unattached records using the [unattached scope](https://github.com/rails/rails/blob/8ef5bd9ced351162b673904a0b77c7034ca2bc20/activestorage/app/models/active_storage/blob.rb#L49). Below is an example using a [custom rake task](command_line.html#custom-rake-tasks). 
+
+```ruby
+namespace :active_storage do
+  desc "Purges orphaned unattached blobs from ActiveStorage. Run this regularly."
+  task cleanup: :environment do
+    ActiveStorage::Blob.unattached.where("active_storage_blobs.created_at <= ?", 2.days.ago).each do |blob|
+      blob.purge_later
+    end
+  end
+end
+```
