@@ -64,6 +64,8 @@ module ActiveModel
       def parse_as_number(raw_value, precision, scale)
         if raw_value.is_a?(Float)
           parse_float(raw_value, precision, scale)
+        elsif raw_value.is_a?(BigDecimal)
+          round(raw_value, scale)
         elsif raw_value.is_a?(Numeric)
           raw_value
         elsif is_integer?(raw_value)
@@ -74,7 +76,11 @@ module ActiveModel
       end
 
       def parse_float(raw_value, precision, scale)
-        (scale ? raw_value.truncate(scale) : raw_value).to_d(precision)
+        round(raw_value, scale).to_d(precision)
+      end
+
+      def round(raw_value, scale)
+        scale ? raw_value.round(scale) : raw_value
       end
 
       def is_number?(raw_value, precision, scale)
