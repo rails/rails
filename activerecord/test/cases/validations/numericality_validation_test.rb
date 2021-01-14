@@ -109,13 +109,17 @@ class NumericalityValidationTest < ActiveRecord::TestCase
       :virtual_decimal_number, less_than_or_equal_to: 99.99
     )
 
-    subject = model_class.new(virtual_decimal_number: 99.994)
-    assert_equal 99.99.to_d(4), subject.virtual_decimal_number
-    assert_predicate subject, :valid?
+    ["99.994", 99.994, BigDecimal("99.994")].each do |raw_value|
+      subject = model_class.new(virtual_decimal_number: raw_value)
+      assert_equal BigDecimal("99.99"), subject.virtual_decimal_number
+      assert_predicate subject, :valid?
+    end
 
-    subject = model_class.new(virtual_decimal_number: 99.999)
-    assert_equal 100.00.to_d(4), subject.virtual_decimal_number
-    assert_not_predicate subject, :valid?
+    ["99.999", 99.999, BigDecimal("99.999")].each do |raw_value|
+      subject = model_class.new(virtual_decimal_number: raw_value)
+      assert_equal BigDecimal("100.00"), subject.virtual_decimal_number
+      assert_not_predicate subject, :valid?
+    end
   end
 
   def test_aliased_attribute

@@ -189,13 +189,13 @@ class ValidationsTest < ActiveRecord::TestCase
 
     ["97.179", 97.179, BigDecimal("97.179")].each do |raw_value|
       subject = klass.new(wibble: raw_value)
-      assert_equal 97.18.to_d(4), subject.wibble
+      assert_equal BigDecimal("97.18"), subject.wibble
       assert_predicate subject, :valid?
     end
 
     ["97.174", 97.174, BigDecimal("97.174")].each do |raw_value|
       subject = klass.new(wibble: raw_value)
-      assert_equal 97.17.to_d(4), subject.wibble
+      assert_equal BigDecimal("97.17"), subject.wibble
       assert_not_predicate subject, :valid?
     end
   end
