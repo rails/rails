@@ -932,6 +932,8 @@ class Uploader {
 }
 ```
 
+NOTE: Using [Direct Uploads](#direct-uploads) can sometimes result in a file that uploads, but never attaches to a record. Consider [purging unattached uploads](#purging-unattached-uploads). 
+
 Discarding Files Stored During System Tests
 -------------------------------------------
 
