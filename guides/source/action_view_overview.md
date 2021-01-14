@@ -243,14 +243,14 @@ You can also do:
 By default `ActionView::Partials::PartialRenderer` has its object in a local variable with the same name as the template. So, given:
 
 ```erb
-<%= render partial: "product" %>
+<%= render @product %>
 ```
 
 within `_product` partial we'll get `@product` in the local variable `product`,
 as if we had written:
 
 ```erb
-<%= render partial: "product", locals: { product: @product } %>
+<%= render partial: "prodcuts/product", locals: { product: @product } %>
 ```
 
 The `object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (e.g. in a different instance variable or in a local variable).
