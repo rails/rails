@@ -1,3 +1,8 @@
+*   Fixes `CurrentAttributes.set` when attribute readers are made private in
+    order to expose a limited interface.
+
+    *Cameron Bothner*
+
 *   Raises an `ArgumentError` when the first argument of `ActiveSupport::Notification.subscribe` is
     invalid.
 

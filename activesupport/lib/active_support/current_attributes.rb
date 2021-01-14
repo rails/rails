@@ -202,7 +202,7 @@ module ActiveSupport
       end
 
       def compute_attributes(keys)
-        keys.index_with { |key| public_send(key) }
+        keys.index_with { |key| send(key) }
       end
   end
 end

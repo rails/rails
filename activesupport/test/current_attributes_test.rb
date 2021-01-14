@@ -11,7 +11,9 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
   class Current < ActiveSupport::CurrentAttributes
     attribute :world, :account, :person, :request
-    delegate :time_zone, to: :person
+    private :person
+
+    delegate :name, :time_zone, to: :person
 
     before_reset { Session.previous = person&.id }
 
@@ -74,7 +76,7 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   test "set attribute via overwritten method" do
     Current.account = "account/1"
     assert_equal "account/1", Current.account
-    assert_equal "account/1's person", Current.person.name
+    assert_equal "account/1's person", Current.name
   end
 
   test "set auxiliary class via overwritten method" do
@@ -124,6 +126,16 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
     assert_equal "world/1", Current.world
     assert_equal "account/1", Current.account
+  end
+
+  test "set attribute with private reader" do
+    Current.person = Person.new(42, "David", "Central Time (US & Canada)")
+
+    Current.set(person: Person.new(123, "Cameron", "Eastern Time (US & Canada)")) do
+      assert_equal "Cameron", Current.name
+    end
+
+    assert_equal "David", Current.name
   end
 
   setup { @testing_teardown = false }
