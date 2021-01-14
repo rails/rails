@@ -187,9 +187,17 @@ class ValidationsTest < ActiveRecord::TestCase
       validates_numericality_of :wibble, greater_than_or_equal_to: BigDecimal("97.18")
     end
 
-    assert_not_predicate klass.new(wibble: "97.179"), :valid?
-    assert_not_predicate klass.new(wibble: 97.179), :valid?
-    assert_not_predicate klass.new(wibble: BigDecimal("97.179")), :valid?
+    ["97.179", 97.179, BigDecimal("97.179")].each do |raw_value|
+      subject = klass.new(wibble: raw_value)
+      assert_equal 97.18.to_d(4), subject.wibble
+      assert_predicate subject, :valid?
+    end
+
+    ["97.174", 97.174, BigDecimal("97.174")].each do |raw_value|
+      subject = klass.new(wibble: raw_value)
+      assert_equal 97.17.to_d(4), subject.wibble
+      assert_not_predicate subject, :valid?
+    end
   end
 
   def test_numericality_validator_wont_be_affected_by_custom_getter

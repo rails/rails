@@ -103,6 +103,21 @@ class NumericalityValidationTest < ActiveRecord::TestCase
     assert_not_predicate subject, :valid?
   end
 
+  def test_virtual_attribute_with_precision_and_scale
+    model_class.attribute(:virtual_decimal_number, :decimal, precision: 4, scale: 2)
+    model_class.validates_numericality_of(
+      :virtual_decimal_number, less_than_or_equal_to: 99.99
+    )
+
+    subject = model_class.new(virtual_decimal_number: 99.994)
+    assert_equal 99.99.to_d(4), subject.virtual_decimal_number
+    assert_predicate subject, :valid?
+
+    subject = model_class.new(virtual_decimal_number: 99.999)
+    assert_equal 100.00.to_d(4), subject.virtual_decimal_number
+    assert_not_predicate subject, :valid?
+  end
+
   def test_aliased_attribute
     model_class.validates_numericality_of(:new_bank_balance, greater_or_equal_than: 0)
 
