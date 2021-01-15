@@ -200,6 +200,18 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_job_with_priority_option
+    assert_enqueued_with(job: HelloJob, priority: 10) do
+      HelloJob.set(priority: 10).perform_later
+    end
+
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_enqueued_with(job: HelloJob, priority: 10) do
+        HelloJob.set(priority: 5).perform_later
+      end
+    end
+  end
+
   def test_assert_enqueued_jobs_with_only_option_and_none_sent
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_enqueued_jobs 1, only: HelloJob do
@@ -686,7 +698,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
       end
     end
     assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default".*?}/, error.message)
   end
 
   def test_assert_enqueued_with_failure_with_no_block_with_global_id_args
@@ -698,7 +710,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default".*?}/, error.message)
   end
 
   def test_assert_enqueued_with_does_not_change_jobs_count
@@ -1794,6 +1806,18 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_performed_job_with_priority_option
+    assert_performed_with(job: HelloJob, priority: 10) do
+      HelloJob.set(priority: 10).perform_later
+    end
+
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_with(job: HelloJob, priority: 10) do
+        HelloJob.set(priority: 5).perform_later
+      end
+    end
+  end
+
   def test_assert_performed_with_with_at_option
     assert_performed_with(job: HelloJob, at: Date.tomorrow.noon) do
       HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
@@ -1913,7 +1937,7 @@ class PerformedJobsTest < ActiveJob::TestCase
       end
     end
     assert_match(/No performed job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default".*?}/, error.message)
   end
 
   def test_assert_performed_with_without_block_failure_with_global_id_args
@@ -1926,7 +1950,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No performed job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default".*?}/, error.message)
   end
 
   def test_assert_performed_with_does_not_change_jobs_count

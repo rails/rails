@@ -1,3 +1,8 @@
+*   Added possibility to check on `:priority` in test helper methods
+    `assert_enqueued_with` and `assert_performed_with`
+
+    *Wojciech Wnętrzak*
+
 *   OpenSSL constants are now used for Digest computations.
 
     *Dirkjan Bussink*
