@@ -30,9 +30,9 @@ module Rails
         end
 
         def rake_run(argv = [])
-          ARGV.replace Shellwords.split(ENV["TESTOPTS"] || "")
-
-          run(argv)
+          # Ensure the tests run during the Rake Task action, not when the process exits
+          success = system("rails", "test", *argv, *Shellwords.split(ENV["TESTOPTS"] || ""))
+          success || exit(false)
         end
 
         def run(argv = [])
