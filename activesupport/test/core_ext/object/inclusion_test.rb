@@ -26,6 +26,16 @@ class InTest < ActiveSupport::TestCase
     assert_not 75.in?(1..50)
   end
 
+  def test_in_range_cover
+    mocked_range = Minitest::Mock.new
+    mocked_range.expect :is_a?, true, [Range]
+    mocked_range.expect :cover?, true, [Integer]
+
+    25.in?(mocked_range)
+
+    mocked_range.verify
+  end
+
   def test_in_set
     s = Set.new([1, 2])
     assert 1.in?(s)

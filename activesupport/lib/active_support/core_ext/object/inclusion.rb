@@ -2,15 +2,21 @@
 
 class Object
   # Returns true if this object is included in the argument. Argument must be
-  # any object which responds to +#include?+. Usage:
+  # any object which responds to +#include?+ or is a +Range+. Usage:
   #
   #   characters = ["Konata", "Kagami", "Tsukasa"]
   #   "Konata".in?(characters) # => true
   #
+  # In case the object is an instance of a +Range+, it will use +#cover?+.
+  #
   # This will throw an +ArgumentError+ if the argument doesn't respond
-  # to +#include?+.
+  # to +#include?+ or is not a +Range+.
   def in?(another_object)
-    another_object.include?(self)
+    if another_object.is_a?(Range)
+      another_object.cover?(self)
+    else
+      another_object.include?(self)
+    end
   rescue NoMethodError
     raise ArgumentError.new("The parameter passed to #in? must respond to #include?")
   end

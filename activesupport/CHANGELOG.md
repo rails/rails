@@ -1,3 +1,7 @@
+*   Use `Range.cover?` when calling `Object.in?` with range argument.
+
+    *Ali Ismayilov*
+
 *   Raises an `ArgumentError` when the first argument of `ActiveSupport::Notification.subscribe` is
     invalid.
 
