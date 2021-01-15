@@ -943,10 +943,9 @@ You can supply a hash of additional HTML options:
 <%= image_tag "icons/delete.gif", {height: 45} %>
 ```
 
-You can supply alternate text for the image which will be used if the user has images turned off in their browser. If you do not specify an alt text explicitly, it defaults to the file name of the file, capitalized and with no extension. For example, these two image tags would return the same code:
+You can supply alternate text for the image which will be used if the user has images turned off in their browser or if an image file cannot be loaded.
 
 ```erb
-<%= image_tag "home.gif" %>
 <%= image_tag "home.gif", alt: "Home" %>
 ```
 
