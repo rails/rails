@@ -84,7 +84,7 @@ class Supplier < ApplicationRecord
 end
 ```
 
-![Diagram of all of the bookstore models](images/active_record_querying/bookstore_models.png)
+![Diagram of all of the bookstore models](images/active_record_querying/bookstore_erd.png)
 
 Retrieving Objects from the Database
 ------------------------------------
