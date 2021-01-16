@@ -126,6 +126,18 @@ module ActiveRecord
         assert_equal config["production"].symbolize_keys, actual
       end
 
+      def test_adapter_with_url_config
+        config   = { "production" => { "adapter" => "sunstone", "url" => 'https://example.com/path' } }
+        actual   = resolve_config(config, "production")
+        assert_equal config["production"].symbolize_keys, actual
+
+        config = { "default_env" => { "adapter" => "not_postgres", "url" => "foo" } }
+        actual = resolve_db_config(:default_env, config)
+        expected = { adapter: "not_postgres", url: "foo" }
+
+        assert_equal expected, actual.configuration_hash
+      end
+
       def test_environment_does_not_exist_in_config_url_does_exist
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
         config      = { "not_default_env" => { "adapter" => "not_postgres", "database" => "not_foo" } }

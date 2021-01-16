@@ -1,3 +1,11 @@
+*   Connection specification now accepts a "url" key as a configuration for the
+    adapter if the "adapter" key is given. Previously "url" would be treated as
+    the highest priority in determining the adatper and host.
+    
+    Fixes #41137.
+
+    *Jonathan Bracy*
+
 *   Add `FinderMethods#sole` and `#find_sole_by` to find and assert the
     presence of exactly one record.
 
