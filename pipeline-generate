@@ -18,7 +18,7 @@ REBUILD_ID = ([ENV["BUILDKITE_REBUILT_FROM_BUILD_ID"]] - [""]).first
 
 MAINLINE = LOCAL_BRANCH == "main" || LOCAL_BRANCH =~ /\A[0-9-]+(?:-stable)?\z/
 
-DOCKER_COMPOSE_PLUGIN = "matthewd/docker-compose#master"
+DOCKER_COMPOSE_PLUGIN = "docker-compose#v3.7.0"
 ARTIFACTS_PLUGIN = "artifacts#v1.2.0"
 
 REPO_ROOT = Pathname.new(ARGV.shift || File.expand_path("../..", __FILE__))
