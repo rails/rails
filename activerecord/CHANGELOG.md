@@ -1,3 +1,12 @@
+*   Connection specification now passes the "url" key as a configuration for the
+    adapter if the "url" protocol is "jdbc", "http", or "https". Previously only
+    urls with the "jdbc" prefix were passed to the Active Record Adapter, others
+    are assumed to be adapter specification urls.
+
+    Fixes #41137.
+
+    *Jonathan Bracy*
+
 *   Allow to opt-out of `strict_loading` mode on a per-record base.
 
     This is useful when strict loading is enabled application wide or on a
