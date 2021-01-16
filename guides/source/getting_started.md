@@ -1883,7 +1883,7 @@ We also have to permit the `:status` key as part of the strong parameter, in `ap
 ```ruby
 private
     def article_params
-      params.require(:comment).permit(:commenter, :body, :status)
+      params.require(:article).permit(:title, :body, :status)
     end
 ```
 
