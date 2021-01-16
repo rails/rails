@@ -1,3 +1,10 @@
+*   Raise error on unpermitted open redirects.
+
+    Add `allow_other_host` options to `redirect_to`.
+    Opt in to this behaviour with `ActionController::Base.raise_on_open_redirects = true`.
+
+    *Gannon McGibbon*
+
 *   Remove inline styles and address basic accessibility issues on rescue templates.
 
     *Jacob Herrington*

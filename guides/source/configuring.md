@@ -550,6 +550,8 @@ The schema dumper adds two additional configuration options:
     Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
     ```
 
+* `config.action_controller.raise_on_open_redirects` raises an `ArgumentError` when an unpermitted open redirect occurs. The default value is `false`.
+
 ### Configuring Action Dispatch
 
 * `config.action_dispatch.session_store` sets the name of the store for session data. The default is `:cookie_store`; other valid options include `:active_record_store`, `:mem_cache_store` or the name of your own custom class.
@@ -1060,6 +1062,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 #### For '7.0', defaults from previous versions below and:
 
+- `config.action_controller.raise_on_open_redirects`: `true`
 - `config.action_view.button_to_generates_button_tag`: `true`
 - `config.action_view.apply_stylesheet_media_default` : `false`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`
@@ -1123,6 +1126,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 #### Baseline defaults:
 
 - `config.action_controller.default_protect_from_forgery`: `false`
+- `config.action_controller.raise_on_open_redirects`: `false`
 - `config.action_controller.urlsafe_csrf_tokens`: `false`
 - `config.action_dispatch.cookies_same_site_protection`: `nil`
 - `config.action_mailer.delivery_job`: `ActionMailer::DeliveryJob`
