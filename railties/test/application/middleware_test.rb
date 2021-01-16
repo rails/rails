@@ -344,6 +344,12 @@ module ApplicationTests
       assert_equal "/foo/?something", env["ORIGINAL_FULLPATH"]
     end
 
+    test "includes deflater if enable_response_compression is enabled" do
+      add_to_config "config.enable_response_compression = true"
+      boot!
+      assert_includes middleware, "Rack::Deflater"
+    end
+
     private
       def boot!
         require "#{app_path}/config/environment"

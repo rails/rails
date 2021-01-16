@@ -79,6 +79,10 @@ module Rails
           middleware.use ::Rack::ConditionalGet
           middleware.use ::Rack::ETag, "no-cache"
 
+          if config.enable_response_compression
+            middleware.use ::Rack::Deflater
+          end
+
           middleware.use ::Rack::TempfileReaper unless config.api_only
         end
       end
