@@ -80,6 +80,14 @@ class RedirectController < ActionController::Base
     redirect_back_or_to "http://www.rubyonrails.org/", status: 307, allow_other_host: false
   end
 
+  def unsafe_redirect
+    redirect_to "http://www.rubyonrails.org/"
+  end
+
+  def unsafe_redirect_back
+    redirect_back_or_to "http://www.rubyonrails.org/"
+  end
+
   def redirect_back_with_explicit_fallback_kwarg
     redirect_back(fallback_location: "/things/stuff", status: 307)
   end
@@ -467,6 +475,41 @@ class RedirectTest < ActionController::TestCase
       assert_redirected_to "http://test.host/redirect/hello_world"
     end
   end
+
+  def test_unsafe_redirect
+    with_raise_on_open_redirects do
+      error = assert_raise(ArgumentError) do
+        get :unsafe_redirect
+      end
+
+      assert_equal(<<~MSG.squish, error.message)
+        Unsafe redirect \"http://www.rubyonrails.org/\",
+        use :allow_other_host to redirect anyway.
+      MSG
+    end
+  end
+
+  def test_unsafe_redirect_back
+    with_raise_on_open_redirects do
+      error = assert_raise(ArgumentError) do
+        get :unsafe_redirect_back
+      end
+
+      assert_equal(<<~MSG.squish, error.message)
+        Unsafe redirect \"http://www.rubyonrails.org/\",
+        use :allow_other_host to redirect anyway.
+      MSG
+    end
+  end
+
+  private
+    def with_raise_on_open_redirects
+      old_raise_on_open_redirects = ActionController::Base.raise_on_open_redirects
+      ActionController::Base.raise_on_open_redirects = true
+      yield
+    ensure
+      ActionController::Base.raise_on_open_redirects = old_raise_on_open_redirects
+    end
 end
 
 module ModuleTest
