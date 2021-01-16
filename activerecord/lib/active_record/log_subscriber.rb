@@ -70,13 +70,12 @@ module ActiveRecord
           if attr.type.binary? && attr.value
             value = "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
           end
+          [attr.name, value]
         when Array
-          attr = attr.first
+          [attr.first&.name, value]
         else
-          attr = nil
+          value
         end
-
-        [attr&.name, value]
       end
 
       def colorize_payload_name(name, payload_name)

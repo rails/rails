@@ -238,74 +238,127 @@ module ActiveRecord
     end
 
     if ActiveRecord::Base.connection.prepared_statements
+      require "active_support/log_subscriber/test_helper"
+
       def test_select_all_insert_update_delete_with_legacy_binds
+        old_logger = ActiveRecord::Base.logger
+        logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+
+        ActiveRecord::Base.logger = logger
+
         binds = [[Event.column_for_attribute("id"), 1]]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
         assert_deprecated do
           id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
           assert_equal 1, id
+          # (0.1ms)  INSERT INTO events(id) VALUES (?)  [["id", 1]]
+          assert_match %r(  \[\["id", 1\]\]\z), logger.logged(:debug).last
         end
 
         assert_deprecated do
           updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
           assert_equal 1, updated
+          # (0.1ms)  UPDATE events SET title = 'foo' WHERE id = ?  [["id", 1]]
+          assert_match %r(  \[\["id", 1\]\]\z), logger.logged(:debug).last
         end
 
         assert_deprecated do
           result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
           assert_equal({ "id" => 1, "title" => "foo" }, result.first)
+          # (0.1ms)  SELECT * FROM events WHERE id = ?  [["id", 1]]
+          assert_match %r(  \[\["id", 1\]\]\z), logger.logged(:debug).last
         end
 
         assert_deprecated do
           deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
           assert_equal 1, deleted
+          # (0.1ms)  DELETE FROM events WHERE id = ?  [["id", 1]]
+          assert_match %r(  \[\["id", 1\]\]\z), logger.logged(:debug).last
         end
 
         assert_deprecated do
           result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
           assert_nil result.first
+          # (0.1ms)  SELECT * FROM events WHERE id = ?  [["id", 1]]
+          assert_match %r(  \[\["id", 1\]\]\z), logger.logged(:debug).last
         end
+      ensure
+        ActiveRecord::Base.logger = old_logger
       end
 
       def test_select_all_insert_update_delete_with_casted_binds
+        old_logger = ActiveRecord::Base.logger
+        logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+
+        ActiveRecord::Base.logger = logger
+
         binds = [Event.type_for_attribute("id").serialize(1)]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
         id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
         assert_equal 1, id
+        # (0.1ms)  INSERT INTO events(id) VALUES (?)  [1]
+        assert_match %r(  \[1\]\z), logger.logged(:debug).last
 
         updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal 1, updated
+        # (0.1ms)  UPDATE events SET title = 'foo' WHERE id = ?  [1]
+        assert_match %r(  \[1\]\z), logger.logged(:debug).last
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal({ "id" => 1, "title" => "foo" }, result.first)
+        # (0.1ms)  SELECT * FROM events WHERE id = ?  [1]
+        assert_match %r(  \[1\]\z), logger.logged(:debug).last
 
         deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal 1, deleted
+        # (0.1ms)  DELETE FROM events WHERE id = ?  [1]
+        assert_match %r(  \[1\]\z), logger.logged(:debug).last
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_nil result.first
+        # (0.1ms)  SELECT * FROM events WHERE id = ?  [1]
+        assert_match %r(  \[1\]\z), logger.logged(:debug).last
+      ensure
+        ActiveRecord::Base.logger = old_logger
       end
 
       def test_select_all_insert_update_delete_with_binds
+        old_logger = ActiveRecord::Base.logger
+        logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+
+        ActiveRecord::Base.logger = logger
+
         binds = [Relation::QueryAttribute.new("id", 1, Event.type_for_attribute("id"))]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
         id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
         assert_equal 1, id
+        # (0.1ms)  INSERT INTO events(id) VALUES (?)  [["id", 1]]
+        assert_match %r(  \[\["id", 1\]\]\z), logger.logged(:debug).last
 
         updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal 1, updated
+        # (0.1ms)  UPDATE events SET title = 'foo' WHERE id = ?  [["id", 1]]
+        assert_match %r(  \[\["id", 1\]\]\z), logger.logged(:debug).last
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal({ "id" => 1, "title" => "foo" }, result.first)
+        # (0.1ms)  SELECT * FROM events WHERE id = ?  [["id", 1]]
+        assert_match %r(  \[\["id", 1\]\]\z), logger.logged(:debug).last
 
         deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal 1, deleted
+        # (0.1ms)  DELETE FROM events WHERE id = ?  [["id", 1]]
+        assert_match %r(  \[\["id", 1\]\]\z), logger.logged(:debug).last
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_nil result.first
+        # (0.1ms)  SELECT * FROM events WHERE id = ?  [["id", 1]]
+        assert_match %r(  \[\["id", 1\]\]\z), logger.logged(:debug).last
+      ensure
+        ActiveRecord::Base.logger = old_logger
       end
     end
 
