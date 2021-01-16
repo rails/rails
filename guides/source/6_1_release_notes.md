@@ -185,7 +185,7 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 
 ### Removals
 
-*   Remove deprecated `ActionMailer::Base.receive` in favor of [Action Mailbox](https://github.com/rails/rails/tree/6-1-stable/actionmailbox).
+*   Remove deprecated `ActionMailer::Base.receive` in favor of [Action Mailbox](https://github.com/rails/rails/tree/main/actionmailbox).
 
 ### Deprecations
 
@@ -458,16 +458,16 @@ See the
 for the many people who spent many hours making Rails, the stable and robust
 framework it is. Kudos to all of them.
 
-[railties]:       https://github.com/rails/rails/blob/6-1-stable/railties/CHANGELOG.md
-[action-pack]:    https://github.com/rails/rails/blob/6-1-stable/actionpack/CHANGELOG.md
-[action-view]:    https://github.com/rails/rails/blob/6-1-stable/actionview/CHANGELOG.md
-[action-mailer]:  https://github.com/rails/rails/blob/6-1-stable/actionmailer/CHANGELOG.md
-[action-cable]:   https://github.com/rails/rails/blob/6-1-stable/actioncable/CHANGELOG.md
-[active-record]:  https://github.com/rails/rails/blob/6-1-stable/activerecord/CHANGELOG.md
-[active-storage]: https://github.com/rails/rails/blob/6-1-stable/activestorage/CHANGELOG.md
-[active-model]:   https://github.com/rails/rails/blob/6-1-stable/activemodel/CHANGELOG.md
-[active-support]: https://github.com/rails/rails/blob/6-1-stable/activesupport/CHANGELOG.md
-[active-job]:     https://github.com/rails/rails/blob/6-1-stable/activejob/CHANGELOG.md
-[action-text]:    https://github.com/rails/rails/blob/6-1-stable/actiontext/CHANGELOG.md
-[action-mailbox]: https://github.com/rails/rails/blob/6-1-stable/actionmailbox/CHANGELOG.md
-[guides]:         https://github.com/rails/rails/blob/6-1-stable/guides/CHANGELOG.md
+[railties]:       https://github.com/rails/rails/blob/main/railties/CHANGELOG.md
+[action-pack]:    https://github.com/rails/rails/blob/main/actionpack/CHANGELOG.md
+[action-view]:    https://github.com/rails/rails/blob/main/actionview/CHANGELOG.md
+[action-mailer]:  https://github.com/rails/rails/blob/main/actionmailer/CHANGELOG.md
+[action-cable]:   https://github.com/rails/rails/blob/main/actioncable/CHANGELOG.md
+[active-record]:  https://github.com/rails/rails/blob/main/activerecord/CHANGELOG.md
+[active-storage]: https://github.com/rails/rails/blob/main/activestorage/CHANGELOG.md
+[active-model]:   https://github.com/rails/rails/blob/main/activemodel/CHANGELOG.md
+[active-support]: https://github.com/rails/rails/blob/main/activesupport/CHANGELOG.md
+[active-job]:     https://github.com/rails/rails/blob/main/activejob/CHANGELOG.md
+[action-text]:    https://github.com/rails/rails/blob/main/actiontext/CHANGELOG.md
+[action-mailbox]: https://github.com/rails/rails/blob/main/actionmailbox/CHANGELOG.md
+[guides]:         https://github.com/rails/rails/blob/main/guides/CHANGELOG.md
