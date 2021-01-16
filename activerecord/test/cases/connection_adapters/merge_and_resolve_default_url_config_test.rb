@@ -127,7 +127,7 @@ module ActiveRecord
       end
 
       def test_adapter_with_url_config
-        config   = { "production" => { "adapter" => "sunstone", "url" => 'https://example.com/path' } }
+        config   = { "production" => { "adapter" => "sunstone", "url" => "https://example.com/path" } }
         actual   = resolve_config(config, "production")
         assert_equal config["production"].symbolize_keys, actual
 
