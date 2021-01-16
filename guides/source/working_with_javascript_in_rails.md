@@ -159,7 +159,7 @@ Because of Unobtrusive JavaScript, the Rails "Ajax helpers" are actually in two
 parts: the JavaScript half and the Ruby half.
 
 Unless you have disabled the Asset Pipeline,
-[rails-ujs](https://github.com/rails/rails/tree/master/actionview/app/assets/javascripts)
+[rails-ujs](https://github.com/rails/rails/tree/main/actionview/app/assets/javascripts)
 provides the JavaScript half, and the regular Ruby view helpers add appropriate
 tags to your DOM.
 
@@ -562,6 +562,6 @@ Other Resources
 
 Here are some helpful links to help you learn even more:
 
-* [rails-ujs wiki](https://github.com/rails/rails/tree/master/actionview/app/assets/javascripts)
+* [rails-ujs wiki](https://github.com/rails/rails/tree/main/actionview/app/assets/javascripts)
 * [Railscasts: Unobtrusive JavaScript](http://railscasts.com/episodes/205-unobtrusive-javascript)
 * [Railscasts: Turbolinks](http://railscasts.com/episodes/390-turbolinks)

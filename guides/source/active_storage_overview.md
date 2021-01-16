@@ -483,7 +483,7 @@ accessible by default. Anyone that knows the blob URL will be able to download i
 even if a `before_action` in your `ApplicationController` would otherwise
 require a login. If your files require a higher level of protection consider
 implementing your own authenticated
-[`ActiveStorage::Blobs::RedirectController`](https://github.com/rails/rails/blob/master/activestorage/app/controllers/active_storage/blobs/redirect_controller.rb) and [`ActiveStorage::Representations::RedirectController`](https://github.com/rails/rails/blob/master/activestorage/app/controllers/active_storage/representations/redirect_controller.rb).
+[`ActiveStorage::Blobs::RedirectController`](https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/redirect_controller.rb) and [`ActiveStorage::Representations::RedirectController`](https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/representations/redirect_controller.rb).
 
 To create a download link, use the `rails_blob_{path|url}` helper. Using this
 helper allows you to set the disposition.
@@ -1006,5 +1006,5 @@ Implementing Support for Other Cloud Services
 
 If you need to support a cloud service other than these, you will need to
 implement the Service. Each service extends
-[`ActiveStorage::Service`](https://github.com/rails/rails/blob/master/activestorage/lib/active_storage/service.rb)
+[`ActiveStorage::Service`](https://github.com/rails/rails/blob/main/activestorage/lib/active_storage/service.rb)
 by implementing the methods necessary to upload and download files to the cloud.
