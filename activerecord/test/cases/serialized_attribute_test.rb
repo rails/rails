@@ -392,6 +392,56 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal [topic], Topic.where(content: nil)
   end
 
+  class EncryptedType < ActiveRecord::Type::Text
+    include ActiveModel::Type::Helpers::Mutable
+
+    attr_reader :subtype, :encryptor
+
+    def initialize(subtype: ActiveModel::Type::String.new)
+      super()
+
+      @subtype   = subtype
+      @encryptor = ActiveSupport::MessageEncryptor.new("abcd" * 8)
+    end
+
+    def serialize(value)
+      subtype.serialize(value).yield_self do |cleartext|
+        encryptor.encrypt_and_sign(cleartext) unless cleartext.nil?
+      end
+    end
+
+    def deserialize(ciphertext)
+      encryptor.decrypt_and_verify(ciphertext)
+        .yield_self { |cleartext| subtype.deserialize(cleartext) } unless ciphertext.nil?
+    end
+
+    def changed_in_place?(old, new)
+      if old.nil?
+        !new.nil?
+      else
+        deserialize(old) != new
+      end
+    end
+  end
+
+  def test_decorated_type_with_type_for_attribute
+    old_registry = ActiveRecord::Type.registry
+    ActiveRecord::Type.registry = ActiveRecord::Type.registry.dup
+    ActiveRecord::Type.register :encrypted, EncryptedType
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      store :content
+      attribute :content, :encrypted, subtype: type_for_attribute(:content)
+    end
+
+    topic = klass.create!(content: { trial: true })
+
+    assert_equal({ "trial" => true }, topic.content)
+  ensure
+    ActiveRecord::Type.registry = old_registry
+  end
+
   def test_mutation_detection_does_not_double_serialize
     coder = Object.new
     def coder.dump(value)
