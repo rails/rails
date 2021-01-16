@@ -68,15 +68,6 @@ module ActiveRecord
       assert_equal "the overloaded default", klass.new.overloaded_string_with_limit
     end
 
-    test "attributes with overridden types keep their type when a default value is configured separately" do
-      child = Class.new(OverloadedType) do
-        attribute :overloaded_float, default: "123"
-      end
-
-      assert_equal OverloadedType.type_for_attribute("overloaded_float"), child.type_for_attribute("overloaded_float")
-      assert_equal 123, child.new.overloaded_float
-    end
-
     test "extra options are forwarded to the type caster constructor" do
       klass = Class.new(OverloadedType) do
         attribute :starts_at, :datetime, precision: 3, limit: 2, scale: 1, default: -> { Time.now.utc }
@@ -302,15 +293,6 @@ module ActiveRecord
       model = child.last
 
       assert_equal 123, model.non_existent_decimal
-    end
-
-    test "attributes not backed by database columns keep their type when a default value is configured separately" do
-      child = Class.new(OverloadedType) do
-        attribute :non_existent_decimal, default: "123"
-      end
-
-      assert_equal OverloadedType.type_for_attribute("non_existent_decimal"), child.type_for_attribute("non_existent_decimal")
-      assert_equal 123, child.new.non_existent_decimal
     end
 
     test "attributes not backed by database columns properly interact with mutation and dirty" do
