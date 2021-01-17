@@ -22,7 +22,12 @@ module ActiveSupport
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
-    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl, :coder, :skip_nil]
+    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :expire_in, :expired_in, :race_condition_ttl, :coder, :skip_nil]
+
+    # Mapping of canonical option names to aliases that a store will recognize.
+    OPTION_ALIASES = {
+      expires_in: [:expire_in, :expired_in]
+    }.freeze
 
     module Strategy
       autoload :LocalCache, "active_support/cache/strategy/local_cache"
@@ -186,7 +191,7 @@ module ActiveSupport
       # except for <tt>:namespace</tt> which can be used to set the global
       # namespace for the cache.
       def initialize(options = nil)
-        @options = options ? options.dup : {}
+        @options = options ? normalize_options(options) : {}
         @coder = @options.delete(:coder) { self.class::DEFAULT_CODER } || NullCoder
       end
 
@@ -249,7 +254,9 @@ module ActiveSupport
       # All caches support auto-expiring content after a specified number of
       # seconds. This value can be specified as an option to the constructor
       # (in which case all entries will be affected), or it can be supplied to
-      # the +fetch+ or +write+ method to effect just one entry.
+      # the +fetch+ or +write+ method to affect just one entry.
+      # <tt>:expire_in</tt> and <tt>:expired_in</tt> are aliases for
+      # <tt>:expires_in</tt>.
       #
       #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 5.minutes)
       #   cache.write(key, value, expires_in: 1.minute) # Set a lower value for one entry
@@ -634,6 +641,7 @@ module ActiveSupport
         # Merges the default options with ones specific to a method call.
         def merged_options(call_options)
           if call_options
+            call_options = normalize_options(call_options)
             if options.empty?
               call_options
             else
@@ -642,6 +650,17 @@ module ActiveSupport
           else
             options
           end
+        end
+
+        # Normalize aliased options to their canonical form
+        def normalize_options(options)
+          options = options.dup
+          OPTION_ALIASES.each do |canonical_name, aliases|
+            alias_key = aliases.detect { |key| options.key?(key) }
+            options[canonical_name] ||= options[alias_key] if alias_key
+            options.except!(*aliases)
+          end
+          options
         end
 
         # Expands and namespaces the cache key. May be overridden by

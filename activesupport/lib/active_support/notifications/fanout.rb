@@ -24,12 +24,15 @@ module ActiveSupport
       def subscribe(pattern = nil, callable = nil, monotonic: false, &block)
         subscriber = Subscribers.new(pattern, callable || block, monotonic)
         synchronize do
-          if String === pattern
+          case pattern
+          when String
             @string_subscribers[pattern] << subscriber
             @listeners_for.delete(pattern)
-          else
+          when NilClass, Regexp
             @other_subscribers << subscriber
             @listeners_for.clear
+          else
+            raise ArgumentError,  "pattern must be specified as a String, Regexp or empty"
           end
         end
         subscriber

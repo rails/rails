@@ -10,6 +10,7 @@ class RelationCacheTest < ActionView::TestCase
     view_paths     = ActionController::Base.view_paths
     lookup_context = ActionView::LookupContext.new(view_paths, {}, ["test"])
     @view_renderer = ActionView::Renderer.new(lookup_context)
+    @virtual_path  = "path"
     @current_template = lookup_context.find "test/hello_world"
 
     controller.cache_store = ActiveSupport::Cache::MemoryStore.new

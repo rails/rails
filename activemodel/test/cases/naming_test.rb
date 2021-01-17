@@ -158,6 +158,24 @@ class NamingWithSuppliedModelNameTest < ActiveModel::TestCase
   end
 end
 
+class NamingWithSuppliedLocaleTest < ActiveModel::TestCase
+  def setup
+    ActiveSupport::Inflector.inflections(:cs) do |inflect|
+      inflect.plural(/(e)l$/i, '\1lé')
+    end
+
+    @model_name = ActiveModel::Name.new(Blog::Post, nil, "Uzivatel", :cs)
+  end
+
+  def test_singular
+    assert_equal "uzivatel", @model_name.singular
+  end
+
+  def test_plural
+    assert_equal "uzivatelé", @model_name.plural
+  end
+end
+
 class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
   def setup
     @model_name = Blog::Post.model_name

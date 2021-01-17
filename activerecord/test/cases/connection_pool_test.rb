@@ -13,7 +13,7 @@ module ActiveRecord
 
         # Keep a duplicate pool so we do not bother others
         @db_config = ActiveRecord::Base.connection_pool.db_config
-        @pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", @db_config)
+        @pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, @db_config)
         @pool = ConnectionPool.new(@pool_config)
 
         if in_memory_db?
@@ -204,7 +204,7 @@ module ActiveRecord
         config = @db_config.configuration_hash.merge(idle_timeout: "0.02")
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
 
-        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config)
         @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
@@ -231,7 +231,7 @@ module ActiveRecord
 
         config = @db_config.configuration_hash.merge(idle_timeout: -5)
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
-        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config)
         @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
@@ -743,7 +743,7 @@ module ActiveRecord
         def with_single_connection_pool
           config = @db_config.configuration_hash.merge(pool: 1)
           db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", config)
-          pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+          pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config)
 
           yield(pool = ConnectionPool.new(pool_config))
         ensure

@@ -25,6 +25,8 @@ require "models/admin/user"
 require "models/ship"
 require "models/treasure"
 require "models/parrot"
+require "models/book"
+require "models/citation"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -42,6 +44,19 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_where_with_custom_primary_key
     assert_equal [authors(:david)], Author.where(owned_essay: essays(:david_modest_proposal))
+  end
+
+  def test_find_by_with_custom_primary_key
+    assert_equal authors(:david), Author.find_by(owned_essay: essays(:david_modest_proposal))
+  end
+
+  def test_where_on_polymorphic_association_with_nil
+    assert_equal comments(:greetings), Comment.where(author: nil).first
+    assert_equal comments(:greetings), Comment.where(author: [nil]).first
+  end
+
+  def test_where_on_polymorphic_association_with_empty_array
+    assert_empty Comment.where(author: [])
   end
 
   def test_assigning_belongs_to_on_destroyed_object
@@ -1172,6 +1187,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:another_firm), client.firm_with_condition
   end
 
+  def test_destroying_child_with_unloaded_parent_and_foreign_key_and_touch_is_possible_with_has_many_inversing
+    with_has_many_inversing do
+      book     = Book.create!
+      citation = book.citations.create!
+
+      assert_difference "Citation.count", -1 do
+        Citation.find(citation.id).destroy
+      end
+    end
+  end
+
   def test_polymorphic_reassignment_of_associated_id_updates_the_object
     sponsor = sponsors(:moustache_club_sponsor_for_groucho)
 
@@ -1352,6 +1378,21 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sponsor = Sponsor.create!(sponsorable: toy)
 
     assert_equal toy, sponsor.reload.sponsorable
+  end
+
+  class SponsorWithTouchInverse < Sponsor
+    belongs_to :sponsorable, polymorphic: true, inverse_of: :sponsors, touch: true
+  end
+
+  def test_destroying_polymorphic_child_with_unloaded_parent_and_touch_is_possible_with_has_many_inversing
+    with_has_many_inversing do
+      toy     = Toy.create!
+      sponsor = toy.sponsors.create!
+
+      assert_difference "Sponsor.count", -1 do
+        SponsorWithTouchInverse.find(sponsor.id).destroy
+      end
+    end
   end
 
   def test_polymorphic_with_false

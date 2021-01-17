@@ -238,6 +238,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{t\.float\s+"temperature"$}, output
   end
 
+  def test_schema_dump_aliased_types
+    output = standard_dump
+    assert_match %r{t\.binary\s+"blob_data"$}, output
+    assert_match %r{t\.decimal\s+"numeric_number"}, output
+  end
+
   if ActiveRecord::Base.connection.supports_expression_index?
     def test_schema_dump_expression_indices
       index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip

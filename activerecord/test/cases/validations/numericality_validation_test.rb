@@ -81,7 +81,18 @@ class NumericalityValidationTest < ActiveRecord::TestCase
     assert_predicate(subject, :valid?)
   end
 
-  def test_virtual_attribute_with_precision
+  def test_virtual_attribute_with_precision_round_down
+    model_class.attribute(:virtual_decimal_number, :decimal, precision: 5)
+    model_class.validates_numericality_of(
+      :virtual_decimal_number, equal_to: 123.45
+    )
+
+    subject = model_class.new(virtual_decimal_number: 123.454)
+
+    assert_predicate subject, :valid?
+  end
+
+  def test_virtual_attribute_with_precision_round_half_even
     model_class.attribute(:virtual_decimal_number, :decimal, precision: 5)
     model_class.validates_numericality_of(
       :virtual_decimal_number, equal_to: 123.45
@@ -89,7 +100,24 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     subject = model_class.new(virtual_decimal_number: 123.455)
 
-    assert_predicate subject, :valid?
+    if RUBY_VERSION > "3.0.0"
+      # BigDecimal's to_d behavior changed in BigDecimal 3.0.1, see https://github.com/ruby/bigdecimal/issues/70
+      # TOOD: replace this with a check against BigDecimal::VERSION
+      assert_not_predicate subject, :valid?
+    else
+      assert_predicate subject, :valid?
+    end
+  end
+
+  def test_virtual_attribute_with_precision_round_up
+    model_class.attribute(:virtual_decimal_number, :decimal, precision: 5)
+    model_class.validates_numericality_of(
+      :virtual_decimal_number, equal_to: 123.45
+    )
+
+    subject = model_class.new(virtual_decimal_number: 123.456)
+
+    assert_not_predicate subject, :valid?
   end
 
   def test_virtual_attribute_with_scale
@@ -101,6 +129,25 @@ class NumericalityValidationTest < ActiveRecord::TestCase
     subject = model_class.new(virtual_decimal_number: 1.001)
 
     assert_not_predicate subject, :valid?
+  end
+
+  def test_virtual_attribute_with_precision_and_scale
+    model_class.attribute(:virtual_decimal_number, :decimal, precision: 4, scale: 2)
+    model_class.validates_numericality_of(
+      :virtual_decimal_number, less_than_or_equal_to: 99.99
+    )
+
+    ["99.994", 99.994, BigDecimal("99.994")].each do |raw_value|
+      subject = model_class.new(virtual_decimal_number: raw_value)
+      assert_equal BigDecimal("99.99"), subject.virtual_decimal_number
+      assert_predicate subject, :valid?
+    end
+
+    ["99.999", 99.999, BigDecimal("99.999")].each do |raw_value|
+      subject = model_class.new(virtual_decimal_number: raw_value)
+      assert_equal BigDecimal("100.00"), subject.virtual_decimal_number
+      assert_not_predicate subject, :valid?
+    end
   end
 
   def test_aliased_attribute

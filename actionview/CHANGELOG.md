@@ -1,3 +1,39 @@
+*   Change `ActionView::Helpers::FormBuilder#button` to transform `formmethod`
+    attributes into `_method="$VERB"` Form Data to enable varied same-form actions:
+
+        <%= form_with model: post, method: :put do %>
+          <%= form.button "Update" %>
+          <%= form.button "Delete", formmethod: :delete %>
+        <% end %>
+        <%# => <form action="posts/1">
+            =>   <input type="hidden" name="_method" value="put">
+            =>   <button type="submit">Update</button>
+            =>   <button type="submit" formmethod="post" name="_method" value="delete">Delete</button>
+            => </form>
+        %>
+
+    *Sean Doyle*
+
+*   Change `ActionView::Helpers::UrlHelper#button_to` to *always* render a
+    `<button>` element, regardless of whether or not the content is passed as
+    the first argument or as a block.
+
+        <%= button_to "Delete", post_path(@post), method: :delete %>
+        <%# => <form action="/posts/1"><input type="hidden" name="_method" value="delete"><button type="submit">Delete</button></form>
+
+        <%= button_to post_path(@post), method: :delete do %>
+          Delete
+        <% end %>
+        <%# => <form action="/posts/1"><input type="hidden" name="_method" value="delete"><button type="submit">Delete</button></form>
+
+    *Sean Doyle*, *Dusan Orlovic*
+
+*   Add `config.action_view.preload_links_header` to allow disabling of
+    the `Link` header being added by default when using `stylesheet_link_tag`
+    and `javascript_include_tag`.
+
+    *Andrew White*
+
 *   The `translate` helper now resolves `default` values when a `nil` key is
     specified, instead of always returning `nil`.
 

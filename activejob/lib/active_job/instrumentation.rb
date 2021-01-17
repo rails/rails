@@ -18,11 +18,14 @@ module ActiveJob
     private
       def instrument(operation, payload = {}, &block)
         enhanced_block = ->(event_payload) do
-          block.call if block
+          value = block.call if block
+
           if defined?(@_halted_callback_hook_called) && @_halted_callback_hook_called
             event_payload[:aborted] = true
             @_halted_callback_hook_called = nil
           end
+
+          value
         end
 
         ActiveSupport::Notifications.instrument \

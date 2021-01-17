@@ -193,7 +193,7 @@ GEM
       rack-test (>= 0.6.3)
       regexp_parser (~> 1.5)
       xpath (~> 3.2)
-    childprocess (3.0.0)
+    childprocess (4.0.0)
     coffee-script (2.4.1)
       coffee-script-source
       execjs
@@ -321,7 +321,7 @@ GEM
     mini_magick (4.10.1)
     mini_mime (1.0.2)
     mini_portile2 (2.4.0)
-    minitest (5.14.2)
+    minitest (5.14.3)
     minitest-bisect (1.5.1)
       minitest-server (~> 1.0)
       path_expander (~> 1.1)
@@ -347,11 +347,6 @@ GEM
     nio4r (2.5.4)
     nio4r (2.5.4-java)
     nokogiri (1.10.10)
-      mini_portile2 (~> 2.4.0)
-    nokogiri (1.10.10-java)
-    nokogiri (1.10.10-x64-mingw32)
-      mini_portile2 (~> 2.4.0)
-    nokogiri (1.10.10-x86-mingw32)
       mini_portile2 (~> 2.4.0)
     os (1.1.1)
     parallel (1.19.2)
@@ -455,9 +450,10 @@ GEM
       tilt
     sdoc (2.0.3)
       rdoc (>= 5.0)
-    selenium-webdriver (3.142.7)
-      childprocess (>= 0.5, < 4.0)
+    selenium-webdriver (4.0.0.alpha7)
+      childprocess (>= 0.5, < 5.0)
       rubyzip (>= 1.2.2)
+      websocket (~> 1.0)
     semantic_range (2.3.0)
     sequel (5.38.0)
     serverengine (2.0.7)
@@ -551,6 +547,7 @@ PLATFORMS
   x64-mingw32
   x86-mingw32
   x86-mswin32
+  x86_64-darwin-19
 
 DEPENDENCIES
   activerecord-jdbcmysql-adapter (>= 1.3.0)
@@ -581,7 +578,7 @@ DEPENDENCIES
   minitest-reporters
   minitest-retry
   mysql2 (~> 0.5)!
-  nokogiri (>= 1.8.1)
+  nokogiri (>= 1.8.1, != 1.11.0)
   pg (~> 1.1)
   psych (~> 3.0)
   puma
@@ -605,7 +602,7 @@ DEPENDENCIES
   rubocop-rails
   sass-rails
   sdoc (>= 2.0.3)
-  selenium-webdriver (>= 3.141.592)
+  selenium-webdriver (>= 4.0.0.alpha7)
   sequel
   sidekiq
   sneakers
@@ -625,4 +622,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.1.4
+   2.2.3

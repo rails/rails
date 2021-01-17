@@ -84,7 +84,11 @@ module ActionText
     end
 
     def to_rendered_html_with_layout
-      render partial: "action_text/content/layout", formats: :html, locals: { content: self }
+      render layout: "action_text/contents/content", partial: to_partial_path, formats: :html, locals: { content: self }
+    end
+
+    def to_partial_path
+      "action_text/contents/content"
     end
 
     def to_s

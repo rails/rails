@@ -809,9 +809,9 @@ module ActiveRecord
       self.class.connection.clear_query_cache
 
       fresh_object = if self.class.default_scopes?(all_queries: true) && !(options && options[:unscoped])
-        find_record(options)
+        _find_record(options)
       else
-        self.class.unscoped { find_record(options) }
+        self.class.unscoped { _find_record(options) }
       end
 
       @attributes = fresh_object.instance_variable_get(:@attributes)
@@ -872,7 +872,7 @@ module ActiveRecord
     end
 
   private
-    def find_record(options)
+    def _find_record(options)
       if options && options[:lock]
         self.class.lock(options[:lock]).find(id)
       else

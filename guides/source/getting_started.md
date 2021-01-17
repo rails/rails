@@ -28,7 +28,7 @@ curve diving straight into Rails. There are several curated lists of online reso
 for learning Ruby:
 
 * [Official Ruby Programming Language website](https://www.ruby-lang.org/en/documentation/)
-* [List of Free Programming Books](https://github.com/EbookFoundation/free-programming-books/blob/master/free-programming-books.md#ruby)
+* [List of Free Programming Books](https://github.com/EbookFoundation/free-programming-books/blob/master/books/free-programming-books.md#ruby)
 
 Be aware that some resources, while still excellent, cover older versions of
 Ruby, and may not include some syntax that you will see in day-to-day
@@ -801,7 +801,7 @@ class ArticlesController < ApplicationController
     if @article.save
       redirect_to @article
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 end
@@ -814,7 +814,8 @@ will render `app/views/articles/new.html.erb`, which we will create next.
 The `create` action instantiates a new article with values for the title and
 body, and attempts to save it. If the article is saved successfully, the action
 redirects the browser to the article's page at `"http://localhost:3000/articles/#{@article.id}"`.
-Else, the action redisplays the form by rendering `app/views/articles/new.html.erb`.
+Else, the action redisplays the form by rendering `app/views/articles/new.html.erb`
+with a status code 4XX for the app to work fine with [Turbo](https://github.com/hotwired/turbo-rails).
 The title and body here are dummy values. After we create the form, we will come
 back and change these.
 
@@ -926,7 +927,7 @@ class ArticlesController < ApplicationController
     if @article.save
       redirect_to @article
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -1017,7 +1018,7 @@ To understand how all of this works together, let's take another look at the
     if @article.save
       redirect_to @article
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 ```
@@ -1030,8 +1031,8 @@ messages.
 When we submit the form, the `POST /articles` request is mapped to the `create`
 action. The `create` action *does* attempt to save `@article`. Therefore,
 validations *are* checked. If any validation fails, `@article` will not be
-saved, and `app/views/articles/new.html.erb` will be rendered with error
-messages.
+saved, `app/views/articles/new.html.erb` will be rendered with error
+messages with a status code 4XX for the app to work fine with [Turbo](https://github.com/hotwired/turbo-rails).
 
 TIP: To learn more about validations, see [Active Record Validations](
 active_record_validations.html). To learn more about validation error messages,
@@ -1090,7 +1091,7 @@ class ArticlesController < ApplicationController
     if @article.save
       redirect_to @article
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -1104,7 +1105,7 @@ class ArticlesController < ApplicationController
     if @article.update(article_params)
       redirect_to @article
     else
-      render :edit
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -1125,8 +1126,9 @@ action will render `app/views/articles/edit.html.erb`.
 The `update` action (re-)fetches the article from the database, and attempts
 to update it with the submitted form data filtered by `article_params`. If no
 validations fail and the update is successful, the action redirects the browser
-to the article's page. Else, the action redisplays the form, with error
-messages, by rendering `app/views/articles/edit.html.erb`.
+to the article's page. Else, the action redisplays the form with error
+messages, by rendering `app/views/articles/edit.html.erb` with a status code 4XX
+for the app to work fine with [Turbo](https://github.com/hotwired/turbo-rails).
 
 #### Using Partials to Share View Code
 
@@ -1240,7 +1242,7 @@ class ArticlesController < ApplicationController
     if @article.save
       redirect_to @article
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -1254,7 +1256,7 @@ class ArticlesController < ApplicationController
     if @article.update(article_params)
       redirect_to @article
     else
-      render :edit
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -1704,17 +1706,16 @@ the `app/views/comments` directory.
 The `@article` object is available to any partials rendered in the view because
 we defined it as an instance variable.
 
-
 ### Using Concerns
 
 Concerns are a way to make large controllers or models easier to understand and manage. This also has the advantage of reusability when multiple models (or controllers) share the same concerns. Concerns are implemented using modules that contain methods representing a well-defined slice of the functionality that a model or controller is responsible for. In other languages, modules are often known as mixins.
 
 You can use concerns in your controller or model the same way you would use any module. When you first created your app with `rails new blog`, two folders were created within `app/` along with the rest:
 
- ```
- app/controllers/concerns
- app/models/concerns
- ```
+```
+app/controllers/concerns
+app/models/concerns
+```
 
 A given blog article might have various statuses - for instance, it might be visible to everyone (i.e. `public`), or only visible to the author (i.e. `private`). It may also be hidden to all but still retrievable (i.e. `archived`). Comments may similarly be hidden or visible. This could be represented using a `status` column in each model.
 
@@ -1882,16 +1883,16 @@ active_record_migrations.html).
 We also have to permit the `:status` key as part of the strong parameter, in `app/controllers/articles_controller.rb`:
 
 ```ruby
-private
+  private
     def article_params
-      params.require(:comment).permit(:commenter, :body, :status)
+      params.require(:article).permit(:title, :body, :status)
     end
 ```
 
 and in `app/controllers/comments_controller.rb`:
 
 ```ruby
-private
+  private
     def comment_params
       params.require(:comment).permit(:commenter, :body, :status)
     end
@@ -1938,8 +1939,8 @@ So first, let's add the delete link in the
 
 <p>
   <%= link_to 'Destroy Comment', [comment.article, comment],
-               method: :delete,
-               data: { confirm: "Are you sure?" } %>
+              method: :delete,
+              data: { confirm: "Are you sure?" } %>
 </p>
 ```
 
@@ -1973,7 +1974,6 @@ end
 The `destroy` action will find the article we are looking at, locate the comment
 within the `@article.comments` collection, and then remove it from the
 database and send us back to the show action for the article.
-
 
 ### Deleting Associated Objects
 
@@ -2052,7 +2052,6 @@ authentication add-ons for Rails are the
 [Devise](https://github.com/plataformatec/devise) rails engine and
 the [Authlogic](https://github.com/binarylogic/authlogic) gem,
 along with a number of others.
-
 
 ### Other Security Considerations
 

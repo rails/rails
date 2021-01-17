@@ -86,6 +86,7 @@ ActiveRecord::Schema.define do
     t.string :name
     t.binary :data
     t.binary :short_data, limit: 2048
+    t.blob :blob_data
   end
 
   create_table :birds, force: true do |t|
@@ -264,6 +265,7 @@ ActiveRecord::Schema.define do
     t.string :system
     t.integer :developer, null: false
     t.integer :extendedWarranty, null: false
+    t.integer :timezone
   end
 
   create_table :computers_developers, id: false, force: true do |t|
@@ -406,6 +408,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :essays, force: true do |t|
+    t.string :type
     t.string :name
     t.string :writer_id
     t.string :writer_type
@@ -652,6 +655,7 @@ ActiveRecord::Schema.define do
     t.decimal :my_house_population, precision: 2, scale: 0
     t.decimal :decimal_number
     t.decimal :decimal_number_with_default, precision: 3, scale: 2, default: 2.78
+    t.numeric :numeric_number
     t.float   :temperature
     t.decimal :decimal_number_big_precision, precision: 20
     # Oracle/SQLServer supports precision up to 38

@@ -1,3 +1,46 @@
+*   Add `FinderMethods#sole` and `#find_sole_by` to find and assert the
+    presence of exactly one record.
+
+    Used when you need a single row, but also want to assert that there aren't
+    multiple rows matching the condition; especially for when database
+    constraints aren't enough or are impractical.
+
+    ```ruby
+    Product.where(["price = %?", price]).sole
+    # => ActiveRecord::RecordNotFound      (if no Product with given price)
+    # => #<Product ...>                    (if one Product with given price)
+    # => ActiveRecord::SoleRecordExceeded  (if more than one Product with given price)
+
+    user.api_keys.find_sole_by(key: key)
+    # as above
+    ```
+
+    *Asherah Connor*
+
+*   Makes `ActiveRecord::AttributeMethods::Query` respect the getter overrides defined in the model.
+
+    Before:
+
+    ```ruby
+    class User
+      def admin
+        false # Overriding the getter to always return false
+      end
+    end
+
+    user = User.first
+    user.update(admin: true)
+
+    user.admin # false (as expected, due to the getter overwrite)
+    user.admin? # true (not expected, returned the DB column value)
+    ```
+
+    After this commit, `user.admin?` above returns false, as expected.
+
+    Fixes #40771.
+
+    *Felipe*
+
 *   Allow delegated_type to be specified primary_key and foreign_key.
 
     Since delegated_type assumes that the foreign_key ends with `_id`,

@@ -354,30 +354,7 @@ db_namespace = namespace :db do
 
   desc "Runs setup if database does not exist, or runs migrations if it does"
   task prepare: :load_config do
-    seed = false
-
-    ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-      ActiveRecord::Base.establish_connection(db_config)
-
-      # Skipped when no database
-      ActiveRecord::Tasks::DatabaseTasks.migrate
-      if ActiveRecord::Base.dump_schema_after_migration
-        ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, ActiveRecord::Base.schema_format)
-      end
-
-    rescue ActiveRecord::NoDatabaseError
-      ActiveRecord::Tasks::DatabaseTasks.create_current(db_config.env_name, db_config.name)
-      ActiveRecord::Tasks::DatabaseTasks.load_schema(
-        db_config,
-        ActiveRecord::Base.schema_format,
-        nil
-      )
-
-      seed = true
-    end
-
-    ActiveRecord::Base.establish_connection
-    ActiveRecord::Tasks::DatabaseTasks.load_seed if seed
+    ActiveRecord::Tasks::DatabaseTasks.prepare_all
   end
 
   desc "Loads the seed data from db/seeds.rb"

@@ -123,7 +123,7 @@ module ActiveRecord
           env_name = options[:env] || env
           name = options[:spec] || "primary"
 
-          @current_config ||= ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)&.configuration_hash
+          @current_config ||= configs_for(env_name: env_name, name: name)&.configuration_hash
         end
       end
       deprecate :current_config
@@ -176,7 +176,7 @@ module ActiveRecord
       end
 
       def raise_for_multi_db(environment = env, command:)
-        db_configs = ActiveRecord::Base.configurations.configs_for(env_name: environment)
+        db_configs = configs_for(env_name: environment)
 
         if db_configs.count > 1
           dbs_list = []
@@ -192,6 +192,39 @@ module ActiveRecord
       def create_current(environment = env, name = nil)
         each_current_configuration(environment, name) { |db_config| create(db_config) }
         ActiveRecord::Base.establish_connection(environment.to_sym)
+      end
+
+      def prepare_all
+        seed = false
+
+        configs_for(env_name: env).each do |db_config|
+          ActiveRecord::Base.establish_connection(db_config)
+
+          # Skipped when no database
+          migrate
+
+          if ActiveRecord::Base.dump_schema_after_migration
+            dump_schema(db_config, ActiveRecord::Base.schema_format)
+          end
+        rescue ActiveRecord::NoDatabaseError
+          config_name = db_config.name
+          create_current(db_config.env_name, config_name)
+
+          if File.exist?(dump_filename(config_name))
+            load_schema(
+              db_config,
+              ActiveRecord::Base.schema_format,
+              nil
+            )
+          else
+            migrate
+          end
+
+          seed = true
+        end
+
+        ActiveRecord::Base.establish_connection
+        load_seed if seed
       end
 
       def drop(configuration, *arguments)
@@ -223,7 +256,7 @@ module ActiveRecord
       private :truncate_tables
 
       def truncate_all(environment = env)
-        ActiveRecord::Base.configurations.configs_for(env_name: environment).each do |db_config|
+        configs_for(env_name: environment).each do |db_config|
           truncate_tables(db_config)
         end
       end
@@ -269,7 +302,7 @@ module ActiveRecord
       end
 
       def charset_current(env_name = env, db_name = name)
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: db_name)
+        db_config = configs_for(env_name: env_name, name: db_name)
         charset(db_config)
       end
 
@@ -279,7 +312,7 @@ module ActiveRecord
       end
 
       def collation_current(env_name = env, db_name = name)
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: db_name)
+        db_config = configs_for(env_name: env_name, name: db_name)
         collation(db_config)
       end
 
@@ -380,6 +413,7 @@ module ActiveRecord
         filename = dump_filename(db_config.name, format)
         connection = ActiveRecord::Base.connection
 
+        FileUtils.mkdir_p(db_dir)
         case format
         when :ruby
           File.open(filename, "w:utf-8") do |file|
@@ -399,6 +433,7 @@ module ActiveRecord
       def schema_file(format = ActiveRecord::Base.schema_format)
         File.join(db_dir, schema_file_type(format))
       end
+      deprecate :schema_file
 
       def schema_file_type(format = ActiveRecord::Base.schema_format)
         case format
@@ -467,6 +502,10 @@ module ActiveRecord
       end
 
       private
+        def configs_for(**options)
+          Base.configurations.configs_for(**options)
+        end
+
         def resolve_configuration(configuration)
           Base.configurations.resolve(configuration)
         end
@@ -499,7 +538,7 @@ module ActiveRecord
           environments << "test" if environment == "development" && !ENV["SKIP_TEST_DATABASE"] && !ENV["DATABASE_URL"]
 
           environments.each do |env|
-            ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|
+            configs_for(env_name: env).each do |db_config|
               next if name && name != db_config.name
 
               yield db_config
@@ -508,7 +547,7 @@ module ActiveRecord
         end
 
         def each_local_configuration
-          ActiveRecord::Base.configurations.configs_for.each do |db_config|
+          configs_for.each do |db_config|
             next unless db_config.database
 
             if local_database?(db_config)

@@ -83,7 +83,7 @@ NOTE: The `Rails.application.routes.draw do ... end` block that wraps your route
 Resource Routing: the Rails Default
 -----------------------------------
 
-Resource routing allows you to quickly declare all of the common routes for a given resourceful controller. A single call to [`resources`][] can declare all of the necessary routes for your `index`, `show`, `new`, `edit`, `create`, `update` and `destroy` actions.
+Resource routing allows you to quickly declare all of the common routes for a given resourceful controller. A single call to [`resources`][] can declare all of the necessary routes for your `index`, `show`, `new`, `edit`, `create`, `update`, and `destroy` actions.
 
 [`resources`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-resources
 
@@ -250,7 +250,7 @@ This can also be done for a single route:
 resources :articles, path: '/admin/articles'
 ```
 
-In each of these cases, the named routes remain the same as if you did not use `scope`. In the last case, the following paths map to `ArticlesController`:
+In both of these cases, the named route helpers remain the same as if you did not use `scope`. In the last case, the following paths map to `ArticlesController`:
 
 | HTTP Verb | Path                     | Controller#Action    | Named Route Helper     |
 | --------- | ------------------------ | -------------------- | ---------------------- |
@@ -262,7 +262,7 @@ In each of these cases, the named routes remain the same as if you did not use `
 | PATCH/PUT | /admin/articles/:id      | articles#update      | article_path(:id)      |
 | DELETE    | /admin/articles/:id      | articles#destroy     | article_path(:id)      |
 
-TIP: _If you need to use a different controller namespace inside a `namespace` block you can specify an absolute controller path, e.g: `get '/foo', to: '/foo#index'`._
+TIP: If you need to use a different controller namespace inside a `namespace` block you can specify an absolute controller path, e.g: `get '/foo', to: '/foo#index'`.
 
 [`namespace`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Scoping.html#method-i-namespace
 [`scope`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Scoping.html#method-i-scope
@@ -323,7 +323,7 @@ Deeply-nested resources quickly become cumbersome. In this case, for example, th
 
 The corresponding route helper would be `publisher_magazine_photo_url`, requiring you to specify objects at all three levels. Indeed, this situation is confusing enough that a popular [article](http://weblog.jamisbuck.org/2007/2/5/nesting-resources) by Jamis Buck proposes a rule of thumb for good Rails design:
 
-TIP: _Resources should never be nested more than 1 level deep._
+TIP: Resources should never be nested more than 1 level deep.
 
 #### Shallow Nesting
 
@@ -778,9 +778,9 @@ Both the `matches?` method and the lambda gets the `request` object as an argume
 
 #### Constraints in a block form
 
-You can specify constraints in a block form. This is useful for when you need to apply the same rule to several routes. For example
+You can specify constraints in a block form. This is useful for when you need to apply the same rule to several routes. For example:
 
-```
+```ruby
 class RestrictedListConstraint
   # ...Same as the example above
 end
@@ -793,9 +793,9 @@ Rails.application.routes.draw do
 end
 ```
 
-You also use a `lambda`:
+You can also use a `lambda`:
 
-```
+```ruby
 Rails.application.routes.draw do
   constraints(lambda { |request| RestrictedList.retrieve_ips.include?(request.remote_ip) }) do
     get '*path', to: 'restricted_list#index',
@@ -803,7 +803,6 @@ Rails.application.routes.draw do
   end
 end
 ```
-
 
 ### Route Globbing and Wildcard Segments
 
@@ -845,7 +844,7 @@ get '*pages', to: 'pages#show', format: true
 
 ### Redirection
 
-You can redirect any path to another path using the [`redirect`][] helper in your router:
+You can redirect any path to another path by using the [`redirect`][] helper in your router:
 
 ```ruby
 get '/stories', to: redirect('/articles')
@@ -857,7 +856,7 @@ You can also reuse dynamic segments from the match in the path to redirect to:
 get '/stories/:name', to: redirect('/articles/%{name}')
 ```
 
-You can also provide a block to redirect, which receives the symbolized path parameters and the request object:
+You can also provide a block to `redirect`, which receives the symbolized path parameters and the request object:
 
 ```ruby
 get '/stories/:name', to: redirect { |path_params, req| "/articles/#{path_params[:name].pluralize}" }
@@ -967,13 +966,13 @@ end
 
 The [`resolve`][] method allows customizing polymorphic mapping of models. For example:
 
-``` ruby
+```ruby
 resource :basket
 
 resolve("Basket") { [:basket] }
 ```
 
-``` erb
+```erb
 <%= form_with model: @basket do |form| %>
   <!-- basket form -->
 <% end %>
@@ -1083,7 +1082,7 @@ This would cause the routing to recognize paths such as:
 
 NOTE: The actual action names aren't changed by this option. The two paths shown would still route to the `new` and `edit` actions.
 
-TIP: If you find yourself wanting to change this option uniformly for all of your routes, you can use a scope.
+TIP: If you find yourself wanting to change this option uniformly for all of your routes, you can use a scope, like below:
 
 ```ruby
 scope path_names: { new: 'make' } do
@@ -1173,7 +1172,7 @@ Rails now creates routes to the `CategoriesController`.
 
 ### Overriding the Singular Form
 
-If you want to define the singular form of a resource, you should add additional rules to the `Inflector` via [`inflections`][]:
+If you want to override the singular form of a resource, you should add additional rules to the inflector via [`inflections`][]:
 
 ```ruby
 ActiveSupport::Inflector.inflections do |inflect|
@@ -1226,7 +1225,9 @@ class Video < ApplicationRecord
     identifier
   end
 end
+```
 
+```ruby
 video = Video.find_by(identifier: "Roman-Holiday")
 edit_video_path(video) # => "/videos/Roman-Holiday/edit"
 ```
@@ -1247,7 +1248,9 @@ Rails.application.routes.draw do
 
   draw(:admin) # Will load another route file located in `config/routes/admin.rb`
 end
+```
 
+```ruby
 # config/routes/admin.rb
 
 namespace :admin do
@@ -1265,9 +1268,9 @@ You can use the normal routing DSL inside the `admin.rb` routing file, **however
 
 ### When to use and not use this feature
 
-Drawing routes from external files can be very useful to organise a large set of routes into multiple organised ones. You could have a `admin.rb` route that contains all the routes for the admin area, another `api.rb` file to route API related resources etc...
+Drawing routes from external files can be very useful to organise a large set of routes into multiple organised ones. You could have a `admin.rb` route that contains all the routes for the admin area, another `api.rb` file to route API related resources, etc...
 
-However, you shouldn't abuse this feature as having too many route files make discoverability and understandability more difficult. Depending on the application, it might be easier for developers to have a single routing file even if you have few hundreds routes. You shouldn't try to create a new routing file for each category (admin, api ...) at all cost; the Rails routing DSL already offers a way to break routes in a organised manner with `namespaces` and `scopes`.
+However, you shouldn't abuse this feature as having too many route files make discoverability and understandability more difficult. Depending on the application, it might be easier for developers to have a single routing file even if you have few hundreds routes. You shouldn't try to create a new routing file for each category (e.g. admin, api, ...) at all cost; the Rails routing DSL already offers a way to break routes in a organised manner with `namespaces` and `scopes`.
 
 
 Inspecting and Testing Routes
@@ -1277,7 +1280,7 @@ Rails offers facilities for inspecting and testing your routes.
 
 ### Listing Existing Routes
 
-To get a complete list of the available routes in your application, visit `http://localhost:3000/rails/info/routes` in your browser while your server is running in the **development** environment. You can also execute the `bin/rails routes` command in your terminal to produce the same output.
+To get a complete list of the available routes in your application, visit <http://localhost:3000/rails/info/routes> in your browser while your server is running in the **development** environment. You can also execute the `bin/rails routes` command in your terminal to produce the same output.
 
 Both methods will list all of your routes, in the same order that they appear in `config/routes.rb`. For each route, you'll see:
 

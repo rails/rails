@@ -575,18 +575,27 @@ Here are a few things you should know to make efficient use of Active Record ass
 All of the association methods are built around caching, which keeps the result of the most recent query available for further operations. The cache is even shared across methods. For example:
 
 ```ruby
-author.books.load            # retrieves books from the database
-author.books.size            # uses the cached copy of books
-author.books.empty?          # uses the cached copy of books
+# retrieves books from the database
+author.books.load
+
+# uses the cached copy of books
+author.books.size
+
+# uses the cached copy of books
+author.books.empty?
 ```
 
 But what if you want to reload the cache, because data might have been changed by some other part of the application? Just call `reload` on the association:
 
 ```ruby
-author.books.load            # retrieves books from the database
-author.books.size            # uses the cached copy of books
-author.books.reload.empty?   # discards the cached copy of books
-                             # and goes back to the database
+# retrieves books from the database
+author.books.load
+
+# uses the cached copy of books
+author.books.size
+
+# discards the cached copy of books and goes back to the database
+author.books.reload.empty?
 ```
 
 ### Avoiding Name Collisions
@@ -828,7 +837,6 @@ In database terms, the `belongs_to` association says that this model's table con
 This can be used to set up one-to-one or one-to-many relations, depending on the setup.
 If the table of the other class contains the reference in a one-to-one relation, then you should use `has_one` instead.
 
-
 #### Methods Added by `belongs_to`
 
 When you declare a `belongs_to` association, the declaring class automatically gains 6 methods related to the association:
@@ -889,7 +897,7 @@ The `build_association` method returns a new object of the associated type. This
 
 ```ruby
 @author = @book.build_author(author_number: 123,
-                                  author_name: "John Doe")
+                             author_name: "John Doe")
 ```
 
 ##### `create_association(attributes = {})`
@@ -898,13 +906,12 @@ The `create_association` method returns a new object of the associated type. Thi
 
 ```ruby
 @author = @book.create_author(author_number: 123,
-                                   author_name: "John Doe")
+                              author_name: "John Doe")
 ```
 
 ##### `create_association!(attributes = {})`
 
 Does the same as `create_association` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
-
 
 #### Options for `belongs_to`
 
@@ -953,6 +960,7 @@ The `:counter_cache` option can be used to make finding the number of belonging 
 class Book < ApplicationRecord
   belongs_to :author
 end
+
 class Author < ApplicationRecord
   has_many :books
 end
@@ -964,6 +972,7 @@ With these declarations, asking for the value of `@author.books.size` requires m
 class Book < ApplicationRecord
   belongs_to :author, counter_cache: true
 end
+
 class Author < ApplicationRecord
   has_many :books
 end
@@ -984,6 +993,7 @@ the `counter_cache` declaration instead of `true`. For example, to use
 class Book < ApplicationRecord
   belongs_to :author, counter_cache: :count_of_books
 end
+
 class Author < ApplicationRecord
   has_many :books
 end
@@ -1011,7 +1021,7 @@ By convention, Rails assumes that the column used to hold the foreign key on thi
 ```ruby
 class Book < ApplicationRecord
   belongs_to :author, class_name: "Patron",
-                        foreign_key: "patron_id"
+                      foreign_key: "patron_id"
 end
 ```
 
@@ -1512,7 +1522,7 @@ When you declare a `has_many` association, the declaring class automatically gai
 * [`collection.find(...)`][`collection.find`]
 * [`collection.where(...)`][`collection.where`]
 * [`collection.exists?(...)`][`collection.exists?`]
-* [`collection.build(attributes = {}, ...)`][`collection.build`]
+* [`collection.build(attributes = {})`][`collection.build`]
 * [`collection.create(attributes = {})`][`collection.create`]
 * [`collection.create!(attributes = {})`][`collection.create!`]
 * [`collection.reload`][]
@@ -1665,13 +1675,13 @@ The [`collection.where`][] method finds objects within the collection based on t
 The [`collection.exists?`][] method checks whether an object meeting the supplied
 conditions exists in the collection's table.
 
-##### `collection.build(attributes = {}, ...)`
+##### `collection.build(attributes = {})`
 
 The [`collection.build`][] method returns a single or array of new objects of the associated type. The object(s) will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will _not_ yet be saved.
 
 ```ruby
 @book = @author.books.build(published_at: Time.now,
-                                book_number: "A12345")
+                            book_number: "A12345")
 
 @books = @author.books.build([
   { published_at: Time.now, book_number: "A12346" },
@@ -1685,7 +1695,7 @@ The [`collection.create`][] method returns a single or array of new objects of t
 
 ```ruby
 @book = @author.books.create(published_at: Time.now,
-                                 book_number: "A12345")
+                             book_number: "A12345")
 
 @books = @author.books.create([
   { published_at: Time.now, book_number: "A12346" },
@@ -1808,7 +1818,6 @@ end
 Now if we execute `@todo = @user.todos.create` then the `@todo`
 record's `user_id` value will be the `guid` value of `@user`.
 
-
 ##### `:source`
 
 The `:source` option specifies the source association name for a `has_many :through` association. You only need to use this option if the name of the source association cannot be automatically inferred from the association name.
@@ -1878,7 +1887,7 @@ You can also set conditions via a hash:
 ```ruby
 class Author < ApplicationRecord
   has_many :confirmed_books, -> { where confirmed: true },
-                              class_name: "Book"
+    class_name: "Book"
 end
 ```
 
@@ -2068,7 +2077,7 @@ The `has_and_belongs_to_many` association creates a many-to-many relationship wi
 
 #### Methods Added by `has_and_belongs_to_many`
 
-When you declare a `has_and_belongs_to_many` association, the declaring class automatically gains 17 methods related to the association:
+When you declare a `has_and_belongs_to_many` association, the declaring class automatically gains several methods related to the association:
 
 * `collection`
 * [`collection<<(object, ...)`][`collection<<`]
@@ -2123,7 +2132,6 @@ assemblies.reload
 If the join table for a `has_and_belongs_to_many` association has additional columns beyond the two foreign keys, these columns will be added as attributes to records retrieved via that association. Records returned with additional attributes will always be read-only, because Rails cannot save changes to those attributes.
 
 WARNING: The use of extra attributes on the join table in a `has_and_belongs_to_many` association is deprecated. If you require this sort of complex behavior on the table that joins two models in a many-to-many relationship, you should use a `has_many :through` association instead of `has_and_belongs_to_many`.
-
 
 ##### `collection`
 
@@ -2183,7 +2191,7 @@ The [`collection.clear`][] method removes every object from the collection by de
 
 The [`collection.empty?`][] method returns `true` if the collection does not contain any associated objects.
 
-```ruby
+```html+erb
 <% if @part.assemblies.empty? %>
   This part is not used in any assemblies
 <% end %>
@@ -2445,7 +2453,7 @@ class Author < ApplicationRecord
   has_many :books, before_add: :check_credit_limit
 
   def check_credit_limit(book)
-    ...
+    # ...
   end
 end
 ```
@@ -2460,11 +2468,11 @@ class Author < ApplicationRecord
     before_add: [:check_credit_limit, :calculate_shipping_charges]
 
   def check_credit_limit(book)
-    ...
+    # ...
   end
 
   def calculate_shipping_charges(book)
-    ...
+    # ...
   end
 end
 ```

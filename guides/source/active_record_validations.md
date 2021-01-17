@@ -67,7 +67,7 @@ controller-level validations. Here's a summary of the pros and cons:
 * Controller-level validations can be tempting to use, but often become
   unwieldy and difficult to test and maintain. Whenever possible, it's a good
   idea to keep your controllers skinny, as it will make your application a
-  pleasure to work within the long run.
+  pleasure to work with in the long run.
 
 Choose these in certain, specific cases. It's the opinion of the Rails team
 that model-level validations are the most appropriate in most circumstances.
@@ -467,7 +467,7 @@ The possible length constraint options are:
 * `:is` - The attribute length must be equal to the given value.
 
 The default error messages depend on the type of length validation being
-performed. You can personalize these messages using the `:wrong_length`,
+performed. You can customize these messages using the `:wrong_length`,
 `:too_long`, and `:too_short` options and `%{count}` as a placeholder for the
 number corresponding to the length constraint being used. You can still use the
 `:message` option to specify an error message.
@@ -481,9 +481,9 @@ end
 
 Note that the default error messages are plural (e.g., "is too short (minimum
 is %{count} characters)"). For this reason, when `:minimum` is 1 you should
-provide a personalized message or use `presence: true` instead. When
+provide a custom message or use `presence: true` instead. When
 `:in` or `:within` have a lower limit of 1, you should either provide a
-personalized message or call `presence` prior to `length`.
+custom message or call `presence` prior to `length`.
 
 ### `numericality`
 
@@ -528,6 +528,8 @@ constraints to acceptable values:
   less than or equal to %{count}"_.
 * `:other_than` - Specifies the value must be other than the supplied value.
   The default error message for this option is _"must be other than %{count}"_.
+* `:in` - Specifies the value must be in the supplied range.
+  The default error message for this option is _"must be in %{count}"_.
 * `:odd` - Specifies the value must be an odd number if set to true. The
   default error message for this option is _"must be odd"_.
 * `:even` - Specifies the value must be an even number if set to true. The
@@ -654,6 +656,7 @@ class Holiday < ApplicationRecord
     message: "should happen once per year" }
 end
 ```
+
 Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](https://dev.mysql.com/doc/refman/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](https://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
@@ -1177,7 +1180,7 @@ class Person < ApplicationRecord
 end
 ```
 
-```irb>
+```irb
 irb> person = Person.new(name: "John Doe")
 irb> person.valid?
 => true
@@ -1357,7 +1360,7 @@ it generates that displays the full list of errors on that model.
 Assuming we have a model that's been saved in an instance variable named
 `@article`, it looks like this:
 
-```ruby
+```html+erb
 <% if @article.errors.any? %>
   <div id="error_explanation">
     <h2><%= pluralize(@article.errors.count, "error") %> prohibited this article from being saved:</h2>

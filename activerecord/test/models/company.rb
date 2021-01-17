@@ -13,6 +13,8 @@ class Company < AbstractCompany
   has_one :dummy_account, foreign_key: "firm_id", class_name: "Account"
   has_many :contracts
   has_many :developers, through: :contracts
+  has_many :special_contracts, -> { includes(:special_developer).where.not("developers.id": nil) }
+  has_many :special_developers, through: :special_contracts
 
   alias_attribute :new_name, :name
   attribute :metadata, :json

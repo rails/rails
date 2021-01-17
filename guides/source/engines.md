@@ -14,7 +14,7 @@ After reading this guide, you will know:
 * How to build features for the engine.
 * How to hook the engine into an application.
 * How to override engine functionality in the application.
-* Avoid loading Rails frameworks with Load and Configuration Hooks
+* How to avoid loading Rails frameworks with Load and Configuration Hooks.
 
 --------------------------------------------------------------------------------
 
@@ -244,13 +244,13 @@ not your engine's application controller. Ruby is able to resolve the `Applicati
 The best way to prevent this from happening is to use `require_dependency` to ensure that the engine's application
 controller is loaded. For example:
 
-``` ruby
+```ruby
 # app/controllers/blorgh/articles_controller.rb:
 require_dependency "blorgh/application_controller"
 
 module Blorgh
   class ArticlesController < ApplicationController
-    ...
+    # ...
   end
 end
 ```
@@ -405,7 +405,7 @@ class is defined within the `Blorgh` module:
 ```ruby
 module Blorgh
   class ArticlesController < ApplicationController
-    ...
+    # ...
   end
 end
 ```
@@ -418,7 +418,7 @@ The helper inside `app/helpers/blorgh/articles_helper.rb` is also namespaced:
 ```ruby
 module Blorgh
   module ArticlesHelper
-    ...
+    # ...
   end
 end
 ```
@@ -1042,7 +1042,7 @@ module Blorgh
 
     def test_index
       get foos_url
-      ...
+      # ...
     end
   end
 end
@@ -1064,7 +1064,7 @@ module Blorgh
 
     def test_index
       get foos_url
-      ...
+      # ...
     end
   end
 end
@@ -1095,7 +1095,7 @@ In `zeitwerk` mode you'd do this:
 # config/application.rb
 module MyApp
   class Application < Rails::Application
-    ...
+    # ...
 
     overrides = "#{Rails.root}/app/overrides"
     Rails.autoloaders.main.ignore(overrides)
@@ -1114,7 +1114,7 @@ and in `classic` mode this:
 # config/application.rb
 module MyApp
   class Application < Rails::Application
-    ...
+    # ...
 
     config.to_prepare do
       Dir.glob("#{Rails.root}/app/overrides/**/*_override.rb").each do |override|
@@ -1341,13 +1341,13 @@ Pipeline require statements in processed files:
 ```css
 /*
  *= require blorgh/style
-*/
+ */
 ```
 
 INFO. Remember that in order to use languages like Sass or CoffeeScript, you
 should add the relevant library to your engine's `.gemspec`.
 
-### Separate Assets & Precompiling
+### Separate Assets and Precompiling
 
 There are some situations where your engine's assets are not required by the
 host application. For example, say that you've created an admin functionality

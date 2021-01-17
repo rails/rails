@@ -10,7 +10,7 @@ After reading this guide, you will know:
 
 * How to configure Action Text.
 * How to handle rich text content.
-* How to style rich text content.
+* How to style rich text content and attachments.
 
 --------------------------------------------------------------------------------
 
@@ -70,9 +70,9 @@ After the installation is complete, a Rails app using Webpacker should have the 
     @import "./actiontext.scss";
     ```
 
-## Examples
+## Creating Rich Text content
 
-Adding a rich text field to an existing model:
+Add a rich text field to an existing model:
 
 ```ruby
 # app/models/message.rb
@@ -81,7 +81,7 @@ class Message < ApplicationRecord
 end
 ```
 
-Note that you don't need to add a `content` field to your `messages` table.
+**Note:** you don't need to add a `content` field to your `messages` table.
 
 Then refer to this field in the form for the model:
 
@@ -112,25 +112,120 @@ class MessagesController < ApplicationController
 end
 ```
 
+## Rendering Rich Text content
+
+Action Text will sanitize and render rich content on your behalf.
+
+By default, the Action Text editor and content is styled by the Trix defaults.
+
+If you want to change these defaults, remove the `// require "actiontext.scss"`
+line from your `application.scss` to omit the [contents of that
+file](https://raw.githubusercontent.com/basecamp/trix/master/dist/trix.css).
+
+By default, Action Text will render rich text content into an element that
+declares the `.trix-content` class:
+
+```html+erb
+<%# app/views/layouts/action_text/contents/_content.html.erb %>
+<div class="trix-content">
+  <%= yield %>
+</div>
+```
+
+If you'd like to change the rich text's surrounding HTML with your own layout,
+declare your own `app/views/layouts/action_text/contents/_content.html.erb`
+template and call `yield` in place of the content.
+
+You can also style the HTML used for embedded images and other attachments
+(known as blobs). On installation, Action Text will copy over a partial to
+`app/views/active_storage/blobs/_blob.html.erb`, which you can specialize.
+
+### Rendering attachments
+
+In addition to attachments uploaded through Active Storage, Action Text can
+embed anything that can be resolved by a [Signed
+GlobalID](https://github.com/rails/globalid#signed-global-ids).
+
+Action Text renders embedded `<action-text-attachment>` elements by resolving
+their `sgid` attribute into an instance. Once resolved, that instance is passed
+along to
+[`render`](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/RenderingHelper.html#method-i-render).
+The resulting HTML is embedded as a descendant of the `<action-text-attachment>`
+element.
+
+For example, consider a `User` model:
+
+```ruby
+# app/models/user.rb
+class User < ApplicationRecord
+  has_one_attached :avatar
+end
+
+user = User.find(1)
+user.to_global_id.to_s #=> gid://MyRailsApp/User/1
+user.to_signed_global_id.to_s #=> BAh7CEkiCG…
+```
+
+Next, consider some rich text content that embeds an `<action-text-attachment>`
+element that references the `User` instance's signed GlobalID:
+
+```html
+<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"></action-text-content>.</p>
+```
+
+Action Text resolves uses the "BAh7CEkiCG…" String to resolve the `User`
+instance. Next, consider the application's `users/user` partial:
+
+```html+erb
+<%# app/views/users/_user.html.erb %>
+<span><%= image_tag user.avatar %> <%= user.name %></span>
+```
+
+The resulting HTML rendered by Action Text would look something like:
+
+```html
+<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"><span><img src="..."> Jane Doe</span></action-text-content>.</p>
+```
+
+To render a different partial, define `User#to_attachable_partial_path`:
+
+```ruby
+class User < ApplicationRecord
+  def to_attachable_partial_path
+    "users/attachable"
+  end
+end
+```
+
+Then declare that partial. The `User` instance will be available as the `user`
+partial-local variable:
+
+```html+erb
+<%# app/views/users/_attachable.html.erb %>
+<span><%= image_tag user.avatar %> <%= user.name %></span>
+```
+
+To integrate with Action Text `<action-text-attachment>` element rendering, a
+class must:
+
+* include the `ActionText::Attachable` module
+* implement `#to_sgid(**options)` (made available through the [`GlobalID::Identification` concern][global-id])
+* (optional) declare `#to_attachable_partial_path`
+
+By default, all `ActiveRecord::Base` descendants mix-in
+[`GlobalID::Identification` concern][global-id], and are therefore
+`ActionText::Attachable` compatible.
+
+[global-id]: https://github.com/rails/globalid#usage
+
 ## Avoid N+1 queries
 
-If you wish to preload the dependent `ActionText::RichText` model, assuming your rich text field is named 'content', you can use the named scope:
+If you wish to preload the dependent `ActionText::RichText` model, assuming your rich text field is named `content`, you can use the named scope:
 
 ```ruby
 Message.all.with_rich_text_content # Preload the body without attachments.
 Message.all.with_rich_text_content_and_embeds # Preload both body and attachments.
 ```
-
-## Custom styling
-
-By default, the Action Text editor and content is styled by the Trix defaults.
-If you want to change these defaults, you'll want to remove
-the `app/assets/stylesheets/actiontext.scss` linker and base your stylings on
-the [contents of that file](https://raw.githubusercontent.com/basecamp/trix/master/dist/trix.css).
-
-You can also style the HTML used for embedded images and other attachments (known as blobs).
-On installation, Action Text will copy over a partial to
-`app/views/active_storage/blobs/_blob.html.erb`, which you can specialize.
 
 ## API / Backend development
 

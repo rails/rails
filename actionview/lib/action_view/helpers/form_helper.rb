@@ -186,8 +186,7 @@ module ActionView
       #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive
-      #   JavaScript drivers to control the submit behavior. By default this
-      #   behavior is an ajax submit.
+      #   JavaScript drivers to control the submit behavior.
       # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name
       #   utf8 is not output.
       # * <tt>:html</tt> - Optional HTML attributes for the form tag.
@@ -323,10 +322,8 @@ module ActionView
       #    remote: true
       #
       # in the options hash creates a form that will allow the unobtrusive JavaScript drivers to modify its
-      # behavior. The expected default behavior is an XMLHttpRequest in the background instead of the regular
-      # POST arrangement, but ultimately the behavior is the choice of the JavaScript driver implementor.
-      # Even though it's using JavaScript to serialize the form elements, the form submission will work just like
-      # a regular submission as viewed by the receiving side (all elements available in <tt>params</tt>).
+      # behavior. The form submission will work just like a regular submission as viewed by the receiving
+      # side (all elements available in <tt>params</tt>).
       #
       # Example:
       #
@@ -536,11 +533,6 @@ module ActionView
       # accessible as <tt>params[:title]</tt> and <tt>params[:post][:title]</tt>
       # respectively.
       #
-      # By default +form_with+ attaches the <tt>data-remote</tt> attribute
-      # submitting the form via an XMLHTTPRequest in the background if an
-      # Unobtrusive JavaScript driver, like rails-ujs, is used. See the
-      # <tt>:local</tt> option for more.
-      #
       # For ease of comparison the examples above left out the submit button,
       # as well as the auto generated hidden fields that enable UTF-8 support
       # and adds an authenticity token needed for cross site request forgery
@@ -612,8 +604,10 @@ module ActionView
       #   This is helpful when fragment-caching the form. Remote forms
       #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
-      # * <tt>:local</tt> - By default form submits are remote and unobtrusive XHRs.
-      #   Disable remote submits with <tt>local: true</tt>.
+      # * <tt>:local</tt> - By default form submits via typical HTTP requests.
+      #   Enable remote and unobtrusive XHRs submits with <tt>local: false</tt>.
+      #   Remote forms may be enabled by default by setting
+      #   <tt>config.action_view.form_with_generates_remote_forms = true</tt>.
       # * <tt>:skip_enforcing_utf8</tt> - If set to true, a hidden input with name
       #   utf8 is not output.
       # * <tt>:builder</tt> - Override the object used to build the form.
@@ -2550,6 +2544,11 @@ module ActionView
 
         if block_given?
           value = @template.capture { yield(value) }
+        end
+
+        formmethod = options[:formmethod]
+        if /(post|get)/i.match(formmethod).nil? && formmethod.present? && !options.key?(:name) && !options.key?(:value)
+          options.merge! formmethod: :post, name: "_method", value: formmethod
         end
 
         @template.button_tag(value, options)

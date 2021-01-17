@@ -14,7 +14,7 @@ There are two major changes in the architecture of Rails applications: complete 
 
 ### Rack Integration
 
-Rails has now broken with its CGI past, and uses Rack everywhere. This required and resulted in a tremendous number of internal changes (but if you use CGI, don't worry; Rails now supports CGI through a proxy interface.) Still, this is a major change to Rails internals. After upgrading to 2.3, you should test on your local environment and your production environment. Some things to test:
+Rails has now broken with its CGI past, and uses Rack everywhere. This required and resulted in a tremendous number of internal changes (but if you use CGI, don't worry; Rails now supports CGI through a proxy interface). Still, this is a major change to Rails internals. After upgrading to 2.3, you should test on your local environment and your production environment. Some things to test:
 
 * Sessions
 * Cookies
@@ -227,6 +227,7 @@ render 'other_controller/action'
 render 'show'
 render :show
 ```
+
 Rails chooses between file, template, and action depending on whether there is a leading slash, an embedded slash, or no slash at all in what's to be rendered. Note that you can also use a symbol instead of a string when rendering an action. Other rendering styles (`:inline`, `:text`, `:update`, `:nothing`, `:json`, `:xml`, `:js`) still require an explicit option.
 
 ### Application Controller Renamed
@@ -434,7 +435,7 @@ grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]],
 
 returns
 
-```ruby
+```html
 <option value="">Choose a product...</option>
 <optgroup label="Hats">
   <option value="Baseball Cap">Baseball Cap</option>

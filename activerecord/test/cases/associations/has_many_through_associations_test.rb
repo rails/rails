@@ -66,6 +66,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [comments(:eager_other_comment1)], authors(:mary).comments.merge(Post.left_joins(:comments))
   end
 
+  def test_through_association_with_through_scope_and_nested_where
+    company = Company.create!(name: "special")
+    developer = SpecialDeveloper.create!
+    SpecialContract.create!(company: company, special_developer: developer)
+
+    assert_equal [developer], company.special_developers.where.not("contracts.id": nil)
+  end
+
   def test_preload_with_nested_association
     posts = Post.where(id: [authors(:david).id, authors(:mary).id]).
       preload(:author, :author_favorites_with_scope).order(:id).to_a
@@ -1062,14 +1070,21 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal expected, Author.eager_load(:lazy_readers_skimmers_or_not).first.lazy_readers_skimmers_or_not
   end
 
-  def test_has_many_through_with_join_scope
+  def test_has_many_through_with_through_scope_with_includes
     expected = [readers(:bob_welcome).becomes(LazyReader)]
     assert_equal expected, Author.last.lazy_readers_skimmers_or_not_2
     assert_equal expected, Author.preload(:lazy_readers_skimmers_or_not_2).last.lazy_readers_skimmers_or_not_2
     assert_equal expected, Author.eager_load(:lazy_readers_skimmers_or_not_2).last.lazy_readers_skimmers_or_not_2
   end
 
-  def test_duplicated_has_many_through_with_join_scope
+  def test_has_many_through_with_through_scope_with_joins
+    expected = [readers(:bob_welcome).becomes(LazyReader)]
+    assert_equal expected, Author.last.lazy_readers_skimmers_or_not_3
+    assert_equal expected, Author.preload(:lazy_readers_skimmers_or_not_3).last.lazy_readers_skimmers_or_not_3
+    assert_equal expected, Author.eager_load(:lazy_readers_skimmers_or_not_3).last.lazy_readers_skimmers_or_not_3
+  end
+
+  def test_duplicated_has_many_through_with_through_scope_with_joins
     Categorization.create!(author: authors(:david), post: posts(:thinking), category: categories(:technology))
 
     expected = [categorizations(:david_welcome_general)]

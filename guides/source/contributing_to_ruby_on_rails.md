@@ -407,6 +407,7 @@ Or:
 $ cd activerecord
 $ bundle exec rake db:postgresql:build
 ```
+
 This is not necessary for SQLite3.
 
 This is how you run the Active Record test suite only for SQLite3:

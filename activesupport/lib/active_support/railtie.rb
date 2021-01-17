@@ -88,13 +88,21 @@ module ActiveSupport
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             config.active_support.use_sha1_digests is deprecated and will
             be removed from Rails 6.2. Use
-            config.active_support.hash_digest_class = ::Digest::SHA1 instead.
+            config.active_support.hash_digest_class = OpenSSL::Digest::SHA1 instead.
           MSG
-          ActiveSupport::Digest.hash_digest_class = ::Digest::SHA1
+          ActiveSupport::Digest.hash_digest_class = OpenSSL::Digest::SHA1
         end
 
         if klass = app.config.active_support.hash_digest_class
           ActiveSupport::Digest.hash_digest_class = klass
+        end
+      end
+    end
+
+    initializer "active_support.set_key_generator_hash_digest_class" do |app|
+      config.after_initialize do
+        if klass = app.config.active_support.key_generator_hash_digest_class
+          ActiveSupport::KeyGenerator.hash_digest_class = klass
         end
       end
     end

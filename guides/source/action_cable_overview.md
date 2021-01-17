@@ -188,7 +188,9 @@ Then you would create your own channel classes. For example, you could have a
 # app/channels/chat_channel.rb
 class ChatChannel < ApplicationCable::Channel
 end
+```
 
+```ruby
 # app/channels/appearance_channel.rb
 class AppearanceChannel < ApplicationCable::Channel
 end
@@ -324,7 +326,7 @@ Then, elsewhere in your Rails application, you can broadcast to such a room by
 calling [`broadcast`][]:
 
 ```ruby
-ActionCable.server.broadcast("chat_Best Room", body: "This Room is Best Room.")
+ActionCable.server.broadcast("chat_Best Room", { body: "This Room is Best Room." })
 ```
 
 If you have a stream that is related to a model, then the broadcasting name
@@ -444,8 +446,10 @@ consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
 # from a NewCommentJob.
 ActionCable.server.broadcast(
   "chat_#{room}",
-  sent_by: 'Paul',
-  body: 'This is a cool chat app.'
+  {
+    sent_by: 'Paul',
+    body: 'This is a cool chat app.'
+  }
 )
 ```
 
@@ -765,7 +769,7 @@ config.action_cable.worker_pool_size = 4
 Also, note that your server must provide at least the same number of database
 connections as you have workers. The default worker pool size is set to 4, so
 that means you have to make at least 4 database connections available.
- You can change that in `config/database.yml` through the `pool` attribute.
+You can change that in `config/database.yml` through the `pool` attribute.
 
 ### Client side logging
 
@@ -776,7 +780,6 @@ import * as ActionCable from '@rails/actioncable'
 
 ActionCable.logger.enabled = true
 ```
-
 
 ### Other Configurations
 

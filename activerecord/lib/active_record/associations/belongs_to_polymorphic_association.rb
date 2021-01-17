@@ -14,9 +14,14 @@ module ActiveRecord
       end
 
       private
-        def replace_keys(record)
+        def replace_keys(record, force: false)
           super
-          owner[reflection.foreign_type] = record ? record.class.polymorphic_name : nil
+
+          target_type = record ? record.class.polymorphic_name : nil
+
+          if force || owner._read_attribute(reflection.foreign_type) != target_type
+            owner[reflection.foreign_type] = target_type
+          end
         end
 
         def inverse_reflection_for(record)

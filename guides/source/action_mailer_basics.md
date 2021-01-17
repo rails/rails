@@ -64,7 +64,9 @@ class ApplicationMailer < ActionMailer::Base
   default from: "from@example.com"
   layout 'mailer'
 end
+```
 
+```ruby
 # app/mailers/user_mailer.rb
 class UserMailer < ApplicationMailer
 end
@@ -223,8 +225,6 @@ pending jobs on restart.
 If you need a persistent backend, you will need to use an Active Job adapter
 that has a persistent backend (Sidekiq, Resque, etc).
 
-NOTE: When calling `deliver_later` the job will be placed under `mailers` queue. Make sure Active Job adapter supports this queue, otherwise the job may be silently ignored preventing email delivery. You can change this queue name by specifying `config.action_mailer.deliver_later_queue_name` option.
-
 If you want to send emails right away (from a cronjob for example) just call
 [`deliver_now`][]:
 
@@ -276,8 +276,8 @@ message:
 * [`attachments`][] - Allows you to add attachments to your email. For example,
   `attachments['file-name.jpg'] = File.read('file-name.jpg')`.
 * [`mail`][] - Creates the actual email itself. You can pass in headers as a hash to
-  the mail method as a parameter, mail will then create an email, either plain
-  text, or multipart, depending on what email templates you have defined.
+  the `mail` method as a parameter. `mail` will create an email — either plain
+  text or multipart — depending on what email templates you have defined.
 
 [`attachments`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-attachments
 [`headers`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-headers
@@ -288,7 +288,7 @@ Action Mailer makes it very easy to add attachments.
 
 * Pass the file name and content and Action Mailer and the
   [Mail gem](https://github.com/mikel/mail) will automatically guess the
-  mime_type, set the encoding, and create the attachment.
+  `mime_type`, set the `encoding`, and create the attachment.
 
     ```ruby
     attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
@@ -440,7 +440,7 @@ end
 This will render the template 'another_template.html.erb' for the HTML part and
 use the rendered text for the text part. The render command is the same one used
 inside of Action Controller, so you can use all the same options, such as
-`:text`, `:inline` etc.
+`:text`, `:inline`, etc.
 
 If you would like to render a template located outside of the default `app/views/mailer_name/` directory, you can apply the [`prepend_view_path`][], like so:
 
@@ -598,7 +598,7 @@ If you did not configure the `:host` option globally make sure to pass it to
 #### Generating URLs with Named Routes
 
 Email clients have no web context and so paths have no base URL to form complete
-web addresses. Thus, you should always use the "_url" variant of named route
+web addresses. Thus, you should always use the `*_url` variant of named route
 helpers.
 
 If you did not configure the `:host` option globally make sure to pass it to the
@@ -626,7 +626,7 @@ config.asset_host = 'http://example.com'
 
 Now you can display an image inside your email.
 
-```ruby
+```html+erb
 <%= image_tag 'image.jpg' %>
 ```
 
@@ -723,7 +723,7 @@ end
 
 * You could use an `after_action` to do similar setup as a `before_action` but
   using instance variables set in your mailer action.
-  
+
 * Using an `after_action` callback also enables you to override delivery method
   settings by updating `mail.delivery_method.settings`.
 
@@ -844,6 +844,7 @@ config.action_mailer.smtp_settings = {
   authentication:       'plain',
   enable_starttls_auto: true }
 ```
+
 NOTE: As of July 15, 2014, Google increased [its security measures](https://support.google.com/accounts/answer/6010255) and now blocks attempts from apps it deems less secure.
 You can change your Gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts. If your Gmail account has 2-factor authentication enabled,
 then you will need to set an [app password](https://myaccount.google.com/apppasswords) and use that instead of your regular password. Alternatively, you can
@@ -862,7 +863,7 @@ Action Mailer provides hooks into the Mail observer and interceptor methods. The
 
 ### Intercepting Emails
 
-Interceptors allow you to make modifications to emails before they are handed off to the delivery agents. An interceptor class must implement the `:delivering_email(message)` method which will be called before the email is sent.
+Interceptors allow you to make modifications to emails before they are handed off to the delivery agents. An interceptor class must implement the `::delivering_email(message)` method which will be called before the email is sent.
 
 ```ruby
 class SandboxEmailInterceptor
@@ -873,8 +874,8 @@ end
 ```
 
 Before the interceptor can do its job you need to register it using
-[`register_interceptor`][]. You can do this in an initializer file
-`config/initializers/sandbox_email_interceptor.rb`
+[`register_interceptor`][]. You can do this in an initializer file like
+`config/initializers/sandbox_email_interceptor.rb`:
 
 ```ruby
 if Rails.env.staging?
@@ -884,7 +885,7 @@ end
 
 NOTE: The example above uses a custom environment called "staging" for a
 production like server but for testing purposes. You can read
-[Creating Rails environments](configuring.html#creating-rails-environments)
+[Creating Rails Environments](configuring.html#creating-rails-environments)
 for more information about custom Rails environments.
 
 [`register_interceptor`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-c-register_interceptor
@@ -900,8 +901,9 @@ class EmailDeliveryObserver
   end
 end
 ```
+
 Similar to interceptors, you must register observers using [`register_observer`][]. You can do this in an initializer file
-`config/initializers/email_delivery_observer.rb`
+like `config/initializers/email_delivery_observer.rb`:
 
 ```ruby
 ActionMailer::Base.register_observer(EmailDeliveryObserver)

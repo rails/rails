@@ -110,29 +110,13 @@ module Rails
                                            desc: "Show this help message and quit"
       end
 
-      def initialize(*args)
-        @gem_filter    = lambda { |gem| true }
-        @extra_entries = []
+      def initialize(positional_argv, option_argv, *)
+        @argv = [*positional_argv, *option_argv]
+        @gem_filter = lambda { |gem| true }
         super
       end
 
     private
-      def gemfile_entry(name, *args) # :doc:
-        options = args.extract_options!
-        version = args.first
-        github = options[:github]
-        path   = options[:path]
-
-        if github
-          @extra_entries << GemfileEntry.github(name, github)
-        elsif path
-          @extra_entries << GemfileEntry.path(name, path)
-        else
-          @extra_entries << GemfileEntry.version(name, version)
-        end
-        self
-      end
-
       def gemfile_entries # :doc:
         [rails_gemfile_entry,
          database_gemfile_entry,
@@ -142,14 +126,7 @@ module Rails
          javascript_gemfile_entry,
          jbuilder_gemfile_entry,
          psych_gemfile_entry,
-         cable_gemfile_entry,
-         @extra_entries].flatten.find_all(&@gem_filter)
-      end
-
-      def add_gem_entry_filter # :doc:
-        @gem_filter = lambda { |next_filter, entry|
-          yield(entry) && next_filter.call(entry)
-        }.curry[@gem_filter]
+         cable_gemfile_entry].flatten.find_all(&@gem_filter)
       end
 
       def builder # :doc:
@@ -172,9 +149,14 @@ module Rails
       end
 
       def apply_rails_template # :doc:
+        original_argv = ARGV.dup
+        ARGV.replace(@argv)
+
         apply rails_template if rails_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
+      ensure
+        ARGV.replace(original_argv)
       end
 
       def set_default_accessors! # :doc:

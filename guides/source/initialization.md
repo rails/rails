@@ -318,7 +318,7 @@ module Rails
       log_to_stdout if options[:log_stdout]
 
       super()
-      ...
+      # ...
     end
 
     private
@@ -430,7 +430,8 @@ module Rack
     def app
       @app ||= options[:builder] ? build_app_from_string : build_app_and_options_from_config
     end
-    ...
+
+    # ...
 
     private
       def build_app_and_options_from_config
@@ -468,12 +469,12 @@ The `Rack::Builder.parse_file` method here takes the content from this `config.r
 module Rack
   class Builder
     def self.load_file(path, opts = Server::Options.new)
-      ...
+      # ...
       app = new_from_string cfgfile, config
-      ...
+      # ...
     end
 
-    ...
+    # ...
 
     def self.new_from_string(builder_script, file="(rackup)")
       eval "Rack::Builder.new {\n" + builder_script + "\n}.to_app",
@@ -622,7 +623,8 @@ module Rack
     def app
       @app ||= options[:builder] ? build_app_from_string : build_app_and_options_from_config
     end
-    ...
+
+    # ...
 
     private
       def build_app_and_options_from_config
@@ -678,7 +680,7 @@ the `run` method would look like:
 module Rack
   module Handler
     module Puma
-      ...
+      # ...
       def self.run(app, options = {})
         conf   = self.config(app, options)
 
@@ -695,7 +697,7 @@ module Rack
           puts "* Goodbye!"
         end
       end
-      ...
+      # ...
     end
   end
 end
