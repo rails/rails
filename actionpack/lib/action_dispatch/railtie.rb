@@ -55,6 +55,11 @@ module ActionDispatch
       config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
 
+      if config.action_dispatch.conceal_request_body_on_parse_error.nil?
+        config.action_dispatch.conceal_request_body_on_parse_error = !Rails.env.test? && !Rails.env.development?
+      end
+      ActionDispatch::Http::Parameters.conceal_request_body_on_parse_error = config.action_dispatch.conceal_request_body_on_parse_error
+
       ActionDispatch.test_app = app
     end
   end

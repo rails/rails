@@ -80,9 +80,36 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
         post "/parse", params: json, headers: { "CONTENT_TYPE" => "application/json", "action_dispatch.show_exceptions" => false }
       end
       assert_equal JSON::ParserError, exception.cause.class
-      assert_equal exception.cause.message, exception.message
     ensure
       $stderr = STDERR
+    end
+  end
+
+  test "the underlying parser exception message is included when conceal_request_body_on_parse_error is disabled" do
+    with_conceal_request_body_on_parse_error_set_to(false) do
+      with_test_routing do
+        $stderr = StringIO.new # suppress the log
+        exception = assert_raise(ActionDispatch::Http::Parameters::ParseError) do
+          post "/parse", params: "{", headers: { "CONTENT_TYPE" => "application/json", "action_dispatch.show_exceptions" => false }
+        end
+        assert_equal exception.cause.message, exception.message
+      ensure
+        $stderr = STDERR
+      end
+    end
+  end
+
+  test "the underlying parser exception message is not included when conceal_request_body_on_parse_error is enabled" do
+    with_conceal_request_body_on_parse_error_set_to(true) do
+      with_test_routing do
+        $stderr = StringIO.new # suppress the log
+        exception = assert_raise(ActionDispatch::Http::Parameters::ParseError) do
+          post "/parse", params: "{", headers: { "CONTENT_TYPE" => "application/json", "action_dispatch.show_exceptions" => false }
+        end
+        assert_equal exception.class.to_s, exception.message
+      ensure
+        $stderr = STDERR
+      end
     end
   end
 
@@ -110,6 +137,16 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
           end
         end
         yield
+      end
+    end
+
+    def with_conceal_request_body_on_parse_error_set_to(value)
+      original_value = ActionDispatch::Http::Parameters.conceal_request_body_on_parse_error
+      begin
+        ActionDispatch::Http::Parameters.conceal_request_body_on_parse_error = value
+        yield
+      ensure
+        ActionDispatch::Http::Parameters.conceal_request_body_on_parse_error = original_value
       end
     end
 end

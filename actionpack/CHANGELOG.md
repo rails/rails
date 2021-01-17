@@ -1,5 +1,12 @@
 ## Unreleased
 
+*   Add `config.action_dispatch.conceal_request_body_on_parse_error` to toggle whether the raw post body is included in log messages
+    and exception messages on parse error. The default behavior of including the raw post body remains the same in test and development
+    environments. However, the default behavior of other environments (production) is to now omit the raw post body to avoid leaking
+    potentially sensitive information in logs.
+
+    *Aaron Lahey*
+
 *   Change the request method to a `GET` when passing failed requests down to `config.exceptions_app`.
 
     *Alex Robbin*

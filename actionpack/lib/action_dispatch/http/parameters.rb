@@ -17,8 +17,8 @@ module ActionDispatch
       # Raised when raw data from the request cannot be parsed by the parser
       # defined for request's content MIME type.
       class ParseError < StandardError
-        def initialize
-          super($!.message)
+        def initialize(message = $!.message)
+          super(message)
         end
       end
 
@@ -83,6 +83,8 @@ module ActionDispatch
         get_header(PARAMETERS_KEY) || set_header(PARAMETERS_KEY, {})
       end
 
+      mattr_accessor :conceal_request_body_on_parse_error, default: true
+
       private
         def parse_formatted_parameters(parsers)
           return yield if content_length.zero? || content_mime_type.nil?
@@ -93,19 +95,29 @@ module ActionDispatch
             strategy.call(raw_post)
           rescue # JSON or Ruby code block errors.
             log_parse_error_once
-            raise ParseError
+            if conceal_request_body_on_parse_error
+              raise ParseError, nil
+            else
+              raise ParseError
+            end
           end
         end
 
         def log_parse_error_once
           @parse_error_logged ||= begin
             parse_logger = logger || ActiveSupport::Logger.new($stderr)
-            parse_logger.debug <<~MSG.chomp
-              Error occurred while parsing request parameters.
-              Contents:
+            if conceal_request_body_on_parse_error
+              parse_logger.debug <<~MSG.chomp
+                Error occurred while parsing request parameters.
+              MSG
+            else
+              parse_logger.debug <<~MSG.chomp
+                Error occurred while parsing request parameters.
+                Contents:
 
-              #{raw_post}
-            MSG
+                #{raw_post}
+              MSG
+            end
           end
         end
 

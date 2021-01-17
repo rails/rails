@@ -671,6 +671,11 @@ Defaults to `'signed cookie'`.
   in the `ActionDispatch::SSL` middleware. Defaults to `308` as defined in
   https://tools.ietf.org/html/rfc7538.
 
+* `config.action_dispatch.conceal_request_body_on_parse_error` configures whether the raw
+  request body will be included in log messages and exception messages on parse error.
+  Defaults to false in test and development. Defaults to true in other environments to avoid
+  leaking potentially sensitive information in logs.
+
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
 
 * `ActionDispatch::Callbacks.after` takes a block of code to run after the request.

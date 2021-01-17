@@ -2967,6 +2967,60 @@ module ApplicationTests
       assert_nil Rails.application.config.active_record.legacy_connection_handling
     end
 
+    test "conceal_request_body_on_parse_error is false by default in test" do
+      app "test"
+
+      assert_equal false, Rails.application.config.action_dispatch.conceal_request_body_on_parse_error
+      assert_equal false, ActionDispatch::Http::Parameters.conceal_request_body_on_parse_error
+    end
+
+    test "conceal_request_body_on_parse_error is configurable in test" do
+      add_to_config <<-RUBY
+        config.action_dispatch.conceal_request_body_on_parse_error = true
+      RUBY
+
+      app "test"
+
+      assert_equal true, Rails.application.config.action_dispatch.conceal_request_body_on_parse_error
+      assert_equal true, ActionDispatch::Http::Parameters.conceal_request_body_on_parse_error
+    end
+
+    test "conceal_request_body_on_parse_error is false by default in development" do
+      app "development"
+
+      assert_equal false, Rails.application.config.action_dispatch.conceal_request_body_on_parse_error
+      assert_equal false, ActionDispatch::Http::Parameters.conceal_request_body_on_parse_error
+    end
+
+    test "conceal_request_body_on_parse_error is configurable in development" do
+      add_to_config <<-RUBY
+        config.action_dispatch.conceal_request_body_on_parse_error = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, Rails.application.config.action_dispatch.conceal_request_body_on_parse_error
+      assert_equal true, ActionDispatch::Http::Parameters.conceal_request_body_on_parse_error
+    end
+
+    test "conceal_request_body_on_parse_error is true by default in production" do
+      app "production"
+
+      assert_equal true, Rails.application.config.action_dispatch.conceal_request_body_on_parse_error
+      assert_equal true, ActionDispatch::Http::Parameters.conceal_request_body_on_parse_error
+    end
+
+    test "conceal_request_body_on_parse_error is configurable in production" do
+      add_to_config <<-RUBY
+        config.action_dispatch.conceal_request_body_on_parse_error = false
+      RUBY
+
+      app "production"
+
+      assert_equal false, Rails.application.config.action_dispatch.conceal_request_body_on_parse_error
+      assert_equal false, ActionDispatch::Http::Parameters.conceal_request_body_on_parse_error
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
