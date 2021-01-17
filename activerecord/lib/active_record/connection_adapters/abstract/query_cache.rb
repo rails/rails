@@ -7,7 +7,7 @@ module ActiveRecord
     module QueryCache
       class << self
         def included(base) #:nodoc:
-          dirties_query_cache base, :insert, :update, :delete, :truncate, :truncate_tables,
+          dirties_query_cache base, :create, :insert, :update, :delete, :truncate, :truncate_tables,
             :rollback_to_savepoint, :rollback_db_transaction, :exec_insert_all
 
           base.set_callback :checkout, :after, :configure_query_cache!
