@@ -442,6 +442,18 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     ActiveRecord::Type.registry = old_registry
   end
 
+  def test_decorated_type_with_decorator_block
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      store :content
+      attribute(:content) { |subtype| EncryptedType.new(subtype: subtype) }
+    end
+
+    topic = klass.create!(content: { trial: true })
+
+    assert_equal({ "trial" => true }, topic.content)
+  end
+
   def test_mutation_detection_does_not_double_serialize
     coder = Object.new
     def coder.dump(value)

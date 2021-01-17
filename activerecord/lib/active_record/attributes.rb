@@ -208,14 +208,30 @@ module ActiveRecord
       # tracking is performed. The methods +changed?+ and +changed_in_place?+
       # will be called from ActiveModel::Dirty. See the documentation for those
       # methods in ActiveModel::Type::Value for more details.
-      def attribute(name, cast_type = nil, **options, &block)
+      def attribute(name, cast_type = nil, default: NO_DEFAULT_PROVIDED, **options, &block)
         name = name.to_s
         reload_schema_from_cache
 
+        case cast_type
+        when Symbol
+          type = cast_type
+          cast_type = -> _ { Type.lookup(type, **options, adapter: Type.adapter_name_from(self)) }
+        when nil
+          if (prev_cast_type, prev_default = attributes_to_define_after_schema_loads[name])
+            default = prev_default if default == NO_DEFAULT_PROVIDED
+
+            cast_type = if block_given?
+              -> subtype { yield Proc === prev_cast_type ? prev_cast_type[subtype] : prev_cast_type }
+            else
+              prev_cast_type
+            end
+          else
+            cast_type = block || -> subtype { subtype }
+          end
+        end
+
         self.attributes_to_define_after_schema_loads =
-          attributes_to_define_after_schema_loads.merge(
-            name => [cast_type || block, options]
-          )
+          attributes_to_define_after_schema_loads.merge(name => [cast_type, default])
       end
 
       # This is the low level API which sits beneath +attribute+. It only
@@ -248,8 +264,9 @@ module ActiveRecord
 
       def load_schema! # :nodoc:
         super
-        attributes_to_define_after_schema_loads.each do |name, (type, options)|
-          define_attribute(name, _lookup_cast_type(name, type, options), **options.slice(:default))
+        attributes_to_define_after_schema_loads.each do |name, (cast_type, default)|
+          cast_type = cast_type[type_for_attribute(name)] if Proc === cast_type
+          define_attribute(name, cast_type, default: default)
         end
       end
 
@@ -271,32 +288,6 @@ module ActiveRecord
             default_attribute = ActiveModel::Attribute.from_database(name, value, type)
           end
           _default_attributes[name] = default_attribute
-        end
-
-        def decorate_attribute_type(attr_name, **default)
-          type, options = attributes_to_define_after_schema_loads[attr_name]
-
-          default.with_defaults!(default: options[:default]) if options&.key?(:default)
-
-          attribute(attr_name, **default) do |cast_type|
-            if type && !type.is_a?(Proc)
-              cast_type = _lookup_cast_type(attr_name, type, options)
-            end
-
-            yield cast_type
-          end
-        end
-
-        def _lookup_cast_type(name, type, options)
-          case type
-          when Symbol
-            adapter_name = ActiveRecord::Type.adapter_name_from(self)
-            ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
-          when Proc
-            type[type_for_attribute(name)]
-          else
-            type || type_for_attribute(name)
-          end
         end
     end
   end
