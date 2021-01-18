@@ -102,6 +102,12 @@
       name: Action Cable Overview
       url: action_cable_overview.html
       description: This guide explains how Action Cable works, and how to use WebSockets to create real-time features.
+    -
+      name: Webpacker
+      url: webpacker.html
+      description: This guide introduces Webpacker, a Rails wrapper around the webpack build system.
+
+
 
 -
   name: Digging Deeper
