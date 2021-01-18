@@ -1,3 +1,6 @@
+_fixture:
+  model_class: Post::CategoryPost
+
 general_welcome:
   category_id: 1
   post_id: 1
