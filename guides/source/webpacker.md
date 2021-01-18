@@ -22,12 +22,12 @@ Webpacker is a Rails wrapper around the [webpack](https://webpack.js.org) build 
 
 ### What is webpack?
 
-The goal of webpack, or any front-end build system, is to allow you to write your front-end code in a way that is convenient for developers and then package that code in a way that is convenient for browsers. With webpack, you can manage JavaScript, CSS, and static assets like files or fonts. Webpack will allow you to write your code, reference other code in your application, transform you code, and combine your code into easily downloadable packs.
+The goal of webpack, or any front-end build system, is to allow you to write your front-end code in a way that is convenient for developers and then package that code in a way that is convenient for browsers. With webpack, you can manage JavaScript, CSS, and static assets like files or fonts. Webpack will allow you to write your code, reference other code in your application, transform your code, and combine your code into easily downloadable packs.
 
 See the [webpack documentation](https://webpack.js.org) for information.
 ### How is Webpacker Different from Sprockets?
 
-Rails also ships with Sprockets, an asset-packaging tool whose features overlap with Webpacker. Both tools will compile your JavaScript into into browser-friendly files, and minify and fingerprint them in production. Both tools allow you to incrementally change files in development.
+Rails also ships with Sprockets, an asset-packaging tool whose features overlap with Webpacker. Both tools will compile your JavaScript into browser-friendly files, and minify and fingerprint them in production. Both tools allow you to incrementally change files in development.
 
 Sprockets, which was designed to be used with Rails, is somewhat simpler to integrate. In particular, code can be added to Sprockets via a Ruby gem. However, webpack is better at integrating with more current JavaScript tools and NPM packages, and allows for a wider range of integration. It is the current practice of Basecamp to use webpack for JavaScript and Sprockets for CSS, although you can do CSS in webpack.
 
@@ -48,7 +48,7 @@ Installing Webpacker
 
 To use Webpacker, you must install the Yarn package manager, version 1.x or up, and you must have Node.js installed, version 10.13.0 and up.
 
-NOTE: Webpacker depends on NPM and Yarn. NPM, the Node package manager registry, is the primary repository for publishing and downloading open source JavaScript projects, both for Node.js and browser runtimes. It is analogous to rubygems.org for Ruby gems. Yarn is a command line utility that enables installation and management of JavaScript dependencies, much like Bundler does for Ruby.
+NOTE: Webpacker depends on NPM and Yarn. NPM, the Node package manager registry, is the primary repository for publishing and downloading open-source JavaScript projects, both for Node.js and browser runtimes. It is analogous to rubygems.org for Ruby gems. Yarn is a command-line utility that enables installation and management of JavaScript dependencies, much like Bundler does for Ruby.
 
 Webpacker is installed by default in Rails 6.0 and up. In an older version, you can install it when a new project is created by adding `--webpack` to a `rails new` command. In an existing project, webpacker can be added by installing `bundle exec rails webpacker:install`. This installation command creates local files:
 
@@ -129,7 +129,7 @@ Within source files, `import` statements are resolved relative to the file doing
 
 Out of the box, Webpacker supports CSS and SCSS using the PostCSS processor.
 
-To include CSS code in your packs, first include your CSS files in your top level pack file as though it was a JavaScript file. So if your CSS top-level manifest is in `app/javascript/styles/styles.scss`, you can import it with `import styles/styles`. This tells webpack to include your CSS file in the download. To actually load it in the page, you need to include a `<stylesheet_pack_tag "application">`, where the `application` is the same pack name that you were using. (Note, the docs still say you need to use `stylesheet_pack_tag`, but experimenting suggests that the CSS will load without it.)
+To include CSS code in your packs, first include your CSS files in your top-level pack file as though it was a JavaScript file. So if your CSS top-level manifest is in `app/javascript/styles/styles.scss`, you can import it with `import styles/styles`. This tells webpack to include your CSS file in the download. To actually load it in the page, you need to include a `<stylesheet_pack_tag "application">`, where the `application` is the same pack name that you were using. (Note, the docs still say you need to use `stylesheet_pack_tag`, but experimenting suggests that the CSS will load without it.)
 
 If you are using a CSS framework, you can add it to Webpacker by following the instructions to load the framework as an NPM module using `yarn`, typically `yarn add <framework>`. The framework should have instructions on importing it into a CSS or SCSS file.
 
@@ -137,9 +137,9 @@ If you are using a CSS framework, you can add it to Webpacker by following the i
 ### Using Webpacker for Static Assets
 
 The default Webpacker [configuration](https://github.com/rails/webpacker/blob/master/lib/install/config/webpacker.yml#L21) should work out of the box for static assets.
-The configuration includes a number of image and font file format extentions, allowing Webpack to include them in the generated `manifest.json` file.
+The configuration includes several image and font file format extensions, allowing Webpack to include them in the generated `manifest.json` file.
 
-With webpack, static assets can be imported directly in JavaScript files. The imported value represents the url to the asset. For example:
+With webpack, static assets can be imported directly in JavaScript files. The imported value represents the URL to the asset. For example:
 
 ```javascript
 import myImageUrl from '../images/my-image.jpg'
@@ -173,7 +173,7 @@ You can also access the image by directly referencing the file from a CSS file i
 
 ### Webpacker in Rails Engines
 
-As of Webpacker version 5, Webpacker is not "engine-aware," which means Webpacker does not have feature-parity with Sprockets when it comes to use within Rails engines. The [Webpacker engine guides](https://github.com/rails/webpacker/blob/master/docs/engines.md) provide some detailed workarounds to add Webpacker-support and developing locally against an engine with Webpacker.
+As of Webpacker version 5, Webpacker is not "engine-aware," which means Webpacker does not have feature-parity with Sprockets when it comes to using within Rails engines. The [Webpacker engine guides](https://github.com/rails/webpacker/blob/master/docs/engines.md) provide some detailed workarounds to add Webpacker-support and developing locally against an engine with Webpacker.
 
 Gem authors of Rails engines who wish to support consumers using Webpacker are encouraged to distribute frontend assets as an NPM package in addition to the gem itself and provide instructions (or an installer) to demonstrate how host apps should integrate. A good example of this approach is [Alchemy CMS](https://github.com/AlchemyCMS/alchemy_cms).
 
@@ -181,10 +181,10 @@ Gem authors of Rails engines who wish to support consumers using Webpacker are e
 
 Webpacker out-of-the-box supports HMR with webpack-dev-server and you can toggle it by setting dev_server/hmr option inside webpacker.yml.
 
-Checkout this guide for more information:
+Check out this guide for more information:
 
 https://webpack.js.org/configuration/dev-server/#devserver-hot
-To support HMR with React you would need to add react-hot-loader. Checkout this guide for more information:
+To support HMR with React you would need to add react-hot-loader. Check out this guide for more information:
 
 https://gaearon.github.io/react-hot-loader/getstarted/
 
@@ -205,7 +205,7 @@ If you want to use live code reloading, or you have enough JavaScript that on-de
 
 Windows users will need to run these commands in a terminal separate from `bundle exec rails s`.
 
-Once you start this development server, Webpacker will automatically start proxying all webpack asset requests to this server. When you stop the server, it'll revert back to on-demand compilation.
+Once you start this development server, Webpacker will automatically start proxying all webpack asset requests to this server. When you stop the server, it'll revert to on-demand compilation.
 
 The Webpacker [Documentation](https://github.com/rails/webpacker) gives information on environment variables you can use to control `webpack-dev-server`. See additional notes in the [rails/webpacker docs on the webpack-dev-server usage](https://github.com/rails/webpacker/blob/master/docs/webpack-dev-server.md).
 
