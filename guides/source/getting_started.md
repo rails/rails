@@ -837,7 +837,7 @@ Let's create `app/views/articles/new.html.erb` with the following contents:
 ```html+erb
 <h1>New Article</h1>
 
-<%= form_with model: @article do |form| %>
+<%= form_with model: @article, local: true do |form| %>
   <div>
     <%= form.label :title %><br>
     <%= form.text_field :title %>
