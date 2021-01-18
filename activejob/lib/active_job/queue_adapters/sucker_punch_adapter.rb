@@ -37,11 +37,11 @@ module ActiveJob
         end
       end
 
-      def concurrency_reached?(job)
+      def concurrency_reached?(strategy, job)
         false
       end
 
-      def clear_concurrency(job)
+      def clear_concurrency(strategy, job)
       end
 
       class JobWrapper #:nodoc:

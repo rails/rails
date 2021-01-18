@@ -12,12 +12,21 @@ class ConcurrencyJob < ActiveJob::Base
   end
 
   after_enqueue do |job|
-    JobBuffer.add("Job enqueued with key: #{concurrency_key}")
+    JobBuffer.add("Job enqueued with key: #{concurrency_strategies.first.build_key(job)}")
   end
 
   def perform(args)
     if args["raising"]
       raise ConcurrencyJobRetryError
     end
+  end
+end
+
+class MultipleConcurrencyStrategiesJob < ActiveJob::Base
+  enqueue_exclusively_with(limit: 2, keys: ["resource_id"])
+  perform_exclusively_with(keys: ["resource_id"])
+
+  def perform(args)
+    JobBuffer.add("Job enqueued with multiple concurrency strategies")
   end
 end

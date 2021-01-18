@@ -41,11 +41,11 @@ module ActiveJob
         Resque.enqueue_at_with_queue job.queue_name, timestamp, JobWrapper, job.serialize
       end
 
-      def concurrency_reached?(job)
+      def concurrency_reached?(strategy, job)
         false
       end
 
-      def clear_concurrency(job)
+      def clear_concurrency(strategy, job)
       end
 
       class JobWrapper #:nodoc:

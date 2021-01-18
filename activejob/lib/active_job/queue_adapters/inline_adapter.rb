@@ -19,11 +19,11 @@ module ActiveJob
         raise NotImplementedError, "Use a queueing backend to enqueue jobs in the future. Read more at https://guides.rubyonrails.org/active_job_basics.html"
       end
 
-      def concurrency_reached?(job)
+      def concurrency_reached?(strategy, job)
         false
       end
 
-      def clear_concurrency(job)
+      def clear_concurrency(strategy, job)
       end
     end
   end

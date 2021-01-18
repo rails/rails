@@ -44,11 +44,11 @@ module ActiveJob
         @scheduler.enqueue_at JobWrapper.new(job), timestamp, queue_name: job.queue_name
       end
 
-      def concurrency_reached?(job)
+      def concurrency_reached?(strategy, job)
         false
       end
 
-      def clear_concurrency(job)
+      def clear_concurrency(strategy, job)
       end
 
       # Gracefully stop processing jobs. Finishes in-progress work and handles

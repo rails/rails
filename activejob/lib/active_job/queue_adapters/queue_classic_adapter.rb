@@ -37,11 +37,11 @@ module ActiveJob
         qc_job
       end
 
-      def concurrency_reached?(job)
+      def concurrency_reached?(strategy, job)
         false
       end
 
-      def clear_concurrency(job)
+      def clear_concurrency(strategy, job)
       end
 
       # Builds a <tt>QC::Queue</tt> object to schedule jobs on.

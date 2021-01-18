@@ -36,11 +36,35 @@ class ConcurrencyTest < ActiveJob::TestCase
     end
   end
 
-  test "the lock_key is part of the serialized job data" do
+  test "the concurrency strategy information is part of the serialized job data" do
     job = ConcurrencyJob.new("raising" => true)
-    key = job.concurrency_key
 
     serialized = job.serialize
-    assert_equal key, serialized["concurrency_key"]
+    assert_equal 1, serialized["concurrency"].size
+
+    concurrency_strategy = serialized["concurrency"][0]
+    assert_equal ActiveJob::Concurrency::Strategy::Exclusive.name, concurrency_strategy["strategy"]
+    assert_equal 1, concurrency_strategy["limit"]
+    assert_equal ["raising"], concurrency_strategy["keys"]
+    assert_equal ActiveJob::Concurrency::DEFAULT_TIMEOUT, concurrency_strategy["timeout"]
+  end
+
+  test "job with multiple concurrency strategies stores concurrency information as part of the serialized job data" do
+    job = MultipleConcurrencyStrategiesJob.new("resource_id" => 1)
+
+    serialized = job.serialize
+    assert_equal 2, serialized["concurrency"].size
+
+    first_concurrency_strategy = serialized["concurrency"][0]
+    assert_equal ActiveJob::Concurrency::Strategy::Enqueue.name, first_concurrency_strategy["strategy"]
+    assert_equal 2, first_concurrency_strategy["limit"]
+    assert_equal ["resource_id"], first_concurrency_strategy["keys"]
+    assert_equal ActiveJob::Concurrency::DEFAULT_TIMEOUT, first_concurrency_strategy["timeout"]
+
+    second_concurrency_strategy = serialized["concurrency"][1]
+    assert_equal ActiveJob::Concurrency::Strategy::Perform.name, second_concurrency_strategy["strategy"]
+    assert_equal 1, second_concurrency_strategy["limit"]
+    assert_equal ["resource_id"], second_concurrency_strategy["keys"]
+    assert_equal ActiveJob::Concurrency::DEFAULT_TIMEOUT, second_concurrency_strategy["timeout"]
   end
 end
