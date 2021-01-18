@@ -1,3 +1,8 @@
+*   Fix `fixture_file_upload` deprecation when `file_fixture_path` is a relative path.
+
+    *Eugene Kenny*
+
+
 ## Rails 6.1.1 (January 07, 2021) ##
 
 *   Fix nil translation key lookup in controllers/
