@@ -6,7 +6,6 @@ require "active_record/relation/merger"
 
 module ActiveRecord
   module SpawnMethods
-    # This is overridden by Associations::CollectionProxy
     def spawn #:nodoc:
       already_in_scope? ? klass.all : clone
     end
