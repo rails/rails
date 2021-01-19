@@ -857,7 +857,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     assert_equal 1, @bundle_commands.count("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
   end
 
   def test_master_option
@@ -865,7 +865,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     assert_equal 1, @bundle_commands.count("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']master["']$}
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
   end
 
   def test_spring
