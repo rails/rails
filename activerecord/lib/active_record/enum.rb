@@ -190,11 +190,17 @@ module ActiveRecord
 
         value_method_names = []
         _enum_methods_module.module_eval do
-          enum_prefix = name if enum_prefix == true
-          prefix = "#{enum_prefix}_" if enum_prefix
+          prefix = if enum_prefix == true
+            "#{name}_"
+          elsif enum_prefix
+            "#{enum_prefix}_"
+          end
 
-          enum_suffix = name if enum_suffix == true
-          suffix = "_#{enum_suffix}" if enum_suffix
+          suffix = if enum_suffix == true
+            "_#{name}"
+          elsif enum_suffix
+            "_#{enum_suffix}"
+          end
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |label, value|
