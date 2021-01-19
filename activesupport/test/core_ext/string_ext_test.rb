@@ -130,6 +130,14 @@ class StringInflectionsTest < ActiveSupport::TestCase
       assert_equal(underscore, camel.underscore)
     end
 
+    # Ensure a copy of an alread-underscored string is returned,
+    # not the original string itself.
+    CamelToUnderscore.each_value do |already_underscore|
+      underscored = already_underscore.underscore
+      assert_equal already_underscore, underscored
+      assert_not_same already_underscore, underscored
+    end
+
     assert_equal "html_tidy", "HTMLTidy".underscore
     assert_equal "html_tidy_generator", "HTMLTidyGenerator".underscore
   end
