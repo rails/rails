@@ -83,7 +83,7 @@ INFO. It's possible to install frameworks not included in this list. These are b
 |TypeScript        |`rails webpacker:install:typescript`|Sets up Typescript for your project using Babel's TypeScript support|
 |Vue               |`rails webpacker:install:vue`       |Sets up VueJS                                     |
 
-For More information about the existing integrations, see https://github.com/rails/webpacker/blob/master/docs/integrations.md.
+For more information about the existing integrations, see https://github.com/rails/webpacker#integrations
 
 Usage
 -----
