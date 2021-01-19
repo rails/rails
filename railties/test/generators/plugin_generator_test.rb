@@ -225,7 +225,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     assert_empty @bundle_commands
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
   end
 
   def test_generation_does_not_run_bundle_install_with_full_and_mountable
