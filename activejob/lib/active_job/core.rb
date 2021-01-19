@@ -43,6 +43,16 @@ module ActiveJob
     # Track when a job was enqueued
     attr_accessor :enqueued_at
 
+    # Track whether the adapter received the job successfully.
+    attr_writer :successfully_enqueued # :nodoc:
+
+    def successfully_enqueued?
+      @successfully_enqueued
+    end
+
+    # Track any exceptions raised by the backend so callers can inspect the errors.
+    attr_accessor :enqueue_error
+
     # These methods will be included into any Active Job object, adding
     # helpers for de/serialization and creation of job instances.
     module ClassMethods

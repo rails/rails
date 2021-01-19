@@ -4,6 +4,11 @@ require "active_job/arguments"
 
 module ActiveJob
   # Provides behavior for enqueuing jobs.
+
+  # Can be raised by adapters if they wish to communicate to the caller a reason
+  # why the adapter was unexpectedly unable to enqueue a job.
+  class EnqueueError < StandardError; end
+
   module Enqueuing
     extend ActiveSupport::Concern
 
@@ -17,9 +22,16 @@ module ActiveJob
       # custom serializers.
       #
       # Returns an instance of the job class queued with arguments available in
-      # Job#arguments.
+      # Job#arguments or false if the enqueue did not succeed.
+      #
+      # After the attempted enqueue, the job will be yielded to an optional block.
       def perform_later(*args)
-        job_or_instantiate(*args).enqueue
+        job = job_or_instantiate(*args)
+        enqueue_result = job.enqueue
+
+        yield job if block_given?
+
+        enqueue_result
       end
       ruby2_keywords(:perform_later) if respond_to?(:ruby2_keywords, true)
 
@@ -50,7 +62,7 @@ module ActiveJob
       self.scheduled_at = options[:wait_until].to_f if options[:wait_until]
       self.queue_name   = self.class.queue_name_from_part(options[:queue]) if options[:queue]
       self.priority     = options[:priority].to_i if options[:priority]
-      successfully_enqueued = false
+      self.successfully_enqueued = false
 
       run_callbacks :enqueue do
         if scheduled_at
@@ -59,10 +71,12 @@ module ActiveJob
           queue_adapter.enqueue self
         end
 
-        successfully_enqueued = true
+        self.successfully_enqueued = true
+      rescue EnqueueError => e
+        self.enqueue_error = e
       end
 
-      if successfully_enqueued
+      if successfully_enqueued?
         self
       else
         false
