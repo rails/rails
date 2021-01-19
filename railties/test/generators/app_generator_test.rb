@@ -852,14 +852,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], edge: true, skip_webpack_install: true)
 
     assert_bundler_command_called("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
   end
 
   def test_master_option
     generator([destination_root], master: true, skip_webpack_install: true)
 
     assert_bundler_command_called("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']master["']$}
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
   end
 
   def test_spring

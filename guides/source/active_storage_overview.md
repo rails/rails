@@ -969,5 +969,5 @@ Implementing Support for Other Cloud Services
 
 If you need to support a cloud service other than these, you will need to
 implement the Service. Each service extends
-[`ActiveStorage::Service`](https://github.com/rails/rails/blob/master/activestorage/lib/active_storage/service.rb)
+[`ActiveStorage::Service`](https://github.com/rails/rails/blob/main/activestorage/lib/active_storage/service.rb)
 by implementing the methods necessary to upload and download files to the cloud.

@@ -31,7 +31,7 @@ reserved for special occasions.
 New Features
 ------------
 
-New features are only added to the master branch and will not be made available
+New features are only added to the main branch and will not be made available
 in point releases.
 
 Bug Fixes

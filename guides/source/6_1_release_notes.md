@@ -13,7 +13,7 @@ Highlights in Rails 6.1:
 
 These release notes cover only the major changes. To learn about various bug
 fixes and changes, please refer to the change logs or check out the [list of
-commits](https://github.com/rails/rails/commits/master) in the main Rails
+commits](https://github.com/rails/rails/commits/6-1-stable) in the main Rails
 repository on GitHub.
 
 --------------------------------------------------------------------------------
@@ -185,7 +185,7 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 
 ### Removals
 
-*   Remove deprecated `ActionMailer::Base.receive` in favor of [Action Mailbox](https://github.com/rails/rails/tree/master/actionmailbox).
+*   Remove deprecated `ActionMailer::Base.receive` in favor of [Action Mailbox](https://github.com/rails/rails/tree/6-1-stable/actionmailbox).
 
 ### Deprecations
 

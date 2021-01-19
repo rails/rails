@@ -189,7 +189,7 @@ module Rails
 
     class EdgeTask < RepoTask
       def rails_version
-        "master@#{`git rev-parse HEAD`[0, 7]}"
+        "main@#{`git rev-parse HEAD`[0, 7]}"
       end
     end
 
