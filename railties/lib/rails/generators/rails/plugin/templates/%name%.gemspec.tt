@@ -20,5 +20,5 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 
-  <%= '# ' if options.dev? || options.edge? || options.master? -%>spec.add_dependency "rails", "<%= Array(rails_version_specifier).join('", "') %>"
+  <%= '# ' if options.dev? || options.edge? || options.main? -%>spec.add_dependency "rails", "<%= Array(rails_version_specifier).join('", "') %>"
 end

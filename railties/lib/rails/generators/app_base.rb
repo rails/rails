@@ -97,7 +97,7 @@ module Rails
         class_option :edge,                type: :boolean, default: false,
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository"
 
-        class_option :master,              type: :boolean, default: false,
+        class_option :main,                type: :boolean, default: false, aliases: "--master",
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository main branch"
 
         class_option :rc,                  type: :string, default: nil,
@@ -279,7 +279,7 @@ module Rails
           [
             GemfileEntry.github("rails", "rails/rails", "main")
           ]
-        elsif options.master?
+        elsif options.main?
           [
             GemfileEntry.github("rails", "rails/rails", "main")
           ]
