@@ -862,7 +862,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_master_option
     run_generator [destination_root, "--master"]
-    assert_equal 1, @bundle_commands.count("install")
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
   end
 
