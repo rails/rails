@@ -85,6 +85,7 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     get "/profile", to: "users#profile", as: :profile
     get "/media/:id", to: "media#show", as: :media
     get "/pages/:id", to: "pages#show", as: :page
+    get "/posts/:post_id/comments/:id", to: "comments#show", as: :post_comments
 
     resources :categories, :collections, :products, :manufacturers
 
@@ -103,6 +104,7 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     direct(:array)    { [:admin, :dashboard] }
     direct(:options)  { |options| [:products, options] }
     direct(:defaults, size: 10) { |options| [:products, options] }
+    direct(:comments) { |comment_id, *args| post_comments_url(1, comment_id, *args) }
 
     direct(:browse, page: 1, size: 10) do |options|
       [:products, options.merge(params.permit(:page, :size).to_h.symbolize_keys)]
@@ -176,6 +178,10 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "/basket", Routes.url_helpers.hash_path
     assert_equal "/admin/dashboard", array_path
     assert_equal "/admin/dashboard", Routes.url_helpers.array_path
+
+    assert_equal "/posts/1/comments/1", comments_path(1)
+    assert_equal "/posts/1/comments/1?foo=bar", comments_path(1, { foo: :bar })
+    assert_equal post_comments_path(1, 1, params.permit!), comments_path(1, params.permit!)
 
     assert_equal "/products?page=2", options_path(page: 2)
     assert_equal "/products?page=2", Routes.url_helpers.options_path(page: 2)

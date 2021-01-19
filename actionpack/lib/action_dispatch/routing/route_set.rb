@@ -629,7 +629,15 @@ module ActionDispatch
         end
 
         def call(t, args, only_path = false)
-          options = args.extract_options!
+          last = args.last
+          options = \
+            case last
+            when Hash
+              args.pop
+            when ActionController::Parameters
+              args.pop
+            end.to_h
+
           url = t.full_url_for(eval_block(t, args, options))
 
           if only_path
