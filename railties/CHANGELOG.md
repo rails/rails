@@ -1,3 +1,7 @@
+*   Only override `git_source(:github)` in Gemfile when running Bundler 1.x
+
+    *Christian Sutter*
+
 *   Add benchmark method that can be called from anywhere.
 
     This method is used as a quick way to measure & log the speed of some code.

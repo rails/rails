@@ -1,5 +1,7 @@
 source 'https://rubygems.org'
+<% unless Bundler.respond_to?(:bundler_major_version) && Bundler.bundler_major_version >= 2 -%>
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+<% end -%>
 
 ruby <%= "'#{RUBY_VERSION}'" -%>
 
