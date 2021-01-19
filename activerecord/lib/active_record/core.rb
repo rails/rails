@@ -654,8 +654,8 @@ module ActiveRecord
     #   user.strict_loading!
     #   user.comments.to_a
     #   => ActiveRecord::StrictLoadingViolationError
-    def strict_loading!
-      @strict_loading = true
+    def strict_loading!(value = true)
+      @strict_loading = value
     end
 
     # Marks this record as read only.
