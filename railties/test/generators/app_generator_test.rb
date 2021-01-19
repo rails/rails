@@ -861,9 +861,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_master_option
-    generator([destination_root], master: true, skip_webpack_install: true)
-    run_generator_instance
-
+    run_generator [destination_root, "--master"]
     assert_equal 1, @bundle_commands.count("install")
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
   end
