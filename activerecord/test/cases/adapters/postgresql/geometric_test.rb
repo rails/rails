@@ -16,7 +16,7 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
     attribute :legacy_x, :legacy_point
     attribute :legacy_y, :legacy_point
     attribute :legacy_z, :legacy_point
-  end
+  end if current_adapter?(:PostgreSQLAdapter)
 
   def setup
     @connection = ActiveRecord::Base.connection
