@@ -142,5 +142,11 @@ module ActiveModel
       data.freeze
       assert_nothing_raised { data.freeze }
     end
+
+    test "unknown type error is raised" do
+      assert_raise(ArgumentError) do
+        ModelForAttributesTest.attribute :foo, :unknown
+      end
+    end
   end
 end
