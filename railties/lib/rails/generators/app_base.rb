@@ -286,7 +286,7 @@ module Rails
         else
           [GemfileEntry.version("rails",
                             rails_version_specifier,
-                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'")]
+                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'")]
         end
       end
 

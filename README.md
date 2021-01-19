@@ -96,7 +96,7 @@ Everyone interacting in Rails and its sub-projects' codebases, issue trackers, c
 
 ## Code Status
 
-[![Build Status](https://badge.buildkite.com/ab1152b6a1f6a61d3ea4ec5b3eece8d4c2b830998459c75352.svg?branch=master)](https://buildkite.com/rails/rails)
+[![Build Status](https://badge.buildkite.com/ab1152b6a1f6a61d3ea4ec5b3eece8d4c2b830998459c75352.svg?branch=main)](https://buildkite.com/rails/rails)
 
 ## License
 

@@ -152,7 +152,7 @@ Because of Unobtrusive JavaScript, the Rails "Ajax helpers" are actually in two
 parts: the JavaScript half and the Ruby half.
 
 Unless you have disabled the Asset Pipeline,
-[rails-ujs](https://github.com/rails/rails/tree/master/actionview/app/assets/javascripts)
+[rails-ujs](https://github.com/rails/rails/tree/main/actionview/app/assets/javascripts)
 provides the JavaScript half, and the regular Ruby view helpers add appropriate
 tags to your DOM.
 
@@ -537,7 +537,7 @@ var token = document.getElementsByName('csrf-token')[0].content
 ```
 
 You can then submit this token as a X-CSRF-Token in your header for your
-Ajax requst.  You do not need to add a CSRF for GET requests, only non-GET 
+Ajax requst.  You do not need to add a CSRF for GET requests, only non-GET
 requests.
 
 You can read more about about Cross-Site Request Forgery in [Security](https://guides.rubyonrails.org/security.html#cross-site-request-forgery-csrf)

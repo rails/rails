@@ -39,13 +39,13 @@ Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, th
 
 Having a way to reproduce your issue will be very helpful for others to help confirm, investigate, and ultimately fix your issue. You can do this by providing an executable test case. To make this process easier, we have prepared several bug report templates for you to use as a starting point:
 
-* Template for Active Record (models, database) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_master.rb)
-* Template for testing Active Record (migration) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_migrations_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_migrations_master.rb)
-* Template for Action Pack (controllers, routing) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_master.rb)
-* Template for Active Job issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_job_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_job_master.rb)
-* Generic template for other issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/generic_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/generic_master.rb)
+* Template for Active Record (models, database) issues: [gem](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_gem.rb) / [main](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_main.rb)
+* Template for testing Active Record (migration) issues: [gem](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_migrations_gem.rb) / [main](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_migrations_main.rb)
+* Template for Action Pack (controllers, routing) issues: [gem](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller_gem.rb) / [main](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller_main.rb)
+* Template for Active Job issues: [gem](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_job_gem.rb) / [main](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_job_main.rb)
+* Generic template for other issues: [gem](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic_gem.rb) / [main](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic_main.rb)
 
-These templates include the boilerplate code to set up a test case against either a released version of Rails (`*_gem.rb`) or edge Rails (`*_master.rb`).
+These templates include the boilerplate code to set up a test case against either a released version of Rails (`*_gem.rb`) or edge Rails (`*_main.rb`).
 
 Simply copy the content of the appropriate template into a `.rb` file and make the necessary changes to demonstrate the issue. You can execute it by running `ruby the_file.rb` in your terminal. If all goes well, you should see your test case failing.
 
@@ -134,8 +134,8 @@ learn about Ruby on Rails, and the API, which serves as a reference.
 
 You can help improve the Rails guides by making them more coherent, consistent, or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails.
 
-To do so, make changes to Rails guides source files (located [here](https://github.com/rails/rails/tree/master/guides/source) on GitHub). Then open a pull request to apply your
-changes to the master branch.
+To do so, make changes to Rails guides source files (located [here](https://github.com/rails/rails/tree/main/guides/source) on GitHub). Then open a pull request to apply your
+changes to the main branch.
 
 When working with documentation, please take into account the [API Documentation Guidelines](api_documentation_guidelines.html) and the [Ruby on Rails Guides Guidelines](ruby_on_rails_guides_guidelines.html).
 
@@ -286,7 +286,7 @@ Therefore, you should test your change against a list of representative
 scenarios. Ideally, they should be based on real-world scenarios extracted
 from production applications.
 
-You can use the [benchmark template](https://github.com/rails/rails/blob/master/guides/bug_report_templates/benchmark.rb)
+You can use the [benchmark template](https://github.com/rails/rails/blob/main/guides/bug_report_templates/benchmark.rb)
 as a starting point. It includes the boilerplate code to setup a benchmark
 using the [benchmark-ips](https://github.com/evanphx/benchmark-ips) gem. The
 template is designed for testing relatively self-contained changes that can be
@@ -504,10 +504,10 @@ simplifies future cherry picks and keeps the git log clean.
 
 ### Update Your Branch
 
-It's pretty likely that other changes to master have happened while you were working. Go get them:
+It's pretty likely that other changes to main have happened while you were working. Go get them:
 
 ```bash
-$ git checkout master
+$ git checkout main
 $ git pull --rebase
 ```
 
@@ -515,7 +515,7 @@ Now reapply your patch on top of the latest changes:
 
 ```bash
 $ git checkout my_new_branch
-$ git rebase master
+$ git rebase main
 ```
 
 No conflicts? Tests still pass? Change still seems reasonable to you? Then move on.
@@ -545,16 +545,16 @@ $ git fetch rails
 Merge the new content:
 
 ```bash
-$ git checkout master
-$ git rebase rails/master
+$ git checkout main
+$ git rebase rails/main
 $ git checkout my_new_branch
-$ git rebase rails/master
+$ git rebase rails/main
 ```
 
 Update your fork:
 
 ```bash
-$ git push fork master
+$ git push fork main
 $ git push fork my_new_branch
 ```
 
@@ -566,7 +566,7 @@ the right panel. On the next page, press "New pull request" in the upper right
 hand corner.
 
 Click on "Edit", if you need to change the branches being compared (it compares
-"master" by default) and press "Click to create a pull request for this
+"main" by default) and press "Click to create a pull request for this
 comparison".
 
 Ensure the changesets you introduced are included. Fill in some details about
@@ -610,7 +610,7 @@ extraneous commits can add a lot of noise.
 ```bash
 $ git fetch rails
 $ git checkout my_new_branch
-$ git rebase -i rails/master
+$ git rebase -i rails/main
 
 < Choose 'squash' for all of your commits except the first one. >
 < Edit the commit message to make sense, and describe all your changes. >
@@ -652,20 +652,20 @@ TIP: You may want to [put your Git branch name in your shell prompt](http://qugs
 
 #### Backporting
 
-Changes that are merged into master are intended for the next major release of Rails. Sometimes, it might be beneficial for your changes to propagate back to the maintenance releases for older stable branches. Generally, security fixes and bug fixes are good candidates for a backport, while new features and patches that introduce a change in behavior will not be accepted. When in doubt, it is best to consult a Rails team member before backporting your changes to avoid wasted effort.
+Changes that are merged into main are intended for the next major release of Rails. Sometimes, it might be beneficial for your changes to propagate back to the maintenance releases for older stable branches. Generally, security fixes and bug fixes are good candidates for a backport, while new features and patches that introduce a change in behavior will not be accepted. When in doubt, it is best to consult a Rails team member before backporting your changes to avoid wasted effort.
 
-For simple fixes, the easiest way to backport your changes is to [extract a diff from your changes in master and apply them to the target branch](http://ariejan.net/2009/10/26/how-to-create-and-apply-a-patch-with-git).
+For simple fixes, the easiest way to backport your changes is to [extract a diff from your changes in main and apply them to the target branch](http://ariejan.net/2009/10/26/how-to-create-and-apply-a-patch-with-git).
 
-First, make sure your changes are the only difference between your current branch and master:
+First, make sure your changes are the only difference between your current branch and main:
 
 ```bash
-$ git log master..HEAD
+$ git log main..HEAD
 ```
 
 Then extract the diff:
 
 ```bash
-$ git format-patch master --stdout > ~/my_changes.patch
+$ git format-patch main --stdout > ~/my_changes.patch
 ```
 
 Switch over to the target branch and apply your changes:
@@ -675,9 +675,9 @@ $ git checkout -b my_backport_branch 4-2-stable
 $ git apply ~/my_changes.patch
 ```
 
-This works well for simple changes. However, if your changes are complicated or if the code in master has deviated significantly from your target branch, it might require more work on your part. The difficulty of a backport varies greatly from case to case, and sometimes it is simply not worth the effort.
+This works well for simple changes. However, if your changes are complicated or if the code in main has deviated significantly from your target branch, it might require more work on your part. The difficulty of a backport varies greatly from case to case, and sometimes it is simply not worth the effort.
 
-Once you have resolved all conflicts and made sure all the tests are passing, push your changes and open a separate pull request for your backport. It is also worth noting that older branches might have a different set of build targets than master. When possible, it is best to first test your backport locally against the oldest Ruby version permitted by the target branch's `rails.gemspec` before submitting your pull request.
+Once you have resolved all conflicts and made sure all the tests are passing, push your changes and open a separate pull request for your backport. It is also worth noting that older branches might have a different set of build targets than main. When possible, it is best to first test your backport locally against the oldest Ruby version permitted by the target branch's `rails.gemspec` before submitting your pull request.
 
 And then... think about your next contribution!
 
