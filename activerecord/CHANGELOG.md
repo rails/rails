@@ -1,6 +1,8 @@
 *   Connection specification now accepts a "url" key as a configuration for the
-    adapter if the "adapter" key is given. Previously "url" would be treated as
-    the highest priority in determining the adatper and host.
+    adapter if the "adapter" key is given and the "url" does not start with the
+    adapter name. Previously "url" would be treated as the highest priority in
+    determining the adatper, host, and other settings and not passed as a
+    configuration option to the adatper.
     
     Fixes #41137.
 
