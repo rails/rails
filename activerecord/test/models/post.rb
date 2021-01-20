@@ -40,6 +40,7 @@ class Post < ActiveRecord::Base
   belongs_to :author_with_posts, -> { includes(:posts) }, class_name: "Author", foreign_key: :author_id
   belongs_to :author_with_address, -> { includes(:author_address) }, class_name: "Author", foreign_key: :author_id
   belongs_to :author_with_select, -> { select(:id) }, class_name: "Author", foreign_key: :author_id
+  belongs_to :author_with_the_letter_a, -> { where("name LIKE '%a%'") }, class_name: "Author", foreign_key: :author_id
 
   def first_comment
     super.body
@@ -367,4 +368,10 @@ class FakeKlass
   end
 
   inherited self
+end
+
+class Postesque < ActiveRecord::Base
+  belongs_to :author, class_name: "Author", foreign_key: :author_name, primary_key: :name
+  belongs_to :author_with_address, class_name: "Author", foreign_key: :author_id
+  belongs_to :author_with_the_letter_a, class_name: "Author", foreign_key: :author_id
 end

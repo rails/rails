@@ -94,13 +94,20 @@ module ActiveRecord
           @scope = kwargs[:scope]
           @associate_by_default = associate_by_default
           @polymorphic_parent = polymorphic_parent
+          @child_preloaders = []
         end
       end
 
       def call
         return [] if associations.nil? || records.length == 0
 
-        build_preloaders
+        loaders = build_preloaders
+        group_and_load_similar(loaders)
+        loaders.map(&:run)
+
+        child_preloaders.each { |reflection, child, parents| build_child_preloader(reflection, child, parents) }
+
+        loaders
       end
 
       def preload(records, associations, preload_scope = nil)
@@ -110,6 +117,8 @@ module ActiveRecord
       end
 
       private
+        attr_accessor :child_preloaders
+
         def build_preloaders
           Array.wrap(associations).flat_map { |association|
             Array(association).flat_map { |parent, child|
@@ -117,7 +126,7 @@ module ActiveRecord
                 loaders = preloaders_for_reflection(reflection, reflection_records)
 
                 if child
-                  loaders.concat build_child_preloader(reflection, child, loaders)
+                  child_preloaders << [reflection, child, loaders]
                 end
 
                 loaders
@@ -135,7 +144,7 @@ module ActiveRecord
 
         def preloaders_for_reflection(reflection, reflection_records)
           reflection_records.group_by { |record| record.association(reflection.name).klass }.map do |rhs_klass, rs|
-            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, associate_by_default).run
+            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, associate_by_default)
           end
         end
 
@@ -159,6 +168,15 @@ module ActiveRecord
             ThroughAssociation
           else
             Association
+          end
+        end
+
+        def group_and_load_similar(loaders)
+          loaders.grep_v(ThroughAssociation).group_by(&:grouping_key).each do |(_, _, association_key_name), similar_loaders|
+            next if similar_loaders.all? { |l| l.already_loaded? }
+
+            scope = similar_loaders.first.scope
+            Association.load_records_in_batch(scope, association_key_name, similar_loaders)
           end
         end
     end
