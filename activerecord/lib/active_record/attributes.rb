@@ -12,9 +12,6 @@ module ActiveRecord
     end
 
     module ClassMethods
-      ##
-      # :call-seq: attribute(name, cast_type = nil, **options)
-      #
       # Defines an attribute with a type on this model. It will override the
       # type of existing attributes if needed. This allows control over how
       # values are converted to and from SQL when assigned to a model. It also
@@ -208,7 +205,7 @@ module ActiveRecord
       # tracking is performed. The methods +changed?+ and +changed_in_place?+
       # will be called from ActiveModel::Dirty. See the documentation for those
       # methods in ActiveModel::Type::Value for more details.
-      def attribute(name, cast_type = nil, default: NO_DEFAULT_PROVIDED, **options, &block)
+      def attribute(name, cast_type = nil, default: NO_DEFAULT_PROVIDED, **options)
         name = name.to_s
         reload_schema_from_cache
 
@@ -218,14 +215,14 @@ module ActiveRecord
         when nil
           if (prev_cast_type, prev_default = attributes_to_define_after_schema_loads[name])
             default = prev_default if default == NO_DEFAULT_PROVIDED
-
-            cast_type = if block_given?
-              -> subtype { yield Proc === prev_cast_type ? prev_cast_type[subtype] : prev_cast_type }
-            else
-              prev_cast_type
-            end
           else
-            cast_type = block || -> subtype { subtype }
+            prev_cast_type = -> subtype { subtype }
+          end
+
+          cast_type = if block_given?
+            -> subtype { yield Proc === prev_cast_type ? prev_cast_type[subtype] : prev_cast_type }
+          else
+            prev_cast_type
           end
         end
 
