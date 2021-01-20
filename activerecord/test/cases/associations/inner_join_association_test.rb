@@ -122,6 +122,11 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_equal 1, authors.count
   end
 
+  def test_join_with_reserved_word
+    assert_equal [categories_posts(:technology_welcome)],
+      Post::CategoryPost.joins(:group).where("group.id": categories(:technology))
+  end
+
   def test_find_with_implicit_inner_joins_without_select_does_not_imply_readonly
     authors = Author.joins(:posts)
     assert_not authors.empty?, "expected authors to be non-empty"
