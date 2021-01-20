@@ -1,3 +1,7 @@
+*   Add support for concurrency to ActiveJob.
+
+    *GustavoCaso*
+
 *   Communicate enqueue failures to callers of `perform_later`.
 
     `perform_later` can now optionally take a block which will execute after
@@ -25,6 +29,5 @@
 *   Allow `rescue_from` to rescue all exceptions.
 
     *Adrianna Chang*, *Étienne Barrié*
-
 
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/activejob/CHANGELOG.md) for previous changes.
