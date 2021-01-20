@@ -1861,9 +1861,11 @@ Our blog has <%= Article.public_count %> articles and counting!
 
 <ul>
   <% @articles.each do |article| %>
-    <li>
-      <%= link_to article.title, article %>
-    </li>
+    <% unless article.archived? %>
+      <li>
+        <%= link_to article.title, article %>
+      </li>
+    <% end %>
   <% end %>
 </ul>
 
