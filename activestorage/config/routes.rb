@@ -28,7 +28,7 @@ Rails.application.routes.draw do
   resolve("ActiveStorage::Preview") { |preview, options| route_for(ActiveStorage.resolve_model_to_route, preview, options) }
 
   direct :rails_blob do |blob, options|
-    route_for(:rails_service_blob, blob.signed_id, blob.filename, options)
+    route_for(ActiveStorage.resolve_model_to_route, blob, options)
   end
 
   resolve("ActiveStorage::Blob")       { |blob, options| route_for(ActiveStorage.resolve_model_to_route, blob, options) }
