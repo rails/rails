@@ -57,6 +57,11 @@ module ActiveModel
       end
     end
 
+    def slice!(*keep)
+      [ values, types, @attributes ].each { |v| v.slice!(*keep) }
+      self
+    end
+
     protected
       def attributes
         unless @materialized
@@ -154,6 +159,11 @@ module ActiveModel
       else
         initialize(*values)
       end
+    end
+
+    def slice!(*keep)
+      [ delegate_hash, values, types ].each { |v| v.slice!(*keep) }
+      self
     end
 
     protected

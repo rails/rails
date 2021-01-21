@@ -272,6 +272,17 @@ module ActiveModel
       assert_not_equal attributes2, attributes3
     end
 
+    test "slice! removes any non-matching attributes" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new, removed: Type::Integer.new, removed_2: Type::Float.new)
+      attributes = builder.build_from_database(foo: "1.1", bar: "2.2", removed: "3.3", removed_2: "4.4")
+
+      assert_equal [ :foo, :bar, :removed, :removed_2 ], attributes.keys
+
+      attributes.slice!(:foo, :bar)
+
+      assert_equal [ :foo, :bar ], attributes.keys
+    end
+
     private
       def attributes_with_uninitialized_key
         builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)

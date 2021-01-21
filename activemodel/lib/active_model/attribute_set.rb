@@ -95,6 +95,11 @@ module ActiveModel
       attributes == other.attributes
     end
 
+    def slice!(*keep)
+      attributes.slice!(*keep)
+      self
+    end
+
     protected
       attr_reader :attributes
 

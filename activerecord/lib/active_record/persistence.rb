@@ -578,6 +578,14 @@ module ActiveRecord
     def becomes(klass)
       became = klass.allocate
 
+      @attributes.slice!(*klass.attribute_names)
+
+      klass.attribute_types.each do |k, type|
+        unless @attributes.key?(k)
+          @attributes[k] = ActiveModel::Attribute.with_cast_value(k, nil, type)
+        end
+      end
+
       became.send(:initialize) do |becoming|
         becoming.instance_variable_set(:@attributes, @attributes)
         becoming.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)

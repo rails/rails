@@ -208,6 +208,16 @@ class ExclusivelyDependentFirm < Company
   has_many :dependent_conditional_clients_of_firm, -> { order("id").where("name = ?", "BigShot Inc.") }, foreign_key: "client_of", class_name: "Client", dependent: :delete_all
 end
 
+class LargeClient < Client
+  attribute :extra_size, :integer
+
+  after_initialize :set_extra_size
+
+  def set_extra_size
+    self[:extra_size] = 50
+  end
+end
+
 class SpecialClient < Client
 end
 

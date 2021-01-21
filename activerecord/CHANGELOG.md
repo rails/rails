@@ -1,3 +1,30 @@
+*   Synchronize virtual attributes between classes on `ActiveRecord::Persistence#becomes`
+
+    Before, if any attributes existed only in one class it would cause an
+    `ActiveRecord::UnknownAttributeError` in both directions
+
+    ```ruby
+    class Person < ApplicationRecord
+    end
+
+    class WebUser < Person
+      attribute :is_admin, :boolean
+      after_initialize :set_admin
+
+      def set_admin
+        @attributes.write_cast_value("is_admin", email =~ /@ourcompany\.com$/)
+      end
+    end
+
+    person = Person.find_by(email: "email@ourcompany.com")
+    person.respond_to? :is_admin
+    # => false
+    person.becomes(User).is_admin?
+    # => true
+    ```
+
+    *Sampson Crowley*
+
 *   Add `FinderMethods#sole` and `#find_sole_by` to find and assert the
     presence of exactly one record.
 
