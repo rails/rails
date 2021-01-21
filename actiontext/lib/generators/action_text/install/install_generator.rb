@@ -12,7 +12,7 @@ module ActionText
         rails_command "app:binstub:yarn", inline: true
 
         say "Installing JavaScript dependencies", :green
-        run "bin/yarn add #{js_dependencies.map { |name, version| "#{name}@#{version}" }.join(" ")}",
+        run "#{Thor::Util.ruby_command} bin/yarn add #{js_dependencies.map { |name, version| "#{name}@#{version}" }.join(" ")}",
           abort_on_failure: true, capture: true
       end
 
