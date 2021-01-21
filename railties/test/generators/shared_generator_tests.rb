@@ -82,20 +82,17 @@ module SharedGeneratorTests
   end
 
   def test_template_is_executed_when_supplied_an_https_path
-    path = "https://gist.github.com/josevalim/103208/raw/"
-    template = +%{ say "It works!" }
-    template.instance_eval "def read; self; end" # Make the string respond to read
+    url = "https://gist.github.com/josevalim/103208/raw/"
+    generator([destination_root], template: url, skip_webpack_install: true)
 
-    check_open = -> *args do
-      assert_equal [ path, "Accept" => "application/x-thor-template" ], args
-      template
+    applied = nil
+    apply_stub = -> (path, *) { applied = path }
+
+    generator.stub(:apply, apply_stub) do
+      quietly { generator.invoke_all }
     end
 
-    generator([destination_root], template: path, skip_webpack_install: true).stub(:open, check_open, template) do
-      generator.stub :bundle_command, nil do
-        quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
-      end
-    end
+    assert_equal url, applied
   end
 
   def test_skip_gemfile
