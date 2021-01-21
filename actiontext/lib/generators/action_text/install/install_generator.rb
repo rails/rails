@@ -68,7 +68,7 @@ module ActionText
         end
 
         def yarn_command(command, config = {})
-          in_root { run "bin/yarn #{command}", abort_on_failure: true, **config }
+          in_root { run "#{Thor::Util.ruby_command} bin/yarn #{command}", abort_on_failure: true, **config }
         end
     end
   end
