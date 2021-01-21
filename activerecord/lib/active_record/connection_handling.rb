@@ -91,6 +91,7 @@ module ActiveRecord
         db_config, owner_name = resolve_config_for_connection(database_key)
         handler = lookup_connection_handler(role.to_sym)
 
+        self.connection_class = true
         connections << handler.establish_connection(db_config, owner_name: owner_name, role: role)
       end
 
@@ -99,6 +100,7 @@ module ActiveRecord
           db_config, owner_name = resolve_config_for_connection(database_key)
           handler = lookup_connection_handler(role.to_sym)
 
+          self.connection_class = true
           connections << handler.establish_connection(db_config, owner_name: owner_name, role: role, shard: shard.to_sym)
         end
       end

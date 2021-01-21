@@ -31,10 +31,16 @@ require "active_support/core_ext/enumerable"
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
+
+  connects_to database: { writing: :arunit, reading: :arunit }
 end
+
 class SecondAbstractClass < FirstAbstractClass
   self.abstract_class = true
+
+  connects_to database: { writing: :arunit, reading: :arunit }
 end
+
 class Photo < SecondAbstractClass; end
 class Smarts < ActiveRecord::Base; end
 class CreditCard < ActiveRecord::Base
@@ -1647,33 +1653,33 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "can call connected_to with role and shard on abstract classes" do
-    AbstractCompany.connected_to(role: :reading, shard: :default) do
-      assert AbstractCompany.connected_to?(role: :reading, shard: :default)
+    SecondAbstractClass.connected_to(role: :reading, shard: :default) do
+      assert SecondAbstractClass.connected_to?(role: :reading, shard: :default)
     end
   end
 
   test "#connecting_to with role" do
-    AbstractCompany.connecting_to(role: :reading)
+    SecondAbstractClass.connecting_to(role: :reading)
 
-    assert AbstractCompany.connected_to?(role: :reading)
-    assert AbstractCompany.current_preventing_writes
+    assert SecondAbstractClass.connected_to?(role: :reading)
+    assert SecondAbstractClass.current_preventing_writes
   ensure
     ActiveRecord::Base.connected_to_stack.pop
   end
 
   test "#connecting_to with role and shard" do
-    AbstractCompany.connecting_to(role: :reading, shard: :default)
+    SecondAbstractClass.connecting_to(role: :reading, shard: :default)
 
-    assert AbstractCompany.connected_to?(role: :reading, shard: :default)
+    assert SecondAbstractClass.connected_to?(role: :reading, shard: :default)
   ensure
     ActiveRecord::Base.connected_to_stack.pop
   end
 
   test "#connecting_to with prevent_writes" do
-    AbstractCompany.connecting_to(role: :writing, prevent_writes: true)
+    SecondAbstractClass.connecting_to(role: :writing, prevent_writes: true)
 
-    assert AbstractCompany.connected_to?(role: :writing)
-    assert AbstractCompany.current_preventing_writes
+    assert SecondAbstractClass.connected_to?(role: :writing)
+    assert SecondAbstractClass.current_preventing_writes
   ensure
     ActiveRecord::Base.connected_to_stack.pop
   end
@@ -1683,7 +1689,7 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.legacy_connection_handling = true
 
     assert_raises NotImplementedError do
-      AbstractCompany.connecting_to(role: :writing, prevent_writes: true)
+      SecondAbstractClass.connecting_to(role: :writing, prevent_writes: true)
     end
   ensure
     ActiveRecord::Base.legacy_connection_handling = old_value
@@ -1694,7 +1700,7 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.legacy_connection_handling = true
 
     assert_raises NotImplementedError do
-      ActiveRecord::Base.connected_to_many([AbstractCompany], role: :writing)
+      ActiveRecord::Base.connected_to_many([SecondAbstractClass], role: :writing)
     end
   ensure
     ActiveRecord::Base.legacy_connection_handling = old_value
@@ -1702,7 +1708,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   test "#connected_to_many cannot be called on anything but ActiveRecord::Base" do
     assert_raises NotImplementedError do
-      AbstractCompany.connected_to_many([AbstractCompany], role: :writing)
+      SecondAbstractClass.connected_to_many([SecondAbstractClass], role: :writing)
     end
   end
 
@@ -1713,23 +1719,23 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "#connected_to_many sets prevent_writes if role is reading" do
-    ActiveRecord::Base.connected_to_many([AbstractCompany], role: :reading) do
-      assert AbstractCompany.current_preventing_writes
+    ActiveRecord::Base.connected_to_many([SecondAbstractClass], role: :reading) do
+      assert SecondAbstractClass.current_preventing_writes
       assert_not ActiveRecord::Base.current_preventing_writes
     end
   end
 
   test "#connected_to_many with a single argument for classes" do
-    ActiveRecord::Base.connected_to_many(AbstractCompany, role: :reading) do
-      assert AbstractCompany.current_preventing_writes
+    ActiveRecord::Base.connected_to_many(SecondAbstractClass, role: :reading) do
+      assert SecondAbstractClass.current_preventing_writes
       assert_not ActiveRecord::Base.current_preventing_writes
     end
   end
 
   test "#connected_to_many with a multiple classes without brackets works" do
-    ActiveRecord::Base.connected_to_many(AbstractCompany, FirstAbstractClass, role: :reading) do
-      assert AbstractCompany.current_preventing_writes
+    ActiveRecord::Base.connected_to_many(FirstAbstractClass, SecondAbstractClass, role: :reading) do
       assert FirstAbstractClass.current_preventing_writes
+      assert SecondAbstractClass.current_preventing_writes
       assert_not ActiveRecord::Base.current_preventing_writes
     end
   end
