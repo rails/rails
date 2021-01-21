@@ -208,14 +208,14 @@ class TestMissingTemplate < ActiveSupport::TestCase
     e = assert_raise ActionView::MissingTemplate do
       @lookup_context.find("foo", %w(parent child))
     end
-    assert_match %r{Missing template parent/foo, child/foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
+    assert_match %r{Missing template parent/foo, child/foo with .*\n\nSearched in:\n  \* "/Path/to/views"\n}, e.message
   end
 
   test "if no partial was found we get a helpful error message including the inheritance chain" do
     e = assert_raise ActionView::MissingTemplate do
       @lookup_context.find("foo", %w(parent child), true)
     end
-    assert_match %r{Missing partial parent/_foo, child/_foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
+    assert_match %r{Missing partial parent/_foo, child/_foo with .*\n\nSearched in:\n  \* "/Path/to/views"\n}, e.message
   end
 
   test "if a single prefix is passed as a string and the lookup fails, MissingTemplate accepts it" do
@@ -223,6 +223,6 @@ class TestMissingTemplate < ActiveSupport::TestCase
       details = { handlers: [], formats: [], variants: [], locale: [] }
       @lookup_context.view_paths.find("foo", "parent", true, details)
     end
-    assert_match %r{Missing partial parent/_foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
+    assert_match %r{Missing partial parent/_foo with .*\n\nSearched in:\n  \* "/Path/to/views"\n}, e.message
   end
 end
