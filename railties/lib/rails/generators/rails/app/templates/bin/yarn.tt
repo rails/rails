@@ -2,7 +2,7 @@ APP_ROOT = File.expand_path('..', __dir__)
 Dir.chdir(APP_ROOT) do
   yarn = ENV["PATH"].split(File::PATH_SEPARATOR).
     select { |dir| File.expand_path(dir) != __dir__ }.
-    product(["yarn", "yarn.exe"]).
+    product(["yarn", "yarn.cmd", "yarn.ps1"]).
     map { |dir, file| File.expand_path(file, dir) }.
     find { |file| File.executable?(file) }
 
