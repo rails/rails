@@ -42,7 +42,7 @@ module ActiveRecord
         # Return a Hash that can be merged into the main config that represents
         # the passed in url
         def build_url_hash
-          if url.nil? || url.start_with?("jdbc:")
+          if url.nil? || %w(jdbc: http: https:).any? { |protocol| url.start_with?(protocol) }
             { url: url }
           else
             ConnectionUrlResolver.new(url).to_hash

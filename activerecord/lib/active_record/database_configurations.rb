@@ -235,7 +235,7 @@ module ActiveRecord
       end
 
       def build_db_config_from_hash(env_name, name, config)
-        if config.has_key?(:url) && (!config.has_key?(:adapter) || config[:url]&.start_with?(config[:adapter]))
+        if config.has_key?(:url)
           url = config[:url]
           config_without_url = config.dup
           config_without_url.delete :url
