@@ -2455,6 +2455,25 @@ module ApplicationTests
       assert_equal false, ActionView::Helpers::AssetTagHelper.preload_links_header
     end
 
+    test "ActionView::Helpers::AssetTagHelper.stylesheet_media_default is true by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      app "development"
+
+      assert_equal true, ActionView::Helpers::AssetTagHelper.stylesheet_media_default
+    end
+
+    test "ActionView::Helpers::AssetTagHelper.stylesheet_media_default can be configured via config.action_view.stylesheet_media_default" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
+        Rails.application.config.action_view.stylesheet_media_default = false
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActionView::Helpers::AssetTagHelper.stylesheet_media_default
+    end
+
     test "stylesheet_link_tag sets the Link header by default" do
       app_file "app/controllers/pages_controller.rb", <<-RUBY
       class PagesController < ApplicationController
@@ -2473,7 +2492,7 @@ module ApplicationTests
       app "development"
 
       get "/"
-      assert_match %r[<link rel="stylesheet" media="screen" href="/application.css" />], last_response.body
+      assert_match %r[<link rel="stylesheet" href="/application.css" />], last_response.body
       assert_equal "</application.css>; rel=preload; as=style; nopush", last_response.headers["Link"]
     end
 
@@ -2499,7 +2518,7 @@ module ApplicationTests
       app "development"
 
       get "/"
-      assert_match %r[<link rel="stylesheet" media="screen" href="/application.css" />], last_response.body
+      assert_match %r[<link rel="stylesheet" href="/application.css" />], last_response.body
       assert_nil last_response.headers["Link"]
     end
 
