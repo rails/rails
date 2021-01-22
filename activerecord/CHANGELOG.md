@@ -7,6 +7,28 @@
 
     *Jonathan Bracy*
 
+*   Allow to opt-out of `strict_loading` mode on a per-record base.
+
+    This is useful when strict loading is enabled application wide or on a
+    model level.
+
+    ```ruby
+    class User < ApplicationRecord
+      has_many :articles, strict_loading: true
+    end
+
+    user = User.first
+    user.articles
+    # => ActiveRecord::StrictLoadingViolationError
+
+    user = User.first
+    user.stict_loading!(false)
+    user.articles
+    # => #<ActiveRecord::Associations::CollectionProxy>
+    ```
+
+    *Ayrton De Craene*
+
 *   Add `FinderMethods#sole` and `#find_sole_by` to find and assert the
     presence of exactly one record.
 

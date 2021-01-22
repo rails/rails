@@ -1812,6 +1812,7 @@ In `app/models/article.rb`:
 ```ruby
 class Article < ApplicationRecord
   include Visible
+
   has_many :comments
 
   validates :title, presence: true
@@ -1824,6 +1825,7 @@ and in `app/models/comment.rb`:
 ```ruby
 class Comment < ApplicationRecord
   include Visible
+
   belongs_to :article
 end
 ```
@@ -1861,9 +1863,11 @@ Our blog has <%= Article.public_count %> articles and counting!
 
 <ul>
   <% @articles.each do |article| %>
-    <li>
-      <%= link_to article.title, article %>
-    </li>
+    <% unless article.archived? %>
+      <li>
+        <%= link_to article.title, article %>
+      </li>
+    <% end %>
   <% end %>
 </ul>
 
@@ -1885,7 +1889,7 @@ We also have to permit the `:status` key as part of the strong parameter, in `ap
 ```ruby
   private
     def article_params
-      params.require(:comment).permit(:commenter, :body, :status)
+      params.require(:article).permit(:title, :body, :status)
     end
 ```
 
@@ -1966,7 +1970,7 @@ class CommentsController < ApplicationController
 
   private
     def comment_params
-      params.require(:comment).permit(:commenter, :body)
+      params.require(:comment).permit(:commenter, :body, :status)
     end
 end
 ```

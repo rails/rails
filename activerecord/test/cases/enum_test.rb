@@ -511,6 +511,38 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate book2, :single?
   end
 
+  test "declare multiple enums with { _prefix: true }" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+
+      enum(
+        status: [:value_1],
+        last_read: [:value_1],
+        _prefix: true
+      )
+    end
+
+    instance = klass.new
+    assert_respond_to instance, :status_value_1?
+    assert_respond_to instance, :last_read_value_1?
+  end
+
+  test "declare multiple enums with { _suffix: true }" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+
+      enum(
+        status: [:value_1],
+        last_read: [:value_1],
+        _suffix: true
+      )
+    end
+
+    instance = klass.new
+    assert_respond_to instance, :value_1_status?
+    assert_respond_to instance, :value_1_last_read?
+  end
+
   test "enum with alias_attribute" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"

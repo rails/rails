@@ -33,7 +33,7 @@ The latest version of Action Pack can be installed with RubyGems:
 
 Source code can be downloaded as part of the Rails project on GitHub:
 
-* https://github.com/rails/rails/tree/master/actionpack
+* https://github.com/rails/rails/tree/main/actionpack
 
 
 == License

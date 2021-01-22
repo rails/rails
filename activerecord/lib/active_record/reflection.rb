@@ -306,6 +306,12 @@ module ActiveRecord
         def primary_key(klass)
           klass.primary_key || raise(UnknownPrimaryKey.new(klass))
         end
+
+        def ensure_option_not_given_as_class!(option_name)
+          if options[option_name] && options[option_name].class == Class
+            raise ArgumentError, "A class was passed to `:#{option_name}` but we are expecting a string."
+          end
+        end
     end
 
     # Base class for AggregateReflection and AssociationReflection. Objects of
@@ -426,9 +432,7 @@ module ActiveRecord
         @type = -(options[:foreign_type]&.to_s || "#{options[:as]}_type") if options[:as]
         @foreign_type = -(options[:foreign_type]&.to_s || "#{name}_type") if options[:polymorphic]
 
-        if options[:class_name] && options[:class_name].class == Class
-          raise ArgumentError, "A class was passed to `:class_name` but we are expecting a string."
-        end
+        ensure_option_not_given_as_class!(:class_name)
       end
 
       def association_scope_cache(klass, owner, &block)
@@ -748,6 +752,8 @@ module ActiveRecord
         @delegate_reflection = delegate_reflection
         @klass = delegate_reflection.options[:anonymous_class]
         @source_reflection_name = delegate_reflection.options[:source]
+
+        ensure_option_not_given_as_class!(:source_type)
       end
 
       def through_reflection?

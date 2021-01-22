@@ -432,6 +432,13 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "A class was passed to `:class_name` but we are expecting a string.", error.message
   end
 
+  def test_class_for_source_type
+    error = assert_raises(ArgumentError) do
+      ActiveRecord::Reflection.create(:has_many, :tagged_posts, nil, { through: :taggings, source: :taggable, source_type: Post }, Tag)
+    end
+    assert_equal "A class was passed to `:source_type` but we are expecting a string.", error.message
+  end
+
   def test_join_table
     category = Struct.new(:table_name, :pluralize_table_names).new("categories", true)
     product = Struct.new(:table_name, :pluralize_table_names).new("products", true)

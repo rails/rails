@@ -597,15 +597,8 @@ end
 
 class InheritanceAttributeMappingTest < ActiveRecord::TestCase
   setup do
-    @old_registry = ActiveRecord::Type.registry
-    ActiveRecord::Type.registry = ActiveRecord::Type.registry.dup
-    ActiveRecord::Type.register :omg_sti, InheritanceAttributeMappingTest::OmgStiType
     Company.delete_all
     Sponsor.delete_all
-  end
-
-  teardown do
-    ActiveRecord::Type.registry = @old_registry
   end
 
   class OmgStiType < ActiveRecord::Type::String
@@ -623,6 +616,8 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
       end
     end
   end
+
+  ActiveRecord::Type.register :omg_sti, OmgStiType
 
   class Company < ActiveRecord::Base
     self.table_name = "companies"
