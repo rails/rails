@@ -1,6 +1,6 @@
 *   Connection specification now passes the "url" key as a configuration for the
     adapter if the "url" protocol is "jbdc", "http", or "https". Previously only
-    urls with the "jdbc" prefix were passed to the ActiveRecord Adapter, others
+    urls with the "jdbc" prefix were passed to the Active Record Adapter, others
     are assumed to be adapter specification urls.
 
     Fixes #41137.
