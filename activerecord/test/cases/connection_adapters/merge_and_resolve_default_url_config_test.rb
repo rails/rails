@@ -137,7 +137,7 @@ module ActiveRecord
         actual   = resolve_config(config, "production")
         assert_equal config["production"].symbolize_keys, actual
       end
-      
+
       def test_environment_does_not_exist_in_config_url_does_exist
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
         config      = { "not_default_env" => { "adapter" => "not_postgres", "database" => "not_foo" } }
