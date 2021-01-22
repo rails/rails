@@ -29,9 +29,9 @@ See the [webpack documentation](https://webpack.js.org) for information.
 
 Rails also ships with Sprockets, an asset-packaging tool whose features overlap with Webpacker. Both tools will compile your JavaScript into browser-friendly files, and minify and fingerprint them in production. Both tools allow you to incrementally change files in development.
 
-Sprockets, which was designed to be used with Rails, is somewhat simpler to integrate. In particular, code can be added to Sprockets via a Ruby gem. However, webpack is better at integrating with more current JavaScript tools and NPM packages, and allows for a wider range of integration. It is the current practice of Basecamp to use webpack for JavaScript and Sprockets for CSS, although you can do CSS in webpack.
+Sprockets, which was designed to be used with Rails, is somewhat simpler to integrate. In particular, code can be added to Sprockets via a Ruby gem. However, webpack is better at integrating with more current JavaScript tools and NPM packages, and allows for a wider range of integration. New Rails apps are configured to use webpack for JavaScript and Sprockets for CSS, although you can do CSS in webpack.
 
-You should choose webpacker over Sprockets on a new project, if you want to use NPM packages, and if you want access to the most current JavaScript features and tools. You should choose Sprockets over Webpacker for legacy applications where migration might be costly, if you want to integrate using Gems, or if you have a very small amount of code to package.
+You should choose webpacker over Sprockets on a new project if you want to use NPM packages, and if you want access to the most current JavaScript features and tools. You should choose Sprockets over Webpacker for legacy applications where migration might be costly, if you want to integrate using Gems, or if you have a very small amount of code to package.
 
 If you are familiar with Sprockets, the following guide might give you some idea of how to translate. Please note that each tool has a slightly different structure, and the concepts don't directly map onto each other
 
@@ -83,7 +83,7 @@ INFO. It's possible to install frameworks not included in this list. These are b
 |TypeScript        |`rails webpacker:install:typescript`|Sets up Typescript for your project using Babel's TypeScript support|
 |Vue               |`rails webpacker:install:vue`       |Sets up VueJS                                     |
 
-For More information about the existing integrations, see https://github.com/rails/webpacker/blob/master/docs/integrations.md.
+For more information about the existing integrations, see https://github.com/rails/webpacker#integrations
 
 Usage
 -----
@@ -207,7 +207,7 @@ Windows users will need to run these commands in a terminal separate from `bundl
 
 Once you start this development server, Webpacker will automatically start proxying all webpack asset requests to this server. When you stop the server, it'll revert to on-demand compilation.
 
-The Webpacker [Documentation](https://github.com/rails/webpacker) gives information on environment variables you can use to control `webpack-dev-server`. See additional notes in the [rails/webpacker docs on the webpack-dev-server usage](https://github.com/rails/webpacker/blob/master/docs/webpack-dev-server.md).
+The Webpacker [Documentation](https://github.com/rails/webpacker) gives information on environment variables you can use to control `webpack-dev-server`. See additional notes in the [rails/webpacker docs on the webpack-dev-server usage](https://github.com/rails/webpacker#development).
 
 ### Deploying Webpacker
 
