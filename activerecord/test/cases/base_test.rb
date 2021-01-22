@@ -41,6 +41,10 @@ class SecondAbstractClass < FirstAbstractClass
   connects_to database: { writing: :arunit, reading: :arunit }
 end
 
+class ThirdAbstractClass < SecondAbstractClass
+  self.abstract_class = true
+end
+
 class Photo < SecondAbstractClass; end
 class Smarts < ActiveRecord::Base; end
 class CreditCard < ActiveRecord::Base
@@ -1656,6 +1660,14 @@ class BasicsTest < ActiveRecord::TestCase
     SecondAbstractClass.connected_to(role: :reading, shard: :default) do
       assert SecondAbstractClass.connected_to?(role: :reading, shard: :default)
     end
+  end
+
+  test "cannot call connected_to on the abstract class that did not establish the connection" do
+    error = assert_raises(NotImplementedError) do
+      ThirdAbstractClass.connected_to(role: :reading) { }
+    end
+
+    assert_equal "calling `connected_to` is only allowed on the abstract class that established the connection.", error.message
   end
 
   test "#connecting_to with role" do
