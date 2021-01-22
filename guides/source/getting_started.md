@@ -1812,6 +1812,7 @@ In `app/models/article.rb`:
 ```ruby
 class Article < ApplicationRecord
   include Visible
+
   has_many :comments
 
   validates :title, presence: true
@@ -1824,6 +1825,7 @@ and in `app/models/comment.rb`:
 ```ruby
 class Comment < ApplicationRecord
   include Visible
+
   belongs_to :article
 end
 ```
@@ -1987,6 +1989,7 @@ Article model, `app/models/article.rb`, as follows:
 ```ruby
 class Article < ApplicationRecord
   include Visible
+
   has_many :comments, dependent: :destroy
 
   validates :title, presence: true
