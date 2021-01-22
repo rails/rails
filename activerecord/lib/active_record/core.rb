@@ -258,8 +258,12 @@ module ActiveRecord
         @connection_class = b
       end
 
+      def self.connection_class # :nodoc
+        @connection_class ||= false
+      end
+
       def self.connection_class? # :nodoc:
-        @connection_class
+        self.connection_class
       end
 
       def self.connection_classes # :nodoc:
