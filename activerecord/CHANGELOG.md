@@ -1,3 +1,13 @@
+*   Connection specification now passes the "url" key as a configuration for the
+    adapter if the "url" protocol is "jdbc", "http", or "https". Previously only
+    urls with the "jdbc" prefix were passed to the Active Record Adapter, others
+    are assumed to be adapter specification urls.
+
+    Fixes #41137.
+
+    *Jonathan Bracy*
+
+
 ## Rails 6.1.1 (January 07, 2021) ##
 
 *   Fix fixtures loading when strict loading is enabled for the association.
