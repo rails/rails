@@ -144,6 +144,13 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("capital", ActiveSupport::Inflector.camelize("Capital", false))
   end
 
+  def test_camelize_with_lower_downcases_the_first_letter_with_lower_argument
+    assert_output(nil, ":lower is passed but returning upper camel case. To get lower camel case, pass false to the second argument.\n") do
+      ActiveSupport::Inflector.camelize("Capital", :lower)
+    end
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("Capital", :lower))
+  end
+
   def test_camelize_with_underscores
     assert_equal("CamelCase", ActiveSupport::Inflector.camelize("Camel_Case"))
   end

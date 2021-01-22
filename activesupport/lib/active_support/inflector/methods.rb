@@ -67,6 +67,10 @@ module ActiveSupport
     #
     #   camelize(underscore('SSLError'))        # => "SslError"
     def camelize(term, uppercase_first_letter = true)
+      if uppercase_first_letter == :lower
+        warn ":lower is passed but returning upper camel case. To get lower camel case, pass false to the second argument."
+      end
+
       string = term.to_s
       if uppercase_first_letter
         string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize }
