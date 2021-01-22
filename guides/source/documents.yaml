@@ -140,6 +140,10 @@
       url: working_with_javascript_in_rails.html
       description: This guide covers the built-in Ajax/JavaScript functionality of Rails.
     -
+      name: Webpacker
+      url: webpacker.html
+      description: This guide covers the integration with the Webpack tool.
+    -
       name: The Rails Initialization Process
       work_in_progress: true
       url: initialization.html
