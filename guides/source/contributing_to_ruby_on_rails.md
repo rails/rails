@@ -325,39 +325,36 @@ to run Action Mailer tests:
 
 ```bash
 $ cd actionmailer
-$ bundle exec rake test
+$ bin/test
 ```
 
 #### For a Specific Directory
 
-If you want to run the tests located in a specific directory use the `TEST_DIR`
-environment variable. For example, this will run the tests in the
-`railties/test/generators` directory only:
+You can run tests only for a specific directory of a particular component
+(e.g. models in Active Storage). For example, to run tests in `/activestorage/test/models`:
 
 ```bash
-$ cd railties
-$ TEST_DIR=generators bundle exec rake test
+$ cd activestorage
+$ bin/test models
 ```
 
 #### For a Specific File
 
-You can run the tests for a particular file by using:
+You can run the tests for a particular file:
 
 ```bash
 $ cd actionview
-$ bundle exec ruby -w -Itest test/template/form_helper_test.rb
+$ bin/test test/template/form_helper_test.rb
 ```
 
 #### Running a Single Test
 
-You can run a single test through ruby. For instance:
+You can run a single test by name using the `-n` option:
 
 ```bash
 $ cd actionmailer
-$ bundle exec ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_layout
+$ bin/test test/mail_layout_test.rb -n test_explicit_class_layout
 ```
-
-The `-n` option allows you to run a single method instead of the whole file.
 
 #### Running Tests with a Specific Seed
 
@@ -369,14 +366,14 @@ Running all tests for a component:
 
 ```bash
 $ cd actionmailer
-$ SEED=15002 bundle exec rake test
+$ SEED=15002 bin/test
 ```
 
 Running a single test file:
 
 ```bash
 $ cd actionmailer
-$ SEED=15002 bundle exec ruby -w -Itest test/mail_layout_test.rb
+$ SEED=15002 bin/test test/mail_layout_test.rb
 ```
 
 #### Running Tests in Serial
@@ -386,7 +383,7 @@ test failures you can set the randomization seed and let these unit tests run in
 
 ```bash
 $ cd actionview
-$ PARALLEL_WORKERS=1 SEED=53708 bundle exec ruby -w -Itest test/template/test_case_test.rb
+$ PARALLEL_WORKERS=1 SEED=53708 bin/test test/template/test_case_test.rb
 ```
 
 #### Testing Active Record
