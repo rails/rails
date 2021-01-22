@@ -106,9 +106,6 @@
       name: Webpacker
       url: webpacker.html
       description: This guide introduces Webpacker, a Rails wrapper around the webpack build system.
-
-
-
 -
   name: Digging Deeper
   documents:
