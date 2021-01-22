@@ -33,4 +33,9 @@ class RescueTest < ActiveSupport::TestCase
     RescueJob.perform_later [Person.new(404)]
     assert_includes JobBuffer.values, "DeserializationError original exception was Person::RecordNotFound"
   end
+
+  test "rescue from exceptions that don't inherit from StandardError" do
+    RescueJob.perform_later("rafael")
+    assert_equal ["rescued from NotImplementedError"], JobBuffer.values
+  end
 end
