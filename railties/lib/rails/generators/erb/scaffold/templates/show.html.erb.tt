@@ -1,19 +1,10 @@
 <p id="notice"><%%= notice %></p>
 
-<% attributes.reject(&:password_digest?).each do |attribute| -%>
-<p>
-  <strong><%= attribute.human_name %>:</strong>
-<% if attribute.attachment? -%>
-  <%%= link_to @<%= singular_table_name %>.<%= attribute.column_name %>.filename, @<%= singular_table_name %>.<%= attribute.column_name %> if @<%= singular_table_name %>.<%= attribute.column_name %>.attached? %>
-<% elsif attribute.attachments? -%>
-  <%% @<%= singular_table_name %>.<%= attribute.column_name %>.each do |<%= attribute.singular_name %>| %>
-    <div><%%= link_to <%= attribute.singular_name %>.filename, <%= attribute.singular_name %> %></div>
-  <%% end %>
-<% else -%>
-  <%%= @<%= singular_table_name %>.<%= attribute.column_name %> %>
-<% end -%>
-</p>
+<%%= render @<%= singular_table_name %> %>
 
-<% end -%>
-<%%= link_to 'Edit', edit_<%= singular_table_name %>_path(@<%= singular_table_name %>) %> |
-<%%= link_to 'Back', <%= index_helper %>_path %>
+<div>
+  <%%= link_to "Edit this <%= singular_table_name %>", edit_<%= singular_table_name %>_path(@<%= singular_table_name %>) %> |
+  <%%= link_to "Back to <%= plural_table_name %>", <%= index_helper %>_path %>
+
+  <%%= button_to "Destroy this <%= singular_table_name %>", <%= singular_table_name %>_path(@<%= singular_table_name %>), method: :delete %>
+</div>

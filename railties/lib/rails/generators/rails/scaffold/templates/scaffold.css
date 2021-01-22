@@ -7,6 +7,12 @@ div.actions {
   color: green;
 }
 
+.scaffold_record {
+  border: 1px solid black;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
 .field_with_errors {
   padding: 2px;
   background-color: red;

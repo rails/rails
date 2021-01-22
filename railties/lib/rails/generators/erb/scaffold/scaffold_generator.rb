@@ -21,6 +21,8 @@ module Erb # :nodoc:
             template filename, File.join("app/views", controller_file_path, filename)
           end
         end
+
+        template "partial.html.erb", File.join('app/views', controller_file_path, "_#{singular_table_name}.html.erb")
       end
 
     private
