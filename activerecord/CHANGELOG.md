@@ -1,3 +1,27 @@
+*   Support hash config for `structure_dump_flags` and `structure_load_flags` flags
+    Now that Active Record supports multiple databases configuration
+    we need a way to pass specific flags for dump/load databases since
+    the options are not the same for different adapters.
+    We can use in the original way:
+
+    ```ruby
+    ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ['--no-defaults', '--skip-add-drop-table']
+    #or
+    ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = '--no-defaults --skip-add-drop-table'
+    ```
+     
+    And also use it passing a hash, with one or more keys, where the key
+    is the adapter
+
+    ```ruby
+    ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = {
+      mysql2: ['--no-defaults', '--skip-add-drop-table'],
+      postgres: '--no-tablespaces'
+    }    
+    ```
+
+    *Gustavo Gonzalez*
+
 *   Connection specification now passes the "url" key as a configuration for the
     adapter if the "url" protocol is "jdbc", "http", or "https". Previously only
     urls with the "jdbc" prefix were passed to the Active Record Adapter, others
