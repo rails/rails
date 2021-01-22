@@ -78,7 +78,7 @@ module ApplicationTests
         stylesheet_path:        %r{/stylesheets/#{contents}},
         image_tag:              %r{<img src="/images/#{contents}"},
         favicon_link_tag:       %r{<link rel="shortcut icon" type="image/x-icon" href="/images/#{contents}" />},
-        stylesheet_link_tag:    %r{<link rel="stylesheet" media="screen" href="/stylesheets/#{contents}.css" />},
+        stylesheet_link_tag:    %r{<link rel="stylesheet" href="/stylesheets/#{contents}.css" />},
         javascript_include_tag: %r{<script src="/javascripts/#{contents}.js">},
         audio_tag:              %r{<audio src="/audios/#{contents}"></audio>},
         video_tag:              %r{<video src="/videos/#{contents}"></video>},
