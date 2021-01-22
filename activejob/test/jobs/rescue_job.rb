@@ -18,12 +18,18 @@ class RescueJob < ActiveJob::Base
     JobBuffer.add("DeserializationError original exception was #{e.cause.class.name}")
   end
 
+  rescue_from(NotImplementedError) do
+    JobBuffer.add("rescued from NotImplementedError")
+  end
+
   def perform(person = "david")
     case person
     when "david"
       raise ArgumentError, "Hair too good"
     when "other"
       raise OtherError, "Bad hair"
+    when "rafael"
+      raise NotImplementedError, "Hair is just perfect"
     else
       JobBuffer.add("performed beautifully")
     end
