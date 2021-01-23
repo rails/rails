@@ -250,7 +250,7 @@ within `_product` partial we'll get `@product` in the local variable `product`,
 as if we had written:
 
 ```erb
-<%= render partial: "prodcuts/product", locals: { product: @product } %>
+<%= render partial: "products/product", locals: { product: @product } %>
 ```
 
 The `object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (e.g. in a different instance variable or in a local variable).
