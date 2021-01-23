@@ -118,6 +118,14 @@ module Rails
           @plural_table_name ||= (pluralize_table_names? ? table_name : table_name.pluralize)
         end
 
+        def humanize_singular_table_name
+          @humanize_singular_table_name ||= singular_table_name.humanize(capitalize: false)
+        end
+
+        def humanize_plural_table_name
+          @humanize_plural_table_name ||= plural_table_name.humanize(capitalize: false)
+        end
+
         def plural_file_name # :doc:
           @plural_file_name ||= file_name.pluralize
         end

@@ -6,4 +6,4 @@
   <%%= render @<%= plural_table_name %> %>
 </div>
 
-<%%= link_to "New <%= singular_table_name %>", new_<%= singular_route_name %>_path %>
+<%%= link_to "New <%= humanize_singular_table_name %>", new_<%= singular_route_name %>_path %>

@@ -1,9 +1,9 @@
-<h1>New <%= singular_table_name %></h1>
+<h1>New <%= singular_table_name.titleize %></h1>
 
 <%%= render "form", <%= singular_table_name %>: @<%= singular_table_name %> %>
 
 <br>
 
 <div>
-  <%%= link_to "Back to <%= plural_table_name %>", <%= index_helper %>_path %>
+  <%%= link_to "Back to <%= humanize_singular_table_name %>", <%= index_helper %>_path %>
 </div>

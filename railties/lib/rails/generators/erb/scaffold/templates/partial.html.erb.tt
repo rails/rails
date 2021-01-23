@@ -15,6 +15,6 @@
 
 <% end -%>
   <p>
-    <%%= link_to "Show this <%= singular_table_name %>", <%= singular_table_name %> %>
+    <%%= link_to "Show this <%= humanize_singular_table_name %>", <%= singular_table_name %> %>
   </p>
 </div>

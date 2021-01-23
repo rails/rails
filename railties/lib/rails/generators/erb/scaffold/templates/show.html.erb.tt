@@ -3,8 +3,7 @@
 <%%= render @<%= singular_table_name %> %>
 
 <div>
-  <%%= link_to "Edit this <%= singular_table_name %>", edit_<%= singular_table_name %>_path(@<%= singular_table_name %>) %> |
-  <%%= link_to "Back to <%= plural_table_name %>", <%= index_helper %>_path %>
-
-  <%%= button_to "Destroy this <%= singular_table_name %>", <%= singular_table_name %>_path(@<%= singular_table_name %>), method: :delete %>
+  <%%= link_to "Edit this <%= humanize_singular_table_name %>", edit_<%= model_resource_name %>_path(@<%= singular_table_name %>) %> |
+  <%%= link_to "Destroy this <%= humanize_singular_table_name %>", <%= model_resource_name %>_path(@<%= singular_table_name %>), method: :delete, data: { confirm: 'Are you sure?' } %> |
+  <%%= link_to "Back to <%= humanize_plural_table_name %>", <%= index_helper %>_path %>
 </div>
