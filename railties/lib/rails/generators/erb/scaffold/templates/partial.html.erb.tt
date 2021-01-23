@@ -3,7 +3,7 @@
   <p>
     <strong><%= attribute.human_name %>:</strong>
 <% if attribute.attachment? -%>
-    <%%= link_to <%= singular_table_name %>.<%= attribute.column_name %>.filename, @<%= singular_table_name %>.<%= attribute.column_name %> if @<%= singular_table_name %>.<%= attribute.column_name %>.attached? %>
+    <%%= link_to <%= singular_table_name %>.<%= attribute.column_name %>.filename, <%= singular_table_name %>.<%= attribute.column_name %> if <%= singular_table_name %>.<%= attribute.column_name %>.attached? %>
 <% elsif attribute.attachments? -%>
     <%% <%= singular_table_name %>.<%= attribute.column_name %>.each do |<%= attribute.singular_name %>| %>
       <div><%%= link_to <%= attribute.singular_name %>.filename, <%= attribute.singular_name %> %></div>
