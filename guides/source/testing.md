@@ -648,6 +648,49 @@ Notice the `category` key of the `first` article found in `fixtures/articles.yml
 
 NOTE: For associations to reference one another by name, you can use the fixture name instead of specifying the `id:` attribute on the associated fixtures. Rails will auto assign a primary key to be consistent between runs. For more information on this association behavior please read the [Fixtures API documentation](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
 
+#### File attachment fixtures
+
+Like other Active Record-backed models, Active Storage attachment records
+inherit from ActiveRecord::Base instances and can therefore be populated by
+fixtures.
+
+Consider an `Article` model that has an associated image as a `thumbnail`
+attachment, along with fixture data YAML:
+
+```ruby
+class Article
+  has_one_attached :thumbnail
+end
+```
+
+```yaml
+# fixtures/articles.yml
+first:
+  title: An Article
+```
+
+Assuming that there is an [image/png][] encoded file at
+`test/fixtures/files/first.png`, the following YAML fixture entries will
+generate the related `ActiveStorage::Blob` and `ActiveStorage::Attachment`
+records:
+
+```yaml
+# fixtures/active_storage/blobs.yml
+first_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob(
+  filename: "first.png",
+) %>
+```
+
+```yaml
+# fixtures/active_storage/attachments.yml
+first_thumbnail_attachment:
+  name: thumbnail
+  record: first (Article)
+  blob: first_thumbnail_blob
+```
+
+[image/png]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types#image_types
+
 #### ERB'in It Up
 
 ERB allows you to embed Ruby code within templates. The YAML fixture format is pre-processed with ERB when Rails loads fixtures. This allows you to use Ruby to help you generate some sample data. For example, the following code generates a thousand users:
