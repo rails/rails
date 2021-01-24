@@ -4,9 +4,6 @@ require "test_helper"
 require "database/setup"
 
 class ActiveStorage::FixtureSetTest < ActiveSupport::TestCase
-  self.fixture_path = File.expand_path("fixtures", __dir__)
-  self.use_transactional_tests = true
-
   fixtures :all
 
   def test_active_storage_blob
