@@ -221,14 +221,11 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/admin/users/index.html.erb" do |content|
-      assert_match("'Show', [:admin, user]", content)
-      assert_match("'Edit', edit_admin_user_path(user)", content)
-      assert_match("'Destroy', [:admin, user]", content)
       assert_match("'New User', new_admin_user_path", content)
     end
 
     assert_file "app/views/admin/users/new.html.erb" do |content|
-      assert_match("'Back', admin_users_path", content)
+      assert_match("\"Back to user\", admin_users_path", content)
     end
 
     assert_file "app/views/admin/users/_form.html.erb" do |content|
@@ -267,7 +264,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class UsersController < ApplicationController/, content)
       assert_no_match(/respond_to/, content)
 
-      assert_match(/before_action :set_user, only: \[:show, :update, :destroy\]/, content)
+      assert_match(/before_action :set_user, only: %i\[ show update destroy \]/, content)
 
       assert_instance_method :index, content do |m|
         assert_match(/@users = User\.all/, m)

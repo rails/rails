@@ -118,8 +118,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_assets
     run_generator
 
-    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', media: 'all', 'data-turbolinks-track': 'reload'/)
-    assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+'application', 'data-turbolinks-track': 'reload'/)
+    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+"application", "data-turbolinks-track": "reload"/)
+    assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+"application", "data-turbolinks-track": "reload"/)
     assert_file("app/assets/stylesheets/application.css")
     assert_file("app/javascript/packs/application.js")
   end
@@ -667,7 +667,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/javascript"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_match(/stylesheet_link_tag\s+'application', media: 'all' %>/, contents)
+      assert_match(/stylesheet_link_tag\s+"application", media: "all" %>/, contents)
       assert_no_match(/javascript_pack_tag\s+'application'/, contents)
     end
   end
