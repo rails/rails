@@ -51,8 +51,8 @@ module ActiveStorage
     #
     #   # tests/fixtures/action_text/blobs.yml
     #   second_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob(
-    #    filename: "second.svg",
-    #    content_type: "image/svg+xml",
+    #     filename: "second.svg",
+    #     content_type: "image/svg+xml",
     #   ) %>
     #
     def self.blob(filename:, **attributes)
