@@ -3,8 +3,8 @@
 <%%= render @<%= singular_table_name %> %>
 
 <div>
-  <%%= link_to "Edit this <%= singular_table_name %>", edit_<%= singular_table_name %>_path(@<%= singular_table_name %>) %> |
-  <%%= link_to "Back to <%= plural_table_name %>", <%= index_helper %>_path %>
+  <%%= link_to "Edit this <%= human_name.downcase %>", edit_<%= singular_table_name %>_path(@<%= singular_table_name %>) %> |
+  <%%= link_to "Back to <%= human_name.pluralize.downcase %>", <%= index_helper %>_path %>
 
-  <%%= button_to "Destroy this <%= singular_table_name %>", <%= singular_table_name %>_path(@<%= singular_table_name %>), method: :delete %>
+  <%%= button_to "Destroy this <%= human_name.downcase %>", <%= singular_table_name %>_path(@<%= singular_table_name %>), method: :delete %>
 </div>

@@ -1,9 +1,9 @@
 <p id="notice"><%%= notice %></p>
 
-<h1><%= plural_table_name.titleize %></h1>
+<h1><%= human_name %></h1>
 
 <div id="<%= plural_table_name %>">
   <%%= render @<%= plural_table_name %> %>
 </div>
 
-<%%= link_to "New <%= singular_table_name %>", new_<%= singular_route_name %>_path %>
+<%%= link_to "New <%= human_name.downcase %>", new_<%= singular_route_name %>_path %>
