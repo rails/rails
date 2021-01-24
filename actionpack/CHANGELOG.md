@@ -1,3 +1,7 @@
+*   Fix error in `ActionController::LogSubscriber` that would happen when throwing inside a controller action.
+
+    *Janko Marohnić*
+
 *   Fix `fixture_file_upload` deprecation when `file_fixture_path` is a relative path.
 
     *Eugene Kenny*
