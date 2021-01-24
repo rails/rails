@@ -43,9 +43,10 @@ Rails.configuration.active_storage.service = "local"
 
 ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
+ActiveStorage::FixtureSet.file_fixture_path = File.expand_path("fixtures/files", __dir__)
 
 class ActiveSupport::TestCase
-  self.file_fixture_path = File.expand_path("fixtures/files", __dir__)
+  self.file_fixture_path = ActiveStorage::FixtureSet.file_fixture_path
 
   include ActiveRecord::TestFixtures
 
