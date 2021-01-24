@@ -225,7 +225,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/admin/users/new.html.erb" do |content|
-      assert_match("\"Back to user\", admin_users_path", content)
+      assert_match("\"Back to users\", admin_users_path", content)
     end
 
     assert_file "app/views/admin/users/_form.html.erb" do |content|
