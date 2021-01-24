@@ -89,6 +89,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
 
     signed_id = @user.avatar.signed_id
     assert_equal blob, ActiveStorage::Blob.find_signed!(signed_id)
+    assert_equal blob, ActiveStorage::Blob.find_signed(signed_id)
   end
 
   test "signed blob ID backwards compatibility" do
