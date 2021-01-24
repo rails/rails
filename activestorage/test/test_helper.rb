@@ -50,6 +50,8 @@ class ActiveSupport::TestCase
 
   include ActiveRecord::TestFixtures
 
+  self.fixture_path = File.expand_path("fixtures", __dir__)
+
   setup do
     ActiveStorage::Current.host = "https://example.com"
   end
