@@ -1,5 +1,9 @@
 ## Unreleased
 
+*   Fix error in `ActionController::LogSubscriber` that would happen when throwing inside a controller action.
+
+    *Janko Marohnić*
+
 *   Change the request method to a `GET` when passing failed requests down to `config.exceptions_app`.
 
     *Alex Robbin*
