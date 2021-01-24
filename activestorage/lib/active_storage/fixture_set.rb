@@ -56,16 +56,13 @@ module ActiveStorage
     #   ) %>
     #
     def self.blob(filename:, **attributes)
-      instance = Blob.new(filename: filename, key: generate_unique_secure_token)
-
-      new.prepare(instance, **attributes)
+      new.prepare Blob.new(filename: filename, key: generate_unique_secure_token), **attributes
     end
 
     def prepare(instance, **attributes)
       io = file_fixture(instance.filename.to_s).open
       instance.unfurl(io)
       instance.assign_attributes(attributes)
-
       instance.upload_without_unfurling(io)
 
       instance.attributes.transform_values { |value| value.is_a?(Hash) ? value.to_json : value }.compact.to_json
