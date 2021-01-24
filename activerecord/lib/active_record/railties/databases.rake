@@ -391,6 +391,7 @@ db_namespace = namespace :db do
       if defined? ActiveStorage::FixtureSet
         ActiveStorage::FixtureSet.file_fixture_path = File.join fixtures_dir, "files"
       end
+
       ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_files)
     end
 
