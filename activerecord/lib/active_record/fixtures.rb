@@ -782,3 +782,5 @@ module ActiveRecord
     end
   end
 end
+
+ActiveSupport.run_load_hooks :active_record_fixture_set, ActiveRecord::FixtureSet

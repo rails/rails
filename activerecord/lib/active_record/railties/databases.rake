@@ -388,10 +388,6 @@ db_namespace = namespace :db do
         Dir["#{fixtures_dir}/**/*.yml"].map { |f| f[(fixtures_dir.size + 1)..-5] }
       end
 
-      if defined? ActiveStorage::FixtureSet
-        ActiveStorage::FixtureSet.file_fixture_path = File.join fixtures_dir, "files"
-      end
-
       ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_files)
     end
 
