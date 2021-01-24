@@ -5,10 +5,10 @@ require "action_dispatch/http/upload"
 
 module ActiveStorage
   class Attached::Changes::CreateOne #:nodoc:
-    attr_reader :name, :record, :attachable
+    attr_reader :name, :record, :attachable, :key
 
-    def initialize(name, record, attachable)
-      @name, @record, @attachable = name, record, attachable
+    def initialize(name, record, attachable, key)
+      @name, @record, @attachable, @key = name, record, attachable, key
       blob.identify_without_saving
     end
 
@@ -59,13 +59,15 @@ module ActiveStorage
             filename: attachable.original_filename,
             content_type: attachable.content_type,
             record: record,
-            service_name: attachment_service_name
+            service_name: attachment_service_name,
+            key: attachment_key
           )
         when Hash
           ActiveStorage::Blob.build_after_unfurling(
             **attachable.reverse_merge(
               record: record,
-              service_name: attachment_service_name
+              service_name: attachment_service_name,
+              key: attachment_key
             ).symbolize_keys
           )
         when String
@@ -77,6 +79,10 @@ module ActiveStorage
 
       def attachment_service_name
         record.attachment_reflections[name].options[:service_name]
+      end
+
+      def attachment_key
+        ActiveStorage::Blob.generate_unique_interpolated_secure_key(key: key, record: record, attachable: attachable)
       end
   end
 end

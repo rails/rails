@@ -33,8 +33,8 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
   test "reflecting on all attachments" do
     reflections = User.reflect_on_all_attachments.sort_by(&:name)
     assert_equal [ User ], reflections.collect(&:active_record).uniq
-    assert_equal %i[ avatar cover_photo highlights vlogs ], reflections.collect(&:name)
-    assert_equal %i[ has_one_attached has_one_attached has_many_attached has_many_attached ], reflections.collect(&:macro)
-    assert_equal [ :purge_later, false, :purge_later, false ], reflections.collect { |reflection| reflection.options[:dependent] }
+    assert_equal %i[ avatar cover_photo gravatar highlights photos vlogs ], reflections.collect(&:name)
+    assert_equal %i[ has_one_attached has_one_attached has_one_attached has_many_attached has_many_attached has_many_attached ], reflections.collect(&:macro)
+    assert_equal [ :purge_later, false, :purge_later, :purge_later, :purge_later, false ], reflections.collect { |reflection| reflection.options[:dependent] }
   end
 end

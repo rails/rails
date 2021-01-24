@@ -2,10 +2,10 @@
 
 module ActiveStorage
   class Attached::Changes::CreateMany #:nodoc:
-    attr_reader :name, :record, :attachables
+    attr_reader :name, :record, :attachables, :key
 
-    def initialize(name, record, attachables)
-      @name, @record, @attachables = name, record, Array(attachables)
+    def initialize(name, record, attachables, key)
+      @name, @record, @attachables, @key = name, record, Array(attachables), key
       blobs.each(&:identify_without_saving)
     end
 
@@ -32,7 +32,7 @@ module ActiveStorage
       end
 
       def build_subchange_from(attachable)
-        ActiveStorage::Attached::Changes::CreateOneOfMany.new(name, record, attachable)
+        ActiveStorage::Attached::Changes::CreateOneOfMany.new(name, record, attachable, key)
       end
 
 

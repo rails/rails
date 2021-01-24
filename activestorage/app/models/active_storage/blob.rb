@@ -37,6 +37,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   self.table_name = "active_storage_blobs"
 
   MINIMUM_TOKEN_LENGTH = 28
+  KEY_PATH_SEPARATOR = "/"
 
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
   store :metadata, accessors: [ :analyzed, :identified ], coder: ActiveRecord::Coders::JSON
@@ -147,6 +148,26 @@ class ActiveStorage::Blob < ActiveStorage::Record
     # to guard against the case where ActiveStorage.verifier isn't yet initialized at load time.
     def signed_id_verifier #:nodoc:
       @signed_id_verifier ||= ActiveStorage.verifier
+    end
+
+    # Interpolates the custom storage key if needed and appends to it a unique_secure_token
+    def generate_unique_interpolated_secure_key(key:, record:, attachable:, length: MINIMUM_TOKEN_LENGTH)
+      return generate_unique_secure_token(length: length) if key.blank?
+
+      [
+        interpolate(key: key, record: record, attachable: attachable),
+        generate_unique_secure_token(length: length)
+      ].compact.join(KEY_PATH_SEPARATOR)
+    end
+
+    # Interpolates configured variables into keys,
+    # with procs coming from key_interpolation_procs configuration hash
+    def interpolate(key:, record:, attachable:)
+      key.split(KEY_PATH_SEPARATOR).map do |key_part|
+        key_part.gsub(/:(\w*)/) do
+          ActiveStorage.key_interpolation_procs[$1.to_sym].call(record, attachable)
+        end
+      end.join(KEY_PATH_SEPARATOR)
     end
   end
 

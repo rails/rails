@@ -1022,6 +1022,17 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
     The default is `/rails/active_storage`.
 
+* `config.active_storage.key_interpolation_procs` can be used to set the procs used by Active Storage in custom storage key interpolations. Accepts a hash with symbols as keys and procs as values. There are 2 parameters available passed to the procs: record and attachable. The default is `{}`.
+
+  ```ruby
+  # For example, if you consider using the following custom key -> "tenants/:tenant/users/:record_id/:attachable_type"
+  config.active_storage.key_interpolation_procs = {
+    tenant:          ->(record, attachable) { Apartment::Tenant.current.parameterize },
+    record_id:       ->(record, attachable) { record.id },
+    attachable_type: ->(record, attachable) { attachable.content_type.parameterize }
+  }
+  ```
+
 * `config.active_storage.replace_on_assign_to_many` determines whether assigning to a collection of attachments declared with `has_many_attached` replaces any existing attachments or appends to them. The default is `true`.
 
 * `config.active_storage.track_variants` determines whether variants are recorded in the database. The default is `true`.

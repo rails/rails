@@ -61,6 +61,7 @@ module ActiveStorage
   mattr_accessor :service_urls_expire_in, default: 5.minutes
 
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
+  mattr_accessor :key_interpolation_procs, default: {}
   mattr_accessor :draw_routes, default: true
   mattr_accessor :resolve_model_to_route, default: :rails_storage_redirect
 
