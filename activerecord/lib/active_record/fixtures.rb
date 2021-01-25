@@ -426,7 +426,7 @@ module ActiveRecord
   #   _fixture:
   #     ignore:
   #       - base
-  #     # or use "ignore: base" when there is only one fixture needs to be ignored.
+  #     # or use "ignore: base" when there is only one fixture that needs to be ignored.
   #
   #   base: &base
   #     admin: false
