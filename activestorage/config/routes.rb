@@ -16,11 +16,7 @@ Rails.application.routes.draw do
   end
 
   direct :rails_representation do |representation, options|
-    signed_blob_id = representation.blob.signed_id
-    variation_key  = representation.variation.key
-    filename       = representation.blob.filename
-
-    route_for(:rails_blob_representation, signed_blob_id, variation_key, filename, options)
+    route_for(ActiveStorage.resolve_model_to_route, representation, options)
   end
 
   resolve("ActiveStorage::Variant") { |variant, options| route_for(ActiveStorage.resolve_model_to_route, variant, options) }
