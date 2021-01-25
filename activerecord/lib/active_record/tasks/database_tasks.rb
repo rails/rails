@@ -276,6 +276,8 @@ module ActiveRecord
 
         Base.connection.migration_context.migrate(target_version) do |migration|
           scope.blank? || scope == migration.scope
+        end.tap do |migrations_ran|
+          Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?
         end
 
         ActiveRecord::Base.clear_cache!
