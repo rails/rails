@@ -47,7 +47,7 @@ module ActiveJob
       run_callbacks :perform do
         perform(*arguments)
       end
-    rescue => exception
+    rescue Exception => exception
       rescue_with_handler(exception) || raise
     end
 
