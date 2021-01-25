@@ -1,7 +1,7 @@
 Webpacker
 =========
 
-This guide will show you how to install and use Webpacker to package  JavaScript, CSS, and other assets for the client-side of your Rails application.
+This guide will show you how to install and use Webpacker to package JavaScript, CSS, and other assets for the client-side of your Rails application.
 
 After reading this guide, you will know:
 
@@ -22,9 +22,10 @@ Webpacker is a Rails wrapper around the [webpack](https://webpack.js.org) build 
 
 ### What is webpack?
 
-The goal of webpack, or any front-end build system, is to allow you to write your front-end code in a way that is convenient for developers and then package that code in a way that is convenient for browsers. With webpack, you can manage JavaScript, CSS, and static assets like files or fonts. Webpack will allow you to write your code, reference other code in your application, transform your code, and combine your code into easily downloadable packs.
+The goal of webpack, or any front-end build system, is to allow you to write your front-end code in a way that is convenient for developers and then package that code in a way that is convenient for browsers. With webpack, you can manage JavaScript, CSS, and static assets like images or fonts. Webpack will allow you to write your code, reference other code in your application, transform your code, and combine your code into easily downloadable packs.
 
 See the [webpack documentation](https://webpack.js.org) for information.
+
 ### How is Webpacker Different from Sprockets?
 
 Rails also ships with Sprockets, an asset-packaging tool whose features overlap with Webpacker. Both tools will compile your JavaScript into browser-friendly files, and minify and fingerprint them in production. Both tools allow you to incrementally change files in development.
@@ -33,7 +34,7 @@ Sprockets, which was designed to be used with Rails, is somewhat simpler to inte
 
 You should choose webpacker over Sprockets on a new project if you want to use NPM packages, and if you want access to the most current JavaScript features and tools. You should choose Sprockets over Webpacker for legacy applications where migration might be costly, if you want to integrate using Gems, or if you have a very small amount of code to package.
 
-If you are familiar with Sprockets, the following guide might give you some idea of how to translate. Please note that each tool has a slightly different structure, and the concepts don't directly map onto each other
+If you are familiar with Sprockets, the following guide might give you some idea of how to translate. Please note that each tool has a slightly different structure, and the concepts don't directly map onto each other.
 
 |Task              | Sprockets         | Webpacker         |
 |------------------|-------------------|-------------------|
@@ -50,15 +51,15 @@ To use Webpacker, you must install the Yarn package manager, version 1.x or up, 
 
 NOTE: Webpacker depends on NPM and Yarn. NPM, the Node package manager registry, is the primary repository for publishing and downloading open-source JavaScript projects, both for Node.js and browser runtimes. It is analogous to rubygems.org for Ruby gems. Yarn is a command-line utility that enables installation and management of JavaScript dependencies, much like Bundler does for Ruby.
 
-Webpacker is installed by default in Rails 6.0 and up. In an older version, you can install it when a new project is created by adding `--webpack` to a `rails new` command. In an existing project, webpacker can be added by installing `bundle exec rails webpacker:install`. This installation command creates local files:
+Webpacker is installed by default in Rails 6.0 and up. In some older versions, you can install it with a new project by adding `--webpack` to the `rails new` command. In an existing project, webpacker can be added by running `bundle exec rails webpacker:install`. This installation command creates following local files:
 
-|File                    |Location                |Explanation                                                 |
-|------------------------|------------------------|------------------------------------------------------------|
-|Javascript Folder       | `app/javascript`       |A place for your front-end source                           |
-|Webpacker Configuration | `config/webpacker.yml` |Configure the Webpacker gem                                 |
-|Babel Configuration     | `babel.config.js`      |Configuration for the https://babeljs.io JavaScript Compiler|
-|PostCSS Configuration   | `postcss.config.js`    |Configuration for the https://postcss.org CSS Post-Processor|
-|Browserlist             | `.browserslistrc`      |https://github.com/browserslist/browserslist                |
+|File                    |Location                |Explanation                                                                                         |
+|------------------------|------------------------|----------------------------------------------------------------------------------------------------|
+|Javascript Folder       | `app/javascript`       |A place for your front-end source                                                                   |
+|Webpacker Configuration | `config/webpacker.yml` |Configure the Webpacker gem                                                                         |
+|Babel Configuration     | `babel.config.js`      |Configuration for the [Babel](https://babeljs.io) JavaScript Compiler                               |
+|PostCSS Configuration   | `postcss.config.js`    |Configuration for the [PostCSS](https://postcss.org) CSS Post-Processor                             |
+|Browserlist             | `.browserslistrc`      |[Browserlist](https://github.com/browserslist/browserslist) manages target browsers configuration   |
 
 
 The installation also calls the `yarn` package manager, creates a `package.json` file with a basic set of packages listed, and uses Yarn to install these dependencies.
@@ -87,6 +88,7 @@ For more information about the existing integrations, see https://github.com/rai
 
 Usage
 -----
+
 ### Using Webpacker for JavaScript
 
 With Webpacker installed, by default any JavaScript file in the `app/javascripts/packs` directory will get compiled to its own pack file.
@@ -138,7 +140,7 @@ If you are using a CSS framework, you can add it to Webpacker by following the i
 ### Using Webpacker for Static Assets
 
 The default Webpacker [configuration](https://github.com/rails/webpacker/blob/master/lib/install/config/webpacker.yml#L21) should work out of the box for static assets.
-The configuration includes several image and font file format extensions, allowing Webpack to include them in the generated `manifest.json` file.
+The configuration includes several image and font file format extensions, allowing webpack to include them in the generated `manifest.json` file.
 
 With webpack, static assets can be imported directly in JavaScript files. The imported value represents the URL to the asset. For example:
 
@@ -178,18 +180,15 @@ As of Webpacker version 5, Webpacker is not "engine-aware," which means Webpacke
 
 Gem authors of Rails engines who wish to support consumers using Webpacker are encouraged to distribute frontend assets as an NPM package in addition to the gem itself and provide instructions (or an installer) to demonstrate how host apps should integrate. A good example of this approach is [Alchemy CMS](https://github.com/AlchemyCMS/alchemy_cms).
 
-### Hot module replacement
+### Hot Module Replacement (HMR)
 
 Webpacker out-of-the-box supports HMR with webpack-dev-server and you can toggle it by setting dev_server/hmr option inside webpacker.yml.
 
-Check out this guide for more information:
+Check out [webpack's documentation on DevServer](https://webpack.js.org/configuration/dev-server/#devserver-hot) for more information.
 
-https://webpack.js.org/configuration/dev-server/#devserver-hot
-To support HMR with React you would need to add react-hot-loader. Check out this guide for more information:
+To support HMR with React you would need to add react-hot-loader. Check out [React Hot Loader's _Getting Started_ guide](https://gaearon.github.io/react-hot-loader/getstarted/).
 
-https://gaearon.github.io/react-hot-loader/getstarted/
-
-Don't forget to disable HMR if you are not running webpack-dev-server otherwise you will get not found error for stylesheets.
+Don't forget to disable HMR if you are not running webpack-dev-server otherwise you will get "not found error" for stylesheets.
 
 Webpacker in Different Environments
 -----------------------------------
@@ -208,11 +207,11 @@ Windows users will need to run these commands in a terminal separate from `bundl
 
 Once you start this development server, Webpacker will automatically start proxying all webpack asset requests to this server. When you stop the server, it'll revert to on-demand compilation.
 
-The Webpacker [Documentation](https://github.com/rails/webpacker) gives information on environment variables you can use to control `webpack-dev-server`. See additional notes in the [rails/webpacker docs on the webpack-dev-server usage](https://github.com/rails/webpacker#development).
+The [Webpacker Documentation](https://github.com/rails/webpacker) gives information on environment variables you can use to control `webpack-dev-server`. See additional notes in the [rails/webpacker docs on the webpack-dev-server usage](https://github.com/rails/webpacker#development).
 
 ### Deploying Webpacker
 
-Webpacker adds a `Webpacker:compile` task to the `assets:precompile` rake task, so any existing deploy pipeline that was using `assets:precompile` should work. The compile task will compile the packs and place them in `public/packs`.
+Webpacker adds a `webpacker:compile` task to the `assets:precompile` rake task, so any existing deploy pipeline that was using `assets:precompile` should work. The compile task will compile the packs and place them in `public/packs`.
 
 Additional Documentation
 ------------------------
