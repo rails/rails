@@ -31,10 +31,6 @@ if defined?(ActiveRecord::Base)
   ActiveSupport.on_load(:action_dispatch_integration_test) do
     self.fixture_path = ActiveSupport::TestCase.fixture_path
   end
-
-  ActiveSupport.on_load(:active_storage_record) do
-    ActiveStorage::FixtureSet.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
-  end
 end
 
 # :enddoc:
