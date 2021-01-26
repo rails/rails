@@ -41,8 +41,11 @@ module ActionDispatch
     initializer "action_dispatch.configure" do |app|
       ActionDispatch::Http::URL.secure_protocol = app.config.force_ssl
       ActionDispatch::Http::URL.tld_length = app.config.action_dispatch.tld_length
-      ActionDispatch::Request.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
-      ActionDispatch::Request::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
+
+      ActiveSupport.on_load(:action_dispatch_request) do
+        self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
+        ActionDispatch::Request::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
+      end
 
       ActiveSupport.on_load(:action_dispatch_response) do
         self.default_charset = app.config.action_dispatch.default_charset || app.config.encoding
