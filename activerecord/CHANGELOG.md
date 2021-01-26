@@ -9,7 +9,7 @@
     #or
     ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = '--no-defaults --skip-add-drop-table'
     ```
-     
+
     And also use it passing a hash, with one or more keys, where the key
     is the adapter
 
@@ -17,7 +17,7 @@
     ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = {
       mysql2: ['--no-defaults', '--skip-add-drop-table'],
       postgres: '--no-tablespaces'
-    }    
+    }
     ```
 
     *Gustavo Gonzalez*
@@ -46,7 +46,7 @@
     # => ActiveRecord::StrictLoadingViolationError
 
     user = User.first
-    user.stict_loading!(false)
+    user.strict_loading!(false)
     user.articles
     # => #<ActiveRecord::Associations::CollectionProxy>
     ```
