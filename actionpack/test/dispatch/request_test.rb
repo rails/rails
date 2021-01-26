@@ -1301,7 +1301,7 @@ class RequestFormData < BaseRequestTest
   test "no Content-Type header is provided and the request_method is POST" do
     request = stub_request("REQUEST_METHOD" => "POST")
 
-    assert_equal "", request.media_type
+    assert_nil request.media_type
     assert_equal "POST", request.request_method
     assert_not_predicate request, :form_data?
   end

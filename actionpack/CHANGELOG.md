@@ -1,4 +1,6 @@
-## Unreleased
+*   Change `ActionDispatch::Request#media_type` to return `nil` when the request don't have a `Content-Type` header.
+
+    *Rafael Mendonça França*
 
 *   Fix error in `ActionController::LogSubscriber` that would happen when throwing inside a controller action.
 
