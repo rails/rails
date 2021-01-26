@@ -8,6 +8,7 @@ AllCops:
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
+  SuggestExtensions: false
   Exclude:
     - '**/tmp/**/*'
     - '**/templates/**/*'
