@@ -202,6 +202,10 @@ module Rails
         when "6.2"
           load_defaults "6.1"
 
+          if respond_to?(:action_dispatch)
+            action_dispatch.return_only_request_media_type_on_content_type = false
+          end
+
           if respond_to?(:action_view)
             action_view.button_to_generates_button_tag = true
             action_view.stylesheet_media_default = false

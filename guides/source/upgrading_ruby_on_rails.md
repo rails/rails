@@ -75,6 +75,28 @@ To allow you to upgrade to new defaults one by one, the update task has created 
 Upgrading from Rails 6.1 to Rails 6.2
 -------------------------------------
 
+### `ActionDispatch::Request#content_type` now returned Content-Type header as it is.
+
+Previously, `ActionDispatch::Request#content_type` returned value does NOT contain charset part.
+This behavior changed to returned Content-Type header containing charset part as it is.
+
+If you want just MIME type, please use `ActionDispatch::Request#media_type` instead.
+
+Before:
+
+```ruby
+request = ActionDispatch::Request.new("CONTENT_TYPE" => "text/csv; header=present; charset=utf-16", "REQUEST_METHOD" => "GET")
+request.content_type #=> "text/csv"
+```
+
+After:
+
+```ruby
+request = ActionDispatch::Request.new("Content-Type" => "text/csv; header=present; charset=utf-16", "REQUEST_METHOD" => "GET")
+request.content_type #=> "text/csv; header=present; charset=utf-16"
+request.media_type   #=> "text/csv"
+```
+
 ### Key generator digest class changing to use SHA256
 
 The default digest class for the key generator is changing from SHA1 to SHA256.

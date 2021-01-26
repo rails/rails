@@ -654,6 +654,10 @@ Defaults to `'signed cookie'`.
 
     Any exceptions that are not configured will be mapped to 500 Internal Server Error.
 
+* `config.action_dispatch.return_only_request_media_type_on_content_type` change the
+  return value of `ActionDispatch::Request#content_type` to the Content-Type
+  header without modification.
+
 * `config.action_dispatch.cookies_same_site_protection` configures the default
   value of the `SameSite` attribute when setting cookies. When set to `nil`, the
   `SameSite` attribute is not added. To allow the value of the `SameSite` attribute
@@ -1048,6 +1052,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.action_view.stylesheet_media_default` : `false`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA256`
+- `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
 
 #### For '6.1', defaults from previous versions below and:
 
@@ -1122,6 +1127,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_support.use_authenticated_message_encryption`: `false`
 - `config.active_support.hash_digest_class`: `OpenSSL::Digest::MD5`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA1`
+- `config.action_dispatch.return_only_request_media_type_on_content_type`: `true`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
 
 ### Configuring a Database
