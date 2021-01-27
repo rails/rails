@@ -1056,12 +1056,11 @@ class Person
 end
 ```
 
-The easiest way to add custom validators for validating individual attributes
-is with the convenient `ActiveModel::EachValidator`. In this case, the custom
+One convenient way to add custom validators for validating individual attributes
+is by subclassing `ActiveModel::EachValidator`. In this case, the custom
 validator class must implement a `validate_each` method which takes three
 arguments: record, attribute, and value. These correspond to the instance, the
-attribute to be validated, and the value of the attribute in the passed
-instance.
+name of the attribute, and the value of the attribute.
 
 ```ruby
 class EmailValidator < ActiveModel::EachValidator
@@ -1077,8 +1076,34 @@ class Person < ApplicationRecord
 end
 ```
 
-As shown in the example, you can also combine standard validations with your
-own custom validators.
+As shown in the `validates :email` options `presence: true, email: true`, you can also combine standard validators
+(`presence: true`) with custom validators (`email:  true`).
+
+You can also compose your own validator by combining existing validators. Do this by overriding the constructor and use
+the attribute names (`options[:attributes]`) and the model class (`options[:class]`).
+
+```ruby
+class MoneyValidator < ActiveModel::Validator
+  def initialize(options={})
+    super
+    options[:attributes].each do |attr_name|
+      options[:class].validates attr_name, numericality: { only_integer: true }
+      options[:class].validates "#{attr_name}_currency", inclusion: { in: %w(USD CNY JPY) }
+    end
+  end
+
+  def validate(_record)
+    # Method does nothing as all validation is currently delegated to validators in constructor.
+  end
+end
+
+class Product < ApplicationRecord
+  validates :price, money: true
+  # Above line replaces these two lines:
+  # validates :price, numericality: { only_integer: true }
+  # validates :price_currency, inclusion: { in: %w(USD CNY JPY) }
+end
+````
 
 [`ActiveModel::Validator`]: https://api.rubyonrails.org/classes/ActiveModel/Validator.html
 
