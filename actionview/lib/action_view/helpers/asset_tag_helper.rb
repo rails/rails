@@ -24,7 +24,7 @@ module ActionView
       mattr_accessor :image_loading
       mattr_accessor :image_decoding
       mattr_accessor :preload_links_header
-      mattr_accessor :stylesheet_media_default
+      mattr_accessor :apply_stylesheet_media_default
 
       # Returns an HTML script tag for each of the +sources+ provided.
       #
@@ -170,7 +170,7 @@ module ActionView
             "href" => href
           }.merge!(options)
 
-          if stylesheet_media_default && tag_options[:media].blank?
+          if apply_stylesheet_media_default && tag_options[:media].blank?
             tag_options[:media] = "screen"
           end
 
