@@ -604,10 +604,15 @@ module ActionView
       #   This is helpful when fragment-caching the form. Remote forms
       #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
-      # * <tt>:local</tt> - By default form submits via typical HTTP requests.
-      #   Enable remote and unobtrusive XHRs submits with <tt>local: false</tt>.
-      #   Remote forms may be enabled by default by setting
-      #   <tt>config.action_view.form_with_generates_remote_forms = true</tt>.
+      # * <tt>:local</tt> - Whether to use standard HTTP form submission.
+      #   When <tt>false</tt>, the form will be a "remote form" which means
+      #   form submission will be handled by rails UJS as an XHR.
+      #   If this option is not specified, the behavior is the inverse of the value of
+      #   <tt>config.action_view.form_with_generates_remote_forms</tt>.
+      #   As of Rails 6.1, that configuration option defaults to <tt>false</tt>
+      #   (which has the equivalent effect of passing <tt>local: true</tt>).
+      #   In previous versions of Rails, that configuration option defaults to
+      #   <tt>true</tt> (the equivalent of passing <tt>local: false</tt>).
       # * <tt>:skip_enforcing_utf8</tt> - If set to true, a hidden input with name
       #   utf8 is not output.
       # * <tt>:builder</tt> - Override the object used to build the form.
