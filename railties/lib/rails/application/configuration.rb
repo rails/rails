@@ -208,7 +208,7 @@ module Rails
 
           if respond_to?(:action_view)
             action_view.button_to_generates_button_tag = true
-            action_view.stylesheet_media_default = false
+            action_view.apply_stylesheet_media_default = false
           end
 
           if respond_to?(:active_support)

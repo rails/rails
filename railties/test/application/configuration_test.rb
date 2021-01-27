@@ -2455,23 +2455,23 @@ module ApplicationTests
       assert_equal false, ActionView::Helpers::AssetTagHelper.preload_links_header
     end
 
-    test "ActionView::Helpers::AssetTagHelper.stylesheet_media_default is true by default for upgraded apps" do
+    test "ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default is true by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
       app "development"
 
-      assert_equal true, ActionView::Helpers::AssetTagHelper.stylesheet_media_default
+      assert_equal true, ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default
     end
 
-    test "ActionView::Helpers::AssetTagHelper.stylesheet_media_default can be configured via config.action_view.stylesheet_media_default" do
+    test "ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default can be configured via config.action_view.apply_stylesheet_media_default" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
-        Rails.application.config.action_view.stylesheet_media_default = false
+        Rails.application.config.action_view.apply_stylesheet_media_default = false
       RUBY
 
       app "development"
 
-      assert_equal false, ActionView::Helpers::AssetTagHelper.stylesheet_media_default
+      assert_equal false, ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default
     end
 
     test "stylesheet_link_tag sets the Link header by default" do

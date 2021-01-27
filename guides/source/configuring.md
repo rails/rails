@@ -740,7 +740,7 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.button_to_generates_button_tag` determines whether `button_to` will render `<button>` element, regardless of whether or not the content is passed as the first argument or as a block.
 
-* `config.action_view.stylesheet_media_default` determines whether `stylesheet_link_tag` will render `screen` as the default value for the attribute `media` when it's not provided.
+* `config.action_view.apply_stylesheet_media_default` determines whether `stylesheet_link_tag` will render `screen` as the default value for the attribute `media` when it's not provided.
 
 ### Configuring Action Mailbox
 
@@ -1049,7 +1049,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 #### For '6.2', defaults from previous versions below and:
 - `config.action_view.button_to_generates_button_tag`: `true`
-- `config.action_view.stylesheet_media_default` : `false`
+- `config.action_view.apply_stylesheet_media_default` : `false`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
@@ -1115,7 +1115,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.action_view.form_with_generates_ids`: `false`
 - `config.action_view.preload_links_header`: `nil`
 - `config.action_view.button_to_generates_button_tag`: `false`
-- `config.action_view.stylesheet_media_default` : `true`
+- `config.action_view.apply_stylesheet_media_default` : `true`
 - `config.active_job.retry_jitter`: `0.0`
 - `config.active_job.skip_after_callbacks_if_terminated`: `false`
 - `config.action_mailbox.queues.incineration`: `:action_mailbox_incineration`

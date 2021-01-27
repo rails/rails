@@ -506,13 +506,13 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_link_tag_with_configured_stylesheet_media_default
-    original_default_media = ActionView::Helpers::AssetTagHelper.stylesheet_media_default
-    ActionView::Helpers::AssetTagHelper.stylesheet_media_default = true
+    original_default_media = ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default
+    ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default = true
 
     assert_dom_equal %(<link href="/file.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("/file")
     assert_dom_equal %(<link href="/file.css" media="all" rel="stylesheet" />), stylesheet_link_tag("/file", media: "all")
   ensure
-    ActionView::Helpers::AssetTagHelper.stylesheet_media_default = original_default_media
+    ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default = original_default_media
   end
 
   def test_javascript_include_tag_without_request
