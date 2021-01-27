@@ -36,13 +36,13 @@ You should choose webpacker over Sprockets on a new project if you want to use N
 
 If you are familiar with Sprockets, the following guide might give you some idea of how to translate. Please note that each tool has a slightly different structure, and the concepts don't directly map onto each other.
 
-|Task              | Sprockets         | Webpacker         |
-|------------------|-------------------|-------------------|
-|Attach JavaScript |javascript_link_tag|javascript_pack_tag|
-|Attach CSS        |stylesheet_link_tag|stylesheet_pack_tag|
-|Link to an image  |image_url          |image_pack_tag     |
-|Link to an asset  |asset_url          |asset_pack_tag     |
-|Require a script  |//= require        |import or require  |
+|Task              | Sprockets            | Webpacker         |
+|------------------|----------------------|-------------------|
+|Attach JavaScript |javascript_include_tag|javascript_pack_tag|
+|Attach CSS        |stylesheet_link_tag   |stylesheet_pack_tag|
+|Link to an image  |image_url             |image_pack_tag     |
+|Link to an asset  |asset_url             |asset_pack_tag     |
+|Require a script  |//= require           |import or require  |
 
 Installing Webpacker
 --------------------
