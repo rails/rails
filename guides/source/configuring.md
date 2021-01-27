@@ -736,6 +736,8 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.button_to_generates_button_tag` determines whether `button_to` will render `<button>` element, regardless of whether or not the content is passed as the first argument or as a block.
 
+* `config.action_view.stylesheet_media_default` determines whether `stylesheet_link_tag` will render `screen` as the default value for the attribute `media` when it's not provided.
+
 ### Configuring Action Mailbox
 
 `config.action_mailbox` provides the following configuration options:
@@ -1043,6 +1045,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 #### For '6.2', defaults from previous versions below and:
 - `config.action_view.button_to_generates_button_tag`: `true`
+- `config.action_view.stylesheet_media_default` : `false`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA256`
 
