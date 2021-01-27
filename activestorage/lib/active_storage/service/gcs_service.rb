@@ -39,6 +39,12 @@ module ActiveStorage
       end
     end
 
+    def download_with_index(key, index = 0, &block)
+      instrument :download_with_index, key: key, index: index do
+        stream(key, index: index, &block)
+      end
+    end
+
     def update_metadata(key, content_type:, disposition: nil, filename: nil)
       instrument :update_metadata, key: key, content_type: content_type, disposition: disposition do
         file_for(key).update do |file|
@@ -118,17 +124,18 @@ module ActiveStorage
       end
 
       # Reads the file for the given key in chunks, yielding each to the block.
-      def stream(key)
+      def stream(key, index: 0)
         file = file_for(key, skip_lookup: false)
 
         chunk_size = 5.megabytes
-        offset = 0
+        offset = index * chunk_size
 
         raise ActiveStorage::FileNotFoundError unless file.present?
 
         while offset < file.size
-          yield file.download(range: offset..(offset + chunk_size - 1)).string
+          yield file.download(range: offset..(offset + chunk_size - 1)).string, index
           offset += chunk_size
+          index += 1
         end
       end
 
