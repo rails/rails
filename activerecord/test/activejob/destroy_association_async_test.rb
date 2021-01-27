@@ -154,10 +154,8 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     parent.dl_keyed_has_many << [dl_keyed_has_many]
 
     parent.save!
-    DestroyAsyncParent.transaction do
-      parent.destroy
-      raise ActiveRecord::Rollback
-    end
+    parent.run_callbacks(:destroy)
+    parent.send(:enqueue_waiting_jobs)
 
     assert_difference -> { DlKeyedHasMany.count }, 0 do
       assert_raises ActiveRecord::DestroyAssociationAsyncError do
@@ -174,6 +172,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     parent.save!
 
     parent.run_callbacks(:destroy)
+    parent.send(:enqueue_waiting_jobs)
 
     assert_difference -> { Tag.count }, -0 do
       assert_raises ActiveRecord::DestroyAssociationAsyncError do
@@ -194,6 +193,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     parent.save!
 
     parent.run_callbacks(:destroy)
+    parent.send(:enqueue_waiting_jobs)
 
     assert_difference -> { DlKeyedHasOne.count }, -0 do
       assert_raises ActiveRecord::DestroyAssociationAsyncError do
@@ -213,6 +213,8 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     belongs.destroy_async_parent_soft_delete = parent
     belongs.save!
     belongs.run_callbacks(:destroy)
+    belongs.send(:enqueue_waiting_jobs)
+
 
     assert_raises ActiveRecord::DestroyAssociationAsyncError do
       perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob

@@ -11,6 +11,7 @@ require "active_record/relation/delegation"
 require "active_record/attributes"
 require "active_record/type_caster"
 require "active_record/database_configurations"
+require "active_record/after_commit_job_enqueue"
 
 module ActiveRecord #:nodoc:
   # = Active Record
@@ -310,6 +311,7 @@ module ActiveRecord #:nodoc:
     include SecureToken
     include SignedId
     include Suppressor
+    include AfterCommitJobEnqueue
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)

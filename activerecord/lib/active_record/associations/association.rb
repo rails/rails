@@ -332,9 +332,8 @@ module ActiveRecord
 
         def enqueue_destroy_association(options)
           job_class = owner.class
-          ActiveRecord::Base.transactional_job_enqueue options do
-            job_class.destroy_association_async_job&.perform_later(**options)
-          end
+
+          @owner.enqueue_transactional_job(job_class.destroy_association_async_job, options)
         end
 
         def inversable?(record)

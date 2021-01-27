@@ -305,7 +305,7 @@ ActiveRecord::Schema.define do
 
   create_table :destroy_async_parent_soft_deletes, force: true do |t|
     t.integer :tags_count, default: 0
-    t.boolean :deleted
+    t.boolean :deleted, default: false
   end
 
   create_table :dl_keyed_belongs_tos, force: true, id: false do |t|
@@ -316,7 +316,7 @@ ActiveRecord::Schema.define do
   create_table :dl_keyed_belongs_to_soft_deletes, force: true do |t|
     t.references :destroy_async_parent_soft_delete,
       index: { name: :soft_del_parent }
-    t.boolean :deleted
+    t.boolean :deleted, default: false
   end
 
   create_table :dl_keyed_has_ones, force: true, id: false do |t|
