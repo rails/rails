@@ -259,6 +259,15 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.download key, &block
   end
 
+  # Return the partial content of the file at the +key+ with an index, which starts from offset.
+  def download_with_index(index = 0, &block)
+    service.download_with_index(key, index, &block)
+  end
+
+  # Return the partial content in the byte +range+ of the file at the +key+.
+  def download_chunk(range)
+    service.download_chunk(key, range)
+  end
   # Downloads the blob to a tempfile on disk. Yields the tempfile.
   #
   # The tempfile's name is prefixed with +ActiveStorage-+ and the blob's ID. Its extension matches that of the blob.

@@ -68,6 +68,51 @@ module ActiveStorage::Service::SharedServiceTests
       end
     end
 
+    test "downloading with index default" do
+      key = SecureRandom.base58(24)
+      expected_chunks = [ "a" * 5.megabytes, "b" ]
+      actual_chunks = []
+      expected_indexes = [0, 1]
+      actual_indexes = []
+
+      begin
+        @service.upload key, StringIO.new(expected_chunks.join)
+
+        @service.download_with_index key do |chunk, index|
+          actual_chunks << chunk
+          actual_indexes << index
+        end
+
+        assert_equal expected_chunks, actual_chunks, "Downloaded chunks did not match uploaded data"
+        assert_equal expected_indexes, actual_indexes, "Downloaded indexes did not match uploaded data"
+      ensure
+        @service.delete key
+      end
+    end
+
+    test "downloading with index value" do
+      key = SecureRandom.base58(24)
+      all_the_chunks = [ "a" * 5.megabytes, "b" ]
+      expected_chunks = ["b"]
+      actual_chunks = []
+      expected_indexes = [1]
+      actual_indexes = []
+      index = 1
+
+      begin
+        @service.upload key, StringIO.new(all_the_chunks.join)
+
+        @service.download_with_index(key, index) do |chunk, i|
+          actual_chunks << chunk
+          actual_indexes << i
+        end
+
+        assert_equal expected_chunks, actual_chunks, "Downloaded chunks did not match uploaded data"
+        assert_equal expected_indexes, actual_indexes, "Downloaded indexes did not match uploaded data"
+      ensure
+        @service.delete key
+      end
+    end
 
     test "downloading in chunks" do
       key = SecureRandom.base58(24)

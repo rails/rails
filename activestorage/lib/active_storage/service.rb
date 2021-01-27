@@ -81,6 +81,11 @@ module ActiveStorage
       raise NotImplementedError
     end
 
+    # Return the partial content of the file at the +key+ with an index, which starts from offset.
+    def download_with_index(key, index = 0)
+      raise NotImplementedError
+    end
+
     # Return the partial content in the byte +range+ of the file at the +key+.
     def download_chunk(key, range)
       raise NotImplementedError

@@ -49,6 +49,12 @@ module ActiveStorage
       end
     end
 
+    def download_with_index(key, index = 0, &block)
+      instrument :download_with_index, key: key, index: index do
+        stream(key, index: index, &block)
+      end
+    end
+
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
         object_for(key).get(range: "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}").body.string.force_encoding(Encoding::BINARY)
@@ -130,17 +136,18 @@ module ActiveStorage
       end
 
       # Reads the object for the given key in chunks, yielding each to the block.
-      def stream(key)
+      def stream(key, index: 0)
         object = object_for(key)
 
         chunk_size = 5.megabytes
-        offset = 0
+        offset = index * chunk_size
 
         raise ActiveStorage::FileNotFoundError unless object.exists?
 
         while offset < object.content_length
-          yield object.get(range: "bytes=#{offset}-#{offset + chunk_size - 1}").body.string.force_encoding(Encoding::BINARY)
+          yield object.get(range: "bytes=#{offset}-#{offset + chunk_size - 1}").body.string.force_encoding(Encoding::BINARY), index
           offset += chunk_size
+          index += 1
         end
       end
   end

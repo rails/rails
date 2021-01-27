@@ -37,6 +37,12 @@ module ActiveStorage
       end
     end
 
+    def download_with_index(key, index = 0, &block)
+      instrument :download_with_index, key: key, index: index do
+        stream(key, index: index, &block)
+      end
+    end
+
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
         File.open(path_for(key), "rb") do |file|
@@ -134,11 +140,16 @@ module ActiveStorage
         )
       end
 
+      def stream(key, index: 0)
+        chunk_size = 5.megabytes
+        offset = index * chunk_size
 
-      def stream(key)
         File.open(path_for(key), "rb") do |file|
-          while data = file.read(5.megabytes)
-            yield data
+          file.seek offset
+
+          while chunk = file.read(chunk_size)
+            yield chunk, index
+            index += 1
           end
         end
       rescue Errno::ENOENT
