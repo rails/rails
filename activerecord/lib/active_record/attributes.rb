@@ -266,6 +266,12 @@ module ActiveRecord
         end
       end
 
+      def decorate_attribute(name, type_name, default: NO_DEFAULT_PROVIDED, **options)
+        attribute(name, default: default) do |subtype|
+          Type.lookup(type_name, **options, subtype: subtype, adapter: Type.adapter_name_from(self))
+        end
+      end
+
       private
         NO_DEFAULT_PROVIDED = Object.new # :nodoc:
         private_constant :NO_DEFAULT_PROVIDED

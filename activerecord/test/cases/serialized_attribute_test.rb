@@ -424,6 +424,24 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     end
   end
 
+  def test_decorate_attribute_on_serialized_attribute
+    old_registry = ActiveRecord::Type.registry
+    ActiveRecord::Type.registry = ActiveRecord::Type.registry.dup
+    ActiveRecord::Type.register :encrypted, EncryptedType
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      store :content
+      decorate_attribute :content, :encrypted
+    end
+
+    topic = klass.create!(content: { trial: true })
+
+    assert_equal({ "trial" => true }, topic.content)
+  ensure
+    ActiveRecord::Type.registry = old_registry
+  end
+
   def test_decorated_type_with_type_for_attribute
     old_registry = ActiveRecord::Type.registry
     ActiveRecord::Type.registry = ActiveRecord::Type.registry.dup
