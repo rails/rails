@@ -49,6 +49,7 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
     end
 
     def acceptable_content?(token)
-      token[:content_type] == request.content_type && token[:content_length] == request.content_length
+      media_type = token[:content_type][/^([^,;]*)/]
+      media_type == request.content_mime_type && token[:content_length] == request.content_length
     end
 end

@@ -102,6 +102,16 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     assert_equal data, blob.download
   end
 
+  test "directly uploading blob with provided content type including encoding" do
+    data = "Something else entirely!"
+    blob = create_blob_before_direct_upload(
+      byte_size: data.size, checksum: Digest::MD5.base64digest(data), content_type: "text/plain; charset=UTF-8")
+
+    put blob.service_url_for_direct_upload, params: data, headers: { "Content-Type" => "text/plain; charset=UTF-8" }
+    assert_response :no_content
+    assert_equal data, blob.download
+  end
+
   test "directly uploading blob with mismatched content length" do
     data = "Something else entirely!"
     blob = create_blob_before_direct_upload byte_size: data.size - 1, checksum: Digest::MD5.base64digest(data)
