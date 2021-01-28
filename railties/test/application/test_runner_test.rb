@@ -686,7 +686,7 @@ module ApplicationTests
     def test_rake_passes_TESTOPTS_to_minitest
       create_test_file :models, "account"
       output = Dir.chdir(app_path) { `bin/rake test TESTOPTS=-v` }
-      assert_match "AccountTest#test_truth", output, "passing TEST= should run selected test"
+      assert_match "AccountTest#test_truth", output, "passing TESTOPTS= should be sent to the test runner"
     end
 
     def test_running_with_ruby_gets_test_env_by_default
@@ -743,6 +743,28 @@ module ApplicationTests
       output = Dir.chdir(app_path) { `bin/rake db:migrate test:models TESTOPTS='-v' && echo ".tables" | rails dbconsole` }
       assert_match "AccountTest#test_truth", output
       assert_match "ar_internal_metadata", output
+    end
+
+    def test_rake_runs_tests_before_other_tasks_when_specified
+      app_file "Rakefile", <<~RUBY, "a"
+        task :echo do
+          puts "echo"
+        end
+      RUBY
+      output = Dir.chdir(app_path) { `bin/rake test echo` }
+      assert_equal "echo", output.split("\n").last
+    end
+
+    def test_rake_exits_on_failure
+      create_test_file :models, "post", pass: false
+      app_file "Rakefile", <<~RUBY, "a"
+        task :echo do
+          puts "echo"
+        end
+      RUBY
+      output = Dir.chdir(app_path) { `bin/rake test echo` }
+      assert_no_match "echo", output
+      assert_not_predicate $?, :success?
     end
 
     def test_warnings_option
