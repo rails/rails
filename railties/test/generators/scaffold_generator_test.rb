@@ -282,7 +282,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Views
     assert_file "app/views/admin/roles/index.html.erb" do |content|
-      assert_match("'New role', new_admin_role_path", content)
+      assert_match(%("New role", new_admin_role_path), content)
     end
 
     %w(edit new show _form).each do |view|
