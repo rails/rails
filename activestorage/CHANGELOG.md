@@ -1,5 +1,5 @@
 *   After setting `config.active_storage.resolve_model_to_route = :rails_storage_proxy`
-    `rails_blob_path` will generate proxy URLs by default.
+    `rails_blob_path` and `rails_representation_path` will generate proxy URLs by default.
 
     *Ali Ismayilov*
 
