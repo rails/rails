@@ -199,7 +199,7 @@ Webpacker has three environments by default `development`, `test`, and `producti
 
 Webpacker ships with two binstub files to run in development: `./bin/webpack` and `./bin/webpack-dev-server`. Both are thin wrappers around the standard `webpack.js` and `webpack-dev-server.js` executables and ensure that the right configuration files and environmental variables are loaded based on your environment.
 
-By default, Webpacker compiles automatically on demand in development when a Rails page loads. You can change this by changing to `compile: false` in the `config/webpacker.yml` file. This means that you don't have to run any separate processes. Compilation errors are logged to the standard Rails log. You can, however, run `bin/webpack` to force compilation of your packs.
+By default, Webpacker compiles automatically on demand in development when a Rails page loads. This means that you don't have to run any separate processes, and compilation errors will be logged to the standard Rails log. You can change this by changing to `compile: false` in the `config/webpacker.yml` file. Running `bin/webpack` will force compilation of your packs.
 
 If you want to use live code reloading, or you have enough JavaScript that on-demand compilation is too slow, you'll need to run `./bin/webpack-dev-server` or `ruby ./bin/webpack-dev-server`. This process will watch for changes in the `app/javascript/packs/*.js` files and automatically recompile and reload the browser to match.
 
