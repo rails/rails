@@ -5,7 +5,7 @@ export class DirectUploadController {
   constructor(input, file) {
     this.input = input
     this.file = file
-    this.directUpload = new DirectUpload(this.file, this.url, this.serviceName, this)
+    this.directUpload = new DirectUpload(this.file, this.url, this.directUploadToken, this.attachmentName, this)
     this.dispatch("initialize")
   }
 
@@ -41,8 +41,12 @@ export class DirectUploadController {
     return this.input.getAttribute("data-direct-upload-url")
   }
 
-  get serviceName() {
-    return this.input.getAttribute("data-direct-upload-service")
+  get directUploadToken() {
+    return this.input.getAttribute("data-direct-upload-token")
+  }
+
+  get attachmentName() {
+    return this.input.getAttribute("data-direct-upload-attachment-name")
   }
 
   dispatch(name, detail = {}) {

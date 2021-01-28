@@ -26,4 +26,7 @@ module ActiveStorage
 
   # Raised when a Previewer is unable to generate a preview image.
   class PreviewError < Error; end
+
+  # Raised when direct upload fails because of wrong token
+  class WrongDirectUploadTokenError < Error; end
 end

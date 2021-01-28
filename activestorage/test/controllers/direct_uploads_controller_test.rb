@@ -138,10 +138,9 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       "platform": "my_platform",
       "library_ID": "12345"
     }
-    service_name = ActiveStorage.verifier.generate("local")
 
     post rails_direct_uploads_url, params: { blob: {
-      filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain", metadata: metadata, service_name: service_name } }
+      filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain", metadata: metadata } }
 
     @response.parsed_body.tap do |details|
       assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
@@ -150,13 +149,12 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       assert_equal checksum, details["checksum"]
       assert_equal metadata, details["metadata"].transform_keys(&:to_sym)
       assert_equal "text/plain", details["content_type"]
-      assert_equal "local", details["service_name"]
       assert_match(/rails\/active_storage\/disk/, details["direct_upload"]["url"])
       assert_equal({ "Content-Type" => "text/plain" }, details["direct_upload"]["headers"])
     end
   end
 
-  test "creating new direct upload does not include root in json" do
+  test "handling direct upload with custom service name" do
     checksum = OpenSSL::Digest::MD5.base64digest("Hello")
     metadata = {
       "foo": "bar",
@@ -166,14 +164,18 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       "library_ID": "12345"
     }
 
-    set_include_root_in_json(true) do
-      post rails_direct_uploads_url, params: { blob: {
-        filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain", metadata: metadata } }
-    end
+    post rails_direct_uploads_url, params: { blob: {
+      filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain", metadata: metadata } }
 
     @response.parsed_body.tap do |details|
-      assert_nil details["blob"]
-      assert_not_nil details["id"]
+      assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
+      assert_equal "hello.txt", details["filename"]
+      assert_equal 6, details["byte_size"]
+      assert_equal checksum, details["checksum"]
+      assert_equal metadata, details["metadata"].transform_keys(&:to_sym)
+      assert_equal "text/plain", details["content_type"]
+      assert_match(/rails\/active_storage\/disk/, details["direct_upload"]["url"])
+      assert_equal({ "Content-Type" => "text/plain" }, details["direct_upload"]["headers"])
     end
   end
 

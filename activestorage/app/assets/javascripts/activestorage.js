@@ -544,7 +544,7 @@
     }
   }
   var BlobRecord = function() {
-    function BlobRecord(file, checksum, url, serviceName) {
+    function BlobRecord(file, checksum, url, directUploadToken, attachmentName) {
       var _this = this;
       classCallCheck(this, BlobRecord);
       this.file = file;
@@ -553,7 +553,8 @@
         content_type: file.type || "application/octet-stream",
         byte_size: file.size,
         checksum: checksum,
-        service_name: serviceName
+        direct_upload_token: directUploadToken,
+        attachment_name: attachmentName
       };
       this.xhr = new XMLHttpRequest();
       this.xhr.open("POST", url, true);
@@ -672,12 +673,13 @@
   }();
   var id = 0;
   var DirectUpload = function() {
-    function DirectUpload(file, url, serviceName, delegate) {
+    function DirectUpload(file, url, serviceName, attachmentName, delegate) {
       classCallCheck(this, DirectUpload);
       this.id = ++id;
       this.file = file;
       this.url = url;
       this.serviceName = serviceName;
+      this.attachmentName = attachmentName;
       this.delegate = delegate;
     }
     createClass(DirectUpload, [ {
@@ -689,7 +691,7 @@
             callback(error);
             return;
           }
-          var blob = new BlobRecord(_this.file, checksum, _this.url, _this.serviceName);
+          var blob = new BlobRecord(_this.file, checksum, _this.url, _this.serviceName, _this.attachmentName);
           notify(_this.delegate, "directUploadWillCreateBlobWithXHR", blob.xhr);
           blob.create(function(error) {
             if (error) {
@@ -724,7 +726,7 @@
       classCallCheck(this, DirectUploadController);
       this.input = input;
       this.file = file;
-      this.directUpload = new DirectUpload(this.file, this.url, this.serviceName, this);
+      this.directUpload = new DirectUpload(this.file, this.url, this.directUploadToken, this.attachmentName, this);
       this.dispatch("initialize");
     }
     createClass(DirectUploadController, [ {
@@ -801,9 +803,14 @@
         return this.input.getAttribute("data-direct-upload-url");
       }
     }, {
-      key: "serviceName",
+      key: "directUploadToken",
       get: function get$$1() {
-        return this.input.getAttribute("data-direct-upload-service");
+        return this.input.getAttribute("data-direct-upload-token");
+      }
+    }, {
+      key: "attachmentName",
+      get: function get$$1() {
+        return this.input.getAttribute("data-direct-upload-attachment-name");
       }
     } ]);
     return DirectUploadController;

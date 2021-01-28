@@ -955,7 +955,13 @@ module ActionView
               attachment_reflection = options[:object].class.reflect_on_attachment(name)
 
               if service_name = attachment_reflection.options[:service_name]
-                options["data-direct-upload-service"] = ActiveStorage.verifier.generate(service_name)
+                class_with_attachment = "#{options[:object].class.name}##{name}"
+                options["data-direct-upload-attachment-name"] = class_with_attachment
+                options["data-direct-upload-token"] = ActiveStorage::DirectUploadToken.generate_direct_upload_token(
+                  class_with_attachment,
+                  service_name,
+                  session
+                )
               end
             end
           end
