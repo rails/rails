@@ -605,10 +605,11 @@ module ActionView
       #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
       # * <tt>:local</tt> - Whether to use standard HTTP form submission.
-      #   When <tt>false</tt>, the form will be a "remote form" which means
-      #   form submission will be handled by rails UJS as an XHR.
-      #   If this option is not specified, the behavior is the inverse of the value of
-      #   <tt>config.action_view.form_with_generates_remote_forms</tt>.
+      #   When set to <tt>true</tt>, the form is submitted via standard HTTP.
+      #   When set to <tt>false</tt>, the form is submitted as a "remote form", which 
+      #   is handled by Rails UJS as an XHR. When unspecified, the behavior is derived 
+      #   from <tt>config.action_view.form_with_generates_remote_forms</tt> where the 
+      #   config's value is actually the inverse of what <tt>local</tt>'s value would be.
       #   As of Rails 6.1, that configuration option defaults to <tt>false</tt>
       #   (which has the equivalent effect of passing <tt>local: true</tt>).
       #   In previous versions of Rails, that configuration option defaults to
