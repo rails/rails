@@ -204,8 +204,8 @@ module ActiveRecord
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |label, value|
-            label = label.to_s
             enum_values[label] = value
+            label = label.to_s
 
             value_method_name = "#{prefix}#{label}#{suffix}"
             value_method_names << value_method_name
