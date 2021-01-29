@@ -1,3 +1,8 @@
+*   `ActiveStorage::PreviewError` is raised when a previewer is unable to generate a preview image.
+
+    *Alex Robbin*
+
+
 ## Rails 6.1.3 (February 17, 2021) ##
 
 *   No changes.
