@@ -31,4 +31,12 @@ class ActiveStorage::Previewer::MuPDFPreviewerTest < ActiveSupport::TestCase
       assert_equal 145, image.height
     end
   end
+
+  test "previewing a PDF that can't be previewed" do
+    blob = create_file_blob(filename: "video.mp4", content_type: "application/pdf")
+
+    assert_raises ActiveStorage::PreviewCaptureError do
+      ActiveStorage::Previewer::MuPDFPreviewer.new(blob).preview
+    end
+  end
 end

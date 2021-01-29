@@ -71,6 +71,9 @@ module ActiveStorage
       def capture(*argv, to:)
         to.binmode
         IO.popen(argv, err: File::NULL) { |out| IO.copy_stream(out, to) }
+
+        raise ActiveStorage::PreviewCaptureError.new(argv, $?.exitstatus) unless $?.success?
+
         to.rewind
       end
 

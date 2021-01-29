@@ -1,3 +1,7 @@
+*   Raise `ActiveStorage::PreviewCaptureError` when a `Previewer` is unable to capture a preview.
+
+    *Alex Robbin*
+
 *   Add ability to use pre-defined variants.
 
     ```ruby

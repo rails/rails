@@ -6,12 +6,10 @@ require "database/setup"
 require "active_storage/previewer/video_previewer"
 
 class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase
-  setup do
-    @blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
-  end
-
   test "previewing an MP4 video" do
-    ActiveStorage::Previewer::VideoPreviewer.new(@blob).preview do |attachable|
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+
+    ActiveStorage::Previewer::VideoPreviewer.new(blob).preview do |attachable|
       assert_equal "image/jpeg", attachable[:content_type]
       assert_equal "video.jpg", attachable[:filename]
 
@@ -19,6 +17,14 @@ class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase
       assert_equal 640, image.width
       assert_equal 480, image.height
       assert_equal "image/jpeg", image.mime_type
+    end
+  end
+
+  test "previewing a video that can't be previewed" do
+    blob = create_file_blob(filename: "report.pdf", content_type: "video/mp4")
+
+    assert_raises ActiveStorage::PreviewCaptureError do
+      ActiveStorage::Previewer::VideoPreviewer.new(blob).preview
     end
   end
 end

@@ -23,4 +23,11 @@ module ActiveStorage
   # Raised when ActiveStorage::Blob#download is called on a blob where the
   # backing file is no longer present in its service.
   class FileNotFoundError < Error; end
+
+  # Raised when ActiveStorage::Previewer#capture is unable to generate a preview image.
+  class PreviewCaptureError < Error
+    def initialize(args, exit_code)
+      super "Failed to generate preview with args: #{args.inspect}. Exited with code: #{exit_code}"
+    end
+  end
 end
