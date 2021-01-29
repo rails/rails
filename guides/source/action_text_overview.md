@@ -106,9 +106,14 @@ To accept the rich text content, all you have to do is permit the referenced att
 ```ruby
 class MessagesController < ApplicationController
   def create
-    message = Message.create! params.require(:message).permit(:title, :content)
+    message = Message.create!(message_params) 
     redirect_to message
   end
+  
+  private
+  def message_params
+    params.require(:message).permit(:title, :content)
+  end    
 end
 ```
 
