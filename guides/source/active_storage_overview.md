@@ -352,6 +352,22 @@ class User < ApplicationRecord
 end
 ```
 
+You can configure specific variants per attachment by calling the `variant` method on yielded attachable object:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar do |attachable|
+    attachable.variant :thumb, resize: "100x100"
+  end
+end
+```
+
+Call `avatar.variant(:thumb)` to get a thumb variant of an avatar:
+
+```ruby
+<%= image_tag user.avatar.variant(:thumb) %>
+```
+
 [`has_one_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached
 [Attached::One#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attach
 [Attached::One#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attached-3F
@@ -406,9 +422,20 @@ class Message < ApplicationRecord
 end
 ```
 
+Configuring specific variants is done the same way as `has_one_attached`, by calling the `variant` method on the yielded attachable object:
+
+```ruby
+class Message < ApplicationRecord
+  has_many_attached :images do |attachable|
+    attachable.variant :thumb, resize: "100x100"
+  end
+end
+```
+
 [`has_many_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_many_attached
 [Attached::Many#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attach
 [Attached::Many#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attached-3F
+
 
 ### Attaching File/IO Objects
 
