@@ -11,6 +11,15 @@ class CodeStatisticsCalculator #:nodoc:
       class: /^\s*class\s+[_A-Z]/,
       method: /^\s*def\s+[_a-z]/,
     },
+    erb: {
+      line_comment: %r{((^\s*<%#.*%>)|(<!--.*-->))},
+    },
+    css: {
+      line_comment: %r{^\s*/\*.*\*/},
+    },
+    scss: {
+      line_comment: %r{((^\s*/\*.*\*/)|(^\s*//))},
+    },
     js: {
       line_comment: %r{^\s*//},
       begin_block_comment: %r{^\s*/\*},
@@ -82,7 +91,7 @@ class CodeStatisticsCalculator #:nodoc:
       if file_path.end_with? "_test.rb"
         :minitest
       else
-        File.extname(file_path).sub(/\A\./, "").downcase.to_sym
+        File.extname(file_path).delete_prefix(".").downcase.to_sym
       end
     end
 end

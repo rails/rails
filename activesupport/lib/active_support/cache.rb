@@ -22,7 +22,12 @@ module ActiveSupport
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
-    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl]
+    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :expire_in, :expired_in, :race_condition_ttl, :coder, :skip_nil]
+
+    # Mapping of canonical option names to aliases that a store will recognize.
+    OPTION_ALIASES = {
+      expires_in: [:expire_in, :expired_in]
+    }.freeze
 
     module Strategy
       autoload :LocalCache, "active_support/cache/strategy/local_cache"
@@ -158,6 +163,8 @@ module ActiveSupport
     # threshold is configurable with the <tt>:compress_threshold</tt> option,
     # specified in bytes.
     class Store
+      DEFAULT_CODER = Marshal
+
       cattr_accessor :logger, instance_writer: true
 
       attr_reader :silence, :options
@@ -184,7 +191,8 @@ module ActiveSupport
       # except for <tt>:namespace</tt> which can be used to set the global
       # namespace for the cache.
       def initialize(options = nil)
-        @options = options ? options.dup : {}
+        @options = options ? normalize_options(options) : {}
+        @coder = @options.delete(:coder) { self.class::DEFAULT_CODER } || NullCoder
       end
 
       # Silences the logger.
@@ -246,7 +254,9 @@ module ActiveSupport
       # All caches support auto-expiring content after a specified number of
       # seconds. This value can be specified as an option to the constructor
       # (in which case all entries will be affected), or it can be supplied to
-      # the +fetch+ or +write+ method to effect just one entry.
+      # the +fetch+ or +write+ method to affect just one entry.
+      # <tt>:expire_in</tt> and <tt>:expired_in</tt> are aliases for
+      # <tt>:expires_in</tt>.
       #
       #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 5.minutes)
       #   cache.write(key, value, expires_in: 1.minute) # Set a lower value for one entry
@@ -314,14 +324,14 @@ module ActiveSupport
       #     :bar
       #   end
       #   cache.fetch('foo') # => "bar"
-      def fetch(name, options = nil)
+      def fetch(name, options = nil, &block)
         if block_given?
           options = merged_options(options)
           key = normalize_key(name, options)
 
           entry = nil
           instrument(:read, name, options) do |payload|
-            cached_entry = read_entry(key, **options) unless options[:force]
+            cached_entry = read_entry(key, **options, event: payload) unless options[:force]
             entry = handle_expired_entry(cached_entry, key, options)
             entry = nil if entry && entry.mismatched?(normalize_version(name, options))
             payload[:super_operation] = :fetch if payload
@@ -331,7 +341,7 @@ module ActiveSupport
           if entry
             get_entry_value(entry, name, options)
           else
-            save_block_result_to_cache(name, **options) { |_name| yield _name }
+            save_block_result_to_cache(name, options, &block)
           end
         elsif options && options[:force]
           raise ArgumentError, "Missing block: Calling `Cache#fetch` with `force: true` requires a block."
@@ -355,7 +365,7 @@ module ActiveSupport
         version = normalize_version(name, options)
 
         instrument(:read, name, options) do |payload|
-          entry = read_entry(key, **options)
+          entry = read_entry(key, **options, event: payload)
 
           if entry
             if entry.expired?
@@ -387,7 +397,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument :read_multi, names, options do |payload|
-          read_multi_entries(names, **options).tap do |results|
+          read_multi_entries(names, **options, event: payload).tap do |results|
             payload[:hits] = results.keys
           end
         end
@@ -497,8 +507,8 @@ module ActiveSupport
       def exist?(name, options = nil)
         options = merged_options(options)
 
-        instrument(:exist?, name) do
-          entry = read_entry(normalize_key(name, options), **options)
+        instrument(:exist?, name) do |payload|
+          entry = read_entry(normalize_key(name, options), **options, event: payload)
           (entry && !entry.expired? && !entry.mismatched?(normalize_version(name, options))) || false
         end
       end
@@ -581,6 +591,14 @@ module ActiveSupport
           raise NotImplementedError.new
         end
 
+        def serialize_entry(entry)
+          @coder.dump(entry)
+        end
+
+        def deserialize_entry(payload)
+          payload.nil? ? nil : @coder.load(payload)
+        end
+
         # Reads multiple entries from the cache implementation. Subclasses MAY
         # implement this method.
         def read_multi_entries(names, **options)
@@ -617,18 +635,13 @@ module ActiveSupport
         # Deletes multiples entries in the cache implementation. Subclasses MAY
         # implement this method.
         def delete_multi_entries(entries, **options)
-          entries.inject(0) do |sum, key|
-            if delete_entry(key, **options)
-              sum + 1
-            else
-              sum
-            end
-          end
+          entries.count { |key| delete_entry(key, **options) }
         end
 
         # Merges the default options with ones specific to a method call.
         def merged_options(call_options)
           if call_options
+            call_options = normalize_options(call_options)
             if options.empty?
               call_options
             else
@@ -637,6 +650,17 @@ module ActiveSupport
           else
             options
           end
+        end
+
+        # Normalize aliased options to their canonical form
+        def normalize_options(options)
+          options = options.dup
+          OPTION_ALIASES.each do |canonical_name, aliases|
+            alias_key = aliases.detect { |key| options.key?(key) }
+            options[canonical_name] ||= options[alias_key] if alias_key
+            options.except!(*aliases)
+          end
+          options
         end
 
         # Expands and namespaces the cache key. May be overridden by
@@ -687,7 +711,7 @@ module ActiveSupport
               expanded_key(key.first)
             end
           when Hash
-            key.collect { |k, v| "#{k}=#{v}" }.sort
+            key.collect { |k, v| "#{k}=#{v}" }.sort!
           else
             key
           end.to_param
@@ -700,7 +724,7 @@ module ActiveSupport
         def expanded_version(key)
           case
           when key.respond_to?(:cache_version) then key.cache_version.to_param
-          when key.is_a?(Array)                then key.map { |element| expanded_version(element) }.compact.to_param
+          when key.is_a?(Array)                then key.map { |element| expanded_version(element) }.tap(&:compact!).to_param
           when key.respond_to?(:to_a)          then expanded_version(key.to_a)
           end
         end
@@ -710,7 +734,7 @@ module ActiveSupport
             logger.debug "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}"
           end
 
-          payload = { key: key }
+          payload = { key: key, store: self.class.name }
           payload.merge!(options) if options.is_a?(Hash)
           ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) { yield(payload) }
         end
@@ -736,7 +760,7 @@ module ActiveSupport
           entry.value
         end
 
-        def save_block_result_to_cache(name, **options)
+        def save_block_result_to_cache(name, options)
           result = instrument(:generate, name, options) do
             yield(name)
           end
@@ -744,6 +768,18 @@ module ActiveSupport
           write(name, result, options) unless result.nil? && options[:skip_nil]
           result
         end
+    end
+
+    module NullCoder # :nodoc:
+      class << self
+        def load(payload)
+          payload
+        end
+
+        def dump(entry)
+          entry
+        end
+      end
     end
 
     # This class is used to represent cache entries. Cache entries have a value, an optional
@@ -796,8 +832,8 @@ module ActiveSupport
       end
 
       # Returns the size of the cached value. This could be less than
-      # <tt>value.size</tt> if the data is compressed.
-      def size
+      # <tt>value.bytesize</tt> if the data is compressed.
+      def bytesize
         case value
         when NilClass
           0

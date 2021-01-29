@@ -45,10 +45,22 @@ module ActionDispatch
         assert_equal 1, @routes.anchored_routes.length
         assert_empty @routes.custom_routes
 
-        mapper.get "/hello/:who", to: "foo#bar", as: "bar", who: /\d/
+        mapper.get "/not_anchored/hello/:who-notanchored", to: "foo#bar", as: "bar", who: /\d/, anchor: false
 
         assert_equal 1, @routes.custom_routes.length
         assert_equal 1, @routes.anchored_routes.length
+      end
+
+      def test_custom_anchored_not_partition_route
+        mapper.get "/foo/:bar", to: "foo#bar", as: "aaron"
+
+        assert_equal 1, @routes.anchored_routes.length
+        assert_empty @routes.custom_routes
+
+        mapper.get "/:user/:repo", to: "foo#bar", as: "bar", repo: /[\w.]+/
+
+        assert_equal 2, @routes.anchored_routes.length
+        assert_empty @routes.custom_routes
       end
 
       def test_first_name_wins

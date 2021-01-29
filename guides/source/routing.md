@@ -83,7 +83,9 @@ NOTE: The `Rails.application.routes.draw do ... end` block that wraps your route
 Resource Routing: the Rails Default
 -----------------------------------
 
-Resource routing allows you to quickly declare all of the common routes for a given resourceful controller. Instead of declaring separate routes for your `index`, `show`, `new`, `edit`, `create`, `update` and `destroy` actions, a resourceful route declares them in a single line of code.
+Resource routing allows you to quickly declare all of the common routes for a given resourceful controller. A single call to [`resources`][] can declare all of the necessary routes for your `index`, `show`, `new`, `edit`, `create`, `update`, and `destroy` actions.
+
+[`resources`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-resources
 
 ### Resources on the Web
 
@@ -200,7 +202,7 @@ As with plural resources, the same helpers ending in `_url` will also include th
 
 ### Controller Namespaces and Routing
 
-You may wish to organize groups of controllers under a namespace. Most commonly, you might group a number of administrative controllers under an `Admin::` namespace. You would place these controllers under the `app/controllers/admin` directory, and you can group them together in your router:
+You may wish to organize groups of controllers under a namespace. Most commonly, you might group a number of administrative controllers under an `Admin::` namespace, and place these controllers under the `app/controllers/admin` directory. You can route to such a group by using a [`namespace`][] block:
 
 ```ruby
 namespace :admin do
@@ -220,7 +222,7 @@ This will create a number of routes for each of the `articles` and `comments` co
 | PATCH/PUT | /admin/articles/:id      | admin/articles#update  | admin_article_path(:id)      |
 | DELETE    | /admin/articles/:id      | admin/articles#destroy | admin_article_path(:id)      |
 
-If you want to route `/articles` (without the prefix `/admin`) to `Admin::ArticlesController`, you could use:
+If instead you want to route `/articles` (without the prefix `/admin`) to `Admin::ArticlesController`, you can specify the module with a [`scope`][] block:
 
 ```ruby
 scope module: 'admin' do
@@ -228,13 +230,13 @@ scope module: 'admin' do
 end
 ```
 
-or, for a single case:
+This can also be done for a single route:
 
 ```ruby
 resources :articles, module: 'admin'
 ```
 
-If you want to route `/admin/articles` to `ArticlesController` (without the `Admin::` module prefix), you could use:
+If instead you want to route `/admin/articles` to `ArticlesController` (without the `Admin::` module prefix), you can specify the path with a `scope` block:
 
 ```ruby
 scope '/admin' do
@@ -242,13 +244,13 @@ scope '/admin' do
 end
 ```
 
-or, for a single case:
+This can also be done for a single route:
 
 ```ruby
 resources :articles, path: '/admin/articles'
 ```
 
-In each of these cases, the named routes remain the same as if you did not use `scope`. In the last case, the following paths map to `ArticlesController`:
+In both of these cases, the named route helpers remain the same as if you did not use `scope`. In the last case, the following paths map to `ArticlesController`:
 
 | HTTP Verb | Path                     | Controller#Action    | Named Route Helper     |
 | --------- | ------------------------ | -------------------- | ---------------------- |
@@ -260,7 +262,10 @@ In each of these cases, the named routes remain the same as if you did not use `
 | PATCH/PUT | /admin/articles/:id      | articles#update      | article_path(:id)      |
 | DELETE    | /admin/articles/:id      | articles#destroy     | article_path(:id)      |
 
-TIP: _If you need to use a different controller namespace inside a `namespace` block you can specify an absolute controller path, e.g: `get '/foo', to: '/foo#index'`._
+TIP: If you need to use a different controller namespace inside a `namespace` block you can specify an absolute controller path, e.g: `get '/foo', to: '/foo#index'`.
+
+[`namespace`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Scoping.html#method-i-namespace
+[`scope`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Scoping.html#method-i-scope
 
 ### Nested Resources
 
@@ -318,7 +323,7 @@ Deeply-nested resources quickly become cumbersome. In this case, for example, th
 
 The corresponding route helper would be `publisher_magazine_photo_url`, requiring you to specify objects at all three levels. Indeed, this situation is confusing enough that a popular [article](http://weblog.jamisbuck.org/2007/2/5/nesting-resources) by Jamis Buck proposes a rule of thumb for good Rails design:
 
-TIP: _Resources should never be nested more than 1 level deep._
+TIP: Resources should never be nested more than 1 level deep.
 
 #### Shallow Nesting
 
@@ -407,7 +412,7 @@ The comments resource here will have the following routes generated for it:
 
 ### Routing Concerns
 
-Routing concerns allow you to declare common routes that can be reused inside other resources and routes. To define a concern:
+Routing concerns allow you to declare common routes that can be reused inside other resources and routes. To define a concern, use a [`concern`][] block:
 
 ```ruby
 concern :commentable do
@@ -440,13 +445,16 @@ resources :articles do
 end
 ```
 
-Also you can use them in any place that you want inside the routes, for example in a `scope` or `namespace` call:
+You can also use them anywhere by calling [`concerns`][]. For example, in a `scope` or `namespace` block:
 
 ```ruby
 namespace :articles do
   concerns :commentable
 end
 ```
+
+[`concern`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Concerns.html#method-i-concern
+[`concerns`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Concerns.html#method-i-concerns
 
 ### Creating Paths and URLs from Objects
 
@@ -496,7 +504,7 @@ You are not limited to the seven routes that RESTful routing creates by default.
 
 #### Adding Member Routes
 
-To add a member route, just add a `member` block into the resource block:
+To add a member route, just add a [`member`][] block into the resource block:
 
 ```ruby
 resources :photos do
@@ -509,7 +517,7 @@ end
 This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
 Within the block of member routes, each route name specifies the HTTP verb that
-will be recognized. You can use `get`, `patch`, `put`, `post`, or `delete` here
+will be recognized. You can use [`get`][], [`patch`][], [`put`][], [`post`][], or [`delete`][] here
 . If you don't have multiple `member` routes, you can also pass `:on` to a
 route, eliminating the block:
 
@@ -521,9 +529,17 @@ end
 
 You can leave out the `:on` option, this will create the same member route except that the resource id value will be available in `params[:photo_id]` instead of `params[:id]`. Route helpers will also be renamed from `preview_photo_url` and `preview_photo_path` to `photo_preview_url` and `photo_preview_path`.
 
+[`delete`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-delete
+[`get`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-get
+[`member`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-member
+[`patch`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-patch
+[`post`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-post
+[`put`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-put
+[`put`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-put
+
 #### Adding Collection Routes
 
-To add a route to the collection:
+To add a route to the collection, use a [`collection`][] block:
 
 ```ruby
 resources :photos do
@@ -544,6 +560,8 @@ end
 ```
 
 NOTE: If you're defining additional resource routes with a symbol as the first positional argument, be mindful that it is not equivalent to using a string. Symbols infer controller actions while strings infer paths.
+
+[`collection`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-collection
 
 #### Adding Routes for Additional New Actions
 
@@ -592,7 +610,7 @@ TIP: By default, dynamic segments don't accept dots - this is because the dot is
 
 ### Static Segments
 
-You can specify static segments when creating a route by not prepending a colon to a fragment:
+You can specify static segments when creating a route by not prepending a colon to a segment:
 
 ```ruby
 get 'photos/:id/with_user/:user_id', to: 'photos#show'
@@ -620,7 +638,7 @@ get 'photos/:id', to: 'photos#show', defaults: { format: 'jpg' }
 
 Rails would match `photos/12` to the `show` action of `PhotosController`, and set `params[:format]` to `"jpg"`.
 
-You can also use `defaults` in a block format to define the defaults for multiple items:
+You can also use a [`defaults`][] block to define the defaults for multiple items:
 
 ```ruby
 defaults format: :json do
@@ -629,6 +647,8 @@ end
 ```
 
 NOTE: You cannot override defaults via query parameters - this is for security reasons. The only defaults that can be overridden are dynamic segments via substitution in the URL path.
+
+[`defaults`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Scoping.html#method-i-defaults
 
 ### Naming Routes
 
@@ -640,17 +660,18 @@ get 'exit', to: 'sessions#destroy', as: :logout
 
 This will create `logout_path` and `logout_url` as named route helpers in your application. Calling `logout_path` will return `/exit`
 
-You can also use this to override routing methods defined by resources, like this:
+You can also use this to override routing methods defined by resources by placing custom routes before the resource is defined, like this:
 
 ```ruby
 get ':username', to: 'users#show', as: :user
+resources :users
 ```
 
 This will define a `user_path` method that will be available in controllers, helpers, and views that will go to a route such as `/bob`. Inside the `show` action of `UsersController`, `params[:username]` will contain the username for the user. Change `:username` in the route definition if you do not want your parameter name to be `:username`.
 
 ### HTTP Verb Constraints
 
-In general, you should use the `get`, `post`, `put`, `patch`  and `delete` methods to constrain a route to a particular verb. You can use the `match` method with the `:via` option to match multiple verbs at once:
+In general, you should use the [`get`][], [`post`][], [`put`][], [`patch`][], and [`delete`][] methods to constrain a route to a particular verb. You can use the [`match`][] method with the `:via` option to match multiple verbs at once:
 
 ```ruby
 match 'photos', to: 'photos#show', via: [:get, :post]
@@ -665,6 +686,8 @@ match 'photos', to: 'photos#show', via: :all
 NOTE: Routing both `GET` and `POST` requests to a single action has security implications. In general, you should avoid routing all verbs to an action unless you have a good reason to.
 
 NOTE: `GET` in Rails won't check for CSRF token. You should never write to the database from `GET` requests, for more information see the [security guide](security.html#csrf-countermeasures) on CSRF countermeasures.
+
+[`match`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Base.html#method-i-match
 
 ### Segment Constraints
 
@@ -686,7 +709,7 @@ get 'photos/:id', to: 'photos#show', id: /[A-Z]\d{5}/
 get '/:id', to: 'articles#show', constraints: { id: /^\d/ }
 ```
 
-However, note that you don't need to use anchors because all routes are anchored at the start.
+However, note that you don't need to use anchors because all routes are anchored at the start and the end.
 
 For example, the following routes would allow for `articles` with `to_param` values like `1-hello-world` that always begin with a number and `users` with `to_param` values like `david` that never begin with a number to share the root namespace:
 
@@ -705,7 +728,7 @@ You specify a request-based constraint the same way that you specify a segment c
 get 'photos', to: 'photos#index', constraints: { subdomain: 'admin' }
 ```
 
-You can also specify constraints in a block form:
+You can also specify constraints by using a [`constraints`][] block:
 
 ```ruby
 namespace :admin do
@@ -715,9 +738,11 @@ namespace :admin do
 end
 ```
 
-NOTE: Request constraints work by calling a method on the [Request object](action_controller_overview.html#the-request-object) with the same name as the hash key and then compare the return value with the hash value. Therefore, constraint values should match the corresponding Request object method return type. For example: `constraints: { subdomain: 'api' }` will match an `api` subdomain as expected, however using a symbol `constraints: { subdomain: :api }` will not, because `request.subdomain` returns `'api'` as a String.
+NOTE: Request constraints work by calling a method on the [Request object](action_controller_overview.html#the-request-object) with the same name as the hash key and then comparing the return value with the hash value. Therefore, constraint values should match the corresponding Request object method return type. For example: `constraints: { subdomain: 'api' }` will match an `api` subdomain as expected. However, using a symbol `constraints: { subdomain: :api }` will not, because `request.subdomain` returns `'api'` as a String.
 
 NOTE: There is an exception for the `format` constraint: while it's a method on the Request object, it's also an implicit optional parameter on every path. Segment constraints take precedence and the `format` constraint is only applied as such when enforced through a hash. For example, `get 'foo', constraints: { format: 'json' }` will match `GET  /foo` because the format is optional by default. However, you can [use a lambda](#advanced-constraints) like in `get 'foo', constraints: lambda { |req| req.format == :json }` and the route will only match explicit JSON requests.
+
+[`constraints`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Scoping.html#method-i-constraints
 
 ### Advanced Constraints
 
@@ -751,6 +776,34 @@ end
 
 Both the `matches?` method and the lambda gets the `request` object as an argument.
 
+#### Constraints in a block form
+
+You can specify constraints in a block form. This is useful for when you need to apply the same rule to several routes. For example:
+
+```ruby
+class RestrictedListConstraint
+  # ...Same as the example above
+end
+
+Rails.application.routes.draw do
+  constraints(RestrictedListConstraint.new) do
+    get '*path', to: 'restricted_list#index'
+    get '*other-path', to: 'other_restricted_list#index'
+  end
+end
+```
+
+You can also use a `lambda`:
+
+```ruby
+Rails.application.routes.draw do
+  constraints(lambda { |request| RestrictedList.retrieve_ips.include?(request.remote_ip) }) do
+    get '*path', to: 'restricted_list#index'
+    get '*other-path', to: 'other_restricted_list#index'
+  end
+end
+```
+
 ### Route Globbing and Wildcard Segments
 
 Route globbing is a way to specify that a particular parameter should be matched to all the remaining parts of a route. For example:
@@ -759,7 +812,7 @@ Route globbing is a way to specify that a particular parameter should be matched
 get 'photos/*other', to: 'photos#unknown'
 ```
 
-This route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `"12"` or `"long/path/to/12"`. The fragments prefixed with a star are called "wildcard segments".
+This route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `"12"` or `"long/path/to/12"`. The segments prefixed with a star are called "wildcard segments".
 
 Wildcard segments can occur anywhere in a route. For example:
 
@@ -791,7 +844,7 @@ get '*pages', to: 'pages#show', format: true
 
 ### Redirection
 
-You can redirect any path to another path using the `redirect` helper in your router:
+You can redirect any path to another path by using the [`redirect`][] helper in your router:
 
 ```ruby
 get '/stories', to: redirect('/articles')
@@ -803,7 +856,7 @@ You can also reuse dynamic segments from the match in the path to redirect to:
 get '/stories/:name', to: redirect('/articles/%{name}')
 ```
 
-You can also provide a block to redirect, which receives the symbolized path parameters and the request object:
+You can also provide a block to `redirect`, which receives the symbolized path parameters and the request object:
 
 ```ruby
 get '/stories/:name', to: redirect { |path_params, req| "/articles/#{path_params[:name].pluralize}" }
@@ -817,6 +870,8 @@ get '/stories/:name', to: redirect('/articles/%{name}', status: 302)
 ```
 
 In all of these cases, if you don't provide the leading host (`http://www.example.com`), Rails will take those details from the current request.
+
+[`redirect`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Redirection.html#method-i-redirect
 
 ### Routing to Rack Applications
 
@@ -839,15 +894,17 @@ match '/admin', to: AdminApp, via: :all
 ```
 
 If you would prefer to have your Rack application receive requests at the root
-path instead, use `mount`:
+path instead, use [`mount`][]:
 
 ```ruby
 mount AdminApp, at: '/admin'
 ```
 
+[`mount`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Base.html#method-i-mount
+
 ### Using `root`
 
-You can specify what Rails should route `'/'` to with the `root` method:
+You can specify what Rails should route `'/'` to with the [`root`][] method:
 
 ```ruby
 root to: 'pages#main'
@@ -868,6 +925,8 @@ end
 root to: "home#index"
 ```
 
+[`root`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-root
+
 ### Unicode Character Routes
 
 You can specify unicode character routes directly. For example:
@@ -878,7 +937,7 @@ get 'こんにちは', to: 'welcome#index'
 
 ### Direct Routes
 
-You can create custom URL helpers directly. For example:
+You can create custom URL helpers directly by calling [`direct`][]. For example:
 
 ```ruby
 direct :homepage do
@@ -901,17 +960,19 @@ direct :main do
 end
 ```
 
+[`direct`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/CustomUrls.html#method-i-direct
+
 ### Using `resolve`
 
-The `resolve` method allows customizing polymorphic mapping of models. For example:
+The [`resolve`][] method allows customizing polymorphic mapping of models. For example:
 
-``` ruby
+```ruby
 resource :basket
 
 resolve("Basket") { [:basket] }
 ```
 
-``` erb
+```erb
 <%= form_with model: @basket do |form| %>
   <!-- basket form -->
 <% end %>
@@ -919,10 +980,12 @@ resolve("Basket") { [:basket] }
 
 This will generate the singular URL `/basket` instead of the usual `/baskets/:id`.
 
+[`resolve`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/CustomUrls.html#method-i-resolve
+
 Customizing Resourceful Routes
 ------------------------------
 
-While the default routes and helpers generated by `resources :articles` will usually serve you well, you may want to customize them in some way. Rails allows you to customize virtually any generic part of the resourceful helpers.
+While the default routes and helpers generated by [`resources`][] will usually serve you well, you may want to customize them in some way. Rails allows you to customize virtually any generic part of the resourceful helpers.
 
 ### Specifying a Controller to Use
 
@@ -1019,7 +1082,7 @@ This would cause the routing to recognize paths such as:
 
 NOTE: The actual action names aren't changed by this option. The two paths shown would still route to the `new` and `edit` actions.
 
-TIP: If you find yourself wanting to change this option uniformly for all of your routes, you can use a scope.
+TIP: If you find yourself wanting to change this option uniformly for all of your routes, you can use a scope, like below:
 
 ```ruby
 scope path_names: { new: 'make' } do
@@ -1109,13 +1172,15 @@ Rails now creates routes to the `CategoriesController`.
 
 ### Overriding the Singular Form
 
-If you want to define the singular form of a resource, you should add additional rules to the `Inflector`:
+If you want to override the singular form of a resource, you should add additional rules to the inflector via [`inflections`][]:
 
 ```ruby
 ActiveSupport::Inflector.inflections do |inflect|
   inflect.irregular 'tooth', 'teeth'
 end
 ```
+
+[`inflections`]: https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-inflections
 
 ### Using `:as` in Nested Resources
 
@@ -1151,7 +1216,7 @@ edit_video GET  /videos/:identifier/edit(.:format) videos#edit
 Video.find_by(identifier: params[:identifier])
 ```
 
-You can override `ActiveRecord::Base#to_param` of a related model to construct
+You can override `ActiveRecord::Base#to_param` of the associated model to construct
 a URL:
 
 ```ruby
@@ -1160,7 +1225,9 @@ class Video < ApplicationRecord
     identifier
   end
 end
+```
 
+```ruby
 video = Video.find_by(identifier: "Roman-Holiday")
 edit_video_path(video) # => "/videos/Roman-Holiday/edit"
 ```
@@ -1171,7 +1238,7 @@ Breaking up *very* large route file into multiple small ones:
 If you work in a large application with thousands of routes,
 a single `config/routes.rb` file can become cumbersome and hard to read.
 
-Rails offers a way to break a gigantic single `routes.rb` file into multiple small ones using the `draw` macro.
+Rails offers a way to break a gigantic single `routes.rb` file into multiple small ones using the [`draw`][] macro.
 
 ```ruby
 # config/routes.rb
@@ -1181,7 +1248,9 @@ Rails.application.routes.draw do
 
   draw(:admin) # Will load another route file located in `config/routes/admin.rb`
 end
+```
 
+```ruby
 # config/routes/admin.rb
 
 namespace :admin do
@@ -1191,15 +1260,17 @@ end
 
 Calling `draw(:admin)` inside the `Rails.application.routes.draw` block itself will try to load a route
 file that has the same name as the argument given (`admin.rb` in this case).
-The file need to be located inside the `config/routes` directory or any sub-directory (i.e. `config/routes/admin.rb` , `config/routes/external/admin.rb`).
+The file needs to be located inside the `config/routes` directory or any sub-directory (i.e. `config/routes/admin.rb` or `config/routes/external/admin.rb`).
 
 You can use the normal routing DSL inside the `admin.rb` routing file, **however** you shouldn't surround it with the `Rails.application.routes.draw` block like you did in the main `config/routes.rb` file.
 
+[`draw`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-draw
+
 ### When to use and not use this feature
 
-Drawing routes from external files can be very useful to organise a large set of routes into multiple organised ones. You could have a `admin.rb` route that contains all the routes for the admin area, another `api.rb` file to route API related resources etc...
+Drawing routes from external files can be very useful to organise a large set of routes into multiple organised ones. You could have a `admin.rb` route that contains all the routes for the admin area, another `api.rb` file to route API related resources, etc...
 
-However, you shouldn't abuse this feature as having too many route files make discoverability and understandability more difficult. Depending on the application, it might be easier for developers to have a single routing file even if you have few hundreds routes. You shouldn't try to create a new routing file for each category (admin, api ...) at all cost; the Rails routing DSL already offers a way to break routes in a organised manner with `namespaces` and `scopes`.
+However, you shouldn't abuse this feature as having too many route files make discoverability and understandability more difficult. Depending on the application, it might be easier for developers to have a single routing file even if you have few hundreds routes. You shouldn't try to create a new routing file for each category (e.g. admin, api, ...) at all cost; the Rails routing DSL already offers a way to break routes in a organised manner with `namespaces` and `scopes`.
 
 
 Inspecting and Testing Routes
@@ -1209,7 +1280,7 @@ Rails offers facilities for inspecting and testing your routes.
 
 ### Listing Existing Routes
 
-To get a complete list of the available routes in your application, visit `http://localhost:3000/rails/info/routes` in your browser while your server is running in the **development** environment. You can also execute the `bin/rails routes` command in your terminal to produce the same output.
+To get a complete list of the available routes in your application, visit <http://localhost:3000/rails/info/routes> in your browser while your server is running in the **development** environment. You can also execute the `bin/rails routes` command in your terminal to produce the same output.
 
 Both methods will list all of your routes, in the same order that they appear in `config/routes.rb`. For each route, you'll see:
 
@@ -1229,7 +1300,7 @@ edit_user GET    /users/:id/edit(.:format) users#edit
 
 You can also use the `--expanded` option to turn on the expanded table formatting mode.
 
-```
+```bash
 $ bin/rails routes --expanded
 
 --[ Route 1 ]----------------------------------------------------
@@ -1256,7 +1327,7 @@ Controller#Action | users#edit
 
 You can search through your routes with the grep option: -g. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
 
-```
+```bash
 $ bin/rails routes -g new_comment
 $ bin/rails routes -g POST
 $ bin/rails routes -g admin
@@ -1264,7 +1335,7 @@ $ bin/rails routes -g admin
 
 If you only want to see the routes that map to a specific controller, there's the -c option.
 
-```
+```bash
 $ bin/rails routes -c users
 $ bin/rails routes -c admin/users
 $ bin/rails routes -c Comments
@@ -1275,15 +1346,19 @@ TIP: You'll find that the output from `bin/rails routes` is much more readable i
 
 ### Testing Routes
 
-Routes should be included in your testing strategy (just like the rest of your application). Rails offers three [built-in assertions](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html) designed to make testing routes simpler:
+Routes should be included in your testing strategy (just like the rest of your application). Rails offers three built-in assertions designed to make testing routes simpler:
 
-* `assert_generates`
-* `assert_recognizes`
-* `assert_routing`
+* [`assert_generates`][]
+* [`assert_recognizes`][]
+* [`assert_routing`][]
+
+[`assert_generates`]: https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_generates
+[`assert_recognizes`]: https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_recognizes
+[`assert_routing`]: https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_routing
 
 #### The `assert_generates` Assertion
 
-`assert_generates` asserts that a particular set of options generate a particular path and can be used with default routes or custom routes. For example:
+[`assert_generates`][] asserts that a particular set of options generate a particular path and can be used with default routes or custom routes. For example:
 
 ```ruby
 assert_generates '/photos/1', { controller: 'photos', action: 'show', id: '1' }
@@ -1292,7 +1367,7 @@ assert_generates '/about', controller: 'pages', action: 'about'
 
 #### The `assert_recognizes` Assertion
 
-`assert_recognizes` is the inverse of `assert_generates`. It asserts that a given path is recognized and routes it to a particular spot in your application. For example:
+[`assert_recognizes`][] is the inverse of `assert_generates`. It asserts that a given path is recognized and routes it to a particular spot in your application. For example:
 
 ```ruby
 assert_recognizes({ controller: 'photos', action: 'show', id: '1' }, '/photos/1')
@@ -1306,7 +1381,7 @@ assert_recognizes({ controller: 'photos', action: 'create' }, { path: 'photos', 
 
 #### The `assert_routing` Assertion
 
-The `assert_routing` assertion checks the route both ways: it tests that the path generates the options, and that the options generate the path. Thus, it combines the functions of `assert_generates` and `assert_recognizes`:
+The [`assert_routing`][] assertion checks the route both ways: it tests that the path generates the options, and that the options generate the path. Thus, it combines the functions of `assert_generates` and `assert_recognizes`:
 
 ```ruby
 assert_routing({ path: 'photos', method: :post }, { controller: 'photos', action: 'create' })

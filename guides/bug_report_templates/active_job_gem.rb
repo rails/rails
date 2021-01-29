@@ -8,7 +8,7 @@ gemfile(true) do
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   # Activate the gem you are reporting the issue against.
-  gem "activejob", "6.0.0"
+  gem "activejob", "6.1.0"
 end
 
 require "minitest/autorun"

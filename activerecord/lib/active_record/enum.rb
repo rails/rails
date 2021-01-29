@@ -47,13 +47,14 @@ module ActiveRecord
   #     enum status: [ :active, :archived ], _scopes: false
   #   end
   #
-  # You can set the default value from the database declaration, like:
+  # You can set the default enum value by setting +:_default+, like:
   #
-  #   create_table :conversations do |t|
-  #     t.column :status, :integer, default: 0
+  #   class Conversation < ActiveRecord::Base
+  #     enum status: [ :active, :archived ], _default: "active"
   #   end
   #
-  # Good practice is to let the first declared status be the default.
+  #   conversation = Conversation.new
+  #   conversation.status # => "active"
   #
   # Finally, it's also possible to explicitly map the relation between attribute and
   # database integer with a hash:
@@ -135,8 +136,11 @@ module ActiveRecord
       end
 
       def deserialize(value)
-        return if value.nil?
         mapping.key(subtype.deserialize(value))
+      end
+
+      def serializable?(value)
+        (value.blank? || mapping.has_key?(value) || mapping.has_value?(value)) && super
       end
 
       def serialize(value)
@@ -144,20 +148,25 @@ module ActiveRecord
       end
 
       def assert_valid_value(value)
-        unless value.blank? || mapping.has_key?(value) || mapping.has_value?(value)
+        unless serializable?(value)
           raise ArgumentError, "'#{value}' is not a valid #{name}"
         end
       end
 
+      attr_reader :subtype
+
       private
-        attr_reader :name, :mapping, :subtype
+        attr_reader :name, :mapping
     end
 
     def enum(definitions)
-      klass = self
       enum_prefix = definitions.delete(:_prefix)
       enum_suffix = definitions.delete(:_suffix)
       enum_scopes = definitions.delete(:_scopes)
+
+      default = {}
+      default[:default] = definitions.delete(:_default) if definitions.key?(:_default)
+
       definitions.each do |name, values|
         assert_valid_enum_definition_values(values)
         # statuses = { }
@@ -173,57 +182,83 @@ module ActiveRecord
         detect_enum_conflict!(name, "#{name}=")
 
         attr = attribute_alias?(name) ? attribute_alias(name) : name
-        decorate_attribute_type(attr, :enum) do |subtype|
+
+        attribute(attr, **default) do |subtype|
+          subtype = subtype.subtype if EnumType === subtype
           EnumType.new(attr, enum_values, subtype)
         end
 
+        value_method_names = []
         _enum_methods_module.module_eval do
+          prefix = if enum_prefix == true
+            "#{name}_"
+          elsif enum_prefix
+            "#{enum_prefix}_"
+          end
+
+          suffix = if enum_suffix == true
+            "_#{name}"
+          elsif enum_suffix
+            "_#{enum_suffix}"
+          end
+
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |label, value|
-            if enum_prefix == true
-              prefix = "#{name}_"
-            elsif enum_prefix
-              prefix = "#{enum_prefix}_"
-            end
-            if enum_suffix == true
-              suffix = "_#{name}"
-            elsif enum_suffix
-              suffix = "_#{enum_suffix}"
-            end
+            label = label.to_s
+            enum_values[label] = value
 
             value_method_name = "#{prefix}#{label}#{suffix}"
-            enum_values[label] = value
-            label = label.to_s
+            value_method_names << value_method_name
+            define_enum_methods(name, value_method_name, label, enum_scopes)
 
-            # def active?() status == "active" end
-            klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
-            define_method("#{value_method_name}?") { self[attr] == label }
+            method_friendly_label = label.gsub(/[\W&&[:ascii:]]+/, "_")
+            value_method_alias = "#{prefix}#{method_friendly_label}#{suffix}"
 
-            # def active!() update!(status: 0) end
-            klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
-            define_method("#{value_method_name}!") { update!(attr => value) }
-
-            # scope :active, -> { where(status: 0) }
-            # scope :not_active, -> { where.not(status: 0) }
-            if enum_scopes != false
-              klass.send(:detect_negative_condition!, value_method_name)
-
-              klass.send(:detect_enum_conflict!, name, value_method_name, true)
-              klass.scope value_method_name, -> { where(attr => value) }
-
-              klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
-              klass.scope "not_#{value_method_name}", -> { where.not(attr => value) }
+            if value_method_alias != value_method_name && !value_method_names.include?(value_method_alias)
+              value_method_names << value_method_alias
+              define_enum_methods(name, value_method_alias, label, enum_scopes)
             end
           end
         end
+        detect_negative_enum_conditions!(value_method_names) if enum_scopes != false
         enum_values.freeze
       end
     end
 
     private
+      class EnumMethods < Module # :nodoc:
+        def initialize(klass)
+          @klass = klass
+        end
+
+        private
+          attr_reader :klass
+
+          def define_enum_methods(name, value_method_name, label, enum_scopes)
+            # def active?() status == "active" end
+            klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
+            define_method("#{value_method_name}?") { self[name] == label }
+
+            # def active!() update!(status: 0) end
+            klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
+            define_method("#{value_method_name}!") { update!(name => label) }
+
+            # scope :active, -> { where(status: 0) }
+            # scope :not_active, -> { where.not(status: 0) }
+            if enum_scopes != false
+              klass.send(:detect_enum_conflict!, name, value_method_name, true)
+              klass.scope value_method_name, -> { where(name => label) }
+
+              klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
+              klass.scope "not_#{value_method_name}", -> { where.not(name => label) }
+            end
+          end
+      end
+      private_constant :EnumMethods
+
       def _enum_methods_module
         @_enum_methods_module ||= begin
-          mod = Module.new
+          mod = EnumMethods.new(self)
           include mod
           mod
         end
@@ -270,10 +305,16 @@ module ActiveRecord
         }
       end
 
-      def detect_negative_condition!(method_name)
-        if method_name.start_with?("not_") && logger
-          logger.warn "An enum element in #{self.name} uses the prefix 'not_'." \
-            " This will cause a conflict with auto generated negative scopes."
+      def detect_negative_enum_conditions!(method_names)
+        return unless logger
+
+        method_names.select { |m| m.start_with?("not_") }.each do |potential_not|
+          inverted_form = potential_not.sub("not_", "")
+          if method_names.include?(inverted_form)
+            logger.warn "Enum element '#{potential_not}' in #{self.name} uses the prefix 'not_'." \
+              " This has caused a conflict with auto generated negative scopes." \
+              " Avoid using enum elements starting with 'not' where the positive form is also an element."
+          end
         end
       end
   end

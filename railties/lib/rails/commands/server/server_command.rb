@@ -3,8 +3,8 @@
 require "fileutils"
 require "action_dispatch"
 require "rails"
-require "active_support/deprecation"
 require "active_support/core_ext/string/filters"
+require "active_support/core_ext/symbol/starts_ends_with"
 require "rails/dev_caching"
 require "rails/command/environment_argument"
 
@@ -101,8 +101,6 @@ module Rails
       DEFAULT_PORT = 3000
       DEFAULT_PIDFILE = "tmp/pids/server.pid"
 
-      argument :using, optional: true
-
       class_option :port, aliases: "-p", type: :numeric,
         desc: "Runs Rails on the specified port - defaults to 3000.", banner: :port
       class_option :binding, aliases: "-b", type: :string,
@@ -127,7 +125,6 @@ module Rails
         super
 
         @original_options = local_options - %w( --restart )
-        deprecate_positional_rack_server_and_rewrite_to_option(@original_options)
       end
 
       def perform
@@ -146,7 +143,7 @@ module Rails
             after_stop_callback = -> { say "Exiting" unless options[:daemon] }
             server.start(after_stop_callback)
           else
-            say rack_server_suggestion(using)
+            say rack_server_suggestion(options[:using])
           end
         end
       end
@@ -155,7 +152,7 @@ module Rails
         def server_options
           {
             user_supplied_options: user_supplied_options,
-            server:                using,
+            server:                options[:using],
             log_stdout:            log_to_stdout?,
             Port:                  port,
             Host:                  host,
@@ -178,7 +175,7 @@ module Rails
             #   ["-p3001", "-C", "--binding", "127.0.0.1"] # => {"-p"=>true, "-C"=>true, "--binding"=>true}
             user_flag = {}
             @original_options.each do |command|
-              if command.to_s.start_with?("--")
+              if command.start_with?("--")
                 option = command.split("=")[0]
                 user_flag[option] = true
               elsif command =~ /\A(-.)/
@@ -222,15 +219,6 @@ module Rails
           else
             default_host = environment == "development" ? "localhost" : "0.0.0.0"
 
-            if ENV["HOST"] && !ENV["BINDING"]
-              ActiveSupport::Deprecation.warn(<<-MSG.squish)
-                Using the `HOST` environment variable to specify the IP is deprecated and will be removed in Rails 6.1.
-                Please use `BINDING` environment variable instead.
-              MSG
-
-              return ENV["HOST"]
-            end
-
             ENV.fetch("BINDING", default_host)
           end
         end
@@ -263,22 +251,6 @@ module Rails
 
         def prepare_restart
           FileUtils.rm_f(pid) if options[:restart]
-        end
-
-        def deprecate_positional_rack_server_and_rewrite_to_option(original_options)
-          if using
-            ActiveSupport::Deprecation.warn(<<~MSG.squish)
-              Passing the Rack server name as a regular argument is deprecated
-              and will be removed in the next Rails version. Please, use the -u
-              option instead.
-            MSG
-
-            original_options.concat [ "-u", using ]
-          else
-            # Use positional internally to get around Thor's immutable options.
-            # TODO: Replace `using` occurrences with `options[:using]` after deprecation removal.
-            @using = options[:using]
-          end
         end
 
         def rack_server_suggestion(server)

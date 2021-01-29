@@ -33,6 +33,13 @@ class DeleteAllTest < ActiveRecord::TestCase
     assert_not_predicate davids, :loaded?
   end
 
+  def test_delete_all_with_index_hint
+    davids = Author.where(name: "David").from("#{Author.quoted_table_name} /*! USE INDEX (PRIMARY) */")
+
+    assert_difference("Author.count", -1) { davids.delete_all }
+    assert_not_predicate davids, :loaded?
+  end
+
   def test_delete_all_loaded
     davids = Author.where(name: "David")
 
@@ -56,7 +63,15 @@ class DeleteAllTest < ActiveRecord::TestCase
     pets = Pet.joins(:toys).where(toys: { name: "Bone" })
 
     assert_equal true, pets.exists?
-    assert_equal pets.count, pets.delete_all
+    sqls = capture_sql do
+      assert_equal pets.count, pets.delete_all
+    end
+
+    if current_adapter?(:Mysql2Adapter)
+      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(Pet.connection.quote_table_name("pets.pet_id"))}/, sqls.last
+    else
+      assert_match %r/SELECT #{Regexp.escape(Pet.connection.quote_table_name("pets.pet_id"))}/, sqls.last
+    end
   end
 
   def test_delete_all_with_joins_and_where_part_is_not_hash

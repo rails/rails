@@ -19,11 +19,13 @@ module ActionDispatch
           encoding = path.encoding
           path = +"/#{path}"
           path.squeeze!("/")
-          path.sub!(%r{/+\Z}, "")
-          path.gsub!(/(%[a-f0-9]{2})/) { $1.upcase }
-          path = +"/" if path == ""
+
+          unless path == "/"
+            path.delete_suffix!("/")
+            path.gsub!(/(%[a-f0-9]{2})/) { $1.upcase }
+          end
+
           path.force_encoding(encoding)
-          path
         end
 
         # URI path and fragment escaping
@@ -42,7 +44,7 @@ module ActionDispatch
 
           ESCAPED  = /%[a-zA-Z0-9]{2}/.freeze
 
-          FRAGMENT = /[^#{UNRESERVED}#{SUB_DELIMS}:@\/\?]/.freeze
+          FRAGMENT = /[^#{UNRESERVED}#{SUB_DELIMS}:@\/?]/.freeze
           SEGMENT  = /[^#{UNRESERVED}#{SUB_DELIMS}:@]/.freeze
           PATH     = /[^#{UNRESERVED}#{SUB_DELIMS}:@\/]/.freeze
 

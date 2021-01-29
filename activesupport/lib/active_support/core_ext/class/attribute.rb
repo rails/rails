@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/module/redefine_method"
-require "active_support/core_ext/array/extract_options"
 
 class Class
   # Declare a class-level attribute whose value is inheritable by subclasses.
@@ -103,7 +101,6 @@ class Class
           defined?(@#{name}) ? @#{name} : self.class.#{name}
         end
       RUBY
-
 
       class_methods << <<~RUBY
         silence_redefinition_of_method def #{name}=(value)

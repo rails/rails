@@ -199,6 +199,22 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries { authors.map(&:post) }
   end
 
+  def test_type_cast_in_where_references_association_name
+    parent = comments(:greetings)
+    child = parent.children.create!(label: "child", body: "hi", post_id: parent.post_id)
+
+    comment = Comment.includes(:children).where("children.label": "child").last
+
+    assert_equal parent, comment
+    assert_equal [child], comment.children
+  end
+
+  def test_attribute_alias_in_where_references_association_name
+    firm = Firm.includes(:clients).where("clients.new_name": "Summit").last
+    assert_equal companies(:first_firm), firm
+    assert_equal [companies(:first_client)], firm.clients
+  end
+
   def test_calculate_with_string_in_from_and_eager_loading
     assert_equal 10, Post.from("authors, posts").eager_load(:comments).where("posts.author_id = authors.id").count
   end
@@ -587,7 +603,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preloading_has_many_through_with_implicit_source
-    authors = Author.includes(:very_special_comments).to_a
+    authors = Author.includes(:very_special_comments).to_a.sort_by(&:id)
     assert_no_queries do
       special_comment_authors = authors.map { |author| [author.name, author.very_special_comments.size] }
       assert_equal [["David", 1], ["Mary", 0], ["Bob", 0]], special_comment_authors
@@ -647,10 +663,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_array_on_the_eagers
-    posts = Post.includes(:author, :comments).limit(2).references(:author).where("authors.name = ?", "David")
+    posts = Post.includes(:author, :comments).limit(2).references("author").where("authors.name = ?", "David")
     assert_equal 2, posts.size
 
-    count = Post.includes(:author, :comments).limit(2).references(:author).where("authors.name = ?", "David").count
+    count = Post.includes(:author, :comments).limit(2).references("author").where("authors.name = ?", "David").count
     assert_equal posts.size, count
   end
 
@@ -721,7 +737,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     post1 = general.posts.to_a.find { |p| p == welcome }
     post2 = technology.posts.to_a.find { |p| p == welcome }
 
-    assert_equal post1.object_id, post2.object_id
+    assert_same post1, post2
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_on_the_eagers
@@ -814,22 +830,31 @@ class EagerAssociationTest < ActiveRecord::TestCase
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: :monkeys).find(6)
     }
-    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+    assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
 
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: [ :monkeys ]).find(6)
     }
-    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+    assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
 
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: [ "monkeys" ]).find(6)
     }
-    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+    assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
 
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: [ :monkeys, :elephants ]).find(6)
     }
-    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+    assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
+  end
+
+  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+    test "exceptions have suggestions for fix" do
+      error = assert_raise(ActiveRecord::AssociationNotFoundError) {
+        Post.all.merge!(includes: :monkeys).find(6)
+      }
+      assert_match "Did you mean?", error.message
+    end
   end
 
   def test_eager_has_many_through_with_order
@@ -997,7 +1022,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
           d3 = find_all_ordered(className, [:posts, post_type])
           assert_equal(d1[i], d3[i])
           assert_equal_after_sort(d1[i].posts, d3[i].posts)
-          assert_equal_after_sort(d1[i].send(post_type), d2[i].send(post_type), d3[i].send(post_type))
+          assert_equal_after_sort(d1[i].public_send(post_type), d2[i].public_send(post_type), d3[i].public_send(post_type))
         end
       end
     end
@@ -1023,10 +1048,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
     d1.each_index do |i|
       assert_equal(d1[i], d2[i])
       firm_types.each do |type|
-        if (expected = d1[i].send(type)).nil?
-          assert_nil(d2[i].send(type))
+        if (expected = d1[i].public_send(type)).nil?
+          assert_nil(d2[i].public_send(type))
         else
-          assert_equal(expected, d2[i].send(type))
+          assert_equal(expected, d2[i].public_send(type))
         end
       end
     end
@@ -1505,10 +1530,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   test "preload with invalid argument" do
-    exception = assert_raises(ArgumentError) do
+    exception = assert_raises(ActiveRecord::AssociationNotFoundError) do
       Author.preload(10).to_a
     end
-    assert_equal("10 was not recognized for preload", exception.message)
+    assert_match(/Association named '10' was not found on Author; perhaps you misspelled it\?/, exception.message)
   end
 
   test "associations with extensions are not instance dependent" do

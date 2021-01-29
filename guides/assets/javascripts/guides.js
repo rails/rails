@@ -27,8 +27,6 @@
   if (window.location.protocol === "file:") Turbolinks.supported = false;
 
   document.addEventListener("turbolinks:load", function() {
-    Prism.highlightAll();
-
     var guidesMenu = document.getElementById("guidesMenu");
     var guides     = document.getElementById("guides");
 
@@ -68,6 +66,17 @@
         moreInfoLinks.classList.add("s-hidden");
         unwrap(moreInfoLinks);
       }
+    });
+
+    var clipboard = new ClipboardJS('.clipboard-button');
+    clipboard.on('success', function(e) {
+      var trigger = e.trigger;
+      var triggerLabel = trigger.innerHTML;
+      trigger.innerHTML = 'Copied!';
+      setTimeout(function(){
+        trigger.innerHTML = triggerLabel;
+      }, 3000);
+      e.clearSelection();
     });
   });
 }).call(this);

@@ -6,7 +6,6 @@ require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifier"
 require "active_support/encrypted_configuration"
-require "active_support/deprecation"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
 require "rails/engine"
@@ -244,7 +243,7 @@ module Rails
 
       if yaml.exist?
         require "erb"
-        all_configs    = ActiveSupport::ConfigurationFile.parse(yaml, symbolize_names: true)
+        all_configs    = ActiveSupport::ConfigurationFile.parse(yaml).deep_symbolize_keys
         config, shared = all_configs[env.to_sym], all_configs[:shared]
 
         if config.is_a?(Hash)
@@ -281,13 +280,13 @@ module Rails
           "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
           "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest,
           "action_dispatch.cookies_rotations" => config.action_dispatch.cookies_rotations,
-          "action_dispatch.cookies_same_site_protection" => config.action_dispatch.cookies_same_site_protection,
+          "action_dispatch.cookies_same_site_protection" => coerce_same_site_protection(config.action_dispatch.cookies_same_site_protection),
           "action_dispatch.use_cookies_with_metadata" => config.action_dispatch.use_cookies_with_metadata,
           "action_dispatch.content_security_policy" => config.content_security_policy,
           "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only,
           "action_dispatch.content_security_policy_nonce_generator" => config.content_security_policy_nonce_generator,
           "action_dispatch.content_security_policy_nonce_directives" => config.content_security_policy_nonce_directives,
-          "action_dispatch.feature_policy" => config.feature_policy,
+          "action_dispatch.permissions_policy" => config.permissions_policy,
         )
       end
     end
@@ -321,6 +320,12 @@ module Rails
     # to the +generators+ method defined in Rails::Railtie.
     def generators(&blk)
       self.class.generators(&blk)
+    end
+
+    # Sends any server called in the instance of a new application up
+    # to the +server+ method defined in Rails::Railtie.
+    def server(&blk)
+      self.class.server(&blk)
     end
 
     # Sends the +isolate_namespace+ method up to the class method.
@@ -393,20 +398,6 @@ module Rails
 
     attr_writer :config
 
-    # Returns secrets added to config/secrets.yml.
-    #
-    # Example:
-    #
-    #     development:
-    #       secret_key_base: 836fa3665997a860728bcb9e9a1e704d427cfc920e79d847d79c8a9a907b9e965defa4154b2b86bdec6930adbe33f21364523a6f6ce363865724549fdfc08553
-    #     test:
-    #       secret_key_base: 5a37811464e7d378488b0f073e2193b093682e4e21f5d6f3ae0a4e1781e61a351fdc878a843424e81c73fb484a40d23f92c8dafac4870e74ede6e5e174423010
-    #     production:
-    #       secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
-    #       namespace: my_app_production
-    #
-    # +Rails.application.secrets.namespace+ returns +my_app_production+ in the
-    # production environment.
     def secrets
       @secrets ||= begin
         secrets = ActiveSupport::OrderedOptions.new
@@ -421,7 +412,7 @@ module Rails
       end
     end
 
-    attr_writer :secrets
+    attr_writer :secrets, :credentials
 
     # The secret_key_base is used as the input secret to the application's key generator, which in turn
     # is used to create all MessageVerifiers/MessageEncryptors, including the ones that sign and encrypt cookies.
@@ -528,7 +519,7 @@ module Rails
     def run_tasks_blocks(app) #:nodoc:
       railties.each { |r| r.run_tasks_blocks(app) }
       super
-      require "rails/tasks"
+      load "rails/tasks.rb"
       task :environment do
         ActiveSupport.on_load(:before_initialize) { config.eager_load = config.rake_eager_load }
 
@@ -548,6 +539,11 @@ module Rails
 
     def run_console_blocks(app) #:nodoc:
       railties.each { |r| r.run_console_blocks(app) }
+      super
+    end
+
+    def run_server_blocks(app) #:nodoc:
+      railties.each { |r| r.run_server_blocks(app) }
       super
     end
 
@@ -627,6 +623,10 @@ module Rails
 
       def build_middleware
         config.app_middleware + super
+      end
+
+      def coerce_same_site_protection(protection)
+        protection.respond_to?(:call) ? protection : proc { protection }
       end
   end
 end

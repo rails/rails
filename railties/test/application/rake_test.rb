@@ -25,6 +25,38 @@ module ApplicationTests
       assert $task_loaded
     end
 
+    test "framework tasks are evaluated only once" do
+      assert_equal ["Rails version"], rails("about").scan(/^Rails version/)
+    end
+
+    test "tasks can invoke framework tasks via Rails::Command.invoke" do
+      add_to_config <<~RUBY
+        rake_tasks do
+          task :invoke_about do
+            Rails::Command.invoke :about
+          end
+        end
+      RUBY
+
+      assert_match(/^Rails version/, rails("invoke_about"))
+    end
+
+    test "task backtrace is silenced" do
+      add_to_config <<-RUBY
+        rake_tasks do
+          task :boom do
+            raise "boom"
+          end
+        end
+      RUBY
+
+      backtrace = rails("boom", allow_failure: true).lines.grep(/:\d+:in /)
+      app_lines, framework_lines = backtrace.partition { |line| line.start_with?(app_path) }
+
+      assert_not_empty app_lines
+      assert_empty framework_lines
+    end
+
     test "task is protected when previous migration was production" do
       with_rails_env "production" do
         rails "generate", "model", "product", "name:string"
@@ -141,7 +173,7 @@ module ApplicationTests
     end
 
     def test_code_statistics_sanity
-      assert_match "Code LOC: 29     Test LOC: 3     Code to Test Ratio: 1:0.1",
+      assert_match "Code LOC: 74     Test LOC: 3     Code to Test Ratio: 1:0.0",
         rails("stats")
     end
 
@@ -228,7 +260,7 @@ module ApplicationTests
       rails "generate", "scaffold", "user", "username:string"
       rails "db:migrate"
       output = rails("db:test:prepare", "--trace")
-      assert_match(/Execute db:test:load_structure/, output)
+      assert_match(/Execute db:test:load_schema/, output)
     end
 
     def test_rake_dump_structure_should_respect_db_structure_env_variable

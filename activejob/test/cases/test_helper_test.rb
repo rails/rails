@@ -559,25 +559,24 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
-  def test_assert_enqueued_with_selective_args
-    args = ->(job_args) do
-      assert_equal 1, job_args.first[:argument1]
-      assert job_args.first[:argument2].key?(:b)
-    end
+  def test_assert_enqueued_with_supports_matcher_procs
+    facets = {
+      job: HelloJob,
+      args: ["Rails"],
+      at: Date.tomorrow.noon,
+      queue: "important",
+    }
 
-    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
-      MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
-    end
-  end
+    facets[:job].set(queue: facets[:queue], wait_until: facets[:at]).perform_later(*facets[:args])
 
-  def test_assert_enqueued_with_selective_args_fails
-    args = ->(job_args) do
-      false
-    end
+    facets.each do |facet, value|
+      matcher = ->(job_value) { job_value == value }
+      refuser = ->(job_value) { false }
 
-    assert_raise ActiveSupport::TestCase::Assertion do
-      assert_enqueued_with(job: MultipleKwargsJob, args: args) do
-        MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
+      assert_enqueued_with(**{ facet => matcher })
+
+      assert_raises ActiveSupport::TestCase::Assertion do
+        assert_enqueued_with(**{ facet => refuser })
       end
     end
   end
@@ -606,6 +605,21 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 
     assert_enqueued_with(job: MultipleKwargsJob, args: args) do
       MultipleKwargsJob.perform_later(argument1: [now])
+    end
+  end
+
+  def test_assert_enqueued_with_time_and_time_precision
+    time_with_zone = ActiveSupport::TimeWithZone.new(
+      Time.utc(1999, 12, 31, 23, 59, "59.123456789".to_r),
+      ActiveSupport::TimeZone["Tokyo"]
+    )
+
+    time = Time.at(946702800, 1234567, :nanosecond)
+    date_time = DateTime.new(2001, 2, 3, 4, 5, 6.123456, "+03:00")
+    args = [{ argument1: [time_with_zone, time, date_time] }]
+
+    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: [time_with_zone, time, date_time])
     end
   end
 
@@ -672,7 +686,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
       end
     end
     assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
   end
 
   def test_assert_enqueued_with_failure_with_no_block_with_global_id_args
@@ -684,7 +698,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
   end
 
   def test_assert_enqueued_with_does_not_change_jobs_count
@@ -1804,18 +1818,6 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
-  def test_assert_performed_with_with_at_option_as_a_proc
-    assert_performed_with(job: HelloJob, at: ->(at) { (4.minutes.from_now..6.minutes.from_now).cover?(at) }) do
-      HelloJob.set(wait: 5.minutes).perform_later
-    end
-
-    assert_raise ActiveSupport::TestCase::Assertion do
-      assert_performed_with(job: HelloJob, at: ->(at) { (1.minute.from_now..3.minutes.from_now).cover?(at) }) do
-        HelloJob.set(wait: 1.minute).perform_later
-      end
-    end
-  end
-
   def test_assert_performed_with_without_block_with_at_option
     HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
 
@@ -1838,25 +1840,25 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
-  def test_assert_performed_with_selective_args
-    args = ->(job_args) do
-      assert_equal 1, job_args.first[:argument1]
-      assert job_args.first[:argument2].key?(:b)
-    end
+  def test_assert_performed_with_supports_matcher_procs
+    facets = {
+      job: HelloJob,
+      args: ["Rails"],
+      at: Date.tomorrow.noon,
+      queue: "important",
+    }
 
-    assert_performed_with(job: MultipleKwargsJob, args: args) do
-      MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
-    end
-  end
+    facets[:job].set(queue: facets[:queue], wait_until: facets[:at]).perform_later(*facets[:args])
+    perform_enqueued_jobs
 
-  def test_assert_performed_with_selective_args_fails
-    args = ->(job_args) do
-      false
-    end
+    facets.each do |facet, value|
+      matcher = ->(job_value) { job_value == value }
+      refuser = ->(job_value) { false }
 
-    assert_raise ActiveSupport::TestCase::Assertion do
-      assert_performed_with(job: MultipleKwargsJob, args: args) do
-        MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
+      assert_performed_with(**{ facet => matcher })
+
+      assert_raises ActiveSupport::TestCase::Assertion do
+        assert_performed_with(**{ facet => refuser })
       end
     end
   end
@@ -1911,7 +1913,7 @@ class PerformedJobsTest < ActiveJob::TestCase
       end
     end
     assert_match(/No performed job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
   end
 
   def test_assert_performed_with_without_block_failure_with_global_id_args
@@ -1924,7 +1926,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No performed job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default"}/, error.message)
   end
 
   def test_assert_performed_with_does_not_change_jobs_count

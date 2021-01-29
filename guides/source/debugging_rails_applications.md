@@ -170,7 +170,7 @@ class ArticlesController < ApplicationController
       logger.debug "The article was saved and now the user is going to be redirected..."
       redirect_to @article, notice: 'Article was successfully created.'
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -331,7 +331,7 @@ application server, and you will be placed at the debugger's prompt `(byebug)`.
 Before the prompt, the code around the line that is about to be run will be
 displayed and the current line will be marked by '=>', like this:
 
-```
+```ruby
 [1, 10] in /PathTo/project/app/controllers/articles_controller.rb
     3:
     4:   # GET /articles
@@ -353,7 +353,7 @@ processing the entire request.
 
 For example:
 
-```bash
+```
 => Booting Puma
 => Rails 6.0.0 application starting in development
 => Run `bin/rails server --help` for more startup options
@@ -876,7 +876,7 @@ will be stopped and you will have to start it again.
 TIP: You can save these settings in an `.byebugrc` file in your home directory.
 The debugger reads these global settings when it starts. For example:
 
-```bash
+```
 set callstyle short
 set listsize 25
 ```
@@ -930,7 +930,7 @@ do that with `local_variables`.
 
 ### Settings
 
-* `config.web_console.whitelisted_ips`: Authorized list of IPv4 or IPv6
+* `config.web_console.allowed_ips`: Authorized list of IPv4 or IPv6
 addresses and networks (defaults: `127.0.0.1/8, ::1`).
 * `config.web_console.whiny_requests`: Log a message when a console rendering
 is prevented (defaults: `true`).

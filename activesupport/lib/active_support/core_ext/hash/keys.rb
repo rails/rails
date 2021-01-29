@@ -116,7 +116,7 @@ class Hash
     def _deep_transform_keys_in_object(object, &block)
       case object
       when Hash
-        object.each_with_object({}) do |(key, value), result|
+        object.each_with_object(self.class.new) do |(key, value), result|
           result[yield(key)] = _deep_transform_keys_in_object(value, &block)
         end
       when Array

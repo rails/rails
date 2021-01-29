@@ -86,7 +86,7 @@ class RoutedRackApp
 end
 
 class BasicController
-  attr_accessor :request
+  attr_accessor :request, :response
 
   def config
     @config ||= ActiveSupport::InheritableOptions.new(ActionController::Base.config).tap do |config|
@@ -153,7 +153,7 @@ module ActionController
         define_method(:setup) do
           super()
           @routes = routes
-          @controller.singleton_class.include @routes.url_helpers
+          @controller.singleton_class.include @routes.url_helpers if @controller
         end
       }
       routes
@@ -179,7 +179,11 @@ module ActionDispatch
 end
 
 class ActiveSupport::TestCase
-  parallelize
+  if Process.respond_to?(:fork) && !Gem.win_platform?
+    parallelize
+  else
+    parallelize(with: :threads)
+  end
 
   include ActiveSupport::Testing::MethodCallAssertions
 

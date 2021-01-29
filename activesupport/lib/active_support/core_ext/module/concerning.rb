@@ -105,10 +105,10 @@ class Module
   # * clean up monolithic junk-drawer classes by separating their concerns, and
   # * stop leaning on protected/private for crude "this is internal stuff" modularity.
   #
-  # === Prepending `concerning`
+  # === Prepending concerning
   #
-  # `concerning` supports a `prepend: true` argument which will `prepend` the
-  # concern instead of using `include` for it.
+  # <tt>concerning</tt> supports a <tt>prepend: true</tt> argument which will <tt>prepend</tt> the
+  # concern instead of using <tt>include</tt> for it.
   module Concerning
     # Define a new concern and mix it in.
     def concerning(topic, prepend: false, &block)

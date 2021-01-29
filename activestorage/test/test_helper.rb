@@ -21,9 +21,6 @@ require "active_job"
 ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 
-# Filter out the backtrace from minitest while preserving the one from other libraries.
-Minitest.backtrace_filter = Minitest::BacktraceFilter.new
-
 SERVICE_CONFIGURATIONS = begin
   ActiveSupport::ConfigurationFile.parse(File.expand_path("service/configurations.yml", __dir__)).deep_symbolize_keys
 rescue Errno::ENOENT
@@ -46,11 +43,14 @@ Rails.configuration.active_storage.service = "local"
 
 ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
+ActiveStorage::FixtureSet.file_fixture_path = File.expand_path("fixtures/files", __dir__)
 
 class ActiveSupport::TestCase
-  self.file_fixture_path = File.expand_path("fixtures/files", __dir__)
+  self.file_fixture_path = ActiveStorage::FixtureSet.file_fixture_path
 
   include ActiveRecord::TestFixtures
+
+  self.fixture_path = File.expand_path("fixtures", __dir__)
 
   setup do
     ActiveStorage::Current.host = "https://example.com"
@@ -112,7 +112,7 @@ end
 
 require "global_id"
 GlobalID.app = "ActiveStorageExampleApp"
-ActiveRecord::Base.send :include, GlobalID::Identification
+ActiveRecord::Base.include GlobalID::Identification
 
 class User < ActiveRecord::Base
   validates :name, presence: true
@@ -133,6 +133,8 @@ end
 class Group < ActiveRecord::Base
   has_one_attached :avatar
   has_many :users, autosave: true
+
+  accepts_nested_attributes_for :users
 end
 
 require_relative "../../tools/test_common"

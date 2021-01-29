@@ -3,21 +3,21 @@
 // a relevant structure within app/javascript and only use these pack files to reference
 // that code so it'll be compiled.
 
-require("@rails/ujs").start()
+import Rails from "@rails/ujs"
 <%- unless options[:skip_turbolinks] -%>
-require("turbolinks").start()
+import Turbolinks from "turbolinks"
 <%- end -%>
 <%- unless skip_active_storage? -%>
-require("@rails/activestorage").start()
+import * as ActiveStorage from "@rails/activestorage"
 <%- end -%>
 <%- unless options[:skip_action_cable] -%>
-require("channels")
+import "channels"
 <%- end -%>
 
-
-// Uncomment to copy all static images under ../images to the output folder and reference
-// them with the image_pack_tag helper in views (e.g <%%= image_pack_tag 'rails.png' %>)
-// or the `imagePath` JavaScript helper below.
-//
-// const images = require.context('../images', true)
-// const imagePath = (name) => images(name, true)
+Rails.start()
+<%- unless options[:skip_turbolinks] -%>
+Turbolinks.start()
+<%- end -%>
+<%- unless skip_active_storage? -%>
+ActiveStorage.start()
+<%- end -%>

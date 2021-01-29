@@ -45,11 +45,9 @@ module ActionView
             raise_invalid_option_as(as) unless /\A[a-z_]\w*\z/.match?(as.to_s)
             as.to_sym
           else
-            begin
-              base = path[-1] == "/" ? "" : File.basename(path)
-              raise_invalid_identifier(path) unless base =~ /\A_?(.*?)(?:\.\w+)*\z/
-              $1.to_sym
-            end
+            base = path.end_with?("/") ? "" : File.basename(path)
+            raise_invalid_identifier(path) unless base =~ /\A_?(.*?)(?:\.\w+)*\z/
+            $1.to_sym
           end
         end
 

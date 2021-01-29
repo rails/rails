@@ -316,7 +316,7 @@ data_sources:
   triangles: true
   non_poly_ones: true
   non_poly_twos: true
-  men: true
+  humans: true
   faces: true
   interests: true
   zines: true

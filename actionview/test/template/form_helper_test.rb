@@ -1597,6 +1597,60 @@ class FormHelperTest < ActionView::TestCase
     ActionView::Helpers::FormHelper.form_with_generates_ids = old_value
   end
 
+  def test_form_for_id
+    form_for(Post.new) do |form|
+      concat form.button(form: form.id)
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      '<button name="button" type="submit" form="new_post">Create Post</button>'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_field_id_with_model
+    value = field_id(Post.new, :title)
+
+    assert_equal "post_title", value
+  end
+
+  def test_field_id_with_predicate_method
+    value = field_id(Post.new, :secret?)
+
+    assert_equal "post_secret", value
+  end
+
+  def test_form_for_field_id
+    form_for(Post.new) do |form|
+      concat form.label(:title)
+      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) })
+      concat tag.span("is blank", id: form.field_id(:title, :error))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      '<label for="post_title">Title</label>' \
+      '<input id="post_title" name="post[title]" type="text" aria-describedby="post_title_error">' \
+      '<span id="post_title_error">is blank</span>'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_field_id_with_index
+    form_for(Post.new, index: 1) do |form|
+      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) })
+      concat tag.span("is blank", id: form.field_id(:title, :error))
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      '<input id="post_1_title" name="post[1][title]" type="text" aria-describedby="post_1_title_error">' \
+      '<span id="post_1_title_error">is blank</span>'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_collection_radio_buttons
     post = Post.new
     def post.active; false; end
@@ -2330,6 +2384,66 @@ class FormHelperTest < ActionView::TestCase
 
       assert_dom_equal expected, output_buffer
     end
+  end
+
+  def test_button_with_get_formmethod_attribute
+    form_for(@post, as: :another_post) do |f|
+      concat f.button "GET", formmethod: :get
+    end
+
+    expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
+      "<button type='submit' formmethod='get' name='button'>GET</button>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_button_with_post_formmethod_attribute
+    form_for(@post, as: :another_post) do |f|
+      concat f.button "POST", formmethod: :post
+    end
+
+    expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
+      "<button type='submit' formmethod='post' name='button'>POST</button>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_button_with_other_formmethod_attribute
+    form_for(@post, as: :another_post) do |f|
+      concat f.button "Delete", formmethod: :delete
+    end
+
+    expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
+      "<button type='submit' formmethod='post' name='_method' value='delete'>Delete</button>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_button_with_other_formmethod_attribute_and_name
+    form_for(@post, as: :another_post) do |f|
+      concat f.button "Delete", formmethod: :delete, name: "existing"
+    end
+
+    expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
+      "<button type='submit' formmethod='delete' name='existing'>Delete</button>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_button_with_other_formmethod_attribute_and_value
+    form_for(@post, as: :another_post) do |f|
+      concat f.button "Delete", formmethod: :delete, value: "existing"
+    end
+
+    expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
+      "<button type='submit' formmethod='delete' name='button' value='existing'>Delete</button>"
+    end
+
+    assert_dom_equal expected, output_buffer
   end
 
   def test_nested_fields_for

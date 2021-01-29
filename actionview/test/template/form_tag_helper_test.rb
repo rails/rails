@@ -187,6 +187,30 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_field_id_without_suffixes_or_index
+    value = field_id(:post, :title)
+
+    assert_equal "post_title", value
+  end
+
+  def test_field_id_with_suffixes
+    value = field_id(:post, :title, :error)
+
+    assert_equal "post_title_error", value
+  end
+
+  def test_field_id_with_suffixes_and_index
+    value = field_id(:post, :title, :error, index: 1)
+
+    assert_equal "post_1_title_error", value
+  end
+
+  def test_field_id_with_nested_object_name
+    value = field_id("post[author]", :name)
+
+    assert_equal "post_author_name", value
+  end
+
   def test_hidden_field_tag
     actual = hidden_field_tag "id", 3
     expected = %(<input id="id" name="id" type="hidden" value="3" />)
@@ -533,6 +557,16 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(
       %(<input name='commit' type="submit" value="Save" />),
       submit_tag("Save")
+    )
+  ensure
+    ActionView::Base.automatically_disable_submit_tag = true
+  end
+
+  def test_empty_submit_tag_with_opt_out_and_explicit_disabling
+    ActionView::Base.automatically_disable_submit_tag = false
+    assert_dom_equal(
+      %(<input name='commit' type="submit" value="Save" />),
+      submit_tag("Save", data: { disable_with: false })
     )
   ensure
     ActionView::Base.automatically_disable_submit_tag = true

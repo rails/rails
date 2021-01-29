@@ -217,17 +217,22 @@ module ActiveRecord
         with_change_table do |t|
           if RUBY_VERSION < "2.7"
             @connection.expect :add_column, nil, [:delete_me, :bar, :integer, {}]
+            @connection.expect :add_index, nil, [:delete_me, :bar, {}]
           else
             @connection.expect :add_column, nil, [:delete_me, :bar, :integer]
+            @connection.expect :add_index, nil, [:delete_me, :bar]
           end
-          @connection.expect :add_index, nil, [:delete_me, :bar, {}]
           t.column :bar, :integer, index: true
         end
       end
 
       def test_index_creates_index
         with_change_table do |t|
-          @connection.expect :add_index, nil, [:delete_me, :bar, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :add_index, nil, [:delete_me, :bar, {}]
+          else
+            @connection.expect :add_index, nil, [:delete_me, :bar]
+          end
           t.index :bar
         end
       end
@@ -262,7 +267,11 @@ module ActiveRecord
 
       def test_change_changes_column
         with_change_table do |t|
-          @connection.expect :change_column, nil, [:delete_me, :bar, :string, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :change_column, nil, [:delete_me, :bar, :string, {}]
+          else
+            @connection.expect :change_column, nil, [:delete_me, :bar, :string]
+          end
           t.change :bar, :string
         end
       end
@@ -278,6 +287,13 @@ module ActiveRecord
         with_change_table do |t|
           @connection.expect :change_column_default, nil, [:delete_me, :bar, :string]
           t.change_default :bar, :string
+        end
+      end
+
+      def test_change_null_changes_column
+        with_change_table do |t|
+          @connection.expect :change_column_null, nil, [:delete_me, :bar, true, nil]
+          t.change_null :bar, true
         end
       end
 
@@ -327,6 +343,20 @@ module ActiveRecord
       def test_table_name_set
         with_change_table do |t|
           assert_equal :delete_me, t.name
+        end
+      end
+
+      def test_check_constraint_creates_check_constraint
+        with_change_table do |t|
+          @connection.expect :add_check_constraint, nil, [:delete_me, "price > discounted_price", name: "price_check"]
+          t.check_constraint "price > discounted_price", name: "price_check"
+        end
+      end
+
+      def test_remove_check_constraint_removes_check_constraint
+        with_change_table do |t|
+          @connection.expect :remove_check_constraint, nil, [:delete_me, name: "price_check"]
+          t.remove_check_constraint name: "price_check"
         end
       end
     end

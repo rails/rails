@@ -7,6 +7,7 @@ require "models/person"
 
 require "bigdecimal"
 require "active_support/core_ext/big_decimal"
+require "active_support/core_ext/object/inclusion"
 
 class NumericalityValidationTest < ActiveModel::TestCase
   def teardown
@@ -204,6 +205,13 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
     invalid!([0, 0.0])
     valid!([-1, 42])
+  end
+
+  def test_validates_numericality_with_in
+    Topic.validates_numericality_of :approved, in: 1..3
+
+    invalid!([0, 4])
+    valid!([1, 2, 3])
   end
 
   def test_validates_numericality_with_other_than_using_string_value

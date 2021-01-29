@@ -13,7 +13,7 @@ module ActiveRecord
 
         # Keep a duplicate pool so we do not bother others
         @db_config = ActiveRecord::Base.connection_pool.db_config
-        @pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", @db_config)
+        @pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, @db_config)
         @pool = ConnectionPool.new(@pool_config)
 
         if in_memory_db?
@@ -204,7 +204,7 @@ module ActiveRecord
         config = @db_config.configuration_hash.merge(idle_timeout: "0.02")
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
 
-        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config)
         @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
@@ -231,7 +231,7 @@ module ActiveRecord
 
         config = @db_config.configuration_hash.merge(idle_timeout: -5)
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
-        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config)
         @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
@@ -492,6 +492,7 @@ module ActiveRecord
       end
 
       class ConnectionTestModel < ActiveRecord::Base
+        self.abstract_class = true
       end
 
       def test_connection_notification_is_called
@@ -501,8 +502,23 @@ module ActiveRecord
         end
         ConnectionTestModel.establish_connection :arunit
 
-        assert_equal [:config, :spec_name], payloads[0].keys.sort
+        assert_equal [:config, :shard, :spec_name], payloads[0].keys.sort
         assert_equal "ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel", payloads[0][:spec_name]
+        assert_equal ActiveRecord::Base.default_shard, payloads[0][:shard]
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscription) if subscription
+      end
+
+      def test_connection_notification_is_called_for_shard
+        payloads = []
+        subscription = ActiveSupport::Notifications.subscribe("!connection.active_record") do |name, started, finished, unique_id, payload|
+          payloads << payload
+        end
+        ConnectionTestModel.connects_to shards: { shard_two: { writing: :arunit } }
+
+        assert_equal [:config, :shard, :spec_name], payloads[0].keys.sort
+        assert_equal "ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel", payloads[0][:spec_name]
+        assert_equal :shard_two, payloads[0][:shard]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end
@@ -563,7 +579,7 @@ module ActiveRecord
         [:disconnect, :clear_reloadable_connections].each do |group_action_method|
           @pool.with_connection do |connection|
             assert_raises(ExclusiveConnectionTimeoutError) do
-              Thread.new { @pool.send(group_action_method) }.join
+              Thread.new { @pool.public_send(group_action_method) }.join
             end
           end
         end
@@ -727,7 +743,7 @@ module ActiveRecord
         def with_single_connection_pool
           config = @db_config.configuration_hash.merge(pool: 1)
           db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", config)
-          pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+          pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config)
 
           yield(pool = ConnectionPool.new(pool_config))
         ensure

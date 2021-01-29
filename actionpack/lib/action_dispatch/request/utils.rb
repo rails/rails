@@ -41,6 +41,10 @@ module ActionDispatch
         end
       end
 
+      def self.set_binary_encoding(request, params, controller, action)
+        CustomParamEncoder.encode(request, params, controller, action)
+      end
+
       class ParamEncoder # :nodoc:
         # Convert nested Hash to HashWithIndifferentAccess.
         def self.normalize_encode_params(params)
@@ -71,6 +75,26 @@ module ActionDispatch
           list = super
           list.compact!
           list
+        end
+      end
+
+      class CustomParamEncoder # :nodoc:
+        def self.encode(request, params, controller, action)
+          return params unless controller && controller.valid_encoding? && encoding_template = action_encoding_template(request, controller, action)
+          params.except(:controller, :action).each do |key, value|
+            ActionDispatch::Request::Utils.each_param_value(value) do |param|
+              if encoding_template[key.to_s]
+                param.force_encoding(encoding_template[key.to_s])
+              end
+            end
+          end
+          params
+        end
+
+        def self.action_encoding_template(request, controller, action) # :nodoc:
+          request.controller_class_for(controller).action_encoding_template(action)
+        rescue MissingController
+          nil
         end
       end
     end

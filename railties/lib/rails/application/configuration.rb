@@ -2,6 +2,7 @@
 
 require "ipaddr"
 require "active_support/core_ext/kernel/reporting"
+require "active_support/core_ext/symbol/starts_ends_with"
 require "active_support/file_update_checker"
 require "active_support/configuration_file"
 require "rails/engine/configuration"
@@ -13,8 +14,8 @@ module Rails
       attr_accessor :allow_concurrency, :asset_host, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
-                    :force_ssl, :helpers_paths, :hosts, :logger, :log_formatter, :log_tags,
-                    :railties_order, :relative_url_root, :secret_key_base,
+                    :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
+                    :log_tags, :railties_order, :relative_url_root, :secret_key_base,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
@@ -34,6 +35,7 @@ module Rails
         @filter_redirect                         = []
         @helpers_paths                           = []
         @hosts                                   = Array(([".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")] if Rails.env.development?))
+        @host_authorization                      = {}
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
         @public_file_server.index_name           = "index"
@@ -71,7 +73,7 @@ module Rails
         @autoloader                              = :classic
         @disable_sandbox                         = false
         @add_autoload_paths_to_load_path         = true
-        @feature_policy                          = nil
+        @permissions_policy                      = nil
         @rake_eager_load                         = false
       end
 
@@ -114,7 +116,7 @@ module Rails
 
           if respond_to?(:active_support)
             active_support.use_authenticated_message_encryption = true
-            active_support.use_sha1_digests = true
+            active_support.hash_digest_class = OpenSSL::Digest::SHA1
           end
 
           if respond_to?(:action_controller)
@@ -135,15 +137,10 @@ module Rails
 
           if respond_to?(:action_dispatch)
             action_dispatch.use_cookies_with_metadata = true
-            action_dispatch.return_only_media_type_on_content_type = false
           end
 
           if respond_to?(:action_mailer)
             action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
-          end
-
-          if respond_to?(:active_job)
-            active_job.return_false_on_aborted_enqueue = true
           end
 
           if respond_to?(:active_storage)
@@ -159,12 +156,11 @@ module Rails
         when "6.1"
           load_defaults "6.0"
 
+          self.autoloader = :zeitwerk if %w[ruby truffleruby].include?(RUBY_ENGINE)
+
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
-          end
-
-          if respond_to?(:active_storage)
-            active_storage.track_variants = true
+            active_record.legacy_connection_handling = false
           end
 
           if respond_to?(:active_job)
@@ -174,9 +170,51 @@ module Rails
 
           if respond_to?(:action_dispatch)
             action_dispatch.cookies_same_site_protection = :lax
+            action_dispatch.ssl_default_redirect_status = 308
+          end
+
+          if respond_to?(:action_controller)
+            action_controller.urlsafe_csrf_tokens = true
+          end
+
+          if respond_to?(:action_view)
+            action_view.form_with_generates_remote_forms = false
+            action_view.preload_links_header = true
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.track_variants = true
+
+            active_storage.queues.analysis = nil
+            active_storage.queues.purge = nil
+          end
+
+          if respond_to?(:action_mailbox)
+            action_mailbox.queues.incineration = nil
+            action_mailbox.queues.routing = nil
+          end
+
+          if respond_to?(:action_mailer)
+            action_mailer.deliver_later_queue_name = nil
           end
 
           ActiveSupport.utc_to_local_returns_utc_offset_times = true
+        when "6.2"
+          load_defaults "6.1"
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.return_only_request_media_type_on_content_type = false
+          end
+
+          if respond_to?(:action_view)
+            action_view.button_to_generates_button_tag = true
+            action_view.apply_stylesheet_media_default = false
+          end
+
+          if respond_to?(:active_support)
+            active_support.hash_digest_class = OpenSSL::Digest::SHA256
+            active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -320,11 +358,11 @@ module Rails
         end
       end
 
-      def feature_policy(&block)
+      def permissions_policy(&block)
         if block_given?
-          @feature_policy = ActionDispatch::FeaturePolicy.new(&block)
+          @permissions_policy = ActionDispatch::PermissionsPolicy.new(&block)
         else
-          @feature_policy
+          @permissions_policy
         end
       end
 
@@ -358,8 +396,8 @@ module Rails
         end
 
         def method_missing(method, *args)
-          if method =~ /=$/
-            @configurations[$`.to_sym] = args.first
+          if method.end_with?("=")
+            @configurations[:"#{method[0..-2]}"] = args.first
           else
             @configurations.fetch(method) {
               @configurations[method] = ActiveSupport::OrderedOptions.new

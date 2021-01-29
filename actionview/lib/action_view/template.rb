@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/kernel/singleton_class"
 require "thread"
 require "delegate"
 
@@ -8,14 +7,6 @@ module ActionView
   # = Action View Template
   class Template
     extend ActiveSupport::Autoload
-
-    def self.finalize_compiled_template_methods
-      ActiveSupport::Deprecation.warn "ActionView::Template.finalize_compiled_template_methods is deprecated and has no effect"
-    end
-
-    def self.finalize_compiled_template_methods=(_)
-      ActiveSupport::Deprecation.warn "ActionView::Template.finalize_compiled_template_methods= is deprecated and has no effect"
-    end
 
     # === Encodings in ActionView::Template
     #
@@ -112,6 +103,7 @@ module ActionView
     eager_autoload do
       autoload :Error
       autoload :RawFile
+      autoload :Renderable
       autoload :Handlers
       autoload :HTML
       autoload :Inline
@@ -122,15 +114,10 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_reader :identifier, :handler, :original_encoding, :updated_at
+    attr_reader :identifier, :handler
     attr_reader :variable, :format, :variant, :locals, :virtual_path
 
-    def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, virtual_path: nil, updated_at: nil)
-      unless locals
-        ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a locals parameter"
-        locals = []
-      end
-
+    def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
       @source            = source
       @identifier        = identifier
       @handler           = handler
@@ -139,31 +126,15 @@ module ActionView
       @virtual_path      = virtual_path
 
       @variable = if @virtual_path
-        base = @virtual_path[-1] == "/" ? "" : ::File.basename(@virtual_path)
+        base = @virtual_path.end_with?("/") ? "" : ::File.basename(@virtual_path)
         base =~ /\A_?(.*?)(?:\.\w+)*\z/
         $1.to_sym
       end
 
-      if updated_at
-        ActiveSupport::Deprecation.warn "ActionView::Template#updated_at is deprecated"
-        @updated_at        = updated_at
-      else
-        @updated_at        = Time.now
-      end
       @format            = format
       @variant           = variant
       @compile_mutex     = Mutex.new
     end
-
-    deprecate :original_encoding
-    deprecate :updated_at
-    deprecate def virtual_path=(_); end
-    deprecate def locals=(_); end
-    deprecate def formats=(_); end
-    deprecate def formats; Array(format); end
-    deprecate def variants=(_); end
-    deprecate def variants; [variant]; end
-    deprecate def refresh(_); self; end
 
     # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it starts rendering.
@@ -177,10 +148,10 @@ module ActionView
     # This method is instrumented as "!render_template.action_view". Notice that
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
-    def render(view, locals, buffer = ActionView::OutputBuffer.new, &block)
+    def render(view, locals, buffer = ActionView::OutputBuffer.new, add_to_stack: true, &block)
       instrument_render_template do
         compile!(view)
-        view._run(method_name, self, locals, buffer, &block)
+        view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, &block)
       end
     rescue => e
       handle_render_error(view, e)
@@ -191,7 +162,7 @@ module ActionView
     end
 
     def short_identifier
-      @short_identifier ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "") : identifier
+      @short_identifier ||= defined?(Rails.root) ? identifier.delete_prefix("#{Rails.root}/") : identifier
     end
 
     def inspect
@@ -253,11 +224,11 @@ module ActionView
     # to ensure that references to the template object can be marshalled as well. This means forgoing
     # the marshalling of the compiler mutex and instantiating that again on unmarshalling.
     def marshal_dump # :nodoc:
-      [ @source, @identifier, @handler, @compiled, @locals, @virtual_path, @updated_at, @format, @variant ]
+      [ @source, @identifier, @handler, @compiled, @locals, @virtual_path, @format, @variant ]
     end
 
     def marshal_load(array) # :nodoc:
-      @source, @identifier, @handler, @compiled, @locals, @virtual_path, @updated_at, @format, @variant = *array
+      @source, @identifier, @handler, @compiled, @locals, @virtual_path, @format, @variant = *array
       @compile_mutex = Mutex.new
     end
 
@@ -283,15 +254,6 @@ module ActionView
           end
 
           @compiled = true
-        end
-      end
-
-      class LegacyTemplate < DelegateClass(Template) # :nodoc:
-        attr_reader :source
-
-        def initialize(template, source)
-          super(template)
-          @source = source
         end
       end
 
@@ -334,10 +296,8 @@ module ActionView
           raise WrongEncodingError.new(source, Encoding.default_internal)
         end
 
-        start_line = @handler.respond_to?(:start_line) ? @handler.start_line(self) : 0
-
         begin
-          mod.module_eval(source, identifier, start_line)
+          mod.module_eval(source, identifier, 0)
         rescue SyntaxError
           # Account for when code in the template is not syntactically valid; e.g. if we're using
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate

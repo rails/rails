@@ -69,7 +69,8 @@ class DriverTest < ActiveSupport::TestCase
         "args" => ["start-maximized"],
         "mobileEmulation" => { "deviceName" => "iphone 6" },
         "prefs" => { "detach" => true }
-      }
+      },
+      "browserName" => "chrome"
     }
     assert_equal expected, browser_options[:options].as_json
   end
@@ -88,7 +89,8 @@ class DriverTest < ActiveSupport::TestCase
         "args" => ["--headless", "start-maximized"],
         "mobileEmulation" => { "deviceName" => "iphone 6" },
         "prefs" => { "detach" => true }
-      }
+      },
+      "browserName" => "chrome"
     }
     assert_equal expected, browser_options[:options].as_json
   end
@@ -105,7 +107,8 @@ class DriverTest < ActiveSupport::TestCase
       "moz:firefoxOptions" => {
         "args" => ["--host=127.0.0.1"],
         "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
-      }
+      },
+      "browserName" => "firefox"
     }
     assert_equal expected, browser_options[:options].as_json
   end
@@ -122,7 +125,8 @@ class DriverTest < ActiveSupport::TestCase
       "moz:firefoxOptions" => {
         "args" => ["-headless", "--host=127.0.0.1"],
         "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
-      }
+      },
+      "browserName" => "firefox"
     }
     assert_equal expected, browser_options[:options].as_json
   end
@@ -148,9 +152,13 @@ class DriverTest < ActiveSupport::TestCase
     ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
   end
 
-  test "does not preload if :rack_test is set" do
+  test "does not preload if used driver is not :selenium" do
     assert_not_called_on_instance_of(ActionDispatch::SystemTesting::Browser, :preload) do
       ActionDispatch::SystemTesting::Driver.new(:rack_test, using: :chrome)
+    end
+
+    assert_not_called_on_instance_of(ActionDispatch::SystemTesting::Browser, :preload) do
+      ActionDispatch::SystemTesting::Driver.new(:poltergeist)
     end
   end
 end

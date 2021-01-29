@@ -12,6 +12,7 @@ require "models/category"
 require "models/reply"
 require "models/contact"
 require "models/keyboard"
+require "models/numeric_data"
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   include InTimeZone
@@ -34,12 +35,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t.title = "The First Topic Now Has A Title With\nNewlines And More Than 50 Characters"
 
     assert_equal '"The First Topic Now Has A Title With\nNewlines And ..."', t.attribute_for_inspect(:title)
+    assert_equal '"The First Topic Now Has A Title With\nNewlines And ..."', t.attribute_for_inspect(:heading)
   end
 
   test "attribute_for_inspect with a date" do
     t = topics(:first)
 
-    assert_equal %("#{t.written_on.to_s(:db)}"), t.attribute_for_inspect(:written_on)
+    assert_equal %("#{t.written_on.to_s(:inspect)}"), t.attribute_for_inspect(:written_on)
   end
 
   test "attribute_for_inspect with an array" do
@@ -69,6 +71,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t.written_on = Time.now
     t.author_name = ""
     assert t.attribute_present?("title")
+    assert t.attribute_present?("heading")
     assert t.attribute_present?("written_on")
     assert_not t.attribute_present?("content")
     assert_not t.attribute_present?("author_name")
@@ -296,13 +299,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "write_attribute" do
     topic = Topic.new
-    topic.send(:write_attribute, :title, "Still another topic")
+    topic.write_attribute :title, "Still another topic"
     assert_equal "Still another topic", topic.title
 
     topic[:title] = "Still another topic: part 2"
     assert_equal "Still another topic: part 2", topic.title
 
-    topic.send(:write_attribute, "title", "Still another topic: part 3")
+    topic.write_attribute "title", "Still another topic: part 3"
     assert_equal "Still another topic: part 3", topic.title
 
     topic["title"] = "Still another topic: part 4"
@@ -393,13 +396,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       super(attr_name, value.downcase)
     end
 
-    topic.send(:write_attribute, :title, "Yet another topic")
+    topic.write_attribute :title, "Yet another topic"
     assert_equal "yet another topic", topic.title
 
     topic[:title] = "Yet another topic: part 2"
     assert_equal "yet another topic: part 2", topic.title
 
-    topic.send(:write_attribute, "title", "Yet another topic: part 3")
+    topic.write_attribute "title", "Yet another topic: part 3"
     assert_equal "yet another topic: part 3", topic.title
 
     topic["title"] = "Yet another topic: part 4"
@@ -424,6 +427,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.new(title: "a")
     def topic.title() "b" end
     assert_equal "a", topic[:title]
+  end
+
+  test "read overriden attribute with predicate respects override" do
+    topic = Topic.new
+
+    topic.approved = true
+
+    def topic.approved; false; end
+
+    assert_not topic.approved?, "overriden approved should be false"
   end
 
   test "string attribute predicate" do
@@ -564,9 +577,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       meth = "#{prefix}title"
       assert_respond_to topic, meth
-      assert_equal ["title"], topic.send(meth)
-      assert_equal ["title", "a"], topic.send(meth, "a")
-      assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
+      assert_equal ["title"], topic.public_send(meth)
+      assert_equal ["title", "a"], topic.public_send(meth, "a")
+      assert_equal ["title", 1, 2, 3], topic.public_send(meth, 1, 2, 3)
     end
   end
 
@@ -578,9 +591,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       meth = "title#{suffix}"
       assert_respond_to topic, meth
-      assert_equal ["title"], topic.send(meth)
-      assert_equal ["title", "a"], topic.send(meth, "a")
-      assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
+      assert_equal ["title"], topic.public_send(meth)
+      assert_equal ["title", "a"], topic.public_send(meth, "a")
+      assert_equal ["title", 1, 2, 3], topic.public_send(meth, 1, 2, 3)
     end
   end
 
@@ -592,9 +605,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       meth = "#{prefix}title#{suffix}"
       assert_respond_to topic, meth
-      assert_equal ["title"], topic.send(meth)
-      assert_equal ["title", "a"], topic.send(meth, "a")
-      assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
+      assert_equal ["title"], topic.public_send(meth)
+      assert_equal ["title", "a"], topic.public_send(meth, "a")
+      assert_equal ["title", 1, 2, 3], topic.public_send(meth, 1, 2, 3)
     end
   end
 
@@ -1083,6 +1096,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "generated attribute methods ancestors have correct module" do
     mod = Topic.send(:generated_attribute_methods)
     assert_equal "Topic::GeneratedAttributeMethods", mod.inspect
+  end
+
+  test "read_attribute_before_type_cast with aliased attribute" do
+    model = NumericData.new(new_bank_balance: "abcd")
+    assert_equal "abcd", model.read_attribute_before_type_cast("new_bank_balance")
   end
 
   private

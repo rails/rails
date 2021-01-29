@@ -58,7 +58,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def test_execute_after_disconnect
     @connection.disconnect!
 
-    error = assert_raise(ActiveRecord::StatementInvalid) do
+    error = assert_raise(ActiveRecord::ConnectionNotEstablished) do
       @connection.execute("SELECT 1")
     end
     assert_kind_of Mysql2::Error, error.cause
@@ -67,7 +67,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def test_quote_after_disconnect
     @connection.disconnect!
 
-    assert_raise(Mysql2::Error) do
+    assert_raise(ActiveRecord::ConnectionNotEstablished) do
       @connection.quote("string")
     end
   end
@@ -170,7 +170,11 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     @connection.execute "CREATE TABLE `bar_baz` (`foo` varchar(255))"
     @subscriber.logged.clear
     @connection.send(:rename_column_for_alter, "bar_baz", "foo", "foo2")
-    assert_equal "SCHEMA", @subscriber.logged[0][1]
+    if @connection.send(:supports_rename_column?)
+      assert_empty @subscriber.logged
+    else
+      assert_equal "SCHEMA", @subscriber.logged[0][1]
+    end
   ensure
     @connection.execute "DROP TABLE `bar_baz`"
   end

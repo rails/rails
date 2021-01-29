@@ -1,12 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/attribute_accessors_per_thread"
-
 module ActionText
   class Content
-    include Serialization
-
-    thread_cattr_accessor :renderer
+    include Rendering, Serialization
 
     attr_reader :fragment
 
@@ -88,7 +84,11 @@ module ActionText
     end
 
     def to_rendered_html_with_layout
-      renderer.render(partial: "action_text/content/layout", locals: { content: self })
+      render layout: "action_text/contents/content", partial: to_partial_path, formats: :html, locals: { content: self }
+    end
+
+    def to_partial_path
+      "action_text/contents/content"
     end
 
     def to_s

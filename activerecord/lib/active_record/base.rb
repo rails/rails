@@ -5,7 +5,6 @@ require "active_support/dependencies"
 require "active_support/descendants_tracker"
 require "active_support/time"
 require "active_support/core_ext/class/subclasses"
-require "active_record/attribute_decorators"
 require "active_record/log_subscriber"
 require "active_record/explain_subscriber"
 require "active_record/relation/delegation"
@@ -137,6 +136,23 @@ module ActiveRecord #:nodoc:
   #
   #   anonymous = User.new(name: "")
   #   anonymous.name? # => false
+  #
+  # Query methods will also respect any overwrites of default accessors:
+  #
+  #   class User
+  #     # Has admin boolean column
+  #     def admin
+  #       false
+  #     end
+  #   end
+  #
+  #   user.update(admin: true)
+  #
+  #   user.read_attribute(:admin)  # => true, gets the column value
+  #   user[:admin] # => true, also gets the column value
+  #
+  #   user.admin   # => false, due to the getter overwrite
+  #   user.admin?  # => false, due to the getter overwrite
   #
   # == Accessing attributes before they have been typecasted
   #
@@ -274,6 +290,7 @@ module ActiveRecord #:nodoc:
     extend Querying
     extend Translation
     extend DynamicMatchers
+    extend DelegatedType
     extend Explain
     extend Enum
     extend Delegation::DelegateCache
@@ -292,7 +309,6 @@ module ActiveRecord #:nodoc:
     include Validations
     include CounterCache
     include Attributes
-    include AttributeDecorators
     include Locking::Optimistic
     include Locking::Pessimistic
     include AttributeMethods
@@ -309,6 +325,7 @@ module ActiveRecord #:nodoc:
     include Serialization
     include Store
     include SecureToken
+    include SignedId
     include Suppressor
   end
 

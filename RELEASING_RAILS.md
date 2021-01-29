@@ -21,7 +21,7 @@ https://buildkite.com/rails/rails
 
 Sam Ruby keeps a [test suite](https://github.com/rubys/awdwr) that makes
 sure the code samples in his book
-([Agile Web Development with Rails](https://pragprog.com/book/rails51/agile-web-development-with-rails-51))
+([Agile Web Development with Rails](https://pragprog.com/titles/rails6))
 all work. These are valuable system tests
 for Rails. You can check the status of these tests here:
 
@@ -93,7 +93,7 @@ You can review the commits for the 3.0.10 release like this:
 ```
 
 If you're doing a stable branch release, you should also ensure that all of
-the CHANGELOG entries in the stable branch are also synced to the master
+the CHANGELOG entries in the stable branch are also synced to the main
 branch.
 
 ### Put the new version in the RAILS_VERSION file.

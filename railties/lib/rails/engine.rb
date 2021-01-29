@@ -2,6 +2,7 @@
 
 require "rails/railtie"
 require "rails/engine/railties"
+require "active_support/callbacks"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/try"
 require "pathname"
@@ -36,10 +37,10 @@ module Rails
   #
   # == Configuration
   #
-  # Besides the +Railtie+ configuration which is shared across the application, in a
-  # <tt>Rails::Engine</tt> you can access <tt>autoload_paths</tt>, <tt>eager_load_paths</tt>
-  # and <tt>autoload_once_paths</tt>, which, differently from a <tt>Railtie</tt>, are scoped to
-  # the current engine.
+  # Like railties, engines can access a config object which contains configuration shared by
+  # all railties and the application.
+  # Additionally, each engine can access <tt>autoload_paths</tt>, <tt>eager_load_paths</tt> and
+  # <tt>autoload_once_paths</tt> settings which are scoped to that engine.
   #
   #   class MyEngine < Rails::Engine
   #     # Add a load path for this specific Engine
@@ -113,7 +114,7 @@ module Rails
   # == Endpoint
   #
   # An engine can also be a Rack application. It can be useful if you have a Rack application that
-  # you would like to wrap with +Engine+ and provide with some of the +Engine+'s features.
+  # you would like to provide with some of the +Engine+'s features.
   #
   # To do that, use the +endpoint+ method:
   #
@@ -123,7 +124,7 @@ module Rails
   #     end
   #   end
   #
-  # Now you can mount your engine in application's routes just like that:
+  # Now you can mount your engine in application's routes:
   #
   #   Rails.application.routes.draw do
   #     mount MyEngine::Engine => "/engine"
@@ -314,7 +315,7 @@ module Rails
   #     helper MyEngine::Engine.helpers
   #   end
   #
-  # It will include all of the helpers from engine's directory. Take into account that this does
+  # It will include all of the helpers from engine's directory. Take into account this does
   # not include helpers defined in controllers with helper_method or other similar solutions,
   # only helpers defined in the helpers directory will be included.
   #
@@ -422,6 +423,9 @@ module Rails
       end
     end
 
+    include ActiveSupport::Callbacks
+    define_callbacks :load_seed
+
     delegate :middleware, :root, :paths, to: :config
     delegate :engine_name, :isolated?, to: :class
 
@@ -467,6 +471,13 @@ module Rails
       require "rails/generators"
       run_generators_blocks(app)
       Rails::Generators.configure!(app.config.generators)
+      self
+    end
+
+    # Invoke the server registered hooks.
+    # Check <tt>Rails::Railtie.server</tt> for more info.
+    def load_server(app = self)
+      run_server_blocks(app)
       self
     end
 
@@ -552,13 +563,7 @@ module Rails
     # Blog::Engine.load_seed
     def load_seed
       seed_file = paths["db/seeds.rb"].existent.first
-      return unless seed_file
-
-      if config.try(:active_job)&.queue_adapter == :async
-        with_inline_jobs { load(seed_file) }
-      else
-        load(seed_file)
-      end
+      run_callbacks(:load_seed) { load(seed_file) } if seed_file
     end
 
     initializer :load_environment_config, before: :load_environment_hook, group: :all do
@@ -630,6 +635,12 @@ module Rails
       end
     end
 
+    initializer :wrap_executor_around_load_seed do |app|
+      self.class.set_callback(:load_seed, :around) do |engine, seeds_block|
+        app.executor.wrap(&seeds_block)
+      end
+    end
+
     initializer :engines_blank_point do
       # We need this initializer so all extra initializers added in engines are
       # consistently executed after all the initializers above across all engines.
@@ -668,18 +679,6 @@ module Rails
       def load_config_initializer(initializer) # :doc:
         ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
           load(initializer)
-        end
-      end
-
-      def with_inline_jobs
-        queue_adapter = config.active_job.queue_adapter
-        ActiveSupport.on_load(:active_job) do
-          self.queue_adapter = :inline
-        end
-        yield
-      ensure
-        ActiveSupport.on_load(:active_job) do
-          self.queue_adapter = queue_adapter
         end
       end
 

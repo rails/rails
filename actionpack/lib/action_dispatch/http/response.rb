@@ -81,11 +81,22 @@ module ActionDispatch # :nodoc:
     CONTENT_TYPE = "Content-Type"
     SET_COOKIE   = "Set-Cookie"
     LOCATION     = "Location"
-    NO_CONTENT_CODES = [100, 101, 102, 204, 205, 304]
+    NO_CONTENT_CODES = [100, 101, 102, 103, 204, 205, 304]
 
     cattr_accessor :default_charset, default: "utf-8"
     cattr_accessor :default_headers
-    cattr_accessor :return_only_media_type_on_content_type, default: false
+
+    def self.return_only_media_type_on_content_type=(*)
+      ActiveSupport::Deprecation.warn(
+        ".return_only_media_type_on_content_type= is dreprecated with no replacement and will be removed in 6.2."
+      )
+    end
+
+    def self.return_only_media_type_on_content_type
+      ActiveSupport::Deprecation.warn(
+        ".return_only_media_type_on_content_type is dreprecated with no replacement and will be removed in 6.2."
+      )
+    end
 
     include Rack::Response::Helpers
     # Aliasing these off because AD::Http::Cache::Response defines them.
@@ -215,15 +226,9 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    if defined?(JRUBY_VERSION)
-      def sending?;   synchronize { @sending };   end
-      def committed?; synchronize { @committed }; end
-      def sent?;      synchronize { @sent };      end
-    else
-      def sending?;   @sending;   end
-      def committed?; @committed; end
-      def sent?;      @sent;      end
-    end
+    def sending?;   synchronize { @sending };   end
+    def committed?; synchronize { @committed }; end
+    def sent?;      synchronize { @sent };      end
 
     # Sets the HTTP status code.
     def status=(status)
@@ -249,17 +254,7 @@ module ActionDispatch # :nodoc:
 
     # Content type of response.
     def content_type
-      if self.class.return_only_media_type_on_content_type
-        ActiveSupport::Deprecation.warn(
-          "Rails 6.1 will return Content-Type header without modification." \
-          " If you want just the MIME type, please use `#media_type` instead."
-        )
-
-        content_type = super
-        content_type ? content_type.split(/;\s*charset=/)[0].presence : content_type
-      else
-        super.presence
-      end
+      super.presence
     end
 
     # Media type of response.
@@ -448,8 +443,8 @@ module ActionDispatch # :nodoc:
     end
 
     def set_content_type(content_type, charset)
-      type = (content_type || "").dup
-      type << "; charset=#{charset.to_s.downcase}" if charset
+      type = content_type || ""
+      type = "#{type}; charset=#{charset.to_s.downcase}" if charset
       set_header CONTENT_TYPE, type
     end
 

@@ -78,10 +78,11 @@ module ActionDispatch
         alias :symbol :regexp
         attr_reader :name
 
-        DEFAULT_EXP = /[^\.\/\?]+/
-        def initialize(left)
-          super
-          @regexp = DEFAULT_EXP
+        DEFAULT_EXP = /[^.\/?]+/
+        GREEDY_EXP = /(.+)/
+        def initialize(left, regexp = DEFAULT_EXP)
+          super(left)
+          @regexp = regexp
           @name = -left.tr("*:", "")
         end
 
@@ -103,6 +104,15 @@ module ActionDispatch
       end
 
       class Star < Unary # :nodoc:
+        attr_accessor :regexp
+
+        def initialize(left)
+          super(left)
+
+          # By default wildcard routes are non-greedy and must match something.
+          @regexp = /.+?/
+        end
+
         def star?; true; end
         def type; :STAR; end
 

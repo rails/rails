@@ -40,7 +40,6 @@ module ActiveSupport
       end
 
       def push_tags(*tags)
-        @tags_text = nil
         tags.flatten!
         tags.reject!(&:blank?)
         current_tags.concat tags
@@ -48,12 +47,10 @@ module ActiveSupport
       end
 
       def pop_tags(size = 1)
-        @tags_text = nil
         current_tags.pop size
       end
 
       def clear_tags!
-        @tags_text = nil
         current_tags.clear
       end
 
@@ -64,13 +61,11 @@ module ActiveSupport
       end
 
       def tags_text
-        @tags_text ||= begin
-          tags = current_tags
-          if tags.one?
-            "[#{tags[0]}] "
-          elsif tags.any?
-            tags.collect { |tag| "[#{tag}] " }.join
-          end
+        tags = current_tags
+        if tags.one?
+          "[#{tags[0]}] "
+        elsif tags.any?
+          tags.collect { |tag| "[#{tag}] " }.join
         end
       end
     end
@@ -84,7 +79,7 @@ module ActiveSupport
     end
 
     def self.new(logger)
-      logger = logger.dup
+      logger = logger.clone
 
       if logger.formatter
         logger.formatter = logger.formatter.dup

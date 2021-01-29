@@ -24,12 +24,15 @@ module ActiveSupport
       def subscribe(pattern = nil, callable = nil, monotonic: false, &block)
         subscriber = Subscribers.new(pattern, callable || block, monotonic)
         synchronize do
-          if String === pattern
+          case pattern
+          when String
             @string_subscribers[pattern] << subscriber
             @listeners_for.delete(pattern)
-          else
+          when NilClass, Regexp
             @other_subscribers << subscriber
             @listeners_for.clear
+          else
+            raise ArgumentError,  "pattern must be specified as a String, Regexp or empty"
           end
         end
         subscriber
@@ -91,13 +94,13 @@ module ActiveSupport
           if listener.respond_to?(:start) && listener.respond_to?(:finish)
             subscriber_class = Evented
           else
-            # Doing all this to detect a block like `proc { |x| }` vs
-            # `proc { |*x| }` or `proc { |**x| }`
-            if listener.respond_to?(:parameters)
-              params = listener.parameters
-              if params.length == 1 && params.first.first == :opt
-                subscriber_class = EventObject
-              end
+            # Doing this to detect a single argument block or callable
+            # like `proc { |x| }` vs `proc { |*x| }`, `proc { |**x| }`,
+            # or `proc { |x, **y| }`
+            procish = listener.respond_to?(:parameters) ? listener : listener.method(:call)
+
+            if procish.arity == 1 && procish.parameters.length == 1
+              subscriber_class = EventObject
             end
           end
 

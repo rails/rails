@@ -113,4 +113,10 @@ class BacktraceCleanerDefaultFilterAndSilencerTest < ActiveSupport::TestCase
     result = @bc.clean(backtrace)
     assert_empty result
   end
+
+  test "should preserve lines that have a subpath matching a gem path" do
+    backtrace = [Gem.default_dir, *Gem.path].map { |path| "/parent#{path}/gems/nosuchgem-1.2.3/lib/foo.rb" }
+
+    assert_equal backtrace, @bc.clean(backtrace)
+  end
 end

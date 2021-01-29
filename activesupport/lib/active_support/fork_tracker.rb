@@ -20,7 +20,11 @@ module ActiveSupport
 
     module CoreExtPrivate
       include CoreExt
-      private :fork
+
+      private
+        def fork(*)
+          super
+        end
     end
 
     @pid = Process.pid

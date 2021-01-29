@@ -10,7 +10,7 @@ class ActiveRecord::FixtureSet::RenderContext # :nodoc:
       end
 
       def binary(path)
-        %(!!binary "#{Base64.strict_encode64(File.read(path))}")
+        %(!!binary "#{Base64.strict_encode64(File.binread(path))}")
       end
     end
   end

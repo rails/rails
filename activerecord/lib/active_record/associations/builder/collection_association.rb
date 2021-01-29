@@ -30,8 +30,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_callback(model, callback_name, name, options)
       full_callback_name = "#{callback_name}_for_#{name}"
 
-      # TODO : why do i need method_defined? I think its because of the inheritance chain
-      model.class_attribute full_callback_name unless model.method_defined?(full_callback_name)
+      unless model.method_defined?(full_callback_name)
+        model.class_attribute(full_callback_name, instance_accessor: false, instance_predicate: false)
+      end
+
       callbacks = Array(options[callback_name.to_sym]).map do |callback|
         case callback
         when Symbol

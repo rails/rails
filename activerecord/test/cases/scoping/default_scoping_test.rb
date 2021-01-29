@@ -7,6 +7,7 @@ require "models/developer"
 require "models/project"
 require "models/computer"
 require "models/cat"
+require "models/mentor"
 require "concurrent/atomic/cyclic_barrier"
 
 class DefaultScopingTest < ActiveRecord::TestCase
@@ -77,6 +78,107 @@ class DefaultScopingTest < ActiveRecord::TestCase
     wheres = MultiplePoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres["name"]
     assert_equal 50000,   wheres["salary"]
+  end
+
+  def test_default_scope_runs_on_create
+    Mentor.create!
+    create_sql = capture_sql { DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen") }.first
+
+    assert_match(/mentor_id/, create_sql)
+  end
+
+  def test_default_scope_with_all_queries_runs_on_create
+    Mentor.create!
+    create_sql = capture_sql { DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen") }.first
+
+    assert_match(/mentor_id/, create_sql)
+  end
+
+  def test_default_scope_runs_on_select
+    Mentor.create!
+    DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
+    select_sql = capture_sql { DeveloperwithDefaultMentorScopeNot.find_by(name: "Eileen") }.first
+
+    assert_match(/mentor_id/, select_sql)
+  end
+
+  def test_default_scope_with_all_queries_runs_on_select
+    Mentor.create!
+    DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen")
+    select_sql = capture_sql { DeveloperWithDefaultMentorScopeAllQueries.find_by(name: "Eileen") }.first
+
+    assert_match(/mentor_id/, select_sql)
+  end
+
+  def test_default_scope_doesnt_run_on_update
+    Mentor.create!
+    dev = DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
+    update_sql = capture_sql { dev.update!(name: "Not Eileen") }.first
+
+    assert_no_match(/mentor_id/, update_sql)
+  end
+
+  def test_default_scope_with_all_queries_runs_on_update
+    Mentor.create!
+    dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen")
+    update_sql = capture_sql { dev.update!(name: "Not Eileen") }.first
+
+    assert_match(/mentor_id/, update_sql)
+  end
+
+  def test_default_scope_doesnt_run_on_update_columns
+    Mentor.create!
+    dev = DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
+    update_sql = capture_sql { dev.update_columns(name: "Not Eileen") }.first
+
+    assert_no_match(/mentor_id/, update_sql)
+  end
+
+  def test_default_scope_with_all_queries_runs_on_update_columns
+    Mentor.create!
+    dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen")
+    update_sql = capture_sql { dev.update_columns(name: "Not Eileen") }.first
+
+    assert_match(/mentor_id/, update_sql)
+  end
+
+  def test_default_scope_doesnt_run_on_destroy
+    Mentor.create!
+    dev = DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
+    destroy_sql = capture_sql { dev.destroy }.first
+
+    assert_no_match(/mentor_id/, destroy_sql)
+  end
+
+  def test_default_scope_with_all_queries_runs_on_destroy
+    Mentor.create!
+    dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen")
+    destroy_sql = capture_sql { dev.destroy }.first
+
+    assert_match(/mentor_id/, destroy_sql)
+  end
+
+  def test_default_scope_doesnt_run_on_reload
+    Mentor.create!
+    dev = DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
+    reload_sql = capture_sql { dev.reload }.first
+
+    assert_no_match(/mentor_id/, reload_sql)
+  end
+
+  def test_default_scope_with_all_queries_runs_on_reload
+    Mentor.create!
+    dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen")
+    reload_sql = capture_sql { dev.reload }.first
+
+    assert_match(/mentor_id/, reload_sql)
+  end
+
+  def test_default_scope_with_all_queries_doesnt_run_on_destroy_when_unscoped
+    dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen", mentor_id: 2)
+    reload_sql = capture_sql { dev.reload({ unscoped: true }) }.first
+
+    assert_no_match(/mentor_id/, reload_sql)
   end
 
   def test_scope_overwrites_default
@@ -166,10 +268,10 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_unscope_string_where_clauses_involved
-    dev_relation = Developer.order("salary DESC").where("created_at > ?", 1.year.ago)
+    dev_relation = Developer.order("salary DESC").where("legacy_created_at > ?", 1.year.ago)
     expected = dev_relation.collect(&:name)
 
-    dev_ordered_relation = DeveloperOrderedBySalary.where(name: "Jamis").where("created_at > ?", 1.year.ago)
+    dev_ordered_relation = DeveloperOrderedBySalary.where(name: "Jamis").where("legacy_created_at > ?", 1.year.ago)
     received = dev_ordered_relation.unscope(where: [:name]).collect(&:name)
 
     assert_equal expected.sort, received.sort

@@ -25,11 +25,13 @@ require "models/admin/user"
 require "models/ship"
 require "models/treasure"
 require "models/parrot"
+require "models/book"
+require "models/citation"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects, :computers, :authors, :author_addresses,
-           :posts, :tags, :taggings, :comments, :sponsors, :members
+           :essays, :posts, :tags, :taggings, :comments, :sponsors, :members
 
   def test_belongs_to
     client = Client.find(3)
@@ -38,6 +40,23 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       assert_equal first_firm, client.firm
       assert_equal first_firm.name, client.firm.name
     end
+  end
+
+  def test_where_with_custom_primary_key
+    assert_equal [authors(:david)], Author.where(owned_essay: essays(:david_modest_proposal))
+  end
+
+  def test_find_by_with_custom_primary_key
+    assert_equal authors(:david), Author.find_by(owned_essay: essays(:david_modest_proposal))
+  end
+
+  def test_where_on_polymorphic_association_with_nil
+    assert_equal comments(:greetings), Comment.where(author: nil).first
+    assert_equal comments(:greetings), Comment.where(author: [nil]).first
+  end
+
+  def test_where_on_polymorphic_association_with_empty_array
+    assert_empty Comment.where(author: [])
   end
 
   def test_assigning_belongs_to_on_destroyed_object
@@ -449,23 +468,30 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_polymorphic_association_class
     sponsor = Sponsor.new
-    assert_nil sponsor.association(:sponsorable).send(:klass)
+    assert_nil sponsor.association(:sponsorable).klass
     sponsor.association(:sponsorable).reload
     assert_nil sponsor.sponsorable
 
     sponsor.sponsorable_type = "" # the column doesn't have to be declared NOT NULL
-    assert_nil sponsor.association(:sponsorable).send(:klass)
+    assert_nil sponsor.association(:sponsorable).klass
     sponsor.association(:sponsorable).reload
     assert_nil sponsor.sponsorable
 
     sponsor.sponsorable = Member.new name: "Bert"
-    assert_equal Member, sponsor.association(:sponsorable).send(:klass)
+    assert_equal Member, sponsor.association(:sponsorable).klass
   end
 
   def test_with_polymorphic_and_condition
     sponsor = Sponsor.create
     member = Member.create name: "Bert"
+
     sponsor.sponsorable = member
+    sponsor.save!
+
+    assert_equal member, sponsor.sponsorable
+    assert_nil sponsor.sponsorable_with_conditions
+
+    sponsor = Sponsor.preload(:sponsorable, :sponsorable_with_conditions).last
 
     assert_equal member, sponsor.sponsorable
     assert_nil sponsor.sponsorable_with_conditions
@@ -1103,7 +1129,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     error = assert_raise ArgumentError do
       Class.new(Author).belongs_to :special_author_address, dependent: :nullify
     end
-    assert_equal error.message, "The :dependent option must be one of [:destroy, :delete], but is :nullify"
+    assert_equal error.message, "The :dependent option must be one of [:destroy, :delete, :destroy_async], but is :nullify"
   end
 
   class DestroyableBook < ActiveRecord::Base
@@ -1159,6 +1185,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_predicate firm_with_condition_proxy, :stale_target?
     assert_equal companies(:another_firm), client.firm
     assert_equal companies(:another_firm), client.firm_with_condition
+  end
+
+  def test_destroying_child_with_unloaded_parent_and_foreign_key_and_touch_is_possible_with_has_many_inversing
+    with_has_many_inversing do
+      book     = Book.create!
+      citation = book.citations.create!
+
+      assert_difference "Citation.count", -1 do
+        Citation.find(citation.id).destroy
+      end
+    end
   end
 
   def test_polymorphic_reassignment_of_associated_id_updates_the_object
@@ -1341,6 +1378,30 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sponsor = Sponsor.create!(sponsorable: toy)
 
     assert_equal toy, sponsor.reload.sponsorable
+  end
+
+  class SponsorWithTouchInverse < Sponsor
+    belongs_to :sponsorable, polymorphic: true, inverse_of: :sponsors, touch: true
+  end
+
+  def test_destroying_polymorphic_child_with_unloaded_parent_and_touch_is_possible_with_has_many_inversing
+    with_has_many_inversing do
+      toy     = Toy.create!
+      sponsor = toy.sponsors.create!
+
+      assert_difference "Sponsor.count", -1 do
+        SponsorWithTouchInverse.find(sponsor.id).destroy
+      end
+    end
+  end
+
+  def test_polymorphic_with_false
+    assert_nothing_raised do
+      Class.new(ActiveRecord::Base) do
+        def self.name; "Post"; end
+        belongs_to :category, polymorphic: false
+      end
+    end
   end
 
   test "stale tracking doesn't care about the type" do

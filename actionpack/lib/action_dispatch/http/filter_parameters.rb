@@ -18,6 +18,11 @@ module ActionDispatch
     #   env["action_dispatch.parameter_filter"] = [:foo, "bar"]
     #   => replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
     #
+    #   env["action_dispatch.parameter_filter"] = [ /\Apin\z/i, /\Apin_/i ]
+    #   => replaces the value for the exact (case-insensitive) key 'pin' and all
+    #   (case-insensitive) keys beginning with 'pin_', with "[FILTERED]"
+    #   Does not match keys with 'pin' as a substring, such as 'shipping_id'.
+    #
     #   env["action_dispatch.parameter_filter"] = [ "credit_card.code" ]
     #   => replaces { credit_card: {code: "xxxx"} } with "[FILTERED]", does not
     #   change { file: { code: "xxxx"} }

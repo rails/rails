@@ -52,6 +52,9 @@ module Rails
         class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
                                            desc: "Skip Active Record files"
 
+        class_option :skip_active_job,     type: :boolean, default: false,
+                                           desc: "Skip Active Job"
+
         class_option :skip_active_storage, type: :boolean, default: false,
                                            desc: "Skip Active Storage files"
 
@@ -76,6 +79,9 @@ module Rails
         class_option :skip_turbolinks,     type: :boolean, default: false,
                                            desc: "Skip turbolinks gem"
 
+        class_option :skip_jbuilder,       type: :boolean, default: false,
+                                           desc: "Skip jbuilder gem"
+
         class_option :skip_test,           type: :boolean, aliases: "-T", default: false,
                                            desc: "Skip test files"
 
@@ -91,8 +97,8 @@ module Rails
         class_option :edge,                type: :boolean, default: false,
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository"
 
-        class_option :master,              type: :boolean, default: false,
-                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository master branch"
+        class_option :main,                type: :boolean, default: false, aliases: "--master",
+                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository main branch"
 
         class_option :rc,                  type: :string, default: nil,
                                            desc: "Path to file containing extra configuration options for rails command"
@@ -104,29 +110,13 @@ module Rails
                                            desc: "Show this help message and quit"
       end
 
-      def initialize(*args)
-        @gem_filter    = lambda { |gem| true }
-        @extra_entries = []
+      def initialize(positional_argv, option_argv, *)
+        @argv = [*positional_argv, *option_argv]
+        @gem_filter = lambda { |gem| true }
         super
       end
 
     private
-      def gemfile_entry(name, *args) # :doc:
-        options = args.extract_options!
-        version = args.first
-        github = options[:github]
-        path   = options[:path]
-
-        if github
-          @extra_entries << GemfileEntry.github(name, github)
-        elsif path
-          @extra_entries << GemfileEntry.path(name, path)
-        else
-          @extra_entries << GemfileEntry.version(name, version)
-        end
-        self
-      end
-
       def gemfile_entries # :doc:
         [rails_gemfile_entry,
          database_gemfile_entry,
@@ -136,14 +126,7 @@ module Rails
          javascript_gemfile_entry,
          jbuilder_gemfile_entry,
          psych_gemfile_entry,
-         cable_gemfile_entry,
-         @extra_entries].flatten.find_all(&@gem_filter)
-      end
-
-      def add_gem_entry_filter # :doc:
-        @gem_filter = lambda { |next_filter, entry|
-          yield(entry) && next_filter.call(entry)
-        }.curry[@gem_filter]
+         cable_gemfile_entry].flatten.find_all(&@gem_filter)
       end
 
       def builder # :doc:
@@ -155,7 +138,7 @@ module Rails
       end
 
       def build(meth, *args) # :doc:
-        builder.send(meth, *args) if builder.respond_to?(meth)
+        builder.public_send(meth, *args) if builder.respond_to?(meth)
       end
 
       def create_root # :doc:
@@ -166,9 +149,14 @@ module Rails
       end
 
       def apply_rails_template # :doc:
+        original_argv = ARGV.dup
+        ARGV.replace(@argv)
+
         apply rails_template if rails_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
+      ensure
+        ARGV.replace(original_argv)
       end
 
       def set_default_accessors! # :doc:
@@ -194,7 +182,7 @@ module Rails
       def web_server_gemfile_entry # :doc:
         return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 4.1", comment)
+        GemfileEntry.new("puma", "~> 5.0", comment)
       end
 
       def include_all_railties? # :doc:
@@ -204,7 +192,8 @@ module Rails
             :skip_action_mailer,
             :skip_test,
             :skip_sprockets,
-            :skip_action_cable
+            :skip_action_cable,
+            :skip_active_job
           ),
           skip_active_storage?,
           skip_action_mailbox?,
@@ -243,6 +232,10 @@ module Rails
 
       def skip_action_text? # :doc:
         options[:skip_action_text] || skip_active_storage?
+      end
+
+      def skip_dev_gems? # :doc:
+        options[:skip_dev_gems]
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -284,16 +277,16 @@ module Rails
           ]
         elsif options.edge?
           [
-            GemfileEntry.github("rails", "rails/rails")
+            GemfileEntry.github("rails", "rails/rails", "main")
           ]
-        elsif options.master?
+        elsif options.main?
           [
-            GemfileEntry.github("rails", "rails/rails", "master")
+            GemfileEntry.github("rails", "rails/rails", "main")
           ]
         else
           [GemfileEntry.version("rails",
                             rails_version_specifier,
-                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'")]
+                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'")]
         end
       end
 
@@ -319,14 +312,11 @@ module Rails
       def webpacker_gemfile_entry
         return [] if options[:skip_javascript]
 
-        if options.dev? || options.edge? || options.master?
-          GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
-        else
-          GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
-        end
+        GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
       end
 
       def jbuilder_gemfile_entry
+        return [] if options[:skip_jbuilder]
         comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
         GemfileEntry.new "jbuilder", "~> 2.7", comment, {}, options[:api]
       end
@@ -416,9 +406,9 @@ module Rails
 
       def run_webpack
         if webpack_install?
-          rails_command "webpacker:install", inline: true
+          rails_command "webpacker:install"
           if options[:webpack] && options[:webpack] != "webpack"
-            rails_command "webpacker:install:#{options[:webpack]}", inline: true
+            rails_command "webpacker:install:#{options[:webpack]}"
           end
         end
       end
@@ -426,12 +416,6 @@ module Rails
       def generate_bundler_binstub
         if bundle_install?
           bundle_command("binstubs bundler")
-        end
-      end
-
-      def generate_spring_binstubs
-        if bundle_install? && spring_install?
-          bundle_command("exec spring binstub --all")
         end
       end
 

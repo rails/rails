@@ -60,13 +60,6 @@ module Arel # :nodoc: all
       case other
       when Arel::SelectManager
         Arel::Nodes::In.new(self, other.ast)
-      when Range
-        if $VERBOSE
-          warn <<-eowarn
-Passing a range to `#in` is deprecated. Call `#between`, instead.
-          eowarn
-        end
-        between(other)
       when Enumerable
         Nodes::In.new self, quoted_array(other)
       else
@@ -110,13 +103,6 @@ Passing a range to `#in` is deprecated. Call `#between`, instead.
       case other
       when Arel::SelectManager
         Arel::Nodes::NotIn.new(self, other.ast)
-      when Range
-        if $VERBOSE
-          warn <<-eowarn
-Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
-          eowarn
-        end
-        not_between(other)
       when Enumerable
         Nodes::NotIn.new self, quoted_array(other)
       else
@@ -220,6 +206,18 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
       Nodes::Concat.new self, other
     end
 
+    def contains(other)
+      Arel::Nodes::Contains.new(self, other)
+    end
+
+    def overlaps(other)
+      Arel::Nodes::Overlaps.new(self, other)
+    end
+
+    def quoted_array(others)
+      others.map { |v| quoted_node(v) }
+    end
+
     private
       def grouping_any(method_id, others, *extras)
         nodes = others.map { |expr| send(method_id, expr, *extras) }
@@ -235,10 +233,6 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
 
       def quoted_node(other)
         Nodes.build_quoted(other, self)
-      end
-
-      def quoted_array(others)
-        others.map { |v| quoted_node(v) }
       end
 
       def infinity?(value)

@@ -11,8 +11,20 @@ module ActiveRecord
         when :destroy
           target.destroy
           raise ActiveRecord::Rollback unless target.destroyed?
+        when :destroy_async
+          id = owner.public_send(reflection.foreign_key.to_sym)
+          primary_key_column = reflection.active_record_primary_key.to_sym
+
+          enqueue_destroy_association(
+            owner_model_name: owner.class.to_s,
+            owner_id: owner.id,
+            association_class: reflection.klass.to_s,
+            association_ids: [id],
+            association_primary_key_column: primary_key_column,
+            ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
+          )
         else
-          target.send(options[:dependent])
+          target.public_send(options[:dependent])
         end
       end
 
@@ -68,7 +80,7 @@ module ActiveRecord
             @updated = true
           end
 
-          replace_keys(record)
+          replace_keys(record, force: true)
 
           self.target = record
         end
@@ -96,8 +108,12 @@ module ActiveRecord
           reflection.counter_cache_column && owner.persisted?
         end
 
-        def replace_keys(record)
-          owner[reflection.foreign_key] = record ? record._read_attribute(primary_key(record.class)) : nil
+        def replace_keys(record, force: false)
+          target_key = record ? record._read_attribute(primary_key(record.class)) : nil
+
+          if force || owner._read_attribute(reflection.foreign_key) != target_key
+            owner[reflection.foreign_key] = target_key
+          end
         end
 
         def primary_key(klass)

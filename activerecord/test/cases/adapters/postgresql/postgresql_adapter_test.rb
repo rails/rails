@@ -16,6 +16,48 @@ module ActiveRecord
         @connection_handler = ActiveRecord::Base.connection_handler
       end
 
+      def test_connection_error
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          ActiveRecord::Base.postgresql_connection(host: File::NULL)
+        end
+      end
+
+      def test_reconnection_error
+        fake_connection = Class.new do
+          def async_exec(*)
+            [{}]
+          end
+
+          def type_map_for_queries=(_)
+          end
+
+          def type_map_for_results=(_)
+          end
+
+          def exec_params(*)
+            {}
+          end
+
+          def reset
+            raise PG::ConnectionBad
+          end
+
+          def close
+          end
+        end.new
+
+        @conn = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          fake_connection,
+          ActiveRecord::Base.logger,
+          nil,
+          { host: File::NULL }
+        )
+
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          @conn.reconnect!
+        end
+      end
+
       def test_bad_connection
         assert_raise ActiveRecord::NoDatabaseError do
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
@@ -390,85 +432,6 @@ module ActiveRecord
 
           first_number.save!
           assert_equal 4, first_number.reload.number
-        end
-      end
-
-      def test_errors_when_an_insert_query_is_called_while_preventing_writes
-        with_example_table do
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
-              @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-            end
-          end
-        end
-      end
-
-      def test_errors_when_an_update_query_is_called_while_preventing_writes
-        with_example_table do
-          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
-              @connection.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
-            end
-          end
-        end
-      end
-
-      def test_errors_when_a_delete_query_is_called_while_preventing_writes
-        with_example_table do
-          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection_handler.while_preventing_writes do
-              @connection.execute("DELETE FROM ex where data = '138853948594'")
-            end
-          end
-        end
-      end
-
-      def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
-        with_example_table do
-          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          @connection_handler.while_preventing_writes do
-            assert_equal 1, @connection.execute("SELECT * FROM ex WHERE data = '138853948594'").entries.count
-          end
-        end
-      end
-
-      def test_doesnt_error_when_a_show_query_is_called_while_preventing_writes
-        @connection_handler.while_preventing_writes do
-          assert_equal 1, @connection.execute("SHOW TIME ZONE").entries.count
-        end
-      end
-
-      def test_doesnt_error_when_a_set_query_is_called_while_preventing_writes
-        @connection_handler.while_preventing_writes do
-          assert_equal [], @connection.execute("SET standard_conforming_strings = on").entries
-        end
-      end
-
-      def test_doesnt_error_when_a_read_query_with_leading_chars_is_called_while_preventing_writes
-        with_example_table do
-          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          @connection_handler.while_preventing_writes do
-            assert_equal 1, @connection.execute("/*action:index*/(\n( SELECT * FROM ex WHERE data = '138853948594' ) )").entries.count
-          end
-        end
-      end
-
-      def test_doesnt_error_when_a_read_query_with_cursors_is_called_while_preventing_writes
-        with_example_table do
-          @connection_handler.while_preventing_writes do
-            @connection.transaction do
-              assert_equal [], @connection.execute("DECLARE cur_ex CURSOR FOR SELECT * FROM ex").entries
-              assert_equal [], @connection.execute("FETCH cur_ex").entries
-              assert_equal [], @connection.execute("MOVE cur_ex").entries
-              assert_equal [], @connection.execute("CLOSE cur_ex").entries
-            end
-          end
         end
       end
 

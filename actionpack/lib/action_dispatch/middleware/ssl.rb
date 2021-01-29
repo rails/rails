@@ -52,11 +52,13 @@ module ActionDispatch
     # Default to 2 years as recommended on hstspreload.org.
     HSTS_EXPIRES_IN = 63072000
 
+    PERMANENT_REDIRECT_REQUEST_METHODS = %w[GET HEAD] # :nodoc:
+
     def self.default_hsts_options
       { expires: HSTS_EXPIRES_IN, subdomains: true, preload: false }
     end
 
-    def initialize(app, redirect: {}, hsts: {}, secure_cookies: true)
+    def initialize(app, redirect: {}, hsts: {}, secure_cookies: true, ssl_default_redirect_status: nil)
       @app = app
 
       @redirect = redirect
@@ -65,6 +67,7 @@ module ActionDispatch
       @secure_cookies = secure_cookies
 
       @hsts_header = build_hsts_header(normalize_hsts_options(hsts))
+      @ssl_default_redirect_status = ssl_default_redirect_status
     end
 
     def call(env)
@@ -130,8 +133,10 @@ module ActionDispatch
       end
 
       def redirection_status(request)
-        if request.get? || request.head?
+        if PERMANENT_REDIRECT_REQUEST_METHODS.include?(request.raw_request_method)
           301 # Issue a permanent redirect via a GET request.
+        elsif @ssl_default_redirect_status
+          @ssl_default_redirect_status
         else
           307 # Issue a fresh request redirect to preserve the HTTP method.
         end

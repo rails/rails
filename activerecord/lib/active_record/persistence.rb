@@ -378,6 +378,10 @@ module ActiveRecord
       def _update_record(values, constraints) # :nodoc:
         constraints = _substitute_values(constraints).map { |attr, bind| attr.eq(bind) }
 
+        if default_scopes?(all_queries: true)
+          constraints << default_scoped(all_queries: true).where_clause.ast
+        end
+
         um = arel_table.where(
           constraints.reduce(&:and)
         ).compile_update(_substitute_values(values), primary_key)
@@ -387,6 +391,10 @@ module ActiveRecord
 
       def _delete_record(constraints) # :nodoc:
         constraints = _substitute_values(constraints).map { |attr, bind| attr.eq(bind) }
+
+        if default_scopes?(all_queries: true)
+          constraints << default_scoped(all_queries: true).where_clause.ast
+        end
 
         dm = Arel::DeleteManager.new
         dm.from(arel_table)
@@ -414,8 +422,8 @@ module ActiveRecord
 
         def _substitute_values(values)
           values.map do |name, value|
-            attr = arel_attribute(name)
-            bind = predicate_builder.build_bind_attribute(name, value)
+            attr = arel_table[name]
+            bind = predicate_builder.build_bind_attribute(attr.name, value)
             [attr, bind]
           end
         end
@@ -424,7 +432,6 @@ module ActiveRecord
     # Returns true if this object hasn't been saved yet -- that is, a record
     # for the object doesn't exist in the database yet; otherwise, returns false.
     def new_record?
-      sync_with_transaction_state if @transaction_state&.finalized?
       @new_record
     end
 
@@ -432,26 +439,23 @@ module ActiveRecord
     # save, the object didn't exist in the database and new_record? would have
     # returned true.
     def previously_new_record?
-      sync_with_transaction_state if @transaction_state&.finalized?
       @previously_new_record
     end
 
     # Returns true if this object has been destroyed, otherwise returns false.
     def destroyed?
-      sync_with_transaction_state if @transaction_state&.finalized?
       @destroyed
     end
 
     # Returns true if the record is persisted, i.e. it's not a new record and it was
     # not destroyed, otherwise returns false.
     def persisted?
-      sync_with_transaction_state if @transaction_state&.finalized?
       !(@new_record || @destroyed)
     end
 
     ##
     # :call-seq:
-    #   save(*args)
+    #   save(**options)
     #
     # Saves the model.
     #
@@ -474,15 +478,15 @@ module ActiveRecord
     #
     # Attributes marked as readonly are silently ignored if the record is
     # being updated.
-    def save(*args, **options, &block)
-      create_or_update(*args, **options, &block)
+    def save(**options, &block)
+      create_or_update(**options, &block)
     rescue ActiveRecord::RecordInvalid
       false
     end
 
     ##
     # :call-seq:
-    #   save!(*args)
+    #   save!(**options)
     #
     # Saves the model.
     #
@@ -507,8 +511,8 @@ module ActiveRecord
     # being updated.
     #
     # Unless an error is raised, returns true.
-    def save!(*args, **options, &block)
-      create_or_update(*args, **options, &block) || raise(RecordNotSaved.new("Failed to save the record", self))
+    def save!(**options, &block)
+      create_or_update(**options, &block) || raise(RecordNotSaved.new("Failed to save the record", self))
     end
 
     # Deletes the record in the database and freezes this instance to
@@ -573,12 +577,15 @@ module ActiveRecord
     # If you want to change the sti column as well, use #becomes! instead.
     def becomes(klass)
       became = klass.allocate
-      became.send(:initialize)
-      became.instance_variable_set(:@attributes, @attributes)
-      became.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
-      became.instance_variable_set(:@new_record, new_record?)
-      became.instance_variable_set(:@destroyed, destroyed?)
-      became.errors.copy!(errors)
+
+      became.send(:initialize) do |becoming|
+        becoming.instance_variable_set(:@attributes, @attributes)
+        becoming.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
+        becoming.instance_variable_set(:@new_record, new_record?)
+        becoming.instance_variable_set(:@destroyed, destroyed?)
+        becoming.errors.copy!(errors)
+      end
+
       became
     end
 
@@ -630,9 +637,6 @@ module ActiveRecord
       end
     end
 
-    alias update_attributes update
-    deprecate update_attributes: "please, use update instead"
-
     # Updates its receiver just like #update but calls #save! instead
     # of +save+, so an exception is raised if the record is invalid and saving will fail.
     def update!(attributes)
@@ -643,9 +647,6 @@ module ActiveRecord
         save!
       end
     end
-
-    alias update_attributes! update!
-    deprecate update_attributes!: "please, use update! instead"
 
     # Equivalent to <code>update_columns(name => value)</code>.
     def update_column(name, value)
@@ -674,11 +675,8 @@ module ActiveRecord
 
       attributes = attributes.transform_keys do |key|
         name = key.to_s
-        self.class.attribute_aliases[name] || name
-      end
-
-      attributes.each_key do |key|
-        verify_readonly_attribute(key)
+        name = self.class.attribute_aliases[name] || name
+        verify_readonly_attribute(name) || name
       end
 
       id_in_database = self.id_in_database
@@ -711,9 +709,9 @@ module ActiveRecord
     # Returns +self+.
     def increment!(attribute, by = 1, touch: nil)
       increment(attribute, by)
-      change = public_send(attribute) - (attribute_in_database(attribute.to_s) || 0)
+      change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
       self.class.update_counters(id, attribute => change, touch: touch)
-      clear_attribute_change(attribute) # eww
+      public_send(:"clear_#{attribute}_change")
       self
     end
 
@@ -810,12 +808,11 @@ module ActiveRecord
     def reload(options = nil)
       self.class.connection.clear_query_cache
 
-      fresh_object =
-        if options && options[:lock]
-          self.class.unscoped { self.class.lock(options[:lock]).find(id) }
-        else
-          self.class.unscoped { self.class.find(id) }
-        end
+      fresh_object = if self.class.default_scopes?(all_queries: true) && !(options && options[:unscoped])
+        _find_record(options)
+      else
+        self.class.unscoped { _find_record(options) }
+      end
 
       @attributes = fresh_object.instance_variable_get(:@attributes)
       @new_record = false
@@ -861,9 +858,10 @@ module ActiveRecord
       _raise_record_not_touched_error unless persisted?
 
       attribute_names = timestamp_attributes_for_update_in_model
-      attribute_names |= names.map!(&:to_s).map! { |name|
+      attribute_names |= names.map! do |name|
+        name = name.to_s
         self.class.attribute_aliases[name] || name
-      }
+      end unless names.empty?
 
       unless attribute_names.empty?
         affected_rows = _touch_row(attribute_names, time)
@@ -874,6 +872,14 @@ module ActiveRecord
     end
 
   private
+    def _find_record(options)
+      if options && options[:lock]
+        self.class.lock(options[:lock]).find(id)
+      else
+        self.class.find(id)
+      end
+    end
+
     # A hook to be overridden by association modules.
     def destroy_associations
     end

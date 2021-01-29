@@ -80,6 +80,32 @@ module Notifications
     ensure
       ActiveSupport::Notifications.notifier = old_notifier
     end
+
+    def test_subscribe_with_a_single_arity_lambda_listener
+      event_name = nil
+      listener = ->(event) do
+        event_name = event.name
+      end
+
+      @notifier.subscribe(&listener)
+      ActiveSupport::Notifications.instrument("event_name")
+
+      assert_equal "event_name", event_name
+    end
+
+    def test_subscribe_with_a_single_arity_callable_listener
+      event_name = nil
+      listener = Class.new do
+        define_method :call do |event|
+          event_name = event.name
+        end
+      end
+
+      @notifier.subscribe(nil, listener.new)
+      ActiveSupport::Notifications.instrument("event_name")
+
+      assert_equal "event_name", event_name
+    end
   end
 
   class TimedAndMonotonicTimedSubscriberTest < TestCase
@@ -441,6 +467,17 @@ module Notifications
       assert_not child.parent_of?(parent)
       assert_not parent.parent_of?(not_child)
       assert_not not_child.parent_of?(parent)
+    end
+
+    def test_subscribe_raises_error_on_non_supported_arguments
+      notifier = ActiveSupport::Notifications::Fanout.new
+
+      assert_raises ArgumentError do
+        notifier.subscribe(:symbol) { |*_| }
+      end
+      assert_raises ArgumentError do
+        notifier.subscribe(Object.new) { |*_| }
+      end
     end
 
     private

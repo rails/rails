@@ -15,7 +15,6 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-
 What is Active Job?
 -------------------
 
@@ -27,6 +26,7 @@ into small units of work and run in parallel, really.
 
 The Purpose of Active Job
 -----------------------------
+
 The main point is to ensure that all Rails apps will have a job infrastructure
 in place. We can then have framework features and other gems build on top of that,
 without having to worry about API differences between various job runners such as
@@ -81,7 +81,7 @@ Note that you can define `perform` with as many arguments as you want.
 
 ### Enqueue the Job
 
-Enqueue a job like so:
+Enqueue a job using [`perform_later`][] and, optionally, [`set`][]. Like so:
 
 ```ruby
 # Enqueue a job to be performed as soon as the queuing system is
@@ -107,6 +107,9 @@ GuestsCleanupJob.perform_later(guest1, guest2, filter: 'some_filter')
 
 That's it!
 
+[`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
+[`set`]: https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
+
 Job Execution
 -------------
 
@@ -121,7 +124,9 @@ production apps will need to pick a persistent backend.
 
 Active Job has built-in adapters for multiple queuing backends (Sidekiq,
 Resque, Delayed Job, and others). To get an up-to-date list of the adapters
-see the API Documentation for [ActiveJob::QueueAdapters](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
+see the API Documentation for [`ActiveJob::QueueAdapters`][].
+
+[`ActiveJob::QueueAdapters`]: https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html
 
 ### Setting the Backend
 
@@ -139,15 +144,15 @@ module YourApp
 end
 ```
 
-You can also configure your backend on a per job basis.
+You can also configure your backend on a per job basis:
 
 ```ruby
 class GuestsCleanupJob < ApplicationJob
   self.queue_adapter = :resque
-  #....
+  # ...
 end
 
-# Now your job will use `resque` as its backend queue adapter overriding what
+# Now your job will use `resque` as its backend queue adapter, overriding what
 # was configured in `config.active_job.queue_adapter`.
 ```
 
@@ -172,12 +177,12 @@ Queues
 ------
 
 Most of the adapters support multiple queues. With Active Job you can schedule
-the job to run on a specific queue:
+the job to run on a specific queue using [`queue_as`][]:
 
 ```ruby
 class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
-  #....
+  # ...
 end
 ```
 
@@ -191,11 +196,13 @@ module YourApp
     config.active_job.queue_name_prefix = Rails.env
   end
 end
+```
 
+```ruby
 # app/jobs/guests_cleanup_job.rb
 class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
-  #....
+  # ...
 end
 
 # Now your job will run on queue production_low_priority on your
@@ -209,7 +216,7 @@ You can also configure the prefix on a per job basis.
 class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
   self.queue_name_prefix = nil
-  #....
+  # ...
 end
 
 # Now your job's queue won't be prefixed, overriding what
@@ -227,11 +234,13 @@ module YourApp
     config.active_job.queue_name_delimiter = '.'
   end
 end
+```
 
+```ruby
 # app/jobs/guests_cleanup_job.rb
 class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
-  #....
+  # ...
 end
 
 # Now your job will run on queue production.low_priority on your
@@ -240,15 +249,15 @@ end
 ```
 
 If you want more control on what queue a job will be run you can pass a `:queue`
-option to `#set`:
+option to `set`:
 
 ```ruby
 MyJob.set(queue: :another_queue).perform_later(record)
 ```
 
-To control the queue from the job level you can pass a block to `#queue_as`. The
-block will be executed in the job context (so you can access `self.arguments`)
-and you must return the queue name:
+To control the queue from the job level you can pass a block to `queue_as`. The
+block will be executed in the job context (so it can access `self.arguments`),
+and it must return the queue name:
 
 ```ruby
 class ProcessVideoJob < ApplicationJob
@@ -265,13 +274,16 @@ class ProcessVideoJob < ApplicationJob
     # Do process video
   end
 end
+```
 
+```ruby
 ProcessVideoJob.perform_later(Video.last)
 ```
 
 NOTE: Make sure your queuing backend "listens" on your queue name. For some
 backends you need to specify the queues to listen to.
 
+[`queue_as`]: https://api.rubyonrails.org/classes/ActiveJob/QueueName/ClassMethods.html#method-i-queue_as
 
 Callbacks
 ---------
@@ -311,13 +323,19 @@ end
 
 ### Available callbacks
 
-* `before_enqueue`
-* `around_enqueue`
-* `after_enqueue`
-* `before_perform`
-* `around_perform`
-* `after_perform`
+* [`before_enqueue`][]
+* [`around_enqueue`][]
+* [`after_enqueue`][]
+* [`before_perform`][]
+* [`around_perform`][]
+* [`after_perform`][]
 
+[`before_enqueue`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_enqueue
+[`around_enqueue`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_enqueue
+[`after_enqueue`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_enqueue
+[`before_perform`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_perform
+[`around_perform`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_perform
+[`after_perform`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_perform
 
 Action Mailer
 ------------
@@ -344,7 +362,7 @@ of the `.deliver_later` emails are processed. To avoid this problem, use
 Internationalization
 --------------------
 
-Each job uses the `I18n.locale` set when the job was created. Useful if you send
+Each job uses the `I18n.locale` set when the job was created. This is useful if you send
 emails asynchronously:
 
 ```ruby
@@ -374,7 +392,7 @@ ActiveJob supports the following types of arguments by default:
 
 ### GlobalID
 
-Active Job supports GlobalID for parameters. This makes it possible to pass live
+Active Job supports [GlobalID](https://github.com/rails/globalid/blob/master/README.md) for parameters. This makes it possible to pass live
 Active Record objects to your job instead of class/id pairs, which you then have
 to manually deserialize. Before, jobs would look like this:
 
@@ -437,8 +455,8 @@ Rails.application.config.active_job.custom_serializers << MoneySerializer
 Exceptions
 ----------
 
-Active Job provides a way to catch exceptions raised during the execution of the
-job:
+Exceptions raised during the execution of the job can be handled with
+[`rescue_from`][]:
 
 ```ruby
 class GuestsCleanupJob < ApplicationJob
@@ -454,14 +472,16 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-If the exception is not rescued within the job, e.g. as shown above, then the job is referred to as "failed".
+If an exception from a job is not rescued, then the job is referred to as "failed".
+
+[`rescue_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from
 
 ### Retrying or Discarding failed jobs
 
 A failed job will not be retried, unless configured otherwise.
 
-It's also possible to retry or discard a job if an exception is raised during execution.
-For example:
+It's possible to retry or discard a failed job by using [`retry_on`] or
+[`discard_on`], respectively. For example:
 
 ```ruby
 class RemoteServiceJob < ApplicationJob
@@ -475,15 +495,18 @@ class RemoteServiceJob < ApplicationJob
 end
 ```
 
-To get more details see the API Documentation for [ActiveJob::Exceptions](https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html).
+[`discard_on`]: https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html#method-i-discard_on
+[`retry_on`]: https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html#method-i-retry_on
 
 ### Deserialization
 
 GlobalID allows serializing full Active Record objects passed to `#perform`.
 
 If a passed record is deleted after the job is enqueued but before the `#perform`
-method is called Active Job will raise an `ActiveJob::DeserializationError`
+method is called Active Job will raise an [`ActiveJob::DeserializationError`][]
 exception.
+
+[`ActiveJob::DeserializationError`]: https://api.rubyonrails.org/classes/ActiveJob/DeserializationError.html
 
 Job Testing
 --------------

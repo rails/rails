@@ -15,22 +15,6 @@ module ActiveRecord
       other == records
     end
 
-    def build(attributes = nil, &block)
-      block = _deprecated_scope_block("new", &block)
-      scoping { @association.build(attributes, &block) }
-    end
-    alias new build
-
-    def create(attributes = nil, &block)
-      block = _deprecated_scope_block("create", &block)
-      scoping { @association.create(attributes, &block) }
-    end
-
-    def create!(attributes = nil, &block)
-      block = _deprecated_scope_block("create!", &block)
-      scoping { @association.create!(attributes, &block) }
-    end
-
     %w(insert insert_all insert! insert_all! upsert upsert_all).each do |method|
       class_eval <<~RUBY
         def #{method}(attributes, **kwargs)
@@ -44,6 +28,18 @@ module ActiveRecord
     end
 
     private
+      def _new(attributes, &block)
+        @association.build(attributes, &block)
+      end
+
+      def _create(attributes, &block)
+        @association.create(attributes, &block)
+      end
+
+      def _create!(attributes, &block)
+        @association.create!(attributes, &block)
+      end
+
       def exec_queries
         super do |record|
           @association.set_inverse_instance_from_queries(record)

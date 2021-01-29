@@ -3,7 +3,7 @@
 module ActiveRecord
   module Querying
     QUERYING_METHODS = [
-      :find, :find_by, :find_by!, :take, :take!, :first, :first!, :last, :last!,
+      :find, :find_by, :find_by!, :take, :take!, :sole, :find_sole_by, :first, :first!, :last, :last!,
       :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!,
       :forty_two, :forty_two!, :third_to_last, :third_to_last!, :second_to_last, :second_to_last!,
       :exists?, :any?, :many?, :none?, :one?,
@@ -13,9 +13,10 @@ module ActiveRecord
       :destroy_all, :delete_all, :update_all, :touch_all, :destroy_by, :delete_by,
       :find_each, :find_in_batches, :in_batches,
       :select, :reselect, :order, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
-      :where, :rewhere, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :readonly, :extending, :or,
-      :having, :create_with, :distinct, :references, :none, :unscope, :optimizer_hints, :merge, :except, :only,
-      :count, :average, :minimum, :maximum, :sum, :calculate, :annotate,
+      :where, :rewhere, :invert_where, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :readonly,
+      :and, :or, :annotate, :optimizer_hints, :extending,
+      :having, :create_with, :distinct, :references, :none, :unscope, :merge, :except, :only,
+      :count, :average, :minimum, :maximum, :sum, :calculate,
       :pluck, :pick, :ids, :strict_loading
     ].freeze # :nodoc:
     delegate(*QUERYING_METHODS, to: :all)

@@ -10,6 +10,8 @@ rescue LoadError, NameError
 else
 
   class KeyGeneratorTest < ActiveSupport::TestCase
+    class InvalidDigest; end
+
     def setup
       @secret    = SecureRandom.hex(64)
       @generator = ActiveSupport::KeyGenerator.new(@secret, iterations: 2)
@@ -41,6 +43,22 @@ else
       expected = "cbea7f7f47df705967dc508f4e446fd99e7797b1d70011c6899cd39bbe62907b8508337d678505a7dc8184e037f1003ba3d19fc5d829454668e91d2518692eae"
       assert_equal expected, ActiveSupport::KeyGenerator.new("0" * 64, iterations: 2).generate_key("some_salt").unpack1("H*")
     end
+
+    test "With custom hash digest class" do
+      original_hash_digest_class = ActiveSupport::KeyGenerator.hash_digest_class
+
+      ActiveSupport::KeyGenerator.hash_digest_class = ::OpenSSL::Digest::SHA256
+
+      expected = "c92322ad55ee691520e8e0f279b53e7a5cc9c1f8efca98295ae252b04cc6e2274c3aaf75ef53b260a6dc548f3e5fbb8af0edf10e7663cf7054c35bcc12835fc0"
+      assert_equal expected, ActiveSupport::KeyGenerator.new("0" * 64).generate_key("some_salt").unpack1("H*")
+    ensure
+      ActiveSupport::KeyGenerator.hash_digest_class = original_hash_digest_class
+    end
+
+    test "Raises if given a non digest instance" do
+      assert_raises(ArgumentError) { ActiveSupport::KeyGenerator.hash_digest_class = InvalidDigest }
+      assert_raises(ArgumentError) { ActiveSupport::KeyGenerator.hash_digest_class = InvalidDigest.new }
+    end
   end
 
   class CachingKeyGeneratorTest < ActiveSupport::TestCase
@@ -68,6 +86,13 @@ else
     test "Does not cache key for different length" do
       derived_key = @caching_generator.generate_key("some_salt", 32)
       different_length_key = @caching_generator.generate_key("some_salt", 64)
+
+      assert_not_equal derived_key, different_length_key
+    end
+
+    test "Does not cache key for different salts and lengths that are different but are equal when concatenated" do
+      derived_key = @caching_generator.generate_key("13", 37)
+      different_length_key = @caching_generator.generate_key("1", 337)
 
       assert_not_equal derived_key, different_length_key
     end

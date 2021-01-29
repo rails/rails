@@ -29,7 +29,7 @@ module ActiveStorage
     private
       def draw_first_page_from(file, &block)
         # use 72 dpi to match thumbnail dimensions of the PDF
-        draw self.class.pdftoppm_path, "-singlefile", "-r", "72", "-png", file.path, &block
+        draw self.class.pdftoppm_path, "-singlefile", "-cropbox", "-r", "72", "-png", file.path, &block
       end
   end
 end

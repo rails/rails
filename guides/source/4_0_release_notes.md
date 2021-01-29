@@ -26,8 +26,8 @@ If you're upgrading an existing application, it's a great idea to have good test
 Creating a Rails 4.0 application
 --------------------------------
 
-```
- You should have the 'rails' RubyGem installed
+```bash
+# You should have the 'rails' RubyGem installed
 $ rails new myapp
 $ cd myapp
 ```
@@ -42,13 +42,13 @@ More information: [Bundler homepage](https://bundler.io)
 
 `Bundler` and `Gemfile` makes freezing your Rails application easy as pie with the new dedicated `bundle` command. If you want to bundle straight from the Git repository, you can pass the `--edge` flag:
 
-```
+```bash
 $ rails new myapp --edge
 ```
 
 If you have a local checkout of the Rails repository and want to generate an application using that, you can pass the `--dev` flag:
 
-```
+```bash
 $ ruby /path/to/rails/railties/bin/rails new myapp --dev
 ```
 
@@ -184,15 +184,15 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/a
 * `String#to_date` now raises `ArgumentError: invalid date` instead of `NoMethodError: undefined method 'div' for nil:NilClass`
   when given an invalid date. It is now the same as `Date.parse`, and it accepts more invalid dates than 3.x, such as:
 
-  ```ruby
-  # ActiveSupport 3.x
-  "asdf".to_date # => NoMethodError: undefined method `div' for nil:NilClass
-  "333".to_date # => NoMethodError: undefined method `div' for nil:NilClass
+    ```ruby
+    # ActiveSupport 3.x
+    "asdf".to_date # => NoMethodError: undefined method `div' for nil:NilClass
+    "333".to_date # => NoMethodError: undefined method `div' for nil:NilClass
 
-  # ActiveSupport 4
-  "asdf".to_date # => ArgumentError: invalid date
-  "333".to_date # => Fri, 29 Nov 2013
-  ```
+    # ActiveSupport 4
+    "asdf".to_date # => ArgumentError: invalid date
+    "333".to_date # => Fri, 29 Nov 2013
+    ```
 
 ### Deprecations
 
@@ -234,11 +234,11 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/a
       The method `change_table` is also reversible, as long as its block doesn't call `remove`, `change` or `change_default`
 
     * New method `reversible` makes it possible to specify code to be run when migrating up or down.
-      See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/active_record_migrations.md#using-reversible)
+      See the [Guide on Migration](https://github.com/rails/rails/blob/main/guides/source/active_record_migrations.md#using-reversible)
 
     * New method `revert` will revert a whole migration or the given block.
       If migrating down, the given migration / block is run normally.
-      See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/active_record_migrations.md#reverting-previous-migrations)
+      See the [Guide on Migration](https://github.com/rails/rails/blob/main/guides/source/active_record_migrations.md#reverting-previous-migrations)
 
 * Adds PostgreSQL array type support. Any datatype can be used to create an array column, with full migration and schema dumper support.
 

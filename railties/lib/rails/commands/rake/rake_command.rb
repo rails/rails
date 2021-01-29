@@ -16,9 +16,11 @@ module Rails
           require_rake
 
           Rake.with_application do |rake|
-            load "rails/tasks.rb"
             rake.init("rails", [task, *args])
             rake.load_rakefile
+            if Rails.respond_to?(:root)
+              rake.options.suppress_backtrace_pattern = /\A(?!#{Regexp.quote(Rails.root.to_s)})/
+            end
             rake.standard_exception_handling { rake.top_level }
           end
         end

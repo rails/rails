@@ -43,14 +43,10 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "monochrome with default variant_processor" do
-    ActiveStorage.variant_processor = nil
-
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(monochrome: true).processed
     image = read_image(variant)
     assert_match(/Gray/, image.colorspace)
-  ensure
-    ActiveStorage.variant_processor = :mini_magick
   end
 
   test "disabled variation of JPEG blob" do
@@ -64,58 +60,14 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_match(/RGB/, image.colorspace)
   end
 
-  test "disabled variation of JPEG blob with :combine_options" do
+  test "variation with :combine_options is not supported" do
     blob = create_file_blob(filename: "racecar.jpg")
-    variant = ActiveSupport::Deprecation.silence do
+    assert_raises(ArgumentError) do
       blob.variant(combine_options: {
         resize: "100x100",
         monochrome: false
       }).processed
     end
-    assert_match(/racecar\.jpg/, variant.url)
-
-    image = read_image(variant)
-    assert_equal 100, image.width
-    assert_equal 67, image.height
-    assert_match(/RGB/, image.colorspace)
-  end
-
-  test "disabled variation using :combine_options" do
-    ActiveStorage.variant_processor = nil
-    blob = create_file_blob(filename: "racecar.jpg")
-    variant = ActiveSupport::Deprecation.silence do
-      blob.variant(combine_options: {
-        crop: "100x100+0+0",
-        monochrome: false
-      }).processed
-    end
-    assert_match(/racecar\.jpg/, variant.url)
-
-    image = read_image(variant)
-    assert_equal 100, image.width
-    assert_equal 100, image.height
-    assert_match(/RGB/, image.colorspace)
-  ensure
-    ActiveStorage.variant_processor = :mini_magick
-  end
-
-  test "center-weighted crop of JPEG blob using :combine_options" do
-    ActiveStorage.variant_processor = nil
-    blob = create_file_blob(filename: "racecar.jpg")
-    variant = ActiveSupport::Deprecation.silence do
-      blob.variant(combine_options: {
-        gravity: "center",
-        resize: "100x100^",
-        crop: "100x100+0+0",
-      }).processed
-    end
-    assert_match(/racecar\.jpg/, variant.url)
-
-    image = read_image(variant)
-    assert_equal 100, image.width
-    assert_equal 100, image.height
-  ensure
-    ActiveStorage.variant_processor = :mini_magick
   end
 
   test "center-weighted crop of JPEG blob using :resize_to_fill" do
@@ -162,12 +114,12 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "resized variation of BMP blob" do
-    blob = create_file_blob(filename: "colors.bmp")
+    blob = create_file_blob(filename: "colors.bmp", content_type: "image/bmp")
     variant = blob.variant(resize: "15x15").processed
-    assert_match(/colors\.bmp/, variant.url)
+    assert_match(/colors\.png/, variant.url)
 
     image = read_image(variant)
-    assert_equal "BMP", image.type
+    assert_equal "PNG", image.type
     assert_equal 15, image.width
     assert_equal 8, image.height
   end
@@ -178,6 +130,14 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_nothing_raised do
       blob.variant(layers: "Optimize").processed
     end
+  end
+
+  test "PNG variation of JPEG blob" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(format: :png).processed
+    assert_equal "racecar.png", variant.filename.to_s
+    assert_equal "image/png", variant.content_type
+    assert_equal "PNG", read_image(variant).type
   end
 
   test "variation of invariable blob" do
@@ -192,18 +152,29 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_operator variant.url.length, :<, 785
   end
 
-  test "works for vips processor" do
-    ActiveStorage.variant_processor = :vips
-    blob = create_file_blob(filename: "racecar.jpg")
-    variant = blob.variant(thumbnail_image: 100).processed
+  test "thumbnail variation of JPEG blob processed with VIPS" do
+    process_variants_with :vips do
+      blob = create_file_blob(filename: "racecar.jpg")
+      variant = blob.variant(thumbnail_image: 100).processed
 
-    image = read_image(variant)
-    assert_equal 100, image.width
-    assert_equal 67, image.height
-  rescue LoadError
-    # libvips not installed
-  ensure
-    ActiveStorage.variant_processor = :mini_magick
+      image = read_image(variant)
+      assert_equal 100, image.width
+      assert_equal 67, image.height
+    end
+  end
+
+  test "thumbnail variation of extensionless GIF blob processed with VIPS" do
+    process_variants_with :vips do
+      blob = ActiveStorage::Blob.create_and_upload!(io: file_fixture("image.gif").open, filename: "image", content_type: "image/gif")
+      variant = blob.variant(resize_to_fit: [100, 100]).processed
+
+      image = read_image(variant)
+      assert_equal "image.gif", variant.filename.to_s
+      assert_equal "image/gif", variant.content_type
+      assert_equal "GIF", image.type
+      assert_equal 100, image.width
+      assert_equal 100, image.height
+    end
   end
 
   test "passes content_type on upload" do
@@ -217,4 +188,14 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
       blob.variant(resize: "100x100").processed
     end
   end
+
+  private
+    def process_variants_with(processor)
+      previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, processor
+      yield
+    rescue LoadError
+      skip "Variant processor #{processor.inspect} is not installed"
+    ensure
+      ActiveStorage.variant_processor = previous_processor
+    end
 end

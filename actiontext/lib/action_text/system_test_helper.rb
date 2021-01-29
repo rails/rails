@@ -7,6 +7,7 @@ module ActionText
     # The editor can be found by:
     # * its +id+
     # * its +placeholder+
+    # * the text from its +label+ element
     # * its +aria-label+
     # * the +name+ of its input
     #
@@ -17,6 +18,10 @@ module ActionText
     #
     #   # <trix-editor placeholder="Your message here" ...></trix-editor>
     #   fill_in_rich_text_area "Your message here", with: "Hello <em>world!</em>"
+    #
+    #   # <label for="message_content">Message content</label>
+    #   # <trix-editor id="message_content" ...></trix-editor>
+    #   fill_in_rich_text_area "Message content", with: "Hello <em>world!</em>"
     #
     #   # <trix-editor aria-label="Message content" ...></trix-editor>
     #   fill_in_rich_text_area "Message content", with: "Hello <em>world!</em>"
@@ -37,12 +42,14 @@ Capybara.add_selector :rich_text_area do
       XPath.descendant(:"trix-editor")
     else
       input_located_by_name = XPath.anywhere(:input).where(XPath.attr(:name) == locator).attr(:id)
+      input_located_by_label = XPath.anywhere(:label).where(XPath.string.n.is(locator)).attr(:for)
 
       XPath.descendant(:"trix-editor").where \
         XPath.attr(:id).equals(locator) |
         XPath.attr(:placeholder).equals(locator) |
         XPath.attr(:"aria-label").equals(locator) |
-        XPath.attr(:input).equals(input_located_by_name)
+        XPath.attr(:input).equals(input_located_by_name) |
+        XPath.attr(:id).equals(input_located_by_label)
     end
   end
 end

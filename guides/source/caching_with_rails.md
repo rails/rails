@@ -34,17 +34,12 @@ fragment caching. By default Rails provides fragment caching. In order to use
 page and action caching you will need to add `actionpack-page_caching` and
 `actionpack-action_caching` to your `Gemfile`.
 
-By default, caching is only enabled in your production environment. To play
-around with caching locally you'll want to enable caching in your local
-environment by setting `config.action_controller.perform_caching` to `true` in
-the relevant `config/environments/*.rb` file:
-
-```ruby
-config.action_controller.perform_caching = true
-```
+By default, caching is only enabled in your production environment. You can play
+around with caching locally by running `rails dev:cache`, or by setting
+`config.action_controller.perform_caching` to `true` in `config/environments/development.rb`.
 
 NOTE: Changing the value of `config.action_controller.perform_caching` will
-only have an effect on the caching provided by the Action Controller component.
+only have an effect on the caching provided by Action Controller.
 For instance, it will not impact low-level caching, that we address
 [below](#low-level-caching).
 
@@ -124,7 +119,6 @@ templates at once instead of one by one. This is done by passing `cached: true` 
 All cached templates from previous renders will be fetched at once with much
 greater speed. Additionally, the templates that haven't yet been cached will be
 written to cache and multi fetched on the next render.
-
 
 ### Russian Doll Caching
 
@@ -316,7 +310,7 @@ class ProductsController < ApplicationController
     # Run a find query
     @products = Product.all
 
-    ...
+    # ...
 
     # Run the same query again
     @products = Product.all
@@ -453,16 +447,21 @@ no explicit `config.cache_store` is supplied.
 
 This cache store uses Danga's `memcached` server to provide a centralized cache for your application. Rails uses the bundled `dalli` gem by default. This is currently the most popular cache store for production websites. It can be used to provide a single, shared cache cluster with very high performance and redundancy.
 
-When initializing the cache, you need to specify the addresses for all
-memcached servers in your cluster. If none are specified, it will assume
-memcached is running on localhost on the default port, but this is not an ideal
-setup for larger sites.
-
-The `write` and `fetch` methods on this cache accept two additional options that take advantage of features specific to memcached. You can specify `:raw` to send a value directly to the server with no serialization. The value must be a string or number. You can use memcached direct operations like `increment` and `decrement` only on raw values. You can also specify `:unless_exist` if you don't want memcached to overwrite an existing entry.
+When initializing the cache, you should specify the addresses for all memcached servers in your cluster, or ensure the `MEMCACHE_SERVERS` environment variable has been set appropriately.
 
 ```ruby
 config.cache_store = :mem_cache_store, "cache-1.example.com", "cache-2.example.com"
 ```
+
+If neither are specified, it will assume memcached is running on localhost on the default port (`127.0.0.1:11211`), but this is not an ideal setup for larger sites.
+
+```ruby
+config.cache_store = :mem_cache_store # Will fallback to $MEMCACHE_SERVERS, then 127.0.0.1:11211
+```
+
+See the [`Dalli::Client` documentation](https://www.rubydoc.info/github/mperham/dalli/Dalli%2FClient:initialize) for supported address types.
+
+The `write` and `fetch` methods on this cache accept two additional options that take advantage of features specific to memcached. You can specify `:raw` to send a value directly to the server with no serialization. The value must be a string or number. You can use memcached direct operations like `increment` and `decrement` only on raw values. You can also specify `:unless_exist` if you don't want memcached to overwrite an existing entry.
 
 ### ActiveSupport::Cache::RedisCacheStore
 
@@ -508,7 +507,7 @@ connection library by additionally adding its ruby wrapper to your Gemfile:
 gem 'hiredis'
 ```
 
-Redis cache store will automatically require & use hiredis if available. No further
+Redis cache store will automatically require and use hiredis if available. No further
 configuration is needed.
 
 Finally, add the configuration in the relevant `config/environments/*.rb` file:
@@ -538,7 +537,7 @@ config.cache_store = :redis_cache_store, { url: cache_servers,
 
 ### ActiveSupport::Cache::NullStore
 
-This cache store implementation is meant to be used only in development or test environments and it never stores anything. This can be very useful in development when you have code that interacts directly with `Rails.cache` but caching may interfere with being able to see the results of code changes. With this cache store, all `fetch` and `read` operations will result in a miss.
+This cache store is scoped to each web request, and clears stored values at the end of a request. It is meant for use in development and test environments. It can be very useful when you have code that interacts directly with `Rails.cache` but caching interferes with seeing the results of code changes.
 
 ```ruby
 config.cache_store = :null_store
@@ -662,8 +661,8 @@ response body.
 Weak ETags have a leading `W/` to differentiate them from strong ETags.
 
 ```
-  W/"618bbc92e2d35ea1945008b42799b0e7" → Weak ETag
-  "618bbc92e2d35ea1945008b42799b0e7" → Strong ETag
+W/"618bbc92e2d35ea1945008b42799b0e7" → Weak ETag
+"618bbc92e2d35ea1945008b42799b0e7" → Strong ETag
 ```
 
 Unlike weak ETag, strong ETag implies that response should be exactly the same
@@ -672,18 +671,18 @@ large video or PDF file. Some CDNs support only strong ETags, like Akamai.
 If you absolutely need to generate a strong ETag, it can be done as follows.
 
 ```ruby
-  class ProductsController < ApplicationController
-    def show
-      @product = Product.find(params[:id])
-      fresh_when last_modified: @product.published_at.utc, strong_etag: @product
-    end
+class ProductsController < ApplicationController
+  def show
+    @product = Product.find(params[:id])
+    fresh_when last_modified: @product.published_at.utc, strong_etag: @product
   end
+end
 ```
 
 You can also set the strong ETag directly on the response.
 
 ```ruby
-  response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
+response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
 ```
 
 Caching in Development
@@ -699,6 +698,9 @@ Development mode is now being cached.
 $ bin/rails dev:cache
 Development mode is no longer being cached.
 ```
+
+NOTE: By default, when development mode caching is *off*, Rails uses
+[`ActiveSupport::Cache::NullStore`](#activesupport-cache-nullstore).
 
 References
 ----------

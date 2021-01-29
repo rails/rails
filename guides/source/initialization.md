@@ -318,7 +318,7 @@ module Rails
       log_to_stdout if options[:log_stdout]
 
       super()
-      ...
+      # ...
     end
 
     private
@@ -430,7 +430,8 @@ module Rack
     def app
       @app ||= options[:builder] ? build_app_from_string : build_app_and_options_from_config
     end
-    ...
+
+    # ...
 
     private
       def build_app_and_options_from_config
@@ -468,12 +469,12 @@ The `Rack::Builder.parse_file` method here takes the content from this `config.r
 module Rack
   class Builder
     def self.load_file(path, opts = Server::Options.new)
-      ...
+      # ...
       app = new_from_string cfgfile, config
-      ...
+      # ...
     end
 
-    ...
+    # ...
 
     def self.new_from_string(builder_script, file="(rackup)")
       eval "Rack::Builder.new {\n" + builder_script + "\n}.to_app",
@@ -580,8 +581,9 @@ def initialize!(group = :default) #:nodoc:
 end
 ```
 
-As you can see, you can only initialize an app once. The initializers are run through
-the `run_initializers` method which is defined in `railties/lib/rails/initializable.rb`:
+You can only initialize an app once. The Railtie [initializers](configuring.html#initializers)
+are run through the `run_initializers` method which is defined in
+`railties/lib/rails/initializable.rb`:
 
 ```ruby
 def run_initializers(group = :default, *args)
@@ -606,6 +608,9 @@ initializers (like building the middleware stack) are run last. The `railtie`
 initializers are the initializers which have been defined on the `Rails::Application`
 itself and are run between the `bootstrap` and `finishers`.
 
+*Note:* Do not confuse Railtie initializers overall with the [load_config_initializers](configuring.html#using-initializer-files)
+initializer instance or its associated config initializers in `config/initializers`.
+
 After this is done we go back to `Rack::Server`.
 
 ### Rack: lib/rack/server.rb
@@ -618,7 +623,8 @@ module Rack
     def app
       @app ||= options[:builder] ? build_app_from_string : build_app_and_options_from_config
     end
-    ...
+
+    # ...
 
     private
       def build_app_and_options_from_config
@@ -674,7 +680,7 @@ the `run` method would look like:
 module Rack
   module Handler
     module Puma
-      ...
+      # ...
       def self.run(app, options = {})
         conf   = self.config(app, options)
 
@@ -691,7 +697,7 @@ module Rack
           puts "* Goodbye!"
         end
       end
-      ...
+      # ...
     end
   end
 end

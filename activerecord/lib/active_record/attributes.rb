@@ -170,7 +170,7 @@ module ActiveRecord
       #   class Money < Struct.new(:amount, :currency)
       #   end
       #
-      #   class MoneyType < Type::Value
+      #   class MoneyType < ActiveRecord::Type::Value
       #     def initialize(currency_converter:)
       #       @currency_converter = currency_converter
       #     end
@@ -205,14 +205,29 @@ module ActiveRecord
       # tracking is performed. The methods +changed?+ and +changed_in_place?+
       # will be called from ActiveModel::Dirty. See the documentation for those
       # methods in ActiveModel::Type::Value for more details.
-      def attribute(name, cast_type = Type::Value.new, **options)
+      def attribute(name, cast_type = nil, default: NO_DEFAULT_PROVIDED, **options)
         name = name.to_s
         reload_schema_from_cache
 
+        case cast_type
+        when Symbol
+          cast_type = Type.lookup(cast_type, **options, adapter: Type.adapter_name_from(self))
+        when nil
+          if (prev_cast_type, prev_default = attributes_to_define_after_schema_loads[name])
+            default = prev_default if default == NO_DEFAULT_PROVIDED
+          else
+            prev_cast_type = -> subtype { subtype }
+          end
+
+          cast_type = if block_given?
+            -> subtype { yield Proc === prev_cast_type ? prev_cast_type[subtype] : prev_cast_type }
+          else
+            prev_cast_type
+          end
+        end
+
         self.attributes_to_define_after_schema_loads =
-          attributes_to_define_after_schema_loads.merge(
-            name => [cast_type, options]
-          )
+          attributes_to_define_after_schema_loads.merge(name => [cast_type, default])
       end
 
       # This is the low level API which sits beneath +attribute+. It only
@@ -245,13 +260,9 @@ module ActiveRecord
 
       def load_schema! # :nodoc:
         super
-        attributes_to_define_after_schema_loads.each do |name, (type, options)|
-          if type.is_a?(Symbol)
-            adapter_name = ActiveRecord::Type.adapter_name_from(self)
-            type = ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
-          end
-
-          define_attribute(name, type, **options.slice(:default))
+        attributes_to_define_after_schema_loads.each do |name, (cast_type, default)|
+          cast_type = cast_type[type_for_attribute(name)] if Proc === cast_type
+          define_attribute(name, cast_type, default: default)
         end
       end
 

@@ -30,6 +30,53 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal title_change, topic.changes["title"]
   end
 
+  if !in_memory_db?
+    def test_rollback_dirty_changes_even_with_raise_during_rollback_removes_from_pool
+      topic = topics(:fifth)
+
+      connection = Topic.connection
+
+      Topic.connection.class_eval do
+        alias :real_exec_rollback_db_transaction :exec_rollback_db_transaction
+        define_method(:exec_rollback_db_transaction) do
+          raise
+        end
+      end
+
+      ActiveRecord::Base.transaction do
+        topic.update(title: "Rails is broken")
+        raise ActiveRecord::Rollback
+      end
+
+      assert_not connection.active?
+      assert_not Topic.connection_pool.connections.include?(connection)
+    end
+
+    def test_rollback_dirty_changes_even_with_raise_during_rollback_doesnt_commit_transaction
+      topic = topics(:fifth)
+
+      Topic.connection.class_eval do
+        alias :real_exec_rollback_db_transaction :exec_rollback_db_transaction
+        define_method(:exec_rollback_db_transaction) do
+          raise
+        end
+      end
+
+      ActiveRecord::Base.transaction do
+        topic.update(title: "Rails is broken")
+        raise ActiveRecord::Rollback
+      end
+
+      topic.reload
+
+      ActiveRecord::Base.transaction do
+        topic.update(content: "Ruby on Rails - modified")
+      end
+
+      assert_equal "The Fifth Topic of the day", topic.reload.title
+    end
+  end
+
   def test_rollback_dirty_changes_multiple_saves
     topic = topics(:fifth)
 
@@ -99,13 +146,11 @@ class TransactionTest < ActiveRecord::TestCase
   def test_raise_after_destroy
     assert_not_predicate @first, :frozen?
 
-    assert_not_called(@first, :rolledback!) do
-      assert_raises(RuntimeError) do
-        Topic.transaction do
-          @first.destroy
-          assert_predicate @first, :frozen?
-          raise
-        end
+    assert_raises(RuntimeError) do
+      Topic.transaction do
+        @first.destroy
+        assert_predicate @first, :frozen?
+        raise
       end
     end
 
@@ -113,13 +158,11 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_successful
-    assert_not_called(@first, :committed!) do
-      Topic.transaction do
-        @first.approved  = true
-        @second.approved = false
-        @first.save
-        @second.save
-      end
+    Topic.transaction do
+      @first.approved  = true
+      @second.approved = false
+      @first.save
+      @second.save
     end
 
     assert_predicate Topic.find(1), :approved?, "First should have been approved"
@@ -152,10 +195,8 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert_not_called(@first, :committed!) do
-      assert_deprecated do
-        transaction_with_return
-      end
+    assert_deprecated do
+      transaction_with_return
     end
     assert committed
 
@@ -183,6 +224,14 @@ class TransactionTest < ActiveRecord::TestCase
     assert Topic.find(1).approved?, "First should have been approved"
   end
 
+  def test_early_return_from_transaction
+    assert_not_deprecated do
+      @first.with_lock do
+        break
+      end
+    end
+  end
+
   def test_number_of_transactions_in_commit
     num = nil
 
@@ -194,11 +243,9 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert_not_called(@first, :committed!) do
-      Topic.transaction do
-        @first.approved = true
-        @first.save!
-      end
+    Topic.transaction do
+      @first.approved = true
+      @first.save!
     end
 
     assert_equal 0, num
@@ -210,13 +257,11 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_successful_with_instance_method
-    assert_not_called(@first, :committed!) do
-      @first.transaction do
-        @first.approved  = true
-        @second.approved = false
-        @first.save
-        @second.save
-      end
+    @first.transaction do
+      @first.approved  = true
+      @second.approved = false
+      @first.save
+      @second.save
     end
 
     assert_predicate Topic.find(1), :approved?, "First should have been approved"
@@ -224,7 +269,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_failing_on_exception
-    assert_not_called(@first, :rolledback!) do
+    begin
       Topic.transaction do
         @first.approved  = true
         @second.approved = false
@@ -249,10 +294,8 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     @first.approved = true
-    assert_not_called(@first, :rolledback!) do
-      e = assert_raises(RuntimeError) { @first.save }
-      assert_equal "Make the transaction rollback", e.message
-    end
+    e = assert_raises(RuntimeError) { @first.save }
+    assert_equal "Make the transaction rollback", e.message
     assert_not_predicate Topic.find(1), :approved?
   end
 
@@ -278,10 +321,8 @@ class TransactionTest < ActiveRecord::TestCase
       raise "Make the transaction rollback"
     end
 
-    assert_not_called(topic, :rolledback!) do
-      assert_raises(RuntimeError) do
-        Topic.transaction { topic.save }
-      end
+    assert_raises(RuntimeError) do
+      Topic.transaction { topic.save }
     end
 
     assert_predicate topic, :new_record?, "#{topic.inspect} should be new record"
@@ -526,7 +567,7 @@ class TransactionTest < ActiveRecord::TestCase
 
       begin
         Topic.transaction requires_new: true do
-          @first.happy = false
+          @first.approved = false
           @first.save!
           raise
         end
@@ -547,7 +588,7 @@ class TransactionTest < ActiveRecord::TestCase
 
       begin
         @second.transaction requires_new: true do
-          @first.happy = false
+          @first.approved = false
           @first.save!
           raise
         end
@@ -1123,7 +1164,7 @@ class TransactionTest < ActiveRecord::TestCase
     %w(validation save destroy).each do |filter|
       define_method("add_cancelling_before_#{filter}_with_db_side_effect_to_topic") do |topic|
         meta = class << topic; self; end
-        meta.send("define_method", "before_#{filter}_for_transaction") do
+        meta.define_method "before_#{filter}_for_transaction" do
           Book.create
           throw(:abort)
         end

@@ -139,8 +139,8 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
       blob.open do |file|
         assert file.binmode?
         assert_equal 0, file.pos
-        assert File.basename(file.path).starts_with?("ActiveStorage-#{blob.id}-")
-        assert file.path.ends_with?(".jpg")
+        assert File.basename(file.path).start_with?("ActiveStorage-#{blob.id}-")
+        assert file.path.end_with?(".jpg")
         assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
       end
     end
@@ -161,7 +161,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
       assert file.binmode?
       assert_equal 0, file.pos
       assert_match(/\.jpg\z/, file.path)
-      assert file.path.starts_with?(tmpdir)
+      assert file.path.start_with?(tmpdir)
       assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
     end
   end
@@ -258,6 +258,16 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
     assert_not blob.valid?
     assert_equal ["is invalid"], blob.errors[:service_name]
+  end
+
+  test "updating the content_type updates service metadata" do
+    blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
+
+    expected_arguments = [blob.key, content_type: "image/jpeg"]
+
+    assert_called_with(blob.service, :update_metadata, expected_arguments) do
+      blob.update!(content_type: "image/jpeg")
+    end
   end
 
   private

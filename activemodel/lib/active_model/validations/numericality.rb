@@ -7,7 +7,7 @@ module ActiveModel
     class NumericalityValidator < EachValidator # :nodoc:
       CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,
                  equal_to: :==, less_than: :<, less_than_or_equal_to: :<=,
-                 odd: :odd?, even: :even?, other_than: :!= }.freeze
+                 odd: :odd?, even: :even?, other_than: :!=, in: :in? }.freeze
 
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
@@ -16,51 +16,36 @@ module ActiveModel
       HEXADECIMAL_REGEX = /\A[+-]?0[xX]/
 
       def check_validity!
-        keys = CHECKS.keys - [:odd, :even]
+        keys = CHECKS.keys - [:odd, :even, :in]
         options.slice(*keys).each do |option, value|
           unless value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
             raise ArgumentError, ":#{option} must be a number, a symbol or a proc"
           end
         end
+        options.slice(:in).each do |option, value|
+          unless value.is_a?(Range)
+            raise ArgumentError, ":#{option} must be a range"
+          end
+        end
       end
 
       def validate_each(record, attr_name, value, precision: Float::DIG, scale: nil)
-        came_from_user = :"#{attr_name}_came_from_user?"
-
-        if record.respond_to?(came_from_user)
-          if record.public_send(came_from_user)
-            raw_value = record.read_attribute_before_type_cast(attr_name)
-          elsif record.respond_to?(:read_attribute)
-            raw_value = record.read_attribute(attr_name)
-          end
-        else
-          before_type_cast = :"#{attr_name}_before_type_cast"
-          if record.respond_to?(before_type_cast)
-            raw_value = record.public_send(before_type_cast)
-          end
-        end
-        raw_value ||= value
-
-        if record_attribute_changed_in_place?(record, attr_name)
-          raw_value = value
-        end
-
-        unless is_number?(raw_value, precision, scale)
-          record.errors.add(attr_name, :not_a_number, **filtered_options(raw_value))
+        unless is_number?(value, precision, scale)
+          record.errors.add(attr_name, :not_a_number, **filtered_options(value))
           return
         end
 
-        if allow_only_integer?(record) && !is_integer?(raw_value)
-          record.errors.add(attr_name, :not_an_integer, **filtered_options(raw_value))
+        if allow_only_integer?(record) && !is_integer?(value)
+          record.errors.add(attr_name, :not_an_integer, **filtered_options(value))
           return
         end
 
-        value = parse_as_number(raw_value, precision, scale)
+        value = parse_as_number(value, precision, scale)
 
         options.slice(*CHECKS.keys).each do |option, option_value|
           case option
           when :odd, :even
-            unless value.to_i.send(CHECKS[option])
+            unless value.to_i.public_send(CHECKS[option])
               record.errors.add(attr_name, option, **filtered_options(value))
             end
           else
@@ -71,9 +56,9 @@ module ActiveModel
               option_value = record.send(option_value)
             end
 
-            option_value = parse_as_number(option_value, precision, scale)
+            option_value = parse_as_number(option_value, precision, scale, option)
 
-            unless value.send(CHECKS[option], option_value)
+            unless value.public_send(CHECKS[option], option_value)
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
           end
@@ -81,9 +66,13 @@ module ActiveModel
       end
 
     private
-      def parse_as_number(raw_value, precision, scale)
-        if raw_value.is_a?(Float)
+      def parse_as_number(raw_value, precision, scale, option = nil)
+        if option == :in
+          raw_value if raw_value.is_a?(Range)
+        elsif raw_value.is_a?(Float)
           parse_float(raw_value, precision, scale)
+        elsif raw_value.is_a?(BigDecimal)
+          round(raw_value, scale)
         elsif raw_value.is_a?(Numeric)
           raw_value
         elsif is_integer?(raw_value)
@@ -94,7 +83,11 @@ module ActiveModel
       end
 
       def parse_float(raw_value, precision, scale)
-        (scale ? raw_value.truncate(scale) : raw_value).to_d(precision)
+        round(raw_value, scale).to_d(precision)
+      end
+
+      def round(raw_value, scale)
+        scale ? raw_value.round(scale) : raw_value
       end
 
       def is_number?(raw_value, precision, scale)
@@ -126,6 +119,27 @@ module ActiveModel
         else
           options[:only_integer]
         end
+      end
+
+      def prepare_value_for_validation(value, record, attr_name)
+        return value if record_attribute_changed_in_place?(record, attr_name)
+
+        came_from_user = :"#{attr_name}_came_from_user?"
+
+        if record.respond_to?(came_from_user)
+          if record.public_send(came_from_user)
+            raw_value = record.public_send(:"#{attr_name}_before_type_cast")
+          elsif record.respond_to?(:read_attribute)
+            raw_value = record.read_attribute(attr_name)
+          end
+        else
+          before_type_cast = :"#{attr_name}_before_type_cast"
+          if record.respond_to?(before_type_cast)
+            raw_value = record.public_send(before_type_cast)
+          end
+        end
+
+        raw_value || value
       end
 
       def record_attribute_changed_in_place?(record, attr_name)
@@ -180,6 +194,7 @@ module ActiveModel
       # * <tt>:less_than</tt>
       # * <tt>:less_than_or_equal_to</tt>
       # * <tt>:only_integer</tt>
+      # * <tt>:other_than</tt>
       #
       # For example:
       #

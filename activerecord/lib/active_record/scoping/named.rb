@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/array"
-require "active_support/core_ext/kernel/singleton_class"
-
 module ActiveRecord
   # = Active Record \Named \Scopes
   module Scoping
@@ -26,14 +23,6 @@ module ActiveRecord
           scope = current_scope
 
           if scope
-            if scope._deprecated_scope_source
-              ActiveSupport::Deprecation.warn(<<~MSG.squish)
-                Class level methods will no longer inherit scoping from `#{scope._deprecated_scope_source}`
-                in Rails 6.1. To continue using the scoped relation, pass it into the block directly.
-                To instead access the full set of models, as Rails 6.1 will, use `#{name}.default_scoped`.
-              MSG
-            end
-
             if self == scope.klass
               scope.clone
             else
@@ -53,8 +42,8 @@ module ActiveRecord
         end
 
         # Returns a scope for the model with default scopes.
-        def default_scoped(scope = relation)
-          build_default_scope(scope) || scope
+        def default_scoped(scope = relation, all_queries: nil)
+          build_default_scope(scope, all_queries: all_queries) || scope
         end
 
         def default_extensions # :nodoc:
@@ -184,7 +173,7 @@ module ActiveRecord
 
           if body.respond_to?(:to_proc)
             singleton_class.define_method(name) do |*args|
-              scope = all._exec_scope(name, *args, &body)
+              scope = all._exec_scope(*args, &body)
               scope = scope.extending(extension) if extension
               scope
             end
@@ -195,11 +184,16 @@ module ActiveRecord
               scope
             end
           end
+          singleton_class.send(:ruby2_keywords, name) if respond_to?(:ruby2_keywords, true)
 
           generate_relation_method(name)
         end
 
         private
+          def singleton_method_added(name)
+            generate_relation_method(name) if Kernel.respond_to?(name) && !ActiveRecord::Relation.method_defined?(name)
+          end
+
           def valid_scope_name?(name)
             if respond_to?(name, true) && logger
               logger.warn "Creating scope :#{name}. " \

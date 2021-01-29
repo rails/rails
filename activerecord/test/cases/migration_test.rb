@@ -72,13 +72,6 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
-  def test_passing_migrations_paths_to_assume_migrated_upto_version_is_deprecated
-    ActiveRecord::SchemaMigration.create_table
-    assert_deprecated do
-      ActiveRecord::Base.connection.assume_migrated_upto_version(0, [])
-    end
-  end
-
   def test_migration_version_matches_component_version
     assert_equal ActiveRecord::VERSION::STRING.to_f, ActiveRecord::Migration.current_version
   end
@@ -232,7 +225,7 @@ class MigrationTest < ActiveRecord::TestCase
           assert_match(/check that column\/key exists/, error.message)
         end
       elsif current_adapter?(:PostgreSQLAdapter)
-        assert_match(/column \"last_name\" of relation \"people\" does not exist/, error.message)
+        assert_match(/column "last_name" of relation "people" does not exist/, error.message)
       end
     end
   ensure
@@ -663,6 +656,56 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::InternalMetadata.create_table
   end
 
+  def test_internal_metadata_create_table_wont_be_affected_by_schema_cache
+    ActiveRecord::InternalMetadata.drop_table
+    assert_not_predicate ActiveRecord::InternalMetadata, :table_exists?
+
+    ActiveRecord::InternalMetadata.connection.transaction do
+      ActiveRecord::InternalMetadata.create_table
+      assert_predicate ActiveRecord::InternalMetadata, :table_exists?
+
+      ActiveRecord::InternalMetadata[:version] = "foo"
+      assert_equal "foo", ActiveRecord::InternalMetadata[:version]
+      raise ActiveRecord::Rollback
+    end
+
+    ActiveRecord::InternalMetadata.connection.transaction do
+      ActiveRecord::InternalMetadata.create_table
+      assert_predicate ActiveRecord::InternalMetadata, :table_exists?
+
+      ActiveRecord::InternalMetadata[:version] = "bar"
+      assert_equal "bar", ActiveRecord::InternalMetadata[:version]
+      raise ActiveRecord::Rollback
+    end
+  ensure
+    ActiveRecord::InternalMetadata.create_table
+  end
+
+  def test_schema_migration_create_table_wont_be_affected_by_schema_cache
+    ActiveRecord::SchemaMigration.drop_table
+    assert_not_predicate ActiveRecord::SchemaMigration, :table_exists?
+
+    ActiveRecord::SchemaMigration.connection.transaction do
+      ActiveRecord::SchemaMigration.create_table
+      assert_predicate ActiveRecord::SchemaMigration, :table_exists?
+
+      schema_migration = ActiveRecord::SchemaMigration.create!(version: "foo")
+      assert_equal "foo", schema_migration[:version]
+      raise ActiveRecord::Rollback
+    end
+
+    ActiveRecord::SchemaMigration.connection.transaction do
+      ActiveRecord::SchemaMigration.create_table
+      assert_predicate ActiveRecord::SchemaMigration, :table_exists?
+
+      schema_migration = ActiveRecord::SchemaMigration.create!(version: "bar")
+      assert_equal "bar", schema_migration[:version]
+      raise ActiveRecord::Rollback
+    end
+  ensure
+    ActiveRecord::SchemaMigration.create_table
+  end
+
   def test_proper_table_name_on_migration
     reminder_class = new_isolated_reminder_class
     migration = ActiveRecord::Migration.new
@@ -933,6 +976,31 @@ class MigrationTest < ActiveRecord::TestCase
       end
     end
 
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_with_advisory_lock_closes_connection
+        migration = Class.new(ActiveRecord::Migration::Current) {
+          def version; 100 end
+          def migrate(x)
+          end
+        }.new
+
+        migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
+        lock_id = migrator.send(:generate_migrator_advisory_lock_id)
+
+        query = <<~SQL
+        SELECT query
+        FROM pg_stat_activity
+        WHERE datname = '#{ActiveRecord::Base.connection_db_config.database}'
+        AND state = 'idle'
+        AND query LIKE '%#{lock_id}%'
+        SQL
+
+        assert_no_changes -> { ActiveRecord::Base.connection.exec_query(query).rows.flatten } do
+          migrator.migrate
+        end
+      end
+    end
+
     def test_with_advisory_lock_raises_the_right_error_when_it_fails_to_release_lock
       migration = Class.new(ActiveRecord::Migration::Current).new
       migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
@@ -940,8 +1008,10 @@ class MigrationTest < ActiveRecord::TestCase
 
       e = assert_raises(ActiveRecord::ConcurrentMigrationError) do
         silence_stream($stderr) do
-          migrator.send(:with_advisory_lock) do
-            ActiveRecord::AdvisoryLockBase.connection.release_advisory_lock(lock_id)
+          migrator.stub(:with_advisory_lock_connection, ->(&block) { block.call(ActiveRecord::Base.connection) }) do
+            migrator.send(:with_advisory_lock) do
+              ActiveRecord::Base.connection.release_advisory_lock(lock_id)
+            end
           end
         end
       end
@@ -1056,6 +1126,23 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal "This is a comment", column(:birthdate).comment
     end
 
+    def test_rename_columns
+      with_bulk_change_table do |t|
+        t.string :qualification
+      end
+
+      assert column(:qualification)
+
+      with_bulk_change_table do |t|
+        t.rename :qualification, :experience
+        t.string :qualification_experience
+      end
+
+      assert_not column(:qualification)
+      assert column(:experience)
+      assert column(:qualification_experience)
+    end
+
     def test_removing_columns
       with_bulk_change_table do |t|
         t.string :qualification, :experience
@@ -1084,7 +1171,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 1, # mysql2 supports creating two indexes using one statement
-        "PostgreSQLAdapter" => 2,
+        "PostgreSQLAdapter" => 3,
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
       }
@@ -1092,7 +1179,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.index :username, unique: true, name: :awesome_username_index
-          t.index [:name, :age]
+          t.index [:name, :age], comment: "This is a comment"
         end
       end
 
@@ -1100,6 +1187,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       name_age_index = index(:index_delete_me_on_name_and_age)
       assert_equal ["name", "age"].sort, name_age_index.columns.sort
+      assert_equal "This is a comment", name_age_index.comment
       assert_not name_age_index.unique
 
       assert index(:awesome_username_index).unique

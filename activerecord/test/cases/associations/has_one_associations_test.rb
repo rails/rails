@@ -21,7 +21,7 @@ require "models/membership"
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
-           :ships, :pirates, :authors, :author_addresses, :memberships, :clubs
+           :ships, :pirates, :authors, :author_addresses, :books, :memberships, :clubs
 
   def setup
     Account.destroyed_account_ids.clear
@@ -488,7 +488,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal new_account.firm_name, "Account"
   end
 
-  def test_creation_failure_without_dependent_option
+  def test_create_association_replaces_existing_without_dependent_option
     pirate = pirates(:blackbeard)
     orig_ship = pirate.ship
 
@@ -501,7 +501,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_not orig_ship.changed? # check it was saved
   end
 
-  def test_creation_failure_with_dependent_option
+  def test_create_association_replaces_existing_with_dependent_option
     pirate = pirates(:blackbeard).becomes(DestructivePirate)
     orig_ship = pirate.dependent_ship
 

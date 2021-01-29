@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/author"
 require "models/book"
+require "models/cart"
 require "models/speedometer"
 require "models/subscription"
 require "models/subscriber"
@@ -178,6 +179,20 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_and_upsert_all_with_expression_index
+    skip unless supports_expression_index? && supports_insert_conflict_target?
+
+    book = Book.create!(external_id: "abc")
+
+    assert_no_difference "Book.count" do
+      Book.insert_all [{ external_id: "ABC" }], unique_by: :index_books_on_lower_external_id
+    end
+
+    Book.upsert_all [{ external_id: "Abc" }], unique_by: :index_books_on_lower_external_id
+
+    assert_equal "Abc", book.reload.external_id
+  end
+
   def test_insert_all_and_upsert_all_raises_when_index_is_missing
     skip unless supports_insert_conflict_target?
 
@@ -191,6 +206,33 @@ class InsertAllTest < ActiveRecord::TestCase
         Book.upsert_all [{ name: "Rework", author_id: 1 }], unique_by: missing_or_non_unique_by
       end
       assert_match "No unique index", error.message
+    end
+  end
+
+  def test_insert_all_and_upsert_all_works_with_composite_primary_keys_when_unique_by_is_provided
+    skip unless supports_insert_conflict_target?
+
+    assert_difference "Cart.count", 2 do
+      Cart.insert_all [{ id: 1, shop_id: 1, title: "My cart" }], unique_by: [:shop_id, :id]
+
+      Cart.upsert_all [{ id: 3, shop_id: 2, title: "My other cart" }], unique_by: [:shop_id, :id]
+    end
+
+    error = assert_raises ArgumentError do
+      Cart.insert_all! [{ id: 2, shop_id: 1, title: "My cart" }]
+    end
+    assert_match "No unique index found for id", error.message
+  end
+
+  def test_insert_all_and_upsert_all_works_with_composite_primary_keys_when_unique_by_is_not_provided
+    skip unless supports_insert_on_duplicate_skip? && !supports_insert_conflict_target?
+
+    assert_difference "Cart.count", 3 do
+      Cart.insert_all [{ id: 1, shop_id: 1, title: "My cart" }]
+
+      Cart.insert_all! [{ id: 2, shop_id: 1, title: "My cart 2" }]
+
+      Cart.upsert_all [{ id: 3, shop_id: 2, title: "My other cart" }]
     end
   end
 
@@ -246,8 +288,18 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal "New edition", Book.find(1).name
   end
 
-  def test_upsert_all_updates_existing_record_by_configured_primary_key
-    skip unless supports_insert_on_duplicate_update?
+  def test_upsert_all_does_notupdates_existing_record_by_when_there_is_no_key
+    skip unless supports_insert_on_duplicate_update? && !supports_insert_conflict_target?
+
+    Speedometer.create!(speedometer_id: "s3", name: "Very fast")
+
+    Speedometer.upsert_all [{ speedometer_id: "s3", name: "New Speedometer" }]
+
+    assert_equal "Very fast", Speedometer.find("s3").name
+  end
+
+  def test_upsert_all_updates_existing_record_by_configured_primary_key_fails_when_database_supports_insert_conflict_target
+    skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target?
 
     error = assert_raises ArgumentError do
       Speedometer.upsert_all [{ speedometer_id: "s1", name: "New Speedometer" }]

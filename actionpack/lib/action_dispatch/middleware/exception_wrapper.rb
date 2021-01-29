@@ -6,21 +6,21 @@ require "rack/utils"
 module ActionDispatch
   class ExceptionWrapper
     cattr_accessor :rescue_responses, default: Hash.new(:internal_server_error).merge!(
-      "ActionController::RoutingError"               => :not_found,
-      "AbstractController::ActionNotFound"           => :not_found,
-      "ActionController::MethodNotAllowed"           => :method_not_allowed,
-      "ActionController::UnknownHttpMethod"          => :method_not_allowed,
-      "ActionController::NotImplemented"             => :not_implemented,
-      "ActionController::UnknownFormat"              => :not_acceptable,
-      "Mime::Type::InvalidMimeType"                  => :not_acceptable,
-      "ActionController::MissingExactTemplate"       => :not_acceptable,
-      "ActionController::InvalidAuthenticityToken"   => :unprocessable_entity,
-      "ActionController::InvalidCrossOriginRequest"  => :unprocessable_entity,
-      "ActionDispatch::Http::Parameters::ParseError" => :bad_request,
-      "ActionController::BadRequest"                 => :bad_request,
-      "ActionController::ParameterMissing"           => :bad_request,
-      "Rack::QueryParser::ParameterTypeError"        => :bad_request,
-      "Rack::QueryParser::InvalidParameterError"     => :bad_request
+      "ActionController::RoutingError"                     => :not_found,
+      "AbstractController::ActionNotFound"                 => :not_found,
+      "ActionController::MethodNotAllowed"                 => :method_not_allowed,
+      "ActionController::UnknownHttpMethod"                => :method_not_allowed,
+      "ActionController::NotImplemented"                   => :not_implemented,
+      "ActionController::UnknownFormat"                    => :not_acceptable,
+      "ActionDispatch::Http::MimeNegotiation::InvalidType" => :not_acceptable,
+      "ActionController::MissingExactTemplate"             => :not_acceptable,
+      "ActionController::InvalidAuthenticityToken"         => :unprocessable_entity,
+      "ActionController::InvalidCrossOriginRequest"        => :unprocessable_entity,
+      "ActionDispatch::Http::Parameters::ParseError"       => :bad_request,
+      "ActionController::BadRequest"                       => :bad_request,
+      "ActionController::ParameterMissing"                 => :bad_request,
+      "Rack::QueryParser::ParameterTypeError"              => :bad_request,
+      "Rack::QueryParser::InvalidParameterError"           => :bad_request
     )
 
     cattr_accessor :rescue_templates, default: Hash.new("diagnostics").merge!(
@@ -37,7 +37,8 @@ module ActionDispatch
     ]
 
     cattr_accessor :silent_exceptions, default: [
-      "ActionController::RoutingError"
+      "ActionController::RoutingError",
+      "ActionDispatch::Http::MimeNegotiation::InvalidType"
     ]
 
     attr_reader :backtrace_cleaner, :exception, :wrapped_causes, :line_number, :file

@@ -161,6 +161,12 @@ module Arel # :nodoc: all
           visit_edge o, "attribute"
         end
 
+        def visit_Arel_Nodes_HomogeneousIn(o)
+          visit_edge o, "values"
+          visit_edge o, "type"
+          visit_edge o, "attribute"
+        end
+
         def visit_Arel_Attribute(o)
           visit_edge o, "relation"
           visit_edge o, "name"

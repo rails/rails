@@ -107,6 +107,12 @@ module ActiveSupport
           super
         end
 
+        def delete_matched(matcher, options = nil) # :nodoc:
+          return super unless cache = local_cache
+          cache.clear
+          super
+        end
+
         def increment(name, amount = 1, **options) # :nodoc:
           return super unless local_cache
           value = bypass_local_cache { super }
@@ -124,7 +130,13 @@ module ActiveSupport
         private
           def read_entry(key, **options)
             if cache = local_cache
-              cache.fetch_entry(key) { super }
+              hit = true
+              value = cache.fetch_entry(key) do
+                hit = false
+                super
+              end
+              options[:event][:store] = cache.class.name if hit && options[:event]
+              value
             else
               super
             end

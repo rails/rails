@@ -4,3 +4,13 @@ david_modest_proposal:
   writer_id: David
   category_id: General
   author_id: David
+
+mary_stay_home:
+  name: Stay Home
+  writer_type: Author
+  writer_id: Mary
+
+steve_connecting_the_dots:
+  name: Connecting The Dots
+  writer_type: Human
+  writer_id: Steve

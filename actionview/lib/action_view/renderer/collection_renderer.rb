@@ -47,6 +47,10 @@ module ActionView
       def size
         @collection.size
       end
+
+      def length
+        @collection.respond_to?(:length) ? @collection.length : size
+      end
     end
 
     class SameCollectionIterator < CollectionIterator # :nodoc:
@@ -106,7 +110,6 @@ module ActionView
         SameCollectionIterator.new(collection, partial, iter_vars)
       end
 
-
       template = find_template(partial, @locals.keys + iter_vars)
 
       layout = if !block && (layout = @options[:layout])
@@ -144,7 +147,8 @@ module ActionView
         ActiveSupport::Notifications.instrument(
           "render_collection.action_view",
           identifier: identifier,
-          count: collection.size
+          layout: layout && layout.virtual_path,
+          count: collection.length
         ) do |payload|
           spacer = if @options.key?(:spacer_template)
             spacer_template = find_template(@options[:spacer_template], @locals.keys)

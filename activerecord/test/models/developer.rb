@@ -3,6 +3,19 @@
 require "ostruct"
 
 class Developer < ActiveRecord::Base
+  module TimestampAliases
+    extend ActiveSupport::Concern
+
+    included do
+      alias_attribute :created_at, :legacy_created_at
+      alias_attribute :updated_at, :legacy_updated_at
+      alias_attribute :created_on, :legacy_created_on
+      alias_attribute :updated_on, :legacy_updated_on
+    end
+  end
+
+  include TimestampAliases
+
   module ProjectsAssociationExtension2
     def find_least_recent
       order("id ASC").first
@@ -59,6 +72,7 @@ class Developer < ActiveRecord::Base
                           class_name: "SpecialProject"
 
   has_many :audit_logs
+  has_many :required_audit_logs, class_name: "AuditLogRequired"
   has_many :strict_loading_audit_logs, -> { strict_loading }, class_name: "AuditLog"
   has_many :strict_loading_opt_audit_logs, strict_loading: true, class_name: "AuditLog"
   has_many :contracts
@@ -100,6 +114,11 @@ end
 class SubDeveloper < Developer
 end
 
+class SpecialDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  has_many :special_contracts, foreign_key: "developer_id"
+end
+
 class SymbolIgnoredDeveloper < ActiveRecord::Base
   self.table_name = "developers"
   self.ignored_columns = [:first_name, :last_name]
@@ -110,6 +129,11 @@ end
 class AuditLog < ActiveRecord::Base
   belongs_to :developer, validate: true
   belongs_to :unvalidated_developer, class_name: "Developer"
+end
+
+class AuditLogRequired < ActiveRecord::Base
+  self.table_name = "audit_logs"
+  belongs_to :developer, required: true
 end
 
 class DeveloperWithBeforeDestroyRaise < ActiveRecord::Base
@@ -125,6 +149,16 @@ end
 class DeveloperWithSelect < ActiveRecord::Base
   self.table_name = "developers"
   default_scope { select("name") }
+end
+
+class DeveloperwithDefaultMentorScopeNot < ActiveRecord::Base
+  self.table_name = "developers"
+  default_scope -> { where(mentor_id: 1) }
+end
+
+class DeveloperWithDefaultMentorScopeAllQueries < ActiveRecord::Base
+  self.table_name = "developers"
+  default_scope -> { where(mentor_id: 1) }, all_queries: true
 end
 
 class DeveloperWithIncludes < ActiveRecord::Base
@@ -143,6 +177,8 @@ class DeveloperFilteredOnJoins < ActiveRecord::Base
 end
 
 class DeveloperOrderedBySalary < ActiveRecord::Base
+  include Developer::TimestampAliases
+
   self.table_name = "developers"
   default_scope { order("salary DESC") }
 
@@ -193,6 +229,8 @@ class LazyBlockReferencingScopeDeveloperCalledDavid < ActiveRecord::Base
 end
 
 class DeveloperCalledJamis < ActiveRecord::Base
+  include Developer::TimestampAliases
+
   self.table_name = "developers"
 
   default_scope { where(name: "Jamis") }
@@ -280,6 +318,8 @@ class ThreadsafeDeveloper < ActiveRecord::Base
 end
 
 class CachedDeveloper < ActiveRecord::Base
+  include Developer::TimestampAliases
+
   self.table_name = "developers"
   self.cache_timestamp_format = :number
 end

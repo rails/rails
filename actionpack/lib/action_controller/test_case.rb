@@ -84,7 +84,7 @@ module ActionController
             value = value.to_param
           end
 
-          path_parameters[key] = value
+          path_parameters[key.to_sym] = value
         end
       end
 
@@ -492,57 +492,8 @@ module ActionController
           parameters[:format] = format
         end
 
-        generated_extras = @routes.generate_extras(parameters.merge(controller: controller_class_name, action: action))
-        generated_path = generated_path(generated_extras)
-        query_string_keys = query_parameter_names(generated_extras)
-
-        @request.assign_parameters(@routes, controller_class_name, action, parameters, generated_path, query_string_keys)
-
-        @request.session.update(session) if session
-        @request.flash.update(flash || {})
-
-        if xhr
-          @request.set_header "HTTP_X_REQUESTED_WITH", "XMLHttpRequest"
-          @request.fetch_header("HTTP_ACCEPT") do |k|
-            @request.set_header k, [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
-          end
-        end
-
-        @request.fetch_header("SCRIPT_NAME") do |k|
-          @request.set_header k, @controller.config.relative_url_root
-        end
-
-        begin
-          @controller.recycle!
-          @controller.dispatch(action, @request, @response)
-        ensure
-          @request = @controller.request
-          @response = @controller.response
-
-          if @request.have_cookie_jar?
-            unless @request.cookie_jar.committed?
-              @request.cookie_jar.write(@response)
-              cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
-            end
-          end
-          @response.prepare!
-
-          if flash_value = @request.flash.to_session_value
-            @request.session["flash"] = flash_value
-          else
-            @request.session.delete("flash")
-          end
-
-          if xhr
-            @request.delete_header "HTTP_X_REQUESTED_WITH"
-            @request.delete_header "HTTP_ACCEPT"
-          end
-          @request.query_string = ""
-
-          @response.sent!
-        end
-
-        @response
+        setup_request(controller_class_name, action, parameters, session, flash, xhr)
+        process_controller_response(action, cookies, xhr)
       end
 
       def controller_class_name
@@ -598,6 +549,62 @@ module ActionController
       end
 
       private
+        def setup_request(controller_class_name, action, parameters, session, flash, xhr)
+          generated_extras = @routes.generate_extras(parameters.merge(controller: controller_class_name, action: action))
+          generated_path = generated_path(generated_extras)
+          query_string_keys = query_parameter_names(generated_extras)
+
+          @request.assign_parameters(@routes, controller_class_name, action, parameters, generated_path, query_string_keys)
+
+          @request.session.update(session) if session
+          @request.flash.update(flash || {})
+
+          if xhr
+            @request.set_header "HTTP_X_REQUESTED_WITH", "XMLHttpRequest"
+            @request.fetch_header("HTTP_ACCEPT") do |k|
+              @request.set_header k, [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
+            end
+          end
+
+          @request.fetch_header("SCRIPT_NAME") do |k|
+            @request.set_header k, @controller.config.relative_url_root
+          end
+        end
+
+        def process_controller_response(action, cookies, xhr)
+          begin
+            @controller.recycle!
+            @controller.dispatch(action, @request, @response)
+          ensure
+            @request = @controller.request
+            @response = @controller.response
+
+            if @request.have_cookie_jar?
+              unless @request.cookie_jar.committed?
+                @request.cookie_jar.write(@response)
+                cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
+              end
+            end
+            @response.prepare!
+
+            if flash_value = @request.flash.to_session_value
+              @request.session["flash"] = flash_value
+            else
+              @request.session.delete("flash")
+            end
+
+            if xhr
+              @request.delete_header "HTTP_X_REQUESTED_WITH"
+              @request.delete_header "HTTP_ACCEPT"
+            end
+            @request.query_string = ""
+
+            @response.sent!
+          end
+
+          @response
+        end
+
         def scrub_env!(env)
           env.delete_if do |k, _|
             k.start_with?("rack.request", "action_dispatch.request", "action_dispatch.rescue")

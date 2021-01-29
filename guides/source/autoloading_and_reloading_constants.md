@@ -16,7 +16,6 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-
 Introduction
 ------------
 
@@ -57,7 +56,7 @@ The autoloading `zeitwerk` mode is enabled by default in Rails 6 applications ru
 
 ```ruby
 # config/application.rb
-config.load_defaults "6.0" # enables zeitwerk mode in CRuby
+config.load_defaults 6.0 # enables zeitwerk mode in CRuby
 ```
 
 In `zeitwerk` mode, Rails uses [Zeitwerk](https://github.com/fxn/zeitwerk) internally to autoload, reload, and eager load. Rails instantiates and configures a dedicated Zeitwerk instance that manages the project.
@@ -81,7 +80,7 @@ The section _Customizing Inflections_ below documents ways to override this defa
 
 Please, check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#file-structure) for further details.
 
-Autoload paths
+Autoload Paths
 --------------
 
 We refer to the list of application directories whose contents are to be autoloaded as _autoload paths_. For example, `app/models`. Such directories represent the root namespace: `Object`.
@@ -131,11 +130,9 @@ Rails detects files have changed using an evented file monitor (default), or wal
 
 In a Rails console there is no file watcher active regardless of the value of `config.cache_classes`. This is so because, normally, it would be confusing to have code reloaded in the middle of a console session, the same way you generally want an individual request to be served by a consistent, non-changing set of application classes and modules.
 
-However, you can force a reload in the console executing `reload!`:
+However, you can force a reload in the console by executing `reload!`:
 
-```bash
-$ bin/rails c
-Loading development environment (Rails 6.0.0)
+```irb
 irb(main):001:0> User.object_id
 => 70136277390120
 irb(main):002:0> reload!
@@ -151,9 +148,9 @@ as you can see, the class object stored in the `User` constant is different afte
 
 It is very important to understand that Ruby does not have a way to truly reload classes and modules in memory, and have that reflected everywhere they are already used. Technically, "unloading" the `User` class means removing the `User` constant via `Object.send(:remove_const, "User")`.
 
-Therefore, if you store a reloadable class or module object in a place that is not reloaded, that value is going to become stale.
+Therefore, code that references a reloadable class or module, but that is not executed again on reload, becomes stale. Let's see an example next.
 
-For example, if an initializer stores and caches a certain class object
+Let's consider this initializer:
 
 ```ruby
 # config/initializers/configure_payment_gateway.rb
@@ -162,18 +159,27 @@ $PAYMENT_GATEWAY = Rails.env.production? ? RealGateway : MockedGateway
 # DO NOT DO THIS.
 ```
 
-and `MockedGateway` gets reloaded, `$PAYMENT_GATEWAY` still stores the class object `MockedGateway` evaluated to when the initializer ran. Reloading does not change the class object stored in `$PAYMENT_GATEWAY`.
+The idea would be to use `$PAYMENT_GATEWAY` in the code, and let the initializer set that to the actual implementation depending on the environment.
 
-Similarly, in the Rails console, if you have a user instance and reload:
+On reload, `MockedGateway` is reloaded, but `$PAYMENT_GATEWAY` is not updated because initializers only run on boot. Therefore, it won't reflect the changes.
 
+There are several ways to do this safely. For instance, the application could define a class method `PaymentGateway.impl` whose definition depends on the environment; or could define `PaymentGateway` to have a parent class or mixin that depends on the environment; or use the same global variable trick, but in a reloader callback, as explained below.
+
+Let's see other situations that involve stale class or module objects.
+
+Check this Rails console session:
+
+```irb
+irb> joe = User.new
+irb> reload!
+irb> alice = User.new
+irb> joe.class == alice.class
+=> false
 ```
-> user = User.new
-> reload!
-```
 
-the `user` object is an instance of a stale class object. Ruby gives you a new class if you evaluate `User` again, but does not update the class `user` is an instance of.
+`joe` is an instance of the original `User` class. When there is a reload, the `User` constant evaluates to a different, reloaded class. `alice` is an instance of the current one, but `joe` is not, his class is stale. You may define `joe` again, start an IRB subsession, or just launch a new console instead of calling `reload!`.
 
-Another use case of this gotcha is subclassing reloadable classes in a place that is not reloaded:
+Another situation in which you may find this gotcha is subclassing reloadable classes in a place that is not reloaded:
 
 ```ruby
 # lib/vip_user.rb
@@ -184,6 +190,32 @@ end
 if `User` is reloaded, since `VipUser` is not, the superclass of `VipUser` is the original stale class object.
 
 Bottom line: **do not cache reloadable classes or modules**.
+
+### Autoloading when the application boots
+
+Applications can safely autoload constants during boot using a reloader callback:
+
+```ruby
+Rails.application.reloader.to_prepare do
+  $PAYMENT_GATEWAY = Rails.env.production? ? RealGateway : MockedGateway
+end
+```
+
+That block runs when the application boots, and every time code is reloaded.
+
+NOTE: For historical reasons, this callback may run twice. The code it executes must be idempotent.
+
+However, if you do not need to reload the class, it is easier to define it in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice, it does not belong to the autoload paths by default but it belongs to `$LOAD_PATH`. Then, in the place the class is needed at boot time, just perform a regular `require` to load it.
+
+For example, there is no point in defining reloadable Rack middleware, because changes would not be reflected in the instance stored in the middleware stack anyway. If `lib/my_app/middleware/foo.rb` defines a middleware class, then in `config/application.rb` you write:
+
+```ruby
+require "my_app/middleware/foo"
+...
+config.middleware.use MyApp::Middleware::Foo
+```
+
+To have changes in that middleware reflected, you need to restart the server.
 
 
 Eager Loading
@@ -257,11 +289,15 @@ require "sti_preload"
 class Shape < ApplicationRecord
   include StiPreload # Only in the root class.
 end
+```
 
+```ruby
 # app/models/polygon.rb
 class Polygon < Shape
 end
+```
 
+```ruby
 # app/models/triangle.rb
 class Triangle < Polygon
 end
@@ -356,6 +392,60 @@ You can check if `zeitwerk` mode is enabled with
 Rails.autoloaders.zeitwerk_enabled?
 ```
 
+Differences with Classic Mode
+-----------------------------
+
+### Ruby Constant Lookup Compliance
+
+`classic` mode cannot match constant lookup semantics due to fundamental limitations of the technique it is based on, whereas `zeitwerk` mode works like Ruby.
+
+For example, in `classic` mode defining classes or modules in namespaces with qualified constants this way
+
+```ruby
+class Admin::UsersController < ApplicationController
+end
+```
+
+was not recommended because the resolution of constants inside their body was brittle. You'd better write them in this style:
+
+```ruby
+module Admin
+  class UsersController < ApplicationController
+  end
+end
+```
+
+In `zeitwerk` mode that does not matter anymore, you can pick either style.
+
+The resolution of a constant could depend on load order, the definition of a class or module object could depend on load order, there was edge cases with singleton classes, oftentimes you had to use `require_dependency` as a workaround, .... The guide for `classic` mode documents [these issues](autoloading_and_reloading_constants_classic_mode.html#common-gotchas).
+
+All these problems are solved in `zeitwerk` mode, it just works as expected, and `require_dependency` should not be used anymore, it is no longer needed.
+
+### Less File Lookups
+
+In `classic` mode, every single missing constant triggers a file lookup that walks the autoload paths.
+
+In `zeitwerk` mode there is only one pass. That pass is done once, not per missing constant, and so it is generally more performant. Subdirectories are visited only if their namespace is used.
+
+### Underscore vs Camelize
+
+Inflections go the other way around.
+
+In `classic` mode, given a missing constant Rails _underscores_ its name and performs a file lookup. On the other hand, `zeitwerk` mode checks first the file system, and _camelizes_ file names to know the constant those files are expected to define.
+
+While in common names these operations match, if acronyms or custom inflection rules are configured, they may not. For example, by default `"HTMLParser".underscore` is `"html_parser"`, and `"html_parser".camelize` is `"HtmlParser"`.
+
+### More Differences
+
+There are some other subtle differences, please check [this section of _Upgrading Ruby on Rails_](upgrading_ruby_on_rails.html#autoloading) guide for details.
+
+Classic Mode is Deprecated
+--------------------------
+
+By now, it is still possible to use `classic` mode. However, `classic` is deprecated and will be eventually removed.
+
+New applications should use `zeitwerk` mode (which is the default), and applications being upgrade are strongly encouraged to migrate to `zeitwerk` mode. Please check the [_Upgrading Ruby on Rails_](upgrading_ruby_on_rails.html#autoloading) guide for details.
+
 Opting Out
 ----------
 
@@ -363,7 +453,7 @@ Applications can load Rails 6 defaults and still use the classic autoloader this
 
 ```ruby
 # config/application.rb
-config.load_defaults "6.0"
+config.load_defaults 6.0
 config.autoloader = :classic
 ```
 

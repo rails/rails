@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
 require "active_support/core_ext/string/filters"
+require "active_support/deprecation"
 require "rails/command/environment_argument"
 
 module Rails
@@ -73,17 +73,17 @@ module Rails
       when "sqlserver"
         args = []
 
-        args += ["-D", "#{db_config.database}"] if db_config.database
+        args += ["-d", "#{db_config.database}"] if db_config.database
         args += ["-U", "#{config[:username]}"] if config[:username]
         args += ["-P", "#{config[:password]}"] if config[:password]
 
         if config[:host]
-          host_arg = +"#{config[:host]}"
-          host_arg << ":#{config[:port]}" if config[:port]
+          host_arg = +"tcp:#{config[:host]}"
+          host_arg << ",#{config[:port]}" if config[:port]
           args += ["-S", host_arg]
         end
 
-        find_cmd_and_exec("sqsh", *args)
+        find_cmd_and_exec("sqlcmd", *args)
 
       else
         abort "Unknown command-line client for #{db_config.database}."
@@ -168,9 +168,6 @@ module Rails
 
       class_option :header, type: :boolean
 
-      class_option :connection, aliases: "-c", type: :string,
-        desc: "Specifies the connection to use."
-
       class_option :database, aliases: "--db", type: :string,
         desc: "Specifies the database to use."
 
@@ -179,13 +176,6 @@ module Rails
 
         # RAILS_ENV needs to be set before config/application is required.
         ENV["RAILS_ENV"] = options[:environment]
-
-        if options["connection"]
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            `connection` option is deprecated and will be removed in Rails 6.1. Please use `database` option instead.
-          MSG
-          options["database"] = options["connection"]
-        end
 
         require_application_and_environment!
         Rails::DBConsole.start(options)

@@ -6,13 +6,11 @@
   <title><%= yield(:page_title) %></title>
   <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbolinks-track="reload">
   <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-  <link rel="stylesheet" type="text/css" href="stylesheets/prism/default.css" data-turbolinks-track="reload">
-  <link rel="stylesheet" type="text/css" href="stylesheets/prism/rails-guides.css" data-turbolinks-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbolinks-track="reload">
   <link href="images/favicon.ico" rel="shortcut icon" type="image/x-icon" />
-  <script src="javascripts/prism.js" data-turbolinks-track="reload"></script>
   <script src="javascripts/turbolinks.js" data-turbolinks-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbolinks-track="reload"></script>
   <script src="javascripts/guides.js" data-turbolinks-track="reload"></script>
-  <script src="javascripts/responsive-tables.js" data-turbolinks-track="reload"></script>
   <meta property="og:title" content="<%= yield(:page_title) %>" />
   <meta name="description" content="<%= yield(:description) %>" />
   <meta property="og:description" content="<%= yield(:description) %>" />
@@ -22,9 +20,9 @@
   <meta property="og:type" content="website" />
 </head>
 <body class="guide">
-  <% if @edge %>
+  <% if badge_version = @edge ? "edge" : @version %>
   <div>
-    <img src="images/edge_badge.png" alt="edge-badge" id="edge-badge" />
+    <div id="version-badge"><%= badge_version %></div>
   </div>
   <% end %>
   <div id="topNav">
@@ -37,7 +35,7 @@
         <li class="more-info"><a href="https://weblog.rubyonrails.org/">Blog</a></li>
         <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
         <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
-        <li class="more-info"><a href="https://stackoverflow.com/questions/tagged/ruby-on-rails">Ask for help</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
         <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
       </ul>
     </div>
@@ -104,9 +102,9 @@
         </p>
         <p>
           You may also find incomplete content or stuff that is not up to date.
-          Please do add any missing documentation for master. Make sure to check
+          Please do add any missing documentation for main. Make sure to check
           <%= link_to 'Edge Guides', 'https://edgeguides.rubyonrails.org' %> first to verify
-          if the issues are already fixed or not on the master branch.
+          if the issues are already fixed or not on the main branch.
           Check the <%= link_to 'Ruby on Rails Guides Guidelines', 'ruby_on_rails_guides_guidelines.html' %>
           for style and conventions.
         </p>

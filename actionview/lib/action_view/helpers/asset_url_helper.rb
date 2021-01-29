@@ -31,7 +31,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img src="http://assets.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets.example.com/assets/application.css" media="screen" rel="stylesheet" />
+    #   # => <link href="http://assets.example.com/assets/application.css" rel="stylesheet" />
     #
     # Browsers open a limited number of simultaneous connections to a single
     # host. The exact number varies by browser and version. This limit may cause
@@ -44,7 +44,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img src="http://assets0.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets2.example.com/assets/application.css" media="screen" rel="stylesheet" />
+    #   # => <link href="http://assets2.example.com/assets/application.css" rel="stylesheet" />
     #
     # This may improve the asset loading performance of your application.
     # It is also possible the combination of additional connection overhead
@@ -70,7 +70,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img src="http://assets1.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets2.example.com/assets/application.css" media="screen" rel="stylesheet" />
+    #   # => <link href="http://assets2.example.com/assets/application.css" rel="stylesheet" />
     #
     # The example above generates "http://assets1.example.com" and
     # "http://assets2.example.com". This option is useful for example if
@@ -80,7 +80,7 @@ module ActionView
     # absolute path of the asset, for example "/assets/rails.png".
     #
     #    ActionController::Base.asset_host = Proc.new { |source|
-    #      if source.ends_with?('.css')
+    #      if source.end_with?('.css')
     #        "http://stylesheets.example.com"
     #      else
     #        "http://assets.example.com"
@@ -89,7 +89,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img src="http://assets.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://stylesheets.example.com/assets/application.css" media="screen" rel="stylesheet" />
+    #   # => <link href="http://stylesheets.example.com/assets/application.css" rel="stylesheet" />
     #
     # Alternatively you may ask for a second parameter +request+. That one is
     # particularly useful for serving assets from an SSL-protected page. The
@@ -190,7 +190,7 @@ module ActionView
         return "" if source.blank?
         return source if URI_REGEXP.match?(source)
 
-        tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, "")
+        tail, source = source[/([?#].+)$/], source.sub(/([?#].+)$/, "")
 
         if extname = compute_asset_extname(source, options)
           source = "#{source}#{extname}"
@@ -206,7 +206,7 @@ module ActionView
 
         relative_url_root = defined?(config.relative_url_root) && config.relative_url_root
         if relative_url_root
-          source = File.join(relative_url_root, source) unless source.starts_with?("#{relative_url_root}/")
+          source = File.join(relative_url_root, source) unless source.start_with?("#{relative_url_root}/")
         end
 
         if host = compute_asset_host(source, options)

@@ -4,6 +4,7 @@ require "cases/helper"
 require "models/person"
 require "models/traffic_light"
 require "models/post"
+require "models/binary_field"
 
 class SerializedAttributeTest < ActiveRecord::TestCase
   fixtures :topics, :posts
@@ -38,6 +39,27 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     topic.reload
     assert_equal(myobj, topic.content)
+  end
+
+  def test_serialized_attribute_with_default
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      serialize(:content, Hash, default: { key: "value" })
+    end
+
+    t = klass.new
+    assert_equal({ key: "value" }, t.content)
+  end
+
+  def test_serialized_attribute_on_custom_attribute_with_default
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      attribute :content, default: { key: "value" }
+      serialize :content, Hash
+    end
+
+    t = klass.new
+    assert_equal({ key: "value" }, t.content)
   end
 
   def test_serialized_attribute_in_base_class
@@ -317,6 +339,38 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal({}, topic.content)
   end
 
+  if current_adapter?(:Mysql2Adapter)
+    def test_is_not_changed_when_stored_in_mysql_blob
+      value = %w(Fée)
+      model = BinaryField.create!(normal_blob: value, normal_text: value)
+      model.reload
+
+      model.normal_text = value
+      assert_not_predicate model, :normal_text_changed?
+
+      model.normal_blob = value
+      assert_not_predicate model, :normal_blob_changed?
+    end
+
+    class FrozenBinaryField < BinaryField
+      class FrozenCoder < ActiveRecord::Coders::YAMLColumn
+        def dump(obj)
+          super&.freeze
+        end
+      end
+      serialize :normal_blob, FrozenCoder.new(:normal_blob, Array)
+    end
+
+    def test_is_not_changed_when_stored_in_mysql_blob_frozen_payload
+      value = %w(Fée)
+      model = FrozenBinaryField.create!(normal_blob: value, normal_text: value)
+      model.reload
+
+      model.normal_blob = value
+      assert_not_predicate model, :normal_blob_changed?
+    end
+  end
+
   def test_values_cast_from_nil_are_persisted_as_nil
     # This is required to fulfil the following contract, which must be universally
     # true in Active Record:
@@ -336,6 +390,68 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic = Topic.create!(content: { foo: "bar" })
     topic.update_attribute :content, nil
     assert_equal [topic], Topic.where(content: nil)
+  end
+
+  class EncryptedType < ActiveRecord::Type::Text
+    include ActiveModel::Type::Helpers::Mutable
+
+    attr_reader :subtype, :encryptor
+
+    def initialize(subtype: ActiveModel::Type::String.new)
+      super()
+
+      @subtype   = subtype
+      @encryptor = ActiveSupport::MessageEncryptor.new("abcd" * 8)
+    end
+
+    def serialize(value)
+      subtype.serialize(value).yield_self do |cleartext|
+        encryptor.encrypt_and_sign(cleartext) unless cleartext.nil?
+      end
+    end
+
+    def deserialize(ciphertext)
+      encryptor.decrypt_and_verify(ciphertext)
+        .yield_self { |cleartext| subtype.deserialize(cleartext) } unless ciphertext.nil?
+    end
+
+    def changed_in_place?(old, new)
+      if old.nil?
+        !new.nil?
+      else
+        deserialize(old) != new
+      end
+    end
+  end
+
+  def test_decorated_type_with_type_for_attribute
+    old_registry = ActiveRecord::Type.registry
+    ActiveRecord::Type.registry = ActiveRecord::Type.registry.dup
+    ActiveRecord::Type.register :encrypted, EncryptedType
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      store :content
+      attribute :content, :encrypted, subtype: type_for_attribute(:content)
+    end
+
+    topic = klass.create!(content: { trial: true })
+
+    assert_equal({ "trial" => true }, topic.content)
+  ensure
+    ActiveRecord::Type.registry = old_registry
+  end
+
+  def test_decorated_type_with_decorator_block
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      store :content
+      attribute(:content) { |subtype| EncryptedType.new(subtype: subtype) }
+    end
+
+    topic = klass.create!(content: { trial: true })
+
+    assert_equal({ "trial" => true }, topic.content)
   end
 
   def test_mutation_detection_does_not_double_serialize

@@ -5,32 +5,112 @@ require "active_support/core_ext/string/conversions"
 
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
+    attr_reader :record, :association_name
     def initialize(record = nil, association_name = nil)
+      @record           = record
+      @association_name = association_name
       if record && association_name
         super("Association named '#{association_name}' was not found on #{record.class.name}; perhaps you misspelled it?")
       else
         super("Association was not found.")
       end
     end
+
+    class Correction
+      def initialize(error)
+        @error = error
+      end
+
+      def corrections
+        if @error.association_name
+          maybe_these = @error.record.class.reflections.keys
+
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.association_name.to_s, n)
+          }.reverse.first(4)
+        else
+          []
+        end
+      end
+    end
+
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
+    end
   end
 
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
+    attr_reader :reflection, :associated_class
     def initialize(reflection = nil, associated_class = nil)
       if reflection
+        @reflection = reflection
+        @associated_class = associated_class.nil? ? reflection.klass : associated_class
         super("Could not find the inverse association for #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{associated_class.nil? ? reflection.class_name : associated_class.name})")
       else
         super("Could not find the inverse association.")
       end
     end
+
+    class Correction
+      def initialize(error)
+        @error = error
+      end
+
+      def corrections
+        if @error.reflection && @error.associated_class
+          maybe_these = @error.associated_class.reflections.keys
+
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.reflection.options[:inverse_of].to_s, n)
+          }.reverse.first(4)
+        else
+          []
+        end
+      end
+    end
+
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
+    end
   end
 
   class HasManyThroughAssociationNotFoundError < ActiveRecordError #:nodoc:
-    def initialize(owner_class_name = nil, reflection = nil)
-      if owner_class_name && reflection
-        super("Could not find the association #{reflection.options[:through].inspect} in model #{owner_class_name}")
+    attr_reader :owner_class, :reflection
+
+    def initialize(owner_class = nil, reflection = nil)
+      if owner_class && reflection
+        @owner_class = owner_class
+        @reflection = reflection
+        super("Could not find the association #{reflection.options[:through].inspect} in model #{owner_class.name}")
       else
         super("Could not find the association.")
       end
+    end
+
+    class Correction
+      def initialize(error)
+        @error = error
+      end
+
+      def corrections
+        if @error.reflection && @error.owner_class
+          maybe_these = @error.owner_class.reflections.keys
+          maybe_these -= [@error.reflection.name.to_s] # remove failing reflection
+
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.reflection.options[:through].to_s, n)
+          }.reverse.first(4)
+        else
+          []
+        end
+      end
+    end
+
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
     end
   end
 
@@ -1291,6 +1371,9 @@ module ActiveRecord
         #
         #   * <tt>nil</tt> do nothing (default).
         #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed.
+        #   * <tt>:destroy_async</tt> destroys all the associated objects in a background job. <b>WARNING:</b> Do not use
+        #     this option if the association is backed by foreign key constraints in your database. The foreign key
+        #     constraint actions will occur inside the same transaction that deletes its owner.
         #   * <tt>:delete_all</tt> causes all the associated objects to be deleted directly from the database (so callbacks will not be executed).
         #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Polymorphic type will also be nullified
         #     on polymorphic associations. Callbacks are not executed.
@@ -1356,7 +1439,11 @@ module ActiveRecord
         #   Useful for defining methods on associations, especially when they should be shared between multiple
         #   association objects.
         # [:strict_loading]
-        #   Enforces strict loading every time the associated record is loaded through this association.
+        #   When set to +true+, enforces strict loading every time the associated record is loaded through this
+        #   association.
+        # [:ensuring_owner_was]
+        #   Specifies an instance method to be called on the owner. The method must return true in order for the
+        #   associated records to be deleted in a background job.
         #
         # Option examples:
         #   has_many :comments, -> { order("posted_on") }
@@ -1439,6 +1526,9 @@ module ActiveRecord
         #
         #   * <tt>nil</tt> do nothing (default).
         #   * <tt>:destroy</tt> causes the associated object to also be destroyed
+        #   * <tt>:destroy_async</tt> causes the associated object to be destroyed in a background job. <b>WARNING:</b> Do not use
+        #     this option if the association is backed by foreign key constraints in your database. The foreign key
+        #     constraint actions will occur inside the same transaction that deletes its owner.
         #   * <tt>:delete</tt> causes the associated object to be deleted directly from the database (so callbacks will not execute)
         #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Polymorphic type column is also nullified
         #     on polymorphic associations. Callbacks are not executed.
@@ -1499,6 +1589,9 @@ module ActiveRecord
         #   +:inverse_of+ to avoid an extra query during validation.
         # [:strict_loading]
         #   Enforces strict loading every time the associated record is loaded through this association.
+        # [:ensuring_owner_was]
+        #   Specifies an instance method to be called on the owner. The method must return true in order for the
+        #   associated records to be deleted in a background job.
         #
         # Option examples:
         #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
@@ -1593,7 +1686,8 @@ module ActiveRecord
         #   By default this is +id+.
         # [:dependent]
         #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
-        #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method.
+        #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method. If set to
+        #   <tt>:destroy_async</tt>, the associated object is scheduled to be destroyed in a background job.
         #   This option should not be specified when #belongs_to is used in conjunction with
         #   a #has_many relationship on another class because of the potential to leave
         #   orphaned records behind.
@@ -1647,6 +1741,9 @@ module ActiveRecord
         #   be initialized with a particular record before validation.
         # [:strict_loading]
         #   Enforces strict loading every time the associated record is loaded through this association.
+        # [:ensuring_owner_was]
+        #   Specifies an instance method to be called on the owner. The method must return true in order for the
+        #   associated records to be deleted in a background job.
         #
         # Option examples:
         #   belongs_to :firm, foreign_key: "client_of"

@@ -29,7 +29,16 @@ module ActiveRecord
           end
         end
         relation = scope_relation(record, relation)
-        relation = relation.merge(options[:conditions]) if options[:conditions]
+
+        if options[:conditions]
+          conditions = options[:conditions]
+
+          relation = if conditions.arity.zero?
+            relation.instance_exec(&conditions)
+          else
+            relation.instance_exec(record, &conditions)
+          end
+        end
 
         if relation.exists?
           error_options = options.except(:case_sensitive, :scope, :conditions)
@@ -61,7 +70,7 @@ module ActiveRecord
           return relation.none! if bind.unboundable?
 
           if !options.key?(:case_sensitive) || bind.nil?
-            klass.connection.default_uniqueness_comparison(attr, bind, klass)
+            klass.connection.default_uniqueness_comparison(attr, bind)
           elsif options[:case_sensitive]
             klass.connection.case_sensitive_comparison(attr, bind)
           else
@@ -78,7 +87,7 @@ module ActiveRecord
           scope_value = if record.class._reflect_on_association(scope_item)
             record.association(scope_item).reader
           else
-            record._read_attribute(scope_item)
+            record.read_attribute(scope_item)
           end
           relation = relation.where(scope_item => scope_value)
         end
@@ -124,6 +133,17 @@ module ActiveRecord
       #
       #   class Article < ActiveRecord::Base
       #     validates_uniqueness_of :title, conditions: -> { where.not(status: 'archived') }
+      #   end
+      #
+      # To build conditions based on the record's state, define the conditions
+      # callable with a parameter, which will be the record itself. This
+      # example validates the title is unique for the year of publication:
+      #
+      #   class Article < ActiveRecord::Base
+      #     validates_uniqueness_of :title, conditions: ->(article) {
+      #       published_at = article.published_at
+      #       where(published_at: published_at.beginning_of_year..published_at.end_of_year)
+      #     }
       #   end
       #
       # When the record is created, a check is performed to make sure that no

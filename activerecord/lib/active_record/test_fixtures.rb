@@ -23,7 +23,6 @@ module ActiveRecord
       class_attribute :use_transactional_tests, default: true
       class_attribute :use_instantiated_fixtures, default: false # true, false, or :no_instances
       class_attribute :pre_loaded_fixtures, default: false
-      class_attribute :config, default: ActiveRecord::Base
       class_attribute :lock_threads, default: true
     end
 
@@ -44,7 +43,7 @@ module ActiveRecord
         if fixture_set_names.first == :all
           raise StandardError, "No fixture path found. Please set `#{self}.fixture_path`." if fixture_path.blank?
           fixture_set_names = Dir[::File.join(fixture_path, "{**,*}/*.{yml}")].uniq
-          fixture_set_names.reject! { |f| f.starts_with?(file_fixture_path.to_s) } if defined?(file_fixture_path) && file_fixture_path
+          fixture_set_names.reject! { |f| f.start_with?(file_fixture_path.to_s) } if defined?(file_fixture_path) && file_fixture_path
           fixture_set_names.map! { |f| f[fixture_path.to_s.size..-5].delete_prefix("/") }
         else
           fixture_set_names = fixture_set_names.flatten.map(&:to_s)
@@ -132,11 +131,12 @@ module ActiveRecord
         # When connections are established in the future, begin a transaction too
         @connection_subscriber = ActiveSupport::Notifications.subscribe("!connection.active_record") do |_, _, _, _, payload|
           spec_name = payload[:spec_name] if payload.key?(:spec_name)
+          shard = payload[:shard] if payload.key?(:shard)
           setup_shared_connection_pool
 
           if spec_name
             begin
-              connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name)
+              connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name, shard: shard)
             rescue ConnectionNotEstablished
               connection = nil
             end
@@ -190,18 +190,34 @@ module ActiveRecord
       # need to share a connection pool so that the reading connection
       # can see data in the open transaction on the writing connection.
       def setup_shared_connection_pool
-        writing_handler = ActiveRecord::Base.connection_handler
+        if ActiveRecord::Base.legacy_connection_handling
+          writing_handler = ActiveRecord::Base.connection_handlers[ActiveRecord::Base.writing_role]
 
-        ActiveRecord::Base.connection_handlers.values.each do |handler|
-          if handler != writing_handler
-            handler.connection_pool_names.each do |name|
-              writing_pool_manager = writing_handler.send(:owner_to_pool_manager)[name]
-              return unless writing_pool_manager
+          ActiveRecord::Base.connection_handlers.values.each do |handler|
+            if handler != writing_handler
+              handler.connection_pool_names.each do |name|
+                writing_pool_manager = writing_handler.send(:owner_to_pool_manager)[name]
+                return unless writing_pool_manager
 
-              writing_pool_config = writing_pool_manager.get_pool_config(:default)
+                pool_manager = handler.send(:owner_to_pool_manager)[name]
+                pool_manager.shard_names.each do |shard_name|
+                  writing_pool_config = writing_pool_manager.get_pool_config(nil, shard_name)
+                  pool_manager.set_pool_config(nil, shard_name, writing_pool_config)
+                end
+              end
+            end
+          end
+        else
+          handler = ActiveRecord::Base.connection_handler
 
-              pool_manager = handler.send(:owner_to_pool_manager)[name]
-              pool_manager.set_pool_config(:default, writing_pool_config)
+          handler.connection_pool_names.each do |name|
+            pool_manager = handler.send(:owner_to_pool_manager)[name]
+            pool_manager.shard_names.each do |shard_name|
+              writing_pool_config = pool_manager.get_pool_config(ActiveRecord::Base.writing_role, shard_name)
+              pool_manager.role_names.each do |role|
+                next unless pool_manager.get_pool_config(role, shard_name)
+                pool_manager.set_pool_config(role, shard_name, writing_pool_config)
+              end
             end
           end
         end

@@ -12,7 +12,6 @@ require "active_support/core_ext/object/blank"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/load_error"
 require "active_support/core_ext/name_error"
-require "active_support/core_ext/string/starts_ends_with"
 require "active_support/dependencies/interlock"
 require "active_support/inflector"
 
@@ -262,15 +261,24 @@ module ActiveSupport #:nodoc:
 
       # :doc:
 
-      # Interprets a file using <tt>mechanism</tt> and marks its defined
-      # constants as autoloaded. <tt>file_name</tt> can be either a string or
+      # <b>Warning:</b> This method is obsolete in +:zeitwerk+ mode. In
+      # +:zeitwerk+ mode semantics match Ruby's and you do not need to be
+      # defensive with load order. Just refer to classes and modules normally.
+      # If the constant name is dynamic, camelize if needed, and constantize.
+      #
+      # In +:classic+ mode, interprets a file using +mechanism+ and marks its
+      # defined constants as autoloaded. +file_name+ can be either a string or
       # respond to <tt>to_path</tt>.
       #
-      # Use this method in code that absolutely needs a certain constant to be
-      # defined at that point. A typical use case is to make constant name
-      # resolution deterministic for constants with the same relative name in
-      # different namespaces whose evaluation would depend on load order
-      # otherwise.
+      # In +:classic+ mode, use this method in code that absolutely needs a
+      # certain constant to be defined at that point. A typical use case is to
+      # make constant name resolution deterministic for constants with the same
+      # relative name in different namespaces whose evaluation would depend on
+      # load order otherwise.
+      #
+      # Engines that do not control the mode in which their parent application
+      # runs should call +require_dependency+ where needed in case the runtime
+      # mode is +:classic+.
       def require_dependency(file_name, message = "No such file to load -- %s.rb")
         file_name = file_name.to_path if file_name.respond_to?(:to_path)
         unless file_name.is_a?(String)
@@ -367,7 +375,12 @@ module ActiveSupport #:nodoc:
       require_or_load(path || file_name)
     rescue LoadError => load_error
       if file_name = load_error.message[/ -- (.*?)(\.rb)?$/, 1]
-        load_error.message.replace(message % file_name)
+        load_error_message = if load_error.respond_to?(:original_message)
+          load_error.original_message
+        else
+          load_error.message
+        end
+        load_error_message.replace(message % file_name)
         load_error.copy_blame!(load_error)
       end
       raise
@@ -453,7 +466,7 @@ module ActiveSupport #:nodoc:
 
     # Search for a file in autoload_paths matching the provided suffix.
     def search_for_file(path_suffix)
-      path_suffix += ".rb" unless path_suffix.ends_with?(".rb")
+      path_suffix += ".rb" unless path_suffix.end_with?(".rb")
 
       autoload_paths.each do |root|
         path = File.join(root, path_suffix)
@@ -473,9 +486,9 @@ module ActiveSupport #:nodoc:
     end
 
     def load_once_path?(path)
-      # to_s works around a ruby issue where String#starts_with?(Pathname)
+      # to_s works around a ruby issue where String#start_with?(Pathname)
       # will raise a TypeError: no implicit conversion of Pathname into String
-      autoload_once_paths.any? { |base| path.starts_with? base.to_s }
+      autoload_once_paths.any? { |base| path.start_with?(base.to_s) }
     end
 
     # Attempt to autoload the provided module name by searching for a directory
@@ -525,7 +538,8 @@ module ActiveSupport #:nodoc:
     # it is not possible to load the constant into from_mod, try its parent
     # module using +const_missing+.
     def load_missing_constant(from_mod, const_name)
-      unless qualified_const_defined?(from_mod.name) && Inflector.constantize(from_mod.name).equal?(from_mod)
+      from_mod_name = real_mod_name(from_mod)
+      unless qualified_const_defined?(from_mod_name) && Inflector.constantize(from_mod_name).equal?(from_mod)
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
 
@@ -536,7 +550,7 @@ module ActiveSupport #:nodoc:
 
       if file_path
         expanded = File.expand_path(file_path)
-        expanded.sub!(/\.rb\z/, "")
+        expanded.delete_suffix!(".rb")
 
         if loading.include?(expanded)
           raise "Circular dependency detected while autoloading constant #{qualified_name}"
@@ -584,8 +598,8 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      name_error = NameError.new("uninitialized constant #{qualified_name}", const_name)
-      name_error.set_backtrace(caller.reject { |l| l.starts_with? __FILE__ })
+      name_error = uninitialized_constant(qualified_name, const_name, receiver: from_mod)
+      name_error.set_backtrace(caller.reject { |l| l.start_with? __FILE__ })
       raise name_error
     end
 
@@ -714,7 +728,7 @@ module ActiveSupport #:nodoc:
     # A module, class, symbol, or string may be provided.
     def to_constant_name(desc) #:nodoc:
       case desc
-      when String then desc.sub(/^::/, "")
+      when String then desc.delete_prefix("::")
       when Symbol then desc.to_s
       when Module
         real_mod_name(desc) ||
@@ -725,7 +739,7 @@ module ActiveSupport #:nodoc:
 
     def remove_constant(const) #:nodoc:
       # Normalize ::Foo, ::Object::Foo, Object::Foo, Object::Object::Foo, etc. as Foo.
-      normalized = const.to_s.sub(/\A::/, "")
+      normalized = const.to_s.delete_prefix("::")
       normalized.sub!(/\A(Object::)+/, "")
 
       constants = normalized.split("::")
@@ -735,7 +749,7 @@ module ActiveSupport #:nodoc:
       file_path = search_for_file(const.underscore)
       if file_path
         expanded = File.expand_path(file_path)
-        expanded.sub!(/\.rb\z/, "")
+        expanded.delete_suffix!(".rb")
         loaded.delete(expanded)
       end
 
@@ -793,6 +807,16 @@ module ActiveSupport #:nodoc:
     end
 
     private
+      if RUBY_VERSION < "2.6"
+        def uninitialized_constant(qualified_name, const_name, receiver:)
+          NameError.new("uninitialized constant #{qualified_name}", const_name)
+        end
+      else
+        def uninitialized_constant(qualified_name, const_name, receiver:)
+          NameError.new("uninitialized constant #{qualified_name}", const_name, receiver: receiver)
+        end
+      end
+
       # Returns the original name of a class or module even if `name` has been
       # overridden.
       def real_mod_name(mod)

@@ -40,13 +40,21 @@ module ActiveStorage
       #     has_one_attached :avatar, service: :s3
       #   end
       #
-      def has_one_attached(name, dependent: :purge_later, service: nil)
+      # If you need to enable +strict_loading+ to prevent lazy loading of attachment,
+      # pass the +:strict_loading+ option. You can do:
+      #
+      #   class User < ApplicationRecord
+      #     has_one_attached :avatar, strict_loading: true
+      #   end
+      #
+      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
         validate_service_configuration(name, service)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
           def #{name}
-            @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self)
+            @active_storage_attached ||= {}
+            @active_storage_attached[:#{name}] ||= ActiveStorage::Attached::One.new("#{name}", self)
           end
 
           def #{name}=(attachable)
@@ -59,8 +67,8 @@ module ActiveStorage
           end
         CODE
 
-        has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy
-        has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob
+        has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
+        has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
 
         scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
 
@@ -111,13 +119,21 @@ module ActiveStorage
       #     has_many_attached :photos, service: :s3
       #   end
       #
-      def has_many_attached(name, dependent: :purge_later, service: nil)
+      # If you need to enable +strict_loading+ to prevent lazy loading of attachments,
+      # pass the +:strict_loading+ option. You can do:
+      #
+      #   class Gallery < ApplicationRecord
+      #     has_many_attached :photos, strict_loading: true
+      #   end
+      #
+      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
         validate_service_configuration(name, service)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
           def #{name}
-            @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self)
+            @active_storage_attached ||= {}
+            @active_storage_attached[:#{name}] ||= ActiveStorage::Attached::Many.new("#{name}", self)
           end
 
           def #{name}=(attachables)
@@ -137,7 +153,7 @@ module ActiveStorage
           end
         CODE
 
-        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy do
+        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy, strict_loading: strict_loading do
           def purge
             each(&:purge)
             reset
@@ -148,7 +164,7 @@ module ActiveStorage
             reset
           end
         end
-        has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob
+        has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
 
         scope :"with_attached_#{name}", -> { includes("#{name}_attachments": :blob) }
 
@@ -183,6 +199,12 @@ module ActiveStorage
 
     def changed_for_autosave? #:nodoc:
       super || attachment_changes.any?
+    end
+
+    def initialize_dup(*) #:nodoc:
+      super
+      @active_storage_attached = nil
+      @attachment_changes = nil
     end
 
     def reload(*) #:nodoc:

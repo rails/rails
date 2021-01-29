@@ -148,28 +148,89 @@ module ResolverSharedTests
 
   def test_templates_sort_by_formats_json_first
     with_file "test/hello_world.html.erb", "Hello HTML!"
-    with_file "test/hello_world.json.jbuilder", "Hello JSON!"
+    with_file "test/hello_world.json.builder", "Hello JSON!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:json, :html], variants: :any, handlers: [:erb, :jbuilder])
+    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:json, :html], variants: :any, handlers: [:erb, :builder])
 
     assert_equal 2, templates.size
     assert_equal "Hello JSON!", templates[0].source
+    assert_equal :json, templates[0].format
+    assert_equal "Hello HTML!", templates[1].source
+    assert_equal :html, templates[1].format
   end
 
   def test_templates_sort_by_formats_html_first
     with_file "test/hello_world.html.erb", "Hello HTML!"
-    with_file "test/hello_world.json.jbuilder", "Hello JSON!"
+    with_file "test/hello_world.json.builder", "Hello JSON!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :jbuilder])
+    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder])
 
     assert_equal 2, templates.size
     assert_equal "Hello HTML!", templates[0].source
+    assert_equal :html, templates[0].format
+    assert_equal "Hello JSON!", templates[1].source
+    assert_equal :json, templates[1].format
+  end
+
+  def test_templates_with_variant
+    with_file "test/hello_world.html+mobile.erb", "Hello HTML!"
+
+    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder])
+
+    assert_equal 1, templates.size
+    assert_equal "Hello HTML!", templates[0].source
+    assert_kind_of ActionView::Template::Handlers::ERB, templates[0].handler
+    assert_equal :html, templates[0].format
+    assert_equal "mobile", templates[0].variant
+  end
+
+  def test_finds_variants_in_order
+    with_file "test/hello_world.html+tricorder.erb", "Hello Spock!"
+    with_file "test/hello_world.html+lcars.erb", "Hello Geordi!"
+
+    tricorder = context.find("hello_world", "test", false, [], { variants: [:tricorder] })
+    lcars = context.find("hello_world", "test", false, [], { variants: [:lcars] })
+
+    assert_equal "Hello Spock!", tricorder.source
+    assert_equal "tricorder", tricorder.variant
+    assert_equal "Hello Geordi!", lcars.source
+    assert_equal "lcars", lcars.variant
+
+    templates = context.find_all("hello_world", "test", false, [], { variants: [:tricorder, :lcars] })
+    assert_equal [tricorder, lcars], templates
+
+    templates = context.find_all("hello_world", "test", false, [], { variants: [:lcars, :tricorder] })
+    assert_equal [lcars, tricorder], templates
+  end
+
+  def test_templates_no_format_with_variant
+    with_file "test/hello_world+mobile.erb", "Hello HTML!"
+
+    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder])
+
+    assert_equal 1, templates.size
+    assert_equal "Hello HTML!", templates[0].source
+    assert_kind_of ActionView::Template::Handlers::ERB, templates[0].handler
+    assert_nil templates[0].format
+    assert_equal "mobile", templates[0].variant
+  end
+
+  def test_templates_no_format_or_handler_with_variant
+    with_file "test/hello_world+mobile", "Hello HTML!"
+
+    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder])
+
+    assert_equal 1, templates.size
+    assert_equal "Hello HTML!", templates[0].source
+    assert_kind_of ActionView::Template::Handlers::Raw, templates[0].handler
+    assert_nil templates[0].format
+    assert_equal "mobile", templates[0].variant
   end
 
   def test_virtual_path_is_preserved_with_dot
     with_file "test/hello_world.html.erb", "Hello html!"
 
-    template = context.find("hello_world.html", "test", false, [], {})
+    template = assert_deprecated { context.find("hello_world.html", "test", false, [], {}) }
     assert_equal "test/hello_world.html", template.virtual_path
 
     template = context.find("hello_world", "test", false, [], {})

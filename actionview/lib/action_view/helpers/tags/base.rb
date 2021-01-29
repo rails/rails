@@ -117,27 +117,15 @@ module ActionView
           end
 
           def tag_id(index = nil)
-            # a little duplication to construct fewer strings
-            case
-            when @object_name.empty?
-              sanitized_method_name.dup
-            when index
-              "#{sanitized_object_name}_#{index}_#{sanitized_method_name}"
-            else
-              "#{sanitized_object_name}_#{sanitized_method_name}"
-            end
-          end
-
-          def sanitized_object_name
-            @sanitized_object_name ||= @object_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").sub(/_$/, "")
+            @template_object.field_id(@object_name, @method_name, index: index)
           end
 
           def sanitized_method_name
-            @sanitized_method_name ||= @method_name.sub(/\?$/, "")
+            @sanitized_method_name ||= @method_name.delete_suffix("?")
           end
 
           def sanitized_value(value)
-            value.to_s.gsub(/[\s\.]/, "_").gsub(/[^-[[:word:]]]/, "").downcase
+            value.to_s.gsub(/[\s.]/, "_").gsub(/[^-[[:word:]]]/, "").downcase
           end
 
           def select_content_tag(option_tags, options, html_options)
@@ -166,8 +154,11 @@ module ActionView
 
           def add_options(option_tags, options, value = nil)
             if options[:include_blank]
-              option_tags = tag_builder.content_tag_string("option", options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, value: "") + "\n" + option_tags
+              content = (options[:include_blank] if options[:include_blank].is_a?(String))
+              label = (" " unless content)
+              option_tags = tag_builder.content_tag_string("option", content, value: "", label: label) + "\n" + option_tags
             end
+
             if value.blank? && options[:prompt]
               tag_options = { value: "" }.tap do |prompt_opts|
                 prompt_opts[:disabled] = true if options[:disabled] == ""
@@ -175,6 +166,7 @@ module ActionView
               end
               option_tags = tag_builder.content_tag_string("option", prompt_text(options[:prompt]), tag_options) + "\n" + option_tags
             end
+
             option_tags
           end
 

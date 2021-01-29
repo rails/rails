@@ -39,7 +39,7 @@ if ActiveRecord::Base.connection.supports_comments?
       end
 
       @connection.create_table("pk_commenteds", comment: "Table comment", id: false, force: true) do |t|
-        t.integer :id, comment: "Primary key comment", primary_key: true
+        t.primary_key :id, comment: "Primary key comment"
       end
 
       Commented.reset_column_information
@@ -143,7 +143,7 @@ if ActiveRecord::Base.connection.supports_comments?
         assert_match %r[t\.integer\s+"rating",\s+precision: 38,\s+comment: "I am running out of imagination"], output
       else
         assert_match %r[t\.integer\s+"rating",\s+comment: "I am running out of imagination"], output
-        assert_match %r[t\.index\s+.+\s+comment: "\\\"Very important\\\" index that powers all the performance.\\nAnd it's fun!"], output
+        assert_match %r[t\.index\s+.+\s+comment: "\\"Very important\\" index that powers all the performance.\\nAnd it's fun!"], output
         assert_match %r[t\.index\s+.+\s+name: "idx_obvious",\s+comment: "We need to see obvious comments"], output
       end
     end
@@ -197,8 +197,7 @@ if ActiveRecord::Base.connection.supports_comments?
 
     def test_schema_dump_with_primary_key_comment
       output = dump_table_schema "pk_commenteds"
-      assert_match %r[create_table "pk_commenteds",.*\s+comment: "Table comment"], output
-      assert_no_match %r[create_table "pk_commenteds",.*\s+comment: "Primary key comment"], output
+      assert_match %r[create_table "pk_commenteds", id: { comment: "Primary key comment" }.*, comment: "Table comment"], output
     end
   end
 end

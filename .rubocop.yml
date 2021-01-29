@@ -1,4 +1,5 @@
 require:
+  - rubocop-packaging
   - rubocop-performance
   - rubocop-rails
 
@@ -7,12 +8,12 @@ AllCops:
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
+  SuggestExtensions: false
   Exclude:
     - '**/tmp/**/*'
     - '**/templates/**/*'
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
-    - 'railties/test/fixtures/tmp/**/*'
     - 'actionmailbox/test/dummy/**/*'
     - 'actiontext/test/dummy/**/*'
     - '**/node_modules/**/*'
@@ -119,6 +120,9 @@ Layout/SpaceAroundEqualsInParameterDefault:
 Layout/SpaceAroundKeyword:
   Enabled: true
 
+Layout/SpaceAroundOperators:
+  Enabled: true
+
 Layout/SpaceBeforeComma:
   Enabled: true
 
@@ -194,6 +198,9 @@ Lint/AmbiguousOperator:
 Lint/AmbiguousRegexpLiteral:
   Enabled: true
 
+Lint/DuplicateRequire:
+  Enabled: true
+
 Lint/ErbNewArguments:
   Enabled: true
 
@@ -232,6 +239,9 @@ Style/RedundantReturn:
   Enabled: true
   AllowMultipleReturnValues: true
 
+Style/RedundantRegexpEscape:
+  Enabled: true
+
 Style/Semicolon:
   Enabled: true
   AllowAsExpressionSeparator: true
@@ -262,4 +272,10 @@ Performance/ReverseEach:
   Enabled: true
 
 Performance/UnfreezeString:
+  Enabled: true
+
+Performance/DeletePrefix:
+  Enabled: true
+
+Performance/DeleteSuffix:
   Enabled: true

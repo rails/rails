@@ -68,6 +68,8 @@ module ActiveRecord
         else
           select(sql, name, binds)
         end
+      rescue ::RangeError
+        ActiveRecord::Result.new([], [])
       end
 
       # Returns a record hash with the column names as keys and column values
@@ -150,6 +152,10 @@ module ActiveRecord
 
       def exec_insert_all(sql, name) # :nodoc:
         exec_query(sql, name)
+      end
+
+      def explain(arel, binds = []) # :nodoc:
+        raise NotImplementedError
       end
 
       # Executes an INSERT query and returns the new record's ID
@@ -323,6 +329,13 @@ module ActiveRecord
                :commit_transaction, :rollback_transaction, :materialize_transactions,
                :disable_lazy_transactions!, :enable_lazy_transactions!, to: :transaction_manager
 
+      def mark_transaction_written_if_write(sql) # :nodoc:
+        transaction = current_transaction
+        if transaction.open?
+          transaction.written ||= write_query?(sql)
+        end
+      end
+
       def transaction_open?
         current_transaction.open?
       end
@@ -333,12 +346,8 @@ module ActiveRecord
 
       # Register a record with the current transaction so that its after_commit and after_rollback callbacks
       # can be called.
-      def add_transaction_record(record)
-        current_transaction.add_record(record)
-      end
-
-      def transaction_state
-        current_transaction.state
+      def add_transaction_record(record, ensure_finalize = true)
+        current_transaction.add_record(record, ensure_finalize)
       end
 
       # Begins the transaction (and turns off auto-committing).

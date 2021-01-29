@@ -9,7 +9,7 @@ end
 
 FileUtils.chdir APP_ROOT do
   # This script is a way to set up or update your development environment automatically.
-  # This script is idempotent, so that you can run it at anytime and get an expectable outcome.
+  # This script is idempotent, so that you can run it at any time and get an expectable outcome.
   # Add necessary setup steps to this file.
 
   puts '== Installing dependencies =='
@@ -18,7 +18,7 @@ FileUtils.chdir APP_ROOT do
 <% unless options.skip_javascript? -%>
 
   # Install JavaScript dependencies
-  # system('bin/yarn')
+  system! 'bin/yarn'
 <% end -%>
 <% unless options.skip_active_record? -%>
 

@@ -7,6 +7,10 @@ module ActiveRecord
   class ActiveRecordError < StandardError
   end
 
+  # Raised when trying to use a feature in Active Record which requires Active Job but the gem is not present.
+  class ActiveJobRequiredError < ActiveRecordError
+  end
+
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
   # {ActiveRecord::Base.inheritance_column}[rdoc-ref:ModelSchema::ClassMethods#inheritance_column]
@@ -51,6 +55,19 @@ module ActiveRecord
   # {ActiveRecord::Base.connection=}[rdoc-ref:ConnectionHandling#connection]
   # is given a +nil+ object).
   class ConnectionNotEstablished < ActiveRecordError
+  end
+
+  # Raised when a connection could not be obtained within the connection
+  # acquisition timeout period: because max connections in pool
+  # are in use.
+  class ConnectionTimeoutError < ConnectionNotEstablished
+  end
+
+  # Raised when a pool was unable to get ahold of all its connections
+  # to perform a "group" action such as
+  # {ActiveRecord::Base.connection_pool.disconnect!}[rdoc-ref:ConnectionAdapters::ConnectionPool#disconnect!]
+  # or {ActiveRecord::Base.clear_reloadable_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_reloadable_connections!].
+  class ExclusiveConnectionTimeoutError < ConnectionTimeoutError
   end
 
   # Raised when a write to the database is attempted on a read only connection.
@@ -98,6 +115,16 @@ module ActiveRecord
     def initialize(message = nil, record = nil)
       @record = record
       super(message)
+    end
+  end
+
+  # Raised when Active Record finds multiple records but only expected one.
+  class SoleRecordExceeded < ActiveRecordError
+    attr_reader :record
+
+    def initialize(record = nil)
+      @record = record
+      super "Wanted only one #{record&.name || "record"}"
     end
   end
 
@@ -342,7 +369,7 @@ module ActiveRecord
   # See the following:
   #
   # * https://www.postgresql.org/docs/current/static/transaction-iso.html
-  # * https://dev.mysql.com/doc/refman/en/server-error-reference.html#error_er_lock_deadlock
+  # * https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html#error_er_lock_deadlock
   class TransactionRollbackError < StatementInvalid
   end
 
@@ -382,17 +409,15 @@ module ActiveRecord
   end
 
   # UnknownAttributeReference is raised when an unknown and potentially unsafe
-  # value is passed to a query method when allow_unsafe_raw_sql is set to
-  # :disabled. For example, passing a non column name value to a relation's
-  # #order method might cause this exception.
+  # value is passed to a query method. For example, passing a non column name
+  # value to a relation's #order method might cause this exception.
   #
   # When working around this exception, caution should be taken to avoid SQL
   # injection vulnerabilities when passing user-provided values to query
   # methods. Known-safe values can be passed to query methods by wrapping them
   # in Arel.sql.
   #
-  # For example, with allow_unsafe_raw_sql set to :disabled, the following
-  # code would raise this exception:
+  # For example, the following code would raise this exception:
   #
   #   Post.order("length(title)").first
   #

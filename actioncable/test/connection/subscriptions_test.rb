@@ -66,6 +66,17 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     end
   end
 
+  test "subscribe command with Base channel" do
+    run_in_eventmachine do
+      setup_connection
+
+      identifier = ActiveSupport::JSON.encode(id: 1, channel: "ActionCable::Channel::Base")
+      @subscriptions.execute_command "command" => "subscribe", "identifier" => identifier
+
+      assert_empty @subscriptions.identifiers
+    end
+  end
+
   test "unsubscribe command" do
     run_in_eventmachine do
       setup_connection

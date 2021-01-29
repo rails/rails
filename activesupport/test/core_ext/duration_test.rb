@@ -46,6 +46,41 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "1", 1.second.to_s
   end
 
+  def test_in_seconds
+    assert_equal 86400.0, 1.day.in_seconds
+    assert_equal 1.week.to_i, 1.week.in_seconds
+  end
+
+  def test_in_minutes
+    assert_in_delta 1440.0, 1.day.in_minutes
+    assert_in_delta 0.5, 30.seconds.in_minutes
+  end
+
+  def test_in_hours
+    assert_in_delta 24.0, 1.day.in_hours
+    assert_in_delta 336.0, 2.weeks.in_hours
+  end
+
+  def test_in_days
+    assert_in_delta 0.5, 12.hours.in_days
+    assert_in_delta 30.437, 1.month.in_days
+  end
+
+  def test_in_weeks
+    assert_in_delta 8.696, 2.months.in_weeks
+    assert_in_delta 52.178, 1.year.in_weeks
+  end
+
+  def test_in_months
+    assert_in_delta 2.07, 9.weeks.in_months
+    assert_in_delta 12.0, 1.year.in_months
+  end
+
+  def test_in_years
+    assert_in_delta 0.082, 30.days.in_years
+    assert_in_delta 1.0, 365.days.in_years
+  end
+
   def test_eql
     rubinius_skip "Rubinius' #eql? definition relies on #instance_of? " \
                   "which behaves oddly for the sake of backward-compatibility."
@@ -194,8 +229,8 @@ class DurationTest < ActiveSupport::TestCase
     twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Moscow"], Time.utc(2016, 4, 28, 00, 45))
     now = Time.now.utc
     %w( second minute hour day week month year ).each do |unit|
-      assert_equal((now + 1.send(unit)).class, Time, "Time + 1.#{unit} must be Time")
-      assert_equal((twz + 1.send(unit)).class, ActiveSupport::TimeWithZone, "TimeWithZone + 1.#{unit} must be TimeWithZone")
+      assert_equal((now + 1.public_send(unit)).class, Time, "Time + 1.#{unit} must be Time")
+      assert_equal((twz + 1.public_send(unit)).class, ActiveSupport::TimeWithZone, "TimeWithZone + 1.#{unit} must be TimeWithZone")
     end
   end
 
@@ -583,12 +618,13 @@ class DurationTest < ActiveSupport::TestCase
       ["P1Y1M21D",      1.year + 1.month + 3.week        ],
       ["P1Y1M",         1.year + 1.month                 ],
       ["P1Y1M1D",       1.year + 1.month + 1.day         ],
-      ["-P1Y1D",        -1.year - 1.day                  ],
+      ["P-1Y-1D",       -1.year - 1.day                  ],
       ["P1Y-1DT-1S",    1.year - 1.day - 1.second        ], # Parts with different signs are exists in PostgreSQL interval datatype.
       ["PT1S",          1.second                         ],
       ["PT1.4S",        (1.4).seconds                    ],
       ["P1Y1M1DT1H",    1.year + 1.month + 1.day + 1.hour],
       ["PT0S",          0.minutes                        ],
+      ["PT-0.2S",       (-0.2).seconds                   ],
     ]
     expectations.each do |expected_output, duration|
       assert_equal expected_output, duration.iso8601, expected_output.inspect
@@ -616,7 +652,7 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_iso8601_output_and_reparsing
     patterns = %w[
-      P1Y P0.5Y P0,5Y P1Y1M P1Y0.5M P1Y0,5M P1Y1M1D P1Y1M0.5D P1Y1M0,5D P1Y1M1DT1H P1Y1M1DT0.5H P1Y1M1DT0,5H P1W +P1Y -P1Y
+      P1Y P0.5Y P0,5Y P1Y1M P1Y0.5M P1Y0,5M P1Y1M1D P1Y1M0.5D P1Y1M0,5D P1Y1M1DT1H P1Y1M1DT0.5H P1Y1M1DT0,5H P1W +P1Y -P1Y P-1Y
       P1Y1M1DT1H1M P1Y1M1DT1H0.5M P1Y1M1DT1H0,5M P1Y1M1DT1H1M1S P1Y1M1DT1H1M1.0S P1Y1M1DT1H1M1,0S P-1Y-2M3DT-4H-5M-6S
     ]
     # That could be weird, but if we parse P1Y1M0.5D and output it to ISO 8601, we'll get P1Y1MT12.0H.

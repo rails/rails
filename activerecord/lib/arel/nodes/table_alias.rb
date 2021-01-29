@@ -8,15 +8,19 @@ module Arel # :nodoc: all
       alias :table_alias :name
 
       def [](name)
-        Attribute.new(self, name)
+        relation.is_a?(Table) ? relation[name, self] : Attribute.new(self, name)
       end
 
       def table_name
         relation.respond_to?(:name) ? relation.name : name
       end
 
-      def type_cast_for_database(*args)
-        relation.type_cast_for_database(*args)
+      def type_cast_for_database(attr_name, value)
+        relation.type_cast_for_database(attr_name, value)
+      end
+
+      def type_for_attribute(name)
+        relation.type_for_attribute(name)
       end
 
       def able_to_type_cast?

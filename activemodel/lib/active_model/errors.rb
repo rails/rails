@@ -317,12 +317,10 @@ module ActiveModel
     #   person.errors.to_hash       # => {:name=>["cannot be nil"]}
     #   person.errors.to_hash(true) # => {:name=>["name cannot be nil"]}
     def to_hash(full_messages = false)
-      hash = {}
       message_method = full_messages ? :full_message : :message
-      group_by_attribute.each do |attribute, errors|
-        hash[attribute] = errors.map(&message_method)
+      group_by_attribute.transform_values do |errors|
+        errors.map(&message_method)
       end
-      hash
     end
 
     def to_h
@@ -335,18 +333,29 @@ module ActiveModel
       to_hash.transform_values { |values| values.last }
     end
 
+    # Returns a Hash of attributes with an array of their error messages.
+    #
+    # Updating this hash would still update errors state for backward
+    # compatibility, but this behavior is deprecated.
     def messages
       DeprecationHandlingMessageHash.new(self)
     end
 
+    # Returns a Hash of attributes with an array of their error details.
+    #
+    # Updating this hash would still update errors state for backward
+    # compatibility, but this behavior is deprecated.
     def details
-      hash = {}
-      group_by_attribute.each do |attribute, errors|
-        hash[attribute] = errors.map(&:detail)
+      hash = group_by_attribute.transform_values do |errors|
+        errors.map(&:details)
       end
       DeprecationHandlingDetailsHash.new(hash)
     end
 
+    # Returns a Hash of attributes with an array of their Error objects.
+    #
+    #   person.errors.group_by_attribute
+    #   # => {:name=>[<#ActiveModel::Error>, <#ActiveModel::Error>]}
     def group_by_attribute
       @errors.group_by(&:attribute)
     end
@@ -484,6 +493,16 @@ module ActiveModel
       where(attribute).map(&:full_message).freeze
     end
 
+    # Returns all the error messages for a given attribute in an array.
+    #
+    #   class Person
+    #     validates_presence_of :name, :email
+    #     validates_length_of :name, in: 5..30
+    #   end
+    #
+    #   person = Person.create()
+    #   person.errors.messages_for(:name)
+    #   # => ["is too short (minimum is 5 characters)", "can't be blank"]
     def messages_for(attribute)
       where(attribute).map(&:message)
     end
@@ -492,7 +511,7 @@ module ActiveModel
     #
     #   person.errors.full_message(:name, 'is invalid') # => "Name is invalid"
     def full_message(attribute, message)
-      Error.full_message(attribute, message, @base.class)
+      Error.full_message(attribute, message, @base)
     end
 
     # Translates an error message in its default scope

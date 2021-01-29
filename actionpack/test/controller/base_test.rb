@@ -147,6 +147,10 @@ class ControllerInstanceTests < ActiveSupport::TestCase
   ensure
     ActionDispatch::Response.default_headers = original_default_headers
   end
+
+  def test_inspect
+    assert_match(/\A#<EmptyController:0x[0-9a-f]+>\z/, @empty.inspect)
+  end
 end
 
 class PerformActionTest < ActionController::TestCase
@@ -166,6 +170,16 @@ class PerformActionTest < ActionController::TestCase
       get :non_existent
     end
     assert_equal "The action 'non_existent' could not be found for EmptyController", exception.message
+  end
+
+  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+    def test_exceptions_have_suggestions_for_fix
+      use_controller SimpleController
+      exception = assert_raise AbstractController::ActionNotFound do
+        get :non_existent
+      end
+      assert_match "Did you mean?", exception.message
+    end
   end
 
   def test_action_missing_should_work
@@ -212,7 +226,7 @@ class UrlOptionsTest < ActionController::TestCase
       get :from_view, params: { route: "from_view_url" }
 
       assert_equal "http://www.override.com/from_view", @response.body
-      assert_equal "http://www.override.com/from_view", @controller.send(:from_view_url)
+      assert_equal "http://www.override.com/from_view", @controller.from_view_url
       assert_equal "http://www.override.com/default_url_options/index", @controller.url_for(controller: "default_url_options")
     end
   end
@@ -249,7 +263,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
       get :from_view, params: { route: "from_view_url" }
 
       assert_equal "http://www.override.com/from_view?locale=en", @response.body
-      assert_equal "http://www.override.com/from_view?locale=en", @controller.send(:from_view_url)
+      assert_equal "http://www.override.com/from_view?locale=en", @controller.from_view_url
       assert_equal "http://www.override.com/default_url_options/new?locale=en", @controller.url_for(controller: "default_url_options")
     end
   end
@@ -269,16 +283,16 @@ class DefaultUrlOptionsTest < ActionController::TestCase
       get :from_view, params: { route: "description_path(1)" }
 
       assert_equal "/en/descriptions/1", @response.body
-      assert_equal "/en/descriptions", @controller.send(:descriptions_path)
-      assert_equal "/pl/descriptions", @controller.send(:descriptions_path, "pl")
-      assert_equal "/pl/descriptions", @controller.send(:descriptions_path, locale: "pl")
-      assert_equal "/pl/descriptions.xml", @controller.send(:descriptions_path, "pl", "xml")
-      assert_equal "/en/descriptions.xml", @controller.send(:descriptions_path, format: "xml")
-      assert_equal "/en/descriptions/1", @controller.send(:description_path, 1)
-      assert_equal "/pl/descriptions/1", @controller.send(:description_path, "pl", 1)
-      assert_equal "/pl/descriptions/1", @controller.send(:description_path, 1, locale: "pl")
-      assert_equal "/pl/descriptions/1.xml", @controller.send(:description_path, "pl", 1, "xml")
-      assert_equal "/en/descriptions/1.xml", @controller.send(:description_path, 1, format: "xml")
+      assert_equal "/en/descriptions", @controller.descriptions_path
+      assert_equal "/pl/descriptions", @controller.descriptions_path("pl")
+      assert_equal "/pl/descriptions", @controller.descriptions_path(locale: "pl")
+      assert_equal "/pl/descriptions.xml", @controller.descriptions_path("pl", "xml")
+      assert_equal "/en/descriptions.xml", @controller.descriptions_path(format: "xml")
+      assert_equal "/en/descriptions/1", @controller.description_path(1)
+      assert_equal "/pl/descriptions/1", @controller.description_path("pl", 1)
+      assert_equal "/pl/descriptions/1", @controller.description_path(1, locale: "pl")
+      assert_equal "/pl/descriptions/1.xml", @controller.description_path("pl", 1, "xml")
+      assert_equal "/en/descriptions/1.xml", @controller.description_path(1, format: "xml")
     end
   end
 end
@@ -317,7 +331,7 @@ class EmptyUrlOptionsTest < ActionController::TestCase
         resources :things
       end
 
-      assert_equal "/things", @controller.send(:things_path)
+      assert_equal "/things", @controller.things_path
     end
   end
 end

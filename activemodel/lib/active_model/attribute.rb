@@ -5,16 +5,16 @@ require "active_support/core_ext/object/duplicable"
 module ActiveModel
   class Attribute # :nodoc:
     class << self
-      def from_database(name, value, type)
-        FromDatabase.new(name, value, type)
+      def from_database(name, value_before_type_cast, type, value = nil)
+        FromDatabase.new(name, value_before_type_cast, type, nil, value)
       end
 
-      def from_user(name, value, type, original_attribute = nil)
-        FromUser.new(name, value, type, original_attribute)
+      def from_user(name, value_before_type_cast, type, original_attribute = nil)
+        FromUser.new(name, value_before_type_cast, type, original_attribute)
       end
 
-      def with_cast_value(name, value, type)
-        WithCastValue.new(name, value, type)
+      def with_cast_value(name, value_before_type_cast, type)
+        WithCastValue.new(name, value_before_type_cast, type)
       end
 
       def null(name)
@@ -30,11 +30,12 @@ module ActiveModel
 
     # This method should not be called directly.
     # Use #from_database or #from_user
-    def initialize(name, value_before_type_cast, type, original_attribute = nil)
+    def initialize(name, value_before_type_cast, type, original_attribute = nil, value = nil)
       @name = name
       @value_before_type_cast = value_before_type_cast
       @type = type
       @original_attribute = original_attribute
+      @value = value unless value.nil?
     end
 
     def value
@@ -132,14 +133,13 @@ module ActiveModel
       coder["value"] = value if defined?(@value)
     end
 
-    protected
-      def original_value_for_database
-        if assigned?
-          original_attribute.original_value_for_database
-        else
-          _original_value_for_database
-        end
+    def original_value_for_database
+      if assigned?
+        original_attribute.original_value_for_database
+      else
+        _original_value_for_database
       end
+    end
 
     private
       attr_reader :original_attribute
@@ -164,9 +164,10 @@ module ActiveModel
           type.deserialize(value)
         end
 
-        def _original_value_for_database
-          value_before_type_cast
-        end
+        private
+          def _original_value_for_database
+            value_before_type_cast
+          end
       end
 
       class FromUser < Attribute # :nodoc:

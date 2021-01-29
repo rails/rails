@@ -64,7 +64,7 @@ module ActiveSupport
       self
     end
 
-    def initialize(constructor = {})
+    def initialize(constructor = nil)
       if constructor.respond_to?(:to_hash)
         super()
         update(constructor)
@@ -72,6 +72,8 @@ module ActiveSupport
         hash = constructor.is_a?(Hash) ? constructor : constructor.to_hash
         self.default = hash.default if hash.default
         self.default_proc = hash.default_proc if hash.default_proc
+      elsif constructor.nil?
+        super()
       else
         super(constructor)
       end
@@ -125,7 +127,7 @@ module ActiveSupport
     #   hash_2['key'] = 12
     #   hash_1.update(hash_2) { |key, old, new| old + new } # => {"key"=>22}
     def update(*other_hashes, &block)
-      if other_hashes.one?
+      if other_hashes.size == 1
         update_with_single_argument(other_hashes.first, block)
       else
         other_hashes.each do |other_hash|
@@ -363,8 +365,14 @@ module ActiveSupport
     end
 
     private
-      def convert_key(key)
-        key.kind_of?(Symbol) ? key.to_s : key
+      if Symbol.method_defined?(:name)
+        def convert_key(key)
+          key.kind_of?(Symbol) ? key.name : key
+        end
+      else
+        def convert_key(key)
+          key.kind_of?(Symbol) ? key.to_s : key
+        end
       end
 
       def convert_value(value, conversion: nil)

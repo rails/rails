@@ -112,12 +112,12 @@ module ActiveRecord
             case association.macro
             when :belongs_to
               # Do not replace association name with association foreign key if they are named the same
-              fk_name = (association.options[:foreign_key] || "#{association.name}_id").to_s
+              fk_name = association.join_foreign_key
 
               if association.name.to_s != fk_name && value = @row.delete(association.name.to_s)
-                if association.polymorphic? && value.sub!(/\s*\(([^\)]*)\)\s*$/, "")
+                if association.polymorphic? && value.sub!(/\s*\(([^)]*)\)\s*$/, "")
                   # support polymorphic belongs_to as "label (Type)"
-                  @row[association.foreign_type] = $1
+                  @row[association.join_foreign_type] = $1
                 end
 
                 fk_type = reflection_class.type_for_attribute(fk_name).type

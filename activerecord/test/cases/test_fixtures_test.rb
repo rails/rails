@@ -22,6 +22,44 @@ class TestFixturesTest < ActiveRecord::TestCase
   end
 
   unless in_memory_db?
+    def test_doesnt_rely_on_active_support_test_case_specific_methods_with_legacy_connection_handling
+      old_value = ActiveRecord::Base.legacy_connection_handling
+      ActiveRecord::Base.legacy_connection_handling = true
+
+      tmp_dir = Dir.mktmpdir
+      File.write(File.join(tmp_dir, "zines.yml"), <<~YML)
+      going_out:
+        title: Hello
+      YML
+
+      klass = Class.new(Minitest::Test) do
+        include ActiveRecord::TestFixtures
+
+        self.fixture_path = tmp_dir
+        self.use_transactional_tests = true
+
+        fixtures :all
+
+        def test_run_successfully
+          assert_equal("Hello", Zine.first.title)
+          assert_equal("Hello", zines(:going_out).title)
+        end
+      end
+
+      old_handler = ActiveRecord::Base.connection_handler
+      ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+      ActiveRecord::Base.connection_handlers = {}
+      ActiveRecord::Base.establish_connection(:arunit)
+
+      test_result = klass.new("test_run_successfully").run
+      assert_predicate(test_result, :passed?)
+    ensure
+      clean_up_legacy_connection_handlers
+      ActiveRecord::Base.connection_handler = old_handler
+      FileUtils.rm_r(tmp_dir)
+      ActiveRecord::Base.legacy_connection_handling = old_value
+    end
+
     def test_doesnt_rely_on_active_support_test_case_specific_methods
       tmp_dir = Dir.mktmpdir
       File.write(File.join(tmp_dir, "zines.yml"), <<~YML)
@@ -37,23 +75,21 @@ class TestFixturesTest < ActiveRecord::TestCase
 
         fixtures :all
 
-        def test_run_successfuly
+        def test_run_successfully
           assert_equal("Hello", Zine.first.title)
           assert_equal("Hello", zines(:going_out).title)
         end
       end
 
-      old_handlers = ActiveRecord::Base.connection_handlers
       old_handler = ActiveRecord::Base.connection_handler
       ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-      ActiveRecord::Base.connection_handlers = {}
       ActiveRecord::Base.establish_connection(:arunit)
 
-      test_result = klass.new("test_run_successfuly").run
+      test_result = klass.new("test_run_successfully").run
       assert_predicate(test_result, :passed?)
     ensure
       ActiveRecord::Base.connection_handler = old_handler
-      ActiveRecord::Base.connection_handlers = old_handlers
+      clean_up_connection_handler
       FileUtils.rm_r(tmp_dir)
     end
   end

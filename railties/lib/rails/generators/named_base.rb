@@ -22,7 +22,7 @@ module Rails
       no_tasks do
         def template(source, *args, &block)
           inside_template do
-            super
+            Rails::Generators.add_generated_file(super)
           end
         end
 

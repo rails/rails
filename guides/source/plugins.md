@@ -34,7 +34,6 @@ different Rails applications using RubyGems and Bundler if desired.
 
 ### Generate a gemified plugin.
 
-
 Rails ships with a `rails plugin new` command which creates a
 skeleton for developing any kind of Rails extension with the ability
 to run integration tests using a dummy Rails application. Create your
@@ -54,11 +53,11 @@ Testing Your Newly Generated Plugin
 -----------------------------------
 
 You can navigate to the directory that contains the plugin, run the `bundle install` command
- and run the one generated test using the `bin/test` command.
+and run the one generated test using the `bin/test` command.
 
 You should see:
 
-```bash
+```
   1 runs, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
@@ -85,7 +84,7 @@ end
 
 Run `bin/test` to run the test. This test should fail because we haven't implemented the `to_squawk` method:
 
-```bash
+```
 E
 
 Error:
@@ -131,15 +130,14 @@ end
 
 To test that your method does what it says it does, run the unit tests with `bin/test` from your plugin directory.
 
-```bash
+```
   2 runs, 2 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-To see this in action, change to the `test/dummy` directory, fire up a console, and start squawking:
+To see this in action, change to the `test/dummy` directory, start `bin/rails console`, and commence squawking:
 
-```bash
-$ bin/rails console
->> "Hello World".to_squawk
+```irb
+irb> "Hello World".to_squawk
 => "squawk! Hello World"
 ```
 
@@ -262,7 +260,9 @@ like yaffles.
 class Hickwall < ApplicationRecord
   acts_as_yaffle
 end
+```
 
+```ruby
 # test/dummy/app/models/wickwall.rb
 
 class Wickwall < ApplicationRecord
@@ -285,7 +285,9 @@ module Yaffle
     end
   end
 end
+```
 
+```ruby
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base
@@ -341,7 +343,9 @@ module Yaffle
     end
   end
 end
+```
 
+```ruby
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base
@@ -353,7 +357,7 @@ end
 
 When you run `bin/test`, you should see the tests all pass:
 
-```bash
+```
   4 runs, 4 assertions, 0 failures, 0 errors, 0 skips
 ```
 
@@ -391,7 +395,7 @@ class ActsAsYaffleTest < ActiveSupport::TestCase
 end
 ```
 
-Run the test to make sure the last two tests fail with an error that contains "NoMethodError: undefined method `squawk'",
+Run the test to make sure the last two tests fail with an error that contains "NoMethodError: undefined method \`squawk'",
 then update `acts_as_yaffle.rb` to look like this:
 
 ```ruby
@@ -414,7 +418,9 @@ module Yaffle
     end
   end
 end
+```
 
+```ruby
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base
@@ -458,16 +464,16 @@ When the gem is ready to be shared as a formal release, it can be published to [
 
 Alternatively, you can benefit from Bundler's Rake tasks. You can see a full list with the following:
 
-```
-bundle exec rake -T
+```bash
+$ bundle exec rake -T
 
-bundle exec rake build
+$ bundle exec rake build
 # Build yaffle-0.1.0.gem into the pkg directory
 
-bundle exec rake install
+$ bundle exec rake install
 # Build and install yaffle-0.1.0.gem into system gems
 
-bundle exec rake release
+$ bundle exec rake release
 # Create tag v0.1.0 and build and push yaffle-0.1.0.gem to Rubygems
 ```
 

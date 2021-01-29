@@ -11,10 +11,12 @@ module ActiveRecord #:nodoc:
     end
 
     def serializable_hash(options = nil)
-      options = options ? options.dup : {}
+      if self.class._has_attribute?(self.class.inheritance_column)
+        options = options ? options.dup : {}
 
-      options[:except] = Array(options[:except]).map(&:to_s)
-      options[:except] |= Array(self.class.inheritance_column)
+        options[:except] = Array(options[:except]).map(&:to_s)
+        options[:except] |= Array(self.class.inheritance_column)
+      end
 
       super(options)
     end

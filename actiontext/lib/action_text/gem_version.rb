@@ -8,7 +8,7 @@ module ActionText
 
   module VERSION
     MAJOR = 6
-    MINOR = 1
+    MINOR = 2
     TINY  = 0
     PRE   = "alpha"
 

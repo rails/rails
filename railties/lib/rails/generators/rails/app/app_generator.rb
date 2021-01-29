@@ -66,6 +66,10 @@ module Rails
       template "gitignore", ".gitignore"
     end
 
+    def gitattributes
+      template "gitattributes", ".gitattributes"
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run "git init", capture: options[:quiet], abort_on_failure: false
@@ -90,14 +94,23 @@ module Rails
         "#{shebang}\n" + content
       end
       chmod "bin", 0755 & ~File.umask, verbose: false
+
+      remove_file "bin/spring" unless spring_install?
+      remove_file "bin/yarn" if options[:skip_javascript]
     end
 
     def bin_when_updating
       bin
+    end
 
-      if options[:skip_javascript]
-        remove_file "bin/yarn"
+    def yarn_when_updating
+      return if File.exist?("bin/yarn")
+
+      template "bin/yarn" do |content|
+        "#{shebang}\n" + content
       end
+
+      chmod "bin", 0755 & ~File.umask, verbose: false
     end
 
     def config
@@ -119,17 +132,20 @@ module Rails
     end
 
     def config_when_updating
-      cookie_serializer_config_exist = File.exist?("config/initializers/cookies_serializer.rb")
-      action_cable_config_exist      = File.exist?("config/cable.yml")
-      active_storage_config_exist    = File.exist?("config/storage.yml")
-      rack_cors_config_exist         = File.exist?("config/initializers/cors.rb")
-      assets_config_exist            = File.exist?("config/initializers/assets.rb")
-      csp_config_exist               = File.exist?("config/initializers/content_security_policy.rb")
-      feature_policy_config_exist    = File.exist?("config/initializers/feature_policy.rb")
+      cookie_serializer_config_exist  = File.exist?("config/initializers/cookies_serializer.rb")
+      action_cable_config_exist       = File.exist?("config/cable.yml")
+      active_storage_config_exist     = File.exist?("config/storage.yml")
+      rack_cors_config_exist          = File.exist?("config/initializers/cors.rb")
+      assets_config_exist             = File.exist?("config/initializers/assets.rb")
+      asset_manifest_exist            = File.exist?("app/assets/config/manifest.js")
+      asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
+      csp_config_exist                = File.exist?("config/initializers/content_security_policy.rb")
+      permissions_policy_config_exist = File.exist?("config/initializers/permissions_policy.rb")
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
       config
+      configru
 
       unless cookie_serializer_config_exist
         gsub_file "config/initializers/cookies_serializer.rb", /json(?!,)/, "marshal"
@@ -147,6 +163,14 @@ module Rails
         remove_file "config/initializers/assets.rb"
       end
 
+      if options[:skip_sprockets] && !asset_manifest_exist
+        remove_file "app/assets/config/manifest.js"
+      end
+
+      if options[:skip_sprockets] && !asset_app_stylesheet_exist
+        remove_file "app/assets/stylesheets/application.css"
+      end
+
       unless rack_cors_config_exist
         remove_file "config/initializers/cors.rb"
       end
@@ -160,8 +184,8 @@ module Rails
           remove_file "config/initializers/content_security_policy.rb"
         end
 
-        unless feature_policy_config_exist
-          remove_file "config/initializers/feature_policy.rb"
+        unless permissions_policy_config_exist
+          remove_file "config/initializers/permissions_policy.rb"
         end
       end
     end
@@ -262,6 +286,9 @@ module Rails
       class_option :api, type: :boolean,
                          desc: "Preconfigure smaller stack for API only apps"
 
+      class_option :minimal, type: :boolean,
+                             desc: "Preconfigure a minimal rails app"
+
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
                                  desc: "Don't run bundle install"
 
@@ -284,6 +311,29 @@ module Rails
           self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze
         end
 
+        if options[:minimal]
+          self.options = options.merge(
+            skip_action_cable: true,
+            skip_action_mailer: true,
+            skip_action_mailbox: true,
+            skip_action_text: true,
+            skip_active_job: true,
+            skip_active_storage: true,
+            skip_bootsnap: true,
+            skip_dev_gems: true,
+            skip_javascript: true,
+            skip_jbuilder: true,
+            skip_spring: true,
+            skip_system_test: true,
+            skip_webpack_install: true,
+            skip_turbolinks: true).tap do |option|
+              if option[:webpack]
+                option[:skip_webpack_install] = false
+                option[:skip_javascript] = false
+              end
+            end.freeze
+        end
+
         @after_bundle_callbacks = []
       end
 
@@ -295,8 +345,13 @@ module Rails
         build(:rakefile)
         build(:ruby_version)
         build(:configru)
-        build(:gitignore)   unless options[:skip_git]
-        build(:gemfile)     unless options[:skip_gemfile]
+
+        unless options[:skip_git]
+          build(:gitignore)
+          build(:gitattributes)
+        end
+
+        build(:gemfile) unless options[:skip_gemfile]
         build(:version_control)
         build(:package_json) unless options[:skip_javascript]
       end
@@ -313,6 +368,11 @@ module Rails
         build(:bin_when_updating)
       end
       remove_task :update_bin_files
+
+      def update_bin_yarn
+        build(:yarn_when_updating)
+      end
+      remove_task :update_bin_yarn
 
       def update_active_storage
         unless skip_active_storage?
@@ -426,20 +486,35 @@ module Rails
       end
 
       def delete_js_folder_skipping_javascript
-        if options[:skip_javascript]
+        if options[:skip_javascript] && !options[:minimal]
           remove_dir "app/javascript"
+        end
+      end
+
+      def delete_js_packs_when_minimal_skipping_webpack
+        if options[:minimal] && options[:skip_webpack_install]
+          remove_dir "app/javascript/packs"
+          keep_file  "app/javascript"
         end
       end
 
       def delete_assets_initializer_skipping_sprockets
         if options[:skip_sprockets]
           remove_file "config/initializers/assets.rb"
+          remove_file "app/assets/config/manifest.js"
+          remove_file "app/assets/stylesheets/application.css"
         end
       end
 
       def delete_application_record_skipping_active_record
         if options[:skip_active_record]
           remove_file "app/models/application_record.rb"
+        end
+      end
+
+      def delete_active_job_folder_if_skipping_active_job
+        if options[:skip_active_job]
+          remove_dir "app/jobs"
         end
       end
 
@@ -464,7 +539,7 @@ module Rails
         if options[:api]
           remove_file "config/initializers/cookies_serializer.rb"
           remove_file "config/initializers/content_security_policy.rb"
-          remove_file "config/initializers/feature_policy.rb"
+          remove_file "config/initializers/permissions_policy.rb"
         end
       end
 
@@ -476,12 +551,8 @@ module Rails
 
       def delete_new_framework_defaults
         unless options[:update]
-          remove_file "config/initializers/new_framework_defaults_6_1.rb"
+          remove_file "config/initializers/new_framework_defaults_6_2.rb"
         end
-      end
-
-      def delete_bin_yarn
-        remove_file "bin/yarn" if options[:skip_javascript]
       end
 
       def finish_template
@@ -489,7 +560,7 @@ module Rails
       end
 
       public_task :apply_rails_template, :run_bundle
-      public_task :generate_bundler_binstub, :generate_spring_binstubs
+      public_task :generate_bundler_binstub
       public_task :run_webpack
 
       def run_after_bundle_callbacks
@@ -543,7 +614,13 @@ module Rails
       end
 
       def self.default_rc_file
-        File.expand_path("~/.railsrc")
+        xdg_config_home = ENV["XDG_CONFIG_HOME"].presence || "~/.config"
+        xdg_railsrc = File.expand_path("rails/railsrc", xdg_config_home)
+        if File.exist?(xdg_railsrc)
+          xdg_railsrc
+        else
+          File.expand_path("~/.railsrc")
+        end
       end
 
       private

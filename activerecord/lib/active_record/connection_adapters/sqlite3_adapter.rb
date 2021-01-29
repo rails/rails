@@ -26,7 +26,7 @@ module ActiveRecord
       # Allow database path relative to Rails.root, but only if the database
       # path is not the special path that tells sqlite to build a database only
       # in memory.
-      if ":memory:" != config[:database] && !config[:database].to_s.starts_with?("file:")
+      if ":memory:" != config[:database] && !config[:database].to_s.start_with?("file:")
         config[:database] = File.expand_path(config[:database], Rails.root) if defined?(Rails.root)
         dirname = File.dirname(config[:database])
         Dir.mkdir(dirname) unless File.directory?(dirname)
@@ -76,16 +76,6 @@ module ActiveRecord
         json:         { name: "json" },
       }
 
-      def self.represent_boolean_as_integer=(value) # :nodoc:
-        if value == false
-          raise "`.represent_boolean_as_integer=` is now always true, so make sure your application can work with it and remove this settings."
-        end
-
-        ActiveSupport::Deprecation.warn(
-          "`.represent_boolean_as_integer=` is now always true, so setting this is deprecated and will be removed in Rails 6.1."
-        )
-      end
-
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private
           def dealloc(stmt)
@@ -133,6 +123,10 @@ module ActiveRecord
       end
 
       def supports_foreign_keys?
+        true
+      end
+
+      def supports_check_constraints?
         true
       end
 
@@ -219,8 +213,8 @@ module ActiveRecord
         pks.sort_by { |f| f["pk"] }.map { |f| f["name"] }
       end
 
-      def remove_index(table_name, column_name, options = {}) # :nodoc:
-        return if options[:if_exists] && !index_exists?(table_name, column_name, options)
+      def remove_index(table_name, column_name = nil, **options) # :nodoc:
+        return if options[:if_exists] && !index_exists?(table_name, column_name, **options)
 
         index_name = index_name_for_remove(table_name, column_name, options)
 
@@ -274,16 +268,11 @@ module ActiveRecord
         end
       end
 
-      def change_column(table_name, column_name, type, options = {}) #:nodoc:
+      def change_column(table_name, column_name, type, **options) #:nodoc:
         alter_table(table_name) do |definition|
           definition[column_name].instance_eval do
-            self.type    = type
-            self.limit   = options[:limit] if options.include?(:limit)
-            self.default = options[:default] if options.include?(:default)
-            self.null    = options[:null] if options.include?(:null)
-            self.precision = options[:precision] if options.include?(:precision)
-            self.scale = options[:scale] if options.include?(:scale)
-            self.collation = options[:collation] if options.include?(:collation)
+            self.type = type
+            self.options.merge!(options)
           end
         end
       end
@@ -366,7 +355,12 @@ module ActiveRecord
             options[:null] == false && options[:default].nil?
         end
 
-        def alter_table(table_name, foreign_keys = foreign_keys(table_name), **options)
+        def alter_table(
+          table_name,
+          foreign_keys = foreign_keys(table_name),
+          check_constraints = check_constraints(table_name),
+          **options
+        )
           altered_table_name = "a#{table_name}"
 
           caller = lambda do |definition|
@@ -377,6 +371,10 @@ module ActiveRecord
               end
               to_table = strip_table_name_prefix_and_suffix(fk.to_table)
               definition.foreign_key(to_table, **fk.options)
+            end
+
+            check_constraints.each do |chk|
+              definition.check_constraint(chk.expression, **chk.options)
             end
 
             yield definition if block_given?
@@ -445,10 +443,10 @@ module ActiveRecord
 
             unless columns.empty?
               # index name can't be the same
-              opts = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
-              opts[:unique] = true if index.unique
-              opts[:where] = index.where if index.where
-              add_index(to, columns, opts)
+              options = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
+              options[:unique] = true if index.unique
+              options[:where] = index.where if index.where
+              add_index(to, columns, **options)
             end
           end
         end
@@ -467,23 +465,24 @@ module ActiveRecord
         end
 
         def translate_exception(exception, message:, sql:, binds:)
-          case exception.message
           # SQLite 3.8.2 returns a newly formatted error message:
           #   UNIQUE constraint failed: *table_name*.*column_name*
           # Older versions of SQLite return:
           #   column *column_name* is not unique
-          when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
+          if exception.message.match?(/(column(s)? .* (is|are) not unique|UNIQUE constraint failed: .*)/i)
             RecordNotUnique.new(message, sql: sql, binds: binds)
-          when /.* may not be NULL/, /NOT NULL constraint failed: .*/
+          elsif exception.message.match?(/(.* may not be NULL|NOT NULL constraint failed: .*)/i)
             NotNullViolation.new(message, sql: sql, binds: binds)
-          when /FOREIGN KEY constraint failed/i
+          elsif exception.message.match?(/FOREIGN KEY constraint failed/i)
             InvalidForeignKey.new(message, sql: sql, binds: binds)
+          elsif exception.message.match?(/called on a closed database/i)
+            ConnectionNotEstablished.new(exception)
           else
             super
           end
         end
 
-        COLLATE_REGEX = /.*\"(\w+)\".*collate\s+\"(\w+)\".*/i.freeze
+        COLLATE_REGEX = /.*"(\w+)".*collate\s+"(\w+)".*/i.freeze
 
         def table_structure_with_collation(table_name, basic_structure)
           collation_hash = {}
@@ -497,12 +496,12 @@ module ActiveRecord
           # Result will have following sample string
           # CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
           #                       "password_digest" varchar COLLATE "NOCASE");
-          result = exec_query(sql, "SCHEMA").first
+          result = query_value(sql, "SCHEMA")
 
           if result
             # Splitting with left parentheses and discarding the first part will return all
             # columns separated with comma(,).
-            columns_string = result["sql"].split("(", 2).last
+            columns_string = result.split("(", 2).last
 
             columns_string.split(",").each do |column_string|
               # This regex will match the column name and collation type and will save
@@ -510,7 +509,7 @@ module ActiveRecord
               collation_hash[$1] = $2 if COLLATE_REGEX =~ column_string
             end
 
-            basic_structure.map! do |column|
+            basic_structure.map do |column|
               column_name = column["name"]
 
               if collation_hash.has_key? column_name

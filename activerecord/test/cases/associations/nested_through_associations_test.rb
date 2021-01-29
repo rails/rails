@@ -378,7 +378,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     prev_default_scope = Club.default_scopes
 
     [:includes, :preload, :joins, :eager_load].each do |q|
-      Club.default_scopes = [proc { Club.send(q, :category) }]
+      Club.default_scopes = [ActiveRecord::Scoping::DefaultScope.new(proc { Club.public_send(q, :category) })]
       assert_equal categories(:general), members(:groucho).reload.club_category
     end
   ensure
@@ -517,7 +517,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   def test_nested_has_many_through_with_conditions_on_through_associations_preload
     assert_empty Author.where("tags.id" => 100).joins(:misc_post_first_blue_tags)
 
-    author = assert_queries(3) { Author.includes(:misc_post_first_blue_tags).third }
+    author = assert_queries(2) { Author.includes(:misc_post_first_blue_tags).third }
     blue = tags(:blue)
 
     assert_no_queries do
@@ -538,7 +538,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_nested_has_many_through_with_conditions_on_source_associations_preload
-    author = assert_queries(4) { Author.includes(:misc_post_first_blue_tags_2).third }
+    author = assert_queries(2) { Author.includes(:misc_post_first_blue_tags_2).third }
     blue = tags(:blue)
 
     assert_no_queries do

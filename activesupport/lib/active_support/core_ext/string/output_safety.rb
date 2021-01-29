@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "erb"
-require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/module/redefine_method"
 require "active_support/multibyte/unicode"
 
@@ -85,7 +84,7 @@ class ERB
     # use inside HTML attributes.
     #
     # If your JSON is being used downstream for insertion into the DOM, be aware of
-    # whether or not it is being inserted via +html()+. Most jQuery plugins do this.
+    # whether or not it is being inserted via <tt>html()</tt>. Most jQuery plugins do this.
     # If that is the case, be sure to +html_escape+ or +sanitize+ any user-generated
     # content returned by your JSON.
     #
@@ -135,7 +134,7 @@ module ActiveSupport #:nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
       capitalize chomp chop delete delete_prefix delete_suffix
-      downcase lstrip next reverse rstrip slice squeeze strip
+      downcase lstrip next reverse rstrip scrub slice squeeze strip
       succ swapcase tr tr_s unicode_normalize upcase
     )
 
@@ -153,12 +152,12 @@ module ActiveSupport #:nodoc:
 
     def [](*args)
       if html_safe?
-        new_safe_buffer = super
+        new_string = super
 
-        if new_safe_buffer
-          new_safe_buffer.instance_variable_set :@html_safe, true
-        end
+        return unless new_string
 
+        new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
+        new_safe_buffer.instance_variable_set :@html_safe, true
         new_safe_buffer
       else
         to_str[*args]
@@ -214,7 +213,8 @@ module ActiveSupport #:nodoc:
     end
 
     def *(*)
-      new_safe_buffer = super
+      new_string = super
+      new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
       new_safe_buffer.instance_variable_set(:@html_safe, @html_safe)
       new_safe_buffer
     end
@@ -262,32 +262,30 @@ module ActiveSupport #:nodoc:
     end
 
     UNSAFE_STRING_METHODS_WITH_BACKREF.each do |unsafe_method|
-      if unsafe_method.respond_to?(unsafe_method)
-        class_eval <<-EOT, __FILE__, __LINE__ + 1
-          def #{unsafe_method}(*args, &block)             # def gsub(*args, &block)
-            if block                                      #   if block
-              to_str.#{unsafe_method}(*args) { |*params|  #     to_str.gsub(*args) { |*params|
-                set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
-                block.call(*params)                       #       block.call(*params)
-              }                                           #     }
-            else                                          #   else
-              to_str.#{unsafe_method}(*args)              #     to_str.gsub(*args)
-            end                                           #   end
-          end                                             # end
+      class_eval <<-EOT, __FILE__, __LINE__ + 1
+        def #{unsafe_method}(*args, &block)             # def gsub(*args, &block)
+          if block                                      #   if block
+            to_str.#{unsafe_method}(*args) { |*params|  #     to_str.gsub(*args) { |*params|
+              set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
+              block.call(*params)                       #       block.call(*params)
+            }                                           #     }
+          else                                          #   else
+            to_str.#{unsafe_method}(*args)              #     to_str.gsub(*args)
+          end                                           #   end
+        end                                             # end
 
-          def #{unsafe_method}!(*args, &block)            # def gsub!(*args, &block)
-            @html_safe = false                            #   @html_safe = false
-            if block                                      #   if block
-              super(*args) { |*params|                    #     super(*args) { |*params|
-                set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
-                block.call(*params)                       #       block.call(*params)
-              }                                           #     }
-            else                                          #   else
-              super                                       #     super
-            end                                           #   end
-          end                                             # end
-        EOT
-      end
+        def #{unsafe_method}!(*args, &block)            # def gsub!(*args, &block)
+          @html_safe = false                            #   @html_safe = false
+          if block                                      #   if block
+            super(*args) { |*params|                    #     super(*args) { |*params|
+              set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
+              block.call(*params)                       #       block.call(*params)
+            }                                           #     }
+          else                                          #   else
+            super                                       #     super
+          end                                           #   end
+        end                                             # end
+      EOT
     end
 
     private

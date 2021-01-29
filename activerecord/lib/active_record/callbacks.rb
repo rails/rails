@@ -301,8 +301,128 @@ module ActiveRecord
       :before_destroy, :around_destroy, :after_destroy, :after_commit, :after_rollback
     ]
 
-    module ClassMethods # :nodoc:
+    module ClassMethods
       include ActiveModel::Callbacks
+
+      ##
+      # :method: after_initialize
+      #
+      # :call-seq: after_initialize(*args, &block)
+      #
+      # Registers a callback to be called after a record is instantiated. See
+      # ActiveRecord::Callbacks for more information.
+
+      ##
+      # :method: after_find
+      #
+      # :call-seq: after_find(*args, &block)
+      #
+      # Registers a callback to be called after a record is instantiated
+      # via a finder. See ActiveRecord::Callbacks for more information.
+
+      ##
+      # :method: after_touch
+      #
+      # :call-seq: after_touch(*args, &block)
+      #
+      # Registers a callback to be called after a record is touched. See
+      # ActiveRecord::Callbacks for more information.
+
+      ##
+      # :method: before_save
+      #
+      # :call-seq: before_save(*args, &block)
+      #
+      # Registers a callback to be called before a record is saved. See
+      # ActiveRecord::Callbacks for more information.
+
+      ##
+      # :method: around_save
+      #
+      # :call-seq: around_save(*args, &block)
+      #
+      # Registers a callback to be called around the save of a record. See
+      # ActiveRecord::Callbacks for more information.
+
+      ##
+      # :method: after_save
+      #
+      # :call-seq: after_save(*args, &block)
+      #
+      # Registers a callback to be called after a record is saved. See
+      # ActiveRecord::Callbacks for more information.
+
+      ##
+      # :method: before_create
+      #
+      # :call-seq: before_create(*args, &block)
+      #
+      # Registers a callback to be called before a record is created. See
+      # ActiveRecord::Callbacks for more information.
+
+      ##
+      # :method: around_create
+      #
+      # :call-seq: around_create(*args, &block)
+      #
+      # Registers a callback to be called around the creation of a record. See
+      # ActiveRecord::Callbacks for more information.
+
+      ##
+      # :method: after_create
+      #
+      # :call-seq: after_create(*args, &block)
+      #
+      # Registers a callback to be called after a record is created. See
+      # ActiveRecord::Callbacks for more information.
+
+      ##
+      # :method: before_update
+      #
+      # :call-seq: before_update(*args, &block)
+      #
+      # Registers a callback to be called before a record is updated. See
+      # ActiveRecord::Callbacks for more information.
+
+      ##
+      # :method: around_update
+      #
+      # :call-seq: around_update(*args, &block)
+      #
+      # Registers a callback to be called around the update of a record. See
+      # ActiveRecord::Callbacks for more information.
+
+      ##
+      # :method: after_update
+      #
+      # :call-seq: after_update(*args, &block)
+      #
+      # Registers a callback to be called after a record is updated. See
+      # ActiveRecord::Callbacks for more information.
+
+      ##
+      # :method: before_destroy
+      #
+      # :call-seq: before_destroy(*args, &block)
+      #
+      # Registers a callback to be called before a record is destroyed. See
+      # ActiveRecord::Callbacks for more information.
+
+      ##
+      # :method: around_destroy
+      #
+      # :call-seq: around_destroy(*args, &block)
+      #
+      # Registers a callback to be called around the destruction of a record.
+      # See ActiveRecord::Callbacks for more information.
+
+      ##
+      # :method: after_destroy
+      #
+      # :call-seq: after_destroy(*args, &block)
+      #
+      # Registers a callback to be called after a record is destroyed. See
+      # ActiveRecord::Callbacks for more information.
     end
 
     included do

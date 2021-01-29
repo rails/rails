@@ -141,19 +141,7 @@ module ActiveRecord
           (unexpected ||= []) << arg
         end
 
-        return unless unexpected
-
-        if allow_unsafe_raw_sql == :deprecated
-          ActiveSupport::Deprecation.warn(
-            "Dangerous query method (method whose arguments are used as raw " \
-            "SQL) called with non-attribute argument(s): " \
-            "#{unexpected.map(&:inspect).join(", ")}. Non-attribute " \
-            "arguments will be disallowed in Rails 6.1. This method should " \
-            "not be called with user-provided values, such as request " \
-            "parameters or model attributes. Known-safe values can be passed " \
-            "by wrapping them in Arel.sql()."
-          )
-        else
+        if unexpected
           raise(ActiveRecord::UnknownAttributeReference,
             "Query method called with non-attribute argument(s): " +
             unexpected.map(&:inspect).join(", ")
@@ -193,13 +181,14 @@ module ActiveRecord
 
         def quote_bound_value(value, c = connection)
           if value.respond_to?(:map) && !value.acts_like?(:string)
-            quoted = value.map { |v| c.quote(v) }
-            if quoted.empty?
+            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
+            if values.empty?
               c.quote(nil)
             else
-              quoted.join(",")
+              values.map! { |v| c.quote(v) }.join(",")
             end
           else
+            value = value.id_for_database if value.respond_to?(:id_for_database)
             c.quote(value)
           end
         end

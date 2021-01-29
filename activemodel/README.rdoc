@@ -200,7 +200,7 @@ behavior out of the box:
       attr_accessor :first_name, :last_name
 
       validates_each :first_name, :last_name do |record, attr, value|
-        record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
+        record.errors.add attr, "starts with z." if value.start_with?("z")
       end
     end
 
@@ -241,7 +241,7 @@ The latest version of Active Model can be installed with RubyGems:
 
 Source code can be downloaded as part of the Rails project on GitHub
 
-* https://github.com/rails/rails/tree/master/activemodel
+* https://github.com/rails/rails/tree/main/activemodel
 
 
 == License

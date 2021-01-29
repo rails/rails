@@ -35,6 +35,41 @@ module ActionView
       alias :to_s :to_str
     end
 
+    class PathParser # :nodoc:
+      def build_path_regex
+        handlers = Template::Handlers.extensions.map { |x| Regexp.escape(x) }.join("|")
+        formats = Template::Types.symbols.map { |x| Regexp.escape(x) }.join("|")
+        locales = "[a-z]{2}(?:-[A-Z]{2})?"
+        variants = "[^.]*"
+
+        %r{
+          \A
+          (?:(?<prefix>.*)/)?
+          (?<partial>_)?
+          (?<action>.*?)
+          (?:\.(?<locale>#{locales}))??
+          (?:\.(?<format>#{formats}))??
+          (?:\+(?<variant>#{variants}))??
+          (?:\.(?<handler>#{handlers}))?
+          \z
+        }x
+      end
+
+      def parse(path)
+        @regex ||= build_path_regex
+        match = @regex.match(path)
+        {
+          prefix: match[:prefix] || "",
+          action: match[:action],
+          partial: !!match[:partial],
+          locale: match[:locale]&.to_sym,
+          handler: match[:handler]&.to_sym,
+          format: match[:format]&.to_sym,
+          variant: match[:variant]
+        }
+      end
+    end
+
     # Threadsafe template cache
     class Cache #:nodoc:
       class SmallCache < Concurrent::Map
@@ -121,9 +156,6 @@ module ActionView
       end
     end
 
-    alias :find_all_anywhere :find_all
-    deprecate :find_all_anywhere
-
     def find_all_with_query(query) # :nodoc:
       @cache.cache_query(query) { find_template_paths(File.join(@path, query)) }
     end
@@ -164,20 +196,17 @@ module ActionView
     EXTENSIONS = { locale: ".", formats: ".", variants: "+", handlers: "." }
     DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}"
 
-    def initialize(pattern = nil)
-      if pattern
-        ActiveSupport::Deprecation.warn "Specifying a custom path for #{self.class} is deprecated. Implement a custom Resolver subclass instead."
-        @pattern = pattern
-      else
-        @pattern = DEFAULT_PATTERN
-      end
+    def initialize
+      @pattern = DEFAULT_PATTERN
       @unbound_templates = Concurrent::Map.new
-      super()
+      @path_parser = PathParser.new
+      super
     end
 
     def clear_cache
       @unbound_templates.clear
-      super()
+      @path_parser = PathParser.new
+      super
     end
 
     private
@@ -227,6 +256,10 @@ module ActionView
       end
 
       def find_template_paths_from_details(path, details)
+        if path.name.include?(".")
+          ActiveSupport::Deprecation.warn("Rendering actions with '.' in the name is deprecated: #{path}")
+        end
+
         query = build_query(path, details)
         find_template_paths(query)
       end
@@ -274,18 +307,11 @@ module ActionView
       # from the path, or the handler, we should return the array of formats given
       # to the resolver.
       def extract_handler_and_format_and_variant(path)
-        pieces = File.basename(path).split(".")
-        pieces.shift
+        details = @path_parser.parse(path)
 
-        extension = pieces.pop
-
-        handler = Template.handler_for_extension(extension)
-        format, variant = pieces.last.split(EXTENSIONS[:variants], 2) if pieces.last
-        format = if format
-          Template::Types[format]&.ref
-        elsif handler.respond_to?(:default_format) # default_format can return nil
-          handler.default_format
-        end
+        handler = Template.handler_for_extension(details[:handler])
+        format = details[:format] || handler.try(:default_format)
+        variant = details[:variant]
 
         # Template::Types[format] and handler.default_format can return nil
         [handler, format, variant]
@@ -296,9 +322,9 @@ module ActionView
   class FileSystemResolver < PathResolver
     attr_reader :path
 
-    def initialize(path, pattern = nil)
+    def initialize(path)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
-      super(pattern)
+      super()
       @path = File.expand_path(path)
     end
 
@@ -331,6 +357,11 @@ module ActionView
       end
 
       def find_template_paths_from_details(path, details)
+        if path.name.include?(".")
+          # Fall back to the unoptimized resolver, which will warn
+          return super
+        end
+
         candidates = find_candidate_template_paths(path)
 
         regex = build_regex(path, details)

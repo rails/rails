@@ -50,43 +50,43 @@ module Rails
       end
 
       def insert_before(*args, &block)
-        @operations << -> middleware { middleware.send(__method__, *args, &block) }
+        @operations << -> middleware { middleware.insert_before(*args, &block) }
       end
       ruby2_keywords(:insert_before) if respond_to?(:ruby2_keywords, true)
 
       alias :insert :insert_before
 
       def insert_after(*args, &block)
-        @operations << -> middleware { middleware.send(__method__, *args, &block) }
+        @operations << -> middleware { middleware.insert_after(*args, &block) }
       end
       ruby2_keywords(:insert_after) if respond_to?(:ruby2_keywords, true)
 
       def swap(*args, &block)
-        @operations << -> middleware { middleware.send(__method__, *args, &block) }
+        @operations << -> middleware { middleware.swap(*args, &block) }
       end
       ruby2_keywords(:swap) if respond_to?(:ruby2_keywords, true)
 
       def use(*args, &block)
-        @operations << -> middleware { middleware.send(__method__, *args, &block) }
+        @operations << -> middleware { middleware.use(*args, &block) }
       end
       ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
 
       def delete(*args, &block)
-        @delete_operations << -> middleware { middleware.send(__method__, *args, &block) }
+        @delete_operations << -> middleware { middleware.delete(*args, &block) }
       end
 
       def move_before(*args, &block)
-        @delete_operations << -> middleware { middleware.send(__method__, *args, &block) }
+        @delete_operations << -> middleware { middleware.move_before(*args, &block) }
       end
 
       alias :move :move_before
 
       def move_after(*args, &block)
-        @delete_operations << -> middleware { middleware.send(__method__, *args, &block) }
+        @delete_operations << -> middleware { middleware.move_after(*args, &block) }
       end
 
       def unshift(*args, &block)
-        @operations << -> middleware { middleware.send(__method__, *args, &block) }
+        @operations << -> middleware { middleware.unshift(*args, &block) }
       end
       ruby2_keywords(:unshift) if respond_to?(:ruby2_keywords, true)
 
@@ -108,7 +108,7 @@ module Rails
 
     class Generators #:nodoc:
       attr_accessor :aliases, :options, :templates, :fallbacks, :colorize_logging, :api_only
-      attr_reader :hidden_namespaces
+      attr_reader :hidden_namespaces, :after_generate_callbacks
 
       def initialize
         @aliases = Hash.new { |h, k| h[k] = {} }
@@ -118,6 +118,7 @@ module Rails
         @colorize_logging = true
         @api_only = false
         @hidden_namespaces = []
+        @after_generate_callbacks = []
       end
 
       def initialize_copy(source)
@@ -131,8 +132,12 @@ module Rails
         @hidden_namespaces << namespace
       end
 
+      def after_generate(&block)
+        @after_generate_callbacks << block
+      end
+
       def method_missing(method, *args)
-        method = method.to_s.sub(/=$/, "").to_sym
+        method = method.to_s.delete_suffix("=").to_sym
 
         if args.empty?
           if method == :rails

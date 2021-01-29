@@ -17,7 +17,8 @@ module ActionView
         if dependencies.nil? || dependencies.empty?
           cache_key = "#{name}.#{format}"
         else
-          cache_key = [ name, format, dependencies ].flatten.compact.join(".")
+          dependencies_suffix = dependencies.flatten.tap(&:compact!).join(".")
+          cache_key = "#{name}.#{format}.#{dependencies_suffix}"
         end
 
         # this is a correctly done double-checked locking idiom
@@ -41,8 +42,9 @@ module ActionView
       # Create a dependency tree for template named +name+.
       def tree(name, finder, partial = false, seen = {})
         logical_name = name.gsub(%r|/_|, "/")
+        interpolated = name.include?("#")
 
-        if template = find_template(finder, logical_name, [], partial, [])
+        if !interpolated && (template = find_template(finder, logical_name, [], partial, []))
           if node = seen[template.identifier] # handle cycles in the tree
             node
           else
@@ -55,7 +57,7 @@ module ActionView
             node
           end
         else
-          unless name.include?("#") # Dynamic template partial names can never be tracked
+          unless interpolated # Dynamic template partial names can never be tracked
             logger.error "  Couldn't find template for digesting: #{name}"
           end
 

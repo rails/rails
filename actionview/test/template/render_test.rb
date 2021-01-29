@@ -2,7 +2,7 @@
 
 require "abstract_unit"
 require "controller/fake_models"
-require "test_component"
+require "test_renderable"
 require "active_model/validations"
 
 class TestController < ActionController::Base
@@ -22,6 +22,7 @@ module RenderTestCases
 
     controller = TestController.new
     controller.perform_caching = true
+    controller.cache_store = :memory_store
     @view.controller = controller
 
     @controller_view = controller.view_context_class.with_empty_template_cache.new(
@@ -57,6 +58,11 @@ module RenderTestCases
     ] }, rendered_templates)
   end
 
+  def test_explicit_js_format_adds_html_fallback
+    rendered_templates = @controller_view.render(template: "test/js_html_fallback", formats: :js)
+    assert_equal(%Q(document.write("<b>Hello from a HTML partial!<\\/b>")\n), rendered_templates)
+  end
+
   def test_render_without_options
     e = assert_raises(ArgumentError) { @view.render() }
     assert_match(/You invoked render but did not give any of (.+) option\./, e.message)
@@ -66,18 +72,17 @@ module RenderTestCases
     assert_equal "Hello world!", @view.render(template: "test/hello_world")
   end
 
-
   def test_render_file
-    assert_equal "Hello world!", assert_deprecated { @view.render(file: "test/hello_world") }
+    template_path = File.expand_path("../fixtures/test/hello_world.erb", __dir__)
+    assert_equal "Hello world!", @view.render(file: template_path)
+  end
+
+  def test_render_file_with_full_path_no_extension
+    template_path = File.expand_path("../fixtures/test/hello_world", __dir__)
+    assert_raise(ArgumentError) { @view.render(file: template_path) }
   end
 
   # Test if :formats, :locale etc. options are passed correctly to the resolvers.
-  def test_render_file_with_format
-    assert_match "<h1>No Comment</h1>", assert_deprecated { @view.render(file: "comments/empty", formats: [:html]) }
-    assert_match "<error>No Comment</error>", assert_deprecated { @view.render(file: "comments/empty", formats: [:xml]) }
-    assert_match "<error>No Comment</error>", assert_deprecated { @view.render(file: "comments/empty", formats: :xml) }
-  end
-
   def test_render_template_with_format
     assert_match "<h1>No Comment</h1>", @view.render(template: "comments/empty", formats: [:html])
     assert_match "<error>No Comment</error>", @view.render(template: "comments/empty", formats: [:xml])
@@ -107,26 +112,18 @@ module RenderTestCases
     assert_includes(e.message, "Missing partial /_missing with {:locale=>[:en], :formats=>[:json], :variants=>[], :handlers=>[:raw, :erb, :html, :builder, :ruby]}.")
   end
 
-  def test_render_file_with_locale
-    assert_equal "<h1>Kein Kommentar</h1>", assert_deprecated { @view.render(file: "comments/empty", locale: [:de]) }
-    assert_equal "<h1>Kein Kommentar</h1>", assert_deprecated { @view.render(file: "comments/empty", locale: :de) }
-  end
-
   def test_render_template_with_locale
     assert_equal "<h1>Kein Kommentar</h1>", @view.render(template: "comments/empty", locale: [:de])
+    assert_equal "<h1>Kein Kommentar</h1>", @view.render(template: "comments/empty", locale: :de)
   end
 
   def test_render_template_with_variants
     assert_equal "<h1>No Comment</h1>\n", @view.render(template: "comments/empty", variants: :grid)
   end
 
-  def test_render_file_with_handlers
-    assert_equal "<h1>No Comment</h1>\n", assert_deprecated { @view.render(file: "comments/empty", handlers: [:builder]) }
-    assert_equal "<h1>No Comment</h1>\n", assert_deprecated { @view.render(file: "comments/empty", handlers: :builder) }
-  end
-
   def test_render_template_with_handlers
     assert_equal "<h1>No Comment</h1>\n", @view.render(template: "comments/empty", handlers: [:builder])
+    assert_equal "<h1>No Comment</h1>\n", @view.render(template: "comments/empty", handlers: :builder)
   end
 
   def test_render_raw_template_with_handlers
@@ -170,27 +167,17 @@ module RenderTestCases
     assert_equal "Elastica", @view.render(template: "/shared")
   end
 
-  def test_render_file_with_full_path_no_extension
-    template_path = File.expand_path("../fixtures/test/hello_world", __dir__)
-    assert_equal "Hello world!", assert_deprecated { @view.render(file: template_path) }
+  def test_render_template_with_instance_variable
+    assert_equal "The secret is in the sauce\n", @view.render(template: "test/render_template_with_ivar")
   end
 
-  def test_render_file_with_full_path
-    template_path = File.expand_path("../fixtures/test/hello_world.erb", __dir__)
-    assert_equal "Hello world!", @view.render(file: template_path)
-  end
-
-  def test_render_file_with_instance_variables
-    assert_equal "The secret is in the sauce\n", assert_deprecated { @view.render(file: "test/render_file_with_ivar") }
-  end
-
-  def test_render_file_with_locals
+  def test_render_template_with_locals
     locals = { secret: "in the sauce" }
-    assert_equal "The secret is in the sauce\n", assert_deprecated { @view.render(file: "test/render_file_with_locals", locals: locals) }
+    assert_equal "The secret is in the sauce\n", @view.render(template: "test/render_template_with_locals", locals: locals)
   end
 
-  def test_render_file_not_using_full_path_with_dot_in_path
-    assert_equal "The secret is in the sauce\n", assert_deprecated { @view.render(file: "test/dot.directory/render_file_with_ivar") }
+  def test_render_template_with_dot_in_path
+    assert_equal "The secret is in the sauce\n", @view.render(template: "test/dot.directory/render_template_with_ivar")
   end
 
   def test_render_partial_from_default
@@ -200,7 +187,9 @@ module RenderTestCases
   def test_render_outside_path
     assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     assert_raises ActionView::MissingTemplate do
-      @view.render(template: "../\\../test/abstract_unit.rb")
+      assert_deprecated do
+        @view.render(template: "../\\../test/abstract_unit.rb")
+      end
     end
   end
 
@@ -302,6 +291,15 @@ module RenderTestCases
     assert_equal "    10: <p>Tenth paragraph</p>", error_lines.third
   end
 
+  def test_render_template_with_errors
+    e = assert_raises(ActionView::Template::Error) { assert_deprecated { @view.render(template: "test/_raise") } }
+    assert_match %r!method.*doesnt_exist!, e.message
+    assert_equal "", e.sub_template_message
+    assert_equal "1", e.line_number
+    assert_equal "1: <%= doesnt_exist %>", e.annotated_source_code[0].strip
+    assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
+  end
+
   def test_render_sub_template_with_errors
     e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/sub_template_raise") }
     assert_match %r!method.*doesnt_exist!, e.message
@@ -310,16 +308,12 @@ module RenderTestCases
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
 
-  def test_render_file_with_errors
-    e = assert_raises(ActionView::Template::Error) { assert_deprecated { @view.render(file: File.expand_path("test/_raise", FIXTURE_LOAD_PATH)) } }
-    assert_match %r!method.*doesnt_exist!, e.message
-    assert_equal "", e.sub_template_message
-    assert_equal "1", e.line_number
-    assert_equal "1: <%= doesnt_exist %>", e.annotated_source_code[0].strip
-    assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
+  def test_undefined_method_error_references_named_class
+    e = assert_raises(ActionView::Template::Error) { @view.render(inline: "<%= undefined %>") }
+    assert_match(/`undefined' for #<ActionView::Base:0x[0-9a-f]+>/, e.message)
   end
 
-  def test_render_object
+  def test_render_renderable_object
     assert_equal "Hello: david", @view.render(partial: "test/customer", object: Customer.new("david"))
     assert_equal "FalseClass", @view.render(partial: "test/klass", object: false)
     assert_equal "NilClass", @view.render(partial: "test/klass", object: nil)
@@ -338,8 +332,10 @@ module RenderTestCases
   end
 
   def test_render_partial_collection_with_partial_name_containing_dot
-    assert_equal "Hello: davidHello: mary",
-      @view.render(partial: "test/customer.mobile", collection: [ Customer.new("david"), Customer.new("mary") ])
+    assert_deprecated do
+      assert_equal "Hello: davidHello: mary",
+        @view.render(partial: "test/customer.mobile", collection: [ Customer.new("david"), Customer.new("mary") ])
+    end
   end
 
   def test_render_partial_collection_as_by_string
@@ -382,23 +378,9 @@ module RenderTestCases
     assert_equal "Hello: davidHello: mary", @view.render(partial: "test/customer", collection: customers)
   end
 
-  def test_deprecated_constructor
-    assert_deprecated do
-      ActionView::Base.new
-    end
-
-    assert_deprecated do
-      ActionView::Base.new ["/a"]
-    end
-
-    assert_deprecated do
-      ActionView::Base.new ActionView::PathSet.new ["/a"]
-    end
-  end
-
   def test_without_compiled_method_container_is_deprecated
     view = ActionView::Base.with_view_paths(ActionController::Base.view_paths)
-    assert_deprecated("ActionView::Base instances must implement `compiled_method_container`") do
+    assert_raises(NotImplementedError) do
       assert_equal "Hello world!", view.render(template: "test/hello_world")
     end
   end
@@ -519,15 +501,6 @@ module RenderTestCases
     ActionView::Template.unregister_template_handler :ruby_handler
   end
 
-  def test_render_inline_with_render_from_to_proc_deprecated
-    assert_deprecated do
-      ActionView::Template.register_template_handler :ruby_handler, :source.to_proc
-    end
-    assert_equal "3", @view.render(inline: "(1 + 2).to_s", type: :ruby_handler)
-  ensure
-    ActionView::Template.unregister_template_handler :ruby_handler
-  end
-
   def test_optional_second_arg_works_without_deprecation
     assert_not_deprecated do
       ActionView::Template.register_template_handler :ruby_handler, ->(view, source = nil) { source }
@@ -579,7 +552,11 @@ module RenderTestCases
   def test_render_ignores_templates_with_malformed_template_handlers
     %w(malformed malformed.erb malformed.html.erb malformed.en.html.erb).each do |name|
       assert File.exist?(File.expand_path("#{FIXTURE_LOAD_PATH}/test/malformed/#{name}~")), "Malformed file (#{name}~) which should be ignored does not exists"
-      assert_raises(ActionView::MissingTemplate) { @view.render(template: "test/malformed/#{name}") }
+      assert_raises(ActionView::MissingTemplate) do
+        ActiveSupport::Deprecation.silence do
+          @view.render(template: "test/malformed/#{name}")
+        end
+      end
     end
   end
 
@@ -679,10 +656,10 @@ module RenderTestCases
     assert_raises(ArgumentError) { ActionView::Template.register_template_handler CustomHandler }
   end
 
-  def test_render_component
+  def test_render_object
     assert_equal(
       %(Hello, World!),
-      @view.render(TestComponent.new)
+      @view.render(TestRenderable.new)
     )
   end
 end
@@ -696,6 +673,13 @@ class CachedViewRenderTest < ActiveSupport::TestCase
     view_paths = ActionController::Base.view_paths
     assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
     setup_view(view_paths)
+  end
+
+  def test_cache_fragments_inside_render_layout_call_with_block
+    cat = @view.render(template: "test/cache_fragment_inside_render_layout_block_1")
+    dog = @view.render(template: "test/cache_fragment_inside_render_layout_block_2")
+
+    assert_not_equal cat, dog
   end
 end
 

@@ -227,6 +227,16 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_kind_of Cabbage, cabbage
   end
 
+  def test_becomes_sets_variables_before_initialization_callbacks
+    vegetable = Vegetable.create!(name: "yelling carrot")
+    assert_kind_of Vegetable, vegetable
+    assert_equal "yelling carrot", vegetable.name
+
+    yelling_veggie = vegetable.becomes(YellingVegetable)
+    assert_equal "YELLING CARROT", yelling_veggie.name, "YellingVegetable name should be YELLING CARROT"
+    assert_equal "YELLING CARROT", vegetable.name, "Vegetable name should be YELLING CARROT after becoming a YellingVegetable"
+  end
+
   def test_becomes_and_change_tracking_for_inheritance_columns
     cucumber = Vegetable.find(1)
     cabbage = cucumber.becomes!(Cabbage)
@@ -488,8 +498,8 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_scope_inherited_properly
-    assert_nothing_raised { Company.of_first_firm }
-    assert_nothing_raised { Client.of_first_firm }
+    assert_nothing_raised { Company.of_first_firm.to_a }
+    assert_nothing_raised { Client.of_first_firm.to_a }
   end
 
   def test_inheritance_with_default_scope
@@ -500,11 +510,6 @@ end
 class InheritanceComputeTypeTest < ActiveRecord::TestCase
   include InheritanceTestHelper
   fixtures :companies
-
-  teardown do
-    self.class.const_remove :FirmOnTheFly rescue nil
-    Firm.const_remove :FirmOnTheFly rescue nil
-  end
 
   def test_instantiation_doesnt_try_to_require_corresponding_file
     without_store_full_sti_class do
@@ -530,6 +535,9 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
       assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
       assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find_by!(id: foo.id) }
     end
+  ensure
+    self.class.send(:remove_const, :FirmOnTheFly) rescue nil
+    Firm.send(:remove_const, :FirmOnTheFly) rescue nil
   end
 
   def test_sti_type_from_attributes_disabled_in_non_sti_class
@@ -589,15 +597,8 @@ end
 
 class InheritanceAttributeMappingTest < ActiveRecord::TestCase
   setup do
-    @old_registry = ActiveRecord::Type.registry
-    ActiveRecord::Type.registry = ActiveRecord::Type::AdapterSpecificRegistry.new
-    ActiveRecord::Type.register :omg_sti, InheritanceAttributeMappingTest::OmgStiType
     Company.delete_all
     Sponsor.delete_all
-  end
-
-  teardown do
-    ActiveRecord::Type.registry = @old_registry
   end
 
   class OmgStiType < ActiveRecord::Type::String
@@ -615,6 +616,8 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
       end
     end
   end
+
+  ActiveRecord::Type.register :omg_sti, OmgStiType
 
   class Company < ActiveRecord::Base
     self.table_name = "companies"

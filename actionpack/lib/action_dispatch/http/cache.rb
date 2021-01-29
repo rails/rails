@@ -114,7 +114,7 @@ module ActionDispatch
 
         # True if an ETag is set and it's a weak validator (preceded with W/)
         def weak_etag?
-          etag? && etag.starts_with?('W/"')
+          etag? && etag.start_with?('W/"')
         end
 
         # True if an ETag is set and it isn't a weak validator (not preceded with W/)
@@ -125,7 +125,7 @@ module ActionDispatch
       private
         DATE          = "Date"
         LAST_MODIFIED = "Last-Modified"
-        SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public private must-revalidate])
+        SPECIAL_KEYS  = Set.new(%w[extras no-store no-cache max-age public private must-revalidate])
 
         def generate_weak_etag(validators)
           "W/#{generate_strong_etag(validators)}"
@@ -166,6 +166,7 @@ module ActionDispatch
         end
 
         DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"
+        NO_STORE              = "no-store"
         NO_CACHE              = "no-cache"
         PUBLIC                = "public"
         PRIVATE               = "private"
@@ -194,7 +195,9 @@ module ActionDispatch
 
           control.merge! cache_control
 
-          if control[:no_cache]
+          if control[:no_store]
+            self._cache_control = NO_STORE
+          elsif control[:no_cache]
             options = []
             options << PUBLIC if control[:public]
             options << NO_CACHE

@@ -13,7 +13,7 @@ module Rails
         end
 
         def run(action)
-          generator.send(action)
+          generator.public_send(action)
         end
       end
     end

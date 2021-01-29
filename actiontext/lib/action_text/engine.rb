@@ -37,21 +37,24 @@ module ActionText
     end
 
     initializer "action_text.helper" do
-      ActiveSupport.on_load(:action_controller_base) do
-        helper ActionText::Engine.helpers
+      %i[action_controller_base action_mailer].each do |abstract_controller|
+        ActiveSupport.on_load(abstract_controller) do
+          helper ActionText::Engine.helpers
+        end
       end
     end
 
-    initializer "action_text.renderer" do |app|
-      app.executor.to_run      { ActionText::Content.renderer = ApplicationController.renderer }
-      app.executor.to_complete { ActionText::Content.renderer = ApplicationController.renderer }
-
+    initializer "action_text.renderer" do
       ActiveSupport.on_load(:action_text_content) do
-        self.renderer = ApplicationController.renderer
+        self.default_renderer = Class.new(ActionController::Base).renderer
       end
 
-      ActiveSupport.on_load(:action_controller_base) do
-        before_action { ActionText::Content.renderer = ApplicationController.renderer.new(request.env) }
+      %i[action_controller_base action_mailer].each do |abstract_controller|
+        ActiveSupport.on_load(abstract_controller) do
+          around_action do |controller, action|
+            ActionText::Content.with_renderer(controller, &action)
+          end
+        end
       end
     end
 

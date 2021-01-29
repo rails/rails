@@ -42,8 +42,7 @@ module ActionView
 
     private
       def dirs_to_watch
-        fs_paths = all_view_paths.grep(FileSystemResolver)
-        fs_paths.map(&:path).sort.uniq
+        all_view_paths.grep(FileSystemResolver).map!(&:path).tap(&:uniq!).sort!
       end
 
       def all_view_paths

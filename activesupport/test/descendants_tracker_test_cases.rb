@@ -42,6 +42,12 @@ module DescendantsTrackerTestCases
     assert_equal_sets [], Child2.direct_descendants
   end
 
+  def test_subclasses
+    [Parent, Child1, Child2].each do |klass|
+      assert_equal klass.direct_descendants, klass.subclasses
+    end
+  end
+
   def test_clear
     mark_as_autoloaded(*ALL) do
       ActiveSupport::DescendantsTracker.clear

@@ -66,7 +66,8 @@ module ActionDispatch
         find_routes(rails_req).each do |match, parameters, route|
           unless route.path.anchored
             rails_req.script_name = match.to_s
-            rails_req.path_info   = match.post_match.sub(/^([^\/])/, '/\1')
+            rails_req.path_info   = match.post_match
+            rails_req.path_info   = "/" + rails_req.path_info unless rails_req.path_info.start_with? "/"
           end
 
           parameters = route.defaults.merge parameters
@@ -84,7 +85,7 @@ module ActionDispatch
       private
         def partitioned_routes
           routes.partition { |r|
-            r.path.anchored && r.ast.grep(Nodes::Symbol).all? { |n| n.default_regexp?  }
+            r.path.anchored && r.path.requirements_anchored?
           }
         end
 

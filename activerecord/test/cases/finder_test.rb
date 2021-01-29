@@ -44,6 +44,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(topics(:first).title, Topic.find(1).title)
   end
 
+  def test_find_with_hash_parameter
+    assert_raises(ActiveRecord::RecordNotFound) { Post.find(foo: "bar") }
+    assert_raises(ActiveRecord::RecordNotFound) { Post.find(foo: "bar", bar: "baz") }
+  end
+
   def test_find_with_proc_parameter_and_block
     exception = assert_raises(RuntimeError) do
       Topic.all.find(-> { raise "should happen" }) { |e| e.title == "non-existing-title" }
@@ -280,8 +285,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_with_distinct_and_offset_and_select
-    assert Post.select(:body).distinct.offset(3).exists?
-    assert_not Post.select(:body).distinct.offset(4).exists?
+    assert Post.select(:body).distinct.offset(4).exists?
+    assert_not Post.select(:body).distinct.offset(5).exists?
   end
 
   def test_exists_with_distinct_and_offset_and_eagerload_and_order
@@ -370,6 +375,116 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_include_on_unloaded_relation_with_match
+    assert_sql(/1 AS one.*LIMIT/) do
+      assert_equal true, Customer.where(name: "David").include?(customers(:david))
+    end
+  end
+
+  def test_include_on_unloaded_relation_without_match
+    assert_sql(/1 AS one.*LIMIT/) do
+      assert_equal false, Customer.where(name: "David").include?(customers(:mary))
+    end
+  end
+
+  def test_include_on_unloaded_relation_with_mismatched_class
+    topic = topics(:first)
+    assert Customer.exists?(topic.id)
+
+    assert_no_queries do
+      assert_equal false, Customer.where(name: "David").include?(topic)
+    end
+  end
+
+  def test_include_on_unloaded_relation_with_offset
+    assert_sql(/ORDER BY name ASC/) do
+      assert_equal true, Customer.offset(1).order("name ASC").include?(customers(:mary))
+    end
+  end
+
+  def test_include_on_unloaded_relation_with_limit
+    mary = customers(:mary)
+    barney = customers(:barney)
+    david = customers(:david)
+
+    assert_equal false, Customer.order(id: :desc).limit(2).include?(david)
+    assert_equal true,  Customer.order(id: :desc).limit(2).include?(barney)
+    assert_equal true,  Customer.order(id: :desc).limit(2).include?(mary)
+  end
+
+  def test_include_on_loaded_relation_with_match
+    customers = Customer.where(name: "David").load
+    david     = customers(:david)
+
+    assert_no_queries do
+      assert_equal true, customers.include?(david)
+    end
+  end
+
+  def test_include_on_loaded_relation_without_match
+    customers = Customer.where(name: "David").load
+    mary      = customers(:mary)
+
+    assert_no_queries do
+      assert_equal false, customers.include?(mary)
+    end
+  end
+
+  def test_member_on_unloaded_relation_with_match
+    assert_sql(/1 AS one.*LIMIT/) do
+      assert_equal true, Customer.where(name: "David").member?(customers(:david))
+    end
+  end
+
+  def test_member_on_unloaded_relation_without_match
+    assert_sql(/1 AS one.*LIMIT/) do
+      assert_equal false, Customer.where(name: "David").member?(customers(:mary))
+    end
+  end
+
+  def test_member_on_unloaded_relation_with_mismatched_class
+    topic = topics(:first)
+    assert Customer.exists?(topic.id)
+
+    assert_no_queries do
+      assert_equal false, Customer.where(name: "David").member?(topic)
+    end
+  end
+
+  def test_member_on_unloaded_relation_with_offset
+    assert_sql(/ORDER BY name ASC/) do
+      assert_equal true, Customer.offset(1).order("name ASC").member?(customers(:mary))
+    end
+  end
+
+  def test_member_on_unloaded_relation_with_limit
+    mary = customers(:mary)
+    barney = customers(:barney)
+    david = customers(:david)
+
+    assert_equal false, Customer.order(id: :desc).limit(2).member?(david)
+    assert_equal true,  Customer.order(id: :desc).limit(2).member?(barney)
+    assert_equal true,  Customer.order(id: :desc).limit(2).member?(mary)
+  end
+
+  def test_member_on_loaded_relation_with_match
+    customers = Customer.where(name: "David").load
+    david     = customers(:david)
+
+    assert_no_queries do
+      assert_equal true, customers.member?(david)
+    end
+  end
+
+  def test_member_on_loaded_relation_without_match
+    customers = Customer.where(name: "David").load
+    mary      = customers(:mary)
+
+    assert_no_queries do
+      assert_equal false, customers.member?(mary)
+    end
+  end
+
   def test_find_by_array_of_one_id
     assert_kind_of(Array, Topic.find([ 1 ]))
     assert_equal(1, Topic.find([ 1 ]).length)
@@ -397,22 +512,19 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_large_number
-    Topic.send(:load_schema)
-    assert_no_queries do
+    assert_queries(0) do
       assert_raises(ActiveRecord::RecordNotFound) { Topic.find("9999999999999999999999999999999") }
     end
   end
 
   def test_find_by_with_large_number
-    Topic.send(:load_schema)
-    assert_no_queries do
+    assert_queries(0) do
       assert_nil Topic.find_by(id: "9999999999999999999999999999999")
     end
   end
 
   def test_find_by_id_with_large_number
-    Topic.send(:load_schema)
-    assert_no_queries do
+    assert_queries(0) do
       assert_nil Topic.find_by_id("9999999999999999999999999999999")
     end
   end
@@ -488,6 +600,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal Account.where(firm_id: firm).take, Account.find_by(firm_id: firm)
   end
 
+  def test_find_by_with_alias
+    account = accounts(:last_account)
+    assert_equal account, Account.find_by(available_credit: account.available_credit)
+  end
+
   def test_take
     assert_equal topics(:first), Topic.where("title = 'The First Topic'").take
   end
@@ -505,6 +622,29 @@ class FinderTest < ActiveRecord::TestCase
   def test_take_bang_missing
     assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
       Topic.where("title = 'This title does not exist'").take!
+    end
+  end
+
+  def test_sole
+    assert_equal topics(:first), Topic.where("title = 'The First Topic'").sole
+    assert_equal topics(:first), Topic.find_sole_by("title = 'The First Topic'")
+  end
+
+  def test_sole_failing_none
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+      Topic.where("title = 'This title does not exist'").sole
+    end
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+      Topic.find_sole_by("title = 'This title does not exist'")
+    end
+  end
+
+  def test_sole_failing_many
+    assert_raises_with_message ActiveRecord::SoleRecordExceeded, "Wanted only one Topic" do
+      Topic.where("author_name = 'Carl'").sole
+    end
+    assert_raises_with_message ActiveRecord::SoleRecordExceeded, "Wanted only one Topic" do
+      Topic.find_sole_by("author_name = 'Carl'")
     end
   end
 
@@ -1054,8 +1194,9 @@ class FinderTest < ActiveRecord::TestCase
   def test_hash_condition_find_with_aggregate_having_three_mappings
     address = customers(:david).address
     assert_kind_of Address, address
-    found_customer = Customer.where(address: address).first
-    assert_equal customers(:david), found_customer
+    customers = Customer.where(address: address).order(:id)
+    assert_equal [customers(:david)], customers
+    assert_equal customers(:david, :mary), customers.unscope(where: [:address_city, :address_country])
   end
 
   def test_hash_condition_find_with_one_condition_being_aggregate_and_another_not
@@ -1372,7 +1513,14 @@ class FinderTest < ActiveRecord::TestCase
       limit: 3, order: "posts.id"
     ).to_a
     assert_equal 3, posts.size
-    assert_equal [0, 1, 1], posts.map(&:author_id).sort
+    assert_equal [1, 1, nil], posts.map(&:author_id)
+  end
+
+  def test_custom_select_takes_precedence_over_original_value
+    posts = Post.select("UPPER(title) AS title")
+    assert_equal "WELCOME TO THE WEBLOG", posts.first.title
+    assert_equal "WELCOME TO THE WEBLOG", posts.preload(:comments).first.title
+    assert_equal "WELCOME TO THE WEBLOG", posts.eager_load(:comments).first.title
   end
 
   def test_eager_load_for_no_has_many_with_limit_and_joins_for_has_many

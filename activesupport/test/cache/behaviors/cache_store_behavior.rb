@@ -218,10 +218,6 @@ module CacheStoreBehavior
     assert_compressed(SMALL_OBJECT, compress: true, compress_threshold: 1)
   end
 
-  def test_large_string_with_default_compression_settings
-    assert_compressed(LARGE_STRING)
-  end
-
   def test_large_string_with_compress_true
     assert_compressed(LARGE_STRING, compress: true)
   end
@@ -232,10 +228,6 @@ module CacheStoreBehavior
 
   def test_large_string_with_high_compress_threshold
     assert_uncompressed(LARGE_STRING, compress: true, compress_threshold: 1.megabyte)
-  end
-
-  def test_large_object_with_default_compression_settings
-    assert_compressed(LARGE_OBJECT)
   end
 
   def test_large_object_with_compress_true
@@ -414,6 +406,40 @@ module CacheStoreBehavior
     end
   end
 
+  def test_expire_in_is_alias_for_expires_in
+    time = Time.local(2008, 4, 24)
+
+    Time.stub(:now, time) do
+      @cache.write("foo", "bar", expire_in: 20)
+      assert_equal "bar", @cache.read("foo")
+    end
+
+    Time.stub(:now, time + 10) do
+      assert_equal "bar", @cache.read("foo")
+    end
+
+    Time.stub(:now, time + 21) do
+      assert_nil @cache.read("foo")
+    end
+  end
+
+  def test_expired_in_is_alias_for_expires_in
+    time = Time.local(2008, 4, 24)
+
+    Time.stub(:now, time) do
+      @cache.write("foo", "bar", expired_in: 20)
+      assert_equal "bar", @cache.read("foo")
+    end
+
+    Time.stub(:now, time + 10) do
+      assert_equal "bar", @cache.read("foo")
+    end
+
+    Time.stub(:now, time + 21) do
+      assert_nil @cache.read("foo")
+    end
+  end
+
   def test_race_condition_protection_skipped_if_not_defined
     @cache.write("foo", "bar")
     time = @cache.send(:read_entry, @cache.send(:normalize_key, "foo", {}), **{}).expires_at
@@ -472,8 +498,8 @@ module CacheStoreBehavior
   def test_crazy_key_characters
     crazy_key = "#/:*(<+=> )&$%@?;'\"\'`~-"
     assert @cache.write(crazy_key, "1", raw: true)
-    assert_equal "1", @cache.read(crazy_key)
-    assert_equal "1", @cache.fetch(crazy_key)
+    assert_equal "1", @cache.read(crazy_key, raw: true)
+    assert_equal "1", @cache.fetch(crazy_key, raw: true)
     assert @cache.delete(crazy_key)
     assert_equal "2", @cache.fetch(crazy_key, raw: true) { "2" }
     assert_equal 3, @cache.increment(crazy_key)
@@ -497,7 +523,7 @@ module CacheStoreBehavior
       @events << ActiveSupport::Notifications::Event.new(*args)
     end
     assert @cache.write(key, "1", raw: true)
-    assert @cache.fetch(key) { }
+    assert @cache.fetch(key, raw: true) { }
     assert_equal 1, @events.length
     assert_equal "cache_read.active_support", @events[0].name
     assert_equal :fetch, @events[0].payload[:super_operation]

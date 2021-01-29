@@ -11,12 +11,14 @@ module ActiveRecord
     autoload :Column
     autoload :PoolConfig
     autoload :PoolManager
+    autoload :LegacyPoolManager
 
     autoload_at "active_record/connection_adapters/abstract/schema_definitions" do
       autoload :IndexDefinition
       autoload :ColumnDefinition
       autoload :ChangeColumnDefinition
       autoload :ForeignKeyDefinition
+      autoload :CheckConstraintDefinition
       autoload :TableDefinition
       autoload :Table
       autoload :AlterTable
