@@ -88,7 +88,13 @@ class BasicController
   end
 end
 
+ActiveSupport.on_load :action_view_test_case do
+  include ActionView::RailsDomTestingAssertions
+end
+
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
+  include ActionView::RailsDomTestingAssertions
+
   self.app = ActionDispatch::MiddlewareStack.new do |middleware|
     middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
     middleware.use ActionDispatch::DebugExceptions
@@ -115,6 +121,7 @@ module ActionController
 
   class TestCase
     include ActionDispatch::TestProcess
+    include ActionView::RailsDomTestingAssertions
 
     def self.with_routes(&block)
       setup do
