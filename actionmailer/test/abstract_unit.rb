@@ -40,4 +40,8 @@ class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 end
 
+class ActionMailer::TestCase
+  include ActionView::RailsDomTestingAssertions
+end
+
 require_relative "../../tools/test_common"
