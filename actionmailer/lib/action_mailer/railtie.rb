@@ -8,6 +8,7 @@ require "abstract_controller/railties/routes_helpers"
 module ActionMailer
   class Railtie < Rails::Railtie # :nodoc:
     config.action_mailer = ActiveSupport::OrderedOptions.new
+    config.action_mailer.html_assertions = :rails_dom_testing
     config.action_mailer.preview_paths = []
     config.eager_load_namespaces << ActionMailer
 
@@ -17,6 +18,24 @@ module ActionMailer
 
     initializer "action_mailer.logger" do
       ActiveSupport.on_load(:action_mailer) { self.logger ||= Rails.logger }
+    end
+
+    initializer "action_mailer.test_case" do |app|
+      html_assertions = app.config.action_mailer.delete(:html_assertions)
+
+      ActiveSupport.on_load(:action_mailer_test_case) do
+        case html_assertions
+        when :capybara
+          include ActionView::CapybaraAssertions
+        when :rails_dom_testing
+          include Rails::Dom::Testing::Assertions::SelectorAssertions
+          include Rails::Dom::Testing::Assertions::DomAssertions
+        when :none
+          # do nothing
+        else
+          raise ArgumentError.new("unrecognized value #{assertions.inspect} for config.action_mailer.html_assertions")
+        end
+      end
     end
 
     initializer "action_mailer.set_configs" do |app|

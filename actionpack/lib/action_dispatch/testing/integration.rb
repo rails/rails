@@ -692,10 +692,6 @@ module ActionDispatch
       def app
         super || self.class.app
       end
-
-      def document_root_element
-        html_document.root
-      end
     end
 
     include Behavior
