@@ -1,3 +1,10 @@
+*   Introduce `config.action_view.html_assertions`
+
+    Adds support for testing with `Capybara::Minitest::Assertions` when set to `:capybara`.
+    Defaults to `Rails::Dom::Testing::Assertions` with `:rails_dom_testing`.
+
+    *Sean Doyle*
+
 *   Extract `current_page?`, `button_to`, and `link_to` methods to
     `ActionView::Helpers::NavigationHelper`
 
