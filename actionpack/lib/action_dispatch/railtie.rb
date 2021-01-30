@@ -33,6 +33,7 @@ module ActionDispatch
     config.action_dispatch.debug_exception_log_level = :fatal
     config.action_dispatch.strict_freshness = false
 
+    config.action_dispatch.html_assertions = :rails_dom_testing
     config.action_dispatch.ignore_leading_brackets = nil
     config.action_dispatch.strict_query_string_separator = nil
     config.action_dispatch.verbose_redirect_logs = false
@@ -91,6 +92,23 @@ module ActionDispatch
 
       ActionDispatch::Http::Cache::Request.strict_freshness = app.config.action_dispatch.strict_freshness
       ActionDispatch.test_app = app
+    end
+
+    initializer "action_dispatch.integration_test" do |app|
+      html_assertions = app.config.action_dispatch.delete(:html_assertions)
+
+      ActiveSupport.on_load(:action_dispatch_integration_test) do
+        case html_assertions
+        when :capybara
+          include ActionView::CapybaraAssertions
+        when :rails_dom_testing
+          include ActionView::RailsDomTestingAssertions
+        when :none
+          # do nothing
+        else
+          raise ArgumentError.new("unrecognized value #{assertions.inspect} for config.action_dispatch.html_assertions")
+        end
+      end
     end
   end
 end
