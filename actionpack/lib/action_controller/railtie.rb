@@ -17,6 +17,7 @@ module ActionController
     config.action_controller.log_query_tags_around_actions = true
     config.action_controller.wrap_parameters_by_default = false
     config.action_controller.allowed_redirect_hosts = []
+    config.action_controller.dom_testing_assertions = :rails_dom_testing
 
     config.eager_load_namespaces << AbstractController
     config.eager_load_namespaces << ActionController
@@ -85,6 +86,7 @@ module ActionController
 
         # Configs used in other initializers
         filtered_options = options.except(
+          :dom_testing_assertions,
           :default_protect_from_forgery,
           :log_query_tags_around_actions,
           :permit_all_parameters,
@@ -150,8 +152,19 @@ module ActionController
     end
 
     initializer "action_controller.test_case" do |app|
+      dom_testing_assertions = app.config.action_controller.delete(:dom_testing_assertions)
+
       ActiveSupport.on_load(:action_controller_test_case) do
         ActionController::TestCase.executor_around_each_request = app.config.active_support.executor_around_test_case
+
+        case dom_testing_assertions
+        when :rails_dom_testing
+          include ActionView::RailsDomTestingAssertions
+        when :none
+          # do nothing
+        else
+          raise ArgumentError.new("unrecognized value #{assertions.inspect} for config.action_controller.dom_testing_assertions")
+        end
       end
     end
 

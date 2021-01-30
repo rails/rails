@@ -1,3 +1,10 @@
+*   Introduce `config.action_mailer.dom_testing_assertions`
+
+    Adds support for `:rails_dom_testing` to support `Rails::Dom::Testing::Assertions` and `:none`.
+    Defaults to with `:rails_dom_testing`.
+
+    *Sean Doyle*
+
 *   Add support for `config.action_mailer.raise_on_missing_callback_actions`
     when using `_deliver` callbacks with `only:` and `except:` options.
 
