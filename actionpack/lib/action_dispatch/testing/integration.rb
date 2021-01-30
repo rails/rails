@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "capybara"
 require "stringio"
 require "uri"
 require "rack/test"
@@ -126,8 +127,13 @@ module ActionDispatch
       def initialize(app)
         super()
         @app = app
+        @capybara_session = Capybara::Session.new(:rack_test, @app)
 
         reset!
+      end
+
+      def page
+        @capybara_session
       end
 
       def url_options
@@ -298,7 +304,7 @@ module ActionDispatch
 
       private
         def _mock_session
-          @_mock_session ||= Rack::MockSession.new(@app, host)
+          @_mock_session ||= @capybara_session.driver.browser.rack_mock_session
         end
 
         def build_full_uri(path, env)
@@ -532,7 +538,7 @@ module ActionDispatch
   #       https!(false)
   #       get "/articles/all"
   #       assert_response :success
-  #       assert_select 'h1', 'Articles'
+  #       assert_dom 'h1', 'Articles'
   #     end
   #   end
   #
@@ -571,7 +577,7 @@ module ActionDispatch
   #         def browses_site
   #           get "/products/all"
   #           assert_response :success
-  #           assert_select 'h1', 'Products'
+  #           assert_dom 'h1', 'Products'
   #         end
   #       end
   #

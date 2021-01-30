@@ -192,7 +192,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :index
       end
-      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+      assert_dom "form>input[name=?][value=?]", "custom_authenticity_token", @token
     end
   end
 
@@ -201,7 +201,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :show_button
       end
-      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+      assert_dom "form>input[name=?][value=?]", "custom_authenticity_token", @token
     end
   end
 
@@ -232,7 +232,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :form_for_remote_with_external_token
       end
-      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
+      assert_dom "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
     ensure
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
     end
@@ -242,7 +242,7 @@ module RequestForgeryProtectionTests
     assert_not_blocked do
       get :form_for_remote_with_external_token
     end
-    assert_select "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
+    assert_dom "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
   end
 
   def test_should_render_form_with_token_tag_if_remote_and_authenticity_token_requested
@@ -250,7 +250,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :form_for_remote_with_token
       end
-      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+      assert_dom "form>input[name=?][value=?]", "custom_authenticity_token", @token
     end
   end
 
@@ -259,7 +259,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :form_for_with_token
       end
-      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+      assert_dom "form>input[name=?][value=?]", "custom_authenticity_token", @token
     end
   end
 
@@ -290,7 +290,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :form_with_remote_with_external_token
       end
-      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
+      assert_dom "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
     ensure
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
     end
@@ -300,7 +300,7 @@ module RequestForgeryProtectionTests
     assert_not_blocked do
       get :form_with_remote_with_external_token
     end
-    assert_select "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
+    assert_dom "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
   end
 
   def test_should_render_form_with_with_token_tag_if_remote_and_authenticity_token_requested
@@ -308,7 +308,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :form_with_remote_with_token
       end
-      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+      assert_dom "form>input[name=?][value=?]", "custom_authenticity_token", @token
     end
   end
 
@@ -317,7 +317,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :form_with_local_with_token
       end
-      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+      assert_dom "form>input[name=?][value=?]", "custom_authenticity_token", @token
     end
   end
 
@@ -331,7 +331,7 @@ module RequestForgeryProtectionTests
           get :form_with_remote
         end
       end
-      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+      assert_dom "form>input[name=?][value=?]", "custom_authenticity_token", @token
     ensure
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
     end
@@ -663,8 +663,8 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
   test "should emit a csrf-param meta tag and a csrf-token meta tag" do
     @controller.stub :form_authenticity_token, @token + "<=?" do
       get :meta
-      assert_select "meta[name=?][content=?]", "csrf-param", "custom_authenticity_token"
-      assert_select "meta[name=?]", "csrf-token"
+      assert_dom "meta[name=?][content=?]", "csrf-param", "custom_authenticity_token"
+      assert_dom "meta[name=?]", "csrf-token"
       regexp = "#{@token}&lt;=\?"
       assert_match(/#{regexp}/, @response.body)
     end
@@ -753,14 +753,14 @@ class FreeCookieControllerTest < ActionController::TestCase
   def test_should_not_render_form_with_token_tag
     SecureRandom.stub :urlsafe_base64, @token do
       get :index
-      assert_select "form>div>input[name=?][value=?]", "authenticity_token", @token, false
+      assert_dom "form>div>input[name=?][value=?]", "authenticity_token", @token, false
     end
   end
 
   def test_should_not_render_button_to_with_token_tag
     SecureRandom.stub :urlsafe_base64, @token do
       get :show_button
-      assert_select "form>div>input[name=?][value=?]", "authenticity_token", @token, false
+      assert_dom "form>div>input[name=?][value=?]", "authenticity_token", @token, false
     end
   end
 
@@ -1063,7 +1063,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
 
   private
     def assert_presence_and_fetch_form_csrf_token
-      assert_select 'input[name="custom_authenticity_token"]' do |input|
+      assert_dom 'input[name="custom_authenticity_token"]' do |input|
         form_csrf_token = input.first["value"]
         assert_not_nil form_csrf_token
         return form_csrf_token
