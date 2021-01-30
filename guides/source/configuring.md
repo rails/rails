@@ -1949,6 +1949,18 @@ The default value depends on the `config.load_defaults` target version:
 
 `config.action_controller` includes a number of configuration settings:
 
+#### `config.action_controller.html_assertions`
+
+Controls which set of assertions are available to test blocks within `ActionController::TestCase` classes.
+
+When set to `:rails_dom_testing`, tests will have access to assertions provided by the [rails-dom-testing](https://github.com/rails/rails-dom-testing) gem.
+
+When set to `:capybara`, tests will have access to assertions provided by the [capybara](https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions) gem.
+
+When set to `:none`, tests won't include any built-in assertions.
+
+Defaults to `:rails_dom_testing`.
+
 #### `config.action_controller.asset_host`
 
 Sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself. You should only use this if you have a different configuration for Action Mailer, otherwise use `config.asset_host`.
@@ -2198,6 +2210,18 @@ This is mainly for compatibility when upgrading Rails applications, otherwise yo
 | 8.1                   | `false`              |
 
 ### Configuring Action Dispatch
+
+#### `config.action_dispatch.html_assertions`
+
+Controls which set of assertions are available to test blocks within `ActionDispatch::IntegrationTest` classes.
+
+When set to `:rails_dom_testing`, tests will have access to assertions provided by the [rails-dom-testing](https://github.com/rails/rails-dom-testing) gem.
+
+When set to `:capybara`, tests will have access to assertions provided by the [capybara](https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions) gem.
+
+When set to `:none`, tests won't include any built-in assertions.
+
+Defaults to `:rails_dom_testing`.
 
 #### `config.action_dispatch.cookies_serializer`
 
@@ -2470,6 +2494,18 @@ Takes a block of code to run after the request.
 
 `config.action_view` includes a small number of configuration settings:
 
+#### `config.action_view.html_assertions`
+
+Controls which set of assertions are available to test blocks within `ActionView::TestCase` classes.
+
+When set to `:rails_dom_testing`, tests will have access to assertions provided by the [rails-dom-testing](https://github.com/rails/rails-dom-testing) gem.
+
+When set to `:capybara`, tests will have access to assertions provided by the [capybara](https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions) gem.
+
+When set to `:none`, tests won't include any built-in assertions.
+
+Defaults to `:rails_dom_testing`.
+
 #### `config.action_view.cache_template_loading`
 
 Controls whether or not templates should be reloaded on each request. Defaults to `!config.enable_reloading`.
@@ -2717,6 +2753,18 @@ There are a number of settings available on `config.action_mailer`:
 #### `config.action_mailer.asset_host`
 
 Sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself. You should only use this if you have a different configuration for Action Controller, otherwise use `config.asset_host`.
+
+#### `config.action_mailer.html_assertions`
+
+Controls which set of assertions are available to test blocks within `ActionMailer::TestCase` classes.
+
+When set to `:rails_dom_testing`, tests will have access to assertions provided by the [rails-dom-testing](https://github.com/rails/rails-dom-testing) gem.
+
+When set to `:capybara`, tests will have access to assertions provided by the [capybara](https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions) gem.
+
+When set to `:none`, tests won't include any built-in assertions.
+
+Defaults to `:rails_dom_testing`.
 
 #### `config.action_mailer.logger`
 
