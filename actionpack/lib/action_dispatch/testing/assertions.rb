@@ -12,7 +12,6 @@ module ActionDispatch
 
     include ResponseAssertions
     include RoutingAssertions
-    include Rails::Dom::Testing::Assertions
 
     def html_document
       @html_document ||= if @response.media_type&.end_with?("xml")

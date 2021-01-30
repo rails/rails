@@ -17,6 +17,7 @@ module ActionController
     config.action_controller.log_query_tags_around_actions = true
     config.action_controller.wrap_parameters_by_default = false
     config.action_controller.allowed_redirect_hosts = []
+    config.action_controller.html_assertions = :rails_dom_testing
 
     config.eager_load_namespaces << AbstractController
     config.eager_load_namespaces << ActionController
@@ -92,6 +93,7 @@ module ActionController
           :always_permitted_parameters,
           :wrap_parameters_by_default,
           :live_streaming_excluded_keys,
+          :html_assertions
           :rescue_from_event_backtrace
         )
 
@@ -150,8 +152,21 @@ module ActionController
     end
 
     initializer "action_controller.test_case" do |app|
+      html_assertions = app.config.action_controller.delete(:html_assertions)
+
       ActiveSupport.on_load(:action_controller_test_case) do
         ActionController::TestCase.executor_around_each_request = app.config.active_support.executor_around_test_case
+
+        case html_assertions
+        when :capybara
+          include ActionView::CapybaraAssertions
+        when :rails_dom_testing
+          include ActionView::RailsDomTestingAssertions
+        when :none
+          # do nothing
+        else
+          raise ArgumentError.new("unrecognized value #{assertions.inspect} for config.action_controller.html_assertions")
+        end
       end
     end
 
