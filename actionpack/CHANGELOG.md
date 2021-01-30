@@ -1,3 +1,8 @@
+*   Introduce `ActionDispatch::Assertions::CapybaraAssertions` to support
+    `Capybara` assertions in `ActionDispatch::IntegrationTest`
+
+    *Sean Doyle*
+
 *   Request Forgery takes relative paths into account.
 
     *Stefan Wienert*

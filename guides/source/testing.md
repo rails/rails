@@ -1208,6 +1208,48 @@ NOTE: Don't forget to call `follow_redirect!` if you plan to make subsequent req
 
 Finally we can assert that our response was successful and our new article is readable on the page.
 
+#### Asserting with Capybara
+
+By default, assertions about the contents of the response's body are provided by [rails-dom-testing][].
+
+Action Dispatch can also integrate with Capybara's [selectors][Capybara::Selector] and [assertions][Capybara::Minitest::Assertions] by including the `ActionDispatch::Assertions::CapybaraAssertions` module:
+
+```ruby
+require "test_helper"
+require "action_dispatch/testing/assertions/capybara"
+
+class BlogFlowTest < ActionDispatch::IntegrationTest
+  include ActionDispatch::Assertions::CapybaraAssertions
+
+  test "can see the welcome page" do
+    get "/"
+    assert_css "h1", "Welcome#index"
+  end
+end
+```
+
+In addition to the assertions provided by [Capybara::Minitest::Assertions][], `ActionDispatch::Assertions::CapybaraAssertions` also declares a [within][Capybara::Session#within] test helper to change the current scope and a [page][Capybara::Session] test helper to access the `Capybara::Session` directly.
+
+Mix the `ActionDispatch::Assertions::CapybaraAssertions` module into the `ActionDispatch::IntegrationTest` class to integrate with Capybara's selectors and assertions throughout your integration test suite:
+
+```ruby
+# test/test_helper.rb
+
+require "action_dispatch/testing/assertions/capybara"
+
+# …
+
+class ActionDispatch::IntegrationTest
+  include ActionDispatch::Assertions::CapybaraAssertions
+end
+```
+
+[rails-dom-testing]: https://github.com/rails/rails-dom-testing
+[Capybara::Selector]: https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Selector
+[Capybara::Minitest::Assertions]: https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions
+[Capybara::Session]: https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Session
+[Capybara::Session#within]: https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Session#within-instance_method
+
 #### Taking It Further
 
 We were able to successfully test a very small workflow for visiting our blog and creating a new article. If we wanted to take this further we could add tests for commenting, removing articles, or editing comments. Integration tests are a great place to experiment with all kinds of use cases for our applications.
