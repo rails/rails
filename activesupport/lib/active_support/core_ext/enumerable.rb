@@ -257,4 +257,19 @@ class Array #:nodoc:
     # use delete_if rather than reject! because it always returns self even if nothing changed
     delete_if(&:blank?)
   end
+
+  # Removes all maching elements and nil from the +Array+ in place and returns self.
+  # Uses == to compare values.
+  #
+  def compact_value(key = nil)
+    # use delete_if rather than reject! because it always returns self even if nothing changed
+    delete_if{|value| value == key }.compact
+  end
+  
+  # Removes all maching elements and nil from the +Array+ in place and returns self.
+  # Uses == to compare values.
+  def compact_value!(key = nil)
+    # use delete_if rather than reject! because it always returns self even if nothing changed
+    delete_if!{|value| value == key }.compact!
+  end
 end
