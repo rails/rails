@@ -134,6 +134,28 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "a" * 64.kilobytes, chunks.second
   end
 
+  test "download with index skip first chunk" do
+    blob   = create_blob data: "a" * 5.0625.megabytes
+    chunks = []
+    index = 1
+    indexes = []
+
+    blob.download_with_index(index) do |chunk, i|
+      chunks << chunk
+      indexes << i
+    end
+
+    assert_equal 1, chunks.size
+    assert_equal "a" * 64.kilobytes, chunks.first
+    assert_equal [1], indexes
+  end
+
+  test "download a chunk" do
+    blob = create_blob data: "a" * 3.megabytes + "b" * 4.megabytes
+    chunk = blob.download_chunk(2.megabytes..5.megabytes - 1)
+    assert_equal "a" * 1.megabyte + "b" * 2.megabytes, chunk
+  end
+
   test "open with integrity" do
     create_file_blob(filename: "racecar.jpg").tap do |blob|
       blob.open do |file|
