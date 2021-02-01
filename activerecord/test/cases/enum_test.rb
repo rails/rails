@@ -701,8 +701,8 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "deserialize enum value to original hash key" do
-    proposed = Class.new
-    written = Class.new
+    proposed = Struct.new(:to_s).new("proposed")
+    written = Struct.new(:to_s).new("written")
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
       enum status: { proposed => 0, written => 1 }
@@ -710,6 +710,8 @@ class EnumTest < ActiveRecord::TestCase
 
     book = klass.create!(status: 0)
     assert_equal proposed, book.status
+    assert_predicate book, :proposed?
+    assert_not_predicate book, :written?
   end
 
   test "enum logs a warning if auto-generated negative scopes would clash with other enum names" do

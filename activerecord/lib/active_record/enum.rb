@@ -209,14 +209,14 @@ module ActiveRecord
 
             value_method_name = "#{prefix}#{label}#{suffix}"
             value_method_names << value_method_name
-            define_enum_methods(name, value_method_name, label, enum_scopes)
+            define_enum_methods(name, value_method_name, value, enum_scopes)
 
             method_friendly_label = label.gsub(/[\W&&[:ascii:]]+/, "_")
             value_method_alias = "#{prefix}#{method_friendly_label}#{suffix}"
 
             if value_method_alias != value_method_name && !value_method_names.include?(value_method_alias)
               value_method_names << value_method_alias
-              define_enum_methods(name, value_method_alias, label, enum_scopes)
+              define_enum_methods(name, value_method_alias, value, enum_scopes)
             end
           end
         end
@@ -234,23 +234,23 @@ module ActiveRecord
         private
           attr_reader :klass
 
-          def define_enum_methods(name, value_method_name, label, enum_scopes)
-            # def active?() status == "active" end
+          def define_enum_methods(name, value_method_name, value, enum_scopes)
+            # def active?() status_for_database == 0 end
             klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
-            define_method("#{value_method_name}?") { self[name] == label }
+            define_method("#{value_method_name}?") { public_send(:"#{name}_for_database") == value }
 
             # def active!() update!(status: 0) end
             klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
-            define_method("#{value_method_name}!") { update!(name => label) }
+            define_method("#{value_method_name}!") { update!(name => value) }
 
             # scope :active, -> { where(status: 0) }
             # scope :not_active, -> { where.not(status: 0) }
             if enum_scopes != false
               klass.send(:detect_enum_conflict!, name, value_method_name, true)
-              klass.scope value_method_name, -> { where(name => label) }
+              klass.scope value_method_name, -> { where(name => value) }
 
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
-              klass.scope "not_#{value_method_name}", -> { where.not(name => label) }
+              klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
             end
           end
       end
