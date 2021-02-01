@@ -12,6 +12,7 @@ module ActiveRecord
       include ConnectionHelper
 
       def setup
+        ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.clear_type_records_cache!
         @connection = ActiveRecord::Base.connection
         @connection_handler = ActiveRecord::Base.connection_handler
       end
@@ -385,6 +386,8 @@ module ActiveRecord
 
       def test_only_reload_type_map_once_for_every_unrecognized_type
         reset_connection
+        PostgreSQLAdapter.clear_type_records_cache!
+
         connection = ActiveRecord::Base.connection
 
         silence_warnings do

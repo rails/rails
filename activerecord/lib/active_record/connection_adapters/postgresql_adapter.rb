@@ -12,6 +12,7 @@ require "active_record/connection_adapters/postgresql/explain_pretty_printer"
 require "active_record/connection_adapters/postgresql/oid"
 require "active_record/connection_adapters/postgresql/quoting"
 require "active_record/connection_adapters/postgresql/referential_integrity"
+require "active_record/connection_adapters/postgresql/schema_cache"
 require "active_record/connection_adapters/postgresql/schema_creation"
 require "active_record/connection_adapters/postgresql/schema_definitions"
 require "active_record/connection_adapters/postgresql/schema_dumper"
@@ -98,6 +99,9 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = true
       class_attribute :create_unlogged_tables, default: false
 
+      cattr_accessor :additional_type_records_cache, default: []
+      cattr_accessor :known_coder_type_records_cache, default: []
+
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigserial primary key",
         string:      { name: "character varying" },
@@ -147,6 +151,13 @@ module ActiveRecord
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
+
+      def self.clear_type_records_cache!
+        self.additional_type_records_cache = []
+        self.known_coder_type_records_cache = []
+      end
+
+      delegate :clear_type_records_cache!, to: :class
 
       def supports_bulk_alter?
         true
@@ -624,8 +635,14 @@ module ActiveRecord
 
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
+
+          if should_load_types_from_cache?(oids)
+            return initializer.run(self.additional_type_records_cache)
+          end
+
           load_types_queries(initializer, oids) do |query|
             execute_and_clear(query, "SCHEMA", []) do |records|
+              self.additional_type_records_cache |= records.to_a
               initializer.run(records)
             end
           end
@@ -641,8 +658,8 @@ module ActiveRecord
             yield query + "WHERE t.oid IN (%s)" % oids.join(", ")
           else
             yield query + initializer.query_conditions_for_known_type_names
-            yield query + initializer.query_conditions_for_known_type_types
             yield query + initializer.query_conditions_for_array_types
+            yield query + initializer.query_conditions_for_known_type_types
           end
         end
 
@@ -909,16 +926,24 @@ module ActiveRecord
             "timestamptz" => PG::TextDecoder::TimestampWithTimeZone,
           }
 
-          known_coder_types = coders_by_name.keys.map { |n| quote(n) }
-          query = <<~SQL % known_coder_types.join(", ")
-            SELECT t.oid, t.typname
-            FROM pg_type as t
-            WHERE t.typname IN (%s)
-          SQL
-          coders = execute_and_clear(query, "SCHEMA", []) do |result|
-            result
-              .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
-              .compact
+          if known_coder_type_records_cache.present?
+            coders = known_coder_type_records_cache
+                      .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
+                      .compact
+          else
+            known_coder_types = coders_by_name.keys.map { |n| quote(n) }
+            query = <<~SQL % known_coder_types.join(", ")
+              SELECT t.oid, t.typname
+              FROM pg_type as t
+              WHERE t.typname IN (%s)
+            SQL
+            coders = execute_and_clear(query, "SCHEMA", []) do |result|
+              self.known_coder_type_records_cache = result.to_a
+
+              result
+                .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
+                .compact
+            end
           end
 
           map = PG::TypeMapByOid.new
@@ -938,6 +963,20 @@ module ActiveRecord
         def construct_coder(row, coder_class)
           return unless coder_class
           coder_class.new(oid: row["oid"].to_i, name: row["typname"])
+        end
+
+        def reload_type_map
+          clear_type_records_cache!
+          super
+        end
+
+        def should_load_types_from_cache?(oids)
+          if oids.blank?
+            additional_type_records_cache.present?
+          else
+            cached_oids = additional_type_records_cache.map { |oid| oid["oid"] }
+            (oids - cached_oids).empty?
+          end
         end
 
         class MoneyDecoder < PG::SimpleDecoder # :nodoc:
