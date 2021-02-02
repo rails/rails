@@ -69,11 +69,10 @@ module ActiveSupport
     def camelize(term, uppercase_first_letter = true)
       string = term.to_s
       # String#camelize takes a symbol (:upper or :lower), so we match that to avoid surprises:
-      upcase = true == uppercase_first_letter || :upper == uppercase_first_letter
-      if upcase
-        string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize! || match }
-      else
+      if !uppercase_first_letter || :lower == uppercase_first_letter
         string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase! || match }
+      else
+        string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize! || match }
       end
       string.gsub!(/(?:_|(\/))([a-z\d]*)/i) do
         word = $2
