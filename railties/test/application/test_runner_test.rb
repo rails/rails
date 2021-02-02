@@ -240,30 +240,6 @@ module ApplicationTests
       end
     end
 
-    def test_run_with_model
-      skip "These feel a bit odd. Not sure we should keep supporting them."
-      create_model_with_fixture
-      create_fixture_test "models", "user"
-      assert_match "3 users", run_task(["test models/user"])
-      assert_match "3 users", run_task(["test app/models/user.rb"])
-    end
-
-    def test_run_different_environment_using_env_var
-      skip "no longer possible. Running tests in a different environment should be explicit"
-      app_file "test/unit/env_test.rb", <<-RUBY
-        require "test_helper"
-
-        class EnvTest < ActiveSupport::TestCase
-          def test_env
-            puts Rails.env
-          end
-        end
-      RUBY
-
-      ENV["RAILS_ENV"] = "development"
-      assert_match "development", run_test_command("test/unit/env_test.rb")
-    end
-
     def test_run_in_test_environment_by_default
       create_env_test
 
