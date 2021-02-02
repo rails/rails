@@ -74,7 +74,8 @@ module ActiveSupport
         string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase! || match }
       end
       string.gsub!(/(?:_|(\/))([a-z\d]*)/i) do
-        substituted = inflections.acronyms[$2] || $2.capitalize! || $2
+        word = $2
+        substituted = inflections.acronyms[word] || word.capitalize! || word
         $1 ? "::#{substituted}" : substituted
       end
       string
@@ -95,8 +96,13 @@ module ActiveSupport
       return camel_cased_word unless /[A-Z-]|::/.match?(camel_cased_word)
       word = camel_cased_word.to_s.gsub("::", "/")
       word.gsub!(inflections.acronyms_underscore_regex) { "#{$1 && '_' }#{$2.downcase}" }
-      word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2')
-      word.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
+      word.gsub!(/([A-Z\d]+)([A-Z][a-z])|([a-z\d])([A-Z])/) do
+        if first_match = $1
+          first_match << "_" << $2
+        else
+          $3 << "_" << $4
+        end
+      end
       word.tr!("-", "_")
       word.downcase!
       word
