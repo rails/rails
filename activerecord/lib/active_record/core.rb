@@ -659,9 +659,17 @@ module ActiveRecord
     # if the record tries to lazily load an association.
     #
     #   user = User.first
-    #   user.strict_loading!
-    #   user.comments.to_a
+    #   user.strict_loading! # => true
+    #   user.comments
     #   => ActiveRecord::StrictLoadingViolationError
+    #
+    # strict_loading! accepts a boolean argument to specify whether
+    # to enable or disable strict loading mode.
+    #
+    #   user = User.first
+    #   user.strict_loading!(false) # => false
+    #   user.comments
+    #   => #<ActiveRecord::Associations::CollectionProxy>
     def strict_loading!(value = true)
       @strict_loading = value
     end

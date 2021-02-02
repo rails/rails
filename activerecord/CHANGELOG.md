@@ -38,17 +38,20 @@
 
     ```ruby
     class User < ApplicationRecord
+      has_many :bookmarks
       has_many :articles, strict_loading: true
     end
 
     user = User.first
-    user.articles
-    # => ActiveRecord::StrictLoadingViolationError
+    user.articles                        # => ActiveRecord::StrictLoadingViolationError
+    user.bookmarks                       # => #<ActiveRecord::Associations::CollectionProxy>
 
-    user = User.first
-    user.strict_loading!(false)
-    user.articles
-    # => #<ActiveRecord::Associations::CollectionProxy>
+    user.strict_loading!(true)           # => true
+    user.bookmarks                       # => ActiveRecord::StrictLoadingViolationError
+
+    user.strict_loading!(false)          # => false
+    user.bookmarks                       # => #<ActiveRecord::Associations::CollectionProxy>
+    user.articles.strict_loading!(false) # => #<ActiveRecord::Associations::CollectionProxy>
     ```
 
     *Ayrton De Craene*
