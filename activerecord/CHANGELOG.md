@@ -1,3 +1,14 @@
+*   Make destroy async transactional.
+
+    A active record rollback could occur while enqueuing a job. In this
+    case the job would enqueue even though the database deletion
+    rolledback putting things in a funky state.
+
+    Now the jobs are only enqueued until after the db transaction has been committed.
+
+    *Cory Gwin*
+
+
 *   Connection specification now passes the "url" key as a configuration for the
     adapter if the "url" protocol is "jdbc", "http", or "https". Previously only
     urls with the "jdbc" prefix were passed to the Active Record Adapter, others
