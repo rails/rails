@@ -11,8 +11,11 @@ module ActiveJob
       cattr_accessor :logger, default: ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT))
       class_attribute :log_arguments, instance_accessor: false, default: true
 
-      around_enqueue { |_, block| tag_logger(&block) }
-      around_perform { |job, block| tag_logger(job.class.name, job.job_id, &block) }
+      around_enqueue(prepend: true) { |_, block| tag_logger(&block) }
+    end
+
+    def perform_now
+      tag_logger(self.class.name, self.job_id) { super }
     end
 
     private

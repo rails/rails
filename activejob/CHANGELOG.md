@@ -1,3 +1,7 @@
+*   Don't log rescuable exceptions defined with `rescue_from`.
+
+    *Hu Hailin*
+
 *   Allow `rescue_from` to rescue all exceptions.
 
     *Adrianna Chang*, *Étienne Barrié*
