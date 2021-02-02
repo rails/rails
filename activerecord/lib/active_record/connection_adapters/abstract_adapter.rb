@@ -630,7 +630,7 @@ module ActiveRecord
             scale = extract_scale(sql_type)
             precision = extract_precision(sql_type)
 
-            if scale == 0
+            if scale.zero?
               # FIXME: Remove this class as well
               Type::DecimalWithoutScale.new(precision: precision)
             else

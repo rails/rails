@@ -98,7 +98,7 @@ module ActiveSupport
           raise "invalid unlock" if @exclusive_thread != Thread.current
 
           @exclusive_depth -= 1
-          if @exclusive_depth == 0
+          if @exclusive_depth.zero?
             @exclusive_thread = nil
 
             if eligible_waiters?(compatible)

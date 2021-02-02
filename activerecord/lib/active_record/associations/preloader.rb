@@ -98,7 +98,7 @@ module ActiveRecord
       end
 
       def call
-        return [] if associations.nil? || records.length == 0
+        return [] if associations.nil? || records.length.zero?
 
         build_preloaders
       end

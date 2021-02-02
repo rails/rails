@@ -333,7 +333,7 @@ module ActiveRecord
         MSG
       end
 
-      return false if !conditions || limit_value == 0
+      return false if !conditions || limit_value.zero?
 
       if eager_loading?
         relation = apply_join_dependency(eager_loading: false)

@@ -60,7 +60,7 @@ class InfoControllerTest < ActionController::TestCase
     exact_count = -> { JSON(response.body)["exact"].size }
 
     get :routes, params: { path: "rails/info/route" }
-    assert exact_count.call == 0, "should not match incomplete routes"
+    assert exact_count.call.zero?, "should not match incomplete routes"
 
     get :routes, params: { path: "rails/info/routes" }
     assert exact_count.call == 1, "should match complete routes"
@@ -79,7 +79,7 @@ class InfoControllerTest < ActionController::TestCase
     assert fuzzy_count.call == 1, "should match complete routes"
 
     get :routes, params: { path: "rails/info/routes.html" }
-    assert fuzzy_count.call == 0, "should match optional parts of route literally"
+    assert fuzzy_count.call.zero?, "should match optional parts of route literally"
   end
 
   test "internal routes do not have a default params[:internal] value" do

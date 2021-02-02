@@ -1490,7 +1490,7 @@ One good place to store them is `test/lib` or `test/test_helpers`.
 # test/test_helpers/multiple_assertions.rb
 module MultipleAssertions
   def assert_multiple_of_forty_two(number)
-    assert (number % 42 == 0), 'expected #{number} to be a multiple of 42'
+    assert (number % 42.zero?), 'expected #{number} to be a multiple of 42'
   end
 end
 ```

@@ -75,7 +75,7 @@ module RailsGuides
       end
 
       def show_results(error_list)
-        if error_list.size == 0
+        if error_list.size.zero?
           puts "\n\nAll checked guides validate OK!"
         else
           error_summary = error_detail = ""

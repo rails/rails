@@ -106,7 +106,7 @@ module ActionView
         I18n.with_options locale: options[:locale], scope: options[:scope] do |locale|
           case distance_in_minutes
           when 0..1
-            return distance_in_minutes == 0 ?
+            return distance_in_minutes.zero? ?
                    locale.t(:less_than_x_minutes, count: 1) :
                    locale.t(:x_minutes, count: distance_in_minutes) unless options[:include_seconds]
 
@@ -830,7 +830,7 @@ module ActionView
       end
 
       def select_year
-        if !year || @datetime == 0
+        if !year || @datetime.zero?
           val = "1"
           middle_year = Date.today.year
         else

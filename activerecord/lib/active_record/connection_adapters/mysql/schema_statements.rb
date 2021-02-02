@@ -25,7 +25,7 @@ module ActiveRecord
                 indexes << [
                   row[:Table],
                   row[:Key_name],
-                  row[:Non_unique].to_i == 0,
+                  row[:Non_unique].to_i.zero?,
                   [],
                   lengths: {},
                   orders: {},

@@ -17,7 +17,7 @@ module ActionView
 
     # Check if this is the first iteration of the partial.
     def first?
-      index == 0
+      index.zero?
     end
 
     # Check if this is the last iteration of the partial.

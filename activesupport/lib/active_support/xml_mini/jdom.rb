@@ -60,7 +60,7 @@ module ActiveSupport
       # element::
       #   XML element to merge into hash
       def merge_element!(hash, element, depth)
-        raise "Document too deep!" if depth == 0
+        raise "Document too deep!" if depth.zero?
         delete_empty(hash)
         merge!(hash, element.tag_name, collapse(element, depth))
       end
@@ -176,7 +176,7 @@ module ActiveSupport
             text << item.get_data.strip
           end
         end
-        text.strip.length == 0
+        text.strip.length.zero?
       end
   end
 end

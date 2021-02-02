@@ -191,7 +191,7 @@ class DateTime
 
   # Returns +true+ if <tt>offset == 0</tt>.
   def utc?
-    offset == 0
+    offset.zero?
   end
 
   # Returns the offset value in seconds.

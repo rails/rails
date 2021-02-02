@@ -8,7 +8,7 @@ module ActiveModel
       def validate_each(record, attr, val)
         method_name = options[:with]
 
-        if record.method(method_name).arity == 0
+        if record.method(method_name).arity.zero?
           record.send method_name
         else
           record.send method_name, attr

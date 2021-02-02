@@ -1061,7 +1061,7 @@ module ActiveRecord
       case
       when target_version.nil?
         up(target_version, &block)
-      when current_version == 0 && target_version == 0
+      when current_version.zero? && target_version.zero?
         []
       when current_version > target_version
         down(target_version, &block)
@@ -1168,7 +1168,7 @@ module ActiveRecord
 
     def last_stored_environment
       return nil unless ActiveRecord::InternalMetadata.enabled?
-      return nil if current_version == 0
+      return nil if current_version.zero?
       raise NoEnvironmentInSchemaError unless ActiveRecord::InternalMetadata.table_exists?
 
       environment = ActiveRecord::InternalMetadata[:environment]
@@ -1194,7 +1194,7 @@ module ActiveRecord
         end
 
         start_index =
-          if current_version == 0
+          if current_version.zero?
             0
           else
             migrator.migrations.index(migrator.current_migration)

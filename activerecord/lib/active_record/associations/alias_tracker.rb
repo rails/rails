@@ -54,7 +54,7 @@ module ActiveRecord
       def aliased_table_for(arel_table, table_name = nil)
         table_name ||= arel_table.name
 
-        if aliases[table_name] == 0
+        if aliases[table_name].zero?
           # If it's zero, we can have our table_name
           aliases[table_name] = 1
           arel_table = arel_table.alias(table_name) if arel_table.name != table_name

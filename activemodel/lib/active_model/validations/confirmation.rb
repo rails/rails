@@ -30,7 +30,7 @@ module ActiveModel
 
         def confirmation_value_equal?(record, attribute, value, confirmed)
           if !options[:case_sensitive] && value.is_a?(String)
-            value.casecmp(confirmed) == 0
+            value.casecmp(confirmed).zero?
           else
             value == confirmed
           end

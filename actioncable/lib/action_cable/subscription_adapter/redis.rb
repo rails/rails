@@ -104,7 +104,7 @@ module ActionCable
                 end
 
                 on.unsubscribe do |chan, count|
-                  if count == 0
+                  if count.zero?
                     @subscription_lock.synchronize do
                       @raw_client = nil
                     end

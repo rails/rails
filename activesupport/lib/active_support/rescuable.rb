@@ -104,13 +104,13 @@ module ActiveSupport
         case rescuer = find_rescue_handler(exception)
         when Symbol
           method = object.method(rescuer)
-          if method.arity == 0
+          if method.arity.zero?
             -> e { method.call }
           else
             method
           end
         when Proc
-          if rescuer.arity == 0
+          if rescuer.arity.zero?
             -> e { object.instance_exec(&rescuer) }
           else
             -> e { object.instance_exec(e, &rescuer) }

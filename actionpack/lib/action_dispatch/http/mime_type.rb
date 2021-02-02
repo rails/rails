@@ -81,7 +81,7 @@ module Mime
 
       def <=>(item)
         result = item.q <=> @q
-        result = @index <=> item.index if result == 0
+        result = @index <=> item.index if result.zero?
         result
       end
     end

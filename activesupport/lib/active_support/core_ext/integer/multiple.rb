@@ -7,6 +7,6 @@ class Integer
   #   6.multiple_of?(5)  # => false
   #   10.multiple_of?(2) # => true
   def multiple_of?(number)
-    number == 0 ? self == 0 : self % number == 0
+    number.zero? ? self.zero? : self % number.zero?
   end
 end

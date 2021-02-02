@@ -249,7 +249,7 @@ module ActiveRecord
         if limit_value
           remaining -= ids.length
 
-          if remaining == 0
+          if remaining.zero?
             # Saves a useless iteration when the limit is a multiple of the
             # batch size.
             break

@@ -55,7 +55,7 @@ module Arel # :nodoc: all
           unless o.columns.empty?
             collector << " ("
             o.columns.each_with_index do |x, i|
-              collector << ", " unless i == 0
+              collector << ", " unless i.zero?
               collector << quote_column_name(x.name)
             end
             collector << ")"
@@ -98,10 +98,10 @@ module Arel # :nodoc: all
           collector << "VALUES "
 
           o.rows.each_with_index do |row, i|
-            collector << ", " unless i == 0
+            collector << ", " unless i.zero?
             collector << "("
             row.each_with_index do |value, k|
-              collector << ", " unless k == 0
+              collector << ", " unless k.zero?
               case value
               when Nodes::SqlLiteral, Nodes::BindParam
                 collector = visit(value, collector)
@@ -127,7 +127,7 @@ module Arel # :nodoc: all
           unless o.orders.empty?
             collector << " ORDER BY "
             o.orders.each_with_index do |x, i|
-              collector << ", " unless i == 0
+              collector << ", " unless i.zero?
               collector = visit(x, collector)
             end
           end
@@ -775,7 +775,7 @@ module Arel # :nodoc: all
 
         def inject_join(list, collector, join_str)
           list.each_with_index do |x, i|
-            collector << join_str unless i == 0
+            collector << join_str unless i.zero?
             collector = visit(x, collector)
           end
           collector
@@ -876,7 +876,7 @@ module Arel # :nodoc: all
 
         def collect_ctes(children, collector)
           children.each_with_index do |child, i|
-            collector << ", " unless i == 0
+            collector << ", " unless i.zero?
 
             case child
             when Arel::Nodes::As

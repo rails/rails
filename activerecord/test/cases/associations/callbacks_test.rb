@@ -172,7 +172,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
   def test_has_and_belongs_to_many_does_not_fire_callbacks_on_clear
     activerecord = projects(:active_record)
     assert_empty activerecord.developers_log
-    if activerecord.developers_with_callbacks.size == 0
+    if activerecord.developers_with_callbacks.size.zero?
       activerecord.developers << developers(:david)
       activerecord.developers << developers(:jamis)
       activerecord.reload

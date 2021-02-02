@@ -312,7 +312,7 @@ module ActiveSupport
     #   zone.formatted_offset        # => "-06:00"
     #   zone.formatted_offset(false) # => "-0600"
     def formatted_offset(colon = true, alternate_utc_string = nil)
-      utc_offset == 0 && alternate_utc_string || self.class.seconds_to_utc_offset(utc_offset, colon)
+      utc_offset.zero? && alternate_utc_string || self.class.seconds_to_utc_offset(utc_offset, colon)
     end
 
     # Compare this time zone to the parameter. The two are compared first on
@@ -320,7 +320,7 @@ module ActiveSupport
     def <=>(zone)
       return unless zone.respond_to? :utc_offset
       result = (utc_offset <=> zone.utc_offset)
-      result = (name <=> zone.name) if result == 0
+      result = (name <=> zone.name) if result.zero?
       result
     end
 

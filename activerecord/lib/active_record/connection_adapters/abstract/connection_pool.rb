@@ -762,7 +762,7 @@ module ActiveRecord
           @available.with_a_bias_for(Thread.current) do
             loop do
               synchronize do
-                return if collected_conns.size == @connections.size && @now_connecting == 0
+                return if collected_conns.size == @connections.size && @now_connecting.zero?
                 remaining_timeout = timeout_time - Concurrent.monotonic_time
                 remaining_timeout = 0 if remaining_timeout < 0
                 conn = checkout_for_exclusive_access(remaining_timeout)

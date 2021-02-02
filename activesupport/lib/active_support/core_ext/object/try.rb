@@ -6,7 +6,7 @@ module ActiveSupport
   module Tryable #:nodoc:
     def try(method_name = nil, *args, &b)
       if method_name.nil? && block_given?
-        if b.arity == 0
+        if b.arity.zero?
           instance_eval(&b)
         else
           yield self
@@ -19,7 +19,7 @@ module ActiveSupport
 
     def try!(method_name = nil, *args, &b)
       if method_name.nil? && block_given?
-        if b.arity == 0
+        if b.arity.zero?
           instance_eval(&b)
         else
           yield self

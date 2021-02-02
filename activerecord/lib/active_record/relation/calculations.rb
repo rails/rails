@@ -289,7 +289,7 @@ module ActiveRecord
       def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
         if operation == "count" && (column_name == :all && distinct || has_limit_or_offset?)
           # Shortcut when limit is zero.
-          return 0 if limit_value == 0
+          return 0 if limit_value.zero?
 
           query_builder = build_count_subquery(spawn, column_name, distinct)
         else

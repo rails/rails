@@ -40,7 +40,7 @@ module SneakersJobsManager
     end
     begin
       Timeout.timeout(10) do
-        while bunny_queue.status[:consumer_count] == 0
+        while bunny_queue.status[:consumer_count].zero?
           sleep 0.5
         end
       end

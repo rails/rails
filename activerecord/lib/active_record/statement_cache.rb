@@ -83,7 +83,7 @@ module ActiveRecord
       def add_binds(binds)
         @binds.concat binds
         binds.size.times do |i|
-          @parts << ", " unless i == 0
+          @parts << ", " unless i.zero?
           @parts << Substitute.new
         end
         self

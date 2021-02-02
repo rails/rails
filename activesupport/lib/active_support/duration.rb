@@ -194,7 +194,7 @@ module ActiveSupport
             parts[part] = remainder.div(part_in_seconds)
             remainder %= part_in_seconds
           end
-        end unless value == 0
+        end unless value.zero?
 
         parts[:seconds] = remainder
 
@@ -211,7 +211,7 @@ module ActiveSupport
 
     def initialize(value, parts) #:nodoc:
       @value, @parts = value, parts
-      @parts.reject! { |k, v| v.zero? } unless value == 0
+      @parts.reject! { |k, v| v.zero? } unless value.zero?
     end
 
     def coerce(other) #:nodoc:

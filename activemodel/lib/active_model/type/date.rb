@@ -38,7 +38,7 @@ module ActiveModel
         end
 
         def new_date(year, mon, mday)
-          unless year.nil? || (year == 0 && mon == 0 && mday == 0)
+          unless year.nil? || (year.zero? && mon.zero? && mday.zero?)
             ::Date.new(year, mon, mday) rescue nil
           end
         end

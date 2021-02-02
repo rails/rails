@@ -50,7 +50,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.build_scope(scope)
-      if scope && scope.arity == 0
+      if scope && scope.arity.zero?
         proc { instance_exec(&scope) }
       else
         scope
