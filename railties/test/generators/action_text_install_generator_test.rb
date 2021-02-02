@@ -73,6 +73,17 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/create_action_text_tables.action_text.rb"
   end
 
+  test "#yarn_command runs bin/yarn via Ruby" do
+    ran = nil
+    run_stub = -> (command, *) { ran = command }
+
+    generator.stub(:run, run_stub) do
+      generator.send(:yarn_command, "foo")
+    end
+
+    assert_match %r"\S bin/yarn foo$", ran
+  end
+
   private
     def run_generator_instance
       @yarn_commands = []

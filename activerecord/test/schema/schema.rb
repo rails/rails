@@ -169,7 +169,7 @@ ActiveRecord::Schema.define do
     t.integer :categorizations_count
   end
 
-  create_table :categories_posts, force: true, id: false do |t|
+  create_table :categories_posts, force: true do |t|
     t.integer :category_id, null: false
     t.integer :post_id, null: false
   end
@@ -265,6 +265,7 @@ ActiveRecord::Schema.define do
     t.string :system
     t.integer :developer, null: false
     t.integer :extendedWarranty, null: false
+    t.integer :timezone
   end
 
   create_table :computers_developers, id: false, force: true do |t|
@@ -407,6 +408,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :essays, force: true do |t|
+    t.string :type
     t.string :name
     t.string :writer_id
     t.string :writer_type

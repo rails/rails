@@ -24,6 +24,13 @@ class StrictLoadingTest < ActiveRecord::TestCase
     assert_raises ActiveRecord::StrictLoadingViolationError do
       developer.audit_logs.to_a
     end
+
+    developer.strict_loading!(false)
+    assert_not_predicate developer, :strict_loading?
+
+    assert_nothing_raised do
+      developer.audit_logs.to_a
+    end
   end
 
   def test_strict_loading
@@ -147,6 +154,10 @@ class StrictLoadingTest < ActiveRecord::TestCase
     dev = Developer.eager_load(:strict_loading_audit_logs).first
 
     assert dev.strict_loading_audit_logs.all?(&:strict_loading?), "Expected all audit logs to be strict_loading"
+
+    dev = Developer.eager_load(:strict_loading_audit_logs).strict_loading(false).first
+
+    assert dev.audit_logs.none?(&:strict_loading?), "Expected no audit logs to be strict_loading"
   end
 
   def test_eager_load_audit_logs_are_strict_loading_because_parent_is_strict_loading
@@ -160,6 +171,11 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
     assert_predicate dev, :strict_loading?
     assert dev.audit_logs.all?(&:strict_loading?), "Expected all audit logs to be strict_loading"
+
+    dev = Developer.eager_load(:audit_logs).strict_loading(false).first
+
+    assert_not_predicate dev, :strict_loading?
+    assert dev.audit_logs.none?(&:strict_loading?), "Expected no audit logs to be strict_loading"
   end
 
   def test_eager_load_audit_logs_are_strict_loading_because_it_is_strict_loading_by_default
@@ -407,7 +423,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
     developer.strict_loading!
     assert_predicate developer, :strict_loading?
 
-    assert_logged("Strict loading violation: AuditLog lazily loaded on Developer.") do
+    assert_logged("Strict loading violation: Developer is marked for strict loading. The AuditLog association named :audit_logs cannot be lazily loaded.") do
       developer.audit_logs.to_a
     end
   ensure

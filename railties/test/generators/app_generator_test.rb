@@ -118,7 +118,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_assets
     run_generator
 
-    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', media: 'all', 'data-turbolinks-track': 'reload'/)
+    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', 'data-turbolinks-track': 'reload'/)
     assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+'application', 'data-turbolinks-track': 'reload'/)
     assert_file("app/assets/stylesheets/application.css")
     assert_file("app/javascript/packs/application.js")
@@ -667,7 +667,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/javascript"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_match(/stylesheet_link_tag\s+'application', media: 'all' %>/, contents)
+      assert_match(/stylesheet_link_tag\s+'application' %>/, contents)
       assert_no_match(/javascript_pack_tag\s+'application'/, contents)
     end
   end
@@ -729,6 +729,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
+  end
+
+  def test_argv_is_populated_for_template
+    FileUtils.cd(Rails.root)
+    argv = [destination_root, "-m", "lib/template.rb"]
+
+    assert_match %r/With ARGV! #{Regexp.escape argv.join(" ")}/, run_generator(argv)
   end
 
   def test_usage_read_from_file
@@ -802,8 +809,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_web_console_with_master_option
-    run_generator [destination_root, "--master"]
+  def test_web_console_with_main_option
+    run_generator [destination_root, "--main"]
 
     assert_file "Gemfile" do |content|
       assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
@@ -850,15 +857,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     assert_equal 1, @bundle_commands.count("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
   end
 
   def test_master_option
-    generator([destination_root], master: true, skip_webpack_install: true)
+    run_generator [destination_root, "--master"]
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
+  end
+
+  def test_main_option
+    generator([destination_root], main: true, skip_webpack_install: true)
     run_generator_instance
 
     assert_equal 1, @bundle_commands.count("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']master["']$}
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
   end
 
   def test_spring

@@ -1256,6 +1256,25 @@ module ActiveRecord
         columns
       end
 
+      def distinct_relation_for_primary_key(relation) # :nodoc:
+        values = columns_for_distinct(
+          visitor.compile(relation.table[relation.primary_key]),
+          relation.order_values
+        )
+
+        limited = relation.reselect(values).distinct!
+        limited_ids = select_rows(limited.arel, "SQL").map(&:last)
+
+        if limited_ids.empty?
+          relation.none!
+        else
+          relation.where!(relation.primary_key => limited_ids)
+        end
+
+        relation.limit_value = relation.offset_value = nil
+        relation
+      end
+
       # Adds timestamps (+created_at+ and +updated_at+) columns to +table_name+.
       # Additional options (like +:null+) are forwarded to #add_column.
       #

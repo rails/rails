@@ -468,7 +468,7 @@ module ApplicationTests
     test "filter_parameters should be able to set via config.filter_parameters" do
       add_to_config <<-RUBY
         config.filter_parameters += [ :foo, 'bar', lambda { |key, value|
-          value = value.reverse if /baz/.match?(key)
+          value.reverse! if /baz/.match?(key)
         }]
       RUBY
 
@@ -2257,18 +2257,18 @@ module ApplicationTests
       assert_equal true, ActiveSupport::MessageEncryptor.use_authenticated_message_encryption
     end
 
-    test "ActiveSupport::Digest.hash_digest_class is Digest::SHA1 by default for new apps" do
+    test "ActiveSupport::Digest.hash_digest_class is OpenSSL::Digest::SHA256 by default for new apps" do
       app "development"
 
-      assert_equal Digest::SHA1, ActiveSupport::Digest.hash_digest_class
+      assert_equal OpenSSL::Digest::SHA256, ActiveSupport::Digest.hash_digest_class
     end
 
-    test "ActiveSupport::Digest.hash_digest_class is Digest::MD5 by default for upgraded apps" do
+    test "ActiveSupport::Digest.hash_digest_class is OpenSSL::Digest::MD5 by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app "development"
 
-      assert_equal Digest::MD5, ActiveSupport::Digest.hash_digest_class
+      assert_equal OpenSSL::Digest::MD5, ActiveSupport::Digest.hash_digest_class
     end
 
     test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.use_sha1_digests" do
@@ -2280,19 +2280,45 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal Digest::SHA1, ActiveSupport::Digest.hash_digest_class
+      assert_equal OpenSSL::Digest::SHA1, ActiveSupport::Digest.hash_digest_class
     end
 
     test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.hash_digest_class" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app_file "config/initializers/custom_digest_class.rb", <<-RUBY
-        Rails.application.config.active_support.hash_digest_class = Digest::SHA256
+        Rails.application.config.active_support.hash_digest_class = OpenSSL::Digest::SHA256
       RUBY
 
       app "development"
 
-      assert_equal Digest::SHA256, ActiveSupport::Digest.hash_digest_class
+      assert_equal OpenSSL::Digest::SHA256, ActiveSupport::Digest.hash_digest_class
+    end
+
+    test "ActiveSupport::KeyGenerator.hash_digest_class is OpenSSL::Digest::SHA256 by default for new apps" do
+      app "development"
+
+      assert_equal OpenSSL::Digest::SHA256, ActiveSupport::KeyGenerator.hash_digest_class
+    end
+
+    test "ActiveSupport::KeyGenerator.hash_digest_class is OpenSSL::Digest::SHA1 by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal OpenSSL::Digest::SHA1, ActiveSupport::KeyGenerator.hash_digest_class
+    end
+
+    test "ActiveSupport::KeyGenerator.hash_digest_class can be configured via config.active_support.key_generator_hash_digest_class" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/custom_key_generator_digest_class.rb", <<-RUBY
+        Rails.application.config.active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
+      RUBY
+
+      app "development"
+
+      assert_equal OpenSSL::Digest::SHA256, ActiveSupport::KeyGenerator.hash_digest_class
     end
 
     test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
@@ -2345,6 +2371,31 @@ module ApplicationTests
       assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
     end
 
+    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag is true by default" do
+      app "development"
+      assert_equal true, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+    end
+
+    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+      app "development"
+
+      assert_equal false, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+    end
+
+    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag can be configured via config.action_view.button_to_generates_button_tag" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
+        Rails.application.config.action_view.button_to_generates_button_tag = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+    end
+
     test "ActionView::Helpers::AssetTagHelper.image_loading is nil by default" do
       app "development"
       assert_nil ActionView::Helpers::AssetTagHelper.image_loading
@@ -2384,6 +2435,14 @@ module ApplicationTests
       assert_equal true, ActionView::Helpers::AssetTagHelper.preload_links_header
     end
 
+    test "ActionView::Helpers::AssetTagHelper.preload_links_header is nil by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.0"'
+      app "development"
+
+      assert_nil ActionView::Helpers::AssetTagHelper.preload_links_header
+    end
+
     test "ActionView::Helpers::AssetTagHelper.preload_links_header can be configured via config.action_view.preload_links_header" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
@@ -2394,6 +2453,25 @@ module ApplicationTests
       app "development"
 
       assert_equal false, ActionView::Helpers::AssetTagHelper.preload_links_header
+    end
+
+    test "ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default is true by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      app "development"
+
+      assert_equal true, ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default
+    end
+
+    test "ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default can be configured via config.action_view.apply_stylesheet_media_default" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
+        Rails.application.config.action_view.apply_stylesheet_media_default = false
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default
     end
 
     test "stylesheet_link_tag sets the Link header by default" do
@@ -2414,7 +2492,7 @@ module ApplicationTests
       app "development"
 
       get "/"
-      assert_match %r[<link rel="stylesheet" media="screen" href="/application.css" />], last_response.body
+      assert_match %r[<link rel="stylesheet" href="/application.css" />], last_response.body
       assert_equal "</application.css>; rel=preload; as=style; nopush", last_response.headers["Link"]
     end
 
@@ -2440,7 +2518,7 @@ module ApplicationTests
       app "development"
 
       get "/"
-      assert_match %r[<link rel="stylesheet" media="screen" href="/application.css" />], last_response.body
+      assert_match %r[<link rel="stylesheet" href="/application.css" />], last_response.body
       assert_nil last_response.headers["Link"]
     end
 
@@ -2906,6 +2984,33 @@ module ApplicationTests
       app "development"
 
       assert_nil Rails.application.config.active_record.legacy_connection_handling
+    end
+
+    test "ActionDispatch::Request.return_only_media_type_on_content_type is false by default" do
+      app "development"
+
+      assert_equal false, ActionDispatch::Request.return_only_media_type_on_content_type
+    end
+
+    test "ActionDispatch::Request.return_only_media_type_on_content_type is true in the 6.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "development"
+
+      assert_equal true, ActionDispatch::Request.return_only_media_type_on_content_type
+    end
+
+    test "ActionDispatch::Request.return_only_media_type_on_content_type can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
+        Rails.application.config.action_dispatch.return_only_request_media_type_on_content_type = false
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActionDispatch::Request.return_only_media_type_on_content_type
     end
 
     private

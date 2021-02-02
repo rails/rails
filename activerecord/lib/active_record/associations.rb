@@ -1439,7 +1439,8 @@ module ActiveRecord
         #   Useful for defining methods on associations, especially when they should be shared between multiple
         #   association objects.
         # [:strict_loading]
-        #   Enforces strict loading every time the associated record is loaded through this association.
+        #   When set to +true+, enforces strict loading every time the associated record is loaded through this
+        #   association.
         # [:ensuring_owner_was]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.

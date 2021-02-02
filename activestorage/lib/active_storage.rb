@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2017-2020 David Heinemeier Hansson, Basecamp
+# Copyright (c) 2017-2021 David Heinemeier Hansson, Basecamp
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -37,6 +37,7 @@ module ActiveStorage
   extend ActiveSupport::Autoload
 
   autoload :Attached
+  autoload :FixtureSet
   autoload :Service
   autoload :Previewer
   autoload :Analyzer

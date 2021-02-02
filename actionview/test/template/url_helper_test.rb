@@ -582,6 +582,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_not current_page?(:back, check_parameters: false)
   end
 
+  def test_current_page_when_options_given_as_keyword_arguments
+    @request = request_for_url("/")
+
+    assert current_page?(**url_hash)
+  end
+
   def test_current_page_with_params_that_match
     @request = request_for_url("/?order=desc&page=1")
 

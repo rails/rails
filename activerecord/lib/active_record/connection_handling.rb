@@ -91,6 +91,7 @@ module ActiveRecord
         db_config, owner_name = resolve_config_for_connection(database_key)
         handler = lookup_connection_handler(role.to_sym)
 
+        self.connection_class = true
         connections << handler.establish_connection(db_config, owner_name: owner_name, role: role)
       end
 
@@ -99,6 +100,7 @@ module ActiveRecord
           db_config, owner_name = resolve_config_for_connection(database_key)
           handler = lookup_connection_handler(role.to_sym)
 
+          self.connection_class = true
           connections << handler.establish_connection(db_config, owner_name: owner_name, role: role, shard: shard.to_sym)
         end
       end
@@ -140,6 +142,10 @@ module ActiveRecord
       else
         if self != Base && !abstract_class
           raise NotImplementedError, "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes."
+        end
+
+        if name != connection_specification_name && !primary_class?
+          raise NotImplementedError, "calling `connected_to` is only allowed on the abstract class that established the connection."
         end
       end
 
@@ -341,7 +347,7 @@ module ActiveRecord
         self.connection_specification_name = owner_name
 
         db_config = Base.configurations.resolve(config_or_env)
-        [db_config, owner_name]
+        [db_config, self]
       end
 
       def with_handler(handler_key, &blk)

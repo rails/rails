@@ -751,6 +751,11 @@ module ActiveRecord
           wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
           variables["wait_timeout"] = wait_timeout
 
+          # Set the collation of the connection character set.
+          if @config[:collation]
+            variables["collation_connection"] = @config[:collation]
+          end
+
           defaults = [":default", :default].to_set
 
           # Make MySQL reject illegal values rather than truncating or blanking them, see
@@ -770,15 +775,6 @@ module ActiveRecord
           end
           sql_mode_assignment = "@@SESSION.sql_mode = #{sql_mode}, " if sql_mode
 
-          # NAMES does not have an equals sign, see
-          # https://dev.mysql.com/doc/refman/en/set-names.html
-          # (trailing comma because variable_assignments will always have content)
-          if @config[:encoding]
-            encoding = +"NAMES #{@config[:encoding]}"
-            encoding << " COLLATE #{@config[:collation]}" if @config[:collation]
-            encoding << ", "
-          end
-
           # Gather up all of the SET variables...
           variable_assignments = variables.map do |k, v|
             if defaults.include?(v)
@@ -790,7 +786,7 @@ module ActiveRecord
           end.compact.join(", ")
 
           # ...and send them all in one query
-          execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}", "SCHEMA")
+          execute("SET #{sql_mode_assignment} #{variable_assignments}", "SCHEMA")
         end
 
         def column_definitions(table_name) # :nodoc:

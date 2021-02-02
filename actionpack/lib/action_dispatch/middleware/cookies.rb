@@ -7,7 +7,7 @@ require "active_support/json"
 require "rack/utils"
 
 module ActionDispatch
-  class Request
+  module RequestCookieMethods
     def cookie_jar
       fetch_header("action_dispatch.cookies") do
         self.cookie_jar = Cookies::CookieJar.build(self, cookies)
@@ -86,6 +86,10 @@ module ActionDispatch
     end
 
     # :startdoc:
+  end
+
+  ActiveSupport.on_load(:action_dispatch_request) do
+    include RequestCookieMethods
   end
 
   # Read and write data to cookies through ActionController#cookies.

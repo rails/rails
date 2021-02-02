@@ -89,6 +89,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
 
     signed_id = @user.avatar.signed_id
     assert_equal blob, ActiveStorage::Blob.find_signed!(signed_id)
+    assert_equal blob, ActiveStorage::Blob.find_signed(signed_id)
   end
 
   test "getting a signed blob ID from an attachment with a custom purpose" do
@@ -103,7 +104,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     blob = create_blob
     @user.avatar.attach(blob)
 
-    signed_id_generated_old_way = ActiveStorage.verifier.generate(@user.avatar.id, purpose: :blob_id)
+    signed_id_generated_old_way = ActiveStorage.verifier.generate(@user.avatar.blob.id, purpose: :blob_id)
     assert_equal blob, ActiveStorage::Blob.find_signed!(signed_id_generated_old_way)
   end
 

@@ -654,6 +654,10 @@ Defaults to `'signed cookie'`.
 
     Any exceptions that are not configured will be mapped to 500 Internal Server Error.
 
+* `config.action_dispatch.return_only_request_media_type_on_content_type` change the
+  return value of `ActionDispatch::Request#content_type` to the Content-Type
+  header without modification.
+
 * `config.action_dispatch.cookies_same_site_protection` configures the default
   value of the `SameSite` attribute when setting cookies. When set to `nil`, the
   `SameSite` attribute is not added. To allow the value of the `SameSite` attribute
@@ -732,7 +736,11 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.annotate_rendered_view_with_filenames` determines whether to annotate rendered view with template file names. This defaults to `false`.
 
-* `config.action_view.preload_links_header` determines whether `javascript_include_tag` and `stylesheet_link_tag` will generate a `Link` header that preload assets. This defaults to `true`.
+* `config.action_view.preload_links_header` determines whether `javascript_include_tag` and `stylesheet_link_tag` will generate a `Link` header that preload assets.
+
+* `config.action_view.button_to_generates_button_tag` determines whether `button_to` will render `<button>` element, regardless of whether or not the content is passed as the first argument or as a block.
+
+* `config.action_view.apply_stylesheet_media_default` determines whether `stylesheet_link_tag` will render `screen` as the default value for the attribute `media` when it's not provided.
 
 ### Configuring Action Mailbox
 
@@ -751,9 +759,9 @@ Defaults to `'signed cookie'`.
     config.action_mailbox.incinerate_after = 14.days
     ```
 
-* `config.action_mailbox.queues.incineration` accepts a symbol indicating the Active Job queue to use for incineration jobs. When this option is `nil`, incineration jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). It defaults to `:action_mailbox_incineration`.
+* `config.action_mailbox.queues.incineration` accepts a symbol indicating the Active Job queue to use for incineration jobs. When this option is `nil`, incineration jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
-* `config.action_mailbox.queues.routing` accepts a symbol indicating the Active Job queue to use for routing jobs. When this option is `nil`, routing jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). It defaults to `:action_mailbox_routing`.
+* `config.action_mailbox.queues.routing` accepts a symbol indicating the Active Job queue to use for routing jobs. When this option is `nil`, routing jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
 ### Configuring Action Mailer
 
@@ -831,8 +839,7 @@ There are a number of settings available on `config.action_mailer`:
     config.action_mailer.show_previews = false
     ```
 
-* `config.action_mailer.deliver_later_queue_name` specifies the queue name for
-  mailers. By default this is `mailers`.
+* `config.action_mailer.deliver_later_queue_name` specifies the Active Job queue to use for delivery jobs. When this option is set to `nil`, delivery jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). Make sure that your Active Job adapter is also configured to process the specified queue, otherwise delivery jobs may be silently ignored.
 
 * `config.action_mailer.perform_caching` specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
 
@@ -853,6 +860,8 @@ There are a few configuration options available in Active Support:
 * `config.active_support.time_precision` sets the precision of JSON encoded time values. Defaults to `3`.
 
 * `config.active_support.hash_digest_class` allows configuring the digest class to use to generate non-sensitive digests, such as the ETag header.
+
+* `config.active_support.key_generator_hash_digest_class` allows configuring the digest class to use to derive secrets from the configured secret base, such as for encrypted cookies.
 
 * `config.active_support.use_authenticated_message_encryption` specifies whether to use AES-256-GCM authenticated encryption as the default cipher for encrypting messages instead of AES-256-CBC.
 
@@ -979,13 +988,13 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 * `config.active_storage.content_types_allowed_inline` accepts an array of strings indicating the content types that Active Storage allows to serve as inline. The default is `%w(image/png image/gif image/jpg image/jpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)`.
 
-* `config.active_storage.queues.analysis` accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
+* `config.active_storage.queues.analysis` accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
     ```ruby
     config.active_storage.queues.analysis = :low_priority
     ```
 
-* `config.active_storage.queues.purge` accepts a symbol indicating the Active Job queue to use for purge jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
+* `config.active_storage.queues.purge` accepts a symbol indicating the Active Job queue to use for purge jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
     ```ruby
     config.active_storage.queues.purge = :low_priority
@@ -1038,6 +1047,13 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 `config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, `6.0` also gets the new defaults from every version before it.
 
+#### For '6.2', defaults from previous versions below and:
+- `config.action_view.button_to_generates_button_tag`: `true`
+- `config.action_view.apply_stylesheet_media_default` : `false`
+- `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`
+- `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA256`
+- `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
+
 #### For '6.1', defaults from previous versions below and:
 
 - `config.active_record.has_many_inversing`: `true`
@@ -1055,6 +1071,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `true`
 - `config.action_controller.urlsafe_csrf_tokens`: `true`
 - `config.action_view.form_with_generates_remote_forms`: `false`
+- `config.action_view.preload_links_header`: `true`
 
 #### For '6.0', defaults from previous versions below and:
 
@@ -1072,7 +1089,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_record.cache_versioning`: `true`
 - `config.action_dispatch.use_authenticated_cookie_encryption`: `true`
 - `config.active_support.use_authenticated_message_encryption`: `true`
-- `config.active_support.hash_digest_class`: `::Digest::SHA1`
+- `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA1`
 - `config.action_controller.default_protect_from_forgery`: `true`
 - `config.action_view.form_with_generates_ids`: `true`
 
@@ -1096,14 +1113,22 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.action_dispatch.cookies_same_site_protection`: `nil`
 - `config.action_mailer.delivery_job`: `ActionMailer::DeliveryJob`
 - `config.action_view.form_with_generates_ids`: `false`
+- `config.action_view.preload_links_header`: `nil`
+- `config.action_view.button_to_generates_button_tag`: `false`
+- `config.action_view.apply_stylesheet_media_default` : `true`
 - `config.active_job.retry_jitter`: `0.0`
 - `config.active_job.skip_after_callbacks_if_terminated`: `false`
+- `config.action_mailbox.queues.incineration`: `:action_mailbox_incineration`
+- `config.action_mailbox.queues.routing`: `:action_mailbox_routing`
+- `config.action_mailer.deliver_later_queue_name`: `:mailers`
 - `config.active_record.collection_cache_versioning`: `false`
 - `config.active_record.cache_versioning`: `false`
 - `config.active_record.has_many_inversing`: `false`
 - `config.active_record.legacy_connection_handling`: `true`
 - `config.active_support.use_authenticated_message_encryption`: `false`
-- `config.active_support.hash_digest_class`: `::Digest::MD5`
+- `config.active_support.hash_digest_class`: `OpenSSL::Digest::MD5`
+- `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA1`
+- `config.action_dispatch.return_only_request_media_type_on_content_type`: `true`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
 
 ### Configuring a Database
@@ -1538,7 +1563,7 @@ The `initializer` method takes three arguments with the first being the name for
 
 Initializers defined using the `initializer` method will be run in the order they are defined in, with the exception of ones that use the `:before` or `:after` methods.
 
-WARNING: You may put your initializer before or after any other initializer in the chain, as long as it is logical. Say you have 4 initializers called "one" through "four" (defined in that order) and you define "four" to go _before_ "four" but _after_ "three", that just isn't logical and Rails will not be able to determine your initializer order.
+WARNING: You may put your initializer before or after any other initializer in the chain, as long as it is logical. Say you have 4 initializers called "one" through "four" (defined in that order) and you define "four" to go _before_ "two" but _after_ "three", that just isn't logical and Rails will not be able to determine your initializer order.
 
 The block argument of the `initializer` method is the instance of the application itself, and so we can access the configuration on it by using the `config` method as done in the example.
 
@@ -1576,7 +1601,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `action_view.set_configs`: Sets up Action View by using the settings in `config.action_view` by `send`'ing the method names as setters to `ActionView::Base` and passing the values through.
 
-* `action_controller.assets_config`: Initializes the `config.actions_controller.assets_dir` to the app's public directory if not explicitly configured.
+* `action_controller.assets_config`: Initializes the `config.action_controller.assets_dir` to the app's public directory if not explicitly configured.
 
 * `action_controller.set_helpers_path`: Sets Action Controller's `helpers_path` to the application's `helpers_path`.
 

@@ -20,7 +20,6 @@ require "models/developer"
 require "models/company"
 require "models/project"
 require "models/author"
-require "models/post"
 require "models/user"
 require "models/room"
 

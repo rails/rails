@@ -927,10 +927,11 @@ module ActiveRecord
   if current_adapter?(:SQLite3Adapter) && !in_memory_db?
     class DatabaseTasksMigrationTestCase < ActiveRecord::TestCase
       self.use_transactional_tests = false
+      class_attribute :folder_name, default: "valid"
 
       # Use a memory db here to avoid having to rollback at the end
       setup do
-        migrations_path = MIGRATIONS_ROOT + "/valid"
+        migrations_path = [MIGRATIONS_ROOT, folder_name].join("/")
         file = ActiveRecord::Base.connection.raw_connection.filename
         @conn = ActiveRecord::Base.establish_connection adapter: "sqlite3",
           database: ":memory:", migrations_paths: migrations_path
@@ -945,6 +946,13 @@ module ActiveRecord
         @conn.release_connection if @conn
         ActiveRecord::Base.establish_connection :arunit
       end
+
+      private
+        def capture_migration_output
+          capture(:stdout) do
+            ActiveRecord::Tasks::DatabaseTasks.migrate
+          end
+        end
     end
 
     class DatabaseTasksMigrateTest < DatabaseTasksMigrationTestCase
@@ -983,13 +991,66 @@ module ActiveRecord
       ensure
         ENV["VERBOSE"], ENV["VERSION"] = verbose, version
       end
+    end
 
-      private
-        def capture_migration_output
-          capture(:stdout) do
-            ActiveRecord::Tasks::DatabaseTasks.migrate
-          end
-        end
+    class DatabaseTasksMigrateScopeTest < DatabaseTasksMigrationTestCase
+      self.folder_name = "scope"
+
+      def test_migrate_using_scope_and_verbose_mode
+        verbose, version, scope = ENV["VERBOSE"], ENV["VERSION"], ENV["SCOPE"]
+
+        # run up migration
+        ENV["VERSION"] = "2"
+        ENV["VERBOSE"] = "true"
+        ENV["SCOPE"] = "mysql"
+
+        output = capture_migration_output
+        assert_includes output, "migrating"
+        assert_not_includes output, "No migrations ran. (using mysql scope)"
+
+        # run no migration because 2 was already run
+        output = capture_migration_output
+        assert_includes output, "No migrations ran. (using mysql scope)"
+        assert_not_includes output, "migrating"
+      ensure
+        ENV["VERBOSE"], ENV["VERSION"], ENV["SCOPE"] = verbose, version, scope
+      end
+
+      def test_migrate_using_scope_and_non_verbose_mode
+        verbose, version, scope = ENV["VERBOSE"], ENV["VERSION"], ENV["SCOPE"]
+
+        # run up migration
+        ENV["VERSION"] = "2"
+        ENV["VERBOSE"] = "false"
+        ENV["SCOPE"] = "mysql"
+
+        assert_empty capture_migration_output
+
+        # run no migration because 2 was already run
+        assert_empty capture_migration_output
+      ensure
+        ENV["VERBOSE"], ENV["VERSION"], ENV["SCOPE"] = verbose, version, scope
+      end
+
+      def test_migrate_using_empty_scope_and_verbose_mode
+        verbose, version, scope = ENV["VERBOSE"], ENV["VERSION"], ENV["SCOPE"]
+
+        # run up migration
+        ENV["VERSION"] = "2"
+        ENV["VERBOSE"] = "true"
+        ENV["SCOPE"] = ""
+
+        output = capture_migration_output
+        assert_includes output, "migrating"
+        assert_not_includes output, "No migrations ran. (using mysql scope)"
+
+        # run no migration because 1 already ran and 2 is mysql scoped
+        output = capture_migration_output
+        assert_empty output
+        assert_not_includes output, "No migrations ran. (using mysql scope)"
+      ensure
+        ENV["VERBOSE"], ENV["VERSION"], ENV["SCOPE"] = verbose, version, scope
+      end
     end
 
     class DatabaseTasksMigrateStatusTest < DatabaseTasksMigrationTestCase

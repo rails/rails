@@ -23,7 +23,8 @@ class TranslationHelperTest < ActiveSupport::TestCase
           found_yield_single_argument: { foo: "Foo" },
           found_yield_block: { foo: "Foo" },
           array: { foo: { bar: "Foo Bar" } },
-          default: { foo: "Foo" }
+          default: { foo: "Foo" },
+          partial: { foo: "Partial foo" }
         },
         foo: "Foo",
         hello: "<a>Hello World</a>",
@@ -174,6 +175,14 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_finds_translation_scoped_by_partial_yielding_single_argument_block
     assert_equal "Foo", view.render(template: "translations/templates/found_yield_single_argument").strip
+  end
+
+  def test_finds_lazy_translation_scoped_by_partial
+    assert_equal "Partial foo", view.render(template: "translations/templates/partial_lazy_translation").strip
+  end
+
+  def test_finds_lazy_translation_scoped_by_partial_with_block
+    assert_equal "Partial foo", view.render(template: "translations/templates/partial_lazy_translation_block").strip
   end
 
   def test_finds_translation_scoped_by_partial_yielding_translation_and_key

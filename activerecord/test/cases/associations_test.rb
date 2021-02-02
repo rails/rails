@@ -379,6 +379,25 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_predicate post.comments, :loaded?
     assert_equal [comments(:greetings)], post.comments
   end
+
+  def test_preload_makes_correct_number_of_queries_on_array
+    post = posts(:welcome)
+
+    assert_queries(1) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments)
+      preloader.call
+    end
+  end
+
+  def test_preload_makes_correct_number_of_queries_on_relation
+    post = posts(:welcome)
+    relation = Post.where(id: post.id)
+
+    assert_queries(2) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: relation, associations: :comments)
+      preloader.call
+    end
+  end
 end
 
 class GeneratedMethodsTest < ActiveRecord::TestCase

@@ -426,7 +426,7 @@ module ActiveRecord
         )
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
-        if eager_loading && !(
+        if eager_loading && has_limit_or_offset? && !(
             using_limitable_reflections?(join_dependency.reflections) &&
             using_limitable_reflections?(
               construct_join_dependency(
@@ -436,11 +436,9 @@ module ActiveRecord
               ).reflections
             )
         )
-          if has_limit_or_offset?
-            limited_ids = limited_ids_for(relation)
-            limited_ids.empty? ? relation.none! : relation.where!(primary_key => limited_ids)
+          relation = skip_query_cache_if_necessary do
+            klass.connection.distinct_relation_for_primary_key(relation)
           end
-          relation.limit_value = relation.offset_value = nil
         end
 
         if block_given?
@@ -448,18 +446,6 @@ module ActiveRecord
         else
           relation
         end
-      end
-
-      def limited_ids_for(relation)
-        values = @klass.connection.columns_for_distinct(
-          connection.visitor.compile(table[primary_key]),
-          relation.order_values
-        )
-
-        relation = relation.except(:select).select(values).distinct!
-
-        id_rows = skip_query_cache_if_necessary { @klass.connection.select_rows(relation.arel, "SQL") }
-        id_rows.map(&:last)
       end
 
       def using_limitable_reflections?(reflections)

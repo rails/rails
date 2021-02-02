@@ -173,7 +173,7 @@ element that references the `User` instance's signed GlobalID:
 <p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"></action-text-content>.</p>
 ```
 
-Aciton Text resolves uses the "BAh7CEkiCG…" String to resolve the `User`
+Action Text resolves uses the "BAh7CEkiCG…" String to resolve the `User`
 instance. Next, consider the application's `users/user` partial:
 
 ```html+erb
@@ -181,7 +181,7 @@ instance. Next, consider the application's `users/user` partial:
 <span><%= image_tag user.avatar %> <%= user.name %></span>
 ```
 
-The resulting HTML rendered by Aciton Text would look something like:
+The resulting HTML rendered by Action Text would look something like:
 
 ```html
 <p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"><span><img src="..."> Jane Doe</span></action-text-content>.</p>
@@ -205,7 +205,7 @@ partial-local variable:
 <span><%= image_tag user.avatar %> <%= user.name %></span>
 ```
 
-To integrate with Aciton Text `<action-text-attachment>` element rendering, a
+To integrate with Action Text `<action-text-attachment>` element rendering, a
 class must:
 
 * include the `ActionText::Attachable` module

@@ -3,6 +3,7 @@
 class Post < ActiveRecord::Base
   class CategoryPost < ActiveRecord::Base
     self.table_name = "categories_posts"
+    belongs_to :group, foreign_key: :category_id, class_name: "Category"
     belongs_to :category
     belongs_to :post
   end

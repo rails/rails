@@ -98,12 +98,12 @@ module ActiveRecord
       end
 
       def call
-        return [] if records.empty? || associations.nil?
+        return [] if associations.nil? || records.length == 0
 
         build_preloaders
       end
 
-      def preload(records, associations, preload_scope)
+      def preload(records, associations, preload_scope = nil)
         ActiveSupport::Deprecation.warn("`preload` is deprecated and will be removed in Rails 7.0. Call `Preloader.new(kwargs).call` instead.")
 
         Preloader.new(records: records, associations: associations, scope: preload_scope).call

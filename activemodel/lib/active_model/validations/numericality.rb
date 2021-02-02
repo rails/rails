@@ -7,7 +7,7 @@ module ActiveModel
     class NumericalityValidator < EachValidator # :nodoc:
       CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,
                  equal_to: :==, less_than: :<, less_than_or_equal_to: :<=,
-                 odd: :odd?, even: :even?, other_than: :!= }.freeze
+                 odd: :odd?, even: :even?, other_than: :!=, in: :in? }.freeze
 
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
@@ -16,10 +16,15 @@ module ActiveModel
       HEXADECIMAL_REGEX = /\A[+-]?0[xX]/
 
       def check_validity!
-        keys = CHECKS.keys - [:odd, :even]
+        keys = CHECKS.keys - [:odd, :even, :in]
         options.slice(*keys).each do |option, value|
           unless value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
             raise ArgumentError, ":#{option} must be a number, a symbol or a proc"
+          end
+        end
+        options.slice(:in).each do |option, value|
+          unless value.is_a?(Range)
+            raise ArgumentError, ":#{option} must be a range"
           end
         end
       end
@@ -51,7 +56,7 @@ module ActiveModel
               option_value = record.send(option_value)
             end
 
-            option_value = parse_as_number(option_value, precision, scale)
+            option_value = parse_as_number(option_value, precision, scale, option)
 
             unless value.public_send(CHECKS[option], option_value)
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
@@ -61,9 +66,13 @@ module ActiveModel
       end
 
     private
-      def parse_as_number(raw_value, precision, scale)
-        if raw_value.is_a?(Float)
+      def parse_as_number(raw_value, precision, scale, option = nil)
+        if option == :in
+          raw_value if raw_value.is_a?(Range)
+        elsif raw_value.is_a?(Float)
           parse_float(raw_value, precision, scale)
+        elsif raw_value.is_a?(BigDecimal)
+          round(raw_value, scale)
         elsif raw_value.is_a?(Numeric)
           raw_value
         elsif is_integer?(raw_value)
@@ -74,7 +83,11 @@ module ActiveModel
       end
 
       def parse_float(raw_value, precision, scale)
-        (scale ? raw_value.truncate(scale) : raw_value).to_d(precision)
+        round(raw_value, scale).to_d(precision)
+      end
+
+      def round(raw_value, scale)
+        scale ? raw_value.round(scale) : raw_value
       end
 
       def is_number?(raw_value, precision, scale)

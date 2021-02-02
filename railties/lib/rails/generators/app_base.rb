@@ -97,8 +97,8 @@ module Rails
         class_option :edge,                type: :boolean, default: false,
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository"
 
-        class_option :master,              type: :boolean, default: false,
-                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository master branch"
+        class_option :main,                type: :boolean, default: false, aliases: "--master",
+                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository main branch"
 
         class_option :rc,                  type: :string, default: nil,
                                            desc: "Path to file containing extra configuration options for rails command"
@@ -110,8 +110,9 @@ module Rails
                                            desc: "Show this help message and quit"
       end
 
-      def initialize(*args)
-        @gem_filter    = lambda { |gem| true }
+      def initialize(positional_argv, option_argv, *)
+        @argv = [*positional_argv, *option_argv]
+        @gem_filter = lambda { |gem| true }
         super
       end
 
@@ -148,9 +149,14 @@ module Rails
       end
 
       def apply_rails_template # :doc:
+        original_argv = ARGV.dup
+        ARGV.replace(@argv)
+
         apply rails_template if rails_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
+      ensure
+        ARGV.replace(original_argv)
       end
 
       def set_default_accessors! # :doc:
@@ -271,16 +277,16 @@ module Rails
           ]
         elsif options.edge?
           [
-            GemfileEntry.github("rails", "rails/rails")
+            GemfileEntry.github("rails", "rails/rails", "main")
           ]
-        elsif options.master?
+        elsif options.main?
           [
-            GemfileEntry.github("rails", "rails/rails", "master")
+            GemfileEntry.github("rails", "rails/rails", "main")
           ]
         else
           [GemfileEntry.version("rails",
                             rails_version_specifier,
-                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'")]
+                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'")]
         end
       end
 

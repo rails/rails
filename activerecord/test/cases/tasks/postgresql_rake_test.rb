@@ -387,6 +387,26 @@ if current_adapter?(:PostgreSQLAdapter)
         end
       end
 
+      def test_structure_dump_with_hash_extra_flags_for_a_different_driver
+        expected_command = ["pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "my-app-db"]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_dump_flags({ mysql2: ["--noop"] }) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
+        end
+      end
+
+      def test_structure_dump_with_hash_extra_flags_for_the_correct_driver
+        expected_command = ["pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "--noop", "my-app-db"]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_dump_flags({ postgresql: ["--noop"] }) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
+        end
+      end
+
       def test_structure_dump_with_ignore_tables
         assert_called(
           ActiveRecord::SchemaDumper,
@@ -504,6 +524,28 @@ if current_adapter?(:PostgreSQLAdapter)
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           with_structure_load_flags(["--noop"]) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+          end
+        end
+      end
+
+      def test_structure_load_with_hash_extra_flags_for_a_different_driver
+        filename = "awesome-file.sql"
+        expected_command = ["psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--file", filename, @configuration["database"]]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_load_flags({ mysql2: ["--noop"] }) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+          end
+        end
+      end
+
+      def test_structure_load_with_hash_extra_flags_for_the_correct_driver
+        filename = "awesome-file.sql"
+        expected_command = ["psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--file", filename, "--noop", @configuration["database"]]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_load_flags({ postgresql: ["--noop"] }) do
             ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
           end
         end

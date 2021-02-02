@@ -69,12 +69,14 @@ module ActiveSupport
     def camelize(term, uppercase_first_letter = true)
       string = term.to_s
       if uppercase_first_letter
-        string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize }
+        string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize! || match }
       else
-        string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase }
+        string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase! || match }
       end
-      string.gsub!(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{inflections.acronyms[$2] || $2.capitalize}" }
-      string.gsub!("/", "::")
+      string.gsub!(/(?:_|(\/))([a-z\d]*)/i) do
+        substituted = inflections.acronyms[$2] || $2.capitalize! || $2
+        $1 ? "::#{substituted}" : substituted
+      end
       string
     end
 

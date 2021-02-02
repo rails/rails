@@ -45,7 +45,7 @@ module ActiveJob
       deserialize_arguments_if_needed
 
       _perform_job
-    rescue => exception
+    rescue Exception => exception
       rescue_with_handler(exception) || raise
     end
 

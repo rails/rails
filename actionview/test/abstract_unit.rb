@@ -59,6 +59,8 @@ module RenderERBUtils
   end
 
   def render_erb(string)
+    @virtual_path = nil
+
     template = ActionView::Template.new(
       string.strip,
       "test template",
@@ -177,7 +179,11 @@ module ActionDispatch
 end
 
 class ActiveSupport::TestCase
-  parallelize
+  if Process.respond_to?(:fork) && !Gem.win_platform?
+    parallelize
+  else
+    parallelize(with: :threads)
+  end
 
   include ActiveSupport::Testing::MethodCallAssertions
 

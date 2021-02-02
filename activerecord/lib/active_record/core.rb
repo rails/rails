@@ -196,7 +196,7 @@ module ActiveRecord
         else
           connected_to_stack.reverse_each do |hash|
             return hash[:role] if hash[:role] && hash[:klasses].include?(Base)
-            return hash[:role] if hash[:role] && hash[:klasses].include?(abstract_base_class)
+            return hash[:role] if hash[:role] && hash[:klasses].include?(connection_classes)
           end
 
           default_role
@@ -215,7 +215,7 @@ module ActiveRecord
       def self.current_shard
         connected_to_stack.reverse_each do |hash|
           return hash[:shard] if hash[:shard] && hash[:klasses].include?(Base)
-          return hash[:shard] if hash[:shard] && hash[:klasses].include?(abstract_base_class)
+          return hash[:shard] if hash[:shard] && hash[:klasses].include?(connection_classes)
         end
 
         default_shard
@@ -237,7 +237,7 @@ module ActiveRecord
         else
           connected_to_stack.reverse_each do |hash|
             return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
-            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(abstract_base_class)
+            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(connection_classes)
           end
 
           false
@@ -254,11 +254,23 @@ module ActiveRecord
         end
       end
 
-      def self.abstract_base_class # :nodoc:
+      def self.connection_class=(b) # :nodoc:
+        @connection_class = b
+      end
+
+      def self.connection_class # :nodoc
+        @connection_class ||= false
+      end
+
+      def self.connection_class? # :nodoc:
+        self.connection_class
+      end
+
+      def self.connection_classes # :nodoc:
         klass = self
 
         until klass == Base
-          break if klass.abstract_class?
+          break if klass.connection_class?
           klass = klass.superclass
         end
 
@@ -277,14 +289,14 @@ module ActiveRecord
       self.default_role = writing_role
       self.default_shard = :default
 
-      def self.strict_loading_violation!(owner:, association:) # :nodoc:
+      def self.strict_loading_violation!(owner:, reflection:) # :nodoc:
         case action_on_strict_loading_violation
         when :raise
-          message = "`#{association}` called on `#{owner}` is marked for strict_loading and cannot be lazily loaded."
+          message = "`#{owner}` is marked for strict_loading. The `#{reflection.klass}` association named `:#{reflection.name}` cannot be lazily loaded."
           raise ActiveRecord::StrictLoadingViolationError.new(message)
         when :log
           name = "strict_loading_violation.active_record"
-          ActiveSupport::Notifications.instrument(name, owner: owner, association: association)
+          ActiveSupport::Notifications.instrument(name, owner: owner, reflection: reflection)
         end
       end
     end
@@ -332,31 +344,37 @@ module ActiveRecord
         hash = args.first
         return super unless Hash === hash
 
-        values = hash.values.map! { |value| value.respond_to?(:id) ? value.id : value }
-        return super if values.any? { |v| StatementCache.unsupported_value?(v) }
+        hash = hash.each_with_object({}) do |(key, value), h|
+          key = key.to_s
+          key = attribute_aliases[key] || key
 
-        keys = hash.keys.map! do |key|
-          attribute_aliases[name = key.to_s] || begin
-            reflection = _reflect_on_association(name)
-            if reflection&.belongs_to? && !reflection.polymorphic?
-              reflection.join_foreign_key
-            elsif reflect_on_aggregation(name)
-              return super
-            else
-              name
-            end
+          return super if reflect_on_aggregation(key)
+
+          reflection = _reflect_on_association(key)
+
+          if !reflection
+            value = value.id if value.respond_to?(:id)
+          elsif reflection.belongs_to? && !reflection.polymorphic?
+            key = reflection.join_foreign_key
+            pkey = reflection.join_primary_key
+            value = value.public_send(pkey) if value.respond_to?(pkey)
           end
+
+          if !columns_hash.key?(key) || StatementCache.unsupported_value?(value)
+            return super
+          end
+
+          h[key] = value
         end
 
-        return super unless keys.all? { |k| columns_hash.key?(k) }
-
+        keys = hash.keys
         statement = cached_find_by_statement(keys) { |params|
           wheres = keys.index_with { params.bind }
           where(wheres).limit(1)
         }
 
         begin
-          statement.execute(values, connection).first
+          statement.execute(hash.values, connection).first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
         end
@@ -414,10 +432,6 @@ module ActiveRecord
       end
 
       # Returns an instance of <tt>Arel::Table</tt> loaded with the current table name.
-      #
-      #   class Post < ActiveRecord::Base
-      #     scope :published_and_commented, -> { published.and(arel_table[:comments_count].gt(0)) }
-      #   end
       def arel_table # :nodoc:
         @arel_table ||= Arel::Table.new(table_name, klass: self)
       end
@@ -645,11 +659,19 @@ module ActiveRecord
     # if the record tries to lazily load an association.
     #
     #   user = User.first
-    #   user.strict_loading!
-    #   user.comments.to_a
+    #   user.strict_loading! # => true
+    #   user.comments
     #   => ActiveRecord::StrictLoadingViolationError
-    def strict_loading!
-      @strict_loading = true
+    #
+    # strict_loading! accepts a boolean argument to specify whether
+    # to enable or disable strict loading mode.
+    #
+    #   user = User.first
+    #   user.strict_loading!(false) # => false
+    #   user.comments
+    #   => #<ActiveRecord::Associations::CollectionProxy>
+    def strict_loading!(value = true)
+      @strict_loading = value
     end
 
     # Marks this record as read only.

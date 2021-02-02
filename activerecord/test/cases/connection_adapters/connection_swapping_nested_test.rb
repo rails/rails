@@ -35,6 +35,13 @@ module ActiveRecord
       class TertiaryModel < TertiaryBase
       end
 
+      class NonConnectionAbstractClass < SecondaryBase
+        self.abstract_class = true
+      end
+
+      class ModelInheritingFromNonConnectionAbstractClass < NonConnectionAbstractClass
+      end
+
       unless in_memory_db?
         def test_roles_can_be_swapped_granularly
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
@@ -70,8 +77,16 @@ module ActiveRecord
 
                 # Switch only secondary to writing
                 SecondaryBase.connected_to(role: :writing) do
+                  assert_equal :writing, ModelInheritingFromNonConnectionAbstractClass.current_role
                   assert_equal "primary_replica", PrimaryBase.connection_pool.db_config.name
                   assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
+                end
+
+                # Switch only secondary to reading
+                SecondaryBase.connected_to(role: :reading) do
+                  assert_equal :reading, ModelInheritingFromNonConnectionAbstractClass.current_role
+                  assert_equal "primary_replica", PrimaryBase.connection_pool.db_config.name
+                  assert_equal "secondary_replica", SecondaryBase.connection_pool.db_config.name
                 end
 
                 # Ensure restored to global reading
@@ -413,6 +428,28 @@ module ActiveRecord
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
+        end
+
+        class ApplicationRecord < ActiveRecord::Base
+          self.abstract_class = true
+        end
+
+        def test_application_record_prevent_writes_can_be_changed
+          Object.const_set(:ApplicationRecord, ApplicationRecord)
+
+          ApplicationRecord.connects_to(database: { writing: :arunit, reading: :arunit })
+
+          # Switch everything to writing
+          ActiveRecord::Base.connected_to(role: :writing) do
+            assert_not_predicate ApplicationRecord.connection, :preventing_writes?
+
+            ApplicationRecord.connected_to(role: :reading) do
+              assert_predicate ApplicationRecord.connection, :preventing_writes?
+            end
+          end
+        ensure
+          Object.send(:remove_const, :ApplicationRecord)
+          ActiveRecord::Base.establish_connection :arunit
         end
       end
     end

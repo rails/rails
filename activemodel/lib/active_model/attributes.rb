@@ -16,13 +16,14 @@ module ActiveModel
     end
 
     module ClassMethods
-      def attribute(name, type = Type.default_value, **options)
+      def attribute(name, cast_type = nil, default: NO_DEFAULT_PROVIDED, **options)
         name = name.to_s
-        if type.is_a?(Symbol)
-          type = ActiveModel::Type.lookup(type, **options.except(:default))
-        end
-        self.attribute_types = attribute_types.merge(name => type)
-        define_default_attribute(name, options.fetch(:default, NO_DEFAULT_PROVIDED), type)
+
+        cast_type = Type.lookup(cast_type, **options) if Symbol === cast_type
+        cast_type ||= attribute_types[name]
+
+        self.attribute_types = attribute_types.merge(name => cast_type)
+        define_default_attribute(name, default, cast_type)
         define_attribute_method(name)
       end
 

@@ -473,7 +473,7 @@ default it contains:
 How files are autoloaded depends on `eager_load` and `cache_classes` config settings which typically vary in development, production, and test modes:
 
 * In **development**, you want quicker startup with incremental loading of application code. So `eager_load` should be set to `false`, and Rails will autoload files as needed (see [Autoloading Algorithms](#autoloading-algorithms) below) -- and then reload them when they change (see [Constant Reloading](#constant-reloading) below).
-* In **production**, however, you want consistency and thread-safety and can live with a longer boot time. So `eager_load` is set to `true`, and then during boot (before the app is ready to receive requests) Rails loads all files in the `eager_load_paths` and then turns off auto loading (NB: autoloading may be needed during eager loading). Not autoloading after boot is a `good thing`, as autoloading can cause the app to be have thread-safety problems.
+* In **production**, however, you want consistency and thread-safety and can live with a longer boot time. So `eager_load` is set to `true`, and then during boot (before the app is ready to receive requests) Rails loads all files in the `eager_load_paths` and then turns off auto loading (NB: autoloading may be needed during eager loading). Not autoloading after boot is a `good thing`, as autoloading can cause the app to have thread-safety problems.
 * In **test**, for speed of execution (of individual tests) `eager_load` is `false`, so Rails follows development behaviour.
 
 What is described above are the defaults with a newly generated Rails app.

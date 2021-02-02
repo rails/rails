@@ -962,19 +962,64 @@ end
 
 class RequestMimeType < BaseRequestTest
   test "content type" do
-    assert_equal Mime[:html], stub_request("CONTENT_TYPE" => "text/html").content_mime_type
+    request = stub_request("CONTENT_TYPE" => "text/html")
+
+    assert_equal(Mime[:html], request.content_mime_type)
+    assert_equal("text/html", request.media_type)
+    assert_nil(request.content_charset)
+    assert_equal({}, request.media_type_params)
+    assert_equal("text/html", request.content_type)
   end
 
   test "no content type" do
-    assert_nil stub_request.content_mime_type
+    request = stub_request
+
+    assert_nil(request.content_mime_type)
+    assert_nil(request.media_type)
+    assert_nil(request.content_charset)
+    assert_equal({}, request.media_type_params)
+    assert_nil(request.content_type)
   end
 
   test "content type is XML" do
-    assert_equal Mime[:xml], stub_request("CONTENT_TYPE" => "application/xml").content_mime_type
+    request = stub_request("CONTENT_TYPE" => "application/xml")
+
+    assert_equal(Mime[:xml], request.content_mime_type)
+    assert_equal("application/xml", request.media_type)
+    assert_nil(request.content_charset)
+    assert_equal({}, request.media_type_params)
+    assert_equal("application/xml", request.content_type)
   end
 
   test "content type with charset" do
-    assert_equal Mime[:xml], stub_request("CONTENT_TYPE" => "application/xml; charset=UTF-8").content_mime_type
+    request = stub_request("CONTENT_TYPE" => "application/xml; charset=UTF-8")
+
+    assert_equal(Mime[:xml], request.content_mime_type)
+    assert_equal("application/xml", request.media_type)
+    assert_equal("UTF-8", request.content_charset)
+    assert_equal({ "charset" => "UTF-8" }, request.media_type_params)
+    assert_equal("application/xml; charset=UTF-8", request.content_type)
+  end
+
+  test "content type with the old behavior" do
+    original = ActionDispatch::Request.return_only_media_type_on_content_type
+    ActionDispatch::Request.return_only_media_type_on_content_type = true
+
+    request = stub_request("CONTENT_TYPE" => "application/xml; charset=UTF-8")
+
+    assert_equal(Mime[:xml], request.content_mime_type)
+    assert_equal("application/xml", request.media_type)
+    assert_deprecated do
+      assert_nil(request.content_charset)
+    end
+    assert_deprecated do
+      assert_equal({}, request.media_type_params)
+    end
+    assert_deprecated do
+      assert_equal("application/xml", request.content_type)
+    end
+  ensure
+    ActionDispatch::Request.return_only_media_type_on_content_type = original
   end
 
   test "user agent" do
@@ -1301,7 +1346,7 @@ class RequestFormData < BaseRequestTest
   test "no Content-Type header is provided and the request_method is POST" do
     request = stub_request("REQUEST_METHOD" => "POST")
 
-    assert_equal "", request.media_type
+    assert_nil request.media_type
     assert_equal "POST", request.request_method
     assert_not_predicate request, :form_data?
   end
