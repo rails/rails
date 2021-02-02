@@ -653,9 +653,7 @@ module ActiveRecord
             raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
           end
 
-          if without_prepared_statement?(binds)
-            result = exec_no_cache(sql, name, [])
-          elsif !prepare
+          if !prepare || without_prepared_statement?(binds)
             result = exec_no_cache(sql, name, binds)
           else
             result = exec_cache(sql, name, binds)
