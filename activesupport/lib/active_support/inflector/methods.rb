@@ -133,18 +133,22 @@ module ActiveSupport
 
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
 
-      result.sub!(/\A_+/, "")
-      unless keep_id_suffix
-        result.delete_suffix!("_id")
-      end
       result.tr!("_", " ")
+      result.lstrip!
+      unless keep_id_suffix
+        result.delete_suffix!(" id")
+      end
 
-      result.gsub!(/([a-z\d]*)/i) do |match|
-        "#{inflections.acronyms[match.downcase] || match.downcase}"
+      result.gsub!(/([a-z\d]+)/i) do |match|
+        match.downcase!
+        inflections.acronyms[match] || match
       end
 
       if capitalize
-        result.sub!(/\A\w/) { |match| match.upcase }
+        result.sub!(/\A\w/) do |match|
+          match.upcase!
+          match
+        end
       end
 
       result
