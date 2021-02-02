@@ -1,4 +1,4 @@
-*   Change the `perform` instrumentation to wrap `perform_now` instead of the `perform` method to stop logging rescuable exceptions defined with `rescue_from`.
+*   Don't log rescuable exceptions defined with `rescue_from`.
 
     *Hu Hailin*
 

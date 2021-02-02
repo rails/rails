@@ -44,24 +44,20 @@ module ActiveJob
 
       deserialize_arguments_if_needed
 
-      run_callbacks :perform do
-        perform(*arguments)
-      end
+      _perform_job
     rescue => exception
       rescue_with_handler(exception) || raise
     end
 
-    def perform_now_with_instrument
-      tag_logger(self.class.name, self.job_id) do
-        instrument :perform, &method(:perform_now_without_instrument)
-      end
-    end
-
-    alias_method :perform_now_without_instrument, :perform_now
-    alias_method :perform_now, :perform_now_with_instrument
-
     def perform(*)
       fail NotImplementedError
     end
+
+    private
+      def _perform_job
+        run_callbacks :perform do
+          perform(*arguments)
+        end
+      end
   end
 end
