@@ -376,8 +376,14 @@ ActiveRecord::Schema.define do
     t.integer :company
   end
 
+  create_table :comment_overlapping_counter_caches, force: true do |t|
+    t.integer :user_comments_count_id
+    t.integer :post_comments_count_id
+    t.references :commentable, polymorphic: true, index: false
+  end
+
   create_table :companies, force: true do |t|
-    t.string  :type
+    t.string :type
     t.references :firm, index: false
     t.string  :firm_name
     t.string  :name
@@ -981,6 +987,10 @@ ActiveRecord::Schema.define do
     t.string :author_id
   end
 
+  create_table :post_comments_counts, force: true do |t|
+    t.integer :comments_count, default: 0
+  end
+
   create_table :serialized_posts, force: true do |t|
     t.integer :author_id
     t.string :title, null: false
@@ -1417,6 +1427,10 @@ ActiveRecord::Schema.define do
     t.string :password_digest
     t.string :recovery_password_digest
     t.timestamps null: true
+  end
+
+  create_table :user_comments_counts, force: true do |t|
+    t.integer :comments_count, default: 0
   end
 
   create_table :test_with_keyword_column_name, force: true do |t|

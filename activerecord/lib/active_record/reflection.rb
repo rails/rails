@@ -275,8 +275,11 @@ module ActiveRecord
       # Hence this method.
       def inverse_which_updates_counter_cache
         unless @inverse_which_updates_counter_cache_defined
-          @inverse_which_updates_counter_cache = klass.reflect_on_all_associations(:belongs_to).find do |inverse|
-            inverse.counter_cache_column == counter_cache_column
+          if counter_cache_column
+            inverse_candidates = inverse_of ? [inverse_of] : klass.reflect_on_all_associations(:belongs_to)
+            @inverse_which_updates_counter_cache = inverse_candidates.find do |inverse|
+              inverse.counter_cache_column == counter_cache_column && (inverse.polymorphic? || inverse.klass == active_record)
+            end
           end
           @inverse_which_updates_counter_cache_defined = true
         end
