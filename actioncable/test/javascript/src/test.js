@@ -1,6 +1,7 @@
 import "./test_helpers/index"
 import "./unit/action_cable_test"
 import "./unit/connection_test"
+import "./unit/connection_monitor_test"
 import "./unit/consumer_test"
 import "./unit/subscription_test"
 import "./unit/subscriptions_test"
