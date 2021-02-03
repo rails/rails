@@ -71,6 +71,10 @@ module ActiveRecord
           end
         CODE
       end
+
+      def aliased_types(name, fallback)
+        "timestamp" == name ? :datetime : fallback
+      end
     end
 
     AddColumnDefinition = Struct.new(:column) # :nodoc:
