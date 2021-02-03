@@ -249,7 +249,9 @@ module ActiveRecord
       # Hence this method.
       def inverse_which_updates_counter_cache
         return @inverse_which_updates_counter_cache if defined?(@inverse_which_updates_counter_cache)
-        @inverse_which_updates_counter_cache = klass.reflect_on_all_associations(:belongs_to).find do |inverse|
+        inverse_candidates = inverse_of ? [inverse_of] : klass.reflect_on_all_associations(:belongs_to)
+        @inverse_which_updates_counter_cache = inverse_candidates.find do |inverse|
+          next false if inverse.klass_suppress_errors && inverse.klass_suppress_errors != active_record
           inverse.counter_cache_column == counter_cache_column
         end
       end
@@ -296,6 +298,11 @@ module ActiveRecord
       protected
         def actual_source_reflection # FIXME: this is a horrible name
           self
+        end
+
+        def klass_suppress_errors
+          klass
+        rescue NameError, ArgumentError
         end
 
       private

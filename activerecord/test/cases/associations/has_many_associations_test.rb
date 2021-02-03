@@ -41,6 +41,7 @@ require "models/subscription"
 require "models/zine"
 require "models/interest"
 require "models/human"
+require "models/comment_overlapping_counter_cache"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :comments
@@ -1359,6 +1360,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal 2, topic.replies_count
     assert_equal 2, topic.reload.replies_count
+  end
+
+  def test_counter_cache_updates_in_memory_after_create_with_overlapping_counter_cache_columns
+    user = UserCommentsCount.create!
+    post = PostCommentsCount.create!
+
+    assert_difference "user.comments_count", +1 do
+      assert_no_difference "post.comments_count" do
+        post.comments << CommentOverlappingCounterCache.create!(user_comments_count: user)
+      end
+    end
+
+    assert_difference "user.comments_count", +1 do
+      assert_no_difference "post.comments_count" do
+        user.comments << CommentOverlappingCounterCache.create!(post_comments_count: post)
+      end
+    end
   end
 
   def test_counter_cache_updates_in_memory_after_update_with_inverse_of_enabled
