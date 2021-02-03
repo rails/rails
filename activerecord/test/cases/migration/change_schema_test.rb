@@ -290,6 +290,28 @@ module ActiveRecord
         end
       end
 
+      def test_change_column_with_timestamp_type
+        connection.create_table :testings do |t|
+          t.column :foo, :datetime, null: false
+        end
+
+        connection.change_column :testings, :foo, :timestamp
+
+        column = connection.columns(:testings).find { |c| c.name == "foo" }
+
+        assert_equal :datetime, column.type
+
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_equal "timestamp without time zone", column.sql_type
+        elsif current_adapter?(:Mysql2Adapter)
+          assert_equal "timestamp", column.sql_type
+        elsif current_adapter?(:OracleAdapter)
+          assert_equal "TIMESTAMP(6)", column.sql_type
+        else
+          assert_equal connection.type_to_sql("datetime"), column.sql_type
+        end
+      end
+
       def test_change_column_quotes_column_names
         connection.create_table :testings do |t|
           t.column :select, :string
