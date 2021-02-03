@@ -378,6 +378,14 @@ module ActiveModel
     # If +type+ is a symbol, it will be translated using the appropriate
     # scope (see +generate_message+).
     #
+    #   person.errors.add(:name, :blank)
+    #   person.errors.messages
+    #   # => {:name=>["can't be blank"]}
+    #
+    #   person.errors.add(:name, :too_long, { count: 25 })
+    #   person.errors.messages
+    #   # => ["is too long (maximum is 25 characters)"]
+    #
     # If +type+ is a proc, it will be called, allowing for things like
     # <tt>Time.now</tt> to be used within an error.
     #
