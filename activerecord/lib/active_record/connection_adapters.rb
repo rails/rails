@@ -25,7 +25,7 @@ module ActiveRecord
       autoload :ReferenceDefinition
     end
 
-    autoload_at "active_record/connection_adapters/abstract/connection_pool" do
+    autoload_at "active_record/connection_adapters/abstract/connection_handler" do
       autoload :ConnectionHandler
     end
 
