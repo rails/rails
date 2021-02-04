@@ -19,9 +19,7 @@ module ActiveRecord
         end
 
         def execute(sql, name = nil) #:nodoc:
-          if preventing_writes? && write_query?(sql)
-            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
-          end
+          check_if_write_query(sql)
 
           materialize_transactions
           mark_transaction_written_if_write(sql)
@@ -34,9 +32,7 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = nil, binds = [], prepare: false)
-          if preventing_writes? && write_query?(sql)
-            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
-          end
+          check_if_write_query(sql)
 
           materialize_transactions
           mark_transaction_written_if_write(sql)
@@ -110,9 +106,7 @@ module ActiveRecord
           def execute_batch(statements, name = nil)
             sql = combine_multi_statements(statements)
 
-            if preventing_writes? && write_query?(sql)
-              raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
-            end
+            check_if_write_query(sql)
 
             materialize_transactions
             mark_transaction_written_if_write(sql)
