@@ -712,7 +712,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/models/bukkits/article.rb"
     assert_file "app/controllers/bukkits/articles_controller.rb" do |content|
-      assert_match "only: [:show, :update, :destroy]", content
+      assert_match "only: %i[ show update destroy ]", content
     end
 
     assert_no_directory "app/assets"

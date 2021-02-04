@@ -1,0 +1,20 @@
+<div id="<%%= dom_id <%= singular_table_name %> %>" class="scaffold_record">
+<% attributes.reject(&:password_digest?).each do |attribute| -%>
+  <p>
+    <strong><%= attribute.human_name %>:</strong>
+<% if attribute.attachment? -%>
+    <%%= link_to <%= singular_table_name %>.<%= attribute.column_name %>.filename, <%= singular_table_name %>.<%= attribute.column_name %> if <%= singular_table_name %>.<%= attribute.column_name %>.attached? %>
+<% elsif attribute.attachments? -%>
+    <%% <%= singular_table_name %>.<%= attribute.column_name %>.each do |<%= attribute.singular_name %>| %>
+      <div><%%= link_to <%= attribute.singular_name %>.filename, <%= attribute.singular_name %> %></div>
+    <%% end %>
+<% else -%>
+    <%%= <%= singular_table_name %>.<%= attribute.column_name %> %>
+<% end -%>
+  </p>
+
+<% end -%>
+  <p>
+    <%%= link_to "Show this <%= human_name %>", <%= singular_table_name %> %>
+  </p>
+</div>
