@@ -137,7 +137,7 @@ module ActiveRecord
       def disallow_raw_sql!(args, permit: connection.column_name_matcher) # :nodoc:
         unexpected = nil
         args.each do |arg|
-          next if arg.is_a?(Symbol) || Arel.arel_node?(arg) || permit.match?(arg.to_s)
+          next if arg.is_a?(Symbol) || Arel.arel_node?(arg) || permit.match?(arg.to_s.strip)
           (unexpected ||= []) << arg
         end
 
