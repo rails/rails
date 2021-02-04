@@ -12,7 +12,9 @@ module ActiveSupport
         helper = RoundingHelper.new(options)
         rounded_number = helper.round(number)
 
-        if precision = options[:precision]
+        if options[:precision]
+          precision = options[:precision].to_i
+
           if options[:significant] && precision > 0
             digits = helper.digit_count(rounded_number)
             precision -= digits

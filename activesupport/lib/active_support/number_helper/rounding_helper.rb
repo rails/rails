@@ -28,22 +28,22 @@ module ActiveSupport
           when Float, String
             BigDecimal(number.to_s)
           when Rational
-            BigDecimal(number, digit_count(number.to_i) + options[:precision])
+            BigDecimal(number, digit_count(number.to_i) + precision)
           else
             number.to_d
           end
         end
 
         def absolute_precision(number)
-          if significant && options[:precision] > 0
-            options[:precision] - digit_count(convert_to_decimal(number))
+          if options[:significant] && precision > 0
+            precision - digit_count(convert_to_decimal(number))
           else
-            options[:precision]
+            precision
           end
         end
 
-        def significant
-          options[:significant]
+        def precision
+          options[:precision] && options[:precision].to_i
         end
     end
   end

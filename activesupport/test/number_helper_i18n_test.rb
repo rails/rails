@@ -11,11 +11,11 @@ module ActiveSupport
     def setup
       I18n.backend.store_translations "ts",
         number: {
-        format: { precision: 3, round_mode: :half_even, delimiter: ",", separator: ".", significant: false, strip_insignificant_zeros: false },
-        currency: { format: { unit: "&$", format: "%u - %n", negative_format: "(%u - %n)", precision: 2 } },
+        format: { precision: "3", round_mode: :half_even, delimiter: ",", separator: ".", significant: false, strip_insignificant_zeros: false },
+        currency: { format: { unit: "&$", format: "%u - %n", negative_format: "(%u - %n)", precision: "2" } },
         human: {
           format: {
-            precision: 2,
+            precision: "2",
             significant: true,
             strip_insignificant_zeros: true
           },
@@ -40,7 +40,7 @@ module ActiveSupport
             }
           }
         },
-        percentage: { format: { delimiter: "", precision: 2, strip_insignificant_zeros: true } },
+        percentage: { format: { delimiter: "", precision: "2", strip_insignificant_zeros: true } },
         precision: { format: { delimiter: "", significant: true } }
       },
       custom_units_for_number_to_human: { mili: "mm", centi: "cm", deci: "dm", unit: "m", ten: "dam", hundred: "hm", thousand: "km" }
