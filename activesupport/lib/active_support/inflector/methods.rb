@@ -68,13 +68,17 @@ module ActiveSupport
     #   camelize(underscore('SSLError'))        # => "SslError"
     def camelize(term, uppercase_first_letter = true)
       string = term.to_s
-      if uppercase_first_letter
-        string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize }
+      # String#camelize takes a symbol (:upper or :lower), so here we also support :lower to keep the methods consistent.
+      if !uppercase_first_letter || uppercase_first_letter == :lower
+        string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase! || match }
       else
-        string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase }
+        string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize! || match }
       end
-      string.gsub!(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{inflections.acronyms[$2] || $2.capitalize}" }
-      string.gsub!("/", "::")
+      string.gsub!(/(?:_|(\/))([a-z\d]*)/i) do
+        word = $2
+        substituted = inflections.acronyms[word] || word.capitalize! || word
+        $1 ? "::#{substituted}" : substituted
+      end
       string
     end
 
@@ -93,8 +97,13 @@ module ActiveSupport
       return camel_cased_word unless /[A-Z-]|::/.match?(camel_cased_word)
       word = camel_cased_word.to_s.gsub("::", "/")
       word.gsub!(inflections.acronyms_underscore_regex) { "#{$1 && '_' }#{$2.downcase}" }
-      word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2')
-      word.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
+      word.gsub!(/([A-Z\d]+)([A-Z][a-z])|([a-z\d])([A-Z])/) do
+        if first_match = $1
+          first_match << "_" << $2
+        else
+          $3 << "_" << $4
+        end
+      end
       word.tr!("-", "_")
       word.downcase!
       word
@@ -131,18 +140,22 @@ module ActiveSupport
 
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
 
-      result.sub!(/\A_+/, "")
-      unless keep_id_suffix
-        result.delete_suffix!("_id")
-      end
       result.tr!("_", " ")
+      result.lstrip!
+      unless keep_id_suffix
+        result.delete_suffix!(" id")
+      end
 
-      result.gsub!(/([a-z\d]*)/i) do |match|
-        "#{inflections.acronyms[match.downcase] || match.downcase}"
+      result.gsub!(/([a-z\d]+)/i) do |match|
+        match.downcase!
+        inflections.acronyms[match] || match
       end
 
       if capitalize
-        result.sub!(/\A\w/) { |match| match.upcase }
+        result.sub!(/\A\w/) do |match|
+          match.upcase!
+          match
+        end
       end
 
       result

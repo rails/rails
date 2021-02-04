@@ -83,6 +83,7 @@ module ActiveStorage
           { dependent: dependent, service_name: service },
           self
         )
+        yield reflection if block_given?
         ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
       end
 
@@ -178,6 +179,7 @@ module ActiveStorage
           { dependent: dependent, service_name: service },
           self
         )
+        yield reflection if block_given?
         ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
       end
 

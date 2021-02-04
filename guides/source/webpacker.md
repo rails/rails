@@ -36,13 +36,13 @@ You should choose webpacker over Sprockets on a new project if you want to use N
 
 If you are familiar with Sprockets, the following guide might give you some idea of how to translate. Please note that each tool has a slightly different structure, and the concepts don't directly map onto each other.
 
-|Task              | Sprockets         | Webpacker         |
-|------------------|-------------------|-------------------|
-|Attach JavaScript |javascript_link_tag|javascript_pack_tag|
-|Attach CSS        |stylesheet_link_tag|stylesheet_pack_tag|
-|Link to an image  |image_url          |image_pack_tag     |
-|Link to an asset  |asset_url          |asset_pack_tag     |
-|Require a script  |//= require        |import or require  |
+|Task              | Sprockets            | Webpacker         |
+|------------------|----------------------|-------------------|
+|Attach JavaScript |javascript_include_tag|javascript_pack_tag|
+|Attach CSS        |stylesheet_link_tag   |stylesheet_pack_tag|
+|Link to an image  |image_url             |image_pack_tag     |
+|Link to an asset  |asset_url             |asset_pack_tag     |
+|Require a script  |//= require           |import or require  |
 
 Installing Webpacker
 --------------------
@@ -51,7 +51,7 @@ To use Webpacker, you must install the Yarn package manager, version 1.x or up, 
 
 NOTE: Webpacker depends on NPM and Yarn. NPM, the Node package manager registry, is the primary repository for publishing and downloading open-source JavaScript projects, both for Node.js and browser runtimes. It is analogous to rubygems.org for Ruby gems. Yarn is a command-line utility that enables installation and management of JavaScript dependencies, much like Bundler does for Ruby.
 
-Webpacker is installed by default in Rails 6.0 and up. In some older versions, you can install it with a new project by adding `--webpack` to the `rails new` command. In an existing project, webpacker can be added by running `bundle exec rails webpacker:install`. This installation command creates following local files:
+Webpacker is installed by default in Rails 6.0 and up. In some older versions, you can install it with a new project by adding `--webpack` to the `rails new` command. In an existing project, webpacker can be added by running `bin/rails webpacker:install`. This installation command creates following local files:
 
 |File                    |Location                |Explanation                                                                                         |
 |------------------------|------------------------|----------------------------------------------------------------------------------------------------|
@@ -72,17 +72,17 @@ These integrations typically install the set of NPM packages needed to get start
 
 INFO. It's possible to install frameworks not included in this list. These are basic integrations of popular choices.
 
-|Framework         |Install command                     |Description                                       |
-|------------------|------------------------------------|--------------------------------------------------|
-|Angular           |`rails webpacker:install:angular`   |Sets up Angular and Typescript                    |
-|CoffeeScript      |`rails webpacker:install:coffee`    |Sets up CoffeeScript                              |
-|Elm               |`rails webpacker:install:elm`       |Sets up Elm                                       |
-|ERB               |`rails webpacker:install:erb`       |Sets up ERB support on your Javascript files      |
-|React             |`rails webpacker:install:react`     |Sets up ReactJS                                   |
-|Stimulus          |`rails webpacker:install:stimulus`  |Sets up StimulusJS                                |
-|Svelte            |`rails webpacker:install:svelte`    |Sets up Svelte JS                                 |
-|TypeScript        |`rails webpacker:install:typescript`|Sets up Typescript for your project using Babel's TypeScript support|
-|Vue               |`rails webpacker:install:vue`       |Sets up VueJS                                     |
+|Framework         |Install command                         |Description                                       |
+|------------------|----------------------------------------|--------------------------------------------------|
+|Angular           |`bin/rails webpacker:install:angular`   |Sets up Angular and Typescript                    |
+|CoffeeScript      |`bin/rails webpacker:install:coffee`    |Sets up CoffeeScript                              |
+|Elm               |`bin/rails webpacker:install:elm`       |Sets up Elm                                       |
+|ERB               |`bin/rails webpacker:install:erb`       |Sets up ERB support on your Javascript files      |
+|React             |`bin/rails webpacker:install:react`     |Sets up ReactJS                                   |
+|Stimulus          |`bin/rails webpacker:install:stimulus`  |Sets up StimulusJS                                |
+|Svelte            |`bin/rails webpacker:install:svelte`    |Sets up Svelte JS                                 |
+|TypeScript        |`bin/rails webpacker:install:typescript`|Sets up Typescript for your project using Babel's TypeScript support|
+|Vue               |`bin/rails webpacker:install:vue`       |Sets up VueJS                                     |
 
 For more information about the existing integrations, see https://github.com/rails/webpacker#integrations
 
@@ -199,11 +199,11 @@ Webpacker has three environments by default `development`, `test`, and `producti
 
 Webpacker ships with two binstub files to run in development: `./bin/webpack` and `./bin/webpack-dev-server`. Both are thin wrappers around the standard `webpack.js` and `webpack-dev-server.js` executables and ensure that the right configuration files and environmental variables are loaded based on your environment.
 
-By default, Webpacker compiles automatically on demand in development when a Rails page loads. You can change this by changing to `compile: false` in the `config/webpacker.yml` file. This means that you don't have to run any separate processes. Compilation errors are logged to the standard Rails log. You can, however, run `bin/webpack` to force compilation of your packs.
+By default, Webpacker compiles automatically on demand in development when a Rails page loads. This means that you don't have to run any separate processes, and compilation errors will be logged to the standard Rails log. You can change this by changing to `compile: false` in the `config/webpacker.yml` file. Running `bin/webpack` will force compilation of your packs.
 
 If you want to use live code reloading, or you have enough JavaScript that on-demand compilation is too slow, you'll need to run `./bin/webpack-dev-server` or `ruby ./bin/webpack-dev-server`. This process will watch for changes in the `app/javascript/packs/*.js` files and automatically recompile and reload the browser to match.
 
-Windows users will need to run these commands in a terminal separate from `bundle exec rails s`.
+Windows users will need to run these commands in a terminal separate from `bundle exec rails server`.
 
 Once you start this development server, Webpacker will automatically start proxying all webpack asset requests to this server. When you stop the server, it'll revert to on-demand compilation.
 

@@ -348,6 +348,14 @@ module ActiveRecord
       assert_equal "foo", klass.new(no_type: "foo").no_type
     end
 
+    test "attributes do not require a connection is established" do
+      assert_not_called(ActiveRecord::Base, :connection) do
+        Class.new(OverloadedType) do
+          attribute :foo, :string
+        end
+      end
+    end
+
     test "unknown type error is raised" do
       assert_raise(ArgumentError) do
         OverloadedType.attribute :foo, :unknown

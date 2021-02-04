@@ -119,9 +119,15 @@ class User < ActiveRecord::Base
 
   has_one_attached :avatar
   has_one_attached :cover_photo, dependent: false, service: :local
+  has_one_attached :avatar_with_variants do |attachable|
+    attachable.variant :thumb, resize: "100x100"
+  end
 
   has_many_attached :highlights
   has_many_attached :vlogs, dependent: false, service: :local
+  has_many_attached :highlights_with_variants do |attachable|
+    attachable.variant :thumb, resize: "100x100"
+  end
 end
 
 class Group < ActiveRecord::Base

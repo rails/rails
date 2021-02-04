@@ -6,7 +6,7 @@
     <%%= csp_meta_tag %>
 
     <%- if options[:skip_javascript] -%>
-    <%%= stylesheet_link_tag "application", media: "all" %>
+    <%%= stylesheet_link_tag "application" %>
     <%- else -%>
       <%- unless options[:skip_turbolinks] -%>
     <%%= stylesheet_link_tag "application", "data-turbolinks-track": "reload" %>

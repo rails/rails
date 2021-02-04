@@ -667,7 +667,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/javascript"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_match(/stylesheet_link_tag\s+"application", media: "all" %>/, contents)
+      assert_match(/stylesheet_link_tag\s+"application" %>/, contents)
       assert_no_match(/javascript_pack_tag\s+'application'/, contents)
     end
   end

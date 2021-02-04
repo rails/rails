@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/class/subclasses"
+require "active_support/testing/assertions"
 
 module ActiveJob
   # Provides helper methods for testing Active Job

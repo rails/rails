@@ -609,4 +609,24 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
     assert_match(/Cannot configure service :unknown for User#featured_photo/, error.message)
   end
+
+  test "creating variation by variation name" do
+    @user.avatar_with_variants.attach fixture_file_upload("racecar.jpg")
+    variant = @user.avatar_with_variants.variant(:thumb).processed
+
+    image = read_image(variant)
+    assert_equal "JPEG", image.type
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
+
+  test "raises error when unknown variant name is used" do
+    @user.avatar_with_variants.attach fixture_file_upload("racecar.jpg")
+
+    error = assert_raises ArgumentError do
+      @user.avatar_with_variants.variant(:unknown).processed
+    end
+
+    assert_match(/Cannot find variant :unknown for User#avatar_with_variants/, error.message)
+  end
 end
