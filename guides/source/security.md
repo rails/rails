@@ -1151,6 +1151,13 @@ The same works with `javascript_include_tag`:
 <%= javascript_include_tag "script", nonce: true %>
 ```
 
+You can enable automatic insertion of nonces for javascript helpers:
+
+```ruby
+# config/initializers/content_security_policy.rb
+Rails.application.config.content_security_policy_report_only = true
+```
+
 Use [`csp_meta_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/CspHelper.html#method-i-csp_meta_tag)
 helper to create a meta tag "csp-nonce" with the per-session nonce value
 for allowing inline `<script>` tags.
