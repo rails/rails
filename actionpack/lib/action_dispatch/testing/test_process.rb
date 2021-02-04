@@ -25,14 +25,14 @@ module ActionDispatch
           if !self.class.file_fixture_path
             ActiveSupport::Deprecation.warn(<<~EOM)
               Passing a path to `fixture_file_upload` relative to `fixture_path` is deprecated.
-              In Rails 6.2, the path needs to be relative to `file_fixture_path` which you
+              In Rails 7.0, the path needs to be relative to `file_fixture_path` which you
               haven't set yet. Set `file_fixture_path` to discard this warning.
             EOM
           elsif path.exist?
             non_deprecated_path = Pathname(File.absolute_path(path)).relative_path_from(Pathname(File.absolute_path(self.class.file_fixture_path)))
             ActiveSupport::Deprecation.warn(<<~EOM)
               Passing a path to `fixture_file_upload` relative to `fixture_path` is deprecated.
-              In Rails 6.2, the path needs to be relative to `file_fixture_path`.
+              In Rails 7.0, the path needs to be relative to `file_fixture_path`.
 
               Please modify the call from
               `fixture_file_upload("#{original_path}")` to `fixture_file_upload("#{non_deprecated_path}")`.

@@ -10,7 +10,7 @@ module ActiveRecord
       else
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
           YAML loading from legacy format older than Rails 5.0 is deprecated
-          and will be removed in Rails 6.2.
+          and will be removed in Rails 7.0.
         MSG
         if coder["attributes"].is_a?(ActiveModel::AttributeSet)
           Rails420.convert(klass, coder)

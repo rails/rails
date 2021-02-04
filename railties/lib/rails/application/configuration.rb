@@ -199,7 +199,7 @@ module Rails
           end
 
           ActiveSupport.utc_to_local_returns_utc_offset_times = true
-        when "6.2"
+        when "7.0"
           load_defaults "6.1"
 
           if respond_to?(:action_dispatch)

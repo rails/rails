@@ -1,19 +1,21 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
-Ruby on Rails 6.2 Release Notes
+Ruby on Rails 7.0 Release Notes
 ===============================
 
-Highlights in Rails 6.2:
+Highlights in Rails 7.0:
+
+* Ruby 2.7.0+ required, Ruby 3.0+ prefered
 
 --------------------------------------------------------------------------------
 
-Upgrading to Rails 6.2
+Upgrading to Rails 7.0
 ----------------------
 
 If you're upgrading an existing application, it's a great idea to have good test
 coverage before going in. You should also first upgrade to Rails 6.1 in case you
 haven't and make sure your application still runs as expected before attempting
-an update to Rails 6.2. A list of things to watch out for when upgrading is
+an update to Rails 7.0. A list of things to watch out for when upgrading is
 available in the
 [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-6-1-to-rails-6-2)
 guide.

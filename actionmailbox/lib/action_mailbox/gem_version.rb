@@ -7,8 +7,8 @@ module ActionMailbox
   end
 
   module VERSION
-    MAJOR = 6
-    MINOR = 2
+    MAJOR = 7
+    MINOR = 0
     TINY  = 0
     PRE   = "alpha"
 

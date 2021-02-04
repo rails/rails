@@ -361,8 +361,8 @@ class RelationMergingTest < ActiveRecord::TestCase
     end
 
     message = <<-MSG.squish
-      Duplicated query annotations are no longer shown in queries in Rails 6.2.
-      To migrate to Rails 6.2's behavior, use `uniq!(:annotate)` to deduplicate query annotations
+      Duplicated query annotations are no longer shown in queries in Rails 7.0.
+      To migrate to Rails 7.0's behavior, use `uniq!(:annotate)` to deduplicate query annotations
       (`posts.uniq!(:annotate)`).
     MSG
     assert_deprecated(message) do

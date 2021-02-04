@@ -1047,7 +1047,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 `config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, `6.0` also gets the new defaults from every version before it.
 
-#### For '6.2', defaults from previous versions below and:
+#### For '7.0', defaults from previous versions below and:
 - `config.action_view.button_to_generates_button_tag`: `true`
 - `config.action_view.apply_stylesheet_media_default` : `false`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`

@@ -249,7 +249,7 @@ module ActiveModel
 
           You are passing a block expecting two parameters,
           so the old hash behavior is simulated. As this is deprecated,
-          this will result in an ArgumentError in Rails 6.2.
+          this will result in an ArgumentError in Rails 7.0.
         MSG
         @errors.
           sort { |a, b| a.attribute <=> b.attribute }.
@@ -325,7 +325,7 @@ module ActiveModel
 
     def to_h
       ActiveSupport::Deprecation.warn(<<~EOM)
-        ActiveModel::Errors#to_h is deprecated and will be removed in Rails 6.2.
+        ActiveModel::Errors#to_h is deprecated and will be removed in Rails 7.0.
         Please use `ActiveModel::Errors.to_hash` instead. The values in the hash
         returned by `ActiveModel::Errors.to_hash` is an array of error messages.
       EOM
@@ -591,7 +591,7 @@ module ActiveModel
       end
 
       def deprecation_removal_warning(method_name, alternative_message = nil)
-        message = +"ActiveModel::Errors##{method_name} is deprecated and will be removed in Rails 6.2."
+        message = +"ActiveModel::Errors##{method_name} is deprecated and will be removed in Rails 7.0."
         if alternative_message
           message << "\n\nTo achieve the same use:\n\n  "
           message << alternative_message
