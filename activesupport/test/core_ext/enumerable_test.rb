@@ -284,4 +284,9 @@ class EnumerableTests < ActiveSupport::TestCase
     values.compact_blank!
     assert_equal({ b: 1, f: true }, values)
   end
+
+  def test_in_order_of
+    values = [ Payment.new(5), Payment.new(1), Payment.new(3) ]
+    assert_equal [ Payment.new(1), Payment.new(5), Payment.new(3) ], values.in_order_of(:price, [ 1, 5, 3 ])
+  end
 end
