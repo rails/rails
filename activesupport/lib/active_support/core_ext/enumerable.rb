@@ -197,6 +197,9 @@ module Enumerable
   #
   #   [ Person.find(5), Person.find(3), Person.find(1) ].in_order_of(:id, [ 1, 5, 3 ])
   #   => [ Person.find(1), Person.find(5), Person.find(3) ]
+  #
+  # If the +series+ include keys that have no corresponding element in the Enumerable, these are ignored.
+  # If the Enumerable has additional elements that aren't named in the +series+, these are not included in the result.
   def in_order_of(key, series)
     indexed_by_key = index_by(&key)
     series.map { |s| indexed_by_key[s] }.compact

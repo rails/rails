@@ -289,4 +289,14 @@ class EnumerableTests < ActiveSupport::TestCase
     values = [ Payment.new(5), Payment.new(1), Payment.new(3) ]
     assert_equal [ Payment.new(1), Payment.new(5), Payment.new(3) ], values.in_order_of(:price, [ 1, 5, 3 ])
   end
+
+  def test_in_order_of_ignores_missing_series
+    values = [ Payment.new(5), Payment.new(1), Payment.new(3) ]
+    assert_equal [ Payment.new(1), Payment.new(5), Payment.new(3) ], values.in_order_of(:price, [ 1, 2, 4, 5, 3 ])
+  end
+
+  def test_in_order_of_drops_elements_not_named_in_series
+    values = [ Payment.new(5), Payment.new(1), Payment.new(3) ]
+    assert_equal [ Payment.new(1), Payment.new(5) ], values.in_order_of(:price, [ 1, 5 ])
+  end
 end
