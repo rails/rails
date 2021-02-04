@@ -2387,7 +2387,7 @@ module ApplicationTests
     test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag can be configured via config.action_view.button_to_generates_button_tag" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
         Rails.application.config.action_view.button_to_generates_button_tag = true
       RUBY
 
@@ -2465,7 +2465,7 @@ module ApplicationTests
     test "ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default can be configured via config.action_view.apply_stylesheet_media_default" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
         Rails.application.config.action_view.apply_stylesheet_media_default = false
       RUBY
 
@@ -3004,7 +3004,7 @@ module ApplicationTests
     test "ActionDispatch::Request.return_only_media_type_on_content_type can be configured in the new framework defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_6_2.rb", <<-RUBY
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
         Rails.application.config.action_dispatch.return_only_request_media_type_on_content_type = false
       RUBY
 
