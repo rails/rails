@@ -639,7 +639,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "published", klass.new.status
   end
 
-  test "overloaded default" do
+  test "overloaded default by :_default" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
       enum status: [:proposed, :written, :published], _default: :published
@@ -648,13 +648,68 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "published", klass.new.status
   end
 
-  test "scopes can be disabled" do
+  test "scopes can be disabled by :_scopes" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
       enum status: [:proposed, :written], _scopes: false
     end
 
     assert_raises(NoMethodError) { klass.proposed }
+  end
+
+  test "overloaded default by :default" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written, :published], default: :published
+    end
+
+    assert_equal "published", klass.new.status
+  end
+
+  test "scopes can be disabled by :scopes" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written], scopes: false
+    end
+
+    assert_raises(NoMethodError) { klass.proposed }
+  end
+
+  test "query state by predicate with :prefix" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, { proposed: 0, written: 1 }, prefix: true
+      enum :last_read, { unread: 0, reading: 1, read: 2 }, prefix: :being
+    end
+
+    book = klass.new
+    assert_respond_to book, :status_proposed?
+    assert_respond_to book, :being_unread?
+  end
+
+  test "query state by predicate with :suffix" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :cover, { hard: 0, soft: 1 }, suffix: true
+      enum :difficulty, { easy: 0, medium: 1, hard: 2 }, suffix: :to_read
+    end
+
+    book = klass.new
+    assert_respond_to book, :hard_cover?
+    assert_respond_to book, :easy_to_read?
+  end
+
+  test "option names can be used as label" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, default: 0, scopes: 1, prefix: 2, suffix: 3
+    end
+
+    book = klass.new
+    assert_predicate book, :default?
+    assert_not_predicate book, :scopes?
+    assert_not_predicate book, :prefix?
+    assert_not_predicate book, :suffix?
   end
 
   test "scopes are named like methods" do

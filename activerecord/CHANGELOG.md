@@ -1,3 +1,25 @@
+*   Allow new syntax for `enum` to avoid leading `_` from reserved options.
+
+    Before:
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      enum status: [ :proposed, :written ], _prefix: true, _scopes: false
+      enum cover: [ :hard, :soft ], _suffix: true, _default: :hard
+    end
+    ```
+
+    After:
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      enum :status, [ :proposed, :written ], prefix: true, scopes: false
+      enum :cover, [ :hard, :soft ], suffix: true, default: :hard
+    end
+    ```
+
+    *Ryuta Kamizono*
+
 *   Add `ActiveRecord::Relation#load_async`.
 
     This method schedules the query to be performed asynchronously from a thread pool.
