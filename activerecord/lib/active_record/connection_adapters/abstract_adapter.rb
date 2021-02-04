@@ -103,6 +103,12 @@ module ActiveRecord
         )
       end
 
+      def check_if_write_query(sql) # :nodoc:
+        if preventing_writes? && write_query?(sql)
+          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+        end
+      end
+
       def replica?
         @config[:replica] || false
       end
