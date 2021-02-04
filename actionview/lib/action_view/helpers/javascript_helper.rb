@@ -80,7 +80,7 @@ module ActionView
             content_or_options_with_block
           end
 
-        if html_options[:nonce] == true
+        if html_options[:nonce] == true || request.content_security_policy_insert_nonces
           html_options[:nonce] = content_security_policy_nonce
         end
 

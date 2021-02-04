@@ -20,6 +20,7 @@ module Rails
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
+                    :content_security_policy_insert_nonces,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
                     :rake_eager_load
@@ -63,6 +64,7 @@ module Rails
         @read_encrypted_secrets                  = false
         @content_security_policy                 = nil
         @content_security_policy_report_only     = false
+        @content_security_policy_insert_nonces   = false
         @content_security_policy_nonce_generator = nil
         @content_security_policy_nonce_directives = nil
         @require_master_key                      = false

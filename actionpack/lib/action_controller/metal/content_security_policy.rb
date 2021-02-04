@@ -44,6 +44,10 @@ module ActionController #:nodoc:
         request.content_security_policy_nonce
       end
 
+      def content_security_policy_insert_nonces
+        request.content_security_policy_insert_nonces
+      end
+
       def current_content_security_policy
         request.content_security_policy&.clone || ActionDispatch::ContentSecurityPolicy.new
       end

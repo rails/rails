@@ -55,6 +55,7 @@ module ActionDispatch #:nodoc:
       POLICY_REPORT_ONLY = "action_dispatch.content_security_policy_report_only"
       NONCE_GENERATOR = "action_dispatch.content_security_policy_nonce_generator"
       NONCE = "action_dispatch.content_security_policy_nonce"
+      INSERT_NONCES = "action_dispatch.content_security_policy_insert_nonces"
       NONCE_DIRECTIVES = "action_dispatch.content_security_policy_nonce_directives"
 
       def content_security_policy
@@ -67,6 +68,10 @@ module ActionDispatch #:nodoc:
 
       def content_security_policy_report_only
         get_header(POLICY_REPORT_ONLY)
+      end
+
+      def content_security_policy_insert_nonces
+        get_header(INSERT_NONCES)
       end
 
       def content_security_policy_report_only=(value)

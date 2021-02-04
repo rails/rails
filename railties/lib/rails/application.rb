@@ -284,6 +284,7 @@ module Rails
           "action_dispatch.use_cookies_with_metadata" => config.action_dispatch.use_cookies_with_metadata,
           "action_dispatch.content_security_policy" => config.content_security_policy,
           "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only,
+          "action_dispatch.content_security_policy_insert_nonces" => config.content_security_policy_insert_nonces,
           "action_dispatch.content_security_policy_nonce_generator" => config.content_security_policy_nonce_generator,
           "action_dispatch.content_security_policy_nonce_directives" => config.content_security_policy_nonce_directives,
           "action_dispatch.permissions_policy" => config.permissions_policy,
