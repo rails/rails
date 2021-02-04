@@ -1,3 +1,22 @@
+*   Expose a way for applications to set a `primary_abstract_class`
+
+    Multiple database applications that use a primary abstract class that is not
+    named `ApplicationRecord` can now set a specific class to be the `primary_abstract_class`.
+
+    ```ruby
+    class PrimaryApplicationRecord
+      self.primary_abstract_class
+    end
+    ```
+
+    When an application boots it automatically connects to the primary or first database in the
+    database configuration file. In a multiple database application that then call `connects_to`
+    needs to know that the default connection is the same as the `ApplicationRecord` connection.
+    However some applications have a differently named `ApplicationRecord`. This prevents Active
+    Record from opening duplicate connections to the same database.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Support hash config for `structure_dump_flags` and `structure_load_flags` flags
     Now that Active Record supports multiple databases configuration
     we need a way to pass specific flags for dump/load databases since

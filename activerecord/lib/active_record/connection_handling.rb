@@ -276,7 +276,7 @@ module ActiveRecord
     end
 
     def primary_class? # :nodoc:
-      self == Base || defined?(ApplicationRecord) && self == ApplicationRecord
+      self == Base || application_record_class?
     end
 
     # Returns the configuration of the associated connection as a hash:

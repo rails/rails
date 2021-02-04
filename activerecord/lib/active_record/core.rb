@@ -155,6 +155,19 @@ module ActiveRecord
 
       mattr_accessor :legacy_connection_handling, instance_writer: false, default: true
 
+      mattr_accessor :application_record_class, instance_accessor: false, default: nil
+
+      def self.application_record_class? # :nodoc:
+        if Base.application_record_class
+          self == Base.application_record_class
+        else
+          if defined?(ApplicationRecord) && self == ApplicationRecord
+            Base.application_record_class = self
+            true
+          end
+        end
+      end
+
       self.filter_attributes = []
 
       def self.connection_handler
