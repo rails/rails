@@ -302,7 +302,7 @@ class FinderTest < ActiveRecord::TestCase
 
   # Ensure +exists?+ runs without an error by excluding order value.
   def test_exists_with_order
-    assert_equal true, Topic.order(Arel.sql("invalid sql here")).exists?
+    assert_equal true, Topic.order("invalid sql here").exists?
   end
 
   def test_exists_with_large_number
@@ -892,7 +892,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_last_with_irreversible_order
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order(Arel.sql("coalesce(author_name, title)")).last
+      Topic.order("coalesce(author_name, title)").last
     end
   end
 

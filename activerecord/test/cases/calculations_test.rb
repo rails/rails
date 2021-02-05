@@ -305,7 +305,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_distinct_count_all_with_custom_select_and_order
-    accounts = Account.distinct.select("credit_limit % 10").order(Arel.sql("credit_limit % 10"))
+    accounts = Account.distinct.select("credit_limit % 10").order("credit_limit % 10")
     assert_queries(1) { assert_equal 3, accounts.count(:all) }
     assert_queries(1) { assert_equal 3, accounts.load.size }
   end
@@ -834,10 +834,10 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_selection_clause
-    assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT credit_limit")).sort
-    assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT accounts.credit_limit")).sort
-    assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT(credit_limit)")).sort
-    assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit))"))
+    assert_equal [50, 53, 55, 60], Account.pluck("DISTINCT credit_limit").sort
+    assert_equal [50, 53, 55, 60], Account.pluck("DISTINCT accounts.credit_limit").sort
+    assert_equal [50, 53, 55, 60], Account.pluck("DISTINCT(credit_limit)").sort
+    assert_equal [50 + 53 + 55 + 60], Account.pluck("SUM(DISTINCT(credit_limit))")
   end
 
   def test_plucks_with_ids
@@ -998,7 +998,7 @@ class CalculationsTest < ActiveRecord::TestCase
     companies = Company.order(:name).limit(3).load
 
     assert_queries(1) do
-      assert_equal ["37signals", "Apex", "Ex Nihilo"], companies.pluck(Arel.sql("DISTINCT name"))
+      assert_equal ["37signals", "Apex", "Ex Nihilo"], companies.pluck("DISTINCT name")
     end
   end
 
