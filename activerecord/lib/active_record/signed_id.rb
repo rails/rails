@@ -65,6 +65,12 @@ module ActiveRecord
         end
       end
 
+      def signed_params(signed_id, purpose: nil)
+        if message = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose))
+          message.respond_to?(:fetch) ? message.fetch(:params) : nil
+        end
+      end
+
       # The verifier instance that all signed ids are generated and verified from. By default, it'll be initialized
       # with the class-level +signed_id_verifier_secret+, which within Rails comes from the
       # Rails.application.key_generator. By default, it's SHA256 for the digest and JSON for the serialization.
