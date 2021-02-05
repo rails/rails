@@ -36,7 +36,7 @@ module ActionDispatch
       def content_type
         if self.class.return_only_media_type_on_content_type
           ActiveSupport::Deprecation.warn(
-            "Rails 7.0 will return Content-Type header without modification." \
+            "Rails 7.1 will return Content-Type header without modification." \
             " If you want just the MIME type, please use `#media_type` instead."
           )
 
