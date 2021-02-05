@@ -22,7 +22,7 @@ module ActiveSupport
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
-    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :expire_in, :expired_in, :race_condition_ttl, :coder, :skip_nil]
+    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :expire_in, :expired_in, :race_condition_ttl, :coder, :skip_nil, :defer_update]
 
     # Mapping of canonical option names to aliases that a store will recognize.
     OPTION_ALIASES = {
@@ -265,6 +265,13 @@ module ActiveSupport
       # is of the same version. nil is returned on mismatches despite contents.
       # This feature is used to support recyclable cache keys.
       #
+      # Setting <tt>:defer_update</tt> will call the given block, but instead of
+      # updating the cache and returning the value yielded by the block, the
+      # expired value will be returned. This option can be used in conjunction with
+      # <tt>:race_condition_ttl</tt> to allow a grace period during which the
+      # expired value will be returned while waiting for a new value to be written
+      # to the cache.
+      #
       # Setting <tt>:race_condition_ttl</tt> is very useful in situations where
       # a cache entry is used very frequently and is under heavy load. If a
       # cache expires and due to heavy load several different processes will try
@@ -325,28 +332,33 @@ module ActiveSupport
       #   end
       #   cache.fetch('foo') # => "bar"
       def fetch(name, options = nil, &block)
-        if block_given?
-          options = merged_options(options)
-          key = normalize_key(name, options)
-
-          entry = nil
-          instrument(:read, name, options) do |payload|
-            cached_entry = read_entry(key, **options, event: payload) unless options[:force]
-            entry = handle_expired_entry(cached_entry, key, options)
-            entry = nil if entry && entry.mismatched?(normalize_version(name, options))
-            payload[:super_operation] = :fetch if payload
-            payload[:hit] = !!entry if payload
+        [:force, :defer_update].each do |key|
+          if options && options[key] && !block_given?
+            raise ArgumentError, "Missing block: Calling `Cache#fetch` with `force: true` requires a block."
           end
+        end
 
-          if entry
-            get_entry_value(entry, name, options)
-          else
-            save_block_result_to_cache(name, options, &block)
-          end
-        elsif options && options[:force]
-          raise ArgumentError, "Missing block: Calling `Cache#fetch` with `force: true` requires a block."
+        return read(name, options) unless block_given?
+
+        options = merged_options(options)
+        key = normalize_key(name, options)
+
+        entry, cached_entry = nil, nil
+        instrument(:read, name, options) do |payload|
+          cached_entry = read_entry(key, **options, event: payload) unless options[:force]
+          entry = handle_expired_entry(cached_entry, key, options)
+          entry = nil if entry && entry.mismatched?(normalize_version(name, options))
+          payload[:super_operation] = :fetch if payload
+          payload[:hit] = !!entry if payload
+        end
+
+        if entry
+          get_entry_value(entry, name, options)
+        elsif options[:defer_update]
+          yield(name)
+          get_entry_value(cached_entry, name, options)
         else
-          read(name, options)
+          save_block_result_to_cache(name, options, &block)
         end
       end
 

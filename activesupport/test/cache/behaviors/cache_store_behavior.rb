@@ -36,6 +36,29 @@ module CacheStoreBehavior
     assert_not cache_miss
   end
 
+  def test_fetch_with_defered_update_returns_expired_value_on_first_fetch_after_expiry
+    time = Time.now
+    @cache.write("foo", "bar", expires_in: 10)
+    Time.stub(:now, time + 11) do
+      cache_miss = false
+      value = @cache.fetch("foo", defer_update: true) do
+        cache_miss = true
+      end
+      assert cache_miss
+      assert_equal "bar", value
+    end
+    assert_nil @cache.fetch("foo")
+  end
+
+  def test_fetch_with_defered_update_without_block
+    @cache.write("foo", "bar")
+    assert_raises(ArgumentError) do
+      @cache.fetch("foo", defer_update: true)
+    end
+
+    assert_equal "bar", @cache.read("foo")
+  end
+
   def test_fetch_with_forced_cache_miss
     @cache.write("foo", "bar")
     assert_not_called(@cache, :read) do

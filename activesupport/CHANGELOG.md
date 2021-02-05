@@ -1,63 +1,66 @@
-*   Add `Enumerable#maximum` and `Enumerable#minimum` to easily calculate the maximum or minimum from extracted
-    elements of an enumerable.
+- Add `:defer_update` option to `ActiveSupport::Cache.fetch`.
 
-    ```ruby
-    payments = [Payment.new(5), Payment.new(15), Payment.new(10)]
+  _Erik Brännström_
 
-    payments.minimum(:price) # => 5
-    payments.maximum(:price) # => 20
-    ```
+- Add `Enumerable#maximum` and `Enumerable#minimum` to easily calculate the maximum or minimum from extracted
+  elements of an enumerable.
 
-    This also allows passing enumerables to `fresh_when` and `stale?` in Action Controller.
-    See PR [#41404](https://github.com/rails/rails/pull/41404) for an example.
+  ```ruby
+  payments = [Payment.new(5), Payment.new(15), Payment.new(10)]
 
-    *Ayrton De Craene*
+  payments.minimum(:price) # => 5
+  payments.maximum(:price) # => 20
+  ```
 
-*   `ActiveSupport::Cache::MemCacheStore` now accepts an explicit `nil` for its `addresses` argument.
+  This also allows passing enumerables to `fresh_when` and `stale?` in Action Controller.
+  See PR [#41404](https://github.com/rails/rails/pull/41404) for an example.
 
-    ```ruby
-    config.cache_store = :mem_cache_store, nil
+  _Ayrton De Craene_
 
-    # is now equivalent to
+- `ActiveSupport::Cache::MemCacheStore` now accepts an explicit `nil` for its `addresses` argument.
 
-    config.cache_store = :mem_cache_store
+  ```ruby
+  config.cache_store = :mem_cache_store, nil
 
-    # and is also equivalent to
+  # is now equivalent to
 
-    config.cache_store = :mem_cache_store, ENV["MEMCACHE_SERVERS"] || "localhost:11211"
+  config.cache_store = :mem_cache_store
 
-    # which is the fallback behavior of Dalli
-    ```
+  # and is also equivalent to
 
-    This helps those migrating from `:dalli_store`, where an explicit `nil` was permitted.
+  config.cache_store = :mem_cache_store, ENV["MEMCACHE_SERVERS"] || "localhost:11211"
 
-    *Michael Overmeyer*
+  # which is the fallback behavior of Dalli
+  ```
 
-*   Add `Enumerable#in_order_of` to put an Enumerable in a certain order by a key.
+  This helps those migrating from `:dalli_store`, where an explicit `nil` was permitted.
 
-    *DHH*
+  _Michael Overmeyer_
 
-*   `ActiveSupport::Inflector.camelize` behaves expected when provided a symbol `:upper` or `:lower` argument. Matches
-    `String#camelize` behavior.
+- Add `Enumerable#in_order_of` to put an Enumerable in a certain order by a key.
 
-    *Alex Ghiculescu*
+  _DHH_
 
-*   Raises an `ArgumentError` when the first argument of `ActiveSupport::Notification.subscribe` is
-    invalid.
+- `ActiveSupport::Inflector.camelize` behaves expected when provided a symbol `:upper` or `:lower` argument. Matches
+  `String#camelize` behavior.
 
-    *Vipul A M*
+  _Alex Ghiculescu_
 
-*   `HashWithIndifferentAccess#deep_transform_keys` now returns a `HashWithIndifferentAccess` instead of a `Hash`.
+- Raises an `ArgumentError` when the first argument of `ActiveSupport::Notification.subscribe` is
+  invalid.
 
-    *Nathaniel Woodthorpe*
+  _Vipul A M_
 
-*   consume dalli’s `cache_nils` configuration as `ActiveSupport::Cache`'s `skip_nil` when using `MemCacheStore`.
+- `HashWithIndifferentAccess#deep_transform_keys` now returns a `HashWithIndifferentAccess` instead of a `Hash`.
 
-    *Ritikesh G*
+  _Nathaniel Woodthorpe_
 
-*   add `RedisCacheStore#stats` method similar to `MemCacheStore#stats`. Calls `redis#info` internally.
+- consume dalli’s `cache_nils` configuration as `ActiveSupport::Cache`'s `skip_nil` when using `MemCacheStore`.
 
-    *Ritikesh G*
+  _Ritikesh G_
 
+- add `RedisCacheStore#stats` method similar to `MemCacheStore#stats`. Calls `redis#info` internally.
+
+  _Ritikesh G_
 
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/activesupport/CHANGELOG.md) for previous changes.
