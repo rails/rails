@@ -914,6 +914,11 @@ class CalculationsTest < ActiveRecord::TestCase
       Account.order(:id).pluck("id, credit_limit")
   end
 
+  def test_pluck_with_line_endings
+    assert_equal [[1, 50], [2, 50], [3, 50], [4, 60], [5, 55], [6, 53]],
+      Account.order(:id).pluck("id, credit_limit\n")
+  end
+
   def test_pluck_with_multiple_columns_and_includes
     Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
     companies_and_developers = Company.order("companies.id").includes(:contracts).pluck(:name, :developer_id)

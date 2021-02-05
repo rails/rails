@@ -1,3 +1,8 @@
+*   Removing trailing whitespace when matching columns in
+    `ActiveRecord::Sanitization.disallow_raw_sql!`.
+
+    *Gannon McGibbon*, *Adrian Hirt*
+
 *   Expose a way for applications to set a `primary_abstract_class`
 
     Multiple database applications that use a primary abstract class that is not
