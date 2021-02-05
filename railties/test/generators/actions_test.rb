@@ -620,14 +620,8 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   private
-    if RUBY_VERSION < "2.7"
-      def action(*args, &block)
-        capture(:stdout) { generator.send(*args, &block) }
-      end
-    else
-      def action(*args, **kwargs, &block)
-        capture(:stdout) { generator.send(*args, **kwargs, &block) }
-      end
+    def action(*args, **kwargs, &block)
+      capture(:stdout) { generator.send(*args, **kwargs, &block) }
     end
 
     def assert_runs(commands, config = {}, &block)

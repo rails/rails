@@ -398,20 +398,18 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal(-Float::INFINITY...Float::INFINITY, record.float_range)
   end
 
-  if RUBY_VERSION >= "2.6"
-    def test_endless_range_values
-      record = PostgresqlRange.create!(
-        int4_range: eval("1.."),
-        int8_range: eval("10.."),
-        float_range: eval("0.5..")
-      )
+  def test_endless_range_values
+    record = PostgresqlRange.create!(
+      int4_range: 1..,
+      int8_range: 10..,
+      float_range: 0.5..
+    )
 
-      record = PostgresqlRange.find(record.id)
+    record = PostgresqlRange.find(record.id)
 
-      assert_equal 1...Float::INFINITY, record.int4_range
-      assert_equal 10...Float::INFINITY, record.int8_range
-      assert_equal 0.5...Float::INFINITY, record.float_range
-    end
+    assert_equal 1...Float::INFINITY, record.int4_range
+    assert_equal 10...Float::INFINITY, record.int8_range
+    assert_equal 0.5...Float::INFINITY, record.float_range
   end
 
   private

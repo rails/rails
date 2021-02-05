@@ -34,8 +34,7 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
     skip "PTY unavailable" unless available_pty?
 
     primary, replica = PTY.open
-    cmd = "console"
-    cmd += " --singleline" if RUBY_VERSION >= "2.7"
+    cmd = "console --singleline"
     spawn_command(cmd, replica)
     assert_output(">", primary)
   ensure
