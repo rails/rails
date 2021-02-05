@@ -331,10 +331,6 @@ The attribute is also allowed on form submit buttons. This allows you to customi
 the warning message depending on the button which was activated. In this case,
 you should **not** have `data-confirm` on the form itself.
 
-The default confirmation uses a JavaScript confirm dialog, but you can customize
-this by listening to the `confirm` event, which is fired just before the confirmation
-window appears to the user. To cancel this default confirmation, have the confirm
-handler return `false`.
 
 ### Automatic disabling
 
