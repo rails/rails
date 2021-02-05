@@ -208,9 +208,6 @@ Lint/ErbNewArguments:
 Lint/RequireParentheses:
   Enabled: true
 
-Lint/ShadowingOuterLocalVariable:
-  Enabled: true
-
 Lint/RedundantStringCoercion:
   Enabled: true
 
