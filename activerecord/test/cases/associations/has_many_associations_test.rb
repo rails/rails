@@ -374,14 +374,58 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::SubclassNotFound) { firm.companies.build(type: "Account") }
   end
 
-  test "building the association with an array" do
+  test "build the association with an array" do
     speedometer = Speedometer.new(speedometer_id: "a")
     data = [{ name: "first" }, { name: "second" }]
-    speedometer.minivans.build(data)
+    speedometer.minivans.where(color: "blue").build(data)
 
     assert_equal 2, speedometer.minivans.size
     assert speedometer.save
-    assert_equal ["first", "second"], speedometer.reload.minivans.map(&:name)
+
+    speedometer.reload
+
+    assert_equal ["first", "second"], speedometer.minivans.map(&:name)
+    assert_equal ["blue", "blue"], speedometer.minivans.map(&:color)
+  end
+
+  test "new the association with an array" do
+    speedometer = Speedometer.new(speedometer_id: "a")
+    data = [{ name: "first" }, { name: "second" }]
+    speedometer.minivans.where(color: "blue").new(data)
+
+    assert_equal 2, speedometer.minivans.size
+    assert speedometer.save
+
+    speedometer.reload
+
+    assert_equal ["first", "second"], speedometer.minivans.map(&:name)
+    assert_equal ["blue", "blue"], speedometer.minivans.map(&:color)
+  end
+
+  test "create the association with an array" do
+    speedometer = Speedometer.create!(speedometer_id: "a")
+    data = [{ name: "first" }, { name: "second" }]
+    speedometer.minivans.where(color: "blue").create(data)
+
+    assert_equal 2, speedometer.minivans.size
+
+    speedometer.reload
+
+    assert_equal ["first", "second"], speedometer.minivans.map(&:name)
+    assert_equal ["blue", "blue"], speedometer.minivans.map(&:color)
+  end
+
+  test "create! the association with an array" do
+    speedometer = Speedometer.create!(speedometer_id: "a")
+    data = [{ name: "first" }, { name: "second" }]
+    speedometer.minivans.where(color: "blue").create!(data)
+
+    assert_equal 2, speedometer.minivans.size
+
+    speedometer.reload
+
+    assert_equal ["first", "second"], speedometer.minivans.map(&:name)
+    assert_equal ["blue", "blue"], speedometer.minivans.map(&:color)
   end
 
   def test_association_keys_bypass_attribute_protection
