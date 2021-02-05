@@ -202,7 +202,7 @@ module Enumerable
   # If the Enumerable has additional elements that aren't named in the +series+, these are not included in the result.
   def in_order_of(key, series)
     indexed_by_key = index_by(&key)
-    series.filter_map { |s| indexed_by_key[s] }
+    indexed_by_key.values_at(*series).compact
   end
 end
 
