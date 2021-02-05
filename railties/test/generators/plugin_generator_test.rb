@@ -91,6 +91,35 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_directory ".git"
   end
 
+  def test_initializes_git_repo_with_main_branch_without_user_default
+    current_default_branch = `git config --global init.defaultBranch`
+    `git config --global --unset init.defaultBranch`
+
+    run_generator
+    assert_file ".git/HEAD", /main/
+  ensure
+    if !current_default_branch.strip.empty?
+      `git config --global init.defaultBranch #{current_default_branch}`
+    end
+  end
+
+  def test_version_control_initializes_git_repo_with_user_default_branch
+    git_version = `git --version`[/\d+.\d+.\d+/]
+    return if Gem::Version.new(git_version) < Gem::Version.new("2.28.0")
+
+    current_default_branch = `git config --global init.defaultBranch`
+    `git config --global init.defaultBranch master`
+
+    run_generator
+    assert_file ".git/HEAD", /master/
+  ensure
+    if current_default_branch && current_default_branch.strip.empty?
+      `git config --global --unset init.defaultBranch`
+    elsif current_default_branch
+      `git config --global init.defaultBranch #{current_default_branch}`
+    end
+  end
+
   def test_generating_in_full_mode_with_almost_of_all_skip_options
     run_generator [destination_root, "--full", "-M", "-O", "-C", "-S", "-T", "--skip-active-storage"]
     assert_file "bin/rails" do |content|
