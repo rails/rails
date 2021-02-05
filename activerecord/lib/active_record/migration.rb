@@ -167,7 +167,6 @@ module ActiveRecord
 
   class ConcurrentMigrationError < MigrationError #:nodoc:
     DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running."
-    RELEASE_LOCK_FAILED_MESSAGE = "Failed to release advisory lock"
 
     def initialize(message = DEFAULT_MESSAGE)
       super
@@ -1397,16 +1396,18 @@ module ActiveRecord
         lock_id = generate_migrator_advisory_lock_id
 
         with_advisory_lock_connection do |connection|
-          got_lock = connection.get_advisory_lock(lock_id)
-          raise ConcurrentMigrationError unless got_lock
-          load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
-          yield
-        ensure
-          if got_lock && !connection.release_advisory_lock(lock_id)
-            raise ConcurrentMigrationError.new(
-              ConcurrentMigrationError::RELEASE_LOCK_FAILED_MESSAGE
-            )
+          result = nil
+
+          got_lock = connection.with_advisory_lock(lock_id) do
+            load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
+            result = yield
           end
+
+          raise ConcurrentMigrationError unless got_lock
+
+          result
+        rescue ReleaseAdvisoryLockError => e
+          raise ConcurrentMigrationError, e.message, e.backtrace
         end
       end
 
