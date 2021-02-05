@@ -42,8 +42,8 @@ module ActiveRecord
       def find_signed(signed_id, purpose: nil)
         raise UnknownPrimaryKey.new(self) if primary_key.nil?
 
-        if id = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose))
-          find_by primary_key => id
+        if message = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose))
+          find_by primary_key => (message.respond_to?(:fetch) ? message.fetch(:id) : message)
         end
       end
 
@@ -60,8 +60,8 @@ module ActiveRecord
       #   User.first.destroy
       #   User.find_signed! signed_id # => ActiveRecord::RecordNotFound
       def find_signed!(signed_id, purpose: nil)
-        if id = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose))
-          find(id)
+        if message = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose))
+          find(message.respond_to?(:fetch) ? message.fetch(:id) : message)
         end
       end
 
@@ -109,8 +109,9 @@ module ActiveRecord
     #
     # And you then change your +find_signed+ calls to require this new purpose. Any old signed ids that were not
     # created with the purpose will no longer find the record.
-    def signed_id(expires_in: nil, purpose: nil)
-      self.class.signed_id_verifier.generate id, expires_in: expires_in, purpose: self.class.combine_signed_id_purposes(purpose)
+    def signed_id(expires_in: nil, purpose: nil, params: nil)
+      message = params.present? ? { id: id, params: params } : id
+      self.class.signed_id_verifier.generate message, expires_in: expires_in, purpose: self.class.combine_signed_id_purposes(purpose)
     end
   end
 end
