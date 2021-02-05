@@ -191,6 +191,18 @@ module Enumerable
   def compact_blank
     reject(&:blank?)
   end
+
+  # Returns a new +Array+ where the order has been set to that provided in the +series+, based on the +key+ of the
+  # objects in the original enumerable.
+  #
+  #   [ Person.find(5), Person.find(3), Person.find(1) ].in_order_of(:id, [ 1, 5, 3 ])
+  #   => [ Person.find(1), Person.find(5), Person.find(3) ]
+  #
+  # If the +series+ include keys that have no corresponding element in the Enumerable, these are ignored.
+  # If the Enumerable has additional elements that aren't named in the +series+, these are not included in the result.
+  def in_order_of(key, series)
+    index_by(&key).values_at(*series).compact
+  end
 end
 
 class Hash

@@ -520,10 +520,7 @@ module ActiveRecord
         result = except(:limit, :offset).where(primary_key => ids).records
 
         if result.size == ids.size
-          pk_type = @klass.type_for_attribute(primary_key)
-
-          records_by_id = result.index_by(&:id)
-          ids.map { |id| records_by_id.fetch(pk_type.cast(id)) }
+          result.in_order_of(:id, ids.map { |id| @klass.type_for_attribute(primary_key).cast(id) })
         else
           raise_record_not_found_exception!(ids, result.size, ids.size)
         end
