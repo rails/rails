@@ -103,7 +103,7 @@ module ActiveSupport #:nodoc:
       #
       #   'Café'.mb_chars.reverse.to_s # => 'éfaC'
       def reverse
-        chars(@wrapped_string.scan(/\X/).reverse.join)
+        chars(@wrapped_string.grapheme_clusters.reverse.join)
       end
 
       # Limits the byte size of the string to a number of bytes without breaking
@@ -145,7 +145,7 @@ module ActiveSupport #:nodoc:
       #   'क्षि'.mb_chars.length   # => 4
       #   'क्षि'.mb_chars.grapheme_length # => 3
       def grapheme_length
-        @wrapped_string.scan(/\X/).length
+        @wrapped_string.grapheme_clusters.length
       end
 
       # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent
