@@ -394,6 +394,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Notable changes
 
+*  `ActiveSupport::Cache::Entry.size` has been renamed to `ActiveSupport::Cache::Entry.bytesize`.
+
 Active Job
 ----------
 
