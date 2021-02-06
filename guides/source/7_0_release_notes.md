@@ -5,7 +5,7 @@ Ruby on Rails 7.0 Release Notes
 
 Highlights in Rails 7.0:
 
-* Ruby 2.7.0+ required, Ruby 3.0+ prefered
+* Ruby 2.7.0+ required, Ruby 3.0+ preferred
 
 --------------------------------------------------------------------------------
 
