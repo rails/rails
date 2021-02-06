@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/enumerable"
-require "active_support/core_ext/string/conversions"
-
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
     attr_reader :record, :association_name
