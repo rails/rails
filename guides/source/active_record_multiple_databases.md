@@ -123,8 +123,8 @@ class ApplicationRecord < ActiveRecord::Base
 end
 ```
 
-If you use a differently named class for your application record you can need to
-set `primary_abstract_class` instead so Rails knowns which class `ActiveRecord::Base`
+If you use a differently named class for your application record you need to
+set `primary_abstract_class` instead, so that Rails knows which class `ActiveRecord::Base`
 should share a connection with.
 
 ```
