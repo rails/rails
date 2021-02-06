@@ -3,6 +3,8 @@
 require "abstract_unit"
 
 class CapybaraAssertionsTest < ActionDispatch::IntegrationTest
+  include ActiveSupport::Benchmarkable
+
   ROUTES = ActionDispatch::Routing::RouteSet.new
   ROUTES.draw do
     scope module: "capybara_assertions_test" do
@@ -33,7 +35,9 @@ class CapybaraAssertionsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_capybara_within
+  assert_with :capybara
+
+  test "assert scoped within an element" do
     get "/"
 
     assert_selector "h1", text: "Header"
@@ -43,7 +47,7 @@ class CapybaraAssertionsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_capybara_assert_select
+  test "assert a <select> element" do
     get "/"
 
     assert_select "Name", options: ["First"]
