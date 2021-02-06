@@ -3,7 +3,7 @@
     `perform_later` can now optionally take a block which will execute after
     the adapter attempts to enqueue the job. The block will receive the job
     instance as an argument even if the enqueue was not successful.
-    Additionally, `ActiveJob` adapaters now have the ability to raise an
+    Additionally, `ActiveJob` adapters now have the ability to raise an
     `ActiveJob::EnqueueError` which will be caught and stored in the job
     instance so code attempting to enqueue jobs can inspect any raised
     `EnqueueError` using the block.
