@@ -1,7 +1,7 @@
-*   Change default branch for new Rails projects and plugins to `main`
+*   Change default branch for new Rails projects and plugins to `main`.
 
     *Prateek Choudhary*
-    
+
 *   Add benchmark method that can be called from anywhere.
 
     This method is used as a quick way to measure & log the speed of some code.
