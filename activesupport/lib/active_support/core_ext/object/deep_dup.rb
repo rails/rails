@@ -43,7 +43,7 @@ class Hash
   def deep_dup
     hash = dup
     each_pair do |key, value|
-      if (::String === key && key.frozen?) || ::Symbol === key
+      if ::String === key || ::Symbol === key
         hash[key] = value.deep_dup
       else
         hash.delete(key)
