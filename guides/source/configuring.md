@@ -1415,7 +1415,20 @@ development:
 
 By default Rails ships with three environments: "development", "test", and "production". While these are sufficient for most use cases, there are circumstances when you want more environments.
 
-Imagine you have a server which mirrors the production environment but is only used for testing. Such a server is commonly called a "staging server". To define an environment called "staging" for this server, just create a file called `config/environments/staging.rb`. Please use the contents of any existing file in `config/environments` as a starting point and make the necessary changes from there.
+Imagine you have a server which mirrors the production environment but is only used for testing. Such a server is commonly called a "staging server". To create this environment the following actions are required:
+
+- create a new `config/environments/staging.rb` file
+- add a new database configuration entry in `config/database.yml`
+- generate a new secret key, for which you can use `bin/rails secret`
+- generate new credentials using `bin/rails credentials:edit --environment=staging` and add your newly generated secret under `secret_key_base`
+
+These actions are required if you have webpack:
+- edit `babel.config.js` to include your environment specific checks and add `staging` to the `validEnv` array
+- create a new `config/webpack/staging.js` file, see `config/webpack/production.js` for an example
+- edit `config/webpacker.yml` and include a `staging` entry
+
+This action is required if you have actioncable:
+- edit `config/cable.yml` and include a `staging` entry and be sure to also provide the `channel_prefix` key using the format `<app_name>_<environment>`
 
 That environment is no different than the default ones, start a server with `bin/rails server -e staging`, a console with `bin/rails console -e staging`, `Rails.env.staging?` works, etc.
 
