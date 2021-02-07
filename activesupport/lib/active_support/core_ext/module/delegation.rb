@@ -199,13 +199,7 @@ class Module
 
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
-      definition = if /[^\]]=$/.match?(method)
-        "arg"
-      elsif RUBY_VERSION >= "2.7"
-        "..."
-      else
-        "*args, &block"
-      end
+      definition = /[^\]]=\z/.match?(method) ? "arg" : "..."
 
       # The following generated method calls the target exactly once, storing
       # the returned value in a dummy variable.
