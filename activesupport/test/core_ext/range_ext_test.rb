@@ -151,35 +151,6 @@ class RangeTest < ActiveSupport::TestCase
     assert range.method(:include?) != range.method(:cover?)
   end
 
-  def test_should_cover_other_with_exclusive_end
-    assert((1..10).cover?(1...11))
-  end
-
-  def test_cover_returns_false_for_backwards
-    assert_not((1..10).cover?(5..3))
-  end
-
-  # Match quirky plain-Ruby behavior
-  def test_cover_returns_false_for_empty_exclusive_end
-    assert_not((1..5).cover?(3...3))
-  end
-
-  def test_should_cover_range_with_endless_range
-    assert((1..).cover?(2..4))
-  end
-
-  def test_should_not_cover_range_with_endless_range
-    assert_not((1..).cover?(0..4))
-  end
-
-  def test_should_cover_range_with_beginless_range
-    assert((..2).cover?(-1..1))
-  end
-
-  def test_should_not_cover_range_with_beginless_range
-    assert_not((..2).cover?(-1..3))
-  end
-
   def test_overlaps_on_time
     time_range_1 = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     time_range_2 = Time.utc(2005, 12, 10, 17, 00)..Time.utc(2005, 12, 10, 18, 00)
