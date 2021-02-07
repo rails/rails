@@ -6,8 +6,6 @@ require "stringio"
 
 require "active_record"
 require "cases/test_case"
-require "active_support/dependencies"
-require "active_support/logger"
 require "active_support/core_ext/kernel/singleton_class"
 
 require "support/config"

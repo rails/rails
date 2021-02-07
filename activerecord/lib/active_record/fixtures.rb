@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
-require "erb"
-require "yaml"
 require "zlib"
-require "set"
-require "active_support/dependencies"
 require "active_support/core_ext/digest/uuid"
 require "active_record/fixture_set/file"
 require "active_record/fixture_set/render_context"

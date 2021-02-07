@@ -33,7 +33,6 @@ require "models/vertex"
 require "models/publisher"
 require "models/publisher/article"
 require "models/publisher/magazine"
-require "active_support/core_ext/string/conversions"
 
 class ProjectWithAfterCreateHook < ActiveRecord::Base
   self.table_name = "projects"
