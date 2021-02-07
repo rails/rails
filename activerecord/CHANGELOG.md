@@ -1,3 +1,9 @@
+*   Run `initializer "active_record.set_filter_attributes"` after running the initialization process.
+
+    Fixed an issue where the `Rails.application.config.filter_parameters` set in `config/initializers/filter_parameter_logging.rb` was not inherited by the `filter_attributes` in `ActiveRecord`. This happens when `ActiveRecord` is loaded before `config/initializers/filter_parameters_logging.rb`.
+
+    *Shodai Suzuki*
+
 *   Removing trailing whitespace when matching columns in
     `ActiveRecord::Sanitization.disallow_raw_sql!`.
 
