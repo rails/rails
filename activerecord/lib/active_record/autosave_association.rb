@@ -155,20 +155,6 @@ module ActiveRecord
 
     module ClassMethods # :nodoc:
       private
-        if Module.method(:method_defined?).arity == 1 # MRI 2.5 and older
-          using Module.new {
-            refine Module do
-              def method_defined?(method, inherit = true)
-                if inherit
-                  super(method)
-                else
-                  instance_methods(false).include?(method.to_sym)
-                end
-              end
-            end
-          }
-        end
-
         def define_non_cyclic_method(name, &block)
           return if method_defined?(name, false)
 
