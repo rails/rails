@@ -356,7 +356,7 @@ module ActiveSupport
             return EMPTY_ARRAY if conditionals.blank?
 
             conditionals = Array(conditionals)
-            if conditionals.any? { |c| c.is_a?(String) }
+            if conditionals.any?(String)
               raise ArgumentError, <<-MSG.squish
                 Passing string to be evaluated in :if and :unless conditional
                 options is not supported. Pass a symbol for an instance method,

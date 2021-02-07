@@ -166,7 +166,7 @@ module ActiveRecord
         return configs if configs.is_a?(Array)
 
         db_configs = configs.flat_map do |env_name, config|
-          if config.is_a?(Hash) && config.all? { |_, v| v.is_a?(Hash) }
+          if config.is_a?(Hash) && config.values.all?(Hash)
             walk_configs(env_name.to_s, config)
           else
             build_db_config_from_raw_config(env_name.to_s, "primary", config)
