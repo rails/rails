@@ -35,15 +35,11 @@ module ActiveSupport
         end
 
         def absolute_precision(number)
-          if significant && options[:precision] > 0
+          if options[:significant] && options[:precision] > 0
             options[:precision] - digit_count(convert_to_decimal(number))
           else
             options[:precision]
           end
-        end
-
-        def significant
-          options[:significant]
         end
     end
   end
