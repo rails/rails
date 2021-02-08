@@ -396,6 +396,13 @@ module ActiveRecord
   class LockWaitTimeout < StatementInvalid
   end
 
+  # ReleaseAdvisoryLockError will be raised when a advisory lock fail to be released.
+  class ReleaseAdvisoryLockError < StatementInvalid
+    def initialize(message = "Failed to release advisory lock")
+      super
+    end
+  end
+
   # StatementTimeout will be raised when statement timeout exceeded.
   class StatementTimeout < QueryAborted
   end

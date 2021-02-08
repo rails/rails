@@ -203,25 +203,19 @@ module ActiveRecord
 
     def test_get_and_release_advisory_lock
       lock_id = 5295901941911233559
-      list_advisory_locks = <<~SQL
-        SELECT locktype,
-              (classid::bigint << 32) | objid::bigint AS lock_id
-        FROM pg_locks
-        WHERE locktype = 'advisory'
-      SQL
 
       got_lock = @connection.get_advisory_lock(lock_id)
       assert got_lock, "get_advisory_lock should have returned true but it didn't"
 
-      advisory_lock = @connection.query(list_advisory_locks).find { |l| l[1] == lock_id }
-      assert advisory_lock,
+      advisory_lock = test_lock_free(lock_id)
+      assert_equal advisory_lock, false,
         "expected to find an advisory lock with lock_id #{lock_id} but there wasn't one"
 
       released_lock = @connection.release_advisory_lock(lock_id)
       assert released_lock, "expected release_advisory_lock to return true but it didn't"
 
-      advisory_locks = @connection.query(list_advisory_locks).select { |l| l[1] == lock_id }
-      assert_empty advisory_locks,
+      advisory_lock = test_lock_free(lock_id)
+      assert advisory_lock,
         "expected to have released advisory lock with lock_id #{lock_id} but it was still held"
     end
 
@@ -234,7 +228,70 @@ module ActiveRecord
       end
     end
 
+    def test_with_advisory_lock
+      lock_id = 5295901941911233559
+
+      got_lock = @connection.with_advisory_lock(lock_id) do
+        assert_equal test_lock_free(lock_id), false,
+          "expected to find an advisory lock with lock_id #{lock_id} but there wasn't one"
+      end
+
+      assert got_lock, "get_advisory_lock should have returned true but it didn't"
+
+      assert test_lock_free(lock_id), "expected to find an advisory lock with lock_id #{lock_id} but there wasn't one"
+    end
+
+    def test_with_advisory_lock_with_an_already_existing_lock
+      lock_id = 5295901941911233559
+
+      with_another_process_holding_lock(lock_id) do
+        assert_equal test_lock_free(lock_id), false,
+          "expected to find an advisory lock with lock_id #{lock_id} but there wasn't one"
+
+        got_lock = @connection.with_advisory_lock(lock_id) do
+          flunk "lock should not be acquired"
+        end
+
+        assert_equal test_lock_free(lock_id), false,
+          "expected to find an advisory lock with lock_id #{lock_id} but there wasn't one"
+
+        assert_not got_lock, "get_advisory_lock should have returned false but it didn't"
+      end
+    end
+
     private
+      def test_lock_free(lock_id)
+        list_advisory_locks = <<~SQL
+          SELECT locktype,
+                (classid::bigint << 32) | objid::bigint AS lock_id
+          FROM pg_locks
+          WHERE locktype = 'advisory'
+        SQL
+        !@connection.query(list_advisory_locks).find { |l| l[1] == lock_id }
+      end
+
+      def with_another_process_holding_lock(lock_id)
+        thread_lock = Concurrent::CountDownLatch.new
+        test_terminated = Concurrent::CountDownLatch.new
+
+        other_process = Thread.new do
+          conn = ActiveRecord::Base.connection_pool.checkout
+          conn.get_advisory_lock(lock_id)
+          thread_lock.count_down
+          test_terminated.wait # hold the lock open until we tested everything
+        ensure
+          conn.release_advisory_lock(lock_id)
+          ActiveRecord::Base.connection_pool.checkin(conn)
+        end
+
+        thread_lock.wait # wait until the 'other process' has the lock
+
+        yield
+
+        test_terminated.count_down
+        other_process.join
+      end
+
       def with_warning_suppression
         log_level = @connection.client_min_messages
         @connection.client_min_messages = "error"

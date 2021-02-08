@@ -1,3 +1,13 @@
+*   Add `ActiveRecord::Base.connection.with_advisory_lock`.
+
+    This method allow applications to obtain an exclusive session level advisory lock,
+    if available, for the duration of the block.
+
+    If another session already have the lock, the method will return `false` and the block will
+    not be executed.
+
+    *Rafael Mendonça França*
+
 *   Removing trailing whitespace when matching columns in
     `ActiveRecord::Sanitization.disallow_raw_sql!`.
 

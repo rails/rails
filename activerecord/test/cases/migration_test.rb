@@ -1016,10 +1016,7 @@ class MigrationTest < ActiveRecord::TestCase
         end
       end
 
-      assert_match(
-        /#{ActiveRecord::ConcurrentMigrationError::RELEASE_LOCK_FAILED_MESSAGE}/,
-        e.message
-      )
+      assert_match(/Failed to release advisory lock/, e.message)
     end
   end
 
