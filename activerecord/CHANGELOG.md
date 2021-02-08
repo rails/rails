@@ -1,3 +1,22 @@
+*   Add `ActiveRecord::Relation#load_async`.
+
+    This method schedules the query to be performed asynchronously from a thread pool.
+
+    If the result is accessed before a background thread had the opportunity to perform
+    the query, it will be performed in the foreground.
+
+    This is useful for queries that can be performed long enough before their result will be
+    needed, or for controllers which need to perform several independant queries.
+
+    ```ruby
+    def index
+      @categories = Category.some_complex_scope.load_async
+      @posts = Post.some_complex_scope.load_async
+    end
+    ```
+
+    *Jean Boussier*
+
 *   Implemented `ActiveRecord::Relation#excluding` method.
 
     This method excludes the specified record (or collection of records) from

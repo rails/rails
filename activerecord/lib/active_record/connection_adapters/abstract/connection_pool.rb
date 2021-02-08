@@ -459,6 +459,7 @@ module ActiveRecord
 
       def schedule_query(future_result) # :nodoc:
         @async_executor.post { future_result.execute_or_skip }
+        Thread.pass
       end
 
       private

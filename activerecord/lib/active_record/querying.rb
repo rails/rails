@@ -44,7 +44,14 @@ module ActiveRecord
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
     #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
     def find_by_sql(sql, binds = [], preparable: nil, &block)
-      result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable)
+      _load_from_sql(_query_by_sql(sql, binds, preparable: preparable), &block)
+    end
+
+    def _query_by_sql(sql, binds = [], preparable: nil, async: false) # :nodoc:
+      connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable, async: async)
+    end
+
+    def _load_from_sql(result_set, &block) # :nodoc:
       column_types = result_set.column_types
 
       unless column_types.empty?

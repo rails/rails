@@ -102,6 +102,10 @@ module ActiveRecord
       self
     end
 
+    def cancel # :nodoc:
+      self
+    end
+
     def cast_values(type_overrides = {}) # :nodoc:
       if columns.one?
         # Separated to avoid allocating an array per row
