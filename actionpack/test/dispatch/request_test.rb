@@ -1133,6 +1133,28 @@ class RequestParameters < BaseRequestTest
     end
   end
 
+  test "validate_params_encoding_get" do
+    ActionDispatch::Request.stub(:validate_params_encoding, false) do
+      request = stub_request("QUERY_STRING" => "foo=%81E")
+
+      assert_equal request.parameters["foo"], "\x81E"
+    end
+  end
+
+  test "validate_params_encoding_post" do
+    ActionDispatch::Request.stub(:validate_params_encoding, false) do
+      data = "foo=%81E"
+
+      request = stub_request(
+        "REQUEST_METHOD" => "POST",
+        "CONTENT_LENGTH" => data.length,
+        "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
+        "rack.input" => StringIO.new(data)
+      )
+      assert_equal request.body.read, "foo=%81E"
+    end
+  end
+
   test "parameters not accessible after rack parse error 1" do
     request = stub_request(
       "REQUEST_METHOD" => "POST",

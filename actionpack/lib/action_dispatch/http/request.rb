@@ -377,6 +377,8 @@ module ActionDispatch
       Session::Options.set self, options
     end
 
+    cattr_accessor :validate_params_encoding, instance_accessor: false, default: true
+
     # Override Rack's GET method to support indifferent access.
     def GET
       fetch_header("action_dispatch.request.query_parameters") do |k|
@@ -385,7 +387,9 @@ module ActionDispatch
         action = path_parameters[:action]
         rack_query_params = Request::Utils.set_binary_encoding(self, rack_query_params, controller, action)
         # Check for non UTF-8 parameter values, which would cause errors later
-        Request::Utils.check_param_encoding(rack_query_params)
+        if self.class.validate_params_encoding
+          Request::Utils.check_param_encoding(rack_query_params)
+        end
         set_header k, Request::Utils.normalize_encode_params(rack_query_params)
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
@@ -400,7 +404,10 @@ module ActionDispatch
           super || {}
         end
         pr = Request::Utils.set_binary_encoding(self, pr, path_parameters[:controller], path_parameters[:action])
-        Request::Utils.check_param_encoding(pr)
+        # Check for non UTF-8 parameter values, which would cause errors later
+        if self.class.validate_params_encoding
+          Request::Utils.check_param_encoding(pr)
+        end
         self.request_parameters = Request::Utils.normalize_encode_params(pr)
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e

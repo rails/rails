@@ -25,6 +25,7 @@ module ActionDispatch
     config.action_dispatch.perform_deep_munge = true
     config.action_dispatch.request_id_header = "X-Request-Id"
     config.action_dispatch.return_only_request_media_type_on_content_type = true
+    config.action_dispatch.validate_params_encoding = true
 
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",
@@ -46,6 +47,7 @@ module ActionDispatch
       ActiveSupport.on_load(:action_dispatch_request) do
         self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
         self.return_only_media_type_on_content_type = app.config.action_dispatch.return_only_request_media_type_on_content_type
+        self.validate_params_encoding = app.config.action_dispatch.validate_params_encoding
         ActionDispatch::Request::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
       end
 
