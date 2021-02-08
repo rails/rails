@@ -114,7 +114,7 @@ Autoload paths are added to `$LOAD_PATH` by default. However, Zeitwerk uses abso
 config.add_autoload_paths_to_load_path = false
 ```
 
-That may speed legit `require` calls a bit, since there are less lookups. Also, if your application uses [Bootsnap](https://github.com/Shopify/bootsnap), that saves the library from building unnecessary indexes, and saves the RAM they would need.
+That may speed up legitimate `require` calls a bit since there are fewer lookups. Also, if your application uses [Bootsnap](https://github.com/Shopify/bootsnap), that saves the library from building unnecessary indexes, and saves the RAM they would need.
 
 
 Reloading
