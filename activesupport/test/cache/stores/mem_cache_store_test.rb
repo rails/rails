@@ -45,7 +45,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     @namespace = "test-#{SecureRandom.hex}"
     @cache = lookup_store(expires_in: 60)
     @peek = lookup_store
-    @cache.silence!
     @cache.logger = ActiveSupport::Logger.new(File::NULL)
   end
 
