@@ -187,7 +187,7 @@ class Array
     options[:indent]  ||= 2
     options[:builder] ||= Builder::XmlMarkup.new(indent: options[:indent])
     options[:root]    ||= \
-      if first.class != Hash && all? { |e| e.is_a?(first.class) }
+      if first.class != Hash && all?(first.class)
         underscored = ActiveSupport::Inflector.underscore(first.class.name)
         ActiveSupport::Inflector.pluralize(underscored).tr("/", "_")
       else
