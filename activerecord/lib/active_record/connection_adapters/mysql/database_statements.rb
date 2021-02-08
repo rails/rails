@@ -38,7 +38,7 @@ module ActiveRecord
         end
 
         # Executes the SQL statement in the context of this connection.
-        def execute(sql, name = nil)
+        def execute(sql, name = nil, async: false)
           check_if_write_query(sql)
 
           # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
@@ -48,9 +48,9 @@ module ActiveRecord
           super
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false)
+        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
           if without_prepared_statement?(binds)
-            execute_and_free(sql, name) do |result|
+            execute_and_free(sql, name, async: async) do |result|
               if result
                 build_result(columns: result.fields, rows: result.to_a)
               else
@@ -58,7 +58,7 @@ module ActiveRecord
               end
             end
           else
-            exec_stmt_and_free(sql, name, binds, cache_stmt: prepare) do |_, result|
+            exec_stmt_and_free(sql, name, binds, cache_stmt: prepare, async: async) do |_, result|
               if result
                 build_result(columns: result.fields, rows: result.to_a)
               else
@@ -146,7 +146,7 @@ module ActiveRecord
             @max_allowed_packet ||= show_variable("max_allowed_packet")
           end
 
-          def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
+          def exec_stmt_and_free(sql, name, binds, cache_stmt: false, async: false)
             check_if_write_query(sql)
 
             materialize_transactions
@@ -158,7 +158,7 @@ module ActiveRecord
 
             type_casted_binds = type_casted_binds(binds)
 
-            log(sql, name, binds, type_casted_binds) do
+            log(sql, name, binds, type_casted_binds, async: async) do
               if cache_stmt
                 stmt = @statements[sql] ||= @connection.prepare(sql)
               else

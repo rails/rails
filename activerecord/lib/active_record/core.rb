@@ -194,6 +194,15 @@ module ActiveRecord
         @@connection_handlers = handlers
       end
 
+      def self.asynchronous_queries_session # :nodoc:
+        asynchronous_queries_tracker.current_session
+      end
+
+      def self.asynchronous_queries_tracker # :nodoc:
+        Thread.current.thread_variable_get(:ar_asynchronous_queries_tracker) ||
+          Thread.current.thread_variable_set(:ar_asynchronous_queries_tracker, AsynchronousQueriesTracker.new)
+      end
+
       # Returns the symbol representing the current connected role.
       #
       #   ActiveRecord::Base.connected_to(role: :writing) do

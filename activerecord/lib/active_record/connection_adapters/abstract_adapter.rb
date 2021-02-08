@@ -424,6 +424,10 @@ module ActiveRecord
         false
       end
 
+      def supports_concurrent_connections?
+        true
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
@@ -706,7 +710,7 @@ module ActiveRecord
           exception
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil, async: false) # :doc:
           @instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
@@ -714,6 +718,7 @@ module ActiveRecord
             binds:             binds,
             type_casted_binds: type_casted_binds,
             statement_name:    statement_name,
+            async:             async,
             connection:        self) do
             @lock.synchronize do
               yield

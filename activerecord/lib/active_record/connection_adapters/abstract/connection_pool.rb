@@ -144,6 +144,13 @@ module ActiveRecord
 
         @lock_thread = false
 
+        @async_executor = Concurrent::ThreadPoolExecutor.new(
+          min_threads: 0,
+          max_threads: @size,
+          max_queue: @size * 4,
+          fallback_policy: :caller_runs
+        )
+
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
       end
@@ -448,6 +455,10 @@ module ActiveRecord
             checkout_timeout: checkout_timeout
           }
         end
+      end
+
+      def schedule_query(future_result) # :nodoc:
+        @async_executor.post { future_result.execute_or_skip }
       end
 
       private
