@@ -186,11 +186,9 @@ module ActiveRecord
         detect_enum_conflict!(name, name)
         detect_enum_conflict!(name, "#{name}=")
 
-        attr = attribute_alias?(name) ? attribute_alias(name) : name
-
-        attribute(attr, **options) do |subtype|
+        attribute(name, **options) do |subtype|
           subtype = subtype.subtype if EnumType === subtype
-          EnumType.new(attr, enum_values, subtype)
+          EnumType.new(name, enum_values, subtype)
         end
 
         value_method_names = []
