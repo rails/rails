@@ -814,7 +814,7 @@ module ActiveSupport #:nodoc:
       # Returns the original name of a class or module even if `name` has been
       # overridden.
       def real_mod_name(mod)
-        UNBOUND_METHOD_MODULE_NAME.bind(mod).call
+        UNBOUND_METHOD_MODULE_NAME.bind_call(mod)
       end
   end
 end

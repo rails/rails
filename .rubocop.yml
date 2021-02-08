@@ -250,6 +250,9 @@ Style/ColonMethodCall:
 Style/TrivialAccessors:
   Enabled: true
 
+Performance/BindCall:
+  Enabled: true
+
 Performance/FlatMap:
   Enabled: true
 
