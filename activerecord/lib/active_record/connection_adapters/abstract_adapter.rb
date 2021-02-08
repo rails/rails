@@ -103,6 +103,12 @@ module ActiveRecord
         )
       end
 
+      def check_if_write_query(sql) # :nodoc:
+        if preventing_writes? && write_query?(sql)
+          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+        end
+      end
+
       def replica?
         @config[:replica] || false
       end
@@ -111,7 +117,7 @@ module ActiveRecord
         @config.fetch(:use_metadata_table, true)
       end
 
-      # Determines whether writes are currently being prevents.
+      # Determines whether writes are currently being prevented.
       #
       # Returns true if the connection is a replica.
       #
@@ -123,10 +129,9 @@ module ActiveRecord
       def preventing_writes?
         return true if replica?
         return ActiveRecord::Base.connection_handler.prevent_writes if ActiveRecord::Base.legacy_connection_handling
-        return false if owner_name.nil?
+        return false if connection_klass.nil?
 
-        klass = self.owner_name.safe_constantize
-        klass&.current_preventing_writes
+        connection_klass.current_preventing_writes
       end
 
       def migrations_paths # :nodoc:
@@ -202,8 +207,8 @@ module ActiveRecord
         @owner = Thread.current
       end
 
-      def owner_name # :nodoc:
-        @pool.owner_name
+      def connection_klass # :nodoc:
+        @pool.connection_klass
       end
 
       def schema_cache
@@ -431,11 +436,28 @@ module ActiveRecord
         supports_advisory_locks? && @advisory_locks_enabled
       end
 
+      # Obtains an exclusive session level advisory lock, if available, for the duration of the block.
+      #
+      # Returns +false+ without executing the block if the lock could not be obtained.
+      def with_advisory_lock(lock_id, timeout = 0)
+        lock_acquired = get_advisory_lock(lock_id, timeout)
+
+        if lock_acquired
+          yield
+        end
+
+        lock_acquired
+      ensure
+        if lock_acquired && !release_advisory_lock(lock_id)
+          raise ReleaseAdvisoryLockError
+        end
+      end
+
       # This is meant to be implemented by the adapters that support advisory
       # locks
       #
       # Return true if we got the lock, otherwise false
-      def get_advisory_lock(lock_id) # :nodoc:
+      def get_advisory_lock(lock_id, timeout = 0) # :nodoc:
       end
 
       # This is meant to be implemented by the adapters that support advisory

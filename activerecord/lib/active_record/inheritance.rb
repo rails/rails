@@ -164,6 +164,21 @@ module ActiveRecord
         defined?(@abstract_class) && @abstract_class == true
       end
 
+      # Sets the application record class for Active Record
+      #
+      # This is useful if your application uses a different class than
+      # ApplicationRecord for your primary abstract class. This class
+      # will share a database connection with Active Record. It is the class
+      # that connects to your primary database.
+      def primary_abstract_class
+        if Base.application_record_class && Base.application_record_class != self
+          raise ArgumentError, "The `primary_abstract_class` is already set to #{Base.application_record_class}. There can only be one `primary_abstract_class` in an application."
+        end
+
+        self.abstract_class = true
+        Base.application_record_class = self
+      end
+
       # Returns the value to be stored in the inheritance column for STI.
       def sti_name
         store_full_sti_class && store_full_class_name ? name : name.demodulize

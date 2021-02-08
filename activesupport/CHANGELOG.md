@@ -1,3 +1,12 @@
+*   Add `Enumerable#in_order_of` to put an Enumerable in a certain order by a key.
+
+    *DHH*
+
+*   `ActiveSupport::Inflector.camelize` behaves expected when provided a symbol `:upper` or `:lower` argument. Matches
+    `String#camelize` behavior.
+
+    *Alex Ghiculescu*
+
 *   Raises an `ArgumentError` when the first argument of `ActiveSupport::Notification.subscribe` is
     invalid.
 

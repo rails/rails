@@ -240,30 +240,6 @@ module ApplicationTests
       end
     end
 
-    def test_run_with_model
-      skip "These feel a bit odd. Not sure we should keep supporting them."
-      create_model_with_fixture
-      create_fixture_test "models", "user"
-      assert_match "3 users", run_task(["test models/user"])
-      assert_match "3 users", run_task(["test app/models/user.rb"])
-    end
-
-    def test_run_different_environment_using_env_var
-      skip "no longer possible. Running tests in a different environment should be explicit"
-      app_file "test/unit/env_test.rb", <<-RUBY
-        require "test_helper"
-
-        class EnvTest < ActiveSupport::TestCase
-          def test_env
-            puts Rails.env
-          end
-        end
-      RUBY
-
-      ENV["RAILS_ENV"] = "development"
-      assert_match "development", run_test_command("test/unit/env_test.rb")
-    end
-
     def test_run_in_test_environment_by_default
       create_env_test
 
@@ -686,7 +662,7 @@ module ApplicationTests
     def test_rake_passes_TESTOPTS_to_minitest
       create_test_file :models, "account"
       output = Dir.chdir(app_path) { `bin/rake test TESTOPTS=-v` }
-      assert_match "AccountTest#test_truth", output, "passing TEST= should run selected test"
+      assert_match "AccountTest#test_truth", output, "passing TESTOPTS= should be sent to the test runner"
     end
 
     def test_running_with_ruby_gets_test_env_by_default
@@ -743,6 +719,28 @@ module ApplicationTests
       output = Dir.chdir(app_path) { `bin/rake db:migrate test:models TESTOPTS='-v' && echo ".tables" | rails dbconsole` }
       assert_match "AccountTest#test_truth", output
       assert_match "ar_internal_metadata", output
+    end
+
+    def test_rake_runs_tests_before_other_tasks_when_specified
+      app_file "Rakefile", <<~RUBY, "a"
+        task :echo do
+          puts "echo"
+        end
+      RUBY
+      output = Dir.chdir(app_path) { `bin/rake test echo` }
+      assert_equal "echo", output.split("\n").last
+    end
+
+    def test_rake_exits_on_failure
+      create_test_file :models, "post", pass: false
+      app_file "Rakefile", <<~RUBY, "a"
+        task :echo do
+          puts "echo"
+        end
+      RUBY
+      output = Dir.chdir(app_path) { `bin/rake test echo` }
+      assert_no_match "echo", output
+      assert_not_predicate $?, :success?
     end
 
     def test_warnings_option

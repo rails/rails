@@ -112,6 +112,10 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal("capital", "Capital".camelize(:lower))
   end
 
+  def test_camelize_upper
+    assert_equal("Capital", "Capital".camelize(:upper))
+  end
+
   def test_camelize_invalid_option
     e = assert_raise ArgumentError do
       "Capital".camelize(nil)

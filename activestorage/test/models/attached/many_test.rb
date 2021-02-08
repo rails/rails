@@ -628,6 +628,26 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_match(/Cannot configure service :unknown for User#featured_photos/, error.message)
   end
 
+  test "creating variation by variation name" do
+    @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
+    variant = @user.highlights_with_variants.first.variant(:thumb).processed
+
+    image = read_image(variant)
+    assert_equal "JPEG", image.type
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
+
+  test "raises error when unknown variant name is used" do
+    @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
+
+    error = assert_raises ArgumentError do
+      @user.highlights_with_variants.first.variant(:unknown).processed
+    end
+
+    assert_match(/Cannot find variant :unknown for User#highlights_with_variants/, error.message)
+  end
+
   private
     def append_on_assign
       ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many

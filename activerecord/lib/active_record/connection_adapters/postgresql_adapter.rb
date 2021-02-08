@@ -372,7 +372,7 @@ module ActiveRecord
         true
       end
 
-      def get_advisory_lock(lock_id) # :nodoc:
+      def get_advisory_lock(lock_id, timeout = 0) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")
         end
@@ -649,13 +649,9 @@ module ActiveRecord
         FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
 
         def execute_and_clear(sql, name, binds, prepare: false)
-          if preventing_writes? && write_query?(sql)
-            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
-          end
+          check_if_write_query(sql)
 
-          if without_prepared_statement?(binds)
-            result = exec_no_cache(sql, name, [])
-          elsif !prepare
+          if !prepare || without_prepared_statement?(binds)
             result = exec_no_cache(sql, name, binds)
           else
             result = exec_cache(sql, name, binds)

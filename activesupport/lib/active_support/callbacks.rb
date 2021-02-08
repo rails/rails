@@ -844,18 +844,12 @@ module ActiveSupport
             __callbacks[name.to_sym]
           end
 
-          if Module.instance_method(:method_defined?).arity == 1 # Ruby 2.5 and older
-            def set_callbacks(name, callbacks) # :nodoc:
-              self.__callbacks = __callbacks.merge(name.to_sym => callbacks)
+          def set_callbacks(name, callbacks) # :nodoc:
+            unless singleton_class.method_defined?(:__callbacks, false)
+              self.__callbacks = __callbacks.dup
             end
-          else # Ruby 2.6 and newer
-            def set_callbacks(name, callbacks) # :nodoc:
-              unless singleton_class.method_defined?(:__callbacks, false)
-                self.__callbacks = __callbacks.dup
-              end
-              self.__callbacks[name.to_sym] = callbacks
-              self.__callbacks
-            end
+            self.__callbacks[name.to_sym] = callbacks
+            self.__callbacks
           end
       end
   end

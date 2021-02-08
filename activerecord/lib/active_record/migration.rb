@@ -167,7 +167,6 @@ module ActiveRecord
 
   class ConcurrentMigrationError < MigrationError #:nodoc:
     DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running."
-    RELEASE_LOCK_FAILED_MESSAGE = "Failed to release advisory lock"
 
     def initialize(message = DEFAULT_MESSAGE)
       super
@@ -556,10 +555,12 @@ module ActiveRecord
     def self.inherited(subclass) #:nodoc:
       super
       if subclass.superclass == Migration
+        major = ActiveRecord::VERSION::MAJOR
+        minor = ActiveRecord::VERSION::MINOR
         raise StandardError, "Directly inheriting from ActiveRecord::Migration is not supported. " \
-          "Please specify the Rails release the migration was written for:\n" \
+          "Please specify the Active Record release the migration was written for:\n" \
           "\n" \
-          "  class #{subclass} < ActiveRecord::Migration[4.2]"
+          "  class #{subclass} < ActiveRecord::Migration[#{major}.#{minor}]"
       end
     end
 
@@ -1395,16 +1396,18 @@ module ActiveRecord
         lock_id = generate_migrator_advisory_lock_id
 
         with_advisory_lock_connection do |connection|
-          got_lock = connection.get_advisory_lock(lock_id)
-          raise ConcurrentMigrationError unless got_lock
-          load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
-          yield
-        ensure
-          if got_lock && !connection.release_advisory_lock(lock_id)
-            raise ConcurrentMigrationError.new(
-              ConcurrentMigrationError::RELEASE_LOCK_FAILED_MESSAGE
-            )
+          result = nil
+
+          got_lock = connection.with_advisory_lock(lock_id) do
+            load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
+            result = yield
           end
+
+          raise ConcurrentMigrationError unless got_lock
+
+          result
+        rescue ReleaseAdvisoryLockError => e
+          raise ConcurrentMigrationError, e.message, e.backtrace
         end
       end
 

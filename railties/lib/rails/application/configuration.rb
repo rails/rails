@@ -116,7 +116,7 @@ module Rails
 
           if respond_to?(:active_support)
             active_support.use_authenticated_message_encryption = true
-            active_support.hash_digest_class = ::Digest::SHA1
+            active_support.hash_digest_class = OpenSSL::Digest::SHA1
           end
 
           if respond_to?(:action_controller)
@@ -163,10 +163,6 @@ module Rails
             active_record.legacy_connection_handling = false
           end
 
-          if respond_to?(:active_storage)
-            active_storage.track_variants = true
-          end
-
           if respond_to?(:active_job)
             active_job.retry_jitter = 0.15
             active_job.skip_after_callbacks_if_terminated = true
@@ -187,6 +183,8 @@ module Rails
           end
 
           if respond_to?(:active_storage)
+            active_storage.track_variants = true
+
             active_storage.queues.analysis = nil
             active_storage.queues.purge = nil
           end
@@ -201,14 +199,20 @@ module Rails
           end
 
           ActiveSupport.utc_to_local_returns_utc_offset_times = true
-        when "6.2"
+        when "7.0"
           load_defaults "6.1"
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.return_only_request_media_type_on_content_type = false
+          end
 
           if respond_to?(:action_view)
             action_view.button_to_generates_button_tag = true
+            action_view.apply_stylesheet_media_default = false
           end
 
           if respond_to?(:active_support)
+            active_support.hash_digest_class = OpenSSL::Digest::SHA256
             active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
           end
         else

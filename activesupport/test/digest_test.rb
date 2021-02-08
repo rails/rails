@@ -6,17 +6,17 @@ require "openssl"
 class DigestTest < ActiveSupport::TestCase
   class InvalidDigest; end
   def test_with_default_hash_digest_class
-    assert_equal ::Digest::MD5.hexdigest("hello friend"), ActiveSupport::Digest.hexdigest("hello friend")
+    assert_equal OpenSSL::Digest::MD5.hexdigest("hello friend"), ActiveSupport::Digest.hexdigest("hello friend")
   end
 
   def test_with_custom_hash_digest_class
     original_hash_digest_class = ActiveSupport::Digest.hash_digest_class
 
-    ActiveSupport::Digest.hash_digest_class = ::Digest::SHA1
+    ActiveSupport::Digest.hash_digest_class = OpenSSL::Digest::SHA1
     digest = ActiveSupport::Digest.hexdigest("hello friend")
 
     assert_equal 32, digest.length
-    assert_equal ::Digest::SHA1.hexdigest("hello friend")[0...32], digest
+    assert_equal OpenSSL::Digest::SHA1.hexdigest("hello friend")[0...32], digest
   ensure
     ActiveSupport::Digest.hash_digest_class = original_hash_digest_class
   end

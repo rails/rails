@@ -30,7 +30,7 @@ class TypeTest < ActiveRecord::TestCase
   end
 
   test "lookup defaults to the current adapter" do
-    current_adapter = ActiveRecord::Base.connection.adapter_name.downcase.to_sym
+    current_adapter = ActiveRecord::Type.adapter_name_from(ActiveRecord::Base)
     type = Struct.new(:args)
     adapter_type = Struct.new(:args)
     ActiveRecord::Type.register(:foo, type, override: false)

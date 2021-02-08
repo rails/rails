@@ -363,13 +363,11 @@ module ActionDispatch
           reset_html_document = "@html_document = nil"
         end
 
-        definition = RUBY_VERSION >= "2.7" ? "..." : "*args"
-
         module_eval <<~RUBY, __FILE__, __LINE__ + 1
-          def #{method}(#{definition})
+          def #{method}(...)
             #{reset_html_document}
 
-            result = integration_session.#{method}(#{definition})
+            result = integration_session.#{method}(...)
             copy_session_variables!
             result
           end

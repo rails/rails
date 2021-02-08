@@ -68,7 +68,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_url_for_with_back
     referer = "http://www.example.com/referer"
-    @controller = Struct.new(:request).new(Struct.new(:env).new("HTTP_REFERER" => referer))
+    @controller = Struct.new(:request).new(Struct.new(:env).new({ "HTTP_REFERER" => referer }))
 
     assert_equal "http://www.example.com/referer", url_for(:back)
   end
@@ -85,13 +85,13 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_url_for_with_back_and_javascript_referer
     referer = "javascript:alert(document.cookie)"
-    @controller = Struct.new(:request).new(Struct.new(:env).new("HTTP_REFERER" => referer))
+    @controller = Struct.new(:request).new(Struct.new(:env).new({ "HTTP_REFERER" => referer }))
     assert_equal "javascript:history.back()", url_for(:back)
   end
 
   def test_url_for_with_invalid_referer
     referer = "THIS IS NOT A URL"
-    @controller = Struct.new(:request).new(Struct.new(:env).new("HTTP_REFERER" => referer))
+    @controller = Struct.new(:request).new(Struct.new(:env).new({ "HTTP_REFERER" => referer }))
     assert_equal "javascript:history.back()", url_for(:back)
   end
 
@@ -580,6 +580,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     @request = request_for_url("/?order=desc&page=1")
 
     assert_not current_page?(:back, check_parameters: false)
+  end
+
+  def test_current_page_when_options_given_as_keyword_arguments
+    @request = request_for_url("/")
+
+    assert current_page?(**url_hash)
   end
 
   def test_current_page_with_params_that_match

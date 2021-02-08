@@ -44,15 +44,20 @@ module ActiveJob
 
       deserialize_arguments_if_needed
 
-      run_callbacks :perform do
-        perform(*arguments)
-      end
-    rescue => exception
+      _perform_job
+    rescue Exception => exception
       rescue_with_handler(exception) || raise
     end
 
     def perform(*)
       fail NotImplementedError
     end
+
+    private
+      def _perform_job
+        run_callbacks :perform do
+          perform(*arguments)
+        end
+      end
   end
 end

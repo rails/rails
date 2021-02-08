@@ -118,8 +118,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_assets
     run_generator
 
-    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', media: 'all', 'data-turbolinks-track': 'reload'/)
-    assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+'application', 'data-turbolinks-track': 'reload'/)
+    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+"application", "data-turbolinks-track": "reload"/)
+    assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+"application", "data-turbolinks-track": "reload"/)
     assert_file("app/assets/stylesheets/application.css")
     assert_file("app/javascript/packs/application.js")
   end
@@ -202,7 +202,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_new_application_doesnt_need_defaults
     run_generator
-    assert_no_file "config/initializers/new_framework_defaults_6_2.rb"
+    assert_no_file "config/initializers/new_framework_defaults_7_0.rb"
   end
 
   def test_new_application_load_defaults
@@ -250,14 +250,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
-    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_6_2.rb"
+    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_7_0.rb"
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, { destination_root: app_root, shell: @shell }
       generator.send(:app_const)
       quietly { generator.update_config_files }
 
-      assert_file "#{app_root}/config/initializers/new_framework_defaults_6_2.rb"
+      assert_file "#{app_root}/config/initializers/new_framework_defaults_7_0.rb"
     end
   end
 
@@ -667,7 +667,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/javascript"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_match(/stylesheet_link_tag\s+'application', media: 'all' %>/, contents)
+      assert_match(/stylesheet_link_tag\s+"application" %>/, contents)
       assert_no_match(/javascript_pack_tag\s+'application'/, contents)
     end
   end
@@ -809,8 +809,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_web_console_with_master_option
-    run_generator [destination_root, "--master"]
+  def test_web_console_with_main_option
+    run_generator [destination_root, "--main"]
 
     assert_file "Gemfile" do |content|
       assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
@@ -857,15 +857,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     assert_equal 1, @bundle_commands.count("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
   end
 
   def test_master_option
-    generator([destination_root], master: true, skip_webpack_install: true)
+    run_generator [destination_root, "--master"]
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
+  end
+
+  def test_main_option
+    generator([destination_root], main: true, skip_webpack_install: true)
     run_generator_instance
 
     assert_equal 1, @bundle_commands.count("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']master["']$}
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
   end
 
   def test_spring
@@ -1070,6 +1075,35 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_version_control_initializes_git_repo
     run_generator [destination_root]
     assert_directory ".git"
+  end
+
+  def test_default_branch_main_without_user_default
+    current_default_branch = `git config --global init.defaultBranch`
+    `git config --global --unset init.defaultBranch`
+
+    run_generator [destination_root]
+    assert_file ".git/HEAD", /main/
+  ensure
+    if !current_default_branch.strip.empty?
+      `git config --global init.defaultBranch #{current_default_branch}`
+    end
+  end
+
+  def test_version_control_initializes_git_repo_with_user_default_branch
+    git_version = `git --version`[/\d+.\d+.\d+/]
+    return if Gem::Version.new(git_version) < Gem::Version.new("2.28.0")
+
+    current_default_branch = `git config --global init.defaultBranch`
+    `git config --global init.defaultBranch master`
+
+    run_generator [destination_root]
+    assert_file ".git/HEAD", /master/
+  ensure
+    if current_default_branch && current_default_branch.strip.empty?
+      `git config --global --unset init.defaultBranch`
+    elsif current_default_branch
+      `git config --global init.defaultBranch #{current_default_branch}`
+    end
   end
 
   def test_create_keeps

@@ -103,7 +103,7 @@ Returns a stylesheet link tag for the sources specified as arguments. If you don
 
 ```ruby
 stylesheet_link_tag "application"
-# => <link href="/assets/application.css" media="screen" rel="stylesheet" />
+# => <link href="/assets/application.css" rel="stylesheet" />
 ```
 
 #### stylesheet_path

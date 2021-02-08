@@ -103,7 +103,6 @@ module ActiveRecord
   #
   #   conversation.comments_inactive!
   #   conversation.comments_active? # => false
-
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
@@ -153,19 +152,27 @@ module ActiveRecord
         end
       end
 
+      attr_reader :subtype
+
       private
-        attr_reader :name, :mapping, :subtype
+        attr_reader :name, :mapping
     end
 
     def enum(definitions)
-      enum_prefix = definitions.delete(:_prefix)
-      enum_suffix = definitions.delete(:_suffix)
-      enum_scopes = definitions.delete(:_scopes)
+      prefix = definitions.delete(:_prefix)
+      suffix = definitions.delete(:_suffix)
+      scopes = definitions.delete(:_scopes) != false
 
       default = {}
       default[:default] = definitions.delete(:_default) if definitions.key?(:_default)
 
       definitions.each do |name, values|
+        _enum(name, values, prefix: prefix, suffix: suffix, scopes: scopes, **default)
+      end
+    end
+
+    private
+      def _enum(name, values, prefix: nil, suffix: nil, scopes: true, **options)
         assert_valid_enum_definition_values(values)
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
@@ -181,42 +188,43 @@ module ActiveRecord
 
         attr = attribute_alias?(name) ? attribute_alias(name) : name
 
-        attribute(attr, **default) do |subtype|
+        attribute(attr, **options) do |subtype|
+          subtype = subtype.subtype if EnumType === subtype
           EnumType.new(attr, enum_values, subtype)
         end
 
         value_method_names = []
         _enum_methods_module.module_eval do
-          enum_prefix = name if enum_prefix == true
-          prefix = "#{enum_prefix}_" if enum_prefix
+          prefix = if prefix
+            prefix == true ? "#{name}_" : "#{prefix}_"
+          end
 
-          enum_suffix = name if enum_suffix == true
-          suffix = "_#{enum_suffix}" if enum_suffix
+          suffix = if suffix
+            suffix == true ? "_#{name}" : "_#{suffix}"
+          end
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |label, value|
-            label = label.to_s
             enum_values[label] = value
+            label = label.to_s
 
             value_method_name = "#{prefix}#{label}#{suffix}"
             value_method_names << value_method_name
-            define_enum_methods(name, value_method_name, label, enum_scopes)
+            define_enum_methods(name, value_method_name, value, scopes)
 
             method_friendly_label = label.gsub(/[\W&&[:ascii:]]+/, "_")
             value_method_alias = "#{prefix}#{method_friendly_label}#{suffix}"
 
             if value_method_alias != value_method_name && !value_method_names.include?(value_method_alias)
               value_method_names << value_method_alias
-              define_enum_methods(name, value_method_alias, label, enum_scopes)
+              define_enum_methods(name, value_method_alias, value, scopes)
             end
           end
         end
-        detect_negative_enum_conditions!(value_method_names) if enum_scopes != false
+        detect_negative_enum_conditions!(value_method_names) if scopes
         enum_values.freeze
       end
-    end
 
-    private
       class EnumMethods < Module # :nodoc:
         def initialize(klass)
           @klass = klass
@@ -225,23 +233,23 @@ module ActiveRecord
         private
           attr_reader :klass
 
-          def define_enum_methods(name, value_method_name, label, enum_scopes)
-            # def active?() status == "active" end
+          def define_enum_methods(name, value_method_name, value, scopes)
+            # def active?() status_for_database == 0 end
             klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
-            define_method("#{value_method_name}?") { self[name] == label }
+            define_method("#{value_method_name}?") { public_send(:"#{name}_for_database") == value }
 
             # def active!() update!(status: 0) end
             klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
-            define_method("#{value_method_name}!") { update!(name => label) }
+            define_method("#{value_method_name}!") { update!(name => value) }
 
             # scope :active, -> { where(status: 0) }
             # scope :not_active, -> { where.not(status: 0) }
-            if enum_scopes != false
+            if scopes
               klass.send(:detect_enum_conflict!, name, value_method_name, true)
-              klass.scope value_method_name, -> { where(name => label) }
+              klass.scope value_method_name, -> { where(name => value) }
 
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
-              klass.scope "not_#{value_method_name}", -> { where.not(name => label) }
+              klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
             end
           end
       end

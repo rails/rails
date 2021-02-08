@@ -152,7 +152,7 @@ module ActiveRecord
   # - define a helper method in <tt>test_helper.rb</tt>
   #     module FixtureFileHelpers
   #       def file_sha(path)
-  #         Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
+  #         OpenSSL::Digest::SHA256.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
   #       end
   #     end
   #     ActiveRecord::FixtureSet.context_class.include FixtureFileHelpers
@@ -426,7 +426,7 @@ module ActiveRecord
   #   _fixture:
   #     ignore:
   #       - base
-  #     # or use "ignore: base" when there is only one fixture needs to be ignored.
+  #     # or use "ignore: base" when there is only one fixture that needs to be ignored.
   #
   #   base: &base
   #     admin: false
@@ -782,3 +782,5 @@ module ActiveRecord
     end
   end
 end
+
+ActiveSupport.run_load_hooks :active_record_fixture_set, ActiveRecord::FixtureSet

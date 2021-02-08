@@ -7,7 +7,7 @@ module ActiveRecord
     module QueryCache
       class << self
         def included(base) #:nodoc:
-          dirties_query_cache base, :insert, :update, :delete, :truncate, :truncate_tables,
+          dirties_query_cache base, :create, :insert, :update, :delete, :truncate, :truncate_tables,
             :rollback_to_savepoint, :rollback_db_transaction, :exec_insert_all
 
           base.set_callback :checkout, :after, :configure_query_cache!
@@ -94,8 +94,11 @@ module ActiveRecord
       end
 
       def select_all(arel, name = nil, binds = [], preparable: nil)
-        if @query_cache_enabled && !locked?(arel)
-          arel = arel_from_relation(arel)
+        arel = arel_from_relation(arel)
+
+        # If arel is locked this is a SELECT ... FOR UPDATE or somesuch.
+        # Such queries should not be cached.
+        if @query_cache_enabled && !(arel.respond_to?(:locked) && arel.locked)
           sql, binds, preparable = to_sql_and_binds(arel, binds, preparable)
 
           cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable) }
@@ -132,13 +135,6 @@ module ActiveRecord
             connection: self,
             cached: true
           }
-        end
-
-        # If arel is locked this is a SELECT ... FOR UPDATE or somesuch. Such
-        # queries should not be cached.
-        def locked?(arel)
-          arel = arel.arel if arel.is_a?(Relation)
-          arel.respond_to?(:locked) && arel.locked
         end
 
         def configure_query_cache!

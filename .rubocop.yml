@@ -4,10 +4,11 @@ require:
   - rubocop-rails
 
 AllCops:
-  TargetRubyVersion: 2.5
+  TargetRubyVersion: 2.7
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
+  SuggestExtensions: false
   Exclude:
     - '**/tmp/**/*'
     - '**/templates/**/*'
@@ -197,14 +198,14 @@ Lint/AmbiguousOperator:
 Lint/AmbiguousRegexpLiteral:
   Enabled: true
 
+Lint/DuplicateRequire:
+  Enabled: true
+
 Lint/ErbNewArguments:
   Enabled: true
 
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
 Lint/RequireParentheses:
-  Enabled: true
-
-Lint/ShadowingOuterLocalVariable:
   Enabled: true
 
 Lint/RedundantStringCoercion:
@@ -247,6 +248,9 @@ Style/ColonMethodCall:
   Enabled: true
 
 Style/TrivialAccessors:
+  Enabled: true
+
+Performance/BindCall:
   Enabled: true
 
 Performance/FlatMap:

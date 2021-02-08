@@ -102,7 +102,10 @@
       name: Action Cable Overview
       url: action_cable_overview.html
       description: This guide explains how Action Cable works, and how to use WebSockets to create real-time features.
-
+    -
+      name: Webpacker
+      url: webpacker.html
+      description: This guide introduces Webpacker, a Rails wrapper around the webpack build system.
 -
   name: Digging Deeper
   documents:
@@ -232,9 +235,9 @@
       url: upgrading_ruby_on_rails.html
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
     -
-      name: Version 6.2 - ?
-      url: 6_2_release_notes.html
-      description: Release notes for Rails 6.2.
+      name: Version 7.0 - ?
+      url: 7_0_release_notes.html
+      description: Release notes for Rails 7.0.
       work_in_progress: true
     -
       name: Version 6.1 - December 2020

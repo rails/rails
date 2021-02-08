@@ -8,14 +8,18 @@ module ActiveJob
       around_enqueue do |_, block|
         scheduled_at ? instrument(:enqueue_at, &block) : instrument(:enqueue, &block)
       end
+    end
 
-      around_perform do |_, block|
-        instrument :perform_start
-        instrument :perform, &block
-      end
+    def perform_now
+      instrument(:perform) { super }
     end
 
     private
+      def _perform_job
+        instrument(:perform_start)
+        super
+      end
+
       def instrument(operation, payload = {}, &block)
         enhanced_block = ->(event_payload) do
           value = block.call if block

@@ -395,7 +395,7 @@ module ActiveRecord
           blank_value = order_values.first
           ActiveSupport::Deprecation.warn(<<~MSG.squish)
             `.reorder(#{blank_value.inspect})` with `.first` / `.first!` no longer
-            takes non-deterministic result in Rails 6.2.
+            takes non-deterministic result in Rails 7.0.
             To continue taking non-deterministic result, use `.take` / `.take!` instead.
           MSG
         end
@@ -426,7 +426,7 @@ module ActiveRecord
         )
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
-        if eager_loading && !(
+        if eager_loading && has_limit_or_offset? && !(
             using_limitable_reflections?(join_dependency.reflections) &&
             using_limitable_reflections?(
               construct_join_dependency(
@@ -436,11 +436,9 @@ module ActiveRecord
               ).reflections
             )
         )
-          if has_limit_or_offset?
-            limited_ids = limited_ids_for(relation)
-            limited_ids.empty? ? relation.none! : relation.where!(primary_key => limited_ids)
+          relation = skip_query_cache_if_necessary do
+            klass.connection.distinct_relation_for_primary_key(relation)
           end
-          relation.limit_value = relation.offset_value = nil
         end
 
         if block_given?
@@ -448,18 +446,6 @@ module ActiveRecord
         else
           relation
         end
-      end
-
-      def limited_ids_for(relation)
-        values = @klass.connection.columns_for_distinct(
-          connection.visitor.compile(table[primary_key]),
-          relation.order_values
-        )
-
-        relation = relation.except(:select).select(values).distinct!
-
-        id_rows = skip_query_cache_if_necessary { @klass.connection.select_rows(relation.arel, "SQL") }
-        id_rows.map(&:last)
       end
 
       def using_limitable_reflections?(reflections)
@@ -534,10 +520,7 @@ module ActiveRecord
         result = except(:limit, :offset).where(primary_key => ids).records
 
         if result.size == ids.size
-          pk_type = @klass.type_for_attribute(primary_key)
-
-          records_by_id = result.index_by(&:id)
-          ids.map { |id| records_by_id.fetch(pk_type.cast(id)) }
+          result.in_order_of(:id, ids.map { |id| @klass.type_for_attribute(primary_key).cast(id) })
         else
           raise_record_not_found_exception!(ids, result.size, ids.size)
         end

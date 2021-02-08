@@ -46,7 +46,7 @@ end
 group :development do
 <%- unless options.api? || options.skip_dev_gems? -%>
   # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
-  <%- if options.dev? || options.edge? || options.master? -%>
+  <%- if options.dev? || options.edge? || options.main? -%>
   gem 'web-console', github: 'rails/web-console'
   <%- else -%>
   gem 'web-console', '>= 4.1.0'

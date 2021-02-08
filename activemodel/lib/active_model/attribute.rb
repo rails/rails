@@ -164,10 +164,10 @@ module ActiveModel
           type.deserialize(value)
         end
 
-        def _original_value_for_database
-          value_before_type_cast
-        end
-        private :_original_value_for_database
+        private
+          def _original_value_for_database
+            value_before_type_cast
+          end
       end
 
       class FromUser < Attribute # :nodoc:

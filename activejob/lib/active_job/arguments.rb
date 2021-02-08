@@ -73,14 +73,8 @@ module ActiveJob
         using Module.new {
           refine Hash do
             class << Hash
-              if RUBY_VERSION >= "2.7"
-                def ruby2_keywords_hash?(hash)
-                  !new(*[hash]).default.equal?(hash)
-                end
-              else
-                def ruby2_keywords_hash?(hash)
-                  false
-                end
+              def ruby2_keywords_hash?(hash)
+                !new(*[hash]).default.equal?(hash)
               end
 
               def ruby2_keywords_hash(hash)

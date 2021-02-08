@@ -159,7 +159,7 @@ Because of Unobtrusive JavaScript, the Rails "Ajax helpers" are actually in two
 parts: the JavaScript half and the Ruby half.
 
 Unless you have disabled the Asset Pipeline,
-[rails-ujs](https://github.com/rails/rails/tree/master/actionview/app/assets/javascripts)
+[rails-ujs](https://github.com/rails/rails/tree/main/actionview/app/assets/javascripts)
 provides the JavaScript half, and the regular Ruby view helpers add appropriate
 tags to your DOM.
 
@@ -331,10 +331,6 @@ The attribute is also allowed on form submit buttons. This allows you to customi
 the warning message depending on the button which was activated. In this case,
 you should **not** have `data-confirm` on the form itself.
 
-The default confirmation uses a JavaScript confirm dialog, but you can customize
-this by listening to the `confirm` event, which is fired just before the confirmation
-window appears to the user. To cancel this default confirmation, have the confirm
-handler return `false`.
 
 ### Automatic disabling
 
@@ -562,6 +558,6 @@ Other Resources
 
 Here are some helpful links to help you learn even more:
 
-* [rails-ujs wiki](https://github.com/rails/rails/tree/master/actionview/app/assets/javascripts)
+* [rails-ujs wiki](https://github.com/rails/rails/tree/main/actionview/app/assets/javascripts)
 * [Railscasts: Unobtrusive JavaScript](http://railscasts.com/episodes/205-unobtrusive-javascript)
 * [Railscasts: Turbolinks](http://railscasts.com/episodes/390-turbolinks)

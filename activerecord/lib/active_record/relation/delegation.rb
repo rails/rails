@@ -61,10 +61,9 @@ module ActiveRecord
           return if method_defined?(method)
 
           if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method) && !DELEGATION_RESERVED_METHOD_NAMES.include?(method.to_s)
-            definition = RUBY_VERSION >= "2.7" ? "..." : "*args, &block"
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def #{method}(#{definition})
-                scoping { klass.#{method}(#{definition}) }
+              def #{method}(...)
+                scoping { klass.#{method}(...) }
               end
             RUBY
           else

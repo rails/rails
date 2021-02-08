@@ -511,6 +511,38 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate book2, :single?
   end
 
+  test "declare multiple enums with { _prefix: true }" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+
+      enum(
+        status: [:value_1],
+        last_read: [:value_1],
+        _prefix: true
+      )
+    end
+
+    instance = klass.new
+    assert_respond_to instance, :status_value_1?
+    assert_respond_to instance, :last_read_value_1?
+  end
+
+  test "declare multiple enums with { _suffix: true }" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+
+      enum(
+        status: [:value_1],
+        last_read: [:value_1],
+        _suffix: true
+      )
+    end
+
+    instance = klass.new
+    assert_respond_to instance, :value_1_status?
+    assert_respond_to instance, :value_1_last_read?
+  end
+
   test "enum with alias_attribute" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
@@ -666,6 +698,20 @@ class EnumTest < ActiveRecord::TestCase
     computer = klass.public_send(:"Etc/GMT+1").build
     assert_predicate computer, :"Etc/GMT+1?"
     assert_not_predicate computer, :"Etc/GMT-1?"
+  end
+
+  test "deserialize enum value to original hash key" do
+    proposed = Struct.new(:to_s).new("proposed")
+    written = Struct.new(:to_s).new("written")
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: { proposed => 0, written => 1 }
+    end
+
+    book = klass.create!(status: 0)
+    assert_equal proposed, book.status
+    assert_predicate book, :proposed?
+    assert_not_predicate book, :written?
   end
 
   test "enum logs a warning if auto-generated negative scopes would clash with other enum names" do

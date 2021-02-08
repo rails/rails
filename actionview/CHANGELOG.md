@@ -1,14 +1,34 @@
+*   Remove legacy default `media=screen` from `stylesheet_link_tag`.
+
+    *André Luis Leal Cardoso Junior*
+
+*   Change `ActionView::Helpers::FormBuilder#button` to transform `formmethod`
+    attributes into `_method="$VERB"` Form Data to enable varied same-form actions:
+
+        <%= form_with model: post, method: :put do %>
+          <%= form.button "Update" %>
+          <%= form.button "Delete", formmethod: :delete %>
+        <% end %>
+        <%# => <form action="posts/1">
+            =>   <input type="hidden" name="_method" value="put">
+            =>   <button type="submit">Update</button>
+            =>   <button type="submit" formmethod="post" name="_method" value="delete">Delete</button>
+            => </form>
+        %>
+
+    *Sean Doyle*
+
 *   Change `ActionView::Helpers::UrlHelper#button_to` to *always* render a
     `<button>` element, regardless of whether or not the content is passed as
     the first argument or as a block.
 
         <%= button_to "Delete", post_path(@post), method: :delete %>
-        <%# => <form method="/posts/1"><input type="_method" value="delete"><button type="submit">Delete</button></form>
+        <%# => <form action="/posts/1"><input type="hidden" name="_method" value="delete"><button type="submit">Delete</button></form>
 
         <%= button_to post_path(@post), method: :delete do %>
           Delete
         <% end %>
-        <%# => <form method="/posts/1"><input type="_method" value="delete"><button type="submit">Delete</button></form>
+        <%# => <form action="/posts/1"><input type="hidden" name="_method" value="delete"><button type="submit">Delete</button></form>
 
     *Sean Doyle*, *Dusan Orlovic*
 

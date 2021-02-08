@@ -73,7 +73,7 @@ This will generate the following HTML:
 
 TIP: Passing `url: my_specified_path` to `form_with` tells the form where to make the request. However, as explained below, you can also pass ActiveRecord objects to the form.
 
-TIP: For every form input, an ID attribute is generated from its name (`"q"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
+TIP: For every form input, an ID attribute is generated from its name (`"query"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
 IMPORTANT: Use "GET" as the method for search forms. This allows users to bookmark a specific search and get back to it. More generally Rails encourages you to use the right HTTP verb for an action.
 
@@ -323,13 +323,41 @@ Output:
 <form accept-charset="UTF-8" action="/search" method="post">
   <input name="_method" type="hidden" value="patch" />
   <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
-  ...
+  <!-- ... -->
 </form>
 ```
 
 When parsing POSTed data, Rails will take into account the special `_method` parameter and act as if the HTTP method was the one specified inside it ("PATCH" in this example).
 
+When rendering a form, submission buttons can override the declared `method` attribute through the `formmethod:` keyword:
+
+```erb
+<%= form_with url: "/posts/1", method: :patch do |form| %>
+  <%= form.button "Delete", formmethod: :delete, data: { confirm: "Are you sure?" } %>
+  <%= form.button "Update" %>
+<% end %>
+```
+
+Similar to `<form>` elements, most browsers _don't support_ overriding form methods declared through [formmethod][] other than "GET" and "POST".
+
+Rails works around this issue by emulating other methods over POST through a combination of [formmethod][], [value][button-value], and [name][button-name] attributes:
+
+```html
+<form accept-charset="UTF-8" action="/posts/1" method="post">
+  <input name="_method" type="hidden" value="patch" />
+  <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
+  <!-- ... -->
+
+  <button type="submit" formmethod="post" name="_method" value="delete" data-confirm="Are you sure?">Delete</button>
+  <button type="submit" name="button">Update</button>
+</form>
+```
+
 IMPORTANT: In Rails 6.0 and 5.2, all forms using `form_with` implement `remote: true` by default. These forms will submit data using an XHR (Ajax) request. To disable this include `local: true`. To dive deeper see [Working with JavaScript in Rails](working_with_javascript_in_rails.html#remote-elements) guide.
+
+[formmethod]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod
+[button-name]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-name
+[button-value]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-value
 
 Making Select Boxes with Ease
 -----------------------------

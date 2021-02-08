@@ -211,12 +211,8 @@ module ActiveRecord
 
       private
         def find_target
-          if owner.strict_loading? && owner.validation_context.nil?
-            Base.strict_loading_violation!(owner: owner.class, association: klass)
-          end
-
-          if reflection.strict_loading? && owner.validation_context.nil?
-            Base.strict_loading_violation!(owner: owner.class, association: reflection.name)
+          if (owner.strict_loading? || reflection.strict_loading?) && owner.validation_context.nil?
+            Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
           end
 
           scope = self.scope
@@ -331,7 +327,11 @@ module ActiveRecord
         end
 
         def enqueue_destroy_association(options)
-          owner.class.destroy_association_async_job&.perform_later(**options)
+          job_class = owner.class.destroy_association_async_job
+
+          if job_class
+            owner._after_commit_jobs.push([job_class, options])
+          end
         end
 
         def inversable?(record)

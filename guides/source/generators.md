@@ -362,13 +362,13 @@ For example, the following escaped ERB tag would be needed in the template
 (note the extra `%`)...
 
 ```erb
-<%%= stylesheet_include_tag :application %>
+<%%= stylesheet_link_tag :application %>
 ```
 
 ...to generate the following output:
 
 ```erb
-<%= stylesheet_include_tag :application %>
+<%= stylesheet_link_tag :application %>
 ```
 
 Adding Generators Fallbacks

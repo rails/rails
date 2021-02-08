@@ -315,7 +315,7 @@ module ActiveRecord
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks: true) #:nodoc:
-      force_clear_transaction_record_state
+      @_start_transaction_state = nil
       if should_run_callbacks
         @_committed_already_called = true
         _run_commit_callbacks
@@ -389,12 +389,7 @@ module ActiveRecord
       def clear_transaction_record_state
         return unless @_start_transaction_state
         @_start_transaction_state[:level] -= 1
-        force_clear_transaction_record_state if @_start_transaction_state[:level] < 1
-      end
-
-      # Force to clear the transaction record state.
-      def force_clear_transaction_record_state
-        @_start_transaction_state = nil
+        @_start_transaction_state = nil if @_start_transaction_state[:level] < 1
       end
 
       # Restore the new record state and id of a record that was previously saved by a call to save_record_state.

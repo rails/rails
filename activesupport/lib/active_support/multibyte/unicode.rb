@@ -10,13 +10,13 @@ module ActiveSupport
 
       def default_normalization_form
         ActiveSupport::Deprecation.warn(
-          "ActiveSupport::Multibyte::Unicode.default_normalization_form is deprecated and will be removed in Rails 6.2."
+          "ActiveSupport::Multibyte::Unicode.default_normalization_form is deprecated and will be removed in Rails 7.0."
         )
       end
 
       def default_normalization_form=(_)
         ActiveSupport::Deprecation.warn(
-          "ActiveSupport::Multibyte::Unicode.default_normalization_form= is deprecated and will be removed in Rails 6.2."
+          "ActiveSupport::Multibyte::Unicode.default_normalization_form= is deprecated and will be removed in Rails 7.0."
         )
       end
 

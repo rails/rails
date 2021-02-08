@@ -39,9 +39,7 @@ module ActiveRecord
 
         # Executes the SQL statement in the context of this connection.
         def execute(sql, name = nil)
-          if preventing_writes? && write_query?(sql)
-            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
-          end
+          check_if_write_query(sql)
 
           # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
           # made since we established the connection
@@ -149,9 +147,7 @@ module ActiveRecord
           end
 
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
-            if preventing_writes? && write_query?(sql)
-              raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
-            end
+            check_if_write_query(sql)
 
             materialize_transactions
             mark_transaction_written_if_write(sql)

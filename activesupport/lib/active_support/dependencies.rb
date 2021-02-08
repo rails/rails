@@ -807,20 +807,14 @@ module ActiveSupport #:nodoc:
     end
 
     private
-      if RUBY_VERSION < "2.6"
-        def uninitialized_constant(qualified_name, const_name, receiver:)
-          NameError.new("uninitialized constant #{qualified_name}", const_name)
-        end
-      else
-        def uninitialized_constant(qualified_name, const_name, receiver:)
-          NameError.new("uninitialized constant #{qualified_name}", const_name, receiver: receiver)
-        end
+      def uninitialized_constant(qualified_name, const_name, receiver:)
+        NameError.new("uninitialized constant #{qualified_name}", const_name, receiver: receiver)
       end
 
       # Returns the original name of a class or module even if `name` has been
       # overridden.
       def real_mod_name(mod)
-        UNBOUND_METHOD_MODULE_NAME.bind(mod).call
+        UNBOUND_METHOD_MODULE_NAME.bind_call(mod)
       end
   end
 end

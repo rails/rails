@@ -31,7 +31,7 @@ module ActiveRecord
       end
 
       def inspect
-        Kernel.instance_method(:inspect).bind(self).call
+        Kernel.instance_method(:inspect).bind_call(self)
       end
 
       def changed_in_place?(raw_old_value, value)

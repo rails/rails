@@ -61,7 +61,7 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [mary, bob],   mary_and_bob
 
     author_id = Regexp.escape(Author.connection.quote_table_name("authors.id"))
-    message = %r/Merging \(#{author_id} BETWEEN (\?|\W?\w?\d) AND \g<1>\) and \(#{author_id} (?:= \g<1>|IN \(\g<1>, \g<1>\))\) no longer maintain both conditions, and will be replaced by the latter in Rails 6\.2\./
+    message = %r/Merging \(#{author_id} BETWEEN (\?|\W?\w?\d) AND \g<1>\) and \(#{author_id} (?:= \g<1>|IN \(\g<1>, \g<1>\))\) no longer maintain both conditions, and will be replaced by the latter in Rails 7\.0\./
 
     assert_deprecated(message) do
       assert_equal [mary], david_and_mary.merge(Author.where(id: mary))
@@ -80,7 +80,7 @@ class RelationMergingTest < ActiveRecord::TestCase
     end
     assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]), rewhere: true)
 
-    message = %r/Merging \(#{author_id} BETWEEN (\?|\W?\w?\d) AND \g<1>\) and \(#{author_id} BETWEEN \g<1> AND \g<1>\) no longer maintain both conditions, and will be replaced by the latter in Rails 6\.2\./
+    message = %r/Merging \(#{author_id} BETWEEN (\?|\W?\w?\d) AND \g<1>\) and \(#{author_id} BETWEEN \g<1> AND \g<1>\) no longer maintain both conditions, and will be replaced by the latter in Rails 7\.0\./
 
     assert_deprecated(message) do
       assert_equal [mary], david_and_mary.merge(mary_and_bob)
@@ -114,7 +114,7 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [mary, bob],   mary_and_bob
 
     author_id = Regexp.escape(Author.connection.quote_table_name("authors.id"))
-    message = %r/Merging \(\(#{author_id} = (\?|\W?\w?\d) OR #{author_id} = \g<1>\)\) and \(#{author_id} (?:= \g<1>|IN \(\g<1>, \g<1>\))\) no longer maintain both conditions, and will be replaced by the latter in Rails 6\.2\./
+    message = %r/Merging \(\(#{author_id} = (\?|\W?\w?\d) OR #{author_id} = \g<1>\)\) and \(#{author_id} (?:= \g<1>|IN \(\g<1>, \g<1>\))\) no longer maintain both conditions, and will be replaced by the latter in Rails 7\.0\./
 
     assert_deprecated(message) do
       assert_equal [mary], david_and_mary.merge(Author.where(id: mary))
@@ -133,7 +133,7 @@ class RelationMergingTest < ActiveRecord::TestCase
     end
     assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]), rewhere: true)
 
-    message = %r/Merging \(\(#{author_id} = (\?|\W?\w?\d) OR #{author_id} = \g<1>\)\) and \(\(#{author_id} = \g<1> OR #{author_id} = \g<1>\)\) no longer maintain both conditions, and will be replaced by the latter in Rails 6\.2\./
+    message = %r/Merging \(\(#{author_id} = (\?|\W?\w?\d) OR #{author_id} = \g<1>\)\) and \(\(#{author_id} = \g<1> OR #{author_id} = \g<1>\)\) no longer maintain both conditions, and will be replaced by the latter in Rails 7\.0\./
 
     assert_deprecated(message) do
       assert_equal [mary], david_and_mary.merge(mary_and_bob)
@@ -361,8 +361,8 @@ class RelationMergingTest < ActiveRecord::TestCase
     end
 
     message = <<-MSG.squish
-      Duplicated query annotations are no longer shown in queries in Rails 6.2.
-      To migrate to Rails 6.2's behavior, use `uniq!(:annotate)` to deduplicate query annotations
+      Duplicated query annotations are no longer shown in queries in Rails 7.0.
+      To migrate to Rails 7.0's behavior, use `uniq!(:annotate)` to deduplicate query annotations
       (`posts.uniq!(:annotate)`).
     MSG
     assert_deprecated(message) do
