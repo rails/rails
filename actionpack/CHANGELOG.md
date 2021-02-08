@@ -48,6 +48,10 @@
 
     *Janko Marohnić*
 
+*   Allow anything with `#to_str` (like `Addressable::URI`) as a `redirect_to` location
+
+    *ojab*
+
 *   Change the request method to a `GET` when passing failed requests down to `config.exceptions_app`.
 
     *Alex Robbin*
