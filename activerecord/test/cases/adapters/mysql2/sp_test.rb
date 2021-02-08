@@ -9,9 +9,6 @@ class Mysql2StoredProcedureTest < ActiveRecord::Mysql2TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-    unless ActiveRecord::Base.connection.database_version >= "5.6.0"
-      skip("no stored procedure support")
-    end
   end
 
   # Test that MySQL allows multiple results for stored procedures

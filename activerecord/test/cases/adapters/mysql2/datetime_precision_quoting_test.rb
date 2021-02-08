@@ -7,16 +7,8 @@ class Mysql2DatetimePrecisionQuotingTest < ActiveRecord::Mysql2TestCase
     @connection = ActiveRecord::Base.connection
   end
 
-  test "microsecond precision for MySQL gte 5.6.4" do
-    stub_version "5.6.4" do
-      assert_microsecond_precision
-    end
-  end
-
-  test "no microsecond precision for MySQL lt 5.6.4" do
-    stub_version "5.6.3" do
-      assert_no_microsecond_precision
-    end
+  test "microsecond precision for MySQL" do
+    assert_microsecond_precision
   end
 
   test "microsecond precision for MariaDB gte 5.3.0" do
@@ -28,10 +20,6 @@ class Mysql2DatetimePrecisionQuotingTest < ActiveRecord::Mysql2TestCase
   private
     def assert_microsecond_precision
       assert_match_quoted_microsecond_datetime(/\.123456\z/)
-    end
-
-    def assert_no_microsecond_precision
-      assert_match_quoted_microsecond_datetime(/:55\z/)
     end
 
     def assert_match_quoted_microsecond_datetime(match)

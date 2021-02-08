@@ -132,7 +132,7 @@ module ActiveRecord
             if mariadb?
               database_version >= "10.2.2"
             else
-              database_version >= "5.7.9"
+              true
             end
           end
 

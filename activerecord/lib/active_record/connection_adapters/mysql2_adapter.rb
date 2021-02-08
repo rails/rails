@@ -60,7 +60,7 @@ module ActiveRecord
       end
 
       def supports_json?
-        !mariadb? && database_version >= "5.7.8"
+        !mariadb?
       end
 
       def supports_comments?

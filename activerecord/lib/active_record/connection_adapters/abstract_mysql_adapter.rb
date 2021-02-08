@@ -105,16 +105,16 @@ module ActiveRecord
       end
 
       def supports_datetime_with_precision?
-        mariadb? || database_version >= "5.6.4"
+        true
       end
 
       def supports_virtual_columns?
-        mariadb? || database_version >= "5.7.5"
+        true
       end
 
       # See https://dev.mysql.com/doc/refman/en/optimizer-hints.html for more details.
       def supports_optimizer_hints?
-        !mariadb? && database_version >= "5.7.7"
+        !mariadb?
       end
 
       def supports_common_table_expressions?
@@ -556,8 +556,8 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < "5.5.8"
-          raise "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.5.8."
+        if database_version < "5.7.9"
+          raise "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.7.9."
         end
       end
 
@@ -728,7 +728,7 @@ module ActiveRecord
           if mariadb?
             database_version >= "10.5.2"
           else
-            database_version >= "5.7.6"
+            true
           end
         end
 

@@ -1,3 +1,7 @@
+*   Bump minimum MySQL version to 5.7.9.
+
+    *Yasuo Honda*
+
 *   Allow applications to configure the thread pool for async queries
 
     Some applications may want one thread pool per database whereas others want to use
