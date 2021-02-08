@@ -606,9 +606,9 @@ module ActionView
       #   unnecessary unless you support browsers without JavaScript.
       # * <tt>:local</tt> - Whether to use standard HTTP form submission.
       #   When set to <tt>true</tt>, the form is submitted via standard HTTP.
-      #   When set to <tt>false</tt>, the form is submitted as a "remote form", which 
-      #   is handled by Rails UJS as an XHR. When unspecified, the behavior is derived 
-      #   from <tt>config.action_view.form_with_generates_remote_forms</tt> where the 
+      #   When set to <tt>false</tt>, the form is submitted as a "remote form", which
+      #   is handled by Rails UJS as an XHR. When unspecified, the behavior is derived
+      #   from <tt>config.action_view.form_with_generates_remote_forms</tt> where the
       #   config's value is actually the inverse of what <tt>local</tt>'s value would be.
       #   As of Rails 6.1, that configuration option defaults to <tt>false</tt>
       #   (which has the equivalent effect of passing <tt>local: true</tt>).
