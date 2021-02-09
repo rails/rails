@@ -1,3 +1,8 @@
+*   Add `with_all_variant_records` method to eager load all variant records on an attachment at once.
+    `with_attached_image` scope now eager loads variant records if using variant tracking.
+
+    *Alex Ghiculescu*
+
 *   Allow to purge an attachment when record is not persisted for `has_one_attached`
 
     *Jacopo Beschi*
