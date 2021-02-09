@@ -120,17 +120,17 @@ module Rails
       empty_directory "config"
 
       inside "config" do
-        template "routes.rb"
+        template "routes.rb" unless options[:updating]
         template "application.rb"
         template "environment.rb"
-        template "cable.yml" unless options[:skip_action_cable]
-        template "puma.rb"   unless options[:skip_puma]
+        template "cable.yml" unless options[:updating] || options[:skip_action_cable]
+        template "puma.rb"   unless options[:updating] || options[:skip_puma]
         template "spring.rb" if spring_install?
-        template "storage.yml" unless skip_active_storage?
+        template "storage.yml" unless options[:updating] || skip_active_storage?
 
         directory "environments"
         directory "initializers"
-        directory "locales"
+        directory "locales" unless options[:updating]
       end
     end
 
@@ -148,7 +148,6 @@ module Rails
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
       config
-      configru
 
       unless cookie_serializer_config_exist
         gsub_file "config/initializers/cookies_serializer.rb", /json(?!,)/, "marshal"
