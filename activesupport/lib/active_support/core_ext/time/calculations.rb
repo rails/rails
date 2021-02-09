@@ -42,8 +42,14 @@ class Time
 
     # Layers additional behavior on Time.at so that ActiveSupport::TimeWithZone and DateTime
     # instances can be used when called with a single argument
-    def at_with_coercion(*args)
-      return at_without_coercion(*args) if args.size != 1
+    def at_with_coercion(*args, **kwargs)
+      if args.size != 1
+        if kwargs.empty?
+          return at_without_coercion(*args)
+        else
+          return at_without_coercion(*args, **kwargs)
+        end
+      end
 
       # Time.at can be called with a time or numerical value
       time_or_number = args.first
