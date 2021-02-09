@@ -1,3 +1,11 @@
+*   Introduce Active Storage validators. Subclasses of `ActiveStorage::Validations::BaseValidator` run before creating a
+    `Blob` on direct upload, and before saving an `Attachment` via direct or indirect uploads. Includes built in validators
+    for content type and byte size.
+
+    See https://github.com/rails/rails/pull/41178 or the Active Storage guide for examples.
+
+    *Abhishek Chandrasekhar*, *Alex Ghiculescu*
+
 *   Attachments can be deleted after their association is no longer defined.
 
     Fixes #42514

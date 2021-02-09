@@ -21,6 +21,8 @@ require "active_storage/service/registry"
 
 require "active_storage/reflection"
 
+require "active_storage/validations"
+
 module ActiveStorage
   class Engine < Rails::Engine # :nodoc:
     isolate_namespace ActiveStorage
@@ -108,6 +110,7 @@ module ActiveStorage
 
       ActiveSupport.on_load(:active_record) do
         include ActiveStorage::Attached::Model
+        include ActiveStorage::Validations
       end
     end
 

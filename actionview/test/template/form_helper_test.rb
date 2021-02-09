@@ -569,6 +569,13 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, file_field("import", "file", direct_upload: true)
   end
 
+  def test_file_field_with_direct_upload_when_rails_direct_uploads_url_is_defined_and_model_is_provided
+    @controller = WithActiveStorageRoutesControllers.new
+
+    expected = '<input data-direct-upload-url="http://testtwo.host/rails/active_storage/direct_uploads" data-direct-upload-model="Post" type="file" name="import[file]" id="import_file" />'
+    assert_dom_equal expected, file_field("import", "file", direct_upload: true, object: Post.new)
+  end
+
   def test_file_field_with_direct_upload_dont_mutate_arguments
     original_options = { class: "pix", direct_upload: true }
 
@@ -3493,6 +3500,25 @@ class FormHelperTest < ActionView::TestCase
       "<label for='title'>Title:</label> <input name='post[title]' type='text' id='post_title' value='Hello World' /><br/>" \
       "<label for='body'>Body:</label> <textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea><br/>" \
       "<label for='secret'>Secret:</label> <input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' /><br/>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  ensure
+    ActionView::Base.default_form_builder = old_default_form_builder
+  end
+
+  def test_form_builder_includes_direct_upload_attributes
+    old_default_form_builder, ActionView::Base.default_form_builder =
+      ActionView::Base.default_form_builder, LabelledFormBuilder
+
+    @controller = WithActiveStorageRoutesControllers.new
+
+    form_for(@post) do |f|
+      concat f.file_field(:title, direct_upload: true)
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch", multipart: true) do
+      "<label for='title'>Title:</label> <input name='post[title]' type='file' id='post_title' data-direct-upload-url='http://testtwo.host/rails/active_storage/direct_uploads' data-direct-upload-model='Post' /><br/>" \
     end
 
     assert_dom_equal expected, output_buffer

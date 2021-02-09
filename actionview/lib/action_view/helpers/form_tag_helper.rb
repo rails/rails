@@ -316,7 +316,7 @@ module ActionView
       #   file_field_tag 'file', accept: 'text/html', class: 'upload', value: 'index.html'
       #   # => <input accept="text/html" class="upload" id="file" name="file" type="file" value="index.html" />
       def file_field_tag(name, options = {})
-        text_field_tag(name, nil, convert_direct_upload_option_to_url(options.merge(type: :file)))
+        text_field_tag(name, nil, add_direct_upload_attributes(options.merge(type: :file)))
       end
 
       # Creates a password field, a masked text field that will hide the users input behind a mask character.
@@ -948,9 +948,14 @@ module ActionView
           tag_options.delete("data-disable-with")
         end
 
-        def convert_direct_upload_option_to_url(options)
+        def add_direct_upload_attributes(options)
           if options.delete(:direct_upload) && respond_to?(:rails_direct_uploads_url)
             options["data-direct-upload-url"] = rails_direct_uploads_url
+            if options[:direct_upload_model]
+              options["data-direct-upload-model"] = options.delete(:direct_upload_model)
+            elsif options[:object]
+              options["data-direct-upload-model"] = options[:object].class.name
+            end
           end
           options
         end

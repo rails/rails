@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "controller/fake_models"
 
 class FormTagHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -243,6 +244,15 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\" data-direct-upload-url=\"http://testtwo.host/rails/active_storage/direct_uploads\"/>",
       file_field_tag("picsplz", class: "pix", direct_upload: true)
+    )
+  end
+
+  def test_file_field_tag_with_direct_upload_when_rails_direct_uploads_url_is_defined_and_model_is_provided
+    @controller = WithActiveStorageRoutesControllers.new
+
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\" data-direct-upload-url=\"http://testtwo.host/rails/active_storage/direct_uploads\" data-direct-upload-model=\"Post\"/>",
+      file_field_tag("picsplz", class: "pix", direct_upload: true, direct_upload_model: "Post")
     )
   end
 

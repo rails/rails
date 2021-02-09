@@ -129,6 +129,22 @@ else
 end
 
 class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    @old_validators = User._validators.deep_dup
+    @old_callbacks = User._validate_callbacks.deep_dup
+  end
+
+  teardown do
+    User.destroy_all
+    ActiveStorage::Blob.all.each(&:purge)
+
+    User.clear_validators!
+    # NOTE: `clear_validators!` clears both registered validators and any
+    # callbacks registered by `validate()`, so ensure that both are restored
+    User._validators = @old_validators if @old_validators
+    User._validate_callbacks = @old_callbacks if @old_callbacks
+  end
+
   test "creating new direct upload" do
     checksum = OpenSSL::Digest::MD5.base64digest("Hello")
     metadata = {
@@ -141,6 +157,8 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
 
     post rails_direct_uploads_url, params: { blob: {
       filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain", metadata: metadata } }
+
+    assert_response :success
 
     @response.parsed_body.tap do |details|
       assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
@@ -173,6 +191,88 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       assert_nil details["blob"]
       assert_not_nil details["id"]
     end
+  end
+
+  test "creating new direct upload with model with no active storage validations" do
+    # validations that aren't active storage validations are ignored
+    User.validates :name, length: { minimum: 2 }
+
+    file = file_fixture("racecar.jpg").open
+    checksum = Digest::MD5.base64digest(file.read)
+    metadata = {
+      "foo": "bar",
+      "my_key_1": "my_value_1",
+      "my_key_2": "my_value_2",
+      "platform": "my_platform",
+      "library_ID": "12345"
+    }
+
+    post rails_direct_uploads_url, params: { blob: {
+      filename: "racecar.jpg", byte_size: file.size, checksum: checksum, content_type: "image/jpg", metadata: metadata, model: "User" } }
+
+    assert_response :success
+
+    @response.parsed_body.tap do |details|
+      assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
+      assert_equal "racecar.jpg", details["filename"]
+      assert_equal file.size, details["byte_size"]
+      assert_equal checksum, details["checksum"]
+      assert_equal metadata, details["metadata"].transform_keys(&:to_sym)
+      assert_equal "image/jpg", details["content_type"]
+      assert_match(/rails\/active_storage\/disk/, details["direct_upload"]["url"])
+      assert_equal({ "Content-Type" => "image/jpg" }, details["direct_upload"]["headers"])
+    end
+  end
+
+  test "creating new direct upload with model where validations pass" do
+    User.validates :avatar, attachment_content_type: { with: /\Aimage\//, message: "must be an image" }
+    User.validates :avatar, attachment_byte_size: { maximum: 50.megabytes, message: "can't be larger than 50 MB" }
+
+    file = file_fixture("racecar.jpg").open
+    checksum = Digest::MD5.base64digest(file.read)
+    metadata = {
+      "foo": "bar",
+      "my_key_1": "my_value_1",
+      "my_key_2": "my_value_2",
+      "platform": "my_platform",
+      "library_ID": "12345"
+    }
+
+    post rails_direct_uploads_url, params: { blob: {
+      filename: "racecar.jpg", byte_size: file.size, checksum: checksum, content_type: "image/jpg", metadata: metadata, model: "User" } }
+
+    assert_response :success
+
+    @response.parsed_body.tap do |details|
+      assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
+      assert_equal "racecar.jpg", details["filename"]
+      assert_equal file.size, details["byte_size"]
+      assert_equal checksum, details["checksum"]
+      assert_equal metadata, details["metadata"].transform_keys(&:to_sym)
+      assert_equal "image/jpg", details["content_type"]
+      assert_match(/rails\/active_storage\/disk/, details["direct_upload"]["url"])
+      assert_equal({ "Content-Type" => "image/jpg" }, details["direct_upload"]["headers"])
+    end
+  end
+
+  test "creating new direct upload with model where validations fail" do
+    User.validates :avatar, attachment_content_type: { with: /\Atext\//, message: "must be a text file" }
+    User.validates :avatar, attachment_byte_size: { minimum: 50.megabytes, message: "can't be smaller than 50 MB" }
+
+    file = file_fixture("racecar.jpg").open
+    checksum = Digest::MD5.base64digest(file.read)
+    metadata = {
+      "foo": "bar",
+      "my_key_1": "my_value_1",
+      "my_key_2": "my_value_2",
+      "platform": "my_platform",
+      "library_ID": "12345"
+    }
+
+    post rails_direct_uploads_url, params: { blob: {
+      filename: "racecar.jpg", byte_size: file.size, checksum: checksum, content_type: "image/jpg", metadata: metadata, model: "User" } }
+
+    assert_response :unprocessable_entity
   end
 
   private

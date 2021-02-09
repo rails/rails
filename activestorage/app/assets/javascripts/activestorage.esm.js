@@ -508,13 +508,14 @@ function toArray(value) {
 }
 
 class BlobRecord {
-  constructor(file, checksum, url) {
+  constructor(file, checksum, url, model) {
     this.file = file;
     this.attributes = {
       filename: file.name,
       content_type: file.type || "application/octet-stream",
       byte_size: file.size,
-      checksum: checksum
+      checksum: checksum,
+      model: model
     };
     this.xhr = new XMLHttpRequest;
     this.xhr.open("POST", url, true);
@@ -604,11 +605,12 @@ class BlobUpload {
 let id = 0;
 
 class DirectUpload {
-  constructor(file, url, delegate) {
+  constructor(file, url, delegate, model) {
     this.id = ++id;
     this.file = file;
     this.url = url;
     this.delegate = delegate;
+    this.model = model;
   }
   create(callback) {
     FileChecksum.create(this.file, ((error, checksum) => {
@@ -616,7 +618,7 @@ class DirectUpload {
         callback(error);
         return;
       }
-      const blob = new BlobRecord(this.file, checksum, this.url);
+      const blob = new BlobRecord(this.file, checksum, this.url, this.model);
       notify(this.delegate, "directUploadWillCreateBlobWithXHR", blob.xhr);
       blob.create((error => {
         if (error) {
@@ -647,7 +649,7 @@ class DirectUploadController {
   constructor(input, file) {
     this.input = input;
     this.file = file;
-    this.directUpload = new DirectUpload(this.file, this.url, this);
+    this.directUpload = new DirectUpload(this.file, this.url, this, this.model);
     this.dispatch("initialize");
   }
   start(callback) {
@@ -677,6 +679,9 @@ class DirectUploadController {
   }
   get url() {
     return this.input.getAttribute("data-direct-upload-url");
+  }
+  get model() {
+    return this.input.getAttribute("data-direct-upload-model");
   }
   dispatch(name, detail = {}) {
     detail.file = this.file;

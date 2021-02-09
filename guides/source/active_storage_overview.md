@@ -28,13 +28,13 @@ files to Active Record objects. It comes with a local disk-based service for
 development and testing and supports mirroring files to subordinate services for
 backups and migrations.
 
-Using Active Storage, an application can transform image uploads or generate image 
-representations of non-image uploads like PDFs and videos, and extract metadata from 
+Using Active Storage, an application can transform image uploads or generate image
+representations of non-image uploads like PDFs and videos, and extract metadata from
 arbitrary files.
 
 ### Requirements
 
-Various features of Active Storage depend on third-party software which Rails 
+Various features of Active Storage depend on third-party software which Rails
 will not install, and must be installed separately:
 
 * [libvips](https://github.com/libvips/libvips) or [ImageMagick](https://imagemagick.org/index.php) v8.6+ for image analysis and transformations
@@ -47,7 +47,7 @@ Image analysis and transformations also require the `image_processing` gem. Unco
 gem "image_processing", ">= 1.2"
 ```
 
-TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance). 
+TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance).
 
 WARNING: Before you install and use third-party software, make sure you understand the licensing implications of doing so. MuPDF, in particular, is licensed under AGPL and requires a commercial license for some use.
 
@@ -571,6 +571,56 @@ user.avatar.purge_later
 [Attached::One#purge]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge
 [Attached::One#purge_later]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge_later
 
+Validating Files
+----------------
+
+Active Storage includes attachment validators for the following properties:
+
+* Byte Size
+* Content Type
+
+### Size
+
+Validates the size (in bytes) of the attached `Blob` object:
+
+    ```ruby
+    validates :avatar, attachment_byte_size: { in: 0..1.megabyte }
+    validates :avatar, attachment_byte_size: { minimum: 17.kilobytes }
+    validates :avatar, attachment_byte_size: { maximum: 38.megabytes }
+    ```
+
+Also accepts a `Range` as a shortcut option for `:in`:
+
+    ```ruby
+    validates :avatar, attachment_size: 0..1.megabyte
+    ```
+
+### Content Type
+
+Validates the content type of the attached `Blob` object:
+
+    ```ruby
+    validates :avatar, attachment_byte_content_type: { in: %w[image/jpeg image/png] }
+    validates :avatar, attachment_byte_content_type: { not: %w[application/pdf] }
+    ```
+
+Also accepts a `Array` or `String` as a shortcut option for `:in`:
+
+    ```ruby
+    validates :avatar, attachment_byte_content_type: %w[image/jpeg image/png]
+    validates :avatar, attachment_byte_content_type: "image/jpeg"
+    ```
+
+### Validation Helper
+
+Active Storage also provides a more readable validation helper named
+`validates_attachment()` which provides the same functionality as `validates()`
+but does not require the `attachment_` prefix on keys:
+
+    ```ruby
+    validates_attachment :avatar, byte_size: { in: 0..1.megabyte }, content_type: "image/jpeg"
+    ```
+
 Serving Files
 -------------
 
@@ -839,7 +889,7 @@ end
 
 ### Transforming Images
 
-Transforming images allows you to display the image at your choice of dimensions. 
+Transforming images allows you to display the image at your choice of dimensions.
 To create a variation of an image, call [`variant`][] on the attachment. You
 can pass any transformation supported by the variant processor to the method.
 When the browser hits the variant URL, Active Storage will lazily transform
@@ -857,7 +907,7 @@ The default processor for Active Storage is MiniMagick, but you can also use
 config.active_storage.variant_processor = :vips
 ```
 
-The two processors are not fully compatible, so when migrating an existing application 
+The two processors are not fully compatible, so when migrating an existing application
 using MiniMagick to Vips, some changes have to be made if using options that are format
 specific:
 
