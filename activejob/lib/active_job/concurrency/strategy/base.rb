@@ -4,19 +4,20 @@ module ActiveJob
   module Concurrency
     module Strategy
       class Base
-        attr_reader :limit, :keys, :timeout
+        attr_reader :limit, :keys, :prefix, :timeout
 
-        def initialize(limit, keys, timeout)
+        def initialize(limit, keys, prefix, timeout)
           @limit = limit
           @keys = Array(keys)
+          @prefix = prefix
           @timeout = timeout
         end
 
         def build_key(job)
           if keys.any?
-            "#{job.class}:#{job.arguments[0].dig(*keys)}"
+            "#{prefix_key(job)}:#{extract_keys_from_job_arguments(job)}"
           else
-            job.class.to_s
+            prefix_key(job).to_s
           end
         end
 
@@ -31,6 +32,15 @@ module ActiveJob
         def perform_limit?
           raise NotImplementedError
         end
+
+        private
+          def extract_keys_from_job_arguments(job)
+            job.arguments[0]&.dig(*keys)
+          end
+
+          def prefix_key(job)
+            prefix.present? ? prefix : job.class
+          end
       end
     end
   end

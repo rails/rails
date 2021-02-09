@@ -67,4 +67,36 @@ class ConcurrencyTest < ActiveJob::TestCase
     assert_equal ["resource_id"], second_concurrency_strategy["keys"]
     assert_equal ActiveJob::Concurrency::DEFAULT_TIMEOUT, second_concurrency_strategy["timeout"]
   end
+
+  test "job with custom concurrency prefix stores concurrency information as part of the serialized job data" do
+    job = PrefixConcurrencyJob.new("resource_id" => 1)
+
+    serialized = job.serialize
+    assert_equal 1, serialized["concurrency"].size
+
+    concurrency_strategy = serialized["concurrency"][0]
+    assert_equal ActiveJob::Concurrency::Strategy::Enqueue.name, concurrency_strategy["strategy"]
+    assert_equal 1, concurrency_strategy["limit"]
+    assert_equal ["resource_id"], concurrency_strategy["keys"]
+    assert_equal "my_job", concurrency_strategy["prefix"]
+    assert_equal ActiveJob::Concurrency::DEFAULT_TIMEOUT, concurrency_strategy["timeout"]
+  end
+
+  test "concurrency build the correct key" do
+    job = ConcurrencyJob.new("raising" => true)
+
+    assert_equal "ConcurrencyJob:true", job.concurrency_strategies[0].build_key(job)
+  end
+
+  test "concurrency build the correct key with arguments" do
+    job = ConcurrencyJob.new()
+
+    assert_equal "ConcurrencyJob:", job.concurrency_strategies[0].build_key(job)
+  end
+
+  test "concurrency build the correct key with prefix" do
+    job = PrefixConcurrencyJob.new("resource_id" => 23)
+
+    assert_equal "my_job:23", job.concurrency_strategies[0].build_key(job)
+  end
 end

@@ -10,6 +10,13 @@ class EnqueueErrorJob < ActiveJob::Base
       def enqueue_at(*)
         raise ActiveJob::EnqueueError, "There was an error enqueuing the job"
       end
+
+      def concurrency_reached?(strategy, job)
+        false
+      end
+
+      def clear_concurrency(strategy, job)
+      end
     end
   end
 

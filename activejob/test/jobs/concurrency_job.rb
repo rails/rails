@@ -30,3 +30,11 @@ class MultipleConcurrencyStrategiesJob < ActiveJob::Base
     JobBuffer.add("Job enqueued with multiple concurrency strategies")
   end
 end
+
+class PrefixConcurrencyJob < ActiveJob::Base
+  enqueue_exclusively_with(keys: ["resource_id"], prefix: "my_job")
+
+  def perform(args)
+    JobBuffer.add("Job enqueued with custom concurrency prefix")
+  end
+end

@@ -23,16 +23,16 @@ module ActiveJob
         self._concurrency_strategies
       end
 
-      def exclusively_with(limit: 1, keys: [], timeout: DEFAULT_TIMEOUT)
-        self._concurrency_strategies += [Strategy::Exclusive.new(limit, keys, timeout)]
+      def exclusively_with(limit: 1, keys: [], prefix: "", timeout: DEFAULT_TIMEOUT)
+        self._concurrency_strategies += [Strategy::Exclusive.new(limit, keys, prefix, timeout)]
       end
 
-      def enqueue_exclusively_with(limit: 1, keys: [], timeout: DEFAULT_TIMEOUT)
-        self._concurrency_strategies += [Strategy::Enqueue.new(limit, keys, timeout)]
+      def enqueue_exclusively_with(limit: 1, keys: [], prefix: "", timeout: DEFAULT_TIMEOUT)
+        self._concurrency_strategies += [Strategy::Enqueue.new(limit, keys, prefix, timeout)]
       end
 
-      def perform_exclusively_with(limit: 1, keys: [], timeout: DEFAULT_TIMEOUT)
-        self._concurrency_strategies += [Strategy::Perform.new(limit, keys, timeout)]
+      def perform_exclusively_with(limit: 1, keys: [], prefix: "", timeout: DEFAULT_TIMEOUT)
+        self._concurrency_strategies += [Strategy::Perform.new(limit, keys, prefix, timeout)]
       end
     end
 
@@ -45,6 +45,7 @@ module ActiveJob
             "strategy" => concurrency_strategy.name,
             "limit"    => concurrency_strategy.limit,
             "keys"     => concurrency_strategy.keys,
+            "prefix"   => concurrency_strategy.prefix,
             "timeout"  => concurrency_strategy.timeout,
           }
         end
@@ -55,7 +56,7 @@ module ActiveJob
       super
 
       self.concurrency = job_data["concurrency"].map do |concurrency|
-        concurrency["strategy"].constantize.new(concurrency["limit"], concurrency["keys"], concurrency["timeout"])
+        concurrency["strategy"].constantize.new(concurrency["limit"], concurrency["keys"], concurrency["prefix"], concurrency["timeout"])
       end if job_data["concurrency"].present?
     end
 
