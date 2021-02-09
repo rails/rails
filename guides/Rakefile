@@ -79,7 +79,7 @@ task :test do
   counter = templates.count do |file|
     puts "--- Running #{file}"
 
-    if RUBY_VERSION < "2.7.0" && file.end_with?("_main.rb")
+    if RUBY_VERSION < "2.7.0" && file.end_with?("_main.rb", "benchmark.rb")
       1
     else
       Bundler.clean_system(Gem.ruby, "-w", file) ||
