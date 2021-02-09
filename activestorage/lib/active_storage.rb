@@ -75,3 +75,7 @@ module ActiveStorage
     autoload :ImageProcessingTransformer
   end
 end
+
+ActiveSupport.on_load(:i18n) do
+  I18n.load_path << File.expand_path("active_storage/locale/en.yml", __dir__)
+end

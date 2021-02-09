@@ -1,0 +1,8 @@
+en:
+  errors:
+    # The values :model, :attribute ,and :value are always available for interpolation
+    # The value :count is available when applicable. Can be used for pluralization.
+    messages:
+      in_between: "must be between %{minimum} and %{maximum}"
+      minimum: "must be greater than or equal to %{minimum}"
+      maximum: "must be less than or equal to %{maximum}"
