@@ -1,3 +1,24 @@
+*   `ActiveSupport::Cache::MemCacheStore` now accepts an explicit `nil` for its `addresses` argument.
+
+    ```ruby
+    config.cache_store = :mem_cache_store, nil
+
+    # is now equivalent to
+
+    config.cache_store = :mem_cache_store
+
+    # and is also equivalent to
+
+    config.cache_store = :mem_cache_store, ENV["MEMCACHE_SERVERS"] || "localhost:11211"
+
+    # which is the fallback behavior of Dalli
+    ```
+
+    This helps those migrating from `:dalli_store`, where an explicit `nil` was permitted.
+
+    *Michael Overmeyer*
+
+
 ## Rails 6.1.1 (January 07, 2021) ##
 
 *   Change `IPAddr#to_json` to match the behavior of the json gem returning the string representation
