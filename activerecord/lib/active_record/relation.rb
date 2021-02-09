@@ -67,8 +67,12 @@ module ActiveRecord
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
     def new(attributes = nil, &block)
-      block = current_scope_restoring_block(&block)
-      scoping { _new(attributes, &block) }
+      if attributes.is_a?(Array)
+        attributes.collect { |attr| new(attr, &block) }
+      else
+        block = current_scope_restoring_block(&block)
+        scoping { _new(attributes, &block) }
+      end
     end
     alias build new
 
