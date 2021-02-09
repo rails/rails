@@ -64,7 +64,7 @@ module ActiveSupport
       def self.build_mem_cache(*addresses) # :nodoc:
         addresses = addresses.flatten
         options = addresses.extract_options!
-        addresses = nil if addresses.empty?
+        addresses = nil if addresses.compact.empty?
         pool_options = retrieve_pool_options(options)
 
         if pool_options.empty?
