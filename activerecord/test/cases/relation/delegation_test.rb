@@ -3,7 +3,6 @@
 require "cases/helper"
 require "models/post"
 require "models/comment"
-require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActiveRecord
   module DelegationTests

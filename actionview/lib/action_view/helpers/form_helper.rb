@@ -11,7 +11,6 @@ require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActionView
   # = Action View Form Helpers

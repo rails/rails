@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/symbol/starts_ends_with"
-
 module ActiveSupport
   # Wrapping a string in this class gives you a prettier way to test
   # for equality. The value returned by <tt>Rails.env</tt> is wrapped

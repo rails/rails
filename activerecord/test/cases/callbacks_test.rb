@@ -3,7 +3,6 @@
 require "cases/helper"
 require "models/developer"
 require "models/computer"
-require "active_support/core_ext/symbol/starts_ends_with"
 
 class CallbackDeveloper < ActiveRecord::Base
   self.table_name = "developers"

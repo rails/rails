@@ -2,7 +2,6 @@
 
 require "ipaddr"
 require "active_support/core_ext/kernel/reporting"
-require "active_support/core_ext/symbol/starts_ends_with"
 require "active_support/file_update_checker"
 require "active_support/configuration_file"
 require "rails/engine/configuration"

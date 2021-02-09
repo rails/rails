@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/symbol/starts_ends_with"
-
 module ActionText
   module Attribute
     extend ActiveSupport::Concern

@@ -3,7 +3,6 @@
 require "active_support/json"
 require "active_support/core_ext/string/access"
 require "active_support/core_ext/string/behavior"
-require "active_support/core_ext/symbol/starts_ends_with"
 require "active_support/core_ext/module/delegation"
 
 module ActiveSupport #:nodoc:
