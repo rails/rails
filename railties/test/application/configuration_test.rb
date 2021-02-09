@@ -2752,6 +2752,58 @@ module ApplicationTests
       assert_nil ActiveStorage.queues[:mirror]
     end
 
+    test "ActiveStorage takes configs from config/storage.yml" do
+      app_file "config/storage.yml", <<-RUBY
+        local:
+          service: Disk
+          root: <%= Rails.root.join("storage") %>
+      RUBY
+
+      app "development"
+
+      assert_equal ["local"], ActiveStorage::Blob.services.as_json["configurations"].keys
+      assert_equal Rails.root.join("storage").to_s, ActiveStorage::Blob.services.as_json["configurations"]["local"]["root"]
+    end
+
+    test "ActiveStorage takes configs from env specific config file over config/storage/development.yml" do
+      app_file "config/storage.yml", <<-RUBY
+        local:
+          service: Disk
+          root: <%= Rails.root.join("storage") %>
+      RUBY
+
+      app_file "config/storage/development.yml", <<-RUBY
+        local:
+          service: Disk
+          root: <%= Rails.root.join("another_storage") %>
+      RUBY
+
+      app "development"
+
+      assert_equal ["local"], ActiveStorage::Blob.services.as_json["configurations"].keys
+      assert_equal Rails.root.join("another_storage").to_s, ActiveStorage::Blob.services.as_json["configurations"]["local"]["root"]
+    end
+
+    test "ActiveStorage takes configs from config/storage.yml if env specific config file doesn't define it" do
+      app_file "config/storage.yml", <<-RUBY
+        local:
+          service: Disk
+          root: <%= Rails.root.join("storage") %>
+      RUBY
+
+      app_file "config/storage/development.yml", <<-RUBY
+        another_service:
+          service: Disk
+          root: <%= Rails.root.join("another_storage") %>
+      RUBY
+
+      app "development"
+
+      assert_equal ["local", "another_service"], ActiveStorage::Blob.services.as_json["configurations"].keys
+      assert_equal Rails.root.join("storage").to_s, ActiveStorage::Blob.services.as_json["configurations"]["local"]["root"]
+      assert_equal Rails.root.join("another_storage").to_s, ActiveStorage::Blob.services.as_json["configurations"]["another_service"]["root"]
+    end
+
     test "ActionCable.server.config.cable is set when missing configuration for the current environment" do
       quietly do
         app "missing"

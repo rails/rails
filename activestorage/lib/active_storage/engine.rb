@@ -116,11 +116,20 @@ module ActiveStorage
       ActiveSupport.on_load(:active_storage_blob) do
         configs = Rails.configuration.active_storage.service_configurations ||=
           begin
-            config_file = Rails.root.join("config/storage/#{Rails.env}.yml")
-            config_file = Rails.root.join("config/storage.yml") unless config_file.exist?
-            raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
+            root_config_file = Rails.root.join("config/storage.yml")
+            env_config_file = Rails.root.join("config/storage/#{Rails.env}.yml")
 
-            ActiveSupport::ConfigurationFile.parse(config_file)
+            if env_config_file.exist? && root_config_file.exist?
+              ActiveSupport::ConfigurationFile.parse(root_config_file).merge(
+                ActiveSupport::ConfigurationFile.parse(env_config_file)
+              )
+            elsif env_config_file.exist?
+              ActiveSupport::ConfigurationFile.parse(env_config_file)
+            elsif root_config_file.exist?
+              ActiveSupport::ConfigurationFile.parse(root_config_file)
+            else
+              raise("Couldn't find Active Storage configuration in #{root_config_file}")
+            end
           end
 
         ActiveStorage::Blob.services = ActiveStorage::Service::Registry.new(configs)
