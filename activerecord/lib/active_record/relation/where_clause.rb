@@ -58,8 +58,8 @@ module ActiveRecord
         end
       end
 
-      def to_h(table_name = nil)
-        equalities(predicates).each_with_object({}) do |node, hash|
+      def to_h(table_name = nil, equality_only: false)
+        equalities(predicates, equality_only).each_with_object({}) do |node, hash|
           next if table_name&.!= node.left.relation.name
           name = node.left.name.to_s
           value = extract_node_value(node.right)
@@ -134,14 +134,14 @@ module ActiveRecord
           attr_node
         end
 
-        def equalities(predicates)
+        def equalities(predicates, equality_only)
           equalities = []
 
           predicates.each do |node|
-            if equality_node?(node)
+            if equality_only ? Arel::Nodes::Equality === node : equality_node?(node)
               equalities << node
             elsif node.is_a?(Arel::Nodes::And)
-              equalities.concat equalities(node.children)
+              equalities.concat equalities(node.children, equality_only)
             end
           end
 
