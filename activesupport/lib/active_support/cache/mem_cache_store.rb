@@ -192,7 +192,7 @@ module ActiveSupport
           if key
             key = key.dup.force_encoding(Encoding::ASCII_8BIT)
             key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
-            key = "#{key[0, 213]}:md5:#{ActiveSupport::Digest.hexdigest(key)}" if key.size > 250
+            key = "#{key[0, 212]}:hash:#{ActiveSupport::Digest.hexdigest(key)}" if key.size > 250
           end
           key
         end
