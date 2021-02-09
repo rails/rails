@@ -119,7 +119,8 @@ module InflectorTestCases
     "Product"               => "product",
     "SpecialGuest"          => "special_guest",
     "ApplicationController" => "application_controller",
-    "Area51Controller"      => "area51_controller"
+    "Area51Controller"      => "area51_controller",
+    "AppCDir"               => "app_c_dir"
   }
 
   UnderscoreToLowerCamel = {
