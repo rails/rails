@@ -13,7 +13,7 @@ module Rails
       def app_generator
         @app_generator ||= begin
           gen = Rails::Generators::AppGenerator.new ["rails"], generator_options, destination_root: Rails.root
-          File.exist?(Rails.root.join("config", "application.rb")) ? gen.send(:app_const) : gen.send(:valid_const?)
+          gen.send(:valid_const?) unless File.exist?(Rails.root.join("config", "application.rb"))
           gen
         end
       end
@@ -30,6 +30,7 @@ module Rails
           options[:skip_puma]           = !defined?(Puma)
           options[:skip_bootsnap]       = !defined?(Bootsnap)
           options[:skip_spring]         = !defined?(Spring)
+          options[:updating]            = true
           options
         end
     end
