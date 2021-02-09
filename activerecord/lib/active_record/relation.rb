@@ -687,8 +687,7 @@ module ActiveRecord
     end
 
     def scope_for_create
-      hash = where_values_hash
-      hash.delete(klass.inheritance_column) if klass.finder_needs_type_condition?
+      hash = where_clause.to_h(klass.table_name, equality_only: true)
       create_with_value.each { |k, v| hash[k.to_s] = v } unless create_with_value.empty?
       hash
     end
