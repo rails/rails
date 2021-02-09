@@ -1,3 +1,5 @@
+## Rails 6.1.2 (February 09, 2021) ##
+
 *   Fix error in `ActionController::LogSubscriber` that would happen when throwing inside a controller action.
 
     *Janko Marohnić*

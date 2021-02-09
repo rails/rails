@@ -1,3 +1,9 @@
+## Rails 6.1.2 (February 09, 2021) ##
+
+*   Fix timestamp type for sqlite3.
+
+    *Eileen M. Uchitelle*
+
 *   Make destroy async transactional.
 
     An active record rollback could occur while enqueuing a job. In this
@@ -8,6 +14,10 @@
 
     *Cory Gwin*
 
+*   Fix malformed packet error in MySQL statement for connection configuration.
+
+    *robinroestenburg*
+
 *   Connection specification now passes the "url" key as a configuration for the
     adapter if the "url" protocol is "jdbc", "http", or "https". Previously only
     urls with the "jdbc" prefix were passed to the Active Record Adapter, others
@@ -16,6 +26,26 @@
     Fixes #41137.
 
     *Jonathan Bracy*
+
+*   Fix granular connection swapping when there are multiple abstract classes.
+
+    *Eileen M. Uchitelle*
+
+*   Fix `find_by` with custom primary key for belongs_to association.
+
+    *Ryuta Kamizono*
+
+*   Add support for `rails console --sandbox` for multiple database applications.
+
+    *alpaca-tc*
+
+*   Fix `where` on polymorphic association with empty array.
+
+    *Ryuta Kamizono*
+
+*   Fix preventing writes for `ApplicationRecord`.
+
+    *Eileen M. Uchitelle*
 
 
 ## Rails 6.1.1 (January 07, 2021) ##

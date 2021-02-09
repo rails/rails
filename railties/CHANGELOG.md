@@ -1,3 +1,8 @@
+## Rails 6.1.2 (February 09, 2021) ##
+
+*   No changes.
+
+
 ## Rails 6.1.1 (January 07, 2021) ##
 
 *   Allow spaces in path to Yarn binstub and only run on precompile if needed.

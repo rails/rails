@@ -1,3 +1,5 @@
+## Rails 6.1.2 (February 09, 2021) ##
+
 *   `ActiveSupport::Cache::MemCacheStore` now accepts an explicit `nil` for its `addresses` argument.
 
     ```ruby
