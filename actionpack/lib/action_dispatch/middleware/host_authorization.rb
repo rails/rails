@@ -87,11 +87,20 @@ module ActionDispatch
 
     private
       def authorized?(request)
-        origin_host = request.get_header("HTTP_HOST").to_s.sub(/:\d+\z/, "")
-        forwarded_host = request.x_forwarded_host.to_s.split(/,\s?/).last.to_s.sub(/:\d+\z/, "")
+        valid_host = /
+          \A
+          (?<host>[a-z0-9.-]+|\[[a-f0-9]*:[a-f0-9\.:]+\])
+          (:\d+)?
+          \z
+        /x
 
-        @permissions.allows?(origin_host) &&
-          (forwarded_host.blank? || @permissions.allows?(forwarded_host))
+        origin_host = valid_host.match(
+          request.get_header("HTTP_HOST").to_s.downcase)
+        forwarded_host = valid_host.match(
+          request.x_forwarded_host.to_s.split(/,\s?/).last)
+
+        origin_host && @permissions.allows?(origin_host[:host]) && (
+          forwarded_host.nil? || @permissions.allows?(forwarded_host[:host]))
       end
 
       def mark_as_authorized(request)
