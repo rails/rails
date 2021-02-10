@@ -107,12 +107,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_skip_bundle
-    generator([destination_root], skip_bundle: true, skip_webpack_install: true)
-    run_generator_instance
+    generator([destination_root], skip_bundle: true)
+    output = run_generator_instance
 
     assert_empty @bundle_commands
     # skip_bundle is only about running bundle install so ensure the Gemfile is still generated
     assert_file "Gemfile"
+    assert_webpack_installation_skipped(output)
+  end
+
+  def test_skip_gemfile
+    generator([destination_root], skip_gemfile: true)
+    output = run_generator_instance
+
+    assert_empty @bundle_commands
+    assert_no_file "Gemfile"
+    assert_webpack_installation_skipped(output)
   end
 
   def test_assets
@@ -1263,5 +1273,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_file "config/environments/development.rb" do |content|
         assert_match(/^\s*# config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
       end
+    end
+
+    def assert_webpack_installation_skipped(output)
+      assert_match(/^Skipping `rails webpacker:install`/, output)
+
+      %w(
+        .browserslistrc
+        babel.config.js
+        bin/webpack
+        bin/webpack-dev-server
+        config/webpack
+        config/webpack/development.js
+        config/webpack/environment.js
+        config/webpack/production.js
+        config/webpack/test.js
+        config/webpacker.yml
+        postcss.config.js
+      ).each { |f| assert_no_file(f) }
     end
 end
