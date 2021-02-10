@@ -59,6 +59,14 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 3, value
   end
 
+  def test_should_return_float_average_if_db_returns_such
+    NumericData.create!(temperature: 37.5)
+
+    value = NumericData.average(:temperature)
+    assert_instance_of Float, value
+    assert_equal 37.5, value
+  end
+
   def test_should_return_nil_as_average
     assert_nil NumericData.average(:bank_balance)
   end
