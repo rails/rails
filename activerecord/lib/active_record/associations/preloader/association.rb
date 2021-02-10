@@ -4,6 +4,16 @@ module ActiveRecord
   module Associations
     class Preloader
       class Association #:nodoc:
+        def self.load_records_in_batch(scope, association_key_name, loaders)
+          ids = loaders.flat_map(&:owner_keys).uniq
+
+          raw_records = scope.where(association_key_name => ids).load do |record|
+            loaders.each { |l| l.set_inverse(record) }
+          end
+
+          loaders.each { |l| l.load_records(raw_records) }
+        end
+
         def initialize(klass, owners, reflection, preload_scope, associate_by_default = true)
           @klass         = klass
           @owners        = owners.uniq(&:__id__)
@@ -13,6 +23,10 @@ module ActiveRecord
           @model         = owners.first && owners.first.class
 
           @already_loaded = owners.all? { |o| o.association(reflection.name).loaded? }
+        end
+
+        def already_loaded?
+          @already_loaded
         end
 
         def run
@@ -42,6 +56,54 @@ module ActiveRecord
           @preloaded_records
         end
 
+        # The name of the key on the associated records
+        def association_key_name
+          reflection.join_primary_key(klass)
+        end
+
+        def grouping_key
+          [scope.to_sql, scope.preload_values + scope.includes_values, association_key_name]
+        end
+
+        def owner_keys
+          @owner_keys ||= owners_by_key.keys
+        end
+
+        def scope
+          @scope ||= build_scope
+        end
+
+        def set_inverse(record)
+          if owners = owners_by_key[convert_key(record[association_key_name])]
+            # Processing only the first owner
+            # because the record is modified but not an owner
+            association = owners.first.association(reflection.name)
+            association.set_inverse_instance(record)
+          end
+        end
+
+        def load_records(raw_records = nil)
+          # owners can be duplicated when a relation has a collection association join
+          # #compare_by_identity makes such owners different hash keys
+          @records_by_owner = {}.compare_by_identity
+          raw_records ||= owner_keys.empty? ? [] : records_for(owner_keys)
+
+          @preloaded_records = raw_records.select do |record|
+            assignments = false
+
+            owners_by_key[convert_key(record[association_key_name])]&.each do |owner|
+              entries = (@records_by_owner[owner] ||= [])
+
+              if reflection.collection? || entries.empty?
+                entries << record
+                assignments = true
+              end
+            end
+
+            assignments
+          end
+        end
+
         private
           attr_reader :owners, :reflection, :preload_scope, :model, :klass
 
@@ -51,33 +113,6 @@ module ActiveRecord
             end
 
             @preloaded_records = records_by_owner.flat_map(&:last)
-          end
-
-          def load_records
-            # owners can be duplicated when a relation has a collection association join
-            # #compare_by_identity makes such owners different hash keys
-            @records_by_owner = {}.compare_by_identity
-            raw_records = owner_keys.empty? ? [] : records_for(owner_keys)
-
-            @preloaded_records = raw_records.select do |record|
-              assignments = false
-
-              owners_by_key[convert_key(record[association_key_name])].each do |owner|
-                entries = (@records_by_owner[owner] ||= [])
-
-                if reflection.collection? || entries.empty?
-                  entries << record
-                  assignments = true
-                end
-              end
-
-              assignments
-            end
-          end
-
-          # The name of the key on the associated records
-          def association_key_name
-            reflection.join_primary_key(klass)
           end
 
           # The name of the key on the model which declares the association
@@ -92,10 +127,6 @@ module ActiveRecord
             else
               association.target = records.first
             end
-          end
-
-          def owner_keys
-            @owner_keys ||= owners_by_key.keys
           end
 
           def owners_by_key
@@ -131,16 +162,8 @@ module ActiveRecord
 
           def records_for(ids)
             scope.where(association_key_name => ids).load do |record|
-              # Processing only the first owner
-              # because the record is modified but not an owner
-              owner = owners_by_key[convert_key(record[association_key_name])].first
-              association = owner.association(reflection.name)
-              association.set_inverse_instance(record)
+              set_inverse(record)
             end
-          end
-
-          def scope
-            @scope ||= build_scope
           end
 
           def reflection_scope

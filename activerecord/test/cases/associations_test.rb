@@ -9,6 +9,7 @@ require "models/categorization"
 require "models/category"
 require "models/post"
 require "models/author"
+require "models/book"
 require "models/comment"
 require "models/tag"
 require "models/tagging"
@@ -356,7 +357,7 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
 end
 
 class PreloaderTest < ActiveRecord::TestCase
-  fixtures :posts, :comments
+  fixtures :posts, :comments, :books, :authors
 
   def test_preload_with_scope
     post = posts(:welcome)
@@ -396,6 +397,78 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_queries(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: relation, associations: :comments)
       preloader.call
+    end
+  end
+
+  def test_preload_groups_queries_with_same_scope
+    book = books(:awdr)
+    post = posts(:welcome)
+
+    assert_queries(1) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [book, post], associations: :author)
+      preloader.call
+
+      book.author
+      post.author
+    end
+  end
+
+  def test_preload_with_grouping_sets_inverse_association
+    mary = authors(:mary)
+    bob = authors(:bob)
+
+    AuthorFavorite.create!(author: mary, favorite_author: bob)
+    favorites = AuthorFavorite.all.load
+
+    assert_queries(1) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: favorites, associations: [:author, :favorite_author])
+      preloader.call
+
+      favorites.first.author
+      favorites.first.favorite_author
+    end
+  end
+
+  def test_preload_does_not_group_same_class_different_scope
+    post = posts(:welcome)
+    postesque = Postesque.create(author: Author.last)
+    postesque.reload
+
+    # When the scopes differ in the generated SQL:
+    # SELECT "authors".* FROM "authors" WHERE (name LIKE '%a%') AND "authors"."id" = ?
+    # SELECT "authors".* FROM "authors" WHERE "authors"."id" = ?.
+    assert_queries(2) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [post, postesque], associations: :author_with_the_letter_a)
+      preloader.call
+
+      post.author_with_the_letter_a
+      postesque.author_with_the_letter_a
+    end
+
+    post.reload
+    postesque.reload
+
+    # When the generated SQL is identical, but one scope has preload values.
+    assert_queries(3) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [post, postesque], associations: :author_with_address)
+      preloader.call
+
+      post.author_with_address
+      postesque.author_with_address
+    end
+  end
+
+  def test_preload_does_not_group_same_scope_different_key_name
+    post = posts(:welcome)
+    postesque = Postesque.create(author: Author.last)
+    postesque.reload
+
+    assert_queries(2) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [post, postesque], associations: :author)
+      preloader.call
+
+      post.author
+      postesque.author
     end
   end
 end
