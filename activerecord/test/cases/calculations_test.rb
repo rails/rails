@@ -67,6 +67,14 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 37.5, value
   end
 
+  def test_should_return_decimal_average_if_db_returns_such
+    NumericData.create!(decimal_number: 37.5)
+
+    value = NumericData.average(:decimal_number)
+    assert_instance_of BigDecimal, value
+    assert_equal 37.5, value
+  end
+
   def test_should_return_nil_as_average
     assert_nil NumericData.average(:bank_balance)
   end

@@ -1,3 +1,30 @@
+*   Switch to database adapter return type for `ActiveRecord::Calculations.calculate`
+    when called with `:average` (aliased as `ActiveRecord::Calculations.average`)
+
+    Previously average aggregation returned `BigDecimal` for everything which
+    supported `to_d`. This was especially weird for floating point numbers.
+
+    Database adapters today map database column types to Ruby types more
+    accurately than 10 years ago. So now we simply pass them on
+    (except for special cases which are not `Numeric`).
+
+    ```ruby
+    # With the following schema:
+    create_table "measurements" do |t|
+      t.float "temperature"
+    end
+
+    # Before:
+    Measurement.average(:temperature).class
+    # => BigDecimal
+
+    # After:
+    Measurement.average(:temperature).class
+    # => Float
+    ```
+
+    *Josua Schmid*
+
 *   PostgreSQL: handle `timestamp with time zone` columns correctly in `schema.rb`.
 
     Previously they dumped as `t.datetime :column_name`, now they dump as `t.timestamptz :column_name`,
