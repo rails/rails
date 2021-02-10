@@ -23,7 +23,7 @@ module ActiveStorage::Blob::Representable
   # Frequently, though, you don't actually want to transform the variant right away. But rather simply refer to a
   # specific variant that can be created by a controller on-demand. Like so:
   #
-  #   <%= image_tag Current.user.avatar.variant(resize_to_limit: [100, 100]) %>
+  #   <%= image_tag current_user.avatar.variant(resize_to_limit: [100, 100]) %>
   #
   # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::RepresentationsController
   # can then produce on-demand.
