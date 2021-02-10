@@ -72,6 +72,23 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
+  def test_migration_context_with_default_schema_migration
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    migrator = ActiveRecord::MigrationContext.new(migrations_path)
+    migrator.up
+
+    assert_equal 3, migrator.current_version
+    assert_equal false, migrator.needs_migration?
+
+    migrator.down
+    assert_equal 0, migrator.current_version
+    assert_equal true, migrator.needs_migration?
+
+    ActiveRecord::SchemaMigration.create!(version: 3)
+    assert_equal true, migrator.needs_migration?
+  end
+
+
   def test_migration_version_matches_component_version
     assert_equal ActiveRecord::VERSION::STRING.to_f, ActiveRecord::Migration.current_version
   end
@@ -104,11 +121,11 @@ class MigrationTest < ActiveRecord::TestCase
   def test_any_migrations
     migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid", @schema_migration)
 
-    assert_predicate migrator, :any_migrations?
+    assert_predicate migrator.migrations, :any?
 
     migrator_empty = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/empty", @schema_migration)
 
-    assert_not_predicate migrator_empty, :any_migrations?
+    assert_not_predicate migrator_empty.migrations, :any?
   end
 
   def test_migration_version
