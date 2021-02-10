@@ -89,7 +89,7 @@ module ActionDispatch
       def authorized?(request)
         valid_host = /
           \A
-          (?<host>[a-z0-9.-]+|\[[a-f0-9]*:[a-f0-9\.:]+\])
+          (?<host>[a-z0-9.-]+|\[[a-f0-9]*:[a-f0-9.:]+\])
           (:\d+)?
           \z
         /x
