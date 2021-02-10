@@ -4,6 +4,18 @@
     *Rolandas Barysas*
 
 
+## Rails 6.0.3.5 (February 10, 2021) ##
+
+*   Prevent open redirect when allowed host starts with a dot
+
+    [CVE-2021-22881]
+
+    Thanks to @tktech (https://hackerone.com/tktech) for reporting this
+    issue and the patch!
+
+    *Aaron Patterson*
+
+
 ## Rails 6.0.3.4 (October 07, 2020) ##
 
 *   [CVE-2020-8264] Prevent XSS in Actionable Exceptions

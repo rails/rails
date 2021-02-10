@@ -202,4 +202,15 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_equal "Success", body
   end
+
+  test "only compare to valid hostnames" do
+    @app = ActionDispatch::HostAuthorization.new(App, ".example.com")
+
+    get "/", env: {
+      "HOST" => "example.com#sub.example.com",
+    }
+
+    assert_response :forbidden
+    assert_match "Blocked host: example.com#sub.example.com", response.body
+  end
 end
