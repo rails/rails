@@ -230,6 +230,10 @@ module ActiveRecord
         { concurrently: "CONCURRENTLY" }
       end
 
+      def init_schema_cache
+        PostgreSQL::SchemaCache.new(self)
+      end
+
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         def initialize(connection, max)
           super(max)

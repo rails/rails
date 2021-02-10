@@ -11,7 +11,7 @@ module ActiveRecord
   module ConnectionAdapters
     module AbstractPool # :nodoc:
       def get_schema_cache(connection)
-        self.schema_cache ||= defined?(PostgreSQLAdapter) && connection.kind_of?(PostgreSQLAdapter) ? PostgreSQL::SchemaCache.new(connection) : SchemaCache.new(connection)
+        self.schema_cache ||= connection.init_schema_cache
         schema_cache.connection = connection
         schema_cache
       end
