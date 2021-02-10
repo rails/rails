@@ -5,6 +5,11 @@
     *Vincent Robert*
 
 
+## Rails 5.2.4.5 (February 10, 2021) ##
+
+*   No changes.
+
+
 ## Rails 5.2.4.4 (September 09, 2020) ##
 
 *   No changes.

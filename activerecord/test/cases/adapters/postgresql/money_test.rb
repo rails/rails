@@ -58,6 +58,14 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     assert_equal(-2.25, type.cast("($2.25)".dup))
   end
 
+  def test_money_regex_backtracking
+    type = PostgresqlMoney.type_for_attribute("wealth")
+    Timeout.timeout(0.1) do
+      assert_equal(0.0, type.cast("$" + "," * 100000 + ".11!"))
+      assert_equal(0.0, type.cast("$" + "." * 100000 + ",11!"))
+    end
+  end
+
   def test_schema_dumping
     output = dump_table_schema("postgresql_moneys")
     assert_match %r{t\.money\s+"wealth",\s+scale: 2$}, output

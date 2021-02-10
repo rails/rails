@@ -10,7 +10,7 @@ module ActiveJob
     MAJOR = 5
     MINOR = 2
     TINY  = 4
-    PRE   = "4"
+    PRE   = "5"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
