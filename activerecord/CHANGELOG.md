@@ -1,3 +1,18 @@
+## Rails 6.0.3.5 (February 10, 2021) ##
+
+*   Fix possible DoS vector in PostgreSQL money type
+
+    Carefully crafted input can cause a DoS via the regular expressions used
+    for validating the money format in the PostgreSQL adapter.  This patch
+    fixes the regexp.
+
+    Thanks to @dee-see from Hackerone for this patch!
+
+    [CVE-2021-22880]
+
+    *Aaron Patterson*
+
+
 ## Rails 6.0.3.4 (October 07, 2020) ##
 
 *   No changes.
