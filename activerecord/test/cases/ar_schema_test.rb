@@ -111,6 +111,22 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     assert_equal ["multiple_indexes_foo_1", "multiple_indexes_foo_2"], indexes.collect(&:name).sort
   end
 
+  if current_adapter?(:PostgreSQLAdapter)
+    def test_timestamps_with_and_without_zones
+      ActiveRecord::Schema.define do
+        create_table :has_timestamps do |t|
+          t.datetime "default_format"
+          t.datetime "without_time_zone"
+          t.timestamptz "with_time_zone"
+        end
+      end
+
+      assert @connection.column_exists?(:has_timestamps, :default_format, :datetime)
+      assert @connection.column_exists?(:has_timestamps, :without_time_zone, :datetime)
+      assert @connection.column_exists?(:has_timestamps, :with_time_zone, :timestamptz)
+    end
+  end
+
   def test_timestamps_without_null_set_null_to_false_on_create_table
     ActiveRecord::Schema.define do
       create_table :has_timestamps do |t|

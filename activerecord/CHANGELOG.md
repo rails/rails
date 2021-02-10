@@ -1,3 +1,10 @@
+*   PostgreSQL: handle `timestamp with time zone` columns correctly in `schema.rb`.
+
+    Previously they dumped as `t.datetime :column_name`, now they dump as `t.timestamptz :column_name`,
+    and are created as `timestamptz` columns when the schema is loaded.
+
+    *Alex Ghiculescu*
+
 *   Add `ActiveRecord::Base.connection.with_advisory_lock`.
 
     This method allow applications to obtain an exclusive session level advisory lock,

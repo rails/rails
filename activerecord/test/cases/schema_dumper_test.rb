@@ -497,6 +497,86 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     $stdout = original
   end
+
+  if current_adapter?(:PostgreSQLAdapter)
+    def test_schema_dump_with_correct_timestamp_types_via_create_table_and_t_column
+      original, $stdout = $stdout, StringIO.new
+
+      migration = Class.new(ActiveRecord::Migration::Current) do
+        def up
+          create_table("timestamps") do |t|
+            t.datetime :default_format
+            t.column :without_time_zone, :timestamp
+            t.column :with_time_zone, :timestamptz
+          end
+        end
+        def down
+          drop_table("timestamps")
+        end
+      end
+      migration.migrate(:up)
+
+      output = perform_schema_dump
+      assert output.include?('t.datetime "default_format"')
+      assert output.include?('t.datetime "without_time_zone"')
+      assert output.include?('t.timestamptz "with_time_zone"')
+    ensure
+      migration.migrate(:down)
+      $stdout = original
+    end
+
+    def test_schema_dump_with_correct_timestamp_types_via_create_table_and_t_timestamptz
+      original, $stdout = $stdout, StringIO.new
+
+      migration = Class.new(ActiveRecord::Migration::Current) do
+        def up
+          create_table("timestamps") do |t|
+            t.datetime :default_format
+            t.datetime :without_time_zone
+            t.timestamptz :with_time_zone
+          end
+        end
+        def down
+          drop_table("timestamps")
+        end
+      end
+      migration.migrate(:up)
+
+      output = perform_schema_dump
+      assert output.include?('t.datetime "default_format"')
+      assert output.include?('t.datetime "without_time_zone"')
+      assert output.include?('t.timestamptz "with_time_zone"')
+    ensure
+      migration.migrate(:down)
+      $stdout = original
+    end
+
+    def test_schema_dump_with_correct_timestamp_types_via_add_column
+      original, $stdout = $stdout, StringIO.new
+
+      migration = Class.new(ActiveRecord::Migration::Current) do
+        def up
+          create_table("timestamps")
+
+          add_column :timestamps, :default_format, :datetime
+          add_column :timestamps, :without_time_zone, :timestamp
+          add_column :timestamps, :with_time_zone, :timestamptz
+        end
+        def down
+          drop_table("timestamps")
+        end
+      end
+      migration.migrate(:up)
+
+      output = perform_schema_dump
+      assert output.include?('t.datetime "default_format"')
+      assert output.include?('t.datetime "without_time_zone"')
+      assert output.include?('t.timestamptz "with_time_zone"')
+    ensure
+      migration.migrate(:down)
+      $stdout = original
+    end
+  end
 end
 
 class SchemaDumperDefaultsTest < ActiveRecord::TestCase
