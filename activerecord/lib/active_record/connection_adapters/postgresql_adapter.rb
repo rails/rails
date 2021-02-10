@@ -106,6 +106,7 @@ module ActiveRecord
         float:       { name: "float" },
         decimal:     { name: "decimal" },
         datetime:    { name: "timestamp" },
+        timestamptz: { name: "timestamptz" },
         time:        { name: "time" },
         date:        { name: "date" },
         daterange:   { name: "daterange" },
@@ -532,7 +533,6 @@ module ActiveRecord
           m.register_type "bool", Type::Boolean.new
           register_class_with_limit m, "bit", OID::Bit
           register_class_with_limit m, "varbit", OID::BitVarying
-          m.alias_type "timestamptz", "timestamp"
           m.register_type "date", OID::Date.new
 
           m.register_type "money", OID::Money.new
@@ -557,7 +557,8 @@ module ActiveRecord
           m.register_type "circle", OID::SpecializedString.new(:circle)
 
           register_class_with_precision m, "time", Type::Time
-          register_class_with_precision m, "timestamp", OID::DateTime
+          register_class_with_precision m, "timestamp", OID::Timestamp
+          register_class_with_precision m, "timestamptz", OID::TimestampWithTimeZone
 
           m.register_type "numeric" do |_, fmod, sql_type|
             precision = extract_precision(sql_type)

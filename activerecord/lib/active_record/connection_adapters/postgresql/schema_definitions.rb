@@ -177,7 +177,7 @@ module ActiveRecord
           define_column_methods :bigserial, :bit, :bit_varying, :cidr, :citext, :daterange,
             :hstore, :inet, :interval, :int4range, :int8range, :jsonb, :ltree, :macaddr,
             :money, :numrange, :oid, :point, :line, :lseg, :box, :path, :polygon, :circle,
-            :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml
+            :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml, :timestamptz
         end
       end
 
