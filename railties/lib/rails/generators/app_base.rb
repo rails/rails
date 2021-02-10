@@ -429,11 +429,19 @@ module Rails
       end
 
       def run_webpack
-        if webpack_install?
-          rails_command "webpacker:install"
-          if options[:webpack] && options[:webpack] != "webpack"
-            rails_command "webpacker:install:#{options[:webpack]}"
-          end
+        return unless webpack_install?
+
+        unless bundle_install?
+          say <<~EXPLAIN
+            Skipping `rails webpacker:install` because `bundle install` was skipped.
+            To complete setup, you must run `bundle install` followed by `rails webpacker:install`.
+          EXPLAIN
+          return
+        end
+
+        rails_command "webpacker:install"
+        if options[:webpack] && options[:webpack] != "webpack"
+          rails_command "webpacker:install:#{options[:webpack]}"
         end
       end
 
