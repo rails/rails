@@ -1,3 +1,15 @@
+## Rails 6.1.2.1 (February 10, 2021) ##
+
+*   Prevent open redirect when allowed host starts with a dot
+
+    [CVE-2021-22881]
+
+    Thanks to @tktech (https://hackerone.com/tktech) for reporting this
+    issue and the patch!
+
+    *Aaron Patterson*
+
+
 ## Rails 6.1.2 (February 09, 2021) ##
 
 *   Fix error in `ActionController::LogSubscriber` that would happen when throwing inside a controller action.

@@ -1,3 +1,8 @@
+## Rails 6.1.2.1 (February 10, 2021) ##
+
+*   No changes.
+
+
 ## Rails 6.1.2 (February 09, 2021) ##
 
 *   No changes.
