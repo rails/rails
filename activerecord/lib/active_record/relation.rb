@@ -404,10 +404,21 @@ module ActiveRecord
     #   end
     #   # => SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = 1 ORDER BY "comments"."id" ASC LIMIT 1
     #
+    # If `all_queries: true` is passed, scoping will apply to all queries
+    # for the relation including `update` and `delete` on instances.
+    # Once `all_queries` is set to true it cannot be set to false in a
+    # nested block.
+    #
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
-    def scoping
-      already_in_scope? ? yield : _scoping(self) { yield }
+    def scoping(all_queries: nil)
+      if global_scope? && all_queries == false
+        raise ArgumentError, "Scoping is set to apply to all queries and cannot be unset in a nested block."
+      elsif already_in_scope?
+        yield
+      else
+        _scoping(self, all_queries) { yield }
+      end
     end
 
     def _exec_scope(*args, &block) # :nodoc:
@@ -787,6 +798,10 @@ module ActiveRecord
         @delegate_to_klass && klass.current_scope(true)
       end
 
+      def global_scope?
+        klass.global_current_scope(true)
+      end
+
       def current_scope_restoring_block(&block)
         current_scope = klass.current_scope(true)
         -> record do
@@ -807,11 +822,17 @@ module ActiveRecord
         klass.create!(attributes, &block)
       end
 
-      def _scoping(scope)
+      def _scoping(scope, all_queries = false)
         previous, klass.current_scope = klass.current_scope(true), scope
+        if all_queries
+          previous_global, klass.global_current_scope = klass.global_current_scope(true), scope
+        end
         yield
       ensure
         klass.current_scope = previous
+        if all_queries
+          klass.global_current_scope = previous_global
+        end
       end
 
       def _substitute_values(values)
