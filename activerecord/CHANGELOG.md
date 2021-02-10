@@ -1,3 +1,7 @@
+*   Cache the result of type-related queries for PostgreSQL adapter.
+
+    *Zhang Kang*
+
 *   Add `ActiveRecord::Base.connection.with_advisory_lock`.
 
     This method allow applications to obtain an exclusive session level advisory lock,

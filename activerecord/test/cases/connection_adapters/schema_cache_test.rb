@@ -17,7 +17,7 @@ module ActiveRecord
 
       def test_yaml_dump_and_load
         # Create an empty cache.
-        cache = SchemaCache.new @connection
+        cache = @connection.init_schema_cache
 
         tempfile = Tempfile.new(["schema_cache-", ".yml"])
         # Dump it. It should get populated before dumping.
@@ -30,22 +30,14 @@ module ActiveRecord
         # would get set on the cache when it's retrieved
         # from the pool.
         cache.connection = @connection
-
-        assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
-          assert_equal @database_version.to_s, cache.database_version.to_s
-        end
+        assert_cache_load_result(cache)
       ensure
         tempfile.unlink
       end
 
       def test_yaml_dump_and_load_with_gzip
         # Create an empty cache.
-        cache = SchemaCache.new @connection
+        cache = @connection.init_schema_cache
 
         tempfile = Tempfile.new(["schema_cache-", ".yml.gz"])
         # Dump it. It should get populated before dumping.
@@ -58,30 +50,14 @@ module ActiveRecord
         # would get set on the cache when it's retrieved
         # from the pool.
         cache.connection = @connection
-
-        assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
-          assert_equal @database_version.to_s, cache.database_version.to_s
-        end
+        assert_cache_load_result(cache)
 
         # Load the cache the usual way.
         cache = SchemaCache.load_from(tempfile.path)
 
         # Give it a connection.
         cache.connection = @connection
-
-        assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
-          assert_equal @database_version.to_s, cache.database_version.to_s
-        end
+        assert_cache_load_result(cache)
       ensure
         tempfile.unlink
       end
@@ -163,27 +139,19 @@ module ActiveRecord
 
       def test_marshal_dump_and_load
         # Create an empty cache.
-        cache = SchemaCache.new @connection
+        cache = @connection.init_schema_cache
 
         # Populate it.
         cache.add("posts")
 
         # Create a new cache by marchal dumping / loading.
         cache = Marshal.load(Marshal.dump(cache))
-
-        assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
-          assert_equal @database_version.to_s, cache.database_version.to_s
-        end
+        assert_cache_load_result(cache)
       end
 
       def test_marshal_dump_and_load_via_disk
         # Create an empty cache.
-        cache = SchemaCache.new @connection
+        cache = @connection.init_schema_cache
 
         tempfile = Tempfile.new(["schema_cache-", ".dump"])
         # Dump it. It should get populated before dumping.
@@ -192,22 +160,14 @@ module ActiveRecord
         # Load a new cache.
         cache = SchemaCache.load_from(tempfile.path)
         cache.connection = @connection
-
-        assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
-          assert_equal @database_version.to_s, cache.database_version.to_s
-        end
+        assert_cache_load_result(cache)
       ensure
         tempfile.unlink
       end
 
       def test_marshal_dump_and_load_with_gzip
         # Create an empty cache.
-        cache = SchemaCache.new @connection
+        cache = @connection.init_schema_cache
 
         tempfile = Tempfile.new(["schema_cache-", ".dump.gz"])
         # Dump it. It should get populated before dumping.
@@ -217,27 +177,13 @@ module ActiveRecord
         cache = Zlib::GzipReader.open(tempfile.path) { |gz| Marshal.load(gz.read) }
         cache.connection = @connection
 
-        assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
-          assert_equal @database_version.to_s, cache.database_version.to_s
-        end
+        assert_cache_load_result(cache)
 
         # Load a new cache.
         cache = SchemaCache.load_from(tempfile.path)
         cache.connection = @connection
 
-        assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
-          assert_equal @database_version.to_s, cache.database_version.to_s
-        end
+        assert_cache_load_result(cache)
       ensure
         tempfile.unlink
       end
@@ -270,6 +216,22 @@ module ActiveRecord
       private
         def schema_dump_path
           "#{ASSETS_ROOT}/schema_dump_5_1.yml"
+        end
+
+        def assert_cache_load_result(cache)
+          assert_no_queries do
+            assert_equal 12, cache.columns("posts").size
+            assert_equal 12, cache.columns_hash("posts").size
+            assert cache.data_sources("posts")
+            assert_equal "id", cache.primary_keys("posts")
+            assert_equal 1, cache.indexes("posts").size
+            assert_equal @database_version.to_s, cache.database_version.to_s
+
+            if current_adapter?(:PostgreSQLAdapter)
+              assert_equal @connection.additional_type_records_cache.size, cache.postgresql_additional_type_records.size
+              assert_equal @connection.known_coder_type_records_cache.size, cache.postgresql_known_coder_type_records.size
+            end
+          end
         end
     end
   end
