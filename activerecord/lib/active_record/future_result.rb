@@ -21,7 +21,7 @@ module ActiveRecord
 
     def schedule!(session)
       @session = session
-      @pool.schedule_query(self)
+      ActiveRecord::Base.asynchronous_queries_executor.post { execute_or_skip }
     end
 
     def execute!(connection)

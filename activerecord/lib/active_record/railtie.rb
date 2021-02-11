@@ -98,6 +98,22 @@ module ActiveRecord
       end
     end
 
+    initializer "active_record.asynchronous_queries_executor" do
+      if concurrency = config.active_record.delete(:asynchronous_queries_concurrency)
+        unless config.active_record.asynchronous_queries_executor
+          config.active_record.asynchronous_queries_executor = if concurrency == 0
+            Concurrent::ImmediateExecutor.new
+          else
+            Concurrent::ThreadPoolExecutor.new(
+             min_threads: 0,
+             max_threads: concurrency,
+             max_queue: concurrency * 4,
+             fallback_policy: :caller_runs
+           )
+        end
+      end
+    end
+
     initializer "Check for cache versioning support" do
       config.after_initialize do |app|
         ActiveSupport.on_load(:active_record) do

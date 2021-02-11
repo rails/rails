@@ -194,6 +194,8 @@ module ActiveRecord
         @@connection_handlers = handlers
       end
 
+      mattr_accessor :asynchronous_queries_executor, instance_accessor: false, default: Concurrent::ImmediateExecutor.new
+
       def self.asynchronous_queries_session # :nodoc:
         asynchronous_queries_tracker.current_session
       end

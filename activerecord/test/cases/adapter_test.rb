@@ -414,7 +414,19 @@ module ActiveRecord
     include AsynchronousQueriesSharedTests
 
     def setup
+      @previous_executor = ActiveRecord::Base.asynchronous_queries_executor
+      ActiveRecord::Base.asynchronous_queries_executor = Concurrent::ThreadPoolExecutor.new(
+        min_threads: 0,
+        max_threads: 2,
+        max_queue: 4,
+        fallback_policy: :caller_runs
+       )
+
       @connection = ActiveRecord::Base.connection
+    end
+
+    def teardown
+      ActiveRecord::Base.asynchronous_queries_executor = @previous_executor
     end
 
     def test_async_select_all
@@ -452,8 +464,19 @@ module ActiveRecord
     include AsynchronousQueriesSharedTests
 
     def setup
+      @previous_executor = ActiveRecord::Base.asynchronous_queries_executor
+      ActiveRecord::Base.asynchronous_queries_executor = Concurrent::ThreadPoolExecutor.new(
+        min_threads: 0,
+        max_threads: 2,
+        max_queue: 4,
+        fallback_policy: :caller_runs
+       )
       @connection = ActiveRecord::Base.connection
       @connection.materialize_transactions
+    end
+
+    def teardown
+      ActiveRecord::Base.asynchronous_queries_executor = @previous_executor
     end
   end
 
