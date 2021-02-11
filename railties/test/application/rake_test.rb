@@ -301,6 +301,22 @@ module ApplicationTests
       end
     end
 
+    test "app:binstub:yarn generates bin/yarn" do
+      yarn_binstub = File.join(app_path, "bin/yarn")
+      rails "app:binstub:yarn"
+
+      assert_path_exists yarn_binstub
+      assert_match %r/\A#!/, File.read(yarn_binstub)
+    end
+
+    test "app:binstub:yarn overwrites existing bin/yarn" do
+      yarn_binstub = File.join(app_path, "bin/yarn")
+      File.write(yarn_binstub, "existing")
+      rails "app:binstub:yarn"
+
+      assert_match %r/\A#!/, File.read(yarn_binstub)
+    end
+
     def test_template_load_initializers
       app_file "config/initializers/dummy.rb", "puts 'Hello, World!'"
       app_file "template.rb", ""
