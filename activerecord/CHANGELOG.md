@@ -1,3 +1,10 @@
+*   Increment postgres prepared statement counter before making a prepared statement, so if the statement is aborted
+    without Rails knowledge (e.g., if app gets kill -9d during long-running query or due to Rack::Timeout), app won't end
+    up in perpetual crash state for being inconsistent with Postgres.
+
+    *wbharding*, *Martin Tepper*
+
+
 ## Rails 6.1.2.1 (February 10, 2021) ##
 
 *   Fix possible DoS vector in PostgreSQL money type
