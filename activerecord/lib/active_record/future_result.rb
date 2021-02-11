@@ -25,7 +25,7 @@ module ActiveRecord
     end
 
     def execute!(connection)
-      execute_query(connection)
+      execute_query(connection, async: true)
     end
 
     def execute_or_skip
