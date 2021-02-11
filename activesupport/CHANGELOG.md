@@ -1,3 +1,18 @@
+*   Add `Enumerable#maximum` and `Enumerable#minimum` to easily calculate the maximum or minimum from extracted
+    elements of an enumerable.
+
+    ```ruby
+    payments = [Payment.new(5), Payment.new(15), Payment.new(10)]
+
+    payments.minimum(:price) # => 5
+    payments.maximum(:price) # => 20
+    ```
+
+    This also allows passing enumerables to `fresh_when` and `stale?` in Action Controller.
+    See PR [#41404](https://github.com/rails/rails/pull/41404) for an example.
+
+    *Ayrton De Craene*
+
 *   `ActiveSupport::Cache::MemCacheStore` now accepts an explicit `nil` for its `addresses` argument.
 
     ```ruby
