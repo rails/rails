@@ -2125,7 +2125,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_associations_order_should_be_priority_over_throughs_order
     original = authors(:david)
-    expected = [12, 10, 9, 8, 7, 6, 5, 3, 2, 1]
+    expected = [13, 12, 10, 9, 8, 7, 6, 5, 3, 2, 1]
     assert_equal expected, original.comments_desc.map(&:id)
     preloaded = Author.includes(:comments_desc).find(original.id)
     assert_equal expected, preloaded.comments_desc.map(&:id)
@@ -3058,6 +3058,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_has_many_preloading_with_duplicate_records
     posts = Post.joins(:comments).preload(:comments).order(:id).to_a
     assert_equal [1, 2], posts.first.comments.map(&:id).sort
+  end
+
+  def test_has_many_association_with_same_foreign_key_name
+    assert_nothing_raised do
+      firm = Firm.find(15)
+      assert_not_nil(firm.comments.first)
+    end
   end
 
   private

@@ -439,7 +439,7 @@ class HasManyScopingTest < ActiveRecord::TestCase
   end
 
   def test_forwarding_to_scoped
-    assert_equal 4, Comment.search_by_type("Comment").size
+    assert_equal 5, Comment.search_by_type("Comment").size
     assert_equal 2, @welcome.comments.search_by_type("Comment").size
   end
 

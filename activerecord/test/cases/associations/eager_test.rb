@@ -414,7 +414,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_belongs_to
     comments = Comment.all.merge!(includes: :post).to_a
-    assert_equal 11, comments.length
+    assert_equal 12, comments.length
     titles = comments.map { |c| c.post.title }
     assert_includes titles, posts(:welcome).title
     assert_includes titles, posts(:sti_post_and_comments).title
@@ -1175,8 +1175,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts = assert_queries(2) do
       Post.all.merge!(joins: :comments, includes: :author, order: "comments.id DESC").to_a
     end
-    assert_equal posts(:eager_other), posts[1]
-    assert_equal authors(:mary), assert_no_queries { posts[1].author }
+    assert_equal posts(:eager_other), posts[2]
+    assert_equal authors(:mary), assert_no_queries { posts[2].author }
   end
 
   def test_eager_loading_with_conditions_on_joined_table_preloads

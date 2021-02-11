@@ -226,6 +226,7 @@ ActiveRecord::Schema.define do
     t.datetime :updated_at
     t.datetime :deleted_at
     t.integer :comments
+    t.integer :company
   end
 
   create_table :companies, force: true do |t|

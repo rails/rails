@@ -14,6 +14,7 @@ class Comment < ActiveRecord::Base
   belongs_to :post, counter_cache: true
   belongs_to :author,   polymorphic: true
   belongs_to :resource, polymorphic: true
+  belongs_to :company, foreign_key: "company"
 
   has_many :ratings
 
