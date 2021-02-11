@@ -99,7 +99,7 @@ def mangle_name(name)
   name.tr("^A-Za-z0-9", "-")
 end
 
-def step_for(subdirectory, rake_task, ruby: nil, service: "default", env: {})
+def step_for(subdirectory, rake_task, ruby: nil, service: "default")
   return unless REPO_ROOT.join(subdirectory).exist?
 
   label = +"#{subdirectory} #{rake_task.sub(/[:_]test|test:/, "")}"
@@ -126,9 +126,9 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default", env: {})
       ruby || ONE_RUBY
     end
 
-  env = env.merge(
+  env = {
     "IMAGE_NAME" => image_name_for(ruby || ONE_RUBY),
-  )
+  }
 
   if RAILS_VERSION < Gem::Version.new("5.x")
     env["MYSQL_IMAGE"] = "mysql:5.6"
@@ -229,7 +229,10 @@ if RAILS_VERSION >= Gem::Version.new("5.1.x")
   step_for("activerecord", "sqlite3_mem:test", service: "default")
 end
 if RAILS_VERSION >= Gem::Version.new("6.1.x")
-  step_for("activerecord", "mysql2:test", service: "default", env: { "MYSQL_PREPARED_STATEMENTS" => "true" })
+  step_for("activerecord", "mysql2:test", service: "mysqldb") do |x|
+    x["label"] += " [prepared_statements]"
+    x["env"]["MYSQL_PREPARED_STATEMENTS"] = "true"
+  end
 end
 if RAILS_VERSION >= Gem::Version.new("5.x")
   step_for("activerecord", "mysql2:test", service: "mysqldb") do |x|
