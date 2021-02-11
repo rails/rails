@@ -28,16 +28,17 @@ module ActiveRecord
         @model_metadata ||= ModelMetadata.new(model_class)
       end
 
+      def merge!(table_rows)
+        tables.merge!(table_rows.tables) { |_k, o, n| o + n }
+      end
+
       private
         def build_table_rows_from(table_name, fixtures)
-          now = ActiveRecord.default_timezone == :utc ? Time.now.utc : Time.now
-
           @tables[table_name] = fixtures.map do |label, fixture|
             TableRow.new(
               fixture,
               table_rows: self,
               label: label,
-              now: now,
             )
           end
         end

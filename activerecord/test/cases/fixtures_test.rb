@@ -18,6 +18,9 @@ require "models/course"
 require "models/developer"
 require "models/dog"
 require "models/doubloon"
+require "models/hmt_course"
+require "models/hmt_enrolment"
+require "models/hmt_student"
 require "models/joke"
 require "models/matey"
 require "models/other_dog"
@@ -1655,5 +1658,13 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       def readonly_config
         default_config.merge("replica" => true)
       end
+  end
+
+  class HmtAutoTimestampTest < ActiveRecord::TestCase
+    fixtures :hmt_students, :hmt_courses
+
+    def test_has_many_though_table_with_timestamps
+      assert_not_nil hmt_students(:alice).hmt_enrolments.first.created_at
+    end
   end
 end

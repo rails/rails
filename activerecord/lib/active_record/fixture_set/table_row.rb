@@ -37,12 +37,16 @@ module ActiveRecord
         def timestamp_column_names
           @association.through_reflection.klass.all_timestamp_attributes_in_model
         end
+
+        def join_model
+          @association.through_reflection.klass
+        end
       end
 
-      def initialize(fixture, table_rows:, label:, now:)
+      def initialize(fixture, table_rows:, label:)
         @table_rows = table_rows
         @label = label
-        @now = now
+        @now = ActiveRecord.default_timezone == :utc ? Time.now.utc : Time.now
         @row = fixture.to_hash
         fill_row_model_attributes
       end
@@ -138,21 +142,29 @@ module ActiveRecord
         def add_join_records(association)
           # This is the case when the join table has no fixtures file
           if (targets = @row.delete(association.name.to_s))
-            table_name  = association.join_table
             column_type = association.primary_key_type
-            lhs_key     = association.lhs_key
-            rhs_key     = association.rhs_key
+            lhs_key = association.lhs_key
+            rhs_key = association.rhs_key
+            join_table_name = association.join_table
+            join_model = association.join_model
 
             targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
-            joins   = targets.map do |target|
-              join = { lhs_key => @row[model_metadata.primary_key_name],
-                       rhs_key => ActiveRecord::FixtureSet.identify(target, column_type) }
-              association.timestamp_column_names.each do |col|
-                join[col] = @now
-              end
-              join
+            join_fixtures = targets.map do |target|
+              row = {
+                lhs_key => @row[model_metadata.primary_key_name],
+                rhs_key => ActiveRecord::FixtureSet.identify(target, column_type),
+              }
+
+              [row.values.join("_"), ActiveRecord::Fixture.new(row, join_model)]
             end
-            @table_rows.tables[table_name].concat(joins)
+
+            join_table_rows = TableRows.new(
+              join_table_name,
+              model_class: join_model,
+              fixtures: join_fixtures,
+            )
+
+            @table_rows.merge!(join_table_rows)
           end
         end
     end
