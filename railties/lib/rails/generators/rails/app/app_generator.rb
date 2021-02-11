@@ -104,9 +104,7 @@ module Rails
     end
 
     def yarn_when_updating
-      return if File.exist?("bin/yarn")
-
-      template "bin/yarn" do |content|
+      template "bin/yarn", force: true do |content|
         "#{shebang}\n" + content
       end
 
