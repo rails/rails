@@ -1,3 +1,9 @@
+*   Increment postgres prepared statement counter before making a prepared statement, so if the statement is aborted
+    without Rails knowledge (e.g., if app gets kill -9d during long-running query or due to Rack::Timeout), app won't end
+    up in perpetual crash state for being inconsistent with Postgres.
+
+    *wbharding*, *Martin Tepper*
+
 *   Add ability to apply `scoping` to `all_queries`.
 
     Some applications may want to use the `scoping` method but previously it only
