@@ -12,9 +12,9 @@ module ActiveModel
 
           if value.acts_like?(:time)
             if is_utc?
-              value = value.getutc if value.respond_to?(:getutc) && !value.utc?
+              value = value.getutc if !value.utc?
             else
-              value = value.getlocal if value.respond_to?(:getlocal)
+              value = value.getlocal
             end
           end
 
