@@ -189,8 +189,8 @@ class InclusionValidationTest < ActiveModel::TestCase
     Person.clear_validators!
   end
 
-  def test_validates_inclusion_of_with_array_value
-    Person.validates_inclusion_of :karma, in: %w( abe monkey )
+  def test_validates_inclusion_of_with_array_value_and_all_option_is_true
+    Person.validates_inclusion_of :karma, in: %w( abe monkey ), all: true
 
     p = Person.new
     p.karma = %w(Lifo monkey)
@@ -202,6 +202,17 @@ class InclusionValidationTest < ActiveModel::TestCase
     p.karma = %w(abe monkey)
 
     assert p.valid?
+  ensure
+    Person.clear_validators!
+  end
+
+  def test_validates_inclusion_of_with_array_value_and_all_option_is_falsey
+    Person.validates_inclusion_of :karma, in: %w( abe monkey ), all: false
+
+    p = Person.new
+    p.karma = %w(abe monkey)
+
+    assert p.invalid?
   ensure
     Person.clear_validators!
   end
