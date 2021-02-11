@@ -109,7 +109,7 @@ module ActionView
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
       # a <tt>:highlighter</tt> string. The highlighter can be specialized by passing <tt>:highlighter</tt>
       # as a single-quoted string with <tt>\1</tt> where the phrase is to be inserted (defaults to
-      # '<mark>\1</mark>') or passing a block that receives each matched term. By default +text+
+      # <tt><mark>\1</mark></tt>) or passing a block that receives each matched term. By default +text+
       # is sanitized to prevent possible XSS attacks. If the input is trustworthy, passing false
       # for <tt>:sanitize</tt> will turn sanitizing off.
       #
