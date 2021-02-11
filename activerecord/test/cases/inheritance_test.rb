@@ -392,8 +392,8 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_inheritance_condition
-    assert_equal 11, Company.count
-    assert_equal 2, Firm.count
+    assert_equal 12, Company.count
+    assert_equal 3, Firm.count
     assert_equal 5, Client.count
   end
 
@@ -429,7 +429,7 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_destroy_all_within_inheritance
     Client.destroy_all
     assert_equal 0, Client.count
-    assert_equal 2, Firm.count
+    assert_equal 3, Firm.count
   end
 
   def test_alt_destroy_all_within_inheritance

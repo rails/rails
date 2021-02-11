@@ -103,7 +103,9 @@ module ActiveRecord
 
             klass ||= AssociationQueryValue
             queries = klass.new(associated_table, value).queries.map! do |query|
-              expand_from_hash(query)
+              # If the query produced is identical to attributes don't go any deeper.
+              # Prevents stack level too deep errors when association and foreign_key are identical.
+              query == attributes ? self[key, value] : expand_from_hash(query)
             end
 
             grouping_queries(queries)
