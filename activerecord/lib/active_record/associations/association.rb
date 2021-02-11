@@ -99,6 +99,8 @@ module ActiveRecord
       def scope
         if (scope = klass.current_scope) && scope.try(:proxy_association) == self
           scope.spawn
+        elsif scope = klass.global_current_scope
+          target_scope.merge!(association_scope).merge!(scope)
         else
           target_scope.merge!(association_scope)
         end

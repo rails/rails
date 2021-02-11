@@ -1,3 +1,17 @@
+*   Add ability to apply `scoping` to `all_queries`.
+
+    Some applications may want to use the `scoping` method but previously it only
+    worked on certain types of queries. This change allows the `scoping` method to apply
+    to all queries for a model in a block.
+
+    ```ruby
+    Post.where(blog_id: post.blog_id).scoping(all_queries: true) do
+      post.update(title: "a post title") # adds `posts.blog_id = 1` to the query
+    end
+    ```
+
+    *Eileen M. Uchitelle*
+
 *   Switch to database adapter return type for `ActiveRecord::Calculations.calculate`
     when called with `:average` (aliased as `ActiveRecord::Calculations.average`)
 

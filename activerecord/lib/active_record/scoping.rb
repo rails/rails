@@ -30,6 +30,14 @@ module ActiveRecord
       def current_scope=(scope)
         ScopeRegistry.set_value_for(:current_scope, self, scope)
       end
+
+      def global_current_scope(skip_inherited_scope = false)
+        ScopeRegistry.value_for(:global_current_scope, self, skip_inherited_scope)
+      end
+
+      def global_current_scope=(scope)
+        ScopeRegistry.set_value_for(:global_current_scope, self, scope)
+      end
     end
 
     def populate_with_current_scope_attributes # :nodoc:
@@ -69,7 +77,7 @@ module ActiveRecord
     class ScopeRegistry # :nodoc:
       extend ActiveSupport::PerThreadRegistry
 
-      VALID_SCOPE_TYPES = [:current_scope, :ignore_default_scope]
+      VALID_SCOPE_TYPES = [:current_scope, :ignore_default_scope, :global_current_scope]
 
       def initialize
         @registry = Hash.new { |hash, key| hash[key] = {} }

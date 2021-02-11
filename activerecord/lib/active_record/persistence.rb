@@ -382,6 +382,10 @@ module ActiveRecord
           constraints << default_scoped(all_queries: true).where_clause.ast
         end
 
+        if current_scope = self.global_current_scope
+          constraints << current_scope.where_clause.ast
+        end
+
         um = arel_table.where(
           constraints.reduce(&:and)
         ).compile_update(_substitute_values(values), primary_key)
@@ -394,6 +398,10 @@ module ActiveRecord
 
         if default_scopes?(all_queries: true)
           constraints << default_scoped(all_queries: true).where_clause.ast
+        end
+
+        if current_scope = self.global_current_scope
+          constraints << current_scope.where_clause.ast
         end
 
         dm = Arel::DeleteManager.new
@@ -808,7 +816,7 @@ module ActiveRecord
     def reload(options = nil)
       self.class.connection.clear_query_cache
 
-      fresh_object = if self.class.default_scopes?(all_queries: true) && !(options && options[:unscoped])
+      fresh_object = if apply_scoping?(options)
         _find_record(options)
       else
         self.class.unscoped { _find_record(options) }
@@ -878,6 +886,11 @@ module ActiveRecord
       else
         self.class.find(id)
       end
+    end
+
+    def apply_scoping?(options)
+      !(options && options[:unscoped]) &&
+        (self.class.default_scopes?(all_queries: true) || self.class.global_current_scope)
     end
 
     # A hook to be overridden by association modules.
