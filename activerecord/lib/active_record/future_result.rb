@@ -90,7 +90,7 @@ module ActiveRecord
           def exec_query(*, **)
             super
           rescue ::RangeError
-            ActiveRecord::Result.new([], [])
+            ActiveRecord::Result.empty
           end
       end
   end

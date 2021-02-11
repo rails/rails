@@ -195,7 +195,7 @@ module ActiveRecord
         relation.select_values = columns
         result = skip_query_cache_if_necessary do
           if where_clause.contradiction?
-            ActiveRecord::Result.new([], [])
+            ActiveRecord::Result.empty
           else
             klass.connection.select_all(relation.arel, "#{klass.name} Pluck")
           end

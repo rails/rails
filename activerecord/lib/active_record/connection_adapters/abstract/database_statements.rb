@@ -65,7 +65,7 @@ module ActiveRecord
 
         select(sql, name, binds, prepare: prepared_statements && preparable, async: async && FutureResult::SelectAll)
       rescue ::RangeError
-        ActiveRecord::Result.new([], [])
+        ActiveRecord::Result.empty
       end
 
       # Returns a record hash with the column names as keys and column values
