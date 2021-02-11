@@ -26,6 +26,7 @@ require "models/joke"
 require "models/bird"
 require "models/car"
 require "models/bulb"
+require "models/pet"
 require "concurrent/atomic/count_down_latch"
 require "active_support/core_ext/enumerable"
 
@@ -308,6 +309,18 @@ class BasicsTest < ActiveRecord::TestCase
           assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "CST"], time.to_a
           assert_equal [0, 0, 1, 1, 1, 2000, 6, 1, false, "EST"], saved_time.to_a
         end
+      end
+    end
+  end
+
+  def test_time_zone_aware_attribute_with_default_timezone_utc_on_utc_can_be_created
+    with_env_tz eastern_time_zone do
+      with_timezone_config aware_attributes: true, default: :utc, zone: "UTC" do
+        pet = Pet.create(name: 'Bidu')
+        assert_predicate pet, :persisted?
+        saved_pet = Pet.find(pet.id)
+        assert_not_nil saved_pet.created_at
+        assert_not_nil saved_pet.updated_at
       end
     end
   end
