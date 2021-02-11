@@ -316,7 +316,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_time_zone_aware_attribute_with_default_timezone_utc_on_utc_can_be_created
     with_env_tz eastern_time_zone do
       with_timezone_config aware_attributes: true, default: :utc, zone: "UTC" do
-        pet = Pet.create(name: 'Bidu')
+        pet = Pet.create(name: "Bidu")
         assert_predicate pet, :persisted?
         saved_pet = Pet.find(pet.id)
         assert_not_nil saved_pet.created_at
