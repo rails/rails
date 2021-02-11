@@ -465,7 +465,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 2, c[nil]
     assert_equal 1, c["DEPENDENTFIRM"]
     assert_equal 5, c["CLIENT"]
-    assert_equal 2, c["FIRM"]
+    assert_equal 3, c["FIRM"]
   end
 
   def test_should_calculate_grouped_by_function_with_table_alias
@@ -473,7 +473,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 2, c[nil]
     assert_equal 1, c["DEPENDENTFIRM"]
     assert_equal 5, c["CLIENT"]
-    assert_equal 2, c["FIRM"]
+    assert_equal 3, c["FIRM"]
   end
 
   def test_should_not_overshadow_enumerable_sum
@@ -608,7 +608,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_count_field_of_root_table_with_conflicting_group_by_column
-    expected = { 1 => 2, 2 => 1, 4 => 5, 5 => 2, 7 => 1 }
+    expected = { 1 => 2, 2 => 1, 4 => 5, 5 => 3, 7 => 1 }
     assert_equal expected, Post.joins(:comments).group(:post_id).count
     assert_equal expected, Post.joins(:comments).group("comments.post_id").count
     assert_equal expected, Post.joins(:comments).group(:post_id).select("DISTINCT posts.author_id").count(:all)
@@ -865,7 +865,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end if current_adapter?(:PostgreSQLAdapter)
 
   def test_group_by_with_limit
-    expected = { "StiPost" => 2, "SpecialPost" => 1 }
+    expected = { "StiPost" => 3, "SpecialPost" => 1 }
     actual = Post.includes(:comments).group(:type).order(type: :desc).limit(2).count("comments.id")
     assert_equal expected, actual
   end
