@@ -20,6 +20,8 @@ export default function(name, options, callback) {
     const connection = consumer.connection
     const monitor = connection.monitor
 
+    if ("subprotocols" in options) consumer.addSubProtocol(options.subprotocols)
+
     server.on("connection", function() {
       const clients = server.clients()
       assert.equal(clients.length, 1)
