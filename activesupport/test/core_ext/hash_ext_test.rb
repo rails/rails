@@ -434,6 +434,15 @@ class HashExtTest < ActiveSupport::TestCase
       original.except(:a)
     end
   end
+
+  def test_except_does_not_alter_default_value
+    default = 5
+    original = Hash.new(default)
+    original[:a] = "x"
+    original[:b] = "y"
+
+    assert_equal default, original.except(:a)[:c]
+  end
 end
 
 class IWriteMyOwnXML

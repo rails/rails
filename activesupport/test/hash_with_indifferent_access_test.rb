@@ -742,6 +742,15 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     end
   end
 
+  def test_indifferent_without_does_not_alter_default_value
+    default = 5
+    original = Hash.new(default)
+    original[:a] = "x"
+    original[:b] = "y"
+
+    assert_equal original.with_indifferent_access.without(:a)[:c], default
+  end
+
   def test_indifferent_extract
     original = { :a => 1, "b" => 2, :c => 3, "d" => 4 }.with_indifferent_access
     expected = { a: 1, b: 2 }.with_indifferent_access

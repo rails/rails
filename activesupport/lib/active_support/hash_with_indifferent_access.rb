@@ -295,9 +295,6 @@ module ActiveSupport
       super(convert_key(key))
     end
 
-    def except(*keys)
-      slice(*self.keys - keys.map { |key| convert_key(key) })
-    end
     alias_method :without, :except
 
     def stringify_keys!; self end

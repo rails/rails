@@ -10,7 +10,7 @@ class Hash
   # This is useful for limiting a set of parameters to everything but a few known toggles:
   #   @person.update(params[:person].except(:admin))
   def except(*keys)
-    slice(*self.keys - keys)
+    dup.except!(*keys)
   end unless method_defined?(:except)
 
   # Removes the given keys from hash and returns it.
