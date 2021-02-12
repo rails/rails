@@ -49,7 +49,9 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_return_decimal_average_of_integer_field
     value = Account.average(:id)
+
     assert_equal 3.5, value
+    assert_instance_of BigDecimal, value
   end
 
   def test_should_return_integer_average_if_db_returns_such
@@ -61,10 +63,18 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_return_float_average_if_db_returns_such
     NumericData.create!(temperature: 37.5)
-
     value = NumericData.average(:temperature)
-    assert_instance_of Float, value
+
     assert_equal 37.5, value
+    assert_instance_of Float, value
+  end
+
+  def test_should_return_decimal_average_if_db_returns_such
+    NumericData.create!(bank_balance: 37.50)
+    value = NumericData.average(:bank_balance)
+
+    assert_equal 37.50, value
+    assert_instance_of BigDecimal, value
   end
 
   def test_should_return_nil_as_average

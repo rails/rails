@@ -310,7 +310,12 @@ module ActiveRecord
         type_cast_calculated_value(result.cast_values.first, operation) do |value|
           type = column.try(:type_caster) ||
             lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
-          type.deserialize(value)
+
+          if operation == "average" && type.is_a?(Type::Integer)
+            value&.to_d
+          else
+            type.deserialize(value)
+          end
         end
       end
 
@@ -389,7 +394,12 @@ module ActiveRecord
           result[key] = type_cast_calculated_value(row[column_alias], operation) do |value|
             type ||= column.try(:type_caster) ||
               lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
-            type.deserialize(value)
+
+            if operation == "average" && type.is_a?(Type::Integer)
+              value&.to_d
+            else
+              type.deserialize(value)
+            end
           end
         end
       end
@@ -447,13 +457,7 @@ module ActiveRecord
           value.to_i
         when "sum"
           yield value || 0
-        when "average"
-          if !value.is_a?(Numeric) && value&.respond_to?(:to_d)
-            value.to_d
-          else
-            value
-          end
-        else # "minimum", "maximum"
+        else # "minimum", "maximum", "average"
           yield value
         end
       end

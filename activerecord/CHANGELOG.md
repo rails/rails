@@ -49,15 +49,13 @@
 
     *Eileen M. Uchitelle*
 
-*   Switch to database adapter return type for `ActiveRecord::Calculations.calculate`
-    when called with `:average` (aliased as `ActiveRecord::Calculations.average`)
+*   `ActiveRecord::Calculations.calculate` called with `:average`
+    (aliased as `ActiveRecord::Calculations.average`) will now use column based
+    type casting. This means that floating point number columns will now be
+    aggregated as `Float` and decimal columns will be aggregated as `BigDecimal`.
 
-    Previously average aggregation returned `BigDecimal` for everything which
-    supported `to_d`. This was especially weird for floating point numbers.
-
-    Database adapters today map database column types to Ruby types more
-    accurately than 10 years ago. So now we simply pass them on
-    (except for special cases which are not `Numeric`).
+    Integers are handled as a special case returning `BigDecimal` always
+    (this was the case before already).
 
     ```ruby
     # With the following schema:
@@ -73,6 +71,11 @@
     Measurement.average(:temperature).class
     # => Float
     ```
+
+    Before this change, Rails just called `to_d` on average aggregates from the
+    database adapter. This is not the case anymore. If you relied on that kind
+    of magic, you now need to register your own `ActiveRecord::Type`
+    (see `ActiveRecord::Attributes::ClassMethods` for documentation).
 
     *Josua Schmid*
 
