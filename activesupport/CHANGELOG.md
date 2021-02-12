@@ -201,6 +201,12 @@
 
 ## Rails 6.0.0.rc1 (April 24, 2019) ##
 
+*   Speed improvements to `Hash.except` and `HashWithIndifferentAccess#except`.
+
+    These methods now unset the `default`/`default_proc` on the returned Hash, compatible with Ruby 3.0’s native implementation.
+
+    *Timo Schilling*
+
 *   Introduce `ActiveSupport::ActionableError`.
 
     Actionable errors let's you dispatch actions from Rails' error pages. This
