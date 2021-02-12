@@ -307,16 +307,12 @@ module ActiveRecord
 
         result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder, "#{@klass.name} #{operation.capitalize}") }
 
-        type_cast_calculated_value(result.cast_values.first, operation) do |value|
+        if operation != "count"
           type = column.try(:type_caster) ||
             lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
-
-          if operation == "average" && type.is_a?(Type::Integer)
-            value&.to_d
-          else
-            type.deserialize(value)
-          end
         end
+
+        type_cast_calculated_value(result.cast_values.first, operation, type)
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
@@ -385,22 +381,17 @@ module ActiveRecord
           end
         end
 
-        type = nil
+        if operation != "count"
+          type = column.try(:type_caster) ||
+            lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
+        end
+
         hash_rows.each_with_object({}) do |row, result|
           key = group_aliases.map { |aliaz| row[aliaz] }
           key = key.first if key.size == 1
           key = key_records[key] if associated
 
-          result[key] = type_cast_calculated_value(row[column_alias], operation) do |value|
-            type ||= column.try(:type_caster) ||
-              lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
-
-            if operation == "average" && type.is_a?(Type::Integer)
-              value&.to_d
-            else
-              type.deserialize(value)
-            end
-          end
+          result[key] = type_cast_calculated_value(row[column_alias], operation, type)
         end
       end
 
@@ -451,14 +442,16 @@ module ActiveRecord
         result.cast_values(cast_types)
       end
 
-      def type_cast_calculated_value(value, operation)
+      def type_cast_calculated_value(value, operation, type)
         case operation
         when "count"
           value.to_i
         when "sum"
-          yield value || 0
-        else # "minimum", "maximum", "average"
-          yield value
+          type.deserialize(value || 0)
+        when "average"
+          type.is_a?(Type::Integer) ? value&.to_d : type.deserialize(value)
+        else # "minimum", "maximum"
+          type.deserialize(value)
         end
       end
 
