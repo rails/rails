@@ -412,6 +412,15 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true,  Customer.order(id: :desc).limit(2).include?(mary)
   end
 
+  def test_include_on_unloaded_relation_with_having_referencing_aliased_select
+    skip if current_adapter?(:PostgreSQLAdapter)
+    bob = authors(:bob)
+    mary = authors(:mary)
+
+    assert_equal false, Author.select("COUNT(*) as total_posts", "authors.*").joins(:posts).group(:id).having("total_posts > 2").include?(bob)
+    assert_equal true, Author.select("COUNT(*) as total_posts", "authors.*").joins(:posts).group(:id).having("total_posts > 2").include?(mary)
+  end
+
   def test_include_on_loaded_relation_with_match
     customers = Customer.where(name: "David").load
     david     = customers(:david)

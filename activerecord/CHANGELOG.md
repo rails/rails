@@ -1,3 +1,34 @@
+*   Skip optimised #exist? query when #include? is called on a relation
+    with a having clause
+
+    Relations that have aliased select values AND a having clause that
+    references an aliased select value would generate an error when
+    #include? was called, due to an optimisation that would generate
+    call #exists? on the relation instead, which effectively alters
+    the select values of the query (and thus removes the aliased select
+    values), but leaves the having clause intact. Because the having
+    clause is then referencing an aliased column that is no longer
+    present in the simplified query, an ActiveRecord::InvalidStatement
+    error was raised.
+
+    An sample query affected by this problem:
+
+    ```ruby
+    Author.select('COUNT(*) as total_posts', 'authors.*')
+          .joins(:posts)
+          .group(:id)
+          .having('total_posts > 2')
+          .include?(Author.first)
+    ```
+
+    This change adds an addition check to the condition that skips the
+    simplified #exists? query, which simply checks for the presence of
+    a having clause.
+
+    Fixes #41417
+
+    *Michael Smart*
+
 *   Increment postgres prepared statement counter before making a prepared statement, so if the statement is aborted
     without Rails knowledge (e.g., if app gets kill -9d during long-running query or due to Rack::Timeout), app won't end
     up in perpetual crash state for being inconsistent with Postgres.
