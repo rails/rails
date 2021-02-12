@@ -154,9 +154,10 @@ module ActiveRecord
                               end
       end
 
-      def prepared_statements
+      def prepared_statements?
         @prepared_statements && !prepared_statements_disabled_cache.include?(object_id)
       end
+      alias :prepared_statements :prepared_statements?
 
       def prepared_statements_disabled_cache # :nodoc:
         Thread.current[:ar_prepared_statements_disabled_cache] ||= Set.new
@@ -250,7 +251,7 @@ module ActiveRecord
       end
 
       def unprepared_statement
-        cache = prepared_statements_disabled_cache.add(object_id) if @prepared_statements
+        cache = prepared_statements_disabled_cache.add?(object_id) if @prepared_statements
         yield
       ensure
         cache&.delete(object_id)
