@@ -29,6 +29,16 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal(e, v, msg)
   end
 
+  def test_minimum
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
+    assert_equal 5, payments.minimum(:price)
+  end
+
+  def test_maximum
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
+    assert_equal 15, payments.maximum(:price)
+  end
+
   def test_sums
     enum = GenericEnumerable.new([5, 15, 10])
     assert_equal 30, enum.sum
