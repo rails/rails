@@ -404,9 +404,9 @@ module ActiveRecord
     #   end
     #   # => SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = 1 ORDER BY "comments"."id" ASC LIMIT 1
     #
-    # If `all_queries: true` is passed, scoping will apply to all queries
-    # for the relation including `update` and `delete` on instances.
-    # Once `all_queries` is set to true it cannot be set to false in a
+    # If <tt>all_queries: true</tt> is passed, scoping will apply to all queries
+    # for the relation including +update+ and +delete+ on instances.
+    # Once +all_queries+ is set to true it cannot be set to false in a
     # nested block.
     #
     # Please check unscoped if you want to remove all previous scopes (including
