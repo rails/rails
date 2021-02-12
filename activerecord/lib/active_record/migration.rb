@@ -1051,9 +1051,9 @@ module ActiveRecord
   # MigrationContext sets the context in which a migration is run.
   #
   # A migration context requires the path to the migrations is set
-  # in the `migrations_paths` parameter. Optionally a `schema_migration`
-  # class can be provided. For most applications, `SchemaMigration` is
-  # sufficient. Multiple database applications need a `SchemaMigration`
+  # in the +migrations_paths+ parameter. Optionally a +schema_migration+
+  # class can be provided. For most applications, +SchemaMigration+ is
+  # sufficient. Multiple database applications need a +SchemaMigration+
   # per primary database.
   class MigrationContext
     attr_reader :migrations_paths, :schema_migration
@@ -1063,19 +1063,19 @@ module ActiveRecord
       @schema_migration = schema_migration
     end
 
-    # Runs the migrations in the `migrations_path`.
+    # Runs the migrations in the +migrations_path+.
     #
-    # If `target_version` is `nil`, `migrate will run `up`.
+    # If +target_version+ is +nil+, +migrate+ will run +up+.
     #
-    # If the `current_version` and `target_version` are both
+    # If the +current_version+ and +target_version+ are both
     # 0 then an empty array will be returned and no migrations
     # will be run.
     #
-    # If the `current_version` in the schema is less than
-    # the `target_version`, then `down` will be run.
+    # If the +current_version+ in the schema is less than
+    # the +target_version+, then +down+ will be run.
     #
-    # If none of the conditions are met, `up` will be run with
-    # the `target_version`.
+    # If none of the conditions are met, +up+ will be run with
+    # the +target_version+.
     def migrate(target_version = nil, &block)
       case
       when target_version.nil?
