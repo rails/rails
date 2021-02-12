@@ -1,3 +1,10 @@
+*   Strict Loading violations now raise when you call `find_by` on a relation.
+
+    `find_by` always results in a new query, but this can be surprising. If you are using Strict Loading
+    you will now be alerted to these extra queries.
+
+    *Alex Ghiculescu*
+
 *   Skip optimised #exist? query when #include? is called on a relation
     with a having clause
 

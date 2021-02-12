@@ -44,6 +44,105 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_strict_loading_with_find_by_and_includes
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      Developer.strict_loading.first.audit_logs.find_by(developer: nil)
+    end
+
+    assert_nothing_raised do
+      Developer.first.audit_logs.find_by(developer: nil)
+    end
+
+    assert_nothing_raised do
+      AuditLog.find_by(developer: nil)
+    end
+
+    assert_nothing_raised do
+      AuditLog.strict_loading.find_by(developer: nil)
+    end
+
+    with_strict_loading_by_default(Developer) do
+      assert_raises ActiveRecord::StrictLoadingViolationError do
+        Developer.first.audit_logs.to_a
+      end
+
+      assert_nothing_raised do
+        AuditLog.find_by(developer: nil)
+      end
+
+      assert_nothing_raised do
+        Developer.find_by(created_at: nil)
+      end
+
+      assert_nothing_raised do
+        Developer.includes(:audit_logs).first.audit_logs.to_a
+      end
+
+      assert_raises ActiveRecord::StrictLoadingViolationError do
+        Developer.first.audit_logs.find_by(developer: nil)
+      end
+
+      assert_raises ActiveRecord::StrictLoadingViolationError do
+        Developer.includes(:audit_logs).first.audit_logs.find_by(developer: nil)
+      end
+    end
+  end
+
+  def test_strict_loading_with_first_take_and_includes
+    assert_nothing_raised do
+      Developer.includes(:audit_logs).first.audit_logs.first
+      Developer.includes(:audit_logs).first.audit_logs.first(2)
+      Developer.includes(:audit_logs).first.audit_logs.take
+      Developer.includes(:audit_logs).first.audit_logs.take(2)
+
+      Developer.first.audit_logs.first
+      Developer.first.audit_logs.first(2)
+      Developer.first.audit_logs.take
+      Developer.first.audit_logs.take(2)
+    end
+
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      Developer.strict_loading.first.audit_logs.first
+    end
+
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      Developer.strict_loading.first.audit_logs.first(2)
+    end
+
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      Developer.strict_loading.first.audit_logs.take
+    end
+
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      Developer.strict_loading.first.audit_logs.take(2)
+    end
+
+    with_strict_loading_by_default(Developer) do
+      assert_nothing_raised do
+        Developer.includes(:audit_logs).first.audit_logs.first
+        Developer.includes(:audit_logs).first.audit_logs.first(2)
+        Developer.includes(:audit_logs).first.audit_logs.take
+        Developer.includes(:audit_logs).first.audit_logs.take(2)
+      end
+
+      assert_raises ActiveRecord::StrictLoadingViolationError do
+        Developer.first.audit_logs.first
+      end
+
+      assert_raises ActiveRecord::StrictLoadingViolationError do
+        Developer.first.audit_logs.first(2)
+      end
+
+      assert_raises ActiveRecord::StrictLoadingViolationError do
+        Developer.first.audit_logs.take
+      end
+
+      assert_raises ActiveRecord::StrictLoadingViolationError do
+        Developer.first.audit_logs.take(2)
+      end
+    end
+  end
+
   def test_strict_loading_by_default_can_be_set_per_model
     model1 = Class.new(ActiveRecord::Base) do
       self.table_name = "developers"

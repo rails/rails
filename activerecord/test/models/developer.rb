@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "ostruct"
+require "models/comment"
 
 class Developer < ActiveRecord::Base
   module TimestampAliases

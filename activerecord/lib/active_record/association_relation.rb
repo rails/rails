@@ -28,6 +28,16 @@ module ActiveRecord
     end
 
     private
+      def find_take_with_limit(limit)
+        @association.check_strict_loading_violation! if @association.find_from_target?
+        super
+      end
+
+      def find_take
+        @association.check_strict_loading_violation! if @association.find_from_target?
+        super
+      end
+
       def _new(attributes, &block)
         @association.build(attributes, &block)
       end

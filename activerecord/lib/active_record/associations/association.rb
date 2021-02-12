@@ -211,11 +211,15 @@ module ActiveRecord
         _create_record(attributes, true, &block)
       end
 
+      def check_strict_loading_violation!
+        if (owner.strict_loading? || reflection.strict_loading?) && owner.validation_context.nil?
+          Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
+        end
+      end
+
       private
         def find_target
-          if (owner.strict_loading? || reflection.strict_loading?) && owner.validation_context.nil?
-            Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
-          end
+          check_strict_loading_violation!
 
           scope = self.scope
           return scope.to_a if skip_statement_cache?(scope)
