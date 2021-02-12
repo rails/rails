@@ -687,14 +687,14 @@ module ActiveRecord
         verify_readonly_attribute(name) || name
       end
 
-      id_in_database = self.id_in_database
+      update_constraints = _primary_key_constraints_hash
       attributes.each do |k, v|
         write_attribute_without_type_cast(k, v)
       end
 
       affected_rows = self.class._update_record(
         attributes,
-        @primary_key => id_in_database
+        update_constraints
       )
 
       affected_rows == 1
@@ -893,6 +893,10 @@ module ActiveRecord
         (self.class.default_scopes?(all_queries: true) || self.class.global_current_scope)
     end
 
+    def _primary_key_constraints_hash
+      { @primary_key => id_in_database }
+    end
+
     # A hook to be overridden by association modules.
     def destroy_associations
     end
@@ -902,7 +906,7 @@ module ActiveRecord
     end
 
     def _delete_row
-      self.class._delete_record(@primary_key => id_in_database)
+      self.class._delete_record(_primary_key_constraints_hash)
     end
 
     def _touch_row(attribute_names, time)
@@ -918,7 +922,7 @@ module ActiveRecord
     def _update_row(attribute_names, attempted_action = "update")
       self.class._update_record(
         attributes_with_values(attribute_names),
-        @primary_key => id_in_database
+        _primary_key_constraints_hash
       )
     end
 
