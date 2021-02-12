@@ -16,7 +16,8 @@ module Rails
 
     include Behavior
 
-    HELP_MAPPINGS = %w(-h -? --help)
+    HELP_MAPPINGS = %w(-h -? --help).to_set
+    VERSION_MAPPINGS = %w(-v --version).to_set
 
     class << self
       def hidden_commands # :nodoc:
@@ -29,17 +30,11 @@ module Rails
 
       # Receives a namespace, arguments, and the behavior to invoke the command.
       def invoke(full_namespace, args = [], **config)
-        namespace = full_namespace = full_namespace.to_s
+        full_namespace = full_namespace.to_s
 
-        if char = namespace =~ /:(\w+)$/
-          command_name, namespace = $1, namespace.slice(0, char)
-        else
-          command_name = namespace
-        end
+        namespace, command_name = split_namespace(full_namespace)
 
-        command_name, namespace = "help", "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
-        command_name, namespace, args = "application", "application", ["--help"] if rails_new_with_no_path?(args)
-        command_name, namespace = "version", "version" if %w( -v --version ).include?(command_name)
+        args = ["--help"] if rails_new_with_no_path?(args)
 
         original_argv = ARGV.dup
         ARGV.replace(args)
@@ -93,19 +88,23 @@ module Rails
       end
 
       private
-        COMMANDS_IN_USAGE = %w(generate console server test test:system dbconsole new)
-        private_constant :COMMANDS_IN_USAGE
-
         def rails_new_with_no_path?(args)
           args == ["new"]
         end
 
-        def commands
-          lookup!
-
-          visible_commands = (subclasses - hidden_commands).flat_map(&:printing_commands)
-
-          (visible_commands - COMMANDS_IN_USAGE).sort
+        def split_namespace(namespace)
+          case namespace
+          when /^(.+):(\w+)$/
+            [$1, $2]
+          when ""
+            ["help", "help"]
+          when HELP_MAPPINGS, "help"
+            ["help", "help_extended"]
+          when VERSION_MAPPINGS
+            ["version", "version"]
+          else
+            [namespace, namespace]
+          end
         end
 
         def command_type # :doc:
