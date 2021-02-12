@@ -7,8 +7,13 @@ module Rails
 
       def help(*)
         say self.class.desc
+      end
 
-        Rails::Command.print_commands
+      def help_extended(*)
+        say self.class.desc
+
+        say "In addition to those commands, there are:"
+        Rails::Command.print_extended_commands
       end
     end
   end

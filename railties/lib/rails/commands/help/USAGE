@@ -13,5 +13,3 @@ The most common rails commands are:
 <% end -%>
 
 All commands can be run with -h (or --help) for more information.
-In addition to those commands, there are:
-
