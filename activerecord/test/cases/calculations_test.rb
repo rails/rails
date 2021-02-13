@@ -55,10 +55,10 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_return_integer_average_if_db_returns_such
-    ShipPart.delete_all
-    ShipPart.create!(id: 3, name: "foo")
-    value = ShipPart.average(:id)
-    assert_equal 3, value
+    value = Book.average(:status)
+
+    assert_equal 1.0, value
+    assert_instance_of BigDecimal, value
   end
 
   def test_should_return_float_average_if_db_returns_such
@@ -67,13 +67,21 @@ class CalculationsTest < ActiveRecord::TestCase
 
     assert_equal 37.5, value
     assert_instance_of Float, value
+
+    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
+      NumericData.create!(temperature: "Infinity")
+      value = NumericData.average(:temperature)
+
+      assert_equal Float::INFINITY, value
+      assert_instance_of Float, value
+    end
   end
 
   def test_should_return_decimal_average_if_db_returns_such
-    NumericData.create!(bank_balance: 37.50)
+    NumericData.create!([{ bank_balance: 37.50 }, { bank_balance: 37.45 }])
     value = NumericData.average(:bank_balance)
 
-    assert_equal 37.50, value
+    assert_equal 37.475, value
     assert_instance_of BigDecimal, value
   end
 
