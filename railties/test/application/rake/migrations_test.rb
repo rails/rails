@@ -136,7 +136,7 @@ module ApplicationTests
         assert_match(/up\s+002\s+Two migration/, output)
       end
 
-      test "rollback raises" do
+      test "rollback raises when VERSION is passed" do
         app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
           class OneMigration < ActiveRecord::Migration::Current
           end
@@ -428,12 +428,14 @@ module ApplicationTests
       test "schema generation when dump_schema_after_migration is set" do
         add_to_config("config.active_record.dump_schema_after_migration = false")
 
+        require "byebug"
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           output = rails("generate", "model", "author", "name:string")
           version = output =~ %r{[^/]+db/migrate/(\d+)_create_authors\.rb} && $1
 
-          rails "db:migrate", "db:rollback", "db:forward", "db:migrate:up", "db:migrate:down", "VERSION=#{version}"
+          rails "db:migrate", "db:rollback", "db:forward"
+          rails "db:migrate:up", "db:migrate:down", "VERSION=#{version}"
           assert_not File.exist?("db/schema.rb"), "should not dump schema when configured not to"
         end
 
