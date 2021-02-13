@@ -428,7 +428,6 @@ module ApplicationTests
       test "schema generation when dump_schema_after_migration is set" do
         add_to_config("config.active_record.dump_schema_after_migration = false")
 
-        require "byebug"
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           output = rails("generate", "model", "author", "name:string")
