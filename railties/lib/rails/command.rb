@@ -60,14 +60,12 @@ module Rails
       # Command names must end with "_command.rb". This is required because Rails
       # looks in load paths and loads the command just before it's going to be used.
       #
-      #   find_by_namespace :webrat, :rails, :integration
+      #   find_by_namespace :webrat, :integration
       #
       # Will search for the following commands:
       #
-      #   "rails:webrat", "webrat:integration", "webrat"
+      #   "webrat", "webrat:integration", "rails:webrat", "rails:webrat:integration"
       #
-      # Notice that "rails:commands:webrat" could be loaded as well, what
-      # Rails looks for is the first and last parts of the namespace.
       def find_by_namespace(namespace, command_name = nil) # :nodoc:
         lookups = [ namespace ]
         lookups << "#{namespace}:#{command_name}" if command_name
