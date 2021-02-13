@@ -449,7 +449,12 @@ module ActiveRecord
         when "sum"
           type.deserialize(value || 0)
         when "average"
-          type.is_a?(Type::Integer) ? value&.to_d : type.deserialize(value)
+          case type.type
+          when :integer, :decimal
+            value&.to_d
+          else
+            type.deserialize(value)
+          end
         else # "minimum", "maximum"
           type.deserialize(value)
         end
