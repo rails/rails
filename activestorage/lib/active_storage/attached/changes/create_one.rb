@@ -69,7 +69,17 @@ module ActiveStorage
             ).symbolize_keys
           )
         when String
-          ActiveStorage::Blob.find_signed!(attachable, record: record)
+          case ActiveStorage.blob_attachment_mode
+          when :blob_id
+            ActiveStorage::Blob.find_signed!(attachable, record: record, purpose: :blob_id)
+          when :private_id
+            ActiveStorage::Blob.find_signed!(attachable, record: record, purpose: :private_id)
+          when :private_id_with_fallback
+            ActiveStorage::Blob.find_signed(attachable, record: record, purpose: :private_id) ||
+              ActiveStorage::Blob.find_signed!(attachable, record: record, purpose: :blob_id)
+          else
+            raise ArgumentError, "Invalid config `blob_attachment_mode`: #{ActiveStorage.blob_attachment_mode.inspect}"
+          end
         else
           raise ArgumentError, "Could not find or build blob: expected attachable, got #{attachable.inspect}"
         end

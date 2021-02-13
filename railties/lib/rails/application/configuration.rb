@@ -220,6 +220,10 @@ module Rails
           if respond_to?(:action_mailer)
             action_mailer.smtp_timeout = 5
           end
+
+          if respond_to?(:active_storage)
+            active_storage.blob_attachment_mode = :private_id
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

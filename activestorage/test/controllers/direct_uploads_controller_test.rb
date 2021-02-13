@@ -175,6 +175,28 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
     end
   end
 
+  test "using :private_id_with_fallback blob attachment mode signs the blob with :private_id" do
+    with_blob_attachment_mode :private_id_with_fallback do
+      post rails_direct_uploads_url, params: { blob: {
+        filename: "hello.txt", byte_size: 6, checksum: Digest::MD5.base64digest("Hello"), content_type: "text/plain", metadata: {} } }
+
+      @response.parsed_body.tap do |details|
+        assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"], purpose: :private_id)
+      end
+    end
+  end
+
+  test "using :private_id blob attachment mode signs the blob with :private_id" do
+    with_blob_attachment_mode :private_id do
+      post rails_direct_uploads_url, params: { blob: {
+        filename: "hello.txt", byte_size: 6, checksum: Digest::MD5.base64digest("Hello"), content_type: "text/plain", metadata: {} } }
+
+      @response.parsed_body.tap do |details|
+        assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"], purpose: :private_id)
+      end
+    end
+  end
+
   private
     def set_include_root_in_json(value)
       original = ActiveRecord::Base.include_root_in_json

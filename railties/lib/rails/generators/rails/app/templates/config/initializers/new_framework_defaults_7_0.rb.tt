@@ -37,3 +37,13 @@
 
 # Set both the `:open_timeout` and `:read_timeout` values for `:smtp` delivery method.
 # Rails.application.config.action_mailer.smtp_timeout = 5
+
+# Only allow attaching blobs by their private signed ids.
+#
+# Direct uploaded blobs are now signed with a `:private_id` purpose. Previously, they were signed with `:blob_id`.
+# If you are using direct uploads or attaching blobs by their signed id,
+# your app will need to temporarily be able to find by both signature purposes.
+# To smoothly migrate you will need to first use the `:private_id_with_fallback` mode,
+# make sure your entire app is migrated and stable on 7.0 before setting the new `:private_id` mode.
+#
+# Rails.application.config.active_storage.blob_attachment_mode = :private_id

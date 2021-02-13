@@ -1,3 +1,14 @@
+*   When attaching blobs by their signed ids, you can now configure to attach with `:private_id` or `:blob_id`.
+
+    This is important due to a security vulnerability described in [#41413](https://github.com/rails/rails/issues/41413) where
+    a malicious user could attach another user's blob to their own record. The recommended approach is to use `:private_id` which
+    won't be visible to any other user.
+
+    For a smooth migration there's an intermediate setting `:private_id_with_fallback` where both signature purposes will
+    be accepted for a short period of time.
+
+    *Santiago Bartesaghi*, *Juan E. Roig*, *brunvez*
+
 *   Allow to purge an attachment when record is not persisted for `has_one_attached`
 
     *Jacopo Beschi*

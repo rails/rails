@@ -3201,6 +3201,37 @@ module ApplicationTests
       assert_no_match(/You are running SQLite in production, this is generally not recommended/, Rails.logger.recording)
     end
 
+    test "ActiveStorage.blob_attachment_mode is :blob_id in the 6.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "production"
+
+      assert_equal :blob_id, ActiveStorage.blob_attachment_mode
+    end
+
+
+    test "ActiveStorage.blob_attachment_mode is :private_id in the 7.0 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+
+      app "production"
+
+      assert_equal :private_id, ActiveStorage.blob_attachment_mode
+    end
+
+    test "ActiveStorage.blob_attachment_mode can be configured via config.active_storage.blob_attachment_mode" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.active_storage.blob_attachment_mode = :private_id_with_fallback
+      RUBY
+
+      app "production"
+
+      assert_equal :private_id_with_fallback, ActiveStorage.blob_attachment_mode
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents

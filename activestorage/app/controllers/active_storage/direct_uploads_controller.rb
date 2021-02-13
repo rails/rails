@@ -15,9 +15,20 @@ class ActiveStorage::DirectUploadsController < ActiveStorage::BaseController
     end
 
     def direct_upload_json(blob)
-      blob.as_json(root: false, methods: :signed_id).merge(direct_upload: {
-        url: blob.service_url_for_direct_upload,
-        headers: blob.service_headers_for_direct_upload
-      })
+      blob.as_json(root: false).merge(
+        signed_id: blob.signed_id(purpose: signature_purpose),
+        direct_upload: {
+          url: blob.service_url_for_direct_upload,
+          headers: blob.service_headers_for_direct_upload
+        }
+      )
+    end
+
+    def signature_purpose
+      if ActiveStorage.blob_attachment_mode == :blob_id
+        :blob_id
+      else
+        :private_id
+      end
     end
 end
