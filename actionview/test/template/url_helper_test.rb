@@ -832,6 +832,11 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
 
     assert_dom_equal(
+      %{<a class="example-class" href="tel:+011234567890">1234567890</a>},
+      phone_to("1234567890", class: "example-class", country_code: "01")
+    )
+
+    assert_dom_equal(
       %{<a href="tel:+011234567890">Phone</a>},
       phone_to("1234567890", "Phone", country_code: "01")
     )
