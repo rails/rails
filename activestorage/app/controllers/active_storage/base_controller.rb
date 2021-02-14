@@ -2,7 +2,7 @@
 
 # The base class for all Active Storage controllers.
 class ActiveStorage::BaseController < ActionController::Base
-  include SetCurrent, Streaming
+  include ActiveStorage::SetCurrent, ActiveStorage::Streaming
 
   protect_from_forgery with: :exception
 
