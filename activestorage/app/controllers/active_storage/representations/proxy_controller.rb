@@ -8,7 +8,7 @@ class ActiveStorage::Representations::ProxyController < ActiveStorage::BaseContr
   def show
     http_cache_forever public: true do
       set_content_headers_from representation.image
-      stream representation
+      stream_from_storage representation
     end
   end
 
