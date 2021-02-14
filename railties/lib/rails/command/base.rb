@@ -32,7 +32,7 @@ module Rails
           if usage
             super
           else
-            @desc ||= ERB.new(File.read(usage_path)).result(binding) if usage_path
+            @desc ||= ERB.new(File.read(usage_path), trim_mode: "-").result(binding) if usage_path
           end
         end
 
