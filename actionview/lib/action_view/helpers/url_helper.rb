@@ -621,21 +621,22 @@ module ActionView
         content_tag("a", name || phone_number, html_options, &block)
       end
 
-      # Creates a TEL anchor link tag to the specified +phone_number+, which is
-      # also used as the name of the link unless +name+ is specified. Additional
-      # HTML attributes for the link can be passed in +html_options+.
+      # Creates a TEL anchor link tag to the specified +phone_number+. When the
+      # link is clicked, the default app to make phone calls is opened and
+      # prepopulated with the phone number.
       #
-      # When clicked, the default app to make calls is opened, and it
-      # is prepopulated with the passed phone number and optional
-      # +country_code+ value.
+      # If +name+ is not specified, +phone_number+ will be used as the name of
+      # the link.
       #
-      # +phone_to+ has an optional +country_code+ option which automatically adds the country
-      # code as well as the + sign in the phone numer that gets prepopulated,
-      # for example if +country_code: "01"+  +\+01+ will be prepended to the
-      # phone numer, by passing special keys to +html_options+.
+      # A +country_code+ option is supported, which prepends a plus sign and the
+      # given country code to the linked phone number. For example,
+      # <tt>country_code: "01"</tt> will prepend <tt>+01</tt> to the linked
+      # phone number.
+      #
+      # Additional HTML attributes for the link can be passed via +html_options+.
       #
       # ==== Options
-      # * <tt>:country_code</tt> - Prepends the country code to the number
+      # * <tt>:country_code</tt> - Prepends the country code to the phone number
       #
       # ==== Examples
       #   phone_to "1234567890"
