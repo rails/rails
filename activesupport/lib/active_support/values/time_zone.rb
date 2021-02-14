@@ -508,7 +508,7 @@ module ActiveSupport
     # Time#in_time_zone() instead.
     #
     # As of tzinfo 2, utc_to_local returns a Time with a non-zero utc_offset.
-    # See the `utc_to_local_returns_utc_offset_times` config for more info.
+    # See the +utc_to_local_returns_utc_offset_times+ config for more info.
     def utc_to_local(time)
       tzinfo.utc_to_local(time).yield_self do |t|
         ActiveSupport.utc_to_local_returns_utc_offset_times ?

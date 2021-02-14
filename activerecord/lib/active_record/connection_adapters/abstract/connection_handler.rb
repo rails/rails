@@ -75,13 +75,13 @@ module ActiveRecord
       # Prevent writing to the database regardless of role.
       #
       # In some cases you may want to prevent writes to the database
-      # even if you are on a database that can write. `while_preventing_writes`
+      # even if you are on a database that can write. +while_preventing_writes+
       # will prevent writes to the database for the duration of the block.
       #
       # This method does not provide the same protection as a readonly
       # user and is meant to be a safeguard against accidental writes.
       #
-      # See `READ_QUERY` for the queries that are blocked by this
+      # See +READ_QUERY+ for the queries that are blocked by this
       # method.
       def while_preventing_writes(enabled = true)
         unless ActiveRecord::Base.legacy_connection_handling

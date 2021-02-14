@@ -54,7 +54,7 @@ module ActiveRecord
 
         # Checks if the model has any default scopes. If all_queries
         # is set to true, the method will check if there are any
-        # default_scopes for the model  where `all_queries` is true.
+        # default_scopes for the model  where +all_queries+ is true.
         def default_scopes?(all_queries: false)
           if all_queries
             self.default_scopes.map(&:all_queries).include?(true)
@@ -80,7 +80,7 @@ module ActiveRecord
           #   Article.create.published # => true
           #
           # To apply a #default_scope when updating or deleting a record, add
-          # `all_queries: true`:
+          # <tt>all_queries: true</tt>:
           #
           #   class Article < ActiveRecord::Base
           #     default_scope { where(blog_id: 1) }, all_queries: true

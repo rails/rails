@@ -15,9 +15,9 @@ module ActionCable
       end
     end
 
-    # Stub `stream_from` to track streams for the channel.
-    # Add public aliases for `subscription_confirmation_sent?` and
-    # `subscription_rejected?`.
+    # Stub +stream_from+ to track streams for the channel.
+    # Add public aliases for +subscription_confirmation_sent?+ and
+    # +subscription_rejected?+.
     module ChannelStub
       def confirmed?
         subscription_confirmation_sent?
@@ -123,7 +123,7 @@ module ActionCable
     # <b>connection</b>::
     #      An ActionCable::Channel::ConnectionStub, representing the current HTTP connection.
     # <b>subscription</b>::
-    #      An instance of the current channel, created when you call `subscribe`.
+    #      An instance of the current channel, created when you call +subscribe+.
     # <b>transmissions</b>::
     #      A list of all messages that have been transmitted into the channel.
     #
