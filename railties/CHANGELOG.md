@@ -1,3 +1,10 @@
+*   Show Rake task description if command is run with -h.
+
+    Adding `-h` (or `--help`) to a Rails command that's a Rake task, now returns
+    the task description instead of the general Rake help.
+
+    *Petrik de Heus*
+
 *   Fix `config_for` error when there's only a shared root array.
 
     *Loïc Delmaire*

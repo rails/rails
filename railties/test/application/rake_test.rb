@@ -41,6 +41,15 @@ module ApplicationTests
       assert_match(/^Rails version/, rails("invoke_about"))
     end
 
+    test "help arguments describe rake tasks" do
+      task_description = <<~DESC
+          rails db:migrate
+              Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog).
+      DESC
+
+      assert_match task_description, rails("db:migrate", "-h")
+    end
+
     test "task backtrace is silenced" do
       add_to_config <<-RUBY
         rake_tasks do
