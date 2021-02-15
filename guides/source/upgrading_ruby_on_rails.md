@@ -185,7 +185,7 @@ The default HTTP status code used in `ActionDispatch::SSL` when redirecting non-
 
 When processing variants in Active Storage, it's now required to have the [image_processing gem](https://github.com/janko-m/image_processing) bundled instead of directly using `mini_magick`. Image Processing is configured by default to use `mini_magick` behind the scenes, so the easiest way to upgrade is by replacing the `mini_magick` gem for the `image_processing` gem and making sure to remove the explicit usage of `combine_options` since it's no longer needed.
 
-That said, it's recommended to change the calls to raw `resize` for `image_processing` macros as they also sharpen the thumbnail after resizing. For example, instead of:
+For readability, you may wish to change raw `resize` calls to `image_processing` macros. For example, instead of:
 
 ```ruby
 video.preview(resize: "100x100")
