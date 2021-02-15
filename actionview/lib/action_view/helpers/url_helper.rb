@@ -573,15 +573,15 @@ module ActionView
         end
       end
 
-      # Creates an SMS anchor link tag to the specified +phone_number+, which is
-      # also used as the name of the link unless +name+ is specified. Additional
-      # HTML attributes for the link can be passed in +html_options+.
+      # Creates an SMS anchor link tag to the specified +phone_number+. When the
+      # link is clicked, the default SMS messaging app is opened ready to send a
+      # message to the linked phone number. If the +body+ option is specified,
+      # the contents of the message will be preset to +body+.
       #
-      # When clicked, an SMS message is prepopulated with the passed phone number
-      # and optional +body+ value.
+      # If +name+ is not specified, +phone_number+ will be used as the name of
+      # the link.
       #
-      # +sms_to+ has a +body+ option for customizing the SMS message itself by
-      # passing special keys to +html_options+.
+      # Additional HTML attributes for the link can be passed via +html_options+.
       #
       # ==== Options
       # * <tt>:body</tt> - Preset the body of the message.
