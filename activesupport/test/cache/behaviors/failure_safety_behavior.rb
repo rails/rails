@@ -9,6 +9,14 @@ module FailureSafetyBehavior
     end
   end
 
+  def test_fetch_with_deferred_update_read_failure_returns_nil
+    @cache.write("foo", "bar")
+
+    emulating_unavailability do |cache|
+      assert_nil cache.fetch_with_deferred_update("foo", 5.minutes) { }
+    end
+  end
+
   def test_fetch_read_failure_does_not_attempt_to_write
   end
 

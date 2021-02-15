@@ -1,66 +1,73 @@
-- Add `:defer_update` option to `ActiveSupport::Cache.fetch`.
+*   Add `Cache#fetch_with_deferred_update` to allow out-of-band updates of cache values.
 
-  _Erik Brännström_
+    ```ruby
+    Rails.cache.fetch_with_deferred_update(cache_key, 5.minutes) do
+      HeavyComputationJob.perform_later cache_key
+    end
+    ```
 
-- Add `Enumerable#maximum` and `Enumerable#minimum` to easily calculate the maximum or minimum from extracted
-  elements of an enumerable.
+    *Erik Brännström*
 
-  ```ruby
-  payments = [Payment.new(5), Payment.new(15), Payment.new(10)]
+*   Add `Enumerable#maximum` and `Enumerable#minimum` to easily calculate the maximum or minimum from extracted
+    elements of an enumerable.
 
-  payments.minimum(:price) # => 5
-  payments.maximum(:price) # => 20
-  ```
+    ```ruby
+    payments = [Payment.new(5), Payment.new(15), Payment.new(10)]
 
-  This also allows passing enumerables to `fresh_when` and `stale?` in Action Controller.
-  See PR [#41404](https://github.com/rails/rails/pull/41404) for an example.
+    payments.minimum(:price) # => 5
+    payments.maximum(:price) # => 20
+    ```
 
-  _Ayrton De Craene_
+    This also allows passing enumerables to `fresh_when` and `stale?` in Action Controller.
+    See PR [#41404](https://github.com/rails/rails/pull/41404) for an example.
 
-- `ActiveSupport::Cache::MemCacheStore` now accepts an explicit `nil` for its `addresses` argument.
+    *Ayrton De Craene*
 
-  ```ruby
-  config.cache_store = :mem_cache_store, nil
+*   `ActiveSupport::Cache::MemCacheStore` now accepts an explicit `nil` for its `addresses` argument.
 
-  # is now equivalent to
+    ```ruby
+    config.cache_store = :mem_cache_store, nil
 
-  config.cache_store = :mem_cache_store
+    # is now equivalent to
 
-  # and is also equivalent to
+    config.cache_store = :mem_cache_store
 
-  config.cache_store = :mem_cache_store, ENV["MEMCACHE_SERVERS"] || "localhost:11211"
+    # and is also equivalent to
 
-  # which is the fallback behavior of Dalli
-  ```
+    config.cache_store = :mem_cache_store, ENV["MEMCACHE_SERVERS"] || "localhost:11211"
 
-  This helps those migrating from `:dalli_store`, where an explicit `nil` was permitted.
+    # which is the fallback behavior of Dalli
+    ```
 
-  _Michael Overmeyer_
+    This helps those migrating from `:dalli_store`, where an explicit `nil` was permitted.
 
-- Add `Enumerable#in_order_of` to put an Enumerable in a certain order by a key.
+    *Michael Overmeyer*
 
-  _DHH_
+*   Add `Enumerable#in_order_of` to put an Enumerable in a certain order by a key.
 
-- `ActiveSupport::Inflector.camelize` behaves expected when provided a symbol `:upper` or `:lower` argument. Matches
-  `String#camelize` behavior.
+    *DHH*
 
-  _Alex Ghiculescu_
+*   `ActiveSupport::Inflector.camelize` behaves expected when provided a symbol `:upper` or `:lower` argument. Matches
+    `String#camelize` behavior.
 
-- Raises an `ArgumentError` when the first argument of `ActiveSupport::Notification.subscribe` is
-  invalid.
+    *Alex Ghiculescu*
 
-  _Vipul A M_
+*   Raises an `ArgumentError` when the first argument of `ActiveSupport::Notification.subscribe` is
+    invalid.
 
-- `HashWithIndifferentAccess#deep_transform_keys` now returns a `HashWithIndifferentAccess` instead of a `Hash`.
+    *Vipul A M*
 
-  _Nathaniel Woodthorpe_
+*   `HashWithIndifferentAccess#deep_transform_keys` now returns a `HashWithIndifferentAccess` instead of a `Hash`.
 
-- consume dalli’s `cache_nils` configuration as `ActiveSupport::Cache`'s `skip_nil` when using `MemCacheStore`.
+    *Nathaniel Woodthorpe*
 
-  _Ritikesh G_
+*   consume dalli’s `cache_nils` configuration as `ActiveSupport::Cache`'s `skip_nil` when using `MemCacheStore`.
 
-- add `RedisCacheStore#stats` method similar to `MemCacheStore#stats`. Calls `redis#info` internally.
+    *Ritikesh G*
 
-  _Ritikesh G_
+*   add `RedisCacheStore#stats` method similar to `MemCacheStore#stats`. Calls `redis#info` internally.
+
+    *Ritikesh G*
+
 
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/activesupport/CHANGELOG.md) for previous changes.

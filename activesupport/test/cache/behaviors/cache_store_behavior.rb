@@ -36,29 +36,6 @@ module CacheStoreBehavior
     assert_not cache_miss
   end
 
-  def test_fetch_with_defered_update_returns_expired_value_on_first_fetch_after_expiry
-    time = Time.now
-    @cache.write("foo", "bar", expires_in: 10)
-    Time.stub(:now, time + 11) do
-      cache_miss = false
-      value = @cache.fetch("foo", defer_update: true) do
-        cache_miss = true
-      end
-      assert cache_miss
-      assert_equal "bar", value
-    end
-    assert_nil @cache.fetch("foo")
-  end
-
-  def test_fetch_with_defered_update_without_block
-    @cache.write("foo", "bar")
-    assert_raises(ArgumentError) do
-      @cache.fetch("foo", defer_update: true)
-    end
-
-    assert_equal "bar", @cache.read("foo")
-  end
-
   def test_fetch_with_forced_cache_miss
     @cache.write("foo", "bar")
     assert_not_called(@cache, :read) do
@@ -94,6 +71,45 @@ module CacheStoreBehavior
     end
 
     assert_equal "bar", @cache.read("foo")
+  end
+
+  def test_fetch_with_deferred_update_without_cache_miss
+    @cache.write("foo", "bar")
+    assert_not_called(@cache, :write) do
+      assert_equal "bar", @cache.fetch_with_deferred_update("foo", 5.minutes) { "baz" }
+    end
+  end
+
+  def test_fetch_with_deferred_update_with_no_cache_entry
+    assert_not_called(@cache, :write) do
+      cache_miss = false
+      assert_nil @cache.fetch_with_deferred_update("foo", 5.minutes) { cache_miss = true }
+      assert cache_miss
+    end
+  end
+
+  def test_fetch_with_deferred_update_with_expired_cache_entry
+    time = Time.now
+    @cache.write("foo", "bar", expires_in: 10)
+
+    Time.stub(:now, time + 11) do
+      assert_called_with(@cache, :write, ["foo", "bar", @cache.options.merge(expires_in: 300)]) do
+        cache_miss = false
+        assert_equal "bar", @cache.fetch_with_deferred_update("foo", 5.minutes) { cache_miss = true; "baz" }
+        assert cache_miss
+      end
+    end
+  end
+
+  def test_fetch_with_deferred_update_with_cache_miss_passes_key_to_block
+    time = Time.now
+    @cache.write("foo", "bar", expires_in: 10)
+
+    Time.stub(:now, time + 11) do
+      key_in_block = nil
+      assert_equal "bar", @cache.fetch_with_deferred_update("foo", 5.minutes) { |key| key_in_block = key }
+      assert_equal "foo", key_in_block
+    end
   end
 
   def test_should_read_and_write_hash
