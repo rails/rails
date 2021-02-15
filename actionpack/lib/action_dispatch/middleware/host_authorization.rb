@@ -13,7 +13,7 @@ module ActionDispatch
   #
   # When a request comes to an unauthorized host, the +response_app+
   # application will be executed and rendered. If no +response_app+ is given, a
-  # default one will run, which responds with +403 Forbidden+.
+  # default one will run, which responds with <tt>403 Forbidden</tt>.
   class HostAuthorization
     class Permissions # :nodoc:
       def initialize(hosts)

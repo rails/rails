@@ -178,7 +178,7 @@ module ActiveSupport
   #
   # Subscribers using a regexp or other pattern-matching object will remain subscribed
   # to all events that match their original pattern, unless those events match a string
-  # passed to `unsubscribe`:
+  # passed to +unsubscribe+:
   #
   #   subscriber = ActiveSupport::Notifications.subscribe(/render/) { }
   #   ActiveSupport::Notifications.unsubscribe('render_template.action_view')

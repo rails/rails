@@ -395,7 +395,7 @@ module ActiveRecord
 
       # Inserts the given fixture into the table. Overridden in adapters that require
       # something beyond a simple insert (e.g. Oracle).
-      # Most of adapters should implement `insert_fixtures_set` that leverages bulk SQL insert.
+      # Most of adapters should implement +insert_fixtures_set+ that leverages bulk SQL insert.
       # We keep this method to provide fallback
       # for databases like sqlite that do not support bulk inserts.
       def insert_fixture(fixture, table_name)
