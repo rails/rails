@@ -468,9 +468,9 @@ module ActionView
       #   mail_to "me@domain.com", "My email"
       #   # => <a href="mailto:me@domain.com">My email</a>
       #
-      #   mail_to "me@domain.com", "My email", cc: "ccaddress@domain.com",
+      #   mail_to "me@domain.com", cc: "ccaddress@domain.com",
       #            subject: "This is an example email"
-      #   # => <a href="mailto:me@domain.com?cc=ccaddress@domain.com&subject=This%20is%20an%20example%20email">My email</a>
+      #   # => <a href="mailto:me@domain.com?cc=ccaddress@domain.com&subject=This%20is%20an%20example%20email">me@domain.com</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
       #
@@ -481,7 +481,7 @@ module ActionView
       #          <strong>Email me:</strong> <span>me@domain.com</span>
       #        </a>
       def mail_to(email_address, name = nil, html_options = {}, &block)
-        html_options, name = name, nil if block_given?
+        html_options, name = name, nil if name.is_a?(Hash)
         html_options = (html_options || {}).stringify_keys
 
         extras = %w{ cc bcc body subject reply_to }.map! { |item|
