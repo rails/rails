@@ -364,7 +364,7 @@ end
 
 Call `avatar.variant(:thumb)` to get a thumb variant of an avatar:
 
-```ruby
+```erb
 <%= image_tag user.avatar.variant(:thumb) %>
 ```
 
