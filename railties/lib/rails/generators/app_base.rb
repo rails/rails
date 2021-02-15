@@ -301,7 +301,7 @@ module Rails
           ]
         elsif options.edge?
           [
-            GemfileEntry.github("rails", "rails/rails", "main")
+            GemfileEntry.github("rails", "rails/rails", "6-1-stable")
           ]
         elsif options.master?
           [

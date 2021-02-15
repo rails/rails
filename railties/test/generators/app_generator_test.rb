@@ -863,7 +863,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], edge: true, skip_webpack_install: true)
 
     assert_bundler_command_called("install")
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']#{Regexp.escape("6-1-stable")}["']$}
   end
 
   def test_master_option
