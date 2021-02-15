@@ -768,6 +768,11 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
 
     assert_dom_equal(
+      %{<a class="simple-class" href="sms:15155555785;?&body=Hello%20from%20Jim">15155555785</a>},
+      sms_to("15155555785", class: "simple-class", body: "Hello from Jim")
+    )
+
+    assert_dom_equal(
       %{<a href="sms:15155555785;?&body=This%20is%20the%20body%20of%20the%20message.">Text me</a>},
       sms_to("15155555785", "Text me", body: "This is the body of the message.")
     )

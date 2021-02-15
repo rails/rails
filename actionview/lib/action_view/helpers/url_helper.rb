@@ -593,9 +593,8 @@ module ActionView
       #   sms_to "5155555785", "Text me"
       #   # => <a href="sms:5155555785;">Text me</a>
       #
-      #   sms_to "5155555785", "Text me",
-      #          body: "Hello Jim I have a question about your product."
-      #   # => <a href="sms:5155555785;?body=Hello%20Jim%20I%20have%20a%20question%20about%20your%20product">Text me</a>
+      #   sms_to "5155555785", body: "I have a question about your product."
+      #   # => <a href="sms:5155555785;?body=I%20have%20a%20question%20about%20your%20product">5155555785</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. \ERB example:
       #
@@ -606,7 +605,7 @@ module ActionView
       #          <strong>Text me:</strong>
       #        </a>
       def sms_to(phone_number, name = nil, html_options = {}, &block)
-        html_options, name = name, nil if block_given?
+        html_options, name = name, nil if name.is_a?(Hash)
         html_options = (html_options || {}).stringify_keys
 
         extras = %w{ body }.map! { |item|
