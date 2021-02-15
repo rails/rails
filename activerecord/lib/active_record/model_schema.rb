@@ -122,9 +122,9 @@ module ActiveRecord
     # :singleton-method: immutable_strings_by_default=
     # :call-seq: immutable_strings_by_default=(bool)
     #
-    # Determines whether columns should infer their type as `:string` or
-    # `:immutable_string`. This setting does not affect the behavior of
-    # `attribute :foo, :string`. Defaults to false.
+    # Determines whether columns should infer their type as +:string+ or
+    # +:immutable_string+. This setting does not affect the behavior of
+    # <tt>attribute :foo, :string</tt>. Defaults to false.
 
     included do
       mattr_accessor :primary_key_prefix_type, instance_writer: false
@@ -316,7 +316,7 @@ module ActiveRecord
       #     self.ignored_columns = [:category]
       #   end
       #
-      # The schema still contains `category`, but now the model omits it, so any meta-driven code or
+      # The schema still contains "category", but now the model omits it, so any meta-driven code or
       # schema caching will not attempt to use the column:
       #
       #   Project.columns_hash["category"] => nil

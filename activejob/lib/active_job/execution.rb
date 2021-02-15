@@ -29,7 +29,7 @@ module ActiveJob
 
     # Performs the job immediately. The job is not sent to the queuing adapter
     # but directly executed by blocking the execution of others until it's finished.
-    # `perform_now` returns the value of your job's `perform` method.
+    # +perform_now+ returns the value of your job's +perform+ method.
     #
     #   class MyJob < ActiveJob::Base
     #     def perform

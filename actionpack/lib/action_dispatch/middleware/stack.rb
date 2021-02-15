@@ -43,7 +43,7 @@ module ActionDispatch
     end
 
     # This class is used to instrument the execution of a single middleware.
-    # It proxies the `call` method transparently and instruments the method
+    # It proxies the +call+ method transparently and instruments the method
     # call.
     class InstrumentationProxy
       EVENT_NAME = "process_middleware.action_dispatch"

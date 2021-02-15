@@ -115,7 +115,7 @@ module ActiveSupport
     # <tt>ActiveSupport::HashWithIndifferentAccess</tt> or a regular +Hash+.
     # In either case the merge respects the semantics of indifferent access.
     #
-    # If the argument is a regular hash with keys +:key+ and +"key"+ only one
+    # If the argument is a regular hash with keys +:key+ and <tt>"key"</tt> only one
     # of the values end up in the receiver, but which one is unspecified.
     #
     # When given a block, the value for duplicated keys will be determined

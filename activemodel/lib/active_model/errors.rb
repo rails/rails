@@ -110,7 +110,7 @@ module ActiveModel
     # Imports one error
     # Imported errors are wrapped as a NestedError,
     # providing access to original error object.
-    # If attribute or type needs to be overridden, use `override_options`.
+    # If attribute or type needs to be overridden, use +override_options+.
     #
     # override_options - Hash
     # @option override_options [Symbol] :attribute Override the attribute the error belongs to

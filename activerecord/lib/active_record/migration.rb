@@ -319,7 +319,7 @@ module ActiveRecord
   #   +table_name+. Passing a hash containing <tt>:from</tt> and <tt>:to</tt>
   #   as +default_or_changes+ will make this change reversible in the migration.
   # * <tt>change_column_null(table_name, column_name, null, default = nil)</tt>:
-  #   Sets or removes a +NOT NULL+ constraint on +column_name+. The +null+ flag
+  #   Sets or removes a <tt>NOT NULL</tt> constraint on +column_name+. The +null+ flag
   #   indicates whether the value can be +NULL+. See
   #   ActiveRecord::ConnectionAdapters::SchemaStatements#change_column_null for
   #   details.
