@@ -644,8 +644,8 @@ module ActionView
       #   phone_to "1234567890", "Phone me"
       #   # => <a href="tel:134567890">Phone me</a>
       #
-      #   phone_to "1234567890", "Phone me", country_code: "01"
-      #   # => <a href="tel:+015155555785">Phone me</a>
+      #   phone_to "1234567890", country_code: "01"
+      #   # => <a href="tel:+015155555785">1234567890</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. \ERB example:
       #
@@ -656,7 +656,7 @@ module ActionView
       #          <strong>Phone me:</strong>
       #        </a>
       def phone_to(phone_number, name = nil, html_options = {}, &block)
-        html_options, name = name, nil if block_given?
+        html_options, name = name, nil if name.is_a?(Hash)
         html_options = (html_options || {}).stringify_keys
 
         country_code = html_options.delete("country_code").presence
