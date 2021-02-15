@@ -6,7 +6,6 @@ module ActiveModel
   class AttributesTest < ActiveModel::TestCase
     class ModelForAttributesTest
       include ActiveModel::Model
-      include ActiveModel::Attributes
 
       attribute :integer_field, :integer
       attribute :string_field, :string

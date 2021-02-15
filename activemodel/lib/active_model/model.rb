@@ -65,6 +65,7 @@ module ActiveModel
     included do
       extend ActiveModel::Naming
       extend ActiveModel::Translation
+      include ActiveModel::Attributes
     end
 
     # Initializes a new model with the given +params+.
