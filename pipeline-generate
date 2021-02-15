@@ -31,6 +31,8 @@ BUNDLER =
   case RAILS_VERSION
   when Gem::Requirement.new("< 5.0")
     "< 2"
+  else
+    "< 2.2.10"
   end
 RUBYGEMS =
   case RAILS_VERSION
