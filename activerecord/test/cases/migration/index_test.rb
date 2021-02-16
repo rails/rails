@@ -16,6 +16,10 @@ module ActiveRecord
           t.column :foo, :string, limit: 100
           t.column :bar, :string, limit: 100
 
+          # mimic a foreign key
+          t.column :key_1
+          t.column :key_2
+
           t.string :first_name
           t.string :last_name, limit: 100
           t.string :key,       limit: 100
@@ -197,6 +201,18 @@ module ActiveRecord
         connection.add_index :testings, [:foo, :bar], length: { foo: 10, bar: nil }
 
         assert connection.index_exists?(:testings, [:foo, :bar])
+      end
+
+      def test_add_index_foreign_keys_appends_id_to_foreign_keys
+        connection.add_index :testings, [:key_1, :key_2], foreign_keys: true
+
+        assert connection.index_exists?(:testings, [:key_1, :key_2])
+      end
+
+      def test_add_index_foreign_keys_appends_id_to_foreign_keys_will_fail_if_no_related_belongs_to_column_exists
+        assert_raise(ArgumentError) do
+          connection.add_index :testings, [:foo, :bar], foreign_keys: true
+        end
       end
 
       def test_add_index
