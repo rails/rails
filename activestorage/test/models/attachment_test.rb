@@ -108,7 +108,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_equal blob, ActiveStorage::Blob.find_signed!(signed_id_generated_old_way)
   end
 
-  test "attaching with strict_loading abd getting a signed blob ID from an attachment" do
+  test "attaching with strict_loading and getting a signed blob ID from an attachment" do
     blob = create_blob
     @user.strict_loading!(true)
     @user.avatar.attach(blob)
