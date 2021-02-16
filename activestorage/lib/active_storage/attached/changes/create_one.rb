@@ -30,6 +30,7 @@ module ActiveStorage
     end
 
     def save
+      record.strict_loading!(false)
       record.public_send("#{name}_attachment=", attachment)
       record.public_send("#{name}_blob=", blob)
     end
