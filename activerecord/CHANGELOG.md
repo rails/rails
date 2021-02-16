@@ -1,3 +1,22 @@
+* Added an optional `foreign_keys` parameter to `add_index` that when provided, will 
+attach a `_id` postfix to all of the given columns, provided that there exists a column defined in the table. This would help keeping the migration files more Railsy. So a code that might look like this 
+    ```ruby
+        def change
+            create_table :people_projects do |t|
+              t.belongs_to :person, null: false, foreign_key: true
+              t.belongs_to :project, null: true, foreign_key: true
+            end
+  
+            # Before
+            add_index :people_projects, %i[person_id project_id], unique: true
+            
+            # After
+            add_index :people_projects, %i[person project], foreign_keys: true, unique: true
+        end
+    ```
+    this is optional and can backward compatible with the older ways of defining indexes.
+    *Ahmed Khattab*
+
 *   Skip optimised #exist? query when #include? is called on a relation
     with a having clause
 
