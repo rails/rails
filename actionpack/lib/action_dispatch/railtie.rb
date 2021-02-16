@@ -23,6 +23,7 @@ module ActionDispatch
     config.action_dispatch.use_authenticated_cookie_encryption = false
     config.action_dispatch.use_cookies_with_metadata = false
     config.action_dispatch.perform_deep_munge = true
+    config.action_dispatch.cache_url_helpers_built_modules = true
     config.action_dispatch.request_id_header = "X-Request-Id"
 
     config.action_dispatch.default_headers = {

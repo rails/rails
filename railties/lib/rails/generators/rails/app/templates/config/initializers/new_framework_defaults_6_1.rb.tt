@@ -65,3 +65,9 @@
 # Generate a `Link` header that gives a hint to modern browsers about
 # preloading assets when using `javascript_include_tag` and `stylesheet_link_tag`.
 # Rails.application.config.action_view.preload_links_header = true
+
+# Caching modules built with routes.url_helpers
+# Creating new controllers should be faster with this.  However there are
+# cases with isolated engines and inheritance that could conflict
+# (see https://github.com/rails/rails/issues/41038).
+# Rails.application.config.action_dispatch.cache_url_helpers_built_modules = true

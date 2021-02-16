@@ -477,10 +477,14 @@ module ActionDispatch
       end
 
       def url_helpers(supports_path = true)
-        if supports_path
-          @url_helpers_with_paths ||= generate_url_helpers(true)
+        if Railtie.config.action_dispatch.cache_url_helpers_built_modules
+          if supports_path
+            @url_helpers_with_paths ||= generate_url_helpers(true)
+          else
+            @url_helpers_without_paths ||= generate_url_helpers(false)
+          end
         else
-          @url_helpers_without_paths ||= generate_url_helpers(false)
+          generate_url_helpers(supports_path)
         end
       end
 
