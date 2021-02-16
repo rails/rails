@@ -832,8 +832,13 @@ module ActiveRecord
       # Concurrently adding an index is not supported in a transaction.
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
-      def add_index(table_name, column_name, **options)
-        index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
+      #
+      # ====== Creating an index with a group of foreign_keys
+      # add_index(:developers, [:model1, :model2], foreign_keys: true)
+      # when foreign_keys is provided, it will append an _id to each item
+      #
+      def add_index(table_name, column_name, foreign_keys, **options)
+        index, algorithm, if_not_exists = add_index_options(table_name, column_name, foreign_keys, **options)
 
         create_index = CreateIndexDefinition.new(index, algorithm, if_not_exists)
         execute schema_creation.accept(create_index)
@@ -1304,10 +1309,10 @@ module ActiveRecord
         Table.new(table_name, base)
       end
 
-      def add_index_options(table_name, column_name, name: nil, if_not_exists: false, internal: false, **options) # :nodoc:
+      def add_index_options(table_name, column_name, foreign_keys: nil, name: nil, if_not_exists: false, internal: false, **options) # :nodoc:
         options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm)
 
-        column_names = index_column_names(column_name)
+        column_names = index_column_names(column_name, foreign_keys)
 
         index_name = name&.to_s
         index_name ||= index_name(table_name, column_names)
@@ -1482,10 +1487,18 @@ module ActiveRecord
           )
         end
 
-        def index_column_names(column_names)
+        def index_column_names(column_names, foreign_keys)
           if column_names.is_a?(String) && /\W/.match?(column_names)
             column_names
           else
+            if foreign_keys
+              return Array(
+                  column_names.map do |column_name|
+                    "#{column_name}_id"
+                  end
+              )
+            end
+
             Array(column_names)
           end
         end
