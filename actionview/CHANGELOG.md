@@ -1,3 +1,7 @@
+*   Deprecate `render` locals to be assigned to instance variables.
+
+    *Petrik de Heus*
+
 *   Remove legacy default `media=screen` from `stylesheet_link_tag`.
 
     *André Luis Leal Cardoso Junior*
