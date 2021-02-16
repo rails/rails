@@ -1140,6 +1140,11 @@ module ActiveRecord
       spawn.excluding!(records)
     end
 
+    # Alias for #excluding.
+    def without(*records)
+      excluding(*records)
+    end
+
     def excluding!(records) # :nodoc:
       # Treat single and multiple records differently in order to keep query
       # clean in case of single record, ie, use != operator instead of NOT IN ().
