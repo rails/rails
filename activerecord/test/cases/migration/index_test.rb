@@ -17,8 +17,8 @@ module ActiveRecord
           t.column :bar, :string, limit: 100
 
           # mimic a foreign key
-          t.column :key_1
-          t.column :key_2
+          t.column :key_1, :string, limit: 100
+          t.column :key_2, :string, limit: 100
 
           t.string :first_name
           t.string :last_name, limit: 100
@@ -204,7 +204,7 @@ module ActiveRecord
       end
 
       def test_add_index_foreign_keys_appends_id_to_foreign_keys
-        connection.add_index :testings, [:key_1, :key_2], foreign_keys: true
+        connection.add_index :testings, [:key_1, :key_2], foreign_keys: true, length: 10
 
         assert connection.index_exists?(:testings, [:key_1, :key_2])
       end
