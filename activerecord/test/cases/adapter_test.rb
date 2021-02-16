@@ -385,7 +385,7 @@ module ActiveRecord
       @connection.disable_query_cache!
     end
 
-    def test_async_query_outside_session
+    def test_async_query_foreground_fallback
       status = {}
 
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
@@ -395,10 +395,12 @@ module ActiveRecord
         end
       end
 
-      future_result = @connection.select_all "SELECT * FROM does_not_exists", async: true
-      assert_kind_of ActiveRecord::FutureResult, future_result
-      assert_raises ActiveRecord::StatementInvalid do
-        future_result.result
+      @connection.pool.stub(:schedule_query, proc { }) do
+        future_result = @connection.select_all "SELECT * FROM does_not_exists", async: true
+        assert_kind_of ActiveRecord::FutureResult, future_result
+        assert_raises ActiveRecord::StatementInvalid do
+          future_result.result
+        end
       end
 
       assert_equal true, status[:executed]

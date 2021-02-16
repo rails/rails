@@ -31,6 +31,7 @@ module ActiveRecord
       @loaded = false
       @predicate_builder = predicate_builder
       @delegate_to_klass = false
+      @future_result = nil
     end
 
     def initialize_copy(other)
@@ -261,13 +262,20 @@ module ActiveRecord
 
     # Returns size of the records.
     def size
-      loaded? ? @records.length : count(:all)
+      if loaded?
+        records.length
+      else
+        count(:all)
+      end
     end
 
     # Returns true if there are no records.
     def empty?
-      return @records.empty? if loaded?
-      !exists?
+      if loaded?
+        records.empty?
+      else
+        !exists?
+      end
     end
 
     # Returns true if there are no records.
@@ -642,6 +650,28 @@ module ActiveRecord
       where(*args).delete_all
     end
 
+    # Schedule the query to be performed from a background thread pool.
+    #
+    #   Post.where(published: true).load_async # => #<ActiveRecord::Relation>
+    def load_async
+      unless loaded?
+        result = exec_main_query(async: connection.current_transaction.closed?)
+        if result.is_a?(Array)
+          @records = result
+        else
+          @future_result = result
+        end
+        @loaded = true
+      end
+      self
+    end
+
+    # Returns <tt>true</tt> if the relation was scheduled on the background
+    # thread pool.
+    def scheduled?
+      !!@future_result
+    end
+
     # Causes the records to be loaded from the database if they have not
     # been loaded already. You can use this if for some reason you need
     # to explicitly load some records before actually using them. The
@@ -649,7 +679,7 @@ module ActiveRecord
     #
     #   Post.where(published: true).load # => #<ActiveRecord::Relation>
     def load(&block)
-      unless loaded?
+      if !loaded? || scheduled?
         @records = exec_queries(&block)
         @loaded = true
       end
@@ -664,6 +694,8 @@ module ActiveRecord
     end
 
     def reset
+      @future_result&.cancel
+      @future_result = nil
       @delegate_to_klass = false
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @offsets = @take = nil
@@ -855,29 +887,52 @@ module ActiveRecord
 
       def exec_queries(&block)
         skip_query_cache_if_necessary do
-          records =
-            if where_clause.contradiction?
-              []
-            elsif eager_loading?
-              apply_join_dependency do |relation, join_dependency|
-                if relation.null_relation?
-                  []
-                else
-                  relation = join_dependency.apply_column_aliases(relation)
-                  rows = connection.select_all(relation.arel, "SQL")
-                  join_dependency.instantiate(rows, strict_loading_value, &block)
-                end.freeze
-              end
-            else
-              klass.find_by_sql(arel, &block).freeze
-            end
+          rows = if scheduled?
+            future = @future_result
+            @future_result = nil
+            future.result
+          else
+            exec_main_query
+          end
 
+          records = instantiate_records(rows, &block)
           preload_associations(records) unless skip_preloading_value
 
           records.each(&:readonly!) if readonly_value
           records.each(&:strict_loading!) if strict_loading_value
 
           records
+        end
+      end
+
+      def exec_main_query(async: false)
+        skip_query_cache_if_necessary do
+          if where_clause.contradiction?
+            [].freeze
+          elsif eager_loading?
+            apply_join_dependency do |relation, join_dependency|
+              if relation.null_relation?
+                [].freeze
+              else
+                relation = join_dependency.apply_column_aliases(relation)
+                @_join_dependency = join_dependency
+                connection.select_all(relation.arel, "SQL", async: async)
+              end
+            end
+          else
+            klass._query_by_sql(arel, async: async)
+          end
+        end
+      end
+
+      def instantiate_records(rows, &block)
+        return [].freeze if rows.empty?
+        if eager_loading?
+          records = @_join_dependency.instantiate(rows, strict_loading_value, &block).freeze
+          @_join_dependency = nil
+          records
+        else
+          klass._load_from_sql(rows, &block).freeze
         end
       end
 
