@@ -1,3 +1,25 @@
+*   Implemented `ActiveRecord::Relation#excluding` method.
+
+    This method excludes the specified record (or collection of records) from
+    the resulting relation:
+
+    ```ruby
+    Post.excluding(post)
+    Post.excluding(post_one, post_two)
+    ```
+
+    Also works on associations:
+
+    ```ruby
+    post.comments.excluding(comment)
+    post.comments.excluding(comment_one, comment_two)
+    ```
+
+    This is short-hand for `Post.where.not(id: post.id)` (for a single record)
+    and `Post.where.not(id: [post_one.id, post_two.id])` (for a collection).
+
+    *Glen Crawford*
+
 *   Skip optimised #exist? query when #include? is called on a relation
     with a having clause
 
