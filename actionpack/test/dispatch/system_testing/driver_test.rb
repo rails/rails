@@ -51,10 +51,6 @@ class DriverTest < ActiveSupport::TestCase
     assert_equal ({ skip_image_loading: true }), driver.instance_variable_get(:@options)
   end
 
-  test "registerable? returns false if driver is rack_test" do
-    assert_not ActionDispatch::SystemTesting::Driver.new(:rack_test).send(:registerable?)
-  end
-
   test "define extra capabilities using chrome" do
     driver = ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome) do |option|
       option.add_argument("start-maximized")
