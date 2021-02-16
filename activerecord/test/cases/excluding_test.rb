@@ -68,4 +68,10 @@ class ExcludingTest < ActiveRecord::TestCase
     end
     assert_equal "You must only pass a single or collection of Post objects to #excluding.", exception.message
   end
+
+  def test_result_set_does_not_include_without_record
+    post = posts(:welcome)
+
+    assert_not_includes Post.without(post).to_a, post
+  end
 end
