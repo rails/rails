@@ -1,3 +1,7 @@
+*   Add missing `plugin new` command to help.
+
+    *Petrik de Heus
+
 *   Fix `config_for` error when there's only a shared root array.
 
     *Loïc Delmaire*
