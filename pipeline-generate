@@ -38,6 +38,8 @@ RUBYGEMS =
   case RAILS_VERSION
   when Gem::Requirement.new("< 5.0")
     "2.6.13"
+  else
+    "< 3.2.10"
   end
 
 MAX_RUBY =
