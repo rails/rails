@@ -408,6 +408,20 @@ module ActiveRecord
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
+
+    def test_async_query_finalize_with_null_session
+      assert_nothing_raised do
+        @connection.select_all "SELECT * FROM posts", async: true
+      end
+
+      @connection.transaction do
+        assert_raises AsynchronousQueryInsideTransactionError do
+          @connection.select_all "SELECT * FROM posts", async: true
+        end
+      end
+    ensure
+      ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
+    end
   end
 
   class AsynchronousQueriesTest < ActiveRecord::TestCase
