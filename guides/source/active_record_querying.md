@@ -120,6 +120,7 @@ The methods are:
 * [`reverse_order`][]
 * [`select`][]
 * [`where`][]
+* [`invert_where`][]
 
 Finder methods that return a collection, such as `where` and `group`, return an instance of [`ActiveRecord::Relation`][].  Methods that find a single entity, such as `find` and `first`, return a single instance of the model.
 
@@ -158,6 +159,7 @@ The primary operation of `Model.find(options)` can be summarized as:
 [`reverse_order`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-reverse_order
 [`select`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-select
 [`where`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-where
+[`invert_where`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-invert_where
 
 ### Retrieving a Single Object
 
@@ -651,7 +653,9 @@ SELECT * FROM customers WHERE (customers.orders_count IN (1,3,5))
 
 ### NOT Conditions
 
-`NOT` SQL queries can be built by [`where.not`][]:
+`NOT` SQL queries can be built either by [`where.not`][] or [`invert_where`][].
+
+#### where.not
 
 ```ruby
 Customer.where.not(orders_count: [1,3,5])
@@ -664,6 +668,24 @@ SELECT * FROM customers WHERE (customers.orders_count NOT IN (1,3,5))
 ```
 
 [`where.not`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods/WhereChain.html#method-i-not
+
+#### invert_where
+
+The `invert_where` allows you to invert an entire where clause instead of manually applying conditions.
+
+```ruby
+Customer.where(orders_count: [1,3,5]).invert_where
+```
+
+This will also generate SQL like `NOT`:
+
+```sql
+SELECT * FROM customers WHERE (customers.orders_count NOT IN (1,3,5))
+```
+
+[`invert_where`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-invert_where
+
+
 
 ### OR Conditions
 
