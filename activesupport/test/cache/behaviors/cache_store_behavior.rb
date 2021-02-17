@@ -73,17 +73,35 @@ module CacheStoreBehavior
     assert_equal "bar", @cache.read("foo")
   end
 
+  def test_fetch_with_deferred_update_without_block
+    @cache.write("foo", "bar")
+    assert_raises(ArgumentError) do
+      @cache.fetch_with_deferred_update("foo", race_condition_ttl: 5.minutes)
+    end
+
+    assert_equal "bar", @cache.read("foo")
+  end
+
+  def test_fetch_with_deferred_update_without_race_condition_ttl
+    @cache.write("foo", "bar")
+    assert_raises(ArgumentError) do
+      @cache.fetch_with_deferred_update("foo") { }
+    end
+
+    assert_equal "bar", @cache.read("foo")
+  end
+
   def test_fetch_with_deferred_update_without_cache_miss
     @cache.write("foo", "bar")
     assert_not_called(@cache, :write) do
-      assert_equal "bar", @cache.fetch_with_deferred_update("foo", 5.minutes) { "baz" }
+      assert_equal "bar", @cache.fetch_with_deferred_update("foo", race_condition_ttl: 5.minutes) { "baz" }
     end
   end
 
   def test_fetch_with_deferred_update_with_no_cache_entry
     assert_not_called(@cache, :write) do
       cache_miss = false
-      assert_nil @cache.fetch_with_deferred_update("foo", 5.minutes) { cache_miss = true }
+      assert_nil @cache.fetch_with_deferred_update("foo", race_condition_ttl: 5.minutes) { cache_miss = true }
       assert cache_miss
     end
   end
@@ -93,11 +111,28 @@ module CacheStoreBehavior
     @cache.write("foo", "bar", expires_in: 10)
 
     Time.stub(:now, time + 11) do
-      assert_called_with(@cache, :write, ["foo", "bar", @cache.options.merge(expires_in: 300)]) do
-        cache_miss = false
-        assert_equal "bar", @cache.fetch_with_deferred_update("foo", 5.minutes) { cache_miss = true; "baz" }
-        assert cache_miss
-      end
+      cache_miss = false
+      assert_equal("bar", @cache.fetch_with_deferred_update("foo", race_condition_ttl: 5.minutes) do
+        cache_miss = true
+        assert_equal "bar", @cache.read("foo")
+        "baz"
+      end)
+      assert cache_miss
+    end
+  end
+
+  def test_fetch_with_deferred_update_with_expired_cache_entry_is_limited
+    time = Time.now
+    @cache.write("foo", "bar", expires_in: 10)
+
+    Time.stub(:now, time + 21) do
+      cache_miss = false
+      assert_nil(@cache.fetch_with_deferred_update("foo", race_condition_ttl: 10) do
+        cache_miss = true
+        assert_nil @cache.read("foo")
+        "baz"
+      end)
+      assert cache_miss
     end
   end
 
@@ -107,7 +142,7 @@ module CacheStoreBehavior
 
     Time.stub(:now, time + 11) do
       key_in_block = nil
-      assert_equal "bar", @cache.fetch_with_deferred_update("foo", 5.minutes) { |key| key_in_block = key }
+      assert_equal "bar", @cache.fetch_with_deferred_update("foo", race_condition_ttl: 5.minutes) { |key| key_in_block = key }
       assert_equal "foo", key_in_block
     end
   end

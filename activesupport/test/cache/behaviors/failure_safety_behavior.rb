@@ -13,7 +13,7 @@ module FailureSafetyBehavior
     @cache.write("foo", "bar")
 
     emulating_unavailability do |cache|
-      assert_nil cache.fetch_with_deferred_update("foo", 5.minutes) { }
+      assert_nil cache.fetch_with_deferred_update("foo", race_condition_ttl: 5.minutes) { }
     end
   end
 

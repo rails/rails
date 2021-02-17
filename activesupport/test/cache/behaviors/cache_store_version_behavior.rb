@@ -15,13 +15,13 @@ module CacheStoreVersionBehavior
 
   def test_fetch_with_deferred_update_with_right_version_should_hit
     @cache.write("foo", "bar", version: 1)
-    @cache.fetch_with_deferred_update("foo", 5.minutes, version: 1) { }
+    @cache.fetch_with_deferred_update("foo", race_condition_ttl: 5.minutes, version: 1) { }
     assert_equal "bar", @cache.read("foo", version: 1)
   end
 
   def test_fetch_with_deferred_update_with_wrong_version_should_miss
     @cache.write("foo", "bar", version: 1)
-    @cache.fetch_with_deferred_update("foo", 5.minutes, version: 1) { }
+    @cache.fetch_with_deferred_update("foo", race_condition_ttl: 5.minutes, version: 1) { }
     assert_nil @cache.read("foo", version: 2)
   end
 

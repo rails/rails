@@ -327,7 +327,7 @@ module ActiveSupport
       def fetch(name, options = nil, &block)
         if block_given?
           options = merged_options(options)
-          entry = fetch_entry(name, options, :fetch)
+          entry = fetch_entry(name, options, operation: :fetch)
 
           if entry
             get_entry_value(entry, name, options)
@@ -341,76 +341,54 @@ module ActiveSupport
         end
       end
 
-      # Fetches data from the cache, using the given key. If there is data in
-      # the cache with the given key, then that data is returned, otherwise +nil+
-      # will be returned. The method requires a duration that an expired cache value
-      # will have its expiry extended by, and a block, which should handle updating
-      # of the cache.
+      # Fetches data from the cache, using the given key. If there is unexpired
+      # data in the cache with the given key, then that data is returned.
+      # The method requires a block and the option <tt>:race_condition_ttl</tt>
+      # to be set.
       #
-      # If there is no data in the cache for the given key, the specified block will
-      # be passed the cache key and be executed. In case there is a cache value, but
-      # it has expired, the value will have its expiry time set to the duration
-      # specified, and then the block will be executed in the same way as for a
-      # missing value.
+      # If there is no such data in the cache (a cache miss), then +nil+ is
+      # returned. In case a cache value has expired, the cache expiration time
+      # is bumped by the time specified by <tt>:race_condition_ttl</tt>, the
+      # block is called with the cache key as an argument, and the stale data
+      # isreturned.
       #
-      # In contrary to `fetch`, the return value of the block will not be used by the
-      # method. Instead it is responsible for updating the cache out-of-band. It is
-      # important to note that if the block does not update the cache, any existing
-      # value will continously have its expiry pushed forward and thus never expire.
+      # Unlike +fetch+, the return value of the block will not be used by the
+      # method. Instead the block is responsible for updating the cache
+      # out-of-band. <tt>:race_condition_ttl</tt> should therefore be set to a
+      # duration long enough to ensure the update has time to complete before
+      # the data expires for good.
       #
       #   cache.write('today', 'Monday', expires_in: 5.minutes)
       #
       #   # 6 minutes later:
-      #   cache.fetch_with_deferred_update('today', 1.minutes) {}  # => "Monday"
+      #   cache.fetch_with_deferred_update('today', race_condition_ttl: 2.minutes) {}  # => "Monday"
       #
-      #   # 2 minutes later:
-      #   cache.fetch_with_deferred_update('today', 1.minutes) {}  # => "Monday"
+      #   # Another 3 minutes later:
+      #   cache.fetch_with_deferred_update('today', race_condition_ttl: 2.minutes) {}  # => nil
       #
-      # The most basic approach would be to use `write` in the block, but that would
-      # normally be a case better handled by `fetch`. Instead, the recommended way
-      # to use the block is to start a background job for expensive calculations and
-      # cache the updated value at the end of that job.
+      # The most basic approach would be to use `write` in the block, but that
+      # is normally a case better handled by `fetch`. Instead, the recommended
+      # way to use the block is to start a background job for expensive
+      # calculations and cache the updated value at the end of that job.
       #
-      #   cache.fetch_with_deferred_update('expensive_value', 5.minutes) do |key|
+      #   cache.fetch_with_deferred_update('expensive_value', race_condition_ttl: 5.minutes) do |key|
       #     HeavyComputationJob.perform_later key
       #   end
       #
-      # While the value is being calculated, the old value will be returned.
-      # The duration should be set so that the calculation has ample time to
-      # complete, to avoid a lot of duplicate cache updates.
-      #
-      # You may specify additional options via the +options+ argument.
-      # Setting <tt>force: true</tt> forces a cache "miss," meaning we treat
-      # the cache value as missing even if it's present. Passing a block is
-      # required when +force+ is true so this always results in a cache write.
-      #
-      #   cache.write('today', 'Monday')
-      #   cache.fetch('today', force: true) { 'Tuesday' } # => 'Tuesday'
-      #   cache.fetch('today', force: true) # => ArgumentError
-      #
-      # You may also specify additional options via the +options+ argument.
-      # Setting <tt>:version</tt> verifies the cache stored under <tt>name</tt>
-      # is of the same version. nil is returned on mismatches despite contents.
-      # This feature is used to support recyclable cache keys.
-      #
-      # Other options will be handled by the specific cache store implementation.
-      # Internally, #fetch_with_deferred_update calls #read_entry, and calls
-      # #write_entry on a cache miss. +options+ will be passed to the #read and
-      # #write calls.
-      def fetch_with_deferred_update(name, additional_cache_time, options = nil, &block)
+      # The method also supports any additional options specified by +fetch+.
+      def fetch_with_deferred_update(name, options = nil, &block)
         unless block_given?
           raise ArgumentError, "Missing block: Calling `Cache#fetch_with_deferred_update` requires a block."
         end
 
         options = merged_options(options)
-        entry = fetch_entry(name, options, :fetch_with_deferred_update, clear_expired_entry: false)
-
-        if !entry
-          yield(name)
-        elsif entry.expired?
-          write(name, entry.value, options.merge(expires_in: additional_cache_time))
-          yield(name)
+        unless options[:race_condition_ttl]
+          raise ArgumentError, "Missing argument: Calling `Cache#fetch_with_deferred_update` requires `race_condition_ttl` option to be set."
         end
+
+        entry = fetch_entry(name, options, operation: :fetch_with_deferred_update, return_stale_entry: true)
+
+        yield(name)
 
         get_entry_value(entry, name, options) if entry
       end
@@ -664,17 +642,13 @@ module ActiveSupport
           payload.nil? ? nil : @coder.load(payload)
         end
 
-        def fetch_entry(name, options, operation, clear_expired_entry: true)
+        def fetch_entry(name, options, operation:, return_stale_entry: false)
           key = normalize_key(name, options)
 
           entry = nil
           instrument(:read, name, options) do |payload|
             cached_entry = read_entry(key, **options, event: payload) unless options[:force]
-            entry = if clear_expired_entry
-              handle_expired_entry(cached_entry, key, options)
-            else
-              cached_entry
-            end
+            entry = handle_expired_entry(cached_entry, key, options, return_stale_entry: return_stale_entry)
             entry = nil if entry && entry.mismatched?(normalize_version(name, options))
             payload[:super_operation] = operation if payload
             payload[:hit] = !!entry if payload
@@ -823,7 +797,7 @@ module ActiveSupport
           ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) { yield(payload) }
         end
 
-        def handle_expired_entry(entry, key, options)
+        def handle_expired_entry(entry, key, options, return_stale_entry: false)
           if entry && entry.expired?
             race_ttl = options[:race_condition_ttl].to_i
             if (race_ttl > 0) && (Time.now.to_f - entry.expires_at <= race_ttl)
@@ -831,10 +805,11 @@ module ActiveSupport
               # for a brief period while the entry is being recalculated.
               entry.expires_at = Time.now + race_ttl
               write_entry(key, entry, expires_in: race_ttl * 2)
+              entry = nil unless return_stale_entry
             else
               delete_entry(key, **options)
+              entry = nil
             end
-            entry = nil
           end
           entry
         end
