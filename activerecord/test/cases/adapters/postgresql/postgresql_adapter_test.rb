@@ -12,7 +12,6 @@ module ActiveRecord
       include ConnectionHelper
 
       def setup
-        ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.clear_type_records_cache!
         @connection = ActiveRecord::Base.connection
         @connection_handler = ActiveRecord::Base.connection_handler
       end
@@ -46,6 +45,9 @@ module ActiveRecord
           def close
           end
         end.new
+
+        ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
+        ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
 
         @conn = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
           fake_connection,
@@ -386,7 +388,8 @@ module ActiveRecord
 
       def test_only_reload_type_map_once_for_every_unrecognized_type
         reset_connection
-        PostgreSQLAdapter.clear_type_records_cache!
+        ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
+        ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
 
         connection = ActiveRecord::Base.connection
 

@@ -7,7 +7,7 @@ module ActiveRecord
     class SchemaCacheTest < ActiveRecord::TestCase
       def setup
         @connection       = ActiveRecord::Base.connection
-        @cache            = SchemaCache.new @connection
+        @cache            = @connection.init_schema_cache
         @database_version = @connection.get_database_version
       end
 
@@ -228,8 +228,8 @@ module ActiveRecord
             assert_equal @database_version.to_s, cache.database_version.to_s
 
             if current_adapter?(:PostgreSQLAdapter)
-              assert_equal @connection.additional_type_records_cache.size, cache.postgresql_additional_type_records.size
-              assert_equal @connection.known_coder_type_records_cache.size, cache.postgresql_known_coder_type_records.size
+              assert cache.additional_type_records.present?
+              assert cache.known_coder_type_records.present?
             end
           end
         end

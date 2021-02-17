@@ -19,16 +19,6 @@ module ActiveRecord
           super
         end
 
-        def clear!
-          super
-          self.additional_type_records = []
-          self.known_coder_type_records = []
-        end
-
-        def size
-          super + self.additional_type_records.size + self.known_coder_type_records.size
-        end
-
         def marshal_dump
           reset_version!
           [@version, @columns, {}, @primary_keys, @data_sources, @indexes, database_version, self.additional_type_records, self.known_coder_type_records]
