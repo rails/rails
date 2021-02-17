@@ -89,7 +89,7 @@ module ActiveModel
 
       def parse_as_number(raw_value)
         if raw_value.is_a?(Float)
-          raw_value.to_d
+          raw_value.to_d(Float::DIG)
         elsif raw_value.is_a?(Numeric)
           raw_value
         elsif is_integer?(raw_value)
