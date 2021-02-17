@@ -317,6 +317,21 @@ class NumericalityValidationTest < ActiveModel::TestCase
     valid!([Float("65.6"), BigDecimal("65.6")])
   end
 
+  def test_validates_numericality_with_value_format_as_proc
+    Topic.validates_numericality_of :approved, greater_than: 50000, value_format: proc { |value| "50,000.00" }
+
+    invalid!([10], "must be greater than 50,000.00")
+  end
+
+  def test_validates_numericality_with_value_format_as_symbol
+    Topic.define_method(:value_format) { |value| "50,000.00" }
+    Topic.validates_numericality_of :approved, greater_than: 50000, value_format: :value_format
+
+    invalid!([10], "must be greater than 50,000.00")
+  ensure
+    Topic.remove_method :value_format
+  end
+
   private
     def invalid!(values, error = nil)
       with_each_topic_approved_value(values) do |topic, value|
