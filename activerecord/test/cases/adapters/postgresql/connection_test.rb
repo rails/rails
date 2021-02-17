@@ -260,14 +260,17 @@ module ActiveRecord
     end
 
     def test_type_records_cache
-      ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.clear_type_records_cache!
+      ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
+      ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
+
       connection_without_cache = ActiveRecord::Base.connection_pool.send(:new_connection)
 
       schema_query_count = @subscriber.logged.count { |arr| arr[1] == "SCHEMA" }
+
       @subscriber.logged.clear
 
-      assert_not_nil ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.additional_type_records_cache
-      assert_not_nil ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.known_coder_type_records_cache
+      assert ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records.present?
+      assert ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records.present?
 
       connection_with_cache = ActiveRecord::Base.connection_pool.send(:new_connection)
       schema_query_count_with_cache = @subscriber.logged.count { |arr| arr[1] == "SCHEMA" }

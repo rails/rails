@@ -105,10 +105,7 @@ module ActiveRecord
 
   class PostgreSQLTestCase < TestCase
     def self.run(*args)
-      if current_adapter?(:PostgreSQLAdapter)
-        ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.clear_type_records_cache!
-        super
-      end
+      super if current_adapter?(:PostgreSQLAdapter)
     end
   end
 

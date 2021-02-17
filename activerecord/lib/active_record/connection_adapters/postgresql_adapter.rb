@@ -99,9 +99,6 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = true
       class_attribute :create_unlogged_tables, default: false
 
-      cattr_accessor :additional_type_records_cache, default: []
-      cattr_accessor :known_coder_type_records_cache, default: []
-
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigserial primary key",
         string:      { name: "character varying" },
@@ -151,13 +148,6 @@ module ActiveRecord
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
-
-      def self.clear_type_records_cache!
-        self.additional_type_records_cache = []
-        self.known_coder_type_records_cache = []
-      end
-
-      delegate :clear_type_records_cache!, to: :class
 
       def supports_bulk_alter?
         true
@@ -641,12 +631,12 @@ module ActiveRecord
           initializer = OID::TypeMapInitializer.new(type_map)
 
           if should_load_types_from_cache?(oids)
-            return initializer.run(self.additional_type_records_cache)
+            return initializer.run(schema_cache.additional_type_records)
           end
 
           load_types_queries(initializer, oids) do |query|
             execute_and_clear(query, "SCHEMA", []) do |records|
-              self.additional_type_records_cache |= records.to_a
+              schema_cache.additional_type_records |= records.to_a
               initializer.run(records)
             end
           end
@@ -930,8 +920,8 @@ module ActiveRecord
             "timestamptz" => PG::TextDecoder::TimestampWithTimeZone,
           }
 
-          if known_coder_type_records_cache.present?
-            coders = known_coder_type_records_cache
+          if schema_cache.known_coder_type_records.present?
+            coders = schema_cache.known_coder_type_records
                       .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
                       .compact
           else
@@ -942,7 +932,7 @@ module ActiveRecord
               WHERE t.typname IN (%s)
             SQL
             coders = execute_and_clear(query, "SCHEMA", []) do |result|
-              self.known_coder_type_records_cache = result.to_a
+              schema_cache.known_coder_type_records = result.to_a
 
               result
                 .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
@@ -969,16 +959,11 @@ module ActiveRecord
           coder_class.new(oid: row["oid"].to_i, name: row["typname"])
         end
 
-        def reload_type_map
-          clear_type_records_cache!
-          super
-        end
-
         def should_load_types_from_cache?(oids)
           if oids.blank?
-            additional_type_records_cache.present?
+            schema_cache.additional_type_records.present?
           else
-            cached_oids = additional_type_records_cache.map { |oid| oid["oid"] }
+            cached_oids = schema_cache.additional_type_records.map { |oid| oid["oid"] }
             (oids - cached_oids).empty?
           end
         end
