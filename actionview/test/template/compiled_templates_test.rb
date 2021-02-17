@@ -52,7 +52,7 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
   end
 
   def test_template_with_instance_variable_identifier
-    expected_deprecation = "In Rails 7.0, @foo will be ignored."
+    expected_deprecation = "In Rails 7.1, @foo will be ignored."
     assert_deprecated(expected_deprecation) do
       assert_equal "bar", render(template: "test/render_file_instance_variable", locals: { "@foo": "bar" })
     end
