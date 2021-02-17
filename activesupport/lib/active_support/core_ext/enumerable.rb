@@ -152,11 +152,7 @@ module Enumerable
     elements.flatten!(1)
     reject { |element| elements.include?(element) }
   end
-
-  # Alias for #excluding.
-  def without(*elements)
-    excluding(*elements)
-  end
+  alias :without :excluding
 
   # Extract the given key from each element in the enumerable.
   #

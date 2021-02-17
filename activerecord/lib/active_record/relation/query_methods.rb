@@ -1139,11 +1139,7 @@ module ActiveRecord
 
       spawn.excluding!(records)
     end
-
-    # Alias for #excluding.
-    def without(*records)
-      excluding(*records)
-    end
+    alias :without :excluding
 
     def excluding!(records) # :nodoc:
       predicates = [ predicate_builder[primary_key, records].invert ]
