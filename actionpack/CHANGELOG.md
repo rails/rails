@@ -1,3 +1,10 @@
+## Rails 6.1.3 (February 17, 2021) ##
+
+*   Re-define routes when not set correctly via inheritance.
+
+    *John Hawthorn*
+
+
 ## Rails 6.1.2.1 (February 10, 2021) ##
 
 *   Prevent open redirect when allowed host starts with a dot

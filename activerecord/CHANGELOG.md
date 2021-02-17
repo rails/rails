@@ -1,3 +1,20 @@
+## Rails 6.1.3 (February 17, 2021) ##
+
+*   Fix the MySQL adapter to always set the right collation and charset
+    to the connection session.
+
+    *Rafael Mendonça França*
+
+*   Fix MySQL adapter handling of time objects when prepared statements
+    are enabled.
+
+    *Rafael Mendonça França*
+
+*   Fix scoping in enum fields using conditions that would generate
+    an `IN` clause.
+
+    *Ryuta Kamizono*
+
 *   Skip optimised #exist? query when #include? is called on a relation
     with a having clause
 
