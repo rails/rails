@@ -1146,13 +1146,9 @@ module ActiveRecord
     end
 
     def excluding!(records) # :nodoc:
-      # Treat single and multiple records differently in order to keep query
-      # clean in case of single record, ie, use != operator instead of NOT IN ().
-      if records.one?
-        where.not(primary_key => records.first.id)
-      else
-        where.not(primary_key => records)
-      end
+      predicates = [ predicate_builder[primary_key, records].invert ]
+      self.where_clause += Relation::WhereClause.new(predicates)
+      self
     end
 
     # Returns the Arel object associated with the relation.
