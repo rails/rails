@@ -323,10 +323,12 @@ module ActionView
         if deprecated_locals.any?
           ActiveSupport::Deprecation.warn(<<~MSG)
             Passing instance variables to `render` is deprecated.
-            In Rails 7.0, #{deprecated_locals.to_sentence} will be ignored.
+            In Rails 7.1, #{deprecated_locals.to_sentence} will be ignored.
           MSG
+          locals = locals.grep(/\A@?(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
+        else
+          locals = locals.grep(/\A(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
         end
-        locals = locals.grep(/\A@?(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
 
         # Assign for the same variable is to suppress unused variable warning
         locals.each_with_object(+"") { |key, code| code << "#{key} = local_assigns[:#{key}]; #{key} = #{key};" }
