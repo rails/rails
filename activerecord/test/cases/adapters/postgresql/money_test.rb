@@ -11,6 +11,8 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
   end
 
   setup do
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
     @connection = ActiveRecord::Base.connection
     @connection.execute("set lc_monetary = 'C'")
     @connection.create_table("postgresql_moneys", force: true) do |t|
@@ -21,6 +23,8 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
 
   teardown do
     @connection.drop_table "postgresql_moneys", if_exists: true
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
   end
 
   def test_column

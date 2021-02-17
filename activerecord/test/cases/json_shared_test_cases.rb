@@ -13,12 +13,16 @@ module JSONSharedTestCases
   end
 
   def setup
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
     @connection = ActiveRecord::Base.connection
   end
 
   def teardown
     @connection.drop_table :json_data_type, if_exists: true
     klass.reset_column_information
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
   end
 
   def test_column

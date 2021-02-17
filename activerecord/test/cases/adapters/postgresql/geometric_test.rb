@@ -19,6 +19,8 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
   end if current_adapter?(:PostgreSQLAdapter)
 
   def setup
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
     @connection = ActiveRecord::Base.connection
     @connection.create_table("postgresql_points") do |t|
       t.point :x
@@ -33,6 +35,8 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
 
   teardown do
     @connection.drop_table "postgresql_points", if_exists: true
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
   end
 
   def test_column

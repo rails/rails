@@ -4,6 +4,8 @@ require "cases/helper"
 
 class PostgresqlTypeLookupTest < ActiveRecord::PostgreSQLTestCase
   setup do
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
     @connection = ActiveRecord::Base.connection
   end
 
