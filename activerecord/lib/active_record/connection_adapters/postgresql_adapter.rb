@@ -636,7 +636,6 @@ module ActiveRecord
 
           load_types_queries(initializer, oids) do |query|
             execute_and_clear(query, "SCHEMA", []) do |records|
-              # require 'byebug';byebug
               schema_cache.additional_type_records |= records.to_a
               initializer.run(records)
             end
