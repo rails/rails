@@ -282,6 +282,41 @@ module ActionController
       response.close if response
     end
 
+    # Sends a stream to the browser, which is helpful when you're generating exports or other running data where you
+    # don't want the entire file buffered in memory first. Similar to send_data, but where the data is generated live.
+    #
+    # Options:
+    # * <tt>:filename</tt> - suggests a filename for the browser to use.
+    # * <tt>:type</tt> - specifies an HTTP content type.
+    #   You can specify either a string or a symbol for a registered type with <tt>Mime::Type.register</tt>, for example :json.
+    #   If omitted, type will be inferred from the file extension specified in <tt>:filename</tt>.
+    #   If no content type is registered for the extension, the default type 'application/octet-stream' will be used.
+    # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
+    #   Valid values are 'inline' and 'attachment' (default).
+    #
+    # Example of generating a csv export:
+    #
+    #    send_stream(filename: "subscribers.csv") do |stream|
+    #      stream.write "email_address,updated_at\n"
+    #
+    #      @subscribers.find_each do |subscriber|
+    #        stream.write "#{subscriber.email_address},#{subscriber.updated_at}\n"
+    #      end
+    #    end
+    def send_stream(filename:, disposition: "attachment", type: nil)
+      response.headers["Content-Type"] =
+        (type.is_a?(Symbol) ? Mime[type].to_s : type) ||
+        Mime::Type.lookup_by_extension(File.extname(filename).downcase.delete(".")) ||
+        "application/octet-stream"
+
+      response.headers["Content-Disposition"] =
+        ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename)
+
+      yield response.stream
+    ensure
+      response.stream.close
+    end
+
     private
       # Spawn a new thread to serve up the controller in. This is to get
       # around the fact that Rack isn't based around IOs and we need to use
