@@ -14,8 +14,6 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
   include InTimeZone
 
   def setup
-    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
-    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
     @connection = PostgresqlRange.connection
     @connection.transaction do
       @connection.execute <<~SQL
@@ -101,6 +99,8 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     @connection.execute "DROP TYPE IF EXISTS floatrange"
     @connection.execute "DROP TYPE IF EXISTS stringrange"
     reset_connection
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
   end
 
   def test_data_type_of_range_types
