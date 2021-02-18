@@ -598,6 +598,8 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
         t.float    :float_with_nan_default,    default: Float::NAN
         t.datetime :beginning_of_time,         default: "-infinity"
         t.datetime :end_of_time,               default: "infinity"
+        t.date :date_with_neg_inf_default,     default: -::Float::INFINITY
+        t.date :date_with_pos_inf_default,     default: ::Float::INFINITY
       end
     end
   end
@@ -623,5 +625,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
     assert_match %r{t\.float\s+"float_with_nan_default",\s+default: ::Float::NAN}, output
     assert_match %r{t\.datetime\s+"beginning_of_time",\s+default: -::Float::INFINITY}, output
     assert_match %r{t\.datetime\s+"end_of_time",\s+default: ::Float::INFINITY}, output
+    assert_match %r{t\.date\s+"date_with_neg_inf_default",\s+default: -::Float::INFINITY}, output
+    assert_match %r{t\.date\s+"date_with_pos_inf_default",\s+default: ::Float::INFINITY}, output
   end
 end
