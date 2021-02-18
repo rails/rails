@@ -21,6 +21,7 @@ module ActiveModel
         "F", :F,
         "false", :false,
         "FALSE", :FALSE,
+        "False", :False,
         "off", :off,
         "OFF", :OFF,
       ].to_set.freeze
