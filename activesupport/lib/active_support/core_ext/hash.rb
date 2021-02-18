@@ -3,6 +3,7 @@
 require "active_support/core_ext/hash/conversions"
 require "active_support/core_ext/hash/deep_merge"
 require "active_support/core_ext/hash/deep_transform_values"
+require "active_support/core_ext/hash/delete_at"
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/hash/keys"

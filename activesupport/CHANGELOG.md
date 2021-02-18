@@ -1,3 +1,15 @@
+*   Add `Hash#delete_at` to delete values from a list keyed by its arguments.
+Mirrors the `Hash#values_at` interface, and pairs nicely with multiple
+    assignment.
+
+    ```ruby
+    hash = { a: true, b: false, c: nil }
+    a, c = hash.delete_at(:a, :c) # => [ true, nil ]
+    hash # => { b: false }
+    ```
+
+    *Sean Doyle*
+
 *   Allow nested access to keys on `Rails.application.credentials`
 
     Previously only top level keys in `credentials.yml.enc` could be accessed with method calls. Now any key can.
