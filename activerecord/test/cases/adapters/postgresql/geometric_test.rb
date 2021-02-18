@@ -31,7 +31,6 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
       t.point :legacy_y, default: [12.2, 13.3]
       t.point :legacy_z, default: "(14.4,15.5)"
     end
-    PostgresqlPoint.reset_column_information
   end
 
   teardown do

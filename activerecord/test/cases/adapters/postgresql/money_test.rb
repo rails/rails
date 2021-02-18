@@ -19,7 +19,6 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
       t.money "wealth"
       t.money "depth", default: "150.55"
     end
-    PostgresqlMoney.reset_column_information
   end
 
   teardown do
