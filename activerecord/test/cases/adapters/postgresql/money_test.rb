@@ -19,12 +19,11 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
       t.money "wealth"
       t.money "depth", default: "150.55"
     end
+    PostgresqlMoney.reset_column_information
   end
 
   teardown do
     @connection.drop_table "postgresql_moneys", if_exists: true
-    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
-    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
   end
 
   def test_column

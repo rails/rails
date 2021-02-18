@@ -36,8 +36,6 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   teardown do
     @connection.drop_table "pg_arrays", if_exists: true
     disable_extension!("hstore", @connection)
-    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
-    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
   end
 
   def test_column

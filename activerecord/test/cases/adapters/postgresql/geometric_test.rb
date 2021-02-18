@@ -31,12 +31,11 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
       t.point :legacy_y, default: [12.2, 13.3]
       t.point :legacy_z, default: "(14.4,15.5)"
     end
+    PostgresqlPoint.reset_column_information
   end
 
   teardown do
     @connection.drop_table "postgresql_points", if_exists: true
-    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
-    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
   end
 
   def test_column

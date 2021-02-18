@@ -30,6 +30,12 @@ module ActiveRecord
 
           derive_columns_hash_and_deduplicate_values
         end
+
+        def clear!
+          super
+          self.additional_type_records = []
+          self.known_coder_type_records = []
+        end
       end
     end
   end
