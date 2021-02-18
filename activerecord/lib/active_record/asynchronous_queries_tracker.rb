@@ -7,9 +7,6 @@ module ActiveRecord
         def active?
           true
         end
-
-        def finalize
-        end
       end
     end
 
