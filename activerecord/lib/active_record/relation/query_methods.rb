@@ -1605,11 +1605,4 @@ module ActiveRecord
         end
       end
   end
-
-  class Relation # :nodoc:
-    # No-op WhereClauseFactory to work Mashal.load(File.read("legacy_relation.dump")).
-    # TODO: Remove the class once Rails 6.1 has released.
-    class WhereClauseFactory # :nodoc:
-    end
-  end
 end
