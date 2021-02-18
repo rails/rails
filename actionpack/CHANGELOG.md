@@ -1,3 +1,13 @@
+*   Prevent string polymorphic route arguments.
+
+    `url_for` supports building polymorphic URLs via an array
+    of arguments (usually symbols and records). If a developer passes a
+    user input array, strings can result in unwanted route helper calls.
+
+    CVE-2021-22885
+
+    *Gannon McGibbon*
+
 ## Rails 6.1.3.1 (March 26, 2021) ##
 
 *   No changes.
