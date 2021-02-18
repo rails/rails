@@ -7,6 +7,9 @@ module ActiveRecord
         def active?
           true
         end
+
+        def finalize
+        end
       end
     end
 
@@ -50,7 +53,7 @@ module ActiveRecord
     end
 
     def finalize_session
-      @current_session.finalize if @current_session.respond_to?(:finalize)
+      @current_session.finalize
       @current_session = NullSession
     end
   end
