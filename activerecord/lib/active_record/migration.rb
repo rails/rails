@@ -167,6 +167,7 @@ module ActiveRecord
 
   class ConcurrentMigrationError < MigrationError #:nodoc:
     DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running."
+    RELEASE_LOCK_FAILED_MESSAGE = "Failed to release advisory lock"
 
     def initialize(message = DEFAULT_MESSAGE)
       super
@@ -319,7 +320,7 @@ module ActiveRecord
   #   +table_name+. Passing a hash containing <tt>:from</tt> and <tt>:to</tt>
   #   as +default_or_changes+ will make this change reversible in the migration.
   # * <tt>change_column_null(table_name, column_name, null, default = nil)</tt>:
-  #   Sets or removes a +NOT NULL+ constraint on +column_name+. The +null+ flag
+  #   Sets or removes a <tt>NOT NULL</tt> constraint on +column_name+. The +null+ flag
   #   indicates whether the value can be +NULL+. See
   #   ActiveRecord::ConnectionAdapters::SchemaStatements#change_column_null for
   #   details.
@@ -1412,18 +1413,16 @@ module ActiveRecord
         lock_id = generate_migrator_advisory_lock_id
 
         with_advisory_lock_connection do |connection|
-          result = nil
-
-          got_lock = connection.with_advisory_lock(lock_id) do
-            load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
-            result = yield
-          end
-
+          got_lock = connection.get_advisory_lock(lock_id)
           raise ConcurrentMigrationError unless got_lock
-
-          result
-        rescue ReleaseAdvisoryLockError => e
-          raise ConcurrentMigrationError, e.message, e.backtrace
+          load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
+          yield
+        ensure
+          if got_lock && !connection.release_advisory_lock(lock_id)
+            raise ConcurrentMigrationError.new(
+              ConcurrentMigrationError::RELEASE_LOCK_FAILED_MESSAGE
+            )
+          end
         end
       end
 

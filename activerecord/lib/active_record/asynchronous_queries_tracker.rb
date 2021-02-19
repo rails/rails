@@ -2,6 +2,14 @@
 
 module ActiveRecord
   class AsynchronousQueriesTracker # :nodoc:
+    module NullSession # :nodoc:
+      class << self
+        def active?
+          true
+        end
+      end
+    end
+
     class Session # :nodoc:
       def initialize
         @active = true
@@ -33,7 +41,7 @@ module ActiveRecord
     attr_reader :current_session
 
     def initialize
-      @current_session = nil
+      @current_session = NullSession
     end
 
     def start_session
@@ -43,7 +51,7 @@ module ActiveRecord
 
     def finalize_session
       @current_session&.finalize
-      @current_session = nil
+      @current_session = NullSession
     end
   end
 end

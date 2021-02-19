@@ -13,7 +13,7 @@ module ActiveSupport
         precision = absolute_precision(number)
         return number unless precision
 
-        rounded_number = convert_to_decimal(number).round(precision, options.fetch(:round_mode, :default))
+        rounded_number = convert_to_decimal(number).round(precision, options.fetch(:round_mode, :default).to_sym)
         rounded_number.zero? ? rounded_number.abs : rounded_number # prevent showing negative zeros
       end
 

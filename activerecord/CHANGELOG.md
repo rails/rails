@@ -1,3 +1,44 @@
+*   Add `ActiveRecord::Relation#load_async`.
+
+    This method schedules the query to be performed asynchronously from a thread pool.
+
+    If the result is accessed before a background thread had the opportunity to perform
+    the query, it will be performed in the foreground.
+
+    This is useful for queries that can be performed long enough before their result will be
+    needed, or for controllers which need to perform several independant queries.
+
+    ```ruby
+    def index
+      @categories = Category.some_complex_scope.load_async
+      @posts = Post.some_complex_scope.load_async
+    end
+    ```
+
+    *Jean Boussier*
+
+*   Implemented `ActiveRecord::Relation#excluding` method.
+
+    This method excludes the specified record (or collection of records) from
+    the resulting relation:
+
+    ```ruby
+    Post.excluding(post)
+    Post.excluding(post_one, post_two)
+    ```
+
+    Also works on associations:
+
+    ```ruby
+    post.comments.excluding(comment)
+    post.comments.excluding(comment_one, comment_two)
+    ```
+
+    This is short-hand for `Post.where.not(id: post.id)` (for a single record)
+    and `Post.where.not(id: [post_one.id, post_two.id])` (for a collection).
+
+    *Glen Crawford*
+
 *   Skip optimised #exist? query when #include? is called on a relation
     with a having clause
 
@@ -85,16 +126,6 @@
     and are created as `timestamptz` columns when the schema is loaded.
 
     *Alex Ghiculescu*
-
-*   Add `ActiveRecord::Base.connection.with_advisory_lock`.
-
-    This method allow applications to obtain an exclusive session level advisory lock,
-    if available, for the duration of the block.
-
-    If another session already have the lock, the method will return `false` and the block will
-    not be executed.
-
-    *Rafael Mendonça França*
 
 *   Removing trailing whitespace when matching columns in
     `ActiveRecord::Sanitization.disallow_raw_sql!`.

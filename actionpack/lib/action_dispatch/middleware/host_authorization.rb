@@ -13,7 +13,7 @@ module ActionDispatch
   #
   # When a request comes to an unauthorized host, the +response_app+
   # application will be executed and rendered. If no +response_app+ is given, a
-  # default one will run, which responds with +403 Forbidden+.
+  # default one will run, which responds with <tt>403 Forbidden</tt>.
   class HostAuthorization
     class Permissions # :nodoc:
       def initialize(hosts)
@@ -102,21 +102,15 @@ module ActionDispatch
     end
 
     private
+      HOSTNAME = /[a-z0-9.-]+|\[[a-f0-9]*:[a-f0-9.:]+\]/i
+      VALID_ORIGIN_HOST = /\A(#{HOSTNAME})(?::\d+)?\z/
+      VALID_FORWARDED_HOST = /(?:\A|,[ ]?)(#{HOSTNAME})(?::\d+)?\z/
+
       def authorized?(request)
-        valid_host = /
-          \A
-          (?<host>[a-z0-9.-]+|\[[a-f0-9]*:[a-f0-9.:]+\])
-          (:\d+)?
-          \z
-        /x
+        origin_host = request.get_header("HTTP_HOST")&.slice(VALID_ORIGIN_HOST, 1) || ""
+        forwarded_host = request.x_forwarded_host&.slice(VALID_FORWARDED_HOST, 1) || ""
 
-        origin_host = valid_host.match(
-          request.get_header("HTTP_HOST").to_s.downcase)
-        forwarded_host = valid_host.match(
-          request.x_forwarded_host.to_s.split(/,\s?/).last)
-
-        origin_host && @permissions.allows?(origin_host[:host]) && (
-          forwarded_host.nil? || @permissions.allows?(forwarded_host[:host]))
+        @permissions.allows?(origin_host) && (forwarded_host.blank? || @permissions.allows?(forwarded_host))
       end
 
       def excluded?(request)

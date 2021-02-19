@@ -1105,6 +1105,48 @@ module ActiveRecord
       self
     end
 
+    # Excludes the specified record (or collection of records) from the resulting
+    # relation. For example:
+    #
+    #   Post.excluding(post)
+    #   # SELECT "posts".* FROM "posts" WHERE "posts"."id" != 1
+    #
+    #   Post.excluding(post_one, post_two)
+    #   # SELECT "posts".* FROM "posts" WHERE "posts"."id" NOT IN (1, 2)
+    #
+    # This can also be called on associations. As with the above example, either
+    # a single record of collection thereof may be specified:
+    #
+    #   post = Post.find(1)
+    #   comment = Comment.find(2)
+    #   post.comments.excluding(comment)
+    #   # SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = 1 AND "comments"."id" != 2
+    #
+    # This is short-hand for <tt>.where.not(id: post.id)</tt> and <tt>.where.not(id: [post_one.id, post_two.id])</tt>.
+    #
+    # An <tt>ArgumentError</tt> will be raised if either no records are
+    # specified, or if any of the records in the collection (if a collection
+    # is passed in) are not instances of the same model that the relation is
+    # scoping.
+    def excluding(*records)
+      records.flatten!(1)
+
+      raise ArgumentError, "You must pass at least one #{klass.name} object to #excluding." if records.empty?
+
+      if records.any? { |record| !record.is_a?(klass) }
+        raise ArgumentError, "You must only pass a single or collection of #{klass.name} objects to #excluding."
+      end
+
+      spawn.excluding!(records)
+    end
+    alias :without :excluding
+
+    def excluding!(records) # :nodoc:
+      predicates = [ predicate_builder[primary_key, records].invert ]
+      self.where_clause += Relation::WhereClause.new(predicates)
+      self
+    end
+
     # Returns the Arel object associated with the relation.
     def arel(aliases = nil) # :nodoc:
       @arel ||= build_arel(aliases)
@@ -1562,12 +1604,5 @@ module ActiveRecord
           v1 == v2
         end
       end
-  end
-
-  class Relation # :nodoc:
-    # No-op WhereClauseFactory to work Mashal.load(File.read("legacy_relation.dump")).
-    # TODO: Remove the class once Rails 6.1 has released.
-    class WhereClauseFactory # :nodoc:
-    end
   end
 end

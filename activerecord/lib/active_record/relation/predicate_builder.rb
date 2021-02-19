@@ -9,10 +9,6 @@ module ActiveRecord
     require "active_record/relation/predicate_builder/association_query_value"
     require "active_record/relation/predicate_builder/polymorphic_array_value"
 
-    # No-op BaseHandler to work Mashal.load(File.read("legacy_relation.dump")).
-    # TODO: Remove the constant alias once Rails 6.1 has released.
-    BaseHandler = BasicObjectHandler
-
     def initialize(table)
       @table = table
       @handlers = []

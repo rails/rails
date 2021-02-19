@@ -468,9 +468,9 @@ module ActionView
       #   mail_to "me@domain.com", "My email"
       #   # => <a href="mailto:me@domain.com">My email</a>
       #
-      #   mail_to "me@domain.com", "My email", cc: "ccaddress@domain.com",
+      #   mail_to "me@domain.com", cc: "ccaddress@domain.com",
       #            subject: "This is an example email"
-      #   # => <a href="mailto:me@domain.com?cc=ccaddress@domain.com&subject=This%20is%20an%20example%20email">My email</a>
+      #   # => <a href="mailto:me@domain.com?cc=ccaddress@domain.com&subject=This%20is%20an%20example%20email">me@domain.com</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
       #
@@ -481,7 +481,7 @@ module ActionView
       #          <strong>Email me:</strong> <span>me@domain.com</span>
       #        </a>
       def mail_to(email_address, name = nil, html_options = {}, &block)
-        html_options, name = name, nil if block_given?
+        html_options, name = name, nil if name.is_a?(Hash)
         html_options = (html_options || {}).stringify_keys
 
         extras = %w{ cc bcc body subject reply_to }.map! { |item|
@@ -573,15 +573,15 @@ module ActionView
         end
       end
 
-      # Creates an SMS anchor link tag to the specified +phone_number+, which is
-      # also used as the name of the link unless +name+ is specified. Additional
-      # HTML attributes for the link can be passed in +html_options+.
+      # Creates an SMS anchor link tag to the specified +phone_number+. When the
+      # link is clicked, the default SMS messaging app is opened ready to send a
+      # message to the linked phone number. If the +body+ option is specified,
+      # the contents of the message will be preset to +body+.
       #
-      # When clicked, an SMS message is prepopulated with the passed phone number
-      # and optional +body+ value.
+      # If +name+ is not specified, +phone_number+ will be used as the name of
+      # the link.
       #
-      # +sms_to+ has a +body+ option for customizing the SMS message itself by
-      # passing special keys to +html_options+.
+      # Additional HTML attributes for the link can be passed via +html_options+.
       #
       # ==== Options
       # * <tt>:body</tt> - Preset the body of the message.
@@ -593,9 +593,8 @@ module ActionView
       #   sms_to "5155555785", "Text me"
       #   # => <a href="sms:5155555785;">Text me</a>
       #
-      #   sms_to "5155555785", "Text me",
-      #          body: "Hello Jim I have a question about your product."
-      #   # => <a href="sms:5155555785;?body=Hello%20Jim%20I%20have%20a%20question%20about%20your%20product">Text me</a>
+      #   sms_to "5155555785", body: "I have a question about your product."
+      #   # => <a href="sms:5155555785;?body=I%20have%20a%20question%20about%20your%20product">5155555785</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. \ERB example:
       #
@@ -606,7 +605,7 @@ module ActionView
       #          <strong>Text me:</strong>
       #        </a>
       def sms_to(phone_number, name = nil, html_options = {}, &block)
-        html_options, name = name, nil if block_given?
+        html_options, name = name, nil if name.is_a?(Hash)
         html_options = (html_options || {}).stringify_keys
 
         extras = %w{ body }.map! { |item|
@@ -621,21 +620,22 @@ module ActionView
         content_tag("a", name || phone_number, html_options, &block)
       end
 
-      # Creates a TEL anchor link tag to the specified +phone_number+, which is
-      # also used as the name of the link unless +name+ is specified. Additional
-      # HTML attributes for the link can be passed in +html_options+.
+      # Creates a TEL anchor link tag to the specified +phone_number+. When the
+      # link is clicked, the default app to make phone calls is opened and
+      # prepopulated with the phone number.
       #
-      # When clicked, the default app to make calls is opened, and it
-      # is prepopulated with the passed phone number and optional
-      # +country_code+ value.
+      # If +name+ is not specified, +phone_number+ will be used as the name of
+      # the link.
       #
-      # +phone_to+ has an optional +country_code+ option which automatically adds the country
-      # code as well as the + sign in the phone numer that gets prepopulated,
-      # for example if +country_code: "01"+  +\+01+ will be prepended to the
-      # phone numer, by passing special keys to +html_options+.
+      # A +country_code+ option is supported, which prepends a plus sign and the
+      # given country code to the linked phone number. For example,
+      # <tt>country_code: "01"</tt> will prepend <tt>+01</tt> to the linked
+      # phone number.
+      #
+      # Additional HTML attributes for the link can be passed via +html_options+.
       #
       # ==== Options
-      # * <tt>:country_code</tt> - Prepends the country code to the number
+      # * <tt>:country_code</tt> - Prepends the country code to the phone number
       #
       # ==== Examples
       #   phone_to "1234567890"
@@ -644,8 +644,8 @@ module ActionView
       #   phone_to "1234567890", "Phone me"
       #   # => <a href="tel:134567890">Phone me</a>
       #
-      #   phone_to "1234567890", "Phone me", country_code: "01"
-      #   # => <a href="tel:+015155555785">Phone me</a>
+      #   phone_to "1234567890", country_code: "01"
+      #   # => <a href="tel:+015155555785">1234567890</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. \ERB example:
       #
@@ -656,7 +656,7 @@ module ActionView
       #          <strong>Phone me:</strong>
       #        </a>
       def phone_to(phone_number, name = nil, html_options = {}, &block)
-        html_options, name = name, nil if block_given?
+        html_options, name = name, nil if name.is_a?(Hash)
         html_options = (html_options || {}).stringify_keys
 
         country_code = html_options.delete("country_code").presence

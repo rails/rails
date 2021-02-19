@@ -122,10 +122,10 @@ module ActiveRecord
       # Returns true if the connection is a replica.
       #
       # If the application is using legacy handling, returns
-      # true if `connection_handler.prevent_writes` is set.
+      # true if +connection_handler.prevent_writes+ is set.
       #
       # If the application is using the new connection handling
-      # will return true based on `current_preventing_writes`.
+      # will return true based on +current_preventing_writes+.
       def preventing_writes?
         return true if replica?
         return ActiveRecord::Base.connection_handler.prevent_writes if ActiveRecord::Base.legacy_connection_handling
@@ -441,28 +441,11 @@ module ActiveRecord
         supports_advisory_locks? && @advisory_locks_enabled
       end
 
-      # Obtains an exclusive session level advisory lock, if available, for the duration of the block.
-      #
-      # Returns +false+ without executing the block if the lock could not be obtained.
-      def with_advisory_lock(lock_id, timeout = 0)
-        lock_acquired = get_advisory_lock(lock_id, timeout)
-
-        if lock_acquired
-          yield
-        end
-
-        lock_acquired
-      ensure
-        if lock_acquired && !release_advisory_lock(lock_id)
-          raise ReleaseAdvisoryLockError
-        end
-      end
-
       # This is meant to be implemented by the adapters that support advisory
       # locks
       #
       # Return true if we got the lock, otherwise false
-      def get_advisory_lock(lock_id, timeout = 0) # :nodoc:
+      def get_advisory_lock(lock_id) # :nodoc:
       end
 
       # This is meant to be implemented by the adapters that support advisory

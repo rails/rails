@@ -181,7 +181,7 @@ module ActiveRecord
   #     end
   #   end
   #
-  # If you preload your test database with all fixture data (probably by running `bin/rails db:fixtures:load`)
+  # If you preload your test database with all fixture data (probably by running <tt>bin/rails db:fixtures:load</tt>)
   # and use transactional tests, then you may omit all fixtures declarations in your test cases since
   # all the data's already there and every case rolls back its changes.
   #

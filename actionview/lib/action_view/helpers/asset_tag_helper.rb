@@ -170,8 +170,8 @@ module ActionView
             "href" => href
           }.merge!(options)
 
-          if apply_stylesheet_media_default && tag_options[:media].blank?
-            tag_options[:media] = "screen"
+          if apply_stylesheet_media_default && tag_options["media"].blank?
+            tag_options["media"] = "screen"
           end
 
           tag(:link, tag_options)

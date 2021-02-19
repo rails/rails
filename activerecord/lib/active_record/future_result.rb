@@ -28,6 +28,12 @@ module ActiveRecord
       execute_query(connection)
     end
 
+    def cancel
+      @pending = false
+      @error = Canceled
+      self
+    end
+
     def execute_or_skip
       return unless pending?
 

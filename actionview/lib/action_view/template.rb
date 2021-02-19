@@ -319,7 +319,16 @@ module ActionView
         # Only locals with valid variable names get set directly. Others will
         # still be available in local_assigns.
         locals = @locals - Module::RUBY_RESERVED_KEYWORDS
-        locals = locals.grep(/\A@?(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
+        deprecated_locals = locals.grep(/\A@+/)
+        if deprecated_locals.any?
+          ActiveSupport::Deprecation.warn(<<~MSG)
+            Passing instance variables to `render` is deprecated.
+            In Rails 7.1, #{deprecated_locals.to_sentence} will be ignored.
+          MSG
+          locals = locals.grep(/\A@?(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
+        else
+          locals = locals.grep(/\A(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
+        end
 
         # Assign for the same variable is to suppress unused variable warning
         locals.each_with_object(+"") { |key, code| code << "#{key} = local_assigns[:#{key}]; #{key} = #{key};" }

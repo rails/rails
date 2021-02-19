@@ -220,59 +220,8 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
       "expected release_advisory_lock to return false when there was no lock to release"
   end
 
-  def test_with_advisory_lock
-    lock_name = "test lock'n'name"
-
-    got_lock = @connection.with_advisory_lock(lock_name) do
-      assert_equal test_lock_free(lock_name), false,
-      "expected the test advisory lock to be held but it wasn't"
-    end
-
-    assert got_lock, "get_advisory_lock should have returned true but it didn't"
-
-    assert test_lock_free(lock_name), "expected the test lock to be available after releasing"
-  end
-
-  def test_with_advisory_lock_with_an_already_existing_lock
-    lock_name = "test lock'n'name"
-
-    with_another_process_holding_lock(lock_name) do
-      assert_equal test_lock_free(lock_name), false, "expected the test advisory lock to be held but it wasn't"
-
-      got_lock = @connection.with_advisory_lock(lock_name) do
-        flunk "lock should not be acquired"
-      end
-
-      assert_equal test_lock_free(lock_name), false, "expected the test advisory lock to be held but it wasn't"
-
-      assert_not got_lock, "get_advisory_lock should have returned false but it didn't"
-    end
-  end
-
   private
     def test_lock_free(lock_name)
       @connection.select_value("SELECT IS_FREE_LOCK(#{@connection.quote(lock_name)})") == 1
-    end
-
-    def with_another_process_holding_lock(lock_id)
-      thread_lock = Concurrent::CountDownLatch.new
-      test_terminated = Concurrent::CountDownLatch.new
-
-      other_process = Thread.new do
-        conn = ActiveRecord::Base.connection_pool.checkout
-        conn.get_advisory_lock(lock_id)
-        thread_lock.count_down
-        test_terminated.wait # hold the lock open until we tested everything
-      ensure
-        conn.release_advisory_lock(lock_id)
-        ActiveRecord::Base.connection_pool.checkin(conn)
-      end
-
-      thread_lock.wait # wait until the 'other process' has the lock
-
-      yield
-
-      test_terminated.count_down
-      other_process.join
     end
 end
