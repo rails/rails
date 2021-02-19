@@ -131,6 +131,12 @@ module ActionController
         render plain: "zomg"
       end
 
+      def write_lines
+        response.stream.writeln "hello"
+        response.stream.writeln "world"
+        response.stream.close
+      end
+
       def default_header
         response.stream.write "<html><body>hi</body></html>"
         response.stream.close
@@ -310,6 +316,11 @@ module ActionController
       get :basic_stream
       assert_equal "helloworld", @response.body
       assert_equal "text/event-stream", @response.headers["Content-Type"]
+    end
+
+    def test_write_lines_to_stream
+      get :write_lines
+      assert_equal "hello\nworld\n", @response.body
     end
 
     def test_send_stream
