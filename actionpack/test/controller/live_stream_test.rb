@@ -132,7 +132,7 @@ module ActionController
       end
 
       def write_lines
-        response.stream.writeln "hello"
+        response.stream.writeln "hello\n"
         response.stream.writeln "world"
         response.stream.close
       end
