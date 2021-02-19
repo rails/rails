@@ -9,9 +9,7 @@ class Hash
   #   a, c = hash.delete_at(:a, :c) # => [ true, nil ]
   #   hash # => { b: false }
   #
-  def delete_at(*keys, &block)
-    block ||= default_proc
-
-    keys.map { |key| delete(key, &block) || default }
+  def delete_at(*keys)
+    keys.map { |key| delete(key) }
   end unless method_defined?(:delete_at)
 end
