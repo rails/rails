@@ -48,7 +48,7 @@ class ActiveStorage::Representations::ProxyControllerWithPreviewsTest < ActionDi
 
     assert_predicate @blob.preview_image, :attached?
 
-    image = read_image(@blob.preview_image.variant(resize: "100x100"))
+    image = read_image(@blob.preview_image.variant(resize: "100x100").processed)
     assert_equal 77, image.width
     assert_equal 100, image.height
   end
