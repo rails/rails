@@ -157,6 +157,44 @@ module ActiveRecord
 
       mattr_accessor :application_record_class, instance_accessor: false, default: nil
 
+      # Sets the async_query_executor for an application. By default the thread pool executor
+      # set to `:immediate. Options are:
+      #
+      #   * :immediate - Initializes a single +Concurrent::ImmediateExecutor+
+      #   * :global_thread_pool - Initializes a single +Concurrent::ThreadPoolExecutor+
+      #   that uses the +async_query_concurrency+ for the +max_threads+ value.
+      #   * :multi_thread_pool - Initializes a +Concurrent::ThreadPoolExecutor+ for each
+      #   database connection. The initializer values are defined in the configuration hash.
+      mattr_accessor :async_query_executor, instance_accessor: false, default: :immediate
+
+      def self.immediate_query_executor # :nodoc:
+        @@immediate_query_executor ||= Concurrent::ImmediateExecutor.new
+      end
+
+      def self.global_thread_pool_async_query_executor # :nodoc:
+        concurrency = global_executor_concurrency || 4
+        @@global_thread_pool_async_query_executor ||= Concurrent::ThreadPoolExecutor.new(
+          min_threads: 0,
+          max_threads: concurrency,
+          max_queue: concurrency * 4,
+          fallback_policy: :caller_runs
+        )
+      end
+
+      # Set the +global_executor_concurrency+. This configuration value can only be used
+      # with the global thread pool async query executor.
+      def self.global_executor_concurrency=(global_executor_concurrency)
+        if async_query_executor == :immediate || async_query_executor == :multi_thread_pool
+          raise ArgumentError, "`global_executor_concurrency` cannot be set when using either immediate or multiple thread pools. For multiple thread pools, please set the concurrency in your database configuration. Immediate thread pools are essentially a no-op."
+        end
+
+        @@global_executor_concurrency = global_executor_concurrency
+      end
+
+      def self.global_executor_concurrency # :nodoc:
+        @@global_executor_concurrency ||= nil
+      end
+
       def self.application_record_class? # :nodoc:
         if Base.application_record_class
           self == Base.application_record_class

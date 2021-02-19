@@ -1,3 +1,17 @@
+*   Allow applications to configure the thread pool for async queries
+
+    Some applications may want one thread pool per database whereas others want to use
+    a single global thread pool for all queries. By default Rails will set `async_query_executor`
+    to `:immediate` and create a `Concurrent::ImmediateExecutor` object which is essentially a no-op.
+    To create one thread pool for all database connections to use applications can set
+    `config.active_record.async_query_executor` to `:global_thread_pool` and optionally define
+    `config.active_record.global_executor_concurrency`. This defaults to 4. For applications that want
+    to have a thread pool for each database connection, `config.active_record.async_query_executor` can
+    be set to `:multi_thread_pool`. The configuration for each thread pool is set in the database
+    configuration.
+
+    *Eileen M. Uchitelle*
+
 *   Allow new syntax for `enum` to avoid leading `_` from reserved options.
 
     Before:

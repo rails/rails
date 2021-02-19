@@ -144,12 +144,7 @@ module ActiveRecord
 
         @lock_thread = false
 
-        @async_executor = Concurrent::ThreadPoolExecutor.new(
-          min_threads: 0,
-          max_threads: @size,
-          max_queue: @size * 4,
-          fallback_policy: :caller_runs
-        )
+        @async_executor = build_async_executor
 
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
@@ -463,6 +458,22 @@ module ActiveRecord
       end
 
       private
+        def build_async_executor
+          case Base.async_query_executor
+          when :multi_thread_pool
+            Concurrent::ThreadPoolExecutor.new(
+              min_threads: @db_config.min_threads,
+              max_threads: @db_config.max_threads,
+              max_queue: @db_config.max_queue,
+              fallback_policy: :caller_runs
+            )
+          when :global_thread_pool
+            Base.global_thread_pool_async_query_executor
+          else
+            Base.immediate_query_executor
+          end
+        end
+
         #--
         # this is unfortunately not concurrent
         def bulk_make_new_connections(num_new_conns_needed)
