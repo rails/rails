@@ -3,6 +3,8 @@
 module ActiveStorage::Streaming
   DEFAULT_BLOB_STREAMING_DISPOSITION = "inline"
 
+  include ActionController::Live
+
   private
     # Stream the blob from storage directly to the response. The disposition can be controlled by setting +disposition+.
     # The content type and filename is set directly from the +blob+.
