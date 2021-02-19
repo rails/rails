@@ -710,12 +710,23 @@ Rails.application.secrets[:smtp_settings][:address]
 
 ### Removed deprecated support to `:text` and `:nothing` in `render`
 
-If your views are using `render :text`, they will no longer work. The new method
+If your controllers are using `render :text`, they will no longer work. The new method
 of rendering text with MIME type of `text/plain` is to use `render :plain`.
 
 Similarly, `render :nothing` is also removed and you should use the `head` method
 to send responses that contain only headers. For example, `head :ok` sends a
 200 response with no body to render.
+
+### Removed deprecated support of `redirect_to :back`
+
+In Rails 5.0, `redirect_to :back` was deprecated. In Rails 5.1, it was removed completely.
+
+As an alternative, use `redirect_back`. It's important to note that `redirect_back` also takes
+a `fallback_location` option which will be used in case the `HTTP_REFERER` is missing.
+
+```
+redirect_back(fallback_location: root_path)
+```
 
 
 Upgrading from Rails 4.2 to Rails 5.0
