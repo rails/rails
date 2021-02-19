@@ -103,7 +103,7 @@ module ActiveRecord
 
         loaders = build_preloaders
         group_and_load_similar(loaders)
-        loaders.map(&:run)
+        loaders.each(&:run)
 
         child_preloaders.each { |reflection, child, parents| build_child_preloader(reflection, child, parents) }
 

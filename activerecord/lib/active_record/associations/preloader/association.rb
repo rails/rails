@@ -11,7 +11,10 @@ module ActiveRecord
             loaders.each { |l| l.set_inverse(record) }
           end
 
-          loaders.each { |l| l.load_records(raw_records) }
+          loaders.each do |loader|
+            loader.load_records(raw_records)
+            loader.run
+          end
         end
 
         def initialize(klass, owners, reflection, preload_scope, associate_by_default = true)
@@ -21,16 +24,14 @@ module ActiveRecord
           @preload_scope = preload_scope
           @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
           @model         = owners.first && owners.first.class
-
-          @already_loaded = owners.all? { |o| o.association(reflection.name).loaded? }
         end
 
         def already_loaded?
-          @already_loaded
+          @already_loaded ||= owners.all? { |o| o.association(reflection.name).loaded? }
         end
 
         def run
-          if @already_loaded
+          if already_loaded?
             fetch_from_preloaded_records
             return self
           end
