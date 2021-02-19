@@ -47,6 +47,11 @@ class DelegatedTypeTest < ActiveRecord::TestCase
     assert Entry.comments.first.comment?
   end
 
+  test "aliased scope" do
+    assert Entry.for_messages.first.message?
+    assert Entry.for_comments.first.comment?
+  end
+
   test "accessor" do
     assert @entry_with_message.message.is_a?(Message)
     assert_nil @entry_with_message.comment

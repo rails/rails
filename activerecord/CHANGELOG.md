@@ -1,3 +1,11 @@
+*   Provide prepended scope name for `delegated_type
+
+    Scopes for entries by type can now be accessed through `Entry.for_type` in addition 
+    to `Entry.type`, which makes clearer that the method returns scoped entries and not
+    the associated type.
+
+    *Roland Studer*
+
 *   Allow applications to configure the thread pool for async queries
 
     Some applications may want one thread pool per database whereas others want to use
