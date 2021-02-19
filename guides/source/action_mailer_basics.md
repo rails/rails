@@ -4,7 +4,7 @@ Action Mailer Basics
 ====================
 
 This guide provides you with all you need to get started in sending
-emails from and to your application, and many internals of Action
+emails from your application, and many internals of Action
 Mailer. It also covers how to test your mailers.
 
 After reading this guide, you will know:
