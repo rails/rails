@@ -1,3 +1,20 @@
+*   Add `ActiveStorage::Streaming` module that can be included in a controller to get access to `#send_blob_stream`,
+    which wraps the new `ActionController::Base#send_stream` method to stream a blob from cloud storage:
+    
+    ```ruby
+    class MyPublicBlobsController < ApplicationController
+      include ActiveStorage::SetBlob, ActiveStorage::Streaming
+      
+      def show
+        http_cache_forever(public: true) do
+          send_blob_stream @blob, disposition: params[:disposition]
+        end
+      end
+    end
+    ```
+    
+    *DHH*
+
 *   Add ability to use pre-defined variants.
 
     ```ruby
