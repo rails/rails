@@ -432,6 +432,27 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_groups_queries_with_same_scope_at_second_level
+    author = nil
+
+    # Expected
+    #   SELECT FROM authors ...
+    #   SELECT FROM posts ... (thinking)
+    #   SELECT FROM posts ... (welcome)
+    #   SELECT FROM comments ... (comments for both welcome and thinking)
+    assert_queries(4) do
+      author = Author
+        .where(name: "David")
+        .includes(thinking_posts: :comments, welcome_posts: :comments)
+        .first
+    end
+
+    assert_no_queries do
+      author.thinking_posts.map(&:comments)
+      author.welcome_posts.map(&:comments)
+    end
+  end
+
   def test_preload_with_grouping_sets_inverse_association
     mary = authors(:mary)
     bob = authors(:bob)
