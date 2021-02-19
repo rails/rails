@@ -1,19 +1,22 @@
 # frozen_string_literal: true
 
 module ActiveStorage::Streaming
+  DEFAULT_BLOB_STREAMING_DISPOSITION = "inline"
+
   private
     # Stream the blob from storage directly to the response. The disposition can be controlled by setting +disposition+.
     # The content type and filename is set directly from the +blob+.
-    def stream_from_storage(blob, disposition: nil) # :doc:
-      response.headers["Content-Type"] = blob.content_type_for_serving
-      response.headers["Content-Disposition"] = ActionDispatch::Http::ContentDisposition.format \
-        disposition: blob.forced_disposition_for_serving || params[:disposition] || disposition || "inline",
-        filename: blob.filename.sanitized
+    def send_blob_stream(blob, disposition: nil)
+      options = {
+        filename: blob.filename.sanitized,
+        disposition: blob.forced_disposition_for_serving || disposition || DEFAULT_BLOB_STREAMING_DISPOSITION,
+        type: blob.content_type_for_serving
+      }
 
-      blob.download do |chunk|
-        response.stream.write chunk
+      send_stream(options) do |stream|
+        blob.download do |chunk|
+          stream.write chunk
+        end
       end
-    ensure
-      response.stream.close
     end
 end

@@ -6,7 +6,7 @@ class ActiveStorage::Blobs::ProxyController < ActiveStorage::BaseController
 
   def show
     http_cache_forever public: true do
-      stream_from_storage @blob
+      send_blob_stream @blob
     end
   end
 end
