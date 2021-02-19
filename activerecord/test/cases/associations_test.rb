@@ -30,7 +30,8 @@ require "models/price_estimate"
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
-           :computers, :people, :readers, :authors, :author_addresses, :author_favorites
+           :computers, :people, :readers, :authors, :author_addresses, :author_favorites,
+           :comments, :posts
 
   def test_eager_loading_should_not_change_count_of_children
     liquid = Liquid.create(name: "salty")
@@ -407,9 +408,27 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_queries(1) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [book, post], associations: :author)
       preloader.call
+    end
 
+    assert_no_queries do
       book.author
       post.author
+    end
+  end
+
+  def test_preload_through
+    comments = [
+      comments(:eager_sti_on_associations_s_comment1),
+      comments(:eager_sti_on_associations_s_comment2),
+    ]
+
+    assert_queries(2) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: comments, associations: [:author, :post])
+      preloader.call
+    end
+
+    assert_no_queries do
+      comments.each(&:author)
     end
   end
 
@@ -423,7 +442,9 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_queries(1) do
       preloader = ActiveRecord::Associations::Preloader.new(records: favorites, associations: [:author, :favorite_author])
       preloader.call
+    end
 
+    assert_no_queries do
       favorites.first.author
       favorites.first.favorite_author
     end
@@ -440,7 +461,9 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_queries(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [post, postesque], associations: :author_with_the_letter_a)
       preloader.call
+    end
 
+    assert_no_queries do
       post.author_with_the_letter_a
       postesque.author_with_the_letter_a
     end
@@ -452,7 +475,9 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_queries(3) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [post, postesque], associations: :author_with_address)
       preloader.call
+    end
 
+    assert_no_queries do
       post.author_with_address
       postesque.author_with_address
     end
@@ -466,7 +491,9 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_queries(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [post, postesque], associations: :author)
       preloader.call
+    end
 
+    assert_no_queries do
       post.author
       postesque.author
     end
