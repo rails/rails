@@ -532,7 +532,7 @@ module ActionDispatch
   #       https!(false)
   #       get "/articles/all"
   #       assert_response :success
-  #       assert_select 'h1', 'Articles'
+  #       assert_dom 'h1', 'Articles'
   #     end
   #   end
   #
@@ -571,7 +571,7 @@ module ActionDispatch
   #         def browses_site
   #           get "/products/all"
   #           assert_response :success
-  #           assert_select 'h1', 'Products'
+  #           assert_dom 'h1', 'Products'
   #         end
   #       end
   #

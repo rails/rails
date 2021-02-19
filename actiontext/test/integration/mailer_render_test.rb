@@ -12,8 +12,8 @@ class ActionText::MailerRenderTest < ActionMailer::TestCase
 
     MessagesMailer.with(recipient: "test", message: message).notification.deliver_now
 
-    assert_select_email do
-      assert_select "#message-content img" do |imgs|
+    assert_dom_email do
+      assert_dom "#message-content img" do |imgs|
         imgs.each { |img| assert_match %r"//hoost/", img["src"] }
       end
     end

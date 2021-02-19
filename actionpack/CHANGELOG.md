@@ -1,15 +1,20 @@
+*   Upgrade `rails-dom-testing` dependency, and rename all `assert_select` calls
+    and documentation mentions with `assert_dom`.
+
+    *Sean Doyle*
+
 *   Add `ActionController::Live#send_stream` that makes it more convenient to send generated streams:
 
     ```ruby
     send_stream(filename: "subscribers.csv") do |stream|
       stream.write "email_address,updated_at\n"
-    
+
       @subscribers.find_each do |subscriber|
         stream.write "#{subscriber.email_address},#{subscriber.updated_at}\n"
       end
     end
     ```
-    
+
     *DHH*
 
 *   `ActionDispatch::Request#content_type` now returned Content-Type header as it is.

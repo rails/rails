@@ -9,7 +9,7 @@ class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
 
     host! "loocalhoost"
     get message_path(message)
-    assert_select "#content img" do |imgs|
+    assert_dom "#content img" do |imgs|
       imgs.each { |img| assert_match %r"//loocalhoost/", img["src"] }
     end
   end
@@ -21,7 +21,7 @@ class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
     host! "loocalhoost"
     get message_path(message, format: :json)
     content = Nokogiri::HTML::DocumentFragment.parse(response.parsed_body["content"])
-    assert_select content, "img:match('src', ?)", %r"//loocalhoost/.+/racecar"
+    assert_dom content, "img:match('src', ?)", %r"//loocalhoost/.+/racecar"
   end
 
   test "resolves partials when controller is namespaced" do
@@ -29,7 +29,7 @@ class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
     message = Message.create!(content: ActionText::Content.new.append_attachables(blob))
 
     get admin_message_path(message)
-    assert_select "#content-html .trix-content .attachment--jpg"
+    assert_dom "#content-html .trix-content .attachment--jpg"
   end
 
   test "resolves ActionText::Attachable based on their to_attachable_partial_path" do
@@ -37,6 +37,6 @@ class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
 
     get messages_path
 
-    assert_select ".mentioned-person", text: alice.name
+    assert_dom ".mentioned-person", text: alice.name
   end
 end

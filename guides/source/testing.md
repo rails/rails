@@ -1041,12 +1041,12 @@ require "test_helper"
 class BlogFlowTest < ActionDispatch::IntegrationTest
   test "can see the welcome page" do
     get "/"
-    assert_select "h1", "Welcome#index"
+    assert_dom "h1", "Welcome#index"
   end
 end
 ```
 
-We will take a look at `assert_select` to query the resulting HTML of a request in the "Testing Views" section below. It is used for testing the response of our request by asserting the presence of key HTML elements and their content.
+We will take a look at `assert_dom` to query the resulting HTML of a request in the "Testing Views" section below. It is used for testing the response of our request by asserting the presence of key HTML elements and their content.
 
 When we visit our root path, we should see `welcome/index.html.erb` rendered for the view. So this assertion should pass.
 
@@ -1064,7 +1064,7 @@ test "can create an article" do
   assert_response :redirect
   follow_redirect!
   assert_response :success
-  assert_select "p", "Title:\n  can create"
+  assert_dom "p", "Title:\n  can create"
 end
 ```
 
@@ -1544,44 +1544,44 @@ For more information on routing assertions available in Rails, see the API docum
 Testing Views
 -------------
 
-Testing the response to your request by asserting the presence of key HTML elements and their content is a common way to test the views of your application. Like route tests, view tests reside in `test/controllers/` or are part of controller tests. The `assert_select` method allows you to query HTML elements of the response by using a simple yet powerful syntax.
+Testing the response to your request by asserting the presence of key HTML elements and their content is a common way to test the views of your application. Like route tests, view tests reside in `test/controllers/` or are part of controller tests. The `assert_dom` method allows you to query HTML elements of the response by using a simple yet powerful syntax.
 
-There are two forms of `assert_select`:
+There are two forms of `assert_dom`:
 
-`assert_select(selector, [equality], [message])` ensures that the equality condition is met on the selected elements through the selector. The selector may be a CSS selector expression (String) or an expression with substitution values.
+`assert_dom(selector, [equality], [message])` ensures that the equality condition is met on the selected elements through the selector. The selector may be a CSS selector expression (String) or an expression with substitution values.
 
-`assert_select(element, selector, [equality], [message])` ensures that the equality condition is met on all the selected elements through the selector starting from the _element_ (instance of `Nokogiri::XML::Node` or `Nokogiri::XML::NodeSet`) and its descendants.
+`assert_dom(element, selector, [equality], [message])` ensures that the equality condition is met on all the selected elements through the selector starting from the _element_ (instance of `Nokogiri::XML::Node` or `Nokogiri::XML::NodeSet`) and its descendants.
 
 For example, you could verify the contents on the title element in your response with:
 
 ```ruby
-assert_select "title", "Welcome to Rails Testing Guide"
+assert_dom "title", "Welcome to Rails Testing Guide"
 ```
 
-You can also use nested `assert_select` blocks for deeper investigation.
+You can also use nested `assert_dom` blocks for deeper investigation.
 
-In the following example, the inner `assert_select` for `li.menu_item` runs
+In the following example, the inner `assert_dom` for `li.menu_item` runs
 within the collection of elements selected by the outer block:
 
 ```ruby
-assert_select "ul.navigation" do
-  assert_select "li.menu_item"
+assert_dom "ul.navigation" do
+  assert_dom "li.menu_item"
 end
 ```
 
-A collection of selected elements may be iterated through so that `assert_select` may be called separately for each element.
+A collection of selected elements may be iterated through so that `assert_dom` may be called separately for each element.
 
 For example if the response contains two ordered lists, each with four nested list elements then the following tests will both pass.
 
 ```ruby
-assert_select "ol" do |elements|
+assert_dom "ol" do |elements|
   elements.each do |element|
-    assert_select element, "li", 4
+    assert_dom element, "li", 4
   end
 end
 
-assert_select "ol" do
-  assert_select "li", 8
+assert_dom "ol" do
+  assert_dom "li", 8
 end
 ```
 
@@ -1593,15 +1593,15 @@ There are more assertions that are primarily used in testing views:
 
 | Assertion                                                 | Purpose |
 | --------------------------------------------------------- | ------- |
-| `assert_select_email`                                     | Allows you to make assertions on the body of an e-mail. |
-| `assert_select_encoded`                                   | Allows you to make assertions on encoded HTML. It does this by un-encoding the contents of each element and then calling the block with all the un-encoded elements.|
+| `assert_dom_email`                                     | Allows you to make assertions on the body of an e-mail. |
+| `assert_dom_encoded`                                   | Allows you to make assertions on encoded HTML. It does this by un-encoding the contents of each element and then calling the block with all the un-encoded elements.|
 | `css_select(selector)` or `css_select(element, selector)` | Returns an array of all the elements selected by the _selector_. In the second variant it first matches the base _element_ and tries to match the _selector_ expression on any of its children. If there are no matches both variants return an empty array.|
 
-Here's an example of using `assert_select_email`:
+Here's an example of using `assert_dom_email`:
 
 ```ruby
-assert_select_email do
-  assert_select "small", "Please click the 'Unsubscribe' link if you want to opt-out."
+assert_dom_email do
+  assert_dom "small", "Please click the 'Unsubscribe' link if you want to opt-out."
 end
 ```
 

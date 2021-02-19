@@ -113,6 +113,7 @@ group :test do
   gem "minitest-bisect"
   gem "minitest-retry"
   gem "minitest-reporters"
+  gem "rails-dom-testing", github: "rails/rails-dom-testing", branch: "master"
 
   platforms :mri do
     gem "stackprof"

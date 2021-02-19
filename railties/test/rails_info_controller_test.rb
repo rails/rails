@@ -33,7 +33,7 @@ class InfoControllerTest < ActionController::TestCase
   test "info controller renders an error message when request was forbidden" do
     @request.env["REMOTE_ADDR"] = "example.org"
     get :properties
-    assert_select "p"
+    assert_dom "p"
   end
 
   test "info controller allows requests when all requests are considered local" do
@@ -48,7 +48,7 @@ class InfoControllerTest < ActionController::TestCase
 
   test "info controller renders a table with properties" do
     get :properties
-    assert_select "table"
+    assert_dom "table"
   end
 
   test "info controller renders with routes" do

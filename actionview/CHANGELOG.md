@@ -1,3 +1,8 @@
+*   Upgrade `rails-dom-testing` dependency, and rename all `assert_select` calls
+    and documentation mentions with `assert_dom`.
+
+    *Sean Doyle*
+
 *   Deprecate `render` locals to be assigned to instance variables.
 
     *Petrik de Heus*
