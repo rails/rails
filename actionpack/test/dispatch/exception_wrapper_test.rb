@@ -75,10 +75,10 @@ module ActionDispatch
     end
 
     test "#framework_trace returns traces outside the application" do
-      exception = TestError.new(caller.prepend("lib/file.rb:42:in `index'"))
+      exception = TestError.new(caller.prepend("lib/file.rb:42:in `index'")) ; original_caller = caller
       wrapper = ExceptionWrapper.new(@cleaner, exception)
 
-      assert_equal caller, wrapper.framework_trace
+      assert_equal original_caller, wrapper.framework_trace
     end
 
     test "#framework_trace cannot be nil" do
