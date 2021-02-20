@@ -190,8 +190,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/pass", headers: { "action_dispatch.show_exceptions" => true }
 
-    assert_dom "h2", /Request/
-    assert_dom "h2", /Response/
+    assert_select "h2", /Request/
+    assert_select "h2", /Response/
   end
 
   test "rescue with diagnostics message" do
@@ -249,7 +249,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
       assert_response 500
       assert_match "Extracted source (around line #", body
-      assert_dom "pre", { count: 0 }, body
+      assert_select "pre", { count: 0 }, body
     end
 
     get "/not_found", headers: xhr_request_env
@@ -336,13 +336,13 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
       get "/not_found", headers: { "action_dispatch.show_exceptions" => true }
       assert_response 404
-      assert_dom("b", /Did you mean\?/)
-      assert_dom("li", "hello")
+      assert_select("b", /Did you mean\?/)
+      assert_select("li", "hello")
 
       get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => true }
       assert_response 400
-      assert_dom("b", /Did you mean\?/)
-      assert_dom("li", "valid_param_key")
+      assert_select("b", /Did you mean\?/)
+      assert_select("li", "valid_param_key")
     end
   end
 
@@ -584,8 +584,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/original_syntax_error", headers: { "action_dispatch.backtrace_cleaner" => ActiveSupport::BacktraceCleaner.new }
 
     assert_response 500
-    assert_dom "#Application-Trace-0" do
-      assert_dom "code", /syntax error, unexpected/
+    assert_select "#Application-Trace-0" do
+      assert_select "code", /syntax error, unexpected/
     end
   end
 
@@ -594,15 +594,15 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/missing_template"
 
-    assert_dom "header h1", /Template is missing/
+    assert_select "header h1", /Template is missing/
 
-    assert_dom "#container h2", /^Missing template/
+    assert_select "#container h2", /^Missing template/
 
-    assert_dom "#Application-Trace-0"
-    assert_dom "#Framework-Trace-0"
-    assert_dom "#Full-Trace-0"
+    assert_select "#Application-Trace-0"
+    assert_select "#Framework-Trace-0"
+    assert_select "#Full-Trace-0"
 
-    assert_dom "h2", /Request/
+    assert_select "h2", /Request/
   end
 
   test "display backtrace when error type is SyntaxError wrapped by ActionView::Template::Error" do
@@ -611,8 +611,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/syntax_error_into_view", headers: { "action_dispatch.backtrace_cleaner" => ActiveSupport::BacktraceCleaner.new }
 
     assert_response 500
-    assert_dom "#Application-Trace-0" do
-      assert_dom "code", /syntax error, unexpected/
+    assert_select "#Application-Trace-0" do
+      assert_select "code", /syntax error, unexpected/
     end
     assert_match %r{Showing <i>.*test/dispatch/debug_exceptions_test.rb</i>}, body
   end
@@ -629,28 +629,28 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
       # Assert correct error
       assert_response 500
-      assert_dom "div.exception-message" do
-        assert_dom "div", /error in framework/
+      assert_select "div.exception-message" do
+        assert_select "div", /error in framework/
       end
 
       # assert source view line is the call to method_that_raises
-      assert_dom "div.source:not(.hidden)" do
-        assert_dom "pre .line.active", /method_that_raises/
+      assert_select "div.source:not(.hidden)" do
+        assert_select "pre .line.active", /method_that_raises/
       end
 
       # assert first source view (hidden) that throws the error
-      assert_dom "div.source" do
-        assert_dom "pre .line.active", /raise StandardError\.new/
+      assert_select "div.source" do
+        assert_select "pre .line.active", /raise StandardError\.new/
       end
 
       # assert application trace refers to line that calls method_that_raises is first
-      assert_dom "#Application-Trace-0" do
-        assert_dom "code a:first", %r{test/dispatch/debug_exceptions_test\.rb:\d+:in `call}
+      assert_select "#Application-Trace-0" do
+        assert_select "code a:first", %r{test/dispatch/debug_exceptions_test\.rb:\d+:in `call}
       end
 
       # assert framework trace that threw the error is first
-      assert_dom "#Framework-Trace-0" do
-        assert_dom "code a:first", /method_that_raises/
+      assert_select "#Framework-Trace-0" do
+        assert_select "code a:first", /method_that_raises/
       end
     end
   end
@@ -682,28 +682,28 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
       # Assert correct error
       assert_response 500
-      assert_dom "div.exception-message" do
-        assert_dom "div", /Third error/
+      assert_select "div.exception-message" do
+        assert_select "div", /Third error/
       end
 
       # assert source view line shows the last error
-      assert_dom "div.source:not(.hidden)" do
-        assert_dom "pre .line.active", /raise "Third error"/
+      assert_select "div.source:not(.hidden)" do
+        assert_select "pre .line.active", /raise "Third error"/
       end
 
       # assert application trace refers to line that raises the last exception
-      assert_dom "#Application-Trace-0" do
-        assert_dom "code a:first", %r{in `rescue in rescue in raise_nested_exceptions'}
+      assert_select "#Application-Trace-0" do
+        assert_select "code a:first", %r{in `rescue in rescue in raise_nested_exceptions'}
       end
 
       # assert the second application trace refers to the line that raises the second exception
-      assert_dom "#Application-Trace-1" do
-        assert_dom "code a:first", %r{in `rescue in raise_nested_exceptions'}
+      assert_select "#Application-Trace-1" do
+        assert_select "code a:first", %r{in `rescue in raise_nested_exceptions'}
       end
 
       # assert the third application trace refers to the line that raises the first exception
-      assert_dom "#Application-Trace-2" do
-        assert_dom "code a:first", %r{in `raise_nested_exceptions'}
+      assert_select "#Application-Trace-2" do
+        assert_select "code a:first", %r{in `raise_nested_exceptions'}
       end
     end
   end
@@ -720,8 +720,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       # Assert correct error
       assert_response 500
 
-      assert_dom 'input[value="Action 1"]'
-      assert_dom 'input[value="Action 2"]'
+      assert_select 'input[value="Action 1"]'
+      assert_select 'input[value="Action 2"]'
     end
   end
 
@@ -752,9 +752,9 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/nil_annoted_source_code_error", headers: { "action_dispatch.show_exceptions" => true, "action_dispatch.logger" => logger }
 
-    assert_dom "header h1", /DebugExceptionsTest::Boomer::NilAnnotedSourceCodeError/
-    assert_dom "#container div.exception-message" do
-      assert_dom "div", /nil annoted_source_code/
+    assert_select "header h1", /DebugExceptionsTest::Boomer::NilAnnotedSourceCodeError/
+    assert_select "#container div.exception-message" do
+      assert_select "div", /nil annoted_source_code/
     end
   end
 
@@ -767,7 +767,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/utf8_template_error", headers: { "action_dispatch.logger" => logger }
 
     assert_response 500
-    assert_dom "#container p", /Showing #{__FILE__} where line #\d+ raised/
-    assert_dom "#container code", /undefined local variable or method `string”'/
+    assert_select "#container p", /Showing #{__FILE__} where line #\d+ raised/
+    assert_select "#container code", /undefined local variable or method `string”'/
   end
 end

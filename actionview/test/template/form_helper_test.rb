@@ -2238,7 +2238,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.date_select(:written_on)
     end
 
-    assert_dom "select#namespace_post_written_on_1i"
+    assert_select "select#namespace_post_written_on_1i"
   end
 
   def test_form_for_with_namespace_with_label

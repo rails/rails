@@ -21,15 +21,6 @@ GIT
       websocket
 
 GIT
-  remote: https://github.com/rails/rails-dom-testing.git
-  revision: 267487e20588d3848def3f8a3663fba5b740c9da
-  branch: master
-  specs:
-    rails-dom-testing (2.0.3)
-      activesupport (>= 5.0.0)
-      nokogiri (>= 1.6)
-
-GIT
   remote: https://github.com/resque/redis-namespace.git
   revision: c31e63dc3cd5e59ef5ea394d4d46ac60d1e6f82e
   specs:
@@ -397,7 +388,6 @@ GEM
       thor
     raabro (1.4.0)
     racc (1.5.2)
-    racc (1.5.2-java)
     rack (2.2.3)
     rack-cache (1.12.1)
       rack (>= 0.4)
@@ -407,6 +397,9 @@ GEM
       rack
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
+    rails-dom-testing (2.0.3)
+      activesupport (>= 4.2.0)
+      nokogiri (>= 1.6)
     rails-html-sanitizer (1.3.0)
       loofah (~> 2.3)
     rainbow (3.0.0)
@@ -560,8 +553,6 @@ GEM
     websocket (1.2.9)
     websocket-driver (0.7.3)
       websocket-extensions (>= 0.1.0)
-    websocket-driver (0.7.3-java)
-      websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
     xpath (3.2.0)
       nokogiri (~> 1.8)
@@ -615,7 +606,6 @@ DEPENDENCIES
   racc (>= 1.4.6)
   rack-cache (~> 1.2)
   rails!
-  rails-dom-testing!
   rake (>= 11.1)
   redcarpet (~> 3.2.3)
   redis (~> 4.0)

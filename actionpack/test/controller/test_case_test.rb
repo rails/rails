@@ -200,17 +200,17 @@ XML
     end
   end
 
-  def test_assert_dom_without_body
+  def test_assert_select_without_body
     get :test_without_body
 
-    assert_dom "body", 0
-    assert_dom "div.foo"
+    assert_select "body", 0
+    assert_select "div.foo"
   end
 
-  def test_assert_dom_with_body
+  def test_assert_select_with_body
     get :test_with_body
 
-    assert_dom "body.foo"
+    assert_select "body.foo"
   end
 
   def test_url_options_reset
@@ -407,9 +407,9 @@ XML
     if defined?(JRUBY_VERSION)
       # https://github.com/sparklemotion/nokogiri/issues/1653
       # HTML parser "fixes" "broken" markup in slightly different ways
-      assert_dom "root > map > area + p"
+      assert_select "root > map > area + p"
     else
-      assert_dom "root > area + p"
+      assert_select "root > area + p"
     end
   end
 
@@ -417,7 +417,7 @@ XML
     process :test_xml_output, params: { response_as: "application/xml" }
 
     # <area> is not special, so the <p> is its child
-    assert_dom "root > area > p"
+    assert_select "root > area > p"
   end
 
   def test_assert_generates

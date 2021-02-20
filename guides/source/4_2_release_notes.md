@@ -259,9 +259,9 @@ be maintained for Rails 5.0.
 See [this blog post](http://blog.plataformatec.com.br/2014/07/the-new-html-sanitizer-in-rails-4-2/)
 for more details on the changes in the new sanitizer.
 
-### `assert_dom`
+### `assert_select`
 
-`assert_dom` is now based on [Nokogiri](https://github.com/sparklemotion/nokogiri).
+`assert_select` is now based on [Nokogiri](https://github.com/sparklemotion/nokogiri).
 As a result, some previously-valid selectors are now unsupported. If your
 application is using any of these spellings, you will need to update them:
 
@@ -287,14 +287,14 @@ application is using any of these spellings, you will need to update them:
     # content: <div><i><p></i></div>
 
     # before:
-    assert_dom('div > i')  # => true
-    assert_dom('div > p')  # => false
-    assert_dom('i > p')    # => true
+    assert_select('div > i')  # => true
+    assert_select('div > p')  # => false
+    assert_select('i > p')    # => true
 
     # now:
-    assert_dom('div > i')  # => true
-    assert_dom('div > p')  # => true
-    assert_dom('i > p')    # => false
+    assert_select('div > i')  # => true
+    assert_select('div > p')  # => true
+    assert_select('i > p')    # => false
     ```
 
 *   If the data selected contains entities, the value selected for comparison
@@ -305,12 +305,12 @@ application is using any of these spellings, you will need to update them:
     # content: <p>AT&amp;T</p>
 
     # before:
-    assert_dom('p', 'AT&amp;T')  # => true
-    assert_dom('p', 'AT&T')      # => false
+    assert_select('p', 'AT&amp;T')  # => true
+    assert_select('p', 'AT&T')      # => false
 
     # now:
-    assert_dom('p', 'AT&T')      # => true
-    assert_dom('p', 'AT&amp;T')  # => false
+    assert_select('p', 'AT&T')      # => true
+    assert_select('p', 'AT&amp;T')  # => false
     ```
 
 Furthermore substitutions have changed syntax.
@@ -318,14 +318,14 @@ Furthermore substitutions have changed syntax.
 Now you have to use a `:match` CSS-like selector:
 
 ```ruby
-assert_dom ":match('id', ?)", 'comment_1'
+assert_select ":match('id', ?)", 'comment_1'
 ```
 
 Additionally Regexp substitutions look different when the assertion fails.
 Notice how `/hello/` here:
 
 ```ruby
-assert_dom(":match('id', ?)", /hello/)
+assert_select(":match('id', ?)", /hello/)
 ```
 
 becomes `"(?-mix:hello)"`:
@@ -335,7 +335,7 @@ Expected at least 1 element matching "div:match('id', "(?-mix:hello)")", found 0
 Expected 0 to be >= 1.
 ```
 
-See the [Rails Dom Testing](https://github.com/rails/rails-dom-testing/tree/8798b9349fb9540ad8cb9a0ce6cb88d1384a210b) documentation for more on `assert_dom`.
+See the [Rails Dom Testing](https://github.com/rails/rails-dom-testing/tree/8798b9349fb9540ad8cb9a0ce6cb88d1384a210b) documentation for more on `assert_select`.
 
 
 Railties
@@ -460,7 +460,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Commit](https://github.com/rails/rails/commit/aa1fadd48fb40dd9396a383696134a259aa59db9))
 
 *   Deprecated `assert_tag`, `assert_no_tag`, `find_tag` and `find_all_tag` in
-    favor of `assert_dom`.
+    favor of `assert_select`.
     ([Commit](https://github.com/rails/rails-dom-testing/commit/b12850bc5ff23ba4b599bf2770874dd4f11bf750))
 
 *   Deprecated support for setting the `:to` option of a router to a symbol or a
