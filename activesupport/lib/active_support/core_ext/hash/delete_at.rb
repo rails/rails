@@ -10,6 +10,6 @@ class Hash
   #   hash # => { b: false }
   #
   def delete_at(*keys)
-    keys.map { |key| delete(key) }
+    keys.map! { |key| delete(key) }
   end unless method_defined?(:delete_at)
 end
