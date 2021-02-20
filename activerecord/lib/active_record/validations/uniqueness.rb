@@ -43,6 +43,7 @@ module ActiveRecord
         if relation.exists?
           error_options = options.except(:case_sensitive, :scope, :conditions)
           error_options[:value] = value
+          error_options[:relation] = relation
 
           record.errors.add(attribute, :taken, **error_options)
         end
@@ -150,6 +151,15 @@ module ActiveRecord
       # record exists in the database with the given value for the specified
       # attribute (that maps to a column). When the record is updated,
       # the same check is made but disregarding the record itself.
+      #
+      # The results of this check are available via a custom error message
+      #
+      #   class Article < ActiveRecord::Base
+      #     validates_uniqueness_of :title, message: ->(object, data) {
+      #       "has already been taken by %s" % [ data[:relation].pluck(:id).to_sentence ]
+      #     }
+      #   end
+      #
       #
       # Configuration options:
       #
