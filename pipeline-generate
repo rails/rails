@@ -77,7 +77,7 @@ end
 
 ONE_RUBY = RUBIES.last || SOFT_FAIL.last
 
-MASTER_RUBY = "rubylang/ruby:master-nightly-bionic"
+MASTER_RUBY = "rubylang/ruby:master-nightly-focal"
 SOFT_FAIL << MASTER_RUBY
 
 # Run steps for newer Rubies first.
