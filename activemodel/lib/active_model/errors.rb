@@ -65,8 +65,8 @@ module ActiveModel
     extend Forwardable
     def_delegators :@errors, :size, :clear, :blank?, :empty?, :uniq!, :any?
     # TODO: forward all enumerable methods after `each` deprecation is removed.
-    def_delegators :@errors, :count
-
+    def_delegators :@errors, :count, :relation
+    
     LEGACY_ATTRIBUTES = [:messages, :details].freeze
     private_constant :LEGACY_ATTRIBUTES
 
