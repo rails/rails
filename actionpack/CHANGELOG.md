@@ -2,14 +2,18 @@
 
     ```ruby
     send_stream(filename: "subscribers.csv") do |stream|
-      stream.write "email_address,updated_at\n"
+      stream.writeln "email_address,updated_at"
     
       @subscribers.find_each do |subscriber|
-        stream.write "#{subscriber.email_address},#{subscriber.updated_at}\n"
+        stream.writeln [ subscriber.email_address, subscriber.updated_at ].join(",")
       end
     end
     ```
     
+    *DHH*
+
+*   Add `ActionController::Live::Buffer#writeln` to write a line to the stream with a newline included.
+
     *DHH*
 
 *   `ActionDispatch::Request#content_type` now returned Content-Type header as it is.

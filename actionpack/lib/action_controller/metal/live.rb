@@ -163,6 +163,11 @@ module ActionController
         end
       end
 
+      # Same as +write+ but automatically include a newline at the end of the string.
+      def writeln(string)
+        write string.end_with?("\n") ? string : "#{string}\n"
+      end
+
       # Write a 'close' event to the buffer; the producer/writing thread
       # uses this to notify us that it's finished supplying content.
       #
