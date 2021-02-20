@@ -98,10 +98,14 @@ So if you have a file called `app/javascript/packs/application.js`, Webpacker wi
 The default pack created for you by Webpacker will link to Rails default JavaScript packages if they have been included in the project:
 
 ```
-require("@rails/ujs").start()
-require("turbolinks").start()
-require("@rails/activestorage").start()
-require("channels")
+import Rails from "@rails/ujs"
+import Turbolinks from "turbolinks"
+import * as ActiveStorage from "@rails/activestorage"
+import "channels"
+
+Rails.start()
+Turbolinks.start()
+ActiveStorage.start()
 ```
 
 You'll need to include a pack that requires these packages to use them in your Rails application.
