@@ -16,8 +16,8 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
            :taggings, :tags, :people
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
-    result = Author.joins(:thinking_posts, :welcome_posts).to_a
-    assert_equal authors(:david), result.first
+    result = Author.joins(:thinking_posts, :welcome_posts).first
+    assert_equal authors(:david), result
   end
 
   def test_construct_finder_sql_does_not_table_name_collide_on_duplicate_associations
