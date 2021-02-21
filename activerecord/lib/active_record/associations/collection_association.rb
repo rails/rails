@@ -338,7 +338,7 @@ module ActiveRecord
 
         def _create_record(attributes, raise = false, &block)
           unless owner.persisted?
-            raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
+            raise ActiveRecord::RecordNotSaved.new("You cannot call create unless the parent is saved", owner)
           end
 
           if attributes.is_a?(Array)

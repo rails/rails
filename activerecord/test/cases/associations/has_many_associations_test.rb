@@ -1034,21 +1034,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_with_bang_on_has_many_when_parent_is_new_raises
+    firm = Firm.new
     error = assert_raise(ActiveRecord::RecordNotSaved) do
-      firm = Firm.new
       firm.plain_clients.create! name: "Whoever"
     end
 
     assert_equal "You cannot call create unless the parent is saved", error.message
+    assert_equal firm, error.record
   end
 
   def test_regular_create_on_has_many_when_parent_is_new_raises
+    firm = Firm.new
     error = assert_raise(ActiveRecord::RecordNotSaved) do
-      firm = Firm.new
       firm.plain_clients.create name: "Whoever"
     end
 
     assert_equal "You cannot call create unless the parent is saved", error.message
+    assert_equal firm, error.record
   end
 
   def test_create_with_bang_on_has_many_raises_when_record_not_saved
@@ -1059,11 +1061,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_with_bang_on_habtm_when_parent_is_new_raises
+    developer = Developer.new("name" => "Aredridel")
     error = assert_raise(ActiveRecord::RecordNotSaved) do
-      Developer.new("name" => "Aredridel").projects.create!
+      developer.projects.create!
     end
 
     assert_equal "You cannot call create unless the parent is saved", error.message
+    assert_equal developer, error.record
   end
 
   def test_adding_a_mismatch_class

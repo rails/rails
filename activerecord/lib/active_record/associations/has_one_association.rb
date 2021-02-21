@@ -70,7 +70,7 @@ module ActiveRecord
                 if save && !record.save
                   nullify_owner_attributes(record)
                   set_owner_attributes(target) if target
-                  raise RecordNotSaved, "Failed to save the new associated #{reflection.name}."
+                  raise RecordNotSaved.new("Failed to save the new associated #{reflection.name}.", record)
                 end
               end
             end
@@ -102,8 +102,11 @@ module ActiveRecord
 
             if target.persisted? && owner.persisted? && !target.save
               set_owner_attributes(target)
-              raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " \
-                                    "The record failed to save after its foreign key was set to nil."
+              raise RecordNotSaved.new(
+                "Failed to remove the existing associated #{reflection.name}. " \
+                "The record failed to save after its foreign key was set to nil.",
+                target
+              )
             end
           end
         end
@@ -122,7 +125,7 @@ module ActiveRecord
 
         def _create_record(attributes, raise_error = false, &block)
           unless owner.persisted?
-            raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
+            raise ActiveRecord::RecordNotSaved.new("You cannot call create unless the parent is saved", owner)
           end
 
           super
