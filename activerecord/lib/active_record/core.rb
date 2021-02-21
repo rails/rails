@@ -158,7 +158,7 @@ module ActiveRecord
       mattr_accessor :application_record_class, instance_accessor: false, default: nil
 
       # Sets the async_query_executor for an application. By default the thread pool executor
-      # set to `:immediate. Options are:
+      # set to +:immediate+. Options are:
       #
       #   * :immediate - Initializes a single +Concurrent::ImmediateExecutor+
       #   * :global_thread_pool - Initializes a single +Concurrent::ThreadPoolExecutor+
