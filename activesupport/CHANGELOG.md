@@ -1,3 +1,7 @@
+*   Fix proxying keyword arguments in `ActiveSupport::CurrentAttributes`.
+
+    *Marcin Kołodziej*
+
 *   Add `Enumerable#maximum` and `Enumerable#minimum` to easily calculate the maximum or minimum from extracted
     elements of an enumerable.
 

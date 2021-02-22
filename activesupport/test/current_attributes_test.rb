@@ -31,6 +31,13 @@ class CurrentAttributesTest < ActiveSupport::TestCase
       Session.current = person&.id
     end
 
+    def set_world_and_account(world:, account:)
+      self.world = world
+      self.account = account
+    end
+
+    def respond_to_test; end
+
     def request
       "#{super} something"
     end
@@ -126,6 +133,13 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     assert_equal "account/1", Current.account
   end
 
+  test "using keyword arguments" do
+    Current.set_world_and_account(world: "world/1", account: "account/1")
+
+    assert_equal "world/1", Current.world
+    assert_equal "account/1", Current.account
+  end
+
   setup { @testing_teardown = false }
   teardown { assert_equal 42, Session.current if @testing_teardown }
 
@@ -144,5 +158,9 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     Current.person = Person.new(42, "David", "Central Time (US & Canada)")
     assert_equal "David, in Central Time (US & Canada)", Current.intro
     assert_equal "David, in Central Time (US & Canada)", Current.instance.intro
+  end
+
+  test "respond_to? for methods that have not been called" do
+    assert_equal true, Current.respond_to?("respond_to_test")
   end
 end
