@@ -1,3 +1,13 @@
+*   Add `Cache#fetch_with_deferred_update` to allow out-of-band updates of cache values.
+
+    ```ruby
+    Rails.cache.fetch_with_deferred_update(cache_key, race_condition_ttl: 5.minutes) do
+      HeavyComputationJob.perform_later cache_key
+    end
+    ```
+
+    *Erik Brännström*
+
 *   Add `Enumerable#maximum` and `Enumerable#minimum` to easily calculate the maximum or minimum from extracted
     elements of an enumerable.
 

@@ -327,16 +327,7 @@ module ActiveSupport
       def fetch(name, options = nil, &block)
         if block_given?
           options = merged_options(options)
-          key = normalize_key(name, options)
-
-          entry = nil
-          instrument(:read, name, options) do |payload|
-            cached_entry = read_entry(key, **options, event: payload) unless options[:force]
-            entry = handle_expired_entry(cached_entry, key, options)
-            entry = nil if entry && entry.mismatched?(normalize_version(name, options))
-            payload[:super_operation] = :fetch if payload
-            payload[:hit] = !!entry if payload
-          end
+          entry = fetch_entry(name, options, operation: :fetch)
 
           if entry
             get_entry_value(entry, name, options)
@@ -348,6 +339,58 @@ module ActiveSupport
         else
           read(name, options)
         end
+      end
+
+      # Fetches data from the cache, using the given key. If there is unexpired
+      # data in the cache with the given key, then that data is returned.
+      # The method requires a block and the option <tt>:race_condition_ttl</tt>
+      # to be set.
+      #
+      # If there is no such data in the cache (a cache miss), then +nil+ is
+      # returned. In case a cache value has expired, the cache expiration time
+      # is bumped by the time specified by <tt>:race_condition_ttl</tt>, the
+      # block is called with the cache key as an argument, and the stale data
+      # isreturned.
+      #
+      # Unlike +fetch+, the return value of the block will not be used by the
+      # method. Instead the block is responsible for updating the cache
+      # out-of-band. <tt>:race_condition_ttl</tt> should therefore be set to a
+      # duration long enough to ensure the update has time to complete before
+      # the data expires for good.
+      #
+      #   cache.write('today', 'Monday', expires_in: 5.minutes)
+      #
+      #   # 6 minutes later:
+      #   cache.fetch_with_deferred_update('today', race_condition_ttl: 2.minutes) {}  # => "Monday"
+      #
+      #   # Another 3 minutes later:
+      #   cache.fetch_with_deferred_update('today', race_condition_ttl: 2.minutes) {}  # => nil
+      #
+      # The most basic approach would be to use `write` in the block, but that
+      # is normally a case better handled by `fetch`. Instead, the recommended
+      # way to use the block is to start a background job for expensive
+      # calculations and cache the updated value at the end of that job.
+      #
+      #   cache.fetch_with_deferred_update('expensive_value', race_condition_ttl: 5.minutes) do |key|
+      #     HeavyComputationJob.perform_later key
+      #   end
+      #
+      # The method also supports any additional options specified by +fetch+.
+      def fetch_with_deferred_update(name, options = nil, &block)
+        unless block_given?
+          raise ArgumentError, "Missing block: Calling `Cache#fetch_with_deferred_update` requires a block."
+        end
+
+        options = merged_options(options)
+        unless options[:race_condition_ttl]
+          raise ArgumentError, "Missing argument: Calling `Cache#fetch_with_deferred_update` requires `race_condition_ttl` option to be set."
+        end
+
+        entry = fetch_entry(name, options, operation: :fetch_with_deferred_update, return_stale_entry: true)
+
+        yield(name)
+
+        get_entry_value(entry, name, options) if entry
       end
 
       # Reads data from the cache, using the given key. If there is data in
@@ -599,6 +642,21 @@ module ActiveSupport
           payload.nil? ? nil : @coder.load(payload)
         end
 
+        def fetch_entry(name, options, operation:, return_stale_entry: false)
+          key = normalize_key(name, options)
+
+          entry = nil
+          instrument(:read, name, options) do |payload|
+            cached_entry = read_entry(key, **options, event: payload) unless options[:force]
+            entry = handle_expired_entry(cached_entry, key, options, return_stale_entry: return_stale_entry)
+            entry = nil if entry && entry.mismatched?(normalize_version(name, options))
+            payload[:super_operation] = operation if payload
+            payload[:hit] = !!entry if payload
+          end
+
+          entry
+        end
+
         # Reads multiple entries from the cache implementation. Subclasses MAY
         # implement this method.
         def read_multi_entries(names, **options)
@@ -739,7 +797,7 @@ module ActiveSupport
           ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) { yield(payload) }
         end
 
-        def handle_expired_entry(entry, key, options)
+        def handle_expired_entry(entry, key, options, return_stale_entry: false)
           if entry && entry.expired?
             race_ttl = options[:race_condition_ttl].to_i
             if (race_ttl > 0) && (Time.now.to_f - entry.expires_at <= race_ttl)
@@ -747,10 +805,11 @@ module ActiveSupport
               # for a brief period while the entry is being recalculated.
               entry.expires_at = Time.now + race_ttl
               write_entry(key, entry, expires_in: race_ttl * 2)
+              entry = nil unless return_stale_entry
             else
               delete_entry(key, **options)
+              entry = nil
             end
-            entry = nil
           end
           entry
         end
