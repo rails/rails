@@ -44,6 +44,18 @@ module ActionDispatch
       assert_equal "foo", uf.headers
     end
 
+    def test_headers_should_be_in_utf_8
+      uf = Http::UploadedFile.new(filename: "foo", head: "foo", tempfile: Tempfile.new)
+      assert_equal "UTF-8", uf.headers.encoding.to_s
+    end
+
+    def test_headers_should_always_be_in_utf_8
+      uf = Http::UploadedFile.new(filename: "foo",
+                                  head: "\xC3foo".dup.force_encoding(Encoding::ASCII_8BIT),
+                                  tempfile: Tempfile.new)
+      assert_equal "UTF-8", uf.headers.encoding.to_s
+    end
+
     def test_tempfile
       tf = Tempfile.new
       uf = Http::UploadedFile.new(tempfile: tf)
