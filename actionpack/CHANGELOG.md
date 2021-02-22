@@ -26,6 +26,11 @@
 
     The `ActionDispatch::Session::MemcacheStore` is still vulnerable given it requires the
     gem dalli to be updated as well.
+    
+    _Breaking changes:_
+    *   `session.id` now returns an instance of `Rack::Session::SessionId` and not a String (use `session.id.public_id` to restore the old behaviour, see #38063)
+    *   Accessing the session id using `session[:session_id]`/`session['session_id']` no longer works with
+        ruby 2.2 (see https://github.com/rails/rails/commit/2a52a38cb51b65d71cf91fc960777213cf96f962#commitcomment-37929811)
 
     CVE-2019-16782.
 
