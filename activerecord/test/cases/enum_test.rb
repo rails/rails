@@ -84,6 +84,8 @@ class EnumTest < ActiveRecord::TestCase
   test "build from scope" do
     assert_predicate Book.written.build, :written?
     assert_not_predicate Book.written.build, :proposed?
+    assert_predicate PublishedBook.hard.build, :hard?
+    assert_not_predicate PublishedBook.hard.build, :soft?
   end
 
   test "build from where" do
