@@ -2546,7 +2546,7 @@ module ActionView
         end
 
         formmethod = options[:formmethod]
-        if /(post|get)/i.match(formmethod).nil? && formmethod.present? && !options.key?(:name) && !options.key?(:value)
+        if formmethod.present? && !/post|get/i.match?(formmethod) && !options.key?(:name) && !options.key?(:value)
           options.merge! formmethod: :post, name: "_method", value: formmethod
         end
 
