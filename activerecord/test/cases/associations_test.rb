@@ -416,6 +416,25 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_grouped_queries_of_middle_records
+    comments = [
+      comments(:eager_sti_on_associations_s_comment1),
+      comments(:eager_sti_on_associations_s_comment2),
+    ]
+
+    assert_queries(2) do
+      ActiveRecord::Associations::Preloader.new(records: comments, associations: [:author, :ordinary_post]).call
+    end
+  end
+
+  def test_preload_grouped_queries_of_through_records
+    author = authors(:david)
+
+    assert_queries(3) do
+      ActiveRecord::Associations::Preloader.new(records: [author], associations: [:hello_post_comments, :comments]).call
+    end
+  end
+
   def test_preload_through
     comments = [
       comments(:eager_sti_on_associations_s_comment1),

@@ -33,6 +33,10 @@ module ActiveRecord
           loaders.all?(&:run?)
         end
 
+        def runnable_loaders
+          loaders.flat_map(&:runnable_loaders).reject(&:run?)
+        end
+
         def grouped_records
           h = {}
           source_records.each do |record|

@@ -31,6 +31,10 @@ module ActiveRecord
           @already_loaded ||= owners.all? { |o| o.association(reflection.name).loaded? }
         end
 
+        def runnable_loaders
+          [self]
+        end
+
         def run?
           @run
         end
