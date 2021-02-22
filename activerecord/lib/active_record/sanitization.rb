@@ -19,11 +19,11 @@ module ActiveRecord
       #
       #   sanitize_sql_for_conditions("name='foo''bar' and group_id='4'")
       #   # => "name='foo''bar' and group_id='4'"
-      def sanitize_sql_for_conditions(condition)
+      def sanitize_sql_for_conditions(condition, quoted_string_delimiter: nil)
         return nil if condition.blank?
 
         case condition
-        when Array; sanitize_sql_array(condition)
+        when Array; sanitize_sql_array(condition, quoted_string_delimiter: quoted_string_delimiter)
         else        condition
         end
       end
@@ -82,12 +82,12 @@ module ActiveRecord
       #
       #   sanitize_sql_hash_for_assignment({ status: nil, group_id: 1 }, "posts")
       #   # => "`posts`.`status` = NULL, `posts`.`group_id` = 1"
-      def sanitize_sql_hash_for_assignment(attrs, table)
+      def sanitize_sql_hash_for_assignment(attrs, table, quoted_string_delimiter: nil)
         c = connection
         attrs.map do |attr, value|
           type = type_for_attribute(attr)
           value = type.serialize(type.cast(value))
-          "#{c.quote_table_name_for_assignment(table, attr)} = #{c.quote(value)}"
+          "#{c.quote_table_name_for_assignment(table, attr)} = #{c.quote(value, quoted_string_delimiter: quoted_string_delimiter)}"
         end.join(", ")
       end
 
@@ -121,12 +121,12 @@ module ActiveRecord
       #
       #   sanitize_sql_array(["name='%s' and group_id='%s'", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id='4'"
-      def sanitize_sql_array(ary)
+      def sanitize_sql_array(ary, quoted_string_delimiter: nil)
         statement, *values = ary
         if values.first.is_a?(Hash) && /:\w+/.match?(statement)
-          replace_named_bind_variables(statement, values.first)
+          replace_named_bind_variables(statement, values.first, quoted_string_delimiter: quoted_string_delimiter)
         elsif statement.include?("?")
-          replace_bind_variables(statement, values)
+          replace_bind_variables(statement, values, quoted_string_delimiter: quoted_string_delimiter)
         elsif statement.blank?
           statement
         else
@@ -150,24 +150,24 @@ module ActiveRecord
       end
 
       private
-        def replace_bind_variables(statement, values)
+        def replace_bind_variables(statement, values, quoted_string_delimiter: nil)
           raise_if_bind_arity_mismatch(statement, statement.count("?"), values.size)
           bound = values.dup
           c = connection
           statement.gsub(/\?/) do
-            replace_bind_variable(bound.shift, c)
+            replace_bind_variable(bound.shift, c, quoted_string_delimiter: quoted_string_delimiter)
           end
         end
 
-        def replace_bind_variable(value, c = connection)
+        def replace_bind_variable(value, c = connection, quoted_string_delimiter: nil)
           if ActiveRecord::Relation === value
             value.to_sql
           else
-            quote_bound_value(value, c)
+            quote_bound_value(value, c, quoted_string_delimiter: quoted_string_delimiter)
           end
         end
 
-        def replace_named_bind_variables(statement, bind_vars)
+        def replace_named_bind_variables(statement, bind_vars, quoted_string_delimiter: nil)
           statement.gsub(/(:?):([a-zA-Z]\w*)/) do |match|
             if $1 == ":" # skip postgresql casts
               match # return the whole match
@@ -179,17 +179,17 @@ module ActiveRecord
           end
         end
 
-        def quote_bound_value(value, c = connection)
+        def quote_bound_value(value, c = connection, quoted_string_delimiter: nil)
           if value.respond_to?(:map) && !value.acts_like?(:string)
             values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
             if values.empty?
               c.quote(nil)
             else
-              values.map! { |v| c.quote(v) }.join(",")
+              values.map! { |v| c.quote(v, quoted_string_delimiter: quoted_string_delimiter) }.join(",")
             end
           else
             value = value.id_for_database if value.respond_to?(:id_for_database)
-            c.quote(value)
+            c.quote(value, quoted_string_delimiter: quoted_string_delimiter)
           end
         end
 
