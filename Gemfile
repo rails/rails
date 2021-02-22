@@ -76,7 +76,7 @@ group :cable do
   gem "hiredis", require: false
   gem "redis", "~> 4.0", require: false
 
-  gem "redis-namespace", github: "resque/redis-namespace"
+  gem "redis-namespace"
 
   gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
 end

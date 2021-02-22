@@ -20,13 +20,6 @@ GIT
       event_emitter
       websocket
 
-GIT
-  remote: https://github.com/resque/redis-namespace.git
-  revision: c31e63dc3cd5e59ef5ea394d4d46ac60d1e6f82e
-  specs:
-    redis-namespace (1.8.0)
-      redis (>= 3.0.4)
-
 PATH
   remote: .
   specs:
@@ -410,6 +403,8 @@ GEM
     rdoc (6.3.0)
     redcarpet (3.2.3)
     redis (4.2.5)
+    redis-namespace (1.8.1)
+      redis (>= 3.0.4)
     regexp_parser (1.8.2)
     representable (3.0.4)
       declarative (< 0.1.0)
@@ -553,6 +548,8 @@ GEM
     websocket (1.2.9)
     websocket-driver (0.7.3)
       websocket-extensions (>= 0.1.0)
+    websocket-driver (0.7.3-java)
+      websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
     xpath (3.2.0)
       nokogiri (~> 1.8)
@@ -609,7 +606,7 @@ DEPENDENCIES
   rake (>= 11.1)
   redcarpet (~> 3.2.3)
   redis (~> 4.0)
-  redis-namespace!
+  redis-namespace
   resque
   resque-scheduler
   rexml
