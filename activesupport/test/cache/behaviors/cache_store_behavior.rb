@@ -156,6 +156,13 @@ module CacheStoreBehavior
     assert_equal(%w(foo bar bam), values.keys)
   end
 
+  def test_fetch_multi_force_writes_all_values
+    @cache.write("key1", "value")
+    values = @cache.fetch_multi("key1", "key2", force: true) { |key| key.upcase }
+    assert_equal("KEY1", @cache.read("key1"))
+    assert_equal("KEY2", @cache.read("key2"))
+  end
+
   def test_fetch_multi_without_block
     assert_raises(ArgumentError) do
       @cache.fetch_multi("foo")

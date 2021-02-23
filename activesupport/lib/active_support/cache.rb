@@ -456,19 +456,25 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        instrument :read_multi, names, options do |payload|
-          reads   = read_multi_entries(names, **options)
-          writes  = {}
-          ordered = names.index_with do |name|
-            reads.fetch(name) { writes[name] = yield(name) }
+        if options[:force]
+          writes = names.each_with_object({}) { |name, hsh| hsh[name] = yield(name) }
+          write_multi(writes)
+          writes
+        else
+          instrument :read_multi, names, options do |payload|
+            reads   = read_multi_entries(names, **options)
+            writes  = {}
+            ordered = names.index_with do |name|
+              reads.fetch(name) { writes[name] = yield(name) }
+            end
+
+            payload[:hits] = reads.keys
+            payload[:super_operation] = :fetch_multi
+
+            write_multi(writes, options)
+
+            ordered
           end
-
-          payload[:hits] = reads.keys
-          payload[:super_operation] = :fetch_multi
-
-          write_multi(writes, options)
-
-          ordered
         end
       end
 
