@@ -525,7 +525,7 @@ module ActiveRecord
 
         # Returns an ActiveRecord::Result instance.
         def select(sql, name = nil, binds = [], prepare: false, async: false)
-          if async
+          if async && async_enabled?
             if current_transaction.joinable?
               raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
             end
@@ -544,6 +544,7 @@ module ActiveRecord
             end
             return future_result
           end
+
           exec_query(sql, name, binds, prepare: prepare)
         end
 

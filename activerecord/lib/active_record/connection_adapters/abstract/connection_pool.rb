@@ -469,8 +469,6 @@ module ActiveRecord
             )
           when :global_thread_pool
             Base.global_thread_pool_async_query_executor
-          else
-            Base.immediate_query_executor
           end
         end
 

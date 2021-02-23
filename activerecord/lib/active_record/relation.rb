@@ -654,8 +654,11 @@ module ActiveRecord
     #
     #   Post.where(published: true).load_async # => #<ActiveRecord::Relation>
     def load_async
+      return load if !connection.async_enabled?
+
       unless loaded?
         result = exec_main_query(async: connection.current_transaction.closed?)
+
         if result.is_a?(Array)
           @records = result
         else
@@ -663,6 +666,7 @@ module ActiveRecord
         end
         @loaded = true
       end
+
       self
     end
 
