@@ -92,6 +92,14 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal books(:ddd), Book.where(last_read: "forgotten").first
   end
 
+  test "find via where should be type casted" do
+    book = Book.enabled.create!
+    assert_predicate book, :enabled?
+
+    enabled = Book.boolean_statuses[:enabled].to_s
+    assert_equal book, Book.where(boolean_status: enabled).last
+  end
+
   test "build from scope" do
     assert_predicate Book.written.build, :written?
     assert_not_predicate Book.written.build, :proposed?
