@@ -21,6 +21,12 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
     assert_equal "/path/to/cache/directory", store.cache_path
   end
 
+  def test_file_store_requires_a_path
+    assert_raises(ArgumentError) do
+      ActiveSupport::Cache.lookup_store :file_store
+    end
+  end
+
   def test_mem_cache_fragment_cache_store
     assert_called_with(Dalli::Client, :new, [%w[localhost], {}]) do
       store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost"
