@@ -47,7 +47,7 @@ module Arel # :nodoc: all
 
     def self.build_quoted(other, attribute = nil)
       case other
-      when Arel::Nodes::Node, Arel::Attributes::Attribute, Arel::Table, Arel::Nodes::BindParam, Arel::SelectManager, Arel::Nodes::Quoted, Arel::Nodes::SqlLiteral
+      when Arel::Nodes::Node, Arel::Attributes::Attribute, Arel::Table, Arel::SelectManager, Arel::Nodes::SqlLiteral
         other
       else
         case attribute
