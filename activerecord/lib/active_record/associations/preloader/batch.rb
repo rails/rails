@@ -11,12 +11,14 @@ module ActiveRecord
         def call
           return if @preloaders.empty?
 
-          loaders = @preloaders.flat_map(&:loaders)
-          group_and_load_similar(loaders)
-          loaders.each(&:run)
+          branches = @preloaders.flat_map(&:branches)
+          until branches.empty?
+            loaders = branches.flat_map(&:loaders)
+            group_and_load_similar(loaders)
+            loaders.each(&:run)
 
-          child_preloaders = @preloaders.flat_map(&:child_preloaders)
-          Batch.new(child_preloaders).call
+            branches = branches.flat_map(&:children)
+          end
         end
 
         private

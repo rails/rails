@@ -24,13 +24,21 @@ module ActiveRecord
           @preload_scope = preload_scope
           @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
           @model         = owners.first && owners.first.class
+          @run = false
         end
 
         def already_loaded?
           @already_loaded ||= owners.all? { |o| o.association(reflection.name).loaded? }
         end
 
+        def run?
+          @run
+        end
+
         def run
+          return self if run?
+          @run = true
+
           if already_loaded?
             fetch_from_preloaded_records
             return self
