@@ -2244,7 +2244,7 @@ class RelationTest < ActiveRecord::TestCase
     mary = authors(:mary)
 
     authors = Author.where(name: ["David", "Mary"].to_set)
-    assert_equal [david, mary], authors
+    assert_equal [david, mary], authors.order(:id)
   end
 
   test "#where with empty set" do
