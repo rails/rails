@@ -25,6 +25,9 @@ polly:
   treasures: sapphire, ruby
   <<: *DEAD_PARROT
 
+looter:
+  loots: bounty
+
 DEFAULTS: &DEFAULTS
   treasures: sapphire, ruby
   parrot_sti_class: LiveParrot

@@ -1,3 +1,24 @@
+*   Fixtures for `has_many :through` associations now load timestamps on join tables
+
+    Given this fixture:
+
+    ```yml
+    ### monkeys.yml
+    george:
+      name: George the Monkey
+      fruits: apple
+
+    ### fruits.yml
+    apple:
+      name: apple
+    ```
+
+    If the join table (`fruit_monkeys`) contains `created_at` or `updated_at` columns,
+    these will now be populated when loading the fixture. Previously, fixture loading
+    would crash if these columns were required, and leave them as null otherwise.
+
+    *Alex Ghiculescu*
+
 *   Allow applications to configure the thread pool for async queries
 
     Some applications may want one thread pool per database whereas others want to use

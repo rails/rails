@@ -5,7 +5,8 @@ class Parrot < ActiveRecord::Base
 
   has_and_belongs_to_many :pirates
   has_and_belongs_to_many :treasures
-  has_many :loots, as: :looter
+  has_many :loot_parrots, class_name: "LootParrot"
+  has_many :loots, through: :loot_parrots
   alias_attribute :title, :name
 
   validates_presence_of :name
