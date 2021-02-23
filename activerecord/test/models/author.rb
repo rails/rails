@@ -258,3 +258,9 @@ class AuthorFavoriteWithScope < ActiveRecord::Base
   belongs_to :author
   belongs_to :favorite_author, class_name: "Author"
 end
+
+class EncryptedAuthor < Author
+  self.table_name = "authors"
+
+  encrypts :name, key: "my very own key", previous: { deterministic: true }
+end

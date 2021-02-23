@@ -1,0 +1,13 @@
+awdr:
+  author_id: 1
+  id: 1
+  name: "Agile Web Development with Rails"
+  format: "paperback"
+  status: :published
+  last_read: :read
+  language: :english
+  author_visibility: :visible
+  illustrator_visibility: :visible
+  font_size: :medium
+  difficulty: :medium
+  boolean_status: :enabled

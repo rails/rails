@@ -15,6 +15,7 @@ module ActiveRecord
   # = Active Record Railtie
   class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
+    config.active_record.encryption = ActiveSupport::OrderedOptions.new
 
     config.app_generators.orm :active_record, migration: true,
                                               timestamps: true
@@ -202,7 +203,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
         configs = app.config.active_record
 
         configs.each do |k, v|
-          send "#{k}=", v
+          send "#{k}=", v if k != :encryption
         end
       end
     end
@@ -274,6 +275,35 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.set_signed_id_verifier_secret" do
       ActiveSupport.on_load(:active_record) do
         self.signed_id_verifier_secret ||= -> { Rails.application.key_generator.generate_key("active_record/signed_id") }
+      end
+    end
+
+    initializer "active_record_encryption.configuration" do |app|
+      config.before_initialize do
+        ActiveRecord::Encryption.configure \
+           master_key: app.credentials.dig(:active_record_encryption, :master_key) || ENV["ACTIVE_RECORD_ENCRYPTION_MASTER_KEY"],
+           deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key) || ENV["ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY"],
+           key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt) || ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"],
+           **config.active_record.encryption
+
+        # Encrypt active record fixtures
+        if ActiveRecord::Encryption.config.encrypt_fixtures
+          class ActiveRecord::Fixture
+            prepend ActiveRecord::Encryption::EncryptedFixtures
+          end
+        end
+
+        # Support extended queries for deterministic attributes
+        if ActiveRecord::Encryption.config.support_unencrypted_data
+          ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
+        end
+
+        # Filtered params
+        ActiveSupport.on_load(:action_controller) do
+          if ActiveRecord::Encryption.config.add_to_filter_parameters
+            ActiveRecord::Encryption.install_auto_filtered_parameters(app)
+          end
+        end
       end
     end
   end

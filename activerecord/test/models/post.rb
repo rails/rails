@@ -377,3 +377,15 @@ class Postesque < ActiveRecord::Base
   belongs_to :author_with_address, class_name: "Author", foreign_key: :author_id
   belongs_to :author_with_the_letter_a, class_name: "Author", foreign_key: :author_id
 end
+
+class EncryptedPost < Post
+  self.table_name = "posts"
+
+  # We want to modify the key for testing purposes
+  class MutableDerivedSecretKeyProvider < ActiveRecord::Encryption::DerivedSecretKeyProvider
+    attr_accessor :key
+  end
+
+  encrypts :title
+  encrypts :body, key_provider: MutableDerivedSecretKeyProvider.new("my post body secret!")
+end

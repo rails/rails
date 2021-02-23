@@ -111,6 +111,7 @@ ActiveRecord::Schema.define do
     t.column :cover, :string, default: "hard"
     t.string :isbn
     t.string :external_id
+    t.column :original_name, :string
     t.datetime :published_on
     t.boolean :boolean_status
     t.index [:author_id, :name], unique: true
