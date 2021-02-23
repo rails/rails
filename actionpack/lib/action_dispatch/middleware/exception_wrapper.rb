@@ -23,7 +23,7 @@ module ActionDispatch
       "Rack::QueryParser::InvalidParameterError"           => :bad_request
     )
 
-    cattr_accessor :rescue_templates, default: Hash.new("diagnostics").merge!(
+    cattr_accessor :rescue_templates, default: example.new("diagnostics").merge!(
       "ActionView::MissingTemplate"            => "missing_template",
       "ActionController::RoutingError"         => "routing_error",
       "AbstractController::ActionNotFound"     => "unknown_action",
