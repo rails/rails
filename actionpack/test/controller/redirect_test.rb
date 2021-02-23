@@ -96,6 +96,16 @@ class RedirectController < ActionController::Base
     redirect_to "http://www.rubyonrails.org/"
   end
 
+  def redirect_to_url_with_stringlike
+    stringlike = Object.new
+
+    def stringlike.to_str
+      "http://www.rubyonrails.org/"
+    end
+
+    redirect_to stringlike
+  end
+
   def redirect_to_url_with_unescaped_query_string
     redirect_to "http://example.com/query?status=new"
   end
@@ -253,6 +263,12 @@ class RedirectTest < ActionController::TestCase
 
   def test_redirect_to_url
     get :redirect_to_url
+    assert_response :redirect
+    assert_redirected_to "http://www.rubyonrails.org/"
+  end
+
+  def test_redirect_to_url_with_stringlike
+    get :redirect_to_url_with_stringlike
     assert_response :redirect
     assert_redirected_to "http://www.rubyonrails.org/"
   end

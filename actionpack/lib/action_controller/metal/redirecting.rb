@@ -106,7 +106,7 @@ module ActionController
       # See https://tools.ietf.org/html/rfc3986#section-3.1
       # The protocol relative scheme starts with a double slash "//".
       when /\A([a-z][a-z\d\-+.]*:|\/\/).*/i
-        options
+        options.to_str
       when String
         request.protocol + request.host_with_port + options
       when Proc
