@@ -447,9 +447,9 @@ handles outside of Rails.
 
 ### Joining Across Databases
 
-Applications cannot join across databases. Rails 6.1 will support using `has_many`
-relationships and creating 2 queries instead of joining, but Rails 6.0 will require
-you to split the joins into 2 selects manually.
+Applications cannot join across databases. At the moment applications will need to
+manually write two selects and split the joins themselves. In a future version Rails
+will split the joins for you.
 
 ### Schema Cache
 
