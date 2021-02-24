@@ -406,6 +406,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :entries, force: true do |t|
+    t.text :label
     t.string  :entryable_type, null: false
     t.integer :entryable_id, null: false
   end

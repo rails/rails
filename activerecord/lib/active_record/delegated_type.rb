@@ -211,7 +211,7 @@ module ActiveRecord
           singular   = scope_name.singularize
           query      = "#{singular}?"
 
-          scope scope_name, -> { where(role_type => type) }
+          scope scope_name, -> { where(role_type => type).create_with(role => type.constantize.new) }
 
           define_method query do
             public_send(role_type) == type

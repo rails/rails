@@ -12,8 +12,8 @@ class DelegatedTypeTest < ActiveRecord::TestCase
   fixtures :comments
 
   setup do
-    @entry_with_message = Entry.create! entryable: Message.new(subject: "Hello world!")
-    @entry_with_comment = Entry.create! entryable: comments(:greetings)
+    @entry_with_message = Entry.create! entryable: Message.new(subject: "Hello world!"), label: "entry with message"
+    @entry_with_comment = Entry.create! entryable: comments(:greetings), label: "entry with comment"
 
     if current_adapter?(:PostgreSQLAdapter)
       @uuid_entry_with_message = UuidEntry.create! uuid: SecureRandom.uuid, entryable: UuidMessage.new(uuid: SecureRandom.uuid, subject: "Hello world!")
@@ -45,6 +45,47 @@ class DelegatedTypeTest < ActiveRecord::TestCase
   test "scope" do
     assert Entry.messages.first.message?
     assert Entry.comments.first.comment?
+  end
+
+  test "find_by" do
+    assert_equal @entry_with_message, Entry.messages.find_by(label: "entry with message")
+    assert_nil Entry.comments.find_by(label: "entry with message")
+  end
+
+  test "create" do
+    new_entry = Entry.messages.create(label: "another entry with a message")
+    assert_equal "another entry with a message", new_entry.label
+    assert new_entry.message?
+    assert_nil new_entry.message.subject
+  end
+
+  test "create requires a scope so the entryable can be provided" do
+    assert_raises ActiveRecord::NotNullViolation do
+      Entry.create(label: "another entry with a message")
+    end
+  end
+
+  test "create with create_with" do
+    new_entry = Entry.messages.create_with(entryable: Message.new(subject: "create_with message")).create(label: "another entry with a message")
+    assert_equal "another entry with a message", new_entry.label
+    assert new_entry.message?
+    assert_equal "create_with message", new_entry.message.subject
+  end
+
+  test "create with block" do
+    new_entry = Entry.messages.create(label: "another entry with a message") do |entry|
+      entry.entryable = Message.new(subject: "create_with message")
+    end
+    assert_equal "another entry with a message", new_entry.label
+    assert new_entry.message?
+    assert_equal "create_with message", new_entry.message.subject
+  end
+
+  test "create_or_find_by" do
+    new_entry = Entry.messages.create_or_find_by(label: "another entry with a message")
+    assert_equal "another entry with a message", new_entry.label
+    assert new_entry.message?
+    assert_nil new_entry.message.subject
   end
 
   test "accessor" do
