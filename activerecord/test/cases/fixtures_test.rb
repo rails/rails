@@ -19,6 +19,8 @@ require "models/developer"
 require "models/dog"
 require "models/doubloon"
 require "models/joke"
+require "models/loot"
+require "models/loot_parrot"
 require "models/matey"
 require "models/other_dog"
 require "models/parrot"
@@ -566,7 +568,7 @@ class HasManyThroughFixture < ActiveRecord::TestCase
     Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
   end
 
-  def test_has_many_through_with_default_table_name
+  def test_has_many_through_with_join_table_name_changed_to_match_habtm_table_name
     pt = make_model "ParrotTreasure"
     parrot = make_model "Parrot"
     treasure = make_model "Treasure"
@@ -585,7 +587,7 @@ class HasManyThroughFixture < ActiveRecord::TestCase
     assert_equal load_has_and_belongs_to_many["parrots_treasures"], rows["parrots_treasures"]
   end
 
-  def test_has_many_through_with_renamed_table
+  def test_has_many_through_with_default_table_name_on_join_table
     pt = make_model "ParrotTreasure"
     parrot = make_model "Parrot"
     treasure = make_model "Treasure"
@@ -1101,7 +1103,8 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   self.use_transactional_tests = false
   fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers,
-           :developers, :"admin/accounts", :"admin/users", :live_parrots, :dead_parrots, :books
+           :developers, :"admin/accounts", :"admin/users", :live_parrots, :dead_parrots, :books,
+           :loots
 
   if ActiveRecord::Base.connection.adapter_name == "PostgreSQL"
     require "models/uuid_parent"
@@ -1187,6 +1190,14 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert(pirates(:blackbeard).parrots.include?(parrots(:george)))
     assert(pirates(:blackbeard).parrots.include?(parrots(:louis)))
     assert(parrots(:george).pirates.include?(pirates(:blackbeard)))
+  end
+
+  def test_supports_timestamps_in_join_tables
+    assert_not_nil parrots(:looter).created_at
+    assert_not_nil loots(:bounty).created_at
+    assert_equal loots(:bounty), parrots(:looter).loots.first
+    assert_equal loots(:bounty), parrots(:looter).loot_parrots.first.loot
+    assert_not_nil parrots(:looter).loot_parrots.first.created_at
   end
 
   def test_supports_inline_habtm

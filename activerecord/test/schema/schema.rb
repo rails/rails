@@ -562,6 +562,17 @@ ActiveRecord::Schema.define do
     t.timestamps null: true
   end
 
+  create_table :loots, force: true do |t|
+    t.float :value
+    t.timestamps
+  end
+
+  create_table :loot_parrots, force: true do |t|
+    t.references :loot, null: false
+    t.references :parrot, null: false
+    t.timestamps
+  end
+
   create_table :magazines, force: true do |t|
   end
 
@@ -741,7 +752,14 @@ ActiveRecord::Schema.define do
       t.references :pirate, foreign_key: true
     end
 
+    # used by tests that do `Parrot.has_and_belongs_to_many :treasures` (the default)
     create_table :parrots_treasures, id: false, force: true do |t|
+      t.references :parrot, foreign_key: true
+      t.references :treasure, foreign_key: true
+    end
+
+    # used by tests that do `Parrot.has_many :treasures, through: :parrot_treasures`, and don't want to override the through relation's `table_name`
+    create_table :parrot_treasures, id: false, force: true do |t|
       t.references :parrot, foreign_key: true
       t.references :treasure, foreign_key: true
     end
