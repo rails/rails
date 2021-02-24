@@ -14,6 +14,7 @@ module ActionDispatch
       "ActionController::UnknownFormat"                    => :not_acceptable,
       "ActionDispatch::Http::MimeNegotiation::InvalidType" => :not_acceptable,
       "ActionController::MissingExactTemplate"             => :not_acceptable,
+      "Mime::Type::InvalidMimeType"                        => :not_acceptable,
       "ActionController::InvalidAuthenticityToken"         => :unprocessable_entity,
       "ActionController::InvalidCrossOriginRequest"        => :unprocessable_entity,
       "ActionDispatch::Http::Parameters::ParseError"       => :bad_request,
