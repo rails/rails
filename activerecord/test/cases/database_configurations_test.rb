@@ -97,6 +97,23 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     assert_equal ":memory:", config.database
   end
 
+  def test_migrations_priority_config
+    configs = ActiveRecord::DatabaseConfigurations.new({
+      ActiveRecord::ConnectionHandling::DEFAULT_ENV.call => {
+        "primary" => {
+          "adapter" => "randomadapter",
+          "migrations_priority" => 2
+        },
+        "secondary" => {
+          "adapter" => "randomadapter",
+          "migrations_priority" => 1
+        }
+      }
+    }).configs_for
+
+    assert_equal %w[secondary primary], configs.map(&:name)
+  end
+
   def test_to_h_turns_db_config_object_back_into_a_hash_and_is_deprecated
     configs = ActiveRecord::Base.configurations
     assert_equal "ActiveRecord::DatabaseConfigurations", configs.class.name

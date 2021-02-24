@@ -50,6 +50,11 @@ module ActiveRecord
         configuration_hash[:migrations_paths]
       end
 
+      # The priority of specific migrations paths.
+      def migrations_priority
+        configuration_hash[:migrations_priority]&.to_i || 0
+      end
+
       def host
         configuration_hash[:host]
       end

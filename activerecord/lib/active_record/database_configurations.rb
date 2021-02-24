@@ -158,7 +158,7 @@ module ActiveRecord
           configurations.select { |db_config| db_config.env_name == env }
         else
           configurations
-        end
+        end.sort_by!(&:migrations_priority)
       end
 
       def build_configs(configs)

@@ -102,6 +102,16 @@ module ActiveRecord
         config = HashConfig.new("default_env", "primary", idle_timeout: "0")
         assert_nil config.idle_timeout
       end
+
+      def test_migrations_priority
+        config = HashConfig.new("default_env", "primary", migrations_priority: "1")
+        assert_equal 1, config.migrations_priority
+      end
+
+      def test_migrations_priority_default
+        config = HashConfig.new("default_env", "primary", {})
+        assert_equal 0, config.migrations_priority
+      end
     end
   end
 end
