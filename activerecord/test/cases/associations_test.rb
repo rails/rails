@@ -27,6 +27,8 @@ require "models/parrot"
 require "models/bird"
 require "models/treasure"
 require "models/price_estimate"
+require "models/loot"
+require "models/loot_parrot"
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
