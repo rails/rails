@@ -148,10 +148,12 @@ module ActiveRecord
     #   Entry#entryable_class # => +Message+ or +Comment+
     #   Entry#entryable_name  # => "message" or "comment"
     #   Entry.messages        # => Entry.where(entryable_type: "Message")
+    #   Entry.for_messages    # => alias for Entry.messages
     #   Entry#message?        # => true when entryable_type == "Message"
     #   Entry#message         # => returns the message record, when entryable_type == "Message", otherwise nil
     #   Entry#message_id      # => returns entryable_id, when entryable_type == "Message", otherwise nil
     #   Entry.comments        # => Entry.where(entryable_type: "Comment")
+    #   Entry.for_comments    # => alias for Entry.comments
     #   Entry#comment?        # => true when entryable_type == "Comment"
     #   Entry#comment         # => returns the comment record, when entryable_type == "Comment", otherwise nil
     #   Entry#comment_id      # => returns entryable_id, when entryable_type == "Comment", otherwise nil
@@ -207,11 +209,14 @@ module ActiveRecord
         end
 
         types.each do |type|
-          scope_name = type.tableize.gsub("/", "_")
-          singular   = scope_name.singularize
-          query      = "#{singular}?"
+          scope_name         = type.tableize.gsub("/", "_")
+          aliased_scope_name = "for_#{scope_name}"
+          singular           = scope_name.singularize
+          query              = "#{singular}?"
 
           scope scope_name, -> { where(role_type => type) }
+
+          define_singleton_method(aliased_scope_name, singleton_method(scope_name))
 
           define_method query do
             public_send(role_type) == type
