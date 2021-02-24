@@ -158,7 +158,7 @@ module CacheStoreBehavior
 
   def test_fetch_multi_force_writes_all_values
     @cache.write("key1", "value")
-    values = @cache.fetch_multi("key1", "key2", force: true) { |key| key.upcase }
+    @cache.fetch_multi("key1", "key2", force: true) { |key| key.upcase }
     assert_equal("KEY1", @cache.read("key1"))
     assert_equal("KEY2", @cache.read("key2"))
   end
