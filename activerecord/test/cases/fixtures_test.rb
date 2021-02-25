@@ -1103,7 +1103,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers,
            :developers, :"admin/accounts", :"admin/users", :live_parrots, :dead_parrots, :books
 
-  if ActiveRecord::Base.connection.adapter_name == "PostgreSQL"
+  if current_adapter?(:PostgreSQLAdapter)
     require "models/uuid_parent"
     require "models/uuid_child"
     fixtures :uuid_parents, :uuid_children
