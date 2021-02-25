@@ -267,11 +267,13 @@ ActiveRecord::Schema.define do
     t.integer :developer, null: false
     t.integer :extendedWarranty, null: false
     t.integer :timezone
+    t.timestamps
   end
 
   create_table :computers_developers, id: false, force: true do |t|
     t.references :computer
     t.references :developer
+    t.timestamps
   end
 
   create_table :contracts, force: true do |t|
@@ -560,17 +562,6 @@ ActiveRecord::Schema.define do
     t.column :title, :string
     t.column :custom_lock_version, :integer
     t.timestamps null: true
-  end
-
-  create_table :loots, force: true do |t|
-    t.float :value
-    t.timestamps
-  end
-
-  create_table :loot_parrots, force: true do |t|
-    t.references :loot, null: false
-    t.references :parrot, null: false
-    t.timestamps
   end
 
   create_table :magazines, force: true do |t|

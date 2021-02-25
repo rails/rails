@@ -35,7 +35,7 @@ module ActiveRecord
         end
 
         def timestamp_column_names
-          ModelMetadata.new(@association.through_reflection.klass).timestamp_column_names
+          @association.through_reflection.klass.all_timestamp_attributes_in_model
         end
       end
 

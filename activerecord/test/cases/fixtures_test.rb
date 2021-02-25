@@ -19,8 +19,6 @@ require "models/developer"
 require "models/dog"
 require "models/doubloon"
 require "models/joke"
-require "models/loot"
-require "models/loot_parrot"
 require "models/matey"
 require "models/other_dog"
 require "models/parrot"
@@ -1103,8 +1101,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   self.use_transactional_tests = false
   fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers,
-           :developers, :"admin/accounts", :"admin/users", :live_parrots, :dead_parrots, :books,
-           :loots
+           :developers, :"admin/accounts", :"admin/users", :live_parrots, :dead_parrots, :books
 
   if ActiveRecord::Base.connection.adapter_name == "PostgreSQL"
     require "models/uuid_parent"
@@ -1193,11 +1190,15 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   end
 
   def test_supports_timestamps_in_join_tables
-    assert_not_nil parrots(:looter).created_at
-    assert_not_nil loots(:bounty).created_at
-    assert_equal loots(:bounty), parrots(:looter).loots.first
-    assert_equal loots(:bounty), parrots(:looter).loot_parrots.first.loot
-    assert_not_nil parrots(:looter).loot_parrots.first.created_at
+    assert_not_nil developers(:david).created_at
+    assert_not_nil computers(:laptop).created_at
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "computers_developers"
+    end
+
+    computers_developers = klass.find_by(developer_id: developers(:david), computer_id: computers(:laptop))
+    assert_not_nil computers_developers.created_at
   end
 
   def test_supports_inline_habtm
