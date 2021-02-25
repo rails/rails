@@ -156,12 +156,6 @@ module ActiveRecord
       end
 
       private
-        def write_attribute_without_type_cast(attr_name, value)
-          result = super
-          clear_attribute_change(attr_name)
-          result
-        end
-
         def _touch_row(attribute_names, time)
           @_touch_attr_names = Set.new(attribute_names)
 

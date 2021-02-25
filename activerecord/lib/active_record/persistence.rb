@@ -689,7 +689,8 @@ module ActiveRecord
 
       update_constraints = _primary_key_constraints_hash
       attributes.each do |k, v|
-        write_attribute_without_type_cast(k, v)
+        @attributes.write_cast_value(k, v)
+        clear_attribute_change(k)
       end
 
       affected_rows = self.class._update_record(
