@@ -451,6 +451,7 @@ module ActiveRecord
               options = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
               options[:unique] = true if index.unique
               options[:where] = index.where if index.where
+              options[:order] = index.orders if index.orders
               add_index(to, columns, **options)
             end
           end
