@@ -63,7 +63,7 @@
     the query, it will be performed in the foreground.
 
     This is useful for queries that can be performed long enough before their result will be
-    needed, or for controllers which need to perform several independant queries.
+    needed, or for controllers which need to perform several independent queries.
 
     ```ruby
     def index
@@ -128,7 +128,7 @@
     *Michael Smart*
 
 *   Increment postgres prepared statement counter before making a prepared statement, so if the statement is aborted
-    without Rails knowledge (e.g., if app gets kill -9d during long-running query or due to Rack::Timeout), app won't end
+    without Rails knowledge (e.g., if app gets killed during long-running query or due to Rack::Timeout), app won't end
     up in perpetual crash state for being inconsistent with Postgres.
 
     *wbharding*, *Martin Tepper*
