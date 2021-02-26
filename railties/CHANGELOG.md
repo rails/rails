@@ -1,3 +1,7 @@
+*   Allow adding additional authorized hosts in development via `ENV['RAILS_DEVELOPMENT_HOSTS']`
+
+    *Josh Abernathy*, *Debbie Milburn*
+
 *   Stop generating a license for in-app plugins.
 
     *Gannon McGibbon*
