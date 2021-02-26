@@ -1,3 +1,7 @@
+*   Add `:country_code` option to `sms_to` for consistency with `phone_to`.
+
+    *Jonathan Hefner*
+
 *   Deprecate `render` locals to be assigned to instance variables.
 
     *Petrik de Heus*

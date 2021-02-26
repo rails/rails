@@ -598,14 +598,23 @@ module ActionView
       # If +name+ is not specified, +phone_number+ will be used as the name of
       # the link.
       #
+      # A +country_code+ option is supported, which prepends a plus sign and the
+      # given country code to the linked phone number. For example,
+      # <tt>country_code: "01"</tt> will prepend <tt>+01</tt> to the linked
+      # phone number.
+      #
       # Additional HTML attributes for the link can be passed via +html_options+.
       #
       # ==== Options
+      # * <tt>:country_code</tt> - Prepend the country code to the phone number.
       # * <tt>:body</tt> - Preset the body of the message.
       #
       # ==== Examples
       #   sms_to "5155555785"
       #   # => <a href="sms:5155555785;">5155555785</a>
+      #
+      #   sms_to "5155555785", country_code: "01"
+      #   # => <a href="sms:+015155555785;">5155555785</a>
       #
       #   sms_to "5155555785", "Text me"
       #   # => <a href="sms:5155555785;">Text me</a>
@@ -625,14 +634,14 @@ module ActionView
         html_options, name = name, nil if name.is_a?(Hash)
         html_options = (html_options || {}).stringify_keys
 
-        extras = %w{ body }.map! { |item|
-          option = html_options.delete(item).presence || next
-          "#{item.dasherize}=#{ERB::Util.url_encode(option)}"
-        }.compact
-        extras = extras.empty? ? "" : "?&" + extras.join("&")
+        country_code = html_options.delete("country_code").presence
+        country_code = country_code ? "+#{ERB::Util.url_encode(country_code)}" : ""
+
+        body = html_options.delete("body").presence
+        body = body ? "?&body=#{ERB::Util.url_encode(body)}" : ""
 
         encoded_phone_number = ERB::Util.url_encode(phone_number)
-        html_options["href"] = "sms:#{encoded_phone_number};#{extras}"
+        html_options["href"] = "sms:#{country_code}#{encoded_phone_number};#{body}"
 
         content_tag("a", name || phone_number, html_options, &block)
       end
