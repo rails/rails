@@ -1,3 +1,14 @@
+*   The Action Cable client now ensures successful channel subscriptions:
+
+    * The client maintains a set of pending subscriptions until either
+      the server confirms the subscription or the channel is torn down.
+    * Rectifies the race condition where an unsubscribe is rapidly followed
+      by a subscribe (on the same channel identifier) and the requests are
+      handled out of order by the ActionCable server, thereby ignoring the
+      subscribe command.
+
+    *Daniel Spinosa*
+
 *   Truncate broadcast logging messages.
 
     *J Smith*
