@@ -84,7 +84,7 @@ module ActiveRecord
 
         attr_reader :klass
 
-        def initialize(klass, owners, reflection, preload_scope, reflection_scope, associate_by_default)
+        def initialize(klass, owners, reflection, preload_scope, reflection_scope, associate_by_default, through_reflection_names = Set.new)
           @klass         = klass
           @owners        = owners.uniq(&:__id__)
           @reflection    = reflection
@@ -92,6 +92,7 @@ module ActiveRecord
           @reflection_scope = reflection_scope
           @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
           @model         = owners.first && owners.first.class
+          @through_reflection_names = through_reflection_names
           @run = false
         end
 
@@ -219,7 +220,23 @@ module ActiveRecord
         end
 
         private
-          attr_reader :owners, :reflection, :preload_scope, :model
+          attr_reader :owners, :reflection, :preload_scope, :model, :through_reflection_names
+
+          def already_loaded?
+            @already_loaded ||= !from_through_reflection_with_preload_scope? && owners.all? { |o| o.association(reflection.name).loaded? }
+          end
+
+          def from_through_reflection_with_preload_scope?
+            through_reflection_names.include?(reflection.name) && preload_scope && !preload_scope.empty_scope?
+          end
+
+          def fetch_from_preloaded_records
+            @records_by_owner = owners.index_with do |owner|
+              Array(owner.association(reflection.name).target)
+            end
+
+            @preloaded_records = records_by_owner.flat_map(&:last)
+          end
 
           # The name of the key on the model which declares the association
           def owner_key_name

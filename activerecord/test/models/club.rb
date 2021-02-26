@@ -4,6 +4,7 @@ class Club < ActiveRecord::Base
   has_one :membership, touch: true
   has_many :memberships, inverse_of: false
   has_many :members, through: :memberships
+  has_many :members_alias, through: :memberships, source: :member
   has_one :sponsor
   has_one :sponsored_member, through: :sponsor, source: :sponsorable, source_type: :Member
   belongs_to :category

@@ -105,7 +105,8 @@ module ActiveRecord
           association: nil,
           children: @associations,
           associate_by_default: @associate_by_default,
-          scope: @scope
+          scope: @scope,
+          through_reflection_names: kwargs.fetch(:through_reflection_names, Set.new)
         )
         @tree.preloaded_records = @records
       end

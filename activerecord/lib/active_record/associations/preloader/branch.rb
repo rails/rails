@@ -6,13 +6,15 @@ module ActiveRecord
       class Branch # :nodoc:
         attr_reader :association, :children, :parent
         attr_reader :scope, :associate_by_default
+        attr_reader :through_reflection_names
         attr_writer :preloaded_records
 
-        def initialize(association:, children:, parent:, associate_by_default:, scope:)
+        def initialize(association:, children:, parent:, associate_by_default:, scope:, through_reflection_names:)
           @association = association
           @parent = parent
           @scope = scope
           @associate_by_default = associate_by_default
+          @through_reflection_names = through_reflection_names
 
           @children = build_children(children)
           @loaders = nil
@@ -95,7 +97,8 @@ module ActiveRecord
 
             [klass, reflection_scope]
           end.map do |(rhs_klass, reflection_scope), rs|
-            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default)
+            collect_through_reflection_names(reflection)
+            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default, through_reflection_names)
           end
         end
 
@@ -125,7 +128,8 @@ module ActiveRecord
                   association: parent,
                   children: child,
                   associate_by_default: associate_by_default,
-                  scope: scope
+                  scope: scope,
+                  through_reflection_names: through_reflection_names
                 )
               }
             }
@@ -140,6 +144,12 @@ module ActiveRecord
             else
               Association
             end
+          end
+
+          def collect_through_reflection_names(reflection)
+            return unless reflection.through_reflection?
+
+            through_reflection_names << reflection.through_reflection.name
           end
       end
     end
