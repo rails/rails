@@ -631,6 +631,18 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_creating_plugin_in_application_skips_license
+    with_simulated_app do |gemfile_path|
+      FileUtils.cd(destination_root)
+      run_generator ["bukkits"]
+
+      assert_file "bukkits/bukkits.gemspec" do |contents|
+        assert_no_match(/spec.license/, contents)
+      end
+      assert_no_file "bukkits/MIT-LICENSE"
+    end
+  end
+
   def test_generating_controller_inside_mountable_engine
     run_generator [destination_root, "--mountable"]
 
