@@ -1,3 +1,7 @@
+*   Fix `has_many` inversing recursion on models with recursive associations.
+
+    *Gannon McGibbon*
+
 *   Use an empty query to check if the PostgreSQL connection is still active
 
     An empty query is faster than `SELECT 1`.

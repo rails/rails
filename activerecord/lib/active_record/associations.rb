@@ -73,6 +73,14 @@ module ActiveRecord
     end
   end
 
+  class InverseOfAssociationRecursiveError < ActiveRecordError #:nodoc:
+    attr_reader :reflection
+    def initialize(reflection)
+      @reflection = reflection
+      super("Inverse association for #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{reflection.class_name}) is recursive.")
+    end
+  end
+
   class HasManyThroughAssociationNotFoundError < ActiveRecordError #:nodoc:
     attr_reader :owner_class, :reflection
 
