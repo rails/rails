@@ -49,7 +49,8 @@ The `database.yml` looks like this:
 ```yaml
 production:
   database: my_primary_database
-  user: root
+  username: root
+  password: <%= ENV['ROOT_PASSWORD'] %>
   adapter: mysql
 ```
 
@@ -67,21 +68,25 @@ will use `[CONFIGURATION_NAMESPACE]_schema.rb` for the filename.
 production:
   primary:
     database: my_primary_database
-    user: root
+    username: root
+    password: <%= ENV['ROOT_PASSWORD'] %>
     adapter: mysql
   primary_replica:
     database: my_primary_database
-    user: root_readonly
+    username: root_readonly
+    password: <%= ENV['ROOT_READONLY_PASSWORD'] %>
     adapter: mysql
     replica: true
   animals:
     database: my_animals_database
-    user: animals_root
+    username: animals_root
+    password: <%= ENV['ANIMALS_ROOT_PASSWORD'] %>
     adapter: mysql
     migrations_paths: db/animals_migrate
   animals_replica:
     database: my_animals_database
-    user: animals_readonly
+    username: animals_readonly
+    password: <%= ENV['ANIMALS_READONLY_PASSWORD'] %>
     adapter: mysql
     replica: true
 ```
