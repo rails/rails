@@ -491,8 +491,8 @@ you subscribed to the channel.
 
 The following setup steps are common to both examples:
 
-  1. [Setup your connection](#connection-setup).
-  2. [Setup your parent channel](#parent-channel-setup).
+  1. [Set up your connection](#connection-setup).
+  2. [Set up your parent channel](#parent-channel-setup).
   3. [Connect your consumer](#connect-consumer).
 
 ### Example 1: User Appearances
