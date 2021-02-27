@@ -250,8 +250,20 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_edge_option
-    generator([destination_root], edge: true)
-    run_generator_instance
+    Rails.stub(:gem_version, Gem::Version.new("2.1.0")) do
+      generator([destination_root], edge: true)
+      run_generator_instance
+    end
+
+    assert_empty @bundle_commands
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']2-1-stable["']$}
+  end
+
+  def test_edge_option_during_alpha
+    Rails.stub(:gem_version, Gem::Version.new("2.1.0.alpha")) do
+      generator([destination_root], edge: true)
+      run_generator_instance
+    end
 
     assert_empty @bundle_commands
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
