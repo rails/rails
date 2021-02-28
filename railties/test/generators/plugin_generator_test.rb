@@ -603,49 +603,32 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_creating_plugin_in_app_directory_adds_gemfile_entry
-    # simulate application existence
-    gemfile_path = "#{Rails.root}/Gemfile"
-    Object.const_set("APP_PATH", Rails.root)
-    FileUtils.touch gemfile_path
-    File.write(gemfile_path, "#foo")
+    with_simulated_app do |gemfile_path|
+      File.write(gemfile_path, "#foo")
 
-    run_generator
+      run_generator
 
-    assert_file gemfile_path, /^gem 'bukkits', path: 'tmp\/bukkits'/
-  ensure
-    Object.send(:remove_const, "APP_PATH")
-    FileUtils.rm gemfile_path
+      assert_file gemfile_path, /^gem 'bukkits', path: 'tmp\/bukkits'/
+    end
   end
 
   def test_creating_plugin_only_specify_plugin_name_in_app_directory_adds_gemfile_entry
-    # simulate application existence
-    gemfile_path = "#{Rails.root}/Gemfile"
-    Object.const_set("APP_PATH", Rails.root)
-    FileUtils.touch gemfile_path
+    with_simulated_app do |gemfile_path|
+      FileUtils.cd(destination_root)
+      run_generator ["bukkits"]
 
-    FileUtils.cd(destination_root)
-    run_generator ["bukkits"]
-
-    assert_file gemfile_path, /gem 'bukkits', path: 'bukkits'/
-  ensure
-    Object.send(:remove_const, "APP_PATH")
-    FileUtils.rm gemfile_path
+      assert_file gemfile_path, /gem 'bukkits', path: 'bukkits'/
+    end
   end
 
   def test_skipping_gemfile_entry
-    # simulate application existence
-    gemfile_path = "#{Rails.root}/Gemfile"
-    Object.const_set("APP_PATH", Rails.root)
-    FileUtils.touch gemfile_path
+    with_simulated_app do |gemfile_path|
+      run_generator [destination_root, "--skip-gemfile-entry"]
 
-    run_generator [destination_root, "--skip-gemfile-entry"]
-
-    assert_file gemfile_path do |contents|
-      assert_no_match(/gem 'bukkits', path: 'tmp\/bukkits'/, contents)
+      assert_file gemfile_path do |contents|
+        assert_no_match(/gem 'bukkits', path: 'tmp\/bukkits'/, contents)
+      end
     end
-  ensure
-    Object.send(:remove_const, "APP_PATH")
-    FileUtils.rm gemfile_path
   end
 
   def test_generating_controller_inside_mountable_engine
@@ -829,5 +812,16 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       else
         assert_match(/group :development do\n  gem 'sqlite3'\nend/, contents)
       end
+    end
+
+    def with_simulated_app
+      gemfile_path = "#{Rails.root}/Gemfile"
+      Object.const_set("APP_PATH", Rails.root)
+      FileUtils.touch gemfile_path
+
+      yield gemfile_path
+    ensure
+      Object.send(:remove_const, "APP_PATH")
+      FileUtils.rm gemfile_path
     end
 end
