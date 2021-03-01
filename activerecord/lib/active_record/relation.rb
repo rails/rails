@@ -32,6 +32,7 @@ module ActiveRecord
       @predicate_builder = predicate_builder
       @delegate_to_klass = false
       @future_result = nil
+      @records = nil
     end
 
     def initialize_copy(other)
@@ -703,7 +704,7 @@ module ActiveRecord
       @delegate_to_klass = false
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @offsets = @take = nil
-      @records = [].freeze
+      @records = nil
       self
     end
 
