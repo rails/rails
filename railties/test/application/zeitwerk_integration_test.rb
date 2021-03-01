@@ -26,7 +26,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     deps.singleton_class < deps::ZeitwerkIntegration::Decorations
   end
 
-  test "ActiveSupport::Dependencies is decorated by default" do
+  test "ActiveSupport::Dependencies is decorated" do
     boot
 
     assert decorated?
@@ -34,17 +34,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_instance_of Zeitwerk::Loader, Rails.autoloaders.main
     assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once
     assert_equal [Rails.autoloaders.main, Rails.autoloaders.once], Rails.autoloaders.to_a
-  end
-
-  test "ActiveSupport::Dependencies is not decorated in classic mode" do
-    add_to_config "config.autoloader = :classic"
-    boot
-
-    assert_not decorated?
-    assert_not Rails.autoloaders.zeitwerk_enabled?
-    assert_nil Rails.autoloaders.main
-    assert_nil Rails.autoloaders.once
-    assert_equal 0, Rails.autoloaders.count
   end
 
   test "autoloaders inflect with Active Support" do

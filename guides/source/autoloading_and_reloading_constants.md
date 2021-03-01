@@ -438,25 +438,3 @@ While in common names these operations match, if acronyms or custom inflection r
 ### More Differences
 
 There are some other subtle differences. Please check the [autoloading section](upgrading_ruby_on_rails.html#autoloading) of the _Upgrading Ruby on Rails_] guide for details.
-
-Classic Mode is Deprecated
---------------------------
-
-Currently, it is still possible to use `classic` mode. However, `classic` is deprecated and will be eventually removed.
-
-New applications should use `zeitwerk` mode (which is the default), and applications being upgraded are strongly encouraged to migrate to `zeitwerk` mode. Please check the [_Upgrading Ruby on Rails_](upgrading_ruby_on_rails.html#autoloading) guide for details.
-
-Opting Out
-----------
-
-Applications can load Rails 6 defaults and still use the `classic` autoloader this way:
-
-```ruby
-# config/application.rb
-config.load_defaults 6.0
-config.autoloader = :classic
-```
-
-That may be handy if upgrading to Rails 6 in different phases, but `classic` mode is discouraged for new applications.
-
-`zeitwerk` mode is not available in versions of Rails prior to 6.0.

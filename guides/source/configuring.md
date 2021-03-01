@@ -159,13 +159,6 @@ numbers. It also filters out sensitive values of database columns when call `#in
 
 * `config.time_zone` sets the default time zone for the application and enables time zone awareness for Active Record.
 
-* `config.autoloader` sets the autoloading mode. This option defaults to `:zeitwerk` when `config.load_defaults` is called with `6.0` or greater. Applications can still use the classic autoloader by setting this value to `:classic` after loading the framework defaults:
-
-    ```ruby
-    config.load_defaults 6.0
-    config.autoloader = :classic
-    ```
-
 ### Configuring Assets
 
 * `config.assets.enabled` a flag that controls whether the asset
