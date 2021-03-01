@@ -52,7 +52,7 @@ module Arel # :nodoc: all
       else
         left = quoted_node(other.begin)
         right = quoted_node(other.end)
-        Nodes::Between.new(self, left.and(right))
+        Nodes::Between.new(self, Nodes::And.new([left, right]))
       end
     end
 

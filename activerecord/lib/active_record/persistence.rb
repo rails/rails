@@ -368,7 +368,7 @@ module ActiveRecord
         if values.empty?
           im.insert(connection.empty_insert_statement_value(primary_key))
         else
-          im.insert(_substitute_values(values))
+          im.insert(values.transform_keys { |name| arel_table[name] })
         end
 
         connection.insert(im, "#{self} Create", primary_key || false, primary_key_value)
@@ -386,7 +386,7 @@ module ActiveRecord
         end
 
         um = Arel::UpdateManager.new(arel_table)
-        um.set(_substitute_values(values))
+        um.set(values.transform_keys { |name| arel_table[name] })
         um.wheres = constraints
 
         connection.update(um, "#{self} Update")
@@ -424,12 +424,6 @@ module ActiveRecord
         # the single-table inheritance discriminator.
         def discriminate_class_for_record(record)
           self
-        end
-
-        def _substitute_values(values)
-          values.map do |name, value|
-            [ arel_table[name], Arel::Nodes::BindParam.new(value) ]
-          end
         end
     end
 

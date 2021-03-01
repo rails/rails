@@ -224,11 +224,10 @@ module ActiveRecord
         end
 
         def extract_node_value(node)
-          case node
-          when Array
-            node.map { |v| extract_node_value(v) }
-          when Arel::Nodes::BindParam, Arel::Nodes::Casted, Arel::Nodes::Quoted
+          if node.respond_to?(:value_before_type_cast)
             node.value_before_type_cast
+          elsif Array === node
+            node.map { |v| extract_node_value(v) }
           end
         end
     end
