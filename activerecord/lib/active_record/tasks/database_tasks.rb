@@ -268,13 +268,13 @@ module ActiveRecord
         end
       end
 
-      def migrate
+      def migrate(version = nil)
         check_target_version
 
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose?
 
-        Base.connection.migration_context.migrate(target_version) do |migration|
+        Base.connection.migration_context.migrate(target_version || version) do |migration|
           scope.blank? || scope == migration.scope
         end.tap do |migrations_ran|
           Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?

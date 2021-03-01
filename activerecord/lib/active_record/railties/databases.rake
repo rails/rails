@@ -87,10 +87,26 @@ db_namespace = namespace :db do
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task migrate: :load_config do
     original_db_config = ActiveRecord::Base.connection_db_config
+
+    db_config_by_version = {}
+
     ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
       ActiveRecord::Base.establish_connection(db_config)
-      ActiveRecord::Tasks::DatabaseTasks.migrate
+      versions_to_run = ActiveRecord::Base.connection.migration_context.pending_migration_versions
+      target_version = ActiveRecord::Tasks::DatabaseTasks.target_version
+
+      versions_to_run.each do |version|
+        # if VERSION is set, only add versions that match the set target_version
+        next if target_version && target_version != version
+        db_config_by_version[version] = db_config
+      end
     end
+
+    db_config_by_version.sort.each do |version, db_config|
+      ActiveRecord::Base.establish_connection(db_config)
+      ActiveRecord::Tasks::DatabaseTasks.migrate(version)
+    end
+
     db_namespace["_dump"].invoke
   ensure
     ActiveRecord::Base.establish_connection(original_db_config)
