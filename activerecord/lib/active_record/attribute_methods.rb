@@ -384,9 +384,7 @@ module ActiveRecord
       end
 
       def attributes_with_values(attribute_names)
-        attribute_names.index_with do |name|
-          _read_attribute(name)
-        end
+        attribute_names.index_with { |name| @attributes[name] }
       end
 
       # Filters the primary keys and readonly attributes from the attribute names.
