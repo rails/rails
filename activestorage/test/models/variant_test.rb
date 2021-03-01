@@ -60,16 +60,6 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_match(/RGB/, image.colorspace)
   end
 
-  test "variation with :combine_options is not supported" do
-    blob = create_file_blob(filename: "racecar.jpg")
-    assert_raises(ArgumentError) do
-      blob.variant(combine_options: {
-        resize: "100x100",
-        monochrome: false
-      }).processed
-    end
-  end
-
   test "center-weighted crop of JPEG blob using :resize_to_fill" do
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(resize_to_fill: [100, 100]).processed
