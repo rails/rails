@@ -4,10 +4,11 @@ module Arel # :nodoc: all
   class UpdateManager < Arel::TreeManager
     include TreeManager::StatementMethods
 
-    def initialize
-      super
+    def initialize(table = nil)
+      super()
       @ast = Nodes::UpdateStatement.new
       @ctx = @ast
+      @ast.relation = table
     end
 
     ###
