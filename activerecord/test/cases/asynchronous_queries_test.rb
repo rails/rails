@@ -8,10 +8,16 @@ module AsynchronousQueriesSharedTests
   def test_async_select_failure
     ActiveRecord::Base.asynchronous_queries_tracker.start_session
 
-    future_result = @connection.select_all "SELECT * FROM does_not_exists", async: true
-    assert_kind_of ActiveRecord::FutureResult, future_result
-    assert_raises ActiveRecord::StatementInvalid do
-      future_result.result
+    if in_memory_db?
+      assert_raises ActiveRecord::StatementInvalid do
+        @connection.select_all "SELECT * FROM does_not_exists", async: true
+      end
+    else
+      future_result = @connection.select_all "SELECT * FROM does_not_exists", async: true
+      assert_kind_of ActiveRecord::FutureResult, future_result
+      assert_raises ActiveRecord::StatementInvalid do
+        future_result.result
+      end
     end
   ensure
     ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
@@ -24,9 +30,11 @@ module AsynchronousQueriesSharedTests
       @connection.select_all "SELECT * FROM posts", async: true
     end
 
-    @connection.transaction do
-      assert_raises ActiveRecord::AsynchronousQueryInsideTransactionError do
-        @connection.select_all "SELECT * FROM posts", async: true
+    unless in_memory_db?
+      @connection.transaction do
+        assert_raises ActiveRecord::AsynchronousQueryInsideTransactionError do
+          @connection.select_all "SELECT * FROM posts", async: true
+        end
       end
     end
   ensure
@@ -57,10 +65,16 @@ module AsynchronousQueriesSharedTests
     end
 
     @connection.pool.stub(:schedule_query, proc { }) do
-      future_result = @connection.select_all "SELECT * FROM does_not_exists", async: true
-      assert_kind_of ActiveRecord::FutureResult, future_result
-      assert_raises ActiveRecord::StatementInvalid do
-        future_result.result
+      if in_memory_db?
+        assert_raises ActiveRecord::StatementInvalid do
+          @connection.select_all "SELECT * FROM does_not_exists", async: true
+        end
+      else
+        future_result = @connection.select_all "SELECT * FROM does_not_exists", async: true
+        assert_kind_of ActiveRecord::FutureResult, future_result
+        assert_raises ActiveRecord::StatementInvalid do
+          future_result.result
+        end
       end
     end
 
@@ -96,7 +110,12 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
     end
 
     future_result = @connection.select_all "SELECT * FROM posts", async: true
-    assert_kind_of ActiveRecord::FutureResult, future_result
+
+    if in_memory_db?
+      assert_kind_of ActiveRecord::Result, future_result
+    else
+      assert_kind_of ActiveRecord::FutureResult, future_result
+    end
 
     monitor.synchronize do
       condition.wait_until { status[:executed] }
@@ -121,9 +140,9 @@ class AsynchronousQueriesWithTransactionalTest < ActiveRecord::TestCase
 end
 
 class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
-  def test_immediate_configuration_uses_a_single_immediate_executor_by_default
+  def test_null_configuration_uses_a_single_null_executor_by_default
     old_value = ActiveRecord::Base.async_query_executor
-    ActiveRecord::Base.async_query_executor = :immediate
+    ActiveRecord::Base.async_query_executor = nil
 
     handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
@@ -134,11 +153,10 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     async_pool1 = pool1.instance_variable_get(:@async_executor)
     async_pool2 = pool2.instance_variable_get(:@async_executor)
 
-    assert async_pool1.is_a?(Concurrent::ImmediateExecutor)
-    assert async_pool2.is_a?(Concurrent::ImmediateExecutor)
+    assert_nil async_pool1
+    assert_nil async_pool2
 
     assert_equal 2, handler.all_connection_pools.count
-    assert_equal async_pool1, async_pool2
   ensure
     clean_up_connection_handler
     ActiveRecord::Base.async_query_executor = old_value
@@ -213,9 +231,9 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     ActiveRecord::Base.async_query_executor = old_value
   end
 
-  def test_concurrency_cannot_be_set_with_immediate_or_multi_thread_pool
+  def test_concurrency_cannot_be_set_with_null_executor_or_multi_thread_pool
     old_value = ActiveRecord::Base.async_query_executor
-    ActiveRecord::Base.async_query_executor = :immediate
+    ActiveRecord::Base.async_query_executor = nil
 
     assert_raises ArgumentError do
       ActiveRecord::Base.global_executor_concurrency = 8

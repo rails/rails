@@ -429,6 +429,10 @@ module ActiveRecord
         true
       end
 
+      def async_enabled?
+        supports_concurrent_connections? && !Base.async_query_executor.nil?
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
