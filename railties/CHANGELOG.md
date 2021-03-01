@@ -1,3 +1,7 @@
+*   Stop generating a license for in-app plugins.
+
+    *Gannon McGibbon*
+
 *   `rails app:update` no longer prompts you to overwrite files that are generally modified in the
     course of developing a Rails app. See [#41083](https://github.com/rails/rails/pull/41083) for
     the full list of changes.

@@ -51,7 +51,7 @@ module Rails
     end
 
     def license
-      template "MIT-LICENSE"
+      template "MIT-LICENSE" unless inside_application?
     end
 
     def gemspec
