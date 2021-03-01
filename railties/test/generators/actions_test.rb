@@ -565,6 +565,7 @@ class ActionsTest < Rails::Generators::TestCase
   test "route with namespace option should nest route" do
     run_generator
     action :route, "get 'foo'\nget 'bar'", namespace: :baz
+
     assert_routes <<~ROUTING_CODE.chomp
       namespace :baz do
         get 'foo'
@@ -576,11 +577,36 @@ class ActionsTest < Rails::Generators::TestCase
   test "route with namespace option array should deeply nest route" do
     run_generator
     action :route, "get 'foo'\nget 'bar'", namespace: %w[baz qux]
+
     assert_routes <<~ROUTING_CODE.chomp
       namespace :baz do
         namespace :qux do
           get 'foo'
           get 'bar'
+        end
+      end
+    ROUTING_CODE
+  end
+
+  test "route with namespace option injects into existing namespace blocks" do
+    run_generator
+    action :route, "get 'foo1'\nget 'bar1'", namespace: %w[baz qux]
+    action :route, "get 'foo2'\nget 'bar2'", namespace: %w[baz hoge]
+    action :route, "get 'foo3'\nget 'bar3'", namespace: %w[baz qux hoge]
+
+    assert_routes <<~ROUTING_CODE.chomp
+      namespace :baz do
+        namespace :hoge do
+          get 'foo2'
+          get 'bar2'
+        end
+        namespace :qux do
+          namespace :hoge do
+            get 'foo3'
+            get 'bar3'
+          end
+          get 'foo1'
+          get 'bar1'
         end
       end
     ROUTING_CODE
