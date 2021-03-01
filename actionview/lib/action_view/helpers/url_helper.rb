@@ -214,20 +214,24 @@ module ActionView
       # using the +link_to+ method with the <tt>:method</tt> modifier as described in
       # the +link_to+ documentation.
       #
-      # By default, the generated form element has a class name of <tt>button_to</tt>
-      # to allow styling of the form itself and its children. This can be changed
-      # using the <tt>:form_class</tt> modifier within +html_options+. You can control
-      # the form submission and input element behavior using +html_options+.
-      # This method accepts the <tt>:method</tt> modifier described in the +link_to+ documentation.
-      # If no <tt>:method</tt> modifier is given, it will default to performing a POST operation.
-      # You can also disable the button by passing <tt>disabled: true</tt> in +html_options+.
-      # If you are using RESTful routes, you can pass the <tt>:method</tt>
-      # to change the HTTP verb used to submit the form.
+      # You can control the form and button behavior with +html_options+. Most
+      # values in +html_options+ are passed through to the button element. For
+      # example, passing a +:class+ option within +html_options+ will set the
+      # class attribute of the button element.
+      #
+      # The class attribute of the form element can be set by passing a
+      # +:form_class+ option within +html_options+. It defaults to
+      # <tt>"button_to"</tt> to allow styling of the form and its children.
+      #
+      # The form submits a POST request by default. You can specify a different
+      # HTTP verb via the +:method+ option within +html_options+.
       #
       # ==== Options
       # The +options+ hash accepts the same options as +url_for+.
       #
-      # There are a few special +html_options+:
+      # Most values in +html_options+ are passed through to the button element,
+      # but there are a few special options:
+      #
       # * <tt>:method</tt> - \Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
       #   <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>. By default it will be <tt>:post</tt>.
       # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
