@@ -268,13 +268,13 @@ module ActiveRecord
         end
       end
 
-      def migrate
+      def migrate(version = nil)
         check_target_version
 
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose?
 
-        Base.connection.migration_context.migrate(target_version) do |migration|
+        Base.connection.migration_context.migrate(target_version || version) do |migration|
           scope.blank? || scope == migration.scope
         end.tap do |migrations_ran|
           Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?
@@ -283,6 +283,23 @@ module ActiveRecord
         ActiveRecord::Base.clear_cache!
       ensure
         Migration.verbose = verbose_was
+      end
+
+      def db_configs_with_versions(db_configs) # :nodoc:
+        db_configs_with_versions = {}
+
+        db_configs.each do |db_config|
+          ActiveRecord::Base.establish_connection(db_config)
+          versions_to_run = ActiveRecord::Base.connection.migration_context.pending_migration_versions
+          target_version = ActiveRecord::Tasks::DatabaseTasks.target_version
+
+          versions_to_run.each do |version|
+            next if target_version && target_version != version
+            db_configs_with_versions[version] = db_config
+          end
+        end
+
+        db_configs_with_versions
       end
 
       def migrate_status

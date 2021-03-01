@@ -1140,7 +1140,11 @@ module ActiveRecord
     end
 
     def needs_migration? # :nodoc:
-      (migrations.collect(&:version) - get_all_versions).size > 0
+      pending_migration_versions.size > 0
+    end
+
+    def pending_migration_versions # :nodoc:
+      migrations.collect(&:version) - get_all_versions
     end
 
     def migrations # :nodoc:
