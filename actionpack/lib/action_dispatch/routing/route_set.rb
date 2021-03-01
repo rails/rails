@@ -766,8 +766,7 @@ module ActionDispatch
 
         route_name = options.delete :use_route
         generator = generate(route_name, options, recall)
-        path_info = path_for(options, route_name, [])
-        [URI(path_info).path, generator.params.except(:_recall).keys]
+        [generator.path(nil), generator.params.except(:_recall).keys]
       end
 
       def generate(route_name, options, recall = {}, method_name = nil)
