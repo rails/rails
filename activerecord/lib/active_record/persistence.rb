@@ -363,8 +363,7 @@ module ActiveRecord
           end
         end
 
-        im = Arel::InsertManager.new
-        im.into(arel_table)
+        im = Arel::InsertManager.new(arel_table)
 
         if values.empty?
           im.insert(connection.empty_insert_statement_value(primary_key))
@@ -386,8 +385,7 @@ module ActiveRecord
           constraints << current_scope.where_clause.ast
         end
 
-        um = Arel::UpdateManager.new
-        um.table(arel_table)
+        um = Arel::UpdateManager.new(arel_table)
         um.set(_substitute_values(values))
         um.wheres = constraints
 
@@ -405,8 +403,7 @@ module ActiveRecord
           constraints << current_scope.where_clause.ast
         end
 
-        dm = Arel::DeleteManager.new
-        dm.from(arel_table)
+        dm = Arel::DeleteManager.new(arel_table)
         dm.wheres = constraints
 
         connection.delete(dm, "#{self} Destroy")
