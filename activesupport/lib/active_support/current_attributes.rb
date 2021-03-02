@@ -155,14 +155,15 @@ module ActiveSupport
           @current_instances_key ||= name.to_sym
         end
 
-        def method_missing(name, *args, **kwargs, &block)
+        def method_missing(name, *args, &block)
           # Caches the method definition as a singleton method of the receiver.
           #
           # By letting #delegate handle it, we avoid an enclosure that'll capture args.
           singleton_class.delegate name, to: :instance
 
-          send(name, *args, **kwargs, &block)
+          send(name, *args, &block)
         end
+        ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 
         def respond_to_missing?(name, _)
           super || instance.respond_to?(name)
