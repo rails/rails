@@ -1430,7 +1430,7 @@ Associations](association_basics.html) guide.
 
 ### Adding a Route for Comments
 
-As with the `welcome` controller, we will need to add a route so that Rails
+As with the `articles` controller, we will need to add a route so that Rails
 knows where we would like to navigate to see `comments`. Open up the
 `config/routes.rb` file again, and edit it as follows:
 
