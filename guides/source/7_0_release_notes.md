@@ -119,6 +119,7 @@ Active Support
 Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
+*   Remove deprecated `ActiveSupport::Multibyte::Unicode.default_normalization_form`.
 
 ### Deprecations
 
