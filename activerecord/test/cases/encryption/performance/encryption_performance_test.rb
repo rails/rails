@@ -12,7 +12,7 @@ class ActiveRecord::Encryption::EncryptionPerformanceTest < ActiveRecord::TestCa
   test "performance when saving records" do
     baseline = -> { create_post_without_encryption }
 
-    assert_slower_by_at_most 1.6, baseline: baseline do
+    assert_slower_by_at_most 1.3, baseline: baseline do
       create_post_with_encryption
     end
   end
@@ -22,16 +22,14 @@ class ActiveRecord::Encryption::EncryptionPerformanceTest < ActiveRecord::TestCa
     baseline = -> { unencrypted_post.reload.title }
 
     encrypted_post = create_post_with_encryption
-    assert_slower_by_at_most 1, baseline: baseline, duration: 3 do
+    assert_slower_by_at_most 1.1, baseline: baseline, duration: 3 do
       encrypted_post.reload.title
     end
   end
 
   private
     def create_post_without_encryption
-      Post.create!\
-        title: "the Starfleet is here!",
-        body: "<p>the Starfleet is here, we are safe now!</p>"
+      ActiveRecord::Encryption.without_encryption { create_post_with_encryption }
     end
 
     def create_post_with_encryption

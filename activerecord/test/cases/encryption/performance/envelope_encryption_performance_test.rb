@@ -12,7 +12,7 @@ class ActiveRecord::Encryption::EvenlopeEncryptionPerformanceTest < ActiveRecord
   test "performance when saving records" do
     baseline = -> { create_book_without_encryption }
 
-    assert_slower_by_at_most 1.8, baseline: baseline do
+    assert_slower_by_at_most 1.3, baseline: baseline do
       with_envelope_encryption do
         create_book
       end
