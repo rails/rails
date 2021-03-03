@@ -178,15 +178,15 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert async_pool1.is_a?(Concurrent::ThreadPoolExecutor)
     assert async_pool2.is_a?(Concurrent::ThreadPoolExecutor)
 
-    assert 0, async_pool1.min_length
-    assert 4, async_pool1.max_length
-    assert 16, async_pool1.max_queue
-    assert :caller_runs, async_pool1.fallback_policy
+    assert_equal 0, async_pool1.min_length
+    assert_equal 4, async_pool1.max_length
+    assert_equal 16, async_pool1.max_queue
+    assert_equal :caller_runs, async_pool1.fallback_policy
 
-    assert 0, async_pool2.min_length
-    assert 4, async_pool2.max_length
-    assert 16, async_pool2.max_queue
-    assert :caller_runs, async_pool2.fallback_policy
+    assert_equal 0, async_pool2.min_length
+    assert_equal 4, async_pool2.max_length
+    assert_equal 16, async_pool2.max_queue
+    assert_equal :caller_runs, async_pool2.fallback_policy
 
     assert_equal 2, handler.all_connection_pools.count
     assert_equal async_pool1, async_pool2
@@ -199,6 +199,8 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     old_value = ActiveRecord::Base.async_query_executor
     ActiveRecord::Base.async_query_executor = :global_thread_pool
     old_concurrency = ActiveRecord::Base.global_executor_concurrency
+    old_global_thread_pool_async_query_executor = ActiveRecord::Core.class_variable_get(:@@global_thread_pool_async_query_executor)
+    ActiveRecord::Core.class_variable_set(:@@global_thread_pool_async_query_executor, nil)
     ActiveRecord::Base.global_executor_concurrency = 8
 
     handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
@@ -213,15 +215,15 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert async_pool1.is_a?(Concurrent::ThreadPoolExecutor)
     assert async_pool2.is_a?(Concurrent::ThreadPoolExecutor)
 
-    assert 0, async_pool1.min_length
-    assert 8, async_pool1.max_length
-    assert 32, async_pool1.max_queue
-    assert :caller_runs, async_pool1.fallback_policy
+    assert_equal 0, async_pool1.min_length
+    assert_equal 8, async_pool1.max_length
+    assert_equal 32, async_pool1.max_queue
+    assert_equal :caller_runs, async_pool1.fallback_policy
 
-    assert 0, async_pool2.min_length
-    assert 8, async_pool2.max_length
-    assert 32, async_pool2.max_queue
-    assert :caller_runs, async_pool2.fallback_policy
+    assert_equal 0, async_pool2.min_length
+    assert_equal 8, async_pool2.max_length
+    assert_equal 32, async_pool2.max_queue
+    assert_equal :caller_runs, async_pool2.fallback_policy
 
     assert_equal 2, handler.all_connection_pools.count
     assert_equal async_pool1, async_pool2
@@ -229,6 +231,7 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     clean_up_connection_handler
     ActiveRecord::Base.global_executor_concurrency = old_concurrency
     ActiveRecord::Base.async_query_executor = old_value
+    ActiveRecord::Core.class_variable_set(:@@global_thread_pool_async_query_executor, old_global_thread_pool_async_query_executor)
   end
 
   def test_concurrency_cannot_be_set_with_null_executor_or_multi_thread_pool
@@ -266,15 +269,15 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert async_pool1.is_a?(Concurrent::ThreadPoolExecutor)
     assert async_pool2.is_a?(Concurrent::ThreadPoolExecutor)
 
-    assert 0, async_pool1.min_length
-    assert 10, async_pool1.max_length
-    assert 40, async_pool1.max_queue
-    assert :caller_runs, async_pool1.fallback_policy
+    assert_equal 0, async_pool1.min_length
+    assert_equal 10, async_pool1.max_length
+    assert_equal 40, async_pool1.max_queue
+    assert_equal :caller_runs, async_pool1.fallback_policy
 
-    assert 0, async_pool2.min_length
-    assert 4, async_pool2.max_length
-    assert 16, async_pool2.max_queue
-    assert :caller_runs, async_pool2.fallback_policy
+    assert_equal 0, async_pool2.min_length
+    assert_equal 5, async_pool2.max_length
+    assert_equal 20, async_pool2.max_queue
+    assert_equal :caller_runs, async_pool2.fallback_policy
 
     assert_equal 2, handler.all_connection_pools.count
     assert_not_equal async_pool1, async_pool2
@@ -306,10 +309,10 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert async_pool1.is_a?(Concurrent::ThreadPoolExecutor)
     assert_nil async_pool2
 
-    assert 0, async_pool1.min_length
-    assert 10, async_pool1.max_length
-    assert 40, async_pool1.max_queue
-    assert :caller_runs, async_pool1.fallback_policy
+    assert_equal 0, async_pool1.min_length
+    assert_equal 10, async_pool1.max_length
+    assert_equal 40, async_pool1.max_queue
+    assert_equal :caller_runs, async_pool1.fallback_policy
 
     assert_equal 2, handler.all_connection_pools.count
     assert_not_equal async_pool1, async_pool2
