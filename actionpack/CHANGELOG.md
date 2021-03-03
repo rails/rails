@@ -1,3 +1,7 @@
+*   Fix ActionController::Live controller test deadlocks by removing the body buffer size limit for tests.
+
+    *Dylan Thacker-Smith*
+
 *   Drop support for the `SERVER_ADDR` header
 
     Following up https://github.com/rack/rack/pull/1573 and https://github.com/rails/rails/pull/42349
