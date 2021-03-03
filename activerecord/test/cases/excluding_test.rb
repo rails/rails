@@ -45,18 +45,14 @@ class ExcludingTest < ActiveRecord::TestCase
     assert_not_includes relation.to_a, comment_more_greetings
   end
 
-  def test_raises_on_no_arguments
-    exception = assert_raises ArgumentError do
-      Post.excluding()
-    end
-    assert_equal "You must pass at least one Post object to #excluding.", exception.message
+  def test_does_not_exclude_records_when_no_arguments
+    assert_includes Post.excluding(), posts(:welcome)
+    assert_equal Post.count, Post.excluding().count
   end
 
-  def test_raises_on_empty_collection_argument
-    exception = assert_raises ArgumentError do
-      Post.excluding([])
-    end
-    assert_equal "You must pass at least one Post object to #excluding.", exception.message
+  def test_does_not_exclude_records_with_empty_collection_argument
+    assert_includes Post.excluding([]), posts(:welcome)
+    assert_equal Post.count, Post.excluding([]).count
   end
 
   def test_raises_on_record_from_different_class
