@@ -10,30 +10,32 @@ class ExcludingTest < ActiveRecord::TestCase
   setup { @post = posts(:welcome) }
 
   def test_result_set_does_not_include_single_excluded_record
+    assert_not_includes Post.excluding(@post),      @post
     assert_not_includes Post.excluding(@post).to_a, @post
-    assert_not_includes Post.without(@post).to_a,   @post
+
+    assert_not_includes Post.without(@post), @post
   end
 
   def test_result_set_does_not_include_collection_of_excluded_records
     relation = Post.excluding(@post, posts(:thinking))
-    assert_not_includes relation.to_a, @post
-    assert_not_includes relation.to_a, posts(:thinking)
+    assert_not_includes relation, @post
+    assert_not_includes relation, posts(:thinking)
   end
 
   def test_result_set_through_association_does_not_include_single_excluded_record
     comment_greetings, comment_more_greetings = comments(:greetings, :more_greetings)
 
     relation = @post.comments.excluding(comment_greetings)
-    assert_not_includes relation.to_a, comment_greetings
-    assert_includes relation.to_a, comment_more_greetings
+    assert_not_includes relation, comment_greetings
+    assert_includes     relation, comment_more_greetings
   end
 
   def test_result_set_through_association_does_not_include_collection_of_excluded_records
     comment_greetings, comment_more_greetings = comments(:greetings, :more_greetings)
 
     relation = @post.comments.excluding([ comment_greetings, comment_more_greetings ])
-    assert_not_includes relation.to_a, comment_greetings
-    assert_not_includes relation.to_a, comment_more_greetings
+    assert_not_includes relation, comment_greetings
+    assert_not_includes relation, comment_more_greetings
   end
 
   def test_does_not_exclude_records_when_no_arguments
