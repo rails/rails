@@ -46,15 +46,10 @@ class ExcludingTest < ActiveRecord::TestCase
   end
 
   def test_does_not_exclude_records_when_no_arguments
-    assert_does_not_exclude_records { Post.excluding() }
-  end
-
-  def test_does_not_exclude_records_with_empty_collection_argument
-    assert_does_not_exclude_records { Post.excluding([]) }
-  end
-
-  def test_does_not_exclude_records_with_a_nil_argument
-    assert_does_not_exclude_records { Post.excluding(nil) }
+    assert_no_excludes Post.excluding
+    assert_no_excludes Post.excluding(nil)
+    assert_no_excludes Post.excluding([])
+    assert_no_excludes Post.excluding([ nil ])
   end
 
   def test_raises_on_record_from_different_class
@@ -74,8 +69,8 @@ class ExcludingTest < ActiveRecord::TestCase
   end
 
   private
-    def assert_does_not_exclude_records
-      assert_includes yield, posts(:welcome)
-      assert_equal Post.count, yield.count
+    def assert_no_excludes(relation)
+      assert_includes relation, posts(:welcome)
+      assert_equal Post.count, relation.count
     end
 end
