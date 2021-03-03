@@ -11,6 +11,7 @@ class ExcludingTest < ActiveRecord::TestCase
 
   def test_result_set_does_not_include_single_excluded_record
     assert_not_includes Post.excluding(@post).to_a, @post
+    assert_not_includes Post.without(@post).to_a,   @post
   end
 
   def test_result_set_does_not_include_collection_of_excluded_records
@@ -45,10 +46,6 @@ class ExcludingTest < ActiveRecord::TestCase
   def test_raises_on_record_from_different_class
     error = assert_raises(ArgumentError) { Post.excluding(@post, comments(:greetings)) }
     assert_equal "You must only pass a single or collection of Post objects to #excluding.", error.message
-  end
-
-  def test_result_set_does_not_include_without_record
-    assert_not_includes Post.without(@post).to_a, @post
   end
 
   private
