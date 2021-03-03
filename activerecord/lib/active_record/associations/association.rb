@@ -213,7 +213,7 @@ module ActiveRecord
 
       private
         def find_target
-          if strict_loading? && owner.validation_context.nil?
+          if violates_strict_loading? && owner.validation_context.nil?
             Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
           end
 
@@ -226,13 +226,20 @@ module ActiveRecord
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute(binds, klass.connection) { |record| set_inverse_instance(record) }
+          sc.execute(binds, klass.connection) do |record|
+            set_inverse_instance(record)
+            if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
+              record.strict_loading!
+            else
+              record.strict_loading_mode = owner.strict_loading_mode
+            end
+          end
         end
 
-        def strict_loading?
+        def violates_strict_loading?
           return reflection.strict_loading? if reflection.options.key?(:strict_loading)
 
-          owner.strict_loading?
+          owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
         end
 
         # The scope for this association.
