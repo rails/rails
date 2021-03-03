@@ -7,22 +7,22 @@ require "models/comment"
 class ExcludingTest < ActiveRecord::TestCase
   fixtures :posts, :comments
 
+  setup { @post = posts(:welcome) }
+
   def test_result_set_does_not_include_single_excluded_record
-    assert_not_includes Post.excluding(posts(:welcome)).to_a, posts(:welcome)
+    assert_not_includes Post.excluding(@post).to_a, @post
   end
 
   def test_result_set_does_not_include_collection_of_excluded_records
-    post_welcome, post_thinking = posts(:welcome, :thinking)
-
-    relation = Post.excluding(post_welcome, post_thinking)
-    assert_not_includes relation.to_a, post_welcome
-    assert_not_includes relation.to_a, post_thinking
+    relation = Post.excluding(@post, posts(:thinking))
+    assert_not_includes relation.to_a, @post
+    assert_not_includes relation.to_a, posts(:thinking)
   end
 
   def test_result_set_through_association_does_not_include_single_excluded_record
     comment_greetings, comment_more_greetings = comments(:greetings, :more_greetings)
 
-    relation = posts(:welcome).comments.excluding(comment_greetings)
+    relation = @post.comments.excluding(comment_greetings)
     assert_not_includes relation.to_a, comment_greetings
     assert_includes relation.to_a, comment_more_greetings
   end
@@ -30,7 +30,7 @@ class ExcludingTest < ActiveRecord::TestCase
   def test_result_set_through_association_does_not_include_collection_of_excluded_records
     comment_greetings, comment_more_greetings = comments(:greetings, :more_greetings)
 
-    relation = posts(:welcome).comments.excluding([ comment_greetings, comment_more_greetings ])
+    relation = @post.comments.excluding([ comment_greetings, comment_more_greetings ])
     assert_not_includes relation.to_a, comment_greetings
     assert_not_includes relation.to_a, comment_more_greetings
   end
@@ -43,17 +43,17 @@ class ExcludingTest < ActiveRecord::TestCase
   end
 
   def test_raises_on_record_from_different_class
-    error = assert_raises(ArgumentError) { Post.excluding(posts(:welcome), comments(:greetings)) }
+    error = assert_raises(ArgumentError) { Post.excluding(@post, comments(:greetings)) }
     assert_equal "You must only pass a single or collection of Post objects to #excluding.", error.message
   end
 
   def test_result_set_does_not_include_without_record
-    assert_not_includes Post.without(posts(:welcome)).to_a, posts(:welcome)
+    assert_not_includes Post.without(@post).to_a, @post
   end
 
   private
     def assert_no_excludes(relation)
-      assert_includes relation, posts(:welcome)
+      assert_includes relation, @post
       assert_equal Post.count, relation.count
     end
 end
