@@ -1131,8 +1131,6 @@ module ActiveRecord
     def excluding(*records)
       records.flatten!(1)
 
-      raise ArgumentError, "You must pass at least one #{klass.name} object to #excluding." if records.empty?
-
       if records.any? { |record| !record.is_a?(klass) }
         raise ArgumentError, "You must only pass a single or collection of #{klass.name} objects to #excluding."
       end
