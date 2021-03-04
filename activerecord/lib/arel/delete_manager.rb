@@ -6,9 +6,8 @@ module Arel # :nodoc: all
 
     def initialize(table = nil)
       super()
-      @ast = Nodes::DeleteStatement.new
+      @ast = Nodes::DeleteStatement.new(table)
       @ctx = @ast
-      @ast.relation = table
     end
 
     def from(relation)

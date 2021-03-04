@@ -6,9 +6,8 @@ module Arel # :nodoc: all
 
     def initialize(table = nil)
       super()
-      @ast = Nodes::UpdateStatement.new
+      @ast = Nodes::UpdateStatement.new(table)
       @ctx = @ast
-      @ast.relation = table
     end
 
     ###
