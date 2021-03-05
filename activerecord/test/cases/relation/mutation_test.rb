@@ -127,7 +127,7 @@ module ActiveRecord
 
     test "distinct_on!" do
       relation.distinct_on! :foo
-      assert_equal :foo, relation.distinct_on_value
+      assert_equal [:foo], relation.distinct_on_values
     end
 
     test "skip_query_cache!" do
