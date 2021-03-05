@@ -1130,8 +1130,9 @@ module ActiveRecord
     # scoping.
     def excluding(*records)
       records.flatten!(1)
+      records.compact!
 
-      if records.compact.any? { |record| !record.is_a?(klass) }
+      unless records.all?(klass)
         raise ArgumentError, "You must only pass a single or collection of #{klass.name} objects to #excluding."
       end
 
