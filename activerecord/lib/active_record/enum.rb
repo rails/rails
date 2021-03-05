@@ -149,8 +149,10 @@ module ActiveRecord
         end
       end
 
+      attr_reader :subtype
+
       private
-        attr_reader :name, :mapping, :subtype
+        attr_reader :name, :mapping
     end
 
     def enum(definitions)
