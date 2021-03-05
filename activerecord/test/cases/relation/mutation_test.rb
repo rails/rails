@@ -125,6 +125,11 @@ module ActiveRecord
       assert_equal :foo, relation.distinct_value
     end
 
+    test "distinct_on!" do
+      relation.distinct_on! :foo
+      assert_equal :foo, relation.distinct_on_value
+    end
+
     test "skip_query_cache!" do
       relation.skip_query_cache!
       assert relation.skip_query_cache_value
