@@ -25,7 +25,7 @@ module ActiveStorage
     #
     #   person.avatar.attach(params[:avatar]) # ActionDispatch::Http::UploadedFile object
     #   person.avatar.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
-    #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
+    #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
     #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
     def attach(attachable)
       if record.persisted? && !record.changed?
