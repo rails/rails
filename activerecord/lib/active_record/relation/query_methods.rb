@@ -1418,6 +1418,23 @@ module ActiveRecord
       self
     end
 
+    # Specifies whether the records should be unique by column (only supported on PostgreSQL). For example:
+    #
+    #   User.eager_load(:bikes)
+    #   # Might return duplicate user records
+    #
+    #   User.eager_load(:bikes).distinct_on(:id)
+    #   # Returns a record per distinct users.id
+    def distinct_on(column)
+      spawn.distinct_on!(column)
+    end
+
+    # Like #distinct_on, but modifies relation in place.
+    def distinct_on!(column) # :nodoc:
+      self.distinct_on_value = column
+      self
+    end
+
     # Used to extend a scope with additional methods, either through
     # a module or through a block provided.
     #
@@ -1765,6 +1782,7 @@ module ActiveRecord
         arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
         arel.comment(*annotate_values) unless annotate_values.empty?
         arel.distinct(distinct_value)
+        arel.distinct_on(arel_columns([distinct_on_value]).first) if distinct_on_value
         arel.from(build_from) unless from_clause.empty?
         arel.lock(lock_value) if lock_value
 
