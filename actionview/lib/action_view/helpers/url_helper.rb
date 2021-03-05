@@ -646,10 +646,10 @@ module ActionView
       #   # => <a href="tel:1234567890">1234567890</a>
       #
       #   phone_to "1234567890", "Phone me"
-      #   # => <a href="tel:134567890">Phone me</a>
+      #   # => <a href="tel:1234567890">Phone me</a>
       #
       #   phone_to "1234567890", country_code: "01"
-      #   # => <a href="tel:+015155555785">1234567890</a>
+      #   # => <a href="tel:+011234567890">1234567890</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. \ERB example:
       #
