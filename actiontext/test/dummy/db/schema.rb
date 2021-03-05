@@ -2,8 +2,8 @@
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
 #
-# This file is the source Rails uses to define your schema when running `rails
-# db:schema:load`. When creating a new database, `rails db:schema:load` tends to
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
 # be faster and is potentially less error prone than running all of your
 # migrations from scratch. Old migrations may fail to apply correctly if those
 # migrations use external dependencies or application code.
@@ -15,8 +15,9 @@ ActiveRecord::Schema.define(version: 2019_03_17_200724) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
+    t.text "plain_text_body"
     t.string "record_type", null: false
-    t.integer "record_id", null: false
+    t.bigint "record_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["record_type", "record_id", "name"], name: "index_action_text_rich_texts_uniqueness", unique: true
@@ -47,7 +48,7 @@ ActiveRecord::Schema.define(version: 2019_03_17_200724) do
   create_table "active_storage_variant_records", force: :cascade do |t|
     t.integer "blob_id", null: false
     t.string "variation_digest", null: false
-    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_on_blob_id"
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
   create_table "messages", force: :cascade do |t|
@@ -69,7 +70,7 @@ ActiveRecord::Schema.define(version: 2019_03_17_200724) do
   end
 
   create_table "reviews", force: :cascade do |t|
-    t.integer "message_id", null: false
+    t.bigint "message_id", null: false
     t.string "author_name", null: false
     t.index ["message_id"], name: "index_reviews_on_message_id"
   end
