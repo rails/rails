@@ -24,6 +24,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
         t.hstore :hstores, array: true
         t.decimal :decimals, array: true, default: [], precision: 10, scale: 2
         t.timestamp :timestamps, array: true, default: [], precision: 6
+        t.binary :signatures, array: true
       end
     end
     PgArray.reset_column_information
@@ -375,6 +376,14 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     assert_equal 123, record.timestamps.first.usec
     record.reload
     assert_equal 123, record.timestamps.first.usec
+  end
+
+  def test_binary_arrays_are_serialized_correctly
+    signatures = ["signature1", "signature2"]
+    PgArray.create!(signatures: signatures)
+
+    assert_equal signatures, PgArray.last.signatures
+    assert_equal 1, PgArray.where(":signature = ANY(signatures)", signature: "signature1").count
   end
 
   private
