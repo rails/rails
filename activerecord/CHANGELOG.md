@@ -1,3 +1,12 @@
+*   Support PostgreSQL DISTINCT ON queries
+
+    ```ruby
+    User.distinct_on(:name)
+    #=> SQL SELECT DISTINCT ON (name) * FROM users
+    ```
+
+    *Ali Ismayilov*
+
 *   Fix negative scopes for enums to include records with `nil` values.
 
     *fatkodima*
