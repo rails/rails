@@ -57,7 +57,7 @@ module ActionText
     end
 
     TAG_NAME = "div"
-    ATTACHMENT_SELECTOR = "#{ActionText::Attachment::SELECTOR}[presentation=gallery]"
+    ATTACHMENT_SELECTOR = "#{ActionText::Attachment.tag_name}[presentation=gallery]"
     SELECTOR = "#{TAG_NAME}:has(#{ATTACHMENT_SELECTOR} + #{ATTACHMENT_SELECTOR})"
 
     private_constant :TAG_NAME, :ATTACHMENT_SELECTOR, :SELECTOR

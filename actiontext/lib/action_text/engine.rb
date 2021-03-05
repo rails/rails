@@ -12,6 +12,9 @@ module ActionText
     isolate_namespace ActionText
     config.eager_load_namespaces << ActionText
 
+    config.action_text = ActiveSupport::OrderedOptions.new
+    config.action_text.attachment_tag_name = "action-text-attachment"
+
     initializer "action_text.attribute" do
       ActiveSupport.on_load(:active_record) do
         include ActionText::Attribute
@@ -63,6 +66,10 @@ module ActionText
         require "action_text/system_test_helper"
         include ActionText::SystemTestHelper
       end
+    end
+
+    initializer "action_text.configure" do |app|
+      ActionText::Attachment.tag_name = app.config.action_text.attachment_tag_name
     end
   end
 end
