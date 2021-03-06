@@ -24,7 +24,8 @@
 #
 # We will extend this to support previous "encryption context" versions in future iterations
 #
-# @todo This is experimental stuff. Works for our cases but full support for every kind of query is pending
+# @TODO Experimental. Support for every kind of query is pending
+# @TODO It should not patch anything if not needed (no previous schemes or no support for previous encryption schemes)
 module ActiveRecord
   module Encryption
     module ExtendedDeterministicQueries
