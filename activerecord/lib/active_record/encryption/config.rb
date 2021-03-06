@@ -4,7 +4,7 @@ module ActiveRecord
     class Config
       attr_accessor :master_key, :deterministic_key, :store_key_references, :key_derivation_salt,
                     :support_unencrypted_data, :encrypt_fixtures, :validate_column_size, :add_to_filter_parameters,
-                    :excluded_from_filter_parameters
+                    :excluded_from_filter_parameters, :support_previous_encryption_schemes
 
       def initialize
         set_defaults
@@ -17,6 +17,7 @@ module ActiveRecord
           self.encrypt_fixtures = false
           self.validate_column_size = true
           self.add_to_filter_parameters = true
+          self.support_previous_encryption_schemes = true
           self.excluded_from_filter_parameters = []
         end
     end
