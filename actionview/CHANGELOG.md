@@ -1,3 +1,26 @@
+*   Change `token_lists` and `class_names` to return instances of `TokenList`,
+    and `tag.attributes` helpers to return instances of `Attributes`. These
+    objects know how to serialize themselves into HTML views through their `#to_s`
+    methods. `TokenList` instances how to merge themselves with other `TokenList`
+    and `Enumerable` instances, and `Attributes` know how to merge themselves
+    with other `Hash` and `Attributes` instances, and know how to splat themselves
+    out like a `Hash`.
+
+    ```ruby
+    def button
+      class_names "py-2 px-4 font-semibold shadow-md focus:outline-none focus:ring-2"
+    end
+
+    def primary_button
+      button | "bg-black rounded-lg text-white hover:bg-yellow-300 focus:ring-yellow-300 focus:ring-opacity-75"
+    end
+
+    button_tag "Save", class: primary_button | "uppercase"
+    #=> "<button class="py-2 px-4 font-semibold shadow-md focus:outline-none focus:ring-2 bg-black rounded-lg text-white hover:bg-yellow-300 focus:ring-yellow-300 focus:ring-opacity-75 uppercase">Save</button>
+    ```
+
+    *Sean Doyle*
+
 *   Deprecate `render` locals to be assigned to instance variables.
 
     *Petrik de Heus*

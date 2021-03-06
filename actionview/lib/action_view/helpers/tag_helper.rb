@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/enumerable"
+require "active_support/core_ext/hash/deep_transform_values"
 require "active_support/core_ext/string/output_safety"
 require "set"
 require "action_view/helpers/capture_helper"
@@ -56,8 +57,8 @@ module ActionView
         #
         #   <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %> >
         #   # => <input type="text" aria-label="Search">
-        def attributes(attributes)
-          tag_options(attributes.to_h).to_s.strip.html_safe
+        def attributes(attributes = {})
+          Attributes.new(self, attributes || {})
         end
 
         def p(*arguments, **options, &block)
@@ -142,9 +143,17 @@ module ActionView
         private
           def prefix_tag_option(prefix, key, value, escape)
             key = "#{prefix}-#{key.to_s.dasherize}"
-            unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
-              value = value.to_json
-            end
+
+            value =
+              case value
+              when String, Symbol, BigDecimal
+                value
+              when TokenList
+                value.to_a
+              else
+                value.to_json
+              end
+
             tag_option(key, value, escape)
           end
 
@@ -155,6 +164,121 @@ module ActionView
           def method_missing(called, *args, **options, &block)
             tag_string(called, *args, **options, &block)
           end
+      end
+
+      class Attributes #:nodoc:
+        delegate_missing_to :@attributes
+
+        TOKEN_LIST_ATTRIBUTES = %i[
+          class
+          rel
+          data-action
+          data-controller
+          aria-controls
+          aria-flowto
+          aria-describedby
+          aria-labelledby
+          aria-owns
+          aria-dropeffect
+          aria-relevant
+        ].freeze
+        NESTED_TOKEN_LISTS_ATTRIBUTES = %i[
+          action
+          controller
+          controls
+          flowto
+          describedby
+          labelledby
+          owns
+          dropeffect
+          relevant
+        ].freeze
+
+        def self.deep_wrap_token_lists(attributes)
+          attributes.deep_merge(attributes) do |attribute, value|
+            if attribute.in?(TOKEN_LIST_ATTRIBUTES | NESTED_TOKEN_LISTS_ATTRIBUTES)
+              TokenList.wrap(TagHelper.build_tag_values(value))
+            else
+              value
+            end
+          end
+        end
+
+        def initialize(tag_builder, attributes)
+          @tag_builder = tag_builder
+          @attributes = Attributes.deep_wrap_token_lists(attributes)
+        end
+
+        def merge(other)
+          attributes = @attributes.merge(other) do |key|
+            value, override = @attributes[key], other[key]
+
+            if value.is_a?(Hash) && override.is_a?(Hash)
+              Attributes.new(@tag_builder, value).merge(override)
+            elsif value.respond_to?(:merge)
+              value.merge(override)
+            else
+              value
+            end
+          end
+
+          Attributes.new(@tag_builder, attributes)
+        end
+        alias_method :+, :merge
+        alias_method :|, :merge
+
+        def to_s
+          html_ready_attributes = @attributes.transform_values do |value|
+            case value
+            when Attributes then value.to_hash
+            when TokenList then value.to_a
+            else value
+            end
+          end
+
+          @tag_builder.tag_options(html_ready_attributes).to_s.strip.html_safe
+        end
+      end
+
+      class TokenList #:nodoc:
+        include Enumerable
+
+        def self.wrap(value)
+          if value.is_a? TokenList
+            value
+          else
+            tokens =
+              case value
+              when Enumerable then value
+              else Array(value)
+              end
+
+            new tokens.flat_map { |token| token.to_s.split(/\s+/) }.reject(&:blank?)
+          end
+        end
+
+        def initialize(tokens)
+          @tokens = Set.new(tokens)
+        end
+
+        def union(other)
+          TokenList.wrap(@tokens | Array(other).to_set)
+        end
+        alias_method :merge, :union
+        alias_method :+,     :union
+        alias_method :|,     :union
+
+        def each(&block)
+          @tokens.each(&block)
+        end
+
+        def ==(other)
+          @tokens.to_a == other.to_a
+        end
+
+        def to_s
+          to_a.join(" ")
+        end
       end
 
       # Returns an HTML tag.
@@ -337,10 +461,8 @@ module ActionView
       #    # => "foo"
       #   token_list(nil, false, 123, "", "foo", { bar: true })
       #    # => "123 foo bar"
-      def token_list(*args)
-        tokens = build_tag_values(*args).flat_map { |value| value.to_s.split(/\s+/) }.uniq
-
-        safe_join(tokens, " ")
+      def token_list(*tokens)
+        TokenList.wrap(build_tag_values(*tokens))
       end
       alias_method :class_names, :token_list
 
