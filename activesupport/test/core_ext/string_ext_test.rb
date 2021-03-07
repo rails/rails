@@ -431,6 +431,14 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 end
 
+class StringWordsTest < ActiveSupport::TestCase
+  def test_words
+    assert_equal [], nil.words
+    assert_equal %w[hello world], "hello, world!".words
+    assert_equal %w[a sentence with many lines and words], " a sentence\n with many\nlines     and words".words
+  end
+end
+
 class StringAccessTest < ActiveSupport::TestCase
   test "#at with Integer, returns a substring of one character at that position" do
     assert_equal "h", "hello".at(0)

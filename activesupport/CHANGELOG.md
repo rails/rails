@@ -1,3 +1,12 @@
+*   Add `String#words` to split out words from a String, and implement
+    `NilClass#words` to return `[]`.
+
+    ```ruby
+    "Hello, world!".words # => ["Hello", "world"]
+    ```
+
+    *Sean Doyle*
+
 *   Fix proxying keyword arguments in `ActiveSupport::CurrentAttributes`.
 
     *Marcin Kołodziej*
