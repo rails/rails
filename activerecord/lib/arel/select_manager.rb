@@ -8,9 +8,8 @@ module Arel # :nodoc: all
 
     def initialize(table = nil)
       super()
-      @ast = Nodes::SelectStatement.new
+      @ast = Nodes::SelectStatement.new(table)
       @ctx = @ast.cores.last
-      from table
     end
 
     def initialize_copy(other)
