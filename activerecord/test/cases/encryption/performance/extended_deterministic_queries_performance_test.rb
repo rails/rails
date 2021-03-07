@@ -1,7 +1,7 @@
 require "cases/encryption/helper"
 require "models/book"
 
-class ExtendedDeterministicQueriesPerformanceTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::ExtendedDeterministicQueriesPerformanceTest < ActiveRecord::TestCase
   # TODO: Is this failing only with SQLite/in memory adapter?
   test "finding with prepared statement caching by deterministically encrypted columns" do
     baseline = -> { EncryptedBook.find_by(format: "paperback") } # not encrypted

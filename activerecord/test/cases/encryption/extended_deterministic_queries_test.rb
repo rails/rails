@@ -1,7 +1,7 @@
 require "cases/encryption/helper"
 require "models/book"
 
-class ExtendedDeterministicQueriesTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord::TestCase
   test "Finds records when data is unencrypted" do
     ActiveRecord::Encryption.without_encryption { Book.create! name: "Dune" }
     assert EncryptedBook.find_by(name: "Dune") # core

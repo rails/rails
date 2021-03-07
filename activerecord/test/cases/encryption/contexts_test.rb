@@ -2,7 +2,7 @@ require "cases/encryption/helper"
 require "models/book"
 require "models/post"
 
-class ActiveRecord::ContextsTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::ContextsTest < ActiveRecord::TestCase
   fixtures :posts
 
   setup do
