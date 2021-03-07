@@ -47,7 +47,7 @@ module ActiveRecord
         assert_equal 1, config.max_threads
       end
 
-      def test_max_queue_is_pool_multipled_by_4
+      def test_max_queue_is_pool_multiplied_by_4
         config = HashConfig.new("default_env", "primary", {})
         assert_equal 5, config.max_threads
         assert_equal config.max_threads * 4, config.max_queue
