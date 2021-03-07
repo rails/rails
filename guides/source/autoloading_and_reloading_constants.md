@@ -89,7 +89,7 @@ INFO. Autoload paths are called _root directories_ in Zeitwerk documentation, bu
 
 Within an autoload path, file names must match the constants they define as documented [here](https://github.com/fxn/zeitwerk#file-structure).
 
-By default, the autoload paths of an application consist of all the subdirectories of `app` that exist when the application boots ---except for `assets`, `javascript`, `views`,--- plus the autoload paths of engines it might depend on.
+By default, the autoload paths of an application consist of all the subdirectories of `app` that exist when the application boots ---except for `assets`, `javascript`, and `views`--- plus the autoload paths of engines it might depend on.
 
 For example, if `UsersHelper` is implemented in `app/helpers/users_helper.rb`, the module is autoloadable, you do not need (and should not write) a `require` call for it:
 
@@ -102,13 +102,13 @@ Autoload paths automatically pick up any custom directories under `app`. For exa
 
 The array of autoload paths can be extended by mutating `config.autoload_paths`, in `config/application.rb`, but nowadays this is discouraged.
 
-WARNING. Please, do not mutate `ActiveSupport::Dependencies.autoload_paths`, the public interface to change autoload paths is `config.autoload_paths`.
+WARNING. Please do not mutate `ActiveSupport::Dependencies.autoload_paths`; the public interface to change autoload paths is `config.autoload_paths`.
 
 
 $LOAD_PATH
 ----------
 
-Autoload paths are added to `$LOAD_PATH` by default. However, Zeitwerk uses absolute file names internally, and your application should not issue `require` calls for autoloadable files, so those directories are actually not needed there. You can opt-out with this flag:
+Autoload paths are added to `$LOAD_PATH` by default. However, Zeitwerk uses absolute file names internally, and your application should not issue `require` calls for autoloadable files, so those directories are actually not needed there. You can opt out with this flag:
 
 ```ruby
 config.add_autoload_paths_to_load_path = false
@@ -142,7 +142,7 @@ irb(main):003:0> User.object_id
 => 70136284426020
 ```
 
-as you can see, the class object stored in the `User` constant is different after reloading.
+As you can see, the class object stored in the `User` constant is different after reloading.
 
 ### Reloading and Stale Objects
 
@@ -225,9 +225,9 @@ In production-like environments it is generally better to load all the applicati
 
 Eager loading is controlled by the flag `config.eager_load`, which is enabled by default in `production` mode.
 
-The order in which files are eager loaded is undefined.
+The order in which files are eager-loaded is undefined.
 
-If the `Zeitwerk` constant is defined, Rails invokes `Zeitwerk::Loader.eager_load_all` regardless of the application autoloading mode. That ensures dependencies managed by Zeitwerk are eager loaded.
+If the `Zeitwerk` constant is defined, Rails invokes `Zeitwerk::Loader.eager_load_all` regardless of the application autoloading mode. That ensures dependencies managed by Zeitwerk are eager-loaded.
 
 
 Single Table Inheritance
