@@ -276,8 +276,9 @@ module Rails
             GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
           ]
         elsif options.edge?
+          edge_branch = Rails.gem_version.prerelease? ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
           [
-            GemfileEntry.github("rails", "rails/rails", "main")
+            GemfileEntry.github("rails", "rails/rails", edge_branch)
           ]
         elsif options.main?
           [
