@@ -303,15 +303,15 @@ module ActionController #:nodoc:
         [form_authenticity_param, request.x_csrf_token]
       end
 
-      # Sets the token value for the current session.
-      def form_authenticity_token(form_options: {})
+      # Creates the authenticity token for the current request.
+      def form_authenticity_token(form_options: {}) # :doc:
         masked_authenticity_token(session, form_options: form_options)
       end
 
       # Creates a masked version of the authenticity token that varies
       # on each request. The masking is used to mitigate SSL attacks
       # like BREACH.
-      def masked_authenticity_token(session, form_options: {}) # :doc:
+      def masked_authenticity_token(session, form_options: {})
         action, method = form_options.values_at(:action, :method)
 
         raw_token = if per_form_csrf_tokens && action && method
