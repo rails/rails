@@ -14,6 +14,10 @@ module ActionText
 
     config.action_text = ActiveSupport::OrderedOptions.new
     config.action_text.attachment_tag_name = "action-text-attachment"
+    config.autoload_once_paths = %W(
+      #{root}/app/helpers
+      #{root}/app/models
+    )
 
     initializer "action_text.attribute" do
       ActiveSupport.on_load(:active_record) do

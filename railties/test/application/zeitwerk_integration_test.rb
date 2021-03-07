@@ -295,10 +295,12 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert $zeitwerk_integration_test_extras
   end
 
-  test "autoload_paths are set as root dirs of main, and in the same order" do
+  test "autoload_paths not in autoload_once_paths are set as root dirs of main, and in the same order" do
     boot
 
-    existing_autoload_paths = deps.autoload_paths.select { |dir| File.directory?(dir) }
+    existing_autoload_paths = \
+      deps.autoload_paths.select { |dir| File.directory?(dir) } -
+      deps.autoload_once_paths
     assert_equal existing_autoload_paths, Rails.autoloaders.main.dirs
   end
 
@@ -315,7 +317,10 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     extras.each do |extra|
       assert_not_includes Rails.autoloaders.main.dirs, extra
     end
-    assert_equal extras, Rails.autoloaders.once.dirs
+
+    e1_index = Rails.autoloaders.once.dirs.index(extras.first)
+    assert e1_index
+    assert_equal extras, Rails.autoloaders.once.dirs.slice(e1_index, extras.length)
   end
 
   test "clear reloads the main autoloader, and does not reload the once one" do
