@@ -2776,7 +2776,7 @@ module ApplicationTests
       assert_equal "action-text-attachment", ActionText::Attachment.tag_name
     end
 
-    test "action_text.config.attachment_tag_name is can be overriden" do
+    test "action_text.config.attachment_tag_name is can be overridden" do
       add_to_config "config.action_text.attachment_tag_name = 'link'"
 
       app "development"

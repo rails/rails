@@ -161,7 +161,7 @@ module ActiveRecord
       # set to +nil+ which will not run queries in the background. Applications must configure
       # a thread pool executor to use this feature. Options are:
       #
-      #   * nil - Does not initalize a thread pool executor. Any async calls will be
+      #   * nil - Does not initialize a thread pool executor. Any async calls will be
       #   run in the foreground.
       #   * :global_thread_pool - Initializes a single +Concurrent::ThreadPoolExecutor+
       #   that uses the +async_query_concurrency+ for the +max_threads+ value.
