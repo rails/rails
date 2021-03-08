@@ -120,6 +120,14 @@ module ActiveRecord
       #     { id: 1, title: "Rework", author: "David" },
       #     { id: 1, title: "Eloquent Ruby", author: "Russ" }
       #   ])
+      #
+      #   # insert_all works on chained scopes, and you can use create_with
+      #   # to set default attributes for all inserted records.
+      #
+      #   author.books.create_with(created_at: Time.now).insert_all([
+      #     { id: 1, title: "Rework" },
+      #     { id: 2, title: "Eloquent Ruby" }
+      #   ])
       def insert_all(attributes, returning: nil, unique_by: nil)
         InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by).execute
       end
