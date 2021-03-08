@@ -298,9 +298,6 @@ module ActiveSupport #:nodoc:
         else
           yield
         end
-      rescue Exception => exception  # errors from loading file
-        exception.blame_file! file if exception.respond_to? :blame_file!
-        raise
       end
 
       # Mark the given constant as unloadable. Unloadable constants are removed
@@ -334,31 +331,9 @@ module ActiveSupport #:nodoc:
         end
     end
 
-    # Exception file-blaming.
-    module Blamable #:nodoc:
-      def blame_file!(file)
-        (@blamed_files ||= []).unshift file
-      end
-
-      def blamed_files
-        @blamed_files ||= []
-      end
-
-      def describe_blame
-        return nil if blamed_files.empty?
-        "This error occurred while loading the following files:\n   #{blamed_files.join "\n   "}"
-      end
-
-      def copy_blame!(exc)
-        @blamed_files = exc.blamed_files.clone
-        self
-      end
-    end
-
     def hook!
       Loadable.include_into(Object)
       ModuleConstMissing.include_into(Module)
-      Exception.include(Blamable)
     end
 
     def unhook!
@@ -381,7 +356,6 @@ module ActiveSupport #:nodoc:
           load_error.message
         end
         load_error_message.replace(message % file_name)
-        load_error.copy_blame!(load_error)
       end
       raise
     end
