@@ -614,7 +614,6 @@ module ActiveSupport #:nodoc:
       log("removing unloadable constants")
       autoloaded_constants.each { |const| remove_constant const }
       autoloaded_constants.clear
-      Reference.clear!
       explicitly_unloadable_constants.each { |const| remove_constant const }
     end
 
@@ -654,23 +653,16 @@ module ActiveSupport #:nodoc:
       end
     end
 
-    Reference = ClassCache.new
-
-    # Store a reference to a class +klass+.
-    def reference(klass)
-      Reference.store klass
-    end
-
     # Get the reference for class named +name+.
     # Raises an exception if referenced class does not exist.
     def constantize(name)
-      Reference.get(name)
+      Inflector.constantize(name)
     end
 
     # Get the reference for class named +name+ if one exists.
     # Otherwise returns +nil+.
     def safe_constantize(name)
-      Reference.safe_get(name)
+      Inflector.safe_constantize(name)
     end
 
     # Determine if the given constant has been automatically loaded.

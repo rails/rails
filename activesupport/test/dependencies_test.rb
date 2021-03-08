@@ -708,21 +708,6 @@ class DependenciesTest < ActiveSupport::TestCase
     remove_constants(:ServiceOne)
   end
 
-  def test_references_should_work
-    with_loading "dependencies" do
-      c = ActiveSupport::Dependencies.reference("ServiceOne")
-      service_one_first = ServiceOne
-      assert_equal service_one_first, c.get("ServiceOne")
-      ActiveSupport::Dependencies.clear
-      assert_not defined?(ServiceOne)
-      service_one_second = ServiceOne
-      assert_not_equal service_one_first, c.get("ServiceOne")
-      assert_equal service_one_second, c.get("ServiceOne")
-    end
-  ensure
-    remove_constants(:ServiceOne)
-  end
-
   def test_constantize_shortcut_for_cached_constant_lookups
     with_loading "dependencies" do
       assert_equal ServiceOne, ActiveSupport::Dependencies.constantize("ServiceOne")
