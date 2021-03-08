@@ -103,7 +103,7 @@ module Arel # :nodoc: all
             row.each_with_index do |value, k|
               collector << ", " unless k == 0
               case value
-              when Nodes::SqlLiteral, Nodes::BindParam
+              when Nodes::SqlLiteral, Nodes::BindParam, ActiveModel::Attribute
                 collector = visit(value, collector)
               else
                 collector << quote(value).to_s
@@ -585,7 +585,7 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_Assignment(o, collector)
           case o.right
-          when Arel::Nodes::Node, Arel::Attributes::Attribute
+          when Arel::Nodes::Node, Arel::Attributes::Attribute, ActiveModel::Attribute
             collector = visit o.left, collector
             collector << " = "
             visit o.right, collector
@@ -694,6 +694,10 @@ module Arel # :nodoc: all
         private_constant :BIND_BLOCK
 
         def bind_block; BIND_BLOCK; end
+
+        def visit_ActiveModel_Attribute(o, collector)
+          collector.add_bind(o, &bind_block)
+        end
 
         def visit_Arel_Nodes_BindParam(o, collector)
           collector.add_bind(o.value, &bind_block)
