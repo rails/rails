@@ -1,3 +1,33 @@
+*   Type cast enum values by the original attribute type.
+
+    The notable thing about this change is that unknown labels will no longer match 0 on MySQL.
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      enum :status, { proposed: 0, written: 1, published: 2 }
+    end
+    ```
+
+    Before:
+
+    ```ruby
+    # SELECT `books`.* FROM `books` WHERE `books`.`status` = 'prohibited' LIMIT 1
+    Book.find_by(status: :prohibited)
+    # => #<Book id: 1, status: "proposed", ...> (for mysql2 adapter)
+    # => ActiveRecord::StatementInvalid: PG::InvalidTextRepresentation: ERROR:  invalid input syntax for type integer: "prohibited" (for postgresql adapter)
+    # => nil (for sqlite3 adapter)
+    ```
+
+    After:
+
+    ```ruby
+    # SELECT `books`.* FROM `books` WHERE `books`.`status` IS NULL LIMIT 1
+    Book.find_by(status: :prohibited)
+    # => nil (for all adapters)
+    ```
+
+    *Ryuta Kamizono*
+
 *   Fixtures for `has_many :through` associations now load timestamps on join tables
 
     Given this fixture:
