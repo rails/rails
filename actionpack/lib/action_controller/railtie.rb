@@ -86,5 +86,35 @@ module ActionController
         ActionController::Metal.descendants.each(&:action_methods) if config.eager_load
       end
     end
+
+    initializer "action_controller.query_log_tags" do |app|
+      ActiveSupport.on_load(:action_controller_base) do
+        singleton_class.attr_accessor :log_query_tags_around_actions
+        self.log_query_tags_around_actions = true
+      end
+
+      ActiveSupport.on_load(:active_record) do
+        if app.config.active_record.query_log_tags_enabled && app.config.action_controller.log_query_tags_around_actions != false
+          ActiveRecord::QueryLogs.taggings.merge! \
+            controller:            -> { context[:controller]&.controller_name },
+            action:                -> { context[:controller]&.action_name },
+            namespaced_controller: -> { context[:controller]&.class&.name }
+
+          ActiveRecord::QueryLogs.tags << :controller << :action
+
+          context_extension = ->(controller) do
+            around_action :expose_controller_to_query_logs
+
+            private
+            def expose_controller_to_query_logs(&block)
+              ActiveRecord::QueryLogs.set_context(controller: self, &block)
+            end
+          end
+
+          ActionController::Base.class_eval(&context_extension)
+          ActionController::API.class_eval(&context_extension)
+        end
+      end
+    end
   end
 end

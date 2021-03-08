@@ -49,5 +49,28 @@ module ActiveJob
         end
       end
     end
+
+    initializer "active_job.query_log_tags" do |app|
+      ActiveSupport.on_load(:active_job) do
+        singleton_class.attr_accessor :log_query_tags_around_perform
+        self.log_query_tags_around_perform = true
+      end
+
+      ActiveSupport.on_load(:active_record) do
+        if app.config.active_record.query_log_tags_enabled && app.config.active_job.log_query_tags_around_perform != false
+          ActiveRecord::QueryLogs.taggings[:job] = -> { context[:job]&.class&.name }
+          ActiveRecord::QueryLogs.tags << :job
+
+          ActiveJob::Base.class_eval do
+            around_perform :expose_job_to_query_logs
+
+            private
+              def expose_job_to_query_logs(&block)
+                ActiveRecord::QueryLogs.set_context(job: self, &block)
+              end
+          end
+        end
+      end
+    end
   end
 end
