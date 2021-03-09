@@ -83,7 +83,7 @@ class OutputSafetyHelperTest < ActionView::TestCase
     expected = %(<a href="#{url}">#{url}</a> and <p>&lt;marquee&gt;shady stuff&lt;/marquee&gt;<br /></p>)
     actual = to_sentence([link_to(url, url), ptag])
     assert_predicate actual, :html_safe?
-    assert_equal(expected, actual)
+    assert_dom_equal(expected, actual)
   end
 
   test "to_sentence handles blank strings" do

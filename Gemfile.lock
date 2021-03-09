@@ -59,6 +59,7 @@ PATH
       activesupport (= 7.0.0.alpha)
       builder (~> 3.1)
       erubi (~> 1.4)
+      nokogiri (>= 1.8.5)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.1, >= 1.2.0)
     activejob (7.0.0.alpha)
@@ -381,6 +382,7 @@ GEM
       thor
     raabro (1.4.0)
     racc (1.5.2)
+    racc (1.5.2-java)
     rack (2.2.3)
     rack-cache (1.12.1)
       rack (>= 0.4)

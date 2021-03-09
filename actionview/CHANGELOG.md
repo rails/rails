@@ -1,3 +1,8 @@
+*   Implement `tag` and `content_tag` helpers as wrappers around
+    `Nokogiri::XML::Node#to_html`.
+
+    *Sean Doyle*
+
 *   Deprecate `render` locals to be assigned to instance variables.
 
     *Petrik de Heus*

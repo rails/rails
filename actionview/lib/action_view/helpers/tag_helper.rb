@@ -45,7 +45,7 @@ module ActionView
         include CaptureHelper
         include OutputSafetyHelper
 
-        VOID_ELEMENTS = %i(area base br col embed hr img input keygen link meta param source track wbr).to_set
+        FORMAT = Nokogiri::XML::Node::SaveOptions::AS_HTML
 
         def initialize(view_context)
           @view_context = view_context
@@ -57,39 +57,38 @@ module ActionView
         #   <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %> >
         #   # => <input type="text" aria-label="Search">
         def attributes(attributes)
-          tag_options(attributes.to_h).to_s.strip.html_safe
+          element = render_html("input", nil, attributes, escape: true)
+          element.delete_prefix!("<input")
+          element.delete_suffix!(">")
+          element.strip!
+          element.html_safe
         end
 
-        def p(*arguments, **options, &block)
-          tag_string(:p, *arguments, **options, &block)
+        Nokogiri::HTML::ElementDescription::DefaultDescriptions.each do |name, *|
+          define_method name do |*arguments, **options, &block|
+            tag_string(name, *arguments, **options, &block)
+          end
         end
 
         def tag_string(name, content = nil, escape_attributes: true, **options, &block)
           content = @view_context.capture(self, &block) if block_given?
-          if VOID_ELEMENTS.include?(name) && content.nil?
-            "<#{name.to_s.dasherize}#{tag_options(options, escape_attributes)}>".html_safe
-          else
-            content_tag_string(name.to_s.dasherize, content || "", options, escape_attributes)
-          end
+          content_tag_string(name.to_s.dasherize, content, options, escape_attributes)
         end
 
         def content_tag_string(name, content, options, escape = true)
-          tag_options = tag_options(options, escape) if options
           content     = ERB::Util.unwrapped_html_escape(content) if escape
-          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
+          render_html(name, content, options, escape: escape)
         end
 
         def tag_options(options, escape = true)
           return if options.blank?
-          output = +""
-          sep    = " "
+          output = {}
           options.each_pair do |key, value|
             type = TAG_TYPES[key]
             if type == :data && value.is_a?(Hash)
               value.each_pair do |k, v|
                 next if v.nil?
-                output << sep
-                output << prefix_tag_option(key, k, v, escape)
+                output.merge! prefix_tag_option(key, k, v, escape)
               end
             elsif type == :aria && value.is_a?(Hash)
               value.each_pair do |k, v|
@@ -105,24 +104,17 @@ module ActionView
                   v = v.to_s
                 end
 
-                output << sep
-                output << prefix_tag_option(key, k, v, escape)
+                output.merge! prefix_tag_option(key, k, v, escape)
               end
             elsif type == :boolean
               if value
-                output << sep
-                output << boolean_tag_option(key)
+                output.merge! key => key
               end
             elsif !value.nil?
-              output << sep
-              output << tag_option(key, value, escape)
+              output.merge! tag_option(key, value, escape)
             end
           end
           output unless output.empty?
-        end
-
-        def boolean_tag_option(key)
-          %(#{key}="#{key}")
         end
 
         def tag_option(key, value, escape)
@@ -135,8 +127,7 @@ module ActionView
           else
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
           end
-          value = value.gsub('"', "&quot;") if value.include?('"')
-          %(#{key}="#{value}")
+          { key => value.to_s.html_safe }
         end
 
         private
@@ -146,6 +137,16 @@ module ActionView
               value = value.to_json
             end
             tag_option(key, value, escape)
+          end
+
+          def render_html(tag_name, content, options, escape:)
+            attributes = tag_options(options, escape)
+
+            document = Nokogiri::HTML::Document.new
+            element = document.create_element tag_name.to_s.dasherize
+            attributes.each { |attribute, value| element[attribute] = CGI.unescapeHTML(value.to_s) } if attributes.present?
+            element.inner_html = [PRE_CONTENT_STRINGS[tag_name], content].join
+            element.to_html(save_with: FORMAT).html_safe
           end
 
           def respond_to_missing?(*args)
@@ -285,7 +286,9 @@ module ActionView
         if name.nil?
           tag_builder
         else
-          "<#{name}#{tag_builder.tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
+          element = tag_builder.tag_string(name, nil, escape_attributes: escape, **options.to_h)
+          element.delete_suffix!("</#{name}>") if open
+          element.html_safe
         end
       end
 

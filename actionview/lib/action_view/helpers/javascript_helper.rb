@@ -88,7 +88,7 @@ module ActionView
       end
 
       def javascript_cdata_section(content) #:nodoc:
-        "\n//#{cdata_section("\n#{content}\n//")}\n".html_safe
+        CGI.unescapeHTML("\n//#{cdata_section("\n#{content}\n//")}\n")
       end
     end
   end

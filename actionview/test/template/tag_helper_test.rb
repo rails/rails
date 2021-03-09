@@ -8,8 +8,8 @@ class TagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::TagHelper
 
   def test_tag
-    assert_equal "<br />", tag("br")
-    assert_equal "<br clear=\"left\" />", tag(:br, clear: "left")
+    assert_dom_equal "<br />", tag("br")
+    assert_dom_equal "<br clear=\"left\" />", tag(:br, clear: "left")
     assert_equal "<br>", tag("br", nil, true)
   end
 
@@ -24,7 +24,7 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_builder_void_tag_with_forced_content
-    assert_equal "<br>some content</br>", tag.br("some content")
+    assert_equal "<br>", tag.br("some content")
   end
 
   def test_tag_builder_is_singleton
@@ -33,14 +33,14 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag_options
     str = tag("p", "class" => "show", :class => "elsewhere")
-    assert_match(/class="show"/, str)
+    assert_no_match(/class="show"/, str)
     assert_match(/class="elsewhere"/, str)
   end
 
   def test_tag_options_with_array_of_numeric
     str = tag(:input, value: [123, 456])
 
-    assert_equal("<input value=\"123 456\" />", str)
+    assert_dom_equal("<input value=\"123 456\" />", str)
   end
 
   def test_tag_options_with_array_of_random_objects
@@ -52,11 +52,11 @@ class TagHelperTest < ActionView::TestCase
 
     str = tag(:input, value: [klass.new])
 
-    assert_equal("<input value=\"hello\" />", str)
+    assert_dom_equal("<input value=\"hello\" />", str)
   end
 
   def test_tag_options_rejects_nil_option
-    assert_equal "<p />", tag("p", ignored: nil)
+    assert_dom_equal "<p />", tag("p", ignored: nil)
   end
 
   def test_tag_builder_options_rejects_nil_option
@@ -64,7 +64,7 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_options_accepts_false_option
-    assert_equal "<p value=\"false\" />", tag("p", value: false)
+    assert_dom_equal "<p value=\"false\" />", tag("p", value: false)
   end
 
   def test_tag_builder_options_accepts_false_option
@@ -72,7 +72,7 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_options_accepts_blank_option
-    assert_equal "<p included=\"\" />", tag("p", included: "")
+    assert_dom_equal "<p included=\"\" />", tag("p", included: "")
   end
 
   def test_tag_builder_options_accepts_blank_option
@@ -80,11 +80,11 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_options_accepts_symbol_option_when_not_escaping
-    assert_equal "<p value=\"symbol\" />", tag("p", { value: :symbol }, false, false)
+    assert_dom_equal "<p value=\"symbol\" />", tag("p", { value: :symbol }, false, false)
   end
 
   def test_tag_options_accepts_integer_option_when_not_escaping
-    assert_equal "<p value=\"42\" />", tag("p", { value: 42 }, false, false)
+    assert_dom_equal "<p value=\"42\" />", tag("p", { value: 42 }, false, false)
   end
 
   def test_tag_options_converts_boolean_option
@@ -451,7 +451,7 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_disable_escaping
-    assert_equal '<a href="&amp;" />', tag("a", { href: "&amp;" }, false, false)
+    assert_dom_equal '<a href="&amp;" />', tag("a", { href: "&amp;" }, false, false)
   end
 
   def test_tag_builder_disable_escaping

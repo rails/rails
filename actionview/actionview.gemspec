@@ -38,6 +38,7 @@ Gem::Specification.new do |s|
   s.add_dependency "erubi",         "~> 1.4"
   s.add_dependency "rails-html-sanitizer", "~> 1.1", ">= 1.2.0"
   s.add_dependency "rails-dom-testing", "~> 2.0"
+  s.add_dependency "nokogiri", ">= 1.8.5"
 
   s.add_development_dependency "actionpack",  version
   s.add_development_dependency "activemodel", version

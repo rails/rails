@@ -608,14 +608,14 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_submit_tag_doesnt_have_data_disable_with_twice
-    assert_equal(
+    assert_dom_equal(
       %(<input type="submit" name="commit" value="Save" data-confirm="Are you sure?" data-disable-with="Processing..." />),
       submit_tag("Save", "data-disable-with" => "Processing...", "data-confirm" => "Are you sure?")
     )
   end
 
   def test_submit_tag_doesnt_have_data_disable_with_twice_with_hash
-    assert_equal(
+    assert_dom_equal(
       %(<input type="submit" name="commit" value="Save" data-disable-with="Processing..." />),
       submit_tag("Save", data: { disable_with: "Processing..." })
     )

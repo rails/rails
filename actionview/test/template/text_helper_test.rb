@@ -30,15 +30,15 @@ class TextHelperTest < ActionView::TestCase
   def test_simple_format
     assert_equal "<p></p>", simple_format(nil)
 
-    assert_equal "<p>crazy\n<br /> cross\n<br /> platform linebreaks</p>", simple_format("crazy\r\n cross\r platform linebreaks")
+    assert_dom_equal "<p>crazy\n<br /> cross\n<br /> platform linebreaks</p>", simple_format("crazy\r\n cross\r platform linebreaks")
     assert_equal "<p>A paragraph</p>\n\n<p>and another one!</p>", simple_format("A paragraph\n\nand another one!")
-    assert_equal "<p>A paragraph\n<br /> With a newline</p>", simple_format("A paragraph\n With a newline")
+    assert_dom_equal "<p>A paragraph\n<br /> With a newline</p>", simple_format("A paragraph\n With a newline")
 
     text = "A\nB\nC\nD"
-    assert_equal "<p>A\n<br />B\n<br />C\n<br />D</p>", simple_format(text)
+    assert_dom_equal "<p>A\n<br />B\n<br />C\n<br />D</p>", simple_format(text)
 
     text = "A\r\n  \nB\n\n\r\n\t\nC\nD"
-    assert_equal "<p>A\n<br />  \n<br />B</p>\n\n<p>\t\n<br />C\n<br />D</p>", simple_format(text)
+    assert_dom_equal "<p>A\n<br />  \n<br />B</p>\n\n<p>\t\n<br />C\n<br />D</p>", simple_format(text)
 
     assert_equal '<p class="test">This is a classy test</p>', simple_format("This is a classy test", class: "test")
     assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", class: "test")
