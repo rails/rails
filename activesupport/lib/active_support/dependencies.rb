@@ -86,12 +86,6 @@ module ActiveSupport #:nodoc:
     # to allow arbitrary constants to be marked for unloading.
     mattr_accessor :explicitly_unloadable_constants, default: []
 
-    # The logger used when tracing autoloads.
-    mattr_accessor :logger
-
-    # If true, trace autoloads with +logger.debug+.
-    mattr_accessor :verbose, default: false
-
     # The WatchStack keeps a stack of the modules being watched as files are
     # loaded. If a file in the process of being loaded (parent.rb) triggers the
     # load of another file (child.rb) the stack will ensure that child.rb
@@ -474,7 +468,6 @@ module ActiveSupport #:nodoc:
       return nil unless base_path = autoloadable_module?(path_suffix)
       mod = Module.new
       into.const_set const_name, mod
-      log("constant #{qualified_name} autoloaded (module autovivified from #{File.join(base_path, path_suffix)})")
       autoloaded_constants << qualified_name unless autoload_once_paths.include?(base_path)
       autoloaded_constants.uniq!
       mod
@@ -532,7 +525,6 @@ module ActiveSupport #:nodoc:
           require_or_load(expanded, qualified_name)
 
           if from_mod.const_defined?(const_name, false)
-            log("constant #{qualified_name} autoloaded from #{expanded}.rb")
             return from_mod.const_get(const_name)
           else
             raise LoadError, "Unable to autoload constant #{qualified_name}, expected #{file_path} to define it"
@@ -585,7 +577,6 @@ module ActiveSupport #:nodoc:
     # as the environment will be in an inconsistent state, e.g. other constants
     # may have already been unloaded and not accessible.
     def remove_unloadable_constants!
-      log("removing unloadable constants")
       autoloaded_constants.each { |const| remove_constant const }
       autoloaded_constants.clear
       explicitly_unloadable_constants.each { |const| remove_constant const }
@@ -730,10 +721,6 @@ module ActiveSupport #:nodoc:
       rescue NameError
         # The constant is no longer reachable, just skip it.
       end
-    end
-
-    def log(message)
-      logger.debug("autoloading: #{message}") if logger && verbose
     end
 
     private
