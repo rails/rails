@@ -117,12 +117,14 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
         create_table :has_timestamps do |t|
           t.datetime "default_format"
           t.datetime "without_time_zone"
+          t.timestamp "also_without_time_zone"
           t.timestamptz "with_time_zone"
         end
       end
 
       assert @connection.column_exists?(:has_timestamps, :default_format, :datetime)
       assert @connection.column_exists?(:has_timestamps, :without_time_zone, :datetime)
+      assert @connection.column_exists?(:has_timestamps, :also_without_time_zone, :datetime)
       assert @connection.column_exists?(:has_timestamps, :with_time_zone, :timestamptz)
     end
   end
