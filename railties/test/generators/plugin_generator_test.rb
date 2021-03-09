@@ -591,6 +591,34 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/dummy/config/application.rb", /^require "bukkits"/
   end
 
+  def test_dummy_application_sets_include_all_helpers_to_false_for_mountable
+    run_generator [destination_root, "--mountable"]
+
+    assert_file "test/dummy/config/application.rb", /^    config\.action_controller\.include_all_helpers = false$/
+  end
+
+  def test_dummy_application_sets_include_all_helpers_to_false_for_full
+    run_generator [destination_root, "--full"]
+
+    assert_file "test/dummy/config/application.rb", /include_all_helpers/
+  end
+
+  def test_dummy_application_does_not_set_include_all_helpers_for_regular
+    run_generator
+
+    assert_file "test/dummy/config/application.rb" do |content|
+      assert_no_match(/include_all_helpers/, content)
+    end
+  end
+
+  def test_dummy_application_does_not_set_include_all_helpers_for_api
+    run_generator [destination_root, "--mountable", "--api"]
+
+    assert_file "test/dummy/config/application.rb" do |content|
+      assert_no_match(/include_all_helpers/, content)
+    end
+  end
+
   def test_dummy_application_uses_dynamic_rails_version_number
     run_generator
 
