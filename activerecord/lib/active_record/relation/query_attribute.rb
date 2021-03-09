@@ -31,14 +31,10 @@ module ActiveRecord
       end
 
       def unboundable?
-        if defined?(@_unboundable)
-          @_unboundable
-        else
-          value_for_database unless value_before_type_cast.is_a?(StatementCache::Substitute)
-          @_unboundable = nil
+        unless defined?(@_unboundable)
+          @_unboundable = !type.serializable?(value) && type.cast(value) <=> 0
         end
-      rescue ::RangeError
-        @_unboundable = type.cast(value_before_type_cast) <=> 0
+        @_unboundable
       end
 
       private
