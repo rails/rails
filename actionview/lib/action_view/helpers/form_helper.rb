@@ -2426,7 +2426,7 @@ module ActionView
       # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
       # shown.
       #
-      # Using this method inside a +form_for+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
+      # Using this method inside a +form_with+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
       #
       # ==== Options
       # * Creates standard HTML attributes for the tag.
