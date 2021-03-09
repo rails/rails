@@ -23,7 +23,7 @@ module Rails
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
                     :rake_eager_load
 
-      attr_reader :encoding, :api_only, :loaded_config_version, :autoloader
+      attr_reader :encoding, :api_only, :loaded_config_version
 
       def initialize(*)
         super
@@ -70,7 +70,6 @@ module Rails
         @credentials                             = ActiveSupport::OrderedOptions.new
         @credentials.content_path                = default_credentials_content_path
         @credentials.key_path                    = default_credentials_key_path
-        @autoloader                              = :classic
         @disable_sandbox                         = false
         @add_autoload_paths_to_load_path         = true
         @permissions_policy                      = nil
@@ -129,8 +128,6 @@ module Rails
         when "6.0"
           load_defaults "5.2"
 
-          self.autoloader = :zeitwerk if RUBY_ENGINE == "ruby"
-
           if respond_to?(:action_view)
             action_view.default_enforce_utf8 = false
           end
@@ -155,8 +152,6 @@ module Rails
           end
         when "6.1"
           load_defaults "6.0"
-
-          self.autoloader = :zeitwerk if %w[ruby truffleruby].include?(RUBY_ENGINE)
 
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
@@ -363,18 +358,6 @@ module Rails
           @permissions_policy = ActionDispatch::PermissionsPolicy.new(&block)
         else
           @permissions_policy
-        end
-      end
-
-      def autoloader=(autoloader)
-        case autoloader
-        when :classic
-          @autoloader = autoloader
-        when :zeitwerk
-          require "zeitwerk"
-          @autoloader = autoloader
-        else
-          raise ArgumentError, "config.autoloader may be :classic or :zeitwerk, got #{autoloader.inspect} instead"
         end
       end
 

@@ -849,6 +849,11 @@ module ActiveRecord
       #   person.pets.count # => 1
       #   person.pets.any?  # => true
       #
+      # Calling it without a block when the collection is not yet
+      # loaded is equivalent to <tt>collection.exists?</tt>.
+      # If you're going to load the collection anyway, it is better
+      # to call <tt>collection.load.any?</tt> to avoid an extra query.
+      #
       # You can also pass a +block+ to define criteria. The behavior
       # is the same, it returns true if the collection based on the
       # criteria is not empty.

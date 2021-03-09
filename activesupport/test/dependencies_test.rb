@@ -104,13 +104,6 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
-  def test_dependency_which_raises_doesnt_blindly_call_blame_file!
-    with_loading do
-      filename = "dependencies/raises_exception_without_blame_file"
-      assert_raises(Exception) { require_dependency filename }
-    end
-  end
-
   def test_warnings_should_be_enabled_on_first_load
     with_loading "dependencies" do
       old_warnings, ActiveSupport::Dependencies.warnings_on_first_load = ActiveSupport::Dependencies.warnings_on_first_load, true
@@ -708,21 +701,6 @@ class DependenciesTest < ActiveSupport::TestCase
     remove_constants(:ServiceOne)
   end
 
-  def test_references_should_work
-    with_loading "dependencies" do
-      c = ActiveSupport::Dependencies.reference("ServiceOne")
-      service_one_first = ServiceOne
-      assert_equal service_one_first, c.get("ServiceOne")
-      ActiveSupport::Dependencies.clear
-      assert_not defined?(ServiceOne)
-      service_one_second = ServiceOne
-      assert_not_equal service_one_first, c.get("ServiceOne")
-      assert_equal service_one_second, c.get("ServiceOne")
-    end
-  ensure
-    remove_constants(:ServiceOne)
-  end
-
   def test_constantize_shortcut_for_cached_constant_lookups
     with_loading "dependencies" do
       assert_equal ServiceOne, ActiveSupport::Dependencies.constantize("ServiceOne")
@@ -1167,54 +1145,5 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_includes Object.private_methods, :require
   ensure
     ActiveSupport::Dependencies.hook!
-  end
-end
-
-class DependenciesLogging < ActiveSupport::TestCase
-  MESSAGE = "message"
-
-  def with_settings(logger, verbose)
-    original_logger = ActiveSupport::Dependencies.logger
-    original_verbose = ActiveSupport::Dependencies.verbose
-
-    ActiveSupport::Dependencies.logger = logger
-    ActiveSupport::Dependencies.verbose = verbose
-
-    yield
-  ensure
-    ActiveSupport::Dependencies.logger = original_logger
-    ActiveSupport::Dependencies.verbose = original_verbose
-  end
-
-  def fake_logger
-    Class.new do
-      def self.debug(message)
-        message
-      end
-    end
-  end
-
-  test "does not log if the logger is nil and verbose is false" do
-    with_settings(nil, false) do
-      assert_nil ActiveSupport::Dependencies.log(MESSAGE)
-    end
-  end
-
-  test "does not log if the logger is nil and verbose is true" do
-    with_settings(nil, true) do
-      assert_nil ActiveSupport::Dependencies.log(MESSAGE)
-    end
-  end
-
-  test "does not log if the logger is set and verbose is false" do
-    with_settings(fake_logger, false) do
-      assert_nil ActiveSupport::Dependencies.log(MESSAGE)
-    end
-  end
-
-  test "logs if the logger is set and verbose is true" do
-    with_settings(fake_logger, true) do
-      assert_equal "autoloading: #{MESSAGE}", ActiveSupport::Dependencies.log(MESSAGE)
-    end
   end
 end

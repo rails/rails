@@ -2,9 +2,9 @@
 
 module Arel # :nodoc: all
   class InsertManager < Arel::TreeManager
-    def initialize
-      super
-      @ast = Nodes::InsertStatement.new
+    def initialize(table = nil)
+      super()
+      @ast = Nodes::InsertStatement.new(table)
     end
 
     def into(table)

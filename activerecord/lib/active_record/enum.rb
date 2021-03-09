@@ -115,7 +115,7 @@ module ActiveRecord
     end
 
     class EnumType < Type::Value # :nodoc:
-      delegate :type, to: :subtype
+      delegate :type, :serializable?, to: :subtype
 
       def initialize(name, mapping, subtype)
         @name = name
@@ -128,10 +128,8 @@ module ActiveRecord
           value.to_s
         elsif mapping.has_value?(value)
           mapping.key(value)
-        elsif value.blank?
-          nil
         else
-          assert_valid_value(value)
+          value.presence
         end
       end
 

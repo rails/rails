@@ -4,9 +4,9 @@ module Arel # :nodoc: all
   class UpdateManager < Arel::TreeManager
     include TreeManager::StatementMethods
 
-    def initialize
-      super
-      @ast = Nodes::UpdateStatement.new
+    def initialize(table = nil)
+      super()
+      @ast = Nodes::UpdateStatement.new(table)
       @ctx = @ast
     end
 

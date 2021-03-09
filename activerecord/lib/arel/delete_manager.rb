@@ -4,9 +4,9 @@ module Arel # :nodoc: all
   class DeleteManager < Arel::TreeManager
     include TreeManager::StatementMethods
 
-    def initialize
-      super
-      @ast = Nodes::DeleteStatement.new
+    def initialize(table = nil)
+      super()
+      @ast = Nodes::DeleteStatement.new(table)
       @ctx = @ast
     end
 

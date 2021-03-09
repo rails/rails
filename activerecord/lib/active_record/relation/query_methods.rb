@@ -1130,10 +1130,9 @@ module ActiveRecord
     # scoping.
     def excluding(*records)
       records.flatten!(1)
+      records.compact!
 
-      raise ArgumentError, "You must pass at least one #{klass.name} object to #excluding." if records.empty?
-
-      if records.any? { |record| !record.is_a?(klass) }
+      unless records.all?(klass)
         raise ArgumentError, "You must only pass a single or collection of #{klass.name} objects to #excluding."
       end
 
@@ -1263,8 +1262,7 @@ module ActiveRecord
       end
 
       def build_cast_value(name, value)
-        cast_value = ActiveModel::Attribute.with_cast_value(name, value, Type.default_value)
-        Arel::Nodes::BindParam.new(cast_value)
+        ActiveModel::Attribute.with_cast_value(name, value, Type.default_value)
       end
 
       def build_from

@@ -159,13 +159,6 @@ numbers. It also filters out sensitive values of database columns when call `#in
 
 * `config.time_zone` sets the default time zone for the application and enables time zone awareness for Active Record.
 
-* `config.autoloader` sets the autoloading mode. This option defaults to `:zeitwerk` when `config.load_defaults` is called with `6.0` or greater. Applications can still use the classic autoloader by setting this value to `:classic` after loading the framework defaults:
-
-    ```ruby
-    config.load_defaults 6.0
-    config.autoloader = :classic
-    ```
-
 ### Configuring Assets
 
 * `config.assets.enabled` a flag that controls whether the asset
@@ -1043,6 +1036,10 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
     * `:rails_storage_proxy`: Proxy files by downloading them.
 
     The default is `:rails_storage_redirect`.
+
+### Configuring Action Text
+
+* `config.action_text.attachment_tag_name` accepts a string for the HTML tag used to wrap attachments. Defaults to `"action-text-attachment"`.
 
 ### Results of `config.load_defaults`
 

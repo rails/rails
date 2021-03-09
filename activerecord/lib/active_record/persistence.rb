@@ -120,6 +120,14 @@ module ActiveRecord
       #     { id: 1, title: "Rework", author: "David" },
       #     { id: 1, title: "Eloquent Ruby", author: "Russ" }
       #   ])
+      #
+      #   # insert_all works on chained scopes, and you can use create_with
+      #   # to set default attributes for all inserted records.
+      #
+      #   author.books.create_with(created_at: Time.now).insert_all([
+      #     { id: 1, title: "Rework" },
+      #     { id: 2, title: "Eloquent Ruby" }
+      #   ])
       def insert_all(attributes, returning: nil, unique_by: nil)
         InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by).execute
       end
@@ -363,13 +371,12 @@ module ActiveRecord
           end
         end
 
-        im = Arel::InsertManager.new
-        im.into(arel_table)
+        im = Arel::InsertManager.new(arel_table)
 
         if values.empty?
           im.insert(connection.empty_insert_statement_value(primary_key))
         else
-          im.insert(_substitute_values(values))
+          im.insert(values.transform_keys { |name| arel_table[name] })
         end
 
         connection.insert(im, "#{self} Create", primary_key || false, primary_key_value)
@@ -386,9 +393,8 @@ module ActiveRecord
           constraints << current_scope.where_clause.ast
         end
 
-        um = Arel::UpdateManager.new
-        um.table(arel_table)
-        um.set(_substitute_values(values))
+        um = Arel::UpdateManager.new(arel_table)
+        um.set(values.transform_keys { |name| arel_table[name] })
         um.wheres = constraints
 
         connection.update(um, "#{self} Update")
@@ -405,8 +411,7 @@ module ActiveRecord
           constraints << current_scope.where_clause.ast
         end
 
-        dm = Arel::DeleteManager.new
-        dm.from(arel_table)
+        dm = Arel::DeleteManager.new(arel_table)
         dm.wheres = constraints
 
         connection.delete(dm, "#{self} Destroy")
@@ -427,12 +432,6 @@ module ActiveRecord
         # the single-table inheritance discriminator.
         def discriminate_class_for_record(record)
           self
-        end
-
-        def _substitute_values(values)
-          values.map do |name, value|
-            [ arel_table[name], Arel::Nodes::BindParam.new(value) ]
-          end
         end
     end
 

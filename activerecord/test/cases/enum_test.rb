@@ -80,6 +80,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
     assert_equal books(:ddd), Book.where(last_read: :forgotten).first
+    assert_nil Book.where(status: :prohibited).first
   end
 
   test "find via where with strings" do
@@ -90,6 +91,11 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where.not(status: "published").first
     assert_equal @book, Book.where.not(status: "written").first
     assert_equal books(:ddd), Book.where(last_read: "forgotten").first
+    assert_nil Book.where(status: "prohibited").first
+  end
+
+  test "find via where with large number" do
+    assert_equal @book, Book.where(status: [2, 9223372036854775808]).first
   end
 
   test "find via where should be type casted" do

@@ -27,7 +27,7 @@ Content-Type: multipart/related;
 Content-Transfer-Encoding: base64
 Content-Disposition: inline;
   filename=avatar1.jpeg
-Content-Type: image/jpg;
+Content-Type: image/jpeg;
   name="avatar1.jpeg"
 Content-Id: <7AAEB353-2341-4D46-A054-5CA5CB2363B7>
 
@@ -397,7 +397,7 @@ mk8VWW5WRGJGAOaAP//Z
 Content-Transfer-Encoding: base64
 Content-Disposition: inline;
   filename=avatar2.jpg
-Content-Type: image/jpg;
+Content-Type: image/jpeg;
   x-unix-mode=0700;
   name="avatar2.jpg"
 Content-Id: <4594E827-6E69-4329-8691-6BC35E3E73A0>

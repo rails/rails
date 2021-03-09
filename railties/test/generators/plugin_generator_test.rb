@@ -250,8 +250,20 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_edge_option
-    generator([destination_root], edge: true)
-    run_generator_instance
+    Rails.stub(:gem_version, Gem::Version.new("2.1.0")) do
+      generator([destination_root], edge: true)
+      run_generator_instance
+    end
+
+    assert_empty @bundle_commands
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']2-1-stable["']$}
+  end
+
+  def test_edge_option_during_alpha
+    Rails.stub(:gem_version, Gem::Version.new("2.1.0.alpha")) do
+      generator([destination_root], edge: true)
+      run_generator_instance
+    end
 
     assert_empty @bundle_commands
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
@@ -466,6 +478,57 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match "<title>Deep hyphenated name</title>", contents
       assert_match(/stylesheet_link_tag\s+['"]deep\/hyphenated\/name\/application['"]/, contents)
       assert_no_match(/javascript_include_tag\s+['"]deep\/hyphenated\/name\/application['"]/, contents)
+    end
+  end
+
+  def test_creating_full_engine_mode_adds_keeps
+    run_generator [destination_root, "--full"]
+    folders_with_keep = %w(
+      app/models/concerns
+      app/controllers/concerns
+      test/fixtures/files
+      test/controllers
+      test/mailers
+      test/models
+      test/helpers
+      test/integration
+    )
+    folders_with_keep.each do |folder|
+      assert_file("#{folder}/.keep")
+    end
+  end
+
+  def test_creating_full_api_engine_adds_keeps
+    run_generator [destination_root, "--full", "--api"]
+    folders_with_keep = %w(
+      app/models/concerns
+      app/controllers/concerns
+      test/fixtures/files
+      test/controllers
+      test/mailers
+      test/models
+      test/integration
+    )
+    folders_with_keep.each do |folder|
+      assert_file("#{folder}/.keep")
+    end
+    assert_no_file("test/helpers/.keep")
+  end
+
+  def test_creating_mountable_engine_mode_adds_keeps
+    run_generator [destination_root, "--mountable"]
+    folders_with_keep = %w(
+      app/models/concerns
+      app/controllers/concerns
+      test/fixtures/files
+      test/controllers
+      test/mailers
+      test/models
+      test/helpers
+      test/integration
+    )
+    folders_with_keep.each do |folder|
+      assert_file("#{folder}/.keep")
     end
   end
 
