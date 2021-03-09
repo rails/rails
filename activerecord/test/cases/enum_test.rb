@@ -94,6 +94,10 @@ class EnumTest < ActiveRecord::TestCase
     assert_nil Book.where(status: "prohibited").first
   end
 
+  test "find via where with large number" do
+    assert_equal @book, Book.where(status: [2, 9223372036854775808]).first
+  end
+
   test "find via where should be type casted" do
     book = Book.enabled.create!
     assert_predicate book, :enabled?
