@@ -1,3 +1,7 @@
+*   Add app concern and test keepfiles to generated engine plugins.
+
+    *Gannon McGibbon*
+
 *   Stop generating a license for in-app plugins.
 
     *Gannon McGibbon*

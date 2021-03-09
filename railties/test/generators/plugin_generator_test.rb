@@ -481,6 +481,57 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_creating_full_engine_mode_adds_keeps
+    run_generator [destination_root, "--full"]
+    folders_with_keep = %w(
+      app/models/concerns
+      app/controllers/concerns
+      test/fixtures/files
+      test/controllers
+      test/mailers
+      test/models
+      test/helpers
+      test/integration
+    )
+    folders_with_keep.each do |folder|
+      assert_file("#{folder}/.keep")
+    end
+  end
+
+  def test_creating_full_api_engine_adds_keeps
+    run_generator [destination_root, "--full", "--api"]
+    folders_with_keep = %w(
+      app/models/concerns
+      app/controllers/concerns
+      test/fixtures/files
+      test/controllers
+      test/mailers
+      test/models
+      test/integration
+    )
+    folders_with_keep.each do |folder|
+      assert_file("#{folder}/.keep")
+    end
+    assert_no_file("test/helpers/.keep")
+  end
+
+  def test_creating_mountable_engine_mode_adds_keeps
+    run_generator [destination_root, "--mountable"]
+    folders_with_keep = %w(
+      app/models/concerns
+      app/controllers/concerns
+      test/fixtures/files
+      test/controllers
+      test/mailers
+      test/models
+      test/helpers
+      test/integration
+    )
+    folders_with_keep.each do |folder|
+      assert_file("#{folder}/.keep")
+    end
+  end
+
   def test_creating_gemspec
     run_generator
     assert_file "bukkits.gemspec", /spec\.name\s+= "bukkits"/
