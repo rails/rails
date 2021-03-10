@@ -129,7 +129,7 @@ module ActiveRecord
         elsif mapping.has_value?(value)
           mapping.key(value)
         else
-          value.presence
+          subtype.cast(value.presence)
         end
       end
 

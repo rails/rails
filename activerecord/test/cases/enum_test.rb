@@ -96,6 +96,9 @@ class EnumTest < ActiveRecord::TestCase
 
   test "find via where with large number" do
     assert_equal @book, Book.where(status: [2, 9223372036854775808]).first
+    assert_equal @book, Book.where(status: ["2", "9223372036854775808"]).first
+    assert_equal @book, Book.where(status: 2..9223372036854775808).first
+    assert_equal @book, Book.where(status: "2".."9223372036854775808").first
   end
 
   test "find via where should be type casted" do
