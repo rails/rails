@@ -867,7 +867,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_plucks_with_ids
-    assert_equal Company.all.map(&:id).sort, Company.ids.sort
+    assert_equal Company.pluck(:id).sort, Company.ids.sort
   end
 
   def test_pluck_with_includes_limit_and_empty_result

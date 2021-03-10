@@ -32,8 +32,8 @@ module ViewBehavior
 
   def test_reading
     books = Ebook.all
-    assert_equal [books(:rfr).id], books.map(&:id)
-    assert_equal ["Ruby for Rails"], books.map(&:name)
+    assert_equal [books(:rfr).id], books.pluck(:id)
+    assert_equal ["Ruby for Rails"], books.pluck(:name)
   end
 
   def test_views
@@ -118,7 +118,7 @@ if ActiveRecord::Base.connection.supports_views?
 
     def test_reading
       books = Paperback.all
-      assert_equal ["Agile Web Development with Rails"], books.map(&:name)
+      assert_equal ["Agile Web Development with Rails"], books.pluck(:name)
     end
 
     def test_views
