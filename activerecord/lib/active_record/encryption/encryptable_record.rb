@@ -81,7 +81,7 @@ module ActiveRecord
             previous_config_list = [previous_config_list] unless previous_config_list.is_a?(Array)
             previous_config_list.collect do |previous_config|
               key_provider = build_key_provider(**previous_config.slice(:key_provider, :key, :deterministic))
-              context_properties = previous_config.without(:key_provider, :downcase, :ignore_case, :deterministic, :subtype)
+              context_properties = previous_config.slice(*ActiveRecord::Encryption::Context::PROPERTIES.without(:key_provider))
               ActiveRecord::Encryption::EncryptedAttributeType.new \
                 key_provider: key_provider, downcase: previous_config[:downcase] || previous_config[:ignore_case],
                 deterministic: previous_config[:deterministic], subtype: type, **context_properties

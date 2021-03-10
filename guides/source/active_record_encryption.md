@@ -15,7 +15,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Active Record supports application-level encryption. To use by declaring which attributes should be encrypted and seamlessly encrypting and decrypting them when necessary. The encryption layer is placed between the database and the application. The application will access unencrypted data, but the database will store it encrypted.
+Active Record supports application-level encryption. It works by declaring which attributes should be encrypted and seamlessly encrypting and decrypting them when necessary. The encryption layer is placed between the database and the application. The application will access unencrypted data, but the database will store it encrypted.
 
 ## Basic usage
 
@@ -129,7 +129,7 @@ To ease migrations of unencrypted data, the library includes the option `config.
 * Trying to read encrypted attributes that are not encrypted will work without raising any error
 * Queries with deterministically-encrypted attributes will include the "clear text" version of them to support finding both encrypted and unencrypted content. 
 
-**This option is meant to be used in transition periods** while clear data and encrypted data need to coexist. Their value is `false` by default, which is the recommended goal for any application: errors will be raised when working with unencrypted data.
+**This option is meant to be used in transition periods** while clear data and encrypted data need to coexist. Its value is `false` by default, which is the recommended goal for any application: errors will be raised when working with unencrypted data.
 
 ### Ignoring case
 
@@ -139,7 +139,7 @@ You can use the `:downcase`  when declaring the encrypted attribute. This will d
 
 ```ruby
 class Person
-    encrypts :email_address, deterministic: true, downcase: true
+  encrypts :email_address, deterministic: true, downcase: true
 end
 ```
 
@@ -147,7 +147,7 @@ When using `:downcase` the original case is lost. There might be cases where you
 
 ```ruby
 class Label
-encrypts :name, deterministic: true, ignore_case: true # the content with the original case will be stored in the column `original_name`
+  encrypts :name, deterministic: true, ignore_case: true # the content with the original case will be stored in the column `original_name`
 end
 ```
 
@@ -241,7 +241,7 @@ You can configure a key provider on a per-class basis with the `:key_provider` o
 
 ```ruby
 class Article < ApplicationRecord
-encrypts :summary, key_provider: ArticleKeyProvider.new
+  encrypts :summary, key_provider: ArticleKeyProvider.new
 end
 ```
 
@@ -266,10 +266,10 @@ The key will be used internally to derive the key used to encrypt and decrypt th
 
 ```yml
 active_record_encryption:
-    master_key:
-        - bc17e7b413fd4720716a7633027f8cc4 # Active, encrypts new content
-        - a1cc4d7b9f420e40a337b9e68c5ecec6 # Previous keys can still decrypt existing content
-    key_derivation_salt: a3226b97b3b2f8372d1fc6d497a0c0d3
+  master_key:
+    - bc17e7b413fd4720716a7633027f8cc4 # Active, encrypts new content
+    - a1cc4d7b9f420e40a337b9e68c5ecec6 # Previous keys can still decrypt existing content
+  key_derivation_salt: a3226b97b3b2f8372d1fc6d497a0c0d3
 ```
 
 This enabled workflows where you keep a short list of keys, by adding new keys, re-encrypting content and deleting old keys.
@@ -279,8 +279,8 @@ This works consistently across the built-in key providers. Also, when using a de
 ```yaml
 active_record_encryption:
   deterministic_key:
-    - dd9e4ffef6eced8317667d70df7c75eb # Active, encrypts new content
-    - 6940371df37f040e0e8a12948bb31cda # Previous keys can still decrypt existing content
+  - dd9e4ffef6eced8317667d70df7c75eb # Active, encrypts new content
+  - 6940371df37f040e0e8a12948bb31cda # Previous keys can still decrypt existing content
 ```
 
 NOTE: Active Record Encryption doesn't provide automatic management of key rotation processes yet. All the pieces are there, but this hasn't been implemented yet.
