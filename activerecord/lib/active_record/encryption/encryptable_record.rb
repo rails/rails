@@ -34,7 +34,11 @@ module ActiveRecord
         #   designated column +original_<name>+. When reading the encrypted content, the version with the original case is
         #   server. But you can still execute queries that will ignore the case. This option can only be used when +:deterministic+
         #   is true.
-        # * <tt>:previous</tt> -
+        # * <tt>:context</tt> - Hash of properties that will override +Context+ properties when this attribute is
+        #   encrypted and decrypted. E.g: +encryptor:+, +cipher:+, +message_serializer:+, etc.
+        # * <tt>:previous</tt> - List of previous encryption schemes. When provided, they will be used in order when trying to read
+        #   the attribute. Each entry of the list can contain the properties supported by #encrypts. Also, when deterministic
+        #   encryption is used, they will be used to generate additional ciphertexts to check in the queries.
         def encrypts(*names, key_provider: nil, key: nil, deterministic: false, downcase: false, ignore_case: false, context: nil, previous: [])
           self.encrypted_attributes ||= Set.new # not using :default because the instance would be shared across classes
 
@@ -205,11 +209,11 @@ module ActiveRecord
 
         def encryptable_rich_texts
           @encryptable_rich_texts ||= self.class
-                                          .reflect_on_all_associations(:has_one)
-                                          .collect(&:name)
-                                          .grep(/rich_text/)
-                                          .collect { |attribute_name| send(attribute_name) }.compact
-                                          .find_all { |record| record.class.name == "ActionText::EncryptedRichText" } # not using class check to avoid adding dependency
+            .reflect_on_all_associations(:has_one)
+            .collect(&:name)
+            .grep(/rich_text/)
+            .collect { |attribute_name| send(attribute_name) }.compact
+            .find_all { |record| record.class.name == "ActionText::EncryptedRichText" } # not using class check to avoid adding dependency
         end
 
         def cant_modify_encrypted_attributes_when_frozen
