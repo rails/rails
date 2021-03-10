@@ -263,7 +263,7 @@ class CounterCacheTest < ActiveRecord::TestCase
     topic = ::TopicWithAfterCommitCallback.create!(title: "Topic with after commit callback")
     assert_equal ::Task.count, 1
 
-    reply = ::ReplyWithTouch.create!(topic: topic)
+    ::ReplyWithTouch.create!(topic: topic)
     assert_equal ::Task.count, 2
   end
 
