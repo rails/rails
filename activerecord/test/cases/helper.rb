@@ -222,3 +222,12 @@ module InTimeZone
       ActiveRecord::Base.time_zone_aware_attributes = old_tz
     end
 end
+
+# Encryption
+
+ActiveRecord::Encryption.configure \
+  master_key: "test master key",
+  deterministic_key: "test deterministic key",
+  key_derivation_salt: "testing key derivation salt"
+
+ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
