@@ -11,7 +11,7 @@ module ActiveRecord
 
       class_methods do
         # Expose getters for context properties
-        Context::PROPERTIES.including(:encryptor).each do |name|
+        Context::PROPERTIES.each do |name|
           delegate name, to: :context
         end
 
