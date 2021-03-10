@@ -604,7 +604,6 @@ For example, the dependencies mechanism uses them:
 ```ruby
 module ActiveSupport
   module Dependencies
-    mattr_accessor :warnings_on_first_load
     mattr_accessor :history
     mattr_accessor :loaded
     mattr_accessor :mechanism

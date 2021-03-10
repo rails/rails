@@ -104,43 +104,6 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
-  def test_warnings_should_be_enabled_on_first_load
-    with_loading "dependencies" do
-      old_warnings, ActiveSupport::Dependencies.warnings_on_first_load = ActiveSupport::Dependencies.warnings_on_first_load, true
-      filename = "check_warnings"
-      expanded = File.expand_path("dependencies/#{filename}", __dir__)
-      $check_warnings_load_count = 0
-
-      assert_not ActiveSupport::Dependencies.loaded.include?(expanded)
-      assert_not ActiveSupport::Dependencies.history.include?(expanded)
-
-      silence_warnings { require_dependency filename }
-      assert_equal 1, $check_warnings_load_count
-      assert_equal true, $checked_verbose, "On first load warnings should be enabled."
-
-      assert_includes ActiveSupport::Dependencies.loaded, expanded
-      ActiveSupport::Dependencies.clear
-      assert_not ActiveSupport::Dependencies.loaded.include?(expanded)
-      assert_includes ActiveSupport::Dependencies.history, expanded
-
-      silence_warnings { require_dependency filename }
-      assert_equal 2, $check_warnings_load_count
-      assert_nil $checked_verbose, "After first load warnings should be left alone."
-
-      assert_includes ActiveSupport::Dependencies.loaded, expanded
-      ActiveSupport::Dependencies.clear
-      assert_not ActiveSupport::Dependencies.loaded.include?(expanded)
-      assert_includes ActiveSupport::Dependencies.history, expanded
-
-      enable_warnings { require_dependency filename }
-      assert_equal 3, $check_warnings_load_count
-      assert_equal true, $checked_verbose, "After first load warnings should be left alone."
-
-      assert_includes ActiveSupport::Dependencies.loaded, expanded
-      ActiveSupport::Dependencies.warnings_on_first_load = old_warnings
-    end
-  end
-
   def test_mutual_dependencies_dont_infinite_loop
     with_loading "dependencies" do
       $mutual_dependencies_count = 0

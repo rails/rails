@@ -48,9 +48,6 @@ module ActiveSupport #:nodoc:
 
     # :nodoc:
 
-    # Should we turn on Ruby warnings on the first load of dependent files?
-    mattr_accessor :warnings_on_first_load, default: false
-
     # All files ever loaded.
     mattr_accessor :history, default: Set.new
 
@@ -378,16 +375,10 @@ module ActiveSupport #:nodoc:
 
         begin
           if load?
-            # Enable warnings if this file has not been loaded before and
-            # warnings_on_first_load is set.
             load_args = ["#{file_name}.rb"]
             load_args << const_path unless const_path.nil?
 
-            if !warnings_on_first_load || history.include?(expanded)
-              result = load_file(*load_args)
-            else
-              enable_warnings { result = load_file(*load_args) }
-            end
+            result = load_file(*load_args)
           else
             result = require file_name
           end
