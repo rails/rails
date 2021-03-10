@@ -83,7 +83,8 @@ class ConnectionMonitor {
   reconnectIfStale() {
     if (this.connectionIsStale()) {
       logger.log(`ConnectionMonitor detected stale connection. reconnectAttempts = ${this.reconnectAttempts}, pollInterval = ${this.getPollInterval()} ms, time disconnected = ${secondsSince(this.disconnectedAt)} s, stale threshold = ${this.constructor.staleThreshold} s`)
-      this.reconnectAttempts++
+      this.reconnectAttempts++;
+      console.log('reconnects', this.reconnectAttempts);
       if (this.disconnectedRecently()) {
         logger.log("ConnectionMonitor skipping reopening recent disconnect")
       } else {
