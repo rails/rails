@@ -1,4 +1,4 @@
-require "test_helper"
+require "cases/encryption/helper"
 
 class ActiveRecord::Encryption::MessageSerializerTest < ActiveSupport::TestCase
   setup do
