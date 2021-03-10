@@ -2,7 +2,7 @@ require "cases/encryption/helper"
 
 class ActiveRecord::Encryption::StoragePerformanceTest < ActiveRecord::TestCase
   test "storage overload without storing keys is acceptable" do
-    assert_storage_performance size: 2, overload_less_than: 43
+    assert_storage_performance size: 2, overload_less_than: 47
     assert_storage_performance size: 50, overload_less_than: 4
     assert_storage_performance size: 255, overload_less_than: 1.6
     assert_storage_performance size: 1.kilobyte, overload_less_than: 1.15
@@ -13,13 +13,13 @@ class ActiveRecord::Encryption::StoragePerformanceTest < ActiveRecord::TestCase
   end
 
   test "storage overload storing keys is acceptable for DerivedSecretKeyProvider" do
-    ActiveRecordEncryption.config.store_key_references = true
+    ActiveRecord::Encryption.config.store_key_references = true
 
-    ActiveRecordEncryption.with_encryption_context key_provider: ActiveRecordEncryption::DerivedSecretKeyProvider.new("some secret") do
-      assert_storage_performance size: 2, overload_less_than: 51
-      assert_storage_performance size: 50, overload_less_than: 3.3
-      assert_storage_performance size: 255, overload_less_than: 1.63
-      assert_storage_performance size: 1.kilobyte, overload_less_than: 1.16
+    ActiveRecord::Encryption.with_encryption_context key_provider: ActiveRecord::Encryption::DerivedSecretKeyProvider.new("some secret") do
+      assert_storage_performance size: 2, overload_less_than: 54
+      assert_storage_performance size: 50, overload_less_than: 3.5
+      assert_storage_performance size: 255, overload_less_than: 1.64
+      assert_storage_performance size: 1.kilobyte, overload_less_than: 1.18
 
       [500.kilobytes, 1.megabyte, 10.megabyte].each do |size|
         assert_storage_performance size: size, overload_less_than: 1.03
@@ -28,13 +28,13 @@ class ActiveRecord::Encryption::StoragePerformanceTest < ActiveRecord::TestCase
   end
 
   test "storage overload storing keys is acceptable for EnvelopeEncryptionKeyProvider" do
-    ActiveRecordEncryption.config.store_key_references = true
+    ActiveRecord::Encryption.config.store_key_references = true
 
     with_envelope_encryption do
-      assert_storage_performance size: 2, overload_less_than: 113
-      assert_storage_performance size: 50, overload_less_than: 5.8
-      assert_storage_performance size: 255, overload_less_than: 2.11
-      assert_storage_performance size: 1.kilobyte, overload_less_than: 1.28
+      assert_storage_performance size: 2, overload_less_than: 126
+      assert_storage_performance size: 50, overload_less_than: 6.28
+      assert_storage_performance size: 255, overload_less_than: 2.2
+      assert_storage_performance size: 1.kilobyte, overload_less_than: 1.3
 
       [500.kilobytes, 1.megabyte, 10.megabyte].each do |size|
         assert_storage_performance size: size, overload_less_than: 1.015
@@ -56,10 +56,10 @@ class ActiveRecord::Encryption::StoragePerformanceTest < ActiveRecord::TestCase
     end
 
     def encryptor
-      @encryptor ||= ActiveRecordEncryption::Encryptor.new
+      @encryptor ||= ActiveRecord::Encryption::Encryptor.new
     end
 
     def cipher
-      @cipher ||= ActiveRecordEncryption::Cipher.new
+      @cipher ||= ActiveRecord::Encryption::Cipher.new
     end
 end
