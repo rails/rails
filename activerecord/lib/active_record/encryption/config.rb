@@ -4,7 +4,7 @@ module ActiveRecord
     class Config
       attr_accessor :master_key, :deterministic_key, :store_key_references, :key_derivation_salt,
                     :support_unencrypted_data, :encrypt_fixtures, :validate_column_size, :add_to_filter_parameters,
-                    :excluded_from_filter_parameters, :extend_queries_to_support_previous_deterministic_encryption_schemes
+                    :excluded_from_filter_parameters, :extend_queries_to_support_multiple_deterministic_encryption_schemes
 
       def initialize
         set_defaults
@@ -20,7 +20,7 @@ module ActiveRecord
           self.excluded_from_filter_parameters = []
 
           # TODO: Setting to false for now as the implementation is a bit experimental
-          self.extend_queries_to_support_previous_deterministic_encryption_schemes = false
+          self.extend_queries_to_support_multiple_deterministic_encryption_schemes = false
         end
     end
   end
