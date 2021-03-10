@@ -39,6 +39,14 @@ module ActiveRecord
         @deterministic
       end
 
+      def additional_encrypted_types # :nodoc:
+        @additional_encrypted_types ||= if support_unencrypted_data?
+          previous_types.including(clean_text_type)
+        else
+          previous_types
+        end
+      end
+
       private
         def decrypt(value)
           with_context do
@@ -61,11 +69,15 @@ module ActiveRecord
         end
 
         def handle_deserialize_error(error, value)
-          if error.is_a?(Errors::Decryption) && ActiveRecord::Encryption.config.support_unencrypted_data
+          if error.is_a?(Errors::Decryption) && support_unencrypted_data?
             value
           else
             raise error
           end
+        end
+
+        def support_unencrypted_data?
+          ActiveRecord::Encryption.config.support_unencrypted_data
         end
 
         def encrypt(value)
@@ -92,6 +104,10 @@ module ActiveRecord
           else
             block.call
           end
+        end
+
+        def clean_text_type
+          @clean_text_type ||= ActiveRecord::Encryption::EncryptedAttributeType.new(downcase: downcase, context: { encryptor: ActiveRecord::Encryption::NullEncryptor.new })
         end
     end
   end

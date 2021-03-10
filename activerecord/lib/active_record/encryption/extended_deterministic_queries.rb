@@ -36,26 +36,28 @@ module ActiveRecord
       end
 
       module EncryptedQueryArgumentProcessor
+        extend ActiveSupport::Concern
+
         private
-          def process_encrypted_query_arguments(args, check_for_skipped_values)
+          def process_encrypted_query_arguments(args, check_for_additional_values)
             if args.is_a?(Array) && (options = args.first).is_a?(Hash)
               self.deterministic_encrypted_attributes&.each do |attribute_name|
                 type = type_for_attribute(attribute_name)
-                if value = options[attribute_name]
-                  options[attribute_name] = process_encrypted_query_argument(value, check_for_skipped_values, type)
+                if !type.additional_encrypted_types.empty? && value = options[attribute_name]
+                  options[attribute_name] = process_encrypted_query_argument(value, check_for_additional_values, type)
                 end
               end
             end
           end
 
-          def process_encrypted_query_argument(value, check_for_skipped_values, type)
-            return value if check_for_skipped_values && value.is_a?(Array) && value.last.is_a?(AdditionalValue)
+          def process_encrypted_query_argument(value, check_for_additional_values, type)
+            return value if check_for_additional_values && value.is_a?(Array) && value.last.is_a?(AdditionalValue)
 
             case value
               when String, Array
                 list = Array(value)
                 list + list.flat_map do |each_value|
-                  if check_for_skipped_values && each_value.is_a?(AdditionalValue)
+                  if check_for_additional_values && each_value.is_a?(AdditionalValue)
                     each_value
                   else
                     additional_values_for(each_value, type)
@@ -67,17 +69,9 @@ module ActiveRecord
           end
 
           def additional_values_for(value, type)
-            type.previous_types.including(clean_text_type_for(type)).collect do |additional_type|
+            type.additional_encrypted_types.collect do |additional_type|
               AdditionalValue.new(value, additional_type)
             end
-          end
-
-          def clean_text_type_for(type)
-            ActiveRecord::Encryption::EncryptedAttributeType.new(downcase: type.downcase, context: { encryptor: null_encryptor })
-          end
-
-          def null_encryptor
-            @null_encryptor ||= ActiveRecord::Encryption::NullEncryptor.new
           end
       end
 
