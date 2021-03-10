@@ -6,7 +6,25 @@ require "models/comment"
 require "models/other_dog"
 
 module ActiveRecord
+  module WaitForAsyncTestHelper
+    private
+      def wait_for_async_query(relation, timeout: 5)
+        if !relation.connection.async_enabled? || relation.instance_variable_get(:@records)
+          return relation
+        end
+
+        future_result = relation.instance_variable_get(:@future_result)
+        (timeout * 100).times do
+          return relation unless future_result.pending?
+          sleep 0.01
+        end
+        raise Timeout::Error, "The async executor wasn't drained after #{timeout} seconds"
+      end
+  end
+
   class LoadAsyncTest < ActiveRecord::TestCase
+    include WaitForAsyncTestHelper
+
     self.use_transactional_tests = false
 
     fixtures :posts, :comments
@@ -34,26 +52,41 @@ module ActiveRecord
       assert_not_predicate defered_posts, :scheduled?
     end
 
-    def test_simple_query
+    def test_notification_forwarding
       expected_records = Post.where(author_id: 1).to_a
 
       status = {}
-      monitor = Monitor.new
-      condition = monitor.new_cond
 
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
         if event.payload[:name] == "Post Load"
           status[:executed] = true
           status[:async] = event.payload[:async]
-          monitor.synchronize { condition.signal }
+          status[:thread_id] = Thread.current.object_id
         end
       end
 
-      defered_posts = Post.where(author_id: 1).load_async
+      defered_posts = wait_for_async_query(Post.where(author_id: 1).load_async)
 
-      monitor.synchronize do
-        condition.wait_until { status[:executed] }
+      assert_equal expected_records, defered_posts.to_a
+      assert_equal Post.connection.supports_concurrent_connections?, status[:async]
+      assert_equal Thread.current.object_id, status[:thread_id]
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
+    def test_simple_query
+      expected_records = Post.where(author_id: 1).to_a
+
+      status = {}
+
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+        if event.payload[:name] == "Post Load"
+          status[:executed] = true
+          status[:async] = event.payload[:async]
+        end
       end
+
+      defered_posts = wait_for_async_query(Post.where(author_id: 1).load_async)
 
       assert_equal expected_records, defered_posts.to_a
       assert_equal Post.connection.supports_concurrent_connections?, status[:async]
@@ -83,27 +116,20 @@ module ActiveRecord
       expected_records = Post.where(author_id: 1).eager_load(:comments).to_a
 
       status = {}
-      monitor = Monitor.new
-      condition = monitor.new_cond
 
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
         if event.payload[:name] == "SQL"
           status[:executed] = true
           status[:async] = event.payload[:async]
-          monitor.synchronize { condition.signal }
         end
       end
 
-      defered_posts = Post.where(author_id: 1).eager_load(:comments).load_async
+      defered_posts = wait_for_async_query(Post.where(author_id: 1).eager_load(:comments).load_async)
 
       if in_memory_db?
         assert_not_predicate defered_posts, :scheduled?
       else
         assert_predicate defered_posts, :scheduled?
-      end
-
-      monitor.synchronize do
-        condition.wait_until { status[:executed] }
       end
 
       assert_equal expected_records, defered_posts.to_a
@@ -181,22 +207,15 @@ module ActiveRecord
         expected_records = Post.where(author_id: 1).to_a
 
         status = {}
-        monitor = Monitor.new
-        condition = monitor.new_cond
 
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Load"
             status[:executed] = true
             status[:async] = event.payload[:async]
-            monitor.synchronize { condition.signal }
           end
         end
 
         defered_posts = Post.where(author_id: 1).load_async
-
-        monitor.synchronize do
-          condition.wait_until { status[:executed] }
-        end
 
         assert_equal expected_records, defered_posts.to_a
         assert_not_equal Post.connection.supports_concurrent_connections?, status[:async]
@@ -222,24 +241,17 @@ module ActiveRecord
         expected_records = Post.where(author_id: 1).eager_load(:comments).to_a
 
         status = {}
-        monitor = Monitor.new
-        condition = monitor.new_cond
 
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "SQL"
             status[:executed] = true
             status[:async] = event.payload[:async]
-            monitor.synchronize { condition.signal }
           end
         end
 
         defered_posts = Post.where(author_id: 1).eager_load(:comments).load_async
 
         assert_not_predicate defered_posts, :scheduled?
-
-        monitor.synchronize do
-          condition.wait_until { status[:executed] }
-        end
 
         assert_equal expected_records, defered_posts.to_a
         assert_queries(0) do
@@ -283,6 +295,8 @@ module ActiveRecord
     end
 
     class LoadAsyncMultiThreadPoolExecutorTest < ActiveRecord::TestCase
+      include WaitForAsyncTestHelper
+
       self.use_transactional_tests = false
 
       fixtures :posts, :comments
@@ -329,22 +343,14 @@ module ActiveRecord
         expected_records = Post.where(author_id: 1).to_a
 
         status = {}
-        monitor = Monitor.new
-        condition = monitor.new_cond
-
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Load"
             status[:executed] = true
             status[:async] = event.payload[:async]
-            monitor.synchronize { condition.signal }
           end
         end
 
-        defered_posts = Post.where(author_id: 1).load_async
-
-        monitor.synchronize do
-          condition.wait_until { status[:executed] }
-        end
+        defered_posts = wait_for_async_query(Post.where(author_id: 1).load_async)
 
         assert_equal expected_records, defered_posts.to_a
         assert_equal Post.connection.supports_concurrent_connections?, status[:async]
@@ -370,24 +376,16 @@ module ActiveRecord
         expected_records = Post.where(author_id: 1).eager_load(:comments).to_a
 
         status = {}
-        monitor = Monitor.new
-        condition = monitor.new_cond
-
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "SQL"
             status[:executed] = true
             status[:async] = event.payload[:async]
-            monitor.synchronize { condition.signal }
           end
         end
 
-        defered_posts = Post.where(author_id: 1).eager_load(:comments).load_async
+        defered_posts = wait_for_async_query(Post.where(author_id: 1).eager_load(:comments).load_async)
 
         assert_predicate defered_posts, :scheduled?
-
-        monitor.synchronize do
-          condition.wait_until { status[:executed] }
-        end
 
         assert_equal expected_records, defered_posts.to_a
         assert_queries(0) do
@@ -429,6 +427,8 @@ module ActiveRecord
     end
 
     class LoadAsyncMixedThreadPoolExecutorTest < ActiveRecord::TestCase
+      include WaitForAsyncTestHelper
+
       self.use_transactional_tests = false
 
       fixtures :posts, :comments, :other_dogs
@@ -476,30 +476,24 @@ module ActiveRecord
 
         status = {}
         dog_status = {}
-        monitor = Monitor.new
-        condition = monitor.new_cond
 
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Load"
             status[:executed] = true
             status[:async] = event.payload[:async]
-            monitor.synchronize { condition.signal }
           end
 
           if event.payload[:name] == "OtherDog Load"
             dog_status[:executed] = true
             dog_status[:async] = event.payload[:async]
-            monitor.synchronize { condition.signal }
           end
         end
 
         defered_posts = Post.where(author_id: 1).load_async
         defered_dogs = OtherDog.where(id: 1).load_async
 
-        monitor.synchronize do
-          condition.wait_until { status[:executed] }
-          condition.wait_until { dog_status[:executed] }
-        end
+        wait_for_async_query(defered_posts)
+        wait_for_async_query(defered_dogs)
 
         assert_equal expected_records, defered_posts.to_a
         assert_equal expected_dogs, defered_dogs.to_a

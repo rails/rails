@@ -83,6 +83,14 @@ module AsynchronousQueriesSharedTests
   ensure
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end
+
+  private
+    def wait_for_future_result(result)
+      100.times do
+        break unless result.pending?
+        sleep 0.01
+      end
+    end
 end
 
 class AsynchronousQueriesTest < ActiveRecord::TestCase
@@ -98,14 +106,10 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
     ActiveRecord::Base.asynchronous_queries_tracker.start_session
     status = {}
 
-    monitor = Monitor.new
-    condition = monitor.new_cond
-
     subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
       if event.payload[:sql] == "SELECT * FROM posts"
         status[:executed] = true
         status[:async] = event.payload[:async]
-        monitor.synchronize { condition.signal }
       end
     end
 
@@ -115,11 +119,9 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
       assert_kind_of ActiveRecord::Result, future_result
     else
       assert_kind_of ActiveRecord::FutureResult, future_result
+      wait_for_future_result(future_result)
     end
 
-    monitor.synchronize do
-      condition.wait_until { status[:executed] }
-    end
     assert_kind_of ActiveRecord::Result, future_result.result
     assert_equal @connection.supports_concurrent_connections?, status[:async]
   ensure

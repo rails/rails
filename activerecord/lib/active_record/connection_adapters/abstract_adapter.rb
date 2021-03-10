@@ -103,6 +103,19 @@ module ActiveRecord
         )
       end
 
+      EXCEPTION_NEVER = { Exception => :never }.freeze # :nodoc:
+      EXCEPTION_IMMEDIATE = { Exception => :immediate }.freeze # :nodoc:
+      private_constant :EXCEPTION_NEVER, :EXCEPTION_IMMEDIATE
+      def with_instrumenter(instrumenter, &block) # :nodoc:
+        Thread.handle_interrupt(EXCEPTION_NEVER) do
+          previous_instrumenter = @instrumenter
+          @instrumenter = instrumenter
+          Thread.handle_interrupt(EXCEPTION_IMMEDIATE, &block)
+        ensure
+          @instrumenter = previous_instrumenter
+        end
+      end
+
       def check_if_write_query(sql) # :nodoc:
         if preventing_writes? && write_query?(sql)
           raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"

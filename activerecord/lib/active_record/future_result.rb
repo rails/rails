@@ -17,6 +17,8 @@ module ActiveRecord
       @pending = true
       @error = nil
       @result = nil
+      @instrumenter = ActiveSupport::Notifications.instrumenter
+      @event_buffer = nil
     end
 
     def schedule!(session)
@@ -41,7 +43,10 @@ module ActiveRecord
         return unless @mutex.try_lock
         begin
           if pending?
-            execute_query(connection, async: true)
+            @event_buffer = @instrumenter.buffer
+            connection.with_instrumenter(@event_buffer) do
+              execute_query(connection, async: true)
+            end
           end
         ensure
           @mutex.unlock
@@ -51,20 +56,22 @@ module ActiveRecord
 
     def result
       execute_or_wait
-      if @error
-        raise @error
-      elsif canceled?
+      @event_buffer&.flush
+
+      if canceled?
         raise Canceled
+      elsif @error
+        raise @error
       else
         @result
       end
     end
 
-    private
-      def pending?
-        @pending && (!@session || @session.active?)
-      end
+    def pending?
+      @pending && (!@session || @session.active?)
+    end
 
+    private
       def canceled?
         @session && !@session.active?
       end
