@@ -9,7 +9,7 @@
     payments = [Payment.new(5), Payment.new(15), Payment.new(10)]
 
     payments.minimum(:price) # => 5
-    payments.maximum(:price) # => 20
+    payments.maximum(:price) # => 15
     ```
 
     This also allows passing enumerables to `fresh_when` and `stale?` in Action Controller.
