@@ -34,17 +34,17 @@ module ActiveRecord
         #   designated column +original_<name>+. When reading the encrypted content, the version with the original case is
         #   server. But you can still execute queries that will ignore the case. This option can only be used when +:deterministic+
         #   is true.
-        # * <tt>:context</tt> - Hash of properties that will override +Context+ properties when this attribute is
+        # * <tt>:context_properties</tt> - Additional properties that will override +Context+ settings when this attribute is
         #   encrypted and decrypted. E.g: +encryptor:+, +cipher:+, +message_serializer:+, etc.
         # * <tt>:previous</tt> - List of previous encryption schemes. When provided, they will be used in order when trying to read
         #   the attribute. Each entry of the list can contain the properties supported by #encrypts. Also, when deterministic
         #   encryption is used, they will be used to generate additional ciphertexts to check in the queries.
-        def encrypts(*names, key_provider: nil, key: nil, deterministic: false, downcase: false, ignore_case: false, context: nil, previous: [])
+        def encrypts(*names, key_provider: nil, key: nil, deterministic: false, downcase: false, ignore_case: false, previous: [], **context_properties)
           self.encrypted_attributes ||= Set.new # not using :default because the instance would be shared across classes
 
           names.each do |name|
             encrypt_attribute name, key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase,
-                              ignore_case: ignore_case, subtype: type_for_attribute(name), context: context, previous: previous
+                              ignore_case: ignore_case, subtype: type_for_attribute(name), previous: previous, **context_properties
             validate_column_size(name) if ActiveRecord::Encryption.config.validate_column_size
           end
         end
@@ -63,7 +63,7 @@ module ActiveRecord
 
         private
           def encrypt_attribute(name, key_provider: nil, key: nil, deterministic: false, downcase: false,
-                                ignore_case: false, subtype: ActiveModel::Type::String.new, context: nil, previous: [])
+                                ignore_case: false, subtype: ActiveModel::Type::String.new, previous: [], **context_properties)
             raise Errors::Configuration, ":ignore_case can only be used with deterministic encryption" if ignore_case && !deterministic
             raise Errors::Configuration, ":key_provider and :key can't be used simultaneously" if key_provider && key
 
@@ -72,7 +72,7 @@ module ActiveRecord
             key_provider = build_key_provider(key_provider: key_provider, key: key, deterministic: deterministic)
 
             attribute name, :encrypted, key_provider: key_provider, downcase: downcase || ignore_case, deterministic: deterministic,
-                      subtype: subtype, context: context, previous_types: build_previous_types(previous, subtype)
+                      subtype: subtype, previous_types: build_previous_types(previous, subtype), **context_properties
             preserve_original_encrypted(name) if ignore_case
             ActiveRecord::Encryption.encrypted_attribute_was_declared(self, name)
           end
@@ -81,9 +81,10 @@ module ActiveRecord
             previous_config_list = [previous_config_list] unless previous_config_list.is_a?(Array)
             previous_config_list.collect do |previous_config|
               key_provider = build_key_provider(**previous_config.slice(:key_provider, :key, :deterministic))
+              context_properties = previous_config.without(:key_provider, :downcase, :ignore_case, :deterministic, :subtype)
               ActiveRecord::Encryption::EncryptedAttributeType.new \
                 key_provider: key_provider, downcase: previous_config[:downcase] || previous_config[:ignore_case],
-                deterministic: previous_config[:deterministic], context: previous_config[:context], subtype: type
+                deterministic: previous_config[:deterministic], subtype: type, **context_properties
             end
           end
 

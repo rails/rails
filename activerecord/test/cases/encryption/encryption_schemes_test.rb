@@ -57,13 +57,13 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::TestCase
     class EncryptedAuthor1 < Author
       self.table_name = "authors"
 
-      encrypts :name, context: { encryptor: TestEncryptor.new( "1" => "2" ) }
+      encrypts :name, encryptor: TestEncryptor.new( "1" => "2" )
     end
 
     class EncryptedAuthor2 < Author
       self.table_name = "authors"
 
-      encrypts :name, context: { encryptor: TestEncryptor.new("2" => "3") }, previous: { context: { encryptor: TestEncryptor.new("1" => "2") } }
+      encrypts :name, encryptor: TestEncryptor.new("2" => "3"), previous: { encryptor: TestEncryptor.new("1" => "2") }
     end
 
     def create_author_with_name_encrypted_with_previous_scheme

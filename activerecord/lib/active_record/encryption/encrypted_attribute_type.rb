@@ -10,14 +10,14 @@ module ActiveRecord
 
       attr_reader :key_provider, :previous_types, :subtype, :downcase
 
-      def initialize(key_provider: nil, deterministic: false, downcase: false, subtype: ActiveModel::Type::String.new, context: nil, previous_types: [])
+      def initialize(key_provider: nil, deterministic: false, downcase: false, subtype: ActiveModel::Type::String.new, previous_types: [], **context_properties)
         super()
         @key_provider = key_provider
         @deterministic = deterministic
         @downcase = downcase
         @subtype = subtype
         @previous_types = previous_types
-        @context = context
+        @context_properties = context_properties
       end
 
       def deserialize(value)
@@ -99,15 +99,15 @@ module ActiveRecord
         end
 
         def with_context(&block)
-          if @context
-            ActiveRecord::Encryption.with_encryption_context(**@context, &block)
+          if @context_properties.present?
+            ActiveRecord::Encryption.with_encryption_context(**@context_properties, &block)
           else
             block.call
           end
         end
 
         def clean_text_type
-          @clean_text_type ||= ActiveRecord::Encryption::EncryptedAttributeType.new(downcase: downcase, context: { encryptor: ActiveRecord::Encryption::NullEncryptor.new })
+          @clean_text_type ||= ActiveRecord::Encryption::EncryptedAttributeType.new(downcase: downcase, encryptor: ActiveRecord::Encryption::NullEncryptor.new )
         end
     end
   end
