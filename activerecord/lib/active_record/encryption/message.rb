@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Encryption
     # A message defines the structure of the data we store in encrypted attributes. It contains:

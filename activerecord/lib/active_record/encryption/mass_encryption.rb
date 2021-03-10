@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Encryption
     # Encrypts all the models belonging to the provided list of classes

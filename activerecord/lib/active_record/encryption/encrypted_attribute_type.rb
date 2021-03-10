@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Encryption
     # An +ActiveModel::Type+ that encrypts/decrypts strings of text
@@ -107,7 +109,7 @@ module ActiveRecord
         end
 
         def clean_text_type
-          @clean_text_type ||= ActiveRecord::Encryption::EncryptedAttributeType.new(downcase: downcase, encryptor: ActiveRecord::Encryption::NullEncryptor.new )
+          @clean_text_type ||= ActiveRecord::Encryption::EncryptedAttributeType.new(downcase: downcase, encryptor: ActiveRecord::Encryption::NullEncryptor.new)
         end
     end
   end

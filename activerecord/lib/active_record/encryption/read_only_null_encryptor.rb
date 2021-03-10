@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Encryption
     # A +NullEncryptor+ that will raise an error when trying to encrypt data

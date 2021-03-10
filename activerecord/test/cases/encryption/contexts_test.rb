@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/encryption/helper"
 require "models/book"
 require "models/post"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Encryption
     # Encrypts encryptable columns when loading fixtures automatically

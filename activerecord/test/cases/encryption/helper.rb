@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "benchmark/ips"
 
@@ -132,7 +134,7 @@ end
 
 class ActiveRecord::TestCase
   include ActiveRecord::Encryption::EncryptionHelpers, ActiveRecord::Encryption::PerformanceHelpers
-  #, PerformanceHelpers
+  # , PerformanceHelpers
 
   ENCRYPTION_ERROR_FLAGS = %i[ master_key store_key_references key_derivation_salt support_unencrypted_data
     encrypt_fixtures ]

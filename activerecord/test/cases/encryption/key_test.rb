@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/encryption/helper"
 
 class ActiveRecord::Encryption::KeyTest < ActiveSupport::TestCase

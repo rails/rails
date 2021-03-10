@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Encryption
     # A message serializer that serializes +Messages+ with JSON.
@@ -51,9 +53,9 @@ module ActiveRecord
         end
 
         def headers_to_json(headers)
-          headers.collect do |key, value|
-            [key, value.is_a?(ActiveRecord::Encryption::Message) ? message_to_json(value) : encode_if_needed(value)]
-          end.to_h
+          headers.transform_values do |value|
+            value.is_a?(ActiveRecord::Encryption::Message) ? message_to_json(value) : encode_if_needed(value)
+          end
         end
 
         def encode_if_needed(value)

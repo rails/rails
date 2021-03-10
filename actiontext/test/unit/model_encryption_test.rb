@@ -46,4 +46,3 @@ class ActionText::ModelEncryptionTest < ActiveSupport::TestCase
       assert_equal expected_value, model.reload.send(attribute_name).body.to_html
     end
 end
-

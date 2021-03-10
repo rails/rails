@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "cases/encryption/helper"
 require "models/book"
 
 class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::TestCase
-  test 'can access context properties with top level getters' do
+  test "can access context properties with top level getters" do
     assert_equal ActiveRecord::Encryption.key_provider, ActiveRecord::Encryption.context.key_provider
   end
 

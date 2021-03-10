@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/encryption/helper"
 require "models/author"
 
@@ -45,7 +47,7 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::TestCase
       end
 
       def decrypt(encrypted_text, key_provider: nil, cipher_options: {})
-        @ciphertexts_by_clear_value.each{ |clear_value, encrypted_value| return clear_value if encrypted_value == encrypted_text }
+        @ciphertexts_by_clear_value.each { |clear_value, encrypted_value| return clear_value if encrypted_value == encrypted_text }
         raise ActiveRecord::Encryption::Errors::Decryption, "Couldn't find a match for #{encrypted_text} (#{@ciphertexts_by_clear_value.inspect})"
       end
 
@@ -57,7 +59,7 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::TestCase
     class EncryptedAuthor1 < Author
       self.table_name = "authors"
 
-      encrypts :name, encryptor: TestEncryptor.new( "1" => "2" )
+      encrypts :name, encryptor: TestEncryptor.new("1" => "2")
     end
 
     class EncryptedAuthor2 < Author
@@ -75,6 +77,4 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::TestCase
       end
       author
     end
-
-
 end

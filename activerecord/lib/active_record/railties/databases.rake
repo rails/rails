@@ -555,7 +555,7 @@ db_namespace = namespace :db do
     desc "Generate a set of keys for configuring Active Record encryption in a given environment"
     task :init do
       puts <<~MSG
-        Add this entry to the credentials of the target environment: 
+        Add this entry to the credentials of the target environment:#{' '}
 
         active_record_encryption:
           master_key: #{SecureRandom.alphanumeric(32)}

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/encryption/helper"
 require "models/book"
 
@@ -7,7 +9,7 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesPerformanceTest < Ac
     baseline = -> { EncryptedBook.find_by(format: "paperback") } # not encrypted
 
     # Performance is similar with SQL adapter
-    assert_slower_by_at_most 1.6  , baseline: baseline, duration: 2 do
+    assert_slower_by_at_most 1.6, baseline: baseline, duration: 2 do
       EncryptedBook.find_by(name: "Agile Web Development with Rails") # encrypted, deterministic
     end
   end
