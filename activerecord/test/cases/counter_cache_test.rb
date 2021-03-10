@@ -16,6 +16,7 @@ require "models/friendship"
 require "models/subscriber"
 require "models/subscription"
 require "models/book"
+require "models/task"
 require "active_support/core_ext/enumerable"
 
 class CounterCacheTest < ActiveRecord::TestCase
@@ -28,6 +29,23 @@ class CounterCacheTest < ActiveRecord::TestCase
 
   class ::SpecialReply < ::Reply
     belongs_to :special_topic, foreign_key: "parent_id", counter_cache: "replies_count"
+  end
+
+  class ::ReplyWithTouch < ::Reply
+    belongs_to :topic_with_after_commit_callback, foreign_key: "parent_id", counter_cache: "replies_count", touch: true
+
+    # after_commit :explicitly_touch_topic
+    # def explicitly_touch_topic
+    #   topic_with_after_commit_callback.touch
+    # end
+  end
+
+  class ::TopicWithAfterCommitCallback < ::Topic
+    after_commit :increase_task_count
+
+    def increase_task_count
+      ::Task.create!
+    end
   end
 
   setup do
@@ -237,6 +255,16 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_touching @topic, :updated_at do
       Topic.update_counters(@topic.id, replies_count: -1, touch: true)
     end
+  end
+
+  test "run after_commit callback with touch: true" do
+    assert_equal ::Task.count, 0
+
+    topic = ::TopicWithAfterCommitCallback.create!(title: "Topic with after commit callback")
+    assert_equal ::Task.count, 1
+
+    reply = ::ReplyWithTouch.create!(topic: topic)
+    assert_equal ::Task.count, 2
   end
 
   test "update counters of multiple records with touch: true" do
