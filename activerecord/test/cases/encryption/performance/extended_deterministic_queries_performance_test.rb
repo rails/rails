@@ -6,7 +6,8 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesPerformanceTest < Ac
   test "finding with prepared statement caching by deterministically encrypted columns" do
     baseline = -> { EncryptedBook.find_by(format: "paperback") } # not encrypted
 
-    assert_slower_by_at_most 1.7, baseline: baseline, duration: 2 do
+    # Performance is similar with SQL adapter
+    assert_slower_by_at_most 1.6  , baseline: baseline, duration: 2 do
       EncryptedBook.find_by(name: "Agile Web Development with Rails") # encrypted, deterministic
     end
   end
@@ -14,7 +15,8 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesPerformanceTest < Ac
   test "finding without prepared statement caching by encrypted columns (deterministic)" do
     baseline = -> { EncryptedBook.where("id > 0").find_by(format: "paperback") } # not encrypted
 
-    assert_slower_by_at_most 1.7, baseline: baseline, duration: 2 do
+    # Overhead is 1.1 with SQL
+    assert_slower_by_at_most 1.3, baseline: baseline, duration: 2 do
       EncryptedBook.where("id > 0").find_by(name: "Agile Web Development with Rails") # encrypted, deterministic
     end
   end
