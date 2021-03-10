@@ -213,7 +213,8 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::TestCase
     assert_equal "Stephen King", author.name
   end
 
-  if current_adapter?(:Mysql2Adapter)
+  unless current_adapter?(:SQLite3Adapter)
+    # No column limits in SQLLite
     test "validate column sizes" do
       assert EncryptedAuthor.new(name: "jorge").valid?
       assert_not EncryptedAuthor.new(name: "a" * 256).valid?
