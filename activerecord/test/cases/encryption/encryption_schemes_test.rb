@@ -11,7 +11,9 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::TestCase
     assert_equal "dhh", author.reload.name
   end
 
-  test "when defining previous encryption schemes, you still get Decryption errors when using invalid clear_value" do
+  test "when defining previous encryption schemes, you still get Decryption errors when using invalid clear values" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = false
+
     author = ActiveRecord::Encryption.without_encryption { EncryptedAuthor.create!(name: "unencrypted author") }
 
     assert_raises ActiveRecord::Encryption::Errors::Decryption do

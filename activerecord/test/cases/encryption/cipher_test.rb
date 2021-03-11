@@ -53,7 +53,7 @@ class ActiveRecord::Encryption::CipherTest < ActiveSupport::TestCase
   end
 
   test "keep encoding from the source string" do
-    encrypted_text = @cipher.encrypt("some string".force_encoding(Encoding::ISO_8859_1), key: @key)
+    encrypted_text = @cipher.encrypt("some string".dup.force_encoding(Encoding::ISO_8859_1), key: @key)
     decrypted_text = @cipher.decrypt(encrypted_text, key: @key)
     assert_equal Encoding::ISO_8859_1, decrypted_text.encoding
   end

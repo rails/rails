@@ -27,7 +27,10 @@ class ActiveRecord::Encryption::EncryptorTest < ActiveSupport::TestCase
 
   test "if an encryption error happens when encrypting an encrypted text it should raise" do
     assert_raises(ActiveRecord::Encryption::Errors::Encryption) do
-      @encryptor.encrypt("Some text to encrypt", key_provider: key_provider_that_raises_an_encryption_error)
+      key_provider_that_raises_an_encryption_error = ActiveRecord::Encryption::DerivedSecretKeyProvider.new("some key")
+      key_provider_that_raises_an_encryption_error.stub :encryption_key, -> { raise ActiveRecord::Encryption::Errors::Encryption } do
+        @encryptor.encrypt("Some text to encrypt", key_provider: key_provider_that_raises_an_encryption_error)
+      end
     end
   end
 
@@ -50,11 +53,10 @@ class ActiveRecord::Encryption::EncryptorTest < ActiveSupport::TestCase
     key.public_tags[:key] = "my tag"
     key_provider = ActiveRecord::Encryption::KeyProvider.new(key)
     encryptor = ActiveRecord::Encryption::Encryptor.new
-    key_provider.expects(:decryption_keys).returns([key]).with do |message, params|
-      message.headers[:key] == "my tag"
-    end
 
-    encryptor.decrypt encryptor.encrypt("some text", key_provider: key_provider), key_provider: key_provider
+    key_provider.stub :decryption_keys, ->(message) { [key] } do
+      encryptor.decrypt encryptor.encrypt("some text", key_provider: key_provider), key_provider: key_provider
+    end
   end
 
   test "encrypted? returns whether the passed text is encrypted" do
@@ -63,7 +65,7 @@ class ActiveRecord::Encryption::EncryptorTest < ActiveSupport::TestCase
   end
 
   test "decrypt respects encoding even when compression is used" do
-    text = "The Starfleet is here #{'OMG! ' * 50}!".force_encoding(Encoding::ISO_8859_1)
+    text = "The Starfleet is here #{'OMG! ' * 50}!".dup.force_encoding(Encoding::ISO_8859_1)
     encrypted_text = @encryptor.encrypt(text)
     decrypted_text = @encryptor.decrypt(encrypted_text)
 
@@ -75,11 +77,5 @@ class ActiveRecord::Encryption::EncryptorTest < ActiveSupport::TestCase
       encrypted_text = @encryptor.encrypt(clean_text)
       assert_not_equal encrypted_text, clean_text
       assert_equal clean_text, @encryptor.decrypt(encrypted_text)
-    end
-
-    def key_provider_that_raises_an_encryption_error
-      ActiveRecord::Encryption::DerivedSecretKeyProvider.new("some key").tap do |key_provider|
-        key_provider.expects(:encryption_key).raises(ActiveRecord::Encryption::Errors::Encryption)
-      end
     end
 end
