@@ -412,24 +412,48 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_GreaterThanOrEqual(o, collector)
+          case unboundable?(o.right)
+          when 1
+            return collector << "1=0"
+          when -1
+            return collector << "1=1"
+          end
           collector = visit o.left, collector
           collector << " >= "
           visit o.right, collector
         end
 
         def visit_Arel_Nodes_GreaterThan(o, collector)
+          case unboundable?(o.right)
+          when 1
+            return collector << "1=0"
+          when -1
+            return collector << "1=1"
+          end
           collector = visit o.left, collector
           collector << " > "
           visit o.right, collector
         end
 
         def visit_Arel_Nodes_LessThanOrEqual(o, collector)
+          case unboundable?(o.right)
+          when 1
+            return collector << "1=1"
+          when -1
+            return collector << "1=0"
+          end
           collector = visit o.left, collector
           collector << " <= "
           visit o.right, collector
         end
 
         def visit_Arel_Nodes_LessThan(o, collector)
+          case unboundable?(o.right)
+          when 1
+            return collector << "1=1"
+          when -1
+            return collector << "1=0"
+          end
           collector = visit o.left, collector
           collector << " < "
           visit o.right, collector
