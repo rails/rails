@@ -252,6 +252,14 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "doesn't create a valid blob if service setting is nil" do
+    with_service(nil) do
+      assert_raises(ActiveRecord::RecordInvalid) do
+        create_blob(filename: "funky.jpg")
+      end
+    end
+  end
+
   test "invalidates record when provided service_name is invalid" do
     blob = create_blob(filename: "funky.jpg")
     blob.update(service_name: :unknown)
