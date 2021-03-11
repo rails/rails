@@ -45,7 +45,7 @@ module ActiveRecord
           iv = generate_iv(cipher, clear_text)
           cipher.iv = iv
 
-          encrypted_data = clear_text.empty? ? clear_text : cipher.update(clear_text)
+          encrypted_data = clear_text.empty? ? clear_text.dup : cipher.update(clear_text)
           encrypted_data << cipher.final
 
           ActiveRecord::Encryption::Message.new(payload: encrypted_data).tap do |message|
