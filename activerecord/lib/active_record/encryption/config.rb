@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Encryption
-    # Container of contfiguration options
+    # Container of configuration options
     class Config
       attr_accessor :master_key, :deterministic_key, :store_key_references, :key_derivation_salt,
                     :support_unencrypted_data, :encrypt_fixtures, :validate_column_size, :add_to_filter_parameters,
