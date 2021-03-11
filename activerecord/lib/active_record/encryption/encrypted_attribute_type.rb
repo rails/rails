@@ -42,8 +42,8 @@ module ActiveRecord
       end
 
       def additional_encrypted_types # :nodoc:
-        @additional_encrypted_types ||= if support_unencrypted_data?
-          previous_types.including(clean_text_type)
+        if support_unencrypted_data?
+          @previous_types_with_clean_text_type ||= previous_types.including(clean_text_type)
         else
           previous_types
         end
