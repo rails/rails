@@ -33,6 +33,14 @@ There should be tests available for each database backend listed in the {Config
 File}[rdoc-label:label-Config+File]. (the exact set of available tests is
 defined in +Rakefile+)
 
+There are some performance tests for the encryption system that can be run with.
+
+  $ rake test:encryption:performance:mysql2
+  $ test:integration:active_job:postgresql
+  $ rake test:encryption:performance:sqlite3
+
+These performance tests are not executed as part of the regular testing tasks.
+
 == Config File
 
 If +test/config.yml+ is present, then its parameters are obeyed; otherwise, the
