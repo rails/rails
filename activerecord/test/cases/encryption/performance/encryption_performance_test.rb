@@ -24,7 +24,7 @@ class ActiveRecord::Encryption::EncryptionPerformanceTest < ActiveRecord::TestCa
     baseline = -> { unencrypted_post.reload.title }
 
     encrypted_post = create_post_with_encryption
-    assert_slower_by_at_most 1.1, baseline: baseline, duration: 3 do
+    assert_slower_by_at_most 1.2, baseline: baseline, duration: 3 do
       encrypted_post.reload.title
     end
   end
