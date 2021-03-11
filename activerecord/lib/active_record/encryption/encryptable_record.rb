@@ -44,10 +44,11 @@ module ActiveRecord
         def encrypts(*names, key_provider: nil, key: nil, deterministic: false, downcase: false, ignore_case: false, previous: [], **context_properties)
           self.encrypted_attributes ||= Set.new # not using :default because the instance would be shared across classes
 
-          names.each do |name|
-            encrypt_attribute name, key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase,
-                              ignore_case: ignore_case, subtype: type_for_attribute(name), previous: previous, **context_properties
-            validate_column_size(name) if ActiveRecord::Encryption.config.validate_column_size
+          if table_exists?
+            names.each do |name|
+              encrypt_attribute name, key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase,
+                                ignore_case: ignore_case, subtype: type_for_attribute(name), previous: previous, **context_properties
+            end
           end
         end
 
@@ -75,7 +76,9 @@ module ActiveRecord
 
             attribute name, :encrypted, key_provider: key_provider, downcase: downcase || ignore_case, deterministic: deterministic,
                       subtype: subtype, previous_types: build_previous_types(previous, subtype), **context_properties
+
             preserve_original_encrypted(name) if ignore_case
+            validate_column_size(name) if ActiveRecord::Encryption.config.validate_column_size
             ActiveRecord::Encryption.encrypted_attribute_was_declared(self, name)
           end
 
@@ -85,8 +88,8 @@ module ActiveRecord
               key_provider = build_key_provider(**previous_config.slice(:key_provider, :key, :deterministic))
               context_properties = previous_config.slice(*ActiveRecord::Encryption::Context::PROPERTIES.without(:key_provider))
               ActiveRecord::Encryption::EncryptedAttributeType.new \
-                key_provider: key_provider, downcase: previous_config[:downcase] || previous_config[:ignore_case],
-                deterministic: previous_config[:deterministic], subtype: type, **context_properties
+                  key_provider: key_provider, downcase: previous_config[:downcase] || previous_config[:ignore_case],
+                  deterministic: previous_config[:deterministic], subtype: type, **context_properties
             end
           end
 
@@ -220,11 +223,11 @@ module ActiveRecord
 
         def encryptable_rich_texts
           @encryptable_rich_texts ||= self.class
-            .reflect_on_all_associations(:has_one)
-            .collect(&:name)
-            .grep(/rich_text/)
-            .collect { |attribute_name| send(attribute_name) }.compact
-            .find_all { |record| record.class.name == "ActionText::EncryptedRichText" } # not using class check to avoid adding dependency
+                                          .reflect_on_all_associations(:has_one)
+                                          .collect(&:name)
+                                          .grep(/rich_text/)
+                                          .collect { |attribute_name| send(attribute_name) }.compact
+                                          .find_all { |record| record.class.name == "ActionText::EncryptedRichText" } # not using class check to avoid adding dependency
         end
 
         def cant_modify_encrypted_attributes_when_frozen
