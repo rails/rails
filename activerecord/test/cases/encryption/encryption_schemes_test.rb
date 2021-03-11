@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/encryption/helper"
-require "models/author"
+require "models/author_encrypted"
 
 class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::TestCase
   test "can decrypt encrypted_value encrypted with a different encryption scheme" do

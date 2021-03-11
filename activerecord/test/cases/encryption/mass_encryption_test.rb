@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require "cases/encryption/helper"
-require "models/author"
-require "models/post"
+require "models/author_encrypted"
+require "models/post_encrypted"
 
 class ActiveRecord::Encryption::MassEncryptionTest < ActiveRecord::TestCase
   setup do

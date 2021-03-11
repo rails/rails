@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/encryption/helper"
-require "models/book"
+require "models/book_encrypted"
 
 class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord::TestCase
   setup do

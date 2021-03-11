@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/encryption/helper"
-require "models/post"
+require "models/post_encrypted"
 
 class ActiveRecord::Encryption::ConcurrencyTest < ActiveRecord::TestCase
   setup do

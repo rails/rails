@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require "cases/encryption/helper"
-require "models/book"
-require "models/post"
+require "models/book_encrypted"
+require "models/post_encrypted"
 
 class ActiveRecord::Encryption::EncryptionPerformanceTest < ActiveRecord::TestCase
   fixtures :encrypted_books, :posts
