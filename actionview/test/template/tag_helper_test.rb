@@ -418,8 +418,8 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag_honors_html_safe_for_param_values
     ["1&amp;2", "1 &lt; 2", "&#8220;test&#8220;"].each do |escaped|
-      assert_equal %(<a href="#{escaped}" />), tag("a", href: escaped.html_safe)
-      assert_equal %(<a href="#{escaped}"></a>), tag.a(href: escaped.html_safe)
+      assert_dom_equal %(<a title="#{escaped}" />), tag("a", title: escaped.html_safe)
+      assert_dom_equal %(<a title="#{escaped}"></a>), tag.a(title: escaped.html_safe)
     end
   end
 
@@ -445,8 +445,8 @@ class TagHelperTest < ActionView::TestCase
 
   def test_skip_invalid_escaped_attributes
     ["&1;", "&#1dfa3;", "& #123;"].each do |escaped|
-      assert_equal %(<a href="#{escaped.gsub(/&/, '&amp;')}" />), tag("a", href: escaped)
-      assert_equal %(<a href="#{escaped.gsub(/&/, '&amp;')}"></a>), tag.a(href: escaped)
+      assert_dom_equal %(<a title="#{escaped.gsub(/&/, '&amp;')}" />), tag("a", title: escaped)
+      assert_dom_equal %(<a title="#{escaped.gsub(/&/, '&amp;')}"></a>), tag.a(title: escaped)
     end
   end
 
