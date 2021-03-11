@@ -167,12 +167,20 @@ module ActiveRecord
         ORIGINAL_ATTRIBUTE_PREFIX = "original_"
 
         def encrypt_attributes
+          validate_encryption_allowed
+
           update_columns build_encrypt_attribute_assignments
         end
 
         def decrypt_attributes
+          validate_encryption_allowed
+
           decrypt_attribute_assignments = build_decrypt_attribute_assignments
           ActiveRecord::Encryption.without_encryption { update_columns decrypt_attribute_assignments }
+        end
+
+        def validate_encryption_allowed
+          raise ActiveRecord::Encryption::Errors::Configuration, "can't be modified because it is encrypted" if ActiveRecord::Encryption.context.frozen_encryption?
         end
 
         def has_encrypted_attributes?

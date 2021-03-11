@@ -73,6 +73,18 @@ class ActiveRecord::Encryption::ContextsTest < ActiveRecord::TestCase
     end
   end
 
+  test "can't encrypt or decrypt in protected mode" do
+    ActiveRecord::Encryption.protecting_encrypted_data do
+      assert_raises ActiveRecord::Encryption::Errors::Configuration do
+        @post.encrypt
+      end
+
+      assert_raises ActiveRecord::Encryption::Errors::Configuration do
+        @post.decrypt
+      end
+    end
+  end
+
   test ".protecting_encrypted_data will raise a validation error when modifying encrypting attributes" do
     ActiveRecord::Encryption.protecting_encrypted_data do
       assert_raises ActiveRecord::RecordInvalid do
