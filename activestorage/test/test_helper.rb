@@ -102,7 +102,7 @@ class ActiveSupport::TestCase
 
     def with_service(service_name)
       previous_service = ActiveStorage::Blob.service
-      ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(service_name)
+      ActiveStorage::Blob.service = service_name ? ActiveStorage::Blob.services.fetch(service_name) : nil
 
       yield
     ensure
