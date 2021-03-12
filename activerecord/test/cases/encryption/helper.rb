@@ -112,7 +112,7 @@ module ActiveRecord::Encryption
     #     assert_slower_by_at_most 2, baseline: baseline do
     #       <the code you want to compare against the baseline>
     #     end
-    def assert_slower_by_at_most(threshold_factor, baseline:, baseline_label: BASELINE_LABEL, code_to_test_label: CODE_TO_TEST_LABEL, duration: BENCHMARK_DURATION, quiet: true, &block_to_test)
+    def assert_slower_by_at_most(threshold_factor, baseline:, baseline_label: BASELINE_LABEL, code_to_test_label: CODE_TO_TEST_LABEL, duration: BENCHMARK_DURATION, quiet: false, &block_to_test)
       GC.start
 
       result = nil
