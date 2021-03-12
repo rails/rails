@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/encryption/helper"
-require "models/book_encrypted"
+require "models/pirate"
 
 class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::TestCase
   test "can access context properties with top level getters" do
@@ -15,9 +15,8 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::TestCase
       @attribute_name = declared_attribute_name
     end
 
-    klass = Class.new(EncryptedBook) do
-      self.table_name = "books"
-      encrypt_attribute :isbn
+    klass = Class.new(Book) do
+      encrypts :isbn
     end
 
     assert_equal klass, @klass
@@ -28,11 +27,11 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::TestCase
     application = OpenStruct.new(config: OpenStruct.new(filter_parameters: []))
     ActiveRecord::Encryption.install_auto_filtered_parameters(application)
 
-    Class.new(EncryptedBook) do
-      self.table_name = "books"
-      encrypt_attribute :isbn
+    Class.new(Pirate) do
+      self.table_name = "pirates"
+      encrypts :catchphrase
     end
 
-    assert_includes application.config.filter_parameters, :isbn
+    assert_includes application.config.filter_parameters, :catchphrase
   end
 end

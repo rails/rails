@@ -2,19 +2,19 @@
 
 require "models/book"
 
-class EncryptedBook < Book
+class EncryptedBook < ActiveRecord::Base
   self.table_name = "books"
 
   encrypts :name, deterministic: true
 end
 
-class EncryptedBookWithDowncaseName < Book
+class EncryptedBookWithDowncaseName < ActiveRecord::Base
   self.table_name = "books"
 
   encrypts :name, deterministic: true, downcase: true
 end
 
-class EncryptedBookThatIgnoresCase < Book
+class EncryptedBookThatIgnoresCase < ActiveRecord::Base
   self.table_name = "books"
 
   encrypts :name, deterministic: true, ignore_case: true
