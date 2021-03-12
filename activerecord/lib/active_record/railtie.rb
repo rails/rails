@@ -295,7 +295,9 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
         # Support extended queries for deterministic attributes
         if ActiveRecord::Encryption.config.extend_queries
-          ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
+          ActiveSupport.on_load(:active_record) do
+            ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
+          end
         end
 
         # Filtered params
