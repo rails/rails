@@ -111,18 +111,23 @@ module ActiveRecord
             end
 
             encrypts original_attribute_name
+            include module_to_preserve_original_encrypted(name, original_attribute_name)
+          end
 
-            define_method name do
-              if ((value = super()) && encrypted_attribute?(name)) || !ActiveRecord::Encryption.config.support_unencrypted_data
-                send(original_attribute_name)
-              else
-                value
+          def module_to_preserve_original_encrypted(name, original_attribute_name)
+            Module.new do
+              define_method name do
+                if ((value = super()) && encrypted_attribute?(name)) || !ActiveRecord::Encryption.config.support_unencrypted_data
+                  send(original_attribute_name)
+                else
+                  value
+                end
               end
-            end
 
-            define_method "#{name}=" do |value|
-              self.send "#{original_attribute_name}=", value
-              super(value)
+              define_method "#{name}=" do |value|
+                self.send "#{original_attribute_name}=", value
+                super(value)
+              end
             end
           end
 

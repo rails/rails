@@ -167,30 +167,45 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::TestCase
     assert EncryptedBookWithDowncaseName.find_by_name("dune")
   end
 
-  test "when ignore_downcase: true, it ignores case in queries but keep it when reading the attribute" do
+  test "when ignore_case: true, it ignores case in queries but keep it when reading the attribute" do
     EncryptedBookThatIgnoresCase.create!(name: "Dune")
     book = EncryptedBookThatIgnoresCase.find_by_name("dune")
     assert book
-    assert "Dune", book.name
+    assert_equal "Dune", book.name
   end
 
-  test "when ignore_downcase: true, it keeps both the attribute and the _original counterpart encrypted" do
+  test "when ignore_case: true, it keeps both the attribute and the _original counterpart encrypted" do
     book = EncryptedBookThatIgnoresCase.create!(name: "Dune")
     assert_encrypted_attribute book, :name, "Dune"
     assert_encrypted_attribute book, :original_name, "Dune"
   end
 
-  test "when ignore_downcase: true, it lets you update attributes normally" do
+  test "when ignore_case: true, it lets you update attributes normally" do
     book = EncryptedBookThatIgnoresCase.create!(name: "Dune")
     book.update!(name: "Dune II")
     assert_equal "Dune II", book.name
   end
 
-  test "when ignore_downcase: true, it returns the actual value when not encrypted" do
+  test "when ignore_case: true, it returns the actual value when not encrypted" do
     ActiveRecord::Encryption.config.support_unencrypted_data = true
 
     book = create_unencrypted_book_ignoring_case name: "Dune"
     assert_equal "Dune", book.name
+  end
+
+  test "when ignore_case: true, users can override accessors and call super" do
+    overriding_class = Class.new(EncryptedBookThatIgnoresCase) do
+      self.table_name = "books"
+
+      def name
+        "#{super}-overridden"
+      end
+    end
+
+    overriding_class.create!(name: "Dune")
+    book = overriding_class.find_by_name("dune")
+    assert book
+    assert_equal "Dune-overridden", book.reload.name
   end
 
   test "reading a not encrypted value will raise a Decryption error when :support_unencrypted_data is false" do
