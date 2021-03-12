@@ -26,7 +26,7 @@ module ActiveModel
 
         def changed?(old_value, _new_value, new_value_before_type_cast) # :nodoc:
           return false if old_value.try(:nan?) && new_value_before_type_cast.try(:nan?)
-          
+
           super || number_to_non_number?(old_value, new_value_before_type_cast)
         end
 
