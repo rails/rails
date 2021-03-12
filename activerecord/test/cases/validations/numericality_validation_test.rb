@@ -12,21 +12,23 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
   def test_column_with_precision
     model_class.validates_numericality_of(
-      :unscaled_bank_balance, equal_to: 10_000_000.12
+      :unscaled_bank_balance, equal_to: 10_000_000.0
     )
 
     subject = model_class.new(unscaled_bank_balance: 10_000_000.121)
 
+    assert_equal BigDecimal("10_000_000.0"), subject.unscaled_bank_balance
     assert_predicate subject, :valid?
   end
 
   def test_column_with_precision_higher_than_double_fig
     model_class.validates_numericality_of(
-      :decimal_number_big_precision, equal_to: 10_000_000.3
+      :decimal_number_big_precision, equal_to: 10_000_000.0
     )
 
     subject = model_class.new(decimal_number_big_precision: 10_000_000.3)
 
+    assert_equal BigDecimal("10_000_000.0"), subject.decimal_number_big_precision
     assert_predicate subject, :valid?
   end
 
@@ -37,6 +39,7 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     subject = model_class.new(bank_balance: 10.001)
 
+    assert_equal BigDecimal("10.00"), subject.bank_balance
     assert_not_predicate subject, :valid?
   end
 
@@ -47,7 +50,15 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     subject = model_class.new(decimal_number: 1_000_000_000.1234545)
 
-    assert_predicate subject, :valid?
+    # In MySQL, if precision is omitted, the default is 10.
+    # https://dev.mysql.com/doc/refman/8.0/en/precision-math-decimal-characteristics.html
+    if current_adapter?(:Mysql2Adapter)
+      assert_equal BigDecimal("1_000_000_000"), subject.decimal_number
+      assert_not_predicate subject, :valid?
+    else
+      assert_equal 1_000_000_000.123454.to_d, subject.decimal_number
+      assert_predicate subject, :valid?
+    end
   end
 
   def test_virtual_attribute
@@ -58,6 +69,7 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     subject = model_class.new(virtual_decimal_number: 1_000_000_000.1234545)
 
+    assert_equal 1_000_000_000.123454.to_d, subject.virtual_decimal_number
     assert_predicate subject, :valid?
   end
 
@@ -78,6 +90,7 @@ class NumericalityValidationTest < ActiveRecord::TestCase
     end
     subject = klass.new(bank_balance: 10_000_000.12)
 
+    assert_equal BigDecimal("10_000_000.12"), subject.bank_balance
     assert_predicate(subject, :valid?)
   end
 
@@ -89,7 +102,17 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     subject = model_class.new(virtual_decimal_number: 65.6)
 
-    assert_predicate subject, :valid?
+    # BigDecimal 3.0.0 has a rounding problem https://github.com/ruby/bigdecimal/issues/185
+    # caused by fixing https://github.com/ruby/bigdecimal/issues/70.
+    # It will be fixed by https://github.com/ruby/bigdecimal/pull/180
+    # in BigDecimal 3.0.1.
+    if "9.050000000000001" == 9.05.to_d.to_s("F")
+      assert_equal BigDecimal("65.59999999999999"), subject.virtual_decimal_number
+      assert_not_predicate subject, :valid?
+    else
+      assert_equal BigDecimal("65.6"), subject.virtual_decimal_number
+      assert_predicate subject, :valid?
+    end
   end
 
   def test_virtual_attribute_with_precision_round_down
@@ -100,6 +123,7 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     subject = model_class.new(virtual_decimal_number: 123.454)
 
+    assert_equal BigDecimal("123.45"), subject.virtual_decimal_number
     assert_predicate subject, :valid?
   end
 
@@ -115,8 +139,10 @@ class NumericalityValidationTest < ActiveRecord::TestCase
       # BigDecimal's to_d behavior changed in BigDecimal 3.0.1, see https://github.com/ruby/bigdecimal/issues/70
       # TODO: replace this with a check against BigDecimal::VERSION, currently
       # we just check the behaviour because both versions of BigDecimal report "3.0.0"
+      assert_equal BigDecimal("123.46"), subject.virtual_decimal_number
       assert_not_predicate subject, :valid?
     else
+      assert_equal BigDecimal("123.45"), subject.virtual_decimal_number
       assert_predicate subject, :valid?
     end
   end
@@ -129,6 +155,7 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     subject = model_class.new(virtual_decimal_number: 123.456)
 
+    assert_equal BigDecimal("123.46"), subject.virtual_decimal_number
     assert_not_predicate subject, :valid?
   end
 
@@ -140,13 +167,14 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     subject = model_class.new(virtual_decimal_number: 1.001)
 
+    assert_equal BigDecimal("1.00"), subject.virtual_decimal_number
     assert_not_predicate subject, :valid?
   end
 
   def test_virtual_attribute_with_precision_and_scale
     model_class.attribute(:virtual_decimal_number, :decimal, precision: 4, scale: 2)
     model_class.validates_numericality_of(
-      :virtual_decimal_number, less_than_or_equal_to: 99.99
+      :virtual_decimal_number, less_than_or_equal_to: BigDecimal("99.99")
     )
 
     ["99.994", 99.994, BigDecimal("99.994")].each do |raw_value|
@@ -167,6 +195,7 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     subject = model_class.new(new_bank_balance: "abcd")
 
+    assert_equal BigDecimal("0.0"), subject.new_bank_balance
     assert_not_predicate subject, :valid?
   end
 
@@ -175,6 +204,7 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     subject = model_class.new(bank_balance: "")
 
+    assert_nil subject.new_bank_balance
     assert_predicate subject, :valid?
   end
 end

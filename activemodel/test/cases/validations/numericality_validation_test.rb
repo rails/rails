@@ -315,7 +315,19 @@ class NumericalityValidationTest < ActiveModel::TestCase
     Topic.validates_numericality_of :approved, equal_to: BigDecimal("65.6")
 
     assert_invalid_values([Float("65.5"), BigDecimal("65.7")], "must be equal to 65.6")
-    assert_valid_values([Float("65.6"), BigDecimal("65.6")])
+    assert_valid_values([BigDecimal("65.6")])
+
+    # BigDecimal 3.0.0 has a rounding problem https://github.com/ruby/bigdecimal/issues/185
+    # caused by fixing https://github.com/ruby/bigdecimal/issues/70.
+    # It will be fixed by https://github.com/ruby/bigdecimal/pull/180
+    # in BigDecimal 3.0.1.
+    if "9.050000000000001" == 9.05.to_d.to_s("F")
+      assert_equal "65.59999999999999", 65.6.to_d.to_s("F")
+      assert_invalid_values([Float("65.6")])
+    else
+      assert_equal "65.6", 65.6.to_d.to_s("F")
+      assert_valid_values([Float("65.6")])
+    end
   end
 
   private

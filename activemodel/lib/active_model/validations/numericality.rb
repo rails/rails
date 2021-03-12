@@ -31,8 +31,10 @@ module ActiveModel
         end
       end
 
-      def validate_each(record, attr_name, value, precision: Float::DIG, scale: nil)
-        unless is_number?(value, precision, scale)
+      def validate_each(record, attr_name, value)
+        maybe_decimal = maybe_decimal(record, attr_name)
+
+        unless is_number?(value, maybe_decimal)
           record.errors.add(attr_name, :not_a_number, **filtered_options(value))
           return
         end
@@ -42,7 +44,7 @@ module ActiveModel
           return
         end
 
-        value = parse_as_number(value, precision, scale)
+        value = parse_as_number(value, maybe_decimal)
 
         options.slice(*RESERVED_OPTIONS).each do |option, option_value|
           if NUMBER_CHECKS.include?(option)
@@ -54,7 +56,7 @@ module ActiveModel
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
           elsif COMPARE_CHECKS.include?(option)
-            option_value = option_as_number(record, option_value, precision, scale)
+            option_value = parse_as_number(option_value(record, option_value))
             unless value.public_send(COMPARE_CHECKS[option], option_value)
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
@@ -63,34 +65,31 @@ module ActiveModel
       end
 
     private
-      def option_as_number(record, option_value, precision, scale)
-        parse_as_number(option_value(record, option_value), precision, scale)
+      def maybe_decimal(record, attr_name)
+        maybe_decimal = record.class.try(:type_for_attribute, attr_name)
+        maybe_decimal if maybe_decimal&.type == :decimal
       end
 
-      def parse_as_number(raw_value, precision, scale)
+      def parse_as_number(raw_value, maybe_decimal = nil)
         if raw_value.is_a?(Float)
-          parse_float(raw_value, precision, scale)
+          parse_float(raw_value, maybe_decimal)
         elsif raw_value.is_a?(BigDecimal)
-          round(raw_value, scale)
+          maybe_decimal ? maybe_decimal.cast(raw_value) : raw_value
         elsif raw_value.is_a?(Numeric)
           raw_value
         elsif is_integer?(raw_value)
           raw_value.to_i
         elsif !is_hexadecimal_literal?(raw_value)
-          parse_float(Kernel.Float(raw_value), precision, scale)
+          parse_float(Kernel.Float(raw_value), maybe_decimal)
         end
       end
 
-      def parse_float(raw_value, precision, scale)
-        round(raw_value, scale).to_d(precision)
+      def parse_float(raw_value, maybe_decimal)
+        maybe_decimal ? maybe_decimal.cast(raw_value) : raw_value.to_d
       end
 
-      def round(raw_value, scale)
-        scale ? raw_value.round(scale) : raw_value
-      end
-
-      def is_number?(raw_value, precision, scale)
-        !parse_as_number(raw_value, precision, scale).nil?
+      def is_number?(raw_value, maybe_decimal)
+        !parse_as_number(raw_value, maybe_decimal).nil?
       rescue ArgumentError, TypeError
         false
       end
