@@ -6,12 +6,13 @@ module ActiveRecord
     class MassEncryption
       attr_reader :classes, :last_class, :last_id, :progress_monitor, :skip_rich_texts
 
-      def initialize(progress_monitor: NullProgressMonitor.new, last_class: nil, last_id: nil, skip_rich_texts: false)
+      def initialize(progress_monitor: NullProgressMonitor.new, last_class: nil, last_id: nil, skip_rich_texts: false, quiet: true)
         @progress_monitor = progress_monitor
         @last_class = last_class
         @last_id = last_id
         @classes = []
         @skip_rich_texts = skip_rich_texts
+        @quiet = true
 
         raise ArgumentError, "When passing a :last_id you must pass a :last_class too" if last_id.present? && last_class.blank?
       end
@@ -58,18 +59,22 @@ module ActiveRecord
     class ClassMassEncryption
       attr_reader :klass, :progress_monitor, :last_id, :skip_rich_texts
 
-      def initialize(klass, progress_monitor: NullEncryptor.new, last_id: nil, skip_rich_texts: false)
+      def initialize(klass, progress_monitor: NullEncryptor.new, last_id: nil, skip_rich_texts: false, quiet: true)
         @klass = klass
         @progress_monitor = progress_monitor
         @last_id = last_id
         @skip_rich_texts = skip_rich_texts
+        @quiet = quiet
       end
 
       def encrypt
         klass.where("id >= ?", last_id.to_i).find_each.with_index do |record, index|
           encrypt_record(record)
           progress_monitor.increment
-          progress_monitor.log("Encrypting #{klass.name.tableize} (last id = #{record.id})...") if index % 500 == 0
+
+          unless @quiet
+            progress_monitor.log("Encrypting #{klass.name.tableize} (last id = #{record.id})...") if index % 500 == 0
+          end
         end
       end
 
