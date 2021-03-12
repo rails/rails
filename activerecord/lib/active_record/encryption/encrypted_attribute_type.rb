@@ -10,15 +10,15 @@ module ActiveRecord
     class EncryptedAttributeType < ::ActiveRecord::Type::Text
       include ActiveModel::Type::Helpers::Mutable
 
-      attr_reader :key_provider, :previous_types, :cast_type, :downcase
+      attr_reader :key_provider, :previous_encrypted_types, :cast_type, :downcase
 
-      def initialize(key_provider: nil, deterministic: false, downcase: false, cast_type: ActiveModel::Type::String.new, previous_types: [], **context_properties)
+      def initialize(key_provider: nil, deterministic: false, downcase: false, cast_type: ActiveModel::Type::String.new, previous_encrypted_types: [], **context_properties)
         super()
         @key_provider = key_provider
         @deterministic = deterministic
         @downcase = downcase
         @cast_type = cast_type
-        @previous_types = previous_types
+        @previous_encrypted_types = previous_encrypted_types
         @context_properties = context_properties
       end
 
@@ -43,9 +43,9 @@ module ActiveRecord
 
       def additional_encrypted_types # :nodoc:
         if support_unencrypted_data?
-          @previous_types_with_clean_text_type ||= previous_types.including(clean_text_type)
+          @previous_encrypted_types_with_clean_text_type ||= previous_encrypted_types.including(clean_text_type)
         else
-          previous_types
+          previous_encrypted_types
         end
       end
 
@@ -55,18 +55,18 @@ module ActiveRecord
             encryptor.decrypt(value, **decryption_options) unless value.nil?
           end
         rescue ActiveRecord::Encryption::Errors::Base => error
-          if previous_types.blank?
+          if previous_encrypted_types.blank?
             handle_deserialize_error(error, value)
           else
-            try_to_deserialize_with_previous_types(value)
+            try_to_deserialize_with_previous_encrypted_types(value)
           end
         end
 
-        def try_to_deserialize_with_previous_types(value)
-          previous_types.each.with_index do |type, index|
+        def try_to_deserialize_with_previous_encrypted_types(value)
+          previous_encrypted_types.each.with_index do |type, index|
             break type.deserialize(value)
           rescue ActiveRecord::Encryption::Errors::Base => error
-            handle_deserialize_error(error, value) if index == previous_types.length - 1
+            handle_deserialize_error(error, value) if index == previous_encrypted_types.length - 1
           end
         end
 

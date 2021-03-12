@@ -72,7 +72,7 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::TestCase
 
     def create_author_with_name_encrypted_with_previous_scheme
       author = EncryptedAuthor.create!(name: "david")
-      old_type = EncryptedAuthor.type_for_attribute(:name).previous_types.first
+      old_type = EncryptedAuthor.type_for_attribute(:name).previous_encrypted_types.first
       value_encrypted_with_old_type = old_type.serialize("dhh")
       ActiveRecord::Encryption.without_encryption do
         author.update!(name: value_encrypted_with_old_type)

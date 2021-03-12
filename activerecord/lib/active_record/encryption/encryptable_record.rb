@@ -75,7 +75,7 @@ module ActiveRecord
             attribute name do |cast_type|
               ActiveRecord::Encryption::EncryptedAttributeType.new \
                 key_provider: key_provider, downcase: downcase || ignore_case, deterministic: deterministic,
-                cast_type: cast_type, previous_types: build_previous_types(previous), **context_properties
+                cast_type: cast_type, previous_encrypted_types: build_previous_types(previous), **context_properties
             end
 
             preserve_original_encrypted(name) if ignore_case
@@ -124,7 +124,7 @@ module ActiveRecord
               self.send "#{original_attribute_name}=", value
               super(value)
             end
-        end
+          end
 
           def validate_column_size(attribute_name)
             if table_exists? && limit = connection.schema_cache.columns_hash(table_name)[attribute_name.to_s]&.limit
