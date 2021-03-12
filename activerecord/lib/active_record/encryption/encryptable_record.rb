@@ -135,6 +135,8 @@ module ActiveRecord
             if table_exists? && limit = columns_hash[attribute_name.to_s]&.limit
               validates_length_of attribute_name, maximum: limit
             end
+          rescue ActiveRecord::ConnectionNotEstablished => e
+            Rails.logger.warn "Skipping adding length validation for #{self.name}\##{attribute_name}. Can't check column limit due to: #{e.inspect}"
           end
       end
 
