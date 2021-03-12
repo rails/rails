@@ -128,7 +128,7 @@ module ActiveRecord
           end
 
           def validate_column_size(attribute_name)
-            if table_exists? && limit = connection.schema_cache.columns_hash(table_name)[attribute_name.to_s]&.limit
+            if table_exists? && limit = columns_hash[attribute_name.to_s]&.limit
               validates_length_of attribute_name, maximum: limit
             end
           end
