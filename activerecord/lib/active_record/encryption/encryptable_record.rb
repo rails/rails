@@ -9,7 +9,6 @@ module ActiveRecord
 
       included do
         class_attribute :encrypted_attributes
-        class_attribute :_deterministic_encrypted_attributes # For memoization, we want to let each child keep its own
 
         validate :cant_modify_encrypted_attributes_when_frozen, if: -> { has_encrypted_attributes? && ActiveRecord::Encryption.context.frozen_encryption? }
       end
@@ -45,17 +44,15 @@ module ActiveRecord
         def encrypts(*names, key_provider: nil, key: nil, deterministic: false, downcase: false, ignore_case: false, previous: [], **context_properties)
           self.encrypted_attributes ||= Set.new # not using :default because the instance would be shared across classes
 
-          if table_exists?
-            names.each do |name|
-              encrypt_attribute name, key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase,
-                                ignore_case: ignore_case, subtype: type_for_attribute(name), previous: previous, **context_properties
-            end
+          names.each do |name|
+            encrypt_attribute name, key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase,
+                              ignore_case: ignore_case, previous: previous, **context_properties
           end
         end
 
         # Returns the list of deterministic encryptable attributes in the model class.
         def deterministic_encrypted_attributes
-          self._deterministic_encrypted_attributes ||= encrypted_attributes&.find_all do |attribute_name|
+          @deterministic_encrypted_attributes ||= encrypted_attributes&.find_all do |attribute_name|
             type_for_attribute(attribute_name).deterministic?
           end
         end
@@ -67,7 +64,7 @@ module ActiveRecord
 
         private
           def encrypt_attribute(name, key_provider: nil, key: nil, deterministic: false, downcase: false,
-                                ignore_case: false, subtype: ActiveModel::Type::String.new, previous: [], **context_properties)
+                                ignore_case: false, previous: [], **context_properties)
             raise Errors::Configuration, ":ignore_case can only be used with deterministic encryption" if ignore_case && !deterministic
             raise Errors::Configuration, ":key_provider and :key can't be used simultaneously" if key_provider && key
 
@@ -75,22 +72,25 @@ module ActiveRecord
 
             key_provider = build_key_provider(key_provider: key_provider, key: key, deterministic: deterministic)
 
-            attribute name, :encrypted, key_provider: key_provider, downcase: downcase || ignore_case, deterministic: deterministic,
-                      subtype: subtype, previous_types: build_previous_types(previous, subtype), **context_properties
+            attribute name do |cast_type|
+              ActiveRecord::Encryption::EncryptedAttributeType.new \
+                key_provider: key_provider, downcase: downcase || ignore_case, deterministic: deterministic,
+                cast_type: cast_type, previous_types: build_previous_types(previous), **context_properties
+            end
 
             preserve_original_encrypted(name) if ignore_case
             validate_column_size(name) if ActiveRecord::Encryption.config.validate_column_size
             ActiveRecord::Encryption.encrypted_attribute_was_declared(self, name)
           end
 
-          def build_previous_types(previous_config_list, type)
+          def build_previous_types(previous_config_list)
             previous_config_list = [previous_config_list] unless previous_config_list.is_a?(Array)
             previous_config_list.collect do |previous_config|
               key_provider = build_key_provider(**previous_config.slice(:key_provider, :key, :deterministic))
               context_properties = previous_config.slice(*ActiveRecord::Encryption::Context::PROPERTIES.without(:key_provider))
               ActiveRecord::Encryption::EncryptedAttributeType.new \
-                  key_provider: key_provider, downcase: previous_config[:downcase] || previous_config[:ignore_case],
-                  deterministic: previous_config[:deterministic], subtype: type, **context_properties
+                key_provider: key_provider, downcase: previous_config[:downcase] || previous_config[:ignore_case],
+                deterministic: previous_config[:deterministic], **context_properties
             end
           end
 
@@ -124,10 +124,10 @@ module ActiveRecord
               self.send "#{original_attribute_name}=", value
               super(value)
             end
-          end
+        end
 
           def validate_column_size(attribute_name)
-            if limit = connection.schema_cache.columns_hash(table_name)[attribute_name.to_s]&.limit
+            if table_exists? && limit = connection.schema_cache.columns_hash(table_name)[attribute_name.to_s]&.limit
               validates_length_of attribute_name, maximum: limit
             end
           end

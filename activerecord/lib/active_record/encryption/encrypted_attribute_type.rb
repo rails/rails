@@ -10,24 +10,24 @@ module ActiveRecord
     class EncryptedAttributeType < ::ActiveRecord::Type::Text
       include ActiveModel::Type::Helpers::Mutable
 
-      attr_reader :key_provider, :previous_types, :subtype, :downcase
+      attr_reader :key_provider, :previous_types, :cast_type, :downcase
 
-      def initialize(key_provider: nil, deterministic: false, downcase: false, subtype: ActiveModel::Type::String.new, previous_types: [], **context_properties)
+      def initialize(key_provider: nil, deterministic: false, downcase: false, cast_type: ActiveModel::Type::String.new, previous_types: [], **context_properties)
         super()
         @key_provider = key_provider
         @deterministic = deterministic
         @downcase = downcase
-        @subtype = subtype
+        @cast_type = cast_type
         @previous_types = previous_types
         @context_properties = context_properties
       end
 
       def deserialize(value)
-        @subtype.deserialize decrypt(value)
+        @cast_type.deserialize decrypt(value)
       end
 
       def serialize(value)
-        casted_value = @subtype.serialize(value)
+        casted_value = @cast_type.serialize(value)
         casted_value = casted_value&.downcase if @downcase
         encrypt(casted_value.to_s) unless casted_value.nil? # Object values without a proper serializer get converted with #to_s
       end
