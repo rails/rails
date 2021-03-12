@@ -8,7 +8,11 @@ module ActionText
     class InstallGenerator < ::Rails::Generators::Base
       source_root File.expand_path("templates", __dir__)
 
+      class_option :api, type: :boolean, aliases: "-a",
+                                         desc: "Configures Action Text for API application"
+
       def install_javascript_dependencies
+        return if options[:api]
         rails_command "app:binstub:yarn", inline: true
 
         say "Installing JavaScript dependencies", :green
@@ -16,6 +20,7 @@ module ActionText
       end
 
       def append_dependencies_to_package_file
+        return if options[:api]
         in_root do
           if (app_javascript_pack_path = Pathname.new("app/javascript/packs/application.js")).exist?
             js_dependencies.each_key do |dependency|
@@ -43,6 +48,7 @@ module ActionText
       end
 
       def create_actiontext_files
+        return if options[:api]
         template "actiontext.scss", "app/assets/stylesheets/actiontext.scss"
 
         copy_file "#{GEM_ROOT}/app/views/active_storage/blobs/_blob.html.erb",
