@@ -25,7 +25,6 @@ module ActiveRecord
       autoload :Key
       autoload :KeyGenerator
       autoload :KeyProvider
-      autoload :MassEncryption
       autoload :Message
       autoload :MessageSerializer
       autoload :NullEncryptor
