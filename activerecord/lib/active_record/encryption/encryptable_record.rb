@@ -9,6 +9,7 @@ module ActiveRecord
 
       included do
         class_attribute :encrypted_attributes
+        class_attribute :_deterministic_encrypted_attributes
 
         validate :cant_modify_encrypted_attributes_when_frozen, if: -> { has_encrypted_attributes? && ActiveRecord::Encryption.context.frozen_encryption? }
       end
@@ -52,7 +53,7 @@ module ActiveRecord
 
         # Returns the list of deterministic encryptable attributes in the model class.
         def deterministic_encrypted_attributes
-          @deterministic_encrypted_attributes ||= encrypted_attributes&.find_all do |attribute_name|
+          self._deterministic_encrypted_attributes ||= encrypted_attributes&.find_all do |attribute_name|
             type_for_attribute(attribute_name).deterministic?
           end
         end
