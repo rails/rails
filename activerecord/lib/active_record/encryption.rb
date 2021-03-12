@@ -37,7 +37,5 @@ module ActiveRecord
     end
 
     include Configurable, Contexts
-
-    ActiveRecord::Type.register(:encrypted, EncryptedAttributeType)
   end
 end
