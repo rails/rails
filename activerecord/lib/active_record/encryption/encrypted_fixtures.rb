@@ -2,7 +2,6 @@
 
 module ActiveRecord
   module Encryption
-    # Encrypts encryptable columns when loading fixtures automatically
     module EncryptedFixtures
       def initialize(fixture, model_class)
         @clean_values = {}

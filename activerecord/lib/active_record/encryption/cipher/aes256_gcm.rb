@@ -6,16 +6,11 @@ require "base64"
 module ActiveRecord
   module Encryption
     class Cipher
-      # A 256-GCM cipher
-      #
-      # This code is extracted from +ActiveSupport::MessageEncryptor+. Not using it directly because we want to control
-      # the message format and only serialize things once at the +ActiveRecord::Encryption::Message+ level. Also, this
-      # cipher is prepared to deal with deterministic/non deterministic encryption modes.
+      # A 256-GCM cipher.
       #
       # By default it will use random initialization vectors. For deterministic encryption, it will use a SHA-256 hash of
       # the text to encrypt and the secret.
       #
-      # See https://3.basecamp.com/2914079/buckets/14968485/todos/2426424308
       # See +Encryptor+
       class Aes256Gcm
         CIPHER_TYPE = "aes-256-gcm"
@@ -38,6 +33,10 @@ module ActiveRecord
         end
 
         def encrypt(clear_text)
+          # This code is extracted from +ActiveSupport::MessageEncryptor+. Not using it directly because we want to control
+          # the message format and only serialize things once at the +ActiveRecord::Encryption::Message+ level. Also, this
+          # cipher is prepared to deal with deterministic/non deterministic encryption modes.
+
           cipher = OpenSSL::Cipher.new(CIPHER_TYPE)
           cipher.encrypt
           cipher.key = @secret

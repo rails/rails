@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Encryption
-    # An +ActiveModel::Type+ that encrypts/decrypts strings of text
+    # An +ActiveModel::Type+ that encrypts/decrypts strings of text.
     #
     # This is the central piece that connects the encryption system with +encrypts+ declarations in the
     # model classes. Whenever you declare an attribute as encrypted, it configures an +EncryptedAttributeType+

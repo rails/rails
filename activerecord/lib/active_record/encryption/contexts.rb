@@ -19,7 +19,7 @@ module ActiveRecord
       end
 
       class_methods do
-        # Configures a custom encryption context to use when running the provided block of code
+        # Configures a custom encryption context to use when running the provided block of code.
         #
         # It supports overriding all the properties defined in +Context+.
         #

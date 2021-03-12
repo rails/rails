@@ -57,7 +57,7 @@ module ActiveRecord
           end
         end
 
-        # Given a attribute name, it returns the name of the source attribute when it's a preserved one
+        # Given a attribute name, it returns the name of the source attribute when it's a preserved one.
         def source_attribute_from_preserved_attribute(attribute_name)
           attribute_name.to_s.sub(ORIGINAL_ATTRIBUTE_PREFIX, "") if /^#{ORIGINAL_ATTRIBUTE_PREFIX}/.match?(attribute_name)
         end
@@ -133,17 +133,17 @@ module ActiveRecord
           end
       end
 
-      # Returns whether a given attribute is encrypted or not
+      # Returns whether a given attribute is encrypted or not.
       def encrypted_attribute?(attribute_name)
         ActiveRecord::Encryption.encryptor.encrypted? ciphertext_for(attribute_name)
       end
 
-      # Returns the ciphertext for +attribute_name+
+      # Returns the ciphertext for +attribute_name+.
       def ciphertext_for(attribute_name)
         read_attribute_before_type_cast(attribute_name)
       end
 
-      # Encrypts all the encryptable attributes and saves the model
+      # Encrypts all the encryptable attributes and saves the model.
       #
       # === Options
       #
@@ -159,7 +159,7 @@ module ActiveRecord
         end
       end
 
-      # Decrypts all the encryptable attributes and saves the model
+      # Decrypts all the encryptable attributes and saves the model.
       def decrypt
         transaction do
           decrypt_attributes if has_encrypted_attributes?
