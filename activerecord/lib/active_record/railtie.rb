@@ -281,9 +281,9 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record_encryption.configuration" do |app|
       config.before_initialize do
         ActiveRecord::Encryption.configure \
-           master_key: app.credentials.dig(:active_record_encryption, :master_key) || ENV["ACTIVE_RECORD_ENCRYPTION_MASTER_KEY"],
-           deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key) || ENV["ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY"],
-           key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt) || ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"],
+           master_key: app.credentials.dig(:active_record_encryption, :master_key),
+           deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
+           key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
            **config.active_record.encryption
 
         # Encrypt active record fixtures
