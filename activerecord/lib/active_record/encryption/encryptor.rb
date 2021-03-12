@@ -6,7 +6,8 @@ require "active_support/core_ext/numeric"
 
 module ActiveRecord
   module Encryption
-    # An encryptor is the internal facade for encrypting and decrypting data.
+    # An encryptor exposes the encryption API that +ActiveRecord::Encryption::EncryptedAttributeType+
+    # uses for encrypting and decrypting attribute values.
     #
     # It interacts with a +KeyProvider+ for getting the keys, and delegate to
     # +ActiveRecord::Encryption::Cipher+ the actual encryption algorithm.
