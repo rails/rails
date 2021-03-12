@@ -148,28 +148,14 @@ module ActiveRecord
         read_attribute_before_type_cast(attribute_name)
       end
 
-      # Encrypts all the encryptable attributes and saves the model.
-      #
-      # === Options
-      #
-      # * <tt>:skip_rich_texts</tt> - Configure if you want to ignore action text attributes
-      #   when encrypting the record. It's false by default.
-      #
-      #   Encrypting action text requires performing additional queries to fetch the rich text
-      #   records. This is a performance setting to avoid those queries when possible.
-      def encrypt(skip_rich_texts: false)
-        transaction do
-          encrypt_attributes if has_encrypted_attributes?
-          encrypt_rich_texts if !skip_rich_texts && has_encrypted_rich_texts?
-        end
+      # Encrypts all the encryptable attributes and saves the changes.
+      def encrypt
+        encrypt_attributes if has_encrypted_attributes?
       end
 
-      # Decrypts all the encryptable attributes and saves the model.
+      # Decrypts all the encryptable attributes and saves the changes.
       def decrypt
-        transaction do
-          decrypt_attributes if has_encrypted_attributes?
-          decrypt_rich_texts if has_encrypted_rich_texts?
-        end
+        decrypt_attributes if has_encrypted_attributes?
       end
 
       private
@@ -196,10 +182,6 @@ module ActiveRecord
           self.class.encrypted_attributes.present?
         end
 
-        def has_encrypted_rich_texts?
-          encryptable_rich_texts.present?
-        end
-
         def build_encrypt_attribute_assignments
           Array(self.class.encrypted_attributes).index_with do |attribute_name|
             if source_attribute_name = self.class.source_attribute_from_preserved_attribute(attribute_name)
@@ -217,23 +199,6 @@ module ActiveRecord
             new_value = type.deserialize(encrypted_value)
             [attribute_name, new_value]
           end.to_h
-        end
-
-        def encrypt_rich_texts
-          encryptable_rich_texts.each(&:encrypt)
-        end
-
-        def decrypt_rich_texts
-          encryptable_rich_texts.each(&:decrypt)
-        end
-
-        def encryptable_rich_texts
-          @encryptable_rich_texts ||= self.class
-                                          .reflect_on_all_associations(:has_one)
-                                          .collect(&:name)
-                                          .grep(/rich_text/)
-                                          .collect { |attribute_name| send(attribute_name) }.compact
-                                          .find_all { |record| record.class.name == "ActionText::EncryptedRichText" } # not using class check to avoid adding dependency
         end
 
         def cant_modify_encrypted_attributes_when_frozen

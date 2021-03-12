@@ -57,10 +57,9 @@ module ActionText
         eager_load(rich_text_association_names)
       end
 
-      private
-        def rich_text_association_names
-          reflect_on_all_associations(:has_one).collect(&:name).select { |n| n.start_with?("rich_text_") }
-        end
+      def rich_text_association_names
+        reflect_on_all_associations(:has_one).collect(&:name).select { |n| n.start_with?("rich_text_") }
+      end
     end
   end
 end

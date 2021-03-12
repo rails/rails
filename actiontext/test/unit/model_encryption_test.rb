@@ -23,18 +23,6 @@ class ActionText::ModelEncryptionTest < ActiveSupport::TestCase
     assert_encrypted_rich_text_attribute(message, :content, content)
   end
 
-  test "encrypts lets you skip rich texts when encrypting" do
-    content = "<p>the space force is here, we are safe now!</p>"
-
-    message = ActiveRecord::Encryption.without_encryption do
-      EncryptedMessage.create!(subject: "Greetings", content: content)
-    end
-
-    message.encrypt(skip_rich_texts: true)
-
-    assert_not_encrypted_rich_text_attribute(message, :content, content)
-  end
-
   private
     def assert_encrypted_rich_text_attribute(model, attribute_name, expected_value)
       assert_not_equal expected_value, model.send(attribute_name).ciphertext_for(:body)
