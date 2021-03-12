@@ -175,6 +175,7 @@ module ActiveRecord
     ActiveRecord::Associations.eager_load!
     ActiveRecord::AttributeMethods.eager_load!
     ActiveRecord::ConnectionAdapters.eager_load!
+    ActiveRecord::Encryption.eager_load!
   end
 end
 
