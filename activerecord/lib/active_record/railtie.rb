@@ -288,9 +288,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
         # Encrypt active record fixtures
         if ActiveRecord::Encryption.config.encrypt_fixtures
-          class ActiveRecord::Fixture
-            prepend ActiveRecord::Encryption::EncryptedFixtures
-          end
+          ActiveRecord::Fixture.prepend ActiveRecord::Encryption::EncryptedFixtures
         end
 
         # Support extended queries for deterministic attributes
