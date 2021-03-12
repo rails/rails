@@ -36,7 +36,7 @@ defined in +Rakefile+)
 There are some performance tests for the encryption system that can be run with.
 
   $ rake test:encryption:performance:mysql2
-  $ test:integration:active_job:postgresql
+  $ rake test:integration:active_job:postgresql
   $ rake test:encryption:performance:sqlite3
 
 These performance tests are not executed as part of the regular testing tasks.
