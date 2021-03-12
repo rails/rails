@@ -41,7 +41,8 @@ module ActiveRecord
       end
     end
 
-    include Configurable, Contexts
+    include Configurable
+    include Contexts
 
     def self.eager_load!
       super
