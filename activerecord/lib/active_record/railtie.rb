@@ -286,14 +286,14 @@ To keep using the current cache store, you can turn off cache versioning entirel
            key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
            **config.active_record.encryption
 
-        # Encrypt active record fixtures
-        if ActiveRecord::Encryption.config.encrypt_fixtures
-          ActiveRecord::Fixture.prepend ActiveRecord::Encryption::EncryptedFixtures
-        end
+        ActiveSupport.on_load(:active_record) do
+          # Encrypt active record fixtures
+          if ActiveRecord::Encryption.config.encrypt_fixtures
+            ActiveRecord::Fixture.prepend ActiveRecord::Encryption::EncryptedFixtures
+          end
 
-        # Support extended queries for deterministic attributes
-        if ActiveRecord::Encryption.config.extend_queries
-          ActiveSupport.on_load(:active_record) do
+          # Support extended queries for deterministic attributes
+          if ActiveRecord::Encryption.config.extend_queries
             ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
           end
         end
