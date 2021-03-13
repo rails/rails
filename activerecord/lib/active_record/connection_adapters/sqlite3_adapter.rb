@@ -260,7 +260,7 @@ module ActiveRecord
         if ::SQLite3::SQLITE_VERSION_NUMBER >= 3035000
           begin
             super
-          rescue ActiveRecord::StatementInvalid => e
+          rescue ActiveRecord::StatementInvalid
             old_way.call
           end
         else
