@@ -163,28 +163,28 @@ class TagHelperTest < ActionView::TestCase
   def test_tag_with_dangerous_aria_attribute_name
     escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
     assert_equal "<the-name aria-#{escaped_dangerous_chars}=\"the value\" />",
-                 tag("the-name", aria: { COMMON_DANGEROUS_CHARS => "the value" })
+                tag("the-name", aria: { COMMON_DANGEROUS_CHARS => "the value" })
 
     assert_equal "<the-name aria-#{COMMON_DANGEROUS_CHARS}=\"the value\" />",
-                 tag("the-name", { aria: { COMMON_DANGEROUS_CHARS => "the value" } }, false, false)
+                tag("the-name", { aria: { COMMON_DANGEROUS_CHARS => "the value" } }, false, false)
   end
 
   def test_tag_builder_with_dangerous_aria_attribute_name
     escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
     assert_equal "<the-name aria-#{escaped_dangerous_chars}=\"the value\"></the-name>",
-                 tag.public_send(:"the-name", aria: { COMMON_DANGEROUS_CHARS => "the value" })
+                tag.public_send(:"the-name", aria: { COMMON_DANGEROUS_CHARS => "the value" })
 
     assert_equal "<the-name aria-#{COMMON_DANGEROUS_CHARS}=\"the value\"></the-name>",
-                 tag.public_send(:"the-name", aria: { COMMON_DANGEROUS_CHARS => "the value" }, escape: false)
+                tag.public_send(:"the-name", aria: { COMMON_DANGEROUS_CHARS => "the value" }, escape: false)
   end
 
   def test_tag_with_dangerous_data_attribute_name
     escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
     assert_equal "<the-name data-#{escaped_dangerous_chars}=\"the value\" />",
-                 tag("the-name", data: { COMMON_DANGEROUS_CHARS => "the value" })
+                tag("the-name", data: { COMMON_DANGEROUS_CHARS => "the value" })
 
     assert_equal "<the-name data-#{COMMON_DANGEROUS_CHARS}=\"the value\" />",
-                 tag("the-name", { data: { COMMON_DANGEROUS_CHARS => "the value" } }, false, false)
+                tag("the-name", { data: { COMMON_DANGEROUS_CHARS => "the value" } }, false, false)
   end
 
   def test_tag_builder_with_dangerous_data_attribute_name
@@ -199,10 +199,10 @@ class TagHelperTest < ActionView::TestCase
   def test_tag_with_dangerous_unknown_attribute_name
     escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
     assert_equal "<the-name #{escaped_dangerous_chars}=\"the value\" />",
-                 tag("the-name", COMMON_DANGEROUS_CHARS => "the value")
+                tag("the-name", COMMON_DANGEROUS_CHARS => "the value")
 
     assert_equal "<the-name #{COMMON_DANGEROUS_CHARS}=\"the value\" />",
-                 tag("the-name", { COMMON_DANGEROUS_CHARS => "the value" }, false, false)
+                tag("the-name", { COMMON_DANGEROUS_CHARS => "the value" }, false, false)
   end
 
   def test_tag_builder_with_dangerous_unknown_attribute_name

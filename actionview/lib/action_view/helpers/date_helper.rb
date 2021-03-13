@@ -1172,7 +1172,7 @@ module ActionView
           }.merge!(@html_options.slice(:disabled))
           select_options[:disabled] = "disabled" if @options[:disabled]
 
-          tag(:input, select_options) + "\n".html_safe
+          tag.input(**select_options) + "\n".html_safe
         end
 
         # Returns the name attribute for the input tag.

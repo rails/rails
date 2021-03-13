@@ -660,7 +660,7 @@ class FormTagHelperTest < ActionView::TestCase
   def test_boolean_options
     assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1" />), check_box_tag("admin", 1, true, "disabled" => true, :readonly => "yes")
     assert_dom_equal %(<input checked="checked" id="admin" name="admin" type="checkbox" value="1" />), check_box_tag("admin", 1, true, disabled: false, readonly: nil)
-    assert_dom_equal %(<input type="checkbox" />), tag(:input, type: "checkbox", checked: false)
+    assert_dom_equal %(<input type="checkbox" />), tag.input(type: "checkbox", checked: false)
     assert_dom_equal %(<select id="people" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people", raw("<option>david</option>"), multiple: true)
     assert_dom_equal %(<select id="people_" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", raw("<option>david</option>"), multiple: true)
     assert_dom_equal %(<select id="people" name="people"><option>david</option></select>), select_tag("people", raw("<option>david</option>"), multiple: nil)
@@ -743,14 +743,14 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_submit_tag_doesnt_have_data_disable_with_twice
     assert_equal(
-      %(<input type="submit" name="commit" value="Save" data-confirm="Are you sure?" data-disable-with="Processing..." />),
+      %(<input type="submit" name="commit" value="Save" data-confirm="Are you sure?" data-disable-with="Processing...">),
       submit_tag("Save", "data-disable-with" => "Processing...", "data-confirm" => "Are you sure?")
     )
   end
 
   def test_submit_tag_doesnt_have_data_disable_with_twice_with_hash
     assert_equal(
-      %(<input type="submit" name="commit" value="Save" data-disable-with="Processing..." />),
+      %(<input type="submit" name="commit" value="Save" data-disable-with="Processing...">),
       submit_tag("Save", data: { disable_with: "Processing..." })
     )
   end
@@ -895,12 +895,12 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_number_field_tag
-    expected = %{<input name="quantity" max="9" id="quantity" type="number" min="1" />}
+    expected = %{<input name="quantity" max="9" id="quantity" type="number" min="1">}
     assert_dom_equal(expected, number_field_tag("quantity", nil, in: 1...10))
   end
 
   def test_range_input_tag
-    expected = %{<input name="volume" step="0.1" max="11" id="volume" type="range" min="0" />}
+    expected = %{<input name="volume" step="0.1" max="11" id="volume" type="range" min="0">}
     assert_dom_equal(expected, range_field_tag("volume", nil, in: 0..11, step: 0.1))
   end
 

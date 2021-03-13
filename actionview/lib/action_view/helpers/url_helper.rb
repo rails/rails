@@ -335,14 +335,14 @@ module ActionView
           content_tag("button", name || url, html_options, &block)
         else
           html_options["value"] = name || url
-          tag("input", html_options)
+          tag.input(**html_options)
         end
 
         inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
         if params
           to_form_params(params).each do |param|
-            inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value],
-                                       autocomplete: "off")
+            inner_tags.safe_concat tag.input(type: "hidden", name: param[:name], value: param[:value],
+                                      autocomplete: "off")
           end
         end
         html = content_tag("form", inner_tags, form_options)
@@ -751,14 +751,14 @@ module ActionView
               else
                 token
               end
-            tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token, autocomplete: "off")
+            tag.input(type: "hidden", name: request_forgery_protection_token.to_s, value: token, autocomplete: "off")
           else
             ""
           end
         end
 
         def method_tag(method)
-          tag("input", type: "hidden", name: "_method", value: method.to_s, autocomplete: "off")
+          tag.input(type: "hidden", name: "_method", value: method.to_s, autocomplete: "off")
         end
 
         # Returns an array of hashes each containing :name and :value keys

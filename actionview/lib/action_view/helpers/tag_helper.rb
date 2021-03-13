@@ -442,9 +442,9 @@ module ActionView
       #   <button <%= tag.attributes id: "call-to-action", disabled: false, aria: { expanded: false } %> class="primary">Get Started!</button>
       #   # => <button id="call-to-action" aria-expanded="false" class="primary">Get Started!</button>
       #
-      # === Legacy syntax
+      # === Deprecated: Legacy syntax
       #
-      # The following format is for legacy syntax support. It will be deprecated in future versions of \Rails.
+      # The following format is for legacy syntax support. It is deprecated, and will be removed in future versions of \Rails.
       #
       #   tag(name, options = nil, open = false, escape = true)
       #
