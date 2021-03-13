@@ -10,6 +10,26 @@ module ActionView
 
     # = Active \Model Instance Tag \Helpers
     module ActiveModelInstanceTag
+      class TagBuilder < ActionView::Helpers::TagHelper::TagBuilder # :nodoc:
+        def initialize(view_context, wrapper)
+          super(view_context)
+          @wrapper = wrapper
+        end
+
+        def self_closing_tag_string(name, options, escape = true, tag_suffix = " />")
+          generate_errors?(options) ? @wrapper.error_wrapping(super) : super
+        end
+
+        def tag_string(name, content = nil, escape: true, **options, &block)
+          generate_errors?(options) ? @wrapper.error_wrapping(super) : super
+        end
+
+        private
+          def generate_errors?(options)
+            options["type"] != "hidden"
+          end
+      end
+
       def object
         @active_model_object ||= begin
           object = super
@@ -21,8 +41,8 @@ module ActionView
         select_markup_helper?(type) ? super : error_wrapping(super)
       end
 
-      def tag(type, options, *)
-        tag_generate_errors?(options) ? error_wrapping(super) : super
+      def tag
+        TagBuilder.new(@template_object, self)
       end
 
       def error_wrapping(html_tag)
@@ -44,10 +64,6 @@ module ActionView
 
         def select_markup_helper?(type)
           ["optgroup", "option"].include?(type)
-        end
-
-        def tag_generate_errors?(options)
-          options["type"] != "hidden"
         end
     end
   end

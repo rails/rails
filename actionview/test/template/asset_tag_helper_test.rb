@@ -811,7 +811,9 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_picture_tag
-    PictureLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+    ActionView.deprecator.silence do
+      PictureLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+    end
   end
 
   def test_video_path
