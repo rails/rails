@@ -248,11 +248,23 @@ module ActiveRecord
       end
 
       def remove_column(table_name, column_name, type = nil, **options) #:nodoc:
-        alter_table(table_name) do |definition|
-          definition.remove_column column_name
-          definition.foreign_keys.delete_if do |_, fk_options|
-            fk_options[:column] == column_name.to_s
+        old_way = ->() {
+          alter_table(table_name) do |definition|
+            definition.remove_column column_name
+            definition.foreign_keys.delete_if do |_, fk_options|
+              fk_options[:column] == column_name.to_s
+            end
           end
+        }
+
+        if ::SQLite3::SQLITE_VERSION_NUMBER >= 3035000
+          begin
+            super
+          rescue ActiveRecord::StatementInvalid => e
+            old_way.call
+          end
+        else
+          old_way.call
         end
       end
 
