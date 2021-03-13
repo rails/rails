@@ -32,34 +32,6 @@ module Enumerable
     map(&key).max
   end
 
-  # Calculates a sum from the elements.
-  #
-  #  payments.sum { |p| p.price * p.tax_rate }
-  #  payments.sum(&:price)
-  #
-  # The latter is a shortcut for:
-  #
-  #  payments.inject(0) { |sum, p| sum + p.price }
-  #
-  # It can also calculate the sum without the use of a block.
-  #
-  #  [5, 15, 10].sum # => 30
-  #  ['foo', 'bar'].sum # => "foobar"
-  #  [[1, 2], [3, 1, 5]].sum # => [1, 2, 3, 1, 5]
-  #
-  # The default sum of an empty list is zero. You can override this default:
-  #
-  #  [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
-  def sum(identity = nil, &block)
-    if identity
-      _original_sum_with_required_identity(identity, &block)
-    elsif block_given?
-      map(&block).sum(identity)
-    else
-      inject(:+) || 0
-    end
-  end
-
   # Convert an enumerable to a hash, using the block result as the key and the
   # element as the value.
   #
@@ -261,16 +233,6 @@ using Module.new {
 }
 
 class Array #:nodoc:
-  # Array#sum was added in Ruby 2.4 but it only works with Numeric elements.
-  def sum(init = nil, &block)
-    if init.is_a?(Numeric) || first.is_a?(Numeric)
-      init ||= 0
-      orig_sum(init, &block)
-    else
-      super
-    end
-  end
-
   # Removes all blank elements from the +Array+ in place and returns self.
   # Uses Object#blank? for determining if an item is blank.
   #
