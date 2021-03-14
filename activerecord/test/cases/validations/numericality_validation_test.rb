@@ -81,6 +81,17 @@ class NumericalityValidationTest < ActiveRecord::TestCase
     assert_predicate(subject, :valid?)
   end
 
+  def test_virtual_attribute_without_precision
+    model_class.attribute(:virtual_decimal_number, :decimal)
+    model_class.validates_numericality_of(
+      :virtual_decimal_number, equal_to: BigDecimal("65.6")
+    )
+
+    subject = model_class.new(virtual_decimal_number: 65.6)
+
+    assert_predicate subject, :valid?
+  end
+
   def test_virtual_attribute_with_precision_round_down
     model_class.attribute(:virtual_decimal_number, :decimal, precision: 5)
     model_class.validates_numericality_of(
