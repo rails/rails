@@ -101,7 +101,7 @@ PATH
       actionpack (= 7.0.0.alpha)
       activesupport (= 7.0.0.alpha)
       method_source
-      rake (>= 0.8.7)
+      rake (>= 0.13)
       thor (~> 1.0)
 
 GEM
@@ -381,6 +381,7 @@ GEM
       thor
     raabro (1.4.0)
     racc (1.5.2)
+    racc (1.5.2-java)
     rack (2.2.3)
     rack-cache (1.12.1)
       rack (>= 0.4)
