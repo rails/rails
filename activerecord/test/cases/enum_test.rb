@@ -12,6 +12,44 @@ class EnumTest < ActiveRecord::TestCase
     @book = books(:awdr)
   end
 
+  test "type.cast" do
+    type = Book.type_for_attribute(:status)
+
+    assert_equal "proposed",  type.cast(0)
+    assert_equal "written",   type.cast(1)
+    assert_equal "published", type.cast(2)
+
+    assert_equal "proposed",  type.cast(:proposed)
+    assert_equal "written",   type.cast(:written)
+    assert_equal "published", type.cast(:published)
+
+    assert_equal "proposed",  type.cast("proposed")
+    assert_equal "written",   type.cast("written")
+    assert_equal "published", type.cast("published")
+
+    assert_equal :unknown,    type.cast(:unknown)
+    assert_equal "unknown",   type.cast("unknown")
+  end
+
+  test "type.serialize" do
+    type = Book.type_for_attribute(:status)
+
+    assert_equal 0, type.serialize(0)
+    assert_equal 1, type.serialize(1)
+    assert_equal 2, type.serialize(2)
+
+    assert_equal 0, type.serialize(:proposed)
+    assert_equal 1, type.serialize(:written)
+    assert_equal 2, type.serialize(:published)
+
+    assert_equal 0, type.serialize("proposed")
+    assert_equal 1, type.serialize("written")
+    assert_equal 2, type.serialize("published")
+
+    assert_nil type.serialize(:unknown)
+    assert_nil type.serialize("unknown")
+  end
+
   test "query state by predicate" do
     assert_predicate @book, :published?
     assert_not_predicate @book, :written?

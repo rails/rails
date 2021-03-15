@@ -56,8 +56,8 @@ module ActiveModel
       type.serialize(value)
     end
 
-    def serializable?
-      type.serializable?(value)
+    def serializable?(&block)
+      type.serializable?(value, &block)
     end
 
     def changed?

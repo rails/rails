@@ -129,7 +129,7 @@ module ActiveRecord
         elsif mapping.has_value?(value)
           mapping.key(value)
         else
-          subtype.cast(value.presence)
+          value.presence
         end
       end
 
@@ -141,8 +141,8 @@ module ActiveRecord
         subtype.serialize(mapping.fetch(value, value))
       end
 
-      def serializable?(value)
-        subtype.serializable?(mapping.fetch(value, value))
+      def serializable?(value, &block)
+        subtype.serializable?(mapping.fetch(value, value), &block)
       end
 
       def assert_valid_value(value)
