@@ -39,7 +39,7 @@ Gem::Specification.new do |s|
   s.add_dependency "activesupport", version
   s.add_dependency "actionpack",    version
 
-  s.add_dependency "rake", ">= 0.8.7"
+  s.add_dependency "rake", ">= 0.13"
   s.add_dependency "thor", "~> 1.0"
   s.add_dependency "method_source"
 

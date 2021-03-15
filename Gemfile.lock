@@ -108,7 +108,7 @@ PATH
       actionpack (= 6.1.3)
       activesupport (= 6.1.3)
       method_source
-      rake (>= 0.8.7)
+      rake (>= 0.13)
       thor (~> 1.0)
 
 GEM
