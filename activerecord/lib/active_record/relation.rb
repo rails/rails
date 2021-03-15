@@ -481,7 +481,11 @@ module ActiveRecord
         values = Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
       end
 
+      source = arel.source.clone
+      source.left = table
+
       stmt = arel.compile_update(values, table[primary_key])
+      stmt.table(source)
 
       klass.connection.update(stmt, "#{klass} Update All")
     end
@@ -605,7 +609,11 @@ module ActiveRecord
         return relation.delete_all
       end
 
+      source = arel.source.clone
+      source.left = table
+
       stmt = arel.compile_delete(table[primary_key])
+      stmt.from(source)
 
       affected = klass.connection.delete(stmt, "#{klass} Destroy")
 
