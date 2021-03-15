@@ -799,6 +799,30 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_predicate book, :written?
   end
 
+  test "serializable? with large number label" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, ["9223372036854775808", "-9223372036854775809"]
+    end
+
+    type = klass.type_for_attribute(:status)
+
+    assert type.serializable?("9223372036854775808")
+    assert type.serializable?("-9223372036854775809")
+
+    assert_not type.serializable?(9223372036854775808)
+    assert_not type.serializable?(-9223372036854775809)
+
+    book1 = klass.create!(status: "9223372036854775808")
+    book2 = klass.create!(status: "-9223372036854775809")
+
+    assert_equal 0, book1.status_for_database
+    assert_equal 1, book2.status_for_database
+
+    assert_equal book1, klass.where(status: "9223372036854775808").last
+    assert_equal book2, klass.where(status: "-9223372036854775809").last
+  end
+
   test "enum logs a warning if auto-generated negative scopes would clash with other enum names" do
     old_logger = ActiveRecord::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
