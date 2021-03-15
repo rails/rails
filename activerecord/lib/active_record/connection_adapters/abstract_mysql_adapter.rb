@@ -401,12 +401,11 @@ module ActiveRecord
                  rc.delete_rule AS 'on_delete'
           FROM information_schema.referential_constraints rc
           JOIN information_schema.key_column_usage fk
-          USING (constraint_schema, constraint_name)
+          USING (constraint_schema, constraint_name,  table_name)
           WHERE fk.referenced_column_name IS NOT NULL
             AND fk.table_schema = #{scope[:schema]}
             AND fk.table_name = #{scope[:name]}
             AND rc.constraint_schema = #{scope[:schema]}
-            AND rc.table_name = #{scope[:name]}
         SQL
 
         fk_info.map do |row|
