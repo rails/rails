@@ -62,7 +62,7 @@ module ActiveRecord
       LOCAL_HOSTS = ["127.0.0.1", "localhost"]
 
       def check_protected_environments!
-        unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
+        unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"] == '1'
           current = ActiveRecord::Base.connection.migration_context.current_environment
           stored  = ActiveRecord::Base.connection.migration_context.last_stored_environment
 
