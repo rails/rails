@@ -40,6 +40,8 @@ module ActiveRecord
           end
         end
 
+        attr_reader :klass
+
         def initialize(klass, owners, reflection, preload_scope, associate_by_default = true)
           @klass         = klass
           @owners        = owners.uniq(&:__id__)
@@ -50,8 +52,20 @@ module ActiveRecord
           @run = false
         end
 
-        def already_loaded?
-          @already_loaded ||= owners.all? { |o| o.association(reflection.name).loaded? }
+        def table_name
+          @klass.table_name
+        end
+
+        def data_available?
+          already_loaded?
+        end
+
+        def future_classes
+          if run? || already_loaded?
+            []
+          else
+            [@klass]
+          end
         end
 
         def runnable_loaders
@@ -149,7 +163,11 @@ module ActiveRecord
         end
 
         private
-          attr_reader :owners, :reflection, :preload_scope, :model, :klass
+          attr_reader :owners, :reflection, :preload_scope, :model
+
+          def already_loaded?
+            @already_loaded ||= owners.all? { |o| o.association(reflection.name).loaded? }
+          end
 
           def fetch_from_preloaded_records
             @records_by_owner = owners.index_with do |owner|
