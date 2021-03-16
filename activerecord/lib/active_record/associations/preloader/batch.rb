@@ -29,9 +29,8 @@ module ActiveRecord
           attr_reader :loaders
 
           def group_and_load_similar(loaders)
-            loaders.grep_v(ThroughAssociation).group_by(&:grouping_key).each do |(_, _, association_key_name), similar_loaders|
-              scope = similar_loaders.first.scope
-              Association.load_records_in_batch(scope, association_key_name, similar_loaders)
+            loaders.grep_v(ThroughAssociation).group_by(&:loader_query).each_pair do |query, similar_loaders|
+              query.load_records_in_batch(similar_loaders)
             end
           end
       end
