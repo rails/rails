@@ -331,7 +331,7 @@ module ActionController
       assert_match "my.csv", @response.headers["Content-Disposition"]
     end
 
-    def test_send_stream_with_optons
+    def test_send_stream_with_options
       get :send_stream_with_options
       assert_equal %[{ name: "David", age: 41 }], @response.body
       assert_equal "application/json", @response.headers["Content-Type"]
