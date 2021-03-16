@@ -9,14 +9,20 @@ module ActiveRecord
         end
 
         def call
-          return if @preloaders.empty?
+          branches = @preloaders.flat_map(&:branches)
+          until branches.empty?
+            loaders = branches.flat_map(&:runnable_loaders)
 
-          loaders = @preloaders.flat_map(&:loaders)
-          group_and_load_similar(loaders)
-          loaders.each(&:run)
+            already_loaded, loaders = loaders.partition(&:already_loaded?)
+            already_loaded.each(&:run)
 
-          child_preloaders = @preloaders.flat_map(&:child_preloaders)
-          Batch.new(child_preloaders).call
+            group_and_load_similar(loaders)
+            loaders.each(&:run)
+
+            finished, in_progress = branches.partition(&:done?)
+
+            branches = in_progress + finished.flat_map(&:children)
+          end
         end
 
         private
@@ -24,8 +30,6 @@ module ActiveRecord
 
           def group_and_load_similar(loaders)
             loaders.grep_v(ThroughAssociation).group_by(&:grouping_key).each do |(_, _, association_key_name), similar_loaders|
-              next if similar_loaders.all? { |l| l.already_loaded? }
-
               scope = similar_loaders.first.scope
               Association.load_records_in_batch(scope, association_key_name, similar_loaders)
             end

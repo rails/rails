@@ -24,13 +24,25 @@ module ActiveRecord
           @preload_scope = preload_scope
           @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
           @model         = owners.first && owners.first.class
+          @run = false
         end
 
         def already_loaded?
           @already_loaded ||= owners.all? { |o| o.association(reflection.name).loaded? }
         end
 
+        def runnable_loaders
+          [self]
+        end
+
+        def run?
+          @run
+        end
+
         def run
+          return self if run?
+          @run = true
+
           if already_loaded?
             fetch_from_preloaded_records
             return self
@@ -46,15 +58,23 @@ module ActiveRecord
         end
 
         def records_by_owner
-          load_records unless defined?(@records_by_owner)
+          ensure_loaded unless defined?(@records_by_owner)
 
           @records_by_owner
         end
 
         def preloaded_records
-          load_records unless defined?(@preloaded_records)
+          ensure_loaded unless defined?(@preloaded_records)
 
           @preloaded_records
+        end
+
+        def ensure_loaded
+          if already_loaded?
+            fetch_from_preloaded_records
+          else
+            load_records
+          end
         end
 
         # The name of the key on the associated records

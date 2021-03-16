@@ -64,6 +64,7 @@ class Comment < ActiveRecord::Base
 end
 
 class SpecialComment < Comment
+  belongs_to :ordinary_post, foreign_key: :post_id, class_name: "Post"
   has_one :author, through: :post
   default_scope { where(deleted_at: nil) }
 

@@ -313,6 +313,10 @@ ActiveRecord::Schema.define do
     t.boolean :deleted
   end
 
+  create_table :discounts, force: true do |t|
+    t.integer :amount
+  end
+
   create_table :dl_keyed_belongs_tos, force: true, id: false do |t|
     t.primary_key :belongs_key
     t.references :destroy_async_parent
@@ -545,6 +549,11 @@ ActiveRecord::Schema.define do
   create_table :line_items, force: true do |t|
     t.integer :invoice_id
     t.integer :amount
+  end
+
+  create_table :line_item_discount_applications, force: true do |t|
+    t.integer :line_item_id
+    t.integer :discount_id
   end
 
   create_table :lions, force: true do |t|
@@ -920,6 +929,16 @@ ActiveRecord::Schema.define do
     t.integer :paint_id
     t.string  :shape_type
     t.integer :shape_id
+  end
+
+  create_table :shipping_lines, force: true do |t|
+    t.integer :invoice_id
+    t.integer :amount
+  end
+
+  create_table :shipping_line_discount_applications, force: true do |t|
+    t.integer :shipping_line_id
+    t.integer :discount_id
   end
 
   create_table :ships, force: true do |t|

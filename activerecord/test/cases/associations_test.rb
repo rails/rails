@@ -27,6 +27,10 @@ require "models/parrot"
 require "models/bird"
 require "models/treasure"
 require "models/price_estimate"
+require "models/invoice"
+require "models/discount"
+require "models/line_item"
+require "models/shipping_line"
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
@@ -413,6 +417,79 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_no_queries do
       book.author
       post.author
+    end
+  end
+
+  def test_preload_grouped_queries_of_middle_records
+    comments = [
+      comments(:eager_sti_on_associations_s_comment1),
+      comments(:eager_sti_on_associations_s_comment2),
+    ]
+
+    assert_queries(2) do
+      ActiveRecord::Associations::Preloader.new(records: comments, associations: [:author, :ordinary_post]).call
+    end
+  end
+
+  def test_preload_grouped_queries_of_through_records
+    author = authors(:david)
+
+    assert_queries(3) do
+      ActiveRecord::Associations::Preloader.new(records: [author], associations: [:hello_post_comments, :comments]).call
+    end
+  end
+
+  def test_some_already_loaded_associations
+    item_discount = Discount.create(amount: 5)
+    shipping_discount = Discount.create(amount: 20)
+
+    invoice = Invoice.new
+    line_item = LineItem.new(amount: 20)
+    line_item.discount_applications << LineItemDiscountApplication.new(discount: item_discount)
+    invoice.line_items << line_item
+
+    shipping_line = ShippingLine.new(amount: 50)
+    shipping_line.discount_applications << ShippingLineDiscountApplication.new(discount: shipping_discount)
+    invoice.shipping_lines << shipping_line
+
+    invoice.save!
+    invoice.reload
+
+    # SELECT "line_items".* FROM "line_items" WHERE "line_items"."invoice_id" = ?
+    # SELECT "shipping_lines".* FROM shipping_lines WHERE "shipping_lines"."invoice_id" = ?
+    # SELECT "line_item_discount_applications".* FROM "line_item_discount_applications" WHERE "line_item_discount_applications"."line_item_id" = ?
+    # SELECT "shipping_line_discount_applications".* FROM "shipping_line_discount_applications" WHERE "shipping_line_discount_applications"."shipping_line_id" = ?
+    # SELECT "discounts".* FROM "discounts" WHERE "discounts"."id" IN (?, ?).
+    assert_queries(5) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [invoice], associations: [
+        line_items: { discount_applications: :discount },
+        shipping_lines: { discount_applications: :discount },
+      ])
+      preloader.call
+    end
+
+    assert_no_queries do
+      assert_not_nil invoice.line_items.first.discount_applications.first.discount
+      assert_not_nil invoice.shipping_lines.first.discount_applications.first.discount
+    end
+
+    invoice.reload
+    invoice.line_items.map { |i| i.discount_applications.to_a }
+    # `line_items` and `line_item_discount_applications` are already preloaded, so we expect:
+    # SELECT "shipping_lines".* FROM shipping_lines WHERE "shipping_lines"."invoice_id" = ?
+    # SELECT "shipping_line_discount_applications".* FROM "shipping_line_discount_applications" WHERE "shipping_line_discount_applications"."shipping_line_id" = ?
+    # SELECT "discounts".* FROM "discounts" WHERE "discounts"."id" = ?.
+    assert_queries(3) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [invoice], associations: [
+        line_items: { discount_applications: :discount },
+        shipping_lines: { discount_applications: :discount },
+      ])
+      preloader.call
+    end
+
+    assert_no_queries do
+      assert_not_nil invoice.line_items.first.discount_applications.first.discount
+      assert_not_nil invoice.shipping_lines.first.discount_applications.first.discount
     end
   end
 
