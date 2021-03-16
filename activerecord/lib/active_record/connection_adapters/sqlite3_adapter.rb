@@ -257,7 +257,7 @@ module ActiveRecord
           end
         }
 
-        if ::SQLite3::SQLITE_VERSION_NUMBER >= 3035000
+        if ::SQLite3::SQLITE_VERSION_NUMBER >= 3035001
           begin
             super
           rescue ActiveRecord::StatementInvalid

@@ -128,8 +128,10 @@ module ActiveRecord
         add_column "test_models", :hat_name, :string
         add_index :test_models, :hat_name
 
+        assert_equal 1, connection.indexes("test_models").size
         assert_equal 4, connection.columns("test_models").size
         remove_column("test_models", "hat_name")
+        assert_equal 0, connection.indexes("test_models").size
         assert_equal 3, connection.columns("test_models").size
       end
 
