@@ -32,6 +32,7 @@ class Developer < ActiveRecord::Base
 
   belongs_to :mentor
   belongs_to :strict_loading_mentor, strict_loading: true, foreign_key: :mentor_id, class_name: "Mentor"
+  belongs_to :strict_loading_off_mentor, strict_loading: false, foreign_key: :mentor_id, class_name: "Mentor"
 
   accepts_nested_attributes_for :projects
 

@@ -222,6 +222,20 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_raises_on_lazy_loading_a_belongs_to_relation_if_strict_loading_by_default
+    with_strict_loading_by_default(Developer) do
+      mentor = Mentor.create!(name: "Mentor")
+
+      developer = Developer.first
+      developer.update_column(:mentor_id, mentor.id)
+
+      assert_nothing_raised do
+        developer.strict_loading_off_mentor
+      end
+    end
+  end
+
+
   def test_does_not_raise_on_eager_loading_a_strict_loading_belongs_to_relation
     mentor = Mentor.create!(name: "Mentor")
 
