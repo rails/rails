@@ -76,6 +76,11 @@ module ActiveRecord
         other.is_a?(WhereClause) &&
           predicates == other.predicates
       end
+      alias :eql? :==
+
+      def hash
+        [self.class, predicates].hash
+      end
 
       def invert
         if predicates.size == 1

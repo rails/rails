@@ -3,7 +3,6 @@
 module Arel # :nodoc: all
   class InsertManager < Arel::TreeManager
     def initialize(table = nil)
-      super()
       @ast = Nodes::InsertStatement.new(table)
     end
 

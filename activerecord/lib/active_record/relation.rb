@@ -469,14 +469,6 @@ module ActiveRecord
         return relation.update_all(updates)
       end
 
-      stmt = Arel::UpdateManager.new
-      stmt.table(arel.join_sources.empty? ? table : arel.source)
-      stmt.key = table[primary_key]
-      stmt.take(arel.limit)
-      stmt.offset(arel.offset)
-      stmt.order(*arel.orders)
-      stmt.wheres = arel.constraints
-
       if updates.is_a?(Hash)
         if klass.locking_enabled? &&
             !updates.key?(klass.locking_column) &&
@@ -484,12 +476,18 @@ module ActiveRecord
           attr = table[klass.locking_column]
           updates[attr.name] = _increment_attribute(attr)
         end
-        stmt.set _substitute_values(updates)
+        values = _substitute_values(updates)
       else
-        stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
+        values = Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
       end
 
-      @klass.connection.update stmt, "#{@klass} Update All"
+      source = arel.source.clone
+      source.left = table
+
+      stmt = arel.compile_update(values, table[primary_key])
+      stmt.table(source)
+
+      klass.connection.update(stmt, "#{klass} Update All")
     end
 
     def update(id = :all, attributes) # :nodoc:
@@ -611,15 +609,13 @@ module ActiveRecord
         return relation.delete_all
       end
 
-      stmt = Arel::DeleteManager.new
-      stmt.from(arel.join_sources.empty? ? table : arel.source)
-      stmt.key = table[primary_key]
-      stmt.take(arel.limit)
-      stmt.offset(arel.offset)
-      stmt.order(*arel.orders)
-      stmt.wheres = arel.constraints
+      source = arel.source.clone
+      source.left = table
 
-      affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
+      stmt = arel.compile_delete(table[primary_key])
+      stmt.from(source)
+
+      affected = klass.connection.delete(stmt, "#{klass} Destroy")
 
       reset
       affected

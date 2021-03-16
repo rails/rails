@@ -7,7 +7,6 @@ module Arel # :nodoc: all
     STRING_OR_SYMBOL_CLASS = [Symbol, String]
 
     def initialize(table = nil)
-      super()
       @ast = Nodes::SelectStatement.new(table)
       @ctx = @ast.cores.last
     end
@@ -180,6 +179,14 @@ module Arel # :nodoc: all
 
     def orders
       @ast.orders
+    end
+
+    def where(expr)
+      if Arel::TreeManager === expr
+        expr = expr.ast
+      end
+      @ctx.wheres << expr
+      self
     end
 
     def where_sql(engine = Table.engine)
