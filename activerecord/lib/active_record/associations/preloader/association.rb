@@ -4,16 +4,39 @@ module ActiveRecord
   module Associations
     class Preloader
       class Association #:nodoc:
-        def self.load_records_in_batch(scope, association_key_name, loaders)
-          ids = loaders.flat_map(&:owner_keys).uniq
+        class LoaderQuery
+          attr_reader :scope, :association_key_name
 
-          raw_records = scope.where(association_key_name => ids).load do |record|
-            loaders.each { |l| l.set_inverse(record) }
+          def initialize(scope, association_key_name)
+            @scope = scope
+            @association_key_name = association_key_name
           end
 
-          loaders.each do |loader|
-            loader.load_records(raw_records)
-            loader.run
+          def eql?(other)
+            association_key_name == other.association_key_name &&
+              scope.table_name == other.scope.table_name &&
+              scope.values == other.scope.values
+          end
+
+          def hash
+            [association_key_name, scope.table_name, scope.values].hash
+          end
+
+          def records_for(loaders)
+            ids = loaders.flat_map(&:owner_keys).uniq
+
+            scope.where(association_key_name => ids).load do |record|
+              loaders.each { |l| l.set_inverse(record) }
+            end
+          end
+
+          def load_records_in_batch(loaders)
+            raw_records = records_for(loaders)
+
+            loaders.each do |loader|
+              loader.load_records(raw_records)
+              loader.run
+            end
           end
         end
 
@@ -82,8 +105,8 @@ module ActiveRecord
           reflection.join_primary_key(klass)
         end
 
-        def grouping_key
-          [scope.to_sql, scope.preload_values + scope.includes_values, association_key_name]
+        def loader_query
+          LoaderQuery.new(scope, association_key_name)
         end
 
         def owner_keys
@@ -107,7 +130,7 @@ module ActiveRecord
           # owners can be duplicated when a relation has a collection association join
           # #compare_by_identity makes such owners different hash keys
           @records_by_owner = {}.compare_by_identity
-          raw_records ||= owner_keys.empty? ? [] : records_for(owner_keys)
+          raw_records ||= loader_query.records_for([self])
 
           @preloaded_records = raw_records.select do |record|
             assignments = false
@@ -179,12 +202,6 @@ module ActiveRecord
 
           def owner_key_type
             @model.type_for_attribute(owner_key_name).type
-          end
-
-          def records_for(ids)
-            scope.where(association_key_name => ids).load do |record|
-              set_inverse(record)
-            end
           end
 
           def reflection_scope
