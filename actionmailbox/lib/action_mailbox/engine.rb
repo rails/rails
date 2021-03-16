@@ -27,6 +27,7 @@ module ActionMailbox
         ActionMailbox.incinerate_after = app.config.action_mailbox.incinerate_after || 30.days
         ActionMailbox.queues = app.config.action_mailbox.queues || {}
         ActionMailbox.ingress = app.config.action_mailbox.ingress
+        ActionMailbox.draw_routes = app.config.action_mailbox.draw_routes != false
       end
     end
   end

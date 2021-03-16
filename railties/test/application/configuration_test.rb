@@ -2874,6 +2874,31 @@ module ApplicationTests
       assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job
     end
 
+    test "ActionMailbox.draw_routes can be configured via config.action_mailbox.draw_routes" do
+      routes = %w(
+        rails_postmark_inbound_emails rails_relay_inbound_emails rails_sendgrid_inbound_emails
+        rails_mandrill_inbound_health_check rails_mandrill_inbound_emails
+        rails_mailgun_inbound_emails
+        rails_conductor_inbound_emails new_rails_conductor_inbound_email_source rails_conductor_inbound_email_sources rails_conductor_inbound_email_reroute
+      )
+
+      output = rails("routes")
+      routes.each do |route|
+        assert_includes(output, route)
+      end
+
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.action_mailbox.draw_routes = false
+        end
+      RUBY
+
+      output = rails("routes")
+      routes.each do |route|
+        assert_not_includes(output, route)
+      end
+    end
+
     test "ActionMailer::Base.delivery_job is ActionMailer::DeliveryJob in the 5.x defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "5.2"'

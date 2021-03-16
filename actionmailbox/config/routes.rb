@@ -22,4 +22,4 @@ Rails.application.routes.draw do
 
     post ":inbound_email_id/reroute" => "reroutes#create", as: :rails_conductor_inbound_email_reroute
   end
-end
+end if ActionMailbox.draw_routes

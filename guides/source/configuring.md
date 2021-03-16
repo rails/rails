@@ -757,6 +757,8 @@ Defaults to `'signed cookie'`.
 
 * `config.action_mailbox.queues.routing` accepts a symbol indicating the Active Job queue to use for routing jobs. When this option is `nil`, routing jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
+* `config.active_storage.draw_routes` can be used to toggle Action Mailbox route generation. The default is `true`.
+
 ### Configuring Action Mailer
 
 There are a number of settings available on `config.action_mailer`:
@@ -1118,6 +1120,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_job.skip_after_callbacks_if_terminated`: `false`
 - `config.action_mailbox.queues.incineration`: `:action_mailbox_incineration`
 - `config.action_mailbox.queues.routing`: `:action_mailbox_routing`
+- `config.action_mailbox.draw_routes`: `true`
 - `config.action_mailer.deliver_later_queue_name`: `:mailers`
 - `config.active_record.collection_cache_versioning`: `false`
 - `config.active_record.cache_versioning`: `false`

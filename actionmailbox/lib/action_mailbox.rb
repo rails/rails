@@ -14,4 +14,5 @@ module ActionMailbox
   mattr_accessor :incinerate, default: true
   mattr_accessor :incinerate_after, default: 30.days
   mattr_accessor :queues, default: {}
+  mattr_accessor :draw_routes, default: true
 end
