@@ -222,7 +222,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
-  def test_raises_on_lazy_loading_a_belongs_to_relation_if_strict_loading_by_default
+  def test_strict_loading_can_be_turned_off_on_an_association_in_a_model_with_strict_loading_on
     with_strict_loading_by_default(Developer) do
       mentor = Mentor.create!(name: "Mentor")
 
