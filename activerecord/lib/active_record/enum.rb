@@ -117,10 +117,11 @@ module ActiveRecord
     class EnumType < Type::Value # :nodoc:
       delegate :type, to: :subtype
 
-      def initialize(name, mapping, subtype)
+      def initialize(name, mapping, subtype, validate: true)
         @name = name
         @mapping = mapping
         @subtype = subtype
+        @validate = validate
       end
 
       def cast(value)
@@ -146,7 +147,7 @@ module ActiveRecord
       end
 
       def assert_valid_value(value)
-        unless value.blank? || mapping.has_key?(value) || mapping.has_value?(value)
+        if @validate && !(value.blank? || mapping.has_key?(value) || mapping.has_value?(value))
           raise ArgumentError, "'#{value}' is not a valid #{name}"
         end
       end
@@ -170,7 +171,7 @@ module ActiveRecord
     end
 
     private
-      def _enum(name, values, prefix: nil, suffix: nil, scopes: true, **options)
+      def _enum(name, values, prefix: nil, suffix: nil, scopes: true, validate: nil, **options)
         assert_valid_enum_definition_values(values)
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
@@ -186,7 +187,7 @@ module ActiveRecord
 
         attribute(name, **options) do |subtype|
           subtype = subtype.subtype if EnumType === subtype
-          EnumType.new(name, enum_values, subtype)
+          EnumType.new(name, enum_values, subtype, validate: !validate)
         end
 
         value_method_names = []
@@ -218,6 +219,12 @@ module ActiveRecord
           end
         end
         detect_negative_enum_conditions!(value_method_names) if scopes
+
+        if validate
+          validate = {} unless Hash === validate
+          validates_inclusion_of name, in: enum_values.keys, **validate
+        end
+
         enum_values.freeze
       end
 

@@ -506,13 +506,36 @@ class EnumTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base) do
       def self.name; "Book"; end
       enum status: [:proposed, :written]
-      validates_inclusion_of :status, in: ["written"]
+      validates_inclusion_of :status, in: ["proposed"]
     end
-    klass.delete_all
-    invalid_book = klass.new(status: "proposed")
+
+    valid_book = klass.new(status: "proposed")
+    assert_predicate valid_book, :valid?
+
+    invalid_book = klass.new(status: "written")
     assert_not_predicate invalid_book, :valid?
+
+    invalid_book = klass.new(status: nil)
+    assert_not_predicate invalid_book, :valid?
+  end
+
+  test "enum with :validate" do
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; "Book"; end
+      enum :status, [:proposed, :written], validate: true
+    end
+
+    valid_book = klass.new(status: "proposed")
+    assert_predicate valid_book, :valid?
+
     valid_book = klass.new(status: "written")
     assert_predicate valid_book, :valid?
+
+    invalid_book = klass.new(status: nil)
+    assert_not_predicate invalid_book, :valid?
+
+    invalid_book = klass.new(status: "unknown")
+    assert_not_predicate invalid_book, :valid?
   end
 
   test "enums are distinct per class" do
