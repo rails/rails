@@ -4,8 +4,9 @@ module ActiveRecord
   module Associations
     class Preloader
       class Batch #:nodoc:
-        def initialize(preloaders)
+        def initialize(preloaders, async: false)
           @preloaders = preloaders.reject(&:empty?)
+          @async = async
         end
 
         def call
@@ -39,7 +40,8 @@ module ActiveRecord
 
           def group_and_load_similar(loaders)
             loaders.grep_v(ThroughAssociation).group_by(&:loader_query).each_pair do |query, similar_loaders|
-              query.load_records_in_batch(similar_loaders)
+              result = query.load_records_in_batch(similar_loaders)
+              result.load_async if @async
             end
           end
       end

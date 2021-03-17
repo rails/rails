@@ -111,8 +111,8 @@ module ActiveRecord
         associations.nil? || records.length == 0
       end
 
-      def call
-        Batch.new([self]).call
+      def call(async: false)
+        Batch.new([self], async: async).call
 
         loaders
       end
