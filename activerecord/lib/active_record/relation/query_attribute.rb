@@ -30,7 +30,7 @@ module ActiveRecord
 
       def unboundable?
         unless defined?(@_unboundable)
-          @_unboundable = !serializable? && type.cast(value) <=> 0
+          serializable? { |value| @_unboundable = value <=> 0 } && @_unboundable = nil
         end
         @_unboundable
       end
