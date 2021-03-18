@@ -220,7 +220,7 @@ ActiveRecord::Schema.define do
     t.integer :children_count, default: 0
     t.integer :parent_id
     t.references :author, polymorphic: true
-    t.string :resource_id
+    t.integer :resource_id
     t.string :resource_type
     t.integer :developer_id
     t.datetime :updated_at
