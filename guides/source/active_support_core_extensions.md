@@ -4000,25 +4000,6 @@ NOTE: Defined in `active_support/core_ext/file/atomic.rb`.
 
 [File.atomic_write]: https://api.rubyonrails.org/classes/File.html#method-c-atomic_write
 
-Extensions to `Marshal`
------------------------
-
-### `load`
-
-Active Support adds constant autoloading support to `load`.
-
-For example, the file cache store deserializes this way:
-
-```ruby
-File.open(file_name) { |f| Marshal.load(f) }
-```
-
-If the cached data refers to a constant that is unknown at that point, the autoloading mechanism is triggered and if it succeeds the deserialization is retried transparently.
-
-WARNING. If the argument is an `IO` it needs to respond to `rewind` to be able to retry. Regular files respond to `rewind`.
-
-NOTE: Defined in `active_support/core_ext/marshal.rb`.
-
 Extensions to `NameError`
 -------------------------
 
