@@ -16,6 +16,10 @@ class TestServer
     @mutex = Monitor.new
   end
 
+  def disconnect(identifiers)
+    remote_connections.where(identifiers).disconnect
+  end
+
   def pubsub
     @pubsub ||= @config.subscription_adapter.new(self)
   end
@@ -28,5 +32,9 @@ class TestServer
 
   def worker_pool
     @worker_pool ||= ActionCable::Server::Worker.new(max_size: 5)
+  end
+
+  def remote_connections
+    @remote_connections ||= TestRemoteConnections.new(self)
   end
 end

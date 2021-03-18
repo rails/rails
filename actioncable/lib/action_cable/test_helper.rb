@@ -82,7 +82,7 @@ module ActionCable
     # Asserts that the specified message has been sent to the stream.
     #
     #   def test_assert_transmitted_message
-    #     ActionCable.server.broadcast 'messages', text: 'hello'
+    #     ActionCable.server.broadcast 'messages', { text: 'hello' }
     #     assert_broadcast_on('messages', text: 'hello')
     #   end
     #
@@ -90,7 +90,7 @@ module ActionCable
     #
     #   def test_assert_broadcast_on_again
     #     assert_broadcast_on('messages', text: 'hello') do
-    #       ActionCable.server.broadcast 'messages', text: 'hello'
+    #       ActionCable.server.broadcast 'messages', { text: 'hello' }
     #     end
     #   end
     #

@@ -35,4 +35,21 @@ class BaseTest < ActionCable::TestCase
       @server.restart
     end
   end
+
+  test "#disconnect disconnects remote connection" do
+    @server = TestServer.new
+    identifiers = { id: 1 }
+    remote_connections = Minitest::Mock.new @server.remote_connections
+    remote_conn = TestRemoteConnections::TestRemoteConnection.new(@server, identifiers)
+
+    remote_connections.expect(:where, remote_conn, [identifiers])
+
+    @server.stub(:remote_connections, remote_connections) do
+      assert_called(remote_conn, :disconnect) do
+        @server.disconnect(identifiers)
+      end
+    end
+
+    assert remote_connections.verify
+  end
 end
