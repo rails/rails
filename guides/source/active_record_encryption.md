@@ -49,7 +49,7 @@ The library will transparently encrypt these attributes before saving them into 
 
 ```ruby
 article = Article.create title: "Encrypt it all!"
-article.title # => "Encrypt it all"
+article.title # => "Encrypt it all!"
 ```
 
 But, under the hood, the executed SQL would look like this:
