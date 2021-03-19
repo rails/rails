@@ -554,6 +554,14 @@ class AssetTagHelperTest < ActionView::TestCase
     end
   end
 
+  def test_should_set_preload_links_with_rel_modulepreload
+    with_preload_links_header do
+      javascript_include_tag("http://example.com/all.js", type: "module")
+      expected = "<http://example.com/all.js>; rel=modulepreload; as=script; nopush"
+      assert_equal expected, @response.headers["Link"]
+    end
+  end
+
   def test_should_set_preload_links_with_integrity_hashes
     with_preload_links_header do
       stylesheet_link_tag("http://example.com/style.css", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs")
