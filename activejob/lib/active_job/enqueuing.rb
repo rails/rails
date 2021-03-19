@@ -25,15 +25,14 @@ module ActiveJob
       # Job#arguments or false if the enqueue did not succeed.
       #
       # After the attempted enqueue, the job will be yielded to an optional block.
-      def perform_later(*args)
-        job = job_or_instantiate(*args)
+      def perform_later(...)
+        job = job_or_instantiate(...)
         enqueue_result = job.enqueue
 
         yield job if block_given?
 
         enqueue_result
       end
-      ruby2_keywords(:perform_later) if respond_to?(:ruby2_keywords, true)
 
       private
         def job_or_instantiate(*args) # :doc:
