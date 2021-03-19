@@ -3,6 +3,8 @@
 require "cases/helper"
 require "models/author"
 require "models/book"
+require "models/pirate"
+require "models/treasure"
 require "models/cart"
 require "models/speedometer"
 require "models/subscription"
@@ -418,6 +420,30 @@ class InsertAllTest < ActiveRecord::TestCase
 
     assert_difference "author.books.count", +1 do
       author.books.insert_all!([{ name: "My little book", isbn: "1974522598", author_id: second_author.id }])
+    end
+  end
+
+  def test_insert_all_on_relation_in_attributes
+    author = Author.create!(name: "Jimmy")
+
+    assert_difference "author.books.count", +1 do
+      Book.insert_all!([{ author: author, name: "My little book", isbn: "1974522598" }])
+    end
+  end
+
+  def test_insert_all_on_polymorphic_relation
+    pirate = Pirate.create!(catchphrase: "Yar!")
+
+    assert_difference "pirate.treasures.count", +1 do
+      pirate.treasures.insert_all!([{ name: "gold coins" }])
+    end
+  end
+
+  def test_insert_all_on_polymorphic_relation_2
+    pirate = Pirate.create!(catchphrase: "Yar!")
+
+    assert_difference "pirate.treasures.count", +1 do
+      Treasure.insert_all!([{ looter: pirate, name: "gold coins" }])
     end
   end
 

@@ -17,6 +17,16 @@ module ActiveRecord
         @scope_attributes = model.scope_attributes
         @keys |= @scope_attributes.keys
       end
+
+      @reflection_keys = @keys & model._reflections.keys
+      if @reflection_keys.present?
+        @reflection_keys.each do |key|
+          reflection = model._reflections[key]
+          @keys << reflection.foreign_key
+          @keys << reflection.foreign_type if reflection.foreign_type
+        end
+      end
+      @keys -= @reflection_keys
       @keys = @keys.to_set
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
@@ -56,6 +66,14 @@ module ActiveRecord
       inserts.map do |attributes|
         attributes = attributes.stringify_keys
         attributes.merge!(scope_attributes) if scope_attributes
+        if reflection_keys.present?
+          reflection_keys.each do |key|
+            object = attributes.delete(key)
+            reflection = model._reflections[key]
+            attributes[reflection.foreign_key] = object.id
+            attributes[reflection.foreign_type] = object.class.polymorphic_name if reflection.foreign_type
+          end
+        end
 
         verify_attributes(attributes)
 
@@ -66,7 +84,7 @@ module ActiveRecord
     end
 
     private
-      attr_reader :scope_attributes
+      attr_reader :scope_attributes, :reflection_keys
 
       def find_unique_index_for(unique_by)
         return unique_by if !connection.supports_insert_conflict_target?
