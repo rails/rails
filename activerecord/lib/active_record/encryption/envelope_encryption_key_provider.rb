@@ -19,7 +19,7 @@ module ActiveRecord
         random_secret = generate_random_secret
         ActiveRecord::Encryption::Key.new(random_secret).tap do |key|
           key.public_tags.encrypted_data_key = encrypt_data_key(random_secret)
-          key.public_tags.encrypted_data_key_id = active_master_key.id if ActiveRecord::Encryption.config.store_key_references
+          key.public_tags.encrypted_data_key_id = active_primary_key.id if ActiveRecord::Encryption.config.store_key_references
         end
       end
 
@@ -28,23 +28,23 @@ module ActiveRecord
         secret ? [ActiveRecord::Encryption::Key.new(secret)] : []
       end
 
-      def active_master_key
-        @active_master_key ||= master_key_provider.encryption_key
+      def active_primary_key
+        @active_primary_key ||= primary_key_provider.encryption_key
       end
 
       private
         def encrypt_data_key(random_secret)
-          ActiveRecord::Encryption.cipher.encrypt(random_secret, key: active_master_key.secret)
+          ActiveRecord::Encryption.cipher.encrypt(random_secret, key: active_primary_key.secret)
         end
 
         def decrypt_data_key(encrypted_message)
           encrypted_data_key = encrypted_message.headers.encrypted_data_key
-          key = master_key_provider.decryption_keys(encrypted_message)&.collect(&:secret)
+          key = primary_key_provider.decryption_keys(encrypted_message)&.collect(&:secret)
           ActiveRecord::Encryption.cipher.decrypt encrypted_data_key, key: key if key
         end
 
-        def master_key_provider
-          @master_key_provider ||= DerivedSecretKeyProvider.new(ActiveRecord::Encryption.config.master_key)
+        def primary_key_provider
+          @primary_key_provider ||= DerivedSecretKeyProvider.new(ActiveRecord::Encryption.config.primary_key)
         end
 
         def generate_random_secret

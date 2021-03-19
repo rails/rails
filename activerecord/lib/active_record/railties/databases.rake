@@ -558,7 +558,7 @@ db_namespace = namespace :db do
         Add this entry to the credentials of the target environment:#{' '}
 
         active_record_encryption:
-          master_key: #{SecureRandom.alphanumeric(32)}
+          primary_key: #{SecureRandom.alphanumeric(32)}
           deterministic_key: #{SecureRandom.alphanumeric(32)}
           key_derivation_salt: #{SecureRandom.alphanumeric(32)}
       MSG

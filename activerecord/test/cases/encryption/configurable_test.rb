@@ -2,6 +2,7 @@
 
 require "cases/encryption/helper"
 require "models/pirate"
+require "models/book"
 
 class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::TestCase
   test "can access context properties with top level getters" do

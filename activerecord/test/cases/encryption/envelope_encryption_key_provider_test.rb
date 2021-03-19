@@ -19,7 +19,7 @@ class ActiveRecord::Encryption::EnvelopeEncryptionKeyProviderTest < ActiveRecord
   test "generated random keys carry their secret encrypted with the master key" do
     key = @key_provider.encryption_key
     encrypted_secret = key.public_tags.encrypted_data_key
-    assert_equal key.secret, ActiveRecord::Encryption.cipher.decrypt(encrypted_secret, key: @key_provider.active_master_key.secret)
+    assert_equal key.secret, ActiveRecord::Encryption.cipher.decrypt(encrypted_secret, key: @key_provider.active_primary_key.secret)
   end
 
   test "decryption_key_for returns the decryption key for a message that was encrypted with a generated encryption key" do
@@ -30,20 +30,20 @@ class ActiveRecord::Encryption::EnvelopeEncryptionKeyProviderTest < ActiveRecord
   end
 
   test "work with multiple keys when config.store_key_references is false" do
-    ActiveRecord::Encryption.config.master_key = ["key 1", "key 2"]
+    ActiveRecord::Encryption.config.primary_key = ["key 1", "key 2"]
 
     assert_encryptor_works_with @key_provider
   end
 
   test "work with multiple keys when config.store_key_references is true" do
-    ActiveRecord::Encryption.config.master_key = ["key 1", "key 2"]
+    ActiveRecord::Encryption.config.primary_key = ["key 1", "key 2"]
     ActiveRecord::Encryption.config.store_key_references = true
 
     assert_encryptor_works_with @key_provider
   end
 
   private
-    def assert_multiple_master_keys
-      assert Rails.application.credentials.dig(:active_record_encryption, :master_key).length > 1
+    def assert_multiple_primary_keys
+      assert Rails.application.credentials.dig(:active_record_encryption, :primary_key).length > 1
     end
 end

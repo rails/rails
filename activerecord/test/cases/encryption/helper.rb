@@ -141,7 +141,7 @@ class ActiveRecord::TestCase
   include ActiveRecord::Encryption::EncryptionHelpers, ActiveRecord::Encryption::PerformanceHelpers
   # , PerformanceHelpers
 
-  ENCRYPTION_ERROR_FLAGS = %i[ master_key store_key_references key_derivation_salt support_unencrypted_data
+  ENCRYPTION_ERROR_FLAGS = %i[ primary_key store_key_references key_derivation_salt support_unencrypted_data
     encrypt_fixtures ]
 
   setup do

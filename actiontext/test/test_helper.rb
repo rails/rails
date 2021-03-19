@@ -47,7 +47,7 @@ end
 
 # Encryption
 ActiveRecord::Encryption.configure \
-  master_key: "test master key",
+  primary_key: "test master key",
   deterministic_key: "test deterministic key",
   key_derivation_salt: "testing key derivation salt",
   support_unencrypted_data: true
