@@ -337,7 +337,7 @@ module Arel # :nodoc: all
           if values.empty?
             collector << @connection.quote(nil)
           else
-            collector.add_binds(values, &bind_block)
+            collector.add_binds(values, o.proc_for_binds, &bind_block)
           end
 
           collector << ")"

@@ -22,9 +22,9 @@ module Arel # :nodoc: all
         self
       end
 
-      def add_binds(binds, &block)
-        left.add_binds(binds, &block)
-        right.add_binds(binds, &block)
+      def add_binds(binds, proc_for_binds = nil, &block)
+        left.add_binds(binds, proc_for_binds, &block)
+        right.add_binds(binds, proc_for_binds, &block)
         self
       end
 
