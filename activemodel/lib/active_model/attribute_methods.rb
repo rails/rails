@@ -211,7 +211,7 @@ module ActiveModel
           attribute_method_matchers.each do |matcher|
             matcher_new = matcher.method_name(new_name).to_s
             matcher_old = matcher.method_name(old_name).to_s
-            define_proxy_call false, owner, matcher_new, matcher_old
+            define_proxy_call owner, matcher_new, matcher_old
           end
         end
       end
@@ -296,7 +296,7 @@ module ActiveModel
               if respond_to?(generate_method, true)
                 send(generate_method, attr_name.to_s, owner: owner)
               else
-                define_proxy_call true, owner, method_name, matcher.target, attr_name.to_s
+                define_proxy_call owner, method_name, matcher.target, attr_name.to_s
               end
             end
           end
@@ -405,7 +405,7 @@ module ActiveModel
         # Define a method `name` in `mod` that dispatches to `send`
         # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
-        def define_proxy_call(include_private, code_generator, name, target, *extra)
+        def define_proxy_call(code_generator, name, target, *extra)
           defn = if NAME_COMPILABLE_REGEXP.match?(name)
             "def #{name}(*args)"
           else
@@ -415,7 +415,7 @@ module ActiveModel
           extra = (extra.map!(&:inspect) << "*args").join(", ")
 
           body = if CALL_COMPILABLE_REGEXP.match?(target)
-            "#{"self." unless include_private}#{target}(#{extra})"
+            "self.#{target}(#{extra})"
           else
             "send(:'#{target}', #{extra})"
           end
