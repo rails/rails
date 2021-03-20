@@ -45,8 +45,11 @@ module ActiveRecord
           self.encrypted_attributes ||= Set.new # not using :default because the instance would be shared across classes
 
           names.each do |name|
-            encrypt_attribute name, key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase,
-                              ignore_case: ignore_case, previous: previous, **context_properties
+            previous_schemes = Array.wrap(previous).collect { |scheme_config| ActiveRecord::Encryption::Scheme.new(**scheme_config) }
+            attribute_scheme = ActiveRecord::Encryption::Scheme.new \
+              key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase,
+              ignore_case: ignore_case, previous_schemes: previous_schemes, **context_properties
+            encrypt_attribute name, attribute_scheme
           end
         end
 
@@ -63,44 +66,16 @@ module ActiveRecord
         end
 
         private
-          def encrypt_attribute(name, key_provider: nil, key: nil, deterministic: false, downcase: false,
-                                ignore_case: false, previous: [], **context_properties)
-            raise Errors::Configuration, ":ignore_case can only be used with deterministic encryption" if ignore_case && !deterministic
-            raise Errors::Configuration, ":key_provider and :key can't be used simultaneously" if key_provider && key
-
+          def encrypt_attribute(name, attribute_scheme)
             encrypted_attributes << name.to_sym
 
-            key_provider = build_key_provider(key_provider: key_provider, key: key, deterministic: deterministic)
-
             attribute name do |cast_type|
-              ActiveRecord::Encryption::EncryptedAttributeType.new \
-                key_provider: key_provider, downcase: downcase || ignore_case, deterministic: deterministic,
-                cast_type: cast_type, previous_encrypted_types: build_previous_types(previous), **context_properties
+              ActiveRecord::Encryption::EncryptedAttributeType.new scheme: attribute_scheme, cast_type: cast_type
             end
 
-            preserve_original_encrypted(name) if ignore_case
+            preserve_original_encrypted(name) if attribute_scheme.ignore_case?
             validate_column_size(name) if ActiveRecord::Encryption.config.validate_column_size
             ActiveRecord::Encryption.encrypted_attribute_was_declared(self, name)
-          end
-
-          def build_previous_types(previous_config_list)
-            previous_config_list = [previous_config_list] unless previous_config_list.is_a?(Array)
-            previous_config_list.collect do |previous_config|
-              key_provider = build_key_provider(**previous_config.slice(:key_provider, :key, :deterministic))
-              context_properties = previous_config.slice(*ActiveRecord::Encryption::Context::PROPERTIES.without(:key_provider))
-              ActiveRecord::Encryption::EncryptedAttributeType.new \
-                key_provider: key_provider, downcase: previous_config[:downcase] || previous_config[:ignore_case],
-                deterministic: previous_config[:deterministic], **context_properties
-            end
-          end
-
-          def build_key_provider(key_provider: nil, key: nil, deterministic: false)
-            return DerivedSecretKeyProvider.new(key) if key.present?
-            return key_provider if key_provider
-
-            if deterministic && (deterministic_key = ActiveRecord::Encryption.config.deterministic_key)
-              DerivedSecretKeyProvider.new(deterministic_key)
-            end
           end
 
           def preserve_original_encrypted(name)
@@ -111,11 +86,11 @@ module ActiveRecord
             end
 
             encrypts original_attribute_name
-            include module_to_preserve_original_encrypted(name, original_attribute_name)
+            override_accessors_to_preserve_original name, original_attribute_name
           end
 
-          def module_to_preserve_original_encrypted(name, original_attribute_name)
-            Module.new do
+          def override_accessors_to_preserve_original(name, original_attribute_name)
+            include(Module.new do
               define_method name do
                 if ((value = super()) && encrypted_attribute?(name)) || !ActiveRecord::Encryption.config.support_unencrypted_data
                   send(original_attribute_name)
@@ -128,7 +103,7 @@ module ActiveRecord
                 self.send "#{original_attribute_name}=", value
                 super(value)
               end
-            end
+            end)
           end
 
           def validate_column_size(attribute_name)

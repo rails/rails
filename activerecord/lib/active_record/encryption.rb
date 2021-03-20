@@ -30,6 +30,7 @@ module ActiveRecord
       autoload :NullEncryptor
       autoload :Properties
       autoload :ReadOnlyNullEncryptor
+      autoload :Scheme
     end
 
     class Cipher

@@ -10,35 +10,34 @@ module ActiveRecord
     class EncryptedAttributeType < ::ActiveRecord::Type::Text
       include ActiveModel::Type::Helpers::Mutable
 
-      attr_reader :key_provider, :previous_encrypted_types, :cast_type, :downcase
+      attr_reader :scheme, :cast_type
 
-      def initialize(key_provider: nil, deterministic: false, downcase: false, cast_type: ActiveModel::Type::String.new, previous_encrypted_types: [], **context_properties)
+      delegate :key_provider, :previous_encrypted_types, :downcase?, :deterministic?, :with_context, to: :scheme
+
+      # === Options
+      #
+      # * <tt>:scheme</tt> - An +Scheme+ with the encryption properties for this attribute.
+      # * <tt>:cast_type</tt> - A type that will be used to serialize (before encrypting) and deserialize
+      #   (after decrypting). +ActiveModel::Type::String+ by default.
+      def initialize(scheme:, cast_type: ActiveModel::Type::String.new)
         super()
-        @key_provider = key_provider
-        @deterministic = deterministic
-        @downcase = downcase
+        @scheme = scheme
         @cast_type = cast_type
-        @previous_encrypted_types = previous_encrypted_types
-        @context_properties = context_properties
       end
 
       def deserialize(value)
-        @cast_type.deserialize decrypt(value)
+        cast_type.deserialize decrypt(value)
       end
 
       def serialize(value)
-        casted_value = @cast_type.serialize(value)
-        casted_value = casted_value&.downcase if @downcase
+        casted_value = cast_type.serialize(value)
+        casted_value = casted_value&.downcase if downcase?
         encrypt(casted_value.to_s) unless casted_value.nil? # Object values without a proper serializer get converted with #to_s
       end
 
       def changed_in_place?(raw_old_value, new_value)
         old_value = raw_old_value.nil? ? nil : deserialize(raw_old_value)
         old_value != new_value
-      end
-
-      def deterministic?
-        @deterministic
       end
 
       def additional_encrypted_types # :nodoc:
@@ -93,23 +92,18 @@ module ActiveRecord
         end
 
         def encryption_options
-          @encryption_options ||= { key_provider: @key_provider, cipher_options: { deterministic: @deterministic } }.compact
+          @encryption_options ||= { key_provider: key_provider, cipher_options: { deterministic: deterministic? } }.compact
         end
 
         def decryption_options
-          @decryption_options ||= { key_provider: @key_provider }.compact
-        end
-
-        def with_context(&block)
-          if @context_properties.present?
-            ActiveRecord::Encryption.with_encryption_context(**@context_properties, &block)
-          else
-            block.call
-          end
+          @decryption_options ||= { key_provider: key_provider }.compact
         end
 
         def clean_text_type
-          @clean_text_type ||= ActiveRecord::Encryption::EncryptedAttributeType.new(downcase: downcase, encryptor: ActiveRecord::Encryption::NullEncryptor.new)
+          @clean_text_type ||= begin
+            config = ActiveRecord::Encryption::Scheme.new(downcase: downcase?, encryptor: ActiveRecord::Encryption::NullEncryptor.new)
+            ActiveRecord::Encryption::EncryptedAttributeType.new(scheme: config)
+          end
         end
     end
   end
