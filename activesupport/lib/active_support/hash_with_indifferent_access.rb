@@ -294,6 +294,10 @@ module ActiveSupport
       super(convert_key(key))
     end
 
+    # Returns a hash with indifferent access that includes everything except given keys.
+    #   hash = { a: "x", b: "y", c: 10 }.with_indifferent_access
+    #   hash.except(:a, "b") # => {c: 10}.with_indifferent_access
+    #   hash                 # => { a: "x", b: "y", c: 10 }.with_indifferent_access
     def except(*keys)
       slice(*self.keys - keys.map { |key| convert_key(key) })
     end
