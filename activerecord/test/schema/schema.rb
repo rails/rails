@@ -323,32 +323,31 @@ ActiveRecord::Schema.define do
   end
 
   create_table :dl_keyed_belongs_to_soft_deletes, force: true do |t|
-    t.references :destroy_async_parent_soft_delete,
-      index: { name: :soft_del_parent }
+    t.references :destroy_async_parent_soft_delete, index: { name: :soft_del_parent }
     t.boolean :deleted
   end
 
   create_table :dl_keyed_has_ones, force: true, id: false do |t|
-   t.primary_key :has_one_key
+    t.primary_key :has_one_key
 
-   t.references :destroy_async_parent
-   t.references :destroy_async_parent_soft_delete
- end
+    t.references :destroy_async_parent
+    t.references :destroy_async_parent_soft_delete
+  end
 
   create_table :dl_keyed_has_manies, force: true, id: false do |t|
-   t.primary_key :many_key
-   t.references :destroy_async_parent
- end
+    t.primary_key :many_key
+    t.references :destroy_async_parent
+  end
 
   create_table :dl_keyed_has_many_throughs, force: true, id: false do |t|
-   t.primary_key :through_key
- end
+    t.primary_key :through_key
+  end
 
   create_table :dl_keyed_joins, force: true, id: false do |t|
-   t.primary_key :joins_key
-   t.references :destroy_async_parent
-   t.references :dl_keyed_has_many_through
- end
+    t.primary_key :joins_key
+    t.references :destroy_async_parent
+    t.references :dl_keyed_has_many_through
+  end
 
   create_table :developers, force: true do |t|
     t.string   :name
