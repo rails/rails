@@ -388,7 +388,8 @@ module ActionView
       #        end
       #     %>
       def link_to_unless_current(name, options = {}, html_options = {}, &block)
-        link_to_unless current_page?(options), name, options, html_options, &block
+        is_current_page = options.is_a?(Hash) ? current_page?(**options) : current_page?(options)
+        link_to_unless is_current_page, name, options, html_options, &block
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
