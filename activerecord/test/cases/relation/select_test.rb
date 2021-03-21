@@ -77,5 +77,15 @@ module ActiveRecord
         tags_count indestructible_tags_count tags_with_destroy_count tags_with_nullify_count
       ), posts.first.attributes.keys
     end
+
+    def test_enumerate_columns_in_select_statements
+      original_value = Post.enumerate_columns_in_select_statements
+      Post.enumerate_columns_in_select_statements = true
+      sql = Post.all.to_sql
+      Post.column_names.each do |column_name|
+        assert_includes sql, column_name
+      end
+      Post.enumerate_columns_in_select_statements = original_value
+    end
   end
 end

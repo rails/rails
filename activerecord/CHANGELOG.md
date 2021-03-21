@@ -1,3 +1,43 @@
+*   Add setting for enumerating column names in SELECT statements.
+
+    Adding a column to a Postgres database while the application is running can
+    change the result of wildcard `SELECT *` queries, which invalidates the result
+    of cached prepared statements and raises a PreparedStatementCacheExpired error.
+
+    When truthy, ActiveRecord will avoid wildcards and always include column names
+    in `SELECT` queries, which will return consistent results and avoid prepared
+    statement errors.
+
+    Before:
+
+    ```ruby
+    Book.limit(5)
+    # SELECT * FROM books LIMIT 5
+    ```
+
+    After:
+
+    ```ruby
+    # config/application.rb
+    module MyApp
+      class Application < Rails::Application
+        config.active_record.enumerate_columns_in_select_statements = true
+      end
+    end
+
+    # or, configure per-model
+    class Book < ApplicationRecord
+      self.enumerate_columns_in_select_statements = true
+    end
+    ```
+
+    ```ruby
+    Book.limit(5)
+    # SELECT id, author_id, name, format, status, language, etc FROM books LIMIT 5
+    ```
+
+    *Matt Duszynski*
+
 *   Only update dirty attributes once for cyclic autosave callbacks.
 
     Instead of calling `changes_applied` everytime `save` is called,
