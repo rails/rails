@@ -45,7 +45,7 @@ module ActiveRecord
           self.encrypted_attributes ||= Set.new # not using :default because the instance would be shared across classes
 
           names.each do |name|
-            previous_schemes = Array.wrap(previous).collect { |scheme_config| ActiveRecord::Encryption::Scheme.new(**scheme_config) }
+            previous_schemes = ActiveRecord::Encryption.config.previous_schemes + Array.wrap(previous).collect { |scheme_config| ActiveRecord::Encryption::Scheme.new(**scheme_config) }
             attribute_scheme = ActiveRecord::Encryption::Scheme.new \
               key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase,
               ignore_case: ignore_case, previous_schemes: previous_schemes, **context_properties

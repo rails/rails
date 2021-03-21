@@ -8,6 +8,8 @@ module ActiveRecord
     #
     # See +EncryptedAttributeType+, +Context+
     class Scheme
+      attr_reader :previous_schemes
+
       def initialize(key_provider: nil, key: nil, deterministic: false, downcase: false, ignore_case: false,
                      previous_schemes: [], **context_properties)
         @key_provider_param = key_provider
@@ -35,10 +37,6 @@ module ActiveRecord
 
       def key_provider
         @key_provider ||= @key_provider_param || build_key_provider
-      end
-
-      def previous_encrypted_types
-        @previous_encrypted_types ||= @previous_schemes.collect { |previous_config| ActiveRecord::Encryption::EncryptedAttributeType.new(scheme: previous_config) }
       end
 
       def with_context(&block)

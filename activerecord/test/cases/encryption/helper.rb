@@ -142,7 +142,7 @@ class ActiveRecord::TestCase
   # , PerformanceHelpers
 
   ENCRYPTION_ERROR_FLAGS = %i[ primary_key store_key_references key_derivation_salt support_unencrypted_data
-    encrypt_fixtures ]
+    encrypt_fixtures previous_schemes ]
 
   setup do
     ENCRYPTION_ERROR_FLAGS.each do |property|

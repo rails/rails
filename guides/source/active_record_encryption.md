@@ -157,18 +157,33 @@ To ease migrations of unencrypted data, the library includes the option `config.
 
 Changing encryption properties of attributes can break existing data. For example, imagine you wan to make a "deterministic" attribute "not deterministic". If you just change the declaration in the model, reading existing ciphertexts will fail because they are different now.
 
-To support these situations, you can use `:previous` to declare previous encryption schemes:
+To support these situations, you can declare previous encryption schemes that will be used in two scenarios:
+
+* When reading encrypted data, Active Record Encryption will try previous encryption schemes if the current scheme doesn't work.
+* When querying deterministic data, it will add ciphertexts using previous schemes to the queries so that queries work seamlessly with data encrypted with different scheme. You need to set `config.active_record.encryption.extend_queries = true` to enable this.
+
+You can configure previous encryption schemes:
+
+* Gloabally
+* On a per-attribute basis
+
+#### Global previous encryption schemes
+
+You can add previous encryption schemes by adding them as list of properties using the `previous` config property in your `application.rb`:
+
+```ruby
+config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
+```
+
+#### Per-attribute encryption schemes
+
+Use `:previous` when declaring the attribute:
 
 ```ruby
 class Article
   encrypts :title, deterministic: true, previous: { deterministic: false }
 end
 ```
-This declaration has 2 effects:
-
-* When reading encrypted data, Active Record Encryption will try previous encryption schemes if the current scheme doesn't work.
-* When querying deterministic data, it will add ciphertexts using previous schemes to the queries so that queries work seamlessly with data encrypted with different scheme. You need to set `config.active_record.encryption.extend_queries = true` to enable this.
-
 ### Filtering params named as encrypted columns
 
 By default, encrypted columns are configured to be [automatically filtered in Rails logs](https://guides.rubyonrails.org/action_controller_overview.html#parameters-filtering). You can disable this behavior by adding this to your `application.rb`:

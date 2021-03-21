@@ -12,7 +12,7 @@ module ActiveRecord
 
       attr_reader :scheme, :cast_type
 
-      delegate :key_provider, :previous_encrypted_types, :downcase?, :deterministic?, :with_context, to: :scheme
+      delegate :key_provider, :downcase?, :deterministic?, :with_context, to: :scheme
 
       # === Options
       #
@@ -40,11 +40,10 @@ module ActiveRecord
         old_value != new_value
       end
 
-      def additional_encrypted_types # :nodoc:
-        if support_unencrypted_data?
-          @previous_encrypted_types_with_clean_text_type ||= previous_encrypted_types.including(clean_text_type)
-        else
-          previous_encrypted_types
+      def previous_encrypted_types # :nodoc:
+        @additional_encrypted_types ||= {} # Memoizing on support_unencrypted_data so that we can tweak it during tests
+        @additional_encrypted_types[support_unencrypted_data?] ||= previous_schemes.collect do |scheme|
+          EncryptedAttributeType.new(scheme: scheme)
         end
       end
 
@@ -77,6 +76,10 @@ module ActiveRecord
           end
         end
 
+        def previous_schemes
+          scheme.previous_schemes.including((clean_text_scheme if support_unencrypted_data?)).compact
+        end
+
         def support_unencrypted_data?
           ActiveRecord::Encryption.config.support_unencrypted_data
         end
@@ -99,10 +102,9 @@ module ActiveRecord
           @decryption_options ||= { key_provider: key_provider }.compact
         end
 
-        def clean_text_type
-          @clean_text_type ||= begin
-            config = ActiveRecord::Encryption::Scheme.new(downcase: downcase?, encryptor: ActiveRecord::Encryption::NullEncryptor.new)
-            ActiveRecord::Encryption::EncryptedAttributeType.new(scheme: config)
+        def clean_text_scheme
+          @clean_text_scheme ||= begin
+            ActiveRecord::Encryption::Scheme.new(downcase: downcase?, encryptor: ActiveRecord::Encryption::NullEncryptor.new)
           end
         end
     end

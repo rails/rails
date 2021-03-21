@@ -2,6 +2,7 @@
 
 require "cases/encryption/helper"
 require "models/author_encrypted"
+require "models/book"
 
 class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::TestCase
   test "can decrypt encrypted_value encrypted with a different encryption scheme" do
@@ -36,6 +37,31 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::TestCase
     Author.find(author.id).update! name: "1"
     assert_equal "1", author.reload.name
     assert_equal author, EncryptedAuthor2.find_by_name("1")
+  end
+
+  test "use global previous schemes to decrypt data encrypted with previous schemes" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = false
+    ActiveRecord::Encryption.config.previous = [ { encryptor: TestEncryptor.new("0" => "1") }, { encryptor: TestEncryptor.new("1" => "2") } ]
+
+    # We want to evaluate .encrypts *after* tweaking the config property
+    encrypted_author_class = Class.new(Author) do
+      self.table_name = "authors"
+
+      encrypts :name
+    end
+
+    assert_equal 2, encrypted_author_class.type_for_attribute(:name).previous_encrypted_types.count
+    previoys_type_1, previoys_type_2 = encrypted_author_class.type_for_attribute(:name).previous_encrypted_types
+
+    author = ActiveRecord::Encryption.without_encryption do
+      encrypted_author_class.create name: previoys_type_1.serialize("1")
+    end
+    assert_equal "0", author.reload.name
+
+    author = ActiveRecord::Encryption.without_encryption do
+      encrypted_author_class.create name: previoys_type_2.serialize("2")
+    end
+    assert_equal "1", author.reload.name
   end
 
   private
