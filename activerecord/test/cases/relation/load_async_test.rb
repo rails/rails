@@ -310,7 +310,6 @@ module ActiveRecord
         new_config1 = config_hash1.merge(min_threads: 0, max_threads: 10)
         db_config1 = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", new_config1)
 
-
         config_hash2 = ActiveRecord::Base.configurations.configs_for(env_name: "arunit2", name: "primary").configuration_hash
         new_config2 = config_hash2.merge(min_threads: 0, max_threads: 10)
         db_config2 = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit2", "primary", new_config2)

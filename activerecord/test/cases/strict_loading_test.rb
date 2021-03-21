@@ -251,7 +251,6 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
-
   def test_does_not_raise_on_eager_loading_a_strict_loading_belongs_to_relation
     mentor = Mentor.create!(name: "Mentor")
 
