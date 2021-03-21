@@ -1,3 +1,35 @@
+*   Add nested_attributes_for support for `delegated_type`
+
+    ```ruby
+    class Entry < ApplicationRecord
+      delegated_type :entryable, types: %w[ Message Comment ]
+      accepts_nested_attributes_for :entryable
+    end
+
+    entry = Entry.create(entryable_type: 'Message', entryable_attributes: { content: 'Hello world' })
+    # => #<Entry:0x00>
+    # id: 1
+    # entryable_id: 1,
+    # entryable_type: 'Message'
+    # ...>
+
+    entry.entryable
+    # => #<Message:0x01>
+    # id: 1
+    # content: 'Hello world'
+    # ...>
+    ```
+
+    Previously it would raise an error:
+
+    ```ruby
+    Entry.create(entryable_type: 'Message', entryable_attributes: { content: 'Hello world' })
+    # ArgumentError: Cannot build association `entryable'. Are you trying to build a polymorphic one-to-one association?
+    ```
+
+    *Sjors Baltus*
+
+
 *   Type cast enum values by the original attribute type.
 
     The notable thing about this change is that unknown labels will no longer match 0 on MySQL.
