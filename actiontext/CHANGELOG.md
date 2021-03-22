@@ -1,3 +1,7 @@
+*   OpenSSL constants are now used for Digest computations.
+
+    *Dirkjan Bussink*
+
 *   Add support for passing `form:` option to `rich_text_area_tag` and
     `rich_text_area` helpers to specify the `<input type="hidden" form="...">`
     value.

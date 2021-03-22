@@ -1,4 +1,10 @@
+*   OpenSSL constants are now used for Digest computations.
+
+    *Dirkjan Bussink*
+
 *   Relation#destroy_all perform its work in batches
+
+*   Prevent double saves in autosave of cyclic associations
 
     Since destroy_all actually loads the entire relation and then iteratively destroys the records one by one,
     you can blow your memory gasket very easily. So let's do the right thing by default

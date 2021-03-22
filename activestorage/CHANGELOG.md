@@ -1,3 +1,7 @@
+*   OpenSSL constants are now used for Digest computations.
+
+    *Dirkjan Bussink*
+
 *   Deprecate `config.active_storage.replace_on_assign_to_many`. Future versions of Rails
     will behave the same way as when the config is set to `true`.
 

@@ -592,7 +592,7 @@ module ActiveRecord
         end
 
         def schema_sha1(file)
-          Digest::SHA1.hexdigest(File.read(file))
+          OpenSSL::Digest::SHA1.hexdigest(File.read(file))
         end
 
         def structure_dump_flags_for(adapter)

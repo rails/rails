@@ -2,7 +2,7 @@
 
 require "fileutils"
 require "pathname"
-require "digest/md5"
+require "openssl"
 require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
@@ -158,7 +158,7 @@ module ActiveStorage
       end
 
       def ensure_integrity_of(key, checksum)
-        unless Digest::MD5.file(path_for(key)).base64digest == checksum
+        unless OpenSSL::Digest::MD5.file(path_for(key)).base64digest == checksum
           delete key
           raise ActiveStorage::IntegrityError
         end

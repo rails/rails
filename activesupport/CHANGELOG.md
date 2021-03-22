@@ -1,3 +1,7 @@
+*   OpenSSL constants are now used for Digest computations.
+
+    *Dirkjan Bussink*
+
 *   `TimeZone.iso8601` now accepts valid ordinal values similar to Ruby's `Date._iso8601` method.
     A valid ordinal value will be converted to an instance of `TimeWithZone` using the `:year`
     and `:yday` fragments returned from `Date._iso8601`.

@@ -2,5 +2,8 @@
 
     *Santiago Bartesaghi*
 
+*   OpenSSL constants are now used for Digest computations.
+
+    *Dirkjan Bussink*
 
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/actionmailbox/CHANGELOG.md) for previous changes.
