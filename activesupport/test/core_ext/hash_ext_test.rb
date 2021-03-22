@@ -2,7 +2,7 @@
 
 require_relative "../abstract_unit"
 require "bigdecimal"
-require "active_support/ordered_hash"
+require "yaml"
 require "active_support/core_ext/hash"
 require "active_support/core_ext/string/access"
 require "active_support/core_ext/object/conversions"
