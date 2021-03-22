@@ -5,6 +5,7 @@ require "models/author"
 class EncryptedAuthor < Author
   self.table_name = "authors"
 
+  validates :name, uniqueness: true
   encrypts :name, previous: { deterministic: true }
 end
 

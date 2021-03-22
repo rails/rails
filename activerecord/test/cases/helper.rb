@@ -231,3 +231,4 @@ ActiveRecord::Encryption.configure \
   key_derivation_salt: "testing key derivation salt"
 
 ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
+ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support

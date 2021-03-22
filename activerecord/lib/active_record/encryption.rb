@@ -23,6 +23,7 @@ module ActiveRecord
       autoload :EnvelopeEncryptionKeyProvider
       autoload :Errors
       autoload :ExtendedDeterministicQueries
+      autoload :ExtendedDeterministicUniquenessValidator
       autoload :Key
       autoload :KeyGenerator
       autoload :KeyProvider
