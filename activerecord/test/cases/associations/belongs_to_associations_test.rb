@@ -996,15 +996,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_polymorphic_assignment_foreign_key_type_string
     comment = Comment.first
-    comment.author   = Author.first
-    comment.resource = Member.first
+    comment.author   = authors(:david)
+    comment.resource = members(:groucho)
     comment.save
 
-    assert_equal Comment.all.to_a,
-      Comment.includes(:author).to_a
+    assert_equal 1, authors(:david).id
+    assert_equal 1, comment.author_id
+    assert_equal authors(:david), Comment.includes(:author).first.author
 
-    assert_equal Comment.all.to_a,
-      Comment.includes(:resource).to_a
+    assert_equal 1, members(:groucho).id
+    assert_equal "1", comment.resource_id
+    assert_equal members(:groucho), Comment.includes(:resource).first.resource
   end
 
   def test_polymorphic_assignment_foreign_type_field_updating
