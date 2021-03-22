@@ -82,6 +82,10 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
       record = PostgresqlInfinity.create!(datetime: Float::INFINITY)
       assert_equal Float::INFINITY, record.datetime
       assert_equal record.datetime, record.reload.datetime
+
+      record = PostgresqlInfinity.create!(datetime: BigDecimal::INFINITY)
+      assert_equal Float::INFINITY, record.datetime
+      assert_equal record.datetime, record.reload.datetime
     end
   ensure
     # setting time_zone_aware_attributes causes the types to change.
