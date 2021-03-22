@@ -1,3 +1,25 @@
+*   Fix Float::INFINITY assignment to datetime column with postgresql adapter
+
+    Before:
+
+    ```ruby
+    # With this config
+    ActiveRecord::Base.time_zone_aware_attributes = true
+
+    # and the following schema:
+    create_table "postgresql_infinities" do |t|
+      t.datetime "datetime"
+    end
+
+    # This test fails
+    record = PostgresqlInfinity.create!(datetime: Float::INFINITY)
+    assert_equal Float::INFINITY, record.datetime # record.datetime gets nil
+    ```
+
+    After this commit, `record.datetime` gets `Float::INFINITY` as expected.
+
+    *Shunichi Ikegami*
+
 *   Type cast enum values by the original attribute type.
 
     The notable thing about this change is that unknown labels will no longer match 0 on MySQL.

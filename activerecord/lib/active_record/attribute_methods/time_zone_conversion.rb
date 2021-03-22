@@ -19,6 +19,8 @@ module ActiveRecord
 
           if value.is_a?(Hash)
             set_time_zone_without_conversion(super)
+          elsif value == ::Float::INFINITY || value == -::Float::INFINITY
+            value
           elsif value.respond_to?(:in_time_zone)
             begin
               super(user_input_in_time_zone(value)) || super
