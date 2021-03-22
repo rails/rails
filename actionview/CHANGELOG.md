@@ -1,3 +1,17 @@
+*   Add `include_seconds` option for `time_field`
+
+        <%= form.time_field :foo, include_seconds: false %>
+        # => <input value="16:22" type="time" />
+
+    Default includes seconds:
+
+        <%= form.time_field :foo %>
+        # => <input value="16:22:01.440" type="time" />
+
+    This allows you to take advantage of [different rendering options](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/time#time_value_format) in some browsers.
+
+    *Alex Ghiculescu*
+
 *   The `translate` helper now passes `default` values that aren't
     translation keys through `I18n.translate` for interpolation.
 
@@ -49,12 +63,12 @@
     the first argument or as a block.
 
         <%= button_to "Delete", post_path(@post), method: :delete %>
-        <%# => <form action="/posts/1"><input type="hidden" name="_method" value="delete"><button type="submit">Delete</button></form>
+        # => <form action="/posts/1"><input type="hidden" name="_method" value="delete"><button type="submit">Delete</button></form>
 
         <%= button_to post_path(@post), method: :delete do %>
           Delete
         <% end %>
-        <%# => <form action="/posts/1"><input type="hidden" name="_method" value="delete"><button type="submit">Delete</button></form>
+        # => <form action="/posts/1"><input type="hidden" name="_method" value="delete"><button type="submit">Delete</button></form>
 
     *Sean Doyle*, *Dusan Orlovic*
 
