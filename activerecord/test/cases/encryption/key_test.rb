@@ -2,7 +2,7 @@
 
 require "cases/encryption/helper"
 
-class ActiveRecord::Encryption::KeyTest < ActiveSupport::TestCase
+class ActiveRecord::Encryption::KeyTest < ActiveRecord::EncryptionTestCase
   test "A key can store a secret and public tags" do
     key = ActiveRecord::Encryption::Key.new("the secret")
     key.public_tags[:key] = "the key reference"

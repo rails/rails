@@ -6,7 +6,7 @@ require "models/book_encrypted"
 require "models/post_encrypted"
 require "models/traffic_light_encrypted"
 
-class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::EncryptionTestCase
   fixtures :books, :posts
 
   test "encrypts the attribute seamlessly when creating and updating records" do
@@ -53,7 +53,7 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::TestCase
   end
 
   test "can configure a custom key on a per-record-class basis through the :key option" do
-    author = EncryptedAuthor.create!(name: "Stephen King")
+    author = EncryptedAuthorWithKey.create!(name: "Stephen King")
     assert_encrypted_attribute(author, :name, "Stephen King")
   end
 
@@ -97,6 +97,15 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::TestCase
     book_2 = EncryptedBook.create!(name: "Dune")
 
     assert_equal book_1.ciphertext_for(:name), book_2.ciphertext_for(:name)
+  end
+
+  test "deterministic ciphertexts remain constant" do
+    # We need to make sure these don't change or existing apps will stop working
+    ciphertext = "{\"p\":\"DIohhw==\",\"h\":{\"iv\":\"wEPaDcJP3VNIxaiz\",\"at\":\"X7+2xvvcu1k1if6Dy28Esw==\"}}"
+    book = Book.create name: ciphertext
+
+    book = EncryptedBook.find(book.id)
+    assert_equal "Dune", book.name
   end
 
   test "encryption errors when saving records will raise the error and don't save anything" do

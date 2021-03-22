@@ -3,7 +3,7 @@
 require "cases/encryption/helper"
 require "models/post_encrypted"
 
-class ActiveRecord::Encryption::ConcurrencyTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::ConcurrencyTest < ActiveRecord::EncryptionTestCase
   setup do
     ActiveRecord::Encryption.config.support_unencrypted_data = true
   end

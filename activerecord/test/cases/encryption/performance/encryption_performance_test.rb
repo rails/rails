@@ -4,7 +4,7 @@ require "cases/encryption/helper"
 require "models/book_encrypted"
 require "models/post_encrypted"
 
-class ActiveRecord::Encryption::EncryptionPerformanceTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::EncryptionPerformanceTest < ActiveRecord::EncryptionTestCase
   fixtures :encrypted_books, :posts
 
   setup do

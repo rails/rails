@@ -2,7 +2,7 @@
 
 require "cases/encryption/helper"
 
-class ActiveRecord::Encryption::EncryptorTest < ActiveSupport::TestCase
+class ActiveRecord::Encryption::EncryptorTest < ActiveRecord::EncryptionTestCase
   setup do
     @secret_key = "This is my secret 256 bits key!!"
     @encryptor = ActiveRecord::Encryption::Encryptor.new

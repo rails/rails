@@ -3,7 +3,7 @@
 require "cases/encryption/helper"
 require "models/book_encrypted"
 
-class ActiveRecord::Encryption::EncryptableFixtureTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::EncryptableFixtureTest < ActiveRecord::EncryptionTestCase
   fixtures :encrypted_books, :encrypted_book_that_ignores_cases
 
   test "fixtures get encrypted automatically" do

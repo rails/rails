@@ -2,7 +2,7 @@
 
 require "cases/encryption/helper"
 
-class ActiveRecord::Encryption::Aes256GcmTest < ActiveSupport::TestCase
+class ActiveRecord::Encryption::Aes256GcmTest < ActiveRecord::EncryptionTestCase
   setup do
     @key = ActiveRecord::Encryption.key_generator.generate_random_key length: ActiveRecord::Encryption::Cipher::Aes256Gcm.key_length
     @cipher = ActiveRecord::Encryption::Cipher::Aes256Gcm.new(@key)

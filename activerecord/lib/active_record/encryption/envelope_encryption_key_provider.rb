@@ -8,7 +8,7 @@ module ActiveRecord
     # * It stores the generated key along with the encrypted payload. It encrypts this key
     #   with the master key provided in the credential +active_record.encryption.master key+
     #
-    # This provider can work with multiple master keys. It will use the first one for encrypting.
+    # This provider can work with multiple master keys. It will use the last one for encrypting.
     #
     # When `config.store_key_references` is true, it will also store a reference to
     # the specific master key that was used to encrypt the data-encryption key. When not set,

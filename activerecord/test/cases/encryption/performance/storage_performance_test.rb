@@ -2,7 +2,7 @@
 
 require "cases/encryption/helper"
 
-class ActiveRecord::Encryption::StoragePerformanceTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::StoragePerformanceTest < ActiveRecord::EncryptionTestCase
   test "storage overload without storing keys is acceptable" do
     assert_storage_performance size: 2, overload_less_than: 47
     assert_storage_performance size: 50, overload_less_than: 4

@@ -5,7 +5,7 @@ require "models/author_encrypted"
 require "models/book_encrypted"
 require "models/post_encrypted"
 
-class ActiveRecord::Encryption::EncryptableRecordApiTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::EncryptableRecordApiTest < ActiveRecord::EncryptionTestCase
   fixtures :posts
 
   setup do

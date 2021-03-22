@@ -12,7 +12,7 @@ module ActiveRecord
 
       attr_reader :scheme, :cast_type
 
-      delegate :key_provider, :downcase?, :deterministic?, :with_context, to: :scheme
+      delegate :key_provider, :downcase?, :deterministic?, :with_context, :fixed?, to: :scheme
 
       # === Options
       #
@@ -30,9 +30,11 @@ module ActiveRecord
       end
 
       def serialize(value)
-        casted_value = cast_type.serialize(value)
-        casted_value = casted_value&.downcase if downcase?
-        encrypt(casted_value.to_s) unless casted_value.nil? # Object values without a proper serializer get converted with #to_s
+        if serialize_with_oldest?
+          serialize_with_oldest(value)
+        else
+          serialize_with_current(value)
+        end
       end
 
       def changed_in_place?(raw_old_value, new_value)
@@ -40,14 +42,28 @@ module ActiveRecord
         old_value != new_value
       end
 
-      def previous_encrypted_types # :nodoc:
+      def previous_encrypted_types(include_clear: true) # :nodoc:
         @additional_encrypted_types ||= {} # Memoizing on support_unencrypted_data so that we can tweak it during tests
-        @additional_encrypted_types[support_unencrypted_data?] ||= previous_schemes.collect do |scheme|
+        @additional_encrypted_types["#{support_unencrypted_data?} #{include_clear}"] ||= previous_schemes(include_clear: include_clear).collect do |scheme|
           EncryptedAttributeType.new(scheme: scheme)
         end
       end
 
       private
+        def serialize_with_oldest?
+          @serialize_with_oldest ||= fixed? && previous_encrypted_types(include_clear: false).present?
+        end
+
+        def serialize_with_oldest(value)
+          previous_encrypted_types.first.serialize(value)
+        end
+
+        def serialize_with_current(value)
+          casted_value = cast_type.serialize(value)
+          casted_value = casted_value&.downcase if downcase?
+          encrypt(casted_value.to_s) unless casted_value.nil?
+        end
+
         def decrypt(value)
           with_context do
             encryptor.decrypt(value, **decryption_options) unless value.nil?
@@ -76,8 +92,8 @@ module ActiveRecord
           end
         end
 
-        def previous_schemes
-          scheme.previous_schemes.including((clean_text_scheme if support_unencrypted_data?)).compact
+        def previous_schemes(include_clear: true)
+          scheme.previous_schemes.including((clean_text_scheme if include_clear && support_unencrypted_data?)).compact
         end
 
         def support_unencrypted_data?

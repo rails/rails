@@ -2,7 +2,7 @@
 
 require "cases/encryption/helper"
 
-class ActiveRecord::Encryption::KeyGeneratorTest < ActiveSupport::TestCase
+class ActiveRecord::Encryption::KeyGeneratorTest < ActiveRecord::EncryptionTestCase
   setup do
     @generator = ActiveRecord::Encryption::KeyGenerator.new
   end

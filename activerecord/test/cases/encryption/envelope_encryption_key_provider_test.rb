@@ -2,7 +2,7 @@
 
 require "cases/encryption/helper"
 
-class ActiveRecord::Encryption::EnvelopeEncryptionKeyProviderTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::EnvelopeEncryptionKeyProviderTest < ActiveRecord::EncryptionTestCase
   setup do
     @key_provider = ActiveRecord::Encryption::EnvelopeEncryptionKeyProvider.new
   end

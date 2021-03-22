@@ -2,7 +2,7 @@
 
 require "cases/encryption/helper"
 
-class ActiveRecord::EncryptionPropertiesTest < ActiveSupport::TestCase
+class ActiveRecord::EncryptionPropertiesTest < ActiveRecord::EncryptionTestCase
   setup do
     @properties = ActiveRecord::Encryption::Properties.new
   end

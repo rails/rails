@@ -28,7 +28,10 @@ module ActiveRecord
         #   initialization vector for each encryption operation. This means that encrypting the same content
         #   with the same key twice will generate different ciphertexts. When set to +true+, it will generate the
         #   initialization vector based on the encrypted content. This means that the same content will generate
-        #   the same ciphertexts. This enables querying encrypted text with Active Record.
+        #   the same ciphertexts. This enables querying encrypted text with Active Record. Deterministic encryption
+        #   will use the oldest encryption scheme to encrypt new data by default. You can change this by setting
+        #   +deterministic: { fixed: false }+. That will make it use the newest encryption scheme for encrypting new
+        #   data.
         # * <tt>:downcase</tt> - When true, it converts the encrypted content to downcase automatically. This allows to
         #   effectively ignore case when querying data. Notice that the case is lost. Use +:ignore_case+ if you are interested
         #   in preserving it.
@@ -45,11 +48,9 @@ module ActiveRecord
           self.encrypted_attributes ||= Set.new # not using :default because the instance would be shared across classes
 
           names.each do |name|
-            previous_schemes = ActiveRecord::Encryption.config.previous_schemes + Array.wrap(previous).collect { |scheme_config| ActiveRecord::Encryption::Scheme.new(**scheme_config) }
-            attribute_scheme = ActiveRecord::Encryption::Scheme.new \
-              key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase,
-              ignore_case: ignore_case, previous_schemes: previous_schemes, **context_properties
-            encrypt_attribute name, attribute_scheme
+            scheme = scheme_for key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase, \
+              ignore_case: ignore_case, previous: previous, **context_properties
+            encrypt_attribute name, scheme
           end
         end
 
@@ -66,6 +67,20 @@ module ActiveRecord
         end
 
         private
+          def scheme_for(key_provider: nil, key: nil, deterministic: false, downcase: false, ignore_case: false, previous: [], **context_properties)
+            ActiveRecord::Encryption::Scheme.new(key_provider: key_provider, key: key, deterministic: deterministic,
+                                                 downcase: downcase, ignore_case: ignore_case, **context_properties).tap do |scheme|
+              scheme.previous_schemes = global_previous_schemes_for(scheme) +
+                Array.wrap(previous).collect { |scheme_config| ActiveRecord::Encryption::Scheme.new(**scheme_config) }
+            end
+          end
+
+          def global_previous_schemes_for(scheme)
+            ActiveRecord::Encryption.config.previous_schemes.collect do |previous_scheme|
+              scheme.merge(previous_scheme)
+            end
+          end
+
           def encrypt_attribute(name, attribute_scheme)
             encrypted_attributes << name.to_sym
 

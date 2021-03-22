@@ -2,7 +2,7 @@
 
 require "cases/encryption/helper"
 
-class ActiveRecord::Encryption::MessageTest < ActiveSupport::TestCase
+class ActiveRecord::Encryption::MessageTest < ActiveRecord::EncryptionTestCase
   test "add_header lets you add headers" do
     message = ActiveRecord::Encryption::Message.new
     message.headers[:header_1] = "value 1"

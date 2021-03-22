@@ -3,7 +3,7 @@
 require "cases/encryption/helper"
 require "models/book_encrypted"
 
-class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord::EncryptionTestCase
   setup do
     ActiveRecord::Encryption.config.support_unencrypted_data = true
   end

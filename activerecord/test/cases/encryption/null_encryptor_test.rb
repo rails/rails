@@ -2,7 +2,7 @@
 
 require "cases/encryption/helper"
 
-class ActiveRecord::Encryption::NullEncryptorTest < ActiveSupport::TestCase
+class ActiveRecord::Encryption::NullEncryptorTest < ActiveRecord::EncryptionTestCase
   setup do
     @encryptor = ActiveRecord::Encryption::NullEncryptor.new
   end

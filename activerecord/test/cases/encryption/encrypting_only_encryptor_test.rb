@@ -2,7 +2,7 @@
 
 require "cases/encryption/helper"
 
-class ActiveRecord::Encryption::EncryptingOnlyEncryptorTest < ActiveSupport::TestCase
+class ActiveRecord::Encryption::EncryptingOnlyEncryptorTest < ActiveRecord::EncryptionTestCase
   setup do
     @encryptor = ActiveRecord::Encryption::EncryptingOnlyEncryptor.new
     ActiveRecord::Encryption.config.support_unencrypted_data = true

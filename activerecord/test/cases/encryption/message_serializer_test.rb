@@ -2,7 +2,7 @@
 
 require "cases/encryption/helper"
 
-class ActiveRecord::Encryption::MessageSerializerTest < ActiveSupport::TestCase
+class ActiveRecord::Encryption::MessageSerializerTest < ActiveRecord::EncryptionTestCase
   setup do
     @serializer = ActiveRecord::Encryption::MessageSerializer.new
   end

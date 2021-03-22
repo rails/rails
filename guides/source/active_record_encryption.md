@@ -153,7 +153,7 @@ To ease migrations of unencrypted data, the library includes the option `config.
 
 **This options is meant to be used in transition periods** while clear data and encrypted data need to coexist. Their value is `false` by default, which is the recommended goal for any application: errors will be raised when working with unencrypted data.
 
-### Support for previous encrypting schemes
+### Support for previous encryption schemes
 
 Changing encryption properties of attributes can break existing data. For example, imagine you wan to make a "deterministic" attribute "not deterministic". If you just change the declaration in the model, reading existing ciphertexts will fail because they are different now.
 
@@ -166,6 +166,8 @@ You can configure previous encryption schemes:
 
 * Gloabally
 * On a per-attribute basis
+
+NOTE: Defining previous encryption schemes is only available for non deterministic encryption.
 
 #### Global previous encryption schemes
 
@@ -184,6 +186,46 @@ class Article
   encrypts :title, deterministic: true, previous: { deterministic: false }
 end
 ```
+#### Encryption schemes and deterministic attributes
+
+When adding previous encryption schemes:
+
+* With **non-deterministic encryption**, new information will always be encrypted with the *newest* (current) encryption scheme.
+* With **deterministic encryption**, new information will always be encrypted with the *oldest* encryption scheme by default.
+
+The reason is that, with deterministic encryption, you normally want ciphertexts to remain constant. You can change this behavior by setting `deterministic: { fixed: false} `. In that case, it will use the *newest* encryption scheme for encrypting new data.
+
+### Unique constraints
+
+NOTE: Unique constraints can only be used with data encrypted deterministically.
+
+#### Unique validations
+
+Unique validations are supported normally as long as extended queries are enabled (`config.active_record.encryption.extend_queries = true`).
+
+```ruby
+class Person
+  validates :email_address, uniqueness: true
+  encrypts :email_address, deterministic: true, downcase: true
+end
+```
+
+They will also work when combining encrypted and unencrypted data, and when configuring previous encryption schemes.
+
+NOTE: If you want to ignore case make sure to use `downcase:` or `ignore_case:` in the `.encrypts` declaration. Using the `case_sensitive:` option in the validation won't work.
+
+#### Unique indexes
+
+To support unique indexes on deterministically-encrypted columns, you need to make sure their ciphertext doesn't ever change. 
+
+To encourage this, by default, deterministic attributes will always use the oldest encryption scheme, when multiple encryption schemes are configured. Other than this, it's up to you making sure that encryption properties don't change for these attributes, or the unique indexes won't work.
+
+```ruby
+class Person
+  encrypts :email_address, deterministic: true
+end
+```
+
 ### Filtering params named as encrypted columns
 
 By default, encrypted columns are configured to be [automatically filtered in Rails logs](https://guides.rubyonrails.org/action_controller_overview.html#parameters-filtering). You can disable this behavior by adding this to your `application.rb`:
@@ -290,14 +332,7 @@ active_record.encryption:
 
 This enables workflows where you keep a short list of keys, by adding new keys, re-encrypting content and deleting old keys.
 
-This works consistently across the built-in key providers. Also, when using a deterministic encryption strategy, you can set a list of keys in `active_record.encryption.deterministic_key`.
-
-```yaml
-active_record.encryption:
-  deterministic_key:
-    - dd9e4ffef6eced8317667d70df7c75eb # Active, encrypts new content
-    - 6940371df37f040e0e8a12948bb31cda # Previous keys can still decrypt existing content
-```
+NOTE: Rotating keys is not currently supported for deterministic encryption.
 
 NOTE: Active Record Encryption doesn't provide automatic management of key rotation processes yet. All the pieces are there, but this hasn't been implemented yet. 
 

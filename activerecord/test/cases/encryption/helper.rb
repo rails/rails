@@ -137,22 +137,23 @@ module ActiveRecord::Encryption
   end
 end
 
-class ActiveRecord::TestCase
+class ActiveRecord::EncryptionTestCase < ActiveRecord::TestCase
   include ActiveRecord::Encryption::EncryptionHelpers, ActiveRecord::Encryption::PerformanceHelpers
   # , PerformanceHelpers
 
-  ENCRYPTION_ERROR_FLAGS = %i[ primary_key store_key_references key_derivation_salt support_unencrypted_data
-    encrypt_fixtures previous_schemes ]
+  ENCRYPTION_ATTRIBUTES_TO_RESET = %i[ primary_key deterministic_key store_key_references key_derivation_salt support_unencrypted_data
+    encrypt_fixtures ]
 
   setup do
-    ENCRYPTION_ERROR_FLAGS.each do |property|
+    ENCRYPTION_ATTRIBUTES_TO_RESET.each do |property|
       instance_variable_set "@_original_#{property}", ActiveRecord::Encryption.config.public_send(property)
     end
+    ActiveRecord::Encryption.config.previous_schemes.clear
     ActiveRecord::Encryption.encrypted_attribute_declaration_listeners&.clear
   end
 
   teardown do
-    ENCRYPTION_ERROR_FLAGS.each do |property|
+    ENCRYPTION_ATTRIBUTES_TO_RESET.each do |property|
       ActiveRecord::Encryption.config.public_send("#{property}=", instance_variable_get("@_original_#{property}"))
     end
   end

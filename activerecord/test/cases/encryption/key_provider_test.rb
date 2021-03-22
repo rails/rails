@@ -2,7 +2,7 @@
 
 require "cases/encryption/helper"
 
-class ActiveRecord::Encryption::KeyProviderTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::KeyProviderTest < ActiveRecord::EncryptionTestCase
   setup do
     @message ||= ActiveRecord::Encryption::Message.new(payload: "some secret")
     @keys = build_keys(3)
@@ -17,8 +17,8 @@ class ActiveRecord::Encryption::KeyProviderTest < ActiveRecord::TestCase
     assert_equal [ key_provider.encryption_key ], key_provider.decryption_keys(@message)
   end
 
-  test "serves the first key for encrypting" do
-    assert_equal @keys.first, @key_provider.encryption_key
+  test "serves the last key for encrypting" do
+    assert_equal @keys.last, @key_provider.encryption_key
   end
 
   test "when store_key_references is false, the encryption key contains a reference to the key itself" do
@@ -28,7 +28,7 @@ class ActiveRecord::Encryption::KeyProviderTest < ActiveRecord::TestCase
   test "when store_key_references is true, the encryption key contains a reference to the key itself" do
     ActiveRecord::Encryption.config.store_key_references = true
 
-    assert_equal @keys.first.id, @key_provider.encryption_key.public_tags.encrypted_data_key_id
+    assert_equal @keys.last.id, @key_provider.encryption_key.public_tags.encrypted_data_key_id
   end
 
   test "when the message does not contain any key reference, it returns all the keys" do

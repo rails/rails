@@ -4,7 +4,7 @@ require "cases/encryption/helper"
 require "models/author_encrypted"
 require "models/book"
 
-class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::EncryptionTestCase
   test "can decrypt encrypted_value encrypted with a different encryption scheme" do
     ActiveRecord::Encryption.config.support_unencrypted_data = false
 
@@ -62,6 +62,36 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::TestCase
       encrypted_author_class.create name: previoys_type_2.serialize("2")
     end
     assert_equal "1", author.reload.name
+  end
+
+  test "deterministic encryption is fixed by default: it will always use the oldest scheme to encrypt data" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = false
+    ActiveRecord::Encryption.config.deterministic_key = "12345"
+    ActiveRecord::Encryption.config.previous = [ { downcase: true }, { downcase: false } ]
+
+    encrypted_author_class = Class.new(Author) do
+      self.table_name = "authors"
+
+      encrypts :name, deterministic: true, downcase: false
+    end
+
+    author = encrypted_author_class.create!(name: "STEPHEN KING")
+    assert_equal "stephen king", author.name
+  end
+
+  test "deterministic encryption will use the newest encryption scheme to encrypt data when setting it to { fixed: false }" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = false
+    ActiveRecord::Encryption.config.deterministic_key = "12345"
+    ActiveRecord::Encryption.config.previous = [ { downcase: true }, { downcase: false } ]
+
+    encrypted_author_class = Class.new(Author) do
+      self.table_name = "authors"
+
+      encrypts :name, deterministic: { fixed: false }, downcase: false
+    end
+
+    author = encrypted_author_class.create!(name: "STEPHEN KING")
+    assert_equal "STEPHEN KING", author.name
   end
 
   private

@@ -2,7 +2,7 @@
 
 require "cases/encryption/helper"
 
-class ActiveRecord::Encryption::CipherTest < ActiveSupport::TestCase
+class ActiveRecord::Encryption::CipherTest < ActiveRecord::EncryptionTestCase
   setup do
     @cipher = ActiveRecord::Encryption::Cipher.new
     @key = ActiveRecord::Encryption.key_generator.generate_random_key

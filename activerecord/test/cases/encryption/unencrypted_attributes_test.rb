@@ -3,7 +3,7 @@
 require "cases/encryption/helper"
 require "models/post_encrypted"
 
-class ActiveRecord::Encryption::UnencryptedAttributesTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::UnencryptedAttributesTest < ActiveRecord::EncryptionTestCase
   test "when :support_unencrypted_data is off, it works with unencrypted attributes normally" do
     ActiveRecord::Encryption.config.support_unencrypted_data = true
 

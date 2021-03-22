@@ -18,9 +18,11 @@ module ActiveRecord
       # a public tag referencing the key itself. That key will be stored in the public
       # headers of the encrypted message
       def encryption_key
-        @encryption_key ||= @keys.first.tap do |key|
+        @encryption_key ||= @keys.last.tap do |key|
           key.public_tags.encrypted_data_key_id = key.id if ActiveRecord::Encryption.config.store_key_references
         end
+
+        @encryption_key
       end
 
       # Returns the list of decryption keys

@@ -2,7 +2,7 @@
 
 require "cases/encryption/helper"
 
-class ActiveRecord::Encryption::DerivedSecretKeyProviderTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::DerivedSecretKeyProviderTest < ActiveRecord::EncryptionTestCase
   setup do
     @message ||= ActiveRecord::Encryption::Message.new(payload: "some secret")
     @keys = build_keys(3)

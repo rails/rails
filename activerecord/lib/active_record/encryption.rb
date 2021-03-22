@@ -18,6 +18,7 @@ module ActiveRecord
       autoload :EncryptedAttributeType
       autoload :EncryptedFixtures
       autoload :EncryptingOnlyEncryptor
+      autoload :DeterministicKeyProvider
       autoload :Encryptor
       autoload :EnvelopeEncryptionKeyProvider
       autoload :Errors

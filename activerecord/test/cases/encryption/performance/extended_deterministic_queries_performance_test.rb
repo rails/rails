@@ -3,7 +3,7 @@
 require "cases/encryption/helper"
 require "models/book_encrypted"
 
-class ActiveRecord::Encryption::ExtendedDeterministicQueriesPerformanceTest < ActiveRecord::TestCase
+class ActiveRecord::Encryption::ExtendedDeterministicQueriesPerformanceTest < ActiveRecord::EncryptionTestCase
   test "finding with prepared statement caching by deterministically encrypted columns" do
     baseline = -> { EncryptedBook.find_by(format: "paperback") } # not encrypted
 
