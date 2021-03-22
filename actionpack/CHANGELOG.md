@@ -1,3 +1,9 @@
+*   Add support for 'private, no-store' Cache-Control headers.
+
+    Previously, 'no-store' was exclusive; no other directives could be specified.
+
+    *Alex Smith*
+
 *   Expand payload of `unpermitted_parameters.action_controller` instrumentation to allow subscribers to
     know which controller action received unpermitted parameters.
 
