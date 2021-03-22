@@ -604,13 +604,13 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_with_escaped_params
     @request = request_for_url("/category/administra%c3%a7%c3%a3o")
 
-    assert current_page?({ controller: "foo", action: "category", category: "administração" })
+    assert current_page?(controller: "foo", action: "category", category: "administração")
   end
 
   def test_current_page_with_escaped_params_with_different_encoding
     @request = request_for_url("/")
     @request.stub(:path, (+"/category/administra%c3%a7%c3%a3o").force_encoding(Encoding::ASCII_8BIT)) do
-      assert current_page?({ controller: "foo", action: "category", category: "administração" })
+      assert current_page?(controller: "foo", action: "category", category: "administração")
       assert current_page?("http://www.example.com/category/administra%c3%a7%c3%a3o")
     end
   end
@@ -618,7 +618,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_with_double_escaped_params
     @request = request_for_url("/category/administra%c3%a7%c3%a3o?callback_url=http%3a%2f%2fexample.com%2ffoo")
 
-    assert current_page?({ controller: "foo", action: "category", category: "administração", callback_url: "http://example.com/foo" })
+    assert current_page?(controller: "foo", action: "category", category: "administração", callback_url: "http://example.com/foo")
   end
 
   def test_current_page_with_trailing_slash
