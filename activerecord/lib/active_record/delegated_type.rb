@@ -136,6 +136,16 @@ module ActiveRecord
   #   end
   #
   # Now you can list a bunch of entries, call +Entry#title+, and polymorphism will provide you with the answer.
+  #
+  # == Active Record Nested Attributes
+  #
+  # Enabling nested attributes on a delegated_type association allows you to
+  # create the entry and message in one go:
+  #
+  #   params = { entry: { entryable_type: 'Message', entryable_attributes: { subject: 'Smiling' } } }
+  #   entry = Entry.create(params[:entry])
+  #   entry.entryable.id # => 2
+  #   entry.entryable.subject # => 'Smiling'
   module DelegatedType
     # Defines this as a class that'll delegate its type for the passed +role+ to the class references in +types+.
     # That'll create a polymorphic +belongs_to+ relationship to that +role+, and it'll add all the delegated
@@ -204,6 +214,10 @@ module ActiveRecord
 
         define_method "#{role}_name" do
           public_send("#{role}_class").model_name.singular.inquiry
+        end
+
+        define_method "build_#{role}" do |*params|
+          public_send("#{role}=", public_send("#{role}_class").new(*params))
         end
 
         types.each do |type|
