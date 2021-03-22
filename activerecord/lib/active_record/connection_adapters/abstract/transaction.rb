@@ -287,11 +287,11 @@ module ActiveRecord
 
           begin
             transaction.before_commit_records
+            transaction.commit
           ensure
             @stack.pop
           end
 
-          transaction.commit
           transaction.commit_records
         end
       end

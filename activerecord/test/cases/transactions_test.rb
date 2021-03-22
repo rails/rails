@@ -248,7 +248,7 @@ class TransactionTest < ActiveRecord::TestCase
       @first.save!
     end
 
-    assert_equal 0, num
+    assert_equal 1, num
   ensure
     Topic.connection.class_eval do
       remove_method :commit_db_transaction
