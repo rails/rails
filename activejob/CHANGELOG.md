@@ -1,3 +1,11 @@
+*   Stop executing perform method when `retry_job` is called
+
+    The `perform` method can now be automatically interrupted if `retry_job`
+    is called, preventing weird states where a job continues to execute after
+    it has been re-enqueued.
+
+    *Daniel Morton*
+
 *   Communicate enqueue failures to callers of `perform_later`.
 
     `perform_later` can now optionally take a block which will execute after

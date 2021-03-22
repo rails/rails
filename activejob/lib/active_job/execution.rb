@@ -56,6 +56,9 @@ module ActiveJob
       def _perform_job
         run_callbacks :perform do
           perform(*arguments)
+        rescue ActiveJob::Exceptions::RetryInvokedError => e
+          # Allows execution of perform to be halted but prevents RetryInvokedError from bubbling up any further
+          e.enqueue_result
         end
       end
   end

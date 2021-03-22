@@ -2,6 +2,7 @@
 
 require "helper"
 require "jobs/retry_job"
+require "jobs/halt_on_retry_job"
 require "models/person"
 require "minitest/mock"
 
@@ -323,6 +324,14 @@ class ExceptionsTest < ActiveSupport::TestCase
     end
 
     assert_equal ["Raised DefaultsError for the 5th time"], JobBuffer.values
+  end
+
+  test "job stops executing perform method after calling retry_job if configured to do so" do
+    HaltOnRetryJob.perform_later
+    assert_equal 3, JobBuffer.values.count
+    assert_equal "Executing before retry_job was called", JobBuffer.values[0]
+    assert_equal "Executing before retry_job was called", JobBuffer.values[1]
+    assert_equal "Job complete", JobBuffer.values[2]
   end
 
   private

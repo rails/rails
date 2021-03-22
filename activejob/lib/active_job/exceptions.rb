@@ -7,8 +7,16 @@ module ActiveJob
   module Exceptions
     extend ActiveSupport::Concern
 
+    class RetryInvokedError < StandardError
+      attr_reader :enqueue_result
+      def initialize(enqueue_result)
+        @enqueue_result = enqueue_result
+      end
+    end
+
     included do
       class_attribute :retry_jitter, instance_accessor: false, instance_predicate: false, default: 0.0
+      class_attribute :abort_perform_on_retry_job, instance_accessor: false, instance_predicate: false, default: false
     end
 
     module ClassMethods
@@ -96,6 +104,10 @@ module ActiveJob
           end
         end
       end
+
+      def abort_perform_on_retry(abort_perform = false)
+        self.abort_perform_on_retry_job = abort_perform
+      end
     end
 
     # Reschedules the job to be re-executed. This is useful in combination
@@ -121,7 +133,9 @@ module ActiveJob
     #  end
     def retry_job(options = {})
       instrument :enqueue_retry, options.slice(:error, :wait) do
-        enqueue options
+        enqueue_result = enqueue options
+        raise RetryInvokedError.new(enqueue_result) if self.class.abort_perform_on_retry_job
+        enqueue_result
       end
     end
 
