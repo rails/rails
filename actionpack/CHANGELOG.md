@@ -1,3 +1,10 @@
+*   Add support for 'private, no-store' Cache-Control headers.
+
+    Previously, 'no-store' was exclusive; no other directives could be specified.
+
+    *Alex Smith*
+
+
 ## Rails 6.1.3.1 (March 26, 2021) ##
 
 *   No changes.
