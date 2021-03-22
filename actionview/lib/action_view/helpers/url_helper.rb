@@ -571,6 +571,19 @@ module ActionView
         end
       end
 
+      if RUBY_VERSION.start_with?("2.7")
+        using Module.new {
+          refine UrlHelper do
+            alias :_current_page? :current_page?
+          end
+        }
+
+        def current_page?(*args) # :nodoc:
+          options = args.pop
+          options.is_a?(Hash) ? _current_page?(*args, **options) : _current_page?(*args, options)
+        end
+      end
+
       # Creates an SMS anchor link tag to the specified +phone_number+, which is
       # also used as the name of the link unless +name+ is specified. Additional
       # HTML attributes for the link can be passed in +html_options+.
