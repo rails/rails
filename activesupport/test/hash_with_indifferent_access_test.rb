@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
-require "active_support/core_ext/hash"
 require "bigdecimal"
+require "yaml"
+require "active_support/core_ext/hash"
 require "active_support/core_ext/string/access"
 require "active_support/core_ext/object/conversions"
 require "active_support/core_ext/object/deep_dup"
