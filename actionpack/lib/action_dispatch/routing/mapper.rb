@@ -1306,6 +1306,16 @@ module ActionDispatch
         #   DELETE    /profile
         #   POST      /profile
         #
+        # If you want instances of a model to work with this resource via
+        # record identification (eg. in +form_with+ or +redirect_to+), you
+        # will need to call resolve[rdoc-ref:CustomUrls#resolve]:
+        #
+        #   resource :profile
+        #   resolve('Profile') { [:profile] }
+        #
+        #   # Enables this to work with singular routes:
+        #   form_with(model: @profile) {}
+        #
         # === Options
         # Takes same options as resources[rdoc-ref:#resources]
         def resource(*resources, &block)
