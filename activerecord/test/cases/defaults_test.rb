@@ -102,6 +102,33 @@ if current_adapter?(:PostgreSQLAdapter)
   end
 end
 
+if supports_default_text?
+  class DefaultTextTest < ActiveRecord::TestCase
+    class DefaultText < ActiveRecord::Base; end
+
+    setup do
+      @connection = ActiveRecord::Base.connection
+      @connection.create_table :default_texts do |t|
+        t.text :text_col, default: "Smith"
+        t.text :text_col_with_quotes, default: "O'Connor"
+      end
+      DefaultText.reset_column_information
+    end
+
+    def test_default_texts
+      assert_equal "Smith", DefaultText.new.text_col
+    end
+
+    def test_default_texts_containing_single_quotes
+      assert_equal "O'Connor", DefaultText.new.text_col_with_quotes
+    end
+
+    teardown do
+      @connection.drop_table :default_texts
+    end
+  end
+end
+
 if current_adapter?(:Mysql2Adapter)
   class MysqlDefaultExpressionTest < ActiveRecord::TestCase
     include SchemaDumpingHelper

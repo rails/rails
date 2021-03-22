@@ -54,6 +54,15 @@ def supports_default_expression?
   end
 end
 
+def supports_default_text?
+  if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+    true
+  elsif current_adapter?(:Mysql2Adapter)
+    conn = ActiveRecord::Base.connection
+    conn.mariadb? && conn.database_version >= "10.2.1"
+  end
+end
+
 %w[
   supports_savepoints?
   supports_partial_index?

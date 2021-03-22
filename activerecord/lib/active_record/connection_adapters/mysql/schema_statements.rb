@@ -167,6 +167,9 @@ module ActiveRecord
             elsif type_metadata.extra == "DEFAULT_GENERATED"
               default = +"(#{default})" unless default.start_with?("(")
               default, default_function = nil, default
+            elsif default_text_value_mariadb?(default, type_metadata)
+              remove_sorrounding_quotes!(default)
+              unescape_single_qoutes!(default)
             end
 
             MySQL::Column.new(
@@ -182,6 +185,20 @@ module ActiveRecord
 
           def fetch_type_metadata(sql_type, extra = "")
             MySQL::TypeMetadata.new(super(sql_type), extra: extra)
+          end
+
+          def default_text_value_mariadb?(default, type_metadata)
+            default && type_metadata.type == :text &&
+              mariadb? && database_version >= "10.2.1"
+          end
+
+          def remove_sorrounding_quotes!(default)
+            default.delete_prefix!("'")
+            default.delete_suffix!("'")
+          end
+
+          def unescape_single_qoutes!(default)
+            default.gsub!("\\'", "'")
           end
 
           def extract_foreign_key_action(specifier)
