@@ -776,6 +776,10 @@ module ActiveRecord
       @values.dup
     end
 
+    def values_for_queries # :nodoc:
+      @values.except(:extending, :skip_query_cache, :strict_loading)
+    end
+
     def inspect
       subject = loaded? ? records : annotate("loading for inspect")
       entries = subject.take([limit_value, 11].compact.min).map!(&:inspect)
