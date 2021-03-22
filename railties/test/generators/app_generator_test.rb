@@ -304,7 +304,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "bin/setup" do |content|
       # Does not comment yarn install
-      assert_match(/(?=[^#]*?) system! 'bin\/yarn'/, content)
+      assert_match(/(?=[^#]*?) system! "bin\/yarn"/, content)
     end
   end
 
@@ -320,7 +320,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_file "#{app_root}/bin/yarn"
 
       assert_file "#{app_root}/bin/setup" do |content|
-        assert_no_match(/system! 'bin\/yarn'/, content)
+        assert_no_match(/system! "bin\/yarn"/, content)
       end
     end
   end

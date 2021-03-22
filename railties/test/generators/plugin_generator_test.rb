@@ -541,9 +541,9 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_usage_of_engine_commands
     run_generator [destination_root, "--full"]
-    assert_file "bin/rails", /ENGINE_PATH = File\.expand_path\('\.\.\/lib\/bukkits\/engine', __dir__\)/
-    assert_file "bin/rails", /ENGINE_ROOT = File\.expand_path\('\.\.', __dir__\)/
-    assert_file "bin/rails", %r|APP_PATH = File\.expand_path\('\.\./test/dummy/config/application', __dir__\)|
+    assert_file "bin/rails", /ENGINE_PATH = File\.expand_path\("\.\.\/lib\/bukkits\/engine", __dir__\)/
+    assert_file "bin/rails", /ENGINE_ROOT = File\.expand_path\("\.\.", __dir__\)/
+    assert_file "bin/rails", %r|APP_PATH = File\.expand_path\("\.\./test/dummy/config/application", __dir__\)|
     assert_file "bin/rails", /require "rails\/all"/
     assert_file "bin/rails", /require "rails\/engine\/commands"/
   end
@@ -866,7 +866,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     quietly { Rails::Engine::Updater.run(:create_bin_files) }
 
     assert_file "#{destination_root}/bin/rails" do |content|
-      assert_match(%r|APP_PATH = File\.expand_path\('\.\./test/dummy/config/application', __dir__\)|, content)
+      assert_match(%r|APP_PATH = File\.expand_path\("\.\./test/dummy/config/application", __dir__\)|, content)
     end
   ensure
     Object.send(:remove_const, "ENGINE_ROOT")

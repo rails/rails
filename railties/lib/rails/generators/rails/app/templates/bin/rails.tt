@@ -1,6 +1,6 @@
 <% if spring_install? -%>
 load File.expand_path("spring", __dir__)
 <% end -%>
-APP_PATH = File.expand_path('../config/application', __dir__)
+APP_PATH = File.expand_path("../config/application", __dir__)
 require_relative "../config/boot"
 require "rails/commands"
