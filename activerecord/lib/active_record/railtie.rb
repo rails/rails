@@ -286,15 +286,17 @@ To keep using the current cache store, you can turn off cache versioning entirel
          **config.active_record.encryption
 
       ActiveSupport.on_load(:active_record) do
-        # Encrypt active record fixtures
-        if ActiveRecord::Encryption.config.encrypt_fixtures
-          ActiveRecord::Fixture.prepend ActiveRecord::Encryption::EncryptedFixtures
-        end
-
         # Support extended queries for deterministic attributes and validations
         if ActiveRecord::Encryption.config.extend_queries
           ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
           ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
+        end
+      end
+
+      ActiveSupport.on_load(:active_record_fixture_set) do
+        # Encrypt active record fixtures
+        if ActiveRecord::Encryption.config.encrypt_fixtures
+          ActiveRecord::Fixture.prepend ActiveRecord::Encryption::EncryptedFixtures
         end
       end
 
