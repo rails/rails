@@ -78,7 +78,7 @@ module ActiveRecord
           PG.connect(conn_params)
         rescue ::PG::Error => error
           if conn_params && conn_params[:dbname] && error.message.include?("database \"#{conn_params[:dbname]}\" does not exist")
-            raise ActiveRecord::NoDatabaseError
+            raise ActiveRecord::NoDatabaseError, error.message
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
