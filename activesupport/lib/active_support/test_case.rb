@@ -75,7 +75,7 @@ module ActiveSupport
         workers = Concurrent.physical_processor_count if workers == :number_of_processors
         workers = ENV["PARALLEL_WORKERS"].to_i if ENV["PARALLEL_WORKERS"]
 
-        return if workers <= 1
+        return if workers <= 1 || ActiveSupport.test_parallelization_disabled
 
         executor = case with
                    when :processes
@@ -91,6 +91,12 @@ module ActiveSupport
         Minitest.parallel_executor = executor
 
         parallelize_me!
+
+        # `Minitest::Test.parallelize_me!` will try to change `test_order` to return
+        # `:parallel`. However, since `ActiveSupport::TestCase` is already overriding it,
+        # in some inheritance situations, it will have precedence over the `Minitest` one.
+        # For this reason, it needs to be updated by hand.
+        self.test_order = :parallel
       end
 
       # Set up hook for parallel testing. This can be used if you have multiple
