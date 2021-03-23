@@ -208,6 +208,10 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_sql(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
       assert_equal [david], only_david.merge(only_david)
     end
+
+    assert_sql(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
+      assert_equal [david], only_david.merge(only_david, rewhere: true)
+    end
   end
 
   def test_relation_merging
