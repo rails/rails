@@ -104,6 +104,10 @@ config.active_record.encryption.encrypt_fixtures = true
 
 When enabled, all the encryptable attributes will be encrypted according to the encryption settings defined in the model.
 
+#### Action text fixtures
+
+To encrypt action text fixtures you should place them in `fixtures/action_text/encrypted_rich_texts.yml`. 
+
 ### Supported types
 
 `active_record.encryption` will serialize values using the underlying type before encrypting them, but *they must be serializable as strings*, as that will be the value that the library will encrypt. Structured types like `serialized` are supported out of the box.
