@@ -408,7 +408,21 @@ module ActiveRecord
       end
 
       # Specifies columns which shouldn't be exposed while calling +#inspect+.
-      attr_writer :filter_attributes
+      def filter_attributes=(filter_attributes)
+        @inspection_filter = nil
+        @filter_attributes = filter_attributes
+      end
+
+      def inspection_filter # :nodoc:
+        if defined?(@filter_attributes)
+          @inspection_filter ||= begin
+            mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
+            ActiveSupport::ParameterFilter.new(@filter_attributes, mask: mask)
+          end
+        else
+          superclass.inspection_filter
+        end
+      end
 
       # Returns a string like 'Post(id:integer, title:string, body:text)'
       def inspect # :nodoc:
@@ -776,10 +790,7 @@ module ActiveRecord
       private_constant :InspectionMask
 
       def inspection_filter
-        @inspection_filter ||= begin
-          mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
-          ActiveSupport::ParameterFilter.new(self.class.filter_attributes, mask: mask)
-        end
+        self.class.inspection_filter
       end
   end
 end
