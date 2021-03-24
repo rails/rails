@@ -275,7 +275,10 @@ module ActionController
         return false unless request.has_content_type?
 
         ref = request.content_mime_type.ref
+
         _wrapper_formats.include?(ref) && _wrapper_key && !request.parameters.key?(_wrapper_key)
+      rescue ActionDispatch::Http::Parameters::ParseError
+       false
       end
 
       def _perform_parameter_wrapping
@@ -289,8 +292,6 @@ module ActionController
 
         # This will display the wrapped hash in the log file.
         request.filtered_parameters.merge! wrapped_filtered_hash
-      rescue ActionDispatch::Http::Parameters::ParseError
-        # swallow parse error exception
       end
   end
 end
