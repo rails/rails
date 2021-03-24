@@ -240,11 +240,11 @@ module ActiveRecord
     end
 
     def save(**options) # :nodoc
-      saving { super }
+      _saving { super }
     end
 
     def save!(**options) # :nodoc:
-      saving { super }
+      _saving { super }
     end
 
     # Marks this record to be destroyed as part of the parent's save transaction.
@@ -282,21 +282,15 @@ module ActiveRecord
       new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
-    # Returns whether or not this record is already being saved outside of the
-    # current autosave callback
-    def saving? #:nodoc:
-      @saving
-    end
-
     protected
-      def can_save? # :nodoc:
-        !destroyed? && !saving?
+      def _can_save? # :nodoc:
+        !destroyed? && !@saving
       end
 
     private
       # Track if this record is being saved. If it is being saved we
-      # can skip saving it in the autosave callbacks
-      def saving
+      # can skip saving it in the autosave callbacks.
+      def _saving
         previously_saving, @saving = @saving, true
         yield
       ensure
@@ -429,7 +423,7 @@ module ActiveRecord
             end
 
             records.each do |record|
-              next unless record.can_save?
+              next unless record._can_save?
 
               saved = true
 
@@ -466,7 +460,7 @@ module ActiveRecord
         association = association_instance_get(reflection.name)
         record      = association && association.load_target
 
-        if record&.can_save?
+        if record&._can_save?
           autosave = reflection.options[:autosave]
 
           if autosave && record.marked_for_destruction?
@@ -511,7 +505,7 @@ module ActiveRecord
         return unless association && association.loaded? && !association.stale_target?
 
         record = association.load_target
-        if record&.can_save?
+        if record&._can_save?
           autosave = reflection.options[:autosave]
 
           if autosave && record.marked_for_destruction?
