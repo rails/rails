@@ -171,6 +171,7 @@ module ActiveRecord
       developers = Developer.distinct.order(:salary).limit(5)
 
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+      assert_not_predicate developers, :loaded?
     end
 
     test "cache_key with a relation having custom select and order" do
