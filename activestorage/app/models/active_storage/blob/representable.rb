@@ -113,7 +113,7 @@ module ActiveStorage::Blob::Representable
       if filename.extension.present? && ::MIME::Types.type_for(filename.extension)&.to_s == content_type
         filename.extension
       else
-        ::Mime::Types[content_type].first.extensions.first
+        ::MIME::Types[content_type].first.extensions.first
       end
     end
 
