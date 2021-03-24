@@ -278,7 +278,7 @@ module ActionController
 
         _wrapper_formats.include?(ref) && _wrapper_key && !request.parameters.key?(_wrapper_key)
       rescue ActionDispatch::Http::Parameters::ParseError
-       false
+        false
       end
 
       def _perform_parameter_wrapping
