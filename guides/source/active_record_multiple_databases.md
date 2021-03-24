@@ -58,7 +58,7 @@ replica for that as well. To do this we need to change our `database.yml` from a
 to a 3-tier config.
 
 If a primary configuration is provided, it will be used as the "default" configuration. If
-there is no configuration named `primary`, Rails will use the first configuration as default
+there is no configuration named `"primary"`, Rails will use the first configuration as default
 for each environment. The default configurations will use the default Rails filenames. For example,
 primary configurations will use `schema.rb` for the schema file, whereas all the other entries
 will use `[CONFIGURATION_NAMESPACE]_schema.rb` for the filename.
