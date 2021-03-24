@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "mimemagic"
+require "mime/types"
 
 module ActiveStorage::Blob::Representable
   extend ActiveSupport::Concern
@@ -110,10 +110,10 @@ module ActiveStorage::Blob::Representable
     end
 
     def format
-      if filename.extension.present? && MimeMagic.by_extension(filename.extension)&.to_s == content_type
+      if filename.extension.present? && ::MIME::Types.type_for(filename.extension)&.to_s == content_type
         filename.extension
       else
-        MimeMagic.new(content_type).extensions.first
+        ::Mime::Types[content_type].first.extensions.first
       end
     end
 

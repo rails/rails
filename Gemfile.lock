@@ -75,7 +75,7 @@ PATH
       activerecord (= 7.0.0.alpha)
       activesupport (= 7.0.0.alpha)
       marcel (~> 0.3.1)
-      mimemagic (~> 0.3.2)
+      mime-types (~> 3.3.1)
     activesupport (7.0.0.alpha)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
@@ -107,17 +107,6 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activerecord-jdbc-adapter (61.0-java)
-      activerecord (~> 6.1.0)
-    activerecord-jdbcmysql-adapter (61.0-java)
-      activerecord-jdbc-adapter (= 61.0)
-      jdbc-mysql (~> 5.1.36, < 9)
-    activerecord-jdbcpostgresql-adapter (61.0-java)
-      activerecord-jdbc-adapter (= 61.0)
-      jdbc-postgres (>= 9.4, < 43)
-    activerecord-jdbcsqlite3-adapter (61.0-java)
-      activerecord-jdbc-adapter (= 61.0)
-      jdbc-sqlite3 (~> 3.8, < 3.30)
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
     amq-protocol (2.3.2)
@@ -296,9 +285,6 @@ GEM
     image_processing (1.12.1)
       mini_magick (>= 4.9.5, < 5)
       ruby-vips (>= 2.0.17, < 3)
-    jdbc-mysql (5.1.47)
-    jdbc-postgres (42.2.14)
-    jdbc-sqlite3 (3.28.0)
     jmespath (1.4.0)
     json (2.5.1)
     json (2.5.1-java)
@@ -319,6 +305,9 @@ GEM
       mimemagic (~> 0.3.2)
     memoist (0.16.2)
     method_source (1.0.0)
+    mime-types (3.3.1)
+      mime-types-data (~> 3.2015)
+    mime-types-data (3.2021.0225)
     mimemagic (0.3.5)
     mini_magick (4.11.0)
     mini_mime (1.0.2)
@@ -369,7 +358,6 @@ GEM
     pg (1.2.3)
     pg (1.2.3-x64-mingw32)
     pg (1.2.3-x86-mingw32)
-    psych (3.3.0)
     public_suffix (4.0.6)
     puma (5.1.1)
       nio4r (~> 2.0)
@@ -518,8 +506,6 @@ GEM
     turbolinks-source (5.2.0)
     tzinfo (2.0.4)
       concurrent-ruby (~> 1.0)
-    tzinfo-data (1.2020.6)
-      tzinfo (>= 1.0.0)
     uber (0.1.0)
     uglifier (4.2.0)
       execjs (>= 0.3.0, < 3)
@@ -531,7 +517,6 @@ GEM
       json (>= 1.8)
       nokogiri (~> 1.6)
       rexml (~> 3.2)
-    wdm (0.1.1)
     webdrivers (4.5.0)
       nokogiri (~> 1.6)
       rubyzip (>= 1.3.0)
@@ -638,4 +623,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.2.3
+   2.2.15
