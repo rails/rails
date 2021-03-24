@@ -39,9 +39,10 @@ module ActiveRecord
 
         def grouped_records
           h = {}
+          polymorphic_parent = !root? && parent.polymorphic?
           source_records.each do |record|
             reflection = record.class._reflect_on_association(association)
-            next if polymorphic_parent? && !reflection || !record.association(association).klass
+            next if polymorphic_parent && !reflection || !record.association(association).klass
             (h[reflection] ||= []) << record
           end
           h
@@ -53,17 +54,13 @@ module ActiveRecord
           end
         end
 
-        def polymorphic_parent?
-          return false if root?
-
-          parent.polymorphic?
-        end
-
         def polymorphic?
           return false if root?
+          return @polymorphic if defined?(@polymorphic)
 
-          grouped_records.keys.any? do |reflection|
-            reflection.options[:polymorphic]
+          @polymorphic = source_records.any? do |record|
+            reflection = record.class._reflect_on_association(association)
+            reflection && reflection.options[:polymorphic]
           end
         end
 
