@@ -65,9 +65,9 @@ class FilterAttributesTest < ActiveRecord::TestCase
 
   test "proc filter_attributes don't prevent marshal dump" do
     ActiveRecord::Base.filter_attributes = [ lambda { |key, value| value.reverse! if key == "name" } ]
-    account = Admin::Account.new(name: "37signals")
+    account = Admin::Account.new(id: 123, name: "37signals")
     account.inspect
-    Marshal.dump(account)
+    assert_equal account, Marshal.load(Marshal.dump(account))
   end
 
   test "filter_attributes could be overwritten by models" do
