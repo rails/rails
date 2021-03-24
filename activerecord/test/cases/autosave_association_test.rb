@@ -1953,10 +1953,6 @@ class TestAutosaveAssociationOnAHasManyAssociationDefinedInSubclassWithAcceptsNe
 end
 
 class TestCyclicAutosaveAssociationsOnlySaveOnce < ActiveRecord::TestCase
-  teardown do
-    $autosave_saving_stack = []
-  end
-
   test "child is saved only once if child is the inverse has_one of parent" do
     ship_reflection = Ship.reflect_on_association(:pirate)
     pirate_reflection = Pirate.reflect_on_association(:ship)
@@ -1965,16 +1961,16 @@ class TestCyclicAutosaveAssociationsOnlySaveOnce < ActiveRecord::TestCase
     child = Ship.new(name: "Nights Dirty Lightning")
     parent = child.build_pirate(catchphrase: "Aye")
     child.save!
-    assert child.previously_new_record?
-    assert parent.previously_new_record?
+    assert_predicate child, :previously_new_record?
+    assert_predicate parent, :previously_new_record?
   end
 
   test "child is saved only once if child is an inverse has_many of parent" do
     child = FamousShip.new(name: "Poison Orchid")
     parent = child.build_famous_pirate(catchphrase: "Aye")
     child.save!
-    assert child.previously_new_record?
-    assert parent.previously_new_record?
+    assert_predicate child, :previously_new_record?
+    assert_predicate parent, :previously_new_record?
   end
 
   test "similar children are saved in the autosave" do
@@ -1982,9 +1978,9 @@ class TestCyclicAutosaveAssociationsOnlySaveOnce < ActiveRecord::TestCase
     parent = child1.build_famous_pirate(catchphrase: "Aye")
     child2 = parent.famous_ships.build(name: "Red Messenger")
     child1.save!
-    assert child2.persisted?
-    assert child1.previously_new_record?
-    assert parent.previously_new_record?
+    assert_predicate child2, :persisted?
+    assert_predicate child1, :previously_new_record?
+    assert_predicate parent, :previously_new_record?
     assert_equal [child2, child1], parent.reload.famous_ships
   end
 
@@ -1992,8 +1988,8 @@ class TestCyclicAutosaveAssociationsOnlySaveOnce < ActiveRecord::TestCase
     child = Ship.new(name: "Nights Dirty Lightning")
     parent = child.build_pirate(catchphrase: "Aye")
     parent.save!
-    assert child.previously_new_record?
-    assert parent.previously_new_record?
+    assert_predicate child, :previously_new_record?
+    assert_predicate parent, :previously_new_record?
   end
 
   test "saving? is reset to false if validations fail" do
@@ -2004,9 +2000,11 @@ class TestCyclicAutosaveAssociationsOnlySaveOnce < ActiveRecord::TestCase
   end
 
   test "saving? is set to false after multiple nested saves" do
+    autosave_saving_stack = []
+
     ship_with_saving_stack = Class.new(Ship) do
-      before_save { $autosave_saving_stack << saving? }
-      after_save  { $autosave_saving_stack << saving? }
+      before_save { autosave_saving_stack << saving? }
+      after_save  { autosave_saving_stack << saving? }
     end
 
     pirate_with_callbacks = Class.new(Pirate) do
@@ -2017,9 +2015,8 @@ class TestCyclicAutosaveAssociationsOnlySaveOnce < ActiveRecord::TestCase
 
     child = ship_with_saving_stack.new(name: "Nights Dirty Lightning")
     child.pirate = pirate_with_callbacks.new(catchphrase: "Aye")
-    $autosave_saving_stack = []
     child.save!
-    assert_equal [true] * 8, $autosave_saving_stack
-    assert_equal false, child.saving?
+    assert_equal [true] * 8, autosave_saving_stack
+    assert_not_predicate child, :saving?
   end
 end

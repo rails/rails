@@ -288,9 +288,10 @@ module ActiveRecord
       @saving
     end
 
-    def can_save? #:nodoc:
-      !destroyed? && !saving?
-    end
+    protected
+      def can_save? # :nodoc:
+        !destroyed? && !saving?
+      end
 
     private
       # Track if this record is being saved. If it is being saved we
