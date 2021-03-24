@@ -204,6 +204,14 @@ module ActionDispatch #:nodoc:
       end
     end
 
+    def override_directive(key_name, new_value)
+      if !key_name.empty? && @directives.has_key?("#{key_name}")
+        @directives["#{key_name}"] = new_value
+      else
+        raise ArgumentError, "You must specify a valid key name for the directive you wish to override."
+      end
+    end
+
     def upgrade_insecure_requests(enabled = true)
       if enabled
         @directives["upgrade-insecure-requests"] = true
