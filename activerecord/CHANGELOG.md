@@ -1,7 +1,7 @@
-*   Prevent double saves in autosave of cyclic associations
+*   Prevent double saves in autosave of cyclic associations.
 
-    Adds a @saving state which tracks if a record is currently being saved.
-    If @saving is set to true, the record won't be saved by the autosave callbacks.
+    Adds an internal saving state which tracks if a record is currently being saved.
+    If a state is set to true, the record won't be saved by the autosave callbacks.
 
     *Petrik de Heus*
 

@@ -233,9 +233,9 @@ module ActiveRecord
 
     # Reloads the attributes of the object as usual and clears <tt>marked_for_destruction</tt> flag.
     def reload(options = nil)
+      @_saving = false
       @marked_for_destruction = false
       @destroyed_by_association = nil
-      @saving = false
       super
     end
 
@@ -284,17 +284,17 @@ module ActiveRecord
 
     protected
       def _can_save? # :nodoc:
-        !destroyed? && !@saving
+        !destroyed? && !@_saving
       end
 
     private
       # Track if this record is being saved. If it is being saved we
       # can skip saving it in the autosave callbacks.
       def _saving
-        previously_saving, @saving = @saving, true
+        previously_saving, @_saving = @_saving, true
         yield
       ensure
-        @saving = previously_saving
+        @_saving = previously_saving
       end
 
       # Returns the record for an association collection that should be validated
