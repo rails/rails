@@ -371,12 +371,14 @@ module ActiveRecord
         if collection.has_limit_or_offset?
           query = collection.select("#{column} AS collection_cache_key_timestamp")
           query._select!(table[Arel.star]) if distinct_value && collection.select_values.empty?
+          query.group!("collection_cache_key_timestamp") if collection.group_values.any?
           subquery_alias = "subquery_for_cache_key"
           subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
           arel = query.build_subquery(subquery_alias, select_values % subquery_column)
         else
           query = collection.unscope(:order)
           query.select_values = [select_values % column]
+          query._select!(collection.select_values) if collection.group_values.any?
           arel = query.arel
         end
 
