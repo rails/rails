@@ -1996,15 +1996,15 @@ class TestCyclicAutosaveAssociationsOnlySaveOnce < ActiveRecord::TestCase
     child = Ship.new(name: "Nights Dirty Lightning")
     child.build_pirate
     assert_not child.save
-    assert_not_predicate child, :saving?
+    assert_not child.instance_variable_get(:@saving)
   end
 
   test "saving? is set to false after multiple nested saves" do
     autosave_saving_stack = []
 
     ship_with_saving_stack = Class.new(Ship) do
-      before_save { autosave_saving_stack << saving? }
-      after_save  { autosave_saving_stack << saving? }
+      before_save { autosave_saving_stack << @saving }
+      after_save  { autosave_saving_stack << @saving }
     end
 
     pirate_with_callbacks = Class.new(Pirate) do
@@ -2017,6 +2017,6 @@ class TestCyclicAutosaveAssociationsOnlySaveOnce < ActiveRecord::TestCase
     child.pirate = pirate_with_callbacks.new(catchphrase: "Aye")
     child.save!
     assert_equal [true] * 8, autosave_saving_stack
-    assert_not_predicate child, :saving?
+    assert_not child.instance_variable_get(:@saving)
   end
 end
