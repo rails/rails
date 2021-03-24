@@ -284,7 +284,7 @@ module ActiveRecord
 
     # Returns whether or not this record is already being saved outside of the
     # current autosave callback
-    def saving?
+    def saving? #:nodoc:
       @saving
     end
 
