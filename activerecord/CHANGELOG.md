@@ -17,13 +17,6 @@
 
     *Dinah Shi*
 
-*   Prevent double saves in autosave of cyclic associations.
-
-    Adds an internal saving state which tracks if a record is currently being saved.
-    If a state is set to true, the record won't be saved by the autosave callbacks.
-
-    *Petrik de Heus*
-
 *   Fix Float::INFINITY assignment to datetime column with postgresql adapter
 
     Before:
