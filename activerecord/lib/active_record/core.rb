@@ -140,6 +140,7 @@ module ActiveRecord
       mattr_accessor :action_on_strict_loading_violation, instance_accessor: false, default: :raise
 
       class_attribute :strict_loading_by_default, instance_accessor: false, default: false
+      class_attribute :strict_loading_mode, instance_accessor: true, default: []
 
       mattr_accessor :writing_role, instance_accessor: false, default: :writing
 
@@ -735,15 +736,30 @@ module ActiveRecord
     #   user.comments
     #   => ActiveRecord::StrictLoadingViolationError
     #
-    # strict_loading! accepts a boolean argument to specify whether
-    # to enable or disable strict loading mode.
+    # === Parameters:
+    #
+    # * value - Boolean specifying whether to enable or disable strict loading.
+    # * mode - Symbol specifying strict loading mode. Defaults to :all. Using
+    #          :n_plus_one_only mode will only raise an error if an association
+    #          that will lead to an n plus one query is lazily loaded.
+    #
+    # === Example:
     #
     #   user = User.first
     #   user.strict_loading!(false) # => false
     #   user.comments
     #   => #<ActiveRecord::Associations::CollectionProxy>
-    def strict_loading!(value = true)
+    def strict_loading!(value = true, mode: :all)
+      unless [:all, :n_plus_one_only].include?(mode)
+        raise ArgumentError, "The :mode option must be one of [:all, :n_plus_one_only]."
+      end
+
       @strict_loading = value
+      @strict_loading_mode = mode
+    end
+
+    def strict_loading_n_plus_one_only? # :nodoc:
+      @strict_loading_mode == :n_plus_one_only
     end
 
     # Marks this record as read only.
@@ -830,6 +846,7 @@ module ActiveRecord
         @destroyed_by_association = nil
         @_start_transaction_state = nil
         @strict_loading           = self.class.strict_loading_by_default
+        @strict_loading_mode = self.class.strict_loading_mode
 
         self.class.define_attribute_methods
       end

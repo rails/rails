@@ -1,3 +1,22 @@
+*   Add mode argument to record level `strict_loading!`
+
+    This argument can be used when enabling strict loading for a single record
+    to specify that we only want to raise on n plus one queries.
+
+    ```ruby
+    developer.strict_loading!(mode: :n_plus_one_only)
+
+    developer.projects.to_a # Does not raise
+    developer.projects.first.client # Raises StrictLoadingViolationError
+    ```
+
+    Previously, enabling strict loading would cause any lazily loaded
+    association to raise an error. Using `n_plus_one_only` mode allows us to
+    lazily load belongs_to, has_many, and other associations that are fetched
+    through a single query.
+
+    *Dinah Shi*
+
 *   Prevent double saves in autosave of cyclic associations.
 
     Adds an internal saving state which tracks if a record is currently being saved.
