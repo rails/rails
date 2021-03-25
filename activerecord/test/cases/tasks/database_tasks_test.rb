@@ -185,6 +185,21 @@ module ActiveRecord
       end
     end
 
+    def test_register_task_precedence
+      klazz = Class.new do
+        def initialize(*arguments); end
+        def structure_dump(filename); end
+      end
+      instance = klazz.new
+
+      klazz.stub(:new, instance) do
+        assert_called_with(instance, :structure_dump, ["awesome-file.sql", nil]) do
+          ActiveRecord::Tasks::DatabaseTasks.register_task(/custom_mysql/, klazz)
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :custom_mysql }, "awesome-file.sql")
+        end
+      end
+    end
+
     def test_unregistered_task
       assert_raise(ActiveRecord::Tasks::DatabaseNotSupported) do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :bar }, "awesome-file.sql")

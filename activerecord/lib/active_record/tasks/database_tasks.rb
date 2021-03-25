@@ -537,7 +537,7 @@ module ActiveRecord
         end
 
         def class_for_adapter(adapter)
-          _key, task = @tasks.each_pair.detect { |pattern, _task| adapter[pattern] }
+          _key, task = @tasks.reverse_each.detect { |pattern, _task| adapter[pattern] }
           unless task
             raise DatabaseNotSupported, "Rake tasks not supported by '#{adapter}' adapter"
           end
