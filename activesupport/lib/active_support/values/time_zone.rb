@@ -383,8 +383,6 @@ module ActiveSupport
     def iso8601(str)
       parts = Date._iso8601(str)
 
-      raise ArgumentError, "invalid date" if parts.empty?
-
       time = Time.new(
         parts.fetch(:year),
         parts.fetch(:mon),
@@ -400,6 +398,9 @@ module ActiveSupport
       else
         TimeWithZone.new(nil, self, time)
       end
+
+    rescue KeyError
+      raise ArgumentError, "invalid date"
     end
 
     # Method for creating new ActiveSupport::TimeWithZone instance in time zone

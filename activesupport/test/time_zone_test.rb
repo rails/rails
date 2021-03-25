@@ -343,6 +343,16 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.parse("2014-10-26T01:00:00")
   end
 
+  def test_iso8601_with_invalid_value_parseable_by_date__iso8601
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.iso8601("12936")
+    end
+
+    assert_equal "invalid date", exception.message
+  end
+
   def test_parse
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     twz = zone.parse("1999-12-31 19:00:00")
