@@ -233,18 +233,9 @@ module ActiveRecord
 
     # Reloads the attributes of the object as usual and clears <tt>marked_for_destruction</tt> flag.
     def reload(options = nil)
-      @_saving = false
       @marked_for_destruction = false
       @destroyed_by_association = nil
       super
-    end
-
-    def save(**options) # :nodoc
-      _saving { super }
-    end
-
-    def save!(**options) # :nodoc:
-      _saving { super }
     end
 
     # Marks this record to be destroyed as part of the parent's save transaction.
@@ -282,21 +273,7 @@ module ActiveRecord
       new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
-    protected
-      def _can_save? # :nodoc:
-        !destroyed? && !@_saving
-      end
-
     private
-      # Track if this record is being saved. If it is being saved we
-      # can skip saving it in the autosave callbacks.
-      def _saving
-        previously_saving, @_saving = @_saving, true
-        yield
-      ensure
-        @_saving = previously_saving
-      end
-
       # Returns the record for an association collection that should be validated
       # or saved. If +autosave+ is +false+ only new records will be returned,
       # unless the parent is/was a new record itself.
@@ -423,7 +400,7 @@ module ActiveRecord
             end
 
             records.each do |record|
-              next unless record._can_save?
+              next if record.destroyed?
 
               saved = true
 
@@ -460,7 +437,7 @@ module ActiveRecord
         association = association_instance_get(reflection.name)
         record      = association && association.load_target
 
-        if record&._can_save?
+        if record && !record.destroyed?
           autosave = reflection.options[:autosave]
 
           if autosave && record.marked_for_destruction?
@@ -505,7 +482,7 @@ module ActiveRecord
         return unless association && association.loaded? && !association.stale_target?
 
         record = association.load_target
-        if record&._can_save?
+        if record && !record.destroyed?
           autosave = reflection.options[:autosave]
 
           if autosave && record.marked_for_destruction?

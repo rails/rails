@@ -1556,7 +1556,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     fall.sections << sections
     fall.save!
     fall.reload
-    assert_equal sections.sort_by(&:id), fall.sections.sort_by(&:id)
+    assert_equal sections, fall.sections.sort_by(&:id)
   end
 
   private
