@@ -300,6 +300,14 @@ class ExceptionsTest < ActiveSupport::TestCase
     assert_equal ["Raised ActiveJob::DeserializationError for the 5 time"], JobBuffer.values
   end
 
+  test "successfully retry job throwing UnlimitedRetryError a few times" do
+    RetryJob.perform_later "UnlimitedRetryError", 10
+
+    assert_equal 10, JobBuffer.values.size
+    assert_equal "Raised UnlimitedRetryError for the 9th time", JobBuffer.values[8]
+    assert_equal "Successfully completed job", JobBuffer.values[9]
+  end
+
   test "running a job enqueued by AJ 5.2" do
     job = RetryJob.new("DefaultsError", 6)
     job.exception_executions = nil # This is how jobs from Rails 5.2 will look
