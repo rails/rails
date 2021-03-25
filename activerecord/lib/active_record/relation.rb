@@ -357,7 +357,7 @@ module ActiveRecord
     def compute_cache_version(timestamp_column) # :nodoc:
       timestamp_column = timestamp_column.to_s
 
-      if loaded? || distinct_value
+      if loaded?
         size = records.size
         if size > 0
           timestamp = records.map { |record| record.read_attribute(timestamp_column) }.max
@@ -370,6 +370,7 @@ module ActiveRecord
 
         if collection.has_limit_or_offset?
           query = collection.select("#{column} AS collection_cache_key_timestamp")
+          query._select!(table[Arel.star]) if distinct_value && collection.select_values.empty?
           subquery_alias = "subquery_for_cache_key"
           subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
           arel = query.build_subquery(subquery_alias, select_values % subquery_column)
