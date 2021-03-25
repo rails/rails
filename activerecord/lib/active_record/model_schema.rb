@@ -619,7 +619,7 @@ module ActiveRecord
 
         def warn_if_deprecated_type(column)
           return if attributes_to_define_after_schema_loads.key?(column.name)
-          return unless column.respond_to?(:oid)
+          return unless column.respond_to?(:array?)
 
           if column.array?
             array_arguments = ", array: true"
