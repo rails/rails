@@ -84,6 +84,7 @@ module ActiveStorage
         ActiveStorage.paths             = app.config.active_storage.paths || {}
         ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
         ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
+        ActiveStorage.parent_controller = app.config.active_storage.parent_controller || "ActiveStorage::BaseController"
         ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
 
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Proxy files through application. This avoids having a redirect and makes files easier to cache.
-class ActiveStorage::Representations::ProxyController < ActiveStorage::BaseController
+class ActiveStorage::Representations::ProxyController < ActiveStorage.parent_controller.constantize
   include ActiveStorage::SetBlob
 
   def show

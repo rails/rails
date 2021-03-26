@@ -63,6 +63,7 @@ module ActiveStorage
 
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
   mattr_accessor :draw_routes, default: true
+  mattr_accessor :parent_controller, default: "ActiveStorage::BaseController"
   mattr_accessor :resolve_model_to_route, default: :rails_storage_redirect
 
   mattr_accessor :replace_on_assign_to_many, default: false
