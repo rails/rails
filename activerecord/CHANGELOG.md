@@ -1,3 +1,8 @@
+## Rails 6.0.3.6 (March 26, 2021) ##
+
+*   No changes.
+
+
 ## Rails 6.0.3.5 (February 10, 2021) ##
 
 *   Fix possible DoS vector in PostgreSQL money type
