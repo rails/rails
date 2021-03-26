@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "mimemagic"
+require "mini_mime"
 
 # A set of transformations that can be applied to a blob to create a variant. This class is exposed via
 # the ActiveStorage::Blob#variant method and should rarely be used directly.
@@ -59,14 +59,14 @@ class ActiveStorage::Variation
 
   def format
     transformations.fetch(:format, :png).tap do |format|
-      if MimeMagic.by_extension(format).nil?
+      if MiniMime.lookup_by_extension(format.to_s).nil?
         raise ArgumentError, "Invalid variant format (#{format.inspect})"
       end
     end
   end
 
   def content_type
-    MimeMagic.by_extension(format).to_s
+    MiniMime.lookup_by_extension(format.to_s).content_type
   end
 
   # Returns a signed key for all the +transformations+ that this variation was instantiated with.

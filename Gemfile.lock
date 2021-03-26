@@ -75,7 +75,7 @@ PATH
       activerecord (= 7.0.0.alpha)
       activesupport (= 7.0.0.alpha)
       marcel (~> 0.3.1)
-      mimemagic (~> 0.3.2)
+      mini_mime (~> 1.0.2)
     activesupport (7.0.0.alpha)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
