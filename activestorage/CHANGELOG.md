@@ -1,3 +1,11 @@
+## Rails 6.1.3.1 (March 26, 2021) ##
+
+*  Marcel is upgraded to version 1.0.0 to avoid a dependency on GPL-licensed
+   mime types data.
+
+   *George Claghorn*
+
+
 ## Rails 6.1.3 (February 17, 2021) ##
 
 *   No changes.

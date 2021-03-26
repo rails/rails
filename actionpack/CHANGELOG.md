@@ -1,3 +1,8 @@
+## Rails 6.1.3.1 (March 26, 2021) ##
+
+*   No changes.
+
+
 ## Rails 6.1.3 (February 17, 2021) ##
 
 *   Re-define routes when not set correctly via inheritance.
