@@ -1,3 +1,10 @@
+## Rails 5.2.5 (March 26, 2021) ##
+
+*   Marcel is upgraded to version 1.0.0 to avoid a dependency on GPL-licensed
+    mime types data.
+
+    *George Claghorn*
+
 *   The Poppler PDF previewer renders a preview image using the original
     document's crop box rather than its media box, hiding print margins. This
     matches the behavior of the MuPDF previewer.
