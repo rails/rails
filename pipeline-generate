@@ -48,6 +48,10 @@ MAX_RUBY =
     Gem::Version.new("2.4")
   when Gem::Requirement.new("< 5.2")
     Gem::Version.new("2.5")
+  when Gem::Requirement.new("< 6.0")
+    Gem::Version.new("2.6")
+  when Gem::Requirement.new("< 6.1")
+    Gem::Version.new("2.7")
   end
 
 def available_tags_for_image(image)
