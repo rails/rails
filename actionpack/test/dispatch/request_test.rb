@@ -23,8 +23,9 @@ class BaseRequestTest < ActiveSupport::TestCase
   private
     def stub_request(env = {})
       ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
-      @trusted_proxies ||= nil
-      ip_app = ActionDispatch::RemoteIp.new(Proc.new { }, ip_spoofing_check, @trusted_proxies)
+      @additional_trusted_proxy ||= nil
+      trusted_proxies = ActionDispatch::RemoteIp::TRUSTED_PROXIES + [@additional_trusted_proxy]
+      ip_app = ActionDispatch::RemoteIp.new(Proc.new { }, ip_spoofing_check, trusted_proxies)
       ActionDispatch::Http::URL.tld_length = env.delete(:tld_length) if env.key?(:tld_length)
 
       ip_app.call(env)
@@ -199,7 +200,7 @@ class RequestIP < BaseRequestTest
   end
 
   test "remote ip with user specified trusted proxies String" do
-    @trusted_proxies = "67.205.106.73"
+    @additional_trusted_proxy = "67.205.106.73"
 
     request = stub_request "REMOTE_ADDR" => "3.4.5.6",
                            "HTTP_X_FORWARDED_FOR" => "67.205.106.73"
@@ -221,7 +222,7 @@ class RequestIP < BaseRequestTest
   end
 
   test "remote ip v6 with user specified trusted proxies String" do
-    @trusted_proxies = "fe80:0000:0000:0000:0202:b3ff:fe1e:8329"
+    @additional_trusted_proxy = "fe80:0000:0000:0000:0202:b3ff:fe1e:8329"
 
     request = stub_request "REMOTE_ADDR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
                            "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329"
@@ -243,7 +244,7 @@ class RequestIP < BaseRequestTest
   end
 
   test "remote ip with user specified trusted proxies Regexp" do
-    @trusted_proxies = /^67\.205\.106\.73$/i
+    @additional_trusted_proxy = /^67\.205\.106\.73$/i
 
     request = stub_request "REMOTE_ADDR" => "67.205.106.73",
                            "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
@@ -254,7 +255,7 @@ class RequestIP < BaseRequestTest
   end
 
   test "remote ip v6 with user specified trusted proxies Regexp" do
-    @trusted_proxies = /^fe80:0000:0000:0000:0202:b3ff:fe1e:8329$/i
+    @additional_trusted_proxy = /^fe80:0000:0000:0000:0202:b3ff:fe1e:8329$/i
 
     request = stub_request "REMOTE_ADDR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
                            "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329"
