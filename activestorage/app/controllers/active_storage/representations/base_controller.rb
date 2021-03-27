@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ActiveStorage::Representations::BaseController < ActiveStorage::BaseController #:nodoc:
   include ActiveStorage::SetBlob
 
