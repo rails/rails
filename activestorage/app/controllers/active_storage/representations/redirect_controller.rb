@@ -4,11 +4,9 @@
 # Note: These URLs are publicly accessible. If you need to enforce access protection beyond the
 # security-through-obscurity factor of the signed blob and variation reference, you'll need to implement your own
 # authenticated redirection controller.
-class ActiveStorage::Representations::RedirectController < ActiveStorage::BaseController
-  include ActiveStorage::SetBlob
-
+class ActiveStorage::Representations::RedirectController < ActiveStorage::Representations::BaseController
   def show
     expires_in ActiveStorage.service_urls_expire_in
-    redirect_to @blob.representation(params[:variation_key]).processed.url(disposition: params[:disposition])
+    redirect_to @representation.url(disposition: params[:disposition])
   end
 end
