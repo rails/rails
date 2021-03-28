@@ -1,3 +1,9 @@
+*   Changed Arel predications `contains` and `overlaps` to use
+    `quoted_node` so that PostgreSQL arrays are quoted properly.
+
+    *Bradley Priest*
+
+
 ## Rails 6.1.3.1 (March 26, 2021) ##
 
 *   No changes.
