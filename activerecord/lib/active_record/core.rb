@@ -837,17 +837,20 @@ module ActiveRecord
       end
 
       def init_internals
-        @primary_key              = self.class.primary_key
         @readonly                 = false
         @previously_new_record    = false
         @destroyed                = false
         @marked_for_destruction   = false
         @destroyed_by_association = nil
         @_start_transaction_state = nil
-        @strict_loading           = self.class.strict_loading_by_default
-        @strict_loading_mode = self.class.strict_loading_mode
 
-        self.class.define_attribute_methods
+        klass = self.class
+
+        @primary_key         = klass.primary_key
+        @strict_loading      = klass.strict_loading_by_default
+        @strict_loading_mode = klass.strict_loading_mode
+
+        klass.define_attribute_methods
       end
 
       def initialize_internals_callback
