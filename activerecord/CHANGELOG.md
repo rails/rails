@@ -1,3 +1,8 @@
+*   Changed Arel predications `contains` and `overlaps` to use
+    `quoted_node` so that PostgreSQL arrays are quoted properly.
+
+    *Bradley Priest*
+
 *   Add mode argument to record level `strict_loading!`
 
     This argument can be used when enabling strict loading for a single record
