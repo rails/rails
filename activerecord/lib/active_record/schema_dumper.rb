@@ -47,6 +47,7 @@ module ActiveRecord
     def dump(stream)
       header(stream)
       extensions(stream)
+      types(stream)
       tables(stream)
       trailer(stream)
       stream
@@ -97,6 +98,10 @@ HEADER
 
       # extensions are only supported by PostgreSQL
       def extensions(stream)
+      end
+
+      # (enum) types are only supported by PostgreSQL
+      def types(stream)
       end
 
       def tables(stream)
@@ -154,6 +159,7 @@ HEADER
           columns.each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
+
             type, colspec = column_spec(column)
             if type.is_a?(Symbol)
               tbl.print "    t.#{type} #{column.name.inspect}"

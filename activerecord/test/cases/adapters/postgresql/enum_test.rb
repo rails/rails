@@ -2,20 +2,27 @@
 
 require "cases/helper"
 require "support/connection_helper"
+require "support/schema_dumping_helper"
 
 class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   include ConnectionHelper
+  include SchemaDumpingHelper
 
   class PostgresqlEnum < ActiveRecord::Base
     self.table_name = "postgresql_enums"
+
+    enum current_mood: {
+      sad: "sad",
+      okay: "ok", # different spelling
+      happy: "happy",
+      aliased_field: "happy"
+    }, _prefix: true
   end
 
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.transaction do
-      @connection.execute <<~SQL
-        CREATE TYPE mood AS ENUM ('sad', 'ok', 'happy');
-      SQL
+      @connection.create_enum("mood", ["sad", "ok", "happy"])
       @connection.create_table("postgresql_enums") do |t|
         t.column :current_mood, :mood
       end
@@ -62,10 +69,9 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   def test_invalid_enum_update
     @connection.execute "INSERT INTO postgresql_enums VALUES (1, 'sad');"
     enum = PostgresqlEnum.first
-    enum.current_mood = "angry"
 
-    assert_raise ActiveRecord::StatementInvalid do
-      enum.save
+    assert_raise ArgumentError do
+      enum.current_mood = "angry"
     end
   end
 
@@ -89,5 +95,48 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     assert_nil model.current_mood
     assert model.save
     assert_nil model.reload.current_mood
+  end
+
+  def test_schema_dump
+    @connection.add_column "postgresql_enums", "good_mood", :mood, default: "happy", null: false
+
+    output = dump_table_schema("postgresql_enums")
+
+    assert output.include?("# Note that some types may not work with other database engines. Be careful if changing database."), output
+
+    assert output.include?('create_enum "mood", ["sad", "ok", "happy"]'), output
+
+    assert output.include?('t.enum "current_mood", enum_type: "mood"'), output
+    assert output.include?('t.enum "good_mood", default: "happy", null: false, enum_type: "mood"'), output
+  end
+
+  def test_schema_load
+    original, $stdout = $stdout, StringIO.new
+
+    ActiveRecord::Schema.define do
+      create_enum :color, ["blue", "green"]
+
+      change_table :postgresql_enums do |t|
+        t.enum :best_color, enum_type: "color", default: "blue", null: false
+      end
+    end
+
+    assert @connection.column_exists?(:postgresql_enums, :best_color, sql_type: "color", default: "blue", null: false)
+  ensure
+    $stdout = original
+  end
+
+  def test_works_with_activerecord_enum
+    model = PostgresqlEnum.create!
+    model.current_mood_okay!
+
+    model = PostgresqlEnum.find(model.id)
+    assert_equal "okay", model.current_mood
+
+    model.current_mood = "happy"
+    model.save!
+
+    model = PostgresqlEnum.find(model.id)
+    assert model.current_mood_happy?
   end
 end
