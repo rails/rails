@@ -2327,7 +2327,7 @@ If the default name of the join table, based on lexical ordering, is not what yo
 
 ##### `:validate`
 
-If you set the `:validate` option to `false`, then associated objects will not be validated whenever you save this object. By default, this is `true`: associated objects will be validated when this object is saved.
+If you set the `:validate` option to `false`, then new associated objects will not be validated whenever you save this object. By default, this is `true`: new associated objects will be validated when this object is saved.
 
 #### Scopes for `has_and_belongs_to_many`
 
