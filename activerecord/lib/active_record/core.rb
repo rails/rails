@@ -140,7 +140,7 @@ module ActiveRecord
       mattr_accessor :action_on_strict_loading_violation, instance_accessor: false, default: :raise
 
       class_attribute :strict_loading_by_default, instance_accessor: false, default: false
-      class_attribute :strict_loading_mode, instance_accessor: true, default: []
+      class_attribute :strict_loading_mode, instance_accessor: true, default: :all
 
       mattr_accessor :writing_role, instance_accessor: false, default: :writing
 
