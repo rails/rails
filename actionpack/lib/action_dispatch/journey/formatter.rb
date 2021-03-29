@@ -176,7 +176,8 @@ module ActionDispatch
                 missing_keys << key
               end
             else
-              unless tests[key].match?(parts[key])
+              escaped_key_value = Regexp.escape(parts[key])
+              unless tests[key].match?(escaped_key_value)
                 missing_keys ||= []
                 missing_keys << key
               end
