@@ -106,11 +106,11 @@ module ActionController
   #
   # * +permit_all_parameters+ - If it's +true+, all the parameters will be
   #   permitted by default. The default is +false+.
-  # * +action_on_unpermitted_parameters+ - Allow to control the behavior when parameters
-  #   that are not explicitly permitted are found. The values can be +false+ to just filter them
-  #   out, <tt>:log</tt> to additionally write a message on the logger, or <tt>:raise</tt> to raise
-  #   ActionController::UnpermittedParameters exception. The default value is <tt>:log</tt>
-  #   in test and development environments, +false+ otherwise.
+  # * +action_on_unpermitted_parameters+ - Controls behavior when parameters that are not explicitly permitted are found. The default value is <tt>:log</tt> in test and development environments, +false+ otherwise. The values can be:
+  #   1) +false+ to take no action
+  #   2) <tt>:log</tt> to emit an <tt>ActiveSupport::Notifications.instrument</tt> on the <tt>unpermitted_parameters.action_controller</tt> topic
+  #   3) <tt>:raise</tt> to raise a <tt>ActionController::UnpermittedParameters</tt> exception
+  #   4) A string which references a class which implements a class method with the signature `handle_unpermitted_parameters(params:, unpermitted_keys:, request:)`
   #
   # Examples:
   #
@@ -965,12 +965,21 @@ module ActionController
       def unpermitted_parameters!(params)
         unpermitted_keys = unpermitted_keys(params)
         if unpermitted_keys.any?
-          case self.class.action_on_unpermitted_parameters
-          when :log
-            name = "unpermitted_parameters.action_controller"
-            ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys)
-          when :raise
-            raise ActionController::UnpermittedParameters.new(unpermitted_keys)
+          if self.class.action_on_unpermitted_parameters.is_a?(String)
+            klass = self.class.action_on_unpermitted_parameters.constantize
+            klass.handle_unpermitted_parameters(
+              params: params,
+              unpermitted_keys: unpermitted_keys,
+              request: request
+            )
+          else
+            case self.class.action_on_unpermitted_parameters
+            when :log
+              name = "unpermitted_parameters.action_controller"
+              ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys)
+            when :raise
+              raise ActionController::UnpermittedParameters.new(unpermitted_keys)
+            end
           end
         end
       end

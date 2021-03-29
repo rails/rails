@@ -1396,6 +1396,39 @@ module ApplicationTests
       assert_match "We're sorry, but something went wrong", last_response.body
     end
 
+    test "config.action_controller.action_on_unpermitted_parameters = HandleUnpermittedParamsTestHandler" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ActionController::Base
+        def create
+          render plain: params.require(:post).permit(:name)
+        end
+      end
+
+      class HandleUnpermittedParamsTestHandler
+        def self.handle_unpermitted_parameters(params:, unpermitted_keys:, request:)
+          raise ActionController::UnpermittedParameters.new(unpermitted_keys)
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.action_on_unpermitted_parameters = "HandleUnpermittedParamsTestHandler"
+      RUBY
+
+      app "development"
+
+      require "action_controller/base"
+      require "action_controller/api"
+
+      assert_equal "HandleUnpermittedParamsTestHandler", ActionController::Parameters.action_on_unpermitted_parameters
+
+      post "/posts", post: { "title" => "zomg" }
+      assert_match "We're sorry, but something went wrong", last_response.body
+    end
+
     test "config.action_controller.always_permitted_parameters are: controller, action by default" do
       app "development"
 

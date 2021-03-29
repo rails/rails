@@ -1,3 +1,19 @@
+*   Enhance `ActionController::Parameters.action_on_unpermitted_parameters` to support arbitrary behavior:
+
+    ```ruby
+    # application.rb
+    config.action_controller.action_on_unpermitted_parameters = 'HandleUnpermittedParamsTestHandler'
+
+    # app/controller/concerns/handle_unpermitted_params_test_handler.rb
+    class HandleUnpermittedParamsTestHandler
+      def self.handle_unpermitted_parameters(params:, unpermitted_keys:, request:)
+        # Anything you want!
+      end
+    end
+    ```
+
+    *bbuchalter*
+
 *   Add `ActionController::Live#send_stream` that makes it more convenient to send generated streams:
 
     ```ruby

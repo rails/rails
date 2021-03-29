@@ -524,7 +524,11 @@ The schema dumper adds two additional configuration options:
 
 * `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.
 
-* `config.action_controller.action_on_unpermitted_parameters` enables logging or raising an exception if parameters that are not explicitly permitted are found. Set to `:log` or `:raise` to enable. The default value is `:log` in development and test environments, and `false` in all other environments.
+* `config.action_controller.action_on_unpermitted_parameters` controls behavior when parameters that are not explicitly permitted are found. The default value is `:log` in test and development environments, `false` otherwise. The values can be:
+    * `false` to take no action
+    * `:log` to emit an `ActiveSupport::Notifications.instrument` on the `unpermitted_parameters.action_controller` topic
+    * `:raise` to raise a `ActionController::UnpermittedParameters` exception
+    * A string which references a class which implements a class method with the signature `handle_unpermitted_parameters(params:, unpermitted_keys:, request:)`
 
 * `config.action_controller.always_permitted_parameters` sets a list of permitted parameters that are permitted by default. The default values are `['controller', 'action']`.
 
