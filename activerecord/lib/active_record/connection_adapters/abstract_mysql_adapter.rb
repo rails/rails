@@ -427,7 +427,7 @@ module ActiveRecord
         if supports_check_constraints?
           scope = quoted_scope(table_name)
 
-          chk_info = exec_query(<<~SQL, "SCHEMA")
+          sql = <<~SQL
             SELECT cc.constraint_name AS 'name',
                   cc.check_clause AS 'expression'
             FROM information_schema.check_constraints cc
@@ -437,6 +437,9 @@ module ActiveRecord
               AND tc.table_name = #{scope[:name]}
               AND cc.constraint_schema = #{scope[:schema]}
           SQL
+          sql += " AND cc.table_name = #{scope[:name]}" if mariadb?
+
+          chk_info = exec_query(sql, "SCHEMA")
 
           chk_info.map do |row|
             options = {

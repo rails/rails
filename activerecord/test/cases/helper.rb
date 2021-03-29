@@ -54,6 +54,15 @@ def supports_default_expression?
   end
 end
 
+def supports_non_unique_constraint_name?
+  if current_adapter?(:Mysql2Adapter)
+    conn = ActiveRecord::Base.connection
+    conn.mariadb?
+  else
+    false
+  end
+end
+
 %w[
   supports_savepoints?
   supports_partial_index?
