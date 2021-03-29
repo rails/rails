@@ -176,14 +176,24 @@ module ActionDispatch
                 missing_keys << key
               end
             else
-              escaped_key_value = Regexp.escape(parts[key])
-              unless tests[key].match?(escaped_key_value)
+              unless valid_key?(tests[key], parts[key])
                 missing_keys ||= []
                 missing_keys << key
               end
             end
           }
           missing_keys
+        end
+
+        def valid_key?(test, value)
+          test.match?(value) ||
+          test.match?(escape_value(value))
+        end
+
+        def escape_value(value)
+          return if value.nil?
+
+          Regexp.escape(value)
         end
 
         def possibles(cache, options, depth = 0)
