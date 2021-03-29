@@ -246,7 +246,7 @@ module ActionCable
         # Returns messages transmitted into channel
         def transmissions
           # Return only directly sent message (via #transmit)
-          connection.transmissions.map { |data| data["message"] }.compact
+          connection.transmissions.filter_map { |data| data["message"] }
         end
 
         # Enhance TestHelper assertions to handle non-String
