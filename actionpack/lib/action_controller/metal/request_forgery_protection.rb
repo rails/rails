@@ -321,11 +321,6 @@ module ActionController #:nodoc:
           global_csrf_token(session)
         end
 
-        one_time_pad = SecureRandom.random_bytes(AUTHENTICITY_TOKEN_LENGTH)
-        encrypted_csrf_token = xor_byte_strings(one_time_pad, raw_token)
-        masked_token = one_time_pad + encrypted_csrf_token
-        Base64.urlsafe_encode64(masked_token, padding: false)
-
         mask_token(raw_token)
       end
 
