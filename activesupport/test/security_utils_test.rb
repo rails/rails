@@ -9,6 +9,10 @@ class SecurityUtilsTest < ActiveSupport::TestCase
     assert_not ActiveSupport::SecurityUtils.secure_compare("a", "b")
   end
 
+  def test_secure_compare_return_false_on_bytesize_mismatch
+    assert_not ActiveSupport::SecurityUtils.secure_compare("a", "\u{ff41}")
+  end
+
   def test_fixed_length_secure_compare_should_perform_string_comparison
     assert ActiveSupport::SecurityUtils.fixed_length_secure_compare("a", "a")
     assert_not ActiveSupport::SecurityUtils.fixed_length_secure_compare("a", "b")
