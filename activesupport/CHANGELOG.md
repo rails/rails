@@ -1,3 +1,7 @@
+*   Deprecate `Kernel#concern`
+
+    *Rafael Sales*
+
 *   Tests parallelization is now disabled when running individual files to prevent the setup overhead.
 
     It can still be enforced if the environment variable `PARALLEL_WORKERS` is present and set to a value greater than 1.
