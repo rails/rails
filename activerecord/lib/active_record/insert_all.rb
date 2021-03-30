@@ -22,7 +22,7 @@ module ActiveRecord
       reflection_keys = @keys & model._reflections.keys
       reflection_keys.each do |key|
         reflection = model._reflections[key]
-        extender = reflection.polymorphic? ? PolymorphicRelationExtender.new(reflection) : CommonRelationExtender.new(reflection)
+        extender = reflection.polymorphic? ? PolymorphicAssociationExtender.new(reflection) : CommonAssociationExtender.new(reflection)
         @extenders[key] = extender
         @keys |= extender.keys
       end
@@ -141,7 +141,7 @@ module ActiveRecord
         end
       end
 
-      class CommonRelationExtender
+      class CommonAssociationExtender
         def initialize(reflection)
           @reflection = reflection
         end
@@ -155,7 +155,7 @@ module ActiveRecord
         end
       end
 
-      class PolymorphicRelationExtender
+      class PolymorphicAssociationExtender
         def initialize(reflection)
           @reflection = reflection
         end
