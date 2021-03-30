@@ -439,7 +439,7 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
-  def test_insert_all_on_polymorphic_relation_2
+  def test_insert_all_on_polymorphic_relation_in_attributes
     pirate = Pirate.create!(catchphrase: "Yar!")
 
     assert_difference "pirate.treasures.count", +1 do
