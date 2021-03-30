@@ -2,6 +2,7 @@
 
 require "benchmark"
 require "abstract_controller/logger"
+require "action_controller/metal/instrumentation_payload"
 
 module ActionController
   # Adds instrumentation to several ends in ActionController::Base. It also provides
@@ -13,24 +14,14 @@ module ActionController
     extend ActiveSupport::Concern
 
     include AbstractController::Logger
+    include InstrumentationPayload
 
     attr_internal :view_runtime
 
     def process_action(*)
-      raw_payload = {
-        controller: self.class.name,
-        action: action_name,
-        request: request,
-        params: request.filtered_parameters,
-        headers: request.headers,
-        format: request.format.ref,
-        method: request.request_method,
-        path: request.fullpath
-      }
+      ActiveSupport::Notifications.instrument("start_processing.action_controller", controller_instrumentation_payload)
 
-      ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload)
-
-      ActiveSupport::Notifications.instrument("process_action.action_controller", raw_payload) do |payload|
+      ActiveSupport::Notifications.instrument("process_action.action_controller", controller_instrumentation_payload) do |payload|
         result = super
         payload[:response] = response
         payload[:status]   = response.status

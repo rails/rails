@@ -280,9 +280,17 @@ INFO. Additional keys may be added by the caller.
 
 ### unpermitted_parameters.action_controller
 
-| Key     | Value            |
-| ------- | ---------------- |
-| `:keys` | Unpermitted keys |
+| Key             | Value                                                     |
+| --------------- | --------------------------------------------------------- |
+| `:keys`         | Unpermitted keys                                          |
+| `:controller`   | The controller name                                       |
+| `:action`       | The action                                                |
+| `:params`       | Hash of request parameters without any filtered parameter |
+| `:headers`      | Request headers                                           |
+| `:format`       | html/js/json/xml etc                                      |
+| `:method`       | HTTP request verb                                         |
+| `:path`         | Request path                                              |
+| `:request`      | The `ActionDispatch::Request`                             |
 
 Action Dispatch
 ---------------

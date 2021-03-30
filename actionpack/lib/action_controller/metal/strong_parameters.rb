@@ -5,6 +5,7 @@ require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/object/to_query"
 require "action_dispatch/http/upload"
+require "action_controller/metal/instrumentation_payload"
 require "rack/test"
 require "stringio"
 require "set"
@@ -106,11 +107,10 @@ module ActionController
   #
   # * +permit_all_parameters+ - If it's +true+, all the parameters will be
   #   permitted by default. The default is +false+.
-  # * +action_on_unpermitted_parameters+ - Allow to control the behavior when parameters
-  #   that are not explicitly permitted are found. The values can be +false+ to just filter them
-  #   out, <tt>:log</tt> to additionally write a message on the logger, or <tt>:raise</tt> to raise
-  #   ActionController::UnpermittedParameters exception. The default value is <tt>:log</tt>
-  #   in test and development environments, +false+ otherwise.
+  # * +action_on_unpermitted_parameters+ - Controls behavior when parameters that are not explicitly permitted are found. The default value is <tt>:log</tt> in test and development environments, +false+ otherwise. The values can be:
+  #   1) +false+ to take no action
+  #   2) <tt>:log</tt> to emit an <tt>ActiveSupport::Notifications.instrument</tt> event on the <tt>unpermitted_parameters.action_controller</tt> topic
+  #   3) <tt>:raise</tt> to raise a <tt>ActionController::UnpermittedParameters</tt> exception
   #
   # Examples:
   #
@@ -143,6 +143,8 @@ module ActionController
   #   params[:key]  # => "value"
   #   params["key"] # => "value"
   class Parameters
+    include InstrumentationPayload
+
     cattr_accessor :permit_all_parameters, instance_accessor: false, default: false
 
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
@@ -967,8 +969,11 @@ module ActionController
         if unpermitted_keys.any?
           case self.class.action_on_unpermitted_parameters
           when :log
-            name = "unpermitted_parameters.action_controller"
-            ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys)
+            payload = controller_instrumentation_payload.merge({ keys: unpermitted_keys })
+            ActiveSupport::Notifications.instrument(
+              "unpermitted_parameters.action_controller",
+              payload
+            )
           when :raise
             raise ActionController::UnpermittedParameters.new(unpermitted_keys)
           end
