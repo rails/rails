@@ -333,7 +333,7 @@ module ActionController #:nodoc:
         end
 
         begin
-          masked_token = Base64.urlsafe_decode64(encoded_masked_token)
+          masked_token = Base64.strict_decode64(encoded_masked_token)
         rescue ArgumentError # encoded_masked_token is invalid Base64
           return false
         end
@@ -397,8 +397,8 @@ module ActionController #:nodoc:
       end
 
       def real_csrf_token(session) # :doc:
-        session[:_csrf_token] ||= SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH)
-        Base64.urlsafe_decode64(session[:_csrf_token])
+        session[:_csrf_token] ||= SecureRandom.base64(AUTHENTICITY_TOKEN_LENGTH)
+        Base64.strict_decode64(session[:_csrf_token])
       end
 
       def per_form_csrf_token(session, action_path, method) # :doc:

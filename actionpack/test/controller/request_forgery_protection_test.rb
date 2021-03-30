@@ -176,7 +176,7 @@ end
 # common test methods
 module RequestForgeryProtectionTests
   def setup
-    @token = Base64.urlsafe_encode64("railstestrailstestrailstestrails")
+    @token = Base64.strict_encode64("railstestrailstestrailstestrails")
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
@@ -722,21 +722,21 @@ class FreeCookieControllerTest < ActionController::TestCase
   end
 
   def test_should_not_render_form_with_token_tag
-    SecureRandom.stub :urlsafe_base64, @token do
+    SecureRandom.stub :base64, @token do
       get :index
       assert_select "form>div>input[name=?][value=?]", "authenticity_token", @token, false
     end
   end
 
   def test_should_not_render_button_to_with_token_tag
-    SecureRandom.stub :urlsafe_base64, @token do
+    SecureRandom.stub :base64, @token do
       get :show_button
       assert_select "form>div>input[name=?][value=?]", "authenticity_token", @token, false
     end
   end
 
   def test_should_allow_all_methods_without_token
-    SecureRandom.stub :urlsafe_base64, @token do
+    SecureRandom.stub :base64, @token do
       [:post, :patch, :put, :delete].each do |method|
         assert_nothing_raised { send(method, :index) }
       end
@@ -744,7 +744,7 @@ class FreeCookieControllerTest < ActionController::TestCase
   end
 
   test "should not emit a csrf-token meta tag" do
-    SecureRandom.stub :urlsafe_base64, @token do
+    SecureRandom.stub :base64, @token do
       get :meta
       assert_predicate @response.body, :blank?
     end
@@ -756,7 +756,7 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
     super
     @old_logger = ActionController::Base.logger
     @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    @token = Base64.urlsafe_encode64(SecureRandom.random_bytes(32))
+    @token = Base64.strict_encode64(SecureRandom.random_bytes(32))
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = @token
   end
@@ -1016,7 +1016,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     end
 
     def assert_matches_session_token_on_server(form_token, method = "post")
-      actual = @controller.send(:unmask_token, Base64.urlsafe_decode64(form_token))
+      actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
       expected = @controller.send(:per_form_csrf_token, session, "/per_form_tokens/post_one", method)
       assert_equal expected, actual
     end
