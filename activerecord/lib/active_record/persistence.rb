@@ -128,6 +128,11 @@ module ActiveRecord
       #     { id: 1, title: "Rework" },
       #     { id: 2, title: "Eloquent Ruby" }
       #   ])
+      #
+      #   # insert_all works with associations in attributes including polymorphic
+      #
+      #   Author.create!(name: "David")
+      #   Book.insert_all!([{ author: author, name: "Rework" }])
       def insert_all(attributes, returning: nil, unique_by: nil)
         InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by).execute
       end
