@@ -26,9 +26,10 @@ module ActiveRecord
 
       attr_accessor :schema_cache
 
-      def connection_klass
-        nil
-      end
+      def connection_klass; end
+      def checkin(_); end
+      def remove(_); end
+      def async_executor; end
     end
 
     # Connection pool base class for managing Active Record database
