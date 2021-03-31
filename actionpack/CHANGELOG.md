@@ -1,3 +1,24 @@
+*   Accept base64_urlsafe CSRF tokens to make forward compatible.
+
+    Base64 strict-encoded CSRF tokens are not inherently websafe, which makes
+    them difficult to deal with. For example, the common practice of sending
+    the CSRF token to a browser in a client-readable cookie does not work properly
+    out of the box: the value has to be url-encoded and decoded to survive transport.
+
+    In Rails 6.1, we generate Base64 urlsafe-encoded CSRF tokens, which are inherently
+    safe to transport. Validation accepts both urlsafe tokens, and strict-encoded
+    tokens for backwards compatibility.
+
+    In Rails 5.2.5, the CSRF token format is accidentally changed to urlsafe-encoded.
+    If you upgrade apps from 5.2.5, set the config `urlsafe_csrf_tokens = true`.
+
+    ```ruby
+    Rails.application.config.action_controller.urlsafe_csrf_tokens = true
+    ```
+
+    *Scott Blum*, *Étienne Barrié*
+
+
 ## Rails 5.2.5 (March 26, 2021) ##
 
 *   No changes.
