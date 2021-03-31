@@ -151,7 +151,7 @@ module ActiveRecord
         end
 
         def attributes(object)
-          { @reflection.foreign_key => object.id }
+          { @reflection.foreign_key => object.public_send(@reflection.association_primary_key) }
         end
       end
 
@@ -165,7 +165,8 @@ module ActiveRecord
         end
 
         def attributes(object)
-          { @reflection.foreign_key => object.id, @reflection.foreign_type => object.class.polymorphic_name }
+          { @reflection.foreign_key => object.public_send(@reflection.association_primary_key(object.class)),
+            @reflection.foreign_type => object.class.polymorphic_name }
         end
       end
 
