@@ -154,8 +154,6 @@ module ActiveRecord
 
       class_attribute :default_shard, instance_writer: false
 
-      mattr_accessor :legacy_connection_handling, instance_writer: false, default: true
-
       mattr_accessor :application_record_class, instance_accessor: false, default: nil
 
       # Sets the async_query_executor for an application. By default the thread pool executor
@@ -215,20 +213,29 @@ module ActiveRecord
         Thread.current.thread_variable_set(:ar_connection_handler, handler)
       end
 
-      def self.connection_handlers
-        unless legacy_connection_handling
-          raise NotImplementedError, "The new connection handling does not support accessing multiple connection handlers."
-        end
-
-        @@connection_handlers ||= {}
+      def self.legacy_connection_handling
+        ConnectionHandling.legacy_handling
       end
 
-      def self.connection_handlers=(handlers)
-        unless legacy_connection_handling
+      def self.legacy_connection_handling=(enabled)
+        ConnectionHandling.legacy_handling = enabled
+        ConnectionHandling.handlers ||= {}
+      end
+
+      def self.connection_handlers
+        unless ConnectionHandling.legacy_handling
           raise NotImplementedError, "The new connection handling does not setting support multiple connection handlers."
         end
 
-        @@connection_handlers = handlers
+        ConnectionHandling.handlers
+      end
+
+      def self.connection_handlers=(handlers)
+        unless ConnectionHandling.legacy_handling
+          raise NotImplementedError, "The new connection handling does not setting support multiple connection handlers."
+        end
+
+        ConnectionHandling.handlers = handlers
       end
 
       def self.asynchronous_queries_session # :nodoc:

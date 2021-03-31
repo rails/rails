@@ -2,6 +2,12 @@
 
 module ActiveRecord
   module ConnectionHandling
+    class << self
+      attr_accessor :legacy_handling, :handlers # :nodoc:
+    end
+    @legacy_handling = true
+    @handlers = {}
+
     RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence }
     DEFAULT_ENV = -> { RAILS_ENV.call || "default_env" }
 
