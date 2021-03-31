@@ -373,3 +373,5 @@ class ForwardsMailboxTest < ActionMailbox::TestCase
   end
 end
 ```
+
+Please refer to the [ActionMailbox::TestHelper API](https://api.rubyonrails.org/classes/ActionMailbox/TestHelper.html) for further test helper methods.
