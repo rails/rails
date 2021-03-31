@@ -377,6 +377,15 @@ module RequestForgeryProtectionTests
     end
   end
 
+  def test_should_allow_post_with_urlsafe_token_when_migrating
+    token_length = (ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH * 4.0 / 3).ceil
+    token_including_url_safe_chars = "-_".ljust(token_length, "A")
+    session[:_csrf_token] = token_including_url_safe_chars
+    @controller.stub :form_authenticity_token, token_including_url_safe_chars do
+      assert_not_blocked { post :index, params: { custom_authenticity_token: token_including_url_safe_chars } }
+    end
+  end
+
   def test_should_allow_patch_with_token
     session[:_csrf_token] = @token
     @controller.stub :form_authenticity_token, @token do
