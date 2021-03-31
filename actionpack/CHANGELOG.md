@@ -1,3 +1,8 @@
+*   Expand payload of `unpermitted_parameters.action_controller` instrumentation to allow subscribers to
+    know which controller action received unpermitted parameters.
+
+    *bbuchalter*
+
 *   Add `ActionController::Live#send_stream` that makes it more convenient to send generated streams:
 
     ```ruby

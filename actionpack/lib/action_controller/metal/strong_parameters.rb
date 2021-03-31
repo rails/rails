@@ -106,11 +106,13 @@ module ActionController
   #
   # * +permit_all_parameters+ - If it's +true+, all the parameters will be
   #   permitted by default. The default is +false+.
-  # * +action_on_unpermitted_parameters+ - Allow to control the behavior when parameters
-  #   that are not explicitly permitted are found. The values can be +false+ to just filter them
-  #   out, <tt>:log</tt> to additionally write a message on the logger, or <tt>:raise</tt> to raise
-  #   ActionController::UnpermittedParameters exception. The default value is <tt>:log</tt>
-  #   in test and development environments, +false+ otherwise.
+  # * +action_on_unpermitted_parameters+ - Controls behavior when parameters that are not explicitly
+  #    permitted are found. The default value is <tt>:log</tt> in test and development environments,
+  #    +false+ otherwise. The values can be:
+  #   * +false+ to take no action.
+  #   * <tt>:log</tt> to emit an <tt>ActiveSupport::Notifications.instrument</tt> event on the
+  #     <tt>unpermitted_parameters.action_controller</tt> topic and log at the DEBUG level.
+  #   * <tt>:raise</tt> to raise a <tt>ActionController::UnpermittedParameters</tt> exception.
   #
   # Examples:
   #
@@ -277,8 +279,9 @@ module ActionController
     #   params = ActionController::Parameters.new(name: "Francesco")
     #   params.permitted?  # => true
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
-    def initialize(parameters = {})
+    def initialize(parameters = {}, logging_context = {})
       @parameters = parameters.with_indifferent_access
+      @logging_context = logging_context
       @permitted = self.class.permit_all_parameters
     end
 
@@ -968,7 +971,7 @@ module ActionController
           case self.class.action_on_unpermitted_parameters
           when :log
             name = "unpermitted_parameters.action_controller"
-            ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys)
+            ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys, context: @logging_context)
           when :raise
             raise ActionController::UnpermittedParameters.new(unpermitted_keys)
           end
@@ -1184,7 +1187,15 @@ module ActionController
     # Returns a new ActionController::Parameters object that
     # has been instantiated with the <tt>request.parameters</tt>.
     def params
-      @_params ||= Parameters.new(request.parameters)
+      @_params ||= begin
+        context = {
+          controller: self.class.name,
+          action: action_name,
+          request: request,
+          params: request.filtered_parameters
+        }
+        Parameters.new(request.parameters, context)
+      end
     end
 
     # Assigns the given +value+ to the +params+ hash. If +value+
