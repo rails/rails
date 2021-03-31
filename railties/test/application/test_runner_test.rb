@@ -557,7 +557,7 @@ module ApplicationTests
       assert_match "Test order: random", output
     end
 
-    def test_parallel_is_enabled_when_multiple_files_are_run
+    def test_random_order_is_enabled_when_multiple_files_are_run
       exercise_parallelization_regardless_of_machine_core_count(with: :processes, force: false)
 
       file_1 = app_file "test/unit/parallel_test_first.rb", <<-RUBY
@@ -582,11 +582,11 @@ module ApplicationTests
 
       output = run_test_command([file_1, file_2].join(" "))
 
-      assert_match "Test order (file 1): parallel", output
-      assert_match "Test order (file 2): parallel", output
+      assert_match "Test order (file 1): random", output
+      assert_match "Test order (file 2): random", output
     end
 
-    def test_parallel_is_enabled_when_PARALLEL_WORKERS_is_set
+    def test_random_order_is_enabled_when_PARALLEL_WORKERS_is_set
       @old = ENV["PARALLEL_WORKERS"]
       ENV["PARALLEL_WORKERS"] = "5"
 
@@ -604,7 +604,7 @@ module ApplicationTests
 
       output = run_test_command(file_name)
 
-      assert_match "Test order: parallel", output
+      assert_match "Test order: random", output
     ensure
       ENV["PARALLEL_WORKERS"] = @old
     end
