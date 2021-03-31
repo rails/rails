@@ -474,6 +474,30 @@ module ActionController #:nodoc:
         end
       end
 
+      if RUBY_VERSION.start_with?("2.2")
+        # Backported https://github.com/ruby/ruby/commit/6b6680945ed3274cddbc34fdfd410d74081a3e94
+        using Module.new {
+          refine Base64.singleton_class do
+            def urlsafe_encode64(bin, padding: true)
+              str = strict_encode64(bin).tr("+/", "-_")
+              str = str.delete("=") unless padding
+              str
+            end
+
+            def urlsafe_decode64(str)
+              # NOTE: RFC 4648 does say nothing about unpadded input, but says that
+              # "the excess pad characters MAY also be ignored", so it is inferred that
+              # unpadded input is also acceptable.
+              str = str.tr("-_", "+/")
+              if !str.end_with?("=") && str.length % 4 != 0
+                str = str.ljust((str.length + 3) & ~3, "=")
+              end
+              strict_decode64(str)
+            end
+          end
+        }
+      end
+
       def encode_csrf_token(csrf_token) # :nodoc:
         if urlsafe_csrf_tokens
           Base64.urlsafe_encode64(csrf_token, padding: false)
