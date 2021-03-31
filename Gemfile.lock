@@ -455,7 +455,7 @@ GEM
       sprockets (> 3.0)
       sprockets-rails
       tilt
-    sdoc (2.0.3)
+    sdoc (2.1.0)
       rdoc (>= 5.0)
     selenium-webdriver (4.0.0.alpha7)
       childprocess (>= 0.5, < 5.0)
@@ -609,7 +609,7 @@ DEPENDENCIES
   rubocop-performance
   rubocop-rails
   sass-rails
-  sdoc (>= 2.0.3)
+  sdoc (>= 2.1.0)
   selenium-webdriver (>= 4.0.0.alpha7)
   sequel
   sidekiq
