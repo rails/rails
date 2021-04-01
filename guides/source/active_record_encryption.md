@@ -27,7 +27,7 @@ First, you need to add some keys to your [rails credentials](/security.html#cust
 $ bin/rails db:encryption:init
 Add this entry to the credentials of the target environment:
 
-active_record.encryption:
+active_record_encryption:
   primary_key: EGY8WhulUOXixybod7ZWwMIL68R9o5kC
   deterministic_key: aPA5XyALhf75NNnMzaspW7akTfZp0lPY
   key_derivation_salt: xEY0dt6TZcAMg52K7O84wYzkjvbA62Hz
@@ -327,7 +327,8 @@ The key will be used internally to derive the key used to encrypt and decrypt th
 - All the keys will be tried when decrypting content, until one works.
 
 ```yml
-active_record.encryption:
+active_record
+  encryption:
     master_key:
         - bc17e7b413fd4720716a7633027f8cc4 # Active, encrypts new content
         - a1cc4d7b9f420e40a337b9e68c5ecec6 # Previous keys can still decrypt existing content
