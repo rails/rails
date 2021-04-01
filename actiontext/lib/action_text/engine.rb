@@ -22,6 +22,7 @@ module ActionText
     initializer "action_text.attribute" do
       ActiveSupport.on_load(:active_record) do
         include ActionText::Attribute
+        prepend ActionText::Encryption
       end
     end
 
