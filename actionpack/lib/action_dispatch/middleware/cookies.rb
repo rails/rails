@@ -10,7 +10,7 @@ module ActionDispatch
   module RequestCookieMethods
     def cookie_jar
       fetch_header("action_dispatch.cookies") do
-        self.cookie_jar = Cookies::CookieJar.build(self, cookies)
+        self.cookie_jar = self.cookie_jar_class.build(self, cookies)
       end
     end
 

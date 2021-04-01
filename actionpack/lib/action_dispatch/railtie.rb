@@ -44,6 +44,7 @@ module ActionDispatch
       ActionDispatch::Http::URL.tld_length = app.config.action_dispatch.tld_length
 
       ActiveSupport.on_load(:action_dispatch_request) do
+        self.cookie_jar_class = app.config.action_dispatch.cookie_jar_class || ActionDispatch::Cookies::CookieJar
         self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
         self.return_only_media_type_on_content_type = app.config.action_dispatch.return_only_request_media_type_on_content_type
         ActionDispatch::Request::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
