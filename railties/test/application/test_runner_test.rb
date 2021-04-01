@@ -547,14 +547,14 @@ module ApplicationTests
 
         class ParallelTest < ActiveSupport::TestCase
           def test_verify_test_order
-            puts "Test order: \#{self.class.test_order}"
+            puts "Test parallelization disabled: \#{ActiveSupport.test_parallelization_disabled}"
           end
         end
       RUBY
 
       output = run_test_command(file_name)
 
-      assert_match "Test order: random", output
+      assert_match "Test parallelization disabled: true", output
     end
 
     def test_parallel_is_enabled_when_multiple_files_are_run
@@ -565,7 +565,7 @@ module ApplicationTests
 
         class ParallelTestFirst < ActiveSupport::TestCase
           def test_verify_test_order
-            puts "Test order (file 1): \#{self.class.test_order}"
+            puts "Test parallelization disabled (file 1): \#{ActiveSupport.test_parallelization_disabled}"
           end
         end
       RUBY
@@ -575,15 +575,15 @@ module ApplicationTests
 
         class ParallelTestSecond < ActiveSupport::TestCase
           def test_verify_test_order
-            puts "Test order (file 2): \#{self.class.test_order}"
+            puts "Test parallelization disabled (file 2): \#{ActiveSupport.test_parallelization_disabled}"
           end
         end
       RUBY
 
       output = run_test_command([file_1, file_2].join(" "))
 
-      assert_match "Test order (file 1): parallel", output
-      assert_match "Test order (file 2): parallel", output
+      assert_match "Test parallelization disabled (file 1): false", output
+      assert_match "Test parallelization disabled (file 2): false", output
     end
 
     def test_parallel_is_enabled_when_PARALLEL_WORKERS_is_set
@@ -597,14 +597,14 @@ module ApplicationTests
 
         class ParallelTest < ActiveSupport::TestCase
           def test_verify_test_order
-            puts "Test order: \#{self.class.test_order}"
+            puts "Test parallelization disabled: \#{ActiveSupport.test_parallelization_disabled}"
           end
         end
       RUBY
 
       output = run_test_command(file_name)
 
-      assert_match "Test order: parallel", output
+      assert_match "Test parallelization disabled: false", output
     ensure
       ENV["PARALLEL_WORKERS"] = @old
     end
