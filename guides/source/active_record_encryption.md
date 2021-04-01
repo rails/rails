@@ -80,6 +80,8 @@ The recommendation is using the default (non deterministic) unless you need to q
 
 NOTE: In non-deterministic mode, encryption is done using AES-GCM with a 256-bits key and a random initialization vector. In deterministic mode, it uses AES-GCM too but the initialization vector is generated as a HMAC-SHA-256 digest of the key and contents to encrypt.
 
+NOTE: You can disable deterministic encryption just by not configuring a `deterministic_key`.
+
 ## Features
 
 ### Action Text

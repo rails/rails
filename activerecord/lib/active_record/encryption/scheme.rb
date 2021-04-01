@@ -24,7 +24,7 @@ module ActiveRecord
         @previous_schemes = Array.wrap(previous_schemes)
         @context_properties = context_properties
 
-        validate!
+        validate_config!
       end
 
       def ignore_case?
@@ -45,7 +45,10 @@ module ActiveRecord
       end
 
       def key_provider
-        @key_provider ||= @key_provider_param || build_key_provider
+        @key_provider ||= begin
+          validate_keys!
+          @key_provider_param || build_key_provider
+        end
       end
 
       def merge(other_scheme)
@@ -66,9 +69,22 @@ module ActiveRecord
       end
 
       private
-        def validate!
+        def validate_config!
           raise Errors::Configuration, "ignore_case: can only be used with deterministic encryption" if @ignore_case && !@deterministic
           raise Errors::Configuration, "key_provider: and key: can't be used simultaneously" if @key_provider_param && @key
+        end
+
+        def validate_keys!
+          validate_credential :key_derivation_salt
+          validate_credential :primary_key, "needs to be configured to use non-deterministic encryption" unless @deterministic
+          validate_credential :deterministic_key, "needs to be configured to use deterministic encryption" if @deterministic
+        end
+
+        def validate_credential(key, error_message = "is not configured")
+          unless ActiveRecord::Encryption.config.public_send(key).present?
+            raise Errors::Configuration, "#{key} #{error_message}. Please configure it via credential"\
+              "active_record_encryption.#{key} or by setting config.active_record.encryption.#{key}"
+          end
         end
 
         def build_key_provider

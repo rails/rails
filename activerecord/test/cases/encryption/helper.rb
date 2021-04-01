@@ -141,8 +141,8 @@ class ActiveRecord::EncryptionTestCase < ActiveRecord::TestCase
   include ActiveRecord::Encryption::EncryptionHelpers, ActiveRecord::Encryption::PerformanceHelpers
   # , PerformanceHelpers
 
-  ENCRYPTION_ATTRIBUTES_TO_RESET = %i[ primary_key deterministic_key store_key_references key_derivation_salt support_unencrypted_data
-    encrypt_fixtures ]
+  ENCRYPTION_ATTRIBUTES_TO_RESET = %i[ primary_key deterministic_key key_derivation_salt store_key_references
+    key_derivation_salt support_unencrypted_data encrypt_fixtures ]
 
   setup do
     ENCRYPTION_ATTRIBUTES_TO_RESET.each do |property|
