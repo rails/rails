@@ -37,7 +37,7 @@ NOTE: These generated keys and salt are 32 bytes length. If you generate these y
 
 ### Declaration of encrypted attributes
 
-Encryptable attributes are defined at the model level. These are regular Active Record attributes backed by a column with the same name. 
+Encryptable attributes are defined at the model level. These are regular Active Record attributes backed by a column with the same name.
 
 ```ruby
 class Article < ApplicationRecord
@@ -60,7 +60,7 @@ INSERT INTO `articles` (`title`) VALUES ('{\"p\":\"n7J0/ol+a7DRMeaE\",\"h\":{\"i
 
 Encryption takes additional space in the column. You can estimate the worst-case overload in around 250 bytes when the built-in envelope encryption key provider is used. For medium and large text columns this overload is negligible, but for `string` columns of 255 bytes, you should increase their limit accordingly (510 is recommended).
 
-NOTE: The reason for the additional space is that values are encoded in Base 64 and, also, that additional metadata is stored with the encrypted values. 
+NOTE: The reason for the additional space are Base 64 encoding and additional metadata stored with the encrypted values.
 
 ### Deterministic and non-deterministic encryption
 
@@ -78,7 +78,7 @@ Author.find_by_email("some@email.com") # You can query the model normally
 
 The recommendation is using the default (non deterministic) unless you need to query the data.
 
-NOTE: In non-deterministic mode, encryption is done using AES-GCM with a 256-bits key and a random initialization vector. In deterministic mode, it uses AES-GCM too but the initialization vector is generated as a HMAC-SHA-256 digest of the key and contents to encrypt.
+NOTE: In non-deterministic mode, it uses AES-GCM with a 256-bits key and a random initialization vector. In deterministic mode, it uses AES-GCM too but the initialization vector is generated as a HMAC-SHA-256 digest of the key and contents to encrypt.
 
 NOTE: You can disable deterministic encryption just by not configuring a `deterministic_key`.
 
@@ -108,13 +108,13 @@ When enabled, all the encryptable attributes will be encrypted according to the 
 
 #### Action text fixtures
 
-To encrypt action text fixtures you should place them in `fixtures/action_text/encrypted_rich_texts.yml`. 
+To encrypt action text fixtures you should place them in `fixtures/action_text/encrypted_rich_texts.yml`.
 
 ### Supported types
 
-`active_record.encryption` will serialize values using the underlying type before encrypting them, but *they must be serializable as strings*, as that will be the value that the library will encrypt. Structured types like `serialized` are supported out of the box.
+`active_record.encryption` will serialize values using the underlying type before encrypting them, but *they must be serializable as strings*. Structured types like `serialized` are supported out of the box.
 
-If you need to support a custom type, the recommended way is using a [serialized attribute](https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/Serialization/ClassMethods.html). The declaration of the serialized attribute should go **before** the encryption declaration: 
+If you need to support a custom type, the recommended way is using a [serialized attribute](https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/Serialization/ClassMethods.html). The declaration of the serialized attribute should go **before** the encryption declaration:
 
 ```ruby
 # GOOD
@@ -170,10 +170,8 @@ To support these situations, you can declare previous encryption schemes that wi
 
 You can configure previous encryption schemes:
 
-* Gloabally
+* Globally
 * On a per-attribute basis
-
-NOTE: Defining previous encryption schemes is only available for non deterministic encryption.
 
 #### Global previous encryption schemes
 
@@ -222,7 +220,7 @@ NOTE: If you want to ignore case make sure to use `downcase:` or `ignore_case:` 
 
 #### Unique indexes
 
-To support unique indexes on deterministically-encrypted columns, you need to make sure their ciphertext doesn't ever change. 
+To support unique indexes on deterministically-encrypted columns, you need to make sure their ciphertext doesn't ever change.
 
 To encourage this, by default, deterministic attributes will always use the oldest encryption scheme, when multiple encryption schemes are configured. Other than this, it's up to you making sure that encryption properties don't change for these attributes, or the unique indexes won't work.
 
@@ -243,13 +241,13 @@ In case you want exclude specific columns from this automatic filtering, add the
 
 ## Key management
 
-Key management strategies are implemented by key providers. You can configure key providers globally or on a per-attribute basis. 
+Key management strategies are implemented by key providers. You can configure key providers globally or on a per-attribute basis.
 
 ### Built-in key providers
 
 #### DerivedSecretKeyProvider
 
-A key provider that will serve keys derived from the provided passwords using PBKDF2. 
+A key provider that will serve keys derived from the provided passwords using PBKDF2.
 
 ```ruby
 config.active_record.encryption.key_provider = ActiveRecord::Encryption::DerivedSecretKeyProvider.new(["some passwords", "to derive keys from. ", "These should be in", "credentials"])
@@ -341,11 +339,11 @@ This enables workflows where you keep a short list of keys, by adding new keys, 
 
 NOTE: Rotating keys is not currently supported for deterministic encryption.
 
-NOTE: Active Record Encryption doesn't provide automatic management of key rotation processes yet. All the pieces are there, but this hasn't been implemented yet. 
+NOTE: Active Record Encryption doesn't provide automatic management of key rotation processes yet. All the pieces are there, but this hasn't been implemented yet.
 
 ### Storing key references
 
-There is a setting `active_record.encryption.store_key_references` you can use to make `active_record.encryption` store a reference to the encryption key in the encrypted message itself. 
+There is a setting `active_record.encryption.store_key_references` you can use to make `active_record.encryption` store a reference to the encryption key in the encrypted message itself.
 
 ```ruby
 config.active_record.encryption.store_key_references = true
