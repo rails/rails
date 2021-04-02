@@ -197,7 +197,7 @@ When adding previous encryption schemes:
 * With **non-deterministic encryption**, new information will always be encrypted with the *newest* (current) encryption scheme.
 * With **deterministic encryption**, new information will always be encrypted with the *oldest* encryption scheme by default.
 
-The reason is that, with deterministic encryption, you normally want ciphertexts to remain constant. You can change this behavior by setting `deterministic: { fixed: false} `. In that case, it will use the *newest* encryption scheme for encrypting new data.
+The reason is that, with deterministic encryption, you normally want ciphertexts to remain constant. You can change this behavior by setting `deterministic: { fixed: false }`. In that case, it will use the *newest* encryption scheme for encrypting new data.
 
 ### Unique constraints
 
@@ -216,7 +216,7 @@ end
 
 They will also work when combining encrypted and unencrypted data, and when configuring previous encryption schemes.
 
-NOTE: If you want to ignore case make sure to use `downcase:` or `ignore_case:` in the `.encrypts` declaration. Using the `case_sensitive:` option in the validation won't work.
+NOTE: If you want to ignore case make sure to use `downcase:` or `ignore_case:` in the `encrypts` declaration. Using the `case_sensitive:` option in the validation won't work.
 
 #### Unique indexes
 
