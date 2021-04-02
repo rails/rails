@@ -1523,7 +1523,9 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
 
       handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
       handler.establish_connection(db_config)
-      ActiveRecord::Base.connection_handlers = {}
+      assert_deprecated do
+        ActiveRecord::Base.connection_handlers = {}
+      end
       ActiveRecord::Base.connection_handler = handler
       ActiveRecord::Base.connects_to(database: { writing: :default, reading: :readonly })
 

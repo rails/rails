@@ -1,3 +1,7 @@
+*   Deprecate `legacy_connection_handling`.
+
+    *Eileen M. Uchitelle*
+
 *   Add attribute encryption support.
 
     Encrypted attributes are declared at the model level. These
