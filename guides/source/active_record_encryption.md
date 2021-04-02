@@ -119,14 +119,14 @@ If you need to support a custom type, the recommended way is using a [serialized
 ```ruby
 # GOOD
 class Article < ApplicationRecord
-  serialize :title, Title 
+  serialize :title, Title
   encrypts :title
 end
 
 # WRONG
 class Article < ApplicationRecord
   encrypts :title
-  serialize :title, Title 
+  serialize :title, Title
 end
 ```
 
@@ -404,7 +404,7 @@ The available config options are:
 | `deterministic_key`                                          | The key or list of keys used for deterministic encryption. It's preferred to configure it via a credential `active_record_encryption.deterministic_key`. |
 | `key_derivation_salt`                                        | The salt used when deriving keys. It's preferred to configure it via a credential `active_record_encryption.key_derivation_salt`. |
 
-NOTE: It's recommende to use Rails built-in credentials support to store keys. If you prefer to set them manually via config properties, make sure you don't commit them with your code (e.g: use environment variables).
+NOTE: It's recommended to use Rails built-in credentials support to store keys. If you prefer to set them manually via config properties, make sure you don't commit them with your code (e.g: use environment variables).
 
 ### Encryption contexts
 
