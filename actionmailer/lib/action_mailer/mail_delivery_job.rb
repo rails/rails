@@ -17,14 +17,12 @@ module ActionMailer
       @mailer_class = params ? mailer.constantize.with(params) : mailer.constantize
       @mail_method = mail_method
       @delivery_method = delivery_method
-      @args = args
-      @kwargs = kwargs
 
-      send_message
+      send_message(args, kwargs)
     end
 
-    def send_message
-      message.send(@delivery_method)
+    def send_message(args, kwargs)
+      message(args, kwargs).send(@delivery_method)
     end
 
     private
@@ -36,11 +34,11 @@ module ActionMailer
         end
       end
 
-      def message
-        @message ||= if @kwargs
-          @mailer_class.public_send(@mail_method, *@args, **@kwargs)
+      def message(args, kwargs)
+        if kwargs.present?
+          @mailer_class.public_send(@mail_method, *args, **kwargs)
         else
-          @mailer_class.public_send(@mail_method, *@args)
+          @mailer_class.public_send(@mail_method, *args)
         end
       end
 
