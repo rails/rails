@@ -421,18 +421,20 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping(all_queries: nil)
-      if global_scope? && all_queries == false
+      registry = klass.scope_registry
+      if global_scope?(registry) && all_queries == false
         raise ArgumentError, "Scoping is set to apply to all queries and cannot be unset in a nested block."
-      elsif already_in_scope?
+      elsif already_in_scope?(registry)
         yield
       else
-        _scoping(self, all_queries) { yield }
+        _scoping(self, registry, all_queries) { yield }
       end
     end
 
     def _exec_scope(*args, &block) # :nodoc:
       @delegate_to_klass = true
-      _scoping(nil) { instance_exec(*args, &block) || self }
+      registry = klass.scope_registry
+      _scoping(nil, registry) { instance_exec(*args, &block) || self }
     ensure
       @delegate_to_klass = false
     end
@@ -831,12 +833,12 @@ module ActiveRecord
       end
 
     private
-      def already_in_scope?
-        @delegate_to_klass && klass.current_scope(true)
+      def already_in_scope?(registry)
+        @delegate_to_klass && registry.current_scope(klass, true)
       end
 
-      def global_scope?
-        klass.global_current_scope(true)
+      def global_scope?(registry)
+        registry.global_current_scope(klass, true)
       end
 
       def current_scope_restoring_block(&block)
@@ -859,16 +861,19 @@ module ActiveRecord
         klass.create!(attributes, &block)
       end
 
-      def _scoping(scope, all_queries = false)
-        previous, klass.current_scope = klass.current_scope(true), scope
+      def _scoping(scope, registry, all_queries = false)
+        previous = registry.current_scope(klass, true)
+        registry.set_current_scope(klass, scope)
+
         if all_queries
-          previous_global, klass.global_current_scope = klass.global_current_scope(true), scope
+          previous_global = registry.global_current_scope(klass, true)
+          registry.set_global_current_scope(klass, scope)
         end
         yield
       ensure
-        klass.current_scope = previous
+        registry.set_current_scope(klass, previous)
         if all_queries
-          klass.global_current_scope = previous_global
+          registry.set_global_current_scope(klass, previous_global)
         end
       end
 
