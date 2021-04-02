@@ -1,7 +1,7 @@
 *   Add attribute encryption support.
 
     Encrypted attributes are declared at the model level. These
-    are regular active record attributes backed by a column with
+    are regular Active Record attributes backed by a column with
     the same name. The system will transparently encrypt these
     attributes before saving them into the database and will
     decrypt them when retrieving their values.
