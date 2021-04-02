@@ -134,7 +134,7 @@ end
 
 You might need to ignore case when querying deterministically encrypted data. There are two options that can help you here.
 
-You can use the option `:downcase`  when declaring the encrypted attribute. This will downcase that content before encrypting it.
+You can use the option `:downcase` when declaring the encrypted attribute. This will downcase that content before encrypting it.
 
 ```ruby
 class Person
