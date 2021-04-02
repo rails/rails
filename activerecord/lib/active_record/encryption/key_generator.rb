@@ -12,7 +12,7 @@ module ActiveRecord
       end
 
       # Returns a random key in hexadecimal format. The key will have a size in bytes of +:length+ (configured +Cipher+'s
-      # lenght by default)
+      # length by default)
       #
       # Hexadecimal format is handy for representing keys as printable text. To maximize the space of characters used, it is
       # good practice including not printable characters. Hexadecimal format ensures that generated keys are representable with
