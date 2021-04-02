@@ -161,7 +161,7 @@ To ease migrations of unencrypted data, the library includes the option `config.
 
 ### Support for previous encryption schemes
 
-Changing encryption properties of attributes can break existing data. For example, imagine you wan to make a "deterministic" attribute "not deterministic". If you just change the declaration in the model, reading existing ciphertexts will fail because they are different now.
+Changing encryption properties of attributes can break existing data. For example, imagine you want to make a "deterministic" attribute "not deterministic". If you just change the declaration in the model, reading existing ciphertexts will fail because they are different now.
 
 To support these situations, you can declare previous encryption schemes that will be used in two scenarios:
 
