@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "openssl"
-require "zip"
+require "zlib"
 require "active_support/core_ext/numeric"
 
 module ActiveRecord
