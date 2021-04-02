@@ -134,7 +134,7 @@ end
 
 You might need to ignore case when querying deterministically encrypted data. There are two options that can help you here.
 
-You can use the option `:downcase`  when declaring the encrypted attribute. This will make that content is downcased before being encrypted.
+You can use the option `:downcase`  when declaring the encrypted attribute. This will downcase that content before encrypting it.
 
 ```ruby
 class Person
@@ -142,7 +142,7 @@ class Person
 end
 ```
 
-When using `:downcase` the original case is lost. There might be cases where you need to preserve the original case when reading the value, but you need to ignore the case when querying. For those cases you can use the option `:ignore_case` which requires you to add a new column named `original_<column_name>` to store the content with the case unchanged:
+When using `:downcase` the original case is lost. There might be situations where you need to preserve the original case when reading the value, but you need to ignore the case when querying. For those situations you can use the option `:ignore_case` which requires you to add a new column named `original_<column_name>` to store the content with the case unchanged:
 
 ```ruby
 class Label
