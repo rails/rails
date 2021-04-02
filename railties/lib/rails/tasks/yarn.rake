@@ -16,7 +16,11 @@ namespace :yarn do
         "--immutable"
       end
 
-    system({ "NODE_ENV" => node_env }, "#{RbConfig.ruby} \"#{Rails.root}/bin/yarn\" install #{yarn_flags}")
+    system(
+      { "NODE_ENV" => node_env },
+      "#{RbConfig.ruby} \"#{Rails.root}/bin/yarn\" install #{yarn_flags}",
+      exception: true
+    )
   rescue Errno::ENOENT
     $stderr.puts "bin/yarn was not found."
     $stderr.puts "Please run `bundle exec rails app:update:bin` to create it."
