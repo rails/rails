@@ -14,13 +14,17 @@ module ActionMailer
     rescue_from StandardError, with: :handle_exception_with_mailer_class
 
     def perform(mailer, mail_method, delivery_method, args:, kwargs: nil, params: nil)
-      mailer_class = params ? mailer.constantize.with(params) : mailer.constantize
-      message = if kwargs
-        mailer_class.public_send(mail_method, *args, **kwargs)
-      else
-        mailer_class.public_send(mail_method, *args)
-      end
-      message.send(delivery_method)
+      @mailer_class = params ? mailer.constantize.with(params) : mailer.constantize
+      @mail_method = mail_method
+      @delivery_method = delivery_method
+      @args = args
+      @kwargs = kwargs
+
+      send_message
+    end
+
+    def send_message
+      message.send(@delivery_method)
     end
 
     private
@@ -29,6 +33,14 @@ module ActionMailer
       def mailer_class
         if mailer = Array(@serialized_arguments).first || Array(arguments).first
           mailer.constantize
+        end
+      end
+
+      def message
+        @message ||= if @kwargs
+          @mailer_class.public_send(@mail_method, *@args, **@kwargs)
+        else
+          @mailer_class.public_send(@mail_method, *@args)
         end
       end
 
