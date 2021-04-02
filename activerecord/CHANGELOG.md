@@ -1,3 +1,24 @@
+*   Add attribute encryption support.
+
+    Encrypted attributes are declared at the model level. These
+    are regular Active Record attributes backed by a column with
+    the same name. The system will transparently encrypt these
+    attributes before saving them into the database and will
+    decrypt them when retrieving their values.
+    
+
+    ```ruby
+    class Person < ApplicationRecord
+      encrypts :name
+      encrypts :email_address, deterministic: true
+    end
+    ```
+
+    You can learn more in the [Active Record Encryption
+    guide](https://edgeguides.rubyonrails.org/active_record_encryption.html).
+
+    *Jorge Manrubia*
+
 *   Changed Arel predications `contains` and `overlaps` to use
     `quoted_node` so that PostgreSQL arrays are quoted properly.
 
