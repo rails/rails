@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/file/lock"
 require "active_support/core_ext/file/atomic"
 require "active_support/core_ext/string/conversions"
 require "uri/common"
@@ -102,20 +103,6 @@ module ActiveSupport
           end
         end
 
-        # Lock a file for a block so only one process can modify it at a time.
-        def lock_file(file_name, &block)
-          if File.exist?(file_name)
-            File.open(file_name, "r+") do |f|
-              f.flock File::LOCK_EX
-              yield
-            ensure
-              f.flock File::LOCK_UN
-            end
-          else
-            yield
-          end
-        end
-
         # Translate a key into a file path.
         def normalize_key(key, options)
           key = super
@@ -180,7 +167,7 @@ module ActiveSupport
         def modify_value(name, amount, options)
           file_name = normalize_key(name, options)
 
-          lock_file(file_name) do
+          File.lock(file_name) do
             options = merged_options(options)
 
             if num = read(name, options)
