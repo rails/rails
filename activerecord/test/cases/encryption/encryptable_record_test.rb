@@ -102,7 +102,7 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   test "deterministic ciphertexts remain constant" do
     # We need to make sure these don't change or existing apps will stop working
     ciphertext = "{\"p\":\"DIohhw==\",\"h\":{\"iv\":\"wEPaDcJP3VNIxaiz\",\"at\":\"X7+2xvvcu1k1if6Dy28Esw==\"}}"
-    book = Book.create name: ciphertext
+    book = UnencryptedBook.create name: ciphertext
 
     book = EncryptedBook.find(book.id)
     assert_equal "Dune", book.name
