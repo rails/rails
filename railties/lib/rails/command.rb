@@ -40,10 +40,8 @@ module Rails
         command_name, namespace = "help", "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
         command_name, namespace = "version", "version" if %w( -v --version ).include?(command_name)
 
-        # isolate ARGV to ensure that commands depend only on the args they are given
-        args = args.dup # args might *be* ARGV so dup before clearing
-        old_argv = ARGV.dup
-        ARGV.clear
+        original_argv = ARGV.dup
+        ARGV.replace(args)
 
         command = find_by_namespace(namespace, command_name)
         if command && command.all_commands[command_name]
@@ -52,7 +50,7 @@ module Rails
           find_by_namespace("rake").perform(full_namespace, args, config)
         end
       ensure
-        ARGV.replace(old_argv)
+        ARGV.replace(original_argv)
       end
 
       # Rails finds namespaces similar to Thor, it only adds one rule:
