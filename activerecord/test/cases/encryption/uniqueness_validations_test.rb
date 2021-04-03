@@ -5,8 +5,6 @@ require "models/book_encrypted"
 require "models/author_encrypted"
 
 class ActiveRecord::Encryption::UniquenessValidationsTest < ActiveRecord::EncryptionTestCase
-  fixtures :books
-
   test "uniqueness validations work" do
     EncryptedBookWithDowncaseName.create!(name: "dune")
     assert_raises ActiveRecord::RecordInvalid do
@@ -27,8 +25,8 @@ class ActiveRecord::Encryption::UniquenessValidationsTest < ActiveRecord::Encryp
   test "uniqueness validations work when using old encryption schemes" do
     ActiveRecord::Encryption.config.previous = [ { downcase: true } ]
 
-    OldEncryptionBook = Class.new(Book) do
-      self.table_name = "books"
+    OldEncryptionBook = Class.new(UnencryptedBook) do
+      self.table_name = "encrypted_books"
 
       validates :name, uniqueness: true
       encrypts :name, deterministic: true, downcase: false
