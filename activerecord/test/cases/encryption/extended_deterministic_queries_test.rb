@@ -9,13 +9,13 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord:
   end
 
   test "Finds records when data is unencrypted" do
-    ActiveRecord::Encryption.without_encryption { Book.create! name: "Dune" }
+    ActiveRecord::Encryption.without_encryption { UnencryptedBook.create! name: "Dune" }
     assert EncryptedBook.find_by(name: "Dune") # core
     assert EncryptedBook.where("id > 0").find_by(name: "Dune") # relation
   end
 
   test "Finds records when data is encrypted" do
-    Book.create! name: "Dune"
+    UnencryptedBook.create! name: "Dune"
     assert EncryptedBook.find_by(name: "Dune") # core
     assert EncryptedBook.where("id > 0").find_by(name: "Dune") # relation
   end

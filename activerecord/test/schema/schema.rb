@@ -124,6 +124,16 @@ ActiveRecord::Schema.define do
     t.date :updated_on
   end
 
+  create_table :encrypted_books, id: :integer, force: true do |t|
+    t.references :author
+    t.string :format
+    t.column :name, :string
+    t.column :original_name, :string
+
+    t.datetime :created_at
+    t.datetime :updated_at
+  end
+
   create_table :booleans, force: true do |t|
     t.boolean :value
     t.boolean :has_fun, null: false, default: false
