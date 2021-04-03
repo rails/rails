@@ -7,7 +7,7 @@ require "models/post_encrypted"
 require "models/traffic_light_encrypted"
 
 class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::EncryptionTestCase
-  fixtures :books, :posts
+  fixtures :encrypted_books, :posts
 
   test "encrypts the attribute seamlessly when creating and updating records" do
     post = EncryptedPost.create!(title: "The Starfleet is here!", body: "take cover!")
@@ -139,7 +139,8 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   end
 
   test "can only save unencrypted attributes when frozen encryption is true" do
-    book = books(:awdr).becomes(EncryptedBook)
+    book = encrypted_books(:awdr)
+
     ActiveRecord::Encryption.with_encryption_context frozen_encryption: true do
       book.update! updated_at: Time.now
     end
@@ -270,8 +271,8 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
       end
     end
 
-    class BookThatWillFailToEncryptName < Book
-      self.table_name = "books"
+    class BookThatWillFailToEncryptName < UnencryptedBook
+      self.table_name = "encrypted_books"
 
       encrypts :name, key_provider: FailingKeyProvider.new
     end
