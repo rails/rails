@@ -112,7 +112,7 @@ end
         test_options = ENV["TESTOPTS"].to_s.split(/[\s]+/)
 
         test_files = (Dir["test/cases/**/*_test.rb"].reject {
-          |x| x.include?("/adapters/")
+          |x| x.include?("/adapters/") || x.include?("/encryption/performance")
         } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).sort
 
         if ENV["BUILDKITE_PARALLEL_JOB_COUNT"]
