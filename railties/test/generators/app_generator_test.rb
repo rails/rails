@@ -741,13 +741,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
   end
 
-  def test_argv_is_populated_for_template
-    FileUtils.cd(Rails.root)
-    argv = [destination_root, "-m", "lib/template.rb"]
-
-    assert_match %r/With ARGV! #{Regexp.escape argv.join(" ")}/, run_generator(argv)
-  end
-
   def test_usage_read_from_file
     assert_called(File, :read, returns: "USAGE FROM FILE") do
       assert_equal "USAGE FROM FILE", Rails::Generators::AppGenerator.desc

@@ -13,21 +13,29 @@ class Rails::Command::BaseTest < ActiveSupport::TestCase
     assert_equal %w(db:system:change), Rails::Command::Db::System::ChangeCommand.printing_commands
   end
 
+  test "ARGV is populated" do
+    class Rails::Command::ArgvCommand < Rails::Command::Base
+      def check_populated(*args)
+        raise "not populated" if ARGV.empty? || ARGV != args
+      end
+    end
+
+    assert_nothing_raised { Rails::Command.invoke("argv:check_populated", %w[foo bar]) }
+  end
+
   test "ARGV is isolated" do
     class Rails::Command::ArgvCommand < Rails::Command::Base
-      def check_isolation
-        raise "not isolated" unless ARGV.empty?
+      def check_isolated
         ARGV << "isolate this"
       end
     end
 
-    old_argv = ARGV.dup
-    new_argv = ["foo", "bar"]
-    ARGV.replace(new_argv)
+    original_argv = ARGV.dup
+    ARGV.clear
 
-    Rails::Command.invoke("argv:check_isolation") # should not raise
-    assert_equal new_argv, ARGV
+    Rails::Command.invoke("argv:check_isolated")
+    assert_empty ARGV
   ensure
-    ARGV.replace(old_argv)
+    ARGV.replace(original_argv)
   end
 end
