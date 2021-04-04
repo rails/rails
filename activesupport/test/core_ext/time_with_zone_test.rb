@@ -186,7 +186,9 @@ class TimeWithZoneTest < ActiveSupport::TestCase
       time: 1999-12-31 19:00:00.000000000 Z
     EOF
 
-    assert_equal(yaml, @twz.to_yaml)
+    assert_deprecated("ActiveSupport::TimeWithZone.name has been deprecated") do
+      assert_equal(yaml, @twz.to_yaml)
+    end
   end
 
   def test_ruby_to_yaml
@@ -199,7 +201,9 @@ class TimeWithZoneTest < ActiveSupport::TestCase
         time: 1999-12-31 19:00:00.000000000 Z
     EOF
 
-    assert_equal(yaml, { "twz" => @twz }.to_yaml)
+    assert_deprecated("ActiveSupport::TimeWithZone.name has been deprecated") do
+      assert_equal(yaml, { "twz" => @twz }.to_yaml)
+    end
   end
 
   def test_yaml_load
@@ -567,7 +571,9 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_class_name
-    assert_equal "Time", ActiveSupport::TimeWithZone.name
+    assert_deprecated("ActiveSupport::TimeWithZone.name has been deprecated") do
+      assert_equal "Time", ActiveSupport::TimeWithZone.name
+    end
   end
 
   def test_method_missing_with_time_return_value
