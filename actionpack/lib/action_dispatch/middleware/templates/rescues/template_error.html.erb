@@ -9,7 +9,7 @@
   <p>
     Showing <i><%= @exception.file_name %></i> where line <b>#<%= @exception.line_number %></b> raised:
   </p>
-  <pre><code><%= h @exception.message %></code></pre>
+  <pre style="max-height: 1000px; overflow: auto;"><code><%= h @exception.message %></code></pre>
 
   <%= render "rescues/source", source_extracts: @source_extracts, show_source_idx: @show_source_idx %>
 
