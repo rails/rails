@@ -250,23 +250,28 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_edge_option
-    Rails.stub(:gem_version, Gem::Version.new("2.1.0")) do
-      generator([destination_root], edge: true)
-      run_generator_instance
-    end
+    %w[2.1.0.beta1 2.1.0.rc1 2.1.0 2.1.1.rc1].each do |version|
+      Rails.stub(:version, version) do
+        prepare_destination
+        run_generator [destination_root, "--edge"]
+      end
 
-    assert_empty @bundle_commands
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']2-1-stable["']$}
+      assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']\d+-\d+-stable["']$}
+    end
   end
 
   def test_edge_option_during_alpha
-    Rails.stub(:gem_version, Gem::Version.new("2.1.0.alpha")) do
-      generator([destination_root], edge: true)
-      run_generator_instance
+    Rails.stub(:version, "2.1.0.alpha") do
+      run_generator [destination_root, "--edge"]
     end
 
-    assert_empty @bundle_commands
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
+  end
+
+  def test_edge_option_does_not_run_bundle_install
+    generator([destination_root], edge: true, skip_webpack_install: true)
+    run_generator_instance
+    assert_empty @bundle_commands
   end
 
   def test_generation_does_not_run_bundle_install_with_full_and_mountable

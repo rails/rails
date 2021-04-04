@@ -270,7 +270,7 @@ module Rails
             GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
           ]
         elsif options.edge?
-          edge_branch = Rails.gem_version.prerelease? ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
+          edge_branch = Rails.version.end_with?("alpha") ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
           [
             GemfileEntry.github("rails", "rails/rails", edge_branch)
           ]
@@ -361,9 +361,9 @@ module Rails
       def exec_bundle_command(bundle_command, command, env)
         full_command = %Q["#{Gem.ruby}" "#{bundle_command}" #{command}]
         if options[:quiet]
-          system(env, full_command, out: File::NULL)
+          system(env, full_command, out: File::NULL, exception: true)
         else
-          system(env, full_command)
+          system(env, full_command, exception: true)
         end
       end
 
