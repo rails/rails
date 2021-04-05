@@ -1,3 +1,7 @@
+*   Deprecate `ActiveSupport::TimeWithZone.name` so that from Rails 7.1 it will use the default implementation.
+
+    *Andrew White*
+
 *   Tests parallelization is now disabled when running individual files to prevent the setup overhead.
 
     It can still be enforced if the environment variable `PARALLEL_WORKERS` is present and set to a value greater than 1.

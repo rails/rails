@@ -40,6 +40,11 @@ module ActiveSupport
   class TimeWithZone
     # Report class name as 'Time' to thwart type checking.
     def self.name
+      ActiveSupport::Deprecation.warn(<<~EOM)
+        ActiveSupport::TimeWithZone.name has been deprecated and
+        from Rails 7.1 will use the default Ruby implementation.
+      EOM
+
       "Time"
     end
 
