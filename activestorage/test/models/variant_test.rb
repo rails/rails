@@ -122,9 +122,17 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
-  test "PNG variation of JPEG blob" do
+  test "PNG variation of JPEG blob with lowercase format" do
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(format: :png).processed
+    assert_equal "racecar.png", variant.filename.to_s
+    assert_equal "image/png", variant.content_type
+    assert_equal "PNG", read_image(variant).type
+  end
+
+  test "PNG variation of JPEG blob with uppercase format" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(format: "PNG").processed
     assert_equal "racecar.png", variant.filename.to_s
     assert_equal "image/png", variant.content_type
     assert_equal "PNG", read_image(variant).type
