@@ -8,7 +8,6 @@ class MultifetchCacheTest < ActiveRecordTestCase
   def setup
     view_paths = ActionController::Base.view_paths
     view_paths.each(&:clear_cache)
-    ActionView::LookupContext.fallbacks.each(&:clear_cache)
 
     @view = Class.new(ActionView::Base.with_empty_template_cache) do
       def view_cache_dependencies
