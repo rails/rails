@@ -362,7 +362,7 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
 end
 
 class PreloaderTest < ActiveRecord::TestCase
-  fixtures :posts, :comments, :books, :authors
+  fixtures :posts, :comments, :books, :authors, :tags, :taggings
 
   def test_preload_with_scope
     post = posts(:welcome)
@@ -566,6 +566,40 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_no_queries do
       favorites.first.author
       favorites.first.favorite_author
+    end
+  end
+
+  def test_preload_can_group_separate_levels
+    mary = authors(:mary)
+    bob = authors(:bob)
+
+    AuthorFavorite.create!(author: mary, favorite_author: bob)
+
+    assert_queries(3) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: [:posts, favorite_authors: :posts])
+      preloader.call
+    end
+
+    assert_no_queries do
+      mary.posts
+      mary.favorite_authors.map(&:posts)
+    end
+  end
+
+  def test_preload_can_group_multi_level_ping_pong_through
+    mary = authors(:mary)
+    bob = authors(:bob)
+
+    AuthorFavorite.create!(author: mary, favorite_author: bob)
+
+    assert_queries(9) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: { similar_posts: :comments, favorite_authors: { similar_posts: :comments } })
+      preloader.call
+    end
+
+    assert_no_queries do
+      mary.similar_posts.map(&:comments).each(&:to_a)
+      mary.favorite_authors.flat_map(&:similar_posts).map(&:comments).each(&:to_a)
     end
   end
 
