@@ -1,3 +1,11 @@
+*   Add `ActiveRecord::Relation#structurally_compatible?`.
+
+    Adds a query method by which a user can tell if the relation that they're
+    about to use for `#or` or `#and` is structurally compatible with the
+    receiver.
+
+    *Kevin Newton*
+
 *   Fix `eager_loading?` when ordering with `Symbol`
 
     `eager_loading?` is triggered correctly when using `order` with symbols.
