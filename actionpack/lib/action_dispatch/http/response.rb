@@ -88,13 +88,13 @@ module ActionDispatch # :nodoc:
 
     def self.return_only_media_type_on_content_type=(*)
       ActiveSupport::Deprecation.warn(
-        ".return_only_media_type_on_content_type= is dreprecated with no replacement and will be removed in 6.2."
+        ".return_only_media_type_on_content_type= is dreprecated with no replacement and will be removed in 7.0."
       )
     end
 
     def self.return_only_media_type_on_content_type
       ActiveSupport::Deprecation.warn(
-        ".return_only_media_type_on_content_type is dreprecated with no replacement and will be removed in 6.2."
+        ".return_only_media_type_on_content_type is dreprecated with no replacement and will be removed in 7.0."
       )
     end
 

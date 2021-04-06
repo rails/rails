@@ -340,7 +340,7 @@ module ActiveRecord
         db_config = resolve_configuration(configuration)
 
         if environment || name
-          ActiveSupport::Deprecation.warn("`environment` and `name` will be removed as parameters in 6.2.0, you may now pass an ActiveRecord::DatabaseConfigurations::DatabaseConfig as `configuration` instead.")
+          ActiveSupport::Deprecation.warn("`environment` and `name` will be removed as parameters in 7.0.0, you may now pass an ActiveRecord::DatabaseConfigurations::DatabaseConfig as `configuration` instead.")
         end
 
         name ||= db_config.name
