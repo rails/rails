@@ -216,7 +216,8 @@ module ActiveRecord
       end
 
       def self.connection_handlers
-        unless legacy_connection_handling
+        if legacy_connection_handling
+        else
           raise NotImplementedError, "The new connection handling does not support accessing multiple connection handlers."
         end
 
@@ -224,7 +225,17 @@ module ActiveRecord
       end
 
       def self.connection_handlers=(handlers)
-        unless legacy_connection_handling
+        if legacy_connection_handling
+          ActiveSupport::Deprecation.warn(<<~MSG)
+            Using legacy connection handling is deprecated. Please set
+            `legacy_connection_handling` to `false` in your application.
+
+            The new connection handling does not support `connection_handlers`
+            getter and setter.
+
+            Read more about how to migrate at:
+          MSG
+        else
           raise NotImplementedError, "The new connection handling does not setting support multiple connection handlers."
         end
 
