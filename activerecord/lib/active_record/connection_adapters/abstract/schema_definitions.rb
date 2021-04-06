@@ -60,7 +60,7 @@ module ActiveRecord
         options[:primary_key]
       end
 
-      [:limit, :precision, :scale, :default, :null, :collation, :comment].each do |option_name|
+      [:limit, :precision, :scale, :default, :null, :collation, :comment, :foreign_key].each do |option_name|
         module_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{option_name}
             options[:#{option_name}]
@@ -169,6 +169,7 @@ module ActiveRecord
 
       def add_to(table)
         columns.each do |name, type, options|
+          options = options.merge(foreign_key: foreign_key_options) if foreign_key
           table.column(name, type, **options)
         end
 
@@ -176,7 +177,7 @@ module ActiveRecord
           table.index(column_names, **index_options(table.name))
         end
 
-        if foreign_key
+        if foreign_key && !table.supports_foreign_key_as_column_constraint?
           table.foreign_key(foreign_table_name, **foreign_key_options)
         end
       end
@@ -203,7 +204,7 @@ module ActiveRecord
         end
 
         def foreign_key_options
-          as_options(foreign_key).merge(column: column_name)
+          as_options(foreign_key).merge(column: column_name, to_table: foreign_table_name)
         end
 
         def columns
@@ -223,7 +224,7 @@ module ActiveRecord
         end
 
         def foreign_table_name
-          foreign_key_options.fetch(:to_table) do
+          as_options(foreign_key).fetch(:to_table) do
             Base.pluralize_table_names ? name.to_s.pluralize : name
           end
         end
@@ -481,6 +482,8 @@ module ActiveRecord
         options[:null] = false if options[:primary_key]
         create_column_definition(name, type, options)
       end
+
+      delegate :supports_foreign_key_as_column_constraint?, to: :@conn
 
       private
         def create_column_definition(name, type, options)
@@ -799,6 +802,8 @@ module ActiveRecord
       def remove_check_constraint(*args)
         @base.remove_check_constraint(name, *args)
       end
+
+      delegate :supports_foreign_key_as_column_constraint?, to: :@base
     end
   end
 end

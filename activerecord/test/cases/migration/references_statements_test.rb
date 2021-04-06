@@ -132,6 +132,15 @@ module ActiveRecord
         assert_not column_exists?(table_name, :supplier_id, :integer)
       end
 
+      def test_combines_foreign_key_with_column
+        @table = Minitest::Mock.new
+        @table.expect :column, nil, ["user_id", :bigint, { foreign_key: { column: "user_id", to_table: "users" } }]
+        @table.expect :supports_foreign_key_as_column_constraint?, true
+        rd = ConnectionAdapters::ReferenceDefinition.new(:user, foreign_key: true, index: false)
+        rd.add_to(@table)
+        @table.verify
+      end
+
       private
         def with_polymorphic_column
           add_column table_name, :supplier_type, :string
