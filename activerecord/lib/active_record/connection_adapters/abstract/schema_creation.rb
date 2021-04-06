@@ -13,13 +13,20 @@ module ActiveRecord
         send m, o
       end
 
+      def set_table_context(table)
+        @table = table
+      end
+
       delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
-        :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys?, :foreign_key_options,
-        :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?, :check_constraint_options,
+        :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys?,
+        :supports_foreign_key_as_column_constraint?,  :foreign_key_options,
+        :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?,
+        :check_constraint_options,
         to: :@conn, private: true
 
       private
         def visit_AlterTable(o)
+          set_table_context(o.name)
           sql = +"ALTER TABLE #{quote_table_name(o.name)} "
           sql << o.adds.map { |col| accept col }.join(" ")
           sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
@@ -32,6 +39,7 @@ module ActiveRecord
           o.sql_type = type_to_sql(o.type, **o.options)
           column_sql = +"#{quote_column_name(o.name)} #{o.sql_type}"
           add_column_options!(column_sql, column_options(o)) unless o.type == :primary_key
+          column_sql << " " << foreign_key_column_constraint(@table, o.foreign_key[:to_table], column: o.name, **o.foreign_key) if supports_foreign_key_as_column_constraint? && o.foreign_key
           column_sql
         end
 
@@ -40,6 +48,7 @@ module ActiveRecord
         end
 
         def visit_TableDefinition(o)
+          set_table_context(o.name)
           create_sql = +"CREATE#{table_modifier_in_create(o)} TABLE "
           create_sql << "IF NOT EXISTS " if o.if_not_exists
           create_sql << "#{quote_table_name(o.name)} "
@@ -69,12 +78,10 @@ module ActiveRecord
           "PRIMARY KEY (#{o.name.map { |name| quote_column_name(name) }.join(', ')})"
         end
 
-        def visit_ForeignKeyDefinition(o)
-          sql = +<<~SQL
-            CONSTRAINT #{quote_column_name(o.name)}
-            FOREIGN KEY (#{quote_column_name(o.column)})
-              REFERENCES #{quote_table_name(o.to_table)} (#{quote_column_name(o.primary_key)})
-          SQL
+        def visit_ForeignKeyDefinition(o, constraint_type: :table)
+          sql = +"CONSTRAINT #{quote_column_name(o.name)}"
+          sql << " FOREIGN KEY (#{quote_column_name(o.column)})" if constraint_type == :table
+          sql << " REFERENCES #{quote_table_name(o.to_table)} (#{quote_column_name(o.primary_key)})"
           sql << " #{action_sql('DELETE', o.on_delete)}" if o.on_delete
           sql << " #{action_sql('UPDATE', o.on_update)}" if o.on_update
           sql
@@ -170,6 +177,16 @@ module ActiveRecord
         def check_constraint_in_create(table_name, expression, options)
           options = check_constraint_options(table_name, expression, options)
           accept CheckConstraintDefinition.new(table_name, expression, options)
+        end
+
+        def foreign_key_column_constraint(from_table, to_table, options)
+          prefix = ActiveRecord::Base.table_name_prefix
+          suffix = ActiveRecord::Base.table_name_suffix
+          to_table = "#{prefix}#{to_table}#{suffix}"
+
+          options = foreign_key_options(from_table, to_table, options)
+          fk = ForeignKeyDefinition.new(from_table, to_table, options)
+          visit_ForeignKeyDefinition(fk, constraint_type: :column)
         end
 
         def action_sql(action, dependency)

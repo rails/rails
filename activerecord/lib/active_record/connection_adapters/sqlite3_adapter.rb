@@ -127,6 +127,10 @@ module ActiveRecord
         true
       end
 
+      def supports_foreign_key_as_column_constraint?
+        true
+      end
+
       def supports_check_constraints?
         true
       end

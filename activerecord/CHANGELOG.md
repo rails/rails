@@ -1,3 +1,19 @@
+*   Add foreign key in the same statement as adding a column.
+
+    ```ruby
+    add_reference :astronauts, :myrocket, foreign_key: { to_table: :rockets }
+    ```
+
+    will generate
+
+    ```SQL
+    ALTER TABLE "astronauts" ADD "myrocket_id" integer CONSTRAINT "fk_rails_1286abb657" REFERENCES "rockets" ("id")
+    ```
+
+    In Postgres, this allows completely skipping of the foreign key validate,
+    and in SQLite3 it allows adding a column and a foreign key without rewriting
+    the table.
+
 *   Add attribute encryption support.
 
     Encrypted attributes are declared at the model level. These

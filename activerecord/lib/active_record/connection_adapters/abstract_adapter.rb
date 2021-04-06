@@ -359,6 +359,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support foreign key constraints defined inline with the column?
+      def supports_foreign_key_as_column_constraint?
+        false
+      end
+
       # Does this adapter support creating invalid constraints?
       def supports_validate_constraints?
         false
