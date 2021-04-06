@@ -1,3 +1,10 @@
+*   Add and drop foreign keys in bulk change_table
+
+    Previously, foreign keys each generated their own ALTER TABLE
+    statement.
+
+    *Cody Cutrer*
+
 *   `Arel::Visitors::Dot` now renders a complete set of properties when visiting
     `Arel::Nodes::SelectCore`, `SelectStatement`, `InsertStatement`, `UpdateStatement`, and
     `DeleteStatement`, which fixes #42026. Previously, some properties were omitted.

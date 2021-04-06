@@ -1629,6 +1629,21 @@ module ActiveRecord
           remove_columns_for_alter(table_name, :updated_at, :created_at)
         end
 
+        def add_foreign_key_for_alter(from_table, to_table, **options)
+          return unless supports_foreign_keys?
+
+          options = foreign_key_options(from_table, to_table, options)
+          schema_creation.accept(AddForeignKey.new(ForeignKeyDefinition.new(from_table, to_table, options)))
+        end
+
+        def remove_foreign_key_for_alter(from_table, to_table = nil, **options)
+          return unless supports_foreign_keys?
+
+          fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
+
+          schema_creation.accept(DropForeignKey.new(fk_name_to_delete))
+        end
+
         def insert_versions_sql(versions)
           sm_table = quote_table_name(schema_migration.table_name)
 

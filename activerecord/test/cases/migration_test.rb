@@ -1331,10 +1331,32 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert index(:username_index).unique
     end
 
+    def test_adding_and_removing_fk_with_column
+      assert_queries(1) do
+        with_bulk_change_table do |t|
+          t.column :parent_thing, :bigint
+          t.foreign_key t.name, column: :parent_thing
+        end
+      end
+
+      assert_equal 2, columns.size
+      assert foreign_key("parent_thing")
+
+      assert_queries(1) do
+        with_bulk_change_table do |t|
+          t.column :extra_column, :bigint
+          t.remove_foreign_key t.name, column: :parent_thing
+        end
+      end
+
+      assert_equal 3, columns.size
+      assert_not foreign_key("parent_thing")
+    end
+
     private
       def with_bulk_change_table
         # Reset columns/indexes cache as we're changing the table
-        @columns = @indexes = nil
+        @columns = @indexes = @foreign_keys = nil
 
         Person.connection.change_table(:delete_me, bulk: true) do |t|
           yield t
@@ -1355,6 +1377,14 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       def indexes
         @indexes ||= Person.connection.indexes("delete_me")
+      end
+
+      def foreign_key(column)
+        foreign_keys.detect { |fk| fk.column == column.to_s }
+      end
+
+      def foreign_keys
+        @foreign_keys ||= Person.connection.foreign_keys("delete_me")
       end
   end # AlterTableMigrationsTest
 end
