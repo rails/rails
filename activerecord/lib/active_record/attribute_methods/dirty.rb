@@ -187,7 +187,7 @@ module ActiveRecord
 
         def _update_record(attribute_names = attribute_names_for_partial_writes)
           affected_rows = super
-          changes_applied
+          changes_applied if _apply_changes?(attribute_names)
           affected_rows
         end
 
@@ -199,6 +199,10 @@ module ActiveRecord
 
         def attribute_names_for_partial_writes
           partial_writes? ? changed_attribute_names_to_save : attribute_names
+        end
+
+        def _apply_changes?(attribute_names)
+          true
         end
     end
   end
