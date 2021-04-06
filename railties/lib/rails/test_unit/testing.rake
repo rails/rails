@@ -24,7 +24,10 @@ namespace :test do
   task run: %w[test]
 
   desc "Run tests quickly, but also reset db"
-  task db: %w[db:test:prepare test]
+  task :db do
+    success = system({ "RAILS_ENV" => ENV.fetch("RAILS_ENV", "test") }, "rake", "db:test:prepare", "test")
+    success || exit(false)
+  end
 
   ["models", "helpers", "channels", "controllers", "mailers", "integration", "jobs", "mailboxes"].each do |name|
     task name => "test:prepare" do
