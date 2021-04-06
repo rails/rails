@@ -22,7 +22,14 @@ module ActionCable
         end
       rescue Exception => e
         @connection.rescue_with_handler(e)
-        logger.error "Could not execute command from (#{data.inspect}) [#{e.class} - #{e.message}]: #{e.backtrace.first(5).join(" | ")}"
+
+        logger.error ""
+        logger.error "\e[31m#{e.class} - #{e.message}\e[0m"
+        logger.error "Request data: \e[34m#{data.inspect}\e[0m"
+
+        e.backtrace.each do |trace_line|
+          logger.error trace_line
+        end
       end
 
       def add(data)

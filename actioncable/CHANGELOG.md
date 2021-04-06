@@ -1,3 +1,8 @@
+*   Improved error formatting for runtime errors when handling websocket
+    requests.
+
+    *Elias Fatsi*
+
 *   The Action Cable client now includes safeguards to prevent a "thundering
     herd" of client reconnects after server connectivity loss:
 
