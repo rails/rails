@@ -369,7 +369,7 @@ module ActiveRecord
           blank_value = order_values.first
           ActiveSupport::Deprecation.warn(<<~MSG.squish)
             `.reorder(#{blank_value.inspect})` with `.first` / `.first!` no longer
-            takes non-deterministic result in Rails 6.2.
+            takes non-deterministic result in Rails 7.0.
             To continue taking non-deterministic result, use `.take` / `.take!` instead.
           MSG
         end

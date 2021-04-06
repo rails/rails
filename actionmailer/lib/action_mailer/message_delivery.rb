@@ -150,7 +150,7 @@ module ActionMailer
               @mailer_class.name, @action.to_s, delivery_method.to_s, *@args)
           else
             ActiveSupport::Deprecation.warn(<<~EOM)
-              In Rails 6.2, Action Mailer will pass the mail arguments inside the `:args` keyword argument.
+              In Rails 7.0, Action Mailer will pass the mail arguments inside the `:args` keyword argument.
               The `perform` method of the #{job} needs to change and forward the mail arguments
               from the `args` keyword argument.
 

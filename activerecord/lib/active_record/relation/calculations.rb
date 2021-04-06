@@ -321,8 +321,8 @@ module ActiveRecord
 
         unless group_fields == group_values
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            `#{operation}` with group by duplicated fields does no longer affect to result in Rails 6.2.
-            To migrate to Rails 6.2's behavior, use `uniq!(:group)` to deduplicate group fields
+            `#{operation}` with group by duplicated fields does no longer affect to result in Rails 7.0.
+            To migrate to Rails 7.0's behavior, use `uniq!(:group)` to deduplicate group fields
             (`#{klass.name&.tableize || klass.table_name}.uniq!(:group).#{operation}(#{column_name.inspect})`).
           MSG
           group_fields = group_values

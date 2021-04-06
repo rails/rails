@@ -1775,7 +1775,7 @@ class RelationTest < ActiveRecord::TestCase
     sql_log = capture_sql do
       message = <<~MSG.squish
         `.reorder(nil)` with `.first` / `.first!` no longer
-        takes non-deterministic result in Rails 6.2.
+        takes non-deterministic result in Rails 7.0.
         To continue taking non-deterministic result, use `.take` / `.take!` instead.
       MSG
       assert_deprecated(message) do
