@@ -278,11 +278,11 @@ module ActiveRecord
       end
 
       def self.allow_unsafe_raw_sql # :nodoc:
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_unsafe_raw_sql is deprecated and will be removed in Rails 6.2")
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_unsafe_raw_sql is deprecated and will be removed in Rails 7.0")
       end
 
       def self.allow_unsafe_raw_sql=(value) # :nodoc:
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_unsafe_raw_sql= is deprecated and will be removed in Rails 6.2")
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_unsafe_raw_sql= is deprecated and will be removed in Rails 7.0")
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new

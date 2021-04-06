@@ -40,7 +40,7 @@ module ActiveRecord
     def configs_for(env_name: nil, spec_name: nil, name: nil, include_replicas: false)
       if spec_name
         name = spec_name
-        ActiveSupport::Deprecation.warn("The kwarg `spec_name` is deprecated in favor of `name`. `spec_name` will be removed in Rails 6.2")
+        ActiveSupport::Deprecation.warn("The kwarg `spec_name` is deprecated in favor of `name`. `spec_name` will be removed in Rails 7.0")
       end
 
       env_name ||= default_env if name

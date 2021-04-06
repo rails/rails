@@ -135,7 +135,7 @@ module ActiveRecord
     #     Dog.first # finds first Dog record stored on the shard one replica
     #   end
     #
-    # The database kwarg is deprecated and will be removed in 6.2.0 without replacement.
+    # The database kwarg is deprecated and will be removed in 7.0.0 without replacement.
     def connected_to(database: nil, role: nil, shard: nil, prevent_writes: false, &blk)
       if legacy_connection_handling
         if self != Base
@@ -154,7 +154,7 @@ module ActiveRecord
       if database && (role || shard)
         raise ArgumentError, "`connected_to` cannot accept a `database` argument with any other arguments."
       elsif database
-        ActiveSupport::Deprecation.warn("The database key in `connected_to` is deprecated. It will be removed in Rails 6.2.0 without replacement.")
+        ActiveSupport::Deprecation.warn("The database key in `connected_to` is deprecated. It will be removed in Rails 7.0.0 without replacement.")
 
         if database.is_a?(Hash)
           role, database = database.first

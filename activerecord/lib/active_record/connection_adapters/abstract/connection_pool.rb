@@ -1177,7 +1177,7 @@ module ActiveRecord
           return owner_to_pool_manager[owner] if owner_to_pool_manager.key?(owner)
 
           if owner == "primary"
-            ActiveSupport::Deprecation.warn("Using `\"primary\"` as a `connection_specification_name` is deprecated and will be removed in Rails 6.2.0. Please use `ActiveRecord::Base`.")
+            ActiveSupport::Deprecation.warn("Using `\"primary\"` as a `connection_specification_name` is deprecated and will be removed in Rails 7.0.0. Please use `ActiveRecord::Base`.")
             owner_to_pool_manager[Base.name]
           end
         end

@@ -934,7 +934,7 @@ XML
   def test_fixture_file_upload_output_deprecation_when_file_fixture_path_is_not_set
     TestCaseTest.stub :fixture_path, File.expand_path("../fixtures", __dir__) do
       TestCaseTest.stub :file_fixture_path, nil do
-        assert_deprecated(/In Rails 6.2, the path needs to be relative to `file_fixture_path`/) do
+        assert_deprecated(/In Rails 7.0, the path needs to be relative to `file_fixture_path`/) do
           fixture_file_upload("multipart/ruby_on_rails.jpg", "image/jpg")
         end
       end

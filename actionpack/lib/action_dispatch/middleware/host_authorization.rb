@@ -78,7 +78,7 @@ module ActionDispatch
 
       unless deprecated_response_app.nil?
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          `action_dispatch.hosts_response_app` is deprecated and will be ignored in Rails 6.2.
+          `action_dispatch.hosts_response_app` is deprecated and will be ignored in Rails 7.0.
           Use the Host Authorization `response_app` setting instead.
         MSG
 
