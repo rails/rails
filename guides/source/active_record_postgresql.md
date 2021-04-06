@@ -512,7 +512,7 @@ NOTE: Generated columns are supported since version 12.0 of PostgreSQL.
 # db/migrate/20131220144913_create_users.rb
 create_table :users do |t|
   t.string :name
-  t.virtual :name_upcased, type: :string, as: 'upper(name)'
+  t.virtual :name_upcased, type: :string, as: 'upper(name)', stored: true
 end
 
 # app/models/user.rb

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/blank"
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -17,7 +19,8 @@ module ActiveRecord
         end
 
         def virtual?
-          @generated == "s"
+          # We assume every generated column is virtual, no matter the concrete type
+          @generated.present?
         end
 
         def has_default?

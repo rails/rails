@@ -6,7 +6,7 @@
     ```ruby
     create_table :users do |t|
       t.string :name
-      t.virtual :name_upcased, type: :string, as: 'upper(name)'
+      t.virtual :name_upcased, type: :string, as: 'upper(name)', stored: true
     end
     ```
 
