@@ -16,7 +16,7 @@ require "active_support/core_ext/array/conversions"
 
 module ActionDispatch
   class Request
-    cattr_accessor :cookie_jar_class, instance_writer: false
+    cattr_accessor :cookie_jar_class, instance_writer: false, default: ActionDispatch::Cookies::CookieJar
 
     include Rack::Request::Helpers
     include ActionDispatch::Http::Cache::Request
