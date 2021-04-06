@@ -36,8 +36,6 @@ module ActiveRecord
       end
 
       def disconnect!
-        ActiveSupport::ForkTracker.check!
-
         return unless @pool
 
         synchronize do
@@ -51,8 +49,6 @@ module ActiveRecord
       end
 
       def pool
-        ActiveSupport::ForkTracker.check!
-
         @pool || synchronize { @pool ||= ConnectionAdapters::ConnectionPool.new(self) }
       end
 
