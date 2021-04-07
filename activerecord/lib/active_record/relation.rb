@@ -465,7 +465,7 @@ module ActiveRecord
         stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
       end
 
-      @klass.connection.update stmt, "#{@klass} Update All"
+      klass.connection.update(stmt, "#{klass} Update All").tap { reset }
     end
 
     def update(id = :all, attributes) # :nodoc:
@@ -595,10 +595,7 @@ module ActiveRecord
       stmt.order(*arel.orders)
       stmt.wheres = arel.constraints
 
-      affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
-
-      reset
-      affected
+      klass.connection.delete(stmt, "#{klass} Destroy").tap { reset }
     end
 
     # Finds and destroys all records matching the specified conditions.
@@ -652,6 +649,7 @@ module ActiveRecord
       @delegate_to_klass = false
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @offsets = @take = nil
+      @cache_keys = nil
       @records = [].freeze
       self
     end
