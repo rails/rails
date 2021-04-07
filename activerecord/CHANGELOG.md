@@ -1,3 +1,27 @@
+*   Make ActiveRecord::Relation #one? and #many? work with .group() queries
+
+    If a query contains a group(), #one? and #many? are now determined by the
+    number of groups returned, which matches the number of records returned
+    and the result of length().
+
+    For example, if there is a single post, even with multiple comments:
+
+    ```ruby
+      Post.joins(:comments).group('posts.id').one? # true
+      Post.joins(:comments).group('posts.id').many? # false
+    ```
+
+    If there are multiple posts:
+
+    ```ruby
+      Post.joins(:comments).group('posts.id').one? # false
+      Post.joins(:comments).group('posts.id').many? # true
+    ```
+
+    See #41870 for more examples.
+
+    *Michael Nacos*
+
 *   Accept optional transaction args to `ActiveRecord::Locking::Pessimistic#with_lock`
 
     `#with_lock` now accepts transaction options like `requires_new:`,

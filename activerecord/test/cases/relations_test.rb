@@ -1180,6 +1180,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_predicate posts.limit(1), :many?
   end
 
+  def test_many_with_group
+    posts = Post.all
+
+    assert_predicate posts.group(:id), :many?
+  end
+
   def test_none?
     posts = Post.all
     assert_queries(1) do
@@ -1210,6 +1216,13 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_predicate posts, :loaded?
+  end
+
+  def test_one_with_group
+    posts = Developer.where(name: "David")
+
+    assert_equal 1, posts.size
+    assert_equal true, posts.group(:id).one?
   end
 
   def test_to_a_should_dup_target
