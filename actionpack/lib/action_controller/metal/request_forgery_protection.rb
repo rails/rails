@@ -92,6 +92,10 @@ module ActionController #:nodoc:
       config_accessor :default_protect_from_forgery
       self.default_protect_from_forgery = false
 
+      # Controls whether URL-safe CSRF tokens are generated.
+      config_accessor :urlsafe_csrf_tokens, instance_writer: false
+      self.urlsafe_csrf_tokens = false
+
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end
@@ -333,7 +337,7 @@ module ActionController #:nodoc:
         end
 
         begin
-          masked_token = Base64.urlsafe_decode64(encoded_masked_token)
+          masked_token = decode_csrf_token(encoded_masked_token)
         rescue ArgumentError # encoded_masked_token is invalid Base64
           return false
         end
@@ -371,7 +375,7 @@ module ActionController #:nodoc:
         one_time_pad = SecureRandom.random_bytes(AUTHENTICITY_TOKEN_LENGTH)
         encrypted_csrf_token = xor_byte_strings(one_time_pad, raw_token)
         masked_token = one_time_pad + encrypted_csrf_token
-        Base64.urlsafe_encode64(masked_token).delete("=")
+        encode_csrf_token(masked_token)
       end
 
       def compare_with_real_token(token, session) # :doc:
@@ -397,8 +401,8 @@ module ActionController #:nodoc:
       end
 
       def real_csrf_token(session) # :doc:
-        session[:_csrf_token] ||= SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH)
-        Base64.urlsafe_decode64(session[:_csrf_token])
+        session[:_csrf_token] ||= generate_csrf_token
+        decode_csrf_token(session[:_csrf_token])
       end
 
       def per_form_csrf_token(session, action_path, method) # :doc:
@@ -460,6 +464,58 @@ module ActionController #:nodoc:
       def normalize_action_path(action_path) # :doc:
         uri = URI.parse(action_path)
         uri.path.chomp("/")
+      end
+
+      def generate_csrf_token # :nodoc:
+        if urlsafe_csrf_tokens
+          SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH, padding: false)
+        else
+          SecureRandom.base64(AUTHENTICITY_TOKEN_LENGTH)
+        end
+      end
+
+      if RUBY_VERSION.start_with?("2.2")
+        # Backported https://github.com/ruby/ruby/commit/6b6680945ed3274cddbc34fdfd410d74081a3e94
+        using Module.new {
+          refine Base64.singleton_class do
+            def urlsafe_encode64(bin, padding: true)
+              str = strict_encode64(bin).tr("+/", "-_")
+              str = str.delete("=") unless padding
+              str
+            end
+
+            def urlsafe_decode64(str)
+              # NOTE: RFC 4648 does say nothing about unpadded input, but says that
+              # "the excess pad characters MAY also be ignored", so it is inferred that
+              # unpadded input is also acceptable.
+              str = str.tr("-_", "+/")
+              if !str.end_with?("=") && str.length % 4 != 0
+                str = str.ljust((str.length + 3) & ~3, "=")
+              end
+              strict_decode64(str)
+            end
+          end
+        }
+      end
+
+      def encode_csrf_token(csrf_token) # :nodoc:
+        if urlsafe_csrf_tokens
+          Base64.urlsafe_encode64(csrf_token, padding: false)
+        else
+          Base64.strict_encode64(csrf_token)
+        end
+      end
+
+      def decode_csrf_token(encoded_csrf_token) # :nodoc:
+        if urlsafe_csrf_tokens
+          Base64.urlsafe_decode64(encoded_csrf_token)
+        else
+          begin
+            Base64.strict_decode64(encoded_csrf_token)
+          rescue ArgumentError
+            Base64.urlsafe_decode64(encoded_csrf_token)
+          end
+        end
       end
   end
 end
