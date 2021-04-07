@@ -1,3 +1,7 @@
+*   Allow loading nested locales in engines.
+
+    *Gannon McGibbon*
+
 *   Ensure `Rails.application.config_for` always cast hashes to `ActiveSupport::OrderedOptions`.
 
     *Jean Boussier*

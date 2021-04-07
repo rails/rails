@@ -345,7 +345,7 @@ All these configuration options are delegated to the `I18n` library.
 
 * `config.i18n.enforce_available_locales` ensures that all locales passed through i18n must be declared in the `available_locales` list, raising an `I18n::InvalidLocale` exception when setting an unavailable locale. Defaults to `true`. It is recommended not to disable this option unless strongly required, since this works as a security measure against setting any invalid locale from user input.
 
-* `config.i18n.load_path` sets the path Rails uses to look for locale files. Defaults to `config/locales/*.{yml,rb}`.
+* `config.i18n.load_path` sets the path Rails uses to look for locale files. Defaults to `config/locales/**/*.{yml,rb}`.
 
 * `config.i18n.raise_on_missing_translations` determines whether an error should be raised for missing translations
 in controllers and views. This defaults to `false`.
