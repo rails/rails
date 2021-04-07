@@ -127,22 +127,6 @@ class LookupContextTest < ActiveSupport::TestCase
     end
   end
 
-  test "adds fallbacks to view paths when required" do
-    assert_equal 1, @lookup_context.view_paths.size
-
-    @lookup_context = @lookup_context.with_fallbacks
-
-    assert_equal 3, @lookup_context.view_paths.size
-    assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[0]
-    assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[1]
-  end
-
-  test "with_fallbacks with block raises an ArgumentError" do
-    assert_raises(ArgumentError) do
-      @lookup_context.with_fallbacks { }
-    end
-  end
-
   test "generates a new details key for each details hash" do
     keys = []
     keys << @lookup_context.details_key

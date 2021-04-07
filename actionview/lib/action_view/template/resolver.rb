@@ -411,22 +411,4 @@ module ActionView
         %r{\A#{query}#{exts}\z}
       end
   end
-
-  # The same as FileSystemResolver but does not allow templates to store
-  # a virtual path since it is invalid for such resolvers.
-  class FallbackFileSystemResolver < FileSystemResolver #:nodoc:
-    private_class_method :new
-
-    def self.instances
-      [new(""), new("/")]
-    end
-
-    def build_unbound_template(template, _)
-      super(template, nil)
-    end
-
-    def reject_files_external_to_app(files)
-      files
-    end
-  end
 end
