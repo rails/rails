@@ -233,7 +233,7 @@ module ActiveRecord
             The new connection handling does not support `connection_handlers`
             getter and setter.
 
-            Read more about how to migrate at:
+            Read more about how to migrate at: https://guides.rubyonrails.org/active_record_multiple_databases.html#migrate-to-the-new-connection-handling
           MSG
         else
           raise NotImplementedError, "The new connection handling does not setting support multiple connection handlers."
