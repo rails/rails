@@ -393,15 +393,41 @@ module CacheStoreBehavior
     time = Time.local(2008, 4, 24)
 
     Time.stub(:now, time) do
-      @cache.write("foo", "bar")
+      @cache.write("foo", "bar", expires_in: 1.minute)
+      @cache.write("egg", "spam", expires_in: 2.minute)
       assert_equal "bar", @cache.read("foo")
+      assert_equal "spam", @cache.read("egg")
     end
 
     Time.stub(:now, time + 30) do
       assert_equal "bar", @cache.read("foo")
+      assert_equal "spam", @cache.read("egg")
     end
 
     Time.stub(:now, time + 61) do
+      assert_nil @cache.read("foo")
+      assert_equal "spam", @cache.read("egg")
+    end
+
+    Time.stub(:now, time + 121) do
+      assert_nil @cache.read("foo")
+      assert_nil @cache.read("egg")
+    end
+  end
+
+  def test_expires_at
+    time = Time.local(2008, 4, 24)
+
+    Time.stub(:now, time) do
+      @cache.write("foo", "bar", expires_at: time + 15.seconds)
+      assert_equal "bar", @cache.read("foo")
+    end
+
+    Time.stub(:now, time + 10) do
+      assert_equal "bar", @cache.read("foo")
+    end
+
+    Time.stub(:now, time + 30) do
       assert_nil @cache.read("foo")
     end
   end

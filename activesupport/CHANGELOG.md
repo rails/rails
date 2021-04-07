@@ -1,3 +1,11 @@
+*   Add `expires_at` argument to `ActiveSupport::Cache` `write` and `fetch` to set a cache entry TTL as an absolute time.
+
+    ```ruby
+    Rails.cache.write(key, value, expires_at: Time.now.at_end_of_hour)
+    ```
+
+    *Jean Boussier*
+
 *   Deprecate `ActiveSupport::TimeWithZone.name` so that from Rails 7.1 it will use the default implementation.
 
     *Andrew White*

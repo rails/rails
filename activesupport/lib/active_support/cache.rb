@@ -267,6 +267,14 @@ module ActiveSupport
       #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 5.minutes)
       #   cache.write(key, value, expires_in: 1.minute) # Set a lower value for one entry
       #
+      # Setting <tt>:expires_at</tt> will set an absolute expiration time on the cache.
+      # All caches support auto-expiring content after a specified number of
+      # seconds. This value can only be supplied to the +fetch+ or +write+ method to
+      # affect just one entry.
+      #
+      #   cache = ActiveSupport::Cache::MemoryStore.new
+      #   cache.write(key, value, expires_at: Time.now.at_end_of_hour)
+      #
       # Setting <tt>:version</tt> verifies the cache stored under <tt>name</tt>
       # is of the same version. nil is returned on mismatches despite contents.
       # This feature is used to support recyclable cache keys.
@@ -751,7 +759,7 @@ module ActiveSupport
             if (race_ttl > 0) && (Time.now.to_f - entry.expires_at <= race_ttl)
               # When an entry has a positive :race_condition_ttl defined, put the stale entry back into the cache
               # for a brief period while the entry is being recalculated.
-              entry.expires_at = Time.now + race_ttl
+              entry.expires_at = Time.now.to_f + race_ttl
               write_entry(key, entry, expires_in: race_ttl * 2)
             else
               delete_entry(key, **options)
@@ -801,12 +809,12 @@ module ActiveSupport
       DEFAULT_COMPRESS_LIMIT = 1.kilobyte
 
       # Creates a new cache entry for the specified value. Options supported are
-      # +:compress+, +:compress_threshold+, +:version+ and +:expires_in+.
-      def initialize(value, compress: true, compress_threshold: DEFAULT_COMPRESS_LIMIT, version: nil, expires_in: nil, **)
+      # +:compress+, +:compress_threshold+, +:version+, +:expires_at+ and +:expires_in+.
+      def initialize(value, compress: true, compress_threshold: DEFAULT_COMPRESS_LIMIT, version: nil, expires_in: nil, expires_at: nil, **)
         @value      = value
         @version    = version
-        @created_at = Time.now.to_f
-        @expires_in = expires_in && expires_in.to_f
+        @created_at = 0.0
+        @expires_in = expires_at&.to_f || expires_in && (expires_in.to_f + Time.now.to_f)
 
         compress!(compress_threshold) if compress
       end
