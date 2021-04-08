@@ -257,11 +257,20 @@ module ActionView
       #   <%= button_to "New", action: "new" %>
       #   # => "<form method="post" action="/controller/new" class="button_to">
       #   #      <button type="submit">New</button>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
       #
       #   <%= button_to "New", new_article_path %>
       #   # => "<form method="post" action="/articles/new" class="button_to">
       #   #      <button type="submit">New</button>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #    </form>"
+      #
+      #   <%= button_to "New", new_article_path, params: { time: Time.now  } %>
+      #   # => "<form method="post" action="/articles/new" class="button_to">
+      #   #      <button type="submit">New</button>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      <input type="hidden" name="time" value="2021-04-08 14:06:09 -0500">
       #   #    </form>"
       #
       #   <%= button_to [:make_happy, @user] do %>
@@ -271,20 +280,20 @@ module ActionView
       #   #      <button type="submit">
       #   #        Make happy <strong><%= @user.name %></strong>
       #   #      </button>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
       #
       #   <%= button_to "New", { action: "new" }, form_class: "new-thing" %>
       #   # => "<form method="post" action="/controller/new" class="new-thing">
       #   #      <button type="submit">New</button>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
-      #
       #
       #   <%= button_to "Create", { action: "create" }, remote: true, form: { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
       #   #      <button type="submit">Create</button>
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
-      #
       #
       #   <%= button_to "Delete Image", { action: "delete", id: @image.id },
       #                                   method: :delete, data: { confirm: "Are you sure?" } %>
@@ -293,7 +302,6 @@ module ActionView
       #   #      <button data-confirm='Are you sure?' type="submit">Delete Image</button>
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
-      #
       #
       #   <%= button_to('Destroy', 'http://www.example.com',
       #             method: :delete, remote: true, data: { confirm: 'Are you sure?', disable_with: 'loading...' }) %>
