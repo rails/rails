@@ -630,6 +630,18 @@ module RenderTestCases
     assert_match "Missing partial /_true with", e.message
   end
 
+  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+    def test_render_partial_provides_spellcheck
+      e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/partail") }
+      assert_match %r{Did you mean\?  test/_partial\n *test/_partialhtml}, e.message
+    end
+  end
+
+  def test_render_partial_wrong_details_no_spellcheck
+    e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/partial_with_only_html_version", formats: [:xml]) }
+    assert_no_match %r{Did you mean\?}, e.message
+  end
+
   def test_render_with_nested_layout
     assert_equal %(<title>title</title>\n\n<div id="column">column</div>\n<div id="content">content</div>\n),
       @view.render(template: "test/nested_layout", layout: "layouts/yield")

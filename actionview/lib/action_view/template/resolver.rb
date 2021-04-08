@@ -160,6 +160,11 @@ module ActionView
       @cache.cache_query(query) { find_template_paths(File.join(@path, query)) }
     end
 
+    def template_paths_for_suggestions # :nodoc:
+      # Not implemented by default
+      []
+    end
+
   private
     def _find_all(name, prefix, partial, details, key, locals)
       find_templates(name, prefix, partial, details, locals)
@@ -337,6 +342,10 @@ module ActionView
       self.class.equal?(resolver.class) && to_path == resolver.to_path
     end
     alias :== :eql?
+
+    def template_paths_for_suggestions # :nodoc:
+      Dir.glob("**/*", base: path)
+    end
   end
 
   # An Optimized resolver for Rails' most common case.
