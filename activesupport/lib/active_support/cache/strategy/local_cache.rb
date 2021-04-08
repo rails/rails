@@ -35,6 +35,65 @@ module ActiveSupport
         # Simple memory backed cache. This cache is not thread safe and is intended only
         # for serving as a temporary memory cache for a single thread.
         class LocalStore < Store
+          class Entry # :nodoc:
+            class << self
+              def build(cache_entry)
+                return if cache_entry.nil?
+                return cache_entry if cache_entry.compressed?
+
+                value = cache_entry.value
+                if value.is_a?(String)
+                  DupableEntry.new(cache_entry)
+                elsif !value || value == true || value.is_a?(Numeric)
+                  new(cache_entry)
+                else
+                  MutableEntry.new(cache_entry)
+                end
+              end
+            end
+
+            attr_reader :value, :version, :expires_at
+
+            def initialize(cache_entry)
+              @value = cache_entry.value
+              @expires_at = cache_entry.expires_at
+              @version = cache_entry.version
+            end
+
+            def mismatched?(version)
+              @version && version && @version != version
+            end
+
+            def expired?
+              expires_at && expires_at <= Time.now.to_f
+            end
+          end
+
+          class DupableEntry < Entry # :nodoc:
+            def initialize(_cache_entry)
+              super
+              unless @value.frozen?
+                @value = @value.dup.freeze
+              end
+            end
+
+            def value
+              @value.dup
+            end
+          end
+
+          class MutableEntry < Entry # :nodoc:
+            def initialize(cache_entry)
+              @payload = Marshal.dump(cache_entry.value)
+              @expires_at = cache_entry.expires_at
+              @version = cache_entry.version
+            end
+
+            def value
+              Marshal.load(@payload)
+            end
+          end
+
           def initialize
             super
             @data = {}
@@ -65,8 +124,7 @@ module ActiveSupport
           end
 
           def write_entry(key, entry, **options)
-            entry.dup_value!
-            @data[key] = entry
+            @data[key] = Entry.build(entry)
             true
           end
 
@@ -75,10 +133,7 @@ module ActiveSupport
           end
 
           def fetch_entry(key, options = nil) # :nodoc:
-            entry = @data.fetch(key) { @data[key] = yield }
-            dup_entry = entry.dup
-            dup_entry&.dup_value!
-            dup_entry
+            @data.fetch(key) { @data[key] = Entry.build(yield) }
           end
         end
 
@@ -131,12 +186,12 @@ module ActiveSupport
           def read_entry(key, **options)
             if cache = local_cache
               hit = true
-              value = cache.fetch_entry(key) do
+              entry = cache.fetch_entry(key) do
                 hit = false
                 super
               end
               options[:event][:store] = cache.class.name if hit && options[:event]
-              value
+              entry
             else
               super
             end

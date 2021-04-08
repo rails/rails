@@ -845,9 +845,7 @@ module ActiveSupport
         end
       end
 
-      # Returns the size of the cached value. This could be less than
-      # <tt>value.bytesize</tt> if the data is compressed.
-      def bytesize
+      def bytesize # :nodoc:
         case value
         when NilClass
           0
@@ -856,6 +854,10 @@ module ActiveSupport
         else
           @s ||= Marshal.dump(@value).bytesize
         end
+      end
+
+      def compressed? # :nodoc:
+        defined?(@compressed)
       end
 
       # Duplicates the value in a class. This is used by cache implementations that don't natively
@@ -891,10 +893,6 @@ module ActiveSupport
               @compressed = true
             end
           end
-        end
-
-        def compressed?
-          defined?(@compressed)
         end
 
         def uncompress(value)
