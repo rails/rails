@@ -324,6 +324,10 @@ class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
 
   class << self
+    def scope_registry
+      ActiveRecord::Scoping::ScopeRegistry.instance
+    end
+
     def connection
       Post.connection
     end
