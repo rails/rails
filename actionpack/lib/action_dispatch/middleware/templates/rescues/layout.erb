@@ -53,7 +53,7 @@
       padding: 8px 0;
     }
 
-    .exception-message .message{
+    .exception-message .message {
       margin-bottom: 8px;
       line-height: 25px;
       font-size: 1.5em;
@@ -172,8 +172,7 @@
       color: #666;
       overflow-wrap: break-word;
     }
-    a:hover { color: #C00; }
-    a.trace-frames.selected { color: #C00 }
+    a:hover, a.trace-frames.selected { color: #C00; }
 
     @media (prefers-color-scheme: dark) {
       body {
@@ -181,11 +180,7 @@
         color: #ECECEC;
       }
 
-      .details {
-        border-color: #666;
-      }
-
-      .summary {
+      .details, .summary {
         border-color: #666;
       }
 
@@ -220,8 +215,7 @@
 
       a { color: #C00; }
       a.trace-frames { color: #999; }
-      a:hover { color: #E9382B; }
-      a.trace-frames.selected { color: #E9382B; }
+      a:hover, a.trace-frames.selected { color: #E9382B; }
     }
 
     <%= yield :style %>
