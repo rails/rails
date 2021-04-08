@@ -469,7 +469,7 @@ module ActionController #:nodoc:
 
       def generate_csrf_token # :nodoc:
         if urlsafe_csrf_tokens
-          SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH, padding: false)
+          SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH)
         else
           SecureRandom.base64(AUTHENTICITY_TOKEN_LENGTH)
         end
