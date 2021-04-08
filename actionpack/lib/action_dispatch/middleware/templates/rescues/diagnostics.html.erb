@@ -7,7 +7,7 @@
   </h1>
 </header>
 
-<div id="container">
+<main role="main" id="container">
   <%= render "rescues/message_and_suggestions", exception: @exception %>
   <%= render "rescues/actions", exception: @exception, request: @request %>
 
@@ -32,4 +32,4 @@
   <% end %>
 
   <%= render template: "rescues/_request_and_response" %>
-</div>
+</main>

@@ -1,3 +1,7 @@
+*   Remove inline styles and address basic accessibilty issues on rescue templates.
+
+    *Jacob Herrington*
+
 *   Add support for 'private, no-store' Cache-Control headers.
 
     Previously, 'no-store' was exclusive; no other directives could be specified.

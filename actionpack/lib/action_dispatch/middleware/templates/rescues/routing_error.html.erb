@@ -1,7 +1,7 @@
-<header>
+<header role="banner">
   <h1>Routing Error</h1>
 </header>
-<div id="container">
+<main role="main" id="container">
   <h2><%= h @exception.message %></h2>
   <% unless @exception.failures.empty? %>
     <p>
@@ -29,4 +29,4 @@
   <% end %>
 
   <%= render template: "rescues/_request_and_response" %>
-</div>
+</main>
