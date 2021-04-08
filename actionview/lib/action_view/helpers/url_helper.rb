@@ -242,6 +242,8 @@ module ActionView
       # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
       #   be placed
       # * <tt>:params</tt> - \Hash of parameters to be rendered as hidden fields within the form.
+      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form. Override with a custom
+      #   authenticity token or pass false to skip the authenticity token field altogether.
       #
       # ==== Data attributes
       #
@@ -263,6 +265,11 @@ module ActionView
       #   # => "<form method="post" action="/articles/new" class="button_to">
       #   #      <button type="submit">New</button>
       #   #    </form>"
+      #
+      #   <%= button_to "New", "https://example.com", authenticity_token: false %>
+      #   #=> <form class="button_to" method="post" action="https://example.com">
+      #   #     <button type="submit">External Resource</button>
+      #   #   </form>
       #
       #   <%= button_to [:make_happy, @user] do %>
       #     Make happy <strong><%= @user.name %></strong>
@@ -309,9 +316,10 @@ module ActionView
         html_options ||= {}
         html_options = html_options.stringify_keys
 
-        url    = options.is_a?(String) ? options : url_for(options)
-        remote = html_options.delete("remote")
-        params = html_options.delete("params")
+        url                = options.is_a?(String) ? options : url_for(options)
+        remote             = html_options.delete("remote")
+        params             = html_options.delete("params")
+        authenticity_token = html_options.delete("authenticity_token")
 
         method     = html_options.delete("method").to_s
         method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : "".html_safe
@@ -325,7 +333,7 @@ module ActionView
 
         request_token_tag = if form_method == "post"
           request_method = method.empty? ? "post" : method
-          token_tag(nil, form_options: { action: url, method: request_method })
+          token_tag(authenticity_token, form_options: { action: url, method: request_method })
         else
           ""
         end
