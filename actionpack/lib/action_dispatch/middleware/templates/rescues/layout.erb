@@ -241,8 +241,7 @@
 
   <script>
     var toggle = function(id) {
-      var s = document.getElementById(id).style;
-      s.display = s.display == 'none' ? 'block' : 'none';
+      document.getElementById(id).classList.toggle('hidden');
       return false;
     }
     var show = function(id) {
