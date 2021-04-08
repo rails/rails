@@ -40,6 +40,11 @@ module ActionController
       paths   = app.config.paths
       options = app.config.action_controller
 
+      if app.config.force_ssl
+        options.default_url_options ||= {}
+        options.default_url_options[:protocol] ||= "https"
+      end
+
       options.logger      ||= Rails.logger
       options.cache_store ||= Rails.cache
 
