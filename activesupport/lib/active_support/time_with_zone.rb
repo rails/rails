@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "yaml"
+
 require "active_support/duration"
 require "active_support/values/time_zone"
 require "active_support/core_ext/object/acts_like"
@@ -182,7 +184,6 @@ module ActiveSupport
     end
 
     def encode_with(coder) #:nodoc:
-      coder.tag = "!ruby/object:ActiveSupport::TimeWithZone"
       coder.map = { "utc" => utc, "zone" => time_zone, "time" => time }
     end
 
@@ -588,3 +589,8 @@ module ActiveSupport
       end
   end
 end
+
+# These prevent Psych from calling `ActiveSupport::TimeWithZone.name`
+# and triggering the deprecation warning about the change in Rails 7.1.
+YAML.load_tags["!ruby/object:ActiveSupport::TimeWithZone"] = "ActiveSupport::TimeWithZone"
+YAML.dump_tags[ActiveSupport::TimeWithZone] = "!ruby/object:ActiveSupport::TimeWithZone"
