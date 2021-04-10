@@ -89,11 +89,10 @@ module ActionView
 
       def initialize
         @data = SmallCache.new(&KEY_BLOCK)
-        @query_cache = SmallCache.new
       end
 
       def inspect
-        "#{to_s[0..-2]} keys=#{@data.size} queries=#{@query_cache.size}>"
+        "#{to_s[0..-2]} keys=#{@data.size}>"
       end
 
       # Cache the templates returned by the block
@@ -101,13 +100,8 @@ module ActionView
         @data[key][name][prefix][partial][locals] ||= canonical_no_templates(yield)
       end
 
-      def cache_query(query) # :nodoc:
-        @query_cache[query] ||= canonical_no_templates(yield)
-      end
-
       def clear
         @data.clear
-        @query_cache.clear
       end
 
       # Get the cache size. Do not call this
@@ -124,7 +118,7 @@ module ActionView
           end
         end
 
-        size + @query_cache.size
+        size
       end
 
       private
@@ -154,10 +148,6 @@ module ActionView
       cached(key, [name, prefix, partial], details, locals) do
         _find_all(name, prefix, partial, details, key, locals)
       end
-    end
-
-    def find_all_with_query(query) # :nodoc:
-      @cache.cache_query(query) { find_template_paths(File.join(@path, query)) }
     end
 
     def all_template_paths # :nodoc:
