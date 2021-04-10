@@ -4,8 +4,11 @@ require "active_support/core_ext/hash/indifferent_access"
 
 module ActionDispatch
   class Request
-    class Utils # :nodoc:
-      mattr_accessor :perform_deep_munge, default: true
+    module Utils # :nodoc:
+      class << self
+        attr_accessor :perform_deep_munge
+      end
+      @perform_deep_munge = true
 
       def self.each_param_value(params, &block)
         case params
