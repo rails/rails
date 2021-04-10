@@ -69,6 +69,9 @@ module ActiveSupport
               Minitest::UnexpectedError.new(error)
             end
             @queue.record(reporter, result)
+          rescue Interrupt
+            @queue.interrupt
+            raise
           end
 
           set_process_title("(idle)")

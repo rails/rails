@@ -520,6 +520,37 @@ module ApplicationTests
         capture(:stderr) { run_test_command("test/models/post_test.rb --fail-fast", stderr: true) })
     end
 
+    def test_fail_fast_in_parallel_with_processes
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+
+      app_file "test/unit/parallel_test.rb", <<-RUBY
+        require "test_helper"
+
+        class ParallelTest < ActiveSupport::TestCase
+          def test_verify_fail_fast
+            assert false
+          end
+
+          10.times do |n|
+            define_method("test_verify_fail_fast_\#{n}") do
+              assert true
+            end
+          end
+        end
+      RUBY
+
+      @error_output = capture(:stderr) do
+        # Pass seed that guarantees the failing test runs early
+        @test_output = run_test_command("test/unit/parallel_test.rb --fail-fast --seed 31992", stderr: true)
+      end
+
+      matches = @test_output.match(/(\d+) runs, (\d+) assertions, (\d+) failures/)
+
+      assert_match %r{Interrupt}, @error_output
+      assert_equal matches[3].to_i, 1
+      assert matches[1].to_i < 11
+    end
+
     def test_run_in_parallel_with_processes
       exercise_parallelization_regardless_of_machine_core_count(with: :processes)
 
