@@ -14,7 +14,7 @@
 
   <% traces.each do |name, trace| %>
     <div id="<%= "#{name.gsub(/\s/, '-')}-#{error_index}" %>" style="display: <%= (name == trace_to_show) ? 'block' : 'none' %>;">
-      <code style="font-size: 11px;">
+      <code class="traces">
         <% trace.each do |frame| %>
           <a class="trace-frames trace-frames-<%= error_index %>" data-exception-object-id="<%= frame[:exception_object_id] %>" data-frame-id="<%= frame[:id] %>" href="#">
             <%= frame[:trace] %>
