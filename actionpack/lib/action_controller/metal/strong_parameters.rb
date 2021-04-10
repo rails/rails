@@ -145,10 +145,6 @@ module ActionController
   #   params[:key]  # => "value"
   #   params["key"] # => "value"
   class Parameters
-    cattr_accessor :permit_all_parameters, instance_accessor: false, default: false
-
-    cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
-
     ##
     # :method: as_json
     #
@@ -248,20 +244,26 @@ module ActionController
     delegate :keys, :key?, :has_key?, :member?, :values, :has_value?, :value?, :empty?, :include?,
       :as_json, :to_s, :each_key, to: :@parameters
 
-    # By default, never raise an UnpermittedParameters exception if these
-    # params are present. The default includes both 'controller' and 'action'
-    # because they are added by Rails and should be of no concern. One way
-    # to change these is to specify `always_permitted_parameters` in your
-    # config. For instance:
-    #
-    #    config.action_controller.always_permitted_parameters = %w( controller action format )
-    cattr_accessor :always_permitted_parameters, default: %w( controller action )
-
     class << self
+      attr_accessor :permit_all_parameters, :action_on_unpermitted_parameters
+
+      # By default, never raise an UnpermittedParameters exception if these
+      # params are present. The default includes both 'controller' and 'action'
+      # because they are added by Rails and should be of no concern. One way
+      # to change these is to specify `always_permitted_parameters` in your
+      # config. For instance:
+      #
+      #    config.action_controller.always_permitted_parameters = %w( controller action format )
+      attr_accessor :always_permitted_parameters
+
       def nested_attribute?(key, value) # :nodoc:
         /\A-?\d+\z/.match?(key) && (value.is_a?(Hash) || value.is_a?(Parameters))
       end
     end
+
+    @permit_all_parameters = false
+    @action_on_unpermitted_parameters = false
+    @always_permitted_parameters = %w( controller action )
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
@@ -979,7 +981,7 @@ module ActionController
       end
 
       def unpermitted_keys(params)
-        keys - params.keys - always_permitted_parameters
+        keys - params.keys - self.class.always_permitted_parameters
       end
 
       #
