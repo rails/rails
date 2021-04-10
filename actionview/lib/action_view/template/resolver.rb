@@ -160,7 +160,7 @@ module ActionView
       @cache.cache_query(query) { find_template_paths(File.join(@path, query)) }
     end
 
-    def template_paths_for_suggestions # :nodoc:
+    def all_template_paths # :nodoc:
       # Not implemented by default
       []
     end
@@ -343,8 +343,13 @@ module ActionView
     end
     alias :== :eql?
 
-    def template_paths_for_suggestions # :nodoc:
-      Dir.glob("**/*", base: path)
+    def all_template_paths # :nodoc:
+      paths = Dir.glob("**/*", base: @path)
+      paths.reject do |filename|
+        File.directory?(File.join(@path, filename))
+      end.map do |filename|
+        filename.gsub(/\.[^\/]*\z/, "")
+      end.uniq
     end
   end
 

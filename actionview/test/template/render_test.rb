@@ -635,6 +635,12 @@ module RenderTestCases
       e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/partail") }
       assert_match %r{Did you mean\?  test/_partial\n *test/_partialhtml}, e.message
     end
+
+    def test_spellcheck_doesnt_list_directories
+      e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/directory") }
+      assert_match %r{Did you mean\?}, e.message
+      assert_no_match %r{Did you mean\?  test/_directory\n}, e.message # test/hello is a directory
+    end
   end
 
   def test_render_partial_wrong_details_no_spellcheck
