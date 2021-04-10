@@ -937,7 +937,7 @@ module ActiveRecord
       self
     end
 
-    # Specifies table from which the records will be fetched. For example:
+    # Specifies the table from which the records will be fetched. For example:
     #
     #   Topic.select('title').from('posts')
     #   # SELECT title FROM posts
@@ -947,9 +947,26 @@ module ActiveRecord
     #   Topic.select('title').from(Topic.approved)
     #   # SELECT title FROM (SELECT * FROM topics WHERE approved = 't') subquery
     #
+    # Passing a second argument (string or symbol), creates the alias for the SQL from clause. Otherwise the alias "subquery" is used:
+    #
     #   Topic.select('a.title').from(Topic.approved, :a)
     #   # SELECT a.title FROM (SELECT * FROM topics WHERE approved = 't') a
     #
+    # It does not add multiple arguments to the SQL from clause. The last +from+ chained is the one used:
+    #
+    #   Topic.select('title').from(Topic.approved).from(Topic.inactive)
+    #   # SELECT title FROM (SELECT topics.* FROM topics WHERE topics.active = 'f') subquery
+    #
+    # For multiple arguments for the SQL from clause, you can pass a string with the exact elements in the SQL from list:
+    #
+    #   color = "red"
+    #   Color
+    #     .from("colors c, JSONB_ARRAY_ELEMENTS(colored_things) AS colorvalues(colorvalue)")
+    #     .where("colorvalue->>'color' = ?", color)
+    #     .select("c.*").to_a
+    #   # SELECT c.*
+    #   # FROM colors c, JSONB_ARRAY_ELEMENTS(colored_things) AS colorvalues(colorvalue)
+    #   # WHERE (colorvalue->>'color' = 'red')
     def from(value, subquery_name = nil)
       spawn.from!(value, subquery_name)
     end
