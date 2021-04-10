@@ -111,8 +111,26 @@ module ActiveRecord
       assert_not_equal cache_key, developers.cache_key
     end
 
+    test "update_all with includes will update cache_key" do
+      developers = Developer.includes(:projects).where("projects.name": "Active Record")
+      cache_key = developers.cache_key
+
+      developers.update_all(updated_at: Time.now.utc)
+
+      assert_not_equal cache_key, developers.cache_key
+    end
+
     test "delete_all will update cache_key" do
       developers = Developer.where(name: "David")
+      cache_key = developers.cache_key
+
+      developers.delete_all
+
+      assert_not_equal cache_key, developers.cache_key
+    end
+
+    test "delete_all with includes will update cache_key" do
+      developers = Developer.includes(:projects).where("projects.name": "Active Record")
       cache_key = developers.cache_key
 
       developers.delete_all

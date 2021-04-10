@@ -467,11 +467,6 @@ module ActiveRecord
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
-      if eager_loading?
-        relation = apply_join_dependency
-        return relation.update_all(updates)
-      end
-
       if updates.is_a?(Hash)
         if klass.locking_enabled? &&
             !updates.key?(klass.locking_column) &&
@@ -484,11 +479,10 @@ module ActiveRecord
         values = Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
       end
 
-      source = arel.source.clone
-      source.left = table
+      arel = eager_loading? ? apply_join_dependency.arel : build_arel
+      arel.source.left = table
 
       stmt = arel.compile_update(values, table[primary_key])
-      stmt.table(source)
 
       klass.connection.update(stmt, "#{klass} Update All").tap { reset }
     end
@@ -607,16 +601,10 @@ module ActiveRecord
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
       end
 
-      if eager_loading?
-        relation = apply_join_dependency
-        return relation.delete_all
-      end
-
-      source = arel.source.clone
-      source.left = table
+      arel = eager_loading? ? apply_join_dependency.arel : build_arel
+      arel.source.left = table
 
       stmt = arel.compile_delete(table[primary_key])
-      stmt.from(source)
 
       klass.connection.delete(stmt, "#{klass} Destroy").tap { reset }
     end
