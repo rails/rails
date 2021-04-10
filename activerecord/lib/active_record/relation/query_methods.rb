@@ -1133,7 +1133,7 @@ module ActiveRecord
         raise ImmutableRelation if defined?(@arel) && @arel
       end
 
-      def build_arel(aliases)
+      def build_arel(aliases = nil)
         arel = Arel::SelectManager.new(table)
 
         build_joins(arel.join_sources, aliases)
