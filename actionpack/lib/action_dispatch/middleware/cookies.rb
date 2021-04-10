@@ -418,7 +418,10 @@ module ActionDispatch
         end
       end
 
-      mattr_accessor :always_write_cookie, default: false
+      class << self
+        attr_accessor :always_write_cookie
+      end
+      @always_write_cookie = false
 
       private
         def escape(string)
@@ -439,7 +442,7 @@ module ActionDispatch
         end
 
         def write_cookie?(cookie)
-          request.ssl? || !cookie[:secure] || always_write_cookie
+          request.ssl? || !cookie[:secure] || self.class.always_write_cookie
         end
 
         def handle_options(options)
