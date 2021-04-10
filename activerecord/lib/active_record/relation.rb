@@ -618,7 +618,7 @@ module ActiveRecord
       stmt = arel.compile_delete(table[primary_key])
       stmt.from(source)
 
-      klass.connection.delete(stmt, "#{klass} Destroy").tap { reset }
+      klass.connection.delete(stmt, "#{klass} Delete All").tap { reset }
     end
 
     # Finds and destroys all records matching the specified conditions.
