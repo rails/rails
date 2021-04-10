@@ -43,6 +43,8 @@ module ActiveRecord
       # Determines whether to store the full constant name including namespace when using STI.
       # This is true, by default.
       class_attribute :store_full_sti_class, instance_writer: false, default: true
+
+      set_base_class
     end
 
     module ClassMethods
@@ -98,17 +100,7 @@ module ActiveRecord
       #
       # If B < A and C < B and if A is an abstract_class then both B.base_class
       # and C.base_class would return B as the answer since A is an abstract_class.
-      def base_class
-        unless self < Base
-          raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
-        end
-
-        if superclass == Base || superclass.abstract_class?
-          self
-        else
-          superclass.base_class
-        end
-      end
+      attr_reader :base_class
 
       # Returns whether the class is a base class.
       # See #base_class for more information.
@@ -218,6 +210,7 @@ module ActiveRecord
       end
 
       def inherited(subclass)
+        subclass.set_base_class
         subclass.instance_variable_set(:@_type_candidates_cache, Concurrent::Map.new)
         super
       end
@@ -250,6 +243,24 @@ module ActiveRecord
             end
 
             raise NameError.new("uninitialized constant #{candidates.first}", candidates.first)
+          end
+        end
+
+        def set_base_class # :nodoc:
+          @base_class = begin
+            if self == Base
+              self
+            else
+              unless self < Base
+                raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
+              end
+
+              if superclass == Base || superclass.abstract_class?
+                self
+              else
+                superclass.base_class
+              end
+            end
           end
         end
 
