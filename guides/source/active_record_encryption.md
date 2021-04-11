@@ -452,7 +452,7 @@ end
 
 #### Built-in encryption contexts
 
-#####  Disable encryption
+##### Disable encryption
 
 You can run code without encryption:
 
@@ -463,7 +463,7 @@ end
 ```
 This means that reading encrypted text will return the ciphertext and saved content will be stored unencrypted.
 
-#####  Protect encrypted data
+##### Protect encrypted data
 
 You can run code without encryption but preventing overwriting encrypted content:
 
