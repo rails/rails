@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/class/attribute"
 require "action_dispatch/http/filter_redirect"
 require "action_dispatch/http/cache"
 require "monitor"
@@ -83,8 +83,8 @@ module ActionDispatch # :nodoc:
     LOCATION     = "Location"
     NO_CONTENT_CODES = [100, 101, 102, 103, 204, 205, 304]
 
-    cattr_accessor :default_charset, default: "utf-8"
-    cattr_accessor :default_headers
+    class_attribute :default_charset, instance_predicate: false, default: "utf-8"
+    class_attribute :default_headers, instance_predicate: false
 
     def self.return_only_media_type_on_content_type=(*)
       ActiveSupport::Deprecation.warn(
