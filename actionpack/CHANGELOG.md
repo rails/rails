@@ -1,4 +1,4 @@
-*   Remove inline styles and address basic accessibilty issues on rescue templates.
+*   Remove inline styles and address basic accessibility issues on rescue templates.
 
     *Jacob Herrington*
 
