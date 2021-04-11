@@ -9,7 +9,7 @@ module ActiveModel
     include ActiveModel::AttributeMethods
 
     included do
-      attribute_method_suffix "="
+      attribute_method_suffix "=", parameters: "value"
       class_attribute :attribute_types, :_default_attributes, instance_accessor: false
       self.attribute_types = Hash.new(Type.default_value)
       self._default_attributes = AttributeSet.new({})
