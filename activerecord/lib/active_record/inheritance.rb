@@ -215,6 +215,19 @@ module ActiveRecord
         super
       end
 
+      def dup # :nodoc:
+        # `initialize_dup` / `initialize_copy` don't work when defined
+        # in the `singleton_class`.
+        other = super
+        other.set_base_class
+        other
+      end
+
+      def initialize_clone(other) # :nodoc:
+        super
+        set_base_class
+      end
+
       protected
         # Returns the class type of the record using the current module as a prefix. So descendants of
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
