@@ -13,11 +13,17 @@ module ActiveRecord
 
           def deserialize(value)
             if value.is_a?(::String)
-              ::Hash[value.scan(HstorePair).map { |k, v|
-                v = v.upcase == "NULL" ? nil : v.gsub(/\A"(.*)"\Z/m, '\1').gsub(/\\(.)/, '\1')
-                k = k.gsub(/\A"(.*)"\Z/m, '\1').gsub(/\\(.)/, '\1')
-                [k, v]
-              }]
+              hash = {}
+              value.scan(HstorePair) do |key, value|
+                key.gsub!('\"', '"')
+                key.gsub!('\\\\', '\\')
+
+                value&.gsub!('\"', '"')
+                value&.gsub!('\\\\', '\\')
+
+                hash[key] = value
+              end
+              hash
             else
               value
             end
@@ -47,9 +53,8 @@ module ActiveRecord
 
           private
             HstorePair = begin
-              quoted_string = /"[^"\\]*(?:\\.[^"\\]*)*"/
-              unquoted_string = /(?:\\.|[^\s,])[^\s=,\\]*(?:\\.[^\s=,\\]*|=[^,>])*/
-              /(#{quoted_string}|#{unquoted_string})\s*=>\s*(#{quoted_string}|#{unquoted_string})/
+              quoted_string = /"([^"\\]*(?:\\.[^"\\]*)*)"/
+              /#{quoted_string}\s*=>\s*(?:(?=NULL)|#{quoted_string})/
             end
 
             def escape_hstore(value)
