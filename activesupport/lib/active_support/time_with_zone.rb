@@ -446,7 +446,7 @@ module ActiveSupport
       [time.sec, time.min, time.hour, time.day, time.mon, time.year, time.wday, time.yday, dst?, zone]
     end
 
-    # Returns the object's date and time as a floating point number of seconds
+    # Returns the object's date and time as a floating-point number of seconds
     # since the Epoch (January 1, 1970 00:00 UTC).
     #
     #   Time.zone.now.to_f # => 1417709320.285418

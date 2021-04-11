@@ -1062,7 +1062,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_floating_point_numbers
     assert_queries(2) do
-      # Before changes, the floating point numbers will be interpreted as table names and will cause this to run in one query
+      # Before changes, the floating-point numbers will be interpreted as table names and will cause this to run in one query
       Comment.all.merge!(where: "123.456 = 123.456", includes: :post).to_a
     end
   end

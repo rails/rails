@@ -318,7 +318,7 @@ class DurationTest < ActiveSupport::TestCase
     Time.zone = nil
   end
 
-  def test_before_and_afer
+  def test_before_and_after
     t = Time.local(2000)
     assert_equal t + 1, 1.second.after(t)
     assert_equal t - 1, 1.second.before(t)

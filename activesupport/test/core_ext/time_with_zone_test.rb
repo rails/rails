@@ -120,9 +120,9 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     nsec          = ActiveSupport::TimeWithZone.new(nsec, @time_zone)
     assert_equal "Fri, 12 Dec 1986 01:23:00.000000001 EST -05:00", nsec.inspect
 
-    handred_nsec  = Time.utc(1986, 12, 12, 6, 23, 00, Rational(100, 1000))
-    handred_nsec  = ActiveSupport::TimeWithZone.new(handred_nsec, @time_zone)
-    assert_equal "Fri, 12 Dec 1986 01:23:00.000000100 EST -05:00", handred_nsec.inspect
+    hundred_nsec  = Time.utc(1986, 12, 12, 6, 23, 00, Rational(100, 1000))
+    hundred_nsec  = ActiveSupport::TimeWithZone.new(hundred_nsec, @time_zone)
+    assert_equal "Fri, 12 Dec 1986 01:23:00.000000100 EST -05:00", hundred_nsec.inspect
 
     one_third_sec = Time.utc(1986, 12, 12, 6, 23, 00, Rational(1000000, 3))
     one_third_sec = ActiveSupport::TimeWithZone.new(one_third_sec, @time_zone)

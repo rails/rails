@@ -123,7 +123,7 @@
 *   Allow applications to configure the thread pool for async queries
 
     Some applications may want one thread pool per database whereas others want to use
-    a single global thread pool for all queries. By default Rails will set `async_query_executor`
+    a single global thread pool for all queries. By default, Rails will set `async_query_executor`
     to `nil` which will not initialize any executor. If `load_async` is called and no executor
     has been configured, the query will be executed in the foreground.
 
@@ -212,7 +212,7 @@
     present in the simplified query, an ActiveRecord::InvalidStatement
     error was raised.
 
-    An sample query affected by this problem:
+    A sample query affected by this problem:
 
     ```ruby
     Author.select('COUNT(*) as total_posts', 'authors.*')
@@ -252,7 +252,7 @@
 
 *   `ActiveRecord::Calculations.calculate` called with `:average`
     (aliased as `ActiveRecord::Calculations.average`) will now use column based
-    type casting. This means that floating point number columns will now be
+    type casting. This means that floating-point number columns will now be
     aggregated as `Float` and decimal columns will be aggregated as `BigDecimal`.
 
     Integers are handled as a special case returning `BigDecimal` always
@@ -306,7 +306,7 @@
     When an application boots it automatically connects to the primary or first database in the
     database configuration file. In a multiple database application that then call `connects_to`
     needs to know that the default connection is the same as the `ApplicationRecord` connection.
-    However some applications have a differently named `ApplicationRecord`. This prevents Active
+    However, some applications have a differently named `ApplicationRecord`. This prevents Active
     Record from opening duplicate connections to the same database.
 
     *Eileen M. Uchitelle*, *John Crepezzi*

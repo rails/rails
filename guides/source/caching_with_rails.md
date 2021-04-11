@@ -9,7 +9,7 @@ Caching means to store content generated during the request-response cycle and
 to reuse it when responding to similar requests.
 
 Caching is often the most effective way to boost an application's performance.
-Through caching, web sites running on a single server with a single database
+Through caching, websites running on a single server with a single database
 can sustain a load of thousands of concurrent users.
 
 Rails provides a set of caching features out of the box. This guide will teach
