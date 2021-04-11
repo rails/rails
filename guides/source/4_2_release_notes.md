@@ -256,7 +256,7 @@ deprecation warnings because it is opt-in.
 `rails-deprecated_sanitizer` will be supported for Rails 4.2 only; it will not
 be maintained for Rails 5.0.
 
-See [this blog post](http://blog.plataformatec.com.br/2014/07/the-new-html-sanitizer-in-rails-4-2/)
+See [this blog post](https://blog.plataformatec.com.br/2014/07/the-new-html-sanitizer-in-rails-4-2/)
 for more details on the changes in the new sanitizer.
 
 ### `assert_select`

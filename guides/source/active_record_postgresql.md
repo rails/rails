@@ -448,10 +448,10 @@ A point is casted to an array containing `x` and `y` coordinates.
 
 ### Interval
 
-* [type definition](http://www.postgresql.org/docs/current/static/datatype-datetime.html#DATATYPE-INTERVAL-INPUT)
-* [functions and operators](http://www.postgresql.org/docs/current/static/functions-datetime.html)
+* [type definition](https://www.postgresql.org/docs/current/static/datatype-datetime.html#DATATYPE-INTERVAL-INPUT)
+* [functions and operators](https://www.postgresql.org/docs/current/static/functions-datetime.html)
 
-This type is mapped to [`ActiveSupport::Duration`](http://api.rubyonrails.org/classes/ActiveSupport/Duration.html) objects.
+This type is mapped to [`ActiveSupport::Duration`](https://api.rubyonrails.org/classes/ActiveSupport/Duration.html) objects.
 
 ```ruby
 # db/migrate/20200120000000_create_events.rb
