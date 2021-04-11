@@ -74,11 +74,10 @@ module ActionView
         def helper_method(*methods)
           # Almost a duplicate from ActionController::Helpers
           methods.flatten.each do |method|
-            _helpers_for_modification.module_eval <<-end_eval, __FILE__, __LINE__ + 1
-              def #{method}(*args, &block)                    # def current_user(*args, &block)
+            _helpers_for_modification.module_eval <<~end_eval, __FILE__, __LINE__ + 1
+              ruby2_keywords def #{method}(*args, &block)     # ruby2_keywords def current_user(*args, &block)
                 _test_case.send(:'#{method}', *args, &block)  #   _test_case.send(:'current_user', *args, &block)
               end                                             # end
-              ruby2_keywords(:'#{method}') if respond_to?(:ruby2_keywords, true)
             end_eval
           end
         end

@@ -112,7 +112,7 @@ module ActiveRecord
             record(:"#{method}", args, &block)  #   record(:create_table, args, &block)
           end                                   # end
         EOV
-        ruby2_keywords(method) if respond_to?(:ruby2_keywords, true)
+        ruby2_keywords(method)
       end
       alias :add_belongs_to :add_reference
       alias :remove_belongs_to :remove_reference
@@ -279,14 +279,13 @@ module ActiveRecord
         end
 
         # Forwards any missing method call to the \target.
-        def method_missing(method, *args, &block)
+        ruby2_keywords def method_missing(method, *args, &block)
           if delegate.respond_to?(method)
             delegate.public_send(method, *args, &block)
           else
             super
           end
         end
-        ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
     end
   end
 end
