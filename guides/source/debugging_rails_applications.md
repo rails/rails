@@ -819,7 +819,7 @@ deleted when that breakpoint is reached.
 * `finish [n]`: execute until the selected stack frame returns. If no frame
 number is given, the application will run until the currently selected frame
 returns. The currently selected frame starts out the most-recent frame or 0 if
-no frame positioning (e.g up, down, or frame) has been performed. If a frame
+no frame positioning (e.g. up, down, or frame) has been performed. If a frame
 number is given it will run until the specified frame returns.
 
 ### Editing
