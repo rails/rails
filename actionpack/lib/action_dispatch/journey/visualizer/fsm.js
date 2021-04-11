@@ -116,7 +116,7 @@ function match(input) {
 
       if(regexp_states[state]) {
         var slice_start = previous_start != null ? previous_start : start_index;
-        
+
         for(var key in regexp_states[state]) {
           var re = new RegExp("^" + key + "$");
 
@@ -143,7 +143,7 @@ function match(input) {
     var state_parts = states[key];
     var state = state_parts[0];
     var slice_start = state_parts[1];
-    
+
     // we must ignore ones that are still accepting more data
     if (slice_start != null) continue;
 
