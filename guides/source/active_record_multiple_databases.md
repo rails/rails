@@ -415,7 +415,7 @@ the handler. Call `connection_handler.all_connection_pools` to use this. In most
 you'll want writing or reading pools with `connection_handler.connection_pool_list(:writing)` or
 `connection_handler.connection_pool_list(:reading)`.
 * If you turn off `legacy_connection_handling` in your application, any method that's unsupported
-will raise an error (ie `connection_handlers=`).
+will raise an error (i.e. `connection_handlers=`).
 
 ## Granular Database Connection Switching
 
