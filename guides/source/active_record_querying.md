@@ -2216,7 +2216,7 @@ If you want to see the average of a certain number in one of your tables you can
 Order.average("subtotal")
 ```
 
-This will return a number (possibly a floating point number such as 3.14159265) representing the average value in the field.
+This will return a number (possibly a floating-point number such as 3.14159265) representing the average value in the field.
 
 For options, please see the parent section, [Calculations](#calculations).
 

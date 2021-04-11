@@ -2150,7 +2150,7 @@ Extensions to `BigDecimal`
 
 ### `to_s`
 
-The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating point representation instead of engineering notation:
+The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating-point representation instead of engineering notation:
 
 ```ruby
 BigDecimal(5.00, 6).to_s       # => "5.0"
