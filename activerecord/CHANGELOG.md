@@ -9,7 +9,7 @@
     the same name. The system will transparently encrypt these
     attributes before saving them into the database and will
     decrypt them when retrieving their values.
-    
+
 
     ```ruby
     class Person < ApplicationRecord
