@@ -762,7 +762,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
     <AllowedHeaders>Origin, Content-Type, Content-MD5, x-ms-blob-content-disposition, x-ms-blob-type</AllowedHeaders>
     <MaxAgeInSeconds>3600</MaxAgeInSeconds>
   </CorsRule>
-<Cors>
+</Cors>
 ```
 
 ### Direct upload JavaScript events
