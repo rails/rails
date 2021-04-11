@@ -424,7 +424,7 @@ module ActiveModel
             defn <<
             body <<
             "end" <<
-            "ruby2_keywords(:'#{name}') if respond_to?(:ruby2_keywords, true)"
+            "ruby2_keywords(:'#{name}')"
         end
 
         class AttributeMethodMatcher #:nodoc:
@@ -461,7 +461,7 @@ module ActiveModel
     # It's also possible to instantiate related objects, so a <tt>Client</tt>
     # class belonging to the +clients+ table with a +master_id+ foreign key
     # can instantiate master through <tt>Client#master</tt>.
-    def method_missing(method, *args, &block)
+    ruby2_keywords def method_missing(method, *args, &block)
       if respond_to_without_attributes?(method, true)
         super
       else
@@ -469,7 +469,6 @@ module ActiveModel
         match ? attribute_missing(match, *args, &block) : super
       end
     end
-    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 
     # +attribute_missing+ is like +method_missing+, but for attributes. When
     # +method_missing+ is called we check to see if there is a matching

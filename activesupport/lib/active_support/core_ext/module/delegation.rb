@@ -299,7 +299,7 @@ class Module
         #{target}.respond_to?(name) || super
       end
 
-      def method_missing(method, *args, &block)
+      ruby2_keywords def method_missing(method, *args, &block)
         if #{target}.respond_to?(method)
           #{target}.public_send(method, *args, &block)
         else
@@ -318,7 +318,6 @@ class Module
           end
         end
       end
-      ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
     RUBY
   end
 end
