@@ -406,10 +406,9 @@ module ActiveModel
         # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
         def define_proxy_call(code_generator, name, target, *extra)
-          defn = if NAME_COMPILABLE_REGEXP.match?(name)
-            "def #{name}(*args)"
-          else
-            "define_method(:'#{name}') do |*args|"
+          mangled_name = name
+          unless NAME_COMPILABLE_REGEXP.match?(name)
+            mangled_name = "__temp__#{name.unpack1("h*")}"
           end
 
           extra = (extra.map!(&:inspect) << "*args").join(", ")
@@ -421,10 +420,17 @@ module ActiveModel
           end
 
           code_generator <<
-            defn <<
+            "def #{mangled_name}(*args)" <<
             body <<
             "end" <<
-            "ruby2_keywords(:'#{name}')"
+            "ruby2_keywords(:'#{mangled_name}')"
+
+          if mangled_name != name
+            code_generator <<
+              "alias_method(:'#{name}', :'#{mangled_name}')" <<
+              "remove_method(:'#{mangled_name}')"
+          end
+
         end
 
         class AttributeMethodMatcher #:nodoc:
