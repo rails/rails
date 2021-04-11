@@ -19,7 +19,7 @@ module ActiveRecord
     #
     # ==== Options
     #
-    # * <tt>:env_name</tt> - The Rails environment, ie "development".
+    # * <tt>:env_name</tt> - The Rails environment, i.e. "development".
     # * <tt>:name</tt> - The db config name. In a standard two-tier
     #   database configuration this will default to "primary". In a multiple
     #   database three-tier database configuration this corresponds to the name
