@@ -1,4 +1,10 @@
+*   Fix issue in `Hash#deep_merge` where it did not properly duplicate a nested `Hash`
+
+    *Marcel Eeken*
+
+
 ## Rails 6.1.3.1 (March 26, 2021) ##
+
 
 *   No changes.
 
