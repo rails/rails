@@ -172,7 +172,7 @@ Next, consider some rich text content that embeds an `<action-text-attachment>`
 element that references the `User` instance's signed GlobalID:
 
 ```html
-<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"></action-text-content>.</p>
+<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"></action-text-attachment>.</p>
 ```
 
 Action Text resolves uses the "BAh7CEkiCG…" String to resolve the `User`
