@@ -1,3 +1,20 @@
+*   Adds option `extname` to `stylesheet_link_tag` to skip default
+    `.css` extension appended to the stylesheet path.
+
+    Before:
+    ```ruby
+    stylesheet_link_tag "style.less"
+    # <link href="/stylesheets/style.less.scss" rel="stylesheet">
+    ```
+
+    After:
+    ```ruby
+    stylesheet_link_tag "style.less", extname: false, skip_pipeline: true, rel: "stylesheet/less"
+    # <link href="/stylesheets/style.less" rel="stylesheet/less">
+    ```
+
+    *Abhay Nikam*
+
 *   Deprecate `render` locals to be assigned to instance variables.
 
     *Petrik de Heus*
