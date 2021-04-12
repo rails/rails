@@ -109,6 +109,13 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal %w[ Rework ], result.pluck("name")
   end
 
+  def test_insert_all_returns_requested_sql_fields
+    skip unless supports_insert_returning?
+
+    result = Book.insert_all! [{ name: "Rework", author_id: 1 }], returning: Arel.sql("UPPER(name) as name")
+    assert_equal %w[ REWORK ], result.pluck("name")
+  end
+
   def test_insert_all_can_skip_duplicate_records
     skip unless supports_insert_on_duplicate_skip?
 
@@ -466,6 +473,19 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_raise(ArgumentError) { book.subscribers.upsert_all([ { nick: "Jimmy" } ]) }
   end
 
+  def test_upsert_all_updates_using_provided_sql
+    skip unless supports_insert_on_duplicate_update?
+
+    operator = sqlite? ? "MAX" : "GREATEST"
+
+    Book.upsert_all(
+      [{ id: 1, status: 1 }, { id: 2, status: 1 }],
+      on_duplicate: Arel.sql("status = #{operator}(books.status, 1)")
+    )
+    assert_equal "published", Book.find(1).status
+    assert_equal "written", Book.find(2).status
+  end
+
   private
     def capture_log_output
       output = StringIO.new
@@ -476,5 +496,9 @@ class InsertAllTest < ActiveRecord::TestCase
       ensure
         ActiveRecord::Base.logger = old_logger
       end
+    end
+
+    def sqlite?
+      ActiveRecord::Base.connection.adapter_name.match?(/sqlite/i)
     end
 end

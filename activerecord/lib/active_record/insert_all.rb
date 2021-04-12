@@ -5,13 +5,21 @@ require "active_support/core_ext/enumerable"
 module ActiveRecord
   class InsertAll # :nodoc:
     attr_reader :model, :connection, :inserts, :keys
-    attr_reader :on_duplicate, :returning, :unique_by
+    attr_reader :on_duplicate, :returning, :unique_by, :update_sql
 
     def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
       @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s)
       @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
+
+      disallow_raw_sql!(returning)
+      disallow_raw_sql!(on_duplicate)
+
+      if Arel.arel_node?(on_duplicate)
+        @update_sql = on_duplicate
+        @on_duplicate = :update
+      end
 
       if model.scope_attributes?
         @scope_attributes = model.scope_attributes
@@ -127,6 +135,15 @@ module ActiveRecord
         end
       end
 
+      def disallow_raw_sql!(value)
+        return if !value.is_a?(String) || Arel.arel_node?(value)
+
+        raise ArgumentError, "Dangerous query method (method whose arguments are used as raw " \
+                             "SQL) called: #{value}. " \
+                             "Known-safe values can be passed " \
+                             "by wrapping them in Arel.sql()."
+      end
+
       class Builder # :nodoc:
         attr_reader :model
 
@@ -151,7 +168,13 @@ module ActiveRecord
         end
 
         def returning
-          format_columns(insert_all.returning) if insert_all.returning
+          return unless insert_all.returning
+
+          if insert_all.returning.is_a?(String)
+            insert_all.returning
+          else
+            format_columns(insert_all.returning)
+          end
         end
 
         def conflict_target
@@ -175,6 +198,12 @@ module ActiveRecord
             end
           end.compact.join
         end
+
+        def raw_update_sql
+          insert_all.update_sql
+        end
+
+        alias raw_update_sql? raw_update_sql
 
         private
           attr_reader :connection, :insert_all
