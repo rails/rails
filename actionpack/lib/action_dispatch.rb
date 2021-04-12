@@ -67,6 +67,7 @@ module ActionDispatch
     autoload :PublicExceptions
     autoload :Reloader
     autoload :RemoteIp
+    autoload :ServerTiming
     autoload :ShowExceptions
     autoload :SSL
     autoload :Static
