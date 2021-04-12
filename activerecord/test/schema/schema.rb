@@ -614,7 +614,7 @@ ActiveRecord::Schema.define do
   create_table :memberships, force: true do |t|
     t.datetime :joined_on
     t.integer :club_id, :member_id
-    t.boolean :favourite, default: false
+    t.boolean :favorite, default: false
     t.integer :type
     t.datetime :created_at
     t.datetime :updated_at
@@ -909,7 +909,7 @@ ActiveRecord::Schema.define do
   create_table :references, force: true do |t|
     t.integer :person_id
     t.integer :job_id
-    t.boolean :favourite
+    t.boolean :favorite
     t.integer :lock_version, default: 0
   end
 

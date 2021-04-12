@@ -706,7 +706,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_with_touch_option_on_create
     assert_queries(3) {
-      Club.create(name: "1000 Oaks", membership_attributes: { favourite: true })
+      Club.create(name: "1000 Oaks", membership_attributes: { favorite: true })
     }
   end
 
