@@ -974,11 +974,11 @@ You can create custom URL helpers directly by calling [`direct`][]. For example:
 
 ```ruby
 direct :homepage do
-  "http://www.rubyonrails.org"
+  "https://rubyonrails.org"
 end
 
 # >> homepage_url
-# => "http://www.rubyonrails.org"
+# => "https://rubyonrails.org"
 ```
 
 The return value of the block must be a valid argument for the `url_for` method. So, you can pass a valid string URL, Hash, Array, an Active Model instance, or an Active Model class.
