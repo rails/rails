@@ -53,15 +53,9 @@ module ActiveRecord
     # about the model. The model needs to pass a connection specification name to the handler,
     # in order to look up the correct connection pool.
     class ConnectionHandler
-      FINALIZER = lambda { |_| ActiveSupport::ForkTracker.check! }
-      private_constant :FINALIZER
-
       def initialize
         # These caches are keyed by pool_config.connection_specification_name (PoolConfig#connection_specification_name).
         @owner_to_pool_manager = Concurrent::Map.new(initial_capacity: 2)
-
-        # Backup finalizer: if the forked child skipped Kernel#fork the early discard has not occurred
-        ObjectSpace.define_finalizer self, FINALIZER
       end
 
       def prevent_writes # :nodoc:
