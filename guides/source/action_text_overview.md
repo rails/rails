@@ -186,7 +186,7 @@ instance. Next, consider the application's `users/user` partial:
 The resulting HTML rendered by Action Text would look something like:
 
 ```html
-<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"><span><img src="..."> Jane Doe</span></action-text-content>.</p>
+<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"><span><img src="..."> Jane Doe</span></action-text-attachment>.</p>
 ```
 
 To render a different partial, define `User#to_attachable_partial_path`:
