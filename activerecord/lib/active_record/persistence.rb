@@ -198,8 +198,8 @@ module ActiveRecord
       # go through Active Record's type casting and serialization.
       #
       # See <tt>ActiveRecord::Persistence#upsert_all</tt> for documentation.
-      def upsert(attributes, returning: nil, unique_by: nil)
-        upsert_all([ attributes ], returning: returning, unique_by: unique_by)
+      def upsert(attributes, returning: nil, unique_by: nil, update_sql: nil)
+        upsert_all([ attributes ], returning: returning, unique_by: unique_by, update_sql: update_sql)
       end
 
       # Updates or inserts (upserts) multiple records into the database in a
@@ -245,6 +245,11 @@ module ActiveRecord
       # <tt>:unique_by</tt> is recommended to be paired with
       # Active Record's schema_cache.
       #
+      # [:update_sql]
+      #   Specify a custom SQL for updating rows on conflict.
+      #
+      #   NOTE: in this case you must provide all the columns you want to update by yourself.
+      #
       # ==== Examples
       #
       #   # Inserts multiple records, performing an upsert when records have duplicate ISBNs.
@@ -256,8 +261,8 @@ module ActiveRecord
       #   ], unique_by: :isbn)
       #
       #   Book.find_by(isbn: "1").title # => "Eloquent Ruby"
-      def upsert_all(attributes, returning: nil, unique_by: nil)
-        InsertAll.new(self, attributes, on_duplicate: :update, returning: returning, unique_by: unique_by).execute
+      def upsert_all(attributes, returning: nil, unique_by: nil, update_sql: nil)
+        InsertAll.new(self, attributes, on_duplicate: :update, returning: returning, unique_by: unique_by, update_sql: update_sql).execute
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of

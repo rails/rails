@@ -5,13 +5,13 @@ require "active_support/core_ext/enumerable"
 module ActiveRecord
   class InsertAll # :nodoc:
     attr_reader :model, :connection, :inserts, :keys
-    attr_reader :on_duplicate, :returning, :unique_by
+    attr_reader :on_duplicate, :returning, :unique_by, :update_sql
 
-    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
+    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil, update_sql: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
       @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s)
-      @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
+      @on_duplicate, @returning, @unique_by, @update_sql = on_duplicate, returning, unique_by, update_sql
 
       if model.scope_attributes?
         @scope_attributes = model.scope_attributes
@@ -181,6 +181,12 @@ module ActiveRecord
             end
           end.compact.join
         end
+
+        def raw_update_sql
+          insert_all.update_sql
+        end
+
+        alias raw_update_sql? raw_update_sql
 
         private
           attr_reader :connection, :insert_all

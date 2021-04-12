@@ -551,8 +551,12 @@ module ActiveRecord
           sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
         elsif insert.update_duplicates?
           sql << " ON DUPLICATE KEY UPDATE "
-          sql << insert.touch_model_timestamps_unless { |column| "#{column}<=>VALUES(#{column})" }
-          sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
+          if insert.raw_update_sql?
+            sql << insert.raw_update_sql
+          else
+            sql << insert.touch_model_timestamps_unless { |column| "#{column}<=>VALUES(#{column})" }
+            sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
+          end
         end
 
         sql

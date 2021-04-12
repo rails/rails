@@ -1,3 +1,14 @@
+*   Add `update_sql` option to `#upsert_all` to make it possible to use raw SQL to update columns on conflict:
+
+    ```ruby
+    Book.upsert_all(
+      [{ id: 1, status: 1 }, { id: 2, status: 1 }],
+      update_sql: "status = GREATEST(books.status, EXCLUDED.status)"
+    )
+    ```
+
+    *Vladimir Dementyev*
+
 *   Allow passing raw SQL as `returning` statement to `#upsert_all`:
 
     ```ruby
