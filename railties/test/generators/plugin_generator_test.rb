@@ -535,7 +535,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_creating_gemspec
     run_generator
     assert_file "bukkits.gemspec", /spec\.name\s+= "bukkits"/
-    assert_file "bukkits.gemspec", /spec\.files = Dir\["\{app,config,db,lib\}\/\*\*\/\*", "MIT-LICENSE", "Rakefile", "README\.md"\]/
+    assert_file "bukkits.gemspec", /spec\.files = Dir.chdir\(File\.expand_path\(__dir__\)\)\s+do\s+Dir\["\{app,config,db,lib\}\/\*\*\/\*", "MIT-LICENSE", "Rakefile", "README\.md"\]\s+end/
     assert_file "bukkits.gemspec", /spec\.version\s+ = Bukkits::VERSION/
   end
 
