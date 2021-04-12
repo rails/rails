@@ -1,3 +1,8 @@
+*   Remove Rack::Runtime from the default middleware stack and deprecate
+    referencing it in middleware operations without adding it back
+
+    *Hartley McGuire*
+
 *   Allow adding additional authorized hosts in development via `ENV['RAILS_DEVELOPMENT_HOSTS']`
 
     *Josh Abernathy*, *Debbie Milburn*
