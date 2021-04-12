@@ -12,11 +12,21 @@ module ActiveRecord
 
       @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s)
       @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
+      @extenders = {}
 
       if model.scope_attributes?
         @scope_attributes = model.scope_attributes
         @keys |= @scope_attributes.keys
       end
+
+      reflection_keys = @keys & model._reflections.keys
+      reflection_keys.each do |key|
+        reflection = model._reflections[key]
+        extender = reflection.polymorphic? ? PolymorphicAssociationExtender.new(reflection) : CommonAssociationExtender.new(reflection)
+        @extenders[key] = extender
+        @keys |= extender.keys
+      end
+      @keys -= reflection_keys
       @keys = @keys.to_set
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
@@ -56,6 +66,10 @@ module ActiveRecord
       inserts.map do |attributes|
         attributes = attributes.stringify_keys
         attributes.merge!(scope_attributes) if scope_attributes
+        extenders.each do |key, extender|
+          object = attributes.delete(key)
+          attributes.merge!(extender.attributes(object))
+        end
 
         verify_attributes(attributes)
 
@@ -66,7 +80,7 @@ module ActiveRecord
     end
 
     private
-      attr_reader :scope_attributes
+      attr_reader :scope_attributes, :extenders
 
       def find_unique_index_for(unique_by)
         return unique_by if !connection.supports_insert_conflict_target?
@@ -124,6 +138,35 @@ module ActiveRecord
       def verify_attributes(attributes)
         if keys != attributes.keys.to_set
           raise ArgumentError, "All objects being inserted must have the same keys"
+        end
+      end
+
+      class CommonAssociationExtender
+        def initialize(reflection)
+          @reflection = reflection
+        end
+
+        def keys
+          [@reflection.foreign_key]
+        end
+
+        def attributes(object)
+          { @reflection.foreign_key => object.public_send(@reflection.association_primary_key) }
+        end
+      end
+
+      class PolymorphicAssociationExtender
+        def initialize(reflection)
+          @reflection = reflection
+        end
+
+        def keys
+          [@reflection.foreign_key, @reflection.foreign_type]
+        end
+
+        def attributes(object)
+          { @reflection.foreign_key => object.public_send(@reflection.association_primary_key(object.class)),
+            @reflection.foreign_type => object.class.polymorphic_name }
         end
       end
 
