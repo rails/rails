@@ -513,14 +513,14 @@ module ActiveSupport
     def utc_to_local(time)
       tzinfo.utc_to_local(time).yield_self do |t|
         ActiveSupport.utc_to_local_returns_utc_offset_times ?
-          t : Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec, t.sec_fraction)
+          t : Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec, t.sec_fraction * 1_000_000)
       end
     end
 
     # Adjust the given time to the simultaneous time in UTC. Returns a
     # Time.utc() instance.
     def local_to_utc(time, dst = true)
-      tzinfo.local_to_utc(time, dst)
+      tzinfo.local_to_utc(time, dst) { |periods| periods.last }
     end
 
     # Available so that TimeZone instances respond like TZInfo::Timezone

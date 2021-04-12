@@ -39,7 +39,7 @@ module ActiveSupport
   #   t > Time.utc(1999)                    # => true
   #   t.is_a?(Time)                         # => true
   #   t.is_a?(ActiveSupport::TimeWithZone)  # => true
-  class TimeWithZone
+  class TimeWithZone < ::Time
     # Report class name as 'Time' to thwart type checking.
     def self.name
       ActiveSupport::Deprecation.warn(<<~EOM)
@@ -53,13 +53,23 @@ module ActiveSupport
     PRECISIONS = Hash.new { |h, n| h[n] = "%FT%T.%#{n}N" }
     PRECISIONS[0] = "%FT%T"
 
-    include Comparable, DateAndTime::Compatibility
+    include DateAndTime::Compatibility
     attr_reader :time_zone
 
     def initialize(utc_time, time_zone, local_time = nil, period = nil)
       @utc = utc_time ? transfer_time_values_to_utc_constructor(utc_time) : nil
       @time_zone, @time = time_zone, local_time
       @period = @utc ? period : get_period_and_ensure_valid_local_time(period)
+
+      super(
+        time.year,
+        time.month,
+        time.day,
+        time.hour,
+        time.min,
+        time.sec + time.subsec,
+        time_zone
+      )
     end
 
     # Returns a <tt>Time</tt> instance that represents the time in +time_zone+.
@@ -122,18 +132,6 @@ module ActiveSupport
     alias_method :gmt_offset, :utc_offset
     alias_method :gmtoff, :utc_offset
 
-    # Returns a formatted string of the offset from UTC, or an alternative
-    # string if the time zone is already UTC.
-    #
-    #   Time.zone = 'Eastern Time (US & Canada)'   # => "Eastern Time (US & Canada)"
-    #   Time.zone.now.formatted_offset(true)       # => "-05:00"
-    #   Time.zone.now.formatted_offset(false)      # => "-0500"
-    #   Time.zone = 'UTC'                          # => "UTC"
-    #   Time.zone.now.formatted_offset(true, "0")  # => "0"
-    def formatted_offset(colon = true, alternate_utc_string = nil)
-      utc? && alternate_utc_string || TimeZone.seconds_to_utc_offset(utc_offset, colon)
-    end
-
     # Returns the time zone abbreviation.
     #
     #   Time.zone = 'Eastern Time (US & Canada)'   # => "Eastern Time (US & Canada)"
@@ -149,36 +147,6 @@ module ActiveSupport
       "#{time.strftime('%a, %d %b %Y %H:%M:%S.%9N')} #{zone} #{formatted_offset}"
     end
 
-    # Returns a string of the object's date and time in the ISO 8601 standard
-    # format.
-    #
-    #   Time.zone.now.xmlschema  # => "2014-12-04T11:02:37-05:00"
-    def xmlschema(fraction_digits = 0)
-      "#{time.strftime(PRECISIONS[fraction_digits.to_i])}#{formatted_offset(true, 'Z')}"
-    end
-    alias_method :iso8601, :xmlschema
-    alias_method :rfc3339, :xmlschema
-
-    # Coerces time to a string for JSON encoding. The default format is ISO 8601.
-    # You can get %Y/%m/%d %H:%M:%S +offset style by setting
-    # <tt>ActiveSupport::JSON::Encoding.use_standard_json_time_format</tt>
-    # to +false+.
-    #
-    #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = true
-    #   Time.utc(2005,2,1,15,15,10).in_time_zone("Hawaii").to_json
-    #   # => "2005-02-01T05:15:10.000-10:00"
-    #
-    #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = false
-    #   Time.utc(2005,2,1,15,15,10).in_time_zone("Hawaii").to_json
-    #   # => "2005/02/01 05:15:10 -1000"
-    def as_json(options = nil)
-      if ActiveSupport::JSON::Encoding.use_standard_json_time_format
-        xmlschema(ActiveSupport::JSON::Encoding.time_precision)
-      else
-        %(#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
-      end
-    end
-
     def init_with(coder) #:nodoc:
       initialize(coder["utc"], coder["zone"], coder["time"])
     end
@@ -186,23 +154,6 @@ module ActiveSupport
     def encode_with(coder) #:nodoc:
       coder.map = { "utc" => utc, "zone" => time_zone, "time" => time }
     end
-
-    # Returns a string of the object's date and time in the format used by
-    # HTTP requests.
-    #
-    #   Time.zone.now.httpdate  # => "Tue, 01 Jan 2013 04:39:43 GMT"
-    def httpdate
-      utc.httpdate
-    end
-
-    # Returns a string of the object's date and time in the RFC 2822 standard
-    # format.
-    #
-    #   Time.zone.now.rfc2822  # => "Tue, 01 Jan 2013 04:51:39 +0000"
-    def rfc2822
-      to_s(:rfc822)
-    end
-    alias_method :rfc822, :rfc2822
 
     # Returns a string of the object's date and time.
     # Accepts an optional <tt>format</tt>:
@@ -231,52 +182,14 @@ module ActiveSupport
     def <=>(other)
       utc <=> other
     end
-    alias_method :before?, :<
-    alias_method :after?, :>
-
-    # Returns true if the current object's time is within the specified
-    # +min+ and +max+ time.
-    def between?(min, max)
-      utc.between?(min, max)
-    end
-
-    # Returns true if the current object's time is in the past.
-    def past?
-      utc.past?
-    end
-
-    # Returns true if the current object's time falls within
-    # the current day.
-    def today?
-      time.today?
-    end
-
-    # Returns true if the current object's time falls within
-    # the next day (tomorrow).
-    def tomorrow?
-      time.tomorrow?
-    end
-    alias :next_day? :tomorrow?
-
-    # Returns true if the current object's time falls within
-    # the previous day (yesterday).
-    def yesterday?
-      time.yesterday?
-    end
-    alias :prev_day? :yesterday?
-
-    # Returns true if the current object's time is in the future.
-    def future?
-      utc.future?
-    end
 
     # Returns +true+ if +other+ is equal to current object.
     def eql?(other)
       other.eql?(utc)
     end
 
-    def hash
-      utc.hash
+    def round(ndigits = 0) #:nodoc:
+      method_missing(:round, ndigits)
     end
 
     # Adds an interval of time to the current object's time and returns that
@@ -429,14 +342,6 @@ module ActiveSupport
       end
     end
 
-    %w(year mon month day mday wday yday hour min sec usec nsec to_date).each do |method_name|
-      class_eval <<-EOV, __FILE__, __LINE__ + 1
-        def #{method_name}    # def month
-          time.#{method_name} #   time.month
-        end                   # end
-      EOV
-    end
-
     # Returns Array of parts of Time in sequence of
     # [seconds, minutes, hours, day, month, year, weekday, yearday, dst?, zone].
     #
@@ -444,39 +349,6 @@ module ActiveSupport
     #   now.to_a                # => [27, 29, 2, 18, 8, 2015, 2, 230, false, "UTC"]
     def to_a
       [time.sec, time.min, time.hour, time.day, time.mon, time.year, time.wday, time.yday, dst?, zone]
-    end
-
-    # Returns the object's date and time as a floating-point number of seconds
-    # since the Epoch (January 1, 1970 00:00 UTC).
-    #
-    #   Time.zone.now.to_f # => 1417709320.285418
-    def to_f
-      utc.to_f
-    end
-
-    # Returns the object's date and time as an integer number of seconds
-    # since the Epoch (January 1, 1970 00:00 UTC).
-    #
-    #   Time.zone.now.to_i # => 1417709320
-    def to_i
-      utc.to_i
-    end
-    alias_method :tv_sec, :to_i
-
-    # Returns the object's date and time as a rational number of seconds
-    # since the Epoch (January 1, 1970 00:00 UTC).
-    #
-    #   Time.zone.now.to_r # => (708854548642709/500000)
-    def to_r
-      utc.to_r
-    end
-
-    # Returns an instance of DateTime with the timezone's UTC offset
-    #
-    #   Time.zone.now.to_datetime                         # => Tue, 18 Aug 2015 02:32:20 +0000
-    #   Time.current.in_time_zone('Hawaii').to_datetime   # => Mon, 17 Aug 2015 16:32:20 -1000
-    def to_datetime
-      @to_datetime ||= utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
 
     # Returns an instance of +Time+, either with the same UTC offset
@@ -488,22 +360,6 @@ module ActiveSupport
       else
         @to_time_with_system_offset ||= getlocal
       end
-    end
-
-    # So that +self+ <tt>acts_like?(:time)</tt>.
-    def acts_like_time?
-      true
-    end
-
-    # Say we're a Time to thwart type checking.
-    def is_a?(klass)
-      klass == ::Time || super
-    end
-    alias_method :kind_of?, :is_a?
-
-    # An instance of ActiveSupport::TimeWithZone is never blank
-    def blank?
-      false
     end
 
     def freeze

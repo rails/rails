@@ -658,12 +658,6 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal 500000000, twz.nsec
   end
 
-  def test_utc_to_local_conversion_saves_period_in_instance_variable
-    assert_nil @twz.instance_variable_get("@period")
-    @twz.time
-    assert_kind_of TZInfo::TimezonePeriod, @twz.instance_variable_get("@period")
-  end
-
   def test_instance_created_with_local_time_returns_correct_utc_time
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 19))
     assert_equal Time.utc(2000), twz.utc
