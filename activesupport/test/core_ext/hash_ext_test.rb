@@ -300,6 +300,16 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, hash_1
   end
 
+  def test_deep_merge_with_nested_hash_returning_full_new_hash
+    hash_1 = { a: { b: "foo" } }
+    hash_2 = { d: "bar" }
+
+    new_hash = hash_1.deep_merge(hash_2)
+    new_hash[:a][:b] = "baz"
+
+    assert_equal("foo", hash_1[:a][:b])
+  end
+
   def test_reverse_merge
     defaults = { d: 0, a: "x", b: "y", c: 10 }.freeze
     options  = { a: 1, b: 2 }
