@@ -616,7 +616,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     person.first_name = "Naruto"
     person.references << Reference.new
     person.save!
-    assert_equal 1, person.references.update_all(favourite: true)
+    assert_equal 1, person.references.update_all(favorite: true)
   end
 
   def test_exists_respects_association_scope
