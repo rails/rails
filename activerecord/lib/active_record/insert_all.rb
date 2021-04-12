@@ -7,11 +7,19 @@ module ActiveRecord
     attr_reader :model, :connection, :inserts, :keys
     attr_reader :on_duplicate, :returning, :unique_by, :update_sql
 
-    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil, update_sql: nil)
+    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
       @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s)
-      @on_duplicate, @returning, @unique_by, @update_sql = on_duplicate, returning, unique_by, update_sql
+      @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
+
+      disallow_raw_sql!(returning)
+      disallow_raw_sql!(on_duplicate)
+
+      if Arel.arel_node?(on_duplicate)
+        @update_sql = on_duplicate
+        @on_duplicate = :update
+      end
 
       if model.scope_attributes?
         @scope_attributes = model.scope_attributes
@@ -125,6 +133,15 @@ module ActiveRecord
         if keys != attributes.keys.to_set
           raise ArgumentError, "All objects being inserted must have the same keys"
         end
+      end
+
+      def disallow_raw_sql!(value)
+        return if !value.is_a?(String) || Arel.arel_node?(value)
+
+        raise ArgumentError, "Dangerous query method (method whose arguments are used as raw " \
+                             "SQL) called: #{value}. " \
+                             "Known-safe values can be passed " \
+                             "by wrapping them in Arel.sql()."
       end
 
       class Builder # :nodoc:

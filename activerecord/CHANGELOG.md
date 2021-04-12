@@ -1,24 +1,23 @@
-*   Add `update_sql` option to `#upsert_all` to make it possible to use raw SQL to update columns on conflict:
+*   Allow passing SQL as `on_duplicate` value to `#upsert_all` to make it possible to use raw SQL to update columns on conflict:
 
     ```ruby
     Book.upsert_all(
       [{ id: 1, status: 1 }, { id: 2, status: 1 }],
-      update_sql: "status = GREATEST(books.status, EXCLUDED.status)"
+      on_duplicate: Arel.sql("status = GREATEST(books.status, EXCLUDED.status)")
     )
     ```
 
     *Vladimir Dementyev*
 
-*   Allow passing raw SQL as `returning` statement to `#upsert_all`:
+*   Allow passing SQL as `returning` statement to `#upsert_all`:
 
     ```ruby
     Article.insert_all(
     [
-        {title: "Article 1", slug: "article-1", published: false},
-        {title: "Article 2", slug: "article-2", published: false}
+        { title: "Article 1", slug: "article-1", published: false },
+        { title: "Article 2", slug: "article-2", published: false }
       ],
-      # Some PostgreSQL magic here to detect which rows have been actually inserted
-      returning: "id, (xmax = '0') as inserted, name as new_name"
+      returning: Arel.sql("id, (xmax = '0') as inserted, name as new_name")
     )
     ```
 
