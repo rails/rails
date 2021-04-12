@@ -422,7 +422,7 @@ module ActionDispatch
       end
 
       # Delegate unhandled messages to the current session instance.
-      ruby2_keywords def method_missing(method, *args, &block)
+      def method_missing(method, *args, &block)
         if integration_session.respond_to?(method)
           integration_session.public_send(method, *args, &block).tap do
             copy_session_variables!
@@ -431,6 +431,7 @@ module ActionDispatch
           super
         end
       end
+      ruby2_keywords(:method_missing)
     end
   end
 

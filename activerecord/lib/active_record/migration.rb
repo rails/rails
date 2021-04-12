@@ -656,9 +656,10 @@ module ActiveRecord
         end
       end
 
-      ruby2_keywords def method_missing(name, *args, &block) #:nodoc:
+      def method_missing(name, *args, &block) #:nodoc:
         nearest_delegate.send(name, *args, &block)
       end
+      ruby2_keywords(:method_missing)
 
       def migrate(direction)
         new.migrate direction
@@ -913,7 +914,7 @@ module ActiveRecord
       @connection || ActiveRecord::Base.connection
     end
 
-    ruby2_keywords def method_missing(method, *arguments, &block)
+    def method_missing(method, *arguments, &block)
       arg_list = arguments.map(&:inspect) * ", "
 
       say_with_time "#{method}(#{arg_list})" do
@@ -930,6 +931,7 @@ module ActiveRecord
         connection.send(method, *arguments, &block)
       end
     end
+    ruby2_keywords(:method_missing)
 
     def copy(destination, sources, options = {})
       copied = []

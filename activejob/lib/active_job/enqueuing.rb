@@ -35,9 +35,10 @@ module ActiveJob
       end
 
       private
-        ruby2_keywords def job_or_instantiate(*args) # :doc:
+        def job_or_instantiate(*args) # :doc:
           args.first.is_a?(self) ? args.first : new(*args)
         end
+        ruby2_keywords(:job_or_instantiate)
     end
 
     # Enqueues the job to be performed by the queue adapter.

@@ -4,7 +4,7 @@ require "delegate"
 
 module ActiveSupport
   module Tryable #:nodoc:
-    ruby2_keywords def try(method_name = nil, *args, &b)
+    def try(method_name = nil, *args, &b)
       if method_name.nil? && block_given?
         if b.arity == 0
           instance_eval(&b)
@@ -15,8 +15,9 @@ module ActiveSupport
         public_send(method_name, *args, &b)
       end
     end
+    ruby2_keywords(:try)
 
-    ruby2_keywords def try!(method_name = nil, *args, &b)
+    def try!(method_name = nil, *args, &b)
       if method_name.nil? && block_given?
         if b.arity == 0
           instance_eval(&b)
@@ -27,6 +28,7 @@ module ActiveSupport
         public_send(method_name, *args, &b)
       end
     end
+    ruby2_keywords(:try!)
   end
 end
 

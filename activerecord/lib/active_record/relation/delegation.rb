@@ -101,7 +101,7 @@ module ActiveRecord
       end
 
       private
-        ruby2_keywords def method_missing(method, *args, &block)
+        def method_missing(method, *args, &block)
           if @klass.respond_to?(method)
             @klass.generate_relation_method(method)
             scoping { @klass.public_send(method, *args, &block) }
@@ -109,6 +109,7 @@ module ActiveRecord
             super
           end
         end
+        ruby2_keywords(:method_missing)
     end
 
     module ClassMethods # :nodoc:

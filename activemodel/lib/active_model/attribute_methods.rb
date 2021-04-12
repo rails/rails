@@ -461,7 +461,7 @@ module ActiveModel
     # It's also possible to instantiate related objects, so a <tt>Client</tt>
     # class belonging to the +clients+ table with a +master_id+ foreign key
     # can instantiate master through <tt>Client#master</tt>.
-    ruby2_keywords def method_missing(method, *args, &block)
+    def method_missing(method, *args, &block)
       if respond_to_without_attributes?(method, true)
         super
       else
@@ -469,6 +469,7 @@ module ActiveModel
         match ? attribute_missing(match, *args, &block) : super
       end
     end
+    ruby2_keywords(:method_missing)
 
     # +attribute_missing+ is like +method_missing+, but for attributes. When
     # +method_missing+ is called we check to see if there is a matching

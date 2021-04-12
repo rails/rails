@@ -82,9 +82,10 @@ module ActiveJob
               end
 
               private
-                ruby2_keywords def _ruby2_keywords_hash(*args)
+                def _ruby2_keywords_hash(*args)
                   args.last
                 end
+                ruby2_keywords(:_ruby2_keywords_hash)
             end
           end
         }

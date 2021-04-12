@@ -20,9 +20,10 @@ module ActionMailer
       MSG
     end
 
-    ruby2_keywords def perform(mailer, mail_method, delivery_method, *args) #:nodoc:
+    def perform(mailer, mail_method, delivery_method, *args) #:nodoc:
       mailer.constantize.public_send(mail_method, *args).send(delivery_method)
     end
+    ruby2_keywords(:perform)
 
     private
       # "Deserialize" the mailer class name by hand in case another argument

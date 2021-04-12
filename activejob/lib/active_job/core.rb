@@ -88,7 +88,7 @@ module ActiveJob
 
     # Creates a new job instance. Takes the arguments that will be
     # passed to the perform method.
-    ruby2_keywords def initialize(*arguments)
+    def initialize(*arguments)
       @arguments  = arguments
       @job_id     = SecureRandom.uuid
       @queue_name = self.class.queue_name
@@ -97,6 +97,7 @@ module ActiveJob
       @exception_executions = {}
       @timezone   = Time.zone&.name
     end
+    ruby2_keywords(:initialize)
 
     # Returns a hash with the job data that can safely be passed to the
     # queuing adapter.
