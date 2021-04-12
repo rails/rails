@@ -845,7 +845,9 @@ module ActiveSupport
         end
       end
 
-      def bytesize # :nodoc:
+      # Returns the size of the cached value. This could be less than
+      # <tt>value.bytesize</tt> if the data is compressed.
+      def bytesize
         case value
         when NilClass
           0
