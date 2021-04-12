@@ -1,3 +1,12 @@
+*   Fix `ActiveSupport::TimeZone#utc_to_local` with fractional seconds.
+
+    When `utc_to_local_returns_utc_offset_times` is false and the time
+    instance had fractional seconds the new UTC time instance was out by
+    a factor of 1,000,000 as the `Time.utc` constructor takes a usec
+    value and not a fractional second value.
+
+    *Andrew White*
+
 *   Fix issue in `Hash#deep_merge` where it did not properly duplicate a nested `Hash`
 
     *Marcel Eeken*
