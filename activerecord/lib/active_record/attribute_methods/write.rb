@@ -6,7 +6,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        attribute_method_suffix "="
+        attribute_method_suffix "=", parameters: "value"
       end
 
       module ClassMethods # :nodoc:
