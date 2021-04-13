@@ -310,6 +310,25 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal("foo", hash_1[:a][:b])
   end
 
+  def test_deep_merge_dup_received_hash
+    hash_1 = { d: "bar" }
+    hash_2 = { a: { b: "foo" } }
+
+    new_hash = hash_1.deep_merge(hash_2)
+    new_hash[:a][:b] = "baz"
+
+    assert_equal("foo", hash_2[:a][:b])
+  end
+
+  def test_deep_merge_only_dup_hashes
+    hash_1 = { a: { b: Object } }
+    hash_2 = { d: "bar" }
+
+    new_hash = hash_1.deep_merge(hash_2)
+
+    assert_equal(Object, new_hash[:a][:b])
+  end
+
   def test_reverse_merge
     defaults = { d: 0, a: "x", b: "y", c: 10 }.freeze
     options  = { a: 1, b: 2 }

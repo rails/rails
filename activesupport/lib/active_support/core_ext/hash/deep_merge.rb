@@ -16,7 +16,7 @@ class Hash
   #   h1.deep_merge(h2) { |key, this_val, other_val| this_val + other_val }
   #   # => { a: 100, b: 450, c: { c1: 300 } }
   def deep_merge(other_hash, &block)
-    deep_dup.deep_merge!(other_hash, &block)
+    deep_dup.deep_merge!(other_hash.deep_dup, &block)
   end
 
   # Same as +deep_merge+, but modifies +self+.

@@ -53,7 +53,16 @@ require "singleton"
 module Singleton
   # Singleton instances are not duplicable:
   #
-  # Class.new.include(Singleton).instance.dup # TypeError (can't dup instance of singleton
+  # Class.new.include(Singleton).instance.dup # => TypeError (can't dup instance of singleton
+  def duplicable?
+    false
+  end
+end
+
+class Module
+  # Module and Class are duplicable, however the copy will be anonymous which can have consequences.
+  #
+  # Object.dup # => #<Class:0x00007f8834c15778>
   def duplicable?
     false
   end
