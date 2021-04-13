@@ -91,11 +91,6 @@ module ActiveRecord
           end
 
           private
-            HstorePair = begin
-              quoted_string = /"([^"\\]*(?:\\.[^"\\]*)*)"/
-              /#{quoted_string}\s*=>\s*(?:(?=NULL)|#{quoted_string})/
-            end
-
             def escape_hstore(value)
               if value.nil?
                 "NULL"
