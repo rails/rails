@@ -13,10 +13,6 @@
 
     *Andrew White*
 
-*   Fix issue in `Hash#deep_merge` where it did not properly duplicate a nested `Hash`
-
-    *Marcel Eeken*
-
 *   Add `expires_at` argument to `ActiveSupport::Cache` `write` and `fetch` to set a cache entry TTL as an absolute time.
 
     ```ruby
