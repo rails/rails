@@ -284,7 +284,7 @@ message, to allow future contributors to easily verify your findings and
 determine if they are still relevant. (For example, future optimizations in the
 Ruby VM might render certain optimizations unnecessary.)
 
-When optimizing for a specific scenario that you care about, it is easy to 
+When optimizing for a specific scenario that you care about, it is easy to
 regress performance for other common cases.
 Therefore, you should test your change against a list of representative
 scenarios, ideally extracted from real-world production applications.

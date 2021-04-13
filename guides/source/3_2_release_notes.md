@@ -312,7 +312,7 @@ Action Pack
 
 #### Deprecations
 
-* Passing formats or handlers to render :template and friends like `render :template => "foo.html.erb"` is deprecated. Instead, you can provide :handlers and :formats directly as options: ` render :template => "foo", :formats => [:html, :js], :handlers => :erb`.
+* Passing formats or handlers to render :template and friends like `render :template => "foo.html.erb"` is deprecated. Instead, you can provide :handlers and :formats directly as options: `render :template => "foo", :formats => [:html, :js], :handlers => :erb`.
 
 ### Sprockets
 

@@ -1,0 +1,23 @@
+---
+
+# https://yamllint.readthedocs.io/en/stable/index.html
+# yamllint --strict -c .github/linters/.yaml-lint.yml .
+
+extends: default
+
+ignore: |
+  **/test/
+
+rules:
+  braces: disable
+  colons: disable
+  comments: disable
+  comments-indentation: disable
+  document-start: disable
+  empty-lines: disable
+  indentation: disable
+  line-length: disable
+  new-line-at-end-of-file: disable
+  new-lines: disable
+  trailing-spaces: disable
+  truthy: disable
