@@ -1,3 +1,9 @@
+*   Freeze `ActiveSupport::Duration#parts` and remove writer methods.
+
+    Durations are meant to be value objects and should not be mutated.
+
+    *Andrew White*
+
 *   Fix `ActiveSupport::TimeZone#utc_to_local` with fractional seconds.
 
     When `utc_to_local_returns_utc_offset_times` is false and the time

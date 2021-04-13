@@ -734,6 +734,22 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "can't build an ActiveSupport::Duration from a NilClass", error.message
   end
 
+  def test_variable
+    assert_not 12.seconds.variable?
+    assert_not 12.minutes.variable?
+    assert_not 12.hours.variable?
+
+    assert 12.days.variable?
+    assert 12.weeks.variable?
+    assert 12.months.variable?
+    assert 12.years.variable?
+
+    assert_not (12.hours + 12.minutes).variable?
+
+    assert (12.hours + 1.day).variable?
+    assert (1.day + 12.hours).variable?
+  end
+
   private
     def eastern_time_zone
       if Gem.win_platform?
