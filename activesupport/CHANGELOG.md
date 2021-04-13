@@ -1,7 +1,3 @@
-*   Fix issue in `Hash#deep_merge` where it did not properly duplicate a nested `Hash`
-
-    *Marcel Eeken*
-
 *   Fixed issue in `ActiveSupport::Cache::RedisCacheStore` not passing options
     to `read_multi` causing `fetch_multi` to not work properly.
 
