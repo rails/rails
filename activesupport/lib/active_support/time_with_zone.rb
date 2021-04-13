@@ -46,7 +46,7 @@ module ActiveSupport
         ActiveSupport::TimeWithZone.name has been deprecated and
         from Rails 7.1 will use the default Ruby implementation.
         You can set `config.active_support.remove_deprecated_time_with_zone_name = true`
-        to enable thew new behavior now.
+        to enable the new behavior now.
       EOM
 
       "Time"
