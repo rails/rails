@@ -132,12 +132,10 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def test_decorate_view_paths_with_custom_resolver
-    decorator_class = Class.new(ActionView::PathResolver) do
+    decorator_class = Class.new(ActionView::Resolver) do
       def initialize(path_set)
         @path_set = path_set
-      end
-
-      def clear_cache
+        super()
       end
 
       def find_all(*args)

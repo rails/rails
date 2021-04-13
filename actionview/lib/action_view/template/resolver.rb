@@ -186,22 +186,45 @@ module ActionView
     end
   end
 
-  # An abstract class that implements a Resolver with path semantics.
-  class PathResolver < Resolver #:nodoc:
+  # A resolver that loads files from the filesystem.
+  class FileSystemResolver < Resolver
     EXTENSIONS = { locale: ".", formats: ".", variants: "+", handlers: "." }
     DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}"
 
-    def initialize
+    attr_reader :path
+
+    def initialize(path)
+      raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
       @pattern = DEFAULT_PATTERN
       @unbound_templates = Concurrent::Map.new
       @path_parser = PathParser.new
-      super
+      @path = File.expand_path(path)
+      super()
     end
 
     def clear_cache
       @unbound_templates.clear
       @path_parser = PathParser.new
       super
+    end
+
+    def to_s
+      @path.to_s
+    end
+    alias :to_path :to_s
+
+    def eql?(resolver)
+      self.class.equal?(resolver.class) && to_path == resolver.to_path
+    end
+    alias :== :eql?
+
+    def all_template_paths # :nodoc:
+      paths = Dir.glob("**/*", base: @path)
+      paths.reject do |filename|
+        File.directory?(File.join(@path, filename))
+      end.map do |filename|
+        filename.gsub(/\.[^\/]*\z/, "")
+      end.uniq
     end
 
     private
@@ -273,38 +296,7 @@ module ActionView
         # Template::Types[format] and handler.default_format can return nil
         [handler, format, variant]
       end
-  end
 
-  # A resolver that loads files from the filesystem.
-  class FileSystemResolver < PathResolver #:nodoc:
-    attr_reader :path
-
-    def initialize(path)
-      raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
-      super()
-      @path = File.expand_path(path)
-    end
-
-    def to_s
-      @path.to_s
-    end
-    alias :to_path :to_s
-
-    def eql?(resolver)
-      self.class.equal?(resolver.class) && to_path == resolver.to_path
-    end
-    alias :== :eql?
-
-    def all_template_paths # :nodoc:
-      paths = Dir.glob("**/*", base: @path)
-      paths.reject do |filename|
-        File.directory?(File.join(@path, filename))
-      end.map do |filename|
-        filename.gsub(/\.[^\/]*\z/, "")
-      end.uniq
-    end
-
-    private
       def find_candidate_template_paths(path)
         # Instead of checking for every possible path, as our other globs would
         # do, scan the directory for files with the right prefix.
