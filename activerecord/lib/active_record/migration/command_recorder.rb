@@ -279,14 +279,13 @@ module ActiveRecord
         end
 
         # Forwards any missing method call to the \target.
-        def method_missing(method, *args, &block)
+        def method_missing(method, ...)
           if delegate.respond_to?(method)
-            delegate.public_send(method, *args, &block)
+            delegate.public_send(method, ...)
           else
             super
           end
         end
-        ruby2_keywords(:method_missing)
     end
   end
 end

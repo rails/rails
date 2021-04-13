@@ -582,14 +582,13 @@ module ActionMailer
         payload[:perform_deliveries] = mail.perform_deliveries
       end
 
-      def method_missing(method_name, *args)
+      def method_missing(method_name, ...)
         if action_methods.include?(method_name.to_s)
-          MessageDelivery.new(self, method_name, *args)
+          MessageDelivery.new(self, method_name, ...)
         else
           super
         end
       end
-      ruby2_keywords(:method_missing)
 
       def respond_to_missing?(method, include_all = false)
         action_methods.include?(method.to_s) || super

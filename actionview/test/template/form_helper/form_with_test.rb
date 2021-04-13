@@ -2115,12 +2115,11 @@ class FormWithActsLikeFormForTest < FormWithTest
   class LabelledFormBuilder < ActionView::Helpers::FormBuilder
     (field_helpers - %w(hidden_field)).each do |selector|
       class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-        def #{selector}(field, *args, &proc)
+        def #{selector}(field, ...)
           ("<label for='\#{field}'>\#{field.to_s.humanize}:</label> " + super + "<br/>").html_safe
         end
       RUBY_EVAL
     end
-    ruby2_keywords(:fields)
   end
 
   def test_form_with_with_labelled_builder

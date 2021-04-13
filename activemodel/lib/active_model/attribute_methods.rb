@@ -67,7 +67,6 @@ module ActiveModel
 
     NAME_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?=]?\z/
     CALL_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?]?\z/
-    FORWARD_PARAMETERS = "*args"
 
     included do
       class_attribute :attribute_aliases, instance_writer: false, default: {}
@@ -427,10 +426,6 @@ module ActiveModel
             body <<
             "end"
 
-          if parameters == FORWARD_PARAMETERS
-            code_generator << "ruby2_keywords(:'#{mangled_name}')"
-          end
-
           if mangled_name != name
             code_generator <<
               "alias_method(:'#{name}', :'#{mangled_name}')" <<
@@ -446,7 +441,7 @@ module ActiveModel
           def initialize(prefix: "", suffix: "", parameters: nil)
             @prefix = prefix
             @suffix = suffix
-            @parameters = parameters.nil? ? FORWARD_PARAMETERS : parameters
+            @parameters = parameters.nil? ? "..." : parameters
             @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
             @target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
@@ -474,22 +469,21 @@ module ActiveModel
     # It's also possible to instantiate related objects, so a <tt>Client</tt>
     # class belonging to the +clients+ table with a +master_id+ foreign key
     # can instantiate master through <tt>Client#master</tt>.
-    def method_missing(method, *args, &block)
+    def method_missing(method, ...)
       if respond_to_without_attributes?(method, true)
         super
       else
         match = matched_attribute_method(method.to_s)
-        match ? attribute_missing(match, *args, &block) : super
+        match ? attribute_missing(match, ...) : super
       end
     end
-    ruby2_keywords(:method_missing)
 
     # +attribute_missing+ is like +method_missing+, but for attributes. When
     # +method_missing+ is called we check to see if there is a matching
     # attribute method. If so, we tell +attribute_missing+ to dispatch the
     # attribute. This method can be overloaded to customize the behavior.
-    def attribute_missing(match, *args, &block)
-      __send__(match.target, match.attr_name, *args, &block)
+    def attribute_missing(match, ...)
+      __send__(match.target, match.attr_name, ...)
     end
 
     # A +Person+ instance with a +name+ attribute can ask

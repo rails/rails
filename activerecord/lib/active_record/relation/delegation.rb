@@ -67,10 +67,14 @@ module ActiveRecord
               end
             RUBY
           else
-            define_method(method) do |*args, &block|
-              scoping { klass.public_send(method, *args, &block) }
-            end
-            ruby2_keywords(method)
+            mangled_method = "__temp__#{method.to_s.unpack1("h*")}"
+            module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{mangled_method}(...)
+                scoping { klass.public_send(:'#{method}', ...) }
+              end
+            RUBY
+            alias_method(method, mangled_method)
+            remove_method(mangled_method)
           end
         end
       end
