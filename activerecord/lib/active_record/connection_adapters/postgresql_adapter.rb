@@ -52,7 +52,7 @@ module ActiveRecord
     # * <tt>:port</tt> - Defaults to 5432.
     # * <tt>:username</tt> - Defaults to be the same as the operating system name of the user running the application.
     # * <tt>:password</tt> - Password to be used if the server demands password authentication.
-    # * <tt>:database</tt> - Defaults to be the same as the user name.
+    # * <tt>:database</tt> - Defaults to be the same as the username.
     # * <tt>:schema_search_path</tt> - An optional schema search path for the connection given
     #   as a string of comma-separated schema names. This is backward-compatible with the <tt>:schema_order</tt> option.
     # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO
