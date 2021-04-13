@@ -250,48 +250,10 @@ module ActionView
         files.reject { |filename| !inside_path?(@path, filename) }
       end
 
-      def find_template_paths_from_details(path, details)
-        if path.name.include?(".")
-          return []
-        end
-
-        query = build_query(path, details)
-        find_template_paths(query)
-      end
-
-      def find_template_paths(query)
-        Dir[query].uniq.reject do |filename|
-          File.directory?(filename) ||
-            # deals with case-insensitive file systems.
-            !File.fnmatch(query, filename, File::FNM_EXTGLOB)
-        end
-      end
-
       def inside_path?(path, filename)
         filename = File.expand_path(filename)
         path = File.join(path, "")
         filename.start_with?(path)
-      end
-
-      # Helper for building query glob string based on resolver's pattern.
-      def build_query(path, details)
-        query = @pattern.dup
-
-        prefix = path.prefix.empty? ? "" : "#{escape_entry(path.prefix)}\\1"
-        query.gsub!(/:prefix(\/)?/, prefix)
-
-        partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
-        query.gsub!(":action", partial)
-
-        details.each do |ext, candidates|
-          if ext == :variants && candidates == :any
-            query.gsub!(/:#{ext}/, "*")
-          else
-            query.gsub!(/:#{ext}/, "{#{candidates.compact.uniq.join(',')}}")
-          end
-        end
-
-        File.expand_path(query, @path)
       end
 
       def escape_entry(entry)
