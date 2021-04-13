@@ -513,7 +513,7 @@ module ActiveSupport
     def utc_to_local(time)
       tzinfo.utc_to_local(time).yield_self do |t|
         ActiveSupport.utc_to_local_returns_utc_offset_times ?
-          t : Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec, t.sec_fraction)
+          t : Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec, t.sec_fraction * 1_000_000)
       end
     end
 
