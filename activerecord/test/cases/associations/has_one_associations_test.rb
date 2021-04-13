@@ -759,7 +759,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   class SpecialBook < ActiveRecord::Base
     self.table_name = "books"
     belongs_to :author, class_name: "SpecialAuthor"
-    has_one :subscription, class_name: "SpecialSupscription", foreign_key: "subscriber_id"
+    has_one :subscription, class_name: "SpecialSubscription", foreign_key: "subscriber_id"
 
     enum status: [:proposed, :written, :published]
   end
@@ -769,7 +769,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     has_one :book, class_name: "SpecialBook", foreign_key: "author_id"
   end
 
-  class SpecialSupscription < ActiveRecord::Base
+  class SpecialSubscription < ActiveRecord::Base
     self.table_name = "subscriptions"
     belongs_to :book, class_name: "SpecialBook"
   end
