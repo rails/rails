@@ -758,8 +758,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_file_is_added_for_backwards_compatibility
-    action :file, "lib/test_file.rb", "heres test data"
-    assert_file "lib/test_file.rb", "heres test data"
+    action :file, "lib/test_file.rb", "here's test data"
+    assert_file "lib/test_file.rb", "here's test data"
   end
 
   def test_pretend_option

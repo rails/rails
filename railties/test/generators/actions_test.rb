@@ -31,13 +31,13 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_create_file_should_write_data_to_file_path
-    action :create_file, "lib/test_file.rb", "heres test data"
-    assert_file "lib/test_file.rb", "heres test data"
+    action :create_file, "lib/test_file.rb", "here's test data"
+    assert_file "lib/test_file.rb", "here's test data"
   end
 
   def test_create_file_should_write_block_contents_to_file_path
-    action(:create_file, "lib/test_file.rb") { "heres block data" }
-    assert_file "lib/test_file.rb", "heres block data"
+    action(:create_file, "lib/test_file.rb") { "here's block data" }
+    assert_file "lib/test_file.rb", "here's block data"
   end
 
   def test_add_source_adds_source_to_gemfile
