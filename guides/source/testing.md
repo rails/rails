@@ -941,6 +941,7 @@ We will be redirected back to the articles index page and there we assert
 that the text from the new article's title is on the articles index page.
 
 #### Testing for multiple screen sizes
+
 If you want to test for mobile sizes on top of testing for desktop,
 you can create another class that inherits from SystemTestCase and use in your
 test suite. In this example a file called `mobile_system_test_case.rb` is created

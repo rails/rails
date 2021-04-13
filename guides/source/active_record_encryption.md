@@ -190,6 +190,7 @@ class Article
   encrypts :title, deterministic: true, previous: { deterministic: false }
 end
 ```
+
 #### Encryption schemes and deterministic attributes
 
 When adding previous encryption schemes:
