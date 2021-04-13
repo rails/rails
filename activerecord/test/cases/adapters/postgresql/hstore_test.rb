@@ -291,6 +291,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
 
   def test_backslash
     assert_cycle('a\\b' => 'b\\ar', '1"foo' => "2")
+    assert_cycle('a\\"' => 'b\\ar', '1"foo' => "2")
   end
 
   def test_comma

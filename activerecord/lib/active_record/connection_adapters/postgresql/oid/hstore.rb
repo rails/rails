@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
+require "strscan"
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
         class Hstore < Type::Value # :nodoc:
+          ERROR = "Invalid Hstore document: %s"
+
           include ActiveModel::Type::Helpers::Mutable
 
           def type
@@ -12,21 +16,56 @@ module ActiveRecord
           end
 
           def deserialize(value)
-            if value.is_a?(::String)
-              hash = {}
-              value.scan(HstorePair) do |key, value|
-                key.gsub!('\"', '"')
-                key.gsub!('\\\\', '\\')
+            return value unless value.is_a?(::String)
 
-                value&.gsub!('\"', '"')
-                value&.gsub!('\\\\', '\\')
+            scanner = StringScanner.new(value)
+            hash = {}
 
-                hash[key] = value
+            until scanner.eos?
+              unless scanner.skip(/"/)
+                raise(ArgumentError, ERROR % scanner.string.inspect)
               end
-              hash
-            else
-              value
+
+              unless key = scanner.scan_until(/(?<!\\)(?=")/)
+                raise(ArgumentError, ERROR % scanner.string.inspect)
+              end
+
+              unless scanner.skip(/"=>?/)
+                raise(ArgumentError, ERROR % scanner.string.inspect)
+              end
+
+              if scanner.scan(/NULL/)
+                value = nil
+              else
+                unless scanner.skip(/"/)
+                  raise(ArgumentError, ERROR % scanner.string.inspect)
+                end
+
+                unless value = scanner.scan_until(/(?<!\\)(?=")/)
+                  raise(ArgumentError, ERROR % scanner.string.inspect)
+                end
+
+                unless scanner.skip(/"/)
+                  raise(ArgumentError, ERROR % scanner.string.inspect)
+                end
+              end
+
+              key.gsub!('\"', '"')
+              key.gsub!('\\\\', '\\')
+
+              if value
+                value.gsub!('\"', '"')
+                value.gsub!('\\\\', '\\')
+              end
+
+              hash[key] = value
+
+              unless scanner.skip(/, /) || scanner.eos?
+                raise(ArgumentError, ERROR % scanner.string.inspect)
+              end
             end
+
+            hash
           end
 
           def serialize(value)
