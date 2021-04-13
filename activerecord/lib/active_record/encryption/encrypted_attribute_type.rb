@@ -119,9 +119,7 @@ module ActiveRecord
         end
 
         def clean_text_scheme
-          @clean_text_scheme ||= begin
-            ActiveRecord::Encryption::Scheme.new(downcase: downcase?, encryptor: ActiveRecord::Encryption::NullEncryptor.new)
-          end
+          @clean_text_scheme ||= ActiveRecord::Encryption::Scheme.new(downcase: downcase?, encryptor: ActiveRecord::Encryption::NullEncryptor.new)
         end
     end
   end

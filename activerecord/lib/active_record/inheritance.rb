@@ -260,19 +260,17 @@ module ActiveRecord
         end
 
         def set_base_class # :nodoc:
-          @base_class = begin
-            if self == Base
+          @base_class = if self == Base
+            self
+          else
+            unless self < Base
+              raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
+            end
+
+            if superclass == Base || superclass.abstract_class?
               self
             else
-              unless self < Base
-                raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
-              end
-
-              if superclass == Base || superclass.abstract_class?
-                self
-              else
-                superclass.base_class
-              end
+              superclass.base_class
             end
           end
         end

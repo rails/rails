@@ -698,16 +698,14 @@ module ActiveRecord
     #   User.where(name: 'Oscar').to_sql
     #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
-      @to_sql ||= begin
-        if eager_loading?
-          apply_join_dependency do |relation, join_dependency|
-            relation = join_dependency.apply_column_aliases(relation)
-            relation.to_sql
-          end
-        else
-          conn = klass.connection
-          conn.unprepared_statement { conn.to_sql(arel) }
+      @to_sql ||= if eager_loading?
+        apply_join_dependency do |relation, join_dependency|
+          relation = join_dependency.apply_column_aliases(relation)
+          relation.to_sql
         end
+      else
+        conn = klass.connection
+        conn.unprepared_statement { conn.to_sql(arel) }
       end
     end
 
