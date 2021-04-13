@@ -682,7 +682,7 @@ class CachedViewRenderTest < ActiveSupport::TestCase
   def setup
     ActionView::LookupContext::DetailsKey.clear
     view_paths = ActionController::Base.view_paths
-    assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
+    assert_equal ActionView::FileSystemResolver, view_paths.first.class
     setup_view(view_paths)
   end
 
@@ -756,7 +756,7 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     ActionView::LookupContext::DetailsKey.clear
 
     view_paths = ActionController::Base.view_paths
-    assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
+    assert_equal ActionView::FileSystemResolver, view_paths.first.class
 
     ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new
 

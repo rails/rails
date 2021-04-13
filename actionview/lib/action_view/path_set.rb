@@ -72,7 +72,7 @@ module ActionView #:nodoc:
         paths.map do |path|
           case path
           when Pathname, String
-            OptimizedFileSystemResolver.new path.to_s
+            FileSystemResolver.new path.to_s
           else
             path
           end

@@ -314,7 +314,7 @@ module ActionView
   end
 
   # A resolver that loads files from the filesystem.
-  class FileSystemResolver < PathResolver
+  class FileSystemResolver < PathResolver #:nodoc:
     attr_reader :path
 
     def initialize(path)
@@ -340,13 +340,6 @@ module ActionView
       end.map do |filename|
         filename.gsub(/\.[^\/]*\z/, "")
       end.uniq
-    end
-  end
-
-  # An Optimized resolver for Rails' most common case.
-  class OptimizedFileSystemResolver < FileSystemResolver #:nodoc:
-    def initialize(path)
-      super(path)
     end
 
     private

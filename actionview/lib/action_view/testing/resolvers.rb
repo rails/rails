@@ -7,7 +7,7 @@ module ActionView #:nodoc:
   # file system. This is used internally by Rails' own test suite, and is
   # useful for testing extensions that have no way of knowing what the file
   # system will look like at runtime.
-  class FixtureResolver < OptimizedFileSystemResolver
+  class FixtureResolver < FileSystemResolver
     def initialize(hash = {})
       super("")
       @hash = hash
