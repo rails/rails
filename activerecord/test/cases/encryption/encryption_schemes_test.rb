@@ -51,15 +51,15 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
     end
 
     assert_equal 2, encrypted_author_class.type_for_attribute(:name).previous_encrypted_types.count
-    previoys_type_1, previoys_type_2 = encrypted_author_class.type_for_attribute(:name).previous_encrypted_types
+    previous_type_1, previous_type_2 = encrypted_author_class.type_for_attribute(:name).previous_encrypted_types
 
     author = ActiveRecord::Encryption.without_encryption do
-      encrypted_author_class.create name: previoys_type_1.serialize("1")
+      encrypted_author_class.create name: previous_type_1.serialize("1")
     end
     assert_equal "0", author.reload.name
 
     author = ActiveRecord::Encryption.without_encryption do
-      encrypted_author_class.create name: previoys_type_2.serialize("2")
+      encrypted_author_class.create name: previous_type_2.serialize("2")
     end
     assert_equal "1", author.reload.name
   end
