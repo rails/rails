@@ -858,10 +858,6 @@ module ActiveSupport
         end
       end
 
-      def compressed? # :nodoc:
-        defined?(@compressed)
-      end
-
       # Duplicates the value in a class. This is used by cache implementations that don't natively
       # serialize entries to protect against accidental cache modifications.
       def dup_value!
@@ -895,6 +891,10 @@ module ActiveSupport
               @compressed = true
             end
           end
+        end
+
+        def compressed?
+          defined?(@compressed)
         end
 
         def uncompress(value)
