@@ -69,6 +69,12 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone[-480.minutes] # PST
   end
 
+  def test_from_tzinfo_to_map
+    tzinfo = TZInfo::Timezone.get("Europe/London")
+    assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone[tzinfo]
+    assert_same ActiveSupport::TimeZone[tzinfo], ActiveSupport::TimeZone[tzinfo]
+  end
+
   ActiveSupport::TimeZone.all.each do |zone|
     name = zone.name.downcase.gsub(/[^a-z]/, "_")
     define_method("test_from_#{name}_to_map") do
