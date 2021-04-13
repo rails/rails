@@ -18,7 +18,7 @@ module ActiveRecord
       #
       # 1. Create a new +ActiveRecord::Encryption::Message+
       # 2. Compress and encrypt +clean_text+ as the message payload
-      # 3. Serialize it with +ActiveRecord::Encryption.message_serializer+ (+ActiveRecord::Encryption::SafeMarhsal+
+      # 3. Serialize it with +ActiveRecord::Encryption.message_serializer+ (+ActiveRecord::Encryption::SafeMarshal+
       #    by default)
       # 4. Encode the result with Base 64
       #
