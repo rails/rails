@@ -27,7 +27,7 @@ module ActiveRecord
           properties.each do |name, value|
             [:context, :config].each do |configurable_object_name|
               configurable_object = ActiveRecord::Encryption.send(configurable_object_name)
-              configurable_object.send "#{name}=", value if configurable_object.respond_to?(name)
+              configurable_object.send "#{name}=", value if configurable_object.respond_to?("#{name}=")
             end
           end
         end
