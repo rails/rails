@@ -72,7 +72,7 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
 
   test "assigning 'infinity' on a datetime column with TZ aware attributes" do
     in_time_zone "Pacific Time (US & Canada)" do
-      # reset_column_information should be called to recrate types with TimeZoneConverter
+      # reset_column_information should be called to recreate types with TimeZoneConverter
       PostgresqlInfinity.reset_column_information
 
       record = PostgresqlInfinity.create!(datetime: "infinity")
