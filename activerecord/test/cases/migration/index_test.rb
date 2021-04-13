@@ -164,7 +164,7 @@ module ActiveRecord
 
       def test_valid_index_options
         assert_raise ArgumentError do
-          connection.add_index :testings, :foo, unqiue: true
+          connection.add_index :testings, :foo, unique: true
         end
       end
 
