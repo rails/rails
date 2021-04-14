@@ -106,7 +106,7 @@ class EagerLoadNestedIncludeWithMissingDataTest < ActiveRecord::TestCase
   def setup
     @davey_mcdave = Author.create(name: "Davey McDave")
     @first_post = @davey_mcdave.posts.create(title: "Davey Speaks", body: "Expressive wordage")
-    @first_comment = @first_post.comments.create(body: "Inflamatory doublespeak")
+    @first_comment = @first_post.comments.create(body: "Inflammatory doublespeak")
     @first_categorization = @davey_mcdave.categorizations.create(category: Category.first, post: @first_post)
   end
 

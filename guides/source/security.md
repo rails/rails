@@ -79,7 +79,7 @@ speed of the application, but it is a controversial storage option and
 you have to think about the security implications and storage
 limitations of it:
 
-*  Cookies have a size limit of 4kB. Use cookies only for data which is relevant for the session.
+* Cookies have a size limit of 4 kB. Use cookies only for data which is relevant for the session.
 
 * Cookies are stored on the client-side. The client may preserve cookie contents even for expired cookies. The client may copy cookies to other machines. Avoid storing sensitive data in cookies.
 

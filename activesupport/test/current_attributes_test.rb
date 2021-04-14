@@ -4,7 +4,7 @@ require_relative "abstract_unit"
 require "active_support/current_attributes/test_helper"
 
 class CurrentAttributesTest < ActiveSupport::TestCase
-  # Automatically included in Rails apps via railtie but that dodn't run here.
+  # Automatically included in Rails apps via railtie but that don't run here.
   include ActiveSupport::CurrentAttributes::TestHelper
 
   Person = Struct.new(:id, :name, :time_zone)

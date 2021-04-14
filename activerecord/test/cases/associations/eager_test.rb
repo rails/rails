@@ -1322,17 +1322,17 @@ class EagerAssociationTest < ActiveRecord::TestCase
       def self.name; "TempAuthor"; end
       self.table_name = "authors"
       has_one :post, class_name: "PostWithDefaultScope", foreign_key: :author_id
-      has_one :reorderd_post, -> { reorder(title: :desc) }, class_name: "PostWithDefaultScope", foreign_key: :author_id
+      has_one :reordered_post, -> { reorder(title: :desc) }, class_name: "PostWithDefaultScope", foreign_key: :author_id
     end
 
     author = klass.first
     # PRECONDITION: make sure ordering results in different results
-    assert_not_equal author.post, author.reorderd_post
+    assert_not_equal author.post, author.reordered_post
 
-    preloaded_reorderd_post = klass.preload(:reorderd_post).first.reorderd_post
+    preloaded_reordered_post = klass.preload(:reordered_post).first.reordered_post
 
-    assert_equal author.reorderd_post, preloaded_reorderd_post
-    assert_equal Post.order(title: :desc).first.title, preloaded_reorderd_post.title
+    assert_equal author.reordered_post, preloaded_reordered_post
+    assert_equal Post.order(title: :desc).first.title, preloaded_reordered_post.title
   end
 
   def test_preloading_polymorphic_with_custom_foreign_type

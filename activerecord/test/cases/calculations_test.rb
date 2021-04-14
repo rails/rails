@@ -961,9 +961,9 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_replaces_select_clause
-    taks_relation = Topic.select(:approved, :id).order(:id)
-    assert_equal [1, 2, 3, 4, 5], taks_relation.pluck(:id)
-    assert_equal [false, true, true, true, true], taks_relation.pluck(:approved)
+    takes_relation = Topic.select(:approved, :id).order(:id)
+    assert_equal [1, 2, 3, 4, 5], takes_relation.pluck(:id)
+    assert_equal [false, true, true, true, true], takes_relation.pluck(:approved)
   end
 
   def test_pluck_columns_with_same_name

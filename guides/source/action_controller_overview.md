@@ -13,7 +13,7 @@ After reading this guide, you will know:
 * How to work with filters to execute code during request processing.
 * How to use Action Controller's built-in HTTP authentication.
 * How to stream data directly to the user's browser.
-* How to filter sensitive parameters so they do not appear in the application's log.
+* How to filter sensitive parameters, so they do not appear in the application's log.
 * How to deal with exceptions that may be raised during request processing.
 
 --------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ Action Controller is the C in [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93
 
 For most conventional [RESTful](https://en.wikipedia.org/wiki/Representational_state_transfer) applications, the controller will receive the request (this is invisible to you as the developer), fetch or save data from a model, and use a view to create HTML output. If your controller needs to do things a little differently, that's not a problem, this is just the most common way for a controller to work.
 
-A controller can thus be thought of as a middleman between models and views. It makes the model data available to the view so it can display that data to the user, and it saves or updates user data to the model.
+A controller can thus be thought of as a middleman between models and views. It makes the model data available to the view, so it can display that data to the user, and it saves or updates user data to the model.
 
 NOTE: For more details on the routing process, see [Rails Routing from the Outside In](routing.html).
 
@@ -347,7 +347,7 @@ params.require(:book).permit(:title, chapters_attributes: [:title])
 ```
 
 Imagine a scenario where you have parameters representing a product
-name and a hash of arbitrary data associated with that product, and
+name, and a hash of arbitrary data associated with that product, and
 you want to permit the product name attribute and also the whole
 data hash:
 
@@ -378,9 +378,9 @@ Your application has a session for each user in which you can store small amount
 
 All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
 
-For most stores, this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight and it requires zero setup in a new application in order to use the session. The cookie data is cryptographically signed to make it tamper-proof. And it is also encrypted so anyone with access to it can't read its contents. (Rails will not accept it if it has been edited).
+For most stores, this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight, and it requires zero setup in a new application in order to use the session. The cookie data is cryptographically signed to make it tamper-proof. And it is also encrypted so anyone with access to it can't read its contents. (Rails will not accept it if it has been edited).
 
-The CookieStore can store around 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (such as model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
+The CookieStore can store around 4 kB of data - much less than the others - but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (such as model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
 
 If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using `ActionDispatch::Session::CacheStore`. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
 
@@ -430,7 +430,7 @@ NOTE: Changing the secret_key_base when using the `CookieStore` will invalidate 
 
 In your controller you can access the session through the `session` instance method.
 
-NOTE: Sessions are lazily loaded. If you don't access sessions in your action's code, they will not be loaded. Hence you will never need to disable sessions, just not accessing them will do the job.
+NOTE: Sessions are lazily loaded. If you don't access sessions in your action's code, they will not be loaded. Hence, you will never need to disable sessions, just not accessing them will do the job.
 
 Session values are stored using key/value pairs like a hash:
 
@@ -561,7 +561,7 @@ end
 
 #### `flash.now`
 
-By default, adding values to the flash will make them available to the next request, but sometimes you may want to access those values in the same request. For example, if the `create` action fails to save a resource and you render the `new` template directly, that's not going to result in a new request, but you may still want to display a message using the flash. To do this, you can use [`flash.now`][] in the same way you use the normal `flash`:
+By default, adding values to the flash will make them available to the next request, but sometimes you may want to access those values in the same request. For example, if the `create` action fails to save a resource, and you render the `new` template directly, that's not going to result in a new request, but you may still want to display a message using the flash. To do this, you can use [`flash.now`][] in the same way you use the normal `flash`:
 
 ```ruby
 class ClientsController < ApplicationController
@@ -612,7 +612,7 @@ end
 
 Note that while for session values you can set the key to `nil`, to delete a cookie value you should use `cookies.delete(:key)`.
 
-Rails also provides a signed cookie jar and an encrypted cookie jar for storing
+Rails also provides a signed cookie jar, and an encrypted cookie jar for storing
 sensitive data. The signed cookie jar appends a cryptographic signature on the
 cookie values to protect their integrity. The encrypted cookie jar encrypts the
 values in addition to signing them, so that they cannot be read by the end user.
@@ -784,7 +784,7 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-Note that the filter in this case uses `send` because the `logged_in?` method is private and the filter does not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in simpler cases it might be useful.
+Note that the filter in this case uses `send` because the `logged_in?` method is private, and the filter does not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in simpler cases it might be useful.
 
 Specifically for `around_action`, the block also yields in the `action`:
 
@@ -844,12 +844,12 @@ Rails adds this token to every form that's generated using the [form helpers](fo
 
 The `form_authenticity_token` generates a valid authentication token. That's useful in places where Rails does not add it automatically, like in custom Ajax calls.
 
-The [Security Guide](security.html) has more about this and a lot of other security-related issues that you should be aware of when developing a web application.
+The [Security Guide](security.html) has more about this, and a lot of other security-related issues that you should be aware of when developing a web application.
 
 The Request and Response Objects
 --------------------------------
 
-In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The [`request`][] method contains an instance of [`ActionDispatch::Request`][] and the [`response`][] method returns a response object representing what is going to be sent back to the client.
+In every controller there are two accessor methods pointing to the request, and the response objects associated with the request cycle that is currently in execution. The [`request`][] method contains an instance of [`ActionDispatch::Request`][] and the [`response`][] method returns a response object representing what is going to be sent back to the client.
 
 [`ActionDispatch::Request`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html
 [`request`]: https://api.rubyonrails.org/classes/ActionController/Base.html#method-i-request
@@ -875,7 +875,7 @@ The request object contains a lot of useful information about the request coming
 
 #### `path_parameters`, `query_parameters`, and `request_parameters`
 
-Rails collects all of the parameters sent along with the request in the `params` hash, whether they are sent as part of the query string or the post body. The request object has three accessors that give you access to these parameters depending on where they came from. The [`query_parameters`][] hash contains parameters that were sent as part of the query string while the [`request_parameters`][] hash contains parameters sent as part of the post body. The [`path_parameters`][] hash contains parameters that were recognized by the routing as being part of the path leading to this particular controller and action.
+Rails collects all of the parameters sent along with the request in the `params` hash, whether they are sent as part of the query string, or the post body. The request object has three accessors that give you access to these parameters depending on where they came from. The [`query_parameters`][] hash contains parameters that were sent as part of the query string while the [`request_parameters`][] hash contains parameters sent as part of the post body. The [`path_parameters`][] hash contains parameters that were recognized by the routing as being part of the path leading to this particular controller and action.
 
 [`path_parameters`]: https://api.rubyonrails.org/classes/ActionDispatch/Http/Parameters.html#method-i-path_parameters
 [`query_parameters`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html#method-i-query_parameters
@@ -915,7 +915,7 @@ Rails comes with three built-in HTTP authentication mechanisms:
 
 ### HTTP Basic Authentication
 
-HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, [`http_basic_authenticate_with`][].
+HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username, and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, [`http_basic_authenticate_with`][].
 
 ```ruby
 class AdminsController < ApplicationController
@@ -978,7 +978,7 @@ As seen in the example above, the `authenticate_or_request_with_http_token` bloc
 Streaming and File Downloads
 ----------------------------
 
-Sometimes you may want to send a file to the user instead of rendering an HTML page. All controllers in Rails have the [`send_data`][] and the [`send_file`][] methods, which will both stream data to the client. `send_file` is a convenience method that lets you provide the name of a file on the disk and it will stream the contents of that file for you.
+Sometimes you may want to send a file to the user instead of rendering an HTML page. All controllers in Rails have the [`send_data`][] and the [`send_file`][] methods, which will both stream data to the client. `send_file` is a convenience method that lets you provide the name of a file on the disk, and it will stream the contents of that file for you.
 
 To stream data to the client, use `send_data`:
 
@@ -1005,7 +1005,7 @@ class ClientsController < ApplicationController
 end
 ```
 
-The `download_pdf` action in the example above will call a private method which actually generates the PDF document and returns it as a string. This string will then be streamed to the client as a file download and a filename will be suggested to the user. Sometimes when streaming files to the user, you may not want them to download the file. Take images, for example, which can be embedded into HTML pages. To tell the browser a file is not meant to be downloaded, you can set the `:disposition` option to "inline". The opposite and default value for this option is "attachment".
+The `download_pdf` action in the example above will call a private method which actually generates the PDF document and returns it as a string. This string will then be streamed to the client as a file download, and a filename will be suggested to the user. Sometimes when streaming files to the user, you may not want them to download the file. Take images, for example, which can be embedded into HTML pages. To tell the browser a file is not meant to be downloaded, you can set the `:disposition` option to "inline". The opposite and default value for this option is "attachment".
 
 [`send_data`]: https://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_data
 [`send_file`]: https://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_file
@@ -1026,7 +1026,7 @@ class ClientsController < ApplicationController
 end
 ```
 
-This will read and stream the file 4kB at the time, avoiding loading the entire file into memory at once. You can turn off streaming with the `:stream` option or adjust the block size with the `:buffer_size` option.
+This will read and stream the file 4 kB at the time, avoiding loading the entire file into memory at once. You can turn off streaming with the `:stream` option or adjust the block size with the `:buffer_size` option.
 
 If `:type` is not specified, it will be guessed from the file extension specified in `:filename`. If the content type is not registered for the extension, `application/octet-stream` will be used.
 
@@ -1109,7 +1109,7 @@ value), which occurs when you `write` or `commit` the response stream.
 
 #### Example Usage
 
-Let's suppose that you were making a Karaoke machine and a user wants to get the
+Let's suppose that you were making a Karaoke machine, and a user wants to get the
 lyrics for a particular song. Each `Song` has a particular number of lines and
 each line takes time `num_beats` to finish singing.
 
@@ -1191,11 +1191,11 @@ Rescue
 
 Most likely your application is going to contain bugs or otherwise throw an exception that needs to be handled. For example, if the user follows a link to a resource that no longer exists in the database, Active Record will throw the `ActiveRecord::RecordNotFound` exception.
 
-Rails default exception handling displays a "500 Server Error" message for all exceptions. If the request was made locally, a nice traceback and some added information gets displayed so you can figure out what went wrong and deal with it. If the request was remote Rails will just display a simple "500 Server Error" message to the user, or a "404 Not Found" if there was a routing error or a record could not be found. Sometimes you might want to customize how these errors are caught and how they're displayed to the user. There are several levels of exception handling available in a Rails application:
+Rails default exception handling displays a "500 Server Error" message for all exceptions. If the request was made locally, a nice traceback and some added information gets displayed, so you can figure out what went wrong and deal with it. If the request was remote Rails will just display a simple "500 Server Error" message to the user, or a "404 Not Found" if there was a routing error or a record could not be found. Sometimes you might want to customize how these errors are caught and how they're displayed to the user. There are several levels of exception handling available in a Rails application:
 
 ### The Default 500 and 404 Templates
 
-By default, in the production environment the application will render either a 404 or a 500 error message. In the development environment all unhandled exceptions are simply raised. These messages are contained in static HTML files in the public folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
+By default, in the production environment the application will render either a 404, or a 500 error message. In the development environment all unhandled exceptions are simply raised. These messages are contained in static HTML files in the public folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
 
 ### `rescue_from`
 
@@ -1252,7 +1252,7 @@ NOTE: When running in the production environment, all
 `ActiveRecord::RecordNotFound` errors render the 404 error page. Unless you need
 a custom behavior you don't need to handle this.
 
-NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized and the action gets executed.
+NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized, and the action gets executed.
 
 [`rescue_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from
 

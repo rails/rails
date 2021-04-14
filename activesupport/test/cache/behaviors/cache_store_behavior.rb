@@ -242,7 +242,7 @@ module CacheStoreBehavior
     assert_uncompressed(LARGE_OBJECT, compress: true, compress_threshold: 1.megabyte)
   end
 
-  def test_incompressable_data
+  def test_incompressible_data
     assert_uncompressed(nil, compress: true, compress_threshold: 1)
     assert_uncompressed(true, compress: true, compress_threshold: 1)
     assert_uncompressed(false, compress: true, compress_threshold: 1)
