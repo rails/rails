@@ -147,13 +147,12 @@ Add the [`aws-sdk-s3`](https://github.com/aws/aws-sdk-ruby) gem to your `Gemfile
 gem "aws-sdk-s3", require: false
 ```
 
-NOTE: The core features of Active Storage require the following permissions: `s3:ListBucket`, `s3:PutObject`, `s3:GetObject`, and `s3:DeleteObject`. If you have additional upload options configured such as setting ACLs then additional permissions may be required.
+NOTE: The core features of Active Storage require the following permissions: `s3:ListBucket`, `s3:PutObject`, `s3:GetObject`, and `s3:DeleteObject`. [Public access](#public-access) additionally requires `s3:PutObjectAcl`. If you have additional upload options configured such as setting ACLs then additional permissions may be required.
 
 NOTE: If you want to use environment variables, standard SDK configuration files, profiles,
 IAM instance profiles or task roles, you can omit the `access_key_id`, `secret_access_key`,
 and `region` keys in the example above. The S3 Service supports all of the
-authentication options described in the [AWS SDK documentation]
-(https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
+authentication options described in the [AWS SDK documentation](https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
 
 To connect to an S3-compatible object storage API such as DigitalOcean Spaces, provide the `endpoint`:
 
@@ -289,7 +288,7 @@ public_gcs:
   public: true
 ```
 
-Make sure your buckets are properly configured for public access. See docs on how to enable public read permissions for [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access-bucket.html), [Google Cloud Storage](https://cloud.google.com/storage/docs/access-control/making-data-public#buckets), and [Microsoft Azure](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-manage-access-to-resources#set-container-public-access-level-in-the-azure-portal) storage services.
+Make sure your buckets are properly configured for public access. See docs on how to enable public read permissions for [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access-bucket.html), [Google Cloud Storage](https://cloud.google.com/storage/docs/access-control/making-data-public#buckets), and [Microsoft Azure](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-manage-access-to-resources#set-container-public-access-level-in-the-azure-portal) storage services. Amazon S3 additionally requires that you have the `s3:PutObjectAcl` permission.
 
 When converting an existing application to use `public: true`, make sure to update every individual file in the bucket to be publicly-readable before switching over.
 
