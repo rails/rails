@@ -159,7 +159,7 @@ module ActiveRecord
           return if method_defined?(name, false)
 
           define_method(name) do |*args|
-            result = true; @_already_called ||= {}
+            result = true
             # Loop prevention for validation of associations
             unless @_already_called[name]
               begin
@@ -235,7 +235,16 @@ module ActiveRecord
     def reload(options = nil)
       @marked_for_destruction = false
       @destroyed_by_association = nil
+      @_saving = false
       super
+    end
+
+    def save(**options) # :nodoc
+      _saving { super }
+    end
+
+    def save!(**options) # :nodoc:
+      _saving { super }
     end
 
     # Marks this record to be destroyed as part of the parent's save transaction.
@@ -274,6 +283,17 @@ module ActiveRecord
     end
 
     private
+      # Track if this record is currently being saved.
+      # Autosave can call save multiple times on the same record. Some methods
+      # like +changes_applied+ should be called only once while saving.
+      def _saving
+        previously_saving, @_saving = @_saving, true
+        yield
+      ensure
+        @_saving = previously_saving
+        @_already_called[:changes_applied] = false unless @_saving
+      end
+
       # Returns the record for an association collection that should be validated
       # or saved. If +autosave+ is +false+ only new records will be returned,
       # unless the parent is/was a new record itself.
@@ -508,6 +528,16 @@ module ActiveRecord
 
       def _ensure_no_duplicate_errors
         errors.uniq!
+      end
+
+      def changes_applied
+        @_already_called[:changes_applied] = true
+        super
+      end
+
+      # Call +changes_applied+ at least once or if attributes changed
+      def _apply_changes?(attribute_names)
+        !@_already_called[:changes_applied] || attribute_names.present?
       end
   end
 end

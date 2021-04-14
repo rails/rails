@@ -1,3 +1,11 @@
+*   Only update dirty attributes once for cyclic autosave callbacks.
+
+    Instead of calling `changes_applied` everytime `save` is called,
+    we can skip it if it has already been called once in the current saving
+    cycle.
+
+    *Petrik de Heus*
+
 *   Allow passing SQL as `on_duplicate` value to `#upsert_all` to make it possible to use raw SQL to update columns on conflict:
 
     ```ruby

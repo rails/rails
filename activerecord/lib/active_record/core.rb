@@ -851,9 +851,11 @@ module ActiveRecord
         @readonly                 = false
         @previously_new_record    = false
         @destroyed                = false
+        @_saving                  = false
         @marked_for_destruction   = false
         @destroyed_by_association = nil
         @_start_transaction_state = nil
+        @_already_called          = {}
 
         klass = self.class
 
