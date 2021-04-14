@@ -1,0 +1,110 @@
+@media (prefers-color-scheme: dark) {
+
+  :root {
+    --text-color: #ddd;
+    --text-red: #fc4343;
+  }
+
+  body {
+    background-color: #222;
+  }
+
+  p code, ul code {
+    background-color: #444;
+    color: var(--text-color);
+  }
+
+  pre, code {
+    color: #ddd;
+  }
+
+  table {
+    background: #222;
+  }
+
+  tbody, thead {
+    border: 2px solid #666;
+  }
+
+  table th {
+    background-color: #333;
+    border-bottom: 2px solid #666;
+  }
+
+  table th, table td {
+    border: 1px solid #666;
+  }
+
+  #container {
+    color: var(--text-color);
+  }
+
+  #feature {
+    color: #eee;
+    background: unset;
+    background-color: #243440;
+    border: 1px solid #d5e9f6;
+    border-right: 0;
+    border-left: 0;
+  }
+
+  #mainCol a.anchorlink, #mainCol a.anchorlink code {
+    color: #eee;
+  }
+
+  #mainCol a code, #subCol a code, #feature a code {
+    color: var(--text-red);
+  }
+
+  #mainCol a, #subCol a, #feature a {
+    color: #ee3f3f;
+  }
+
+  #subCol {
+    background: #222;
+    border: 1px solid #111;
+  }
+
+  #subCol .chapters {
+    color: var(--text-red);
+  }
+
+  #mainCol div.warning, #subCol dd.warning {
+    border: 1px solid #f9d9d8;
+    background: unset;
+    background-color: #482928;
+    color: #f9d9d8;
+  }
+
+  #footer {
+    background-color: #000;
+  }
+
+  .note code, .info code, .todo code {
+    background-color: #555;
+  }
+
+  .note {
+    --note-color: #fff9d8;
+    color: var(--note-color);
+    border: 1px solid var(--note-color);
+    background-color: #3e3b2c;
+  }
+
+  .info {
+    border: 1px solid #d5e9f6;
+    background-color: #243440;
+    color: #d5e9f6;
+  }
+
+  .clipboard-button {
+    color: #ddd;
+    background-color: #222;
+  }
+
+  div.code_container {
+    background: none;
+    background-color: #000;
+    border: 1px solid #333;
+  }
+}
