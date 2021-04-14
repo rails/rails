@@ -331,13 +331,6 @@ module RenderTestCases
     assert_equal "Hello: davidHello: mary", @view.render(partial: "test/customer", collection: [ Customer.new("david"), Customer.new("mary") ])
   end
 
-  def test_render_partial_collection_with_partial_name_containing_dot
-    assert_deprecated do
-      assert_equal "Hello: davidHello: mary",
-        @view.render(partial: "test/customer.mobile", collection: [ Customer.new("david"), Customer.new("mary") ])
-    end
-  end
-
   def test_render_partial_collection_as_by_string
     assert_equal "david david davidmary mary mary",
       @view.render(partial: "test/customer_with_var", collection: [ Customer.new("david"), Customer.new("mary") ], as: "customer")
@@ -689,7 +682,7 @@ class CachedViewRenderTest < ActiveSupport::TestCase
   def setup
     ActionView::LookupContext::DetailsKey.clear
     view_paths = ActionController::Base.view_paths
-    assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
+    assert_equal ActionView::FileSystemResolver, view_paths.first.class
     setup_view(view_paths)
   end
 
@@ -763,7 +756,7 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     ActionView::LookupContext::DetailsKey.clear
 
     view_paths = ActionController::Base.view_paths
-    assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
+    assert_equal ActionView::FileSystemResolver, view_paths.first.class
 
     ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new
 

@@ -186,22 +186,43 @@ module ActionView
     end
   end
 
-  # An abstract class that implements a Resolver with path semantics.
-  class PathResolver < Resolver #:nodoc:
+  # A resolver that loads files from the filesystem.
+  class FileSystemResolver < Resolver
     EXTENSIONS = { locale: ".", formats: ".", variants: "+", handlers: "." }
-    DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}"
 
-    def initialize
-      @pattern = DEFAULT_PATTERN
+    attr_reader :path
+
+    def initialize(path)
+      raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
       @unbound_templates = Concurrent::Map.new
       @path_parser = PathParser.new
-      super
+      @path = File.expand_path(path)
+      super()
     end
 
     def clear_cache
       @unbound_templates.clear
       @path_parser = PathParser.new
       super
+    end
+
+    def to_s
+      @path.to_s
+    end
+    alias :to_path :to_s
+
+    def eql?(resolver)
+      self.class.equal?(resolver.class) && to_path == resolver.to_path
+    end
+    alias :== :eql?
+
+    def all_template_paths # :nodoc:
+      paths = Dir.glob("**/*", base: @path)
+      paths.reject do |filename|
+        File.directory?(File.join(@path, filename))
+      end.map do |filename|
+        filename.gsub(/\.[^\/]*\z/, "")
+      end.uniq
     end
 
     private
@@ -250,48 +271,10 @@ module ActionView
         files.reject { |filename| !inside_path?(@path, filename) }
       end
 
-      def find_template_paths_from_details(path, details)
-        if path.name.include?(".")
-          ActiveSupport::Deprecation.warn("Rendering actions with '.' in the name is deprecated: #{path}")
-        end
-
-        query = build_query(path, details)
-        find_template_paths(query)
-      end
-
-      def find_template_paths(query)
-        Dir[query].uniq.reject do |filename|
-          File.directory?(filename) ||
-            # deals with case-insensitive file systems.
-            !File.fnmatch(query, filename, File::FNM_EXTGLOB)
-        end
-      end
-
       def inside_path?(path, filename)
         filename = File.expand_path(filename)
         path = File.join(path, "")
         filename.start_with?(path)
-      end
-
-      # Helper for building query glob string based on resolver's pattern.
-      def build_query(path, details)
-        query = @pattern.dup
-
-        prefix = path.prefix.empty? ? "" : "#{escape_entry(path.prefix)}\\1"
-        query.gsub!(/:prefix(\/)?/, prefix)
-
-        partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
-        query.gsub!(":action", partial)
-
-        details.each do |ext, candidates|
-          if ext == :variants && candidates == :any
-            query.gsub!(/:#{ext}/, "*")
-          else
-            query.gsub!(/:#{ext}/, "{#{candidates.compact.uniq.join(',')}}")
-          end
-        end
-
-        File.expand_path(query, @path)
       end
 
       def escape_entry(entry)
@@ -311,45 +294,7 @@ module ActionView
         # Template::Types[format] and handler.default_format can return nil
         [handler, format, variant]
       end
-  end
 
-  # A resolver that loads files from the filesystem.
-  class FileSystemResolver < PathResolver
-    attr_reader :path
-
-    def initialize(path)
-      raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
-      super()
-      @path = File.expand_path(path)
-    end
-
-    def to_s
-      @path.to_s
-    end
-    alias :to_path :to_s
-
-    def eql?(resolver)
-      self.class.equal?(resolver.class) && to_path == resolver.to_path
-    end
-    alias :== :eql?
-
-    def all_template_paths # :nodoc:
-      paths = Dir.glob("**/*", base: @path)
-      paths.reject do |filename|
-        File.directory?(File.join(@path, filename))
-      end.map do |filename|
-        filename.gsub(/\.[^\/]*\z/, "")
-      end.uniq
-    end
-  end
-
-  # An Optimized resolver for Rails' most common case.
-  class OptimizedFileSystemResolver < FileSystemResolver #:nodoc:
-    def initialize(path)
-      super(path)
-    end
-
-    private
       def find_candidate_template_paths(path)
         # Instead of checking for every possible path, as our other globs would
         # do, scan the directory for files with the right prefix.
@@ -362,8 +307,7 @@ module ActionView
 
       def find_template_paths_from_details(path, details)
         if path.name.include?(".")
-          # Fall back to the unoptimized resolver, which will warn
-          return super
+          return []
         end
 
         candidates = find_candidate_template_paths(path)
