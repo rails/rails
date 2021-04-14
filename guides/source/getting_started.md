@@ -160,7 +160,7 @@ run the following:
 $ rails --version
 ```
 
-If it says something like "Rails 6.0.0", you are ready to continue.
+If it says something like "Rails 6.1.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -419,7 +419,7 @@ database-agnostic.
 Let's take a look at the contents of our new migration file:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration[6.0]
+class CreateArticles < ActiveRecord::Migration[6.1]
   def change
     create_table :articles do |t|
       t.string :title
@@ -480,7 +480,7 @@ $ bin/rails console
 You should see an `irb` prompt like:
 
 ```irb
-Loading development environment (Rails 6.0.2.1)
+Loading development environment (Rails 6.1.0)
 irb(main):001:0>
 ```
 
@@ -1358,7 +1358,7 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration[6.0]
+class CreateComments < ActiveRecord::Migration[6.1]
   def change
     create_table :comments do |t|
       t.string :commenter
