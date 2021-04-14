@@ -189,13 +189,11 @@ module ActionView
   # A resolver that loads files from the filesystem.
   class FileSystemResolver < Resolver
     EXTENSIONS = { locale: ".", formats: ".", variants: "+", handlers: "." }
-    DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}"
 
     attr_reader :path
 
     def initialize(path)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
-      @pattern = DEFAULT_PATTERN
       @unbound_templates = Concurrent::Map.new
       @path_parser = PathParser.new
       @path = File.expand_path(path)
