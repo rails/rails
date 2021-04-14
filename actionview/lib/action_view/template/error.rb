@@ -93,16 +93,16 @@ module ActionView
       def corrections
         path = @error.path
         prefixes = @error.prefixes
-        candidates = @error.paths.flat_map(&:template_paths_for_suggestions).uniq
+        candidates = @error.paths.flat_map(&:all_template_paths).uniq
 
         # Group by possible prefixes
         files_by_dir = candidates.group_by do |x|
           File.dirname(x)
         end.transform_values do |files|
           files.map do |file|
-            # Remove template extensions
-            File.basename(file).split(".", 2)[0]
-          end.uniq
+            # Remove directory
+            File.basename(file)
+          end
         end
 
         # No suggestions if there's an exact match, but wrong details
