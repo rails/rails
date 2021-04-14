@@ -76,6 +76,11 @@ module ActiveRecord
         other.is_a?(WhereClause) &&
           predicates == other.predicates
       end
+      alias :eql? :==
+
+      def hash
+        [self.class, predicates].hash
+      end
 
       def invert
         if predicates.size == 1
@@ -103,28 +108,31 @@ module ActiveRecord
       end
 
       def extract_attributes
-        predicates.each_with_object([]) do |node, attrs|
-          attr = extract_attribute(node) || begin
-            node.left if node.equality? && node.left.is_a?(Arel::Predications)
-          end
-          attrs << attr if attr
-        end
+        attrs = []
+        each_attributes { |attr, _| attrs << attr }
+        attrs
       end
 
       protected
         attr_reader :predicates
 
         def referenced_columns
-          predicates.each_with_object({}) do |node, hash|
+          hash = {}
+          each_attributes { |attr, node| hash[attr] = node }
+          hash
+        end
+
+      private
+        def each_attributes
+          predicates.each do |node|
             attr = extract_attribute(node) || begin
               node.left if equality_node?(node) && node.left.is_a?(Arel::Predications)
             end
 
-            hash[attr] = node if attr
+            yield attr, node if attr
           end
         end
 
-      private
         def extract_attribute(node)
           attr_node = nil
           Arel.fetch_attribute(node) do |attr|
@@ -224,11 +232,10 @@ module ActiveRecord
         end
 
         def extract_node_value(node)
-          case node
-          when Array
-            node.map { |v| extract_node_value(v) }
-          when Arel::Nodes::BindParam, Arel::Nodes::Casted, Arel::Nodes::Quoted
+          if node.respond_to?(:value_before_type_cast)
             node.value_before_type_cast
+          elsif Array === node
+            node.map { |v| extract_node_value(v) }
           end
         end
     end

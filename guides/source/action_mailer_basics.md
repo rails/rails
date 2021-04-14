@@ -46,7 +46,7 @@ views.
 #### Create the Mailer
 
 ```bash
-$ bin/rails generate mailer UserMailer
+$ bin/rails generate mailer User
 create  app/mailers/user_mailer.rb
 create  app/mailers/application_mailer.rb
 invoke  erb
@@ -195,10 +195,11 @@ waiting for the send to complete.
 
 ```ruby
 class UsersController < ApplicationController
-  # POST /users
-  # POST /users.json
+  # ...
+
+  # POST /users or /users.json
   def create
-    @user = User.new(params[:user])
+    @user = User.new(user_params)
 
     respond_to do |format|
       if @user.save
@@ -213,6 +214,8 @@ class UsersController < ApplicationController
       end
     end
   end
+
+  # ...
 end
 ```
 

@@ -89,11 +89,10 @@ module ActionView
 
       def initialize
         @data = SmallCache.new(&KEY_BLOCK)
-        @query_cache = SmallCache.new
       end
 
       def inspect
-        "#{to_s[0..-2]} keys=#{@data.size} queries=#{@query_cache.size}>"
+        "#{to_s[0..-2]} keys=#{@data.size}>"
       end
 
       # Cache the templates returned by the block
@@ -101,13 +100,8 @@ module ActionView
         @data[key][name][prefix][partial][locals] ||= canonical_no_templates(yield)
       end
 
-      def cache_query(query) # :nodoc:
-        @query_cache[query] ||= canonical_no_templates(yield)
-      end
-
       def clear
         @data.clear
-        @query_cache.clear
       end
 
       # Get the cache size. Do not call this
@@ -124,7 +118,7 @@ module ActionView
           end
         end
 
-        size + @query_cache.size
+        size
       end
 
       private
@@ -156,8 +150,9 @@ module ActionView
       end
     end
 
-    def find_all_with_query(query) # :nodoc:
-      @cache.cache_query(query) { find_template_paths(File.join(@path, query)) }
+    def all_template_paths # :nodoc:
+      # Not implemented by default
+      []
     end
 
   private
@@ -337,6 +332,15 @@ module ActionView
       self.class.equal?(resolver.class) && to_path == resolver.to_path
     end
     alias :== :eql?
+
+    def all_template_paths # :nodoc:
+      paths = Dir.glob("**/*", base: @path)
+      paths.reject do |filename|
+        File.directory?(File.join(@path, filename))
+      end.map do |filename|
+        filename.gsub(/\.[^\/]*\z/, "")
+      end.uniq
+    end
   end
 
   # An Optimized resolver for Rails' most common case.
@@ -410,23 +414,5 @@ module ActionView
 
         %r{\A#{query}#{exts}\z}
       end
-  end
-
-  # The same as FileSystemResolver but does not allow templates to store
-  # a virtual path since it is invalid for such resolvers.
-  class FallbackFileSystemResolver < FileSystemResolver #:nodoc:
-    private_class_method :new
-
-    def self.instances
-      [new(""), new("/")]
-    end
-
-    def build_unbound_template(template, _)
-      super(template, nil)
-    end
-
-    def reject_files_external_to_app(files)
-      files
-    end
   end
 end

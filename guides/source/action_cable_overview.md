@@ -65,7 +65,7 @@ one per tab/device open to your connection).
 
 ### Pub/Sub
 
-[Pub/Sub](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern), or
+[Pub/Sub](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) or
 Publish-Subscribe, refers to a message queue paradigm whereby senders of
 information (publishers), send data to an abstract class of recipients
 (subscribers), without specifying individual recipients. Action Cable uses this
@@ -373,7 +373,6 @@ these channel subscriptions based on an identifier sent by the cable consumer.
 
 ```js
 // app/javascript/channels/chat_channel.js
-// Assumes you've already requested the right to send web notifications
 import consumer from "./consumer"
 
 consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
@@ -492,15 +491,15 @@ you subscribed to the channel.
 
 The following setup steps are common to both examples:
 
-  1. [Setup your connection](#connection-setup).
-  2. [Setup your parent channel](#parent-channel-setup).
+  1. [Set up your connection](#connection-setup).
+  2. [Set up your parent channel](#parent-channel-setup).
   3. [Connect your consumer](#connect-consumer).
 
 ### Example 1: User Appearances
 
 Here's a simple example of a channel that tracks whether a user is online or not
 and what page they're on. (This is useful for creating presence features like showing
-a green dot next to a user name if they're online).
+a green dot next to a username if they're online).
 
 Create the server-side appearance channel:
 
@@ -525,7 +524,7 @@ class AppearanceChannel < ApplicationCable::Channel
 end
 ```
 
-When a subscription is initiated the `subscribed` callback gets fired and we
+When a subscription is initiated the `subscribed` callback gets fired, and we
 take that opportunity to say "the current user has indeed appeared". That
 appear/disappear API could be backed by Redis, a database, or whatever else.
 
@@ -709,6 +708,7 @@ production:
   url: redis://10.10.3.153:6381
   channel_prefix: appname_production
 ```
+
 #### Adapter Configuration
 
 Below is a list of the subscription adapters available for end users.
@@ -818,8 +818,8 @@ server if `action_cable_meta_tag` is invoked in the layout. Otherwise, A path is
 specified as first argument to `createConsumer` (e.g. `ActionCable.createConsumer("/websocket")`).
 
 For every instance of your server you create and for every worker your server
-spawns, you will also have a new instance of Action Cable, but the use of Redis
-keeps messages synced across connections.
+spawns, you will also have a new instance of Action Cable, but the Redis or
+PostgreSQL adapter keeps messages synced across connections.
 
 ### Standalone
 

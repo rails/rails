@@ -56,7 +56,9 @@ module ActionController
     def unpermitted_parameters(event)
       debug do
         unpermitted_keys = event.payload[:keys]
-        color("Unpermitted parameter#{'s' if unpermitted_keys.size > 1}: #{unpermitted_keys.map { |e| ":#{e}" }.join(", ")}", RED)
+        display_unpermitted_keys = unpermitted_keys.map { |e| ":#{e}" }.join(", ")
+        context = event.payload[:context].map { |k, v| "#{k}: #{v}" }.join(", ")
+        color("Unpermitted parameter#{'s' if unpermitted_keys.size > 1}: #{display_unpermitted_keys}. Context: { #{context} }", RED)
       end
     end
 

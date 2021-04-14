@@ -43,6 +43,7 @@ module ActiveRecord
   autoload :CounterCache
   autoload :DynamicMatchers
   autoload :DelegatedType
+  autoload :Encryption
   autoload :Enum
   autoload :InternalMetadata
   autoload :Explain
@@ -174,6 +175,7 @@ module ActiveRecord
     ActiveRecord::Associations.eager_load!
     ActiveRecord::AttributeMethods.eager_load!
     ActiveRecord::ConnectionAdapters.eager_load!
+    ActiveRecord::Encryption.eager_load!
   end
 end
 

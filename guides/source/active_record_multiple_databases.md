@@ -10,6 +10,7 @@ After reading this guide you will know:
 * How to set up your application for multiple databases.
 * How automatic connection switching works.
 * How to use horizontal sharding for multiple databases.
+* How to migrate from `legacy_connection_handling` to the new connection handling.
 * What features are supported and what's still a work in progress.
 
 --------------------------------------------------------------------------------
@@ -49,44 +50,49 @@ The `database.yml` looks like this:
 ```yaml
 production:
   database: my_primary_database
-  user: root
-  adapter: mysql
+  adapter: mysql2
+  username: root
+  password: <%= ENV['ROOT_PASSWORD'] %>
 ```
 
 Let's add a replica for the first configuration, and a second database called animals and a
 replica for that as well. To do this we need to change our `database.yml` from a 2-tier
 to a 3-tier config.
 
-If a primary configuration is provided this will be used as the "default" configuration. If
-there is no configuration named "primary" Rails will use the first configuration for an
-environment. The default configurations will use the default Rails filenames. For example
-primary configurations will use `schema.rb` for the schema file whereas all other entries
+If a primary configuration is provided, it will be used as the "default" configuration. If
+there is no configuration named `"primary"`, Rails will use the first configuration as default
+for each environment. The default configurations will use the default Rails filenames. For example,
+primary configurations will use `schema.rb` for the schema file, whereas all the other entries
 will use `[CONFIGURATION_NAMESPACE]_schema.rb` for the filename.
 
 ```yaml
 production:
   primary:
     database: my_primary_database
-    user: root
-    adapter: mysql
+    username: root
+    password: <%= ENV['ROOT_PASSWORD'] %>
+    adapter: mysql2
   primary_replica:
     database: my_primary_database
-    user: root_readonly
-    adapter: mysql
+    username: root_readonly
+    password: <%= ENV['ROOT_READONLY_PASSWORD'] %>
+    adapter: mysql2
     replica: true
   animals:
     database: my_animals_database
-    user: animals_root
-    adapter: mysql
+    username: animals_root
+    password: <%= ENV['ANIMALS_ROOT_PASSWORD'] %>
+    adapter: mysql2
     migrations_paths: db/animals_migrate
   animals_replica:
     database: my_animals_database
-    user: animals_readonly
-    adapter: mysql
+    username: animals_readonly
+    password: <%= ENV['ANIMALS_READONLY_PASSWORD'] %>
+    adapter: mysql2
     replica: true
 ```
 
-When using multiple databases there are a few important settings.
+When using multiple databases, there are a few important settings.
 
 First, the database name for the `primary` and `primary_replica` should be the same because they contain
 the same data. This is also the case for `animals` and `animals_replica`.
@@ -94,11 +100,11 @@ the same data. This is also the case for `animals` and `animals_replica`.
 Second, the username for the writers and replicas should be different, and the
 replica user's permissions should be set to only read and not write.
 
-When using a replica database you need to add a `replica: true` entry to the replica in the
+When using a replica database, you need to add a `replica: true` entry to the replica in the
 `database.yml`. This is because Rails otherwise has no way of knowing which one is a replica
 and which one is the writer.
 
-Lastly, for new writer databases you need to set the `migrations_paths` to the directory
+Lastly, for new writer databases, you need to set the `migrations_paths` to the directory
 where you will store migrations for that database. We'll look more at `migrations_paths`
 later on in this guide.
 
@@ -156,7 +162,7 @@ clients have a limit to the number of open connections there can be and if you d
 multiply the number of connections you have since Rails uses the model class name for the
 connection specification name.
 
-Now that we have the `database.yml` and the new model set up it's time to create the databases.
+Now that we have the `database.yml` and the new model set up, it's time to create the databases.
 Rails 6.0 ships with all the rails tasks you need to use multiple databases in Rails.
 
 You can run `bin/rails -T` to see all the commands you're able to run. You should see the following:
@@ -187,7 +193,7 @@ rails db:schema:load:primary             # Loads a database schema file (either 
 ```
 
 Running a command like `bin/rails db:create` will create both the primary and animals databases.
-Note that there is no command for creating the users and you'll need to do that manually
+Note that there is no command for creating the database users, and you'll need to do that manually
 to support the readonly users for your replicas. If you want to create just the animals
 database you can run `bin/rails db:create:animals`.
 
@@ -208,7 +214,7 @@ $ bin/rails generate migration CreateDogs name:string --database animals
 ```
 
 If you are using Rails generators, the scaffold and model generators will create the abstract
-class for you. Simply pass the database key to the command line
+class for you. Simply pass the database key to the command line.
 
 ```bash
 $ bin/rails generate scaffold Dog name:string --database animals
@@ -238,7 +244,7 @@ add this to the abstract class after you're done.
 Rails will only generate the new class once. It will not be overwritten by new scaffolds
 or deleted if the scaffold is deleted.
 
-If you already have an abstract class and its name differs from `AnimalsRecord` you can pass
+If you already have an abstract class and its name differs from `AnimalsRecord`, you can pass
 the `--parent` option to indicate you want a different abstract class:
 
 ```bash
@@ -250,11 +256,11 @@ use a different parent class.
 
 ## Activating automatic connection switching
 
-Finally, in order to use the read-only replica in your application you'll need to activate
+Finally, in order to use the read-only replica in your application, you'll need to activate
 the middleware for automatic switching.
 
 Automatic switching allows the application to switch from the writer to replica or replica
-to writer based on the HTTP verb and whether there was a recent write.
+to writer based on the HTTP verb and whether there was a recent write by the requesting user.
 
 If the application is receiving a POST, PUT, DELETE, or PATCH request the application will
 automatically write to the writer database. For the specified time after the write, the
@@ -338,17 +344,17 @@ Shards are declared in the three-tier config like this:
 production:
   primary:
     database: my_primary_database
-    adapter: mysql
+    adapter: mysql2
   primary_replica:
     database: my_primary_database
-    adapter: mysql
+    adapter: mysql2
     replica: true
   primary_shard_one:
     database: my_primary_shard_one
-    adapter: mysql
+    adapter: mysql2
   primary_shard_one_replica:
     database: my_primary_shard_one
-    adapter: mysql
+    adapter: mysql2
     replica: true
 ```
 
@@ -366,7 +372,7 @@ end
 ```
 
 Then models can swap connections manually via the `connected_to` API. If
-using sharding both a `role` and `shard` must be passed:
+using sharding, both a `role` and a `shard` must be passed:
 
 ```ruby
 ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
@@ -388,15 +394,39 @@ ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
 end
 ```
 
+## Migrate to the new connection handling
+
+In Rails 6.1+, Active Record provides a new internal API for connection management.
+In most cases applications will not need to make any changes except to opt-in to the
+new behavior (if upgrading from 6.0 and below) by setting
+`config.active_record.legacy_connection_handling = false`. If you have a single database
+application, no other changes will be required. If you have a multiple database application
+the following changes are required if you application is using these methods:
+
+* `connection_handlers` and `connection_handlers=` no longer works in the new connection
+handling. If you were calling a method on one of the connection handlers, for example,
+`connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base")`
+you will now need to update that call to be
+`connection_handlers.retrieve_connection_pool("ActiveRecord::Base", role: :reading)`.
+* Calls to `ActiveRecord::Base.connection_handler.prevent_writes` will need to be updated
+to `ActiveRecord::Base.connection.preventing_writes?`.
+* If you need all the pools, including writing and reading, a new method has been provided on
+the handler. Call `connection_handler.all_connection_pools` to use this. In most cases though
+you'll want writing or reading pools with `connection_handler.connection_pool_list(:writing)` or
+`connection_handler.connection_pool_list(:reading)`.
+* If you turn off `legacy_connection_handling` in your application, any method that's unsupported
+will raise an error (i.e. `connection_handlers=`).
+
 ## Granular Database Connection Switching
 
 In Rails 6.1 it's possible to switch connections for one database instead of
 all databases globally. To use this feature you must first set
 `config.active_record.legacy_connection_handling` to `false` in your application
 configuration. The majority of applications should not need to make any other
-changes since the public APIs have the same behavior.
+changes since the public APIs have the same behavior. See the above section for
+how to enable and migrate away from `legacy_connection_handling`.
 
-With `legacy_connection_handling` set to false, any abstract connection class
+With `legacy_connection_handling` set to `false`, any abstract connection class
 will be able to switch connections without affecting other connections. This
 is useful for switching your `AnimalsRecord` queries to read from the replica
 while ensuring your `ApplicationRecord` queries go to the primary.
@@ -447,12 +477,12 @@ handles outside of Rails.
 
 ### Joining Across Databases
 
-Applications cannot join across databases. Rails 6.1 will support using `has_many`
-relationships and creating 2 queries instead of joining, but Rails 6.0 will require
-you to split the joins into 2 selects manually.
+Applications cannot join across databases. At the moment applications will need to
+manually write two selects and split the joins themselves. In a future version Rails
+will split the joins for you.
 
 ### Schema Cache
 
-If you use a schema cache and multiple databases you'll need to write an initializer
+If you use a schema cache and multiple databases, you'll need to write an initializer
 that loads the schema cache from your app. This wasn't an issue we could resolve in
 time for Rails 6.0 but hope to have it in a future version soon.

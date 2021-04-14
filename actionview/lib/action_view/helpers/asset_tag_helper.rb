@@ -94,11 +94,12 @@ module ActionView
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
         integrity = options["integrity"]
+        rel = options["type"] == "module" ? "modulepreload" : "preload"
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
           if preload_links_header && !options["defer"]
-            preload_link = "<#{href}>; rel=preload; as=script"
+            preload_link = "<#{href}>; rel=#{rel}; as=script"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
             preload_link += "; nopush" if nopush

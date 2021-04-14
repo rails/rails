@@ -7,7 +7,7 @@ module ActionText
 
       class_methods do
         def fragment_by_minifying_attachments(content)
-          Fragment.wrap(content).replace(ActionText::Attachment::SELECTOR) do |node|
+          Fragment.wrap(content).replace(ActionText::Attachment.tag_name) do |node|
             node.tap { |n| n.inner_html = "" }
           end
         end

@@ -23,7 +23,7 @@ module Rails
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
                     :rake_eager_load
 
-      attr_reader :encoding, :api_only, :loaded_config_version, :autoloader
+      attr_reader :encoding, :api_only, :loaded_config_version
 
       def initialize(*)
         super
@@ -34,6 +34,7 @@ module Rails
         @filter_redirect                         = []
         @helpers_paths                           = []
         @hosts                                   = Array(([".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")] if Rails.env.development?))
+        @hosts.concat(ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)) if Rails.env.development?
         @host_authorization                      = {}
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
@@ -69,7 +70,6 @@ module Rails
         @credentials                             = ActiveSupport::OrderedOptions.new
         @credentials.content_path                = default_credentials_content_path
         @credentials.key_path                    = default_credentials_key_path
-        @autoloader                              = :classic
         @disable_sandbox                         = false
         @add_autoload_paths_to_load_path         = true
         @permissions_policy                      = nil
@@ -128,8 +128,6 @@ module Rails
         when "6.0"
           load_defaults "5.2"
 
-          self.autoloader = :zeitwerk if RUBY_ENGINE == "ruby"
-
           if respond_to?(:action_view)
             action_view.default_enforce_utf8 = false
           end
@@ -154,8 +152,6 @@ module Rails
           end
         when "6.1"
           load_defaults "6.0"
-
-          self.autoloader = :zeitwerk if %w[ruby truffleruby].include?(RUBY_ENGINE)
 
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
@@ -213,6 +209,7 @@ module Rails
           if respond_to?(:active_support)
             active_support.hash_digest_class = OpenSSL::Digest::SHA256
             active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
+            active_support.remove_deprecated_time_with_zone_name = true
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
@@ -362,18 +359,6 @@ module Rails
           @permissions_policy = ActionDispatch::PermissionsPolicy.new(&block)
         else
           @permissions_policy
-        end
-      end
-
-      def autoloader=(autoloader)
-        case autoloader
-        when :classic
-          @autoloader = autoloader
-        when :zeitwerk
-          require "zeitwerk"
-          @autoloader = autoloader
-        else
-          raise ArgumentError, "config.autoloader may be :classic or :zeitwerk, got #{autoloader.inspect} instead"
         end
       end
 

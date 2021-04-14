@@ -22,6 +22,10 @@ module ActionText
       body&.to_plain_text.to_s
     end
 
+    def to_trix_html
+      body&.to_trix_html
+    end
+
     delegate :blank?, :empty?, :present?, to: :to_plain_text
   end
 end

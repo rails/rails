@@ -74,10 +74,10 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     parent.destroy
 
     assert_difference -> { DlKeyedJoin.count }, -2 do
-     assert_difference -> { DlKeyedHasManyThrough.count }, -2 do
-      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      assert_difference -> { DlKeyedHasManyThrough.count }, -2 do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
     end
-   end
   ensure
     DlKeyedHasManyThrough.delete_all
     DestroyAsyncParent.delete_all

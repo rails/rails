@@ -32,6 +32,7 @@ module ActiveRecord
       @predicate_builder = predicate_builder
       @delegate_to_klass = false
       @future_result = nil
+      @records = nil
     end
 
     def initialize_copy(other)
@@ -356,7 +357,7 @@ module ActiveRecord
     def compute_cache_version(timestamp_column) # :nodoc:
       timestamp_column = timestamp_column.to_s
 
-      if loaded? || distinct_value
+      if loaded?
         size = records.size
         if size > 0
           timestamp = records.map { |record| record.read_attribute(timestamp_column) }.max
@@ -369,6 +370,7 @@ module ActiveRecord
 
         if collection.has_limit_or_offset?
           query = collection.select("#{column} AS collection_cache_key_timestamp")
+          query._select!(table[Arel.star]) if distinct_value && collection.select_values.empty?
           subquery_alias = "subquery_for_cache_key"
           subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
           arel = query.build_subquery(subquery_alias, select_values % subquery_column)
@@ -420,18 +422,20 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping(all_queries: nil)
-      if global_scope? && all_queries == false
+      registry = klass.scope_registry
+      if global_scope?(registry) && all_queries == false
         raise ArgumentError, "Scoping is set to apply to all queries and cannot be unset in a nested block."
-      elsif already_in_scope?
+      elsif already_in_scope?(registry)
         yield
       else
-        _scoping(self, all_queries) { yield }
+        _scoping(self, registry, all_queries) { yield }
       end
     end
 
     def _exec_scope(*args, &block) # :nodoc:
       @delegate_to_klass = true
-      _scoping(nil) { instance_exec(*args, &block) || self }
+      registry = klass.scope_registry
+      _scoping(nil, registry) { instance_exec(*args, &block) || self }
     ensure
       @delegate_to_klass = false
     end
@@ -463,19 +467,6 @@ module ActiveRecord
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
-      if eager_loading?
-        relation = apply_join_dependency
-        return relation.update_all(updates)
-      end
-
-      stmt = Arel::UpdateManager.new
-      stmt.table(arel.join_sources.empty? ? table : arel.source)
-      stmt.key = table[primary_key]
-      stmt.take(arel.limit)
-      stmt.offset(arel.offset)
-      stmt.order(*arel.orders)
-      stmt.wheres = arel.constraints
-
       if updates.is_a?(Hash)
         if klass.locking_enabled? &&
             !updates.key?(klass.locking_column) &&
@@ -483,12 +474,17 @@ module ActiveRecord
           attr = table[klass.locking_column]
           updates[attr.name] = _increment_attribute(attr)
         end
-        stmt.set _substitute_values(updates)
+        values = _substitute_values(updates)
       else
-        stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
+        values = Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
       end
 
-      @klass.connection.update stmt, "#{@klass} Update All"
+      arel = eager_loading? ? apply_join_dependency.arel : build_arel
+      arel.source.left = table
+
+      stmt = arel.compile_update(values, table[primary_key])
+
+      klass.connection.update(stmt, "#{klass} Update All").tap { reset }
     end
 
     def update(id = :all, attributes) # :nodoc:
@@ -605,23 +601,12 @@ module ActiveRecord
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
       end
 
-      if eager_loading?
-        relation = apply_join_dependency
-        return relation.delete_all
-      end
+      arel = eager_loading? ? apply_join_dependency.arel : build_arel
+      arel.source.left = table
 
-      stmt = Arel::DeleteManager.new
-      stmt.from(arel.join_sources.empty? ? table : arel.source)
-      stmt.key = table[primary_key]
-      stmt.take(arel.limit)
-      stmt.offset(arel.offset)
-      stmt.order(*arel.orders)
-      stmt.wheres = arel.constraints
+      stmt = arel.compile_delete(table[primary_key])
 
-      affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
-
-      reset
-      affected
+      klass.connection.delete(stmt, "#{klass} Delete All").tap { reset }
     end
 
     # Finds and destroys all records matching the specified conditions.
@@ -654,8 +639,11 @@ module ActiveRecord
     #
     #   Post.where(published: true).load_async # => #<ActiveRecord::Relation>
     def load_async
+      return load if !connection.async_enabled?
+
       unless loaded?
         result = exec_main_query(async: connection.current_transaction.closed?)
+
         if result.is_a?(Array)
           @records = result
         else
@@ -663,6 +651,7 @@ module ActiveRecord
         end
         @loaded = true
       end
+
       self
     end
 
@@ -699,7 +688,8 @@ module ActiveRecord
       @delegate_to_klass = false
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @offsets = @take = nil
-      @records = [].freeze
+      @cache_keys = nil
+      @records = nil
       self
     end
 
@@ -708,16 +698,14 @@ module ActiveRecord
     #   User.where(name: 'Oscar').to_sql
     #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
-      @to_sql ||= begin
-        if eager_loading?
-          apply_join_dependency do |relation, join_dependency|
-            relation = join_dependency.apply_column_aliases(relation)
-            relation.to_sql
-          end
-        else
-          conn = klass.connection
-          conn.unprepared_statement { conn.to_sql(arel) }
+      @to_sql ||= if eager_loading?
+        apply_join_dependency do |relation, join_dependency|
+          relation = join_dependency.apply_column_aliases(relation)
+          relation.to_sql
         end
+      else
+        conn = klass.connection
+        conn.unprepared_statement { conn.to_sql(arel) }
       end
     end
 
@@ -775,6 +763,10 @@ module ActiveRecord
       @values.dup
     end
 
+    def values_for_queries # :nodoc:
+      @values.except(:extending, :skip_query_cache, :strict_loading)
+    end
+
     def inspect
       subject = loaded? ? records : annotate("loading for inspect")
       entries = subject.take([limit_value, 11].compact.min).map!(&:inspect)
@@ -826,12 +818,12 @@ module ActiveRecord
       end
 
     private
-      def already_in_scope?
-        @delegate_to_klass && klass.current_scope(true)
+      def already_in_scope?(registry)
+        @delegate_to_klass && registry.current_scope(klass, true)
       end
 
-      def global_scope?
-        klass.global_current_scope(true)
+      def global_scope?(registry)
+        registry.global_current_scope(klass, true)
       end
 
       def current_scope_restoring_block(&block)
@@ -854,16 +846,19 @@ module ActiveRecord
         klass.create!(attributes, &block)
       end
 
-      def _scoping(scope, all_queries = false)
-        previous, klass.current_scope = klass.current_scope(true), scope
+      def _scoping(scope, registry, all_queries = false)
+        previous = registry.current_scope(klass, true)
+        registry.set_current_scope(klass, scope)
+
         if all_queries
-          previous_global, klass.global_current_scope = klass.global_current_scope(true), scope
+          previous_global = registry.global_current_scope(klass, true)
+          registry.set_global_current_scope(klass, scope)
         end
         yield
       ensure
-        klass.current_scope = previous
+        registry.set_current_scope(klass, previous)
         if all_queries
-          klass.global_current_scope = previous_global
+          registry.set_global_current_scope(klass, previous_global)
         end
       end
 

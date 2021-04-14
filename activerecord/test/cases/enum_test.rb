@@ -12,6 +12,44 @@ class EnumTest < ActiveRecord::TestCase
     @book = books(:awdr)
   end
 
+  test "type.cast" do
+    type = Book.type_for_attribute(:status)
+
+    assert_equal "proposed",  type.cast(0)
+    assert_equal "written",   type.cast(1)
+    assert_equal "published", type.cast(2)
+
+    assert_equal "proposed",  type.cast(:proposed)
+    assert_equal "written",   type.cast(:written)
+    assert_equal "published", type.cast(:published)
+
+    assert_equal "proposed",  type.cast("proposed")
+    assert_equal "written",   type.cast("written")
+    assert_equal "published", type.cast("published")
+
+    assert_equal :unknown,    type.cast(:unknown)
+    assert_equal "unknown",   type.cast("unknown")
+  end
+
+  test "type.serialize" do
+    type = Book.type_for_attribute(:status)
+
+    assert_equal 0, type.serialize(0)
+    assert_equal 1, type.serialize(1)
+    assert_equal 2, type.serialize(2)
+
+    assert_equal 0, type.serialize(:proposed)
+    assert_equal 1, type.serialize(:written)
+    assert_equal 2, type.serialize(:published)
+
+    assert_equal 0, type.serialize("proposed")
+    assert_equal 1, type.serialize("written")
+    assert_equal 2, type.serialize("published")
+
+    assert_nil type.serialize(:unknown)
+    assert_nil type.serialize("unknown")
+  end
+
   test "query state by predicate" do
     assert_predicate @book, :published?
     assert_not_predicate @book, :written?
@@ -80,6 +118,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
     assert_equal books(:ddd), Book.where(last_read: :forgotten).first
+    assert_nil Book.where(status: :prohibited).first
   end
 
   test "find via where with strings" do
@@ -90,6 +129,14 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where.not(status: "published").first
     assert_equal @book, Book.where.not(status: "written").first
     assert_equal books(:ddd), Book.where(last_read: "forgotten").first
+    assert_nil Book.where(status: "prohibited").first
+  end
+
+  test "find via where with large number" do
+    assert_equal @book, Book.where(status: [2, 9223372036854775808]).first
+    assert_equal @book, Book.where(status: ["2", "9223372036854775808"]).first
+    assert_equal @book, Book.where(status: 2..9223372036854775808).first
+    assert_equal @book, Book.where(status: "2".."9223372036854775808").first
   end
 
   test "find via where should be type casted" do
@@ -788,6 +835,30 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal proposed, book.status
     assert_predicate book, :proposed?
     assert_not_predicate book, :written?
+  end
+
+  test "serializable? with large number label" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, ["9223372036854775808", "-9223372036854775809"]
+    end
+
+    type = klass.type_for_attribute(:status)
+
+    assert type.serializable?("9223372036854775808")
+    assert type.serializable?("-9223372036854775809")
+
+    assert_not type.serializable?(9223372036854775808)
+    assert_not type.serializable?(-9223372036854775809)
+
+    book1 = klass.create!(status: "9223372036854775808")
+    book2 = klass.create!(status: "-9223372036854775809")
+
+    assert_equal 0, book1.status_for_database
+    assert_equal 1, book2.status_for_database
+
+    assert_equal book1, klass.where(status: "9223372036854775808").last
+    assert_equal book2, klass.where(status: "-9223372036854775809").last
   end
 
   test "enum logs a warning if auto-generated negative scopes would clash with other enum names" do

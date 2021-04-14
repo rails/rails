@@ -43,14 +43,8 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_class_with_blank_sti_name
     company = Company.first
     company = company.dup
-    company.extend(Module.new {
-      def _read_attribute(name)
-        return "  " if name == "type"
-        super
-      end
-    })
-    company.save!
-    company = Company.all.to_a.find { |x| x.id == company.id }
+    company.update!(type: "  ")
+    company = Company.find(company.id)
     assert_equal "  ", company.type
   end
 
@@ -196,8 +190,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_base_class_activerecord_error
-    klass = Class.new { include ActiveRecord::Inheritance }
-    assert_raise(ActiveRecord::ActiveRecordError) { klass.base_class }
+    assert_raise(ActiveRecord::ActiveRecordError) do
+      Class.new { include ActiveRecord::Inheritance }
+    end
   end
 
   def test_a_bad_type_column

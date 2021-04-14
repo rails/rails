@@ -39,7 +39,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
 
   teardown do
-    ActionMailer::Base.deliver_later_queue_name = @previous_delivery_method
+    ActionMailer::Base.deliver_later_queue_name = @previous_deliver_later_queue_name
   end
 
   def test_setup_sets_right_action_mailer_options

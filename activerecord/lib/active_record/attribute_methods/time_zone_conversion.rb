@@ -25,6 +25,8 @@ module ActiveRecord
             rescue ArgumentError
               nil
             end
+          elsif value.respond_to?(:infinite?) && value.infinite?
+            value
           else
             map_avoiding_infinite_recursion(super) { |v| cast(v) }
           end
@@ -36,7 +38,7 @@ module ActiveRecord
 
             if value.acts_like?(:time)
               value.in_time_zone
-            elsif value.is_a?(::Float)
+            elsif value.respond_to?(:infinite?) && value.infinite?
               value
             else
               map_avoiding_infinite_recursion(value) { |v| convert_time_to_time_zone(v) }

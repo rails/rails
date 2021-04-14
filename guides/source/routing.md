@@ -354,6 +354,39 @@ resources :articles, shallow: true do
 end
 ```
 
+The articles resource here will have the following routes generated for it:
+
+| HTTP Verb | Path                                         | Controller#Action | Named Route Helper       |
+| --------- | -------------------------------------------- | ----------------- | ------------------------ |
+| GET       | /articles/:article_id/comments(.:format)     | comments#index    | article_comments_path    |
+| POST      | /articles/:article_id/comments(.:format)     | comments#create   | article_comments_path    |
+| GET       | /articles/:article_id/comments/new(.:format) | comments#new      | new_article_comment_path |
+| GET       | /comments/:id/edit(.:format)                 | comments#edit     | edit_comment_path        |
+| GET       | /comments/:id(.:format)                      | comments#show     | comment_path             |
+| PATCH/PUT | /comments/:id(.:format)                      | comments#update   | comment_path             |
+| DELETE    | /comments/:id(.:format)                      | comments#destroy  | comment_path             |
+| GET       | /articles/:article_id/quotes(.:format)       | quotes#index      | article_quotes_path      |
+| POST      | /articles/:article_id/quotes(.:format)       | quotes#create     | article_quotes_path      |
+| GET       | /articles/:article_id/quotes/new(.:format)   | quotes#new        | new_article_quote_path   |
+| GET       | /quotes/:id/edit(.:format)                   | quotes#edit       | edit_quote_path          |
+| GET       | /quotes/:id(.:format)                        | quotes#show       | quote_path               |
+| PATCH/PUT | /quotes/:id(.:format)                        | quotes#update     | quote_path               |
+| DELETE    | /quotes/:id(.:format)                        | quotes#destroy    | quote_path               |
+| GET       | /articles/:article_id/drafts(.:format)       | drafts#index      | article_drafts_path      |
+| POST      | /articles/:article_id/drafts(.:format)       | drafts#create     | article_drafts_path      |
+| GET       | /articles/:article_id/drafts/new(.:format)   | drafts#new        | new_article_draft_path   |
+| GET       | /drafts/:id/edit(.:format)                   | drafts#edit       | edit_draft_path          |
+| GET       | /drafts/:id(.:format)                        | drafts#show       | draft_path               |
+| PATCH/PUT | /drafts/:id(.:format)                        | drafts#update     | draft_path               |
+| DELETE    | /drafts/:id(.:format)                        | drafts#destroy    | draft_path               |
+| GET       | /articles(.:format)                          | articles#index    | articles_path            |
+| POST      | /articles(.:format)                          | articles#create   | articles_path            |
+| GET       | /articles/new(.:format)                      | articles#new      | new_article_path         |
+| GET       | /articles/:id/edit(.:format)                 | articles#edit     | edit_article_path        |
+| GET       | /articles/:id(.:format)                      | articles#show     | article_path             |
+| PATCH/PUT | /articles/:id(.:format)                      | articles#update   | article_path             |
+| DELETE    | /articles/:id(.:format)                      | articles#destroy  | article_path             |
+
 The `shallow` method of the DSL creates a scope inside of which every nesting is shallow. This generates the same routes as the previous example:
 
 ```ruby
@@ -941,11 +974,11 @@ You can create custom URL helpers directly by calling [`direct`][]. For example:
 
 ```ruby
 direct :homepage do
-  "http://www.rubyonrails.org"
+  "https://rubyonrails.org"
 end
 
 # >> homepage_url
-# => "http://www.rubyonrails.org"
+# => "https://rubyonrails.org"
 ```
 
 The return value of the block must be a valid argument for the `url_for` method. So, you can pass a valid string URL, Hash, Array, an Active Model instance, or an Active Model class.

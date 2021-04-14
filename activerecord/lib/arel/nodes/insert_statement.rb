@@ -5,9 +5,9 @@ module Arel # :nodoc: all
     class InsertStatement < Arel::Nodes::Node
       attr_accessor :relation, :columns, :values, :select
 
-      def initialize
+      def initialize(relation = nil)
         super()
-        @relation = nil
+        @relation = relation
         @columns  = []
         @values   = nil
         @select   = nil

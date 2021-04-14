@@ -1259,9 +1259,9 @@ class BasicsTest < ActiveRecord::TestCase
 
     UnloadablePost.unloadable
     klass = UnloadablePost
-    assert_not_nil ActiveRecord::Scoping::ScopeRegistry.value_for(:current_scope, klass)
+    assert_not_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(klass)
     ActiveSupport::Dependencies.remove_unloadable_constants!
-    assert_nil ActiveRecord::Scoping::ScopeRegistry.value_for(:current_scope, klass)
+    assert_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(klass)
   ensure
     Object.class_eval { remove_const :UnloadablePost } if defined?(UnloadablePost)
   end

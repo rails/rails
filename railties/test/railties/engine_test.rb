@@ -147,7 +147,7 @@ module RailtiesTest
       end
     end
 
-    test "dont reverse default railties order" do
+    test "don't reverse default railties order" do
       @api = engine "api" do |plugin|
         plugin.write "lib/api.rb", <<-RUBY
           module Api

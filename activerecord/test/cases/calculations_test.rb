@@ -961,9 +961,9 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_replaces_select_clause
-    taks_relation = Topic.select(:approved, :id).order(:id)
-    assert_equal [1, 2, 3, 4, 5], taks_relation.pluck(:id)
-    assert_equal [false, true, true, true, true], taks_relation.pluck(:approved)
+    takes_relation = Topic.select(:approved, :id).order(:id)
+    assert_equal [1, 2, 3, 4, 5], takes_relation.pluck(:id)
+    assert_equal [false, true, true, true, true], takes_relation.pluck(:approved)
   end
 
   def test_pluck_columns_with_same_name
@@ -1162,15 +1162,15 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal({ "proposed" => 2, "published" => 2 }, Book.group(:status).count)
   end
 
-  def test_aggregate_attribute_on_custom_type
-    assert_nil Book.sum(:status)
-    assert_equal "medium", Book.sum(:difficulty)
-    assert_equal "easy", Book.minimum(:difficulty)
-    assert_equal "medium", Book.maximum(:difficulty)
-    assert_equal({ "proposed" => "proposed", "published" => nil }, Book.group(:status).sum(:status))
-    assert_equal({ "proposed" => "easy", "published" => "medium" }, Book.group(:status).sum(:difficulty))
-    assert_equal({ "proposed" => "easy", "published" => "easy" }, Book.group(:status).minimum(:difficulty))
-    assert_equal({ "proposed" => "easy", "published" => "medium" }, Book.group(:status).maximum(:difficulty))
+  def test_aggregate_attribute_on_enum_type
+    assert_equal 4, Book.sum(:status)
+    assert_equal 1, Book.sum(:difficulty)
+    assert_equal 0, Book.minimum(:difficulty)
+    assert_equal 1, Book.maximum(:difficulty)
+    assert_equal({ "proposed" => 0, "published" => 4 }, Book.group(:status).sum(:status))
+    assert_equal({ "proposed" => 0, "published" => 1 }, Book.group(:status).sum(:difficulty))
+    assert_equal({ "proposed" => 0, "published" => 0 }, Book.group(:status).minimum(:difficulty))
+    assert_equal({ "proposed" => 0, "published" => 1 }, Book.group(:status).maximum(:difficulty))
   end
 
   def test_minimum_and_maximum_on_non_numeric_type

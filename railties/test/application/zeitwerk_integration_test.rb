@@ -26,7 +26,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     deps.singleton_class < deps::ZeitwerkIntegration::Decorations
   end
 
-  test "ActiveSupport::Dependencies is decorated by default" do
+  test "ActiveSupport::Dependencies is decorated" do
     boot
 
     assert decorated?
@@ -34,17 +34,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_instance_of Zeitwerk::Loader, Rails.autoloaders.main
     assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once
     assert_equal [Rails.autoloaders.main, Rails.autoloaders.once], Rails.autoloaders.to_a
-  end
-
-  test "ActiveSupport::Dependencies is not decorated in classic mode" do
-    add_to_config "config.autoloader = :classic"
-    boot
-
-    assert_not decorated?
-    assert_not Rails.autoloaders.zeitwerk_enabled?
-    assert_nil Rails.autoloaders.main
-    assert_nil Rails.autoloaders.once
-    assert_equal 0, Rails.autoloaders.count
   end
 
   test "autoloaders inflect with Active Support" do
@@ -295,10 +284,12 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert $zeitwerk_integration_test_extras
   end
 
-  test "autoload_paths are set as root dirs of main, and in the same order" do
+  test "autoload_paths not in autoload_once_paths are set as root dirs of main, and in the same order" do
     boot
 
-    existing_autoload_paths = deps.autoload_paths.select { |dir| File.directory?(dir) }
+    existing_autoload_paths = \
+      deps.autoload_paths.select { |dir| File.directory?(dir) } -
+      deps.autoload_once_paths
     assert_equal existing_autoload_paths, Rails.autoloaders.main.dirs
   end
 
@@ -315,7 +306,10 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     extras.each do |extra|
       assert_not_includes Rails.autoloaders.main.dirs, extra
     end
-    assert_equal extras, Rails.autoloaders.once.dirs
+
+    e1_index = Rails.autoloaders.once.dirs.index(extras.first)
+    assert e1_index
+    assert_equal extras, Rails.autoloaders.once.dirs.slice(e1_index, extras.length)
   end
 
   test "clear reloads the main autoloader, and does not reload the once one" do
@@ -338,42 +332,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.clear
 
     assert_equal %i(main_autoloader), $zeitwerk_integration_reload_test
-  end
-
-  test "verbose = true sets the dependencies logger if present" do
-    boot
-
-    logger = Logger.new(File::NULL)
-    ActiveSupport::Dependencies.logger = logger
-    ActiveSupport::Dependencies.verbose = true
-
-    Rails.autoloaders.each do |autoloader|
-      assert_same logger, autoloader.logger
-    end
-  end
-
-  test "verbose = true sets the Rails logger as fallback" do
-    boot
-
-    ActiveSupport::Dependencies.verbose = true
-
-    Rails.autoloaders.each do |autoloader|
-      assert_same Rails.logger, autoloader.logger
-    end
-  end
-
-  test "verbose = false sets loggers to nil" do
-    boot
-
-    ActiveSupport::Dependencies.verbose = true
-    Rails.autoloaders.each do |autoloader|
-      assert autoloader.logger
-    end
-
-    ActiveSupport::Dependencies.verbose = false
-    Rails.autoloaders.each do |autoloader|
-      assert_nil autoloader.logger
-    end
   end
 
   test "unhooks" do

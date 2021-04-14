@@ -89,7 +89,7 @@ INFO. Autoload paths are called _root directories_ in Zeitwerk documentation, bu
 
 Within an autoload path, file names must match the constants they define as documented [here](https://github.com/fxn/zeitwerk#file-structure).
 
-By default, the autoload paths of an application consist of all the subdirectories of `app` that exist when the application boots ---except for `assets`, `javascript`, `views`,--- plus the autoload paths of engines it might depend on.
+By default, the autoload paths of an application consist of all the subdirectories of `app` that exist when the application boots ---except for `assets`, `javascript`, and `views`--- plus the autoload paths of engines it might depend on.
 
 For example, if `UsersHelper` is implemented in `app/helpers/users_helper.rb`, the module is autoloadable, you do not need (and should not write) a `require` call for it:
 
@@ -98,17 +98,17 @@ $ bin/rails runner 'p UsersHelper'
 UsersHelper
 ```
 
-Autoload paths automatically pick any custom directories under `app`. For example, if your application has `app/presenters`, or `app/services`, etc., they are added to autoload paths.
+Autoload paths automatically pick up any custom directories under `app`. For example, if your application has `app/presenters`, or `app/services`, etc., they are added to autoload paths.
 
 The array of autoload paths can be extended by mutating `config.autoload_paths`, in `config/application.rb`, but nowadays this is discouraged.
 
-WARNING. Please, do not mutate `ActiveSupport::Dependencies.autoload_paths`, the public interface to change autoload paths is `config.autoload_paths`.
+WARNING. Please do not mutate `ActiveSupport::Dependencies.autoload_paths`; the public interface to change autoload paths is `config.autoload_paths`.
 
 
 $LOAD_PATH
 ----------
 
-Autoload paths are added to `$LOAD_PATH` by default. However, Zeitwerk uses absolute file names internally, and your application should not issue `require` calls for autoloadable files, so those directories are actually not needed there. You can opt-out with this flag:
+Autoload paths are added to `$LOAD_PATH` by default. However, Zeitwerk uses absolute file names internally, and your application should not issue `require` calls for autoloadable files, so those directories are actually not needed there. You can opt out with this flag:
 
 ```ruby
 config.add_autoload_paths_to_load_path = false
@@ -122,13 +122,13 @@ Reloading
 
 Rails automatically reloads classes and modules if application files change.
 
-More precisely, if the web server is running and application files have been modified, Rails unloads all autoloaded constants just before the next request is processed. That way, application classes or modules used during that request are going to be autoloaded, thus picking up their current implementation in the file system.
+More precisely, if the web server is running and application files have been modified, Rails unloads all autoloaded constants just before the next request is processed. That way, application classes or modules used during that request will be autoloaded again, thus picking up their current implementation in the file system.
 
 Reloading can be enabled or disabled. The setting that controls this behavior is `config.cache_classes`, which is false by default in `development` mode (reloading enabled), and true by default in `production` mode (reloading disabled).
 
-Rails detects files have changed using an evented file monitor (default), or walking the autoload paths, depending on `config.file_watcher`.
+Rails uses an evented file monitor to detect files changes by default.  It can be configured instead to detect file changes by walking the autoload paths. This is controlled by the `config.file_watcher` setting.
 
-In a Rails console there is no file watcher active regardless of the value of `config.cache_classes`. This is so because, normally, it would be confusing to have code reloaded in the middle of a console session, the same way you generally want an individual request to be served by a consistent, non-changing set of application classes and modules.
+In a Rails console there is no file watcher active regardless of the value of `config.cache_classes`. This is because, normally, it would be confusing to have code reloaded in the middle of a console session. Similar to an individual request, you generally want a console session to be served by a consistent, non-changing set of application classes and modules.
 
 However, you can force a reload in the console by executing `reload!`:
 
@@ -142,7 +142,7 @@ irb(main):003:0> User.object_id
 => 70136284426020
 ```
 
-as you can see, the class object stored in the `User` constant is different after reloading.
+As you can see, the class object stored in the `User` constant is different after reloading.
 
 ### Reloading and Stale Objects
 
@@ -167,7 +167,7 @@ There are several ways to do this safely. For instance, the application could de
 
 Let's see other situations that involve stale class or module objects.
 
-Check this Rails console session:
+Check out this Rails console session:
 
 ```irb
 irb> joe = User.new
@@ -177,7 +177,7 @@ irb> joe.class == alice.class
 => false
 ```
 
-`joe` is an instance of the original `User` class. When there is a reload, the `User` constant evaluates to a different, reloaded class. `alice` is an instance of the current one, but `joe` is not, his class is stale. You may define `joe` again, start an IRB subsession, or just launch a new console instead of calling `reload!`.
+`joe` is an instance of the original `User` class. When there is a reload, the `User` constant then evaluates to a different, reloaded class. `alice` is an instance of the newly loaded `User`, but `joe` is not — his class is stale. You may define `joe` again, start an IRB subsession, or just launch a new console instead of calling `reload!`.
 
 Another situation in which you may find this gotcha is subclassing reloadable classes in a place that is not reloaded:
 
@@ -205,7 +205,7 @@ That block runs when the application boots, and every time code is reloaded.
 
 NOTE: For historical reasons, this callback may run twice. The code it executes must be idempotent.
 
-However, if you do not need to reload the class, it is easier to define it in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice, it does not belong to the autoload paths by default but it belongs to `$LOAD_PATH`. Then, in the place the class is needed at boot time, just perform a regular `require` to load it.
+However, if you do not need to reload the class, it is easier to define it in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice. It does not belong to the autoload paths by default, but it does belong to `$LOAD_PATH`. Then, in the place the class is needed at boot time, just perform a regular `require` to load it.
 
 For example, there is no point in defining reloadable Rack middleware, because changes would not be reflected in the instance stored in the middleware stack anyway. If `lib/my_app/middleware/foo.rb` defines a middleware class, then in `config/application.rb` you write:
 
@@ -225,19 +225,19 @@ In production-like environments it is generally better to load all the applicati
 
 Eager loading is controlled by the flag `config.eager_load`, which is enabled by default in `production` mode.
 
-The order in which files are eager loaded is undefined.
+The order in which files are eager-loaded is undefined.
 
-if the `Zeitwerk` constant is defined, Rails invokes `Zeitwerk::Loader.eager_load_all` regardless of the application autoloading mode. That ensures dependencies managed by Zeitwerk are eager loaded.
+If the `Zeitwerk` constant is defined, Rails invokes `Zeitwerk::Loader.eager_load_all` regardless of the application autoloading mode. That ensures dependencies managed by Zeitwerk are eager-loaded.
 
 
 Single Table Inheritance
 ------------------------
 
-Single Table Inheritance is a feature that doesn't play well with lazy loading. Reason is, its API generally needs to be able to enumerate the STI hierarchy to work correctly, whereas lazy loading defers loading classes until they are referenced. You can't enumerate what you haven't referenced yet.
+Single Table Inheritance is a feature that doesn't play well with lazy loading. The reason is: its API generally needs to be able to enumerate the STI hierarchy to work correctly, whereas lazy loading defers loading classes until they are referenced. You can't enumerate what you haven't referenced yet.
 
 In a sense, applications need to eager load STI hierarchies regardless of the loading mode.
 
-Of course, if the application eager loads on boot, that is already accomplished. When it does not, it is in practice enough to instantiate the existing types in the database, which in development or test modes is usually fine. One way to do that is to throw this module into the `lib` directory:
+Of course, if the application eager loads on boot, that is already accomplished. When it does not, it is in practice enough to instantiate the existing types in the database, which in development or test modes is usually fine. One way to do that is to include an STI preloading module in your `lib` directory:
 
 ```ruby
 module StiPreload
@@ -306,7 +306,7 @@ end
 Customizing Inflections
 -----------------------
 
-By default, Rails uses `String#camelize` to know which constant should a given file or directory name define. For example, `posts_controller.rb` should define `PostsController` because that is what `"posts_controller".camelize` returns.
+By default, Rails uses `String#camelize` to know which constant a given file or directory name should define. For example, `posts_controller.rb` should define `PostsController` because that is what `"posts_controller".camelize` returns.
 
 It could be the case that some particular file or directory name does not get inflected as you want. For instance, `html_parser.rb` is expected to define `HtmlParser` by default. What if you prefer the class to be `HTMLParser`? There are a few ways to customize this.
 
@@ -344,22 +344,22 @@ Rails.autoloaders.each do |autoloader|
 end
 ```
 
-There is no global configuration that can affect said instances, they are deterministic.
+There is no global configuration that can affect said instances; they are deterministic.
 
-You can even define a custom inflector for full flexibility. Please, check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#custom-inflector) for further details.
+You can even define a custom inflector for full flexibility. Please check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#custom-inflector) for further details.
 
 Troubleshooting
 ---------------
 
 The best way to follow what the loaders are doing is to inspect their activity.
 
-The easiest way to do that is to throw
+The easiest way to do that is to include
 
 ```ruby
 Rails.autoloaders.log!
 ```
 
-to `config/application.rb` after loading the framework defaults. That will print traces to standard output.
+in `config/application.rb` after loading the framework defaults. That will print traces to standard output.
 
 If you prefer logging to a file, configure this instead:
 
@@ -367,7 +367,7 @@ If you prefer logging to a file, configure this instead:
 Rails.autoloaders.logger = Logger.new("#{Rails.root}/log/autoloading.log")
 ```
 
-The Rails logger is still not ready in `config/application.rb`, but it is in initializers:
+The Rails logger is not yet available when `config/application.rb` executes. If you prefer to use the Rails logger, configure this setting in an initializer instead:
 
 ```ruby
 # config/initializers/log_autoloaders.rb
@@ -406,7 +406,7 @@ class Admin::UsersController < ApplicationController
 end
 ```
 
-was not recommended because the resolution of constants inside their body was brittle. You'd better write them in this style:
+was not recommended because the resolution of constants inside their body was brittle. It was better to write them in this style:
 
 ```ruby
 module Admin
@@ -415,11 +415,11 @@ module Admin
 end
 ```
 
-In `zeitwerk` mode that does not matter anymore, you can pick either style.
+In `zeitwerk` mode that does not matter anymore. You can pick either style.
 
-The resolution of a constant could depend on load order, the definition of a class or module object could depend on load order, there was edge cases with singleton classes, oftentimes you had to use `require_dependency` as a workaround, .... The guide for `classic` mode documents [these issues](autoloading_and_reloading_constants_classic_mode.html#common-gotchas).
+In `classic` mode, the resolution of a constant could depend on load order, the definition of a class or module object could depend on load order, there were edge cases with singleton classes, oftentimes you had to use `require_dependency` as a workaround, .... The list goes on. The guide for `classic` mode documents [these issues](autoloading_and_reloading_constants_classic_mode.html#common-gotchas).
 
-All these problems are solved in `zeitwerk` mode, it just works as expected, and `require_dependency` should not be used anymore, it is no longer needed.
+All these problems are solved in `zeitwerk` mode. It just works as expected. `require_dependency` should not be used anymore, because it is no longer needed.
 
 ### Less File Lookups
 
@@ -437,26 +437,4 @@ While in common names these operations match, if acronyms or custom inflection r
 
 ### More Differences
 
-There are some other subtle differences, please check [this section of _Upgrading Ruby on Rails_](upgrading_ruby_on_rails.html#autoloading) guide for details.
-
-Classic Mode is Deprecated
---------------------------
-
-By now, it is still possible to use `classic` mode. However, `classic` is deprecated and will be eventually removed.
-
-New applications should use `zeitwerk` mode (which is the default), and applications being upgrade are strongly encouraged to migrate to `zeitwerk` mode. Please check the [_Upgrading Ruby on Rails_](upgrading_ruby_on_rails.html#autoloading) guide for details.
-
-Opting Out
-----------
-
-Applications can load Rails 6 defaults and still use the classic autoloader this way:
-
-```ruby
-# config/application.rb
-config.load_defaults 6.0
-config.autoloader = :classic
-```
-
-That may be handy if upgrading to Rails 6 in different phases, but classic mode is discouraged for new applications.
-
-`zeitwerk` mode is not available in versions of Rails previous to 6.0.
+There are some other subtle differences. Please check the [autoloading section](upgrading_ruby_on_rails.html#autoloading) of the _Upgrading Ruby on Rails_] guide for details.

@@ -88,7 +88,6 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal true, migrator.needs_migration?
   end
 
-
   def test_migration_version_matches_component_version
     assert_equal ActiveRecord::VERSION::STRING.to_f, ActiveRecord::Migration.current_version
   end

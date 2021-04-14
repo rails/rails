@@ -782,11 +782,11 @@ class ResourcesTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :products do
-           resources :product_reviews, path: "reviews", controller: "messages"
-         end
+          resources :product_reviews, path: "reviews", controller: "messages"
+        end
         resources :tutors do
-           resources :tutor_reviews, path: "reviews", controller: "comments"
-         end
+          resources :tutor_reviews, path: "reviews", controller: "comments"
+        end
       end
 
       assert_simply_restful_for :product_reviews, controller: "messages", as: "reviews", name_prefix: "product_", path_prefix: "products/1/", options: { product_id: "1" }

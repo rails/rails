@@ -427,7 +427,7 @@ module ActiveRecord
         if supports_check_constraints?
           scope = quoted_scope(table_name)
 
-          chk_info = exec_query(<<~SQL, "SCHEMA")
+          sql = <<~SQL
             SELECT cc.constraint_name AS 'name',
                   cc.check_clause AS 'expression'
             FROM information_schema.check_constraints cc
@@ -437,6 +437,9 @@ module ActiveRecord
               AND tc.table_name = #{scope[:name]}
               AND cc.constraint_schema = #{scope[:schema]}
           SQL
+          sql += " AND cc.table_name = #{scope[:name]}" if mariadb?
+
+          chk_info = exec_query(sql, "SCHEMA")
 
           chk_info.map do |row|
             options = {
@@ -548,8 +551,12 @@ module ActiveRecord
           sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
         elsif insert.update_duplicates?
           sql << " ON DUPLICATE KEY UPDATE "
-          sql << insert.touch_model_timestamps_unless { |column| "#{column}<=>VALUES(#{column})" }
-          sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
+          if insert.raw_update_sql?
+            sql << insert.raw_update_sql
+          else
+            sql << insert.touch_model_timestamps_unless { |column| "#{column}<=>VALUES(#{column})" }
+            sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
+          end
         end
 
         sql

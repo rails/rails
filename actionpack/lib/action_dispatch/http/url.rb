@@ -258,12 +258,10 @@ module ActionDispatch
       #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.port # => 8080
       def port
-        @port ||= begin
-          if raw_host_with_port =~ /:(\d+)$/
-            $1.to_i
-          else
-            standard_port
-          end
+        @port ||= if raw_host_with_port =~ /:(\d+)$/
+          $1.to_i
+        else
+          standard_port
         end
       end
 

@@ -4,12 +4,6 @@ require_relative "helper"
 
 module Arel
   class DeleteManagerTest < Arel::Spec
-    describe "new" do
-      it "takes an engine" do
-        Arel::DeleteManager.new
-      end
-    end
-
     it "handles limit properly" do
       table = Table.new(:users)
       dm = Arel::DeleteManager.new

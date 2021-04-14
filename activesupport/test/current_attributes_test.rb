@@ -4,7 +4,7 @@ require_relative "abstract_unit"
 require "active_support/current_attributes/test_helper"
 
 class CurrentAttributesTest < ActiveSupport::TestCase
-  # Automatically included in Rails apps via railtie but that dodn't run here.
+  # Automatically included in Rails apps via railtie but that don't run here.
   include ActiveSupport::CurrentAttributes::TestHelper
 
   Person = Struct.new(:id, :name, :time_zone)
@@ -34,6 +34,12 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     def set_world_and_account(world:, account:)
       self.world = world
       self.account = account
+    end
+
+    def get_world_and_account(hash)
+      hash[:world] = world
+      hash[:account] = account
+      hash
     end
 
     def respond_to_test; end
@@ -138,6 +144,11 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
     assert_equal "world/1", Current.world
     assert_equal "account/1", Current.account
+
+    hash = {}
+    assert_same hash, Current.get_world_and_account(hash)
+    assert_equal "world/1", hash[:world]
+    assert_equal "account/1", hash[:account]
   end
 
   setup { @testing_teardown = false }

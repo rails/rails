@@ -477,8 +477,7 @@ module ActiveRecord
           end
 
           table = Arel::Table.new(table_name)
-          manager = Arel::InsertManager.new
-          manager.into(table)
+          manager = Arel::InsertManager.new(table)
 
           if values_list.size == 1
             values = values_list.shift
@@ -525,7 +524,7 @@ module ActiveRecord
 
         # Returns an ActiveRecord::Result instance.
         def select(sql, name = nil, binds = [], prepare: false, async: false)
-          if async
+          if async && async_enabled?
             if current_transaction.joinable?
               raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
             end
@@ -544,6 +543,7 @@ module ActiveRecord
             end
             return future_result
           end
+
           exec_query(sql, name, binds, prepare: prepare)
         end
 

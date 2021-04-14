@@ -50,6 +50,7 @@ module ActiveSupport
         "Hash"       => "hash"
       }
     end
+    TYPE_NAMES["ActiveSupport::TimeWithZone"] = TYPE_NAMES["Time"]
 
     FORMATTING = {
       "symbol"   => Proc.new { |symbol| symbol.to_s },

@@ -3,6 +3,7 @@
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/hash/reverse_merge"
 require "active_support/core_ext/hash/except"
+require "active_support/core_ext/hash/slice"
 
 module ActiveSupport
   # Implements a hash where keys <tt>:foo</tt> and <tt>"foo"</tt> are considered
@@ -295,6 +296,10 @@ module ActiveSupport
       super(convert_key(key))
     end
 
+    # Returns a hash with indifferent access that includes everything except given keys.
+    #   hash = { a: "x", b: "y", c: 10 }.with_indifferent_access
+    #   hash.except(:a, "b") # => {c: 10}.with_indifferent_access
+    #   hash                 # => { a: "x", b: "y", c: 10 }.with_indifferent_access
     def except(*keys)
       slice(*self.keys - keys.map { |key| convert_key(key) })
     end

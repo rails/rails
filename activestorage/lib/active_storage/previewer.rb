@@ -70,7 +70,16 @@ module ActiveStorage
 
       def capture(*argv, to:)
         to.binmode
-        IO.popen(argv, err: File::NULL) { |out| IO.copy_stream(out, to) }
+
+        open_tempfile do |err|
+          IO.popen(argv, err: err) { |out| IO.copy_stream(out, to) }
+          err.rewind
+
+          unless $?.success?
+            raise PreviewError, "#{argv.first} failed (status #{$?.exitstatus}): #{err.read.to_s.chomp}"
+          end
+        end
+
         to.rewind
       end
 

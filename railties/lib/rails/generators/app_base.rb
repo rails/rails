@@ -110,8 +110,7 @@ module Rails
                                            desc: "Show this help message and quit"
       end
 
-      def initialize(positional_argv, option_argv, *)
-        @argv = [*positional_argv, *option_argv]
+      def initialize(*)
         @gem_filter = lambda { |gem| true }
         super
       end
@@ -149,14 +148,9 @@ module Rails
       end
 
       def apply_rails_template # :doc:
-        original_argv = ARGV.dup
-        ARGV.replace(@argv)
-
         apply rails_template if rails_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
-      ensure
-        ARGV.replace(original_argv)
       end
 
       def set_default_accessors! # :doc:
@@ -276,8 +270,9 @@ module Rails
             GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
           ]
         elsif options.edge?
+          edge_branch = Rails.gem_version.prerelease? ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
           [
-            GemfileEntry.github("rails", "rails/rails", "main")
+            GemfileEntry.github("rails", "rails/rails", edge_branch)
           ]
         elsif options.main?
           [

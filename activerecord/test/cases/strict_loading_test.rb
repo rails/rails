@@ -2,17 +2,18 @@
 
 require "cases/helper"
 require "models/developer"
+require "models/company"
 require "models/computer"
 require "models/mentor"
 require "models/project"
 require "models/ship"
+require "models/ship_part"
 require "models/strict_zine"
 require "models/interest"
+require "models/treasure"
 
 class StrictLoadingTest < ActiveRecord::TestCase
-  fixtures :developers
-  fixtures :projects
-  fixtures :ships
+  fixtures :developers, :developers_projects, :projects, :ships
 
   def test_strict_loading!
     developer = Developer.first
@@ -30,6 +31,90 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       developer.audit_logs.to_a
+    end
+  end
+
+  def test_strict_loading_n_plus_one_only_mode
+    developer = Developer.first
+    ship = Ship.first
+    ShipPart.create!(name: "Stern", ship: ship)
+    firm = Firm.create!(name: "NASA")
+    project = Project.create!(name: "Apollo", firm: firm)
+
+    ship.update_column(:developer_id, developer.id)
+    developer.projects << project
+    developer.reload
+
+    developer.strict_loading!(mode: :n_plus_one_only)
+    assert_predicate developer, :strict_loading?
+
+    # Does not raise when loading a has_many association (:projects)
+    assert_nothing_raised do
+      developer.projects.to_a
+    end
+
+    # strict_loading is enabled for has_many associations
+    assert developer.projects.all?(&:strict_loading?)
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      developer.projects.last.firm
+    end
+
+    # Does not raise when a belongs_to association (:ship) loads its
+    # has_many association (:parts)
+    assert_nothing_raised do
+      developer.ship.parts.to_a
+    end
+
+    # strict_loading is enabled for has_many through a belongs_to
+    assert_not developer.ship.strict_loading?
+    assert developer.ship.parts.all?(&:strict_loading?)
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      developer.ship.parts.first.trinkets.to_a
+    end
+  end
+
+  def test_strict_loading_n_plus_one_only_mode_by_default
+    with_strict_loading_by_default(Developer) do
+      previous_strict_loading_mode = Developer.strict_loading_mode
+      Developer.strict_loading_mode = :n_plus_one_only
+
+      developer = Developer.first
+      ship = Ship.first
+      ShipPart.create!(name: "Stern", ship: ship)
+      firm = Firm.create!(name: "NASA")
+      project = Project.create!(name: "Apollo", firm: firm)
+
+      ship.update_column(:developer_id, developer.id)
+      developer.projects << project
+      developer.reload
+
+      assert_predicate developer, :strict_loading?
+
+      # Does not raise when loading a has_many association (:projects)
+      assert_nothing_raised do
+        developer.projects.to_a
+      end
+
+      # strict_loading is enabled for has_many associations
+      assert developer.projects.all?(&:strict_loading?)
+      assert_raises ActiveRecord::StrictLoadingViolationError do
+        developer.projects.last.firm
+      end
+
+      # Does not raise when a belongs_to association (:ship) loads its
+      # has_many association (:parts)
+      assert_nothing_raised do
+        developer.ship.parts.to_a
+      end
+
+      # strict_loading is enabled for has_many through a belongs_to
+      assert_not developer.ship.strict_loading?
+      assert developer.ship.parts.all?(&:strict_loading?)
+      assert_raises ActiveRecord::StrictLoadingViolationError do
+        developer.ship.parts.first.trinkets.to_a
+      end
+    ensure
+      Developer.strict_loading_mode = previous_strict_loading_mode
     end
   end
 
@@ -234,6 +319,19 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
       assert_raises ActiveRecord::StrictLoadingViolationError do
         developer.mentor
+      end
+    end
+  end
+
+  def test_strict_loading_can_be_turned_off_on_an_association_in_a_model_with_strict_loading_on
+    with_strict_loading_by_default(Developer) do
+      mentor = Mentor.create!(name: "Mentor")
+
+      developer = Developer.first
+      developer.update_column(:mentor_id, mentor.id)
+
+      assert_nothing_raised do
+        developer.strict_loading_off_mentor
       end
     end
   end

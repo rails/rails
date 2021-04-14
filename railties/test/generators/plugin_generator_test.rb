@@ -250,8 +250,20 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_edge_option
-    generator([destination_root], edge: true)
-    run_generator_instance
+    Rails.stub(:gem_version, Gem::Version.new("2.1.0")) do
+      generator([destination_root], edge: true)
+      run_generator_instance
+    end
+
+    assert_empty @bundle_commands
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']2-1-stable["']$}
+  end
+
+  def test_edge_option_during_alpha
+    Rails.stub(:gem_version, Gem::Version.new("2.1.0.alpha")) do
+      generator([destination_root], edge: true)
+      run_generator_instance
+    end
 
     assert_empty @bundle_commands
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
@@ -469,6 +481,57 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_creating_full_engine_mode_adds_keeps
+    run_generator [destination_root, "--full"]
+    folders_with_keep = %w(
+      app/models/concerns
+      app/controllers/concerns
+      test/fixtures/files
+      test/controllers
+      test/mailers
+      test/models
+      test/helpers
+      test/integration
+    )
+    folders_with_keep.each do |folder|
+      assert_file("#{folder}/.keep")
+    end
+  end
+
+  def test_creating_full_api_engine_adds_keeps
+    run_generator [destination_root, "--full", "--api"]
+    folders_with_keep = %w(
+      app/models/concerns
+      app/controllers/concerns
+      test/fixtures/files
+      test/controllers
+      test/mailers
+      test/models
+      test/integration
+    )
+    folders_with_keep.each do |folder|
+      assert_file("#{folder}/.keep")
+    end
+    assert_no_file("test/helpers/.keep")
+  end
+
+  def test_creating_mountable_engine_mode_adds_keeps
+    run_generator [destination_root, "--mountable"]
+    folders_with_keep = %w(
+      app/models/concerns
+      app/controllers/concerns
+      test/fixtures/files
+      test/controllers
+      test/mailers
+      test/models
+      test/helpers
+      test/integration
+    )
+    folders_with_keep.each do |folder|
+      assert_file("#{folder}/.keep")
+    end
+  end
+
   def test_creating_gemspec
     run_generator
     assert_file "bukkits.gemspec", /spec\.name\s+= "bukkits"/
@@ -478,9 +541,9 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_usage_of_engine_commands
     run_generator [destination_root, "--full"]
-    assert_file "bin/rails", /ENGINE_PATH = File\.expand_path\('\.\.\/lib\/bukkits\/engine', __dir__\)/
-    assert_file "bin/rails", /ENGINE_ROOT = File\.expand_path\('\.\.', __dir__\)/
-    assert_file "bin/rails", %r|APP_PATH = File\.expand_path\('\.\./test/dummy/config/application', __dir__\)|
+    assert_file "bin/rails", /ENGINE_PATH = File\.expand_path\("\.\.\/lib\/bukkits\/engine", __dir__\)/
+    assert_file "bin/rails", /ENGINE_ROOT = File\.expand_path\("\.\.", __dir__\)/
+    assert_file "bin/rails", %r|APP_PATH = File\.expand_path\("\.\./test/dummy/config/application", __dir__\)|
     assert_file "bin/rails", /require "rails\/all"/
     assert_file "bin/rails", /require "rails\/engine\/commands"/
   end
@@ -603,49 +666,44 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_creating_plugin_in_app_directory_adds_gemfile_entry
-    # simulate application existence
-    gemfile_path = "#{Rails.root}/Gemfile"
-    Object.const_set("APP_PATH", Rails.root)
-    FileUtils.touch gemfile_path
-    File.write(gemfile_path, "#foo")
+    with_simulated_app do |gemfile_path|
+      File.write(gemfile_path, "#foo")
 
-    run_generator
+      run_generator
 
-    assert_file gemfile_path, /^gem 'bukkits', path: 'tmp\/bukkits'/
-  ensure
-    Object.send(:remove_const, "APP_PATH")
-    FileUtils.rm gemfile_path
+      assert_file gemfile_path, /^gem 'bukkits', path: 'tmp\/bukkits'/
+    end
   end
 
   def test_creating_plugin_only_specify_plugin_name_in_app_directory_adds_gemfile_entry
-    # simulate application existence
-    gemfile_path = "#{Rails.root}/Gemfile"
-    Object.const_set("APP_PATH", Rails.root)
-    FileUtils.touch gemfile_path
+    with_simulated_app do |gemfile_path|
+      FileUtils.cd(destination_root)
+      run_generator ["bukkits"]
 
-    FileUtils.cd(destination_root)
-    run_generator ["bukkits"]
-
-    assert_file gemfile_path, /gem 'bukkits', path: 'bukkits'/
-  ensure
-    Object.send(:remove_const, "APP_PATH")
-    FileUtils.rm gemfile_path
+      assert_file gemfile_path, /gem 'bukkits', path: 'bukkits'/
+    end
   end
 
   def test_skipping_gemfile_entry
-    # simulate application existence
-    gemfile_path = "#{Rails.root}/Gemfile"
-    Object.const_set("APP_PATH", Rails.root)
-    FileUtils.touch gemfile_path
+    with_simulated_app do |gemfile_path|
+      run_generator [destination_root, "--skip-gemfile-entry"]
 
-    run_generator [destination_root, "--skip-gemfile-entry"]
-
-    assert_file gemfile_path do |contents|
-      assert_no_match(/gem 'bukkits', path: 'tmp\/bukkits'/, contents)
+      assert_file gemfile_path do |contents|
+        assert_no_match(/gem 'bukkits', path: 'tmp\/bukkits'/, contents)
+      end
     end
-  ensure
-    Object.send(:remove_const, "APP_PATH")
-    FileUtils.rm gemfile_path
+  end
+
+  def test_creating_plugin_in_application_skips_license
+    with_simulated_app do |gemfile_path|
+      FileUtils.cd(destination_root)
+      run_generator ["bukkits"]
+
+      assert_file "bukkits/bukkits.gemspec" do |contents|
+        assert_no_match(/spec.license/, contents)
+      end
+      assert_no_file "bukkits/MIT-LICENSE"
+    end
   end
 
   def test_generating_controller_inside_mountable_engine
@@ -808,7 +866,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     quietly { Rails::Engine::Updater.run(:create_bin_files) }
 
     assert_file "#{destination_root}/bin/rails" do |content|
-      assert_match(%r|APP_PATH = File\.expand_path\('\.\./test/dummy/config/application', __dir__\)|, content)
+      assert_match(%r|APP_PATH = File\.expand_path\("\.\./test/dummy/config/application", __dir__\)|, content)
     end
   ensure
     Object.send(:remove_const, "ENGINE_ROOT")
@@ -829,5 +887,16 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       else
         assert_match(/group :development do\n  gem 'sqlite3'\nend/, contents)
       end
+    end
+
+    def with_simulated_app
+      gemfile_path = "#{Rails.root}/Gemfile"
+      Object.const_set("APP_PATH", Rails.root)
+      FileUtils.touch gemfile_path
+
+      yield gemfile_path
+    ensure
+      Object.send(:remove_const, "APP_PATH")
+      FileUtils.rm gemfile_path
     end
 end

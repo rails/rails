@@ -1005,12 +1005,16 @@ side of the association.
 Counter cache columns are added to the containing model's list of read-only attributes through `attr_readonly`.
 
 ##### `:dependent`
+
 If you set the `:dependent` option to:
 
 * `:destroy`, when the object is destroyed, `destroy` will be called on its
 associated objects.
 * `:delete`, when the object is destroyed, all its associated objects will be
 deleted directly from the database without calling their `destroy` method.
+* `:destroy_async`: when the object is destroyed, an `ActiveRecord::DestroyAssociationAsyncJob`
+job is enqueued which will call destroy on its associated objects. Active Job must be set up
+for this to work.
 
 WARNING: You should not specify this option on a `belongs_to` association that is connected with a `has_many` association on the other class. Doing so can lead to orphaned records in your database.
 
@@ -1089,7 +1093,7 @@ end
 
 ##### `:validate`
 
-If you set the `:validate` option to `true`, then associated objects will be validated whenever you save this object. By default, this is `false`: associated objects will not be validated when this object is saved.
+If you set the `:validate` option to `true`, then new associated objects will be validated whenever you save this object. By default, this is `false`: new associated objects will not be validated when this object is saved.
 
 ##### `:optional`
 
@@ -1312,6 +1316,7 @@ Controls what happens to the associated object when its owner is destroyed:
 
 * `:destroy` causes the associated object to also be destroyed
 * `:delete` causes the associated object to be deleted directly from the database (so callbacks will not execute)
+* `:destroy_async`: when the object is destroyed, an `ActiveRecord::DestroyAssociationAsyncJob` job is enqueued which will call destroy on its associated objects. Active Job must be set up for this to work.
 * `:nullify` causes the foreign key to be set to `NULL`. Polymorphic type column is also nullified on polymorphic associations. Callbacks are not executed.
 * `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError` exception to be raised if there is an associated record
 * `:restrict_with_error` causes an error to be added to the owner if there is an associated object
@@ -1408,7 +1413,7 @@ end
 
 ##### `:validate`
 
-If you set the `:validate` option to `true`, then associated objects will be validated whenever you save this object. By default, this is `false`: associated objects will not be validated when this object is saved.
+If you set the `:validate` option to `true`, then new associated objects will be validated whenever you save this object. By default, this is `false`: new associated objects will not be validated when this object is saved.
 
 #### Scopes for `has_one`
 
@@ -1632,7 +1637,7 @@ The [`collection.clear`][] method removes all objects from the collection accord
 @author.books.clear
 ```
 
-WARNING: Objects will be deleted if they're associated with `dependent: :destroy`,
+WARNING: Objects will be deleted if they're associated with `dependent: :destroy` or `dependent: :destroy_async`,
 just like `dependent: :delete_all`.
 
 ##### `collection.empty?`
@@ -1768,6 +1773,7 @@ Controls what happens to the associated objects when their owner is destroyed:
 
 * `:destroy` causes all the associated objects to also be destroyed
 * `:delete_all` causes all the associated objects to be deleted directly from the database (so callbacks will not execute)
+* `:destroy_async`: when the object is destroyed, an `ActiveRecord::DestroyAssociationAsyncJob` job is enqueued which will call destroy on its associated objects. Active Job must be set up for this to work.
 * `:nullify` causes the foreign key to be set to `NULL`. Polymorphic type column is also nullified on polymorphic associations. Callbacks are not executed.
 * `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError` exception to be raised if there are any associated records
 * `:restrict_with_error` causes an error to be added to the owner if there are any associated objects
@@ -1846,7 +1852,7 @@ The `:through` option specifies a join model through which to perform the query.
 
 ##### `:validate`
 
-If you set the `:validate` option to `false`, then associated objects will not be validated whenever you save this object. By default, this is `true`: associated objects will be validated when this object is saved.
+If you set the `:validate` option to `false`, then new associated objects will not be validated whenever you save this object. By default, this is `true`: new associated objects will be validated when this object is saved.
 
 #### Scopes for `has_many`
 
@@ -2322,7 +2328,7 @@ If the default name of the join table, based on lexical ordering, is not what yo
 
 ##### `:validate`
 
-If you set the `:validate` option to `false`, then associated objects will not be validated whenever you save this object. By default, this is `true`: associated objects will be validated when this object is saved.
+If you set the `:validate` option to `false`, then new associated objects will not be validated whenever you save this object. By default, this is `true`: new associated objects will be validated when this object is saved.
 
 #### Scopes for `has_and_belongs_to_many`
 

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "yaml"
+
 require "active_support/duration"
 require "active_support/values/time_zone"
 require "active_support/core_ext/object/acts_like"
@@ -40,6 +42,13 @@ module ActiveSupport
   class TimeWithZone
     # Report class name as 'Time' to thwart type checking.
     def self.name
+      ActiveSupport::Deprecation.warn(<<~EOM)
+        ActiveSupport::TimeWithZone.name has been deprecated and
+        from Rails 7.1 will use the default Ruby implementation.
+        You can set `config.active_support.remove_deprecated_time_with_zone_name = true`
+        to enable the new behavior now.
+      EOM
+
       "Time"
     end
 
@@ -177,7 +186,6 @@ module ActiveSupport
     end
 
     def encode_with(coder) #:nodoc:
-      coder.tag = "!ruby/object:ActiveSupport::TimeWithZone"
       coder.map = { "utc" => utc, "zone" => time_zone, "time" => time }
     end
 
@@ -440,7 +448,7 @@ module ActiveSupport
       [time.sec, time.min, time.hour, time.day, time.mon, time.year, time.wday, time.yday, dst?, zone]
     end
 
-    # Returns the object's date and time as a floating point number of seconds
+    # Returns the object's date and time as a floating-point number of seconds
     # since the Epoch (January 1, 1970 00:00 UTC).
     #
     #   Time.zone.now.to_f # => 1417709320.285418
@@ -568,7 +576,7 @@ module ActiveSupport
       end
 
       def duration_of_variable_length?(obj)
-        ActiveSupport::Duration === obj && obj.parts.any? { |p| [:years, :months, :weeks, :days].include?(p[0]) }
+        ActiveSupport::Duration === obj && obj.variable?
       end
 
       def wrap_with_time_zone(time)
@@ -583,3 +591,8 @@ module ActiveSupport
       end
   end
 end
+
+# These prevent Psych from calling `ActiveSupport::TimeWithZone.name`
+# and triggering the deprecation warning about the change in Rails 7.1.
+YAML.load_tags["!ruby/object:ActiveSupport::TimeWithZone"] = "ActiveSupport::TimeWithZone"
+YAML.dump_tags[ActiveSupport::TimeWithZone] = "!ruby/object:ActiveSupport::TimeWithZone"

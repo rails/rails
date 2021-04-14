@@ -198,6 +198,10 @@ module ActiveSupport
         notifier.publish(name, *args)
       end
 
+      def publish_event(event) # :nodoc;
+        notifier.publish_event(event)
+      end
+
       def instrument(name, payload = {})
         if notifier.listening?(name)
           instrumenter.instrument(name, payload) { yield payload if block_given? }

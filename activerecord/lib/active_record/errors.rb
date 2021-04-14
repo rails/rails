@@ -374,7 +374,7 @@ module ActiveRecord
   end
 
   # AsynchronousQueryInsideTransactionError will be raised when attempting
-  # to perform an aynchronous query from inside a transaction
+  # to perform an asynchronous query from inside a transaction
   class AsynchronousQueryInsideTransactionError < ActiveRecordError
   end
 

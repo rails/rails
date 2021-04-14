@@ -41,6 +41,20 @@ module ActiveRecord
     end
     private :assert_non_select_columns_wont_be_loaded
 
+    def test_merging_select_from_different_model
+      posts = Post.select(:id, :title).joins(:comments)
+      comments = Comment.where(body: "Thank you for the welcome")
+
+      [
+        posts.merge(comments.select(:body)).first,
+        posts.merge(comments.select("comments.body")).first,
+      ].each do |post|
+        assert_equal 1, post.id
+        assert_equal "Welcome to the weblog", post.title
+        assert_equal "Thank you for the welcome", post.body
+      end
+    end
+
     def test_type_casted_extra_select_with_eager_loading
       posts = Post.select("posts.id * 1.1 AS foo").eager_load(:comments)
       assert_equal 1.1, posts.first.foo

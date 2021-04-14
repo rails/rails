@@ -128,10 +128,8 @@ module ActiveRecord
           value.to_s
         elsif mapping.has_value?(value)
           mapping.key(value)
-        elsif value.blank?
-          nil
         else
-          assert_valid_value(value)
+          value.presence
         end
       end
 
@@ -141,6 +139,10 @@ module ActiveRecord
 
       def serialize(value)
         subtype.serialize(mapping.fetch(value, value))
+      end
+
+      def serializable?(value, &block)
+        subtype.serializable?(mapping.fetch(value, value), &block)
       end
 
       def assert_valid_value(value)

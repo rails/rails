@@ -431,7 +431,7 @@ module ActionDispatch
           super
         end
       end
-      ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
+      ruby2_keywords(:method_missing)
     end
   end
 

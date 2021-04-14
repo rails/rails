@@ -23,7 +23,7 @@ module ActionMailer
       @processed_mailer = nil
       @mail_message = nil
     end
-    ruby2_keywords(:initialize) if respond_to?(:ruby2_keywords, true)
+    ruby2_keywords(:initialize)
 
     # Method calls are delegated to the Mail::Message that's ready to deliver.
     def __getobj__ #:nodoc:

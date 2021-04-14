@@ -49,6 +49,14 @@ module ApplicationTests
       end
     end
 
+    def switch_development_hosts_to(*hosts)
+      old_development_hosts = ENV["RAILS_DEVELOPMENT_HOSTS"]
+      ENV["RAILS_DEVELOPMENT_HOSTS"] = hosts.join(",")
+      yield
+    ensure
+      ENV["RAILS_DEVELOPMENT_HOSTS"] = old_development_hosts
+    end
+
     def setup
       build_app
       suppress_default_config
@@ -1219,7 +1227,6 @@ module ApplicationTests
     test "autoloaders" do
       app "development"
 
-      config = Rails.application.config
       assert Rails.autoloaders.zeitwerk_enabled?
       assert_instance_of Zeitwerk::Loader, Rails.autoloaders.main
       assert_equal "rails.main", Rails.autoloaders.main.tag
@@ -1228,24 +1235,6 @@ module ApplicationTests
       assert_equal [Rails.autoloaders.main, Rails.autoloaders.once], Rails.autoloaders.to_a
       assert_equal ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector, Rails.autoloaders.main.inflector
       assert_equal ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector, Rails.autoloaders.once.inflector
-
-      config.autoloader = :classic
-      assert_not Rails.autoloaders.zeitwerk_enabled?
-      assert_nil Rails.autoloaders.main
-      assert_nil Rails.autoloaders.once
-      assert_equal 0, Rails.autoloaders.count
-
-      config.autoloader = :zeitwerk
-      assert Rails.autoloaders.zeitwerk_enabled?
-      assert_instance_of Zeitwerk::Loader, Rails.autoloaders.main
-      assert_equal "rails.main", Rails.autoloaders.main.tag
-      assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once
-      assert_equal "rails.once", Rails.autoloaders.once.tag
-      assert_equal [Rails.autoloaders.main, Rails.autoloaders.once], Rails.autoloaders.to_a
-      assert_equal ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector, Rails.autoloaders.main.inflector
-      assert_equal ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector, Rails.autoloaders.once.inflector
-
-      assert_raises(ArgumentError) { config.autoloader = :unknown }
     end
 
     test "config.action_view.cache_template_loading with cache_classes default" do
@@ -2760,6 +2749,30 @@ module ApplicationTests
       assert_kind_of ActiveSupport::HashWithIndifferentAccess, ActionCable.server.config.cable
     end
 
+    test "action_text.config.attachment_tag_name is 'action-text-attachment' with Rails 6 defaults" do
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "development"
+
+      assert_equal "action-text-attachment", ActionText::Attachment.tag_name
+    end
+
+    test "action_text.config.attachment_tag_name is 'action-text-attachment' without defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal "action-text-attachment", ActionText::Attachment.tag_name
+    end
+
+    test "action_text.config.attachment_tag_name is can be overridden" do
+      add_to_config "config.action_text.attachment_tag_name = 'link'"
+
+      app "development"
+
+      assert_equal "link", ActionText::Attachment.tag_name
+    end
+
     test "ActionMailbox.logger is Rails.logger by default" do
       app "development"
 
@@ -2931,6 +2944,44 @@ module ApplicationTests
     test "hosts include .localhost in development" do
       app "development"
       assert_includes Rails.application.config.hosts, ".localhost"
+    end
+
+    test "hosts reads multiple values from RAILS_DEVELOPMENT_HOSTS" do
+      host = "agoodhost.com"
+      another_host = "bananapants.com"
+      switch_development_hosts_to(host, another_host) do
+        app "development"
+        assert_includes Rails.application.config.hosts, host
+        assert_includes Rails.application.config.hosts, another_host
+      end
+    end
+
+    test "hosts reads multiple values from RAILS_DEVELOPMENT_HOSTS and trims white space" do
+      host = "agoodhost.com"
+      host_with_white_space = "  #{host} "
+      another_host = "bananapants.com"
+      another_host_with_white_space = "     #{another_host}"
+      switch_development_hosts_to(host_with_white_space, another_host_with_white_space) do
+        app "development"
+        assert_includes Rails.application.config.hosts, host
+        assert_includes Rails.application.config.hosts, another_host
+      end
+    end
+
+    test "hosts reads from RAILS_DEVELOPMENT_HOSTS" do
+      host = "agoodhost.com"
+      switch_development_hosts_to(host) do
+        app "development"
+        assert_includes Rails.application.config.hosts, host
+      end
+    end
+
+    test "hosts does not read from RAILS_DEVELOPMENT_HOSTS in production" do
+      host = "agoodhost.com"
+      switch_development_hosts_to(host) do
+        app "production"
+        assert_not_includes Rails.application.config.hosts, host
+      end
     end
 
     test "disable_sandbox is false by default" do

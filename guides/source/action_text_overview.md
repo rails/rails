@@ -172,7 +172,7 @@ Next, consider some rich text content that embeds an `<action-text-attachment>`
 element that references the `User` instance's signed GlobalID:
 
 ```html
-<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"></action-text-content>.</p>
+<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"></action-text-attachment>.</p>
 ```
 
 Action Text resolves uses the "BAh7CEkiCG…" String to resolve the `User`
@@ -186,7 +186,7 @@ instance. Next, consider the application's `users/user` partial:
 The resulting HTML rendered by Action Text would look something like:
 
 ```html
-<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"><span><img src="..."> Jane Doe</span></action-text-content>.</p>
+<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"><span><img src="..."> Jane Doe</span></action-text-attachment>.</p>
 ```
 
 To render a different partial, define `User#to_attachable_partial_path`:

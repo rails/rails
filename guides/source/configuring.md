@@ -147,6 +147,8 @@ numbers. It also filters out sensitive values of database columns when call `#in
 
 * `secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get a random generated key in test and development environments, other environments should set one in `config/credentials.yml.enc`.
 
+* `config.require_master_key` causes the app to not boot if a master key hasn't been made available through `ENV["RAILS_MASTER_KEY"]` or the `config/master.key` file.
+
 * `config.public_file_server.enabled` configures Rails to serve static files from the public directory. This option defaults to `true`, but in the production environment it is set to `false` because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production using WEBrick (it is not recommended to use WEBrick in production) set the option to `true`. Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
 
 * `config.session_store` specifies what class to use to store the session. Possible values are `:cookie_store` which is the default, `:mem_cache_store`, and `:disabled`. The last one tells Rails not to deal with sessions. Defaults to a cookie store with application name as the session key. Custom session stores can also be specified:
@@ -158,13 +160,6 @@ numbers. It also filters out sensitive values of database columns when call `#in
     This custom store must be defined as `ActionDispatch::Session::MyCustomStore`.
 
 * `config.time_zone` sets the default time zone for the application and enables time zone awareness for Active Record.
-
-* `config.autoloader` sets the autoloading mode. This option defaults to `:zeitwerk` when `config.load_defaults` is called with `6.0` or greater. Applications can still use the classic autoloader by setting this value to `:classic` after loading the framework defaults:
-
-    ```ruby
-    config.load_defaults 6.0
-    config.autoloader = :classic
-    ```
 
 ### Configuring Assets
 
@@ -237,9 +232,10 @@ Every Rails application comes with a standard set of middleware which it uses in
 
     ```ruby
     Rails.application.config.hosts = [
-      IPAddr.new("0.0.0.0/0"), # All IPv4 addresses.
-      IPAddr.new("::/0"),      # All IPv6 addresses.
-      "localhost"              # The localhost reserved domain.
+      IPAddr.new("0.0.0.0/0"),        # All IPv4 addresses.
+      IPAddr.new("::/0"),             # All IPv6 addresses.
+      "localhost",                    # The localhost reserved domain.
+      ENV["RAILS_DEVELOPMENT_HOSTS"]  # Additional comma-separated hosts for development.
     ]
     ```
 
@@ -278,7 +274,6 @@ Every Rails application comes with a standard set of middleware which it uses in
 * `ActionDispatch::Static` is used to serve static assets. Disabled if `config.public_file_server.enabled` is `false`. Set `config.public_file_server.index_name` if you need to serve a static directory index file that is not named `index`. For example, to serve `main.html` instead of `index.html` for directory requests, set `config.public_file_server.index_name` to `"main"`.
 * `ActionDispatch::Executor` allows thread safe code reloading. Disabled if `config.allow_concurrency` is `false`, which causes `Rack::Lock` to be loaded. `Rack::Lock` wraps the app in mutex so it can only be called by a single thread at a time.
 * `ActiveSupport::Cache::Strategy::LocalCache` serves as a basic memory backed cache. This cache is not thread safe and is intended only for serving as a temporary memory cache for a single thread.
-* `Rack::Runtime` sets an `X-Runtime` header, containing the time (in seconds) taken to execute the request.
 * `Rails::Rack::Logger` notifies the logs that the request has begun. After request is complete, flushes all the logs.
 * `ActionDispatch::ShowExceptions` rescues any exception returned by the application and renders nice exception pages if the request is local or if `config.consider_all_requests_local` is set to `true`. If `config.action_dispatch.show_exceptions` is set to `false`, exceptions will be raised regardless.
 * `ActionDispatch::RequestId` makes a unique X-Request-Id header available to the response and enables the `ActionDispatch::Request#uuid` method. Configurable with `config.action_dispatch.request_id_header`.
@@ -530,7 +525,10 @@ The schema dumper adds two additional configuration options:
 
 * `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.
 
-* `config.action_controller.action_on_unpermitted_parameters` enables logging or raising an exception if parameters that are not explicitly permitted are found. Set to `:log` or `:raise` to enable. The default value is `:log` in development and test environments, and `false` in all other environments.
+* `config.action_controller.action_on_unpermitted_parameters` controls behavior when parameters that are not explicitly permitted are found. The default value is `:log` in test and development environments, `false` otherwise. The values can be:
+    * `false` to take no action
+    * `:log` to emit an `ActiveSupport::Notifications.instrument` event on the `unpermitted_parameters.action_controller` topic and log at the DEBUG level
+    * `:raise` to raise a `ActionController::UnpermittedParameters` exception
 
 * `config.action_controller.always_permitted_parameters` sets a list of permitted parameters that are permitted by default. The default values are `['controller', 'action']`.
 
@@ -1043,11 +1041,16 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
     The default is `:rails_storage_redirect`.
 
+### Configuring Action Text
+
+* `config.action_text.attachment_tag_name` accepts a string for the HTML tag used to wrap attachments. Defaults to `"action-text-attachment"`.
+
 ### Results of `config.load_defaults`
 
 `config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, `6.0` also gets the new defaults from every version before it.
 
 #### For '7.0', defaults from previous versions below and:
+
 - `config.action_view.button_to_generates_button_tag`: `true`
 - `config.action_view.apply_stylesheet_media_default` : `false`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`
@@ -1579,7 +1582,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `initialize_logger`: Initializes the logger (an `ActiveSupport::Logger` object) for the application and makes it accessible at `Rails.logger`, provided that no initializer inserted before this point has defined `Rails.logger`.
 
-* `initialize_cache`: If `Rails.cache` isn't set yet, initializes the cache by referencing the value in `config.cache_store` and stores the outcome as `Rails.cache`. If this object responds to the `middleware` method, its middleware is inserted before `Rack::Runtime` in the middleware stack.
+* `initialize_cache`: If `Rails.cache` isn't set yet, initializes the cache by referencing the value in `config.cache_store` and stores the outcome as `Rails.cache`. If this object responds to the `middleware` method, its middleware is inserted after `ActionDispatch::Executor` in the middleware stack.
 
 * `set_clear_dependencies_hook`: This initializer - which runs only if `cache_classes` is set to `false` - uses `ActionDispatch::Callbacks.after` to remove the constants which have been referenced during the request from the object space so that they will be reloaded during the following request.
 

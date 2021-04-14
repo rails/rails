@@ -146,9 +146,7 @@ module ActiveRecord
             if default_scope_override
               # The user has defined their own default scope method, so call that
               evaluate_default_scope do
-                if scope = default_scope
-                  relation.merge!(scope)
-                end
+                relation.scoping { default_scope }
               end
             elsif default_scopes.any?
               evaluate_default_scope do
@@ -173,11 +171,11 @@ module ActiveRecord
           end
 
           def ignore_default_scope?
-            ScopeRegistry.value_for(:ignore_default_scope, base_class)
+            ScopeRegistry.ignore_default_scope(base_class)
           end
 
           def ignore_default_scope=(ignore)
-            ScopeRegistry.set_value_for(:ignore_default_scope, base_class, ignore)
+            ScopeRegistry.set_ignore_default_scope(base_class, ignore)
           end
 
           # The ignore_default_scope flag is used to prevent an infinite recursion

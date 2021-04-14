@@ -56,6 +56,22 @@ module ActiveRecord
       FINALIZER = lambda { |_| ActiveSupport::ForkTracker.check! }
       private_constant :FINALIZER
 
+      class StringConnectionOwner # :nodoc:
+        attr_reader :name
+
+        def initialize(name)
+          @name = name
+        end
+
+        def primary_class?
+          false
+        end
+
+        def current_preventing_writes
+          false
+        end
+      end
+
       def initialize
         # These caches are keyed by pool_config.connection_specification_name (PoolConfig#connection_specification_name).
         @owner_to_pool_manager = Concurrent::Map.new(initial_capacity: 2)
@@ -108,7 +124,7 @@ module ActiveRecord
       alias :connection_pools :connection_pool_list
 
       def establish_connection(config, owner_name: Base, role: ActiveRecord::Base.current_role, shard: Base.current_shard)
-        owner_name = config.to_s if config.is_a?(Symbol)
+        owner_name = StringConnectionOwner.new(config.to_s) if config.is_a?(Symbol)
 
         pool_config = resolve_pool_config(config, owner_name)
         db_config = pool_config.db_config

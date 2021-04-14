@@ -347,8 +347,8 @@ number_to_human(1234567) # => 1.23 Million
 Formats the bytes in size into a more understandable representation; useful for reporting file sizes to users.
 
 ```ruby
-number_to_human_size(1234)    # => 1.2 KB
-number_to_human_size(1234567) # => 1.2 MB
+number_to_human_size(1234)    # => 1.21 KB
+number_to_human_size(1234567) # => 1.18 MB
 ```
 
 #### number_to_percentage
@@ -415,6 +415,7 @@ end
 Sanitizes a block of CSS code.
 
 #### strip_links(html)
+
 Strips all link tags from text leaving just the link text.
 
 ```ruby

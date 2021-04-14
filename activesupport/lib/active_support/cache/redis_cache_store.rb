@@ -16,7 +16,6 @@ rescue LoadError
 end
 
 require "active_support/digest"
-require "active_support/core_ext/marshal"
 
 module ActiveSupport
   module Cache

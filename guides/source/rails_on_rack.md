@@ -107,7 +107,6 @@ use Rack::Sendfile
 use ActionDispatch::Static
 use ActionDispatch::Executor
 use ActiveSupport::Cache::Strategy::LocalCache::Middleware
-use Rack::Runtime
 use Rack::MethodOverride
 use ActionDispatch::RequestId
 use ActionDispatch::RemoteIp
@@ -175,10 +174,10 @@ Add the following lines to your application configuration:
 
 ```ruby
 # config/application.rb
-config.middleware.delete Rack::Runtime
+config.middleware.delete ActionDispatch::Executor
 ```
 
-And now if you inspect the middleware stack, you'll find that `Rack::Runtime` is
+And now if you inspect the middleware stack, you'll find that `ActionDispatch::Executor` is
 not a part of it.
 
 ```bash
@@ -229,10 +228,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`ActiveSupport::Cache::Strategy::LocalCache::Middleware`**
 
 * Used for memory caching. This cache is not thread safe.
-
-**`Rack::Runtime`**
-
-* Sets an X-Runtime header, containing the time (in seconds) taken to execute the request.
 
 **`Rack::MethodOverride`**
 

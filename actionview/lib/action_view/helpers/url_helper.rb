@@ -214,20 +214,24 @@ module ActionView
       # using the +link_to+ method with the <tt>:method</tt> modifier as described in
       # the +link_to+ documentation.
       #
-      # By default, the generated form element has a class name of <tt>button_to</tt>
-      # to allow styling of the form itself and its children. This can be changed
-      # using the <tt>:form_class</tt> modifier within +html_options+. You can control
-      # the form submission and input element behavior using +html_options+.
-      # This method accepts the <tt>:method</tt> modifier described in the +link_to+ documentation.
-      # If no <tt>:method</tt> modifier is given, it will default to performing a POST operation.
-      # You can also disable the button by passing <tt>disabled: true</tt> in +html_options+.
-      # If you are using RESTful routes, you can pass the <tt>:method</tt>
-      # to change the HTTP verb used to submit the form.
+      # You can control the form and button behavior with +html_options+. Most
+      # values in +html_options+ are passed through to the button element. For
+      # example, passing a +:class+ option within +html_options+ will set the
+      # class attribute of the button element.
+      #
+      # The class attribute of the form element can be set by passing a
+      # +:form_class+ option within +html_options+. It defaults to
+      # <tt>"button_to"</tt> to allow styling of the form and its children.
+      #
+      # The form submits a POST request by default. You can specify a different
+      # HTTP verb via the +:method+ option within +html_options+.
       #
       # ==== Options
       # The +options+ hash accepts the same options as +url_for+.
       #
-      # There are a few special +html_options+:
+      # Most values in +html_options+ are passed through to the button element,
+      # but there are a few special options:
+      #
       # * <tt>:method</tt> - \Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
       #   <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>. By default it will be <tt>:post</tt>.
       # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
@@ -253,11 +257,20 @@ module ActionView
       #   <%= button_to "New", action: "new" %>
       #   # => "<form method="post" action="/controller/new" class="button_to">
       #   #      <button type="submit">New</button>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
       #
       #   <%= button_to "New", new_article_path %>
       #   # => "<form method="post" action="/articles/new" class="button_to">
       #   #      <button type="submit">New</button>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #    </form>"
+      #
+      #   <%= button_to "New", new_article_path, params: { time: Time.now  } %>
+      #   # => "<form method="post" action="/articles/new" class="button_to">
+      #   #      <button type="submit">New</button>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
+      #   #      <input type="hidden" name="time" value="2021-04-08 14:06:09 -0500">
       #   #    </form>"
       #
       #   <%= button_to [:make_happy, @user] do %>
@@ -267,20 +280,20 @@ module ActionView
       #   #      <button type="submit">
       #   #        Make happy <strong><%= @user.name %></strong>
       #   #      </button>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
       #
       #   <%= button_to "New", { action: "new" }, form_class: "new-thing" %>
       #   # => "<form method="post" action="/controller/new" class="new-thing">
       #   #      <button type="submit">New</button>
+      #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
-      #
       #
       #   <%= button_to "Create", { action: "create" }, remote: true, form: { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
       #   #      <button type="submit">Create</button>
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
-      #
       #
       #   <%= button_to "Delete Image", { action: "delete", id: @image.id },
       #                                   method: :delete, data: { confirm: "Are you sure?" } %>
@@ -289,7 +302,6 @@ module ActionView
       #   #      <button data-confirm='Are you sure?' type="submit">Delete Image</button>
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
-      #
       #
       #   <%= button_to('Destroy', 'http://www.example.com',
       #             method: :delete, remote: true, data: { confirm: 'Are you sure?', disable_with: 'loading...' }) %>
@@ -573,6 +585,19 @@ module ActionView
         end
       end
 
+      if RUBY_VERSION.start_with?("2.7")
+        using Module.new {
+          refine UrlHelper do
+            alias :_current_page? :current_page?
+          end
+        }
+
+        def current_page?(*args) # :nodoc:
+          options = args.pop
+          options.is_a?(Hash) ? _current_page?(*args, **options) : _current_page?(*args, options)
+        end
+      end
+
       # Creates an SMS anchor link tag to the specified +phone_number+. When the
       # link is clicked, the default SMS messaging app is opened ready to send a
       # message to the linked phone number. If the +body+ option is specified,
@@ -642,10 +667,10 @@ module ActionView
       #   # => <a href="tel:1234567890">1234567890</a>
       #
       #   phone_to "1234567890", "Phone me"
-      #   # => <a href="tel:134567890">Phone me</a>
+      #   # => <a href="tel:1234567890">Phone me</a>
       #
       #   phone_to "1234567890", country_code: "01"
-      #   # => <a href="tel:+015155555785">1234567890</a>
+      #   # => <a href="tel:+011234567890">1234567890</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. \ERB example:
       #

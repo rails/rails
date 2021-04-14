@@ -56,6 +56,10 @@ module ActiveModel
       type.serialize(value)
     end
 
+    def serializable?(&block)
+      type.serializable?(value, &block)
+    end
+
     def changed?
       changed_from_assignment? || changed_in_place?
     end

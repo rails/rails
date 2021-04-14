@@ -25,7 +25,6 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
   def test_namespaced_controller_skeleton_is_created
     run_generator
     assert_file "app/controllers/test_app/account_controller.rb",
-                /require_dependency "test_app\/application_controller"/,
                 /module TestApp/,
                 /  class AccountController < ApplicationController/
 
@@ -42,9 +41,7 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_namespaced_controller_with_additional_namespace
     run_generator ["admin/account"]
-    assert_file "app/controllers/test_app/admin/account_controller.rb", /module TestApp/, /  class Admin::AccountController < ApplicationController/ do |contents|
-      assert_match %r(require_dependency "test_app/application_controller"), contents
-    end
+    assert_file "app/controllers/test_app/admin/account_controller.rb", /module TestApp/, /  class Admin::AccountController < ApplicationController/
   end
 
   def test_helper_is_also_namespaced
@@ -216,7 +213,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Controller
     assert_file "app/controllers/test_app/product_lines_controller.rb",
-                /require_dependency "test_app\/application_controller"/,
                 /module TestApp/,
                 /class ProductLinesController < ApplicationController/
 
@@ -284,7 +280,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     # Controller
     assert_file "app/controllers/test_app/admin/roles_controller.rb" do |content|
       assert_match(/module TestApp\n  class Admin::RolesController < ApplicationController/, content)
-      assert_match(%r(require_dependency "test_app/application_controller"), content)
     end
 
     assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
@@ -418,7 +413,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     # Controller
     assert_file "app/controllers/test_app/admin/roles_controller.rb" do |content|
       assert_match(/module TestApp\n  class Admin::RolesController < ApplicationController/, content)
-      assert_match(%r(require_dependency "test_app/application_controller"), content)
     end
     assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
                 /module TestApp\n  class Admin::RolesControllerTest < ActionDispatch::IntegrationTest/

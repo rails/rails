@@ -1505,6 +1505,13 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
   def test_should_not_load_the_associated_model
     assert_queries(1) { @ship.name = "The Vile Insanity"; @ship.save! }
   end
+
+  def test_should_save_with_non_nullable_foreign_keys
+    parent = Post.new title: "foo", body: "..."
+    child = parent.comments.build body: "..."
+    child.save!
+    assert_equal child.reload.post, parent.reload
+  end
 end
 
 module AutosaveAssociationOnACollectionAssociationTests

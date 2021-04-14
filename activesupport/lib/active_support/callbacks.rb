@@ -289,20 +289,16 @@ module ActiveSupport
         end
 
         attr_accessor :kind, :name
-        attr_reader :chain_config
+        attr_reader :chain_config, :filter
 
         def initialize(name, filter, kind, options, chain_config)
           @chain_config = chain_config
           @name    = name
           @kind    = kind
           @filter  = filter
-          @key     = compute_identifier filter
           @if      = check_conditionals(options[:if])
           @unless  = check_conditionals(options[:unless])
         end
-
-        def filter; @key; end
-        def raw_filter; @filter; end
 
         def merge_conditional_options(chain, if_option:, unless_option:)
           options = {
@@ -365,15 +361,6 @@ module ActiveSupport
             end
 
             conditionals.freeze
-          end
-
-          def compute_identifier(filter)
-            case filter
-            when ::Proc
-              filter.object_id
-            else
-              filter
-            end
           end
 
           def conditions_lambdas

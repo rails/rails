@@ -85,6 +85,8 @@ class Post < ActiveRecord::Base
     end
   end
 
+  has_many :comments_with_extending, -> { extending(NamedExtension) }, class_name: "Comment", foreign_key: "post_id"
+
   has_many :comments_with_extend_2, extend: [NamedExtension, NamedExtension2], class_name: "Comment", foreign_key: "post_id"
 
   has_many :author_favorites, through: :author
@@ -322,6 +324,10 @@ class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
 
   class << self
+    def scope_registry
+      ActiveRecord::Scoping::ScopeRegistry.instance
+    end
+
     def connection
       Post.connection
     end

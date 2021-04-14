@@ -311,7 +311,7 @@ module ActiveRecord
   #
   # Just provide the polymorphic target type and Active Record will take care of the rest.
   #
-  # === has_and_belongs_to_many
+  # === has_and_belongs_to_many or has_many :through
   #
   # Time to give our monkey some fruit.
   #

@@ -1,8 +1,157 @@
+*   Allow passing SQL as `on_duplicate` value to `#upsert_all` to make it possible to use raw SQL to update columns on conflict:
+
+    ```ruby
+    Book.upsert_all(
+      [{ id: 1, status: 1 }, { id: 2, status: 1 }],
+      on_duplicate: Arel.sql("status = GREATEST(books.status, EXCLUDED.status)")
+    )
+    ```
+
+    *Vladimir Dementyev*
+
+*   Allow passing SQL as `returning` statement to `#upsert_all`:
+
+    ```ruby
+    Article.insert_all(
+    [
+        { title: "Article 1", slug: "article-1", published: false },
+        { title: "Article 2", slug: "article-2", published: false }
+      ],
+      returning: Arel.sql("id, (xmax = '0') as inserted, name as new_name")
+    )
+    ```
+
+    *Vladimir Dementyev*
+
+*   Deprecate `legacy_connection_handling`.
+
+    *Eileen M. Uchitelle*
+
+*   Add attribute encryption support.
+
+    Encrypted attributes are declared at the model level. These
+    are regular Active Record attributes backed by a column with
+    the same name. The system will transparently encrypt these
+    attributes before saving them into the database and will
+    decrypt them when retrieving their values.
+
+
+    ```ruby
+    class Person < ApplicationRecord
+      encrypts :name
+      encrypts :email_address, deterministic: true
+    end
+    ```
+
+    You can learn more in the [Active Record Encryption
+    guide](https://edgeguides.rubyonrails.org/active_record_encryption.html).
+
+    *Jorge Manrubia*
+
+*   Changed Arel predications `contains` and `overlaps` to use
+    `quoted_node` so that PostgreSQL arrays are quoted properly.
+
+    *Bradley Priest*
+
+*   Add mode argument to record level `strict_loading!`
+
+    This argument can be used when enabling strict loading for a single record
+    to specify that we only want to raise on n plus one queries.
+
+    ```ruby
+    developer.strict_loading!(mode: :n_plus_one_only)
+
+    developer.projects.to_a # Does not raise
+    developer.projects.first.client # Raises StrictLoadingViolationError
+    ```
+
+    Previously, enabling strict loading would cause any lazily loaded
+    association to raise an error. Using `n_plus_one_only` mode allows us to
+    lazily load belongs_to, has_many, and other associations that are fetched
+    through a single query.
+
+    *Dinah Shi*
+
+*   Fix Float::INFINITY assignment to datetime column with postgresql adapter
+
+    Before:
+
+    ```ruby
+    # With this config
+    ActiveRecord::Base.time_zone_aware_attributes = true
+
+    # and the following schema:
+    create_table "postgresql_infinities" do |t|
+      t.datetime "datetime"
+    end
+
+    # This test fails
+    record = PostgresqlInfinity.create!(datetime: Float::INFINITY)
+    assert_equal Float::INFINITY, record.datetime # record.datetime gets nil
+    ```
+
+    After this commit, `record.datetime` gets `Float::INFINITY` as expected.
+
+    *Shunichi Ikegami*
+
+*   Type cast enum values by the original attribute type.
+
+    The notable thing about this change is that unknown labels will no longer match 0 on MySQL.
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      enum :status, { proposed: 0, written: 1, published: 2 }
+    end
+    ```
+
+    Before:
+
+    ```ruby
+    # SELECT `books`.* FROM `books` WHERE `books`.`status` = 'prohibited' LIMIT 1
+    Book.find_by(status: :prohibited)
+    # => #<Book id: 1, status: "proposed", ...> (for mysql2 adapter)
+    # => ActiveRecord::StatementInvalid: PG::InvalidTextRepresentation: ERROR:  invalid input syntax for type integer: "prohibited" (for postgresql adapter)
+    # => nil (for sqlite3 adapter)
+    ```
+
+    After:
+
+    ```ruby
+    # SELECT `books`.* FROM `books` WHERE `books`.`status` IS NULL LIMIT 1
+    Book.find_by(status: :prohibited)
+    # => nil (for all adapters)
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fixtures for `has_many :through` associations now load timestamps on join tables
+
+    Given this fixture:
+
+    ```yml
+    ### monkeys.yml
+    george:
+      name: George the Monkey
+      fruits: apple
+
+    ### fruits.yml
+    apple:
+      name: apple
+    ```
+
+    If the join table (`fruit_monkeys`) contains `created_at` or `updated_at` columns,
+    these will now be populated when loading the fixture. Previously, fixture loading
+    would crash if these columns were required, and leave them as null otherwise.
+
+    *Alex Ghiculescu*
+
 *   Allow applications to configure the thread pool for async queries
 
     Some applications may want one thread pool per database whereas others want to use
-    a single global thread pool for all queries. By default Rails will set `async_query_executor`
-    to `:immediate` and create a `Concurrent::ImmediateExecutor` object which is essentially a no-op.
+    a single global thread pool for all queries. By default, Rails will set `async_query_executor`
+    to `nil` which will not initialize any executor. If `load_async` is called and no executor
+    has been configured, the query will be executed in the foreground.
+
     To create one thread pool for all database connections to use applications can set
     `config.active_record.async_query_executor` to `:global_thread_pool` and optionally define
     `config.active_record.global_executor_concurrency`. This defaults to 4. For applications that want
@@ -42,7 +191,7 @@
     the query, it will be performed in the foreground.
 
     This is useful for queries that can be performed long enough before their result will be
-    needed, or for controllers which need to perform several independant queries.
+    needed, or for controllers which need to perform several independent queries.
 
     ```ruby
     def index
@@ -88,7 +237,7 @@
     present in the simplified query, an ActiveRecord::InvalidStatement
     error was raised.
 
-    An sample query affected by this problem:
+    A sample query affected by this problem:
 
     ```ruby
     Author.select('COUNT(*) as total_posts', 'authors.*')
@@ -107,7 +256,7 @@
     *Michael Smart*
 
 *   Increment postgres prepared statement counter before making a prepared statement, so if the statement is aborted
-    without Rails knowledge (e.g., if app gets kill -9d during long-running query or due to Rack::Timeout), app won't end
+    without Rails knowledge (e.g., if app gets killed during long-running query or due to Rack::Timeout), app won't end
     up in perpetual crash state for being inconsistent with Postgres.
 
     *wbharding*, *Martin Tepper*
@@ -128,7 +277,7 @@
 
 *   `ActiveRecord::Calculations.calculate` called with `:average`
     (aliased as `ActiveRecord::Calculations.average`) will now use column based
-    type casting. This means that floating point number columns will now be
+    type casting. This means that floating-point number columns will now be
     aggregated as `Float` and decimal columns will be aggregated as `BigDecimal`.
 
     Integers are handled as a special case returning `BigDecimal` always
@@ -182,7 +331,7 @@
     When an application boots it automatically connects to the primary or first database in the
     database configuration file. In a multiple database application that then call `connects_to`
     needs to know that the default connection is the same as the `ApplicationRecord` connection.
-    However some applications have a differently named `ApplicationRecord`. This prevents Active
+    However, some applications have a differently named `ApplicationRecord`. This prevents Active
     Record from opening duplicate connections to the same database.
 
     *Eileen M. Uchitelle*, *John Crepezzi*
@@ -345,7 +494,7 @@
 
 *   Add option to run `default_scope` on all queries.
 
-    Previously, a `default_scope` would only run on select or insert queries. In some cases, like non-Rails tenant sharding solutions, it may be desirable to run `default_scope` on all queries in order to ensure queries are including a foreign key for the shard (ie `blog_id`).
+    Previously, a `default_scope` would only run on select or insert queries. In some cases, like non-Rails tenant sharding solutions, it may be desirable to run `default_scope` on all queries in order to ensure queries are including a foreign key for the shard (i.e. `blog_id`).
 
     Now applications can add an option to run on all queries including select, insert, delete, and update by adding an `all_queries` option to the default scope definition.
 

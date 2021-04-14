@@ -30,7 +30,10 @@ module ActiveModel
 
       def serializable?(value)
         cast_value = cast(value)
-        in_range?(cast_value) && super
+        in_range?(cast_value) || begin
+          yield cast_value if block_given?
+          false
+        end
       end
 
       private

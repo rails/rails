@@ -12,7 +12,7 @@ class ActionController::Base
 
     def before_actions
       filters = _process_action_callbacks.select { |c| c.kind == :before }
-      filters.map!(&:raw_filter)
+      filters.map!(&:filter)
     end
   end
 end
@@ -195,7 +195,7 @@ class FilterTest < ActionController::TestCase
     before_action ConditionalClassFilter, except: :show_without_action
   end
 
-  class AnomolousYetValidConditionController < ConditionalFilterController
+  class AnomalousYetValidConditionController < ConditionalFilterController
     before_action(ConditionalClassFilter, :ensure_login, Proc.new { |c| c.instance_variable_set(:"@ran_proc_action1", true) }, except: :show_without_action) { |c| c.instance_variable_set(:"@ran_proc_action2", true) }
   end
 
@@ -609,13 +609,13 @@ class FilterTest < ActionController::TestCase
   end
 
   def test_running_anomalous_yet_valid_condition_actions
-    test_process(AnomolousYetValidConditionController)
+    test_process(AnomalousYetValidConditionController)
     assert_equal %w( ensure_login ), @controller.instance_variable_get(:@ran_filter)
     assert @controller.instance_variable_get(:@ran_class_action)
     assert @controller.instance_variable_get(:@ran_proc_action1)
     assert @controller.instance_variable_get(:@ran_proc_action2)
 
-    test_process(AnomolousYetValidConditionController, "show_without_action")
+    test_process(AnomalousYetValidConditionController, "show_without_action")
     assert_not @controller.instance_variable_defined?(:@ran_filter)
     assert_not @controller.instance_variable_defined?(:@ran_class_action)
     assert_not @controller.instance_variable_defined?(:@ran_proc_action1)

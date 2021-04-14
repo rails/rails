@@ -1,3 +1,7 @@
+*   Add `config.action_text.attachment_tag_name`, to specify the HTML tag that contains attachments.
+
+    *Mark VanLandingham*
+
 *   Expose how we render the HTML _surrounding_ rich text content as an
     extensible `layouts/action_view/contents/_content.html.erb` template to
     encourage user-land customizations, while retaining private API control over how
