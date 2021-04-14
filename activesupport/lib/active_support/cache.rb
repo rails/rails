@@ -465,7 +465,8 @@ module ActiveSupport
         options = merged_options(options)
 
         if options[:force]
-          writes = names.each_with_object({}) { |name, hsh| hsh[name] = yield(name) }
+          writes = {}
+          writes = names.index_with { |name| writes[name] = yield(name) }
           write_multi(writes)
           writes
         else
