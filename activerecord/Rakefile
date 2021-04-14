@@ -119,7 +119,7 @@ end
           n = ENV["BUILDKITE_PARALLEL_JOB"].to_i
           m = ENV["BUILDKITE_PARALLEL_JOB_COUNT"].to_i
 
-          test_files = test_files.each_slice(m).map { |slice| slice[n] }.compact
+          test_files = test_files.each_slice(m).filter_map { |slice| slice[n] }
         end
 
         test_files.each do |file|

@@ -1159,13 +1159,13 @@ module ActiveRecord
     def migrations_status # :nodoc:
       db_list = schema_migration.normalized_versions
 
-      file_list = migration_files.map do |file|
+      file_list = migration_files.filter_map do |file|
         version, name, scope = parse_migration_filename(file)
         raise IllegalMigrationNameError.new(file) unless version
         version = schema_migration.normalize_migration_number(version)
         status = db_list.delete(version) ? "up" : "down"
         [status, version, (name + scope).humanize]
-      end.compact
+      end
 
       db_list.map! do |version|
         ["up", version, "********** NO FILE **********"]
