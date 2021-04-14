@@ -87,6 +87,56 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     assert_predicate r, :valid?
   end
 
+  def test_autosave_collection_association_callbacks_get_called_once
+    ship_with_saving_stack = Class.new(Ship) do
+      def save_collection_association(reflection)
+        @count ||= 0
+        @count += 1 if reflection.name == :parts
+        super
+      end
+    end
+
+    ship = ship_with_saving_stack.new(name: "Nights Dirty Lightning")
+    ship.parts.build(name: "part")
+    ship.save!
+    assert_equal 1, ship.instance_variable_get(:@count)
+  end
+
+  def test_autosave_has_one_association_callbacks_get_called_once
+    # a bidirectional autosave is required to trigger multiple calls to
+    # save_has_one_association
+    assert Ship.reflect_on_association(:pirate).options[:autosave]
+    assert Pirate.reflect_on_association(:ship).options[:autosave]
+
+    pirate_with_saving_stack = Class.new(Pirate) do
+      def save_has_one_association(reflection)
+        @count ||= 0
+        @count += 1 if reflection.name == :ship
+        super
+      end
+    end
+
+    pirate = pirate_with_saving_stack.new(catchphrase: "Aye")
+    pirate.build_ship(name: "Nights Dirty Lightning")
+    pirate.save!
+    assert_equal 1, pirate.instance_variable_get(:@count)
+  end
+
+  def test_autosave_belongs_to_association_callbacks_get_called_once
+    ship_with_saving_stack = Class.new(Ship) do
+      def save_belongs_to_association(reflection)
+        @count ||= 0
+        @count += 1 if reflection.name == :pirate
+        super
+      end
+    end
+
+    ship = ship_with_saving_stack.new(name: "Nights Dirty Lightning")
+    ship.build_pirate(catchphrase: "Aye")
+    ship.save!
+    assert_equal 1, ship.instance_variable_get(:@count)
+  end
+
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_one
     assert_no_difference_when_adding_callbacks_twice_for Pirate, :ship
   end

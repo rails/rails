@@ -1,3 +1,11 @@
+* Ensure has_one autosave association callbacks get called once.
+
+    Change the `has_one` autosave callback to be non cyclic as well.
+    By doing this the autosave callback are made more consistent for
+    all 3 cases: `has_many`, `has_one` and `belongs_to`.
+
+    *Petrik de Heus*
+
 *   Only update dirty attributes once for cyclic autosave callbacks.
 
     Instead of calling `changes_applied` everytime `save` is called,
