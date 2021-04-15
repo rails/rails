@@ -262,7 +262,7 @@ this generates
 </form>
 ```
 
-Since it's just a `<form>`, all of the information on `form_with` also applies.
+Since it's just a `<form>`, all the information on `form_with` also applies.
 
 ### Customize Remote Elements
 
@@ -394,7 +394,7 @@ The `ajax:before` event can manipulate form data before serialization and the
 
 If you stop the `ajax:aborted:file` event, the default behavior of allowing the
 browser to submit the form via normal means (i.e. non-Ajax submission) will be
-canceled and the form will not be submitted at all. This is useful for
+canceled, and the form will not be submitted at all. This is useful for
 implementing your own Ajax file upload workaround.
 
 Note, you should use `return false` to prevent an event for `jquery-ujs` and
@@ -551,7 +551,7 @@ You can then submit this token as a `X-CSRF-Token` header for your
 Ajax request. You do not need to add a CSRF token for GET requests,
 only non-GET ones.
 
-You can read more about about Cross-Site Request Forgery in the [Security guide](https://guides.rubyonrails.org/security.html#cross-site-request-forgery-csrf).
+You can read more about Cross-Site Request Forgery in the [Security guide](https://guides.rubyonrails.org/security.html#cross-site-request-forgery-csrf).
 
 Other Resources
 ---------------

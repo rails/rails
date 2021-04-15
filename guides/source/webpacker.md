@@ -93,7 +93,7 @@ Usage
 
 With Webpacker installed, by default any JavaScript file in the `app/javascripts/packs` directory will get compiled to its own pack file.
 
-So if you have a file called `app/javascript/packs/application.js`, Webpacker will create a pack called `application`, and you can add it to your Rails application with the code `<%= javascript_pack_tag "application" %>`. With that in place, in development, Rails will re-compile the `application.js` file every time it changes and you load a page that uses that pack. Typically, the file in the actual `packs` directory will be a manifest that mostly loads other files, but it can also have arbitrary JavaScript code.
+So if you have a file called `app/javascript/packs/application.js`, Webpacker will create a pack called `application`, and you can add it to your Rails application with the code `<%= javascript_pack_tag "application" %>`. With that in place, in development, Rails will re-compile the `application.js` file every time it changes, and you load a page that uses that pack. Typically, the file in the actual `packs` directory will be a manifest that mostly loads other files, but it can also have arbitrary JavaScript code.
 
 The default pack created for you by Webpacker will link to Rails default JavaScript packages if they have been included in the project:
 
@@ -126,7 +126,7 @@ app/javascript:
       └── logo.svg
 ```
 
-Typically the pack file itself is largely a manifest that uses `import` or `require` to load the necessary files and may also do some initialization.
+Typically, the pack file itself is largely a manifest that uses `import` or `require` to load the necessary files and may also do some initialization.
 
 If you want to change these directories, you can adjust the `source_path` (default `app/javascript`) and `source_entry_path` (default `packs`) in the `configuration/webpacker.yml` file.
 
@@ -174,7 +174,7 @@ The Webpacker ActionView helpers for static assets correspond to asset pipeline 
 |favicon_link_tag  |favicon_pack_tag  |
 |image_tag         |image_pack_tag    |
 
-Also the generic helper `asset_pack_path` takes the local location of a file and returns its webpacker location for use in Rails views.
+Also, the generic helper `asset_pack_path` takes the local location of a file and returns its webpacker location for use in Rails views.
 
 You can also access the image by directly referencing the file from a CSS file in `app/javascript`.
 
@@ -186,7 +186,7 @@ Gem authors of Rails engines who wish to support consumers using Webpacker are e
 
 ### Hot Module Replacement (HMR)
 
-Webpacker out-of-the-box supports HMR with webpack-dev-server and you can toggle it by setting dev_server/hmr option inside webpacker.yml.
+Webpacker out-of-the-box supports HMR with webpack-dev-server, and you can toggle it by setting dev_server/hmr option inside webpacker.yml.
 
 Check out [webpack's documentation on DevServer](https://webpack.js.org/configuration/dev-server/#devserver-hot) for more information.
 
