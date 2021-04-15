@@ -2000,6 +2000,8 @@ class TestCyclicAutosaveAssociationsApplyDirtyChangesOnce < ActiveRecord::TestCa
     child.save!
     assert_predicate child, :id_previously_changed?
     assert_predicate parent, :id_previously_changed?
+    assert_predicate child, :previously_new_record?
+    assert_predicate parent, :previously_new_record?
   end
 
   test "dirty changes are applied once on child if child is an inverse has_many of parent" do
@@ -2008,6 +2010,8 @@ class TestCyclicAutosaveAssociationsApplyDirtyChangesOnce < ActiveRecord::TestCa
     child.save!
     assert_predicate child, :id_previously_changed?
     assert_predicate parent, :id_previously_changed?
+    assert_predicate child, :previously_new_record?
+    assert_predicate parent, :previously_new_record?
   end
 
   test "dirty changes on parent are applied only once" do
@@ -2016,6 +2020,8 @@ class TestCyclicAutosaveAssociationsApplyDirtyChangesOnce < ActiveRecord::TestCa
     parent.save!
     assert_predicate child, :id_previously_changed?
     assert_predicate parent, :id_previously_changed?
+    assert_predicate child, :previously_new_record?
+    assert_predicate parent, :previously_new_record?
   end
 
   test "dirty changes are applied once on child if child is an inverse has_many of parent with touch" do
@@ -2024,5 +2030,7 @@ class TestCyclicAutosaveAssociationsApplyDirtyChangesOnce < ActiveRecord::TestCa
     child.save!
     assert_predicate child, :id_previously_changed?
     assert_predicate parent, :id_previously_changed?
+    assert_predicate child, :previously_new_record?
+    assert_predicate parent, :previously_new_record?
   end
 end

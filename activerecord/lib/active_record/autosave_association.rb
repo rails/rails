@@ -291,7 +291,10 @@ module ActiveRecord
         yield
       ensure
         @_saving = previously_saving
-        @_already_called[:changes_applied] = false unless @_saving
+        unless @_saving
+          @_already_called[:changes_applied] = false
+          @_already_called[:_set_previously_new_record] = false
+        end
       end
 
       # Returns the record for an association collection that should be validated
@@ -538,6 +541,13 @@ module ActiveRecord
       # Call +changes_applied+ at least once or if attributes changed
       def _apply_changes?(attribute_names)
         !@_already_called[:changes_applied] || attribute_names.present?
+      end
+
+      def _set_previously_new_record(value)
+        unless @_already_called[:_set_previously_new_record]
+          super
+          @_already_called[:_set_previously_new_record] = true
+        end
       end
   end
 end

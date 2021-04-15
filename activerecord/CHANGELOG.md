@@ -1,3 +1,11 @@
+*   Only change `@previously_new_record` once during cyclic autosave callbacks.
+
+    Cyclic autosave callbacks could incorrectly set `@previously_new_record` to
+    false when creating a new record. This can be prevented by only allowing it
+    to be set once in the current saving cycle.
+
+    *Petrik de Heus*
+
 *   Only update dirty attributes once for cyclic autosave callbacks.
 
     Instead of calling `changes_applied` everytime `save` is called,
