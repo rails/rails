@@ -649,6 +649,7 @@ Invocation of the tasks will look like:
 ```bash
 $ bin/rails task_name
 $ bin/rails "task_name[value 1]" # entire argument string should be quoted
+$ bin/rails "task_name[value 1,value2,value3]" # separate multiple args with a comma
 $ bin/rails db:nothing
 ```
 
