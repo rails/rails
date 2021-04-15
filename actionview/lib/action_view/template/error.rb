@@ -27,7 +27,7 @@ module ActionView
   end
 
   class MissingTemplate < ActionViewError #:nodoc:
-    attr_reader :path, :paths, :prefixes
+    attr_reader :path, :paths, :prefixes, :partial
 
     def initialize(paths, path, prefixes, partial, details, *)
       if partial && path.present?
@@ -37,6 +37,7 @@ module ActionView
       @path = path
       @paths = paths
       @prefixes = Array(prefixes)
+      @partial = partial
       template_type = if partial
         "partial"
       elsif /layouts/i.match?(path)
@@ -93,7 +94,13 @@ module ActionView
       def corrections
         path = @error.path
         prefixes = @error.prefixes
+
         candidates = @error.paths.flat_map(&:all_template_paths).uniq
+        if @error.partial
+          candidates = candidates.grep(%r{_[^/]+\z})
+        else
+          candidates = candidates.grep_v(%r{_[^/]+\z})
+        end
 
         # Group by possible prefixes
         files_by_dir = candidates.group_by do |x|
@@ -135,7 +142,11 @@ module ActionView
           end
         end
 
-        results.to_a
+        if @error.partial
+          results.to_a.map { |res| res.sub(%r{_([^/]+)\z}, "\\1") }
+        else
+          results.to_a
+        end
       end
     end
 
