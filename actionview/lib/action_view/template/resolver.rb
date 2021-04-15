@@ -35,6 +35,8 @@ module ActionView
       alias :to_s :to_str
     end
 
+    TemplateDetails = Struct.new(:path, :locale, :handler, :format, :variant)
+
     class PathParser # :nodoc:
       def build_path_regex
         handlers = Template::Handlers.extensions.map { |x| Regexp.escape(x) }.join("|")
@@ -58,15 +60,14 @@ module ActionView
       def parse(path)
         @regex ||= build_path_regex
         match = @regex.match(path)
-        {
-          prefix: match[:prefix] || "",
-          action: match[:action],
-          partial: !!match[:partial],
-          locale: match[:locale]&.to_sym,
-          handler: match[:handler]&.to_sym,
-          format: match[:format]&.to_sym,
-          variant: match[:variant]
-        }
+        path = Path.build(match[:action], match[:prefix] || "", !!match[:partial])
+        TemplateDetails.new(
+          path,
+          match[:locale]&.to_sym,
+          match[:handler]&.to_sym,
+          match[:format]&.to_sym,
+          match[:variant]
+        )
       end
     end
 
@@ -288,9 +289,9 @@ module ActionView
       def extract_handler_and_format_and_variant(path)
         details = @path_parser.parse(path)
 
-        handler = Template.handler_for_extension(details[:handler])
-        format = details[:format] || handler.try(:default_format)
-        variant = details[:variant]
+        handler = Template.handler_for_extension(details.handler)
+        format = details.format || handler.try(:default_format)
+        variant = details.variant
 
         # Template::Types[format] and handler.default_format can return nil
         [handler, format, variant]
