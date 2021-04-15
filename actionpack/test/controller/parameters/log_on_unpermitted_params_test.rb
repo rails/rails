@@ -23,7 +23,7 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
   end
 
   test "logs on unexpected params" do
-    request_params = { book: { pages: 65 }, fishing: "Turnips", car: "Mersedes" }
+    request_params = { book: { pages: 65 }, fishing: "Turnips", car: "Mercedes" }
     context = { "action" => "my_action", "controller" => "my_controller" }
     params = ActionController::Parameters.new(request_params, context)
 

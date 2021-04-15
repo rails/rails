@@ -162,7 +162,7 @@ class RedirectController < ActionController::Base
   def rescue_errors(e) raise e end
 
   private
-    def dashbord_url(id, message)
+    def dashboard_url(id, message)
       url_for action: "dashboard", params: { "id" => id, "message" => message }
     end
 end

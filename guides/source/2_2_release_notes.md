@@ -65,7 +65,7 @@ This will put the guides inside `Rails.root/doc/guides` and you may start surfin
 Better integration with HTTP : Out of the box ETag support
 ----------------------------------------------------------
 
-Supporting the etag and last modified timestamp in HTTP headers means that Rails can now send back an empty response if it gets a request for a resource that hasn't been modified lately. This allows you to check whether a response needs to be sent at all.
+Supporting the ETag and last modified timestamp in HTTP headers means that Rails can now send back an empty response if it gets a request for a resource that hasn't been modified lately. This allows you to check whether a response needs to be sent at all.
 
 ```ruby
 class ArticlesController < ApplicationController
