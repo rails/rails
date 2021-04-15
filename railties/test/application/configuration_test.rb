@@ -1843,7 +1843,7 @@ module ApplicationTests
 
       app "development"
 
-      # TODO: Test deprecation message, assert_depcrecated { app "development" }
+      # TODO: Test deprecation message, assert_deprecated { app "development" }
       # does not collect it.
 
       assert_equal [X], C.descendants
