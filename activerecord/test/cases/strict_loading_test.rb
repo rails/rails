@@ -19,19 +19,22 @@ class StrictLoadingTest < ActiveRecord::TestCase
     developer = Developer.first
     assert_not_predicate developer, :strict_loading?
 
-    developer.strict_loading!
+    assert developer.strict_loading!
     assert_predicate developer, :strict_loading?
 
     assert_raises ActiveRecord::StrictLoadingViolationError do
       developer.audit_logs.to_a
     end
 
-    developer.strict_loading!(false)
+    assert_not developer.strict_loading!(false)
     assert_not_predicate developer, :strict_loading?
 
     assert_nothing_raised do
       developer.audit_logs.to_a
     end
+
+    assert developer.strict_loading!(mode: :n_plus_one_only)
+    assert developer.strict_loading_n_plus_one_only?
   end
 
   def test_strict_loading_n_plus_one_only_mode

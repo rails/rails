@@ -765,8 +765,8 @@ module ActiveRecord
         raise ArgumentError, "The :mode option must be one of [:all, :n_plus_one_only]."
       end
 
-      @strict_loading = value
       @strict_loading_mode = mode
+      @strict_loading = value
     end
 
     # Returns +true+ if the record uses strict_loading with +:n_plus_one_only+ mode enabled.
