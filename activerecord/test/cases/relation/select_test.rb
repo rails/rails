@@ -85,6 +85,7 @@ module ActiveRecord
       Post.column_names.each do |column_name|
         assert_includes sql, column_name
       end
+    ensure
       Post.enumerate_columns_in_select_statements = original_value
     end
   end
