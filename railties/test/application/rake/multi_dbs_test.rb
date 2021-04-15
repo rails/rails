@@ -714,7 +714,7 @@ module ApplicationTests
               %>
               adapter: sqlite3
             animals:
-              database: db/develoment_animals.sqlite3
+              database: db/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
@@ -738,7 +738,7 @@ module ApplicationTests
             <% end %>
               adapter: sqlite3
             animals:
-              database: db/develoment_animals.sqlite3
+              database: db/development_animals.sqlite3
               adapter: sqlite3
 
         YAML
@@ -759,7 +759,7 @@ module ApplicationTests
               database: <% if Rails.application.config.database %><%= Rails.application.config.database %><% else %>db/default.sqlite3<% end %>
               adapter: sqlite3
             animals:
-              database: db/develoment_animals.sqlite3
+              database: db/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
@@ -779,7 +779,7 @@ module ApplicationTests
               <%= Rails.application.config.database ? 'database: db/development.sqlite3' : 'database: db/development.sqlite3' %>
               adapter: sqlite3
             animals:
-              database: db/develoment_animals.sqlite3
+              database: db/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
@@ -800,7 +800,7 @@ module ApplicationTests
               custom_option: <%= ENV['CUSTOM_OPTION'] %>
               adapter: sqlite3
             animals:
-              database: db/develoment_animals.sqlite3
+              database: db/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
@@ -820,7 +820,7 @@ module ApplicationTests
               database: db/default.sqlite3
               adapter: sqlite3
             animals:
-              database: db/develoment_animals.sqlite3
+              database: db/development_animals.sqlite3
               adapter: sqlite3
               migrations_paths: db/animals_migrate
         YAML

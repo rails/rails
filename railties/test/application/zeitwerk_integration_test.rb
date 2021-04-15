@@ -156,7 +156,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
       assert require_dependency("#{app_path}/app/models/user.rb")
     end
 
-    test "require_dependency supports arguments that repond to to_path (#{add_aps_to_lp})" do
+    test "require_dependency supports arguments that respond to to_path (#{add_aps_to_lp})" do
       add_to_config "config.add_autoload_paths_to_load_path = #{add_aps_to_lp}"
       app_file "app/models/user.rb", "class User; end"
       boot
