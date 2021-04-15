@@ -68,7 +68,6 @@ module ActiveRecord
   autoload :SchemaMigration
   autoload :Scoping
   autoload :Serialization
-  autoload :StatementCache
   autoload :Store
   autoload :SignedId
   autoload :Suppressor
@@ -80,6 +79,7 @@ module ActiveRecord
   autoload :DestroyAssociationAsyncJob
 
   eager_autoload do
+    autoload :StatementCache
     autoload :ConnectionAdapters
 
     autoload :Aggregations
