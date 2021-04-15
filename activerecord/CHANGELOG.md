@@ -1,10 +1,10 @@
 *   Add setting for enumerating column names in SELECT statements.
 
-    Adding a column to a Postgres database while the application is running can
+    Adding a column to a PostgresSQL database, for example, while the application is running can
     change the result of wildcard `SELECT *` queries, which invalidates the result
-    of cached prepared statements and raises a PreparedStatementCacheExpired error.
+    of cached prepared statements and raises a `PreparedStatementCacheExpired` error.
 
-    When truthy, ActiveRecord will avoid wildcards and always include column names
+    When enabled, Active Record will avoid wildcards and always include column names
     in `SELECT` queries, which will return consistent results and avoid prepared
     statement errors.
 
