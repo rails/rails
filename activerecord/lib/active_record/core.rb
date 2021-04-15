@@ -769,7 +769,8 @@ module ActiveRecord
       @strict_loading_mode = mode
     end
 
-    def strict_loading_n_plus_one_only? # :nodoc:
+    # Returns +true+ if the record uses strict_loading with +:n_plus_one_only+ mode enabled.
+    def strict_loading_n_plus_one_only?
       @strict_loading_mode == :n_plus_one_only
     end
 
