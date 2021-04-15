@@ -25,18 +25,19 @@ module ActiveRecord
       autoload :ReferenceDefinition
     end
 
-    autoload_at "active_record/connection_adapters/abstract/connection_pool" do
-      autoload :ConnectionHandler
-    end
-
     autoload_under "abstract" do
       autoload :SchemaStatements
       autoload :DatabaseStatements
       autoload :DatabaseLimits
       autoload :Quoting
-      autoload :ConnectionPool
+      autoload :ConnectionHandler
       autoload :QueryCache
       autoload :Savepoints
+    end
+
+    autoload_at "active_record/connection_adapters/abstract/connection_pool" do
+      autoload :ConnectionPool
+      autoload :NullPool
     end
 
     autoload_at "active_record/connection_adapters/abstract/transaction" do

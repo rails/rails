@@ -24,9 +24,9 @@ the {Active Model}[link:files/activemodel/README_rdoc.html] module.
 == Controller layer
 
 The <em><b>Controller layer</b></em> is responsible for handling incoming HTTP requests and
-providing a suitable response. Usually this means returning \HTML, but \Rails controllers
+providing a suitable response. Usually, this means returning \HTML, but \Rails controllers
 can also generate XML, JSON, PDFs, mobile-specific views, and more. Controllers load and
-manipulate models, and render view templates in order to generate the appropriate HTTP response.
+manipulate models and render view templates in order to generate the appropriate HTTP response.
 In \Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
 controller classes are derived from <tt>ActionController::Base</tt>. Action Dispatch and Action Controller
 are bundled together in {Action Pack}[link:files/actionpack/README_rdoc.html].
@@ -72,7 +72,7 @@ and may also be used independently outside \Rails.
 
    Run with <tt>--help</tt> or <tt>-h</tt> for options.
 
-4. Go to <tt>http://localhost:3000</tt> and you'll see: "Yay! You’re on \Rails!"
+4. Go to <tt>http://localhost:3000</tt>, and you'll see: "Yay! You’re on \Rails!"
 
 5. Follow the guidelines to start developing your application. You may find the following resources handy:
 

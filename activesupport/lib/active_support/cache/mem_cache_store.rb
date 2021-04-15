@@ -8,7 +8,6 @@ rescue LoadError => e
 end
 
 require "active_support/core_ext/enumerable"
-require "active_support/core_ext/marshal"
 require "active_support/core_ext/array/extract_options"
 
 module ActiveSupport
@@ -64,7 +63,7 @@ module ActiveSupport
       def self.build_mem_cache(*addresses) # :nodoc:
         addresses = addresses.flatten
         options = addresses.extract_options!
-        addresses = nil if addresses.empty?
+        addresses = nil if addresses.compact.empty?
         pool_options = retrieve_pool_options(options)
 
         if pool_options.empty?
@@ -188,10 +187,12 @@ module ActiveSupport
         # before applying the regular expression to ensure we are escaping all
         # characters properly.
         def normalize_key(key, options)
-          key = super.dup
-          key = key.force_encoding(Encoding::ASCII_8BIT)
-          key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
-          key = "#{key[0, 212]}:hash:#{ActiveSupport::Digest.hexdigest(key)}" if key.size > 250
+          key = super
+          if key
+            key = key.dup.force_encoding(Encoding::ASCII_8BIT)
+            key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
+            key = "#{key[0, 212]}:hash:#{ActiveSupport::Digest.hexdigest(key)}" if key.size > 250
+          end
           key
         end
 

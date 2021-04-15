@@ -20,7 +20,7 @@ module Arel # :nodoc: all
         self << quoter.quote(bind)
       end
 
-      def add_binds(binds)
+      def add_binds(binds, proc_for_binds = nil)
         self << binds.map { |bind| quoter.quote(bind) }.join(", ")
       end
 

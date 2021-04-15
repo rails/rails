@@ -19,7 +19,7 @@ module ActiveRecord
     #
     # ==== Options
     #
-    # * <tt>:env_name</tt> - The Rails environment, ie "development".
+    # * <tt>:env_name</tt> - The Rails environment, i.e. "development".
     # * <tt>:name</tt> - The db config name. In a standard two-tier
     #   database configuration this will default to "primary". In a multiple
     #   database three-tier database configuration this corresponds to the name
@@ -42,7 +42,7 @@ module ActiveRecord
         # Return a Hash that can be merged into the main config that represents
         # the passed in url
         def build_url_hash
-          if url.nil? || url.start_with?("jdbc:")
+          if url.nil? || url.start_with?("jdbc:", "http:", "https:")
             { url: url }
           else
             ConnectionUrlResolver.new(url).to_hash

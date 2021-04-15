@@ -29,6 +29,26 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal(e, v, msg)
   end
 
+  def test_minimum
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
+    assert_equal 5, payments.minimum(:price)
+  end
+
+  def test_minimum_with_empty_enumerable
+    payments = GenericEnumerable.new([])
+    assert_nil payments.minimum(:price)
+  end
+
+  def test_maximum
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
+    assert_equal 15, payments.maximum(:price)
+  end
+
+  def test_maximum_with_empty_enumerable
+    payments = GenericEnumerable.new([])
+    assert_nil payments.maximum(:price)
+  end
+
   def test_sums
     enum = GenericEnumerable.new([5, 15, 10])
     assert_equal 30, enum.sum
@@ -283,5 +303,20 @@ class EnumerableTests < ActiveSupport::TestCase
     values = { a: "", b: 1, c: nil, d: [], e: false, f: true }
     values.compact_blank!
     assert_equal({ b: 1, f: true }, values)
+  end
+
+  def test_in_order_of
+    values = [ Payment.new(5), Payment.new(1), Payment.new(3) ]
+    assert_equal [ Payment.new(1), Payment.new(5), Payment.new(3) ], values.in_order_of(:price, [ 1, 5, 3 ])
+  end
+
+  def test_in_order_of_ignores_missing_series
+    values = [ Payment.new(5), Payment.new(1), Payment.new(3) ]
+    assert_equal [ Payment.new(1), Payment.new(5), Payment.new(3) ], values.in_order_of(:price, [ 1, 2, 4, 5, 3 ])
+  end
+
+  def test_in_order_of_drops_elements_not_named_in_series
+    values = [ Payment.new(5), Payment.new(1), Payment.new(3) ]
+    assert_equal [ Payment.new(1), Payment.new(5) ], values.in_order_of(:price, [ 1, 5 ])
   end
 end

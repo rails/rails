@@ -67,6 +67,7 @@ module ActiveModel
 
     NAME_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?=]?\z/
     CALL_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?]?\z/
+    FORWARD_PARAMETERS = "*args"
 
     included do
       class_attribute :attribute_aliases, instance_writer: false, default: {}
@@ -105,8 +106,8 @@ module ActiveModel
       #   person.name          # => "Bob"
       #   person.clear_name
       #   person.name          # => nil
-      def attribute_method_prefix(*prefixes)
-        self.attribute_method_matchers += prefixes.map! { |prefix| AttributeMethodMatcher.new prefix: prefix }
+      def attribute_method_prefix(*prefixes, parameters: nil)
+        self.attribute_method_matchers += prefixes.map! { |prefix| AttributeMethodMatcher.new(prefix: prefix, parameters: parameters) }
         undefine_attribute_methods
       end
 
@@ -140,8 +141,8 @@ module ActiveModel
       #   person.name = 'Bob'
       #   person.name          # => "Bob"
       #   person.name_short?   # => true
-      def attribute_method_suffix(*suffixes)
-        self.attribute_method_matchers += suffixes.map! { |suffix| AttributeMethodMatcher.new suffix: suffix }
+      def attribute_method_suffix(*suffixes, parameters: nil)
+        self.attribute_method_matchers += suffixes.map! { |suffix| AttributeMethodMatcher.new(suffix: suffix, parameters: parameters) }
         undefine_attribute_methods
       end
 
@@ -177,7 +178,7 @@ module ActiveModel
       #   person.reset_name_to_default!
       #   person.name                         # => 'Default Name'
       def attribute_method_affix(*affixes)
-        self.attribute_method_matchers += affixes.map! { |affix| AttributeMethodMatcher.new prefix: affix[:prefix], suffix: affix[:suffix] }
+        self.attribute_method_matchers += affixes.map! { |affix| AttributeMethodMatcher.new(**affix) }
         undefine_attribute_methods
       end
 
@@ -211,7 +212,7 @@ module ActiveModel
           attribute_method_matchers.each do |matcher|
             matcher_new = matcher.method_name(new_name).to_s
             matcher_old = matcher.method_name(old_name).to_s
-            define_proxy_call false, owner, matcher_new, matcher_old
+            define_proxy_call(owner, matcher_new, matcher_old, matcher.parameters)
           end
         end
       end
@@ -296,7 +297,7 @@ module ActiveModel
               if respond_to?(generate_method, true)
                 send(generate_method, attr_name.to_s, owner: owner)
               else
-                define_proxy_call true, owner, method_name, matcher.target, attr_name.to_s
+                define_proxy_call(owner, method_name, matcher.target, matcher.parameters, attr_name.to_s)
               end
             end
           end
@@ -405,35 +406,47 @@ module ActiveModel
         # Define a method `name` in `mod` that dispatches to `send`
         # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
-        def define_proxy_call(include_private, code_generator, name, target, *extra)
-          defn = if NAME_COMPILABLE_REGEXP.match?(name)
-            "def #{name}(*args)"
-          else
-            "define_method(:'#{name}') do |*args|"
+        def define_proxy_call(code_generator, name, target, parameters, *call_args)
+          mangled_name = name
+          unless NAME_COMPILABLE_REGEXP.match?(name)
+            mangled_name = "__temp__#{name.unpack1("h*")}"
           end
 
-          extra = (extra.map!(&:inspect) << "*args").join(", ")
+          call_args.map!(&:inspect)
+          call_args << parameters if parameters
 
           body = if CALL_COMPILABLE_REGEXP.match?(target)
-            "#{"self." unless include_private}#{target}(#{extra})"
+            "self.#{target}(#{call_args.join(", ")})"
           else
-            "send(:'#{target}', #{extra})"
+            call_args.unshift(":'#{target}'")
+            "send(#{call_args.join(", ")})"
           end
 
           code_generator <<
-            defn <<
+            "def #{mangled_name}(#{parameters || ''})" <<
             body <<
-            "end" <<
-            "ruby2_keywords(:'#{name}') if respond_to?(:ruby2_keywords, true)"
+            "end"
+
+          if parameters == FORWARD_PARAMETERS
+            code_generator << "ruby2_keywords(:'#{mangled_name}')"
+          end
+
+          if mangled_name != name
+            code_generator <<
+              "alias_method(:'#{name}', :'#{mangled_name}')" <<
+              "remove_method(:'#{mangled_name}')"
+          end
         end
 
         class AttributeMethodMatcher #:nodoc:
-          attr_reader :prefix, :suffix, :target
+          attr_reader :prefix, :suffix, :target, :parameters
 
           AttributeMethodMatch = Struct.new(:target, :attr_name)
 
-          def initialize(options = {})
-            @prefix, @suffix = options.fetch(:prefix, ""), options.fetch(:suffix, "")
+          def initialize(prefix: "", suffix: "", parameters: nil)
+            @prefix = prefix
+            @suffix = suffix
+            @parameters = parameters.nil? ? FORWARD_PARAMETERS : parameters
             @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
             @target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
@@ -469,7 +482,7 @@ module ActiveModel
         match ? attribute_missing(match, *args, &block) : super
       end
     end
-    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
+    ruby2_keywords(:method_missing)
 
     # +attribute_missing+ is like +method_missing+, but for attributes. When
     # +method_missing+ is called we check to see if there is a matching

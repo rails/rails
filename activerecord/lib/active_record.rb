@@ -43,6 +43,7 @@ module ActiveRecord
   autoload :CounterCache
   autoload :DynamicMatchers
   autoload :DelegatedType
+  autoload :Encryption
   autoload :Enum
   autoload :InternalMetadata
   autoload :Explain
@@ -86,6 +87,7 @@ module ActiveRecord
     autoload :AttributeAssignment
     autoload :AttributeMethods
     autoload :AutosaveAssociation
+    autoload :AsynchronousQueriesTracker
 
     autoload :LegacyYamlAdapter
 
@@ -104,6 +106,7 @@ module ActiveRecord
     end
 
     autoload :Result
+    autoload :FutureResult
     autoload :TableMetadata
     autoload :Type
   end
@@ -172,6 +175,7 @@ module ActiveRecord
     ActiveRecord::Associations.eager_load!
     ActiveRecord::AttributeMethods.eager_load!
     ActiveRecord::ConnectionAdapters.eager_load!
+    ActiveRecord::Encryption.eager_load!
   end
 end
 

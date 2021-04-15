@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative "../abstract_unit"
-require_relative "../dependencies_test_helpers"
 
 class Foo; end
 class Bar < Foo
@@ -12,7 +11,6 @@ module FooBar; end
 
 class ConstantLookupTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::ConstantLookup
-  include DependenciesTestHelpers
 
   def find_foo(name)
     self.class.determine_constant_from_test_name(name) do |constant|
@@ -60,19 +58,14 @@ class ConstantLookupTest < ActiveSupport::TestCase
     assert_nil find_module("DoesntExist::Nadda::Nope::NotHere")
   end
 
-  def test_does_not_swallow_exception_on_no_method_error
-    assert_raises(NoMethodError) {
-      with_autoloading_fixtures {
-        self.class.determine_constant_from_test_name("RaisesNoMethodError")
-      }
-    }
-  end
-
-  def test_does_not_swallow_exception_on_no_name_error_within_constant
+  def test_does_not_shallow_ordinary_exceptions
+    test_name = "RaisesNameError"
+    file_name = File.expand_path("../autoloading_fixtures/raises_no_method_error.rb", __dir__)
     assert_raises(NameError) do
-      with_autoloading_fixtures do
-        self.class.determine_constant_from_test_name("RaisesNameError")
-      end
+      Object.autoload(test_name, file_name)
+      self.class.determine_constant_from_test_name(test_name)
     end
+  ensure
+    Object.send(:remove_const, test_name)
   end
 end

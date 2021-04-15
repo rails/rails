@@ -76,6 +76,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   class Album < ActiveRecord::Base
     self.table_name = "music.albums"
     has_and_belongs_to_many :songs
+    def self.default_scope; where(deleted: false); end
   end
 
   def setup
@@ -149,14 +150,14 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     ActiveRecord::Base.connection.drop_schema "music", if_exists: true
     ActiveRecord::Base.connection.create_schema "music"
     ActiveRecord::Base.connection.execute <<~SQL
-      CREATE TABLE music.albums (id serial primary key);
+      CREATE TABLE music.albums (id serial primary key, deleted boolean default false);
       CREATE TABLE music.songs (id serial primary key);
       CREATE TABLE music.albums_songs (album_id integer, song_id integer);
     SQL
 
     song = Song.create
-    Album.create
-    assert_equal song, Song.includes(:albums).references(:albums).first
+    album = song.albums.create
+    assert_equal song, Song.includes(:albums).where("albums.id": album.id).first
   ensure
     ActiveRecord::Base.connection.drop_schema "music", if_exists: true
   end

@@ -56,6 +56,10 @@ module ActiveModel
       type.serialize(value)
     end
 
+    def serializable?(&block)
+      type.serializable?(value, &block)
+    end
+
     def changed?
       changed_from_assignment? || changed_in_place?
     end
@@ -133,14 +137,13 @@ module ActiveModel
       coder["value"] = value if defined?(@value)
     end
 
-    protected
-      def original_value_for_database
-        if assigned?
-          original_attribute.original_value_for_database
-        else
-          _original_value_for_database
-        end
+    def original_value_for_database
+      if assigned?
+        original_attribute.original_value_for_database
+      else
+        _original_value_for_database
       end
+    end
 
     private
       attr_reader :original_attribute
@@ -165,9 +168,10 @@ module ActiveModel
           type.deserialize(value)
         end
 
-        def _original_value_for_database
-          value_before_type_cast
-        end
+        private
+          def _original_value_for_database
+            value_before_type_cast
+          end
       end
 
       class FromUser < Attribute # :nodoc:

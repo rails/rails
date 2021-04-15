@@ -75,8 +75,7 @@ class ValidatesWithTest < ActiveModel::TestCase
     validator = Minitest::Mock.new
     validator.expect(:new, validator, [{ foo: :bar, if: :condition_is_true, class: Topic }])
     validator.expect(:validate, nil, [topic])
-    validator.expect(:is_a?, false, [Symbol])
-    validator.expect(:is_a?, false, [String])
+    validator.expect(:is_a?, false, [String]) # Call run by ActiveSupport::Callbacks::Callback.build
 
     Topic.validates_with(validator, if: :condition_is_true, foo: :bar)
     assert_predicate topic, :valid?

@@ -4,10 +4,11 @@ require:
   - rubocop-rails
 
 AllCops:
-  TargetRubyVersion: 2.5
+  TargetRubyVersion: 2.7
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
+  SuggestExtensions: false
   Exclude:
     - '**/tmp/**/*'
     - '**/templates/**/*'
@@ -86,9 +87,6 @@ Layout/EmptyLinesAroundModuleBody:
 
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
 Style/HashSyntax:
-  Enabled: true
-
-Layout/FirstArgumentIndentation:
   Enabled: true
 
 # Method definitions after `private` or `protected` isolated calls need one
@@ -207,9 +205,6 @@ Lint/ErbNewArguments:
 Lint/RequireParentheses:
   Enabled: true
 
-Lint/ShadowingOuterLocalVariable:
-  Enabled: true
-
 Lint/RedundantStringCoercion:
   Enabled: true
 
@@ -250,6 +245,9 @@ Style/ColonMethodCall:
   Enabled: true
 
 Style/TrivialAccessors:
+  Enabled: true
+
+Performance/BindCall:
   Enabled: true
 
 Performance/FlatMap:

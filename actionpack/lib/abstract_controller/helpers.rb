@@ -83,11 +83,11 @@ module AbstractController
         file, line = location.path, location.lineno
 
         methods.each do |method|
-          _helpers_for_modification.class_eval <<-ruby_eval, file, line
+          _helpers_for_modification.class_eval <<~ruby_eval, file, line
             def #{method}(*args, &block)                    # def current_user(*args, &block)
               controller.send(:'#{method}', *args, &block)  #   controller.send(:'current_user', *args, &block)
             end                                             # end
-            ruby2_keywords(:'#{method}') if respond_to?(:ruby2_keywords, true)
+            ruby2_keywords(:'#{method}')
           ruby_eval
         end
       end

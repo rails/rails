@@ -47,11 +47,7 @@ class Array
   def excluding(*elements)
     self - elements.flatten(1)
   end
-
-  # Alias for #excluding.
-  def without(*elements)
-    excluding(*elements)
-  end
+  alias :without :excluding
 
   # Equal to <tt>self[1]</tt>.
   #

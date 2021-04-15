@@ -1,42 +1,3 @@
-body {
-  background-color: #fff;
-  color: #333;
-  margin: 33px;
-}
-
-body, p, ol, ul, td {
-  font-family: verdana, arial, helvetica, sans-serif;
-  font-size: 13px;
-  line-height: 18px;
-}
-
-pre {
-  background-color: #eee;
-  padding: 10px;
-  font-size: 11px;
-}
-
-a {
-  color: #000;
-}
-
-a:visited {
-  color: #666;
-}
-
-a:hover {
-  color: #fff;
-  background-color: #000;
-}
-
-th {
-  padding-bottom: 5px;
-}
-
-td {
-  padding: 0 5px 7px;
-}
-
 div.field,
 div.actions {
   margin-bottom: 10px;
@@ -44,6 +5,12 @@ div.actions {
 
 #notice {
   color: green;
+}
+
+.scaffold_record {
+  border: 1px solid black;
+  padding: 10px;
+  margin-bottom: 10px;
 }
 
 .field_with_errors {

@@ -9,8 +9,7 @@ module ActiveRecord
 
         case options[:dependent]
         when :destroy
-          target.destroy
-          raise ActiveRecord::Rollback unless target.destroyed?
+          raise ActiveRecord::Rollback unless target.destroy
         when :destroy_async
           id = owner.public_send(reflection.foreign_key.to_sym)
           primary_key_column = reflection.active_record_primary_key.to_sym
@@ -111,7 +110,7 @@ module ActiveRecord
         def replace_keys(record, force: false)
           target_key = record ? record._read_attribute(primary_key(record.class)) : nil
 
-          if force || owner[reflection.foreign_key] != target_key
+          if force || owner._read_attribute(reflection.foreign_key) != target_key
             owner[reflection.foreign_key] = target_key
           end
         end

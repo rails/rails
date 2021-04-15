@@ -259,8 +259,7 @@ module Rails
     # Stores some of the Rails initial environment parameters which
     # will be used by middlewares and engines to configure themselves.
     def env_config
-      @app_env_config ||= begin
-        super.merge(
+      @app_env_config ||= super.merge(
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
           "action_dispatch.secret_key_base" => secret_key_base,
@@ -288,7 +287,6 @@ module Rails
           "action_dispatch.content_security_policy_nonce_directives" => config.content_security_policy_nonce_directives,
           "action_dispatch.permissions_policy" => config.permissions_policy,
         )
-      end
     end
 
     # If you try to define a set of Rake tasks on the instance, these will get

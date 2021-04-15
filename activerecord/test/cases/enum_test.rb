@@ -12,6 +12,44 @@ class EnumTest < ActiveRecord::TestCase
     @book = books(:awdr)
   end
 
+  test "type.cast" do
+    type = Book.type_for_attribute(:status)
+
+    assert_equal "proposed",  type.cast(0)
+    assert_equal "written",   type.cast(1)
+    assert_equal "published", type.cast(2)
+
+    assert_equal "proposed",  type.cast(:proposed)
+    assert_equal "written",   type.cast(:written)
+    assert_equal "published", type.cast(:published)
+
+    assert_equal "proposed",  type.cast("proposed")
+    assert_equal "written",   type.cast("written")
+    assert_equal "published", type.cast("published")
+
+    assert_equal :unknown,    type.cast(:unknown)
+    assert_equal "unknown",   type.cast("unknown")
+  end
+
+  test "type.serialize" do
+    type = Book.type_for_attribute(:status)
+
+    assert_equal 0, type.serialize(0)
+    assert_equal 1, type.serialize(1)
+    assert_equal 2, type.serialize(2)
+
+    assert_equal 0, type.serialize(:proposed)
+    assert_equal 1, type.serialize(:written)
+    assert_equal 2, type.serialize(:published)
+
+    assert_equal 0, type.serialize("proposed")
+    assert_equal 1, type.serialize("written")
+    assert_equal 2, type.serialize("published")
+
+    assert_nil type.serialize(:unknown)
+    assert_nil type.serialize("unknown")
+  end
+
   test "query state by predicate" do
     assert_predicate @book, :published?
     assert_not_predicate @book, :written?
@@ -55,35 +93,65 @@ class EnumTest < ActiveRecord::TestCase
 
     assert_equal @book, Book.where(status: published).first
     assert_not_equal @book, Book.where(status: written).first
-    assert_equal @book, Book.where(status: [published]).first
-    assert_not_equal @book, Book.where(status: [written]).first
-    assert_not_equal @book, Book.where("status <> ?", published).first
-    assert_equal @book, Book.where("status <> ?", written).first
+    assert_equal @book, Book.where(status: [published, published]).first
+    assert_not_equal @book, Book.where(status: [written, written]).first
+    assert_not_equal @book, Book.where.not(status: published).first
+    assert_equal @book, Book.where.not(status: written).first
+  end
+
+  test "find via where with values.to_s" do
+    published, written = Book.statuses[:published].to_s, Book.statuses[:written].to_s
+
+    assert_equal @book, Book.where(status: published).first
+    assert_not_equal @book, Book.where(status: written).first
+    assert_equal @book, Book.where(status: [published, published]).first
+    assert_not_equal @book, Book.where(status: [written, written]).first
+    assert_not_equal @book, Book.where.not(status: published).first
+    assert_equal @book, Book.where.not(status: written).first
   end
 
   test "find via where with symbols" do
     assert_equal @book, Book.where(status: :published).first
     assert_not_equal @book, Book.where(status: :written).first
-    assert_equal @book, Book.where(status: [:published]).first
-    assert_not_equal @book, Book.where(status: [:written]).first
+    assert_equal @book, Book.where(status: [:published, :published]).first
+    assert_not_equal @book, Book.where(status: [:written, :written]).first
     assert_not_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
     assert_equal books(:ddd), Book.where(last_read: :forgotten).first
+    assert_nil Book.where(status: :prohibited).first
   end
 
   test "find via where with strings" do
     assert_equal @book, Book.where(status: "published").first
     assert_not_equal @book, Book.where(status: "written").first
-    assert_equal @book, Book.where(status: ["published"]).first
-    assert_not_equal @book, Book.where(status: ["written"]).first
+    assert_equal @book, Book.where(status: ["published", "published"]).first
+    assert_not_equal @book, Book.where(status: ["written", "written"]).first
     assert_not_equal @book, Book.where.not(status: "published").first
     assert_equal @book, Book.where.not(status: "written").first
     assert_equal books(:ddd), Book.where(last_read: "forgotten").first
+    assert_nil Book.where(status: "prohibited").first
+  end
+
+  test "find via where with large number" do
+    assert_equal @book, Book.where(status: [2, 9223372036854775808]).first
+    assert_equal @book, Book.where(status: ["2", "9223372036854775808"]).first
+    assert_equal @book, Book.where(status: 2..9223372036854775808).first
+    assert_equal @book, Book.where(status: "2".."9223372036854775808").first
+  end
+
+  test "find via where should be type casted" do
+    book = Book.enabled.create!
+    assert_predicate book, :enabled?
+
+    enabled = Book.boolean_statuses[:enabled].to_s
+    assert_equal book, Book.where(boolean_status: enabled).last
   end
 
   test "build from scope" do
     assert_predicate Book.written.build, :written?
     assert_not_predicate Book.written.build, :proposed?
+    assert_predicate PublishedBook.hard.build, :hard?
+    assert_not_predicate PublishedBook.hard.build, :soft?
   end
 
   test "build from where" do
@@ -511,6 +579,38 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate book2, :single?
   end
 
+  test "declare multiple enums with { _prefix: true }" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+
+      enum(
+        status: [:value_1],
+        last_read: [:value_1],
+        _prefix: true
+      )
+    end
+
+    instance = klass.new
+    assert_respond_to instance, :status_value_1?
+    assert_respond_to instance, :last_read_value_1?
+  end
+
+  test "declare multiple enums with { _suffix: true }" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+
+      enum(
+        status: [:value_1],
+        last_read: [:value_1],
+        _suffix: true
+      )
+    end
+
+    instance = klass.new
+    assert_respond_to instance, :value_1_status?
+    assert_respond_to instance, :value_1_last_read?
+  end
+
   test "enum with alias_attribute" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
@@ -607,7 +707,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "published", klass.new.status
   end
 
-  test "overloaded default" do
+  test "overloaded default by :_default" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
       enum status: [:proposed, :written, :published], _default: :published
@@ -616,13 +716,68 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "published", klass.new.status
   end
 
-  test "scopes can be disabled" do
+  test "scopes can be disabled by :_scopes" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
       enum status: [:proposed, :written], _scopes: false
     end
 
     assert_raises(NoMethodError) { klass.proposed }
+  end
+
+  test "overloaded default by :default" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written, :published], default: :published
+    end
+
+    assert_equal "published", klass.new.status
+  end
+
+  test "scopes can be disabled by :scopes" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written], scopes: false
+    end
+
+    assert_raises(NoMethodError) { klass.proposed }
+  end
+
+  test "query state by predicate with :prefix" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, { proposed: 0, written: 1 }, prefix: true
+      enum :last_read, { unread: 0, reading: 1, read: 2 }, prefix: :being
+    end
+
+    book = klass.new
+    assert_respond_to book, :status_proposed?
+    assert_respond_to book, :being_unread?
+  end
+
+  test "query state by predicate with :suffix" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :cover, { hard: 0, soft: 1 }, suffix: true
+      enum :difficulty, { easy: 0, medium: 1, hard: 2 }, suffix: :to_read
+    end
+
+    book = klass.new
+    assert_respond_to book, :hard_cover?
+    assert_respond_to book, :easy_to_read?
+  end
+
+  test "option names can be used as label" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, default: 0, scopes: 1, prefix: 2, suffix: 3
+    end
+
+    book = klass.new
+    assert_predicate book, :default?
+    assert_not_predicate book, :scopes?
+    assert_not_predicate book, :prefix?
+    assert_not_predicate book, :suffix?
   end
 
   test "scopes are named like methods" do
@@ -666,6 +821,44 @@ class EnumTest < ActiveRecord::TestCase
     computer = klass.public_send(:"Etc/GMT+1").build
     assert_predicate computer, :"Etc/GMT+1?"
     assert_not_predicate computer, :"Etc/GMT-1?"
+  end
+
+  test "deserialize enum value to original hash key" do
+    proposed = Struct.new(:to_s).new("proposed")
+    written = Struct.new(:to_s).new("written")
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: { proposed => 0, written => 1 }
+    end
+
+    book = klass.create!(status: 0)
+    assert_equal proposed, book.status
+    assert_predicate book, :proposed?
+    assert_not_predicate book, :written?
+  end
+
+  test "serializable? with large number label" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, ["9223372036854775808", "-9223372036854775809"]
+    end
+
+    type = klass.type_for_attribute(:status)
+
+    assert type.serializable?("9223372036854775808")
+    assert type.serializable?("-9223372036854775809")
+
+    assert_not type.serializable?(9223372036854775808)
+    assert_not type.serializable?(-9223372036854775809)
+
+    book1 = klass.create!(status: "9223372036854775808")
+    book2 = klass.create!(status: "-9223372036854775809")
+
+    assert_equal 0, book1.status_for_database
+    assert_equal 1, book2.status_for_database
+
+    assert_equal book1, klass.where(status: "9223372036854775808").last
+    assert_equal book2, klass.where(status: "-9223372036854775809").last
   end
 
   test "enum logs a warning if auto-generated negative scopes would clash with other enum names" do

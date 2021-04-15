@@ -46,7 +46,7 @@ module ActiveRecord
       def execute_callstack_for_multiparameter_attributes(callstack)
         errors = []
         callstack.each do |name, values_with_empty_parameters|
-          if values_with_empty_parameters.each_value.all?(&:nil?)
+          if values_with_empty_parameters.each_value.all?(NilClass)
             values = nil
           else
             values = values_with_empty_parameters

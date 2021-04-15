@@ -136,7 +136,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include LocalCacheBehavior
     include CacheIncrementDecrementBehavior
     include CacheInstrumentationBehavior
-    include AutoloadingCacheBehavior
     include EncodedKeyCacheBehavior
 
     def test_fetch_multi_uses_redis_mget

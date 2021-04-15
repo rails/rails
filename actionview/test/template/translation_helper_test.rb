@@ -41,7 +41,6 @@ class TranslationHelperTest < ActiveSupport::TestCase
     )
     view_paths = ActionController::Base.view_paths
     view_paths.each(&:clear_cache)
-    ActionView::LookupContext.fallbacks.each(&:clear_cache)
     @view = ::ActionView::Base.with_empty_template_cache.with_view_paths(view_paths, {})
   end
 
@@ -387,11 +386,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_translate_does_not_change_options
     options = {}
-    if RUBY_VERSION >= "2.7"
-      translate(:'translations.missing', **options)
-    else
-      translate(:'translations.missing', options)
-    end
+    translate(:"translations.missing", **options)
     assert_equal({}, options)
   end
 end

@@ -22,9 +22,10 @@ module ActiveRecord
     def strict_loading_violation(event)
       debug do
         owner = event.payload[:owner]
-        association = event.payload[:association]
+        association = event.payload[:reflection].klass
+        name = event.payload[:reflection].name
 
-        color("Strict loading violation: #{association} lazily loaded on #{owner}.", RED)
+        color("Strict loading violation: #{owner} is marked for strict loading. The #{association} association named :#{name} cannot be lazily loaded.", RED)
       end
     end
 
@@ -38,6 +39,7 @@ module ActiveRecord
 
       name  = "#{payload[:name]} (#{event.duration.round(1)}ms)"
       name  = "CACHE #{name}" if payload[:cached]
+      name  = "ASYNC #{name}" if payload[:async]
       sql   = payload[:sql]
       binds = nil
 

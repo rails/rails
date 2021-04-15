@@ -1505,6 +1505,13 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
   def test_should_not_load_the_associated_model
     assert_queries(1) { @ship.name = "The Vile Insanity"; @ship.save! }
   end
+
+  def test_should_save_with_non_nullable_foreign_keys
+    parent = Post.new title: "foo", body: "..."
+    child = parent.comments.build body: "..."
+    child.save!
+    assert_equal child.reload.post, parent.reload
+  end
 end
 
 module AutosaveAssociationOnACollectionAssociationTests
@@ -1949,5 +1956,73 @@ class TestAutosaveAssociationOnAHasManyAssociationDefinedInSubclassWithAcceptsNe
     valid_project.reload
 
     assert_equal "Updated", valid_project.name
+  end
+end
+
+class TestAutosaveAssociationTracksSavingState < ActiveRecord::TestCase
+  test "@_saving is set to true during multiple nested saves" do
+    autosave_saving_stack = []
+
+    ship_with_saving_stack = Class.new(Ship) do
+      before_save { autosave_saving_stack << @_saving }
+      after_save  { autosave_saving_stack << @_saving }
+    end
+
+    pirate_with_callbacks = Class.new(Pirate) do
+      after_save   { ship.save }
+      after_create { ship.save }
+      after_commit { ship.save }
+    end
+
+    child = ship_with_saving_stack.new(name: "Nights Dirty Lightning")
+    child.pirate = pirate_with_callbacks.new(catchphrase: "Aye")
+    child.save!
+    assert_equal [true] * 10, autosave_saving_stack
+    assert_not child.instance_variable_get(:@_saving)
+  end
+
+  test "@_saving is reset to false if validations fail" do
+    child = Ship.new(name: "Nights Dirty Lightning")
+    child.build_pirate
+    assert_not child.save
+    assert_not child.instance_variable_get(:@_saving)
+  end
+end
+
+class TestCyclicAutosaveAssociationsApplyDirtyChangesOnce < ActiveRecord::TestCase
+  test "dirty changes are applied once on child if child is the inverse has_one of parent" do
+    ship_reflection = Ship.reflect_on_association(:pirate)
+    pirate_reflection = Pirate.reflect_on_association(:ship)
+    assert_equal ship_reflection, pirate_reflection.inverse_of, "The pirate reflection's inverse should be the ship reflection"
+
+    child = Ship.new(name: "Nights Dirty Lightning")
+    parent = child.build_pirate(catchphrase: "Aye")
+    child.save!
+    assert_predicate child, :id_previously_changed?
+    assert_predicate parent, :id_previously_changed?
+  end
+
+  test "dirty changes are applied once on child if child is an inverse has_many of parent" do
+    child = FamousShip.new(name: "Poison Orchid")
+    parent = child.build_famous_pirate(catchphrase: "Aye")
+    child.save!
+    assert_predicate child, :id_previously_changed?
+    assert_predicate parent, :id_previously_changed?
+  end
+
+  test "dirty changes on parent are applied only once" do
+    child = Ship.new(name: "Nights Dirty Lightning")
+    parent = child.build_pirate(catchphrase: "Aye")
+    parent.save!
+    assert_predicate child, :id_previously_changed?
+    assert_predicate parent, :id_previously_changed?
+  end
+
+  test "dirty changes are applied once on child if child is an inverse has_many of parent with touch" do
+    child = LineItem.new
+    parent = child.build_invoice
+    child.save!
+    assert_predicate child, :id_previously_changed?
+    assert_predicate parent, :id_previously_changed?
   end
 end

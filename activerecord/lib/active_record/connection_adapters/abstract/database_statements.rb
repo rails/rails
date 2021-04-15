@@ -59,17 +59,13 @@ module ActiveRecord
       end
 
       # Returns an ActiveRecord::Result instance.
-      def select_all(arel, name = nil, binds = [], preparable: nil)
+      def select_all(arel, name = nil, binds = [], preparable: nil, async: false)
         arel = arel_from_relation(arel)
         sql, binds, preparable = to_sql_and_binds(arel, binds, preparable)
 
-        if prepared_statements && preparable
-          select_prepared(sql, name, binds)
-        else
-          select(sql, name, binds)
-        end
+        select(sql, name, binds, prepare: prepared_statements && preparable, async: async && FutureResult::SelectAll)
       rescue ::RangeError
-        ActiveRecord::Result.new([], [])
+        ActiveRecord::Result.empty
       end
 
       # Returns a record hash with the column names as keys and column values
@@ -395,7 +391,7 @@ module ActiveRecord
 
       # Inserts the given fixture into the table. Overridden in adapters that require
       # something beyond a simple insert (e.g. Oracle).
-      # Most of adapters should implement `insert_fixtures_set` that leverages bulk SQL insert.
+      # Most of adapters should implement +insert_fixtures_set+ that leverages bulk SQL insert.
       # We keep this method to provide fallback
       # for databases like sqlite that do not support bulk inserts.
       def insert_fixture(fixture, table_name)
@@ -481,8 +477,7 @@ module ActiveRecord
           end
 
           table = Arel::Table.new(table_name)
-          manager = Arel::InsertManager.new
-          manager.into(table)
+          manager = Arel::InsertManager.new(table)
 
           if values_list.size == 1
             values = values_list.shift
@@ -528,12 +523,28 @@ module ActiveRecord
         end
 
         # Returns an ActiveRecord::Result instance.
-        def select(sql, name = nil, binds = [])
-          exec_query(sql, name, binds, prepare: false)
-        end
+        def select(sql, name = nil, binds = [], prepare: false, async: false)
+          if async && async_enabled?
+            if current_transaction.joinable?
+              raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
+            end
 
-        def select_prepared(sql, name = nil, binds = [])
-          exec_query(sql, name, binds, prepare: true)
+            future_result = async.new(
+              pool,
+              sql,
+              name,
+              binds,
+              prepare: prepare,
+            )
+            if supports_concurrent_connections? && current_transaction.closed?
+              future_result.schedule!(ActiveRecord::Base.asynchronous_queries_session)
+            else
+              future_result.execute!(self)
+            end
+            return future_result
+          end
+
+          exec_query(sql, name, binds, prepare: prepare)
         end
 
         def sql_for_insert(sql, pk, binds)

@@ -30,10 +30,10 @@ module ActiveRecord
 
       if ActiveRecord::Base.legacy_connection_handling
         ActiveRecord::Base.connection_handlers.each do |key, handler|
-          pools.concat(handler.connection_pool_list.each { |p| p.enable_query_cache! })
+          pools.concat(handler.connection_pool_list.reject { |p| p.query_cache_enabled }.each { |p| p.enable_query_cache! })
         end
       else
-        pools.concat(ActiveRecord::Base.connection_handler.all_connection_pools.each { |p| p.enable_query_cache! })
+        pools.concat(ActiveRecord::Base.connection_handler.all_connection_pools.reject { |p| p.query_cache_enabled }.each { |p| p.enable_query_cache! })
       end
 
       pools

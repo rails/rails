@@ -4,12 +4,6 @@ require_relative "helper"
 
 module Arel
   class UpdateManagerTest < Arel::Spec
-    describe "new" do
-      it "takes an engine" do
-        Arel::UpdateManager.new
-      end
-    end
-
     it "should not quote sql literals" do
       table = Table.new(:users)
       um = Arel::UpdateManager.new

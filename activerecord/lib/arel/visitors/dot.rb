@@ -167,16 +167,10 @@ module Arel # :nodoc: all
           visit_edge o, "attribute"
         end
 
-        def visit_Arel_Attribute(o)
+        def visit_Arel_Attributes_Attribute(o)
           visit_edge o, "relation"
           visit_edge o, "name"
         end
-        alias :visit_Arel_Attributes_Integer :visit_Arel_Attribute
-        alias :visit_Arel_Attributes_Float :visit_Arel_Attribute
-        alias :visit_Arel_Attributes_String :visit_Arel_Attribute
-        alias :visit_Arel_Attributes_Time :visit_Arel_Attribute
-        alias :visit_Arel_Attributes_Boolean :visit_Arel_Attribute
-        alias :visit_Arel_Attributes_Attribute :visit_Arel_Attribute
 
         def nary(o)
           o.children.each_with_index do |x, i|

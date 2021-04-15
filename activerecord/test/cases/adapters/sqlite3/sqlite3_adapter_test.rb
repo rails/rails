@@ -525,19 +525,29 @@ module ActiveRecord
         Barcode.reset_column_information
       end
 
-      def test_remove_column_preserves_partial_indexes
+      def test_remove_column_preserves_index_options
         connection = Barcode.connection
         connection.create_table :barcodes, force: true do |t|
           t.string :code
           t.string :region
           t.boolean :bool_attr
 
-          t.index :code, unique: true, where: :bool_attr, name: "partial"
+          t.index :code, unique: true, name: "unique"
+          t.index :code, where: :bool_attr, name: "partial"
+          t.index :code, name: "ordered", order: { code: :desc }
         end
         connection.remove_column :barcodes, :region
 
-        index = connection.indexes("barcodes").find { |idx| idx.name == "partial" }
-        assert_equal "bool_attr", index.where
+        indexes = connection.indexes("barcodes")
+
+        partial_index = indexes.find { |idx| idx.name == "partial" }
+        assert_equal "bool_attr", partial_index.where
+
+        unique_index = indexes.find { |idx| idx.name == "unique" }
+        assert unique_index.unique
+
+        ordered_index = indexes.find { |idx| idx.name == "ordered" }
+        assert_equal :desc, ordered_index.orders
       ensure
         Barcode.reset_column_information
       end

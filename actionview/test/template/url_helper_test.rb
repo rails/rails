@@ -68,7 +68,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_url_for_with_back
     referer = "http://www.example.com/referer"
-    @controller = Struct.new(:request).new(Struct.new(:env).new("HTTP_REFERER" => referer))
+    @controller = Struct.new(:request).new(Struct.new(:env).new({ "HTTP_REFERER" => referer }))
 
     assert_equal "http://www.example.com/referer", url_for(:back)
   end
@@ -85,13 +85,13 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_url_for_with_back_and_javascript_referer
     referer = "javascript:alert(document.cookie)"
-    @controller = Struct.new(:request).new(Struct.new(:env).new("HTTP_REFERER" => referer))
+    @controller = Struct.new(:request).new(Struct.new(:env).new({ "HTTP_REFERER" => referer }))
     assert_equal "javascript:history.back()", url_for(:back)
   end
 
   def test_url_for_with_invalid_referer
     referer = "THIS IS NOT A URL"
-    @controller = Struct.new(:request).new(Struct.new(:env).new("HTTP_REFERER" => referer))
+    @controller = Struct.new(:request).new(Struct.new(:env).new({ "HTTP_REFERER" => referer }))
     assert_equal "javascript:history.back()", url_for(:back)
   end
 
@@ -582,6 +582,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_not current_page?(:back, check_parameters: false)
   end
 
+  def test_current_page_when_options_given_as_keyword_arguments
+    @request = request_for_url("/")
+
+    assert current_page?(**url_hash)
+  end
+
   def test_current_page_with_params_that_match
     @request = request_for_url("/?order=desc&page=1")
 
@@ -598,13 +604,13 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_with_escaped_params
     @request = request_for_url("/category/administra%c3%a7%c3%a3o")
 
-    assert current_page?({ controller: "foo", action: "category", category: "administração" })
+    assert current_page?(controller: "foo", action: "category", category: "administração")
   end
 
   def test_current_page_with_escaped_params_with_different_encoding
     @request = request_for_url("/")
     @request.stub(:path, (+"/category/administra%c3%a7%c3%a3o").force_encoding(Encoding::ASCII_8BIT)) do
-      assert current_page?({ controller: "foo", action: "category", category: "administração" })
+      assert current_page?(controller: "foo", action: "category", category: "administração")
       assert current_page?("http://www.example.com/category/administra%c3%a7%c3%a3o")
     end
   end
@@ -612,7 +618,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_with_double_escaped_params
     @request = request_for_url("/category/administra%c3%a7%c3%a3o?callback_url=http%3a%2f%2fexample.com%2ffoo")
 
-    assert current_page?({ controller: "foo", action: "category", category: "administração", callback_url: "http://example.com/foo" })
+    assert current_page?(controller: "foo", action: "category", category: "administração", callback_url: "http://example.com/foo")
   end
 
   def test_current_page_with_trailing_slash
@@ -700,6 +706,11 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
 
     assert_dom_equal(
+      %{<a href="mailto:me@example.com?cc=ccaddress%40example.com&amp;bcc=bccaddress%40example.com&amp;body=This%20is%20the%20body%20of%20the%20message.&amp;subject=This%20is%20an%20example%20email&amp;reply-to=foo%40bar.com">me@example.com</a>},
+      mail_to("me@example.com", cc: "ccaddress@example.com", bcc: "bccaddress@example.com", subject: "This is an example email", body: "This is the body of the message.", reply_to: "foo@bar.com")
+    )
+
+    assert_dom_equal(
       %{<a href="mailto:me@example.com?body=This%20is%20the%20body%20of%20the%20message.&amp;subject=This%20is%20an%20example%20email">My email</a>},
       mail_to("me@example.com", "My email", cc: "", bcc: "", subject: "This is an example email", body: "This is the body of the message.")
     )
@@ -759,6 +770,11 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal(
       %{<a class="simple-class" href="sms:15155555785;?&body=Hello%20from%20Jim">Text me</a>},
       sms_to("15155555785", "Text me", class: "simple-class", body: "Hello from Jim")
+    )
+
+    assert_dom_equal(
+      %{<a class="simple-class" href="sms:15155555785;?&body=Hello%20from%20Jim">15155555785</a>},
+      sms_to("15155555785", class: "simple-class", body: "Hello from Jim")
     )
 
     assert_dom_equal(
@@ -823,6 +839,11 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal(
       %{<a class="example-class" href="tel:+011234567890">Phone</a>},
       phone_to("1234567890", "Phone", class: "example-class", country_code: "01")
+    )
+
+    assert_dom_equal(
+      %{<a class="example-class" href="tel:+011234567890">1234567890</a>},
+      phone_to("1234567890", class: "example-class", country_code: "01")
     )
 
     assert_dom_equal(

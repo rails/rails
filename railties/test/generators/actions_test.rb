@@ -31,13 +31,13 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_create_file_should_write_data_to_file_path
-    action :create_file, "lib/test_file.rb", "heres test data"
-    assert_file "lib/test_file.rb", "heres test data"
+    action :create_file, "lib/test_file.rb", "here's test data"
+    assert_file "lib/test_file.rb", "here's test data"
   end
 
   def test_create_file_should_write_block_contents_to_file_path
-    action(:create_file, "lib/test_file.rb") { "heres block data" }
-    assert_file "lib/test_file.rb", "heres block data"
+    action(:create_file, "lib/test_file.rb") { "here's block data" }
+    assert_file "lib/test_file.rb", "here's block data"
   end
 
   def test_add_source_adds_source_to_gemfile
@@ -620,14 +620,8 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   private
-    if RUBY_VERSION < "2.7"
-      def action(*args, &block)
-        capture(:stdout) { generator.send(*args, &block) }
-      end
-    else
-      def action(*args, **kwargs, &block)
-        capture(:stdout) { generator.send(*args, **kwargs, &block) }
-      end
+    def action(*args, **kwargs, &block)
+      capture(:stdout) { generator.send(*args, **kwargs, &block) }
     end
 
     def assert_runs(commands, config = {}, &block)

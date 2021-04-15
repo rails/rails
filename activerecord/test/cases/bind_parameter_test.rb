@@ -27,7 +27,6 @@ if ActiveRecord::Base.connection.prepared_statements
         super
         @connection = ActiveRecord::Base.connection
         @subscriber = LogListener.new
-        @pk = Topic.columns_hash[Topic.primary_key]
         @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
       end
 
@@ -158,7 +157,7 @@ if ActiveRecord::Base.connection.prepared_statements
       end
 
       def test_logs_legacy_binds_after_type_cast
-        binds = [[@pk, "10"]]
+        binds = [[Topic.column_for_attribute("id"), "10"]]
         assert_deprecated do
           assert_logs_binds(binds)
         end
@@ -172,6 +171,22 @@ if ActiveRecord::Base.connection.prepared_statements
         @connection.unprepared_statement do
           assert_bind_params_to_sql
         end
+      end
+
+      def test_nested_unprepared_statements
+        assert_predicate @connection, :prepared_statements?
+
+        @connection.unprepared_statement do
+          assert_not_predicate @connection, :prepared_statements?
+
+          @connection.unprepared_statement do
+            assert_not_predicate @connection, :prepared_statements?
+          end
+
+          assert_not_predicate @connection, :prepared_statements?
+        end
+
+        assert_predicate @connection, :prepared_statements?
       end
 
       private
@@ -260,7 +275,7 @@ if ActiveRecord::Base.connection.prepared_statements
           }.new
 
           logger.sql(event)
-          assert_match([[@pk.name, 10]].inspect, logger.debugs.first)
+          assert_match %r(\[\["id", 10\]\]\z), logger.debugs.first
         end
     end
   end

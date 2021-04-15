@@ -314,10 +314,6 @@ task :announce do
     require "erb"
     template = File.read("../tasks/release_announcement_draft.erb")
 
-    if ERB.instance_method(:initialize).parameters.assoc(:key) # Ruby 2.6+
-      puts ERB.new(template, trim_mode: "<>").result(binding)
-    else
-      puts ERB.new(template, nil, "<>").result(binding)
-    end
+    puts ERB.new(template, trim_mode: "<>").result(binding)
   end
 end

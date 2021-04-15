@@ -50,8 +50,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
             :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
-    member = Member.all.merge!(includes: :favourite_club).find(members(:some_other_guy).id)
-    assert_nil member.favourite_club
+    member = Member.all.merge!(includes: :favorite_club).find(members(:some_other_guy).id)
+    assert_nil member.favorite_club
   end
 
   def test_should_work_inverse_of_with_eager_load
@@ -129,15 +129,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_loading_association_with_same_table_joins
     super_memberships = [memberships(:super_membership_of_boring_club)]
 
-    member = Member.joins(:favourite_memberships).first
+    member = Member.joins(:favorite_memberships).first
     assert_equal members(:groucho), member
     assert_equal super_memberships, member.super_memberships
 
-    member = Member.joins(:favourite_memberships).preload(:super_memberships).first
+    member = Member.joins(:favorite_memberships).preload(:super_memberships).first
     assert_equal members(:groucho), member
     assert_equal super_memberships, member.super_memberships
 
-    member = Member.joins(:favourite_memberships).eager_load(:super_memberships).first
+    member = Member.joins(:favorite_memberships).eager_load(:super_memberships).first
     assert_equal members(:groucho), member
     assert_equal super_memberships, member.super_memberships
   end
@@ -414,7 +414,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_belongs_to
     comments = Comment.all.merge!(includes: :post).to_a
-    assert_equal 11, comments.length
+    assert_equal 12, comments.length
     titles = comments.map { |c| c.post.title }
     assert_includes titles, posts(:welcome).title
     assert_includes titles, posts(:sti_post_and_comments).title
@@ -512,9 +512,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_has_one_quotes_table_and_column_names
-    michael = Person.all.merge!(includes: :favourite_reference).find(people(:michael).id)
+    michael = Person.all.merge!(includes: :favorite_reference).find(people(:michael).id)
     references(:michael_unicyclist)
-    assert_no_queries { assert_equal references(:michael_unicyclist), michael.favourite_reference }
+    assert_no_queries { assert_equal references(:michael_unicyclist), michael.favorite_reference }
   end
 
   def test_eager_load_has_many_quotes_table_and_column_names
@@ -1062,7 +1062,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_floating_point_numbers
     assert_queries(2) do
-      # Before changes, the floating point numbers will be interpreted as table names and will cause this to run in one query
+      # Before changes, the floating-point numbers will be interpreted as table names and will cause this to run in one query
       Comment.all.merge!(where: "123.456 = 123.456", includes: :post).to_a
     end
   end
@@ -1175,8 +1175,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts = assert_queries(2) do
       Post.all.merge!(joins: :comments, includes: :author, order: "comments.id DESC").to_a
     end
-    assert_equal posts(:eager_other), posts[1]
-    assert_equal authors(:mary), assert_no_queries { posts[1].author }
+    assert_equal posts(:eager_other), posts[2]
+    assert_equal authors(:mary), assert_no_queries { posts[2].author }
   end
 
   def test_eager_loading_with_conditions_on_joined_table_preloads
@@ -1322,17 +1322,17 @@ class EagerAssociationTest < ActiveRecord::TestCase
       def self.name; "TempAuthor"; end
       self.table_name = "authors"
       has_one :post, class_name: "PostWithDefaultScope", foreign_key: :author_id
-      has_one :reorderd_post, -> { reorder(title: :desc) }, class_name: "PostWithDefaultScope", foreign_key: :author_id
+      has_one :reordered_post, -> { reorder(title: :desc) }, class_name: "PostWithDefaultScope", foreign_key: :author_id
     end
 
     author = klass.first
     # PRECONDITION: make sure ordering results in different results
-    assert_not_equal author.post, author.reorderd_post
+    assert_not_equal author.post, author.reordered_post
 
-    preloaded_reorderd_post = klass.preload(:reorderd_post).first.reorderd_post
+    preloaded_reordered_post = klass.preload(:reordered_post).first.reordered_post
 
-    assert_equal author.reorderd_post, preloaded_reorderd_post
-    assert_equal Post.order(title: :desc).first.title, preloaded_reorderd_post.title
+    assert_equal author.reordered_post, preloaded_reordered_post
+    assert_equal Post.order(title: :desc).first.title, preloaded_reordered_post.title
   end
 
   def test_preloading_polymorphic_with_custom_foreign_type

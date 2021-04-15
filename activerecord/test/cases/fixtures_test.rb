@@ -566,7 +566,7 @@ class HasManyThroughFixture < ActiveRecord::TestCase
     Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
   end
 
-  def test_has_many_through_with_default_table_name
+  def test_has_many_through_with_join_table_name_changed_to_match_habtm_table_name
     pt = make_model "ParrotTreasure"
     parrot = make_model "Parrot"
     treasure = make_model "Treasure"
@@ -585,7 +585,7 @@ class HasManyThroughFixture < ActiveRecord::TestCase
     assert_equal load_has_and_belongs_to_many["parrots_treasures"], rows["parrots_treasures"]
   end
 
-  def test_has_many_through_with_renamed_table
+  def test_has_many_through_with_default_table_name_on_join_table
     pt = make_model "ParrotTreasure"
     parrot = make_model "Parrot"
     treasure = make_model "Treasure"
@@ -1103,7 +1103,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers,
            :developers, :"admin/accounts", :"admin/users", :live_parrots, :dead_parrots, :books
 
-  if ActiveRecord::Base.connection.adapter_name == "PostgreSQL"
+  if current_adapter?(:PostgreSQLAdapter)
     require "models/uuid_parent"
     require "models/uuid_child"
     fixtures :uuid_parents, :uuid_children
@@ -1187,6 +1187,18 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert(pirates(:blackbeard).parrots.include?(parrots(:george)))
     assert(pirates(:blackbeard).parrots.include?(parrots(:louis)))
     assert(parrots(:george).pirates.include?(pirates(:blackbeard)))
+  end
+
+  def test_supports_timestamps_in_join_tables
+    assert_not_nil developers(:david).created_at
+    assert_not_nil computers(:laptop).created_at
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "computers_developers"
+    end
+
+    computers_developers = klass.find_by(developer_id: developers(:david), computer_id: computers(:laptop))
+    assert_not_nil computers_developers.created_at
   end
 
   def test_supports_inline_habtm
@@ -1511,7 +1523,9 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
 
       handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
       handler.establish_connection(db_config)
-      ActiveRecord::Base.connection_handlers = {}
+      assert_deprecated do
+        ActiveRecord::Base.connection_handlers = {}
+      end
       ActiveRecord::Base.connection_handler = handler
       ActiveRecord::Base.connects_to(database: { writing: :default, reading: :readonly })
 

@@ -93,9 +93,28 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     end
   end
 
-  def test_mysql_connection_collation_is_configured
+  def test_character_set_connection_is_configured
+    run_without_connection do |orig_connection|
+      configuration_hash = orig_connection.except(:encoding, :collation)
+      ActiveRecord::Base.establish_connection(configuration_hash.merge!(encoding: "cp932"))
+      connection = ActiveRecord::Base.connection
+
+      assert_equal "cp932", connection.show_variable("character_set_client")
+      assert_equal "cp932", connection.show_variable("character_set_results")
+      assert_equal "cp932", connection.show_variable("character_set_connection")
+      assert_equal "cp932_japanese_ci", connection.show_variable("collation_connection")
+
+      expected = "こんにちは".encode(Encoding::CP932)
+      assert_equal expected, connection.query_value("SELECT 'こんにちは'")
+    end
+  end
+
+  def test_collation_connection_is_configured
     assert_equal "utf8mb4_unicode_ci", @connection.show_variable("collation_connection")
+    assert_equal 1, @connection.query_value("SELECT 'こんにちは' = 'コンニチハ'")
+
     assert_equal "utf8mb4_general_ci", ARUnit2Model.connection.show_variable("collation_connection")
+    assert_equal 0, ARUnit2Model.connection.query_value("SELECT 'こんにちは' = 'コンニチハ'")
   end
 
   def test_mysql_default_in_strict_mode

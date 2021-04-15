@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Tools for creating, working with, and running Rails applications."
   s.description = "Rails internals: application bootup, plugins, generators, and rake tasks."
 
-  s.required_ruby_version = ">= 2.5.0"
+  s.required_ruby_version = ">= 2.7.0"
 
   s.license = "MIT"
 
@@ -39,7 +39,7 @@ Gem::Specification.new do |s|
   s.add_dependency "activesupport", version
   s.add_dependency "actionpack",    version
 
-  s.add_dependency "rake", ">= 0.8.7"
+  s.add_dependency "rake", ">= 0.13"
   s.add_dependency "thor", "~> 1.0"
   s.add_dependency "method_source"
 

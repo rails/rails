@@ -50,9 +50,6 @@
   var secondsSince = function secondsSince(time) {
     return (now() - time) / 1e3;
   };
-  var clamp = function clamp(number, min, max) {
-    return Math.max(min, Math.min(max, number));
-  };
   var ConnectionMonitor = function() {
     function ConnectionMonitor(connection) {
       classCallCheck(this, ConnectionMonitor);
@@ -66,7 +63,7 @@
         delete this.stoppedAt;
         this.startPolling();
         addEventListener("visibilitychange", this.visibilityDidChange);
-        logger.log("ConnectionMonitor started. pollInterval = " + this.getPollInterval() + " ms");
+        logger.log("ConnectionMonitor started. stale threshold = " + this.constructor.staleThreshold + " s");
       }
     };
     ConnectionMonitor.prototype.stop = function stop() {
@@ -108,16 +105,18 @@
       }, this.getPollInterval());
     };
     ConnectionMonitor.prototype.getPollInterval = function getPollInterval() {
-      var _constructor$pollInte = this.constructor.pollInterval, min = _constructor$pollInte.min, max = _constructor$pollInte.max, multiplier = _constructor$pollInte.multiplier;
-      var interval = multiplier * Math.log(this.reconnectAttempts + 1);
-      return Math.round(clamp(interval, min, max) * 1e3);
+      var _constructor = this.constructor, staleThreshold = _constructor.staleThreshold, reconnectionBackoffRate = _constructor.reconnectionBackoffRate;
+      var backoff = Math.pow(1 + reconnectionBackoffRate, Math.min(this.reconnectAttempts, 10));
+      var jitterMax = this.reconnectAttempts === 0 ? 1 : reconnectionBackoffRate;
+      var jitter = jitterMax * Math.random();
+      return staleThreshold * 1e3 * backoff * (1 + jitter);
     };
     ConnectionMonitor.prototype.reconnectIfStale = function reconnectIfStale() {
       if (this.connectionIsStale()) {
-        logger.log("ConnectionMonitor detected stale connection. reconnectAttempts = " + this.reconnectAttempts + ", pollInterval = " + this.getPollInterval() + " ms, time disconnected = " + secondsSince(this.disconnectedAt) + " s, stale threshold = " + this.constructor.staleThreshold + " s");
+        logger.log("ConnectionMonitor detected stale connection. reconnectAttempts = " + this.reconnectAttempts + ", time stale = " + secondsSince(this.refreshedAt) + " s, stale threshold = " + this.constructor.staleThreshold + " s");
         this.reconnectAttempts++;
         if (this.disconnectedRecently()) {
-          logger.log("ConnectionMonitor skipping reopening recent disconnect");
+          logger.log("ConnectionMonitor skipping reopening recent disconnect. time disconnected = " + secondsSince(this.disconnectedAt) + " s");
         } else {
           logger.log("ConnectionMonitor reopening");
           this.connection.reopen();
@@ -125,7 +124,7 @@
       }
     };
     ConnectionMonitor.prototype.connectionIsStale = function connectionIsStale() {
-      return secondsSince(this.pingedAt ? this.pingedAt : this.startedAt) > this.constructor.staleThreshold;
+      return secondsSince(this.refreshedAt) > this.constructor.staleThreshold;
     };
     ConnectionMonitor.prototype.disconnectedRecently = function disconnectedRecently() {
       return this.disconnectedAt && secondsSince(this.disconnectedAt) < this.constructor.staleThreshold;
@@ -141,14 +140,16 @@
         }, 200);
       }
     };
+    createClass(ConnectionMonitor, [ {
+      key: "refreshedAt",
+      get: function get$$1() {
+        return this.pingedAt ? this.pingedAt : this.startedAt;
+      }
+    } ]);
     return ConnectionMonitor;
   }();
-  ConnectionMonitor.pollInterval = {
-    min: 3,
-    max: 30,
-    multiplier: 5
-  };
   ConnectionMonitor.staleThreshold = 6;
+  ConnectionMonitor.reconnectionBackoffRate = .15;
   var INTERNAL = {
     message_types: {
       welcome: "welcome",

@@ -1,11 +1,11 @@
-<header>
+<header role="banner">
   <h1>Template is missing</h1>
 </header>
 
-<div id="container">
+<main role="main" id="container">
   <h2><%= h @exception.message %></h2>
 
   <%= render "rescues/source", source_extracts: @source_extracts, show_source_idx: @show_source_idx %>
   <%= render "rescues/trace", traces: @traces, trace_to_show: @trace_to_show %>
   <%= render template: "rescues/_request_and_response" %>
-</div>
+</main>

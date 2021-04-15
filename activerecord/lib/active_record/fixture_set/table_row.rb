@@ -33,6 +33,10 @@ module ActiveRecord
         def join_table
           @association.through_reflection.table_name
         end
+
+        def timestamp_column_names
+          @association.through_reflection.klass.all_timestamp_attributes_in_model
+        end
       end
 
       def initialize(fixture, table_rows:, label:, now:)
@@ -141,8 +145,12 @@ module ActiveRecord
 
             targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
             joins   = targets.map do |target|
-              { lhs_key => @row[model_metadata.primary_key_name],
-                rhs_key => ActiveRecord::FixtureSet.identify(target, column_type) }
+              join = { lhs_key => @row[model_metadata.primary_key_name],
+                       rhs_key => ActiveRecord::FixtureSet.identify(target, column_type) }
+              association.timestamp_column_names.each do |col|
+                join[col] = @now
+              end
+              join
             end
             @table_rows.tables[table_name].concat(joins)
           end

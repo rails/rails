@@ -26,11 +26,15 @@ module Rails
           empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
         end
 
+        empty_directory_with_keep_file "app/models/concerns"
+        empty_directory_with_keep_file "app/controllers/concerns"
         remove_dir "app/mailers" if options[:skip_action_mailer]
         remove_dir "app/jobs" if options[:skip_active_job]
       elsif full?
         empty_directory_with_keep_file "app/models"
         empty_directory_with_keep_file "app/controllers"
+        empty_directory_with_keep_file "app/models/concerns"
+        empty_directory_with_keep_file "app/controllers/concerns"
         empty_directory_with_keep_file "app/mailers" unless options[:skip_action_mailer]
         empty_directory_with_keep_file "app/jobs" unless options[:skip_active_job]
 
@@ -51,7 +55,7 @@ module Rails
     end
 
     def license
-      template "MIT-LICENSE"
+      template "MIT-LICENSE" unless inside_application?
     end
 
     def gemspec
@@ -65,6 +69,9 @@ module Rails
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run "git init", capture: options[:quiet], abort_on_failure: false
+        if user_default_branch.strip.empty?
+          `git symbolic-ref HEAD refs/heads/main`
+        end
       end
     end
 
@@ -87,12 +94,22 @@ module Rails
     def test
       template "test/test_helper.rb"
       template "test/%namespaced_name%_test.rb"
-      append_file "Rakefile", <<-EOF
-
-#{rakefile_test_tasks}
-task default: :test
+      append_file "Rakefile", <<~EOF
+        #{rakefile_test_tasks}
+        task default: :test
       EOF
+
       if engine?
+        empty_directory_with_keep_file "test/fixtures/files"
+        empty_directory_with_keep_file "test/controllers"
+        empty_directory_with_keep_file "test/mailers"
+        empty_directory_with_keep_file "test/models"
+        empty_directory_with_keep_file "test/integration"
+
+        unless api?
+          empty_directory_with_keep_file "test/helpers"
+        end
+
         template "test/integration/navigation_test.rb"
       end
     end
@@ -178,6 +195,11 @@ task default: :test
         append_file gemfile_in_app_path, entry
       end
     end
+
+    private
+      def user_default_branch
+        @user_default_branch ||= `git config init.defaultbranch`
+      end
   end
 
   module Generators

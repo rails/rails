@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "dependencies_test_helpers"
+require_relative "constantize_test_helpers"
 
 module Ace
   module Base
@@ -27,7 +27,7 @@ class Object
 end
 
 module ConstantizeTestCases
-  include DependenciesTestHelpers
+  include ConstantizeTestHelpers
 
   def run_constantize_tests_on
     assert_equal Ace::Base::Case, yield("Ace::Base::Case")
@@ -75,11 +75,6 @@ module ConstantizeTestCases
         yield("RaisesNoMethodError")
       end
     end
-
-    with_autoloading_fixtures do
-      yield("Prepend::SubClassConflict")
-      assert_equal "constant", defined?(Prepend::SubClassConflict)
-    end
   end
 
   def run_safe_constantize_tests_on
@@ -111,10 +106,6 @@ module ConstantizeTestCases
     assert_nil yield("Object::Object::Object::ABC")
     assert_nil yield("A::Object::B")
     assert_nil yield("A::Object::Object::Object::B")
-
-    with_autoloading_fixtures do
-      assert_nil yield("Em")
-    end
 
     assert_raises(LoadError) do
       with_autoloading_fixtures do

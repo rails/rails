@@ -58,8 +58,8 @@ module ActiveRecord
         end
       end
 
-      def to_h(table_name = nil)
-        equalities(predicates).each_with_object({}) do |node, hash|
+      def to_h(table_name = nil, equality_only: false)
+        equalities(predicates, equality_only).each_with_object({}) do |node, hash|
           next if table_name&.!= node.left.relation.name
           name = node.left.name.to_s
           value = extract_node_value(node.right)
@@ -75,6 +75,11 @@ module ActiveRecord
       def ==(other)
         other.is_a?(WhereClause) &&
           predicates == other.predicates
+      end
+      alias :eql? :==
+
+      def hash
+        [self.class, predicates].hash
       end
 
       def invert
@@ -103,28 +108,31 @@ module ActiveRecord
       end
 
       def extract_attributes
-        predicates.each_with_object([]) do |node, attrs|
-          attr = extract_attribute(node) || begin
-            node.left if node.equality? && node.left.is_a?(Arel::Predications)
-          end
-          attrs << attr if attr
-        end
+        attrs = []
+        each_attributes { |attr, _| attrs << attr }
+        attrs
       end
 
       protected
         attr_reader :predicates
 
         def referenced_columns
-          predicates.each_with_object({}) do |node, hash|
+          hash = {}
+          each_attributes { |attr, node| hash[attr] = node }
+          hash
+        end
+
+      private
+        def each_attributes
+          predicates.each do |node|
             attr = extract_attribute(node) || begin
               node.left if equality_node?(node) && node.left.is_a?(Arel::Predications)
             end
 
-            hash[attr] = node if attr
+            yield attr, node if attr
           end
         end
 
-      private
         def extract_attribute(node)
           attr_node = nil
           Arel.fetch_attribute(node) do |attr|
@@ -134,14 +142,14 @@ module ActiveRecord
           attr_node
         end
 
-        def equalities(predicates)
+        def equalities(predicates, equality_only)
           equalities = []
 
           predicates.each do |node|
-            if equality_node?(node)
+            if equality_only ? Arel::Nodes::Equality === node : equality_node?(node)
               equalities << node
             elsif node.is_a?(Arel::Nodes::And)
-              equalities.concat equalities(node.children)
+              equalities.concat equalities(node.children, equality_only)
             end
           end
 
@@ -165,8 +173,8 @@ module ActiveRecord
             else
               ActiveSupport::Deprecation.warn(<<-MSG.squish)
                 Merging (#{node.to_sql}) and (#{ref.to_sql}) no longer maintain
-                both conditions, and will be replaced by the latter in Rails 6.2.
-                To migrate to Rails 6.2's behavior, use `relation.merge(other, rewhere: true)`.
+                both conditions, and will be replaced by the latter in Rails 7.0.
+                To migrate to Rails 7.0's behavior, use `relation.merge(other, rewhere: true)`.
               MSG
               false
             end
@@ -224,11 +232,10 @@ module ActiveRecord
         end
 
         def extract_node_value(node)
-          case node
-          when Array
-            node.map { |v| extract_node_value(v) }
-          when Arel::Nodes::BindParam, Arel::Nodes::Casted, Arel::Nodes::Quoted
+          if node.respond_to?(:value_before_type_cast)
             node.value_before_type_cast
+          elsif Array === node
+            node.map { |v| extract_node_value(v) }
           end
         end
     end

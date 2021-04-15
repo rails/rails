@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "action_view/helpers/tag_helper"
-require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActionView
   # = Action View Translation Helpers

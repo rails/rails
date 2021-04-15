@@ -49,46 +49,41 @@ module Rails
         @delete_operations = delete_operations
       end
 
-      def insert_before(*args, &block)
-        @operations << -> middleware { middleware.insert_before(*args, &block) }
+      def insert_before(...)
+        @operations << -> middleware { middleware.insert_before(...) }
       end
-      ruby2_keywords(:insert_before) if respond_to?(:ruby2_keywords, true)
 
       alias :insert :insert_before
 
-      def insert_after(*args, &block)
-        @operations << -> middleware { middleware.insert_after(*args, &block) }
-      end
-      ruby2_keywords(:insert_after) if respond_to?(:ruby2_keywords, true)
-
-      def swap(*args, &block)
-        @operations << -> middleware { middleware.swap(*args, &block) }
-      end
-      ruby2_keywords(:swap) if respond_to?(:ruby2_keywords, true)
-
-      def use(*args, &block)
-        @operations << -> middleware { middleware.use(*args, &block) }
-      end
-      ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
-
-      def delete(*args, &block)
-        @delete_operations << -> middleware { middleware.delete(*args, &block) }
+      def insert_after(...)
+        @operations << -> middleware { middleware.insert_after(...) }
       end
 
-      def move_before(*args, &block)
-        @delete_operations << -> middleware { middleware.move_before(*args, &block) }
+      def swap(...)
+        @operations << -> middleware { middleware.swap(...) }
+      end
+
+      def use(...)
+        @operations << -> middleware { middleware.use(...) }
+      end
+
+      def delete(...)
+        @delete_operations << -> middleware { middleware.delete(...) }
+      end
+
+      def move_before(...)
+        @delete_operations << -> middleware { middleware.move_before(...) }
       end
 
       alias :move :move_before
 
-      def move_after(*args, &block)
-        @delete_operations << -> middleware { middleware.move_after(*args, &block) }
+      def move_after(...)
+        @delete_operations << -> middleware { middleware.move_after(...) }
       end
 
-      def unshift(*args, &block)
-        @operations << -> middleware { middleware.unshift(*args, &block) }
+      def unshift(...)
+        @operations << -> middleware { middleware.unshift(...) }
       end
-      ruby2_keywords(:unshift) if respond_to?(:ruby2_keywords, true)
 
       def merge_into(other) #:nodoc:
         (@operations + @delete_operations).each do |operation|

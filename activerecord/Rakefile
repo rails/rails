@@ -49,17 +49,17 @@ end
 
 %w( mysql2 postgresql sqlite3 sqlite3_mem oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   namespace :test do
-    Rake::TestTask.new(adapter => "#{adapter}:env") { |t|
+    Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
       adapter_short = adapter[/^[a-z0-9]+/]
       t.libs << "test"
       t.test_files = (FileList["test/cases/**/*_test.rb"].reject {
-        |x| x.include?("/adapters/")
+        |x| x.include?("/adapters/") || x.include?("/encryption/performance")
       } + FileList["test/cases/adapters/#{adapter_short}/**/*_test.rb"])
 
       t.warning = true
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
-    }
+    end
 
     namespace :integration do
       # Active Job Integration Tests
@@ -112,7 +112,7 @@ end
         test_options = ENV["TESTOPTS"].to_s.split(/[\s]+/)
 
         test_files = (Dir["test/cases/**/*_test.rb"].reject {
-          |x| x.include?("/adapters/")
+          |x| x.include?("/adapters/") || x.include?("/encryption/performance")
         } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).sort
 
         if ENV["BUILDKITE_PARALLEL_JOB_COUNT"]
@@ -161,6 +161,20 @@ end
           puts
 
           exit 1
+        end
+      end
+    end
+
+    namespace :encryption do
+      namespace :performance do
+        Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
+          t.description = "Encryption performance tests for #{adapter}"
+          t.libs << "test"
+          t.test_files = FileList["test/cases/encryption/performance/*_test.rb"]
+
+          t.warning = true
+          t.verbose = true
+          t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
         end
       end
     end

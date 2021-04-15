@@ -73,7 +73,7 @@ This will generate the following HTML:
 
 TIP: Passing `url: my_specified_path` to `form_with` tells the form where to make the request. However, as explained below, you can also pass ActiveRecord objects to the form.
 
-TIP: For every form input, an ID attribute is generated from its name (`"q"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
+TIP: For every form input, an ID attribute is generated from its name (`"query"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
 IMPORTANT: Use "GET" as the method for search forms. This allows users to bookmark a specific search and get back to it. More generally Rails encourages you to use the right HTTP verb for an action.
 
@@ -644,7 +644,7 @@ Output:
 Uploading Files
 ---------------
 
-A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. File upload fields can be rendered with the [`file_field`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-file_field) helper. The most important thing to remember with file uploads is that the rendered form's `enctype` attribute **must** be set to "multipart/form-data". If you use `form_with` with `:model`, this is done automatically:
+A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. File upload fields can be rendered with the [`file_field`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-file_field) helper.
 
 ```erb
 <%= form_with model: @person do |form| %>
@@ -652,11 +652,11 @@ A common task is uploading some sort of file, whether it's a picture of a person
 <% end %>
 ```
 
-If you use `form_with` without `:model`, you must set it yourself:
+The most important thing to remember with file uploads is that the rendered form's `enctype` attribute **must** be set to "multipart/form-data". This is done automatically if you use a `file_field` inside a `form_with`. You can also set the attribute manually:
 
 ```erb
 <%= form_with url: "/uploads", multipart: true do |form| %>
-  <%= form.file_field :picture %>
+  <%= file_field_tag :picture %>
 <% end %>
 ```
 

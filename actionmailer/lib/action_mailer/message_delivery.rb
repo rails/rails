@@ -23,7 +23,7 @@ module ActionMailer
       @processed_mailer = nil
       @mail_message = nil
     end
-    ruby2_keywords(:initialize) if respond_to?(:ruby2_keywords, true)
+    ruby2_keywords(:initialize)
 
     # Method calls are delegated to the Mail::Message that's ready to deliver.
     def __getobj__ #:nodoc:
@@ -150,7 +150,7 @@ module ActionMailer
               @mailer_class.name, @action.to_s, delivery_method.to_s, *@args)
           else
             ActiveSupport::Deprecation.warn(<<~EOM)
-              In Rails 6.2, Action Mailer will pass the mail arguments inside the `:args` keyword argument.
+              In Rails 7.0, Action Mailer will pass the mail arguments inside the `:args` keyword argument.
               The `perform` method of the #{job} needs to change and forward the mail arguments
               from the `args` keyword argument.
 

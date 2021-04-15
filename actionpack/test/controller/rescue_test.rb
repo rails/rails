@@ -33,6 +33,8 @@ class RescueController < ActionController::Base
   class ResourceUnavailableToRescueAsString < StandardError
   end
 
+  wrap_parameters format: :json
+
   # We use a fully qualified name in some strings, and a relative constant
   # name in some other to test correct handling of both cases.
 

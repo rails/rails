@@ -340,6 +340,39 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "new title2", t2.title
   end
 
+  def test_update_with_lock_version_without_default_should_work_on_dirty_value_before_type_cast
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.lock_version = t1.lock_version
+
+    assert_equal 0, t1.lock_version
+    assert_equal 0, t1.lock_version_before_type_cast
+
+    assert_nothing_raised { t1.update!(title: "new title1") }
+    assert_equal 1, t1.lock_version
+    assert_equal "new title1", t1.title
+  end
+
+  def test_destroy_with_lock_version_without_default_should_work_on_dirty_value_before_type_cast
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.lock_version = t1.lock_version
+
+    assert_equal 0, t1.lock_version
+    assert_equal 0, t1.lock_version_before_type_cast
+
+    assert_nothing_raised { t1.destroy! }
+    assert_predicate t1, :destroyed?
+  end
+
   def test_lock_without_default_queries_count
     t1 = LockWithoutDefault.create(title: "title1")
 
@@ -432,7 +465,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   def test_quote_table_name
     ref = references(:michael_magician)
-    ref.favourite = !ref.favourite
+    ref.favorite = !ref.favorite
     assert ref.save
   end
 

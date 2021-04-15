@@ -311,7 +311,7 @@ asyncTest('form\'s submit bindings in browsers that don\'t support submit bubbli
     })
 
     if(!$.support.submitBubbles) {
-      // Must indrectly submit form via click to trigger jQuery's manual submit bubbling in IE
+      // Must indirectly submit form via click to trigger jQuery's manual submit bubbling in IE
       form.find('input[type=submit]')
       .triggerNative('click')
     } else {

@@ -258,7 +258,7 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
                           Time.parse("2010-01-01 14:30:00.245124 +0100")...Time.parse("2010-01-01 13:30:00.245124 +0000"))
   end
 
-  def test_create_tsrange_preseve_usec
+  def test_create_tsrange_preserve_usec
     tz = ::ActiveRecord::Base.default_timezone
     assert_equal_round_trip(@new_range, :ts_range,
                             Time.public_send(tz, 2010, 1, 1, 14, 30, 0, 125435)...Time.public_send(tz, 2011, 2, 2, 14, 30, 0, 225435))
@@ -398,20 +398,18 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal(-Float::INFINITY...Float::INFINITY, record.float_range)
   end
 
-  if RUBY_VERSION >= "2.6"
-    def test_endless_range_values
-      record = PostgresqlRange.create!(
-        int4_range: eval("1.."),
-        int8_range: eval("10.."),
-        float_range: eval("0.5..")
-      )
+  def test_endless_range_values
+    record = PostgresqlRange.create!(
+      int4_range: 1..,
+      int8_range: 10..,
+      float_range: 0.5..
+    )
 
-      record = PostgresqlRange.find(record.id)
+    record = PostgresqlRange.find(record.id)
 
-      assert_equal 1...Float::INFINITY, record.int4_range
-      assert_equal 10...Float::INFINITY, record.int8_range
-      assert_equal 0.5...Float::INFINITY, record.float_range
-    end
+    assert_equal 1...Float::INFINITY, record.int4_range
+    assert_equal 10...Float::INFINITY, record.int8_range
+    assert_equal 0.5...Float::INFINITY, record.float_range
   end
 
   private

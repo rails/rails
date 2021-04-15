@@ -16,6 +16,22 @@ module Enumerable
 
   # :startdoc:
 
+  # Calculates the minimum from the extracted elements.
+  #
+  # payments = [Payment.new(5), Payment.new(15), Payment.new(10)]
+  # payments.minimum(:price) # => 5
+  def minimum(key)
+    map(&key).min
+  end
+
+  # Calculates the maximum from the extracted elements.
+  #
+  # payments = [Payment.new(5), Payment.new(15), Payment.new(10)]
+  # payments.maximum(:price) # => 15
+  def maximum(key)
+    map(&key).max
+  end
+
   # Calculates a sum from the elements.
   #
   #  payments.sum { |p| p.price * p.tax_rate }
@@ -136,11 +152,7 @@ module Enumerable
     elements.flatten!(1)
     reject { |element| elements.include?(element) }
   end
-
-  # Alias for #excluding.
-  def without(*elements)
-    excluding(*elements)
-  end
+  alias :without :excluding
 
   # Extract the given key from each element in the enumerable.
   #
@@ -190,6 +202,18 @@ module Enumerable
   #    #=> { b: 1, f: true }
   def compact_blank
     reject(&:blank?)
+  end
+
+  # Returns a new +Array+ where the order has been set to that provided in the +series+, based on the +key+ of the
+  # objects in the original enumerable.
+  #
+  #   [ Person.find(5), Person.find(3), Person.find(1) ].in_order_of(:id, [ 1, 5, 3 ])
+  #   => [ Person.find(1), Person.find(5), Person.find(3) ]
+  #
+  # If the +series+ include keys that have no corresponding element in the Enumerable, these are ignored.
+  # If the Enumerable has additional elements that aren't named in the +series+, these are not included in the result.
+  def in_order_of(key, series)
+    index_by(&key).values_at(*series).compact
   end
 end
 

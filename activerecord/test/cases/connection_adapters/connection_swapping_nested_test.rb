@@ -35,6 +35,13 @@ module ActiveRecord
       class TertiaryModel < TertiaryBase
       end
 
+      class NonConnectionAbstractClass < SecondaryBase
+        self.abstract_class = true
+      end
+
+      class ModelInheritingFromNonConnectionAbstractClass < NonConnectionAbstractClass
+      end
+
       unless in_memory_db?
         def test_roles_can_be_swapped_granularly
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
@@ -70,8 +77,16 @@ module ActiveRecord
 
                 # Switch only secondary to writing
                 SecondaryBase.connected_to(role: :writing) do
+                  assert_equal :writing, ModelInheritingFromNonConnectionAbstractClass.current_role
                   assert_equal "primary_replica", PrimaryBase.connection_pool.db_config.name
                   assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
+                end
+
+                # Switch only secondary to reading
+                SecondaryBase.connected_to(role: :reading) do
+                  assert_equal :reading, ModelInheritingFromNonConnectionAbstractClass.current_role
+                  assert_equal "primary_replica", PrimaryBase.connection_pool.db_config.name
+                  assert_equal "secondary_replica", SecondaryBase.connection_pool.db_config.name
                 end
 
                 # Ensure restored to global reading
@@ -433,6 +448,7 @@ module ActiveRecord
             end
           end
         ensure
+          ActiveRecord::Base.application_record_class = nil
           Object.send(:remove_const, :ApplicationRecord)
           ActiveRecord::Base.establish_connection :arunit
         end

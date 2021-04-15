@@ -11,7 +11,6 @@ require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActionView
   # = Action View Form Helpers
@@ -2427,7 +2426,7 @@ module ActionView
       # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
       # shown.
       #
-      # Using this method inside a +form_for+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
+      # Using this method inside a +form_with+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
       #
       # ==== Options
       # * Creates standard HTML attributes for the tag.
@@ -2547,7 +2546,7 @@ module ActionView
         end
 
         formmethod = options[:formmethod]
-        if /(post|get)/i.match(formmethod).nil? && formmethod.present? && !options.key?(:name) && !options.key?(:value)
+        if formmethod.present? && !/post|get/i.match?(formmethod) && !options.key?(:name) && !options.key?(:value)
           options.merge! formmethod: :post, name: "_method", value: formmethod
         end
 

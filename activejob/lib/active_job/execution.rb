@@ -14,10 +14,9 @@ module ActiveJob
       #
       #   MyJob.perform_now("mike")
       #
-      def perform_now(*args)
-        job_or_instantiate(*args).perform_now
+      def perform_now(...)
+        job_or_instantiate(...).perform_now
       end
-      ruby2_keywords(:perform_now) if respond_to?(:ruby2_keywords, true)
 
       def execute(job_data) #:nodoc:
         ActiveJob::Callbacks.run_callbacks(:execute) do
@@ -29,7 +28,7 @@ module ActiveJob
 
     # Performs the job immediately. The job is not sent to the queuing adapter
     # but directly executed by blocking the execution of others until it's finished.
-    # `perform_now` returns the value of your job's `perform` method.
+    # +perform_now+ returns the value of your job's +perform+ method.
     #
     #   class MyJob < ActiveJob::Base
     #     def perform
@@ -44,15 +43,20 @@ module ActiveJob
 
       deserialize_arguments_if_needed
 
-      run_callbacks :perform do
-        perform(*arguments)
-      end
-    rescue => exception
+      _perform_job
+    rescue Exception => exception
       rescue_with_handler(exception) || raise
     end
 
     def perform(*)
       fail NotImplementedError
     end
+
+    private
+      def _perform_job
+        run_callbacks :perform do
+          perform(*arguments)
+        end
+      end
   end
 end

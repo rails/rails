@@ -42,7 +42,7 @@ module Rails
 
           middleware.use ::ActionDispatch::Executor, app.executor
 
-          middleware.use ::Rack::Runtime
+          middleware.use ::ActionDispatch::MiddlewareStack::FakeRuntime
           middleware.use ::Rack::MethodOverride unless config.api_only
           middleware.use ::ActionDispatch::RequestId, header: config.action_dispatch.request_id_header
           middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies

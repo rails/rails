@@ -488,7 +488,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal new_account.firm_name, "Account"
   end
 
-  def test_creation_failure_without_dependent_option
+  def test_create_association_replaces_existing_without_dependent_option
     pirate = pirates(:blackbeard)
     orig_ship = pirate.ship
 
@@ -501,7 +501,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_not orig_ship.changed? # check it was saved
   end
 
-  def test_creation_failure_with_dependent_option
+  def test_create_association_replaces_existing_with_dependent_option
     pirate = pirates(:blackbeard).becomes(DestructivePirate)
     orig_ship = pirate.dependent_ship
 
@@ -706,7 +706,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_with_touch_option_on_create
     assert_queries(3) {
-      Club.create(name: "1000 Oaks", membership_attributes: { favourite: true })
+      Club.create(name: "1000 Oaks", membership_attributes: { favorite: true })
     }
   end
 
@@ -759,7 +759,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   class SpecialBook < ActiveRecord::Base
     self.table_name = "books"
     belongs_to :author, class_name: "SpecialAuthor"
-    has_one :subscription, class_name: "SpecialSupscription", foreign_key: "subscriber_id"
+    has_one :subscription, class_name: "SpecialSubscription", foreign_key: "subscriber_id"
 
     enum status: [:proposed, :written, :published]
   end
@@ -769,7 +769,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     has_one :book, class_name: "SpecialBook", foreign_key: "author_id"
   end
 
-  class SpecialSupscription < ActiveRecord::Base
+  class SpecialSubscription < ActiveRecord::Base
     self.table_name = "subscriptions"
     belongs_to :book, class_name: "SpecialBook"
   end
