@@ -36,7 +36,7 @@ class OutputSafetyHelperTest < ActionView::TestCase
   end
 
   test "safe_join should return the safe string separated by $, when second argument is not passed" do
-    default_delimeter = $,
+    default_delimiter = $,
 
     begin
       $, = nil
@@ -49,7 +49,7 @@ class OutputSafetyHelperTest < ActionView::TestCase
       joined = safe_join(["a", "b"])
       assert_equal "a|b", joined
     ensure
-      $, = default_delimeter
+      $, = default_delimiter
     end
   end
 
