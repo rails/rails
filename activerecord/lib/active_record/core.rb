@@ -129,6 +129,14 @@ module ActiveRecord
       # for multiple databases.
       mattr_accessor :suppress_multiple_database_warning, instance_writer: false, default: false
 
+      ##
+      # :singleton-method:
+      # Force enumeration of all columns in SELECT statements
+      # e.g. `SELECT first_name, last_name FROM ...` instead of `SELECT * FROM ...`
+      # This avoids PreparedStatementCacheExpired errors when a column is added
+      # to a Postgres database while the app is running.
+      class_attribute :enumerate_columns_in_select_statements, instance_accessor: false, default: false
+
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
       class_attribute :belongs_to_required_by_default, instance_accessor: false
