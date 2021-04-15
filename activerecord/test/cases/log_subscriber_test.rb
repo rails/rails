@@ -183,7 +183,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
   end
 
-  def test_vebose_query_logs
+  def test_verbose_query_logs
     ActiveRecord::Base.verbose_query_logs = true
 
     logger = TestDebugLogSubscriber.new
