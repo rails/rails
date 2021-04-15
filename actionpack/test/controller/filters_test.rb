@@ -94,7 +94,7 @@ class FilterTest < ActionController::TestCase
 
     private
       def unreached_prepend_after_action
-        @ran_filter << "unreached_preprend_after_action_after_render"
+        @ran_filter << "unreached_prepend_after_action_after_render"
       end
   end
 
@@ -752,13 +752,13 @@ class FilterTest < ActionController::TestCase
     assert_equal %w( before_action_redirects ), @controller.instance_variable_get(:@ran_filter)
   end
 
-  def test_before_action_rendering_breaks_actioning_chain_for_preprend_after_action
+  def test_before_action_rendering_breaks_actioning_chain_for_prepend_after_action
     test_process(RenderingForPrependAfterActionController)
     assert_equal %w( before_action_rendering ), @controller.instance_variable_get(:@ran_filter)
     assert_not @controller.instance_variable_defined?(:@ran_action)
   end
 
-  def test_before_action_redirects_breaks_actioning_chain_for_preprend_after_action
+  def test_before_action_redirects_breaks_actioning_chain_for_prepend_after_action
     test_process(BeforeActionRedirectionForPrependAfterActionController)
     assert_response :redirect
     assert_equal "http://test.host/filter_test/before_action_redirection_for_prepend_after_action/target_of_redirection", redirect_to_url
