@@ -217,11 +217,9 @@ module ActionView
     alias :== :eql?
 
     def all_template_paths # :nodoc:
-      paths = Dir.glob("**/*", base: @path)
-      paths.reject do |filename|
-        File.directory?(File.join(@path, filename))
-      end.map do |filename|
-        filename.gsub(/\.[^\/]*\z/, "")
+      paths = template_glob("**/*")
+      paths.map do |filename|
+        filename.from(@path.size + 1).remove(/\.[^\/]*\z/)
       end.uniq
     end
 
@@ -233,7 +231,6 @@ module ActionView
 
       def query(path, details, formats, locals, cache:)
         template_paths = find_template_paths_from_details(path, details)
-        template_paths = reject_files_external_to_app(template_paths)
 
         template_paths.map do |template|
           unbound_template =
@@ -267,14 +264,18 @@ module ActionView
         )
       end
 
-      def reject_files_external_to_app(files)
-        files.reject { |filename| !inside_path?(@path, filename) }
-      end
+      # Safe glob within @path
+      def template_glob(glob)
+        query = File.join(escape_entry(@path), glob)
+        path_with_slash = File.join(@path, "")
 
-      def inside_path?(path, filename)
-        filename = File.expand_path(filename)
-        path = File.join(path, "")
-        filename.start_with?(path)
+        Dir.glob(query).reject do |filename|
+          File.directory?(filename)
+        end.map do |filename|
+          File.expand_path(filename)
+        end.select do |filename|
+          filename.start_with?(path_with_slash)
+        end
       end
 
       def escape_entry(entry)
@@ -295,22 +296,14 @@ module ActionView
         [handler, format, variant]
       end
 
-      def find_candidate_template_paths(path)
-        # Instead of checking for every possible path, as our other globs would
-        # do, scan the directory for files with the right prefix.
-        query = "#{escape_entry(File.join(@path, path))}*"
-
-        Dir[query].reject do |filename|
-          File.directory?(filename)
-        end
-      end
-
       def find_template_paths_from_details(path, details)
         if path.name.include?(".")
           return []
         end
 
-        candidates = find_candidate_template_paths(path)
+        # Instead of checking for every possible path, as our other globs would
+        # do, scan the directory for files with the right prefix.
+        candidates = template_glob("#{escape_entry(path.to_s)}*")
 
         regex = build_regex(path, details)
 
