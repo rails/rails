@@ -236,11 +236,11 @@ module ActionView
         template_paths.map do |template|
           unbound_template =
             if cache
-              @unbound_templates.compute_if_absent([template, path.virtual]) do
-                build_unbound_template(template, path.virtual)
+              @unbound_templates.compute_if_absent(template) do
+                build_unbound_template(template)
               end
             else
-              build_unbound_template(template, path.virtual)
+              build_unbound_template(template)
             end
 
           unbound_template.bind_locals(locals)
@@ -251,15 +251,15 @@ module ActionView
         Template::Sources::File.new(template)
       end
 
-      def build_unbound_template(template, virtual_path)
-        details = @path_parser.parse(template)
+      def build_unbound_template(template)
+        details = @path_parser.parse(template.from(@path.size + 1))
         source = source_for_template(template)
 
         UnboundTemplate.new(
           source,
           template,
           details.handler,
-          virtual_path: virtual_path,
+          virtual_path: details.path.virtual,
           locale: details.locale,
           format: details.format,
           variant: details.variant,
