@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/parameter_filter"
+
 module ActiveRecord
   class LogSubscriber < ActiveSupport::LogSubscriber
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
@@ -48,7 +50,10 @@ module ActiveRecord
 
         binds = []
         payload[:binds].each_with_index do |attr, i|
-          binds << render_bind(attr, casted_params[i])
+          attribute_name = attr.respond_to?(:name) ? attr.name : attr[i].name
+          filtered_params = parameter_filters.filter({ attribute_name => casted_params[i] })
+
+          binds << render_bind(attr, filtered_params[attribute_name])
         end
         binds = binds.inspect
         binds.prepend("  ")
@@ -131,6 +136,10 @@ module ActiveRecord
 
       def extract_query_source_location(locations)
         backtrace_cleaner.clean(locations.lazy).first
+      end
+
+      def parameter_filters
+        ActiveSupport::ParameterFilter.new(filter_parameters)
       end
   end
 end

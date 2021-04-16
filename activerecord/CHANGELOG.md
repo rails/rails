@@ -597,5 +597,21 @@
 
     *Santiago Perez Perret*
 
+    Filter attributes in SQL logs
+
+    Previously, SQL queries in logs containing `ActiveRecord::Base.filter_attributes` were not filtered.
+
+    Now, the filter attributes will be masked `[FILTERED]` in the logs.
+
+    ```
+    # Before:
+      Foo Load (0.2ms)  SELECT "foos".* FROM "foos" WHERE "foos"."passw" = ? LIMIT ?  [["passw", "hello"], ["LIMIT", 1]]
+
+    # After:
+      Foo Load (0.5ms)  SELECT "foos".* FROM "foos" WHERE "foos"."passw" = ? LIMIT ?  [["passw", "[FILTERED]"], ["LIMIT", 1]]
+    ```
+
+    *Aishwarya Subramanian*
+
 
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/activerecord/CHANGELOG.md) for previous changes.

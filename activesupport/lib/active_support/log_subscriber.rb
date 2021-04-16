@@ -123,6 +123,12 @@ module ActiveSupport
       log_exception(event.name, e)
     end
 
+    def filter_parameters
+      return [] unless defined?(Rails) && Rails.respond_to?(:application)
+
+      Rails.application.config.filter_parameters
+    end
+
   private
     %w(info debug warn error fatal unknown).each do |level|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
