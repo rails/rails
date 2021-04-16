@@ -242,7 +242,7 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
 
   # Only run for adapters that add a default string limit when not provided (MySQL, 255)
   if EncryptedAuthor.columns_hash["name"].limit
-    # No column limits in SQLLite
+    # No column limits in SQLite
     test "validate column sizes" do
       assert EncryptedAuthor.new(name: "jorge").valid?
       assert_not EncryptedAuthor.new(name: "a" * 256).valid?
