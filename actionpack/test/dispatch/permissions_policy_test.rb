@@ -7,31 +7,6 @@ class PermissionsPolicyTest < ActiveSupport::TestCase
     @policy = ActionDispatch::PermissionsPolicy.new
   end
 
-  def test_mappings
-    @policy.midi :self
-    assert_equal "midi 'self'", @policy.build
-
-    @policy.midi :none
-    assert_equal "midi 'none'", @policy.build
-  end
-
-  def test_multiple_sources_for_a_single_directive
-    @policy.geolocation :self, "https://example.com"
-    assert_equal "geolocation 'self' https://example.com", @policy.build
-  end
-
-  def test_single_directive_for_multiple_directives
-    @policy.geolocation :self
-    @policy.usb :none
-    assert_equal "geolocation 'self'; usb 'none'", @policy.build
-  end
-
-  def test_multiple_directives_for_multiple_directives
-    @policy.geolocation :self, "https://example.com"
-    @policy.usb :none, "https://example.com"
-    assert_equal "geolocation 'self' https://example.com; usb 'none' https://example.com", @policy.build
-  end
-
   def test_invalid_directive_source
     exception = assert_raises(ArgumentError) do
       @policy.geolocation [:non_existent]
@@ -46,8 +21,138 @@ class PermissionsPolicyTest < ActiveSupport::TestCase
     assert_deprecated(ActionDispatch.deprecator) { @policy.vr :self }
 
     assert_not_deprecated(ActionDispatch.deprecator) do
-      assert_equal "speaker 'self'; vibrate 'self'; vr 'self'", @policy.build
+      assert_equal "speaker 'self'; vibrate 'self'; vr 'self'", ActionDispatch::PermissionsPolicy::FeaturePolicyHeader.build(@policy)
     end
+  end
+
+  def test_unknown_directive_source_mapping
+    exception = assert_raises(ArgumentError) do
+      @policy.gyroscope :non_existent
+    end
+
+    assert_equal "Unknown HTTP permissions policy source mapping: :non_existent", exception.message
+  end
+end
+
+class PermissionsPolicyHeaderTest < ActiveSupport::TestCase
+  def setup
+    @policy = ActionDispatch::PermissionsPolicy.new
+  end
+
+  def test_mappings
+    @policy.midi :self
+    assert_equal "midi=(self)", ActionDispatch::PermissionsPolicy::PermissionsPolicyHeader.build(@policy)
+
+    @policy.midi :none
+    assert_equal "midi=()", ActionDispatch::PermissionsPolicy::PermissionsPolicyHeader.build(@policy)
+  end
+
+  def test_multiple_sources_for_a_single_directive
+    @policy.geolocation :self, "https://example.com"
+    assert_equal "geolocation=(self \"https://example.com\")", ActionDispatch::PermissionsPolicy::PermissionsPolicyHeader.build(@policy)
+  end
+
+  def test_multiple_sources_for_a_single_directive_starts_with_none
+    @policy.geolocation :none, "https://example.com"
+    assert_equal "geolocation=()", ActionDispatch::PermissionsPolicy::PermissionsPolicyHeader.build(@policy)
+  end
+
+  def test_multiple_sources_for_a_single_directive_ends_with_none
+    @policy.geolocation "https://example.com", :none
+    assert_equal "geolocation=()", ActionDispatch::PermissionsPolicy::PermissionsPolicyHeader.build(@policy)
+  end
+
+  def test_multiple_sources_for_a_single_directive_includes_none
+    @policy.geolocation "https://example.com", :none, "https://other-example.com"
+    assert_equal "geolocation=()", ActionDispatch::PermissionsPolicy::PermissionsPolicyHeader.build(@policy)
+  end
+
+  def test_multiple_sources_for_a_single_directive_starts_with_all
+    @policy.geolocation :all, "https://example.com"
+    assert_equal "geolocation=*", ActionDispatch::PermissionsPolicy::PermissionsPolicyHeader.build(@policy)
+  end
+
+  def test_multiple_sources_for_a_single_directive_ends_with_all
+    @policy.geolocation "https://example.com", :all
+    assert_equal "geolocation=*", ActionDispatch::PermissionsPolicy::PermissionsPolicyHeader.build(@policy)
+  end
+
+  def test_multiple_sources_for_a_single_directive_includes_all
+    @policy.geolocation "https://example.com", :all, "https://other-example.com"
+    assert_equal "geolocation=*", ActionDispatch::PermissionsPolicy::PermissionsPolicyHeader.build(@policy)
+  end
+
+  def test_single_directive_for_multiple_directives
+    @policy.geolocation :self
+    @policy.usb :none
+    assert_equal "geolocation=(self), usb=()", ActionDispatch::PermissionsPolicy::PermissionsPolicyHeader.build(@policy)
+  end
+
+  def test_multiple_directives_for_multiple_directives
+    @policy.geolocation :self, "https://example.com"
+    @policy.usb "https://example.com", "https://other-example.com"
+    assert_equal "geolocation=(self \"https://example.com\"), usb=(\"https://example.com\" \"https://other-example.com\")", ActionDispatch::PermissionsPolicy::PermissionsPolicyHeader.build(@policy)
+  end
+end
+
+class FeaturePolicyHeaderTest < ActiveSupport::TestCase
+  def setup
+    @policy = ActionDispatch::PermissionsPolicy.new
+  end
+
+  def test_mappings
+    @policy.midi :self
+    assert_equal "midi 'self'", ActionDispatch::PermissionsPolicy::FeaturePolicyHeader.build(@policy)
+
+    @policy.midi :none
+    assert_equal "midi 'none'", ActionDispatch::PermissionsPolicy::FeaturePolicyHeader.build(@policy)
+  end
+
+  def test_multiple_sources_for_a_single_directive
+    @policy.geolocation :self, "https://example.com"
+    assert_equal "geolocation 'self' https://example.com", ActionDispatch::PermissionsPolicy::FeaturePolicyHeader.build(@policy)
+  end
+
+  def test_multiple_sources_for_a_single_directive_starts_with_none
+    @policy.geolocation :none, "https://example.com"
+    assert_equal "geolocation 'none'", ActionDispatch::PermissionsPolicy::FeaturePolicyHeader.build(@policy)
+  end
+
+  def test_multiple_sources_for_a_single_directive_ends_with_none
+    @policy.geolocation "https://example.com", :none
+    assert_equal "geolocation 'none'", ActionDispatch::PermissionsPolicy::FeaturePolicyHeader.build(@policy)
+  end
+
+  def test_multiple_sources_for_a_single_directive_includes_none
+    @policy.geolocation "https://example.com", :none, "https://other-example.com"
+    assert_equal "geolocation 'none'", ActionDispatch::PermissionsPolicy::FeaturePolicyHeader.build(@policy)
+  end
+
+  def test_multiple_sources_for_a_single_directive_starts_with_all
+    @policy.geolocation :all, "https://example.com"
+    assert_equal "geolocation *", ActionDispatch::PermissionsPolicy::FeaturePolicyHeader.build(@policy)
+  end
+
+  def test_multiple_sources_for_a_single_directive_ends_with_all
+    @policy.geolocation "https://example.com", :all
+    assert_equal "geolocation *", ActionDispatch::PermissionsPolicy::FeaturePolicyHeader.build(@policy)
+  end
+
+  def test_multiple_sources_for_a_single_directive_includes_all
+    @policy.geolocation "https://example.com", :all, "https://other-example.com"
+    assert_equal "geolocation *", ActionDispatch::PermissionsPolicy::FeaturePolicyHeader.build(@policy)
+  end
+
+  def test_single_directive_for_multiple_directives
+    @policy.geolocation :self
+    @policy.usb :none
+    assert_equal "geolocation 'self'; usb 'none'", ActionDispatch::PermissionsPolicy::FeaturePolicyHeader.build(@policy)
+  end
+
+  def test_multiple_directives_for_multiple_directives
+    @policy.geolocation :self, "https://example.com"
+    @policy.usb "https://example.com", "https://other-example.com"
+    assert_equal "geolocation 'self' https://example.com; usb https://example.com https://other-example.com", ActionDispatch::PermissionsPolicy::FeaturePolicyHeader.build(@policy)
   end
 end
 
@@ -119,17 +224,17 @@ class PermissionsPolicyIntegrationTest < ActionDispatch::IntegrationTest
 
   def test_generates_permissions_policy_header
     get "/"
-    assert_policy "gyroscope 'none'"
+    assert_policy "gyroscope=()"
   end
 
   def test_generates_per_controller_permissions_policy_header
     get "/sample_controller"
-    assert_policy "usb 'self'"
+    assert_policy "usb=(self)"
   end
 
   def test_generates_multiple_directives_permissions_policy_header
     get "/multiple_directives"
-    assert_policy "usb 'self'; autoplay https://example.com; payment https://secure.example.com"
+    assert_policy "usb=(self), autoplay=(\"https://example.com\"), payment=(\"https://secure.example.com\")"
   end
 
   private
@@ -147,7 +252,7 @@ class PermissionsPolicyIntegrationTest < ActionDispatch::IntegrationTest
 
     def assert_policy(expected)
       assert_response :success
-      assert_equal expected, response.headers["Feature-Policy"]
+      assert_equal expected, response.headers["Permissions-Policy"]
     end
 end
 

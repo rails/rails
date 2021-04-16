@@ -34,6 +34,7 @@ module ApplicationTests
       app("development")
 
       get "/"
+      assert_nil last_response.headers["Permissions-Policy"]
       assert_nil last_response.headers["Feature-Policy"]
     end
 
@@ -61,7 +62,8 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "geolocation 'none'"
+      assert_feature_policy "geolocation 'none'"
+      assert_permissions_policy "geolocation=()"
     end
 
     test "override permissions policy using same directive in a controller" do
@@ -92,7 +94,8 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "geolocation https://example.com"
+      assert_feature_policy "geolocation https://example.com"
+      assert_permissions_policy "geolocation=(\"https://example.com\")"
     end
 
     test "override permissions policy by unsetting a directive in a controller" do
@@ -125,6 +128,7 @@ module ApplicationTests
       get "/"
       assert_equal 200, last_response.status
       assert_nil last_response.headers["Feature-Policy"]
+      assert_nil last_response.headers["Permissions-Policy"]
     end
 
     test "override permissions policy using different directives in a controller" do
@@ -157,7 +161,8 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "payment https://secure.example.com; autoplay 'none'"
+      assert_feature_policy "payment https://secure.example.com; autoplay 'none'"
+      assert_permissions_policy "payment=(\"https://secure.example.com\"), autoplay=()"
     end
 
     test "global permissions policy added to rack app" do
@@ -179,13 +184,19 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "payment 'none'"
+      assert_feature_policy "payment 'none'"
+      assert_permissions_policy "payment=()"
     end
 
     private
-      def assert_policy(expected)
+      def assert_feature_policy(expected)
         assert_equal 200, last_response.status
         assert_equal expected, last_response.headers["Feature-Policy"]
+      end
+
+      def assert_permissions_policy(expected)
+        assert_equal 200, last_response.status
+        assert_equal expected, last_response.headers["Permissions-Policy"]
       end
   end
 end
