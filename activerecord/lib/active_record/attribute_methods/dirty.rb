@@ -183,6 +183,16 @@ module ActiveRecord
       end
 
       private
+        def _changes_applied_for_create
+          changes_applied
+          super
+        end
+
+        def _changes_applied_for_update
+          changes_applied
+          super
+        end
+
         def _touch_row(attribute_names, time)
           @_touch_attr_names = Set.new(attribute_names)
 
@@ -213,15 +223,11 @@ module ActiveRecord
         end
 
         def _update_record(attribute_names = attribute_names_for_partial_updates)
-          affected_rows = super
-          changes_applied
-          affected_rows
+          super
         end
 
         def _create_record(attribute_names = attribute_names_for_partial_inserts)
-          id = super
-          changes_applied
-          id
+          super
         end
 
         def attribute_names_for_partial_updates

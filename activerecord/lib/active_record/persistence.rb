@@ -1003,7 +1003,7 @@ module ActiveRecord
         @_trigger_update_callback = affected_rows == 1
       end
 
-      @previously_new_record = false
+      _changes_applied_for_update
 
       yield(self) if block_given?
 
@@ -1021,8 +1021,7 @@ module ActiveRecord
 
       self.id ||= new_id if @primary_key
 
-      @new_record = false
-      @previously_new_record = true
+      _changes_applied_for_create
 
       yield(self) if block_given?
 
@@ -1055,6 +1054,15 @@ module ActiveRecord
     # +:touch+ option is used.
     def belongs_to_touch_method
       :touch
+    end
+
+    def _changes_applied_for_create
+      @new_record = false
+      @previously_new_record = true
+    end
+
+    def _changes_applied_for_update
+      @previously_new_record = false
     end
   end
 end

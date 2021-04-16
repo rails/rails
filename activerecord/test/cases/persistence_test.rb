@@ -578,7 +578,7 @@ class PersistenceTest < ActiveRecord::TestCase
     Topic.reset_column_information
   end
 
-  def test_update_after_create
+  def test_update_attribute_after_create
     klass = Class.new(Topic) do
       def self.name; "Topic"; end
       after_create do

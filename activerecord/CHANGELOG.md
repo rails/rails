@@ -1,3 +1,11 @@
+*   Only update dirty attributes once for cyclic autosave callbacks.
+
+    Instead of calling `changes_applied` every time `save` is called,
+    we can skip it if it has already been called once in the current saving
+    cycle.
+
+    *Petrik de Heus*
+
 *   Fix 2 cases that inferred polymorphic class from the association's `foreign_type`
     using `String#constantize` instead of the model's `polymorphic_class_for`.
 

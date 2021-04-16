@@ -234,6 +234,8 @@ module ActiveRecord
     def reload(options = nil)
       @marked_for_destruction = false
       @destroyed_by_association = nil
+      @_changes_applied = {}
+      @_save_cycle = 0
       super
     end
 
@@ -272,7 +274,50 @@ module ActiveRecord
       new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
+    def save(**options, &block) # :nodoc
+      if options[:use_current_save_cycle]
+        super
+      else
+        _in_new_save_cycle { super }
+      end
+    end
+
+    def save!(**options, &block) # :nodoc
+      _in_new_save_cycle { super }
+    end
+
+    def autosave(validate:) # :nodoc:
+      save(validate: validate, use_current_save_cycle: true)
+    end
+
     private
+      # Start a new save cycle and track if this record has changes applied for it.
+      # As autosave can call +save+ multiple times on the same record, this
+      # makes sure dirty changes are applied only once for each save cycle.
+      def _in_new_save_cycle
+        @_save_cycle += 1
+        yield
+      ensure
+        @_changes_applied.delete(@_save_cycle)
+        @_save_cycle -= 1
+      end
+
+      def _changes_applied_for_create
+        @_changes_applied[@_save_cycle] = true
+        super
+      end
+
+      def _changes_applied_for_update
+        unless _changes_applied_once?
+          @_changes_applied[@_save_cycle] = true
+          super
+        end
+      end
+
+      def _changes_applied_once?
+        @_changes_applied[@_save_cycle]
+      end
+
       # Returns the record for an association collection that should be validated
       # or saved. If +autosave+ is +false+ only new records will be returned,
       # unless the parent is/was a new record itself.
@@ -415,7 +460,7 @@ module ActiveRecord
                   end
                 end
               elsif autosave
-                saved = record.save(validate: false)
+                saved = record.autosave(validate: false)
               end
 
               raise(RecordInvalid.new(association.owner)) unless saved
@@ -452,7 +497,7 @@ module ActiveRecord
                 end
               end
 
-              saved = record.save(validate: !autosave)
+              saved = record.autosave(validate: !autosave)
               raise ActiveRecord::Rollback if !saved && autosave
               saved
             end
@@ -488,7 +533,7 @@ module ActiveRecord
             self[reflection.foreign_key] = nil
             record.destroy
           elsif autosave != false
-            saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
+            saved = record.autosave(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
 
             if association.updated?
               association_id = record.public_send(reflection.options[:primary_key] || :id)

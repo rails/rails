@@ -766,6 +766,8 @@ module ActiveRecord
         @marked_for_destruction   = false
         @destroyed_by_association = nil
         @_start_transaction_state = nil
+        @_save_cycle              = 0
+        @_changes_applied         = {}
 
         klass = self.class
 
