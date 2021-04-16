@@ -454,7 +454,7 @@ class PersistenceTest < ActiveRecord::TestCase
     Topic.reset_column_information
   end
 
-  def test_update_after_create
+  def test_update_attribute_after_create
     klass = Class.new(Topic) do
       def self.name; "Topic"; end
       after_create do
@@ -467,6 +467,22 @@ class PersistenceTest < ActiveRecord::TestCase
 
     topic_reloaded = Topic.find(topic.id)
     assert_equal("Another New Topic", topic_reloaded.title)
+    assert_equal("David", topic_reloaded.author_name)
+  end
+
+  def test_update_attribute_after_update
+    klass = Class.new(Topic) do
+      def self.name; "Topic"; end
+      after_update :update_author, if: :saved_change_to_title?
+      def update_author
+        update_attribute("author_name", "David")
+      end
+    end
+    topic = klass.create(title: "New Topic")
+    topic.update(title: "Another Topic")
+
+    topic_reloaded = Topic.find(topic.id)
+    assert_equal("Another Topic", topic_reloaded.title)
     assert_equal("David", topic_reloaded.author_name)
   end
 

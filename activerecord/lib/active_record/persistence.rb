@@ -641,6 +641,7 @@ module ActiveRecord
       name = name.to_s
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
+      @_already_called[:changes_applied] = false
 
       save(validate: false)
     end
