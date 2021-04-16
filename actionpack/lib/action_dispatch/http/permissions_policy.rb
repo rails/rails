@@ -5,13 +5,14 @@ require "active_support/core_ext/object/deep_dup"
 module ActionDispatch #:nodoc:
   class PermissionsPolicy
     class Middleware
-      CONTENT_TYPE = "Content-Type"
+      CONTENT_TYPE       = "Content-Type"
       # The Feature-Policy header has been renamed to Permissions-Policy.
-      # The Permissions-Policy requires a different implementation and isn't
-      # yet supported by all browsers. To avoid having to rename this
-      # middleware in the future we use the new name for the middleware but
-      # keep the old header name and implementation for now.
-      POLICY       = "Feature-Policy"
+      # Since the Permissions-Policy isn't yet supported by all browsers,
+      # this middleware inserts both headers. For now `POLICY` still refers
+      # to the old header name. This will change in the future, when
+      # Permissions-Policy is supported by all browsers.
+      POLICY             = "Feature-Policy"
+      PERMISSIONS_POLICY = "Permissions-Policy"
 
       def initialize(app)
         @app = app
@@ -25,10 +26,12 @@ module ActionDispatch #:nodoc:
         return response if policy_present?(headers)
 
         if policy = request.permissions_policy
-          headers[POLICY] = policy.build(request.controller_instance)
+          headers[PERMISSIONS_POLICY] = PermissionsPolicyHeader.build(policy, request.controller_instance)
+          headers[POLICY] = FeaturePolicyHeader.build(policy, request.controller_instance)
         end
 
         if policy_empty?(policy)
+          headers.delete(PERMISSIONS_POLICY)
           headers.delete(POLICY)
         end
 
@@ -43,7 +46,7 @@ module ActionDispatch #:nodoc:
         end
 
         def policy_present?(headers)
-          headers[POLICY]
+          headers[PERMISSIONS_POLICY] || headers[POLICY]
         end
 
         def policy_empty?(policy)
@@ -63,61 +66,64 @@ module ActionDispatch #:nodoc:
       end
     end
 
-    MAPPINGS = {
-      self: "'self'",
-      none: "'none'",
-    }.freeze
+    module PermissionsPolicyHeader
+      MAPPINGS = {
+        self: "self",
+        none: "",
+        all: "*",
+      }.freeze
 
-    # List of available permissions can be found at
-    # https://github.com/w3c/webappsec-permissions-policy/blob/master/features.md#policy-controlled-features
-    DIRECTIVES = {
-      accelerometer:        "accelerometer",
-      ambient_light_sensor: "ambient-light-sensor",
-      autoplay:             "autoplay",
-      camera:               "camera",
-      encrypted_media:      "encrypted-media",
-      fullscreen:           "fullscreen",
-      geolocation:          "geolocation",
-      gyroscope:            "gyroscope",
-      magnetometer:         "magnetometer",
-      microphone:           "microphone",
-      midi:                 "midi",
-      payment:              "payment",
-      picture_in_picture:   "picture-in-picture",
-      speaker:              "speaker",
-      usb:                  "usb",
-      vibrate:              "vibrate",
-      vr:                   "vr",
-    }.freeze
+      module_function
 
-    private_constant :MAPPINGS, :DIRECTIVES
+      def build(policy, context = nil)
+        build_directives(policy, context).compact.join(", ")
+      end
 
-    attr_reader :directives
-
-    def initialize
-      @directives = {}
-      yield self if block_given?
-    end
-
-    def initialize_copy(other)
-      @directives = other.directives.deep_dup
-    end
-
-    DIRECTIVES.each do |name, directive|
-      define_method(name) do |*sources|
-        if sources.first
-          @directives[directive] = apply_mappings(sources)
-        else
-          @directives.delete(directive)
+      def build_directives(policy, context)
+        policy.directives.map do |directive, s|
+          sources = apply_mappings(s)
+          if sources.is_a?(Array)
+            allow_list = build_allow_list(sources, context)
+            if allow_list.include?(MAPPINGS[:none])
+              "#{directive}=()"
+            elsif allow_list.include?(MAPPINGS[:all])
+              "#{directive}=#{MAPPINGS[:all]}"
+            else
+              "#{directive}=(#{allow_list.join(' ')})"
+            end
+          elsif sources
+            directive
+          else
+            nil
+          end
         end
       end
-    end
 
-    def build(context = nil)
-      build_directives(context).compact.join("; ")
-    end
+      def build_allow_list(sources, context)
+        sources.map { |source| resolve_source(source, context) }
+      end
 
-    private
+      def resolve_source(source, context)
+        case source
+        when String
+          if MAPPINGS.values.include?(source)
+            source
+          else
+            "\"#{source}\""
+          end
+        when Symbol
+          source.to_s
+        when Proc
+          if context.nil?
+            raise RuntimeError, "Missing context for the dynamic permissions policy source: #{source.inspect}"
+          else
+            context.instance_exec(&source)
+          end
+        else
+          raise RuntimeError, "Unexpected permissions policy source: #{source.inspect}"
+        end
+      end
+
       def apply_mappings(sources)
         sources.map do |source|
           case source
@@ -136,11 +142,33 @@ module ActionDispatch #:nodoc:
           raise ArgumentError, "Unknown HTTP permissions policy source mapping: #{source.inspect}"
         end
       end
+    end
 
-      def build_directives(context)
-        @directives.map do |directive, sources|
+    module FeaturePolicyHeader
+      MAPPINGS = {
+        self: "'self'",
+        none: "'none'",
+        all: "*",
+      }.freeze
+
+      module_function
+
+      def build(policy, context = nil)
+        build_directives(policy, context).compact.join("; ")
+      end
+
+      def build_directives(policy, context)
+        policy.directives.map do |directive, s|
+          sources = apply_mappings(s)
           if sources.is_a?(Array)
-            "#{directive} #{build_directive(sources, context).join(' ')}"
+            allow_list = build_allow_list(sources, context)
+            if allow_list.include?(MAPPINGS[:none])
+              "#{directive} #{MAPPINGS[:none]}"
+            elsif allow_list.include?(MAPPINGS[:all])
+              "#{directive} #{MAPPINGS[:all]}"
+            else
+              "#{directive} #{allow_list.join(' ')}"
+            end
           elsif sources
             directive
           else
@@ -149,7 +177,7 @@ module ActionDispatch #:nodoc:
         end
       end
 
-      def build_directive(sources, context)
+      def build_allow_list(sources, context)
         sources.map { |source| resolve_source(source, context) }
       end
 
@@ -167,6 +195,91 @@ module ActionDispatch #:nodoc:
           end
         else
           raise RuntimeError, "Unexpected permissions policy source: #{source.inspect}"
+        end
+      end
+
+      def apply_mappings(sources)
+        sources.map do |source|
+          case source
+          when Symbol
+            apply_mapping(source)
+          when String, Proc
+            source
+          else
+            raise ArgumentError, "Invalid HTTP permissions policy source: #{source.inspect}"
+          end
+        end
+      end
+
+      def apply_mapping(source)
+        MAPPINGS.fetch(source) do
+          raise ArgumentError, "Unknown HTTP permissions policy source mapping: #{source.inspect}"
+        end
+      end
+    end
+
+    # List of available permissions can be found at
+    # https://github.com/w3c/webappsec-permissions-policy/blob/master/features.md#policy-controlled-features
+    DIRECTIVES = {
+      accelerometer:        "accelerometer",
+      ambient_light_sensor: "ambient-light-sensor",
+      autoplay:             "autoplay",
+      camera:               "camera",
+      encrypted_media:      "encrypted-media",
+      fullscreen:           "fullscreen",
+      geolocation:          "geolocation",
+      gyroscope:            "gyroscope",
+      interest_cohort:      "interest-cohort", # Not standard, this is added to enable opting out of FLoC (https://web.dev/floc/#how-can-websites-opt-out-of-the-floc-computation)
+      magnetometer:         "magnetometer",
+      microphone:           "microphone",
+      midi:                 "midi",
+      payment:              "payment",
+      picture_in_picture:   "picture-in-picture",
+      speaker:              "speaker",
+      usb:                  "usb",
+      vibrate:              "vibrate",
+      vr:                   "vr",
+    }.freeze
+
+    SOURCES = [:self, :none, :all].freeze
+
+    private_constant :DIRECTIVES, :SOURCES
+
+    attr_reader :directives
+
+    def initialize
+      @directives = {}
+      yield self if block_given?
+    end
+
+    def initialize_copy(other)
+      @directives = other.directives.deep_dup
+    end
+
+    DIRECTIVES.each do |name, directive|
+      define_method(name) do |*sources|
+        if sources.first
+          validate_sources(sources)
+          @directives[directive] = sources
+        else
+          @directives.delete(directive)
+        end
+      end
+    end
+
+    private
+      def validate_sources(sources)
+        sources.map do |source|
+          case source
+          when Symbol
+            unless SOURCES.include?(source)
+              raise ArgumentError, "Unknown HTTP permissions policy source mapping: #{source.inspect}"
+            end
+          when String, Proc
+            true
+          else
+            raise ArgumentError, "Invalid HTTP permissions policy source: #{source.inspect}"
+          end
         end
       end
   end
