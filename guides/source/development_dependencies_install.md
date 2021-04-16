@@ -211,7 +211,7 @@ If you're using another database, check the file `activerecord/test/config.yml` 
 
 ### Install JavaScript dependencies
 
-If you installed Yarn, you will need to install the javascript dependencies:
+If you installed Yarn, you will need to install the JavaScript dependencies:
 
 ```bash
 $ yarn install
