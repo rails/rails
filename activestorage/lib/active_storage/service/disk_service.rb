@@ -124,6 +124,10 @@ module ActiveStorage
           purpose: :blob_key
         )
 
+        if current_host.blank?
+          raise ArgumentError, "Cannot generate URL for #{filename} using Disk service, please set ActiveStorage::Current.host."
+        end
+
         current_uri = URI.parse(current_host)
 
         url_helpers.rails_disk_service_url(verified_key_with_expiration,
