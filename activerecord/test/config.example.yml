@@ -40,6 +40,9 @@ connections:
       username: rails
       encoding: utf8mb4
       collation: utf8mb4_unicode_ci
+<% if ENV['MYSQL_PREPARED_STATEMENTS'] %>
+      prepared_statements: true
+<% end %>
 <% if ENV['MYSQL_HOST'] %>
       host: <%= ENV['MYSQL_HOST'] %>
 <% end %>
@@ -47,6 +50,9 @@ connections:
       username: rails
       encoding: utf8mb4
       collation: utf8mb4_general_ci
+<% if ENV['MYSQL_PREPARED_STATEMENTS'] %>
+      prepared_statements: true
+<% end %>
 <% if ENV['MYSQL_HOST'] %>
       host: <%= ENV['MYSQL_HOST'] %>
 <% end %>

@@ -43,7 +43,7 @@ tables. Use `bin/rails db:migrate` to run the migration.
 
 WARNING: `active_storage_attachments` is a polymorphic join table that stores your model's class name. If your model's class name changes, you will need to run a migration on this table to update the underlying `record_type` to your model's new class name.
 
-WARNING: If you are using UUIDs instead of integers as the primary key on your models you will need to change the column type of `record_id` for the `active_storage_attachments` table in the generated migration accordingly.
+WARNING: If you are using UUIDs instead of integers as the primary key on your models you will need to change the column type of `active_storage_attachments.record_id` and `active_storage_variant_records.id` in the generated migration accordingly.
 
 Declare Active Storage services in `config/storage.yml`. For each service your
 application uses, provide a name and the requisite configuration. The example
@@ -147,13 +147,12 @@ Add the [`aws-sdk-s3`](https://github.com/aws/aws-sdk-ruby) gem to your `Gemfile
 gem "aws-sdk-s3", require: false
 ```
 
-NOTE: The core features of Active Storage require the following permissions: `s3:ListBucket`, `s3:PutObject`, `s3:GetObject`, and `s3:DeleteObject`. If you have additional upload options configured such as setting ACLs then additional permissions may be required.
+NOTE: The core features of Active Storage require the following permissions: `s3:ListBucket`, `s3:PutObject`, `s3:GetObject`, and `s3:DeleteObject`. [Public access](#public-access) additionally requires `s3:PutObjectAcl`. If you have additional upload options configured such as setting ACLs then additional permissions may be required.
 
 NOTE: If you want to use environment variables, standard SDK configuration files, profiles,
 IAM instance profiles or task roles, you can omit the `access_key_id`, `secret_access_key`,
 and `region` keys in the example above. The S3 Service supports all of the
-authentication options described in the [AWS SDK documentation]
-(https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
+authentication options described in the [AWS SDK documentation](https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
 
 To connect to an S3-compatible object storage API such as DigitalOcean Spaces, provide the `endpoint`:
 
@@ -289,7 +288,7 @@ public_gcs:
   public: true
 ```
 
-Make sure your buckets are properly configured for public access. See docs on how to enable public read permissions for [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access-bucket.html), [Google Cloud Storage](https://cloud.google.com/storage/docs/access-control/making-data-public#buckets), and [Microsoft Azure](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-manage-access-to-resources#set-container-public-access-level-in-the-azure-portal) storage services.
+Make sure your buckets are properly configured for public access. See docs on how to enable public read permissions for [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access-bucket.html), [Google Cloud Storage](https://cloud.google.com/storage/docs/access-control/making-data-public#buckets), and [Microsoft Azure](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-manage-access-to-resources#set-container-public-access-level-in-the-azure-portal) storage services. Amazon S3 additionally requires that you have the `s3:PutObjectAcl` permission.
 
 When converting an existing application to use `public: true`, make sure to update every individual file in the bucket to be publicly-readable before switching over.
 
@@ -352,6 +351,22 @@ class User < ApplicationRecord
 end
 ```
 
+You can configure specific variants per attachment by calling the `variant` method on yielded attachable object:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar do |attachable|
+    attachable.variant :thumb, resize: "100x100"
+  end
+end
+```
+
+Call `avatar.variant(:thumb)` to get a thumb variant of an avatar:
+
+```erb
+<%= image_tag user.avatar.variant(:thumb) %>
+```
+
 [`has_one_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached
 [Attached::One#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attach
 [Attached::One#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attached-3F
@@ -406,9 +421,20 @@ class Message < ApplicationRecord
 end
 ```
 
+Configuring specific variants is done the same way as `has_one_attached`, by calling the `variant` method on the yielded attachable object:
+
+```ruby
+class Message < ApplicationRecord
+  has_many_attached :images do |attachable|
+    attachable.variant :thumb, resize: "100x100"
+  end
+end
+```
+
 [`has_many_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_many_attached
 [Attached::Many#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attach
 [Attached::Many#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attached-3F
+
 
 ### Attaching File/IO Objects
 
@@ -483,7 +509,7 @@ accessible by default. Anyone that knows the blob URL will be able to download i
 even if a `before_action` in your `ApplicationController` would otherwise
 require a login. If your files require a higher level of protection consider
 implementing your own authenticated
-[`ActiveStorage::Blobs::RedirectController`](https://github.com/rails/rails/blob/master/activestorage/app/controllers/active_storage/blobs/redirect_controller.rb) and [`ActiveStorage::Representations::RedirectController`](https://github.com/rails/rails/blob/master/activestorage/app/controllers/active_storage/representations/redirect_controller.rb).
+[`ActiveStorage::Blobs::RedirectController`](https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/redirect_controller.rb) and [`ActiveStorage::Representations::RedirectController`](https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/representations/redirect_controller.rb).
 
 To create a download link, use the `rails_blob_{path|url}` helper. Using this
 helper allows you to set the disposition.
@@ -735,7 +761,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
     <AllowedHeaders>Origin, Content-Type, Content-MD5, x-ms-blob-content-disposition, x-ms-blob-type</AllowedHeaders>
     <MaxAgeInSeconds>3600</MaxAgeInSeconds>
   </CorsRule>
-<Cors>
+</Cors>
 ```
 
 ### Direct upload JavaScript events
@@ -932,6 +958,8 @@ class Uploader {
 }
 ```
 
+NOTE: Using [Direct Uploads](#direct-uploads) can sometimes result in a file that uploads, but never attaches to a record. Consider [purging unattached uploads](#purging-unattached-uploads).
+
 Discarding Files Stored During System Tests
 -------------------------------------------
 
@@ -1006,5 +1034,21 @@ Implementing Support for Other Cloud Services
 
 If you need to support a cloud service other than these, you will need to
 implement the Service. Each service extends
-[`ActiveStorage::Service`](https://github.com/rails/rails/blob/master/activestorage/lib/active_storage/service.rb)
+[`ActiveStorage::Service`](https://github.com/rails/rails/blob/main/activestorage/lib/active_storage/service.rb)
 by implementing the methods necessary to upload and download files to the cloud.
+
+Purging Unattached Uploads
+--------------------------
+
+There are cases where a file is uploaded but never attached to a record. This can happen when using [Direct Uploads](#direct-uploads). You can query for unattached records using the [unattached scope](https://github.com/rails/rails/blob/8ef5bd9ced351162b673904a0b77c7034ca2bc20/activestorage/app/models/active_storage/blob.rb#L49). Below is an example using a [custom rake task](command_line.html#custom-rake-tasks).
+
+```ruby
+namespace :active_storage do
+  desc "Purges unattached Active Storage blobs. Run regularly."
+  task purge_unattached: :environment do
+    ActiveStorage::Blob.unattached.where("active_storage_blobs.created_at <= ?", 2.days.ago).find_each(&:purge_later)
+  end
+end
+```
+
+WARNING: The query generated by `ActiveStorage::Blob.unattached` can be slow and potentially disruptive on applications with larger databases.

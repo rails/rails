@@ -62,7 +62,7 @@ class Order < ApplicationRecord
   belongs_to :customer
   has_and_belongs_to_many :books, join_table: 'books_orders'
 
-  enum status: [:shipped, :being_packed, :complete, :cancelled]
+  enum :status, [:shipped, :being_packed, :complete, :cancelled]
 
   scope :created_before, ->(time) { where('created_at < ?', time) }
 end
@@ -73,7 +73,7 @@ class Review < ApplicationRecord
   belongs_to :customer
   belongs_to :book
 
-  enum state: [:not_reviewed, :published, :hidden]
+  enum :state, [:not_reviewed, :published, :hidden]
 end
 ```
 
@@ -1254,8 +1254,8 @@ This produces:
 
 ```sql
 SELECT books.* FROM books
-  INNER JOIN reviews ON reviews.book_id = book.id
-  INNER JOIN customer ON customers.id = reviews.id
+  INNER JOIN reviews ON reviews.book_id = books.id
+  INNER JOIN customers ON customers.id = reviews.customer_id
 ```
 
 Or, in English: "return all books that have a review by a customer."
@@ -1359,9 +1359,19 @@ This code looks fine at the first sight. But the problem lies within the total n
 
 **Solution to N + 1 queries problem**
 
-Active Record lets you specify in advance all the associations that are going to be loaded. This is possible by specifying the [`includes`][] method of the `Model.find` call. With `includes`, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
+Active Record lets you specify in advance all the associations that are going to be loaded.
 
-Revisiting the above case, we could rewrite `Book.limit(10)` to eager load authors:
+The methods are:
+
+* [`includes`][]
+* [`preload`][]
+* [`eager_load`][]
+
+### includes
+
+With `includes`, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
+
+Revisiting the above case using the `includes` method, we could rewrite `Book.limit(10)` to eager load authors:
 
 ```ruby
 books = Book.includes(:author).limit(10)
@@ -1374,12 +1384,12 @@ end
 The above code will execute just **2** queries, as opposed to **11** queries in the previous case:
 
 ```sql
-SELECT * FROM books LIMIT 10
-SELECT authors.* FROM authors
-  WHERE (authors.id IN (1,2,3,4,5,6,7,8,9,10))
+SELECT `books`* FROM `books` LIMIT 10
+SELECT `authors`.* FROM `authors`
+  WHERE `authors`.`book_id` IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
-### Eager Loading Multiple Associations
+#### Eager Loading Multiple Associations
 
 Active Record lets you eager load any number of associations with a single `Model.find` call by using an array, hash, or a nested hash of array/hash with the `includes` method.
 
@@ -1391,7 +1401,7 @@ Customer.includes(:orders, :reviews)
 
 This loads all the customers and the associated orders and reviews for each.
 
-#### Nested Associations Hash
+##### Nested Associations Hash
 
 ```ruby
 Customer.includes(orders: {books: [:supplier, :author]}).find(1)
@@ -1399,7 +1409,7 @@ Customer.includes(orders: {books: [:supplier, :author]}).find(1)
 
 This will find the customer with id 1 and eager load all of the associated orders for it, the books for all of the orders, and the author and supplier for each of the books.
 
-### Specifying Conditions on Eager Loaded Associations
+#### Specifying Conditions on Eager Loaded Associations
 
 Even though Active Record lets you specify conditions on the eager loaded associations just like `joins`, the recommended way is to use [joins](#joining-tables) instead.
 
@@ -1432,6 +1442,56 @@ returned.
 
 NOTE: If an association is eager loaded as part of a join, any fields from a custom select clause will not be present on the loaded models.
 This is because it is ambiguous whether they should appear on the parent record, or the child.
+
+### preload
+
+With `preload`, Active record ensures that loaded using a query for every specified association.
+
+Revisiting the case where N + 1 was occurred using the `preload` method, we could rewrite `Book.limit(10)` to authors:
+
+
+```ruby
+books = Book.preload(:author).limit(10)
+
+books.each do |book|
+  puts book.author.last_name
+end
+```
+
+The above code will execute just **2** queries, as opposed to **11** queries in the previous case:
+
+```sql
+SELECT `books`* FROM `books` LIMIT 10
+SELECT `authors`.* FROM `authors`
+  WHERE `authors`.`book_id` IN (1,2,3,4,5,6,7,8,9,10)
+```
+
+NOTE: The `preload` method using an array, hash, or a nested hash of array/hash in the same way as the includes method to load any number of associations with a single `Model.find` call. However, unlike the `includes` method, it is not possible to specify conditions for eager loaded associations.
+
+### eager_load
+
+With `eager_load`, Active record ensures that force eager loading by using　`LEFT OUTER JOIN` for all specified associations.
+
+Revisiting the case where N + 1 was occurred using the `eager_load` method, we could rewrite `Book.limit(10)` to authors:
+
+```ruby
+books = Book.eager_load(:author).limit(10)
+
+books.each do |book|
+  puts book.author.last_name
+end
+```
+
+The above code will execute just **2** queries, as opposed to **11** queries in the previous case:
+
+```sql
+SELECT DISTINCT `books`.`id` FROM `books` LEFT OUTER JOIN `authors` ON `authors`.`book_id` = `books`.`id` LIMIT 10
+SELECT `books`.`id` AS t0_r0, `books`.`last_name` AS t0_r1, ...
+  FROM `books` LEFT OUTER JOIN `authors` ON `authors`.`book_id` = `books`.`id`
+  WHERE `books`.`id` IN (1,2,3,4,5,6,7,8,9,10)
+```
+
+NOTE: The `eager_load` method using an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. Also, like the `includes` method, you can specify the conditions of the eager loaded association.
 
 Scopes
 ------
@@ -1711,7 +1771,7 @@ For example, given this [`enum`][] declaration:
 
 ```ruby
 class Order < ApplicationRecord
-  enum status: [:shipped, :being_packaged, :complete, :cancelled]
+  enum :status, [:shipped, :being_packaged, :complete, :cancelled]
 end
 ```
 
@@ -2158,7 +2218,7 @@ If you want to see the average of a certain number in one of your tables you can
 Order.average("subtotal")
 ```
 
-This will return a number (possibly a floating point number such as 3.14159265) representing the average value in the field.
+This will return a number (possibly a floating-point number such as 3.14159265) representing the average value in the field.
 
 For options, please see the parent section, [Calculations](#calculations).
 

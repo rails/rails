@@ -103,7 +103,7 @@ module ActionController #:nodoc:
     # If you need to use a MIME type which isn't supported by default, you can register your own handlers in
     # +config/initializers/mime_types.rb+ as follows.
     #
-    #   Mime::Type.register "image/jpg", :jpg
+    #   Mime::Type.register "image/jpeg", :jpg
     #
     # +respond_to+ also allows you to specify a common block for different formats by using +any+:
     #

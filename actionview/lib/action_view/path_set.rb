@@ -56,15 +56,6 @@ module ActionView #:nodoc:
       find_all(path, prefixes, *args).any?
     end
 
-    def find_all_with_query(query) # :nodoc:
-      paths.each do |resolver|
-        templates = resolver.find_all_with_query(query)
-        return templates unless templates.empty?
-      end
-
-      []
-    end
-
     private
       def _find_all(path, prefixes, args)
         prefixes = [prefixes] if String === prefixes
@@ -81,7 +72,7 @@ module ActionView #:nodoc:
         paths.map do |path|
           case path
           when Pathname, String
-            OptimizedFileSystemResolver.new path.to_s
+            FileSystemResolver.new path.to_s
           else
             path
           end

@@ -157,6 +157,7 @@ module ActiveRecord
         @handler.establish_connection(:development)
 
         assert_not_nil pool = @handler.retrieve_connection_pool("development")
+        assert_not_predicate pool.connection, :preventing_writes?
         assert_equal "test/db/primary.sqlite3", pool.db_config.database
       ensure
         ActiveRecord::Base.configurations = @prev_configs
@@ -172,6 +173,7 @@ module ActiveRecord
         @handler.establish_connection(:development_readonly)
 
         assert_not_nil pool = @handler.retrieve_connection_pool("development_readonly")
+        assert_not_predicate pool.connection, :preventing_writes?
         assert_equal "test/db/readonly.sqlite3", pool.db_config.database
       ensure
         ActiveRecord::Base.configurations = @prev_configs

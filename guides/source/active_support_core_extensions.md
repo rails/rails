@@ -446,7 +446,7 @@ NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
 
 ### JSON support
 
-Active Support provides a better implementation of `to_json` than the `json` gem ordinarily provides for Ruby objects. This is because some classes, like `Hash`, `OrderedHash` and `Process::Status` need special handling in order to provide a proper JSON representation.
+Active Support provides a better implementation of `to_json` than the `json` gem ordinarily provides for Ruby objects. This is because some classes, like `Hash` and `Process::Status` need special handling in order to provide a proper JSON representation.
 
 NOTE: Defined in `active_support/core_ext/object/json.rb`.
 
@@ -599,22 +599,11 @@ NOTE: Defined in `active_support/core_ext/module/attr_internal.rb`.
 
 The macros [`mattr_reader`][Module#mattr_reader], [`mattr_writer`][Module#mattr_writer], and [`mattr_accessor`][Module#mattr_accessor] are the same as the `cattr_*` macros defined for class. In fact, the `cattr_*` macros are just aliases for the `mattr_*` macros. Check [Class Attributes](#class-attributes).
 
-For example, the dependencies mechanism uses them:
+For example, the API for the logger of Active Storage is generated with `mattr_accessor`:
 
 ```ruby
-module ActiveSupport
-  module Dependencies
-    mattr_accessor :warnings_on_first_load
-    mattr_accessor :history
-    mattr_accessor :loaded
-    mattr_accessor :mechanism
-    mattr_accessor :load_paths
-    mattr_accessor :load_once_paths
-    mattr_accessor :autoloaded_constants
-    mattr_accessor :explicitly_unloadable_constants
-    mattr_accessor :constant_watch_stack
-    mattr_accessor :constant_watch_stack_mutex
-  end
+module ActiveStorage
+  mattr_accessor :logger
 end
 ```
 
@@ -2161,7 +2150,7 @@ Extensions to `BigDecimal`
 
 ### `to_s`
 
-The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating point representation instead of engineering notation:
+The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating-point representation instead of engineering notation:
 
 ```ruby
 BigDecimal(5.00, 6).to_s       # => "5.0"
@@ -3159,9 +3148,9 @@ As the example depicts, the `:db` format generates a `BETWEEN` SQL clause. That 
 
 NOTE: Defined in `active_support/core_ext/range/conversions.rb`.
 
-### `===`, `include?`, and `cover?`
+### `===` and `include?`
 
-The methods `Range#===`, `Range#include?`, and `Range#cover?` say whether some value falls between the ends of a given instance:
+The methods `Range#===` and `Range#include?` say whether some value falls between the ends of a given instance:
 
 ```ruby
 (2..3).include?(Math::E) # => true
@@ -3179,11 +3168,6 @@ Active Support extends these methods so that the argument may be another range i
 (1..10).include?(0..7)  # => false
 (1..10).include?(3..11) # => false
 (1...9).include?(3..9)  # => false
-
-(1..10).cover?(3..7)  # => true
-(1..10).cover?(0..7)  # => false
-(1..10).cover?(3..11) # => false
-(1...9).cover?(3..9)  # => false
 ```
 
 NOTE: Defined in `active_support/core_ext/range/compare_range.rb`.
@@ -4015,25 +3999,6 @@ The auxiliary file is written in a standard directory for temporary files, but y
 NOTE: Defined in `active_support/core_ext/file/atomic.rb`.
 
 [File.atomic_write]: https://api.rubyonrails.org/classes/File.html#method-c-atomic_write
-
-Extensions to `Marshal`
------------------------
-
-### `load`
-
-Active Support adds constant autoloading support to `load`.
-
-For example, the file cache store deserializes this way:
-
-```ruby
-File.open(file_name) { |f| Marshal.load(f) }
-```
-
-If the cached data refers to a constant that is unknown at that point, the autoloading mechanism is triggered and if it succeeds the deserialization is retried transparently.
-
-WARNING. If the argument is an `IO` it needs to respond to `rewind` to be able to retry. Regular files respond to `rewind`.
-
-NOTE: Defined in `active_support/core_ext/marshal.rb`.
 
 Extensions to `NameError`
 -------------------------

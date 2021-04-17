@@ -51,30 +51,25 @@ module ActiveRecord
         @rewhere  = rewhere
       end
 
-      NORMAL_VALUES = Relation::VALUE_METHODS -
-                      Relation::CLAUSE_METHODS -
-                      [:includes, :preload, :joins, :left_outer_joins, :order, :reverse_order, :lock, :create_with, :reordering] # :nodoc:
-
-      def normal_values
-        NORMAL_VALUES
-      end
+      NORMAL_VALUES = Relation::VALUE_METHODS - Relation::CLAUSE_METHODS -
+                      [
+                        :select, :includes, :preload, :joins, :left_outer_joins,
+                        :order, :reverse_order, :lock, :create_with, :reordering
+                      ]
 
       def merge
-        normal_values.each do |name|
+        NORMAL_VALUES.each do |name|
           value = values[name]
           # The unless clause is here mostly for performance reasons (since the `send` call might be moderately
           # expensive), most of the time the value is going to be `nil` or `.blank?`, the only catch is that
           # `false.blank?` returns `true`, so there needs to be an extra check so that explicit `false` values
           # don't fall through the cracks.
           unless value.nil? || (value.blank? && false != value)
-            if name == :select
-              relation._select!(*value)
-            else
-              relation.public_send("#{name}!", *value)
-            end
+            relation.public_send(:"#{name}!", *value)
           end
         end
 
+        merge_select_values
         merge_multi_values
         merge_single_values
         merge_clauses
@@ -86,6 +81,18 @@ module ActiveRecord
       end
 
       private
+        def merge_select_values
+          return if other.select_values.empty?
+
+          if other.klass == relation.klass
+            relation.select_values |= other.select_values
+          else
+            relation.select_values |= other.instance_eval do
+              arel_columns(select_values)
+            end
+          end
+        end
+
         def merge_preloads
           return if other.preload_values.empty? && other.includes_values.empty?
 

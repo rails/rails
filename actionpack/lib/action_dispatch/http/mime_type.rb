@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "singleton"
-require "active_support/core_ext/symbol/starts_ends_with"
 
 module Mime
   class Mimes
@@ -330,7 +329,7 @@ module Mime
   end
 
   # ALL isn't a real MIME type, so we don't register it for lookup with the
-  # other concrete types. It's a wildcard match that we use for `respond_to`
+  # other concrete types. It's a wildcard match that we use for +respond_to+
   # negotiation internals.
   ALL = AllType.instance
 

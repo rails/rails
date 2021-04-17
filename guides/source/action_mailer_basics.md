@@ -4,7 +4,7 @@ Action Mailer Basics
 ====================
 
 This guide provides you with all you need to get started in sending
-emails from and to your application, and many internals of Action
+emails from your application, and many internals of Action
 Mailer. It also covers how to test your mailers.
 
 After reading this guide, you will know:
@@ -46,7 +46,7 @@ views.
 #### Create the Mailer
 
 ```bash
-$ bin/rails generate mailer UserMailer
+$ bin/rails generate mailer User
 create  app/mailers/user_mailer.rb
 create  app/mailers/application_mailer.rb
 invoke  erb
@@ -195,10 +195,11 @@ waiting for the send to complete.
 
 ```ruby
 class UsersController < ApplicationController
-  # POST /users
-  # POST /users.json
+  # ...
+
+  # POST /users or /users.json
   def create
-    @user = User.new(params[:user])
+    @user = User.new(user_params)
 
     respond_to do |format|
       if @user.save
@@ -213,6 +214,8 @@ class UsersController < ApplicationController
       end
     end
   end
+
+  # ...
 end
 ```
 
@@ -608,7 +611,7 @@ URL helper.
 <%= user_url(@user, host: 'example.com') %>
 ```
 
-NOTE: non-`GET` links require [rails-ujs](https://github.com/rails/rails/blob/master/actionview/app/assets/javascripts) or
+NOTE: non-`GET` links require [rails-ujs](https://github.com/rails/rails/blob/main/actionview/app/assets/javascripts) or
 [jQuery UJS](https://github.com/rails/jquery-ujs), and won't work in mailer templates.
 They will result in normal `GET` requests.
 

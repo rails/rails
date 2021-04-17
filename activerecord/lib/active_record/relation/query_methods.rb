@@ -937,7 +937,7 @@ module ActiveRecord
       self
     end
 
-    # Specifies table from which the records will be fetched. For example:
+    # Specifies the table from which the records will be fetched. For example:
     #
     #   Topic.select('title').from('posts')
     #   # SELECT title FROM posts
@@ -947,9 +947,26 @@ module ActiveRecord
     #   Topic.select('title').from(Topic.approved)
     #   # SELECT title FROM (SELECT * FROM topics WHERE approved = 't') subquery
     #
+    # Passing a second argument (string or symbol), creates the alias for the SQL from clause. Otherwise the alias "subquery" is used:
+    #
     #   Topic.select('a.title').from(Topic.approved, :a)
     #   # SELECT a.title FROM (SELECT * FROM topics WHERE approved = 't') a
     #
+    # It does not add multiple arguments to the SQL from clause. The last +from+ chained is the one used:
+    #
+    #   Topic.select('title').from(Topic.approved).from(Topic.inactive)
+    #   # SELECT title FROM (SELECT topics.* FROM topics WHERE topics.active = 'f') subquery
+    #
+    # For multiple arguments for the SQL from clause, you can pass a string with the exact elements in the SQL from list:
+    #
+    #   color = "red"
+    #   Color
+    #     .from("colors c, JSONB_ARRAY_ELEMENTS(colored_things) AS colorvalues(colorvalue)")
+    #     .where("colorvalue->>'color' = ?", color)
+    #     .select("c.*").to_a
+    #   # SELECT c.*
+    #   # FROM colors c, JSONB_ARRAY_ELEMENTS(colored_things) AS colorvalues(colorvalue)
+    #   # WHERE (colorvalue->>'color' = 'red')
     def from(value, subquery_name = nil)
       spawn.from!(value, subquery_name)
     end
@@ -1105,6 +1122,47 @@ module ActiveRecord
       self
     end
 
+    # Excludes the specified record (or collection of records) from the resulting
+    # relation. For example:
+    #
+    #   Post.excluding(post)
+    #   # SELECT "posts".* FROM "posts" WHERE "posts"."id" != 1
+    #
+    #   Post.excluding(post_one, post_two)
+    #   # SELECT "posts".* FROM "posts" WHERE "posts"."id" NOT IN (1, 2)
+    #
+    # This can also be called on associations. As with the above example, either
+    # a single record of collection thereof may be specified:
+    #
+    #   post = Post.find(1)
+    #   comment = Comment.find(2)
+    #   post.comments.excluding(comment)
+    #   # SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = 1 AND "comments"."id" != 2
+    #
+    # This is short-hand for <tt>.where.not(id: post.id)</tt> and <tt>.where.not(id: [post_one.id, post_two.id])</tt>.
+    #
+    # An <tt>ArgumentError</tt> will be raised if either no records are
+    # specified, or if any of the records in the collection (if a collection
+    # is passed in) are not instances of the same model that the relation is
+    # scoping.
+    def excluding(*records)
+      records.flatten!(1)
+      records.compact!
+
+      unless records.all?(klass)
+        raise ArgumentError, "You must only pass a single or collection of #{klass.name} objects to #excluding."
+      end
+
+      spawn.excluding!(records)
+    end
+    alias :without :excluding
+
+    def excluding!(records) # :nodoc:
+      predicates = [ predicate_builder[primary_key, records].invert ]
+      self.where_clause += Relation::WhereClause.new(predicates)
+      self
+    end
+
     # Returns the Arel object associated with the relation.
     def arel(aliases = nil) # :nodoc:
       @arel ||= build_arel(aliases)
@@ -1184,7 +1242,7 @@ module ActiveRecord
         raise ImmutableRelation if defined?(@arel) && @arel
       end
 
-      def build_arel(aliases)
+      def build_arel(aliases = nil)
         arel = Arel::SelectManager.new(table)
 
         build_joins(arel.join_sources, aliases)
@@ -1208,8 +1266,8 @@ module ActiveRecord
           annotates = annotates.uniq if annotates.size > 1
           unless annotates == annotate_values
             ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Duplicated query annotations are no longer shown in queries in Rails 6.2.
-              To migrate to Rails 6.2's behavior, use `uniq!(:annotate)` to deduplicate query annotations
+              Duplicated query annotations are no longer shown in queries in Rails 7.0.
+              To migrate to Rails 7.0's behavior, use `uniq!(:annotate)` to deduplicate query annotations
               (`#{klass.name&.tableize || klass.table_name}.uniq!(:annotate)`).
             MSG
             annotates = annotate_values
@@ -1221,8 +1279,7 @@ module ActiveRecord
       end
 
       def build_cast_value(name, value)
-        cast_value = ActiveModel::Attribute.with_cast_value(name, value, Type.default_value)
-        Arel::Nodes::BindParam.new(cast_value)
+        ActiveModel::Attribute.with_cast_value(name, value, Type.default_value)
       end
 
       def build_from
@@ -1333,7 +1390,7 @@ module ActiveRecord
       def build_select(arel)
         if select_values.any?
           arel.project(*arel_columns(select_values))
-        elsif klass.ignored_columns.any?
+        elsif klass.ignored_columns.any? || klass.enumerate_columns_in_select_statements
           arel.project(*klass.column_names.map { |field| table[field] })
         else
           arel.project(table[Arel.star])
@@ -1562,12 +1619,5 @@ module ActiveRecord
           v1 == v2
         end
       end
-  end
-
-  class Relation # :nodoc:
-    # No-op WhereClauseFactory to work Mashal.load(File.read("legacy_relation.dump")).
-    # TODO: Remove the class once Rails 6.1 has released.
-    class WhereClauseFactory # :nodoc:
-    end
   end
 end

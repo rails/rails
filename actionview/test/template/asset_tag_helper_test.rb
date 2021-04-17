@@ -160,16 +160,16 @@ class AssetTagHelperTest < ActionView::TestCase
   }
 
   StyleLinkToTag = {
-    %(stylesheet_link_tag("bank")) => %(<link href="/stylesheets/bank.css" media="screen" rel="stylesheet" />),
-    %(stylesheet_link_tag("bank.css")) => %(<link href="/stylesheets/bank.css" media="screen" rel="stylesheet" />),
-    %(stylesheet_link_tag("/elsewhere/file")) => %(<link href="/elsewhere/file.css" media="screen" rel="stylesheet" />),
-    %(stylesheet_link_tag("subdir/subdir")) => %(<link href="/stylesheets/subdir/subdir.css" media="screen" rel="stylesheet" />),
+    %(stylesheet_link_tag("bank")) => %(<link href="/stylesheets/bank.css" rel="stylesheet" />),
+    %(stylesheet_link_tag("bank.css")) => %(<link href="/stylesheets/bank.css" rel="stylesheet" />),
+    %(stylesheet_link_tag("/elsewhere/file")) => %(<link href="/elsewhere/file.css" rel="stylesheet" />),
+    %(stylesheet_link_tag("subdir/subdir")) => %(<link href="/stylesheets/subdir/subdir.css" rel="stylesheet" />),
     %(stylesheet_link_tag("bank", :media => "all")) => %(<link href="/stylesheets/bank.css" media="all" rel="stylesheet" />),
-    %(stylesheet_link_tag("bank", :host => "assets.example.com")) => %(<link href="http://assets.example.com/stylesheets/bank.css" media="screen" rel="stylesheet" />),
+    %(stylesheet_link_tag("bank", :host => "assets.example.com")) => %(<link href="http://assets.example.com/stylesheets/bank.css" rel="stylesheet" />),
 
-    %(stylesheet_link_tag("http://www.example.com/styles/style")) => %(<link href="http://www.example.com/styles/style" media="screen" rel="stylesheet" />),
-    %(stylesheet_link_tag("http://www.example.com/styles/style.css")) => %(<link href="http://www.example.com/styles/style.css" media="screen" rel="stylesheet" />),
-    %(stylesheet_link_tag("//www.example.com/styles/style.css")) => %(<link href="//www.example.com/styles/style.css" media="screen" rel="stylesheet" />),
+    %(stylesheet_link_tag("http://www.example.com/styles/style")) => %(<link href="http://www.example.com/styles/style" rel="stylesheet" />),
+    %(stylesheet_link_tag("http://www.example.com/styles/style.css")) => %(<link href="http://www.example.com/styles/style.css" rel="stylesheet" />),
+    %(stylesheet_link_tag("//www.example.com/styles/style.css")) => %(<link href="//www.example.com/styles/style.css" rel="stylesheet" />),
   }
 
   ImagePathToTag = {
@@ -476,7 +476,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_stylesheet_link_tag_without_request
     @request = nil
     assert_dom_equal(
-      %(<link rel="stylesheet" media="screen" href="/stylesheets/foo.css" />),
+      %(<link rel="stylesheet" href="/stylesheets/foo.css" />),
       stylesheet_link_tag("foo.css")
     )
   end
@@ -491,18 +491,28 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_link_tag_should_not_output_the_same_asset_twice
-    assert_dom_equal %(<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("wellington", "wellington", "amsterdam")
+    assert_dom_equal %(<link href="/stylesheets/wellington.css" rel="stylesheet" />\n<link href="/stylesheets/amsterdam.css" rel="stylesheet" />), stylesheet_link_tag("wellington", "wellington", "amsterdam")
   end
 
   def test_stylesheet_link_tag_with_relative_protocol
     @controller.config.asset_host = "assets.example.com"
-    assert_dom_equal %(<link href="//assets.example.com/stylesheets/wellington.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("wellington", protocol: :relative)
+    assert_dom_equal %(<link href="//assets.example.com/stylesheets/wellington.css" rel="stylesheet" />), stylesheet_link_tag("wellington", protocol: :relative)
   end
 
   def test_stylesheet_link_tag_with_default_protocol
     @controller.config.asset_host = "assets.example.com"
     @controller.config.default_asset_host_protocol = :relative
-    assert_dom_equal %(<link href="//assets.example.com/stylesheets/wellington.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("wellington")
+    assert_dom_equal %(<link href="//assets.example.com/stylesheets/wellington.css" rel="stylesheet" />), stylesheet_link_tag("wellington")
+  end
+
+  def test_stylesheet_link_tag_with_configured_stylesheet_media_default
+    original_default_media = ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default
+    ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default = true
+
+    assert_dom_equal %(<link href="/file.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("/file")
+    assert_dom_equal %(<link href="/file.css" media="all" rel="stylesheet" />), stylesheet_link_tag("/file", media: "all")
+  ensure
+    ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default = original_default_media
   end
 
   def test_javascript_include_tag_without_request
@@ -540,6 +550,14 @@ class AssetTagHelperTest < ActionView::TestCase
       stylesheet_link_tag("http://example.com/style.css", crossorigin: "use-credentials")
       javascript_include_tag("http://example.com/all.js", crossorigin: true)
       expected = "<http://example.com/style.css>; rel=preload; as=style; crossorigin=use-credentials; nopush,<http://example.com/all.js>; rel=preload; as=script; crossorigin=anonymous; nopush"
+      assert_equal expected, @response.headers["Link"]
+    end
+  end
+
+  def test_should_set_preload_links_with_rel_modulepreload
+    with_preload_links_header do
+      javascript_include_tag("http://example.com/all.js", type: "module")
+      expected = "<http://example.com/all.js>; rel=modulepreload; as=script; nopush"
       assert_equal expected, @response.headers["Link"]
     end
   end
@@ -852,12 +870,12 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
 
   def test_should_ignore_asset_host_on_complete_url
     @controller.config.asset_host = "http://assets.example.com"
-    assert_dom_equal(%(<link href="http://bar.example.com/stylesheets/style.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("http://bar.example.com/stylesheets/style.css"))
+    assert_dom_equal(%(<link href="http://bar.example.com/stylesheets/style.css" rel="stylesheet" />), stylesheet_link_tag("http://bar.example.com/stylesheets/style.css"))
   end
 
   def test_should_ignore_asset_host_on_scheme_relative_url
     @controller.config.asset_host = "http://assets.example.com"
-    assert_dom_equal(%(<link href="//bar.example.com/stylesheets/style.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("//bar.example.com/stylesheets/style.css"))
+    assert_dom_equal(%(<link href="//bar.example.com/stylesheets/style.css" rel="stylesheet" />), stylesheet_link_tag("//bar.example.com/stylesheets/style.css"))
   end
 
   def test_should_wildcard_asset_host
@@ -896,7 +914,7 @@ class AssetTagHelperWithoutRequestTest < ActionView::TestCase
 
   def test_stylesheet_link_tag_without_request
     assert_dom_equal(
-      %(<link rel="stylesheet" media="screen" href="/stylesheets/foo.css" />),
+      %(<link rel="stylesheet" href="/stylesheets/foo.css" />),
       stylesheet_link_tag("foo.css")
     )
   end

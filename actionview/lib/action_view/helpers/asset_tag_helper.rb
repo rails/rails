@@ -16,7 +16,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img src="/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="/assets/application.css?body=1" media="screen" rel="stylesheet" />
+    #   # => <link href="/assets/application.css?body=1" rel="stylesheet" />
     module AssetTagHelper
       include AssetUrlHelper
       include TagHelper
@@ -24,6 +24,7 @@ module ActionView
       mattr_accessor :image_loading
       mattr_accessor :image_decoding
       mattr_accessor :preload_links_header
+      mattr_accessor :apply_stylesheet_media_default
 
       # Returns an HTML script tag for each of the +sources+ provided.
       #
@@ -93,11 +94,12 @@ module ActionView
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
         integrity = options["integrity"]
+        rel = options["type"] == "module" ? "modulepreload" : "preload"
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
           if preload_links_header && !options["defer"]
-            preload_link = "<#{href}>; rel=preload; as=script"
+            preload_link = "<#{href}>; rel=#{rel}; as=script"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
             preload_link += "; nopush" if nopush
@@ -123,21 +125,18 @@ module ActionView
       # Returns a stylesheet link tag for the sources specified as arguments. If
       # you don't specify an extension, <tt>.css</tt> will be appended automatically.
       # You can modify the link attributes by passing a hash as the last argument.
-      # For historical reasons, the 'media' attribute will always be present and defaults
-      # to "screen", so you must explicitly set it to "all" for the stylesheet(s) to
-      # apply to all media types.
       #
       # If the server supports Early Hints header links for these assets will be
       # automatically pushed.
       #
       #   stylesheet_link_tag "style"
-      #   # => <link href="/assets/style.css" media="screen" rel="stylesheet" />
+      #   # => <link href="/assets/style.css" rel="stylesheet" />
       #
       #   stylesheet_link_tag "style.css"
-      #   # => <link href="/assets/style.css" media="screen" rel="stylesheet" />
+      #   # => <link href="/assets/style.css" rel="stylesheet" />
       #
       #   stylesheet_link_tag "http://www.example.com/style.css"
-      #   # => <link href="http://www.example.com/style.css" media="screen" rel="stylesheet" />
+      #   # => <link href="http://www.example.com/style.css" rel="stylesheet" />
       #
       #   stylesheet_link_tag "style", media: "all"
       #   # => <link href="/assets/style.css" media="all" rel="stylesheet" />
@@ -146,8 +145,8 @@ module ActionView
       #   # => <link href="/assets/style.css" media="print" rel="stylesheet" />
       #
       #   stylesheet_link_tag "random.styles", "/css/stylish"
-      #   # => <link href="/assets/random.styles" media="screen" rel="stylesheet" />
-      #   #    <link href="/css/stylish.css" media="screen" rel="stylesheet" />
+      #   # => <link href="/assets/random.styles" rel="stylesheet" />
+      #   #    <link href="/css/stylish.css" rel="stylesheet" />
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "host", "skip_pipeline").symbolize_keys
@@ -168,10 +167,14 @@ module ActionView
           end
           tag_options = {
             "rel" => "stylesheet",
-            "media" => "screen",
             "crossorigin" => crossorigin,
             "href" => href
           }.merge!(options)
+
+          if apply_stylesheet_media_default && tag_options["media"].blank?
+            tag_options["media"] = "screen"
+          end
+
           tag(:link, tag_options)
         }.join("\n").html_safe
 

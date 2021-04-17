@@ -1,6 +1,10 @@
-<h1>Editing <%= singular_table_name.titleize %></h1>
+<h1>Editing <%= human_name.downcase %></h1>
 
-<%%= render 'form', <%= singular_table_name %>: @<%= singular_table_name %> %>
+<%%= render "form", <%= singular_table_name %>: @<%= singular_table_name %> %>
 
-<%%= link_to 'Show', @<%= singular_table_name %> %> |
-<%%= link_to 'Back', <%= index_helper %>_path %>
+<br>
+
+<div>
+  <%%= link_to "Show this <%= human_name.downcase %>", @<%= singular_table_name %> %> |
+  <%%= link_to "Back to <%= human_name.pluralize.downcase %>", <%= index_helper %>_path %>
+</div>

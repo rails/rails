@@ -103,6 +103,25 @@ module ActiveRecord
         )
       end
 
+      EXCEPTION_NEVER = { Exception => :never }.freeze # :nodoc:
+      EXCEPTION_IMMEDIATE = { Exception => :immediate }.freeze # :nodoc:
+      private_constant :EXCEPTION_NEVER, :EXCEPTION_IMMEDIATE
+      def with_instrumenter(instrumenter, &block) # :nodoc:
+        Thread.handle_interrupt(EXCEPTION_NEVER) do
+          previous_instrumenter = @instrumenter
+          @instrumenter = instrumenter
+          Thread.handle_interrupt(EXCEPTION_IMMEDIATE, &block)
+        ensure
+          @instrumenter = previous_instrumenter
+        end
+      end
+
+      def check_if_write_query(sql) # :nodoc:
+        if preventing_writes? && write_query?(sql)
+          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+        end
+      end
+
       def replica?
         @config[:replica] || false
       end
@@ -116,10 +135,10 @@ module ActiveRecord
       # Returns true if the connection is a replica.
       #
       # If the application is using legacy handling, returns
-      # true if `connection_handler.prevent_writes` is set.
+      # true if +connection_handler.prevent_writes+ is set.
       #
       # If the application is using the new connection handling
-      # will return true based on `current_preventing_writes`.
+      # will return true based on +current_preventing_writes+.
       def preventing_writes?
         return true if replica?
         return ActiveRecord::Base.connection_handler.prevent_writes if ActiveRecord::Base.legacy_connection_handling
@@ -154,9 +173,10 @@ module ActiveRecord
                               end
       end
 
-      def prepared_statements
+      def prepared_statements?
         @prepared_statements && !prepared_statements_disabled_cache.include?(object_id)
       end
+      alias :prepared_statements :prepared_statements?
 
       def prepared_statements_disabled_cache # :nodoc:
         Thread.current[:ar_prepared_statements_disabled_cache] ||= Set.new
@@ -250,7 +270,7 @@ module ActiveRecord
       end
 
       def unprepared_statement
-        cache = prepared_statements_disabled_cache.add(object_id) if @prepared_statements
+        cache = prepared_statements_disabled_cache.add?(object_id) if @prepared_statements
         yield
       ensure
         cache&.delete(object_id)
@@ -416,6 +436,15 @@ module ActiveRecord
 
       def supports_insert_conflict_target?
         false
+      end
+
+      def supports_concurrent_connections?
+        true
+      end
+
+      def async_enabled? # :nodoc:
+        supports_concurrent_connections? &&
+          !Base.async_query_executor.nil? && !pool.async_executor.nil?
       end
 
       # This is meant to be implemented by the adapters that support extensions
@@ -683,7 +712,7 @@ module ActiveRecord
           exception
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil, async: false) # :doc:
           @instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
@@ -691,6 +720,7 @@ module ActiveRecord
             binds:             binds,
             type_casted_binds: type_casted_binds,
             statement_name:    statement_name,
+            async:             async,
             connection:        self) do
             @lock.synchronize do
               yield

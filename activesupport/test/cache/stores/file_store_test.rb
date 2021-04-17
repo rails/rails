@@ -36,7 +36,6 @@ class FileStoreTest < ActiveSupport::TestCase
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
-  include AutoloadingCacheBehavior
 
   def test_clear
     gitkeep = File.join(cache_dir, ".gitkeep")

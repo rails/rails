@@ -62,10 +62,22 @@ module ActionController
         assert_equal "public", @response.headers["Cache-Control"]
       end
 
-      def test_cache_control_no_store_is_respected
-        @response.set_header("Cache-Control", "private, no-store")
+      def test_cache_control_no_store_default_standalone
+        @response.set_header("Cache-Control", "no-store")
         @response.stream.write "omg"
         assert_equal "no-store", @response.headers["Cache-Control"]
+      end
+
+      def test_cache_control_no_store_is_respected
+        @response.set_header("Cache-Control", "public, no-store")
+        @response.stream.write "omg"
+        assert_equal "no-store", @response.headers["Cache-Control"]
+      end
+
+      def test_cache_control_no_store_private
+        @response.set_header("Cache-Control", "private, no-store")
+        @response.stream.write "omg"
+        assert_equal "private, no-store", @response.headers["Cache-Control"]
       end
 
       def test_content_length_is_removed

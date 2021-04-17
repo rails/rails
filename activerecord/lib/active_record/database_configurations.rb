@@ -40,7 +40,7 @@ module ActiveRecord
     def configs_for(env_name: nil, spec_name: nil, name: nil, include_replicas: false)
       if spec_name
         name = spec_name
-        ActiveSupport::Deprecation.warn("The kwarg `spec_name` is deprecated in favor of `name`. `spec_name` will be removed in Rails 6.2")
+        ActiveSupport::Deprecation.warn("The kwarg `spec_name` is deprecated in favor of `name`. `spec_name` will be removed in Rails 7.0")
       end
 
       env_name ||= default_env if name
@@ -166,7 +166,7 @@ module ActiveRecord
         return configs if configs.is_a?(Array)
 
         db_configs = configs.flat_map do |env_name, config|
-          if config.is_a?(Hash) && config.all? { |_, v| v.is_a?(Hash) }
+          if config.is_a?(Hash) && config.values.all?(Hash)
             walk_configs(env_name.to_s, config)
           else
             build_db_config_from_raw_config(env_name.to_s, "primary", config)

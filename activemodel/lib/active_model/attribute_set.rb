@@ -54,7 +54,6 @@ module ActiveModel
 
     def write_cast_value(name, value)
       @attributes[name] = self[name].with_cast_value(value)
-      value
     end
 
     def freeze

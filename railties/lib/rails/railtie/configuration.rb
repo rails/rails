@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "rails/configuration"
-require "active_support/core_ext/symbol/starts_ends_with"
 
 module Rails
   class Railtie

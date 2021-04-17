@@ -24,11 +24,23 @@ module ActiveRecord
       end
 
       def current_scope(skip_inherited_scope = false)
-        ScopeRegistry.value_for(:current_scope, self, skip_inherited_scope)
+        ScopeRegistry.current_scope(self, skip_inherited_scope)
       end
 
       def current_scope=(scope)
-        ScopeRegistry.set_value_for(:current_scope, self, scope)
+        ScopeRegistry.set_current_scope(self, scope)
+      end
+
+      def global_current_scope(skip_inherited_scope = false)
+        ScopeRegistry.global_current_scope(self, skip_inherited_scope)
+      end
+
+      def global_current_scope=(scope)
+        ScopeRegistry.set_global_current_scope(self, scope)
+      end
+
+      def scope_registry
+        ScopeRegistry.instance
       end
     end
 
@@ -69,36 +81,42 @@ module ActiveRecord
     class ScopeRegistry # :nodoc:
       extend ActiveSupport::PerThreadRegistry
 
-      VALID_SCOPE_TYPES = [:current_scope, :ignore_default_scope]
+      VALID_SCOPE_TYPES = [:current_scope, :ignore_default_scope, :global_current_scope]
 
       def initialize
-        @registry = Hash.new { |hash, key| hash[key] = {} }
+        @current_scope        = {}
+        @ignore_default_scope = {}
+        @global_current_scope = {}
       end
 
-      # Obtains the value for a given +scope_type+ and +model+.
-      def value_for(scope_type, model, skip_inherited_scope = false)
-        raise_invalid_scope_type!(scope_type)
-        return @registry[scope_type][model.name] if skip_inherited_scope
-        klass = model
-        base = model.base_class
-        while klass <= base
-          value = @registry[scope_type][klass.name]
-          return value if value
-          klass = klass.superclass
+      VALID_SCOPE_TYPES.each do |type|
+        class_eval <<-eorb, __FILE__, __LINE__
+        def #{type}(model, skip_inherited_scope = false)
+          value_for(@#{type}, model, skip_inherited_scope)
         end
-      end
 
-      # Sets the +value+ for a given +scope_type+ and +model+.
-      def set_value_for(scope_type, model, value)
-        raise_invalid_scope_type!(scope_type)
-        @registry[scope_type][model.name] = value
+        def set_#{type}(model, value)
+          set_value_for(@#{type}, model, value)
+        end
+        eorb
       end
 
       private
-        def raise_invalid_scope_type!(scope_type)
-          if !VALID_SCOPE_TYPES.include?(scope_type)
-            raise ArgumentError, "Invalid scope type '#{scope_type}' sent to the registry. Scope types must be included in VALID_SCOPE_TYPES"
+        # Obtains the value for a given +scope_type+ and +model+.
+        def value_for(scope_type, model, skip_inherited_scope = false)
+          return scope_type[model.name] if skip_inherited_scope
+          klass = model
+          base = model.base_class
+          while klass <= base
+            value = scope_type[klass.name]
+            return value if value
+            klass = klass.superclass
           end
+        end
+
+        # Sets the +value+ for a given +scope_type+ and +model+.
+        def set_value_for(scope_type, model, value)
+          scope_type[model.name] = value
         end
     end
   end

@@ -9,6 +9,13 @@ module ActiveSupport
 
     config.eager_load_namespaces << ActiveSupport
 
+    initializer "active_support.remove_deprecated_time_with_zone_name" do |app|
+      if app.config.active_support.remove_deprecated_time_with_zone_name
+        require "active_support/time_with_zone"
+        TimeWithZone.singleton_class.remove_method(:name)
+      end
+    end
+
     initializer "active_support.set_authenticated_message_encryption" do |app|
       config.after_initialize do
         unless app.config.active_support.use_authenticated_message_encryption.nil?
@@ -87,7 +94,7 @@ module ActiveSupport
         if app.config.active_support.use_sha1_digests
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             config.active_support.use_sha1_digests is deprecated and will
-            be removed from Rails 6.2. Use
+            be removed from Rails 7.0. Use
             config.active_support.hash_digest_class = OpenSSL::Digest::SHA1 instead.
           MSG
           ActiveSupport::Digest.hash_digest_class = OpenSSL::Digest::SHA1

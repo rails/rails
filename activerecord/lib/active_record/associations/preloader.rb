@@ -46,10 +46,12 @@ module ActiveRecord
 
       eager_autoload do
         autoload :Association,        "active_record/associations/preloader/association"
+        autoload :Batch,              "active_record/associations/preloader/batch"
+        autoload :Branch,             "active_record/associations/preloader/branch"
         autoload :ThroughAssociation, "active_record/associations/preloader/through_association"
       end
 
-      attr_reader :records, :associations, :scope, :associate_by_default, :polymorphic_parent
+      attr_reader :records, :associations, :scope, :associate_by_default
 
       # Eager loads the named associations for the given Active Record record(s).
       #
@@ -85,7 +87,7 @@ module ActiveRecord
       #   [ :books, :author ]
       #   { author: :avatar }
       #   [ :books, { author: :avatar } ]
-      def initialize(associate_by_default: true, polymorphic_parent: false, **kwargs)
+      def initialize(associate_by_default: true, **kwargs)
         if kwargs.empty?
           ActiveSupport::Deprecation.warn("Calling `Preloader#initialize` without arguments is deprecated and will be removed in Rails 7.0.")
         else
@@ -93,14 +95,26 @@ module ActiveRecord
           @associations = kwargs[:associations]
           @scope = kwargs[:scope]
           @associate_by_default = associate_by_default
-          @polymorphic_parent = polymorphic_parent
+
+          @tree = Branch.new(
+            parent: nil,
+            association: nil,
+            children: associations,
+            associate_by_default: @associate_by_default,
+            scope: @scope
+          )
+          @tree.preloaded_records = records
         end
       end
 
-      def call
-        return [] if records.empty? || associations.nil?
+      def empty?
+        associations.nil? || records.length == 0
+      end
 
-        build_preloaders
+      def call
+        Batch.new([self]).call
+
+        loaders
       end
 
       def preload(records, associations, preload_scope = nil)
@@ -109,58 +123,13 @@ module ActiveRecord
         Preloader.new(records: records, associations: associations, scope: preload_scope).call
       end
 
-      private
-        def build_preloaders
-          Array.wrap(associations).flat_map { |association|
-            Array(association).flat_map { |parent, child|
-              grouped_records(parent).flat_map do |reflection, reflection_records|
-                loaders = preloaders_for_reflection(reflection, reflection_records)
+      def branches
+        @tree.children
+      end
 
-                if child
-                  loaders.concat build_child_preloader(reflection, child, loaders)
-                end
-
-                loaders
-              end
-            }
-          }
-        end
-
-        def build_child_preloader(reflection, child, loaders)
-          child_polymorphic_parent = reflection && reflection.options[:polymorphic]
-          preloaded_records = loaders.flat_map(&:preloaded_records).uniq
-
-          Preloader.new(records: preloaded_records, associations: child, scope: scope, associate_by_default: associate_by_default, polymorphic_parent: child_polymorphic_parent).call
-        end
-
-        def preloaders_for_reflection(reflection, reflection_records)
-          reflection_records.group_by { |record| record.association(reflection.name).klass }.map do |rhs_klass, rs|
-            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, associate_by_default).run
-          end
-        end
-
-        def grouped_records(association)
-          h = {}
-          records.each do |record|
-            reflection = record.class._reflect_on_association(association)
-            next if polymorphic_parent && !reflection || !record.association(association).klass
-            (h[reflection] ||= []) << record
-          end
-          h
-        end
-
-        # Returns a class containing the logic needed to load preload the data
-        # and attach it to a relation. The class returned implements a `run` method
-        # that accepts a preloader.
-        def preloader_for(reflection)
-          reflection.check_preloadable!
-
-          if reflection.options[:through]
-            ThroughAssociation
-          else
-            Association
-          end
-        end
+      def loaders
+        branches.flat_map(&:loaders)
+      end
     end
   end
 end

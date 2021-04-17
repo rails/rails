@@ -13,9 +13,9 @@ module ActiveRecord
         const_get(name)
       end
 
-      V6_2 = Current
+      V7_0 = Current
 
-      class V6_1 < V6_2
+      class V6_1 < V7_0
       end
 
       class V6_0 < V6_1

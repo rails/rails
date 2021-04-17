@@ -352,7 +352,7 @@ module ActiveRecord
     # compared to the records in memory. If the relation is unloaded, an
     # efficient existence query is performed, as in #exists?.
     def include?(record)
-      if loaded? || offset_value || limit_value
+      if loaded? || offset_value || limit_value || having_clause.any?
         records.include?(record)
       else
         record.is_a?(klass) && exists?(record.id)
@@ -395,7 +395,7 @@ module ActiveRecord
           blank_value = order_values.first
           ActiveSupport::Deprecation.warn(<<~MSG.squish)
             `.reorder(#{blank_value.inspect})` with `.first` / `.first!` no longer
-            takes non-deterministic result in Rails 6.2.
+            takes non-deterministic result in Rails 7.0.
             To continue taking non-deterministic result, use `.take` / `.take!` instead.
           MSG
         end
@@ -520,10 +520,7 @@ module ActiveRecord
         result = except(:limit, :offset).where(primary_key => ids).records
 
         if result.size == ids.size
-          pk_type = @klass.type_for_attribute(primary_key)
-
-          records_by_id = result.index_by(&:id)
-          ids.map { |id| records_by_id.fetch(pk_type.cast(id)) }
+          result.in_order_of(:id, ids.map { |id| @klass.type_for_attribute(primary_key).cast(id) })
         else
           raise_record_not_found_exception!(ids, result.size, ids.size)
         end

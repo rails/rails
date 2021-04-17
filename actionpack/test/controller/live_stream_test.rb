@@ -131,6 +131,12 @@ module ActionController
         render plain: "zomg"
       end
 
+      def write_lines
+        response.stream.writeln "hello\n"
+        response.stream.writeln "world"
+        response.stream.close
+      end
+
       def default_header
         response.stream.write "<html><body>hi</body></html>"
         response.stream.close
@@ -142,6 +148,18 @@ module ActionController
           response.stream.write word
         end
         response.stream.close
+      end
+
+      def basic_send_stream
+        send_stream(filename: "my.csv") do |stream|
+          stream.write "name,age\ndavid,41"
+        end
+      end
+
+      def send_stream_with_options
+        send_stream(filename: "export", disposition: "inline", type: :json) do |stream|
+          stream.write %[{ name: "David", age: 41 }]
+        end
       end
 
       def blocking_stream
@@ -298,6 +316,27 @@ module ActionController
       get :basic_stream
       assert_equal "helloworld", @response.body
       assert_equal "text/event-stream", @response.headers["Content-Type"]
+    end
+
+    def test_write_lines_to_stream
+      get :write_lines
+      assert_equal "hello\nworld\n", @response.body
+    end
+
+    def test_send_stream
+      get :basic_send_stream
+      assert_equal "name,age\ndavid,41", @response.body
+      assert_equal "text/csv", @response.headers["Content-Type"]
+      assert_match "attachment", @response.headers["Content-Disposition"]
+      assert_match "my.csv", @response.headers["Content-Disposition"]
+    end
+
+    def test_send_stream_with_options
+      get :send_stream_with_options
+      assert_equal %[{ name: "David", age: 41 }], @response.body
+      assert_equal "application/json", @response.headers["Content-Type"]
+      assert_match "inline", @response.headers["Content-Disposition"]
+      assert_match "export", @response.headers["Content-Disposition"]
     end
 
     def test_delayed_autoload_after_write_within_interlock_hook

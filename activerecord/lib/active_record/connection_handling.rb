@@ -91,6 +91,7 @@ module ActiveRecord
         db_config, owner_name = resolve_config_for_connection(database_key)
         handler = lookup_connection_handler(role.to_sym)
 
+        self.connection_class = true
         connections << handler.establish_connection(db_config, owner_name: owner_name, role: role)
       end
 
@@ -99,6 +100,7 @@ module ActiveRecord
           db_config, owner_name = resolve_config_for_connection(database_key)
           handler = lookup_connection_handler(role.to_sym)
 
+          self.connection_class = true
           connections << handler.establish_connection(db_config, owner_name: owner_name, role: role, shard: shard.to_sym)
         end
       end
@@ -112,7 +114,7 @@ module ActiveRecord
     #
     # If only a role is passed, Active Record will look up the connection
     # based on the requested role. If a non-established role is requested
-    # an `ActiveRecord::ConnectionNotEstablished` error will be raised:
+    # an +ActiveRecord::ConnectionNotEstablished+ error will be raised:
     #
     #   ActiveRecord::Base.connected_to(role: :writing) do
     #     Dog.create! # creates dog using dog writing connection
@@ -123,7 +125,7 @@ module ActiveRecord
     #   end
     #
     # When swapping to a shard, the role must be passed as well. If a non-existent
-    # shard is passed, an `ActiveRecord::ConnectionNotEstablished` error will be
+    # shard is passed, an +ActiveRecord::ConnectionNotEstablished+ error will be
     # raised.
     #
     # When a shard and role is passed, Active Record will first lookup the role,
@@ -141,6 +143,10 @@ module ActiveRecord
         if self != Base && !abstract_class
           raise NotImplementedError, "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes."
         end
+
+        if name != connection_specification_name && !primary_class?
+          raise NotImplementedError, "calling `connected_to` is only allowed on the abstract class that established the connection."
+        end
       end
 
       unless role || shard
@@ -154,11 +160,11 @@ module ActiveRecord
       with_role_and_shard(role, shard, prevent_writes, &blk)
     end
 
-    # Connects a role and/or shard to the provided connection names. Optionally `prevent_writes`
-    # can be passed to block writes on a connection. `reading` will automatically set
-    # `prevent_writes` to true.
+    # Connects a role and/or shard to the provided connection names. Optionally +prevent_writes+
+    # can be passed to block writes on a connection. +reading+ will automatically set
+    # +prevent_writes+ to true.
     #
-    # `connected_to_many` is an alternative to deeply nested `connected_to` blocks.
+    # +connected_to_many+ is an alternative to deeply nested +connected_to+ blocks.
     #
     # Usage:
     #
@@ -192,7 +198,7 @@ module ActiveRecord
     # being used. For example, when booting a console in readonly mode.
     #
     # It is not recommended to use this method in a request since it
-    # does not yield to a block like `connected_to`.
+    # does not yield to a block like +connected_to+.
     def connecting_to(role: default_role, shard: default_shard, prevent_writes: false)
       if legacy_connection_handling
         raise NotImplementedError, "`connecting_to` is not available with `legacy_connection_handling`."
@@ -206,13 +212,13 @@ module ActiveRecord
     # Prevent writing to the database regardless of role.
     #
     # In some cases you may want to prevent writes to the database
-    # even if you are on a database that can write. `while_preventing_writes`
+    # even if you are on a database that can write. +while_preventing_writes+
     # will prevent writes to the database for the duration of the block.
     #
     # This method does not provide the same protection as a readonly
     # user and is meant to be a safeguard against accidental writes.
     #
-    # See `READ_QUERY` for the queries that are blocked by this
+    # See +READ_QUERY+ for the queries that are blocked by this
     # method.
     def while_preventing_writes(enabled = true, &block)
       if legacy_connection_handling
@@ -270,7 +276,7 @@ module ActiveRecord
     end
 
     def primary_class? # :nodoc:
-      self == Base || defined?(ApplicationRecord) && self == ApplicationRecord
+      self == Base || application_record_class?
     end
 
     # Returns the configuration of the associated connection as a hash:

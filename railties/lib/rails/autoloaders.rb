@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/dependencies/zeitwerk_integration"
+require "zeitwerk"
 
 module Rails
   module Autoloaders # :nodoc:
@@ -41,7 +42,7 @@ module Rails
       end
 
       def zeitwerk_enabled?
-        Rails.configuration.autoloader == :zeitwerk
+        true
       end
     end
   end

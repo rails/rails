@@ -16,6 +16,7 @@ module ActionDispatch
 
       included do
         mattr_accessor :ignore_accept_header, default: false
+        cattr_accessor :return_only_media_type_on_content_type, default: false
       end
 
       # The MIME type of the HTTP request, such as Mime[:xml].
@@ -33,7 +34,16 @@ module ActionDispatch
       end
 
       def content_type
-        content_mime_type && content_mime_type.to_s
+        if self.class.return_only_media_type_on_content_type
+          ActiveSupport::Deprecation.warn(
+            "Rails 7.1 will return Content-Type header without modification." \
+            " If you want just the MIME type, please use `#media_type` instead."
+          )
+
+          content_mime_type&.to_s
+        else
+          super
+        end
       end
 
       def has_content_type? # :nodoc:
@@ -92,7 +102,7 @@ module ActionDispatch
       def variant=(variant)
         variant = Array(variant)
 
-        if variant.all? { |v| v.is_a?(Symbol) }
+        if variant.all?(Symbol)
           @variant = ActiveSupport::ArrayInquirer.new(variant)
         else
           raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols."

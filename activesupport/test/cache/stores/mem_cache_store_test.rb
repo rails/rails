@@ -45,7 +45,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     @namespace = "test-#{SecureRandom.hex}"
     @cache = lookup_store(expires_in: 60)
     @peek = lookup_store
-    @cache.silence!
     @cache.logger = ActiveSupport::Logger.new(File::NULL)
   end
 
@@ -56,7 +55,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
   include EncodedKeyCacheBehavior
-  include AutoloadingCacheBehavior
   include ConnectionPoolBehavior
   include FailureSafetyBehavior
 
@@ -193,6 +191,14 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def test_falls_back_to_localhost_if_no_address_provided_and_memcache_servers_undefined
     with_memcache_servers_environment_variable(nil) do
       cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+
+      assert_equal ["127.0.0.1:11211"], servers(cache)
+    end
+  end
+
+  def test_falls_back_to_localhost_if_address_provided_as_nil
+    with_memcache_servers_environment_variable(nil) do
+      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, nil)
 
       assert_equal ["127.0.0.1:11211"], servers(cache)
     end

@@ -122,9 +122,9 @@ module ActiveRecord
     # :singleton-method: immutable_strings_by_default=
     # :call-seq: immutable_strings_by_default=(bool)
     #
-    # Determines whether columns should infer their type as `:string` or
-    # `:immutable_string`. This setting does not affect the behavior of
-    # `attribute :foo, :string`. Defaults to false.
+    # Determines whether columns should infer their type as +:string+ or
+    # +:immutable_string+. This setting does not affect the behavior of
+    # <tt>attribute :foo, :string</tt>. Defaults to false.
 
     included do
       mattr_accessor :primary_key_prefix_type, instance_writer: false
@@ -316,7 +316,7 @@ module ActiveRecord
       #     self.ignored_columns = [:category]
       #   end
       #
-      # The schema still contains `category`, but now the model omits it, so any meta-driven code or
+      # The schema still contains "category", but now the model omits it, so any meta-driven code or
       # schema caching will not attempt to use the column:
       #
       #   Project.columns_hash["category"] => nil
@@ -619,7 +619,7 @@ module ActiveRecord
 
         def warn_if_deprecated_type(column)
           return if attributes_to_define_after_schema_loads.key?(column.name)
-          return unless column.respond_to?(:oid)
+          return unless column.respond_to?(:array?)
 
           if column.array?
             array_arguments = ", array: true"
@@ -630,7 +630,7 @@ module ActiveRecord
           if column.sql_type.start_with?("interval")
             precision_arguments = column.precision.presence && ", precision: #{column.precision}"
             ActiveSupport::Deprecation.warn(<<~WARNING)
-              The behavior of the `:interval` type will be changing in Rails 6.2
+              The behavior of the `:interval` type will be changing in Rails 7.0
               to return an `ActiveSupport::Duration` object. If you'd like to keep
               the old behavior, you can add this line to #{self.name} model:
 

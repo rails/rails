@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/symbol/starts_ends_with"
-
 module AbstractController
   module Translation
     mattr_accessor :raise_on_missing_translations, default: false

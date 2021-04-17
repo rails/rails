@@ -20,6 +20,8 @@ require "models/dl_keyed_has_many"
 require "models/dl_keyed_has_many_through"
 
 class DestroyAssociationAsyncTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
   include ActiveJob::TestHelper
 
   test "destroying a record destroys the has_many :through records using a job" do
@@ -34,6 +36,9 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_difference -> { Tag.count }, -2 do
       perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
     end
+  ensure
+    Tag.delete_all
+    BookDestroyAsync.delete_all
   end
 
   test "destroying a scoped has_many through only deletes within the scope deleted" do
@@ -54,6 +59,10 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
       tag2.reload
     end
     assert tag.reload
+  ensure
+    Tag.delete_all
+    Tagging.delete_all
+    BookDestroyAsyncWithScopedTags.delete_all
   end
 
   test "enqueues the has_many through to be deleted with custom primary key" do
@@ -65,10 +74,14 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     parent.destroy
 
     assert_difference -> { DlKeyedJoin.count }, -2 do
-     assert_difference -> { DlKeyedHasManyThrough.count }, -2 do
-      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      assert_difference -> { DlKeyedHasManyThrough.count }, -2 do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
     end
-   end
+  ensure
+    DlKeyedHasManyThrough.delete_all
+    DestroyAsyncParent.delete_all
+    DlKeyedJoin.delete_all
   end
 
   test "belongs to" do
@@ -81,6 +94,9 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_difference -> { BookDestroyAsync.count }, -1 do
       perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
     end
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
   end
 
   test "enqueues belongs_to to be deleted with custom primary key" do
@@ -93,6 +109,9 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_difference -> { DestroyAsyncParent.count }, -1 do
       perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
     end
+  ensure
+    DlKeyedBelongsTo.delete_all
+    DestroyAsyncParent.delete_all
   end
 
   test "has_one" do
@@ -105,6 +124,9 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_difference -> { Content.count }, -1 do
       perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
     end
+  ensure
+    Content.delete_all
+    BookDestroyAsync.delete_all
   end
 
 
@@ -118,6 +140,9 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_difference -> { DlKeyedHasOne.count }, -1 do
       perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
     end
+  ensure
+    DlKeyedHasOne.delete_all
+    DestroyAsyncParent.delete_all
   end
 
 
@@ -132,9 +157,12 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_difference -> { EssayDestroyAsync.count }, -2 do
       perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
     end
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
   end
 
-  test "has_many with sti parent class destroys all children class records" do
+  test "has_many with STI parent class destroys all children class records" do
     book = BookDestroyAsync.create!
     LongEssayDestroyAsync.create!(book: book)
     ShortEssayDestroyAsync.create!(book: book)
@@ -156,24 +184,26 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_difference -> { DlKeyedHasMany.count }, -1 do
       perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
     end
+  ensure
+    DlKeyedHasMany.delete_all
+    DestroyAsyncParent.delete_all
   end
 
-  test "throw an error if the record is not actually deleted" do
+  test "not enqueue the job if transaction is not committed" do
     dl_keyed_has_many = DlKeyedHasMany.new
     parent = DestroyAsyncParent.create!
     parent.dl_keyed_has_many << [dl_keyed_has_many]
 
     parent.save!
-    DestroyAsyncParent.transaction do
-      parent.destroy
-      raise ActiveRecord::Rollback
-    end
-
-    assert_difference -> { DlKeyedHasMany.count }, 0 do
-      assert_raises ActiveRecord::DestroyAssociationAsyncError do
-        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    assert_no_enqueued_jobs do
+      DestroyAsyncParent.transaction do
+        parent.destroy
+        raise ActiveRecord::Rollback
       end
     end
+  ensure
+    DlKeyedHasMany.delete_all
+    DestroyAsyncParent.delete_all
   end
 
   test "has many ensures function for parent" do
@@ -184,8 +214,9 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     parent.save!
 
     parent.run_callbacks(:destroy)
+    parent.run_callbacks(:commit)
 
-    assert_difference -> { Tag.count }, -0 do
+    assert_no_difference -> { Tag.count } do
       assert_raises ActiveRecord::DestroyAssociationAsyncError do
         perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
       end
@@ -195,6 +226,9 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_difference -> { Tag.count }, -2 do
       perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
     end
+  ensure
+    Tag.delete_all
+    DestroyAsyncParentSoftDelete.delete_all
   end
 
   test "has one ensures function for parent" do
@@ -204,8 +238,9 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     parent.save!
 
     parent.run_callbacks(:destroy)
+    parent.run_callbacks(:commit)
 
-    assert_difference -> { DlKeyedHasOne.count }, -0 do
+    assert_no_difference -> { DlKeyedHasOne.count } do
       assert_raises ActiveRecord::DestroyAssociationAsyncError do
         perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
       end
@@ -215,6 +250,9 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_difference -> { DlKeyedHasOne.count }, -1 do
       perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
     end
+  ensure
+    DlKeyedHasOne.delete_all
+    DestroyAsyncParentSoftDelete.delete_all
   end
 
   test "enqueues belongs_to to be deleted with ensuring function" do
@@ -222,7 +260,9 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     parent = DestroyAsyncParentSoftDelete.create!
     belongs.destroy_async_parent_soft_delete = parent
     belongs.save!
+
     belongs.run_callbacks(:destroy)
+    belongs.run_callbacks(:commit)
 
     assert_raises ActiveRecord::DestroyAssociationAsyncError do
       perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
@@ -233,6 +273,9 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     belongs.destroy
     perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
     assert parent.reload.deleted?
+  ensure
+    DlKeyedBelongsToSoftDelete.delete_all
+    DestroyAsyncParentSoftDelete.delete_all
   end
 
   test "Don't enqueue with no relations" do
@@ -240,5 +283,23 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     parent.destroy
 
     assert_no_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+  ensure
+    DestroyAsyncParent.delete_all
   end
+
+  test "Rollback prevents jobs from being enqueued" do
+    tag = Tag.create!(name: "Der be treasure")
+    tag2 = Tag.create!(name: "Der be rum")
+    book = BookDestroyAsync.create!
+    book.tags << [tag, tag2]
+    book.save!
+    ActiveRecord::Base.transaction do
+      book.destroy
+      raise ActiveRecord::Rollback
+    end
+    assert_no_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+  end
+ensure
+  Tag.delete_all
+  BookDestroyAsync.delete_all
 end

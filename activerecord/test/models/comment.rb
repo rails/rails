@@ -14,6 +14,7 @@ class Comment < ActiveRecord::Base
   belongs_to :post, counter_cache: true
   belongs_to :author,   polymorphic: true
   belongs_to :resource, polymorphic: true
+  belongs_to :company, foreign_key: "company"
 
   has_many :ratings
 
@@ -63,6 +64,7 @@ class Comment < ActiveRecord::Base
 end
 
 class SpecialComment < Comment
+  belongs_to :ordinary_post, foreign_key: :post_id, class_name: "Post"
   has_one :author, through: :post
   default_scope { where(deleted_at: nil) }
 

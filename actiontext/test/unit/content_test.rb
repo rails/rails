@@ -28,7 +28,7 @@ class ActionText::ContentTest < ActiveSupport::TestCase
   end
 
   test "extracts attachables" do
-    attachable = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    attachable = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)
 
     content = content_from_html(html)
@@ -56,7 +56,7 @@ class ActionText::ContentTest < ActiveSupport::TestCase
   end
 
   test "identifies destroyed attachables as missing" do
-    attachable = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    attachable = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}"></action-text-attachment>)
     attachable.destroy!
     content = content_from_html(html)
@@ -76,6 +76,15 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     content = content_from_html(html)
     assert_equal 1, content.attachments.size
     assert_equal '<action-text-attachment sgid="123" content-type="text/plain" width="100" height="100" caption="Captioned"></action-text-attachment>', content.to_html
+  end
+
+  test "converts Trix-formatted attachments with custom tag name" do
+    with_attachment_tag_name("arbitrary-tag") do
+      html = %Q(<figure data-trix-attachment='{"sgid":"123","contentType":"text/plain","width":100,"height":100}' data-trix-attributes='{"caption":"Captioned"}'></figure>)
+      content = content_from_html(html)
+      assert_equal 1, content.attachments.size
+      assert_equal '<arbitrary-tag sgid="123" content-type="text/plain" width="100" height="100" caption="Captioned"></arbitrary-tag>', content.to_html
+    end
   end
 
   test "ignores Trix-formatted attachments with malformed JSON" do
@@ -130,5 +139,14 @@ class ActionText::ContentTest < ActiveSupport::TestCase
       ActionText::Content.new(html).tap do |content|
         assert_nothing_raised { content.to_s }
       end
+    end
+
+    def with_attachment_tag_name(tag_name)
+      previous_tag_name = ActionText::Attachment.tag_name
+      ActionText::Attachment.tag_name = tag_name
+
+      yield
+    ensure
+      ActionText::Attachment.tag_name = previous_tag_name
     end
 end

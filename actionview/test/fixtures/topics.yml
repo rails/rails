@@ -1,7 +1,7 @@
 futurama:
   id: 1
-  title: Isnt futurama awesome?
-  subtitle: It really is, isnt it.
+  title: Isn't futurama awesome?
+  subtitle: It really is, isn't it.
   content: I like futurama
   created_at: <%= 1.day.ago.to_s(:db) %>
   updated_at:

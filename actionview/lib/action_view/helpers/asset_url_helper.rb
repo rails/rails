@@ -31,7 +31,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img src="http://assets.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets.example.com/assets/application.css" media="screen" rel="stylesheet" />
+    #   # => <link href="http://assets.example.com/assets/application.css" rel="stylesheet" />
     #
     # Browsers open a limited number of simultaneous connections to a single
     # host. The exact number varies by browser and version. This limit may cause
@@ -44,7 +44,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img src="http://assets0.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets2.example.com/assets/application.css" media="screen" rel="stylesheet" />
+    #   # => <link href="http://assets2.example.com/assets/application.css" rel="stylesheet" />
     #
     # This may improve the asset loading performance of your application.
     # It is also possible the combination of additional connection overhead
@@ -70,7 +70,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img src="http://assets1.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://assets2.example.com/assets/application.css" media="screen" rel="stylesheet" />
+    #   # => <link href="http://assets2.example.com/assets/application.css" rel="stylesheet" />
     #
     # The example above generates "http://assets1.example.com" and
     # "http://assets2.example.com". This option is useful for example if
@@ -89,7 +89,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img src="http://assets.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="http://stylesheets.example.com/assets/application.css" media="screen" rel="stylesheet" />
+    #   # => <link href="http://stylesheets.example.com/assets/application.css" rel="stylesheet" />
     #
     # Alternatively you may ask for a second parameter +request+. That one is
     # particularly useful for serving assets from an SSL-protected page. The
@@ -98,7 +98,7 @@ module ActionView
     # have SSL certificates for each of the asset hosts this technique allows you
     # to avoid warnings in the client about mixed media.
     # Note that the +request+ parameter might not be supplied, e.g. when the assets
-    # are precompiled with the command `bin/rails assets:precompile`. Make sure to use a
+    # are precompiled with the command <tt>bin/rails assets:precompile</tt>. Make sure to use a
     # +Proc+ instead of a lambda, since a +Proc+ allows missing parameters and sets them
     # to +nil+.
     #

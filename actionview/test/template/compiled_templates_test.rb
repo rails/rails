@@ -9,7 +9,6 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
     super
     view_paths = ActionController::Base.view_paths
     view_paths.each(&:clear_cache)
-    ActionView::LookupContext.fallbacks.each(&:clear_cache)
     @view_class = ActionView::Base.with_empty_template_cache
   end
 
@@ -52,7 +51,10 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
   end
 
   def test_template_with_instance_variable_identifier
-    assert_equal "bar", render(template: "test/render_file_instance_variable", locals: { "@foo": "bar" })
+    expected_deprecation = "In Rails 7.1, @foo will be ignored."
+    assert_deprecated(expected_deprecation) do
+      assert_equal "bar", render(template: "test/render_file_instance_variable", locals: { "@foo": "bar" })
+    end
   end
 
   def test_template_gets_recompiled_when_using_different_keys_in_local_assigns

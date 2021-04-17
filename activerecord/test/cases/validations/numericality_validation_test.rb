@@ -81,6 +81,17 @@ class NumericalityValidationTest < ActiveRecord::TestCase
     assert_predicate(subject, :valid?)
   end
 
+  def test_virtual_attribute_without_precision
+    model_class.attribute(:virtual_decimal_number, :decimal)
+    model_class.validates_numericality_of(
+      :virtual_decimal_number, equal_to: BigDecimal("65.6")
+    )
+
+    subject = model_class.new(virtual_decimal_number: 65.6)
+
+    assert_predicate subject, :valid?
+  end
+
   def test_virtual_attribute_with_precision_round_down
     model_class.attribute(:virtual_decimal_number, :decimal, precision: 5)
     model_class.validates_numericality_of(
@@ -100,9 +111,10 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     subject = model_class.new(virtual_decimal_number: 123.455)
 
-    if RUBY_VERSION > "3.0.0"
+    if 123.455.to_d(5) == BigDecimal("123.46")
       # BigDecimal's to_d behavior changed in BigDecimal 3.0.1, see https://github.com/ruby/bigdecimal/issues/70
-      # TOOD: replace this with a check against BigDecimal::VERSION
+      # TODO: replace this with a check against BigDecimal::VERSION, currently
+      # we just check the behaviour because both versions of BigDecimal report "3.0.0"
       assert_not_predicate subject, :valid?
     else
       assert_predicate subject, :valid?

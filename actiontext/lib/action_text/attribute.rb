@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/symbol/starts_ends_with"
-
 module ActionText
   module Attribute
     extend ActiveSupport::Concern
@@ -26,7 +24,12 @@ module ActionText
       #
       #   Message.all.with_rich_text_content # Avoids N+1 queries when you just want the body, not the attachments.
       #   Message.all.with_rich_text_content_and_embeds # Avoids N+1 queries when you just want the body and attachments.
-      def has_rich_text(name)
+      #
+      #  === Options
+      #
+      #  * <tt>:encrypted</tt> - Pass true to encrypt the rich text attribute. The encryption will be non-deterministic. See
+      #  +ActiveRecord::Encryption::EncryptableRecord.encrypts+. Default: false.
+      def has_rich_text(name, encrypted: false)
         class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
             rich_text_#{name} || build_rich_text_#{name}
@@ -41,8 +44,9 @@ module ActionText
           end
         CODE
 
+        rich_text_class_name = encrypted ? "ActionText::EncryptedRichText" : "ActionText::RichText"
         has_one :"rich_text_#{name}", -> { where(name: name) },
-          class_name: "ActionText::RichText", as: :record, inverse_of: :record, autosave: true, dependent: :destroy
+          class_name: rich_text_class_name, as: :record, inverse_of: :record, autosave: true, dependent: :destroy
 
         scope :"with_rich_text_#{name}", -> { includes("rich_text_#{name}") }
         scope :"with_rich_text_#{name}_and_embeds", -> { includes("rich_text_#{name}": { embeds_attachments: :blob }) }
@@ -53,10 +57,9 @@ module ActionText
         eager_load(rich_text_association_names)
       end
 
-      private
-        def rich_text_association_names
-          reflect_on_all_associations(:has_one).collect(&:name).select { |n| n.start_with?("rich_text_") }
-        end
+      def rich_text_association_names
+        reflect_on_all_associations(:has_one).collect(&:name).select { |n| n.start_with?("rich_text_") }
+      end
     end
   end
 end

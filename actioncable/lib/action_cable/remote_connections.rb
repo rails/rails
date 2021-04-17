@@ -45,7 +45,7 @@ module ActionCable
 
         # Uses the internal channel to disconnect the connection.
         def disconnect
-          server.broadcast internal_channel, type: "disconnect"
+          server.broadcast internal_channel, { type: "disconnect" }
         end
 
         # Returns all the identifiers that were applied to this connection.

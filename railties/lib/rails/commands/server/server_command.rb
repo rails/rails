@@ -4,7 +4,6 @@ require "fileutils"
 require "action_dispatch"
 require "rails"
 require "active_support/core_ext/string/filters"
-require "active_support/core_ext/symbol/starts_ends_with"
 require "rails/dev_caching"
 require "rails/command/environment_argument"
 

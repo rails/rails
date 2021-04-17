@@ -63,15 +63,11 @@ Product = Struct.new(:name) do
   delegate :name, to: :type, prefix: true
 
   def manufacturer
-    @manufacturer ||= begin
-      nil.unknown_method
-    end
+    @manufacturer ||= nil.unknown_method
   end
 
   def type
-    @type ||= begin
-      nil.type_name
-    end
+    @type ||= nil.type_name
   end
 end
 

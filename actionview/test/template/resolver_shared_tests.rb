@@ -227,13 +227,9 @@ module ResolverSharedTests
     assert_equal "mobile", templates[0].variant
   end
 
-  def test_virtual_path_is_preserved_with_dot
+  def test_returns_no_results_with_dot
     with_file "test/hello_world.html.erb", "Hello html!"
 
-    template = assert_deprecated { context.find("hello_world.html", "test", false, [], {}) }
-    assert_equal "test/hello_world.html", template.virtual_path
-
-    template = context.find("hello_world", "test", false, [], {})
-    assert_equal "test/hello_world", template.virtual_path
+    assert_empty context.find_all("hello_world.html", "test", false, [], {})
   end
 end

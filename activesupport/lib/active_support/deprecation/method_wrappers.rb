@@ -62,9 +62,9 @@ module ActiveSupport
             target_module.module_eval do
               redefine_method(method_name) do |*args, &block|
                 deprecator.deprecation_warning(method_name, message)
-                method.bind(self).call(*args, &block)
+                method.bind_call(self, *args, &block)
               end
-              ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
+              ruby2_keywords(method_name)
             end
           else
             mod ||= Module.new
@@ -73,7 +73,7 @@ module ActiveSupport
                 deprecator.deprecation_warning(method_name, message)
                 super(*args, &block)
               end
-              ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
+              ruby2_keywords(method_name)
             end
           end
         end

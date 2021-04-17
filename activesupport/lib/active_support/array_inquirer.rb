@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/symbol/starts_ends_with"
-
 module ActiveSupport
   # Wrapping an array in an +ArrayInquirer+ gives a friendlier way to check
   # its string-like contents:

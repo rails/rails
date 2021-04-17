@@ -31,7 +31,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "attaching new blobs from Hashes to an existing record" do
     @user.highlights.attach(
-      { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpg" },
+      { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpeg" },
       { io: StringIO.new("THINGS"), filename: "town.jpg", content_type: "image/jpeg" })
 
     assert_equal "funky.jpg", @user.highlights.first.filename.to_s
@@ -81,7 +81,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert @user.changed?
 
     @user.highlights.attach(
-      { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpg" },
+      { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpeg" },
       { io: StringIO.new("THINGS"), filename: "town.jpg", content_type: "image/jpeg" })
 
     assert_equal "funky.jpg", @user.highlights.first.filename.to_s
@@ -337,8 +337,8 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   test "attaching new blobs from Hashes to a new record" do
     User.new(name: "Jason").tap do |user|
       user.highlights.attach(
-        { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpg" },
-        { io: StringIO.new("THINGS"), filename: "town.jpg", content_type: "image/jpg" })
+        { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpeg" },
+        { io: StringIO.new("THINGS"), filename: "town.jpg", content_type: "image/jpeg" })
 
       assert user.new_record?
       assert user.highlights.first.new_record?
@@ -600,8 +600,8 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "attaching a new blob from a Hash with a custom service" do
     with_service("mirror") do
-      @user.highlights.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
-      @user.vlogs.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+      @user.highlights.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
+      @user.vlogs.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
 
       assert_instance_of ActiveStorage::Service::MirrorService, @user.highlights.first.service
       assert_instance_of ActiveStorage::Service::DiskService, @user.vlogs.first.service
@@ -626,6 +626,26 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
 
     assert_match(/Cannot configure service :unknown for User#featured_photos/, error.message)
+  end
+
+  test "creating variation by variation name" do
+    @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
+    variant = @user.highlights_with_variants.first.variant(:thumb).processed
+
+    image = read_image(variant)
+    assert_equal "JPEG", image.type
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
+
+  test "raises error when unknown variant name is used" do
+    @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
+
+    error = assert_raises ArgumentError do
+      @user.highlights_with_variants.first.variant(:unknown).processed
+    end
+
+    assert_match(/Cannot find variant :unknown for User#highlights_with_variants/, error.message)
   end
 
   private

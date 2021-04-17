@@ -32,14 +32,14 @@ class ActionText::ModelTest < ActiveSupport::TestCase
   end
 
   test "embed extraction" do
-    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     message = Message.create!(subject: "Greetings", content: ActionText::Content.new("Hello world").append_attachables(blob))
     assert_equal "racecar.jpg", message.content.embeds.first.filename.to_s
   end
 
   test "embed extraction only extracts file attachments" do
     remote_image_html = '<action-text-attachment content-type="image" url="http://example.com/cat.jpg"></action-text-attachment>'
-    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     content = ActionText::Content.new(remote_image_html).append_attachables(blob)
     message = Message.create!(subject: "Greetings", content: content)
     assert_equal [ActionText::Attachables::RemoteImage, ActiveStorage::Blob], message.content.body.attachables.map(&:class)
@@ -47,7 +47,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
   end
 
   test "embed extraction deduplicates file attachments" do
-    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     content = ActionText::Content.new("Hello world").append_attachables([ blob, blob ])
 
     assert_nothing_raised do

@@ -476,7 +476,7 @@ module ApplicationTests
 
           add_to_config("config.active_support.deprecation = :stderr")
           stderr_output = capture(:stderr) { rails("db:structure:#{command}:animals", stderr: true, allow_failure: true) }
-          assert_match(/DEPRECATION WARNING: Using `bin\/rails db:structure:#{command}:animals` is deprecated and will be removed in Rails 6.2/, stderr_output)
+          assert_match(/DEPRECATION WARNING: Using `bin\/rails db:structure:#{command}:animals` is deprecated and will be removed in Rails 7.0/, stderr_output)
         end
       end
 
@@ -714,7 +714,7 @@ module ApplicationTests
               %>
               adapter: sqlite3
             animals:
-              database: db/develoment_animals.sqlite3
+              database: db/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
@@ -738,7 +738,7 @@ module ApplicationTests
             <% end %>
               adapter: sqlite3
             animals:
-              database: db/develoment_animals.sqlite3
+              database: db/development_animals.sqlite3
               adapter: sqlite3
 
         YAML
@@ -759,7 +759,7 @@ module ApplicationTests
               database: <% if Rails.application.config.database %><%= Rails.application.config.database %><% else %>db/default.sqlite3<% end %>
               adapter: sqlite3
             animals:
-              database: db/develoment_animals.sqlite3
+              database: db/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
@@ -772,14 +772,14 @@ module ApplicationTests
         db_create_and_drop_namespace("primary", "db/development.sqlite3")
       end
 
-      test "db:create and db:drop dont raise errors when loading YAML with single-line ERB" do
+      test "db:create and db:drop don't raise errors when loading YAML with single-line ERB" do
         app_file "config/database.yml", <<-YAML
           development:
             primary:
               <%= Rails.application.config.database ? 'database: db/development.sqlite3' : 'database: db/development.sqlite3' %>
               adapter: sqlite3
             animals:
-              database: db/develoment_animals.sqlite3
+              database: db/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
@@ -800,7 +800,7 @@ module ApplicationTests
               custom_option: <%= ENV['CUSTOM_OPTION'] %>
               adapter: sqlite3
             animals:
-              database: db/develoment_animals.sqlite3
+              database: db/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
@@ -820,7 +820,7 @@ module ApplicationTests
               database: db/default.sqlite3
               adapter: sqlite3
             animals:
-              database: db/develoment_animals.sqlite3
+              database: db/development_animals.sqlite3
               adapter: sqlite3
               migrations_paths: db/animals_migrate
         YAML

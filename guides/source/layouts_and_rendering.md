@@ -915,7 +915,7 @@ To include `http://example.com/main.css`:
 <%= stylesheet_link_tag "http://example.com/main.css" %>
 ```
 
-By default, the `stylesheet_link_tag` creates links with `media="screen" rel="stylesheet"`. You can override any of these defaults by specifying an appropriate option (`:media`, `:rel`):
+By default, the `stylesheet_link_tag` creates links with `rel="stylesheet"`. You can override this default by specifying an appropriate option (`:rel`):
 
 ```erb
 <%= stylesheet_link_tag "main_print", media: "print" %>
@@ -1079,7 +1079,7 @@ The result of rendering this page into the supplied layout would be this HTML:
 </html>
 ```
 
-The `content_for` method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting tags that load page-specific JavaScript or css files into the header of an otherwise generic layout.
+The `content_for` method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting tags that load page-specific JavaScript or CSS files into the header of an otherwise generic layout.
 
 ### Using Partials
 

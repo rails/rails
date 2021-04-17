@@ -66,7 +66,7 @@ module ActiveRecord
   # resides in the +Entry+ "superclass". But the +Entry+ absolutely can stand alone in terms of querying capacity
   # in particular. You can now easily do things like:
   #
-  #   Account.entries.order(created_at: :desc).limit(50)
+  #   Account.find(1).entries.order(created_at: :desc).limit(50)
   #
   # Which is exactly what you want when displaying both comments and messages together. The entry itself can
   # be rendered as its delegated type easily, like so:

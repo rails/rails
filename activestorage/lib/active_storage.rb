@@ -37,6 +37,7 @@ module ActiveStorage
   extend ActiveSupport::Autoload
 
   autoload :Attached
+  autoload :FixtureSet
   autoload :Service
   autoload :Previewer
   autoload :Analyzer

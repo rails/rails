@@ -6,7 +6,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        attribute_method_suffix "="
+        attribute_method_suffix "=", parameters: "value"
       end
 
       module ClassMethods # :nodoc:
@@ -42,11 +42,6 @@ module ActiveRecord
 
       alias :attribute= :_write_attribute
       private :attribute=
-
-      private
-        def write_attribute_without_type_cast(attr_name, value)
-          @attributes.write_cast_value(attr_name, value)
-        end
     end
   end
 end

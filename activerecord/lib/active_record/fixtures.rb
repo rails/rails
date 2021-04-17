@@ -181,7 +181,7 @@ module ActiveRecord
   #     end
   #   end
   #
-  # If you preload your test database with all fixture data (probably by running `bin/rails db:fixtures:load`)
+  # If you preload your test database with all fixture data (probably by running <tt>bin/rails db:fixtures:load</tt>)
   # and use transactional tests, then you may omit all fixtures declarations in your test cases since
   # all the data's already there and every case rolls back its changes.
   #
@@ -311,7 +311,7 @@ module ActiveRecord
   #
   # Just provide the polymorphic target type and Active Record will take care of the rest.
   #
-  # === has_and_belongs_to_many
+  # === has_and_belongs_to_many or has_many :through
   #
   # Time to give our monkey some fruit.
   #
@@ -426,7 +426,7 @@ module ActiveRecord
   #   _fixture:
   #     ignore:
   #       - base
-  #     # or use "ignore: base" when there is only one fixture needs to be ignored.
+  #     # or use "ignore: base" when there is only one fixture that needs to be ignored.
   #
   #   base: &base
   #     admin: false
@@ -782,3 +782,5 @@ module ActiveRecord
     end
   end
 end
+
+ActiveSupport.run_load_hooks :active_record_fixture_set, ActiveRecord::FixtureSet

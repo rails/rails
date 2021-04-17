@@ -39,11 +39,18 @@ module ActiveRecord
       ##
       # :singleton-method:
       # Extra flags passed to database CLI tool (mysqldump/pg_dump) when calling db:schema:dump
+      # It can be used as a string/array (the typical case) or a hash (when you use multiple adapters)
+      # Example:
+      #   ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = {
+      #     mysql2: ['--no-defaults', '--skip-add-drop-table'],
+      #     postgres: '--no-tablespaces'
+      #   }
       mattr_accessor :structure_dump_flags, instance_accessor: false
 
       ##
       # :singleton-method:
       # Extra flags passed to database CLI tool when calling db:schema:load
+      # It can be used as a string/array (the typical case) or a hash (when you use multiple adapters)
       mattr_accessor :structure_load_flags, instance_accessor: false
 
       extend self
@@ -269,6 +276,8 @@ module ActiveRecord
 
         Base.connection.migration_context.migrate(target_version) do |migration|
           scope.blank? || scope == migration.scope
+        end.tap do |migrations_ran|
+          Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?
         end
 
         ActiveRecord::Base.clear_cache!
@@ -338,13 +347,15 @@ module ActiveRecord
       def structure_dump(configuration, *arguments)
         db_config = resolve_configuration(configuration)
         filename = arguments.delete_at(0)
-        database_adapter_for(db_config, *arguments).structure_dump(filename, structure_dump_flags)
+        flags = structure_dump_flags_for(db_config.adapter)
+        database_adapter_for(db_config, *arguments).structure_dump(filename, flags)
       end
 
       def structure_load(configuration, *arguments)
         db_config = resolve_configuration(configuration)
         filename = arguments.delete_at(0)
-        database_adapter_for(db_config, *arguments).structure_load(filename, structure_load_flags)
+        flags = structure_load_flags_for(db_config.adapter)
+        database_adapter_for(db_config, *arguments).structure_load(filename, flags)
       end
 
       def load_schema(db_config, format = ActiveRecord::Base.schema_format, file = nil) # :nodoc:
@@ -373,7 +384,7 @@ module ActiveRecord
         db_config = resolve_configuration(configuration)
 
         if environment || name
-          ActiveSupport::Deprecation.warn("`environment` and `name` will be removed as parameters in 6.2.0, you may now pass an ActiveRecord::DatabaseConfigurations::DatabaseConfig as `configuration` instead.")
+          ActiveSupport::Deprecation.warn("`environment` and `name` will be removed as parameters in 7.0.0, you may now pass an ActiveRecord::DatabaseConfigurations::DatabaseConfig as `configuration` instead.")
         end
 
         name ||= db_config.name
@@ -526,7 +537,7 @@ module ActiveRecord
         end
 
         def class_for_adapter(adapter)
-          _key, task = @tasks.each_pair.detect { |pattern, _task| adapter[pattern] }
+          _key, task = @tasks.reverse_each.detect { |pattern, _task| adapter[pattern] }
           unless task
             raise DatabaseNotSupported, "Rake tasks not supported by '#{adapter}' adapter"
           end
@@ -565,6 +576,22 @@ module ActiveRecord
 
         def schema_sha1(file)
           Digest::SHA1.hexdigest(File.read(file))
+        end
+
+        def structure_dump_flags_for(adapter)
+          if structure_dump_flags.is_a?(Hash)
+            structure_dump_flags[adapter.to_sym]
+          else
+            structure_dump_flags
+          end
+        end
+
+        def structure_load_flags_for(adapter)
+          if structure_load_flags.is_a?(Hash)
+            structure_load_flags[adapter.to_sym]
+          else
+            structure_load_flags
+          end
         end
     end
   end

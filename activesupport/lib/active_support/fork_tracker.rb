@@ -3,7 +3,7 @@
 module ActiveSupport
   module ForkTracker # :nodoc:
     module CoreExt
-      def fork(*)
+      def fork(...)
         if block_given?
           super do
             ForkTracker.check!
@@ -22,7 +22,7 @@ module ActiveSupport
       include CoreExt
 
       private
-        def fork(*)
+        def fork(...)
           super
         end
     end

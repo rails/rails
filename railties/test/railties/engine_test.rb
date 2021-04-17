@@ -147,7 +147,7 @@ module RailtiesTest
       end
     end
 
-    test "dont reverse default railties order" do
+    test "don't reverse default railties order" do
       @api = engine "api" do |plugin|
         plugin.write "lib/api.rb", <<-RUBY
           module Api
@@ -644,7 +644,7 @@ en:
       assert_equal Rails.application.routes, env["action_dispatch.routes"]
     end
 
-    test "isolated engine should include only its own routes and helpers" do
+    test "isolated engine routes and helpers are isolated to that engine" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
@@ -729,6 +729,30 @@ en:
         end
       RUBY
 
+      @plugin.write "app/controllers/bukkits/session_controller.rb", <<-RUBY
+        module Bukkits
+          class SessionController < ApplicationController
+            def index
+              render plain: default_path
+            end
+
+            private
+              def default_path
+                foo_path
+              end
+          end
+        end
+      RUBY
+
+      controller "bar", <<-RUBY
+        class BarController < Bukkits::SessionController
+          private
+            def default_path
+              bar_path
+            end
+        end
+      RUBY
+
       @plugin.write "app/mailers/bukkits/my_mailer.rb", <<-RUBY
         module Bukkits
           class MyMailer < ActionMailer::Base
@@ -745,6 +769,9 @@ en:
       assert_equal Bukkits.railtie_namespace, Bukkits::Engine
       assert ::Bukkits::MyMailer.method_defined?(:foo_url)
       assert_not ::Bukkits::MyMailer.method_defined?(:bar_url)
+
+      get("/bar")
+      assert_equal "/bar", last_response.body
 
       get("/bukkits/from_app")
       assert_equal "false", last_response.body

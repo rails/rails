@@ -195,7 +195,7 @@ module ActiveRecord
         relation.select_values = columns
         result = skip_query_cache_if_necessary do
           if where_clause.contradiction?
-            ActiveRecord::Result.new([], [])
+            ActiveRecord::Result.empty
           else
             klass.connection.select_all(relation.arel, "#{klass.name} Pluck")
           end
@@ -307,11 +307,13 @@ module ActiveRecord
 
         result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder, "#{@klass.name} #{operation.capitalize}") }
 
-        type_cast_calculated_value(result.cast_values.first, operation) do |value|
+        if operation != "count"
           type = column.try(:type_caster) ||
             lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
-          type.deserialize(value)
+          type = type.subtype if Enum::EnumType === type
         end
+
+        type_cast_calculated_value(result.cast_values.first, operation, type)
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
@@ -320,8 +322,8 @@ module ActiveRecord
 
         unless group_fields == group_values
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            `#{operation}` with group by duplicated fields does no longer affect to result in Rails 6.2.
-            To migrate to Rails 6.2's behavior, use `uniq!(:group)` to deduplicate group fields
+            `#{operation}` with group by duplicated fields does no longer affect to result in Rails 7.0.
+            To migrate to Rails 7.0's behavior, use `uniq!(:group)` to deduplicate group fields
             (`#{klass.name&.tableize || klass.table_name}.uniq!(:group).#{operation}(#{column_name.inspect})`).
           MSG
           group_fields = group_values
@@ -380,17 +382,18 @@ module ActiveRecord
           end
         end
 
-        type = nil
+        if operation != "count"
+          type = column.try(:type_caster) ||
+            lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
+          type = type.subtype if Enum::EnumType === type
+        end
+
         hash_rows.each_with_object({}) do |row, result|
           key = group_aliases.map { |aliaz| row[aliaz] }
           key = key.first if key.size == 1
           key = key_records[key] if associated
 
-          result[key] = type_cast_calculated_value(row[column_alias], operation) do |value|
-            type ||= column.try(:type_caster) ||
-              lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
-            type.deserialize(value)
-          end
+          result[key] = type_cast_calculated_value(row[column_alias], operation, type)
         end
       end
 
@@ -441,16 +444,21 @@ module ActiveRecord
         result.cast_values(cast_types)
       end
 
-      def type_cast_calculated_value(value, operation)
+      def type_cast_calculated_value(value, operation, type)
         case operation
         when "count"
           value.to_i
         when "sum"
-          yield value || 0
+          type.deserialize(value || 0)
         when "average"
-          value&.respond_to?(:to_d) ? value.to_d : value
+          case type.type
+          when :integer, :decimal
+            value&.to_d
+          else
+            type.deserialize(value)
+          end
         else # "minimum", "maximum"
-          yield value
+          type.deserialize(value)
         end
       end
 

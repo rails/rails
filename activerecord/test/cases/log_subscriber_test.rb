@@ -183,7 +183,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
   end
 
-  def test_vebose_query_logs
+  def test_verbose_query_logs
     ActiveRecord::Base.verbose_query_logs = true
 
     logger = TestDebugLogSubscriber.new
@@ -246,6 +246,12 @@ class LogSubscriberTest < ActiveRecord::TestCase
   end
 
   if ActiveRecord::Base.connection.prepared_statements
+    def test_where_in_binds_logging_include_attribute_names
+      Developer.where(id: [1, 2, 3, 4, 5]).load
+      wait
+      assert_match(%{["id", 1], ["id", 2], ["id", 3], ["id", 4], ["id", 5]}, @logger.logged(:debug).last)
+    end
+
     def test_binary_data_is_not_logged
       Binary.create(data: "some binary data")
       wait

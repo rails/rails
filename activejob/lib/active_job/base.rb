@@ -69,8 +69,8 @@ module ActiveJob #:nodoc:
     include Execution
     include Callbacks
     include Exceptions
-    include Logging
     include Instrumentation
+    include Logging
     include Timezones
     include Translation
 

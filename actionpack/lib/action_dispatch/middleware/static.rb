@@ -32,12 +32,12 @@ module ActionDispatch
   #
   # Precompressed versions of these files are checked first. Brotli (.br)
   # and gzip (.gz) files are supported. If +path+.br exists, this
-  # endpoint returns that file with a +Content-Encoding: br+ header.
+  # endpoint returns that file with a <tt>Content-Encoding: br</tt> header.
   #
   # If no matching file is found, this endpoint responds 404 Not Found.
   #
   # Pass the +root+ directory to search for matching files, an optional
-  # +index: "index"+ to change the default +path+/index.html, and optional
+  # <tt>index: "index"</tt> to change the default +path+/index.html, and optional
   # additional response headers.
   class FileHandler
     # Accept-Encoding value -> file extension

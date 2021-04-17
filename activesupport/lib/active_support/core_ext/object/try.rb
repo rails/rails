@@ -15,7 +15,7 @@ module ActiveSupport
         public_send(method_name, *args, &b)
       end
     end
-    ruby2_keywords(:try) if respond_to?(:ruby2_keywords, true)
+    ruby2_keywords(:try)
 
     def try!(method_name = nil, *args, &b)
       if method_name.nil? && block_given?
@@ -28,7 +28,7 @@ module ActiveSupport
         public_send(method_name, *args, &b)
       end
     end
-    ruby2_keywords(:try!) if respond_to?(:ruby2_keywords, true)
+    ruby2_keywords(:try!)
   end
 end
 

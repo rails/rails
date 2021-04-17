@@ -13,7 +13,7 @@ module ActionDispatch
   #
   # When a request comes to an unauthorized host, the +response_app+
   # application will be executed and rendered. If no +response_app+ is given, a
-  # default one will run, which responds with +403 Forbidden+.
+  # default one will run, which responds with <tt>403 Forbidden</tt>.
   class HostAuthorization
     class Permissions # :nodoc:
       def initialize(hosts)
@@ -78,7 +78,7 @@ module ActionDispatch
 
       unless deprecated_response_app.nil?
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          `action_dispatch.hosts_response_app` is deprecated and will be ignored in Rails 6.2.
+          `action_dispatch.hosts_response_app` is deprecated and will be ignored in Rails 7.0.
           Use the Host Authorization `response_app` setting instead.
         MSG
 
@@ -102,12 +102,15 @@ module ActionDispatch
     end
 
     private
-      def authorized?(request)
-        origin_host = request.get_header("HTTP_HOST").to_s.sub(/:\d+\z/, "")
-        forwarded_host = request.x_forwarded_host.to_s.split(/,\s?/).last.to_s.sub(/:\d+\z/, "")
+      HOSTNAME = /[a-z0-9.-]+|\[[a-f0-9]*:[a-f0-9.:]+\]/i
+      VALID_ORIGIN_HOST = /\A(#{HOSTNAME})(?::\d+)?\z/
+      VALID_FORWARDED_HOST = /(?:\A|,[ ]?)(#{HOSTNAME})(?::\d+)?\z/
 
-        @permissions.allows?(origin_host) &&
-          (forwarded_host.blank? || @permissions.allows?(forwarded_host))
+      def authorized?(request)
+        origin_host = request.get_header("HTTP_HOST")&.slice(VALID_ORIGIN_HOST, 1) || ""
+        forwarded_host = request.x_forwarded_host&.slice(VALID_FORWARDED_HOST, 1) || ""
+
+        @permissions.allows?(origin_host) && (forwarded_host.blank? || @permissions.allows?(forwarded_host))
       end
 
       def excluded?(request)

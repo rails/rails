@@ -150,6 +150,11 @@ module ActiveSupport
       send(method, event)
     end
 
+    def publish_event(event) # :nodoc:
+      method = event.name.split(".").first
+      send(method, event)
+    end
+
     private
       def event_stack
         SubscriberQueueRegistry.instance.get_queue(@queue_key)

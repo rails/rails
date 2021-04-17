@@ -129,6 +129,14 @@ module ActiveRecord
       # for multiple databases.
       mattr_accessor :suppress_multiple_database_warning, instance_writer: false, default: false
 
+      ##
+      # :singleton-method:
+      # Force enumeration of all columns in SELECT statements.
+      # e.g. `SELECT first_name, last_name FROM ...` instead of `SELECT * FROM ...`
+      # This avoids +PreparedStatementCacheExpired+ errors when a column is added
+      # to the database while the app is running.
+      class_attribute :enumerate_columns_in_select_statements, instance_accessor: false, default: false
+
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
       class_attribute :belongs_to_required_by_default, instance_accessor: false
@@ -140,6 +148,7 @@ module ActiveRecord
       mattr_accessor :action_on_strict_loading_violation, instance_accessor: false, default: :raise
 
       class_attribute :strict_loading_by_default, instance_accessor: false, default: false
+      class_attribute :strict_loading_mode, instance_accessor: true, default: :all
 
       mattr_accessor :writing_role, instance_accessor: false, default: :writing
 
@@ -155,6 +164,55 @@ module ActiveRecord
 
       mattr_accessor :legacy_connection_handling, instance_writer: false, default: true
 
+      mattr_accessor :application_record_class, instance_accessor: false, default: nil
+
+      # Sets the async_query_executor for an application. By default the thread pool executor
+      # set to +nil+ which will not run queries in the background. Applications must configure
+      # a thread pool executor to use this feature. Options are:
+      #
+      #   * nil - Does not initialize a thread pool executor. Any async calls will be
+      #   run in the foreground.
+      #   * :global_thread_pool - Initializes a single +Concurrent::ThreadPoolExecutor+
+      #   that uses the +async_query_concurrency+ for the +max_threads+ value.
+      #   * :multi_thread_pool - Initializes a +Concurrent::ThreadPoolExecutor+ for each
+      #   database connection. The initializer values are defined in the configuration hash.
+      mattr_accessor :async_query_executor, instance_accessor: false, default: nil
+
+      def self.global_thread_pool_async_query_executor # :nodoc:
+        concurrency = global_executor_concurrency || 4
+        @@global_thread_pool_async_query_executor ||= Concurrent::ThreadPoolExecutor.new(
+          min_threads: 0,
+          max_threads: concurrency,
+          max_queue: concurrency * 4,
+          fallback_policy: :caller_runs
+        )
+      end
+
+      # Set the +global_executor_concurrency+. This configuration value can only be used
+      # with the global thread pool async query executor.
+      def self.global_executor_concurrency=(global_executor_concurrency)
+        if async_query_executor.nil? || async_query_executor == :multi_thread_pool
+          raise ArgumentError, "`global_executor_concurrency` cannot be set when using the executor is nil or set to multi_thead_pool. For multiple thread pools, please set the concurrency in your database configuration."
+        end
+
+        @@global_executor_concurrency = global_executor_concurrency
+      end
+
+      def self.global_executor_concurrency # :nodoc:
+        @@global_executor_concurrency ||= nil
+      end
+
+      def self.application_record_class? # :nodoc:
+        if Base.application_record_class
+          self == Base.application_record_class
+        else
+          if defined?(ApplicationRecord) && self == ApplicationRecord
+            Base.application_record_class = self
+            true
+          end
+        end
+      end
+
       self.filter_attributes = []
 
       def self.connection_handler
@@ -166,7 +224,8 @@ module ActiveRecord
       end
 
       def self.connection_handlers
-        unless legacy_connection_handling
+        if legacy_connection_handling
+        else
           raise NotImplementedError, "The new connection handling does not support accessing multiple connection handlers."
         end
 
@@ -174,11 +233,30 @@ module ActiveRecord
       end
 
       def self.connection_handlers=(handlers)
-        unless legacy_connection_handling
+        if legacy_connection_handling
+          ActiveSupport::Deprecation.warn(<<~MSG)
+            Using legacy connection handling is deprecated. Please set
+            `legacy_connection_handling` to `false` in your application.
+
+            The new connection handling does not support `connection_handlers`
+            getter and setter.
+
+            Read more about how to migrate at: https://guides.rubyonrails.org/active_record_multiple_databases.html#migrate-to-the-new-connection-handling
+          MSG
+        else
           raise NotImplementedError, "The new connection handling does not setting support multiple connection handlers."
         end
 
         @@connection_handlers = handlers
+      end
+
+      def self.asynchronous_queries_session # :nodoc:
+        asynchronous_queries_tracker.current_session
+      end
+
+      def self.asynchronous_queries_tracker # :nodoc:
+        Thread.current.thread_variable_get(:ar_asynchronous_queries_tracker) ||
+          Thread.current.thread_variable_set(:ar_asynchronous_queries_tracker, AsynchronousQueriesTracker.new)
       end
 
       # Returns the symbol representing the current connected role.
@@ -196,7 +274,7 @@ module ActiveRecord
         else
           connected_to_stack.reverse_each do |hash|
             return hash[:role] if hash[:role] && hash[:klasses].include?(Base)
-            return hash[:role] if hash[:role] && hash[:klasses].include?(abstract_base_class)
+            return hash[:role] if hash[:role] && hash[:klasses].include?(connection_classes)
           end
 
           default_role
@@ -215,7 +293,7 @@ module ActiveRecord
       def self.current_shard
         connected_to_stack.reverse_each do |hash|
           return hash[:shard] if hash[:shard] && hash[:klasses].include?(Base)
-          return hash[:shard] if hash[:shard] && hash[:klasses].include?(abstract_base_class)
+          return hash[:shard] if hash[:shard] && hash[:klasses].include?(connection_classes)
         end
 
         default_shard
@@ -237,7 +315,7 @@ module ActiveRecord
         else
           connected_to_stack.reverse_each do |hash|
             return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
-            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(abstract_base_class)
+            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(connection_classes)
           end
 
           false
@@ -254,11 +332,23 @@ module ActiveRecord
         end
       end
 
-      def self.abstract_base_class # :nodoc:
+      def self.connection_class=(b) # :nodoc:
+        @connection_class = b
+      end
+
+      def self.connection_class # :nodoc
+        @connection_class ||= false
+      end
+
+      def self.connection_class? # :nodoc:
+        self.connection_class
+      end
+
+      def self.connection_classes # :nodoc:
         klass = self
 
         until klass == Base
-          break if klass.abstract_class?
+          break if klass.connection_class?
           klass = klass.superclass
         end
 
@@ -266,11 +356,11 @@ module ActiveRecord
       end
 
       def self.allow_unsafe_raw_sql # :nodoc:
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_unsafe_raw_sql is deprecated and will be removed in Rails 6.2")
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_unsafe_raw_sql is deprecated and will be removed in Rails 7.0")
       end
 
       def self.allow_unsafe_raw_sql=(value) # :nodoc:
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_unsafe_raw_sql= is deprecated and will be removed in Rails 6.2")
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_unsafe_raw_sql= is deprecated and will be removed in Rails 7.0")
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
@@ -396,7 +486,21 @@ module ActiveRecord
       end
 
       # Specifies columns which shouldn't be exposed while calling +#inspect+.
-      attr_writer :filter_attributes
+      def filter_attributes=(filter_attributes)
+        @inspection_filter = nil
+        @filter_attributes = filter_attributes
+      end
+
+      def inspection_filter # :nodoc:
+        if defined?(@filter_attributes)
+          @inspection_filter ||= begin
+            mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
+            ActiveSupport::ParameterFilter.new(@filter_attributes, mask: mask)
+          end
+        else
+          superclass.inspection_filter
+        end
+      end
 
       # Returns a string like 'Post(id:integer, title:string, body:text)'
       def inspect # :nodoc:
@@ -420,10 +524,6 @@ module ActiveRecord
       end
 
       # Returns an instance of <tt>Arel::Table</tt> loaded with the current table name.
-      #
-      #   class Post < ActiveRecord::Base
-      #     scope :published_and_commented, -> { published.and(arel_table[:comments_count].gt(0)) }
-      #   end
       def arel_table # :nodoc:
         @arel_table ||= Arel::Table.new(table_name, klass: self)
       end
@@ -651,11 +751,35 @@ module ActiveRecord
     # if the record tries to lazily load an association.
     #
     #   user = User.first
-    #   user.strict_loading!
-    #   user.comments.to_a
+    #   user.strict_loading! # => true
+    #   user.comments
     #   => ActiveRecord::StrictLoadingViolationError
-    def strict_loading!
-      @strict_loading = true
+    #
+    # === Parameters:
+    #
+    # * value - Boolean specifying whether to enable or disable strict loading.
+    # * mode - Symbol specifying strict loading mode. Defaults to :all. Using
+    #          :n_plus_one_only mode will only raise an error if an association
+    #          that will lead to an n plus one query is lazily loaded.
+    #
+    # === Example:
+    #
+    #   user = User.first
+    #   user.strict_loading!(false) # => false
+    #   user.comments
+    #   => #<ActiveRecord::Associations::CollectionProxy>
+    def strict_loading!(value = true, mode: :all)
+      unless [:all, :n_plus_one_only].include?(mode)
+        raise ArgumentError, "The :mode option must be one of [:all, :n_plus_one_only]."
+      end
+
+      @strict_loading_mode = mode
+      @strict_loading = value
+    end
+
+    # Returns +true+ if the record uses strict_loading with +:n_plus_one_only+ mode enabled.
+    def strict_loading_n_plus_one_only?
+      @strict_loading_mode == :n_plus_one_only
     end
 
     # Marks this record as read only.
@@ -733,16 +857,22 @@ module ActiveRecord
       end
 
       def init_internals
-        @primary_key              = self.class.primary_key
         @readonly                 = false
         @previously_new_record    = false
         @destroyed                = false
+        @_saving                  = false
         @marked_for_destruction   = false
         @destroyed_by_association = nil
         @_start_transaction_state = nil
-        @strict_loading           = self.class.strict_loading_by_default
+        @_already_called          = {}
 
-        self.class.define_attribute_methods
+        klass = self.class
+
+        @primary_key         = klass.primary_key
+        @strict_loading      = klass.strict_loading_by_default
+        @strict_loading_mode = klass.strict_loading_mode
+
+        klass.define_attribute_methods
       end
 
       def initialize_internals_callback
@@ -760,10 +890,7 @@ module ActiveRecord
       private_constant :InspectionMask
 
       def inspection_filter
-        @inspection_filter ||= begin
-          mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
-          ActiveSupport::ParameterFilter.new(self.class.filter_attributes, mask: mask)
-        end
+        self.class.inspection_filter
       end
   end
 end
