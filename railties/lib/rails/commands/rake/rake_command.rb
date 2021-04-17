@@ -36,18 +36,18 @@ module Rails
         end
 
         private
-        def rake_tasks
-          require_rake
+          def rake_tasks
+            require_rake
 
-          return @rake_tasks if defined?(@rake_tasks)
+            return @rake_tasks if defined?(@rake_tasks)
 
-          require_application!
+            require_application!
 
-          Rake::TaskManager.record_task_metadata = true
-          Rake.application.instance_variable_set(:@name, "rails")
-          load_tasks
-          @rake_tasks = Rake.application.tasks.select(&:comment)
-        end
+            Rake::TaskManager.record_task_metadata = true
+            Rake.application.instance_variable_set(:@name, "rails")
+            load_tasks
+            @rake_tasks = Rake.application.tasks.select(&:comment)
+          end
 
           def formatted_rake_tasks
             rake_tasks.map { |t| [ t.name_with_args, t.comment ] }
