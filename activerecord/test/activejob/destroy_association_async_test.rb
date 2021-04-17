@@ -162,7 +162,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     BookDestroyAsync.delete_all
   end
 
-  test "has_many with sti parent class destroys all children class records" do
+  test "has_many with STI parent class destroys all children class records" do
     book = BookDestroyAsync.create!
     LongEssayDestroyAsync.create!(book: book)
     ShortEssayDestroyAsync.create!(book: book)
