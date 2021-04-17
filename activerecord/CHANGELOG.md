@@ -1,3 +1,23 @@
+*   Allow creating batched methods on ActiveRecord models via `batch_method`.
+
+    Useful for creating definitions for how to batch load values across a
+    series of records in order to avoid N+1s.
+
+    ``` ruby
+    class Post < ActiveRecord::Base
+      batch_method(:featured_comments) do
+        comments_by_post_id = Comment.featured.where(post: posts).group_by(&:post_id)
+        posts.index_with { |post| comments_by_post_id[post.id] }
+      end
+    end
+
+    Post.first.featured_comments # use on a single record
+
+    Post.all.includes(:featured_comments).each { } # load all in a single call
+    ```
+
+    *John Crepezzi*
+
 *   Add setting for enumerating column names in SELECT statements.
 
     Adding a column to a PostgresSQL database, for example, while the application is running can
