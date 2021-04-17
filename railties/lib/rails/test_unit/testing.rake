@@ -29,31 +29,35 @@ namespace :test do
     success || exit(false)
   end
 
+  def test_paths(paths)
+    Rails::TestUnit::Runner.rake_run([*paths, *ARGV])
+  end
+
   ["models", "helpers", "channels", "controllers", "mailers", "integration", "jobs", "mailboxes"].each do |name|
     task name => "test:prepare" do
-      Rails::TestUnit::Runner.rake_run(["test/#{name}"])
+      test_paths(["test/#{name}"])
     end
   end
 
   desc "Runs all tests, including system tests"
   task all: "test:prepare" do
-    Rails::TestUnit::Runner.rake_run(["test/**/*_test.rb"])
+    test_paths(["test/**/*_test.rb"])
   end
 
   task generators: "test:prepare" do
-    Rails::TestUnit::Runner.rake_run(["test/lib/generators"])
+    test_paths(["test/lib/generators"])
   end
 
   task units: "test:prepare" do
-    Rails::TestUnit::Runner.rake_run(["test/models", "test/helpers", "test/unit"])
+    test_paths(["test/models", "test/helpers", "test/unit"])
   end
 
   task functionals: "test:prepare" do
-    Rails::TestUnit::Runner.rake_run(["test/controllers", "test/mailers", "test/functional"])
+    test_paths(["test/controllers", "test/mailers", "test/functional"])
   end
 
   desc "Run system tests only"
   task system: "test:prepare" do
-    Rails::TestUnit::Runner.rake_run(["test/system"])
+    test_paths(["test/system"])
   end
 end

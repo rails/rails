@@ -13,31 +13,41 @@ module Rails
         end
 
         def perform(task, args, config)
-          require_rake
+          found_rake_task = rake_tasks.find { |t| t.name == task }
 
           Rake.with_application do |rake|
-            rake.init("rails", [task, *args])
+            # init rake app with no args if it task is a rake task
+            init_args = found_rake_task ? [] : [task, *args]
+            rake.init("rails", init_args)
+
             rake.load_rakefile
             if Rails.respond_to?(:root)
               rake.options.suppress_backtrace_pattern = /\A(?!#{Regexp.quote(Rails.root.to_s)})/
             end
-            rake.standard_exception_handling { rake.top_level }
+
+            rake.standard_exception_handling do
+              if found_rake_task
+                found_rake_task.invoke(args, config)
+              else
+                rake.top_level
+              end
+            end
           end
         end
 
         private
-          def rake_tasks
-            require_rake
+        def rake_tasks
+          require_rake
 
-            return @rake_tasks if defined?(@rake_tasks)
+          return @rake_tasks if defined?(@rake_tasks)
 
-            require_application!
+          require_application!
 
-            Rake::TaskManager.record_task_metadata = true
-            Rake.application.instance_variable_set(:@name, "rails")
-            load_tasks
-            @rake_tasks = Rake.application.tasks.select(&:comment)
-          end
+          Rake::TaskManager.record_task_metadata = true
+          Rake.application.instance_variable_set(:@name, "rails")
+          load_tasks
+          @rake_tasks = Rake.application.tasks.select(&:comment)
+        end
 
           def formatted_rake_tasks
             rake_tasks.map { |t| [ t.name_with_args, t.comment ] }
