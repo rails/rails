@@ -13,24 +13,20 @@ module Rails
         end
 
         def perform(task, args, config)
-          found_rake_task = rake_tasks.find { |t| t.name == task }
+          require_rake
 
+          test_task = rake_tasks.find { |t| t.name == task } if task.start_with?("test:")
+          
           Rake.with_application do |rake|
-            # init rake app with no args if it task is a rake task
-            init_args = found_rake_task ? [] : [task, *args]
-            rake.init("rails", init_args)
-
+            rake_init_args = test_task ? [] : [task, *args]
+            rake.init("rails", rake_init_args)
             rake.load_rakefile
             if Rails.respond_to?(:root)
               rake.options.suppress_backtrace_pattern = /\A(?!#{Regexp.quote(Rails.root.to_s)})/
             end
 
             rake.standard_exception_handling do
-              if found_rake_task
-                found_rake_task.invoke(args, config)
-              else
-                rake.top_level
-              end
+              test_task ? test_task.invoke(args) : rake.top_level
             end
           end
         end
