@@ -293,11 +293,6 @@ module ActiveSupport # :nodoc:
         end
     end
 
-    def hook!
-      Loadable.include_into(Object)
-      ModuleConstMissing.include_into(Module)
-    end
-
     def unhook!
       ModuleConstMissing.exclude_from(Module)
       Loadable.exclude_from(Object)
@@ -697,5 +692,3 @@ module ActiveSupport # :nodoc:
       end
   end
 end
-
-ActiveSupport::Dependencies.hook!
