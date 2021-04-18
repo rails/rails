@@ -16,7 +16,7 @@ module Rails
           require_rake
 
           test_task = rake_tasks.find { |t| t.name == task } if task.start_with?("test:")
-          
+
           Rake.with_application do |rake|
             rake_init_args = test_task ? [] : [task, *args]
             rake.init("rails", rake_init_args)
