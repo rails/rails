@@ -3,6 +3,7 @@
   :root {
     --text-color: #ddd;
     --text-red: #fc4343;
+    --note-color: #fff9d8;
   }
 
   body {
@@ -48,6 +49,12 @@
     border-left: 0;
   }
 
+  #feature ul li {
+    background-size: 1.4em 1.4em;
+    background-image: url(../images/check_icon.svg);
+    background-position: left 0.5em;
+  }
+
   #mainCol a.anchorlink, #mainCol a.anchorlink code {
     color: #eee;
   }
@@ -69,12 +76,30 @@
     color: var(--text-red);
   }
 
+  #subCol .chapters ul li {
+    background-image: url(../images/bullet_dark.gif);
+  }
+
+  #subCol h3.chapter {
+    padding-left:30px;
+    background-image: url(../images/book_icon.svg);
+    background-size: 1.25em;
+    background-repeat: no-repeat;
+  }
+
+  #subCol h3.chapter img {
+    display: none;
+  }
+
   #mainCol div.warning, #subCol dd.warning {
     border: 1px solid #f9d9d8;
-    background: unset;
     background-color: #482928;
+    background-image: url(../images/hand_icon.svg);
+    background-size: 28px 28px;
+    background-position: 10px 12px;
     color: #f9d9d8;
   }
+
 
   #footer {
     background-color: #000;
@@ -85,17 +110,33 @@
   }
 
   .note {
-    --note-color: #fff9d8;
     color: var(--note-color);
     border: 1px solid var(--note-color);
     background-color: #3e3b2c;
+    background-image: url(../images/note_icon.svg);
+    background-size: 28px 28px;
+    background-position: 10px 10px;
+  }
+
+  #mainCol dd.work-in-progress, #subCol dd.work-in-progress {
+    color: var(--note-color);
+    border: 1px solid var(--note-color);
+    background-color: #3e3b2c;
+    background-image: url(../images/note_icon.svg);
+    background-size: 28px 28px;
+    background-position: 10px 10px;
   }
 
   .info {
     border: 1px solid #d5e9f6;
     background-color: #243440;
     color: #d5e9f6;
+    background-image: url(../images/info_icon.svg);
+    background-size: 28px 28px;
+    background-position: 10px 10px;
   }
+
+
 
   .clipboard-button {
     color: #ddd;
@@ -103,8 +144,11 @@
   }
 
   div.code_container {
-    background: none;
+    /*background: none;*/
     background-color: #000;
+    background-image: url(../images/cog_icon.svg);
+    background-size: 28px 28px;
+    background-position: 10px 14px;
     border: 1px solid #333;
   }
 }
