@@ -44,13 +44,13 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_on_disable_joins_through
-    assert_equal @author.comments.pluck(:id), @author.no_joins_comments.pluck(:id)
+    assert_equal @author.comments.pluck(:id).sort, @author.no_joins_comments.pluck(:id).sort
     assert_queries(2) { @author.no_joins_comments.pluck(:id) }
     assert_queries(1) { @author.comments.pluck(:id) }
   end
 
   def test_pluck_on_disable_joins_through_using_custom_foreign_key
-    assert_equal @author.comments_with_foreign_key.pluck(:id), @author.no_joins_comments_with_foreign_key.pluck(:id)
+    assert_equal @author.comments_with_foreign_key.pluck(:id).sort, @author.no_joins_comments_with_foreign_key.pluck(:id).sort
     assert_queries(2) { @author.no_joins_comments_with_foreign_key.pluck(:id) }
     assert_queries(1) { @author.comments_with_foreign_key.pluck(:id) }
   end
@@ -68,7 +68,7 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_to_a_on_disable_joins_through
-    assert_equal @author.comments.to_a, @author.no_joins_comments.to_a
+    assert_equal @author.comments.sort_by(&:id), @author.no_joins_comments.sort_by(&:id)
     @author.reload
     assert_queries(2) { @author.no_joins_comments.to_a }
     assert_queries(1) { @author.comments.to_a }
