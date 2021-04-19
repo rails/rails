@@ -1,3 +1,9 @@
+*   Add `Enumerable#sole`, per `ActiveRecord::FinderMethods#sole`.  Returns the
+    sole item of the enumerable, raising if no items are found, or if more than
+    one is.
+
+    *Asherah Connor*
+
 *   Freeze `ActiveSupport::Duration#parts` and remove writer methods.
 
     Durations are meant to be value objects and should not be mutated.
