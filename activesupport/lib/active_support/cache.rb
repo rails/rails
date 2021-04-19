@@ -527,6 +527,10 @@ module ActiveSupport
         end
       end
 
+      def new_entry(value, options = nil) # :nodoc:
+        Entry.new(value, **merged_options(options))
+      end
+
       # Deletes all entries with keys matching the pattern.
       #
       # Options are passed to the underlying cache implementation.
@@ -858,6 +862,14 @@ module ActiveSupport
         end
       end
 
+      def compressed? # :nodoc:
+        defined?(@compressed)
+      end
+
+      def local?
+        false
+      end
+
       # Duplicates the value in a class. This is used by cache implementations that don't natively
       # serialize entries to protect against accidental cache modifications.
       def dup_value!
@@ -891,10 +903,6 @@ module ActiveSupport
               @compressed = true
             end
           end
-        end
-
-        def compressed?
-          defined?(@compressed)
         end
 
         def uncompress(value)
