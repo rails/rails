@@ -136,7 +136,7 @@ module Arel # :nodoc: all
           visit_edge o, "source"
           visit_edge o, "projections"
           visit_edge o, "wheres"
-          visit_edge o,  "windows"
+          visit_edge o, "windows"
         end
 
         def visit_Arel_Nodes_SelectStatement(o)
