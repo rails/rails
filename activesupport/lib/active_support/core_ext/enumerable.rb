@@ -228,7 +228,7 @@ module Enumerable
   #    { a: 1, b: 2 }.sole # => Enumerable::SoleItemExpectedError: multiple items found
   def sole
     case count
-    when 1   then first
+    when 1   then return first # rubocop:disable Style/RedundantReturn
     when 0   then raise SoleItemExpectedError, "no item found"
     when 2.. then raise SoleItemExpectedError, "multiple items found"
     end
