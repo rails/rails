@@ -971,7 +971,10 @@ class EnumTest < ActiveRecord::TestCase
       enum status: [:proposed, :written], _inquirable: true
     end
 
-    status = klass.create!(status: 0).status
-    assert status.proposed?
+    klass = klass.create!(status: 0)
+    assert klass.status.proposed?
+
+    klass.update!(status: 1)
+    assert klass.status.written?
   end
 end
