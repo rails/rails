@@ -235,7 +235,12 @@ module ActiveRecord
     def reload(options = nil)
       @marked_for_destruction = false
       @destroyed_by_association = nil
+      @_validating = false
       super
+    end
+
+    def valid?(*args) # :nodoc:
+      _validating { super }
     end
 
     # Marks this record to be destroyed as part of the parent's save transaction.
@@ -273,7 +278,21 @@ module ActiveRecord
       new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
+    protected
+      def _can_validate? # :nodoc:
+        !destroyed? && !@_validating
+      end
+
     private
+      # Tracks if this record is being validated.
+      # Used to avoid cyclic validations of bi-directional nested_attributes.
+      def _validating
+        previously_validating, @_validating = @_validating, true
+        yield
+      ensure
+        @_validating = previously_validating
+      end
+
       # Returns the record for an association collection that should be validated
       # or saved. If +autosave+ is +false+ only new records will be returned,
       # unless the parent is/was a new record itself.
@@ -329,7 +348,7 @@ module ActiveRecord
       # the parent, <tt>self</tt>, if it wasn't. Skips any <tt>:autosave</tt>
       # enabled records if they're marked_for_destruction? or destroyed.
       def association_valid?(reflection, record, index = nil)
-        return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
+        return true if !record._can_validate? || (reflection.options[:autosave] && record.marked_for_destruction?)
 
         context = validation_context if custom_validation_context?
 

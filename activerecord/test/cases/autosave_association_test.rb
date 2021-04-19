@@ -588,6 +588,17 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_predicate molecule, :persisted?
     assert_equal 1, molecule.electrons.count
   end
+
+  def test_invalid_with_bi_directional_nested_attributes
+    pirate = FamousPirateNestedAttributes.new(famous_ship_nested_attributes_attributes: [
+      { name: "Nights Dirty Lightning" },
+      { name: nil },
+      { name: "The Black Rock" }
+    ])
+
+    assert_not_predicate pirate, :valid?
+    assert_equal ["can't be blank"], pirate.errors["famous_ship_nested_attributes.name"]
+  end
 end
 
 class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCase

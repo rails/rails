@@ -99,6 +99,13 @@ class FamousPirate < ActiveRecord::Base
   validates_presence_of :catchphrase, on: :conference
 end
 
+class FamousPirateNestedAttributes < ActiveRecord::Base
+  self.table_name = "pirates"
+  has_many :famous_ship_nested_attributes, inverse_of: :famous_pirate_nested_attributes, foreign_key: :pirate_id
+
+  accepts_nested_attributes_for :famous_ship_nested_attributes
+end
+
 class SpacePirate < ActiveRecord::Base
   self.table_name = "pirates"
 

@@ -861,6 +861,7 @@ module ActiveRecord
         @previously_new_record    = false
         @destroyed                = false
         @marked_for_destruction   = false
+        @_validating              = false
         @destroyed_by_association = nil
         @_start_transaction_state = nil
 
