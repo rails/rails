@@ -1126,6 +1126,32 @@ module ActiveRecord
       self
     end
 
+    # Specify USE INDEX index hints to be used in the SELECT statement.
+    # This feature is only supported by MySQL/MariaDB.
+    #
+    # Accepts a list of index names (`String` or `Symbol`) and a `scope`.
+    # `scope` can be one of: `"join", "order", "group"`.
+    #
+    # Example:
+    #
+    #    Post.use_index("index_on_comment_id", "index_on_type").all
+    #    # SELECT `posts`.* FROM `posts` USE INDEX (`index_on_comment_id`, `index_on_type`)
+    #
+    #    Post.use_index("index_on_comment_id", "index_on_type", for: "join").all
+    #    # SELECT `posts`.* FROM `posts` USE INDEX FOR JOIN (`index_on_comment_id`, `index_on_type`)
+    #
+    #    Post.use_index(:index_on_comment_id, for: :group).all
+    #    # SELECT `posts`.* FROM `posts` USE INDEX FOR GROUP BY (`index_on_comment_id`)
+    def use_index(*args, scope: nil)
+      check_if_method_has_arguments!(:use_index, args)
+      spawn.use_index!(*args, scope: scope)
+    end
+
+    def use_index!(*args, scope: nil) # :nodoc:
+      self.use_index_values += [[args, scope]] if !args.empty?
+      self
+    end
+
     # Deduplicate multiple values.
     def uniq!(name)
       if values = @values[name]
@@ -1269,6 +1295,7 @@ module ActiveRecord
         build_select(arel)
 
         arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
+        arel.use_index(*use_index_values) unless use_index_values.empty?
         arel.distinct(distinct_value)
         arel.from(build_from) unless from_clause.empty?
         arel.lock(lock_value) if lock_value

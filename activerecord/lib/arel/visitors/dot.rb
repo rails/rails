@@ -135,6 +135,7 @@ module Arel # :nodoc: all
           visit_edge o, "havings"
           visit_edge o, "set_quantifier"
           visit_edge o, "optimizer_hints"
+          visit_edge o, "use_indexes"
         end
 
         def visit_Arel_Nodes_SelectStatement(o)

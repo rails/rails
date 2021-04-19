@@ -79,6 +79,10 @@ module ActiveRecord
         true
       end
 
+      def supports_use_index_hints?
+        true
+      end
+
       # HELPER METHODS ===========================================
 
       def each_hash(result) # :nodoc:

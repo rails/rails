@@ -36,7 +36,7 @@ module ActiveRecord
           assert_equal 12, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 2, cache.indexes("posts").size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
@@ -66,7 +66,7 @@ module ActiveRecord
           assert_equal 12, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 2, cache.indexes("posts").size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
 
@@ -81,7 +81,7 @@ module ActiveRecord
           assert_equal 12, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 2, cache.indexes("posts").size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
@@ -105,7 +105,7 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_queries :any, ignore_none: true do
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 2, cache.indexes("posts").size
         end
       end
 
@@ -178,7 +178,7 @@ module ActiveRecord
           assert_equal 12, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 2, cache.indexes("posts").size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
       end
@@ -200,7 +200,7 @@ module ActiveRecord
           assert_equal 12, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 2, cache.indexes("posts").size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
@@ -224,7 +224,7 @@ module ActiveRecord
           assert_equal 12, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 2, cache.indexes("posts").size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
 
@@ -237,7 +237,7 @@ module ActiveRecord
           assert_equal 12, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 2, cache.indexes("posts").size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure

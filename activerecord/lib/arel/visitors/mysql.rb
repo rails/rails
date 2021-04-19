@@ -39,6 +39,15 @@ module Arel # :nodoc: all
           collector
         end
 
+        def visit_Arel_Nodes_UseIndex(o, collector)
+          hints = +"USE INDEX"
+          hints += " FOR #{o.for}" if o.for
+          indexes = o.indexes.map { |idx| quote_index_name(idx) }.join(", ")
+          hints += " (#{indexes})"
+
+          collector << hints
+        end
+
         def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
           collector = visit o.left, collector
           collector << " <=> "

@@ -54,7 +54,8 @@ module ActiveRecord
       NORMAL_VALUES = Relation::VALUE_METHODS - Relation::CLAUSE_METHODS -
                       [
                         :select, :includes, :preload, :joins, :left_outer_joins,
-                        :order, :reverse_order, :lock, :create_with, :reordering
+                        :order, :reverse_order, :lock, :create_with, :reordering,
+                        :use_index
                       ]
 
       def merge
@@ -76,6 +77,7 @@ module ActiveRecord
         merge_preloads
         merge_joins
         merge_outer_joins
+        merge_use_indexes
 
         relation
       end
@@ -186,6 +188,12 @@ module ActiveRecord
         def replace_from_clause?
           relation.from_clause.empty? && !other.from_clause.empty? &&
             relation.klass.base_class == other.klass.base_class
+        end
+
+        def merge_use_indexes
+          return if other.use_index_values.empty?
+
+          relation.use_index_values.concat(other.use_index_values)
         end
     end
   end

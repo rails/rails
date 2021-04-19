@@ -151,6 +151,13 @@ module Arel # :nodoc: all
       self
     end
 
+    def use_index(*indexes)
+      unless indexes.empty?
+        @ctx.use_indexes = indexes.map { |x| Arel::Nodes::UseIndex.new(x) }
+      end
+      self
+    end
+
     def distinct(value = true)
       if value
         @ctx.set_quantifier = Arel::Nodes::Distinct.new

@@ -5,7 +5,7 @@ require "models/post"
 
 module ActiveRecord
   class RelationMutationTest < ActiveRecord::TestCase
-    (Relation::MULTI_VALUE_METHODS - [:extending, :order, :unscope, :select]).each do |method|
+    (Relation::MULTI_VALUE_METHODS - [:extending, :order, :unscope, :select, :use_index]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal [:foo], relation.public_send("#{method}_values")
@@ -135,6 +135,16 @@ module ActiveRecord
     test "skip_preloading!" do
       relation.skip_preloading!
       assert relation.skip_preloading_value
+    end
+
+    test "use_index!" do
+      assert relation.use_index!(:foo).equal?(relation)
+      assert_equal [[[:foo], nil]], relation.use_index_values
+    end
+
+    test "use_index! with scope" do
+      assert relation.use_index!(:foo, scope: :join).equal?(relation)
+      assert_equal [[[:foo], :join]], relation.use_index_values
     end
 
     private

@@ -24,6 +24,7 @@ require "arel/nodes/ascending"
 require "arel/nodes/descending"
 require "arel/nodes/unqualified_column"
 require "arel/nodes/with"
+require "arel/nodes/use_index"
 
 # binary
 require "arel/nodes/binary"

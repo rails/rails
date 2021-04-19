@@ -1,3 +1,20 @@
+*   Support USE INDEX index hints API
+
+    Index hints give the optimizer information about how to choose indexes during query processing.
+    Whilst USE INDEX supports both SELECT/UPDATE statement for now only SELECT statament is handled.
+    Please note that this is a MySQL/MariaDB only feature.
+
+    ```ruby
+    Post.use_index(:index_on_comment_id, for: :join).load
+    # SELECT `posts`.* FROM `posts` USE INDEX FOR JOIN (`index_on_comment_id`)
+    ```
+
+    See also:
+    * https://dev.mysql.com/doc/refman/8.0/en/index-hints.html
+    * https://mariadb.com/kb/en/index-hints-how-to-force-query-plans/#use-index-use-a-limited-set-of-indexes
+
+    *Jacopo Beschi*
+
 *   Add `ActiveRecord::Base#attributes_for_database`
 
     Returns attributes with values for assignment to the database.

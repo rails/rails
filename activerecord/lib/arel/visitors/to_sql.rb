@@ -156,6 +156,7 @@ module Arel # :nodoc: all
             collector = visit o.source, collector
           end
 
+          collect_nodes_for o.use_indexes, collector, " ", " "
           collect_nodes_for o.wheres, collector, " WHERE ", " AND "
           collect_nodes_for o.groups, collector, " GROUP BY "
           collect_nodes_for o.havings, collector, " HAVING ", " AND "
@@ -167,6 +168,10 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_OptimizerHints(o, collector)
           hints = o.expr.map { |v| sanitize_as_sql_comment(v) }.join(" ")
           collector << "/*+ #{hints} */"
+        end
+
+        def visit_Arel_Nodes_UseIndex(o, collector)
+          raise NotImplementedError, "USE INDEX not implemented for this db"
         end
 
         def visit_Arel_Nodes_Comment(o, collector)
@@ -798,6 +803,7 @@ module Arel # :nodoc: all
           return name if Arel::Nodes::SqlLiteral === name
           @connection.quote_column_name(name)
         end
+        alias :quote_index_name :quote_column_name
 
         def sanitize_as_sql_comment(value)
           return value if Arel::Nodes::SqlLiteral === value

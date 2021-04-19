@@ -441,6 +441,10 @@ module ActiveRecord
         true
       end
 
+      def supports_use_index_hints?
+        false
+      end
+
       def async_enabled? # :nodoc:
         supports_concurrent_connections? &&
           !Base.async_query_executor.nil? && !pool.async_executor.nil?

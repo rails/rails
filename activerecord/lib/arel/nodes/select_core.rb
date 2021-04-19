@@ -4,7 +4,7 @@ module Arel # :nodoc: all
   module Nodes
     class SelectCore < Arel::Nodes::Node
       attr_accessor :projections, :wheres, :groups, :windows, :comment
-      attr_accessor :havings, :source, :set_quantifier, :optimizer_hints
+      attr_accessor :havings, :source, :set_quantifier, :optimizer_hints, :use_indexes
 
       def initialize(relation = nil)
         super()
@@ -13,6 +13,7 @@ module Arel # :nodoc: all
         # https://ronsavage.github.io/SQL/sql-92.bnf.html#set%20quantifier
         @set_quantifier  = nil
         @optimizer_hints = nil
+        @use_indexes     = []
         @projections     = []
         @wheres          = []
         @groups          = []
@@ -45,7 +46,7 @@ module Arel # :nodoc: all
       def hash
         [
           @source, @set_quantifier, @projections, @optimizer_hints,
-          @wheres, @groups, @havings, @windows, @comment
+          @use_indexes, @wheres, @groups, @havings, @windows, @comment
         ].hash
       end
 
@@ -54,6 +55,7 @@ module Arel # :nodoc: all
           self.source == other.source &&
           self.set_quantifier == other.set_quantifier &&
           self.optimizer_hints == other.optimizer_hints &&
+          self.use_indexes == other.use_indexes &&
           self.projections == other.projections &&
           self.wheres == other.wheres &&
           self.groups == other.groups &&
