@@ -64,6 +64,7 @@ RUN echo "--- :ruby: Updating RubyGems and Bundler" \
         libsqlite3-dev \
         libssl-dev \
         libtool \
+        libvips-dev \
         libwebp-dev \
         libxml2-dev \
         libxslt-dev \
