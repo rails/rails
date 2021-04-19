@@ -74,7 +74,17 @@ module ActiveRecord
         def grouped_records
           h = {}
           polymorphic_parent = !root? && parent.polymorphic?
+
+          batched_record_batches_by_class = Hash.new { |h, k| h[k] = ActiveRecord::BatchedMethods::Batch.new(k) }
+
           source_records.each do |record|
+            batched_method = record.class.batched_methods[association]
+            if batched_method
+              batch = batched_record_batches_by_class[record.class]
+              record.batched_method_batch = batch
+              next
+            end
+
             reflection = record.class._reflect_on_association(association)
             next if polymorphic_parent && !reflection || !record.association(association).klass
             (h[reflection] ||= []) << record
