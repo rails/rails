@@ -32,8 +32,7 @@ module ActiveSupport
         private
           def write_entry(key, entry, **options)
             if options[:raw] && local_cache
-              raw_entry = Entry.new(entry.value.to_s)
-              raw_entry.expires_at = entry.expires_at
+              raw_entry = Entry.new(entry.value.to_s, compress: false, expires_at: entry.expires_at)
               super(key, raw_entry, **options)
             else
               super
@@ -88,6 +87,14 @@ module ActiveSupport
         if options.key?(:cache_nils)
           options[:skip_nil] = !options.delete(:cache_nils)
         end
+
+        # Dalli already handle compression by default, with the same threashold as Active Support.
+        # So enabling it in Active Support Cache cause useless double compression which is
+        # entirely harmful to performance.
+        mem_cache_options = options.dup
+        options[:compress] = false
+        options.delete(:compress_threshold)
+
         super(options)
 
         unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
@@ -96,8 +103,10 @@ module ActiveSupport
         if addresses.first.is_a?(Dalli::Client)
           @data = addresses.first
         else
-          mem_cache_options = options.dup
-          UNIVERSAL_OPTIONS.each { |name| mem_cache_options.delete(name) }
+          if mem_cache_options.key?(:compress_threshold) && !mem_cache_options.key?(:compression_min_size)
+            mem_cache_options[:compression_min_size] = mem_cache_options.delete(:compress_threshold)
+          end
+          (UNIVERSAL_OPTIONS - %i(name)).each { |name| mem_cache_options.delete(name) }
           @data = self.class.build_mem_cache(*(addresses + [mem_cache_options]))
         end
       end
@@ -155,8 +164,7 @@ module ActiveSupport
             expires_in += 5.minutes
           end
           rescue_error_with false do
-            # The value "compress: false" prevents duplicate compression within Dalli.
-            @data.with { |c| c.send(method, key, value, expires_in, **options, compress: false) }
+            @data.with { |c| c.send(method, key, value, expires_in, **options) }
           end
         end
 

@@ -213,11 +213,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def test_large_string_with_default_compression_settings
-    assert_compressed(LARGE_STRING)
+    assert_uncompressed(LARGE_STRING) # Rely on Dalli for compression
   end
 
   def test_large_object_with_default_compression_settings
-    assert_compressed(LARGE_OBJECT)
+    assert_uncompressed(LARGE_OBJECT) # Rely on Dalli for compression
   end
 
   private

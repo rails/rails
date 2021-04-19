@@ -1,3 +1,8 @@
+*   Disable `ActiveSupport::Cache::MemCacheStore` own compression and
+    instead translate the compression configuration to enable it in Dalli.
+
+    *Jean Boussier*
+
 *   Add `Enumerable#sole`, per `ActiveRecord::FinderMethods#sole`.  Returns the
     sole item of the enumerable, raising if no items are found, or if more than
     one is.
