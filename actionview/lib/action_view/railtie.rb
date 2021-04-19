@@ -98,7 +98,7 @@ module ActionView
       end
 
       unless enable_caching
-        app.executor.to_run ActionView::CacheExpiry::Executor.new(watcher: app.config.file_watcher)
+        app.executor.register_hook ActionView::CacheExpiry::Executor.new(watcher: app.config.file_watcher)
       end
     end
 
