@@ -264,7 +264,7 @@ Additionally, the `after_find` callback is triggered by the following finder met
 
 The `after_initialize` callback is triggered every time a new object of the class is initialized.
 
-NOTE: The `find_by_*` and `find_by_*!` methods are dynamic finders generated automatically for every attribute. Learn more about them at the [Dynamic finders section](active_record_querying.html#dynamic-finders)
+NOTE: The `find_by_*` and `find_by_*!` methods are dynamic finders generated automatically for every attribute. Learn more about them at the [Dynamic finders section](https://guides.rubyonrails.org/active_record_querying.html#dynamic-finders)
 
 Skipping Callbacks
 ------------------
