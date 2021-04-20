@@ -824,6 +824,8 @@ module ActionDispatch
 
         if options[:params].is_a?(Hash)
           params.merge! options[:params]
+        elsif options.key? :params
+          params[:params] = options[:params]
         end
 
         options[:path]        = path
