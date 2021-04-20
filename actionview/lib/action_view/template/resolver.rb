@@ -35,6 +35,8 @@ module ActionView
       alias :to_s :to_str
     end
 
+    TemplateDetails = Struct.new(:path, :locale, :handler, :format, :variant)
+
     class PathParser # :nodoc:
       def build_path_regex
         handlers = Template::Handlers.extensions.map { |x| Regexp.escape(x) }.join("|")
@@ -58,15 +60,14 @@ module ActionView
       def parse(path)
         @regex ||= build_path_regex
         match = @regex.match(path)
-        {
-          prefix: match[:prefix] || "",
-          action: match[:action],
-          partial: !!match[:partial],
-          locale: match[:locale]&.to_sym,
-          handler: match[:handler]&.to_sym,
-          format: match[:format]&.to_sym,
-          variant: match[:variant]
-        }
+        path = Path.build(match[:action], match[:prefix] || "", !!match[:partial])
+        TemplateDetails.new(
+          path,
+          match[:locale]&.to_sym,
+          match[:handler]&.to_sym,
+          match[:format]&.to_sym,
+          match[:variant]
+        )
       end
     end
 
@@ -235,11 +236,11 @@ module ActionView
         template_paths.map do |template|
           unbound_template =
             if cache
-              @unbound_templates.compute_if_absent([template, path.virtual]) do
-                build_unbound_template(template, path.virtual)
+              @unbound_templates.compute_if_absent(template) do
+                build_unbound_template(template)
               end
             else
-              build_unbound_template(template, path.virtual)
+              build_unbound_template(template)
             end
 
           unbound_template.bind_locals(locals)
@@ -250,17 +251,18 @@ module ActionView
         Template::Sources::File.new(template)
       end
 
-      def build_unbound_template(template, virtual_path)
-        handler, format, variant = extract_handler_and_format_and_variant(template)
+      def build_unbound_template(template)
+        details = @path_parser.parse(template.from(@path.size + 1))
         source = source_for_template(template)
 
         UnboundTemplate.new(
           source,
           template,
-          handler,
-          virtual_path: virtual_path,
-          format: format,
-          variant: variant,
+          details.handler,
+          virtual_path: details.path.virtual,
+          locale: details.locale,
+          format: details.format,
+          variant: details.variant,
         )
       end
 
@@ -280,20 +282,6 @@ module ActionView
 
       def escape_entry(entry)
         entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
-      end
-
-      # Extract handler, formats and variant from path. If a format cannot be found neither
-      # from the path, or the handler, we should return the array of formats given
-      # to the resolver.
-      def extract_handler_and_format_and_variant(path)
-        details = @path_parser.parse(path)
-
-        handler = Template.handler_for_extension(details[:handler])
-        format = details[:format] || handler.try(:default_format)
-        variant = details[:variant]
-
-        # Template::Types[format] and handler.default_format can return nil
-        [handler, format, variant]
       end
 
       def find_template_paths_from_details(path, details)
