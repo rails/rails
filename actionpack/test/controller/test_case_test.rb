@@ -373,6 +373,14 @@ XML
     assert_equal "/test_case_test/test/test_uri/7", @response.body
   end
 
+  def test_process_with_request_uri_with_params_nested
+    process :test_uri,
+            method: "GET",
+            params: { id: 7, params: "string" }
+
+    assert_equal "/test_case_test/test/test_uri/7?params=string", @response.body
+  end
+
   def test_process_with_request_uri_with_params_with_explicit_uri
     @request.env["PATH_INFO"] = "/explicit/uri"
     process :test_uri, method: "GET", params: { id: 7 }
