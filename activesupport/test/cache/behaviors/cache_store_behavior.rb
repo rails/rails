@@ -254,7 +254,7 @@ module CacheStoreBehavior
 
     # generate an incompressible string
     loop do
-      incompressible = SecureRandom.random_bytes(1.kilobyte)
+      incompressible = Random.bytes(1.kilobyte)
       break if incompressible.bytesize < Zlib::Deflate.deflate(incompressible).bytesize
     end
 
