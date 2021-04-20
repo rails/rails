@@ -2,8 +2,6 @@
 
 module ActiveRecord
   class DisableJoinsAssociationRelation < Relation # :nodoc:
-    TOO_MANY_RECORDS = 5000
-
     attr_reader :ids, :key
 
     def initialize(klass, key, ids)
