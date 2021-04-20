@@ -15,11 +15,18 @@ module ActionView
       attr_reader :name, :prefix, :partial, :virtual
       alias_method :partial?, :partial
 
+      def self.virtual(name, prefix, partial)
+        if prefix.empty?
+          "#{partial ? "_" : ""}#{name}"
+        elsif partial
+          "#{prefix}/_#{name}"
+        else
+          "#{prefix}/#{name}"
+        end
+      end
+
       def self.build(name, prefix, partial)
-        virtual = +""
-        virtual << "#{prefix}/" unless prefix.empty?
-        virtual << (partial ? "_#{name}" : name)
-        new name, prefix, partial, virtual
+        new name, prefix, partial, virtual(name, prefix, partial)
       end
 
       def initialize(name, prefix, partial, virtual)
