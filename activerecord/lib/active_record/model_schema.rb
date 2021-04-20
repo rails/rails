@@ -137,8 +137,24 @@ module ActiveRecord
       class_attribute :implicit_order_column, instance_accessor: false
       class_attribute :immutable_strings_by_default, instance_accessor: false
 
+      # Defines the name of the table column which will store the class name on single-table
+      # inheritance situations.
+      #
+      # The default inheritance column name is +type+, which means it's a
+      # reserved word inside Active Record. To be able to use single-table
+      # inheritance with another column name, or to use the column +type+ in
+      # your own model for something else, you can set +inheritance_column+:
+      #
+      #     self.inheritance_column = 'zoink'
+      class_attribute :inheritance_column, instance_accessor: false, default: "type"
+      singleton_class.class_eval do
+        alias_method :_inheritance_column=, :inheritance_column=
+        private :_inheritance_column=
+        alias_method :inheritance_column=, :real_inheritance_column=
+      end
+
       self.protected_environments = ["production"]
-      self.inheritance_column = "type"
+
       self.ignored_columns = [].freeze
 
       delegate :type_for_attribute, :column_for_attribute, to: :class
@@ -266,23 +282,8 @@ module ActiveRecord
         @protected_environments = environments.map(&:to_s)
       end
 
-      # Defines the name of the table column which will store the class name on single-table
-      # inheritance situations.
-      #
-      # The default inheritance column name is +type+, which means it's a
-      # reserved word inside Active Record. To be able to use single-table
-      # inheritance with another column name, or to use the column +type+ in
-      # your own model for something else, you can set +inheritance_column+:
-      #
-      #     self.inheritance_column = 'zoink'
-      def inheritance_column
-        (@inheritance_column ||= nil) || superclass.inheritance_column
-      end
-
-      # Sets the value of inheritance_column
-      def inheritance_column=(value)
-        @inheritance_column = value.to_s
-        @explicit_inheritance_column = true
+      def real_inheritance_column=(value) # :nodoc:
+        self._inheritance_column = value.to_s
       end
 
       # The list of columns names the model should ignore. Ignored columns won't have attribute
@@ -574,7 +575,6 @@ module ActiveRecord
           @content_columns = nil
           @default_attributes = nil
           @column_defaults = nil
-          @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
           @attributes_builder = nil
           @columns = nil
           @columns_hash = nil
