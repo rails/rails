@@ -252,16 +252,17 @@ module ActionView
       end
 
       def build_unbound_template(template, virtual_path)
-        handler, format, variant = extract_handler_and_format_and_variant(template)
+        details = @path_parser.parse(template)
         source = source_for_template(template)
 
         UnboundTemplate.new(
           source,
           template,
-          handler,
+          details.handler,
           virtual_path: virtual_path,
-          format: format,
-          variant: variant,
+          locale: details.locale,
+          format: details.format,
+          variant: details.variant,
         )
       end
 
@@ -281,20 +282,6 @@ module ActionView
 
       def escape_entry(entry)
         entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
-      end
-
-      # Extract handler, formats and variant from path. If a format cannot be found neither
-      # from the path, or the handler, we should return the array of formats given
-      # to the resolver.
-      def extract_handler_and_format_and_variant(path)
-        details = @path_parser.parse(path)
-
-        handler = Template.handler_for_extension(details.handler)
-        format = details.format || handler.try(:default_format)
-        variant = details.variant
-
-        # Template::Types[format] and handler.default_format can return nil
-        [handler, format, variant]
       end
 
       def find_template_paths_from_details(path, details)
