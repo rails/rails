@@ -12,6 +12,7 @@ module ActiveRecord
     autoload :PoolConfig
     autoload :PoolManager
     autoload :LegacyPoolManager
+    autoload :SchemaCache
 
     autoload_at "active_record/connection_adapters/abstract/schema_definitions" do
       autoload :IndexDefinition
