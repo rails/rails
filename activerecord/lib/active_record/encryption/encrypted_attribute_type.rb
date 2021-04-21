@@ -19,10 +19,11 @@ module ActiveRecord
       # * <tt>:scheme</tt> - An +Scheme+ with the encryption properties for this attribute.
       # * <tt>:cast_type</tt> - A type that will be used to serialize (before encrypting) and deserialize
       #   (after decrypting). +ActiveModel::Type::String+ by default.
-      def initialize(scheme:, cast_type: ActiveModel::Type::String.new)
+      def initialize(scheme:, cast_type: ActiveModel::Type::String.new, previous_type: false)
         super()
         @scheme = scheme
         @cast_type = cast_type
+        @previous_type = previous_type
       end
 
       def deserialize(value)
@@ -43,13 +44,17 @@ module ActiveRecord
       end
 
       def previous_encrypted_types(include_clear: true) # :nodoc:
-        @additional_encrypted_types ||= {} # Memoizing on support_unencrypted_data so that we can tweak it during tests
-        @additional_encrypted_types["#{support_unencrypted_data?} #{include_clear}"] ||= previous_schemes(include_clear: include_clear).collect do |scheme|
-          EncryptedAttributeType.new(scheme: scheme)
+        @previous_encrypted_types ||= {} # Memoizing on support_unencrypted_data so that we can tweak it during tests
+        @previous_encrypted_types["#{support_unencrypted_data?} #{include_clear}"] ||= previous_schemes(include_clear: include_clear).collect do |scheme|
+          EncryptedAttributeType.new(scheme: scheme, previous_type: true)
         end
       end
 
       private
+        def previous_type?
+          @previous_type
+        end
+
         def serialize_with_oldest?
           @serialize_with_oldest ||= fixed? && previous_encrypted_types(include_clear: false).present?
         end
@@ -80,7 +85,7 @@ module ActiveRecord
           previous_encrypted_types.each.with_index do |type, index|
             break type.deserialize(value)
           rescue ActiveRecord::Encryption::Errors::Base => error
-            handle_deserialize_error(error, value) if index == previous_encrypted_types.length - 1
+            handle_deserialize_error(error, value) if index == previous_encrypted_types(include_clear: true).length - 1
           end
         end
 
@@ -97,7 +102,7 @@ module ActiveRecord
         end
 
         def support_unencrypted_data?
-          ActiveRecord::Encryption.config.support_unencrypted_data
+          ActiveRecord::Encryption.config.support_unencrypted_data && !previous_type?
         end
 
         def encrypt(value)
