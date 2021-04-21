@@ -231,18 +231,14 @@ module ActionView
       end
 
       def query(path, details, formats, locals, cache:)
-        template_paths = find_template_paths_from_details(path, details)
+        cache = cache ? @unbound_templates : Concurrent::Map.new
 
-        template_paths.map do |template|
-          unbound_template =
-            if cache
-              @unbound_templates.compute_if_absent(template) do
-                build_unbound_template(template)
-              end
-            else
-              build_unbound_template(template)
-            end
+        unbound_templates =
+          cache.compute_if_absent(path.virtual) do
+            unbound_templates_from_path(path)
+          end
 
+        filter_and_sort_by_details(unbound_templates, details).map do |unbound_template|
           unbound_template.bind_locals(locals)
         end
       end
@@ -266,6 +262,58 @@ module ActionView
         )
       end
 
+      def unbound_templates_from_path(path)
+        if path.name.include?(".")
+          return []
+        end
+
+        # Instead of checking for every possible path, as our other globs would
+        # do, scan the directory for files with the right prefix.
+        paths = template_glob("#{escape_entry(path.to_s)}*")
+
+        paths.map do |path|
+          build_unbound_template(path)
+        end.select do |template|
+          # Select for exact virtual path match, including case sensitivity
+          template.virtual_path == path.virtual
+        end
+      end
+
+      def filter_and_sort_by_details(templates, details)
+        locale = details[:locale]
+        formats = details[:formats]
+        variants = details[:variants]
+        handlers = details[:handlers]
+
+        results = templates.map do |template|
+          locale_match = details_match_sort_key(template.locale, locale) || next
+          format_match = details_match_sort_key(template.format, formats) || next
+          variant_match =
+            if variants == :any
+              template.variant ? 1 : 0
+            else
+              details_match_sort_key(template.variant&.to_sym, variants) || next
+            end
+          handler_match = details_match_sort_key(template.handler, handlers) || next
+
+          [template, [locale_match, format_match, variant_match, handler_match]]
+        end
+
+        results.compact!
+        results.sort_by!(&:last) if results.size > 1
+        results.map!(&:first)
+
+        results
+      end
+
+      def details_match_sort_key(have, want)
+        if have
+          want.index(have)
+        else
+          want.size
+        end
+      end
+
       # Safe glob within @path
       def template_glob(glob)
         query = File.join(escape_entry(@path), glob)
@@ -282,62 +330,6 @@ module ActionView
 
       def escape_entry(entry)
         entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
-      end
-
-      def find_template_paths_from_details(path, details)
-        if path.name.include?(".")
-          return []
-        end
-
-        # Instead of checking for every possible path, as our other globs would
-        # do, scan the directory for files with the right prefix.
-        candidates = template_glob("#{escape_entry(path.to_s)}*")
-
-        regex = build_regex(path, details)
-
-        candidates.uniq.reject do |filename|
-          # This regex match does double duty of finding only files which match
-          # details (instead of just matching the prefix) and also filtering for
-          # case-insensitive file systems.
-          !regex.match?(filename) ||
-            File.directory?(filename)
-        end.sort_by do |filename|
-          # Because we scanned the directory, instead of checking for files
-          # one-by-one, they will be returned in an arbitrary order.
-          # We can use the matches found by the regex and sort by their index in
-          # details.
-          match = filename.match(regex)
-          EXTENSIONS.keys.map do |ext|
-            if ext == :variants && details[ext] == :any
-              match[ext].nil? ? 0 : 1
-            elsif match[ext].nil?
-              # No match should be last
-              details[ext].length
-            else
-              found = match[ext].to_sym
-              details[ext].index(found)
-            end
-          end
-        end
-      end
-
-      def build_regex(path, details)
-        query = Regexp.escape(File.join(@path, path))
-        exts = EXTENSIONS.map do |ext, prefix|
-          match =
-            if ext == :variants && details[ext] == :any
-              ".*?"
-            else
-              arr = details[ext].compact
-              arr.uniq!
-              arr.map! { |e| Regexp.escape(e) }
-              arr.join("|")
-            end
-          prefix = Regexp.escape(prefix)
-          "(#{prefix}(?<#{ext}>#{match}))?"
-        end.join
-
-        %r{\A#{query}#{exts}\z}
       end
   end
 end
