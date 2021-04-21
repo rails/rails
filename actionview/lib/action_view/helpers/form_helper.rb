@@ -282,6 +282,12 @@ module ActionView
       #     ...
       #   <% end %>
       #
+      # You can omit the <tt>action</tt> attribute by passing <tt>url: false</tt>:
+      #
+      #   <%= form_for(@post, url: false) do |f| %>
+      #     ...
+      #   <% end %>
+      #
       # You can also set the answer format, like this:
       #
       #   <%= form_for(@post, format: :json) do |f| %>
@@ -449,7 +455,7 @@ module ActionView
         output  = capture(builder, &block)
         html_options[:multipart] ||= builder.multipart?
 
-        html_options = html_options_for_form(options[:url] || {}, html_options)
+        html_options = html_options_for_form(options.fetch(:url, {}), html_options)
         form_tag_with_body(html_options, output)
       end
 
@@ -465,10 +471,12 @@ module ActionView
           method: method
         )
 
-        options[:url] ||= if options.key?(:format)
-          polymorphic_path(record, format: options.delete(:format))
-        else
-          polymorphic_path(record, {})
+        if options[:url] != false
+          options[:url] ||= if options.key?(:format)
+            polymorphic_path(record, format: options.delete(:format))
+          else
+            polymorphic_path(record, {})
+          end
         end
       end
       private :apply_form_for_options!
@@ -485,6 +493,15 @@ module ActionView
       #   <% end %>
       #   # =>
       #   <form action="/posts" method="post">
+      #     <input type="text" name="title">
+      #   </form>
+
+      #   # With an intentionally empty URL:
+      #   <%= form_with url: false do |form| %>
+      #     <%= form.text_field :title %>
+      #   <% end %>
+      #   # =>
+      #   <form method="post" data-remote="true">
       #     <input type="text" name="title">
       #   </form>
       #
@@ -744,7 +761,9 @@ module ActionView
         options[:skip_default_ids] = !form_with_generates_ids
 
         if model
-          url ||= polymorphic_path(model, format: format)
+          if url != false
+            url ||= polymorphic_path(model, format: format)
+          end
 
           model   = model.last if model.is_a?(Array)
           scope ||= model_name_from_record_or_class(model).param_key
@@ -1559,7 +1578,11 @@ module ActionView
 
           # The following URL is unescaped, this is just a hash of options, and it is the
           # responsibility of the caller to escape all the values.
-          html_options[:action] = url_for(url_for_options || {})
+          if url_for_options == false || html_options[:action] == false
+            html_options.delete(:action)
+          else
+            html_options[:action] = url_for(url_for_options || {})
+          end
           html_options[:"accept-charset"] = "UTF-8"
           html_options[:"data-remote"] = true unless local
 

@@ -1617,6 +1617,24 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_false_url
+    form_for(Post.new, url: false) do |form|
+    end
+
+    expected = whole_form(false, "new_post", "new_post")
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_false_action
+    form_for(Post.new, html: { action: false }) do |form|
+    end
+
+    expected = whole_form(false, "new_post", "new_post")
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_field_id_with_model
     value = field_id(Post.new, :title)
 
@@ -3738,7 +3756,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
-      txt =  +%{<form accept-charset="UTF-8" action="#{action}"}
+      txt =  +%{<form accept-charset="UTF-8"} + (action ? %{ action="#{action}"} : "")
       txt << %{ enctype="multipart/form-data"} if multipart
       txt << %{ data-remote="true"} if remote
       txt << %{ class="#{html_class}"} if html_class
