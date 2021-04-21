@@ -46,7 +46,7 @@ module ActiveRecord
             if args.is_a?(Array) && (options = args.first).is_a?(Hash)
               self.deterministic_encrypted_attributes&.each do |attribute_name|
                 type = type_for_attribute(attribute_name)
-                if !type.previous_encrypted_types.empty? && value = options[attribute_name]
+                if !type.previous_types_including_clean_text.empty? && value = options[attribute_name]
                   options[attribute_name] = process_encrypted_query_argument(value, check_for_additional_values, type)
                 end
               end
@@ -72,7 +72,7 @@ module ActiveRecord
           end
 
           def additional_values_for(value, type)
-            type.previous_encrypted_types.collect do |additional_type|
+            type.previous_types_including_clean_text.collect do |additional_type|
               AdditionalValue.new(value, additional_type)
             end
           end
