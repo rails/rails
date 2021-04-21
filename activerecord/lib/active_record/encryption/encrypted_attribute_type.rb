@@ -12,7 +12,7 @@ module ActiveRecord
 
       attr_reader :scheme, :cast_type
 
-      delegate :key_provider, :downcase?, :deterministic?, :with_context, :fixed?, to: :scheme
+      delegate :key_provider, :downcase?, :deterministic?, :previous_schemes, :with_context, :fixed?, to: :scheme
 
       # === Options
       #
@@ -43,30 +43,28 @@ module ActiveRecord
         old_value != new_value
       end
 
-      def previous_encrypted_types(include_clear: true) # :nodoc:
-        @previous_encrypted_types ||= {} # Memoizing on support_unencrypted_data so that we can tweak it during tests
-        @previous_encrypted_types["#{support_unencrypted_data?} #{include_clear}"] ||= previous_schemes(include_clear: include_clear).collect do |scheme|
-          EncryptedAttributeType.new(scheme: scheme, previous_type: true)
-        end
+      def previous_types_including_clean_text # :nodoc:
+        @previous_types_including_clean_text ||= {} # Memoizing on support_unencrypted_data so that we can tweak it during tests
+        @previous_types_including_clean_text[support_unencrypted_data?] ||= build_previous_types_for(previous_schemes_including_clean_text)
       end
 
       private
+        def previous_schemes_including_clean_text
+          previous_schemes.including((clean_text_scheme if support_unencrypted_data?)).compact
+        end
+
+        def previous_types
+          @previous_types ||= build_previous_types_for(previous_schemes)
+        end
+
+        def build_previous_types_for(schemes)
+          schemes.collect do |scheme|
+            EncryptedAttributeType.new(scheme: scheme, previous_type: true)
+          end
+        end
+
         def previous_type?
           @previous_type
-        end
-
-        def serialize_with_oldest?
-          @serialize_with_oldest ||= fixed? && previous_encrypted_types(include_clear: false).present?
-        end
-
-        def serialize_with_oldest(value)
-          previous_encrypted_types.first.serialize(value)
-        end
-
-        def serialize_with_current(value)
-          casted_value = cast_type.serialize(value)
-          casted_value = casted_value&.downcase if downcase?
-          encrypt(casted_value.to_s) unless casted_value.nil?
         end
 
         def decrypt(value)
@@ -74,7 +72,7 @@ module ActiveRecord
             encryptor.decrypt(value, **decryption_options) unless value.nil?
           end
         rescue ActiveRecord::Encryption::Errors::Base => error
-          if previous_encrypted_types.blank?
+          if previous_types.blank?
             handle_deserialize_error(error, value)
           else
             try_to_deserialize_with_previous_encrypted_types(value)
@@ -82,10 +80,10 @@ module ActiveRecord
         end
 
         def try_to_deserialize_with_previous_encrypted_types(value)
-          previous_encrypted_types.each.with_index do |type, index|
+          previous_types_including_clean_text.each.with_index do |type, index|
             break type.deserialize(value)
           rescue ActiveRecord::Encryption::Errors::Base => error
-            handle_deserialize_error(error, value) if index == previous_encrypted_types(include_clear: true).length - 1
+            handle_deserialize_error(error, value) if index == previous_types.length - 1
           end
         end
 
@@ -97,12 +95,18 @@ module ActiveRecord
           end
         end
 
-        def previous_schemes(include_clear: true)
-          scheme.previous_schemes.including((clean_text_scheme if include_clear && support_unencrypted_data?)).compact
+        def serialize_with_oldest?
+          @serialize_with_oldest ||= fixed? && previous_types.present?
         end
 
-        def support_unencrypted_data?
-          ActiveRecord::Encryption.config.support_unencrypted_data && !previous_type?
+        def serialize_with_oldest(value)
+          previous_types_including_clean_text.first.serialize(value)
+        end
+
+        def serialize_with_current(value)
+          casted_value = cast_type.serialize(value)
+          casted_value = casted_value&.downcase if downcase?
+          encrypt(casted_value.to_s) unless casted_value.nil?
         end
 
         def encrypt(value)
@@ -113,6 +117,10 @@ module ActiveRecord
 
         def encryptor
           ActiveRecord::Encryption.encryptor
+        end
+
+        def support_unencrypted_data?
+          ActiveRecord::Encryption.config.support_unencrypted_data && !previous_type?
         end
 
         def encryption_options

@@ -50,8 +50,8 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
       encrypts :name
     end
 
-    assert_equal 2, encrypted_author_class.type_for_attribute(:name).previous_encrypted_types.count
-    previous_type_1, previous_type_2 = encrypted_author_class.type_for_attribute(:name).previous_encrypted_types
+    assert_equal 2, encrypted_author_class.type_for_attribute(:name).previous_types_including_clean_text.count
+    previous_type_1, previous_type_2 = encrypted_author_class.type_for_attribute(:name).previous_types_including_clean_text
 
     author = ActiveRecord::Encryption.without_encryption do
       encrypted_author_class.create name: previous_type_1.serialize("1")
@@ -75,8 +75,8 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
       encrypts :name
     end
 
-    assert_equal 3, encrypted_author_class.type_for_attribute(:name).previous_encrypted_types.count
-    previous_type_1, previous_type_2 = encrypted_author_class.type_for_attribute(:name).previous_encrypted_types
+    assert_equal 3, encrypted_author_class.type_for_attribute(:name).previous_types_including_clean_text.count
+    previous_type_1, previous_type_2 = encrypted_author_class.type_for_attribute(:name).previous_types_including_clean_text
 
     author = ActiveRecord::Encryption.without_encryption do
       encrypted_author_class.create name: previous_type_1.serialize("1")
@@ -88,25 +88,6 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
     end
     assert_equal "1", author.reload.name
   end
-
-  # test "try all the previous encryption schemes when decrypting data" do
-  #   ActiveRecord::Encryption.config.support_unencrypted_data = false
-  #   ActiveRecord::Encryption.config.previous = [ { encryptor: TestEncryptor.new("0" => "1") }, { encryptor: TestEncryptor.new("1" => "2") } ]
-  #
-  #   encrypted_author_class = Class.new(Author) do
-  #     self.table_name = "authors"
-  #
-  #     encrypts :name, previous: { encryptor: TestEncryptor.new("2" => "3") }
-  #   end
-  #
-  #   assert_equal 3, encrypted_author_class.type_for_attribute(:name).previous_encrypted_types.count
-  #   previous_type_1, previous_type_2 = encrypted_author_class.type_for_attribute(:name).previous_encrypted_types
-  #
-  #   author = ActiveRecord::Encryption.without_encryption do
-  #     encrypted_author_class.create name: previous_type_1.serialize("3")
-  #   end
-  #   assert_equal "2", author.reload.name
-  # end
 
   test "deterministic encryption is fixed by default: it will always use the oldest scheme to encrypt data" do
     ActiveRecord::Encryption.config.support_unencrypted_data = false
@@ -172,7 +153,7 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
 
     def create_author_with_name_encrypted_with_previous_scheme
       author = EncryptedAuthor.create!(name: "david")
-      old_type = EncryptedAuthor.type_for_attribute(:name).previous_encrypted_types.first
+      old_type = EncryptedAuthor.type_for_attribute(:name).previous_types_including_clean_text.first
       value_encrypted_with_old_type = old_type.serialize("dhh")
       ActiveRecord::Encryption.without_encryption do
         author.update!(name: value_encrypted_with_old_type)
