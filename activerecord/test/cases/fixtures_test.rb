@@ -1369,6 +1369,8 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       ActiveRecord::Base.connection_handlers = {}
       ActiveRecord::Base.connection_handler = handler
       ActiveRecord::Base.connects_to(database: { writing: :default, reading: :readonly })
+
+      setup_shared_connection_pool
     end
 
     def teardown
@@ -1392,6 +1394,24 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
 
       assert_equal rw_conn, ro_conn
+
+      teardown_shared_connection_pool
+
+      rw_conn = ActiveRecord::Base.connection_handlers[:writing].connection_pool_list.first.connection
+      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
+
+      assert_not_equal rw_conn, ro_conn
+    end
+
+    def test_only_existing_connections_are_restored
+      ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+      teardown_shared_connection_pool
+
+      assert_raises(ActiveRecord::ConnectionNotEstablished) do
+        ActiveRecord::Base.connected_to(role: :reading) do
+          ActiveRecord::Base.retrieve_connection
+        end
+      end
     end
 
     private

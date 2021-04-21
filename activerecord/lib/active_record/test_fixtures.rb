@@ -112,6 +112,8 @@ module ActiveRecord
 
       # Load fixtures once and begin transaction.
       if run_in_transaction?
+        @saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
+
         if @@already_loaded_fixtures[self.class]
           @loaded_fixtures = @@already_loaded_fixtures[self.class]
         else
@@ -166,6 +168,7 @@ module ActiveRecord
           connection.pool.lock_thread = false
         end
         @fixture_connections.clear
+        teardown_shared_connection_pool
       else
         ActiveRecord::FixtureSet.reset_cache
       end
@@ -195,10 +198,25 @@ module ActiveRecord
               name = pool.spec.name
               writing_connection = writing_handler.retrieve_connection_pool(name)
               return unless writing_connection
+
+              reading_connection = handler.send(:owner_to_pool)[name]
+              next if reading_connection == writing_connection
+
+              @saved_pool_configs[handler][name] = reading_connection
               handler.send(:owner_to_pool)[name] = writing_connection
             end
           end
         end
+      end
+
+      def teardown_shared_connection_pool
+        @saved_pool_configs.each_pair do |handler, pools|
+          pools.each_pair do |name, pool|
+            handler.send(:owner_to_pool)[name] = pool
+          end
+        end
+
+        @saved_pool_configs.clear
       end
 
       def load_fixtures(config)
