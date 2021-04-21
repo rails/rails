@@ -189,8 +189,6 @@ module ActionView
 
   # A resolver that loads files from the filesystem.
   class FileSystemResolver < Resolver
-    EXTENSIONS = { locale: ".", formats: ".", variants: "+", handlers: "." }
-
     attr_reader :path
 
     def initialize(path)
