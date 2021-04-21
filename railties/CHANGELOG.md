@@ -1,3 +1,7 @@
+*   Ensure `Rails.application.config_for` always cast hashes to `ActiveSupport::OrderedOptions`.
+
+    *Jean Boussier*
+
 ## Rails 6.1.3.1 (March 26, 2021) ##
 
 *   No changes.

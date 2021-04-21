@@ -246,11 +246,18 @@ module Rails
         all_configs    = ActiveSupport::ConfigurationFile.parse(yaml).deep_symbolize_keys
         config, shared = all_configs[env.to_sym], all_configs[:shared]
 
-        if config.is_a?(Hash)
-          ActiveSupport::OrderedOptions.new.update(shared&.deep_merge(config) || config)
-        else
-          config || shared
+        if shared
+          config = {} if config.nil?
+          if config.is_a?(Hash)
+            config = shared.deep_merge(config)
+          end
         end
+
+        if config.is_a?(Hash)
+          config = ActiveSupport::OrderedOptions.new.update(config)
+        end
+
+        config
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
