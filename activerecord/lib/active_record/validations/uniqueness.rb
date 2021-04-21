@@ -69,14 +69,7 @@ module ActiveRecord
         comparison = relation.bind_attribute(attribute, value) do |attr, bind|
           return relation.none! if bind.unboundable?
 
-          if !options.key?(:case_sensitive) || bind.nil?
-            klass.connection.default_uniqueness_comparison(attr, bind)
-          elsif options[:case_sensitive]
-            klass.connection.case_sensitive_comparison(attr, bind)
-          else
-            # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
-            klass.connection.case_insensitive_comparison(attr, bind)
-          end
+          attrs_comparison(klass, attr, bind)
         end
 
         relation.where!(comparison)
@@ -84,15 +77,32 @@ module ActiveRecord
 
       def scope_relation(record, relation)
         Array(options[:scope]).each do |scope_item|
-          scope_value = if record.class._reflect_on_association(scope_item)
-            record.association(scope_item).reader
-          else
-            record.read_attribute(scope_item)
-          end
-          relation = relation.where(scope_item => scope_value)
+          comparison =
+            if record.class._reflect_on_association(scope_item)
+              { scope_item => record.association(scope_item).reader }
+            else
+              value = record.read_attribute(scope_item)
+
+              relation.bind_attribute(scope_item, value) do |attr, bind|
+                attrs_comparison(record.class, attr, bind)
+              end
+            end
+
+          relation = relation.where(comparison)
         end
 
         relation
+      end
+
+      def attrs_comparison(klass, attr, value)
+        if !options.key?(:case_sensitive) || value.nil?
+          klass.connection.default_uniqueness_comparison(attr, value)
+        elsif options[:case_sensitive]
+          klass.connection.case_sensitive_comparison(attr, value)
+        else
+          # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
+          klass.connection.case_insensitive_comparison(attr, value)
+        end
       end
 
       def map_enum_attribute(klass, attribute, value)

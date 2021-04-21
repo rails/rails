@@ -335,6 +335,16 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t3.save, "Should save t3 as unique"
   end
 
+  def test_validate_case_insensitive_uniqueness_with_scope
+    Topic.validates_uniqueness_of(:title, scope: :author_name, case_sensitive: false)
+
+    topic1 = Topic.create(title: "Winter Morning", author_name: "Pushkin")
+    assert_empty topic1.errors
+
+    topic2 = Topic.create(title: "Winter Morning", author_name: "PUSHKIN")
+    assert_equal(["has already been taken"], topic2.errors[:title])
+  end
+
   def test_validate_uniqueness_by_default_database_collation
     Topic.validates_uniqueness_of(:author_email_address)
 
