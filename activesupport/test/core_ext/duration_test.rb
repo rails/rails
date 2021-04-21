@@ -113,11 +113,11 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "3600 seconds",                    (1.day / 24).inspect
   end
 
-  def test_inspect_locale
+  def test_inspect_ignores_locale
     current_locale = I18n.default_locale
     I18n.default_locale = :de
     I18n.backend.store_translations(:de, support: { array: { last_word_connector: " und " } })
-    assert_equal "10 years, 1 month und 1 day", (10.years + 1.month + 1.day).inspect
+    assert_equal "10 years, 1 month, and 1 day", (10.years + 1.month + 1.day).inspect
   ensure
     I18n.default_locale = current_locale
   end
