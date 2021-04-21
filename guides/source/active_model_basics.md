@@ -24,6 +24,52 @@ Active Model is a library containing various modules used in developing
 classes that need some features present on Active Record.
 Some of these modules are explained below.
 
+### API
+
+`ActiveModel::API` adds the ability for a class to work with Action Pack and
+Action View right out of the box.
+
+```ruby
+class EmailContact
+  include ActiveModel::API
+
+  attr_accessor :name, :email, :message
+  validates :name, :email, :message, presence: true
+
+  def deliver
+    if valid?
+      # deliver email
+    end
+  end
+end
+```
+
+When including `ActiveModel::API` you get some features like:
+
+- model name introspection
+- conversions
+- translations
+- validations
+
+It also gives you the ability to initialize an object with a hash of attributes,
+much like any Active Record object.
+
+```irb
+irb> email_contact = EmailContact.new(name: 'David', email: 'david@example.com', message: 'Hello World')
+irb> email_contact.name
+=> "David"
+irb> email_contact.email
+=> "david@example.com"
+irb> email_contact.valid?
+=> true
+irb> email_contact.persisted?
+=> false
+```
+
+Any class that includes `ActiveModel::API` can be used with `form_with`,
+`render` and any other Action View helper methods, just like Active Record
+objects.
+
 ### Attribute Methods
 
 The `ActiveModel::AttributeMethods` module can add custom prefixes and suffixes
@@ -276,8 +322,7 @@ Person.model_name.singular_route_key  # => "person"
 
 ### Model
 
-`ActiveModel::Model` adds the ability for a class to work with Action Pack and
-Action View right out of the box.
+`ActiveModel::Model` allows implementing models similar to `ActiveRecord::Base`.
 
 ```ruby
 class EmailContact
@@ -294,31 +339,7 @@ class EmailContact
 end
 ```
 
-When including `ActiveModel::Model` you get some features like:
-
-- model name introspection
-- conversions
-- translations
-- validations
-
-It also gives you the ability to initialize an object with a hash of attributes,
-much like any Active Record object.
-
-```irb
-irb> email_contact = EmailContact.new(name: 'David', email: 'david@example.com', message: 'Hello World')
-irb> email_contact.name
-=> "David"
-irb> email_contact.email
-=> "david@example.com"
-irb> email_contact.valid?
-=> true
-irb> email_contact.persisted?
-=> false
-```
-
-Any class that includes `ActiveModel::Model` can be used with `form_with`,
-`render` and any other Action View helper methods, just like Active Record
-objects.
+When including `ActiveModel::Model` you get all the features from `ActiveModel::API`.
 
 ### Serialization
 
