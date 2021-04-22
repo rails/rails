@@ -43,9 +43,9 @@ module ActiveRecord
         old_value != new_value
       end
 
-      def previous_types_including_clean_text # :nodoc:
-        @previous_types_including_clean_text ||= {} # Memoizing on support_unencrypted_data so that we can tweak it during tests
-        @previous_types_including_clean_text[support_unencrypted_data?] ||= build_previous_types_for(previous_schemes_including_clean_text)
+      def previous_types # :nodoc:
+        @previous_types ||= {} # Memoizing on support_unencrypted_data so that we can tweak it during tests
+        @previous_types[support_unencrypted_data?] ||= build_previous_types_for(previous_schemes_including_clean_text)
       end
 
       private
@@ -53,8 +53,8 @@ module ActiveRecord
           previous_schemes.including((clean_text_scheme if support_unencrypted_data?)).compact
         end
 
-        def previous_types
-          @previous_types ||= build_previous_types_for(previous_schemes)
+        def previous_types_without_clean_text
+          @previous_types_without_clean_text  ||= build_previous_types_for(previous_schemes)
         end
 
         def build_previous_types_for(schemes)
@@ -72,7 +72,7 @@ module ActiveRecord
             encryptor.decrypt(value, **decryption_options) unless value.nil?
           end
         rescue ActiveRecord::Encryption::Errors::Base => error
-          if previous_types.blank?
+          if previous_types_without_clean_text.blank?
             handle_deserialize_error(error, value)
           else
             try_to_deserialize_with_previous_encrypted_types(value)
@@ -80,10 +80,10 @@ module ActiveRecord
         end
 
         def try_to_deserialize_with_previous_encrypted_types(value)
-          previous_types_including_clean_text.each.with_index do |type, index|
+          previous_types.each.with_index do |type, index|
             break type.deserialize(value)
           rescue ActiveRecord::Encryption::Errors::Base => error
-            handle_deserialize_error(error, value) if index == previous_types.length - 1
+            handle_deserialize_error(error, value) if index == previous_types_without_clean_text.length - 1
           end
         end
 
@@ -96,11 +96,11 @@ module ActiveRecord
         end
 
         def serialize_with_oldest?
-          @serialize_with_oldest ||= fixed? && previous_types.present?
+          @serialize_with_oldest ||= fixed? && previous_types_without_clean_text.present?
         end
 
         def serialize_with_oldest(value)
-          previous_types_including_clean_text.first.serialize(value)
+          previous_types.first.serialize(value)
         end
 
         def serialize_with_current(value)

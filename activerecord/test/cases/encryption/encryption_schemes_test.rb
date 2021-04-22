@@ -50,8 +50,8 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
       encrypts :name
     end
 
-    assert_equal 2, encrypted_author_class.type_for_attribute(:name).previous_types_including_clean_text.count
-    previous_type_1, previous_type_2 = encrypted_author_class.type_for_attribute(:name).previous_types_including_clean_text
+    assert_equal 2, encrypted_author_class.type_for_attribute(:name).previous_types.count
+    previous_type_1, previous_type_2 = encrypted_author_class.type_for_attribute(:name).previous_types
 
     author = ActiveRecord::Encryption.without_encryption do
       encrypted_author_class.create name: previous_type_1.serialize("1")
@@ -75,8 +75,8 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
       encrypts :name
     end
 
-    assert_equal 3, encrypted_author_class.type_for_attribute(:name).previous_types_including_clean_text.count
-    previous_type_1, previous_type_2 = encrypted_author_class.type_for_attribute(:name).previous_types_including_clean_text
+    assert_equal 3, encrypted_author_class.type_for_attribute(:name).previous_types.count
+    previous_type_1, previous_type_2 = encrypted_author_class.type_for_attribute(:name).previous_types
 
     author = ActiveRecord::Encryption.without_encryption do
       encrypted_author_class.create name: previous_type_1.serialize("1")
@@ -153,7 +153,7 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
 
     def create_author_with_name_encrypted_with_previous_scheme
       author = EncryptedAuthor.create!(name: "david")
-      old_type = EncryptedAuthor.type_for_attribute(:name).previous_types_including_clean_text.first
+      old_type = EncryptedAuthor.type_for_attribute(:name).previous_types.first
       value_encrypted_with_old_type = old_type.serialize("dhh")
       ActiveRecord::Encryption.without_encryption do
         author.update!(name: value_encrypted_with_old_type)
