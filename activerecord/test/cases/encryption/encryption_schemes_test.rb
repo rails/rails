@@ -41,14 +41,7 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
 
   test "use global previous schemes to decrypt data encrypted with previous schemes" do
     ActiveRecord::Encryption.config.support_unencrypted_data = false
-    ActiveRecord::Encryption.config.previous = [ { encryptor: TestEncryptor.new("0" => "1") }, { encryptor: TestEncryptor.new("1" => "2") } ]
-
-    # We want to evaluate .encrypts *after* tweaking the config property
-    encrypted_author_class = Class.new(Author) do
-      self.table_name = "authors"
-
-      encrypts :name
-    end
+    encrypted_author_class = declare_class_with_global_previous_encryption_schemes({ encryptor: TestEncryptor.new("0" => "1") }, { encryptor: TestEncryptor.new("1" => "2") })
 
     assert_equal 2, encrypted_author_class.type_for_attribute(:name).previous_types.count
     previous_type_1, previous_type_2 = encrypted_author_class.type_for_attribute(:name).previous_types
@@ -66,14 +59,7 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
 
   test "use global previous schemes to decrypt data encrypted with previous schemes with unencrypted data" do
     ActiveRecord::Encryption.config.support_unencrypted_data = true
-    ActiveRecord::Encryption.config.previous = [ { encryptor: TestEncryptor.new("0" => "1") }, { encryptor: TestEncryptor.new("1" => "2") } ]
-
-    # We want to evaluate .encrypts *after* tweaking the config property
-    encrypted_author_class = Class.new(Author) do
-      self.table_name = "authors"
-
-      encrypts :name
-    end
+    encrypted_author_class = declare_class_with_global_previous_encryption_schemes({ encryptor: TestEncryptor.new("0" => "1") }, { encryptor: TestEncryptor.new("1" => "2") })
 
     assert_equal 3, encrypted_author_class.type_for_attribute(:name).previous_types.count
     previous_type_1, previous_type_2 = encrypted_author_class.type_for_attribute(:name).previous_types
@@ -91,14 +77,7 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
 
   test "raise decryption error when all the previous schemes fail to decrypt" do
     ActiveRecord::Encryption.config.support_unencrypted_data = false
-    ActiveRecord::Encryption.config.previous = [ { encryptor: TestEncryptor.new("0" => "1") }, { encryptor: TestEncryptor.new("1" => "2") } ]
-
-    # We want to evaluate .encrypts *after* tweaking the config property
-    encrypted_author_class = Class.new(Author) do
-      self.table_name = "authors"
-
-      encrypts :name
-    end
+    encrypted_author_class = declare_class_with_global_previous_encryption_schemes({ encryptor: TestEncryptor.new("0" => "1") }, { encryptor: TestEncryptor.new("1" => "2") })
 
     author = ActiveRecord::Encryption.without_encryption do
       encrypted_author_class.create name: "some invalid ciphertext"
@@ -179,5 +158,16 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
         author.update!(name: value_encrypted_with_old_type)
       end
       author
+    end
+
+    def declare_class_with_global_previous_encryption_schemes(*previous_schemes)
+      ActiveRecord::Encryption.config.previous = previous_schemes
+
+      # We want to evaluate .encrypts *after* tweaking the config property
+      Class.new(Author) do
+        self.table_name = "authors"
+
+        encrypts :name
+      end
     end
 end
