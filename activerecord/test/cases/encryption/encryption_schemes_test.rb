@@ -89,6 +89,26 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
     assert_equal "1", author.reload.name
   end
 
+  test "raise decryption error when all the previous schemes fail to decrypt" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = false
+    ActiveRecord::Encryption.config.previous = [ { encryptor: TestEncryptor.new("0" => "1") }, { encryptor: TestEncryptor.new("1" => "2") } ]
+
+    # We want to evaluate .encrypts *after* tweaking the config property
+    encrypted_author_class = Class.new(Author) do
+      self.table_name = "authors"
+
+      encrypts :name
+    end
+
+    author = ActiveRecord::Encryption.without_encryption do
+      encrypted_author_class.create name: "some invalid ciphertext"
+    end
+
+    assert_raise ActiveRecord::Encryption::Errors::Decryption do
+      author.reload.name
+    end
+  end
+
   test "deterministic encryption is fixed by default: it will always use the oldest scheme to encrypt data" do
     ActiveRecord::Encryption.config.support_unencrypted_data = false
     ActiveRecord::Encryption.config.deterministic_key = "12345"
