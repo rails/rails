@@ -36,7 +36,9 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def lookup_store(options = {})
-    ActiveSupport::Cache.lookup_store(*store, { namespace: @namespace }.merge(options))
+    cache = ActiveSupport::Cache.lookup_store(*store, { namespace: @namespace }.merge(options))
+    (@_stores ||= []) << cache
+    cache
   end
 
   def setup
@@ -46,6 +48,15 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     @cache = lookup_store(expires_in: 60)
     @peek = lookup_store
     @cache.logger = ActiveSupport::Logger.new(File::NULL)
+  end
+
+  def after_teardown
+    stores, @_stores = @_stores, []
+    stores.each do |store|
+      # Eagerly closing Dalli connection avoid file descriptor exhaustion.
+      # Otherwise the test suite is flaky when ran repeatedly
+      store.instance_variable_get(:@data).close
+    end
   end
 
   include CacheStoreBehavior
