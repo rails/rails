@@ -73,7 +73,7 @@ module ActiveSupport
       private
         def read_entry(key, **options)
           if File.exist?(key)
-            entry = File.open(key) { |f| deserialize_entry(f.read) }
+            entry = deserialize_entry(File.binread(key))
             entry if entry.is_a?(Cache::Entry)
           end
         rescue => e
@@ -84,7 +84,8 @@ module ActiveSupport
         def write_entry(key, entry, **options)
           return false if options[:unless_exist] && File.exist?(key)
           ensure_cache_path(File.dirname(key))
-          File.atomic_write(key, cache_path) { |f| f.write(serialize_entry(entry)) }
+          payload = serialize_entry(entry, **options)
+          File.atomic_write(key, cache_path) { |f| f.write(payload) }
           true
         end
 
