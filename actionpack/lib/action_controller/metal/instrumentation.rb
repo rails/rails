@@ -35,6 +35,9 @@ module ActionController
         payload[:response] = response
         payload[:status]   = response.status
         result
+      rescue => error
+        payload[:status] = ActionDispatch::ExceptionWrapper.status_code_for_exception(error.class.name)
+        raise
       ensure
         append_info_to_payload(payload)
       end
