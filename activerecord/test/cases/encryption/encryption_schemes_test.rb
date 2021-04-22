@@ -75,6 +75,17 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
     assert_equal "1", author.reload.name
   end
 
+  test "returns ciphertext all the previous schemes fail to decrypt and support for unencrypted data is on" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = true
+    encrypted_author_class = declare_class_with_global_previous_encryption_schemes({ encryptor: TestEncryptor.new("0" => "1") }, { encryptor: TestEncryptor.new("1" => "2") })
+
+    author = ActiveRecord::Encryption.without_encryption do
+      encrypted_author_class.create name: "some ciphertext"
+    end
+
+    assert_equal "some ciphertext", author.reload.name
+  end
+
   test "raise decryption error when all the previous schemes fail to decrypt" do
     ActiveRecord::Encryption.config.support_unencrypted_data = false
     encrypted_author_class = declare_class_with_global_previous_encryption_schemes({ encryptor: TestEncryptor.new("0" => "1") }, { encryptor: TestEncryptor.new("1" => "2") })
@@ -91,7 +102,7 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
   test "deterministic encryption is fixed by default: it will always use the oldest scheme to encrypt data" do
     ActiveRecord::Encryption.config.support_unencrypted_data = false
     ActiveRecord::Encryption.config.deterministic_key = "12345"
-    ActiveRecord::Encryption.config.previous = [ { downcase: true }, { downcase: false } ]
+    ActiveRecord::Encryption.config.previous = [{ downcase: true }, { downcase: false }]
 
     encrypted_author_class = Class.new(Author) do
       self.table_name = "authors"
@@ -106,7 +117,7 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
   test "deterministic encryption will use the newest encryption scheme to encrypt data when setting it to { fixed: false }" do
     ActiveRecord::Encryption.config.support_unencrypted_data = false
     ActiveRecord::Encryption.config.deterministic_key = "12345"
-    ActiveRecord::Encryption.config.previous = [ { downcase: true }, { downcase: false } ]
+    ActiveRecord::Encryption.config.previous = [{ downcase: true }, { downcase: false }]
 
     encrypted_author_class = Class.new(Author) do
       self.table_name = "authors"
