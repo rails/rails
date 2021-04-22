@@ -42,7 +42,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def setup
     skip "memcache server is not up" unless MEMCACHE_UP
 
-    @namespace = "test-#{SecureRandom.hex}"
+    @namespace = "test-#{Random.rand(16**32).to_s(16)}"
     @cache = lookup_store(expires_in: 60)
     @peek = lookup_store
     @cache.logger = ActiveSupport::Logger.new(File::NULL)
