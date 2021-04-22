@@ -83,7 +83,7 @@ module ActiveRecord
           previous_types.each.with_index do |type, index|
             break type.deserialize(value)
           rescue ActiveRecord::Encryption::Errors::Base => error
-            handle_deserialize_error(error, value) if index == previous_types_without_clean_text.length - 1
+            handle_deserialize_error(error, value) if index == previous_types.length - 1
           end
         end
 
