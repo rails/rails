@@ -24,6 +24,8 @@ module ActiveSupport
     # implementations may support additional options.
     UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :expire_in, :expired_in, :race_condition_ttl, :coder, :skip_nil]
 
+    DEFAULT_COMPRESS_LIMIT = 1.kilobyte
+
     # Mapping of canonical option names to aliases that a store will recognize.
     OPTION_ALIASES = {
       expires_in: [:expire_in, :expired_in]
@@ -169,7 +171,23 @@ module ActiveSupport
     # threshold is configurable with the <tt>:compress_threshold</tt> option,
     # specified in bytes.
     class Store
-      DEFAULT_CODER = Marshal
+      module MarshalCoder # :nodoc:
+        extend self
+
+        def dump(entry)
+          Marshal.dump(entry)
+        end
+
+        def dump_compressed(entry, threshold)
+          Marshal.dump(entry.compressed(threshold))
+        end
+
+        def load(payload)
+          Marshal.load(payload)
+        end
+      end
+
+      DEFAULT_CODER = MarshalCoder
 
       cattr_accessor :logger, instance_writer: true
 
@@ -198,7 +216,11 @@ module ActiveSupport
       # namespace for the cache.
       def initialize(options = nil)
         @options = options ? normalize_options(options) : {}
+        @options[:compress] = true unless @options.key?(:compress)
+        @options[:compress_threshold] = DEFAULT_COMPRESS_LIMIT unless @options.key?(:compress_threshold)
+
         @coder = @options.delete(:coder) { self.class::DEFAULT_CODER } || NullCoder
+        @coder_supports_compression = @coder.respond_to?(:dump_compressed)
       end
 
       # Silences the logger.
@@ -609,8 +631,13 @@ module ActiveSupport
           raise NotImplementedError.new
         end
 
-        def serialize_entry(entry)
-          @coder.dump(entry)
+        def serialize_entry(entry, **options)
+          options = merged_options(options)
+          if @coder_supports_compression && options[:compress]
+            @coder.dump_compressed(entry, options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT)
+          else
+            @coder.dump(entry)
+          end
         end
 
         def deserialize_entry(payload)
@@ -789,14 +816,18 @@ module ActiveSupport
     end
 
     module NullCoder # :nodoc:
-      class << self
-        def load(payload)
-          payload
-        end
+      extend self
 
-        def dump(entry)
-          entry
-        end
+      def dump(entry)
+        entry
+      end
+
+      def dump_compressed(entry, threshold)
+        entry.compressed(threshold)
+      end
+
+      def load(payload)
+        payload
       end
     end
 
@@ -810,17 +841,15 @@ module ActiveSupport
     class Entry # :nodoc:
       attr_reader :version
 
-      DEFAULT_COMPRESS_LIMIT = 1.kilobyte
-
       # Creates a new cache entry for the specified value. Options supported are
-      # +:compress+, +:compress_threshold+, +:version+, +:expires_at+ and +:expires_in+.
-      def initialize(value, compress: true, compress_threshold: DEFAULT_COMPRESS_LIMIT, version: nil, expires_in: nil, expires_at: nil, **)
+      # +:compressed+, +:version+, +:expires_at+ and +:expires_in+.
+      def initialize(value, compressed: false, version: nil, expires_in: nil, expires_at: nil, **)
         @value      = value
         @version    = version
         @created_at = 0.0
         @expires_in = expires_at&.to_f || expires_in && (expires_in.to_f + Time.now.to_f)
 
-        compress!(compress_threshold) if compress
+        @compressed = true if compressed
       end
 
       def value
@@ -866,6 +895,30 @@ module ActiveSupport
         defined?(@compressed)
       end
 
+      def compressed(compress_threshold)
+        return self if compressed?
+
+        case @value
+        when nil, true, false, Numeric
+          uncompressed_size = 0
+        when String
+          uncompressed_size = @value.bytesize
+        else
+          serialized = Marshal.dump(@value)
+          uncompressed_size = serialized.bytesize
+        end
+
+        if uncompressed_size >= compress_threshold
+          serialized ||= Marshal.dump(@value)
+          compressed = Zlib::Deflate.deflate(serialized)
+
+          if compressed.bytesize < uncompressed_size
+            return Entry.new(compressed, compressed: true, expires_at: expires_at, version: version)
+          end
+        end
+        self
+      end
+
       def local?
         false
       end
@@ -883,28 +936,6 @@ module ActiveSupport
       end
 
       private
-        def compress!(compress_threshold)
-          case @value
-          when nil, true, false, Numeric
-            uncompressed_size = 0
-          when String
-            uncompressed_size = @value.bytesize
-          else
-            serialized = Marshal.dump(@value)
-            uncompressed_size = serialized.bytesize
-          end
-
-          if uncompressed_size >= compress_threshold
-            serialized ||= Marshal.dump(@value)
-            compressed = Zlib::Deflate.deflate(serialized)
-
-            if compressed.bytesize < uncompressed_size
-              @value = compressed
-              @compressed = true
-            end
-          end
-        end
-
         def uncompress(value)
           Marshal.load(Zlib::Inflate.inflate(value))
         end

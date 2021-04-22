@@ -148,7 +148,7 @@ module ActiveSupport
         # Write an entry to the cache.
         def write_entry(key, entry, **options)
           method = options[:unless_exist] ? :add : :set
-          value = options[:raw] ? entry.value.to_s : serialize_entry(entry)
+          value = options[:raw] ? entry.value.to_s : serialize_entry(entry, **options)
           expires_in = options[:expires_in].to_i
           if options[:race_condition_ttl] && expires_in > 0 && !options[:raw]
             # Set the memcache expire a few minutes in the future to support race condition ttls on read
@@ -198,7 +198,7 @@ module ActiveSupport
 
         def deserialize_entry(payload)
           entry = super
-          entry = Entry.new(entry, compress: false) if entry && !entry.is_a?(Entry)
+          entry = Entry.new(entry) if entry && !entry.is_a?(Entry)
           entry
         end
 
