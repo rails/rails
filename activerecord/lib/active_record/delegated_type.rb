@@ -207,7 +207,7 @@ module ActiveRecord
         end
 
         types.each do |type|
-          scope_name = type.tableize.gsub("/", "_")
+          scope_name = type.tableize.tr("/", "_")
           singular   = scope_name.singularize
           query      = "#{singular}?"
 
