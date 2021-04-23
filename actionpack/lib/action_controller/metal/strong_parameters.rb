@@ -955,7 +955,7 @@ module ActionController
       def each_element(object, &block)
         case object
         when Array
-          object.grep(Parameters).map { |el| yield el }.compact
+          object.grep(Parameters).filter_map { |el| yield el }
         when Parameters
           if object.nested_attributes?
             object.each_nested_attribute(&block)

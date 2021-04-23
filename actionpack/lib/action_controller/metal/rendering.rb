@@ -26,7 +26,7 @@ module ActionController
 
     # Before processing, set the request formats in current controller formats.
     def process_action(*) #:nodoc:
-      self.formats = request.formats.map(&:ref).compact
+      self.formats = request.formats.filter_map(&:ref)
       super
     end
 
