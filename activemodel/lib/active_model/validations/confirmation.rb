@@ -19,13 +19,13 @@ module ActiveModel
 
       private
         def setup!(klass)
-          klass.attr_reader(*attributes.map do |attribute|
+          klass.attr_reader(*attributes.filter_map do |attribute|
             :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation")
-          end.compact)
+          end)
 
-          klass.attr_writer(*attributes.map do |attribute|
+          klass.attr_writer(*attributes.filter_map do |attribute|
             :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation=")
-          end.compact)
+          end)
         end
 
         def confirmation_value_equal?(record, attribute, value, confirmed)

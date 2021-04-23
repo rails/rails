@@ -148,8 +148,7 @@ module ActiveRecord
 
     def max_updated_column_timestamp
       timestamp_attributes_for_update_in_model
-        .map { |attr| self[attr]&.to_time }
-        .compact
+        .filter_map { |attr| self[attr]&.to_time }
         .max
     end
 

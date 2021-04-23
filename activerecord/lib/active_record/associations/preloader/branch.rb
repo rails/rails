@@ -46,9 +46,9 @@ module ActiveRecord
 
         def likely_reflections
           parent_classes = parent.target_classes
-          parent_classes.map do |parent_klass|
+          parent_classes.filter_map do |parent_klass|
             parent_klass._reflect_on_association(@association)
-          end.compact
+          end
         end
 
         def root?

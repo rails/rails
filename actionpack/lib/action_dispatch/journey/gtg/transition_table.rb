@@ -130,7 +130,7 @@ module ActionDispatch
           states    = "function tt() { return #{to_json}; }"
 
           fun_routes = paths.sample(3).map do |ast|
-            ast.map { |n|
+            ast.filter_map { |n|
               case n
               when Nodes::Symbol
                 case n.left
@@ -143,7 +143,7 @@ module ActionDispatch
               else
                 nil
               end
-            }.compact.join
+            }.join
           end
 
           stylesheets = [fsm_css]

@@ -196,11 +196,11 @@ module ActiveRecord
         end
 
         def touch_model_timestamps_unless(&block)
-          model.timestamp_attributes_for_update_in_model.map do |column_name|
+          model.timestamp_attributes_for_update_in_model.filter_map do |column_name|
             if touch_timestamp_attribute?(column_name)
               "#{column_name}=(CASE WHEN (#{updatable_columns.map(&block).join(" AND ")}) THEN #{model.quoted_table_name}.#{column_name} ELSE CURRENT_TIMESTAMP END),"
             end
-          end.compact.join
+          end.join
         end
 
         def raw_update_sql

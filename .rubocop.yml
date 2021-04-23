@@ -253,6 +253,9 @@ Performance/BindCall:
 Performance/FlatMap:
   Enabled: true
 
+Performance/MapCompact:
+  Enabled: true
+
 Performance/RedundantMerge:
   Enabled: true
 

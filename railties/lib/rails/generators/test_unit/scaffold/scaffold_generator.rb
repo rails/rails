@@ -45,13 +45,13 @@ module TestUnit # :nodoc:
         def attributes_hash
           return {} if attributes_names.empty?
 
-          attributes_names.map do |name|
+          attributes_names.filter_map do |name|
             if %w(password password_confirmation).include?(name) && attributes.any?(&:password_digest?)
               ["#{name}", "'secret'"]
             elsif !virtual?(name)
               ["#{name}", "@#{singular_table_name}.#{name}"]
             end
-          end.compact.sort.to_h
+          end.sort.to_h
         end
 
         def boolean?(name)

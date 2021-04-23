@@ -787,14 +787,13 @@ module ActiveRecord
           end
 
           # Gather up all of the SET variables...
-          variable_assignments = variables.map do |k, v|
+          variable_assignments = variables.filter_map do |k, v|
             if defaults.include?(v)
               "@@SESSION.#{k} = DEFAULT" # Sets the value to the global or compile default
             elsif !v.nil?
               "@@SESSION.#{k} = #{quote(v)}"
             end
-            # or else nil; compact to clear nils out
-          end.compact.join(", ")
+          end.join(", ")
 
           # ...and send them all in one query
           execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}", "SCHEMA")

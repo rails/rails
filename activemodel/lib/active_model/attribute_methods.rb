@@ -399,7 +399,7 @@ module ActiveModel
 
         def attribute_method_matchers_matching(method_name)
           attribute_method_matchers_cache.compute_if_absent(method_name) do
-            attribute_method_matchers.map { |matcher| matcher.match(method_name) }.compact
+            attribute_method_matchers.filter_map { |matcher| matcher.match(method_name) }
           end
         end
 

@@ -31,7 +31,7 @@ module ActionText
 
       def encryptable_rich_texts
         @encryptable_rich_texts ||= self.class.rich_text_association_names
-          .collect { |attribute_name| send(attribute_name) }.compact
+          .filter_map { |attribute_name| send(attribute_name) }
           .find_all { |record| record.is_a?(ActionText::EncryptedRichText) }
       end
   end

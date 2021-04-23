@@ -917,9 +917,7 @@ module ActiveRecord
             WHERE t.typname IN (%s)
           SQL
           coders = execute_and_clear(query, "SCHEMA", []) do |result|
-            result
-              .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
-              .compact
+            result.filter_map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
           end
 
           map = PG::TypeMapByOid.new
