@@ -521,13 +521,40 @@ module ActionView
           end
         end
 
-        def send_preload_links_header(preload_links)
+        MAX_HEADER_SIZE = 8_000 # Some HTTP client and proxies have a 8kiB header limit
+        def send_preload_links_header(preload_links, max_header_size: MAX_HEADER_SIZE)
           if respond_to?(:request) && request
             request.send_early_hints("Link" => preload_links.join("\n"))
           end
 
           if respond_to?(:response) && response
-            response.headers["Link"] = [response.headers["Link"].presence, *preload_links].compact.join(",")
+            header = response.headers["Link"]
+            header = header ? header.dup : +""
+
+            # rindex count characters not bytes, but we assume non-ascii characters
+            # are rare in urls, and we have a 192 bytes margin.
+            last_line_offset = header.rindex("\n")
+            last_line_size = if last_line_offset
+              header.bytesize - last_line_offset
+            else
+              header.bytesize
+            end
+
+            preload_links.each do |link|
+              if link.bytesize + last_line_size + 1 < max_header_size
+                unless header.empty?
+                  header << ","
+                  last_line_size += 1
+                end
+              else
+                header << "\n"
+                last_line_size = 0
+              end
+              header << link
+              last_line_size += link.bytesize
+            end
+
+            response.headers["Link"] = header
           end
         end
     end

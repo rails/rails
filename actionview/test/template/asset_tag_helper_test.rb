@@ -529,6 +529,17 @@ class AssetTagHelperTest < ActionView::TestCase
     end
   end
 
+  def test_should_generate_links_under_the_max_size
+    with_preload_links_header do
+      100.times do |i|
+        stylesheet_link_tag("http://example.com/style.css?#{i}")
+        javascript_include_tag("http://example.com/all.js?#{i}")
+      end
+      lines = @response.headers["Link"].split("\n")
+      assert_equal 2, lines.size
+    end
+  end
+
   def test_should_not_preload_links_with_defer
     with_preload_links_header do
       javascript_include_tag("http://example.com/all.js", defer: true)
