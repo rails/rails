@@ -50,7 +50,7 @@ module AbstractController
     end
 
     def view_cache_dependencies
-      self.class._view_cache_dependencies.map { |dep| instance_exec(&dep) }.compact
+      self.class._view_cache_dependencies.filter_map { |dep| instance_exec(&dep) }
     end
 
     private
