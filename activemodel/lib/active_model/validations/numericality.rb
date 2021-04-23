@@ -59,7 +59,13 @@ module ActiveModel
             option_value = parse_as_number(option_value, precision, scale, option)
 
             unless value.public_send(CHECKS[option], option_value)
-              record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
+              record.errors.add(
+                attr_name,
+                option,
+                **filtered_options(value).merge!(
+                  count: formatted_value(record, option_value)
+                )
+              )
             end
           end
         end
@@ -118,6 +124,19 @@ module ActiveModel
           options[:only_integer].call(record)
         else
           options[:only_integer]
+        end
+      end
+
+      def formatted_value(record, value)
+        value_format = options[:value_format]
+
+        case value_format
+        when Proc
+          value_format.call(value)
+        when Symbol
+          record.send(value_format, value)
+        else
+          value
         end
       end
 

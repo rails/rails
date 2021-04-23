@@ -534,6 +534,8 @@ constraints to acceptable values:
   default error message for this option is _"must be odd"_.
 * `:even` - Specifies the value must be an even number if set to true. The
   default error message for this option is _"must be even"_.
+* `:value_format` - Allow to format the value being shown in an error message.
+  Should be a proc or a function passing the name as a symbol, that receive the value as a parameter.
 
 NOTE: By default, `numericality` doesn't allow `nil` values. You can use `allow_nil: true` option to permit it.
 
