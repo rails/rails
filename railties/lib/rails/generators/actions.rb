@@ -334,9 +334,9 @@ module Rails
           return value.inspect unless value.is_a? String
 
           if value.include?("'")
-            value.inspect
+            value.tr("'", '"')
           else
-            "'#{value}'"
+            "\"#{value}\""
           end
         end
 

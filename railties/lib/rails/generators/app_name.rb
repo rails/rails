@@ -7,7 +7,7 @@ module Rails
 
       private
         def app_name
-          @app_name ||= original_app_name.tr('\\', "").tr("-. ", "_")
+          @app_name ||= original_app_name.tr("\\", "").tr("-. ", "_")
         end
 
         def original_app_name

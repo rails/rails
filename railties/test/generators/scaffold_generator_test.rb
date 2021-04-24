@@ -570,17 +570,17 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "test/controllers/users_controller_test.rb" do |content|
-      assert_match(/password: 'secret'/, content)
-      assert_match(/password_confirmation: 'secret'/, content)
+      assert_match(/password: "secret"/, content)
+      assert_match(/password_confirmation: "secret"/, content)
     end
 
     assert_file "test/system/users_test.rb" do |content|
-      assert_match(/fill_in "Password", with: 'secret'/, content)
-      assert_match(/fill_in "Password confirmation", with: 'secret'/, content)
+      assert_match(/fill_in "Password", with: "secret"/, content)
+      assert_match(/fill_in "Password confirmation", with: "secret"/, content)
     end
 
     assert_file "test/fixtures/users.yml" do |content|
-      assert_match(/password_digest: <%= BCrypt::Password.create\('secret'\) %>/, content)
+      assert_match(/password_digest: <%= BCrypt::Password.create\("secret"\) %>/, content)
     end
   end
 

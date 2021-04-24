@@ -387,7 +387,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_gem_for_active_storage
     run_generator
-    assert_file "Gemfile", /^# gem 'image_processing'/
+    assert_file "Gemfile", /^# gem "image_processing"/
   end
 
   def test_gem_for_active_storage_when_skip_active_storage_is_given
@@ -537,7 +537,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcsqlite3-adapter"
     else
-      assert_gem "sqlite3", "'~> 1.4'"
+      assert_gem "sqlite3", '"~> 1.4"'
     end
   end
 
@@ -547,7 +547,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcmysql-adapter"
     else
-      assert_gem "mysql2", "'~> 0.5'"
+      assert_gem "mysql2", '"~> 0.5"'
     end
   end
 
@@ -562,7 +562,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcpostgresql-adapter"
     else
-      assert_gem "pg", "'~> 1.1'"
+      assert_gem "pg", '"~> 1.1"'
     end
   end
 
@@ -601,7 +601,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
-    assert_gem "puma", "'~> 5.0'"
+    assert_gem "puma", '"~> 5.0"'
   end
 
   def test_generator_if_skip_puma_is_given
@@ -618,7 +618,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_action_cable_redis_gems
     run_generator
-    assert_file "Gemfile", /^# gem 'redis'/
+    assert_file "Gemfile", /^# gem "redis"/
   end
 
   def test_generator_if_skip_test_is_given
@@ -798,8 +798,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--dev", "--skip-bundle"]
 
     assert_file "Gemfile" do |content|
-      assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/\Agem 'web-console', '>= 4\.1\.0'\z/, content)
+      assert_match(/gem "web-console",\s+github: "rails\/web-console"/, content)
+      assert_no_match(/\Agem "web-console", ">= 4\.1\.0"\z/, content)
     end
   end
 
@@ -807,8 +807,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--edge"]
 
     assert_file "Gemfile" do |content|
-      assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/\Agem 'web-console', '>= 4\.1\.0'\z/, content)
+      assert_match(/gem "web-console",\s+github: "rails\/web-console"/, content)
+      assert_no_match(/\Agem "web-console", ">= 4\.1\.0"\z/, content)
     end
   end
 
@@ -816,8 +816,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--main"]
 
     assert_file "Gemfile" do |content|
-      assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/\Agem 'web-console', '>= 4\.1\.0'\z/, content)
+      assert_match(/gem "web-console",\s+github: "rails\/web-console"/, content)
+      assert_no_match(/\Agem "web-console", ">= 4\.1\.0"\z/, content)
     end
   end
 
@@ -1072,7 +1072,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file "Gemfile" do |content|
-      assert_match(/ruby '#{RUBY_VERSION}'/, content)
+      assert_match(/ruby "#{RUBY_VERSION}"/, content)
     end
     assert_file ".ruby-version" do |content|
       if ENV["RBENV_VERSION"]
