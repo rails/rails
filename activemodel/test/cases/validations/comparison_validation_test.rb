@@ -151,7 +151,7 @@ class ComparisonValidationTest < ActiveModel::TestCase
     Topic.define_method(:requested) { Date.new(2020, 8, 1) }
     Topic.validates_comparison_of :approved, greater_than_or_equal_to: Proc.new(&:requested)
 
-    assert_invalid_values([Date.new(2020, 7, 1), Date.new(2019, 7, 1), DateTime.new(2020, 7, 1, 22, 34)])
+    assert_invalid_values([Date.new(2020, 7, 1), Date.new(2019, 7, 1), DateTime.new(2020, 7, 1, 22, 34)], "must be greater than or equal to 2020-08-01")
     assert_valid_values([Date.new(2020, 8, 2), DateTime.new(2021, 8, 1)])
   ensure
     Topic.remove_method :requested
@@ -161,7 +161,7 @@ class ComparisonValidationTest < ActiveModel::TestCase
     Topic.define_method(:requested) { Date.new(2020, 8, 1) }
     Topic.validates_comparison_of :approved, greater_than_or_equal_to: :requested
 
-    assert_invalid_values([Date.new(2020, 7, 1), Date.new(2019, 7, 1), DateTime.new(2020, 7, 1, 22, 34)])
+    assert_invalid_values([Date.new(2020, 7, 1), Date.new(2019, 7, 1), DateTime.new(2020, 7, 1, 22, 34)], "must be greater than or equal to 2020-08-01")
     assert_valid_values([Date.new(2020, 8, 2), DateTime.new(2021, 8, 1)])
   ensure
     Topic.remove_method :requested

@@ -16,12 +16,14 @@ module ActiveModel
 
       def validate_each(record, attr_name, value)
         options.slice(*COMPARE_CHECKS.keys).each do |option, raw_option_value|
+          option_value = option_value(record, raw_option_value)
+
           if value.nil? || value.blank?
-            return record.errors.add(attr_name, :blank, **error_options(value, error_value(record, raw_option_value)))
+            return record.errors.add(attr_name, :blank, **error_options(value, option_value))
           end
 
-          unless value.send(COMPARE_CHECKS[option], option_value(record, raw_option_value))
-            record.errors.add(attr_name, option, **error_options(value, error_value(record, raw_option_value)))
+          unless value.send(COMPARE_CHECKS[option], option_value)
+            record.errors.add(attr_name, option, **error_options(value, option_value))
           end
         rescue ArgumentError => e
           record.errors.add(attr_name, e.message)

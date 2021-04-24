@@ -225,7 +225,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
     Topic.define_method(:min_approved) { 5 }
     Topic.validates_numericality_of :approved, greater_than_or_equal_to: Proc.new(&:min_approved)
 
-    assert_invalid_values([3, 4])
+    assert_invalid_values([3, 4], "must be greater than or equal to 5")
     assert_valid_values([5, 6])
   ensure
     Topic.remove_method :min_approved
@@ -235,7 +235,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
     Topic.define_method(:max_approved) { 5 }
     Topic.validates_numericality_of :approved, less_than_or_equal_to: :max_approved
 
-    assert_invalid_values([6])
+    assert_invalid_values([6], "must be less than or equal to 5")
     assert_valid_values([4, 5])
   ensure
     Topic.remove_method :max_approved

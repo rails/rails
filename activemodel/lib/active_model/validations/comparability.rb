@@ -24,15 +24,6 @@ module ActiveModel
           value: value
         )
       end
-
-      def error_value(record, option_value)
-        case option_value
-        when Proc
-          option_value(record, option_value)
-        else
-          option_value
-        end
-      end
     end
   end
 end
