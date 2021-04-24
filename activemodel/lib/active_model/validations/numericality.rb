@@ -24,7 +24,7 @@ module ActiveModel
           end
         end
 
-        options.slice(*RANGE_CHECKS).each do |option, value|
+        options.slice(*RANGE_CHECKS.keys).each do |option, value|
           unless value.is_a?(Range)
             raise ArgumentError, ":#{option} must be a range"
           end
@@ -45,15 +45,15 @@ module ActiveModel
         value = parse_as_number(value, precision, scale)
 
         options.slice(*RESERVED_OPTIONS).each do |option, option_value|
-          if NUMBER_CHECKS.keys.include? option
+          if NUMBER_CHECKS.include?(option)
             unless value.to_i.send(NUMBER_CHECKS[option])
               record.errors.add(attr_name, option, **filtered_options(value))
             end
-          elsif RANGE_CHECKS.keys.include? option
+          elsif RANGE_CHECKS.include?(option)
             unless value.send(RANGE_CHECKS[option], option_value)
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
-          elsif COMPARE_CHECKS.keys.include? option
+          elsif COMPARE_CHECKS.include?(option)
             option_value = option_as_number(record, option_value, precision, scale)
             unless value.send(COMPARE_CHECKS[option], option_value)
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))

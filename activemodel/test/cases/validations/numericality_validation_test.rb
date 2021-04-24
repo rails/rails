@@ -308,6 +308,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, greater_than: "foo" }
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, less_than: "foo" }
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, equal_to: "foo" }
+    assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, in: "foo" }
   end
 
   def test_validates_numericality_equality_for_float_and_big_decimal
