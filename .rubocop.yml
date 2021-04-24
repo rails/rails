@@ -63,6 +63,9 @@ Layout/EndAlignment:
   EnforcedStyleAlignWith: variable
   AutoCorrect: true
 
+Layout/EndOfLine:
+  Enabled: true
+
 Layout/EmptyLineAfterMagicComment:
   Enabled: true
 
