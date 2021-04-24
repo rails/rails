@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_model/validations/comparability"
+
 module ActiveModel
   module Validations
     class ComparisonValidator < EachValidator # :nodoc:
