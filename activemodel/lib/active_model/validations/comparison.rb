@@ -44,13 +44,13 @@ module ActiveModel
       # * <tt>:greater_than</tt> - Specifies the value must be greater than the
       #   supplied value.
       # * <tt>:greater_than_or_equal_to</tt> - Specifies the value must be
-      #   greater than or equal the supplied value.
+      #   greater than or equal to the supplied value.
       # * <tt>:equal_to</tt> - Specifies the value must be equal to the supplied
       #   value.
       # * <tt>:less_than</tt> - Specifies the value must be less than the
       #   supplied value.
       # * <tt>:less_than_or_equal_to</tt> - Specifies the value must be less
-      #   than or equal the supplied value.
+      #   than or equal to the supplied value.
       # * <tt>:other_than</tt> - Specifies the value must not be equal to the
       #   supplied value.
       #
@@ -58,7 +58,7 @@ module ActiveModel
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+ .
       # See <tt>ActiveModel::Validations#validates</tt> for more information
       #
-      # The validator requires at least one of the following checks be supplied.
+      # The validator requires at least one of the following checks to be supplied.
       # Each will accept a proc, value, or a symbol which corresponds to a method:
       #
       # * <tt>:greater_than</tt>
