@@ -30,6 +30,16 @@ class ComparisonValidationTest < ActiveModel::TestCase
     assert_valid_values([Date.parse("2020-08-03"), DateTime.new(2020, 8, 2, 12, 34)])
   end
 
+  def test_validates_comparison_with_greater_than_using_time
+    time_value = Time.at(1596285240)
+    Topic.validates_comparison_of :approved, greater_than: time_value
+
+    assert_invalid_values([
+      Time.at(1596285240),
+      Time.at(1593714600)], "must be greater than #{time_value}")
+    assert_valid_values([Time.at(1596371640), Time.at(1596393000)])
+  end
+
   def test_validates_comparison_with_greater_than_using_string
     Topic.validates_comparison_of :approved, greater_than: "cat"
 
@@ -44,13 +54,6 @@ class ComparisonValidationTest < ActiveModel::TestCase
     assert_valid_values([11, 10])
   end
 
-  def test_validates_comparison_with_greater_than_or_equal_to_using_string
-    Topic.validates_comparison_of :approved, greater_than_or_equal_to: "cat"
-
-    assert_invalid_values(["ant"], "must be greater than or equal to cat")
-    assert_valid_values(["cat", "dog", "whale"])
-  end
-
   def test_validates_comparison_with_greater_than_or_equal_to_using_date
     date_value = Date.parse("2020-08-02")
     Topic.validates_comparison_of :approved, greater_than_or_equal_to: date_value
@@ -61,6 +64,23 @@ class ComparisonValidationTest < ActiveModel::TestCase
       Date.parse("2020-08-01"),
       DateTime.new(2020, 8, 1, 12, 34)], "must be greater than or equal to 2020-08-02")
     assert_valid_values([Date.parse("2020-08-03"), DateTime.new(2020, 8, 2, 12, 34), Date.parse("2020-08-02")])
+  end
+
+  def test_validates_comparison_with_greater_than_or_equal_to_using_time
+    time_value = Time.at(1596285240)
+    Topic.validates_comparison_of :approved, greater_than_or_equal_to: time_value
+
+    assert_invalid_values([
+      Time.at(1564662840),
+      Time.at(1596285230)], "must be greater than or equal to #{time_value}")
+    assert_valid_values([Time.at(1596285240), Time.at(1596285241)])
+  end
+
+  def test_validates_comparison_with_greater_than_or_equal_to_using_string
+    Topic.validates_comparison_of :approved, greater_than_or_equal_to: "cat"
+
+    assert_invalid_values(["ant"], "must be greater than or equal to cat")
+    assert_valid_values(["cat", "dog", "whale"])
   end
 
   def test_validates_comparison_with_equal_to_using_numeric
@@ -84,6 +104,23 @@ class ComparisonValidationTest < ActiveModel::TestCase
     assert_valid_values([Date.parse("2020-08-02"), DateTime.new(2020, 8, 2, 0, 0)])
   end
 
+  def test_validates_comparison_with_equal_to_using_time
+    time_value = Time.at(1596285240)
+    Topic.validates_comparison_of :approved, equal_to: time_value
+
+    assert_invalid_values([
+      Time.at(1564662840),
+      Time.at(1596285230)], "must be equal to #{time_value}")
+    assert_valid_values([Time.at(1596285240)])
+  end
+
+  def test_validates_comparison_with_equal_to_using_string
+    Topic.validates_comparison_of :approved, equal_to: "cat"
+
+    assert_invalid_values(["dog", "whale"], "must be equal to cat")
+    assert_valid_values(["cat"])
+  end
+
   def test_validates_comparison_with_less_than_using_numeric
     Topic.validates_comparison_of :approved, less_than: 10
 
@@ -103,6 +140,23 @@ class ComparisonValidationTest < ActiveModel::TestCase
       Date.parse("2020-07-03"),
       Date.parse("2020-08-01"),
       DateTime.new(2020, 8, 1, 12, 34)])
+  end
+
+  def test_validates_comparison_with_less_than_using_time
+    time_value = Time.at(1596285240)
+    Topic.validates_comparison_of :approved, less_than: time_value
+
+    assert_invalid_values([
+      Time.at(1596371640),
+      Time.at(1596393000)], "must be less than #{time_value}")
+    assert_valid_values([Time.at(1596285239), Time.at(1593714600)])
+  end
+
+  def test_validates_comparison_with_less_than_using_string
+    Topic.validates_comparison_of :approved, less_than: "dog"
+
+    assert_invalid_values(["whale"], "must be less than dog")
+    assert_valid_values(["ant", "cat"])
   end
 
   def test_validates_comparison_with_less_than_or_equal_to_using_numeric
@@ -126,6 +180,23 @@ class ComparisonValidationTest < ActiveModel::TestCase
       DateTime.new(2020, 8, 1, 12, 34)])
   end
 
+  def test_validates_comparison_with_less_than_or_equal_to_using_time
+    time_value = Time.at(1596285240)
+    Topic.validates_comparison_of :approved, less_than_or_equal_to: time_value
+
+    assert_invalid_values([
+      Time.at(1598963640),
+      Time.at(1596285241)], "must be less than or equal to #{time_value}")
+    assert_valid_values([Time.at(1596285240), Time.at(1596285230)])
+  end
+
+  def test_validates_comparison_with_less_than_or_equal_to_using_string
+    Topic.validates_comparison_of :approved, less_than_or_equal_to: "dog"
+
+    assert_invalid_values(["whale"], "must be less than or equal to dog")
+    assert_valid_values(["ant", "cat", "dog"])
+  end
+
   def test_validates_comparison_with_other_than_using_numeric
     Topic.validates_comparison_of :approved, other_than: 10
 
@@ -145,6 +216,21 @@ class ComparisonValidationTest < ActiveModel::TestCase
       DateTime.new(2020, 8, 1, 12, 34),
       Date.parse("2020-08-03"),
       DateTime.new(2020, 8, 2, 12, 34)])
+  end
+
+  def test_validates_comparison_with_other_than_using_time
+    time_value = Time.at(1596285240)
+    Topic.validates_comparison_of :approved, other_than: time_value
+
+    assert_invalid_values([Time.at(1596285240)], "must be other than #{time_value}")
+    assert_valid_values([Time.at(1564662840), Time.at(1596285230)])
+  end
+
+  def test_validates_comparison_with_other_than_using_string
+    Topic.validates_comparison_of :approved, other_than: "whale"
+
+    assert_invalid_values(["whale"], "must be other than whale")
+    assert_valid_values(["ant", "cat", "dog"])
   end
 
   def test_validates_comparison_with_proc
