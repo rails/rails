@@ -236,6 +236,24 @@ module ActiveRecord
     # of hashes can be used with hashes generated from HTTP/HTML parameters,
     # where there may be no natural way to submit an array of hashes.
     #
+    # === Updating a Collection and Its Attributes
+    # If you are passing a set of ids with your nested attributes, the
+    # attributes are executed in the order they're passed. The new
+    # records in the collection can be updated by your nested_attributes,
+    # as long as the ids are passed before the nested attributes are set.
+    #
+    #   Member.create(
+    #     name: 'rachael',
+    #     post_ids: [1],
+    #     posts_attributes: [
+    #       { id: 1, title: 'Foo' },
+    #       { title: 'Bar' }
+    #     ]
+    #   )
+    #
+    # Note: If the nested attributes are passed before the ids are set,
+    # then the ids will override all attribute changes.
+    #
     # === Saving
     #
     # All changes to models, including the destruction of those marked for

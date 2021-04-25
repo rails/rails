@@ -723,6 +723,33 @@ module NestedAttributesOnACollectionAssociationTests
     assert_equal "Privateers Greed", @pirate.public_send(@association_name).last.name
   end
 
+  def test_should_include_ids_and_nested_attributes
+    bird = @pirate.public_send(@association_name).create! name: "Birb"
+    @pirate.public_send(association_id_setter, [])
+    @pirate.reload
+
+    @pirate.attributes = {
+      association_id_getter => [bird.id],
+      association_getter => [{ id: bird.id, name: "Twitter" }, { name: "Privateers Greed" }]
+    }
+
+    assert_includes @pirate.public_send(@association_name).pluck(:name), "Twitter"
+    assert_includes @pirate.public_send(@association_name).pluck(:name), "Privateers Greed"
+  end
+
+  def test_should_ids_override_nested_attributes
+    bird = @pirate.public_send(@association_name).create! name: "Birb"
+    @pirate.public_send(association_id_setter, [])
+    @pirate.reload
+
+    @pirate.attributes = {
+      association_getter => [{ name: "Privateers Greed" }],
+      association_id_getter => [bird.id],
+    }
+
+    assert_equal @pirate.public_send(@association_name).pluck(:name), ["Birb"]
+  end
+
   def test_should_not_assign_destroy_key_to_a_record
     assert_nothing_raised do
       @pirate.public_send(association_setter, "foo" => { "_destroy" => "0" })
@@ -857,6 +884,14 @@ module NestedAttributesOnACollectionAssociationTests
 
     def association_getter
       @association_getter ||= "#{@association_name}_attributes".to_sym
+    end
+
+    def association_id_setter
+      @association_id_setter ||= "#{@association_name.to_s.singularize}_ids=".to_sym
+    end
+
+    def association_id_getter
+      @association_id_getter ||= "#{@association_name.to_s.singularize}_ids".to_sym
     end
 end
 
