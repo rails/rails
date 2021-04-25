@@ -127,6 +127,8 @@ module ActiveSupport
     def append_features(base) #:nodoc:
       if base.instance_variable_defined?(:@_dependencies)
         base.instance_variable_get(:@_dependencies) << self
+        super
+
         false
       else
         return false if base < self
@@ -140,6 +142,8 @@ module ActiveSupport
     def prepend_features(base) #:nodoc:
       if base.instance_variable_defined?(:@_dependencies)
         base.instance_variable_get(:@_dependencies).unshift self
+        super
+
         false
       else
         return false if base < self

@@ -210,4 +210,16 @@ class ConcernTest < ActiveSupport::TestCase
 
     assert_equal @klass.foo, [:included, :class, :prepended]
   end
+
+  def test_prepending_concernable_modules
+    actual_module = Module.new.extend(ActiveSupport::Concern)
+
+    actual_module.prepend Baz
+
+    assert_equal actual_module.ancestors, [Baz, actual_module]
+  end
+
+  def test_including_concernable_modules
+    assert_equal Foo.ancestors, [Foo, Bar, Baz]
+  end
 end

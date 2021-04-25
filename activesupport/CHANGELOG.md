@@ -34,6 +34,40 @@
 
     *Jean Boussier*
 
+*   Fix including/prepending modules that both extend `ActiveSupport::Concern`
+
+    ```ruby
+    module A
+      extend ActiveSupport::Concern
+    end
+
+    module B
+      extend ActiveSupport::Concern
+    end
+    ```
+
+    Before:
+
+    ```ruby
+    A.include(B)
+    A.ancestors # => [A]
+
+    A.prepend(B)
+    A.ancestors # => [A]
+    ```
+
+    After:
+
+    ```ruby
+    A.include(B)
+    A.ancestors # => [A, B]
+
+    A.prepend(B)
+    A.ancestors # => [B, A]
+    ```
+
+    *Igor Drozdov*
+
 *   Add `Enumerable#sole`, per `ActiveRecord::FinderMethods#sole`.  Returns the
     sole item of the enumerable, raising if no items are found, or if more than
     one is.
