@@ -865,6 +865,8 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.use_authenticated_message_encryption` specifies whether to use AES-256-GCM authenticated encryption as the default cipher for encrypting messages instead of AES-256-CBC.
 
+* `config.active_support.use_rfc4122_namespaced_uuids` specifies whether namespaced UUIDs follow the RFC 4122 standard if the namespace UUID is provided as a string (see https://github.com/rails/rails/issues/37681 for more information). If disabled, a deprecation warning will be generated whenever the namespace provided to a `Digest::UUID.uuid_v3` or `Digest::UUID.uuid_v5` method call is not one of the constants defined on `Digest::UUID`.
+
 * `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
 * `ActiveSupport::Cache::Store.logger` specifies the logger to use within cache store operations.
