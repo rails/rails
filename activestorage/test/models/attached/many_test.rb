@@ -293,7 +293,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   end
 
   test "updating an existing record with attachments when appending on assign" do
-    append_on_assign do
+    ActiveStorage.set(replace_on_assign_to_many: false) do
       @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
 
       assert_difference -> { @user.reload.highlights.count }, +2 do
@@ -647,12 +647,4 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
     assert_match(/Cannot find variant :unknown for User#highlights_with_variants/, error.message)
   end
-
-  private
-    def append_on_assign
-      ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many
-      yield
-    ensure
-      ActiveStorage.replace_on_assign_to_many = previous
-    end
 end

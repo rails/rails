@@ -79,7 +79,7 @@ class ActionText::ContentTest < ActiveSupport::TestCase
   end
 
   test "converts Trix-formatted attachments with custom tag name" do
-    with_attachment_tag_name("arbitrary-tag") do
+    ActionText::Attachment.set(tag_name: "arbitrary-tag") do
       html = %Q(<figure data-trix-attachment='{"sgid":"123","contentType":"text/plain","width":100,"height":100}' data-trix-attributes='{"caption":"Captioned"}'></figure>)
       content = content_from_html(html)
       assert_equal 1, content.attachments.size
@@ -139,14 +139,5 @@ class ActionText::ContentTest < ActiveSupport::TestCase
       ActionText::Content.new(html).tap do |content|
         assert_nothing_raised { content.to_s }
       end
-    end
-
-    def with_attachment_tag_name(tag_name)
-      previous_tag_name = ActionText::Attachment.tag_name
-      ActionText::Attachment.tag_name = tag_name
-
-      yield
-    ensure
-      ActionText::Attachment.tag_name = previous_tag_name
     end
 end

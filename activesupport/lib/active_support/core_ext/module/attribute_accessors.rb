@@ -203,4 +203,24 @@ class Module
     mattr_writer(*syms, instance_writer: instance_writer, instance_accessor: instance_accessor, default: default, location: location)
   end
   alias :cattr_accessor :mattr_accessor
+
+  def set(**attributes)
+    previous_attributes = _get(attributes.keys)
+
+    begin
+      _assign attributes
+      yield
+    ensure
+      _assign previous_attributes
+    end
+  end
+
+  private
+    def _get(names)
+      names.index_with { |name| public_send(name) }
+    end
+
+    def _assign(attributes = {})
+      attributes.each { |name, value| public_send("#{name}=", value) }
+    end
 end

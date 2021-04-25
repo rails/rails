@@ -151,7 +151,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "thumbnail variation of JPEG blob processed with VIPS" do
-    process_variants_with :vips do
+    ActiveStorage.set(variant_processor: :vips) do
       blob = create_file_blob(filename: "racecar.jpg")
       variant = blob.variant(thumbnail_image: 100).processed
 
@@ -162,7 +162,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "thumbnail variation of extensionless GIF blob processed with VIPS" do
-    process_variants_with :vips do
+    ActiveStorage.set(variant_processor: :vips) do
       blob = ActiveStorage::Blob.create_and_upload!(io: file_fixture("image.gif").open, filename: "image", content_type: "image/gif")
       variant = blob.variant(resize_to_fit: [100, 100]).processed
 
@@ -186,14 +186,4 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
       blob.variant(resize: "100x100").processed
     end
   end
-
-  private
-    def process_variants_with(processor)
-      previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, processor
-      yield
-    rescue LoadError
-      skip "Variant processor #{processor.inspect} is not installed"
-    ensure
-      ActiveStorage.variant_processor = previous_processor
-    end
 end

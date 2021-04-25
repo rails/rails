@@ -100,13 +100,8 @@ class ActiveSupport::TestCase
       Rack::Test::UploadedFile.new file_fixture(filename).to_s
     end
 
-    def with_service(service_name)
-      previous_service = ActiveStorage::Blob.service
-      ActiveStorage::Blob.service = service_name ? ActiveStorage::Blob.services.fetch(service_name) : nil
-
-      yield
-    ensure
-      ActiveStorage::Blob.service = previous_service
+    def with_service(name, &block)
+      ActiveStorage::Blob.set service: name.nil? ? nil : ActiveStorage::Blob.services.fetch(name), &block
     end
 end
 
