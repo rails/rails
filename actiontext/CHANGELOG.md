@@ -1,3 +1,8 @@
+*   Write a RichText's content as plain-text to the database to support
+    full-text search without HTML debris.
+
+    *Sean Doyle*
+
 *   Add `config.action_text.attachment_tag_name`, to specify the HTML tag that contains attachments.
 
     *Mark VanLandingham*

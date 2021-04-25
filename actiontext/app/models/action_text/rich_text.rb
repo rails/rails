@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module ActionText
-  # The RichText record holds the content produced by the Trix editor in a serialized +body+ attribute.
+  # The RichText record holds the content produced by the Trix editor in a serialized +body+ attribute,
+  # along with a sanitized, plain-text variant as its +plain_text_body+ attribute.
   # It also holds all the references to the embedded files, which are stored using Active Storage.
   # This record is then associated with the Active Record model the application desires to have
   # rich text content using the +has_rich_text+ class method.
@@ -16,6 +17,7 @@ module ActionText
 
     before_save do
       self.embeds = body.attachables.grep(ActiveStorage::Blob).uniq if body.present?
+      self.plain_text_body = to_plain_text
     end
 
     def to_plain_text
