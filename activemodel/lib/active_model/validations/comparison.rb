@@ -22,7 +22,7 @@ module ActiveModel
             return record.errors.add(attr_name, :blank, **error_options(value, option_value))
           end
 
-          unless value.send(COMPARE_CHECKS[option], option_value)
+          unless value.public_send(COMPARE_CHECKS[option], option_value)
             record.errors.add(attr_name, option, **error_options(value, option_value))
           end
         rescue ArgumentError => e
