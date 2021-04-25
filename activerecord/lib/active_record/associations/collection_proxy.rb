@@ -359,7 +359,7 @@ module ActiveRecord
       #   end
       #
       #   person.pets.create!(name: nil)
-      #   # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+      #   # => ActiveRecord::RecordInvalid: Validation failed: Name can’t be blank
       def create!(attributes = {}, &block)
         @association.create!(attributes, &block)
       end

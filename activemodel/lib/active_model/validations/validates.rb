@@ -144,7 +144,7 @@ module ActiveModel
       #   person = Person.new
       #   person.name = ''
       #   person.valid?
-      #   # => ActiveModel::StrictValidationFailed: Name can't be blank
+      #   # => ActiveModel::StrictValidationFailed: Name can’t be blank
       def validates!(*attributes)
         options = attributes.extract_options!
         options[:strict] = true
