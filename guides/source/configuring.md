@@ -473,7 +473,7 @@ in controllers and views. This defaults to `false`.
 
 * `config.active_record.queues.destroy` allows specifying the Active Job queue to use for destroy jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). It defaults to `nil`.
 
-* `config.active_record.enumerate_columns_in_select_statements` when true, will always include column names in `SELECT` statements, and avoid wildcard `SELECT * FROM ...` queries. This avoids prepared statement cache errors when adding columns to a PostgresSQL database for example. Defaults to `false`.
+* `config.active_record.enumerate_columns_in_select_statements` when true, will always include column names in `SELECT` statements, and avoid wildcard `SELECT * FROM ...` queries. This avoids prepared statement cache errors when adding columns to a PostgreSQL database for example. Defaults to `false`.
 
 The MySQL adapter adds one additional configuration option:
 

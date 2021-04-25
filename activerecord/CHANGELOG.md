@@ -32,7 +32,7 @@
 
 *   Add setting for enumerating column names in SELECT statements.
 
-    Adding a column to a PostgresSQL database, for example, while the application is running can
+    Adding a column to a PostgreSQL database, for example, while the application is running can
     change the result of wildcard `SELECT *` queries, which invalidates the result
     of cached prepared statements and raises a `PreparedStatementCacheExpired` error.
 
