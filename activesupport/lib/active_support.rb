@@ -93,6 +93,14 @@ module ActiveSupport
     self.test_parallelization_disabled = true unless ENV["PARALLEL_WORKERS"]
   end
 
+  def self.cache_format_version
+    Cache.format_version
+  end
+
+  def self.cache_format_version=(value)
+    Cache.format_version = value
+  end
+
   def self.to_time_preserves_timezone
     DateAndTime::Compatibility.preserve_timezone
   end

@@ -11,6 +11,7 @@ class SlowDalliClient < Dalli::Client
   def get(key, options = {})
     if /latency/.match?(key)
       sleep 3
+      super
     else
       super
     end
@@ -181,7 +182,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_unless_exist_expires_when_configured
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
-    assert_called_with client(cache), :add, [ "foo", ActiveSupport::Cache::Entry, 1, Hash ] do
+    assert_called_with client(cache), :add, [ "foo", Object, 1, Hash ] do
       cache.write("foo", "bar", expires_in: 1, unless_exist: true)
     end
   end
@@ -279,4 +280,37 @@ class MemCacheStoreTest < ActiveSupport::TestCase
         ENV["MEMCACHE_SERVERS"] = original_value
       end
     end
+end
+
+class OptimizedMemCacheStoreTest < MemCacheStoreTest
+  def setup
+    @previous_format = ActiveSupport::Cache.format_version
+    ActiveSupport::Cache.format_version = 7.0
+    super
+  end
+
+  def forward_compatibility
+    previous_format = ActiveSupport::Cache.format_version
+    ActiveSupport::Cache.format_version = 6.1
+    @old_store = lookup_store
+    ActiveSupport::Cache.format_version = previous_format
+
+    @old_store.write("foo", "bar")
+    assert_equal "bar", @cache.read("foo")
+  end
+
+  def forward_compatibility
+    previous_format = ActiveSupport::Cache.format_version
+    ActiveSupport::Cache.format_version = 6.1
+    @old_store = lookup_store
+    ActiveSupport::Cache.format_version = previous_format
+
+    @cache.write("foo", "bar")
+    assert_equal "bar", @old_store.read("foo")
+  end
+
+  def teardown
+    super
+    ActiveSupport::Cache.format_version = @previous_format
+  end
 end

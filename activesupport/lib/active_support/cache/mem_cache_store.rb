@@ -25,8 +25,6 @@ module ActiveSupport
     # MemCacheStore implements the Strategy::LocalCache strategy which implements
     # an in-memory cache inside of a block.
     class MemCacheStore < Store
-      DEFAULT_CODER = NullCoder # Dalli automatically Marshal values
-
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         private
@@ -140,9 +138,59 @@ module ActiveSupport
       end
 
       private
+        module Coders # :nodoc:
+          class << self
+            def [](version)
+              case version
+              when 6.1
+                Rails61Coder
+              when 7.0
+                Rails70Coder
+              else
+                raise ArgumentError, "Unknown ActiveSupport::Cache.format_version #{Cache.format_version.inspect}"
+              end
+            end
+          end
+
+          module Loader
+            def load(payload)
+              if payload.is_a?(Entry)
+                payload
+              else
+                Cache::Coders::Loader.load(payload)
+              end
+            end
+          end
+
+          module Rails61Coder
+            include Loader
+            extend self
+
+            def dump(entry)
+              entry
+            end
+
+            def dump_compressed(entry, threshold)
+              entry.compressed(threshold)
+            end
+          end
+
+          module Rails70Coder
+            include Cache::Coders::Rails70Coder
+            include Loader
+            extend self
+          end
+        end
+
+        def default_coder
+          Coders[Cache.format_version]
+        end
+
         # Read an entry from the cache.
         def read_entry(key, **options)
-          rescue_error_with(nil) { deserialize_entry(@data.with { |c| c.get(key, options) }) }
+          rescue_error_with(nil) do
+            deserialize_entry(@data.with { |c| c.get(key, options) }, raw: options[:raw])
+          end
         end
 
         # Write an entry to the cache.
@@ -168,7 +216,7 @@ module ActiveSupport
           values = {}
 
           raw_values.each do |key, value|
-            entry = deserialize_entry(value)
+            entry = deserialize_entry(value, raw: options[:raw])
 
             unless entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
               values[keys_to_names[key]] = entry.value
@@ -196,10 +244,12 @@ module ActiveSupport
           key
         end
 
-        def deserialize_entry(payload)
-          entry = super
-          entry = Entry.new(entry) if entry && !entry.is_a?(Entry)
-          entry
+        def deserialize_entry(payload, raw:)
+          if payload && raw
+            Entry.new(payload)
+          else
+            super(payload)
+          end
         end
 
         def rescue_error_with(fallback)
