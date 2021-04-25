@@ -1364,10 +1364,12 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(ENV["RAILS_ENV"], "readonly", readonly_config)
 
+      teardown_shared_connection_pool
+
       handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-      handler.establish_connection(db_config.config)
       ActiveRecord::Base.connection_handlers = {}
       ActiveRecord::Base.connection_handler = handler
+      handler.establish_connection(db_config.config)
       ActiveRecord::Base.connects_to(database: { writing: :default, reading: :readonly })
 
       setup_shared_connection_pool
