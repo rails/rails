@@ -282,6 +282,11 @@ module ActiveRecord
       new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
+    def changes_applied # :nodoc:
+      @_already_called[:changes_applied] = true
+      super
+    end
+
     private
       # Track if this record is currently being saved.
       # Autosave can call save multiple times on the same record. Some methods
@@ -528,11 +533,6 @@ module ActiveRecord
 
       def _ensure_no_duplicate_errors
         errors.uniq!
-      end
-
-      def changes_applied
-        @_already_called[:changes_applied] = true
-        super
       end
 
       # Call +changes_applied+ at least once or if attributes changed
