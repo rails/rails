@@ -110,7 +110,7 @@ Migrations are stored as files in the `db/migrate` directory, one for each
 migration class. The name of the file is of the form
 `YYYYMMDDHHMMSS_create_products.rb`, that is to say a UTC timestamp
 identifying the migration followed by an underscore followed by the name
-of the migration. The name of the migration class (CamelCased version)
+of the migration. The name of the migration class (PascalCased version)
 should match the latter part of the file name. For example
 `20080906120000_create_products.rb` should define class `CreateProducts` and
 `20080906120001_add_details_to_products.rb` should define
