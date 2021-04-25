@@ -1400,7 +1400,7 @@ module ActiveRecord
         # [:disable_joins]
         #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
         #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
-        #   due to database limitions. This option is only applicable on `has_many :through` associations as
+        #   due to database limitations. This option is only applicable on `has_many :through` associations as
         #   `has_many` alone do not perform a join.
         #
         #   If the association on the join model is a #belongs_to, the collection can be modified
