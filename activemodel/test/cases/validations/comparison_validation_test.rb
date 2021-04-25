@@ -301,7 +301,7 @@ class ComparisonValidationTest < ActiveModel::TestCase
         Topic.validates_comparison_of(:approved)
       end
     assert_equal "Expected one of :greater_than, :greater_than_or_equal_to, :equal_to," \
-                 " :less_than, :less_than_or_equal_to, nor :other_than supplied.", error.message
+                 " :less_than, :less_than_or_equal_to, or :other_than option to be supplied.", error.message
   end
 
   private
