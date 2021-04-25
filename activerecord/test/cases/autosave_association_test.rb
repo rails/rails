@@ -524,8 +524,8 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_not_predicate invalid_electron, :valid?
     assert_predicate valid_electron, :valid?
     assert_not_predicate molecule, :valid?
-    assert_equal ["can't be blank"], molecule.errors["electrons[1].name"]
-    assert_not_equal ["can't be blank"], molecule.errors["electrons.name"]
+    assert_equal ["can’t be blank"], molecule.errors["electrons[1].name"]
+    assert_not_equal ["can’t be blank"], molecule.errors["electrons.name"]
   ensure
     ActiveRecord.index_nested_attribute_errors = old_attribute_config
   end
@@ -1332,7 +1332,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.ship.name   = ""
     @pirate.catchphrase = nil
     assert_predicate @pirate, :invalid?
-    assert_equal ["can't be blank", "is invalid"], @pirate.errors[:"ship.name"]
+    assert_equal ["can’t be blank", "is invalid"], @pirate.errors[:"ship.name"]
   ensure
     Ship._validators = old_validators if old_validators
     Ship._validate_callbacks = old_callbacks if old_callbacks
@@ -1603,7 +1603,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.public_send(@association_name).each { |child| child.name = "" }
 
     assert_not_predicate @pirate, :valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can’t be blank"], @pirate.errors["#{@association_name}.name"]
     assert_empty @pirate.errors[@association_name]
   end
 
@@ -1611,7 +1611,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.public_send(@association_name).build(name: "")
 
     assert_not_predicate @pirate, :valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can’t be blank"], @pirate.errors["#{@association_name}.name"]
     assert_empty @pirate.errors[@association_name]
   end
 
@@ -1635,7 +1635,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.catchphrase = nil
 
     assert_not_predicate @pirate, :valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can’t be blank"], @pirate.errors["#{@association_name}.name"]
     assert_predicate @pirate.errors[:catchphrase], :any?
   end
 

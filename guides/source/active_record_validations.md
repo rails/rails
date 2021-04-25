@@ -205,21 +205,21 @@ irb> p.errors.size
 irb> p.valid?
 => false
 irb> p.errors.objects.first.full_message
-=> "Name can't be blank"
+=> "Name can’t be blank"
 
 irb> p = Person.create
 => #<Person id: nil, name: nil>
 irb> p.errors.objects.first.full_message
-=> "Name can't be blank"
+=> "Name can’t be blank"
 
 irb> p.save
 => false
 
 irb> p.save!
-ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+ActiveRecord::RecordInvalid: Validation failed: Name can’t be blank
 
 irb> Person.create!
-ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+ActiveRecord::RecordInvalid: Validation failed: Name can’t be blank
 ```
 
 [`invalid?`][] is the inverse of `valid?`. It triggers your validations,
@@ -385,7 +385,7 @@ class Person < ApplicationRecord
 end
 ```
 
-The default error message for this helper is _"doesn't match confirmation"_.
+The default error message for this helper is _"doesn’t match confirmation"_.
 
 ### `comparison`
 
@@ -940,7 +940,7 @@ irb> person = Person.new
 irb> person.valid?(:account_setup)
 => false
 irb> person.errors.messages
-=> {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can't be blank"]}
+=> {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can’t be blank"]}
 ```
 
 Strict Validations
@@ -957,7 +957,7 @@ end
 
 ```irb
 irb> Person.new.valid?
-ActiveModel::StrictValidationFailed: Name can't be blank
+ActiveModel::StrictValidationFailed: Name can’t be blank
 ```
 
 There is also the ability to pass a custom exception to the `:strict` option.
@@ -970,7 +970,7 @@ end
 
 ```irb
 irb> Person.new.valid?
-TokenGenerationException: Token can't be blank
+TokenGenerationException: Token can’t be blank
 ```
 
 Conditional Validation
@@ -1188,7 +1188,7 @@ irb> person = Person.new
 irb> person.valid?
 => false
 irb> person.errors.full_messages
-=> ["Name can't be blank", "Name is too short (minimum is 3 characters)"]
+=> ["Name can’t be blank", "Name is too short (minimum is 3 characters)"]
 
 irb> person = Person.new(name: "John Doe")
 irb> person.valid?
@@ -1226,7 +1226,7 @@ irb> person = Person.new
 irb> person.valid?
 => false
 irb> person.errors[:name]
-=> ["can't be blank", "is too short (minimum is 3 characters)"]
+=> ["can’t be blank", "is too short (minimum is 3 characters)"]
 ```
 
 ### `errors.where` and error object

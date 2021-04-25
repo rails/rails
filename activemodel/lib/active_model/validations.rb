@@ -297,7 +297,7 @@ module ActiveModel
     #
     #   person = Person.new
     #   person.valid? # => false
-    #   person.errors # => #<ActiveModel::Errors:0x007fe603816640 @messages={name:["can't be blank"]}>
+    #   person.errors # => #<ActiveModel::Errors:0x007fe603816640 @messages={name:["can’t be blank"]}>
     def errors
       @errors ||= Errors.new(self)
     end

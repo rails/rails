@@ -261,7 +261,7 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add(:name, :blank)
 
     assert_equal :blank, person.errors.objects.first.type
-    assert_equal ["can't be blank"], person.errors[:name]
+    assert_equal ["can’t be blank"], person.errors[:name]
   end
 
   test "add, with type as String" do
@@ -298,7 +298,7 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add(:name, type)
 
     assert_equal :blank, person.errors.objects.first.type
-    assert_equal ["can't be blank"], person.errors[:name]
+    assert_equal ["can’t be blank"], person.errors[:name]
   end
 
   test "initialize options[:message] as Proc, which evaluates to String" do
@@ -749,7 +749,7 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add(:name, :blank)
     person.errors.merge!(errors)
 
-    assert_equal({ name: ["can't be blank", "is invalid"] }, person.errors.messages)
+    assert_equal({ name: ["can’t be blank", "is invalid"] }, person.errors.messages)
     assert_equal({ name: [{ error: :blank }, { error: :invalid }] }, person.errors.details)
   end
 

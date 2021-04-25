@@ -2820,7 +2820,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_predicate pirate, :valid?
     assert_not pirate.valid?(:conference)
-    assert_equal "can't be blank", ship.errors[:name].first
+    assert_equal "can’t be blank", ship.errors[:name].first
   end
 
   test "association with instance dependent scope" do

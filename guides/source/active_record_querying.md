@@ -1959,7 +1959,7 @@ to your `Customer` model. If you try to create a new `Customer` without passing 
 
 ```irb
 irb> Customer.find_or_create_by!(first_name: 'Andy')
-ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
+ActiveRecord::RecordInvalid: Validation failed: Orders count can’t be blank
 ```
 
 [`find_or_create_by!`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-find_or_create_by-21

@@ -1,3 +1,9 @@
+*   Improve typography of user facing error messages. In English contractions,
+    the Unicode APOSTROPHE (U+0027) is now RIGHT SINGLE QUOTATION MARK
+    (U+2019). For example, “can't be blank” is now “can’t be blank”.
+
+    *Jon Dufresne*
+
 *   Clear secure password cache if password is set to `nil`
 
     Before:
@@ -71,8 +77,5 @@
 
     *Lukas Pokorny*
 
-*   Make ActiveModel::Errors#inspect slimmer for readability
-
-    *lulalala*
 
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/activemodel/CHANGELOG.md) for previous changes.

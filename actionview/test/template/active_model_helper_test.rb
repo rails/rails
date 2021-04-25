@@ -20,7 +20,7 @@ class ActiveModelHelperTest < ActionView::TestCase
     super
 
     @post = Post.new
-    assert_deprecated { @post.errors[:author_name] << "can't be empty" }
+    assert_deprecated { @post.errors[:author_name] << "can’t be empty" }
     assert_deprecated { @post.errors[:body] << "foo" }
     assert_deprecated { @post.errors[:category] << "must exist" }
     assert_deprecated { @post.errors[:published] << "must be accepted" }
@@ -163,7 +163,7 @@ class ActiveModelHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal(
-      %(<div class="field_with_errors"><input id="post_author_name" name="post[author_name]" type="text" value="" /> <span class="error">can't be empty</span></div>),
+      %(<div class="field_with_errors"><input id="post_author_name" name="post[author_name]" type="text" value="" /> <span class="error">can’t be empty</span></div>),
       text_field("post", "author_name")
     )
   ensure
