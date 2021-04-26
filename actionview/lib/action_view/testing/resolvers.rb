@@ -24,10 +24,8 @@ module ActionView #:nodoc:
 
     private
       def template_glob(glob)
-        @hash.keys.select do |path|
-          File.fnmatch(glob, path)
-        end.map do |fixture|
-          "/#{fixture}"
+        @hash.keys.filter_map do |path|
+          "/#{path}" if File.fnmatch(glob, path)
         end
       end
 
