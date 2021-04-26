@@ -39,7 +39,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   def test_include?
     errors = ActiveModel::Errors.new(Person.new)
-    assert_deprecated { errors[:foo] << "omg" }
+    errors.add(:foo, "omg")
     assert_includes errors, :foo, "errors should include :foo"
     assert_includes errors, "foo", "errors should include 'foo' as :foo"
   end
@@ -108,15 +108,6 @@ class ErrorsTest < ActiveModel::TestCase
 
     assert_equal 1, person.errors.count
     person.errors.clear
-    assert_empty person.errors
-  end
-
-  test "clear errors by key" do
-    person = Person.new
-    person.validate!
-
-    assert_equal 1, person.errors.count
-    assert_deprecated { person.errors[:name].clear }
     assert_empty person.errors
   end
 
@@ -599,15 +590,6 @@ class ErrorsTest < ActiveModel::TestCase
       },
       errors.details
     )
-  end
-
-  test "messages delete (deprecated)" do
-    person = Person.new
-    person.validate!
-
-    assert_equal 1, person.errors.count
-    assert_deprecated { person.errors.messages.delete(:name) }
-    assert_empty person.errors
   end
 
   test "group_by_attribute" do
