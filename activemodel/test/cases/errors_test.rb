@@ -127,52 +127,12 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["omg"], errors["name"]
   end
 
-  test "values returns an array of messages" do
-    errors = ActiveModel::Errors.new(Person.new)
-    assert_deprecated { errors.messages[:foo] = "omg" }
-    assert_deprecated { errors.messages[:baz] = "zomg" }
-
-    assert_deprecated do
-      assert_equal ["omg", "zomg"], errors.values
-    end
-  end
-
   test "[]= overrides values" do
     errors = ActiveModel::Errors.new(self)
     assert_deprecated { errors.messages[:foo] = "omg" }
     assert_deprecated { errors.messages[:foo] = "zomg" }
 
     assert_equal ["zomg"], errors[:foo]
-  end
-
-  test "values returns an empty array after try to get a message only" do
-    errors = ActiveModel::Errors.new(Person.new)
-    errors.messages[:foo]
-    errors.messages[:baz]
-
-    assert_deprecated do
-      assert_equal [], errors.values
-    end
-  end
-
-  test "keys returns the error keys" do
-    errors = ActiveModel::Errors.new(Person.new)
-    assert_deprecated { errors.messages[:foo] << "omg" }
-    assert_deprecated { errors.messages[:baz] << "zomg" }
-
-    assert_deprecated do
-      assert_equal [:foo, :baz], errors.keys
-    end
-  end
-
-  test "keys returns an empty array after try to get a message only" do
-    errors = ActiveModel::Errors.new(Person.new)
-    errors.messages[:foo]
-    errors.messages[:baz]
-
-    assert_deprecated do
-      assert_equal [], errors.keys
-    end
   end
 
   test "attribute_names returns the error attributes" do
@@ -763,30 +723,6 @@ class ErrorsTest < ActiveModel::TestCase
 
     assert(person.errors.added?(:name, :invalid))
     assert(person.errors.added?(:name, :blank))
-  end
-
-  test "slice! removes all errors except the given keys" do
-    person = Person.new
-    person.errors.add(:name, "cannot be nil")
-    person.errors.add(:age, "cannot be nil")
-    person.errors.add(:gender, "cannot be nil")
-    person.errors.add(:city, "cannot be nil")
-
-    assert_deprecated { person.errors.slice!(:age, "gender") }
-
-    assert_equal [:age, :gender], assert_deprecated { person.errors.keys }
-  end
-
-  test "slice! returns the deleted errors" do
-    person = Person.new
-    person.errors.add(:name, "cannot be nil")
-    person.errors.add(:age, "cannot be nil")
-    person.errors.add(:gender, "cannot be nil")
-    person.errors.add(:city, "cannot be nil")
-
-    removed_errors = assert_deprecated { person.errors.slice!(:age, "gender") }
-
-    assert_equal({ name: ["cannot be nil"], city: ["cannot be nil"] }, removed_errors)
   end
 
   test "errors are marshalable" do
