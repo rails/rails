@@ -835,6 +835,7 @@ module ActiveRecord
         self.class.unscoped { _find_record(options) }
       end
 
+      @association_cache = fresh_object.instance_variable_get(:@association_cache)
       @attributes = fresh_object.instance_variable_get(:@attributes)
       @new_record = false
       @previously_new_record = false
@@ -893,11 +894,17 @@ module ActiveRecord
     end
 
   private
+    def strict_loaded_associations
+      @association_cache.find_all do |_, assoc|
+        assoc.owner.strict_loading? && !assoc.owner.strict_loading_n_plus_one_only?
+      end.map(&:first)
+    end
+
     def _find_record(options)
       if options && options[:lock]
-        self.class.lock(options[:lock]).find(id)
+        self.class.preload(strict_loaded_associations).lock(options[:lock]).find(id)
       else
-        self.class.find(id)
+        self.class.preload(strict_loaded_associations).find(id)
       end
     end
 

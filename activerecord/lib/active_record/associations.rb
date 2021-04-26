@@ -326,11 +326,6 @@ module ActiveRecord
       super
     end
 
-    def reload(*) # :nodoc:
-      clear_association_cache
-      super
-    end
-
     private
       # Clears out the association cache.
       def clear_association_cache
