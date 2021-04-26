@@ -256,6 +256,18 @@ module ActiveRecord
         end
       end
 
+      def remove_columns(table_name, *column_names, type: nil, **options) # :nodoc:
+        alter_table(table_name) do |definition|
+          column_names.each do |column_name|
+            definition.remove_column column_name
+          end
+          column_names = column_names.map(&:to_s)
+          definition.foreign_keys.delete_if do |_, fk_options|
+            column_names.include?(fk_options[:column])
+          end
+        end
+      end
+
       def change_column_default(table_name, column_name, default_or_changes) #:nodoc:
         default = extract_new_default_value(default_or_changes)
 

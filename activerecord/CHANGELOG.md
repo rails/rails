@@ -1,3 +1,17 @@
+*   Optimize `remove_columns` to use a single SQL statement.
+
+    ```ruby
+    remove_columns :my_table, :col_one, :col_two
+    ```
+
+    Now results in the following SQL:
+
+    ```sql
+    ALTER TABLE "my_table" DROP COLUMN "col_one", DROP COLUMN "col_two"
+    ```
+
+    *Jon Dufresne*
+
 *   Ensure `has_one` autosave association callbacks get called once.
 
     Change the `has_one` autosave callback to be non cyclic as well.
