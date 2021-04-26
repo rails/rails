@@ -234,7 +234,9 @@ module ActiveModel
     #
     # Updating this hash would not update errors state.
     def messages
-      self
+      hash = to_hash
+      hash.default = []
+      hash
     end
 
     # Returns a Hash of attributes with an array of their error details.
@@ -244,6 +246,8 @@ module ActiveModel
       hash = group_by_attribute.transform_values do |errors|
         errors.map(&:details)
       end
+      hash.default = []
+      hash
     end
 
     # Returns a Hash of attributes with an array of their Error objects.
