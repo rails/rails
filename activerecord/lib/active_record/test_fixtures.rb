@@ -111,12 +111,11 @@ module ActiveRecord
       @fixture_connections = []
       @@already_loaded_fixtures ||= {}
       @connection_subscriber = nil
+      @legacy_saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
+      @saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
 
       # Load fixtures once and begin transaction.
       if run_in_transaction?
-        @legacy_saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
-        @saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
-
         if @@already_loaded_fixtures[self.class]
           @loaded_fixtures = @@already_loaded_fixtures[self.class]
         else
