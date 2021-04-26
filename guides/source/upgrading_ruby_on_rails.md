@@ -122,6 +122,35 @@ This has consequences for things like Etags that will change and cache keys as w
 Changing these keys can have impact on cache hit rates, so be careful and watch out
 for this when upgrading to the new hash.
 
+### New ActiveSupport::Cache serialization format
+
+A faster and more compact serialization format was introduced.
+
+To enable it you must set `config.active_support.cache_format_version = 7.0`:
+
+```ruby
+# config/application.rb
+
+config.load_defaults(6.1)
+config.active_support.cache_format_version = 7.0
+```
+
+Or simply:
+
+```ruby
+# config/application.rb
+
+config.load_defaults(7.0)
+```
+
+However Rails 6.1 applications are not able to read this new serialization format,
+so to ensure a seemless upgrade you must first deploy your Rails 7.0 upgrade with
+`config.active_support.cache_format_version = 6.1`, and then only once all Rails
+processes have been updated you can set `config.active_support.cache_format_version = 7.0`.
+
+Rails 7.0 is able to read both formats so the cache won't be invalidated during the
+upgrade.
+
 Upgrading from Rails 6.0 to Rails 6.1
 -------------------------------------
 
