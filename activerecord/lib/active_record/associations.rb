@@ -1555,6 +1555,22 @@ module ActiveRecord
         #
         #   If you are going to modify the association (rather than just read from it), then it is
         #   a good idea to set the <tt>:inverse_of</tt> option.
+        # [:disable_joins]
+        #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
+        #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
+        #   due to database limitations. This option is only applicable on `has_one :through` associations as
+        #   `has_one` alone does not perform a join.
+        #
+        #   If the association on the join model is a #belongs_to, the collection can be modified
+        #   and the records on the <tt>:through</tt> model will be automatically created and removed
+        #   as appropriate. Otherwise, the collection is read-only, so you should manipulate the
+        #   <tt>:through</tt> association directly.
+        #
+        #   If you are going to modify the association (rather than just read from it), then it is
+        #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
+        #   join model. This allows associated records to be built which will automatically create
+        #   the appropriate join model records when they are saved. (See the 'Association Join Models'
+        #   section above.)
         # [:source]
         #   Specifies the source association name used by #has_one <tt>:through</tt> queries.
         #   Only use it if the name cannot be inferred from the association.
@@ -1596,6 +1612,7 @@ module ActiveRecord
         #   has_one :attachment, as: :attachable
         #   has_one :boss, -> { readonly }
         #   has_one :club, through: :membership
+        #   has_one :club, through: :membership, disable_joins: true
         #   has_one :primary_address, -> { where(primary: true) }, through: :addressables, source: :addressable
         #   has_one :credit_card, required: true
         #   has_one :credit_card, strict_loading: true

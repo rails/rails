@@ -1,3 +1,27 @@
+*   Add option to disable joins for `has_one` associations.
+
+    In a multiple database application, associations can't join across
+    databases. When set, this option instructs Rails to generate 2 or
+    more queries rather than generating joins for `has_one` associations.
+
+    Set the option on a has one through association:
+
+    ```ruby
+    class Person
+      belongs_to :dog
+      has_one :veterinarian, through: :dog, disable_joins: true
+    end
+    ```
+
+    Then instead of generating join SQL, two queries are used for `@person.veterinarian`:
+
+    ```
+    SELECT "dogs"."id" FROM "dogs" WHERE "dogs"."person_id" = ?  [["person_id", 1]]
+    SELECT "veterinarians".* FROM "veterinarians" WHERE "veterinarians"."dog_id" = ?  [["dog_id", 1]]
+    ```
+
+    *Sarah Vessels*, *Eileen M. Uchitelle*
+
 *   `Arel::Visitors::Dot` now renders a complete set of properties when visiting
     `Arel::Nodes::SelectCore`, `SelectStatement`, `InsertStatement`, `UpdateStatement`, and
     `DeleteStatement`, which fixes #42026. Previously, some properties were omitted.
