@@ -555,7 +555,7 @@ module ActiveRecord
           columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
           @columns_hash = columns_hash.freeze
           @columns_hash.each do |name, column|
-            type = connection.lookup_cast_type_from_column(column)
+            type = column.cast_type || connection.lookup_cast_type_from_column(column)
             type = _convert_type_from_options(type)
             warn_if_deprecated_type(column)
             define_attribute(

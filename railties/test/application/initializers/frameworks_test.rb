@@ -253,19 +253,15 @@ module ApplicationTests
 
     test "expire schema cache dump if the version can't be checked because the database is unhealthy" do
       rails %w(generate model post title:string)
-      rails %w(db:migrate db:schema:cache:dump)
+      rails %w(db:migrate db:schema:cache:dump db:rollback)
 
       add_to_config <<-RUBY
         config.eager_load = true
       RUBY
 
-      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+      ActiveRecord::Migrator.stub(:current_version, -> { raise ActiveRecord::ConnectionNotEstablished }) do
         require "#{app_path}/config/environment"
-
-        assert_nil ActiveRecord::Base.connection_pool.schema_cache
-        assert_raises ActiveRecord::ConnectionNotEstablished do
-          ActiveRecord::Base.connection.execute("SELECT 1")
-        end
+        assert_not ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")
       end
     end
 
@@ -291,13 +287,10 @@ module ApplicationTests
         config.active_record.check_schema_cache_dump_version = false
       RUBY
 
-      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+      ActiveRecord::Migrator.stub(:current_version, -> { raise ActiveRecord::ConnectionNotEstablished }) do
         require "#{app_path}/config/environment"
 
         assert ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")
-        assert_raises ActiveRecord::ConnectionNotEstablished do
-          ActiveRecord::Base.connection.execute("SELECT 1")
-        end
       end
     end
 

@@ -1475,6 +1475,7 @@ module ActiveRecord
           cast_type = lookup_cast_type(sql_type)
           SqlTypeMetadata.new(
             sql_type: sql_type,
+            cast_type: cast_type,
             type: cast_type.type,
             limit: cast_type.limit,
             precision: cast_type.precision,
