@@ -833,8 +833,8 @@ config.action_mailer.default_options = {from: 'no-reply@example.com'}
 
 ### Action Mailer Configuration for Gmail
 
-As Action Mailer now uses the [Mail gem](https://github.com/mikel/mail), this
-becomes as simple as adding to your `config/environments/$RAILS_ENV.rb` file:
+Action Mailer uses the [Mail gem](https://github.com/mikel/mail) and accepts similar configuration.
+Add this to your `config/environments/$RAILS_ENV.rb` file to send via Gmail:
 
 ```ruby
 config.action_mailer.delivery_method = :smtp
@@ -848,10 +848,9 @@ config.action_mailer.smtp_settings = {
   enable_starttls_auto: true }
 ```
 
-NOTE: As of July 15, 2014, Google increased [its security measures](https://support.google.com/accounts/answer/6010255) and now blocks attempts from apps it deems less secure.
+NOTE: On July 15, 2014 Google increased [its security measures](https://support.google.com/accounts/answer/6010255) to block attempts from apps it deems less secure.
 You can change your Gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts. If your Gmail account has 2-factor authentication enabled,
-then you will need to set an [app password](https://myaccount.google.com/apppasswords) and use that instead of your regular password. Alternatively, you can
-use another ESP to send email by replacing 'smtp.gmail.com' above with the address of your provider.
+then you will need to set an [app password](https://myaccount.google.com/apppasswords) and use that instead of your regular password.
 
 Mailer Testing
 --------------
