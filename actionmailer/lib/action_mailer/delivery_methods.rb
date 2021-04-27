@@ -24,6 +24,8 @@ module ActionMailer
         user_name:            nil,
         password:             nil,
         authentication:       nil,
+        open_timeout:         5,
+        read_timeout:         5,
         enable_starttls_auto: true
 
       add_delivery_method :file, Mail::FileDelivery,
