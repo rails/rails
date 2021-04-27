@@ -578,6 +578,7 @@ DEPENDENCIES
   azure-storage-blob
   backburner
   bcrypt (~> 3.1.11)
+  beaneater (= 1.0.0)
   benchmark-ips
   blade
   bootsnap (>= 1.4.4)
