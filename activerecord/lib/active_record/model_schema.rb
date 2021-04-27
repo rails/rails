@@ -523,8 +523,20 @@ module ActiveRecord
         end
 
       private
+        class LazyConnectionProxy < SimpleDelegator # :nodoc:
+          private
+            def __getobj__
+              @connection ||= super.connection
+            end
+        end
+
         def schema_cache
-          connection_pool.schema_cache || connection.schema_cache
+          if cache = connection_pool.schema_cache
+            cache.connection = LazyConnectionProxy.new(self)
+            cache
+          else
+            connection.schema_cache
+          end
         end
 
         def inherited(child_class)
