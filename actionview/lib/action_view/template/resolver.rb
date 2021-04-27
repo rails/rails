@@ -324,12 +324,12 @@ module ActionView
         query = File.join(escape_entry(@path), glob)
         path_with_slash = File.join(@path, "")
 
-        Dir.glob(query).reject do |filename|
-          File.directory?(filename)
-        end.map do |filename|
-          File.expand_path(filename)
-        end.select do |filename|
-          filename.start_with?(path_with_slash)
+        Dir.glob(query).filter_map do |filename|
+          filename = File.expand_path(filename)
+          next if File.directory?(filename)
+          next unless filename.start_with?(path_with_slash)
+
+          filename
         end
       end
 
