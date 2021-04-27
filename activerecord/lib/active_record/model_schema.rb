@@ -378,7 +378,7 @@ module ActiveRecord
 
       # Indicates whether the table associated with this class exists
       def table_exists?
-        connection.schema_cache.data_source_exists?(table_name)
+        schema_cache.data_source_exists?(table_name)
       end
 
       def attributes_builder # :nodoc:
@@ -523,6 +523,10 @@ module ActiveRecord
         end
 
       private
+        def schema_cache
+          connection_pool.schema_cache || connection.schema_cache
+        end
+
         def inherited(child_class)
           super
           child_class.initialize_load_schema_monitor
@@ -551,7 +555,7 @@ module ActiveRecord
             raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
           end
 
-          columns_hash = connection.schema_cache.columns_hash(table_name)
+          columns_hash = schema_cache.columns_hash(table_name)
           columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
           @columns_hash = columns_hash.freeze
           @columns_hash.each do |name, column|
