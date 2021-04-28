@@ -154,7 +154,7 @@ $ gem install rails
 ```
 
 To verify that you have everything installed correctly, you should be able to
-run the following:
+run the following in a new terminal:
 
 ```bash
 $ rails --version
