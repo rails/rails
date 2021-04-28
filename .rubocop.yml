@@ -258,9 +258,11 @@ Performance/FlatMap:
 
 Performance/MapCompact:
   Enabled: true
+  Exclude: []
 
 Performance/SelectMap:
   Enabled: true
+  Exclude: []
 
 Performance/RedundantMerge:
   Enabled: true

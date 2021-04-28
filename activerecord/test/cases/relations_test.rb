@@ -500,7 +500,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_select_with_block
-    even_ids = Developer.all.select { |d| d.id % 2 == 0 }.map(&:id)
+    even_ids = Developer.all.filter_map { |d| d.id if d.id % 2 == 0 }
     assert_equal [2, 4, 6, 8, 10], even_ids.sort
   end
 

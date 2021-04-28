@@ -1000,7 +1000,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_select_with_block
-    assert_equal [1], posts(:welcome).comments.select { |c| c.id == 1 }.map(&:id)
+    assert_equal [1], posts(:welcome).comments.filter_map { |c| c.id if c.id == 1 }
   end
 
   def test_select_with_block_and_dirty_target
