@@ -30,7 +30,7 @@
 
 # Change the format of the cache entry.
 # Changing this default means that all new cache entries added to the cache
-# will have a different format that is not support by Rails 6.1 applications.
+# will have a different format that is not supported by Rails 6.1 applications.
 # Only change this value after your application is fully deployed to Rails 7.0
 # and you have no plans to rollback.
 # config.active_support.cache_format_version = 7.0
