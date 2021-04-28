@@ -468,7 +468,8 @@ module ActiveRecord
 
             columns.map do |name, column|
               if fixture.key?(name)
-                with_yaml_fallback(column.cast_type.serialize(fixture[name]))
+                type = lookup_cast_type_from_column(column)
+                with_yaml_fallback(type.serialize(fixture[name]))
               else
                 default_insert_value(column)
               end
