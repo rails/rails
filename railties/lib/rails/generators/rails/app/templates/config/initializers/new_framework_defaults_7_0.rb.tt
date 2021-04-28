@@ -34,3 +34,6 @@
 # Only change this value after your application is fully deployed to Rails 7.0
 # and you have no plans to rollback.
 # config.active_support.cache_format_version = 7.0
+
+# Set both the `:open_timeout` and `:read_timeout` values for `:smtp` delivery method.
+# Rails.application.config.action_mailer.smtp_timeout = 5

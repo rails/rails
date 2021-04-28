@@ -2666,6 +2666,25 @@ module ApplicationTests
       assert_equal 308, Rails.application.config.action_dispatch.ssl_default_redirect_status
     end
 
+    test "Rails.application.config.action_mailer.smtp_settings have open_timeout and read_timeout defined as 5 in 7.0 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+
+      app "development"
+
+      assert_equal 5, ActionMailer::Base.smtp_settings[:open_timeout]
+      assert_equal 5, ActionMailer::Base.smtp_settings[:read_timeout]
+    end
+
+    test "Rails.application.config.action_mailer.smtp_settings does not have open_timeout and read_timeout configured on other versions" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_nil ActionMailer::Base.smtp_settings[:open_timeout]
+      assert_nil ActionMailer::Base.smtp_settings[:read_timeout]
+    end
+
     test "ActiveSupport.utc_to_local_returns_utc_offset_times is true in 6.1 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "6.1"'

@@ -784,6 +784,9 @@ There are a number of settings available on `config.action_mailer`:
     * `:open_timeout` - Number of seconds to wait while attempting to open a connection.
     * `:read_timeout` - Number of seconds to wait until timing-out a read(2) call.
 
+* `config.action_mailer.smtp_timeout` allows to configure both the `:open_timeout` and `:read_timeout`
+values for `:smtp` delivery method.
+
 * `config.action_mailer.sendmail_settings` allows detailed configuration for the `sendmail` delivery method. It accepts a hash of options, which can include any of these options:
     * `:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.
     * `:arguments` - The command line arguments. Defaults to `-i`.
@@ -1063,6 +1066,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.active_support.cache_format_version`: `7.0`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
+- `config.action_mailer.smtp_timeout`: `5`
 
 #### For '6.1', defaults from previous versions below and:
 
@@ -1141,6 +1145,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_support.cache_format_version`: `6.1`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `true`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
+- `config.action_mailer.smtp_timeout`: `nil`
 
 ### Configuring a Database
 

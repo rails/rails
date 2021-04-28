@@ -212,6 +212,10 @@ module Rails
             active_support.remove_deprecated_time_with_zone_name = true
             active_support.cache_format_version = 7.0
           end
+
+          if respond_to?(:action_mailer)
+            action_mailer.smtp_timeout = 5
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
