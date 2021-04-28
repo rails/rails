@@ -16,6 +16,20 @@ module ActionView
       end
     end
 
+    def self.parse(virtual)
+      if nameidx = virtual.rindex("/")
+        prefix = virtual[0, nameidx]
+        name = virtual.from(nameidx + 1)
+        prefix = prefix[1..] if prefix.start_with?("/")
+      else
+        prefix = ""
+        name = virtual
+      end
+      partial = name.start_with?("_")
+      name = name[1..] if partial
+      new name, prefix, partial, virtual
+    end
+
     def self.build(name, prefix, partial)
       new name, prefix, partial, virtual(name, prefix, partial)
     end
