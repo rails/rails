@@ -65,7 +65,6 @@ group :job do
   gem "sneakers", require: false
   gem "que", require: false
   gem "backburner", require: false
-  gem "beaneater", "=1.0.0", require: false
   gem "delayed_job_active_record", require: false
   gem "sequel", require: false
 end
