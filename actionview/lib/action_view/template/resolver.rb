@@ -197,7 +197,9 @@ module ActionView
       paths = template_glob("**/*")
       paths.map do |filename|
         filename.from(@path.size + 1).remove(/\.[^\/]*\z/)
-      end.uniq
+      end.uniq.map do |filename|
+        TemplatePath.parse(filename)
+      end
     end
 
     private

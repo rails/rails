@@ -45,5 +45,14 @@ module ActionView
       @virtual
     end
     alias :to_s :to_str
+
+    def hash
+      @virtual.hash
+    end
+
+    def eql?(other)
+      @virtual == other.virtual
+    end
+    alias :== :eql?
   end
 end
