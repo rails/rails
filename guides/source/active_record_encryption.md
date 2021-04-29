@@ -33,7 +33,7 @@ active_record_encryption:
   key_derivation_salt: xEY0dt6TZcAMg52K7O84wYzkjvbA62Hz
 ```
 
-NOTE: These generated keys and salt are 32 bytes length. If you generate these yourself, the minimum lengths you should use are 12 bytes for the master key (this will be used to derive the AES 32 bytes key) and 20 bytes for the salt.
+NOTE: These generated keys and salt are 32 bytes length. If you generate these yourself, the minimum lengths you should use are 12 bytes for the primary key (this will be used to derive the AES 32 bytes key) and 20 bytes for the salt.
 
 ### Declaration of encrypted attributes
 
@@ -254,14 +254,14 @@ A key provider that will serve keys derived from the provided passwords using PB
 config.active_record.encryption.key_provider = ActiveRecord::Encryption::DerivedSecretKeyProvider.new(["some passwords", "to derive keys from. ", "These should be in", "credentials"])
 ```
 
-NOTE: By default, `active_record.encryption` configures a `DerivedSecretKeyProvider` with the keys defined in `active_record.encryption.master_key`.
+NOTE: By default, `active_record.encryption` configures a `DerivedSecretKeyProvider` with the keys defined in `active_record.encryption.primary_key`.
 
 #### EnvelopeEncryptionKeyProvider
 
 Implements a simple [envelope encryption](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#enveloping) strategy:
 
 - It generates a random key for each data-encryption operation
-- It stores the data-key with the data itself, encrypted with a master key defined in the credential `active_record.encryption.master_key`.
+- It stores the data-key with the data itself, encrypted with a primary key defined in the credential `active_record.encryption.primary_key`.
 
 You can configure by adding this to your `application.rb`:
 
@@ -269,7 +269,7 @@ You can configure by adding this to your `application.rb`:
 config.active_record.encryption.key_provider = ActiveRecord::Encryption::EnvelopeEncryptionKeyProvider.new
 ```
 
-As with other built-in key providers, you can provide a list of master keys in `active_record.encryption.master_key`, to implement key-rotation schemes.
+As with other built-in key providers, you can provide a list of primary keys in `active_record.encryption.primary_key`, to implement key-rotation schemes.
 
 ### Custom key providers
 
@@ -330,7 +330,7 @@ The key will be used internally to derive the key used to encrypt and decrypt th
 ```yml
 active_record
   encryption:
-    master_key:
+    primary_key:
         - bc17e7b413fd4720716a7633027f8cc4 # Active, encrypts new content
         - a1cc4d7b9f420e40a337b9e68c5ecec6 # Previous keys can still decrypt existing content
     key_derivation_salt: a3226b97b3b2f8372d1fc6d497a0c0d3
@@ -401,7 +401,7 @@ The available config options are:
 | `add_to_filter_parameters`                                   | When true, encrypted attribute names are added automatically to the [list of filtered params](https://guides.rubyonrails.org/configuring.html#rails-general-configuration) that won't be shown in logs. Default: true. |
 | `excluded_from_filter_parameters`                            | You can configure a list of params that won't be filtered out when `add_to_filter_parameters` is true. Default: []. |
 | `validate_column_size`                                        | Adds a validation based on the column size. This is recommended to prevent storing huge values using highly compressible payloads. Default: true. |
-| `master_key`                                                 | The key or lists of keys that is used to derive root data-encryption keys. They way they are used depends on the key provider configured. It's preferred to configure it via a credential `active_record_encryption.master_key`. |
+| `primary_key`                                                 | The key or lists of keys that is used to derive root data-encryption keys. They way they are used depends on the key provider configured. It's preferred to configure it via a credential `active_record_encryption.primary_key`. |
 | `deterministic_key`                                          | The key or list of keys used for deterministic encryption. It's preferred to configure it via a credential `active_record_encryption.deterministic_key`. |
 | `key_derivation_salt`                                        | The salt used when deriving keys. It's preferred to configure it via a credential `active_record_encryption.key_derivation_salt`. |
 

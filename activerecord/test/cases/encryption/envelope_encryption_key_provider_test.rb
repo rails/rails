@@ -16,7 +16,7 @@ class ActiveRecord::Encryption::EnvelopeEncryptionKeyProviderTest < ActiveRecord
     assert_equal 32, @key_provider.encryption_key.secret.bytesize
   end
 
-  test "generated random keys carry their secret encrypted with the master key" do
+  test "generated random keys carry their secret encrypted with the primary key" do
     key = @key_provider.encryption_key
     encrypted_secret = key.public_tags.encrypted_data_key
     assert_equal key.secret, ActiveRecord::Encryption.cipher.decrypt(encrypted_secret, key: @key_provider.active_primary_key.secret)
