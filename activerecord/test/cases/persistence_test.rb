@@ -470,6 +470,22 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal("David", topic_reloaded.author_name)
   end
 
+  def test_update_attribute_after_update
+    klass = Class.new(Topic) do
+      def self.name; "Topic"; end
+      after_update :update_author, if: :saved_change_to_title?
+      def update_author
+        update_attribute("author_name", "David")
+      end
+    end
+    topic = klass.create(title: "New Topic")
+    topic.update(title: "Another Topic")
+
+    topic_reloaded = Topic.find(topic.id)
+    assert_equal("Another Topic", topic_reloaded.title)
+    assert_equal("David", topic_reloaded.author_name)
+  end
+
   def test_update_attribute_does_not_run_sql_if_attribute_is_not_changed
     topic = Topic.create(title: "Another New Topic")
     assert_no_queries do
