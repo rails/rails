@@ -134,7 +134,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["admin/account"]
     assert_file "app/models/admin.rb", /module Admin/
     assert_file "app/models/admin.rb", /def self\.table_name_prefix/
-    assert_file "app/models/admin.rb", /'admin_'/
+    assert_file "app/models/admin.rb", /"admin_"/
     assert_file "app/models/admin/account.rb", /class Admin::Account < ApplicationRecord/
   end
 

@@ -40,12 +40,12 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "Gemfile" do |content|
-      assert_no_match(/gem 'sass-rails'/, content)
-      assert_no_match(/gem 'web-console'/, content)
-      assert_no_match(/gem 'capybara'/, content)
-      assert_no_match(/gem 'selenium-webdriver'/, content)
-      assert_match(/# gem 'jbuilder'/, content)
-      assert_match(/# gem 'rack-cors'/, content)
+      assert_no_match(/gem "sass-rails"/, content)
+      assert_no_match(/gem "web-console"/, content)
+      assert_no_match(/gem "capybara"/, content)
+      assert_no_match(/gem "selenium-webdriver"/, content)
+      assert_match(/# gem "jbuilder"/, content)
+      assert_match(/# gem "rack-cors"/, content)
     end
 
     assert_file "config/application.rb", /config\.api_only = true/
