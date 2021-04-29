@@ -515,6 +515,14 @@ class AssetTagHelperTest < ActionView::TestCase
     ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default = original_default_media
   end
 
+  def test_stylesheet_link_tag_without_default_extension_applied
+    assert_dom_equal %(<link href="/stylesheets/wellington.less" rel="stylesheet" />), stylesheet_link_tag("wellington.less", extname: false)
+  end
+
+  def test_javascript_include_tag_without_default_extension_applied
+    assert_dom_equal %(<script src="/javascripts/foo.jsx"></script>), javascript_include_tag("foo.jsx", extname: false)
+  end
+
   def test_javascript_include_tag_without_request
     @request = nil
     assert_dom_equal %(<script src="/javascripts/foo.js"></script>), javascript_include_tag("foo.js")

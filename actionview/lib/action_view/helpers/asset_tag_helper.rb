@@ -122,12 +122,29 @@ module ActionView
         sources_tags
       end
 
-      # Returns a stylesheet link tag for the sources specified as arguments. If
-      # you don't specify an extension, <tt>.css</tt> will be appended automatically.
+      # Returns a stylesheet link tag for the sources specified as arguments.
+      #
+      # When passing paths, the <tt>.css</tt> extension is optional.
+      # If you don't specify an extension, <tt>.css</tt> will be appended automatically.
+      # If you do not want <tt>.css</tt> appended to the path,
+      # set <tt>extname: false</tt> in the options.
       # You can modify the link attributes by passing a hash as the last argument.
       #
       # If the server supports Early Hints header links for these assets will be
       # automatically pushed.
+      #
+      # ==== Options
+      #
+      # * <tt>:extname</tt>  - Append an extension to the generated URL unless the extension
+      #   already exists. This only applies for relative URLs.
+      # * <tt>:protocol</tt>  - Sets the protocol of the generated URL. This option only
+      #   applies when a relative URL and +host+ options are provided.
+      # * <tt>:host</tt>  - When a relative URL is provided the host is added to the
+      #   that path.
+      # * <tt>:skip_pipeline</tt>  - This option is used to bypass the asset pipeline
+      #   when it is set to true.
+      #
+      # ==== Examples
       #
       #   stylesheet_link_tag "style"
       #   # => <link href="/assets/style.css" rel="stylesheet" />
@@ -137,6 +154,9 @@ module ActionView
       #
       #   stylesheet_link_tag "http://www.example.com/style.css"
       #   # => <link href="http://www.example.com/style.css" rel="stylesheet" />
+      #
+      #   stylesheet_link_tag "style.less", extname: false, skip_pipeline: true, rel: "stylesheet/less"
+      #   # => <link href="/stylesheets/style.less" rel="stylesheet/less">
       #
       #   stylesheet_link_tag "style", media: "all"
       #   # => <link href="/assets/style.css" media="all" rel="stylesheet" />
@@ -149,7 +169,7 @@ module ActionView
       #   #    <link href="/css/stylish.css" rel="stylesheet" />
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!("protocol", "host", "skip_pipeline").symbolize_keys
+        path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         preload_links = []
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
