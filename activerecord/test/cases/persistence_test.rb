@@ -486,6 +486,35 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal("David", topic_reloaded.author_name)
   end
 
+  def test_update_attribute_in_before_validation_respects_callback_chain
+    klass = Class.new(Topic) do
+      def self.name; "Topic"; end
+
+      before_validation :set_author_name
+      after_create :track_create
+      after_update :call_once, if: :saved_change_to_author_name?
+
+      attr_reader :counter
+
+      def set_author_name
+        update_attribute :author_name, "David"
+      end
+
+      def track_create
+        call_once if saved_change_to_author_name?
+      end
+
+      def call_once
+        @counter ||= 0
+        @counter += 1
+      end
+    end
+
+    comment = klass.create(title: "New Topic", author_name: "Not David")
+
+    assert_equal 1, comment.counter
+  end
+
   def test_update_attribute_does_not_run_sql_if_attribute_is_not_changed
     topic = Topic.create(title: "Another New Topic")
     assert_no_queries do
