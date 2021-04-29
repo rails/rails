@@ -1163,9 +1163,11 @@ For example, with the following decrypted `config/credentials.yml.enc`:
 ```yaml
 secret_key_base: 3b7cd72...
 some_api_key: SOMEKEY
+system:
+  access_key_id: 1234AB
 ```
 
-`Rails.application.credentials.some_api_key` returns `"SOMEKEY"`.
+`Rails.application.credentials.some_api_key` returns `"SOMEKEY"`. `Rails.application.credentials.system.access_key_id` returns `"1234AB"`.
 
 If you want an exception to be raised when some key is blank, you can use the bang
 version:

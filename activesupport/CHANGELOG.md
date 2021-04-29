@@ -1,3 +1,19 @@
+*   Allow nested access to keys on `Rails.application.credentials`
+
+    Previously only top level keys in `credentials.yml.enc` could be accessed with method calls. Now any key can.
+
+    For example, given these secrets:
+
+    ```yml
+    aws:
+       access_key_id: 123
+       secret_access_key: 345
+    ```
+
+    `Rails.application.credentials.aws.access_key_id` will now return the same thing as `Rails.application.credentials.aws[:access_key_id]`
+
+    *Alex Ghiculescu*
+
 *   Added a faster and more compact `ActiveSupport::Cache` serialization format.
 
     It can be enabled with `config.active_support.cache_format_version = 7.0` or
