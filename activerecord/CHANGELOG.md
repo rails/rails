@@ -1,3 +1,20 @@
+*   Make sure uniqueness validator works with case insensitive scopes.
+
+    When both `case_sensitive: false` and `scope: [:some_attr]` are passed
+    to validation - it should use case insensitive comparison for scopes
+    as well as for primary attribute.
+
+    ```ruby
+    class User
+      validates_uniqueness_of(:first_name, scope: :last_name, case_sensitive: false)
+    end
+
+    User.create(first_name: 'Alexander', last_name: 'Pushkin')
+    User.create(first_name: 'Alexander', last_name: 'PUSHKIN') # this one should fail
+    ```
+
+    *Artem Kozaev*
+
 *   Ensure `has_one` autosave association callbacks get called once.
 
     Change the `has_one` autosave callback to be non cyclic as well.
