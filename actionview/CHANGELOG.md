@@ -1,3 +1,8 @@
+*   The `translate` helper now passes `default` values that aren't
+    translation keys through `I18n.translate` for interpolation.
+
+    *Jonathan Hefner*
+
 *   Adds option `extname` to `stylesheet_link_tag` to skip default
     `.css` extension appended to the stylesheet path.
 
