@@ -198,6 +198,8 @@ A singular resourceful route generates these helpers:
 * `edit_geocoder_path` returns `/geocoder/edit`
 * `geocoder_path` returns `/geocoder`
 
+NOTE: The call to `resolve` is necessary for converting instances of the `Geocoder` to routes through [record identification](form_helpers.html#relying-on-record-identification).
+
 As with plural resources, the same helpers ending in `_url` will also include the host, port, and path prefix.
 
 ### Controller Namespaces and Routing
