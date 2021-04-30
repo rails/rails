@@ -1772,7 +1772,7 @@ Then, in our `index` action template (`app/views/articles/index.html.erb`) we wo
 <%= link_to "New Article", new_article_path %>
 ```
 
-Similarly, in our comment partial view (`app/views/comments/_comment.html.erb`) we would used the `archived?` method to avoid displaying any comment that is archived:
+Similarly, in our comment partial view (`app/views/comments/_comment.html.erb`) we would use the `archived?` method to avoid displaying any comment that is archived:
 
 ```html+erb
 <% unless comment.archived? %>
