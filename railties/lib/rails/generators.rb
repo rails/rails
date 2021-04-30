@@ -34,12 +34,9 @@ module Rails
         actions: "-a",
         orm: "-o",
         javascripts: "-j",
-        javascript_engine: "-je",
         resource_controller: "-c",
         scaffold_controller: "-c",
         stylesheets: "-y",
-        stylesheet_engine: "-se",
-        scaffold_stylesheet: "-ss",
         template_engine: "-e",
         test_framework: "-t"
       },
