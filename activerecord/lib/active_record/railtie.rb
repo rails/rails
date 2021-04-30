@@ -31,6 +31,7 @@ module ActiveRecord
     config.active_record.check_schema_cache_dump_version = true
     config.active_record.maintain_test_schema = true
     config.active_record.has_many_inversing = false
+    config.active_record.enable_query_cache = true
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
@@ -239,8 +240,10 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
-    initializer "active_record.set_executor_hooks" do
-      ActiveRecord::QueryCache.install_executor_hooks
+    initializer "active_record.set_executor_hooks", before: "active_record.set_configs" do
+      if config.active_record.delete(:enable_query_cache)
+        ActiveRecord::QueryCache.install_executor_hooks
+      end
       ActiveRecord::AsynchronousQueriesTracker.install_executor_hooks
     end
 

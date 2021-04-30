@@ -462,6 +462,14 @@ in controllers and views. This defaults to `false`.
   changes by moving the volatile information (max updated at and count) of
   the relation's cache key into the cache version to support recycling cache key.
 
+* `config.active_record.enable_query_cache` globally enables `ActiveRecord::QueryCache`
+  at user code within `ActiveSupport::Executor.wrap` block. Typically, user code within
+  a HTTP request, user code within an Active Job execution, and user code within an Action Cable
+  channel are affected by this setting.
+  See [SQL Caching](caching_with_rails.html#sql-caching) for query cache.
+  See [Threading and Code Execution in Rails](threading_and_code_execution.html) for `ActiveSupport::Executor`.
+  Defaults to `true`.
+
 * `config.active_record.has_many_inversing` enables setting the inverse record
   when traversing `belongs_to` to `has_many` associations.
 

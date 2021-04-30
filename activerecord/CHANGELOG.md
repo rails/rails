@@ -1,3 +1,18 @@
+*   Add `config.active_record.enable_query_cache` to enable/disable `ActiveRecord::QueryCache` globally
+
+    Preference on the default state of `ActiveRecord::QueryCache` varies
+    from application to application based on their objectives and characteristics.
+
+    Since the release of Rails 5, `ActiveRecord::QueryCache` is enabled
+    not only in the context `ActionDispatch` but also at any user code executed
+    within `ActiveSupport::Executor.wrap` block.
+
+    This change allows applications to control the default state of the query cache
+    by `config.active_record.enable_query_cache`.
+    Defaults to `true`.
+
+    *Takumasa Ochi*
+
 *   Ensure `has_one` autosave association callbacks get called once.
 
     Change the `has_one` autosave callback to be non cyclic as well.
