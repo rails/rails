@@ -266,7 +266,7 @@ WebSocket is opened.
 createConsumer('https://ws.example.com/cable')
 
 // Use a function to dynamically generate the URL
-createConsumer(getWebSocketURL())
+createConsumer(getWebSocketURL)
 
 function getWebSocketURL() {
   const token = localStorage.get('auth-token')
