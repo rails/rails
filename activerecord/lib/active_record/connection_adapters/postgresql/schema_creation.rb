@@ -61,6 +61,19 @@ module ActiveRecord
             if options[:collation]
               sql << " COLLATE \"#{options[:collation]}\""
             end
+
+            if as = options[:as]
+              sql << " GENERATED ALWAYS AS (#{as})"
+
+              if options[:stored]
+                sql << " STORED"
+              else
+                raise ArgumentError, <<~MSG
+                  PostgreSQL currently does not support VIRTUAL (not persisted) generated columns.
+                  Specify 'stored: true' option for '#{options[:column].name}'
+                MSG
+              end
+            end
             super
           end
 
