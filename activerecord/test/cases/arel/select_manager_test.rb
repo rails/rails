@@ -1197,7 +1197,7 @@ module Arel
         table = Table.new :users
 
         manager.distinct_on(table["id"])
-        _(manager.ast.cores.last.set_quantifier).must_equal Arel::Nodes::DistinctOn.new(table["id"])
+        _(manager.ast.cores.last.set_quantifier).must_equal Arel::Nodes::DistinctOn.new([table["id"]])
 
         manager.distinct_on(false)
         _(manager.ast.cores.last.set_quantifier).must_be_nil

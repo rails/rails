@@ -1,3 +1,12 @@
+*   Support PostgreSQL DISTINCT ON queries:
+
+    ```ruby
+    User.distinct_on(:name)
+    #=> SQL SELECT DISTINCT ON (name) * FROM users
+    ```
+
+    *Ali Ismayilov*
+
 *   Ensure `has_one` autosave association callbacks get called once.
 
     Change the `has_one` autosave callback to be non cyclic as well.
