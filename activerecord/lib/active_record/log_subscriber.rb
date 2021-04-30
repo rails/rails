@@ -51,9 +51,9 @@ module ActiveRecord
         binds = []
         payload[:binds].each_with_index do |attr, i|
           attribute_name = attr.respond_to?(:name) ? attr.name : attr[i].name
-          filtered_params = parameter_filters.filter({ attribute_name => casted_params[i] })
+          filtered_params = filter(attribute_name, casted_params[i])
 
-          binds << render_bind(attr, filtered_params[attribute_name])
+          binds << render_bind(attr, filtered_params)
         end
         binds = binds.inspect
         binds.prepend("  ")
@@ -138,8 +138,8 @@ module ActiveRecord
         backtrace_cleaner.clean(locations.lazy).first
       end
 
-      def parameter_filters
-        ActiveSupport::ParameterFilter.new(filter_parameters)
+      def filter(name, value)
+        ActiveRecord::Base.inspection_filter.filter_param(name, value)
       end
   end
 end

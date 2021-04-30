@@ -190,9 +190,13 @@ if ActiveRecord::Base.connection.prepared_statements
       end
 
       def test_binds_with_filtered_attributes
+        ActiveRecord::Base.filter_attributes = [:auth]
+
         binds = [Relation::QueryAttribute.new("auth_token", "abcd", Type::String.new)]
 
         assert_filtered_log_binds(binds)
+
+        ActiveRecord::Base.filter_attributes = []
       end
 
       private
@@ -312,10 +316,8 @@ if ActiveRecord::Base.connection.prepared_statements
             end
           }.new
 
-          logger.stub(:filter_parameters, [:auth]) do
-            logger.sql(event)
-            assert_match %r([[auth_token, [FILTERED]]]), logger.debugs.first
-          end
+          logger.sql(event)
+          assert_match %r(\[\["auth_token", \"\[FILTERED\]\"\]\]\z), logger.debugs.first
         end
     end
   end
