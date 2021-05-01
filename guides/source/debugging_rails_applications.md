@@ -402,7 +402,7 @@ by asking the debugger for help. Type: `help`
   frame      -- Moves to a frame in the call stack
   help       -- Helps you using byebug
   history    -- Shows byebug's history of commands
-  info       -- Shows several informations about the program being debugged
+  info       -- Shows several information about the program being debugged
   interrupt  -- Interrupts the program
   irb        -- Starts an IRB session
   kill       -- Sends a signal to the current process
