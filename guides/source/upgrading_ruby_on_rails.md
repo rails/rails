@@ -144,7 +144,7 @@ config.load_defaults(7.0)
 ```
 
 However Rails 6.1 applications are not able to read this new serialization format,
-so to ensure a seemless upgrade you must first deploy your Rails 7.0 upgrade with
+so to ensure a seamless upgrade you must first deploy your Rails 7.0 upgrade with
 `config.active_support.cache_format_version = 6.1`, and then only once all Rails
 processes have been updated you can set `config.active_support.cache_format_version = 7.0`.
 
