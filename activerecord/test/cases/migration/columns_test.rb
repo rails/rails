@@ -321,6 +321,26 @@ module ActiveRecord
       ensure
         connection.drop_table :my_table, if_exists: true
       end
+
+      def test_remove_columns_single_statement
+        connection.create_table "my_table" do |t|
+          t.integer "col_one"
+          t.integer "col_two"
+        end
+
+        # SQLite3's ALTER TABLE statement has several limitations. To mange
+        # this, the adapter creates a temporary table, copies the data, drops
+        # the old table, creates the new table, then copies the data back.
+        expected_query_count = current_adapter?(:SQLite3Adapter) ? 12 : 1
+        assert_queries(expected_query_count) do
+          connection.remove_columns("my_table", "col_one", "col_two")
+        end
+
+        columns = connection.columns("my_table").map(&:name)
+        assert_equal ["id"], columns
+      ensure
+        connection.drop_table :my_table, if_exists: true
+      end
     end
   end
 end
