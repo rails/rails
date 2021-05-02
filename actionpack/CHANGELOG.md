@@ -1,3 +1,9 @@
+*   Add support for 'require-trusted-types-for' and 'trusted-types' headers.
+
+    Fixes #42034
+
+    *lfalcao*
+
 *   Remove inline styles and address basic accessibility issues on rescue templates.
 
     *Jacob Herrington*
