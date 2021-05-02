@@ -711,7 +711,7 @@ module ActiveRecord
     #   User.active.invert_where
     #   # WHERE NOT (`accepted` = 1 AND `locked` = 0)
     #
-    # Be careful because this inverts all conditions before `invert_where` call.
+    # Be careful because this inverts all conditions before +invert_where+ call.
     #
     #   class User
     #     scope :active, -> { where(accepted: true, locked: false) }
