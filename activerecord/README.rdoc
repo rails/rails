@@ -140,7 +140,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
 
 * Database agnostic schema management with Migrations.
 
-    class AddSystemSettings < ActiveRecord::Migration[6.0]
+    class AddSystemSettings < ActiveRecord::Migration[7.0]
       def up
         create_table :system_settings do |t|
           t.string  :name

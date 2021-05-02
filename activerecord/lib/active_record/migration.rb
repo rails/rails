@@ -20,7 +20,7 @@ module ActiveRecord
   # For example the following migration is not reversible.
   # Rolling back this migration will raise an ActiveRecord::IrreversibleMigration error.
   #
-  #   class IrreversibleMigrationExample < ActiveRecord::Migration[6.0]
+  #   class IrreversibleMigrationExample < ActiveRecord::Migration[7.0]
   #     def change
   #       create_table :distributors do |t|
   #         t.string :zipcode
@@ -38,7 +38,7 @@ module ActiveRecord
   #
   # 1. Define <tt>#up</tt> and <tt>#down</tt> methods instead of <tt>#change</tt>:
   #
-  #  class ReversibleMigrationExample < ActiveRecord::Migration[6.0]
+  #  class ReversibleMigrationExample < ActiveRecord::Migration[7.0]
   #    def up
   #      create_table :distributors do |t|
   #        t.string :zipcode
@@ -63,7 +63,7 @@ module ActiveRecord
   #
   # 2. Use the #reversible method in <tt>#change</tt> method:
   #
-  #   class ReversibleMigrationExample < ActiveRecord::Migration[6.0]
+  #   class ReversibleMigrationExample < ActiveRecord::Migration[7.0]
   #     def change
   #       create_table :distributors do |t|
   #         t.string :zipcode
@@ -228,7 +228,7 @@ module ActiveRecord
   #
   # Example of a simple migration:
   #
-  #   class AddSsl < ActiveRecord::Migration[6.0]
+  #   class AddSsl < ActiveRecord::Migration[7.0]
   #     def up
   #       add_column :accounts, :ssl_enabled, :boolean, default: true
   #     end
@@ -248,7 +248,7 @@ module ActiveRecord
   #
   # Example of a more complex migration that also needs to initialize data:
   #
-  #   class AddSystemSettings < ActiveRecord::Migration[6.0]
+  #   class AddSystemSettings < ActiveRecord::Migration[7.0]
   #     def up
   #       create_table :system_settings do |t|
   #         t.string  :name
@@ -376,7 +376,7 @@ module ActiveRecord
   #   bin/rails generate migration add_fieldname_to_tablename fieldname:string
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename.rb</tt>, which will look like this:
-  #   class AddFieldnameToTablename < ActiveRecord::Migration[6.0]
+  #   class AddFieldnameToTablename < ActiveRecord::Migration[7.0]
   #     def change
   #       add_column :tablenames, :fieldname, :string
   #     end
@@ -402,7 +402,7 @@ module ActiveRecord
   #
   # Not all migrations change the schema. Some just fix the data:
   #
-  #   class RemoveEmptyTags < ActiveRecord::Migration[6.0]
+  #   class RemoveEmptyTags < ActiveRecord::Migration[7.0]
   #     def up
   #       Tag.all.each { |tag| tag.destroy if tag.pages.empty? }
   #     end
@@ -415,7 +415,7 @@ module ActiveRecord
   #
   # Others remove columns when they migrate up instead of down:
   #
-  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration[6.0]
+  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration[7.0]
   #     def up
   #       remove_column :items, :incomplete_items_count
   #       remove_column :items, :completed_items_count
@@ -429,7 +429,7 @@ module ActiveRecord
   #
   # And sometimes you need to do something in SQL not abstracted directly by migrations:
   #
-  #   class MakeJoinUnique < ActiveRecord::Migration[6.0]
+  #   class MakeJoinUnique < ActiveRecord::Migration[7.0]
   #     def up
   #       execute "ALTER TABLE `pages_linked_pages` ADD UNIQUE `page_id_linked_page_id` (`page_id`,`linked_page_id`)"
   #     end
@@ -446,7 +446,7 @@ module ActiveRecord
   # <tt>Base#reset_column_information</tt> in order to ensure that the model has the
   # latest column data from after the new column was added. Example:
   #
-  #   class AddPeopleSalary < ActiveRecord::Migration[6.0]
+  #   class AddPeopleSalary < ActiveRecord::Migration[7.0]
   #     def up
   #       add_column :people, :salary, :integer
   #       Person.reset_column_information
@@ -504,7 +504,7 @@ module ActiveRecord
   # To define a reversible migration, define the +change+ method in your
   # migration like this:
   #
-  #   class TenderloveMigration < ActiveRecord::Migration[6.0]
+  #   class TenderloveMigration < ActiveRecord::Migration[7.0]
   #     def change
   #       create_table(:horses) do |t|
   #         t.column :content, :text
@@ -534,7 +534,7 @@ module ActiveRecord
   # can't execute inside a transaction though, and for these situations
   # you can turn the automatic transactions off.
   #
-  #   class ChangeEnum < ActiveRecord::Migration[6.0]
+  #   class ChangeEnum < ActiveRecord::Migration[7.0]
   #     disable_ddl_transaction!
   #
   #     def up
@@ -698,7 +698,7 @@ module ActiveRecord
     # and create the table 'apples' on the way up, and the reverse
     # on the way down.
     #
-    #   class FixTLMigration < ActiveRecord::Migration[6.0]
+    #   class FixTLMigration < ActiveRecord::Migration[7.0]
     #     def change
     #       revert do
     #         create_table(:horses) do |t|
@@ -717,7 +717,7 @@ module ActiveRecord
     #
     #   require_relative "20121212123456_tenderlove_migration"
     #
-    #   class FixupTLMigration < ActiveRecord::Migration[6.0]
+    #   class FixupTLMigration < ActiveRecord::Migration[7.0]
     #     def change
     #       revert TenderloveMigration
     #
@@ -768,7 +768,7 @@ module ActiveRecord
     # when the three columns 'first_name', 'last_name' and 'full_name' exist,
     # even when migrating down:
     #
-    #    class SplitNameMigration < ActiveRecord::Migration[6.0]
+    #    class SplitNameMigration < ActiveRecord::Migration[7.0]
     #      def change
     #        add_column :users, :first_name, :string
     #        add_column :users, :last_name, :string
@@ -796,7 +796,7 @@ module ActiveRecord
     # In the following example, the new column +published+ will be given
     # the value +true+ for all existing records.
     #
-    #    class AddPublishedToPosts < ActiveRecord::Migration[6.0]
+    #    class AddPublishedToPosts < ActiveRecord::Migration[7.0]
     #      def change
     #        add_column :posts, :published, :boolean, default: false
     #        up_only do
