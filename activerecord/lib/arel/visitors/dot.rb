@@ -46,6 +46,25 @@ module Arel # :nodoc: all
           visit_edge o, "right"
         end
 
+        def visit_Arel_Nodes_UnaryOperation(o)
+          visit_edge o, "operator"
+          visit_edge o, "expr"
+        end
+
+        def visit_Arel_Nodes_InfixOperation(o)
+          visit_edge o, "operator"
+          visit_edge o, "left"
+          visit_edge o, "right"
+        end
+
+        def visit__regexp(o)
+          visit_edge o, "left"
+          visit_edge o, "right"
+          visit_edge o, "case_sensitive"
+        end
+        alias :visit_Arel_Nodes_Regexp :visit__regexp
+        alias :visit_Arel_Nodes_NotRegexp :visit__regexp
+
         def visit_Arel_Nodes_Ordering(o)
           visit_edge o, "expr"
         end
@@ -85,6 +104,12 @@ module Arel # :nodoc: all
           visit_edge o, "framing"
           visit_edge o, "name"
         end
+
+        def visit__no_edges(o)
+          # intentionally left blank
+        end
+        alias :visit_Arel_Nodes_CurrentRow :visit__no_edges
+        alias :visit_Arel_Nodes_Distinct :visit__no_edges
 
         def visit_Arel_Nodes_Extract(o)
           visit_edge o, "expressions"
@@ -144,11 +169,13 @@ module Arel # :nodoc: all
           visit_edge o, "name"
         end
 
-        def visit_Arel_Nodes_And(o)
+        def visit__children(o)
           o.children.each_with_index do |child, i|
             edge(i) { visit child }
           end
         end
+        alias :visit_Arel_Nodes_And :visit__children
+        alias :visit_Arel_Nodes_With :visit__children
 
         def visit_String(o)
           @node_stack.last.fields << o
@@ -188,6 +215,12 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_Comment(o)
           visit_edge(o, "values")
+        end
+
+        def visit_Arel_Nodes_Case(o)
+          visit_edge(o, "case")
+          visit_edge(o, "conditions")
+          visit_edge(o, "default")
         end
 
         def visit_edge(o, method)
