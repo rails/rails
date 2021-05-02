@@ -18,7 +18,7 @@ After reading this guide, you will know:
 Guide Assumptions
 -----------------
 
-This guide is designed for beginners who want to get started with a Rails
+This guide is designed for beginners who want to get started with creating a Rails
 application from scratch. It does not assume that you have any prior experience
 with Rails.
 
@@ -98,8 +98,9 @@ $ ruby --version
 ruby 2.7.0
 ```
 
-Rails requires Ruby version 2.7.0 or later. If the version number returned is
-less than that number (such as 2.3.7, or 1.8.7), you'll need to install a fresh copy of Ruby.
+Rails requires Ruby version 2.7.0 or later. It is preferred to use latest Ruby version.
+If the version number returned is less than that number (such as 2.3.7, or 1.8.7),
+you'll need to install a fresh copy of Ruby.
 
 To install Rails on Windows, you'll first need to install [Ruby Installer](https://rubyinstaller.org/).
 
@@ -160,7 +161,7 @@ run the following in a new terminal:
 $ rails --version
 ```
 
-If it says something like "Rails 6.1.0", you are ready to continue.
+If it says something like "Rails 7.0.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -419,7 +420,7 @@ database-agnostic.
 Let's take a look at the contents of our new migration file:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration[6.1]
+class CreateArticles < ActiveRecord::Migration[7.0]
   def change
     create_table :articles do |t|
       t.string :title
@@ -480,7 +481,7 @@ $ bin/rails console
 You should see an `irb` prompt like:
 
 ```irb
-Loading development environment (Rails 6.1.0)
+Loading development environment (Rails 7.0.0)
 irb(main):001:0>
 ```
 
@@ -1358,7 +1359,7 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration[6.1]
+class CreateComments < ActiveRecord::Migration[7.0]
   def change
     create_table :comments do |t|
       t.string :commenter
