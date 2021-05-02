@@ -31,6 +31,21 @@ module Arel # :nodoc: all
       end
 
       private
+        def visit_Arel_Nodes_Function(o)
+          visit_edge o, "expressions"
+          visit_edge o, "distinct"
+          visit_edge o, "alias"
+        end
+
+        def visit_Arel_Nodes_Unary(o)
+          visit_edge o, "expr"
+        end
+
+        def visit_Arel_Nodes_Binary(o)
+          visit_edge o, "left"
+          visit_edge o, "right"
+        end
+
         def visit_Arel_Nodes_Ordering(o)
           visit_edge o, "expr"
         end
@@ -53,39 +68,10 @@ module Arel # :nodoc: all
           visit_edge o, "left"
         end
 
-        def visit_Arel_Nodes_InnerJoin(o)
-          visit_edge o, "left"
-          visit_edge o, "right"
-        end
-        alias :visit_Arel_Nodes_FullOuterJoin  :visit_Arel_Nodes_InnerJoin
-        alias :visit_Arel_Nodes_OuterJoin      :visit_Arel_Nodes_InnerJoin
-        alias :visit_Arel_Nodes_RightOuterJoin :visit_Arel_Nodes_InnerJoin
-
         def visit_Arel_Nodes_DeleteStatement(o)
           visit_edge o, "relation"
           visit_edge o, "wheres"
         end
-
-        def unary(o)
-          visit_edge o, "expr"
-        end
-        alias :visit_Arel_Nodes_Group             :unary
-        alias :visit_Arel_Nodes_Cube              :unary
-        alias :visit_Arel_Nodes_RollUp            :unary
-        alias :visit_Arel_Nodes_GroupingSet       :unary
-        alias :visit_Arel_Nodes_GroupingElement   :unary
-        alias :visit_Arel_Nodes_Grouping          :unary
-        alias :visit_Arel_Nodes_Having            :unary
-        alias :visit_Arel_Nodes_Limit             :unary
-        alias :visit_Arel_Nodes_Not               :unary
-        alias :visit_Arel_Nodes_Offset            :unary
-        alias :visit_Arel_Nodes_On                :unary
-        alias :visit_Arel_Nodes_UnqualifiedColumn :unary
-        alias :visit_Arel_Nodes_OptimizerHints    :unary
-        alias :visit_Arel_Nodes_Preceding         :unary
-        alias :visit_Arel_Nodes_Following         :unary
-        alias :visit_Arel_Nodes_Rows              :unary
-        alias :visit_Arel_Nodes_Range             :unary
 
         def window(o)
           visit_edge o, "partitions"
@@ -101,17 +87,6 @@ module Arel # :nodoc: all
           visit_edge o, "name"
         end
         alias :visit_Arel_Nodes_NamedWindow       :named_window
-
-        def function(o)
-          visit_edge o, "expressions"
-          visit_edge o, "distinct"
-          visit_edge o, "alias"
-        end
-        alias :visit_Arel_Nodes_Exists :function
-        alias :visit_Arel_Nodes_Min    :function
-        alias :visit_Arel_Nodes_Max    :function
-        alias :visit_Arel_Nodes_Avg    :function
-        alias :visit_Arel_Nodes_Sum    :function
 
         def extract(o)
           visit_edge o, "expressions"
@@ -178,30 +153,6 @@ module Arel # :nodoc: all
           end
         end
         alias :visit_Arel_Nodes_And :nary
-
-        def binary(o)
-          visit_edge o, "left"
-          visit_edge o, "right"
-        end
-        alias :visit_Arel_Nodes_As                 :binary
-        alias :visit_Arel_Nodes_Assignment         :binary
-        alias :visit_Arel_Nodes_Between            :binary
-        alias :visit_Arel_Nodes_Concat             :binary
-        alias :visit_Arel_Nodes_DoesNotMatch       :binary
-        alias :visit_Arel_Nodes_Equality           :binary
-        alias :visit_Arel_Nodes_GreaterThan        :binary
-        alias :visit_Arel_Nodes_GreaterThanOrEqual :binary
-        alias :visit_Arel_Nodes_In                 :binary
-        alias :visit_Arel_Nodes_JoinSource         :binary
-        alias :visit_Arel_Nodes_LessThan           :binary
-        alias :visit_Arel_Nodes_LessThanOrEqual    :binary
-        alias :visit_Arel_Nodes_IsNotDistinctFrom  :binary
-        alias :visit_Arel_Nodes_IsDistinctFrom     :binary
-        alias :visit_Arel_Nodes_Matches            :binary
-        alias :visit_Arel_Nodes_NotEqual           :binary
-        alias :visit_Arel_Nodes_NotIn              :binary
-        alias :visit_Arel_Nodes_Or                 :binary
-        alias :visit_Arel_Nodes_Over               :binary
 
         def visit_String(o)
           @node_stack.last.fields << o
