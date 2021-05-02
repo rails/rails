@@ -1,3 +1,9 @@
+*   `Arel::Visitors::Dot` now renders a complete set of properties when visiting
+    `Arel::Nodes::SelectCore`, `SelectStatement`, `InsertStatement`, `UpdateStatement`, and
+    `DeleteStatement`, which fixes #42026. Previously, some properties were omitted.
+
+    *Mike Dalessio*
+
 *   `Arel::Visitors::Dot` now supports `Arel::Nodes::Bin`, `Case`, `CurrentRow`, `Distinct`,
     `DistinctOn`, `Else`, `Except`, `InfixOperation`, `Intersect`, `Lock`, `NotRegexp`, `Quoted`,
     `Regexp`, `UnaryOperation`, `Union`, `UnionAll`, `When`, and `With`. Previously, these node

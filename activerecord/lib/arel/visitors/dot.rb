@@ -87,11 +87,6 @@ module Arel # :nodoc: all
           visit_edge o, "left"
         end
 
-        def visit_Arel_Nodes_DeleteStatement(o)
-          visit_edge o, "relation"
-          visit_edge o, "wheres"
-        end
-
         def visit_Arel_Nodes_Window(o)
           visit_edge o, "partitions"
           visit_edge o, "orders"
@@ -127,6 +122,7 @@ module Arel # :nodoc: all
           visit_edge o, "relation"
           visit_edge o, "columns"
           visit_edge o, "values"
+          visit_edge o, "select"
         end
 
         def visit_Arel_Nodes_SelectCore(o)
@@ -134,6 +130,11 @@ module Arel # :nodoc: all
           visit_edge o, "projections"
           visit_edge o, "wheres"
           visit_edge o, "windows"
+          visit_edge o, "groups"
+          visit_edge o, "comment"
+          visit_edge o, "havings"
+          visit_edge o, "set_quantifier"
+          visit_edge o, "optimizer_hints"
         end
 
         def visit_Arel_Nodes_SelectStatement(o)
@@ -141,12 +142,27 @@ module Arel # :nodoc: all
           visit_edge o, "limit"
           visit_edge o, "orders"
           visit_edge o, "offset"
+          visit_edge o, "lock"
+          visit_edge o, "with"
         end
 
         def visit_Arel_Nodes_UpdateStatement(o)
           visit_edge o, "relation"
           visit_edge o, "wheres"
           visit_edge o, "values"
+          visit_edge o, "orders"
+          visit_edge o, "limit"
+          visit_edge o, "offset"
+          visit_edge o, "key"
+        end
+
+        def visit_Arel_Nodes_DeleteStatement(o)
+          visit_edge o, "relation"
+          visit_edge o, "wheres"
+          visit_edge o, "orders"
+          visit_edge o, "limit"
+          visit_edge o, "offset"
+          visit_edge o, "key"
         end
 
         def visit_Arel_Table(o)

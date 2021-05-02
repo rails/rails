@@ -10,6 +10,10 @@ module Arel
         @visitor = Visitors::Dot.new
       end
 
+      def assert_edge(edge_name, dot_string)
+        assert_match(/->.*label="#{edge_name}"/, dot_string)
+      end
+
       # functions
       [
         Nodes::Sum,
@@ -64,7 +68,6 @@ module Arel
         Arel::Nodes::Or,
         Arel::Nodes::TableAlias,
         Arel::Nodes::As,
-        Arel::Nodes::DeleteStatement,
         Arel::Nodes::JoinSource,
         Arel::Nodes::Casted,
       ].each do |klass|
@@ -169,6 +172,78 @@ module Arel
         assert_edge("0", dot)
         assert_edge("1", dot)
         assert_edge("2", dot)
+      end
+
+      def test_Arel_Nodes_SelectCore
+        node = Arel::Nodes::SelectCore.new
+
+        dot = @visitor.accept(node, Arel::Collectors::PlainString.new).value
+
+        assert_match '[label="<f0>Arel::Nodes::SelectCore"]', dot
+        assert_edge("source", dot)
+        assert_edge("projections", dot)
+        assert_edge("wheres", dot)
+        assert_edge("windows", dot)
+        assert_edge("groups", dot)
+        assert_edge("comment", dot)
+        assert_edge("havings", dot)
+        assert_edge("set_quantifier", dot)
+        assert_edge("optimizer_hints", dot)
+      end
+
+      def test_Arel_Nodes_SelectStatement
+        node = Arel::Nodes::SelectStatement.new
+
+        dot = @visitor.accept(node, Arel::Collectors::PlainString.new).value
+
+        assert_match '[label="<f0>Arel::Nodes::SelectStatement"]', dot
+        assert_edge("cores", dot)
+        assert_edge("limit", dot)
+        assert_edge("orders", dot)
+        assert_edge("offset", dot)
+        assert_edge("lock", dot)
+        assert_edge("with", dot)
+      end
+
+      def test_Arel_Nodes_InsertStatement
+        node = Arel::Nodes::InsertStatement.new
+
+        dot = @visitor.accept(node, Arel::Collectors::PlainString.new).value
+
+        assert_match '[label="<f0>Arel::Nodes::InsertStatement"]', dot
+        assert_edge("relation", dot)
+        assert_edge("columns", dot)
+        assert_edge("values", dot)
+        assert_edge("select", dot)
+      end
+
+      def test_Arel_Nodes_UpdateStatement
+        node = Arel::Nodes::UpdateStatement.new
+
+        dot = @visitor.accept(node, Arel::Collectors::PlainString.new).value
+
+        assert_match '[label="<f0>Arel::Nodes::UpdateStatement"]', dot
+        assert_edge("relation", dot)
+        assert_edge("wheres", dot)
+        assert_edge("values", dot)
+        assert_edge("orders", dot)
+        assert_edge("limit", dot)
+        assert_edge("offset", dot)
+        assert_edge("key", dot)
+      end
+
+      def test_Arel_Nodes_DeleteStatement
+        node = Arel::Nodes::DeleteStatement.new
+
+        dot = @visitor.accept(node, Arel::Collectors::PlainString.new).value
+
+        assert_match '[label="<f0>Arel::Nodes::DeleteStatement"]', dot
+        assert_edge("relation", dot)
+        assert_edge("wheres", dot)
+        assert_edge("orders", dot)
+        assert_edge("limit", dot)
+        assert_edge("offset", dot)
+        assert_edge("key", dot)
       end
     end
   end
