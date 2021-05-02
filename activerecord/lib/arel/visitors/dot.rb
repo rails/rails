@@ -166,22 +166,22 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_SqlLiteral :visit_String
 
         def visit_Arel_Nodes_BindParam(o)
-          edge("value") { visit o.value }
+          visit_edge(o, "value")
         end
 
         def visit_ActiveModel_Attribute(o)
-          edge("value_before_type_cast") { visit o.value_before_type_cast }
+          visit_edge(o, "value_before_type_cast")
         end
 
         def visit_Hash(o)
           o.each_with_index do |pair, i|
-            edge("pair_#{i}")   { visit pair }
+            edge("pair_#{i}") { visit pair }
           end
         end
 
         def visit_Array(o)
-          o.each_with_index do |x, i|
-            edge(i) { visit x }
+          o.each_with_index do |member, i|
+            edge(i) { visit member }
           end
         end
         alias :visit_Set :visit_Array
