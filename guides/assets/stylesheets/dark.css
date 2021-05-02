@@ -1,0 +1,154 @@
+@media (prefers-color-scheme: dark) {
+
+  :root {
+    --text-color: #ddd;
+    --text-red: #fc4343;
+    --note-color: #fff9d8;
+  }
+
+  body {
+    background-color: #222;
+  }
+
+  p code, ul code {
+    background-color: #444;
+    color: var(--text-color);
+  }
+
+  pre, code {
+    color: #ddd;
+  }
+
+  table {
+    background: #222;
+  }
+
+  tbody, thead {
+    border: 2px solid #666;
+  }
+
+  table th {
+    background-color: #333;
+    border-bottom: 2px solid #666;
+  }
+
+  table th, table td {
+    border: 1px solid #666;
+  }
+
+  #container {
+    color: var(--text-color);
+  }
+
+  #feature {
+    color: #eee;
+    background: unset;
+    background-color: #243440;
+    border: 1px solid #d5e9f6;
+    border-right: 0;
+    border-left: 0;
+  }
+
+  #feature ul li {
+    background-size: 1.4em 1.4em;
+    background-image: url(../images/check_icon.svg);
+    background-position: left 0.5em;
+  }
+
+  #mainCol a.anchorlink, #mainCol a.anchorlink code {
+    color: #eee;
+  }
+
+  #mainCol a code, #subCol a code, #feature a code {
+    color: var(--text-red);
+  }
+
+  #mainCol a, #subCol a, #feature a {
+    color: #ee3f3f;
+  }
+
+  #subCol {
+    background: #222;
+    border: 1px solid #111;
+  }
+
+  #subCol .chapters {
+    color: var(--text-red);
+  }
+
+  #subCol .chapters ul li {
+    background-image: url(../images/bullet_dark.gif);
+  }
+
+  #subCol h3.chapter {
+    padding-left:30px;
+    background-image: url(../images/book_icon.svg);
+    background-size: 1.25em;
+    background-repeat: no-repeat;
+  }
+
+  #subCol h3.chapter img {
+    display: none;
+  }
+
+  #mainCol div.warning, #subCol dd.warning {
+    border: 1px solid #f9d9d8;
+    background-color: #482928;
+    background-image: url(../images/hand_icon.svg);
+    background-size: 28px 28px;
+    background-position: 10px 12px;
+    color: #f9d9d8;
+  }
+
+
+  #footer {
+    background-color: #000;
+  }
+
+  .note code, .info code, .todo code {
+    background-color: #555;
+  }
+
+  .note {
+    color: var(--note-color);
+    border: 1px solid var(--note-color);
+    background-color: #3e3b2c;
+    background-image: url(../images/note_icon.svg);
+    background-size: 28px 28px;
+    background-position: 10px 10px;
+  }
+
+  #mainCol dd.work-in-progress, #subCol dd.work-in-progress {
+    color: var(--note-color);
+    border: 1px solid var(--note-color);
+    background-color: #3e3b2c;
+    background-image: url(../images/note_icon.svg);
+    background-size: 28px 28px;
+    background-position: 10px 10px;
+  }
+
+  .info {
+    border: 1px solid #d5e9f6;
+    background-color: #243440;
+    color: #d5e9f6;
+    background-image: url(../images/info_icon.svg);
+    background-size: 28px 28px;
+    background-position: 10px 10px;
+  }
+
+
+
+  .clipboard-button {
+    color: #ddd;
+    background-color: #222;
+  }
+
+  div.code_container {
+    /*background: none;*/
+    background-color: #000;
+    background-image: url(../images/cog_icon.svg);
+    background-size: 28px 28px;
+    background-position: 10px 14px;
+    border: 1px solid #333;
+  }
+}
