@@ -27,6 +27,7 @@ require "models/bird"
 require "models/car"
 require "models/bulb"
 require "models/pet"
+require "models/owner"
 require "concurrent/atomic/count_down_latch"
 require "active_support/core_ext/enumerable"
 
