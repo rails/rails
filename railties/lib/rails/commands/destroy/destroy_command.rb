@@ -14,6 +14,10 @@ module Rails
         end
       end
 
+      def delete_css_file_generate_with_scaffold
+        FileUtils.remove_file(Rails.root.join('app', 'assets', 'stylesheets', 'scaffolds.scss'),force=true)
+      end
+
       def perform(*)
         generator = args.shift
         return help unless generator
@@ -22,6 +26,7 @@ module Rails
         load_generators
 
         Rails::Generators.invoke generator, args, behavior: :revoke, destination_root: Rails::Command.root
+        delete_css_file_generate_with_scaffold
       end
     end
   end
