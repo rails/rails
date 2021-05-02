@@ -876,13 +876,42 @@ If you use the [in_place_editor plugin](https://rubygems.org/gems/in_place_editi
 
 NOTE: _Use user-supplied command line parameters with caution._
 
-If your application has to execute commands in the underlying operating system, there are several methods in Ruby: `exec(command)`, `syscall(command)`, `system(command)` and `command`. You will have to be especially careful with these functions if the user may enter the whole command, or a part of it. This is because in most shells, you can execute another command at the end of the first one, concatenating them with a semicolon (`;`) or a vertical bar (`|`).
+If your application has to execute commands in the underlying operating system, there are several methods in Ruby: `system(command)`, `exec(command)`, `spawn(command)` and `` `command` ``. You will have to be especially careful with these functions if the user may enter the whole command, or a part of it. This is because in most shells, you can execute another command at the end of the first one, concatenating them with a semicolon (`;`) or a vertical bar (`|`).
+
+```ruby
+user_input = "hello; rm *"
+system("/bin/echo #{user_input}")
+# prints "hello", and deletes files in the current directory
+```
 
 A countermeasure is to _use the `system(command, parameters)` method which passes command line parameters safely_.
 
 ```ruby
 system("/bin/echo","hello; rm *")
 # prints "hello; rm *" and does not delete files
+```
+
+#### Kernel#open's vulnerability
+
+`Kernel#open` executes OS command if the argument starts with a vertical bar (`|`).
+
+```ruby
+open('| ls') { |f| f.read }
+# returns file list as a String via `ls` command
+```
+
+Countermeasures are to use `File.open`, `IO.open` or `URI#open` instead. They don't execute an OS command.
+
+```ruby
+File.open('| ls') { |f| f.read }
+# doesn't execute `ls` command, just opens `| ls` file if it exists
+
+IO.open(0) { |f| f.read }
+# opens stdin. doesn't accept a String as the argument
+
+require 'open-uri'
+URI('https://example.com').open { |f| f.read }
+# opens the URI. `URI()` doesn't accept `| ls`
 ```
 
 ### Header Injection
