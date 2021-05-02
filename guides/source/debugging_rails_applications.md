@@ -722,7 +722,7 @@ Ruby instruction to be executed -- in this case, Active Support's `week` method.
    49:
    50:   # Returns a Duration instance matching the number of weeks provided.
    51:   #
-   52:   #   2.weeks # => 14 days
+   52:   #   2.weeks # => 2 weeks
    53:   def weeks
 => 54:     ActiveSupport::Duration.weeks(self)
    55:   end
