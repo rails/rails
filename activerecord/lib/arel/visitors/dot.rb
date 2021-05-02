@@ -73,26 +73,23 @@ module Arel # :nodoc: all
           visit_edge o, "wheres"
         end
 
-        def window(o)
+        def visit_Arel_Nodes_Window(o)
           visit_edge o, "partitions"
           visit_edge o, "orders"
           visit_edge o, "framing"
         end
-        alias :visit_Arel_Nodes_Window            :window
 
-        def named_window(o)
+        def visit_Arel_Nodes_NamedWindow(o)
           visit_edge o, "partitions"
           visit_edge o, "orders"
           visit_edge o, "framing"
           visit_edge o, "name"
         end
-        alias :visit_Arel_Nodes_NamedWindow       :named_window
 
-        def extract(o)
+        def visit_Arel_Nodes_Extract(o)
           visit_edge o, "expressions"
           visit_edge o, "alias"
         end
-        alias :visit_Arel_Nodes_Extract :extract
 
         def visit_Arel_Nodes_NamedFunction(o)
           visit_edge o, "name"
@@ -111,7 +108,7 @@ module Arel # :nodoc: all
           visit_edge o, "source"
           visit_edge o, "projections"
           visit_edge o, "wheres"
-          visit_edge o,  "windows"
+          visit_edge o, "windows"
         end
 
         def visit_Arel_Nodes_SelectStatement(o)
@@ -147,12 +144,11 @@ module Arel # :nodoc: all
           visit_edge o, "name"
         end
 
-        def nary(o)
-          o.children.each_with_index do |x, i|
-            edge(i) { visit x }
+        def visit_Arel_Nodes_And(o)
+          o.children.each_with_index do |child, i|
+            edge(i) { visit child }
           end
         end
-        alias :visit_Arel_Nodes_And :nary
 
         def visit_String(o)
           @node_stack.last.fields << o
