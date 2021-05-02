@@ -16,7 +16,10 @@ module Rails
       end
 
       def delete_css_file_generate_with_scaffold
-        FileUtils.remove_file(Rails.root.join('app', 'assets', 'stylesheets', 'scaffolds.scss'),force=true)
+        path = Rails.root.join('app', 'assets', 'stylesheets', 'scaffolds.scss')
+        FileUtils.remove_file(path,force=true)
+        puts " "*6+"\e[31m#{remove}\e[0m"+" "*4  + path.to_s
+        # puts ANSI.color(:red) { "hello there" }
       end
 
       def perform(*)
