@@ -132,10 +132,6 @@ module Arel # :nodoc: all
             end
           end
 
-          visit_Arel_Nodes_SelectOptions(o, collector)
-        end
-
-        def visit_Arel_Nodes_SelectOptions(o, collector)
           collector = maybe_visit o.limit, collector
           collector = maybe_visit o.offset, collector
           maybe_visit o.lock, collector
