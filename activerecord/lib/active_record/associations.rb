@@ -327,11 +327,6 @@ module ActiveRecord
     end
 
     private
-      # Clears out the association cache.
-      def clear_association_cache
-        @association_cache.clear if persisted?
-      end
-
       def init_internals
         @association_cache = {}
         super
