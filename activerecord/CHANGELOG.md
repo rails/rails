@@ -1,3 +1,13 @@
+*   Log a warning message when running SQLite in production
+
+    Using SQLite in production ENV is generally discouraged. SQLite is also the default adapter
+    in a new Rails application.
+    For the above reasons log a warning message when running SQLite in production.
+
+    The warning can be disabled by setting `config.active_record.sqlite3_production_warning=false`.
+
+    *Jacopo Beschi*
+
 *   Add option to disable joins for `has_one` associations.
 
     In a multiple database application, associations can't join across
