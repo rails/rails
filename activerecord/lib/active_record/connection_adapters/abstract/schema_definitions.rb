@@ -440,7 +440,7 @@ module ActiveRecord
       end
 
       def check_constraint(expression, **options)
-        check_constraints << [expression, options]
+        check_constraints << new_check_constraint_definition(expression, options)
       end
 
       # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
@@ -490,6 +490,11 @@ module ActiveRecord
         ForeignKeyDefinition.new(name, to_table, options)
       end
 
+      def new_check_constraint_definition(expression, options) # :nodoc:
+        options = @conn.check_constraint_options(name, expression, options)
+        CheckConstraintDefinition.new(name, expression, options)
+      end
+
       private
         def create_column_definition(name, type, options)
           ColumnDefinition.new(name, type, options)
@@ -533,7 +538,7 @@ module ActiveRecord
       end
 
       def add_check_constraint(expression, options)
-        @check_constraint_adds << CheckConstraintDefinition.new(name, expression, options)
+        @check_constraint_adds << @td.new_check_constraint_definition(expression, options)
       end
 
       def drop_check_constraint(constraint_name)
