@@ -1,7 +1,7 @@
 *   Deprecate `ActiveSupport::SafeBuffer`'s incorrect implicit conversion of objects into string.
 
     Except for a few methods like `String#%`, objects must implement `#to_str`
-    to be implictly converted to a String in string operations. In some
+    to be implicitly converted to a String in string operations. In some
     circumstances `ActiveSupport::SafeBuffer` was incorrectly calling the
     explicit conversion method (`#to_s`) on them. This behavior is now
     deprecated.

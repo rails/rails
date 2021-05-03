@@ -1,7 +1,7 @@
-*   Cache and re-use generated attibute methods.
+*   Cache and re-use generated attribute methods.
 
     Generated methods with identical implementations will now share their instruction sequences
-    leading to reduced memory retention, and sligtly faster load time.
+    leading to reduced memory retention, and slightly faster load time.
 
     *Jean Boussier*
 

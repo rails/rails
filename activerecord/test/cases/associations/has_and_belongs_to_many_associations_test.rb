@@ -996,7 +996,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal first_project.salaried_developers.size, preloaded_first_project.salaried_developers.size
   end
 
-  def test_has_and_belongs_to_many_is_useable_with_belongs_to_required_by_default
+  def test_has_and_belongs_to_many_is_usable_with_belongs_to_required_by_default
     assert_difference "Project.first.developers_required_by_default.size", 1 do
       Project.first.developers_required_by_default.create!(name: "Sean", salary: 50000)
     end
