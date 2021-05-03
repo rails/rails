@@ -1,3 +1,10 @@
+*   Prevent has_one associated record to be destroyed, deleted or nullified by an initialization of
+    another record with the foreign_key of the owner.
+
+    Fixes #41692.
+
+    *Federico Aldunate*
+
 *   Allow passing SQL as `on_duplicate` value to `#upsert_all` to make it possible to use raw SQL to update columns on conflict:
 
     ```ruby
