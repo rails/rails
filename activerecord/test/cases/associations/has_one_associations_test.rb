@@ -828,6 +828,18 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_not DestroyByParentBook.exists?(book.id)
   end
 
+  test "does not destroy associated when building new record with primary_key manually set" do
+    old_author = DestroyByParentAuthor.create!(name: "Test")
+    old_book = DestroyByParentBook.create!(author: old_author)
+
+    DestroyByParentAuthor.new(
+      id: old_author.id,
+      book: DestroyByParentBook.new
+    )
+
+    assert DestroyByParentBook.exists?(old_book.id)
+  end
+
   class UndestroyableBook < ActiveRecord::Base
     self.table_name = "books"
     belongs_to :author, class_name: "DestroyableAuthor"
