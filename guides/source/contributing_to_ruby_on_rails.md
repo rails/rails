@@ -275,6 +275,19 @@ Inspecting 1 file
 
 For `rails-ujs` CoffeeScript and JavaScript files, you can run `npm run lint` in `actionview` folder.
 
+We are also running [misspell](https://github.com/client9/misspell) which is mainly written in Golang to check
+spelling with [GitHub Actions](../../.github/workflows/lint.yml). Correct commonly misspelled English words quickly
+with `misspell`. You can run `misspell` locally against all files with:
+
+```bash
+find . -type f | xargs ./misspell -i 'aircrafts,devels,invertions' -error
+```
+
+Notable `misspell` help options or flags are:
+
+- `-i` string: ignore the following corrections, comma separated
+- `-w`: Overwrite file with corrections (default is just to display)
+
 ### Benchmark Your Code
 
 For changes that might have an impact on performance, please benchmark your
