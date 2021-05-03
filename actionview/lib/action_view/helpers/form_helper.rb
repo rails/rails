@@ -2610,7 +2610,9 @@ module ActionView
               else
                 options[:child_index] = nested_child_index(name)
               end
-              output << fields_for_nested_model("#{name}[#{options[:child_index]}]", child, options, block)
+              if content = fields_for_nested_model("#{name}[#{options[:child_index]}]", child, options, block)
+                output << content
+              end
             end
             output
           elsif association
