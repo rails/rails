@@ -435,8 +435,8 @@ module ActiveRecord
         indexes << [column_name, options]
       end
 
-      def foreign_key(table_name, **options) # :nodoc:
-        foreign_keys << [table_name, options]
+      def foreign_key(to_table, **options)
+        foreign_keys << new_foreign_key_definition(to_table, options)
       end
 
       def check_constraint(expression, **options)
@@ -482,6 +482,14 @@ module ActiveRecord
         create_column_definition(name, type, options)
       end
 
+      def new_foreign_key_definition(to_table, options) # :nodoc:
+        prefix = ActiveRecord::Base.table_name_prefix
+        suffix = ActiveRecord::Base.table_name_suffix
+        to_table = "#{prefix}#{to_table}#{suffix}"
+        options = @conn.foreign_key_options(name, to_table, options)
+        ForeignKeyDefinition.new(name, to_table, options)
+      end
+
       private
         def create_column_definition(name, type, options)
           ColumnDefinition.new(name, type, options)
@@ -517,7 +525,7 @@ module ActiveRecord
       def name; @td.name; end
 
       def add_foreign_key(to_table, options)
-        @foreign_key_adds << ForeignKeyDefinition.new(name, to_table, options)
+        @foreign_key_adds << @td.new_foreign_key_definition(to_table, options)
       end
 
       def drop_foreign_key(name)

@@ -14,7 +14,7 @@ module ActiveRecord
       end
 
       delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
-        :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys?, :foreign_key_options,
+        :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys?,
         :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?, :check_constraint_options,
         to: :@conn, private: true
 
@@ -52,7 +52,7 @@ module ActiveRecord
           end
 
           if supports_foreign_keys?
-            statements.concat(o.foreign_keys.map { |to_table, options| foreign_key_in_create(o.name, to_table, options) })
+            statements.concat(o.foreign_keys.map { |fk| accept fk })
           end
 
           if supports_check_constraints?
@@ -157,14 +157,6 @@ module ActiveRecord
         # Returns any SQL string to go between CREATE and TABLE. May be nil.
         def table_modifier_in_create(o)
           " TEMPORARY" if o.temporary
-        end
-
-        def foreign_key_in_create(from_table, to_table, options)
-          prefix = ActiveRecord::Base.table_name_prefix
-          suffix = ActiveRecord::Base.table_name_suffix
-          to_table = "#{prefix}#{to_table}#{suffix}"
-          options = foreign_key_options(from_table, to_table, options)
-          accept ForeignKeyDefinition.new(from_table, to_table, options)
         end
 
         def check_constraint_in_create(table_name, expression, options)
