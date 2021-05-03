@@ -1,3 +1,10 @@
+*   Introduce `ActiveModel::API`.
+
+    Make `ActiveModel::API` the minimum API to talk with Action Pack and Action View.
+    This will allow adding more functionality to `ActiveModel::Model`.
+
+    *Petrik de Heus*
+
 *   Add `in: range`  parameter to `numericality` validator.
 
     *Michal Papis*

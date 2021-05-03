@@ -16,10 +16,10 @@ Model solves this by defining an explicit API. You can read more about the
 API in <tt>ActiveModel::Lint::Tests</tt>.
 
 Active Model provides a default module that implements the basic API required
-to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
+to integrate with Action Pack out of the box: <tt>ActiveModel::API</tt>.
 
     class Person
-      include ActiveModel::Model
+      include ActiveModel::API
 
       attr_accessor :name, :age
       validates_presence_of :name
@@ -32,7 +32,7 @@ to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
 
 It includes model name introspections, conversions, translations and
 validations, resulting in a class suitable to be used with Action Pack.
-See <tt>ActiveModel::Model</tt> for more examples.
+See <tt>ActiveModel::API</tt> for more examples.
 
 Active Model also provides the following functionality to have ORM-like
 behavior out of the box:
