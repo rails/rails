@@ -327,11 +327,6 @@ module ActiveRecord
     end
 
     private
-      # Clears out the association cache.
-      def clear_association_cache
-        @association_cache.clear if persisted?
-      end
-
       def init_internals
         @association_cache = {}
         super
@@ -1780,7 +1775,7 @@ module ActiveRecord
         # The join table should not have a primary key or a model associated with it. You must manually generate the
         # join table with a migration such as this:
         #
-        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[6.0]
+        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[7.0]
         #     def change
         #       create_join_table :developers, :projects
         #     end

@@ -47,10 +47,12 @@ module ActiveModel
           ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
             owner, name, writer: true,
           ) do |temp_method_name, attr_name_expr|
-            owner <<
-              "def #{temp_method_name}(value)" <<
-              "  _write_attribute(#{attr_name_expr}, value)" <<
-              "end"
+            owner.define_cached_method("#{name}=", as: temp_method_name, namespace: :active_model) do |batch|
+              batch <<
+                "def #{temp_method_name}(value)" <<
+                "  _write_attribute(#{attr_name_expr}, value)" <<
+                "end"
+            end
           end
         end
 

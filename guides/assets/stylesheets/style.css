@@ -11,4 +11,5 @@ Import advanced style sheet
 
 @import url("reset.css");
 @import url("main.css");
+@import url("dark.css");
 @import url("turbolinks.css");

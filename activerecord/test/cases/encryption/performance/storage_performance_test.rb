@@ -45,13 +45,16 @@ class ActiveRecord::Encryption::StoragePerformanceTest < ActiveRecord::Encryptio
   end
 
   private
-    def assert_storage_performance(size:, overload_less_than:)
+    def assert_storage_performance(size:, overload_less_than:, quiet: true)
       clear_content = SecureRandom.urlsafe_base64(size).first(size) # .alphanumeric is very slow for large sizes
       encrypted_content = encryptor.encrypt(clear_content)
 
-      puts "#{clear_content.bytesize}; #{encrypted_content.bytesize}; #{(encrypted_content.bytesize / clear_content.bytesize.to_f)}"
-
       overload_factor = encrypted_content.bytesize.to_f / clear_content.bytesize
+
+      if !quiet || overload_factor > overload_less_than
+        puts "#{clear_content.bytesize}; #{encrypted_content.bytesize}; #{(encrypted_content.bytesize / clear_content.bytesize.to_f)}"
+      end
+
       assert\
         overload_factor <= overload_less_than,
         "Expecting an storage overload of #{overload_less_than} at most for #{size} bytes, but got #{overload_factor} instead"

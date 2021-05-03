@@ -184,27 +184,27 @@ module ActiveSupport #:nodoc:
     end
 
     def concat(value)
-      super(html_escape_interpolated_argument(value))
+      super(implicit_html_escape_interpolated_argument(value))
     end
     alias << concat
 
     def insert(index, value)
-      super(index, html_escape_interpolated_argument(value))
+      super(index, implicit_html_escape_interpolated_argument(value))
     end
 
     def prepend(value)
-      super(html_escape_interpolated_argument(value))
+      super(implicit_html_escape_interpolated_argument(value))
     end
 
     def replace(value)
-      super(html_escape_interpolated_argument(value))
+      super(implicit_html_escape_interpolated_argument(value))
     end
 
     def []=(*args)
       if args.length == 3
-        super(args[0], args[1], html_escape_interpolated_argument(args[2]))
+        super(args[0], args[1], implicit_html_escape_interpolated_argument(args[2]))
       else
-        super(args[0], html_escape_interpolated_argument(args[1]))
+        super(args[0], implicit_html_escape_interpolated_argument(args[1]))
       end
     end
 
@@ -222,9 +222,9 @@ module ActiveSupport #:nodoc:
     def %(args)
       case args
       when Hash
-        escaped_args = args.transform_values { |arg| html_escape_interpolated_argument(arg) }
+        escaped_args = args.transform_values { |arg| explicit_html_escape_interpolated_argument(arg) }
       else
-        escaped_args = Array(args).map { |arg| html_escape_interpolated_argument(arg) }
+        escaped_args = Array(args).map { |arg| explicit_html_escape_interpolated_argument(arg) }
       end
 
       self.class.new(super(escaped_args))
@@ -289,8 +289,31 @@ module ActiveSupport #:nodoc:
     end
 
     private
-      def html_escape_interpolated_argument(arg)
+      def explicit_html_escape_interpolated_argument(arg)
         (!html_safe? || arg.html_safe?) ? arg : CGI.escapeHTML(arg.to_s)
+      end
+
+      def implicit_html_escape_interpolated_argument(arg)
+        if !html_safe? || arg.html_safe?
+          arg
+        else
+          arg_string = begin
+            arg.to_str
+          rescue NoMethodError => error
+            if error.name == :to_str
+              str = arg.to_s
+              ActiveSupport::Deprecation.warn <<~MSG.squish
+                Implicit conversion of #{arg.class} into String by ActiveSupport::SafeBuffer
+                is deprecated and will be removed in Rails 7.1.
+                You must explicitly cast it to a String.
+              MSG
+              str
+            else
+              raise
+            end
+          end
+          CGI.escapeHTML(arg_string)
+        end
       end
 
       def set_block_back_references(block, match_data)

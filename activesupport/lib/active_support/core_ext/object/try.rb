@@ -4,28 +4,28 @@ require "delegate"
 
 module ActiveSupport
   module Tryable #:nodoc:
-    def try(method_name = nil, *args, &b)
+    def try(method_name = nil, *args, &block)
       if method_name.nil? && block_given?
-        if b.arity == 0
-          instance_eval(&b)
+        if block.arity == 0
+          instance_eval(&block)
         else
           yield self
         end
       elsif respond_to?(method_name)
-        public_send(method_name, *args, &b)
+        public_send(method_name, *args, &block)
       end
     end
     ruby2_keywords(:try)
 
-    def try!(method_name = nil, *args, &b)
+    def try!(method_name = nil, *args, &block)
       if method_name.nil? && block_given?
-        if b.arity == 0
-          instance_eval(&b)
+        if block.arity == 0
+          instance_eval(&block)
         else
           yield self
         end
       else
-        public_send(method_name, *args, &b)
+        public_send(method_name, *args, &block)
       end
     end
     ruby2_keywords(:try!)
@@ -39,7 +39,7 @@ class Object
   # :method: try
   #
   # :call-seq:
-  #   try(*a, &b)
+  #   try(*args, &block)
   #
   # Invokes the public method whose name goes as first argument just like
   # +public_send+ does, except that if the receiver does not respond to it the
@@ -104,7 +104,7 @@ class Object
   # :method: try!
   #
   # :call-seq:
-  #   try!(*a, &b)
+  #   try!(*args, &block)
   #
   # Same as #try, but raises a +NoMethodError+ exception if the receiver is
   # not +nil+ and does not implement the tried method.
@@ -121,7 +121,7 @@ class Delegator
   # :method: try
   #
   # :call-seq:
-  #   try(a*, &b)
+  #   try(*args, &block)
   #
   # See Object#try
 
@@ -129,7 +129,7 @@ class Delegator
   # :method: try!
   #
   # :call-seq:
-  #   try!(a*, &b)
+  #   try!(*args, &block)
   #
   # See Object#try!
 end

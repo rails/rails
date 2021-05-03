@@ -923,7 +923,7 @@ module ActionView
 
         def form_tag_with_body(html_options, content)
           output = form_tag_html(html_options)
-          output << content
+          output << content.to_s if content
           output.safe_concat("</form>")
         end
 

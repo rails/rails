@@ -413,14 +413,22 @@ module ActiveRecord
           raise ArgumentError, "Polymorphic associations do not support computing the class."
         end
 
-        active_record.send(:compute_type, name).tap do |klass|
+        msg = <<-MSG.squish
+          Rails couldn't find a valid model for #{name} association.
+          Please provide the :class_name option on the association declaration.
+          If :class_name is already provided make sure is an ActiveRecord::Base subclass.
+        MSG
+
+        begin
+          klass = active_record.send(:compute_type, name)
+
           unless klass < ActiveRecord::Base
-            raise ArgumentError, <<-MSG.squish
-              Rails couldn't find a valid model for #{name} association.
-              Please provide the :class_name option on the association declaration.
-              If :class_name is already provided make sure is an ActiveRecord::Base subclass.
-            MSG
+            raise ArgumentError, msg
           end
+
+          klass
+        rescue NameError
+          raise NameError, msg
         end
       end
 

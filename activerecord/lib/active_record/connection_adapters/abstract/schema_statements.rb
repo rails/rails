@@ -629,9 +629,8 @@ module ActiveRecord
           raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)")
         end
 
-        column_names.each do |column_name|
-          remove_column(table_name, column_name, type, **options)
-        end
+        remove_column_fragments = remove_columns_for_alter(table_name, *column_names, type: type, **options)
+        execute "ALTER TABLE #{quote_table_name(table_name)} #{remove_column_fragments.join(', ')}"
       end
 
       # Removes the column from the table definition.
@@ -1296,8 +1295,7 @@ module ActiveRecord
       #  remove_timestamps(:suppliers)
       #
       def remove_timestamps(table_name, **options)
-        remove_column table_name, :updated_at
-        remove_column table_name, :created_at
+        remove_columns table_name, :updated_at, :created_at
       end
 
       def update_table_definition(table_name, base) #:nodoc:

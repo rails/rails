@@ -208,11 +208,33 @@ module ActiveModel
       #   person.nickname_short? # => true
       def alias_attribute(new_name, old_name)
         self.attribute_aliases = attribute_aliases.merge(new_name.to_s => old_name.to_s)
-        CodeGenerator.batch(self, __FILE__, __LINE__) do |owner|
+        CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
           attribute_method_matchers.each do |matcher|
-            matcher_new = matcher.method_name(new_name).to_s
-            matcher_old = matcher.method_name(old_name).to_s
-            define_proxy_call(owner, matcher_new, matcher_old, matcher.parameters)
+            method_name = matcher.method_name(new_name).to_s
+            target_name = matcher.method_name(old_name).to_s
+            parameters = matcher.parameters
+
+            mangled_name = target_name
+            unless NAME_COMPILABLE_REGEXP.match?(target_name)
+              mangled_name = "__temp__#{target_name.unpack1("h*")}"
+            end
+
+            code_generator.define_cached_method(method_name, as: mangled_name, namespace: :alias_attribute) do |batch|
+              body = if CALL_COMPILABLE_REGEXP.match?(target_name)
+                "self.#{target_name}(#{parameters || ''})"
+              else
+                call_args = [":'#{target_name}'"]
+                call_args << parameters if parameters
+                "send(#{call_args.join(", ")})"
+              end
+
+              modifier = matcher.parameters == FORWARD_PARAMETERS ? "ruby2_keywords " : ""
+
+              batch <<
+                "#{modifier}def #{mangled_name}(#{parameters || ''})" <<
+                body <<
+                "end"
+            end
           end
         end
       end
@@ -297,7 +319,7 @@ module ActiveModel
               if respond_to?(generate_method, true)
                 send(generate_method, attr_name.to_s, owner: owner)
               else
-                define_proxy_call(owner, method_name, matcher.target, matcher.parameters, attr_name.to_s)
+                define_proxy_call(owner, method_name, matcher.target, matcher.parameters, attr_name.to_s, namespace: :active_model)
               end
             end
           end
@@ -336,7 +358,37 @@ module ActiveModel
       end
 
       private
-        class CodeGenerator
+        class CodeGenerator # :nodoc:
+          class MethodSet
+            METHOD_CACHES = Hash.new { |h, k| h[k] = Module.new }
+
+            def initialize(namespace)
+              @cache = METHOD_CACHES[namespace]
+              @sources = []
+              @methods = {}
+            end
+
+            def define_cached_method(name, as: name)
+              name = name.to_sym
+              as = as.to_sym
+              @methods.fetch(name) do
+                unless @cache.method_defined?(as)
+                  yield @sources
+                end
+                @methods[name] = as
+              end
+            end
+
+            def apply(owner, path, line)
+              unless @sources.empty?
+                @cache.module_eval("# frozen_string_literal: true\n" + @sources.join(";"), path, line)
+              end
+              @methods.each do |name, as|
+                owner.define_method(name, @cache.instance_method(as))
+              end
+            end
+          end
+
           class << self
             def batch(owner, path, line)
               if owner.is_a?(CodeGenerator)
@@ -354,23 +406,16 @@ module ActiveModel
             @owner = owner
             @path = path
             @line = line
-            @sources = ["# frozen_string_literal: true\n"]
-            @renames = {}
+            @namespaces = Hash.new { |h, k| h[k] = MethodSet.new(k) }
           end
 
-          def <<(source_line)
-            @sources << source_line
-          end
-
-          def rename_method(old_name, new_name)
-            @renames[old_name] = new_name
+          def define_cached_method(name, namespace:, as: name, &block)
+            @namespaces[namespace].define_cached_method(name, as: as, &block)
           end
 
           def execute
-            @owner.module_eval(@sources.join(";"), @path, @line - 1)
-            @renames.each do |old_name, new_name|
-              @owner.alias_method new_name, old_name
-              @owner.undef_method old_name
+            @namespaces.each_value do |method_set|
+              method_set.apply(@owner, @path, @line - 1)
             end
           end
         end
@@ -404,37 +449,31 @@ module ActiveModel
         end
 
         # Define a method `name` in `mod` that dispatches to `send`
-        # using the given `extra` args. This falls back on `define_method`
-        # and `send` if the given names cannot be compiled.
-        def define_proxy_call(code_generator, name, target, parameters, *call_args)
+        # using the given `extra` args. This falls back on `send`
+        # if the called name cannot be compiled.
+        def define_proxy_call(code_generator, name, target, parameters, *call_args, namespace:)
           mangled_name = name
           unless NAME_COMPILABLE_REGEXP.match?(name)
             mangled_name = "__temp__#{name.unpack1("h*")}"
           end
 
-          call_args.map!(&:inspect)
-          call_args << parameters if parameters
+          code_generator.define_cached_method(name, as: mangled_name, namespace: namespace) do |batch|
+            call_args.map!(&:inspect)
+            call_args << parameters if parameters
 
-          body = if CALL_COMPILABLE_REGEXP.match?(target)
-            "self.#{target}(#{call_args.join(", ")})"
-          else
-            call_args.unshift(":'#{target}'")
-            "send(#{call_args.join(", ")})"
-          end
+            body = if CALL_COMPILABLE_REGEXP.match?(target)
+              "self.#{target}(#{call_args.join(", ")})"
+            else
+              call_args.unshift(":'#{target}'")
+              "send(#{call_args.join(", ")})"
+            end
 
-          code_generator <<
-            "def #{mangled_name}(#{parameters || ''})" <<
-            body <<
-            "end"
+            modifier = parameters == FORWARD_PARAMETERS ? "ruby2_keywords " : ""
 
-          if parameters == FORWARD_PARAMETERS
-            code_generator << "ruby2_keywords(:'#{mangled_name}')"
-          end
-
-          if mangled_name != name
-            code_generator <<
-              "alias_method(:'#{name}', :'#{mangled_name}')" <<
-              "remove_method(:'#{mangled_name}')"
+            batch <<
+              "#{modifier}def #{mangled_name}(#{parameters || ''})" <<
+              body <<
+              "end"
           end
         end
 
@@ -533,10 +572,6 @@ module ActiveModel
 
         # We want to generate the methods via module_eval rather than
         # define_method, because define_method is slower on dispatch.
-        # Evaluating many similar methods may use more memory as the instruction
-        # sequences are duplicated and cached (in MRI).  define_method may
-        # be slower on dispatch, but if you're careful about the closure
-        # created, then define_method will consume much less memory.
         #
         # But sometimes the database might return columns with
         # characters that are not allowed in normal method names (like
@@ -560,7 +595,6 @@ module ActiveModel
             temp_method_name = "__temp__#{safe_name}#{'=' if writer}"
             attr_name_expr = "::ActiveModel::AttributeMethods::AttrNames::#{const_name}"
             yield temp_method_name, attr_name_expr
-            owner.rename_method(temp_method_name, method_name)
           end
         end
       end
