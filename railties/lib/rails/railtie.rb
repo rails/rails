@@ -202,14 +202,13 @@ module Rails
 
         # If the class method does not have a method, then send the method call
         # to the Railtie instance.
-        def method_missing(name, *args, &block)
+        def method_missing(name, ...)
           if instance.respond_to?(name)
-            instance.public_send(name, *args, &block)
+            instance.public_send(name, ...)
           else
             super
           end
         end
-        ruby2_keywords(:method_missing)
 
         # receives an instance variable identifier, set the variable value if is
         # blank and append given block to value, which will be used later in

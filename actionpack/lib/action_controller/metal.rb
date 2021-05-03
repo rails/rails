@@ -39,7 +39,7 @@ module ActionController
       EXCLUDE = ->(list, action) { !list.include? action }
       NULL    = ->(list, action) { true }
 
-      def build_middleware(klass, args, block)
+      def build_middleware(klass, *args, &block)
         options = args.extract_options!
         only   = Array(options.delete(:only)).map(&:to_s)
         except = Array(options.delete(:except)).map(&:to_s)
@@ -58,6 +58,7 @@ module ActionController
 
         Middleware.new(klass, args, list, strategy, block)
       end
+      ruby2_keywords(:build_middleware)
   end
 
   # <tt>ActionController::Metal</tt> is the simplest possible controller, providing a

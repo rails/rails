@@ -99,35 +99,30 @@ module ActionDispatch
       middlewares[i]
     end
 
-    def unshift(klass, *args, &block)
-      middlewares.unshift(build_middleware(klass, args, block))
+    def unshift(klass, ...)
+      middlewares.unshift(build_middleware(klass, ...))
     end
-    ruby2_keywords(:unshift)
 
     def initialize_copy(other)
       self.middlewares = other.middlewares.dup
     end
 
-    def insert(index, klass, *args, &block)
+    def insert(index, klass, ...)
       index = assert_index(index, :before)
-      middlewares.insert(index, build_middleware(klass, args, block))
+      middlewares.insert(index, build_middleware(klass, ...))
     end
-    ruby2_keywords(:insert)
+    alias :insert_before :insert
 
-    alias_method :insert_before, :insert
-
-    def insert_after(index, *args, &block)
+    def insert_after(index, klass, ...)
       index = assert_index(index, :after)
-      insert(index + 1, *args, &block)
+      insert(index + 1, klass, ...)
     end
-    ruby2_keywords(:insert_after)
 
-    def swap(target, *args, &block)
+    def swap(target, klass, ...)
       index = assert_index(target, :before)
-      insert(index, *args, &block)
+      insert(index, klass, ...)
       middlewares.delete_at(index + 1)
     end
-    ruby2_keywords(:swap)
 
     def delete(target)
       middlewares.delete_if { |m| m.klass == target }
@@ -140,8 +135,7 @@ module ActionDispatch
       target_index = assert_index(target, :before)
       middlewares.insert(target_index, source_middleware)
     end
-
-    alias_method :move_before, :move
+    alias :move_before :move
 
     def move_after(target, source)
       source_index = assert_index(source, :after)
@@ -151,10 +145,9 @@ module ActionDispatch
       middlewares.insert(target_index + 1, source_middleware)
     end
 
-    def use(klass, *args, &block)
-      middlewares.push(build_middleware(klass, args, block))
+    def use(klass, ...)
+      middlewares.push(build_middleware(klass, ...))
     end
-    ruby2_keywords(:use)
 
     def build(app = nil, &block)
       instrumenting = ActiveSupport::Notifications.notifier.listening?(InstrumentationProxy::EVENT_NAME)
@@ -174,11 +167,12 @@ module ActionDispatch
         i
       end
 
-      def build_middleware(klass, args, block)
+      def build_middleware(klass, *args, &block)
         @rack_runtime_deprecated = false if klass == Rack::Runtime
 
         Middleware.new(klass, args, block)
       end
+      ruby2_keywords(:build_middleware)
 
       def index_of(index)
         raise "ActionDispatch::MiddlewareStack::FakeRuntime can not be referenced in middleware operations" if index == FakeRuntime

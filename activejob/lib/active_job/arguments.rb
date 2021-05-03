@@ -69,28 +69,6 @@ module ActiveJob
       private_constant :PERMITTED_TYPES, :RESERVED_KEYS, :GLOBALID_KEY,
         :SYMBOL_KEYS_KEY, :RUBY2_KEYWORDS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
 
-      unless Hash.respond_to?(:ruby2_keywords_hash?) && Hash.respond_to?(:ruby2_keywords_hash)
-        using Module.new {
-          refine Hash do
-            class << Hash
-              def ruby2_keywords_hash?(hash)
-                !new(*[hash]).default.equal?(hash)
-              end
-
-              def ruby2_keywords_hash(hash)
-                _ruby2_keywords_hash(**hash)
-              end
-
-              private
-                def _ruby2_keywords_hash(*args)
-                  args.last
-                end
-                ruby2_keywords(:_ruby2_keywords_hash)
-            end
-          end
-        }
-      end
-
       def serialize_argument(argument)
         case argument
         when *PERMITTED_TYPES
