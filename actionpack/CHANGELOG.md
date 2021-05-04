@@ -1,3 +1,14 @@
+## Rails 6.1.3.2 (May 05, 2021) ##
+
+*   Prevent open redirects by correctly escaping the host allow list
+    CVE-2021-22903
+
+*   Prevent catastrophic backtracking during mime parsing
+    CVE-2021-22902
+
+*   Prevent regex DoS in HTTP token authentication
+    CVE-2021-22904
+
 *   Prevent string polymorphic route arguments.
 
     `url_for` supports building polymorphic URLs via an array
