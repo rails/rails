@@ -1,3 +1,8 @@
+## Rails 5.2.4.6 (May 05, 2021) ##
+
+*   Prevent regex DoS in HTTP token authentication
+    CVE-2021-22904
+
 *   Prevent string polymorphic route arguments.
 
     `url_for` supports building polymorphic URLs via an array
