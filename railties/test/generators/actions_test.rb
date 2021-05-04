@@ -276,13 +276,13 @@ class ActionsTest < Rails::Generators::TestCase
     run_generator
 
     action :environment do
-      _ = "# This wont be added" # assignment to silence parse-time warning "unused literal ignored"
+      _ = "# This won't be added" # assignment to silence parse-time warning "unused literal ignored"
       "# This will be added"
     end
 
     assert_file "config/application.rb" do |content|
       assert_match(/# This will be added/, content)
-      assert_no_match(/# This wont be added/, content)
+      assert_no_match(/# This won't be added/, content)
     end
   end
 
