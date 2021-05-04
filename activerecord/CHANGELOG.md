@@ -1,3 +1,7 @@
+*   Improve performance of `one?` and `many?` by limiting the generated count query to 2 results.
+
+    *Gonzalo Riestra*
+
 *   Don't check type when using `if_not_exists` on `add_column`.
 
     Previously, if a migration called `add_column` with the `if_not_exists` option set to true
