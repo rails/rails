@@ -27,9 +27,9 @@ module Rails
 
         require_application_and_environment!
         load_generators
-
         Rails::Generators.invoke generator, args, behavior: :revoke, destination_root: Rails::Command.root
-        delete_css_file_generate_with_scaffold
+
+          return delete_css_file_generate_with_scaffold if generator == "scaffold"
       end
     end
   end
