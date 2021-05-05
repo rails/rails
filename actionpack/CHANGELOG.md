@@ -1,3 +1,5 @@
+## Rails 5.2.6 (May 05, 2021) ##
+
 *   Accept base64_urlsafe CSRF tokens to make forward compatible.
 
     Base64 strict-encoded CSRF tokens are not inherently websafe, which makes
@@ -5,16 +7,24 @@
     the CSRF token to a browser in a client-readable cookie does not work properly
     out of the box: the value has to be url-encoded and decoded to survive transport.
 
-    In Rails 6.1, we generate Base64 urlsafe-encoded CSRF tokens, which are inherently
+    In this version, we generate Base64 urlsafe-encoded CSRF tokens, which are inherently
     safe to transport. Validation accepts both urlsafe tokens, and strict-encoded
     tokens for backwards compatibility.
 
-    In Rails 5.2.5, the CSRF token format is accidentally changed to urlsafe-encoded.
-    If you upgrade apps from 5.2.5, set the config `urlsafe_csrf_tokens = true`.
+    How the tokes are encoded is controllr by the `action_controller.urlsafe_csrf_tokens`
+    config.
+
+    In Rails 5.2.5, the CSRF token format was accidentally changed to urlsafe-encoded.
+
+    **Atention**: If you already upgraded your application to 5.2.5, set the config
+    `urlsafe_csrf_tokens` to `true`, otherwise your form submission will start to fail
+    during the deploy of this new version.
 
     ```ruby
     Rails.application.config.action_controller.urlsafe_csrf_tokens = true
     ```
+
+    If you are upgrading from 5.2.4.x, you don't need to change this configuration.
 
     *Scott Blum*, *Étienne Barrié*
 
@@ -67,7 +77,7 @@
 
     The `ActionDispatch::Session::MemcacheStore` is still vulnerable given it requires the
     gem dalli to be updated as well.
-    
+
     _Breaking changes:_
     *   `session.id` now returns an instance of `Rack::Session::SessionId` and not a String (use `session.id.public_id` to restore the old behaviour, see #38063)
     *   Accessing the session id using `session[:session_id]`/`session['session_id']` no longer works with

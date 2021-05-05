@@ -1,3 +1,8 @@
+## Rails 5.2.6 (May 05, 2021) ##
+
+*   No changes.
+
+
 ## Rails 5.2.5 (March 26, 2021) ##
 
 *   No changes.
