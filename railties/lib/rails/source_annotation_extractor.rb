@@ -44,7 +44,7 @@ module Rails
 
       register_extensions("builder", "rb", "rake", "yml", "yaml", "ruby") { |tag| /#\s*(#{tag}):?\s*(.*)$/ }
       register_extensions("css", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
-      register_extensions("erb") { |tag| /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/ }
+      register_extensions("erb") { |tag| /<%\s*#\s*(#{tag}):?\s*+(.*\S)\s*%>/ }
 
       # Returns a representation of the annotation that looks like this:
       #
