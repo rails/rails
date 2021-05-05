@@ -5,6 +5,11 @@
     *Vincent Robert*
 
 
+## Rails 6.0.3.7 (May 05, 2021) ##
+
+*   No changes.
+
+
 ## Rails 6.0.3.6 (March 26, 2021) ##
 
 *   Marcel is upgraded to version 1.0.0 to avoid a dependency on GPL-licensed

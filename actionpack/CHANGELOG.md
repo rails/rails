@@ -24,6 +24,24 @@
     *Rolandas Barysas*
 
 
+## Rails 6.0.3.7 (May 05, 2021) ##
+
+*   Prevent catastrophic backtracking during mime parsing
+    CVE-2021-22902
+
+*   Prevent regex DoS in HTTP token authentication
+    CVE-2021-22904
+
+*   Prevent string polymorphic route arguments.
+
+    `url_for` supports building polymorphic URLs via an array
+    of arguments (usually symbols and records). If a developer passes a
+    user input array, strings can result in unwanted route helper calls.
+
+    CVE-2021-22885
+
+    *Gannon McGibbon*
+
 ## Rails 6.0.3.6 (March 26, 2021) ##
 
 *   No changes.

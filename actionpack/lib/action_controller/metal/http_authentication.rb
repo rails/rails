@@ -405,7 +405,7 @@ module ActionController
     module Token
       TOKEN_KEY = "token="
       TOKEN_REGEX = /^(Token|Bearer)\s+/
-      AUTHN_PAIR_DELIMITERS = /(?:,|;|\t+)/
+      AUTHN_PAIR_DELIMITERS = /(?:,|;|\t)/
       extend self
 
       module ControllerMethods
