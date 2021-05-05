@@ -464,12 +464,6 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
-  def test_with_array_containing_single_string_name
-    with_test_routes do
-      assert_url "http://example.com/projects", ["projects"]
-    end
-  end
-
   def test_with_array_containing_symbols
     with_test_routes do
       assert_url "http://example.com/series/new", [:new, :series]
@@ -621,6 +615,22 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def test_nested_routing_to_a_model_delegate
     with_test_routes do
       assert_url "http://example.com/foo/model_delegates/overridden", [:foo, @delegator]
+    end
+  end
+
+  def test_string_route_arguments
+    with_admin_test_routes do
+      error = assert_raises(ArgumentError) do
+        polymorphic_url(["admin", @project])
+      end
+
+      assert_equal("Please use symbols for polymorphic route arguments.", error.message)
+
+      error = assert_raises(ArgumentError) do
+        polymorphic_url([@project, "bid"])
+      end
+
+      assert_equal("Please use symbols for polymorphic route arguments.", error.message)
     end
   end
 
