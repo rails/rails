@@ -3,6 +3,11 @@
 *   No changes.
 
 
+## Rails 5.2.4.6 (May 05, 2021) ##
+
+*   No changes.
+
+
 ## Rails 5.2.4.5 (February 10, 2021) ##
 
 *   Fix possible DoS vector in PostgreSQL money type
