@@ -10,7 +10,7 @@ module ActiveRecord
           end
 
           def visit_AddForeignKey(o)
-            super.dup.tap { |sql| sql << " NOT VALID" unless o.validate? }
+            super.dup.tap { |sql| sql << " NOT VALID" unless o.foreign_key_definition.validate? }
           end
 
           def visit_CheckConstraintDefinition(o)

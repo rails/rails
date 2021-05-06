@@ -131,6 +131,10 @@ module ActiveRecord
         end
     end
 
+    AddForeignKey = Struct.new(:foreign_key_definition)
+
+    DropForeignKey = Struct.new(:foreign_key_name)
+
     CheckConstraintDefinition = Struct.new(:table_name, :expression, :options) do
       def name
         options[:name]
