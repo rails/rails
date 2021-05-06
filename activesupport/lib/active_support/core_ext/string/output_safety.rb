@@ -184,7 +184,10 @@ module ActiveSupport #:nodoc:
     end
 
     def concat(value)
-      super(implicit_html_escape_interpolated_argument(value))
+      unless value.nil?
+        super(implicit_html_escape_interpolated_argument(value))
+      end
+      self
     end
     alias << concat
 
