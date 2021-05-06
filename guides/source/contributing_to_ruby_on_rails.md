@@ -278,7 +278,7 @@ For `rails-ujs` CoffeeScript and JavaScript files, you can run `npm run lint` in
 #### Spell Checking
 
 We are running [misspell](https://github.com/client9/misspell) which is mainly written in
-[Golang](https://golang.org/) to check spelling with [GitHub Actions](../../.github/workflows/lint.yml). Correct
+[Golang](https://golang.org/) to check spelling with [GitHub Actions](https://github.com/rails/rails/blob/main/.github/workflows/lint.yml). Correct
 commonly misspelled English words quickly with `misspell`. `misspell` is different from most other spell checkers
 because it doesn't use a custom dictionary. You can run `misspell` locally against all files with:
 
@@ -292,7 +292,7 @@ Notable `misspell` help options or flags are:
 - `-w`: Overwrite file with corrections (default is just to display)
 
 We also run [codespell](https://github.com/codespell-project/codespell) with GitHub Actions to check spelling and
-[codespell](https://pypi.org/project/codespell/) runs against a [small custom dictionary](../../codespell.txt).
+[codespell](https://pypi.org/project/codespell/) runs against a [small custom dictionary](https://github.com/rails/rails/blob/main/codespell.txt).
 `codespell` is written in [Python](https://www.python.org/) and you can run it with:
 
 ```bash
