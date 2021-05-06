@@ -149,9 +149,7 @@ module ActionDispatch
         log_array(logger, message)
       end
 
-      def log_array(logger, array)
-        lines = Array(array)
-
+      def log_array(logger, lines)
         return if lines.empty?
 
         if logger.formatter && logger.formatter.respond_to?(:tags_text)
