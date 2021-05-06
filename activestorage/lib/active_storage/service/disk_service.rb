@@ -9,7 +9,7 @@ module ActiveStorage
   # Wraps a local disk path as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::DiskService < Service
-    attr_reader :root
+    attr_accessor :root
 
     def initialize(root:, public: false, **options)
       @root = root
