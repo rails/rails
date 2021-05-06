@@ -960,10 +960,33 @@ class Uploader {
 
 NOTE: Using [Direct Uploads](#direct-uploads) can sometimes result in a file that uploads, but never attaches to a record. Consider [purging unattached uploads](#purging-unattached-uploads).
 
-Discarding Files Stored During System Tests
+Testing
 -------------------------------------------
 
-System tests clean up test data by rolling back a transaction. Because destroy
+Use [`fixture_file_upload`][] to test uploading a file in an integration or controller test.
+Rails handles files like any other parameter.
+
+```ruby
+class SignupController < ActionDispatch::IntegrationTest
+  test "can sign up" do
+    post signup_path, params: {
+      name: "David",
+      avatar: fixture_file_upload("david.png", "image/png")
+    }
+
+    user = User.order(:created_at).last
+    assert user.avatar.attached?
+  end
+end
+```
+
+[`fixture_file_upload`]: https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html
+
+### Discarding files created during tests
+
+#### System tests
+
+System tests clean up test data by rolling back a transaction. Because `destroy`
 is never called on an object, the attached files are never cleaned up. If you
 want to clear the files, you can do it in an `after_teardown` callback. Doing it
 here ensures that all connections created during the test are complete and
@@ -971,16 +994,26 @@ you won't receive an error from Active Storage saying it can't find a file.
 
 ```ruby
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :chrome, screen_size: [1400, 1400]
-
-  def remove_uploaded_files
-    FileUtils.rm_rf("#{Rails.root}/storage_test")
-  end
-
+  # ...
   def after_teardown
     super
-    remove_uploaded_files
+    FileUtils.rm_rf(ActiveStorage::Blob.service.root)
   end
+  # ...
+end
+```
+
+If you're using [parallel tests][] and the `DiskService`, you should configure each process to use its own
+folder for Active Storage. This way, the `teardown` callback will only delete files from the relevant process'
+tests.
+
+```ruby
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  # ...
+  parallelize_setup do |i|
+    ActiveStorage::Blob.service.root = "#{ActiveStorage::Blob.service.root}-#{i}"
+  end
+  # ...
 end
 ```
 
@@ -988,46 +1021,120 @@ If your system tests verify the deletion of a model with attachments and you're
 using Active Job, set your test environment to use the inline queue adapter so
 the purge job is executed immediately rather at an unknown time in the future.
 
-You may also want to use a separate service definition for the test environment
-so your tests don't delete the files you create during development.
-
 ```ruby
 # Use inline job processing to make things happen immediately
 config.active_job.queue_adapter = :inline
-
-# Separate file storage in the test environment
-config.active_storage.service = :local_test
 ```
 
-Discarding Files Stored During Integration Tests
--------------------------------------------
+[parallel tests]: https://guides.rubyonrails.org/testing.html#parallel-testing
+
+#### Integration tests
 
 Similarly to System Tests, files uploaded during Integration Tests will not be
 automatically cleaned up. If you want to clear the files, you can do it in an
-`after_teardown` callback. Doing it here ensures that all connections created
-during the test are complete and you won't receive an error from Active Storage
-saying it can't find a file.
+`teardown` callback.
 
 ```ruby
-module RemoveUploadedFiles
+class ActionDispatch::IntegrationTest
   def after_teardown
     super
-    remove_uploaded_files
-  end
-
-  private
-
-  def remove_uploaded_files
-    FileUtils.rm_rf(Rails.root.join('tmp', 'storage'))
-  end
-end
-
-module ActionDispatch
-  class IntegrationTest
-    prepend RemoveUploadedFiles
+    FileUtils.rm_rf(ActiveStorage::Blob.service.root)
   end
 end
 ```
+
+If you're using [parallel tests][] and the Disk service, you should configure each process to use its own
+folder for Active Storage. This way, the `teardown` callback will only delete files from the relevant process'
+tests.
+
+```ruby
+class ActionDispatch::IntegrationTest
+  parallelize_setup do |i|
+    ActiveStorage::Blob.service.root = "#{ActiveStorage::Blob.service.root}-#{i}"
+  end
+end
+```
+
+[parallel tests]: https://guides.rubyonrails.org/testing.html#parallel-testing
+
+### Adding attachments to fixtures
+
+You can add attachments to your existing [fixtures][]. First, you'll want to create a separate storage service:
+
+```yml
+# config/storage.yml
+
+test_fixtures:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage_fixtures") %>
+```
+
+This tells Active Storage where to "upload" fixture files to, so it should be a temporary directory. By making it
+a different directory to your regular `test` service, you can separate fixture files from files uploaded during a
+test.
+
+Next, create fixture files for the Active Storage classes:
+
+```yml
+# active_storage/attachments.yml
+david_avatar:
+  name: avatar
+  record: david (User)
+  blob: david_avatar_blob
+```
+
+```yml
+# active_storage/blobs.yml
+david_avatar_blob: <%= ActiveStorage::FixtureSet.blob filename: "david.png", service_name: "test_fixtures" %>
+```
+
+Then put a file in your fixtures directory (the default path is `test/fixtures/files`) with the corresponding filename.
+See the [`ActiveStorage::FixtureSet`][] docs for more information.
+
+Once everything is set up, you'll be able to access attachments in your tests:
+
+```ruby
+class UserTest < ActiveSupport::TestCase
+  def test_avatar
+    avatar = users(:david).avatar
+
+    assert avatar.attached?
+    assert_not_nil avatar.download
+    assert_equal 1000, avatar.byte_size
+  end
+end
+```
+
+#### Cleaning up fixtures
+
+While files uploaded in tests are cleaned up [at the end of each test](#discarding-files-created-during-tests),
+you only need to clean up fixture files once: when all your tests complete.
+
+If you're using parallel tests, call `parallelize_teardown`:
+
+```ruby
+class ActiveSupport::TestCase
+  # ...
+  parallelize_teardown do |i|
+    FileUtils.rm_rf(ActiveStorage::Blob.services.fetch(:test_fixtures).root)
+  end
+  # ...
+end
+```
+
+If you're not running parallel tests, use `Minitest.after_run` or the equivalent for your test
+framework (eg. `after(:suite)` for RSpec):
+
+```ruby
+# test_helper.rb
+
+Minitest.after_run do
+  FileUtils.rm_rf(ActiveStorage::Blob.services.fetch(:test_fixtures).root)
+end
+```
+
+[fixtures]: https://guides.rubyonrails.org/testing.html#the-low-down-on-fixtures
+[`ActiveStorage::FixtureSet`]: https://api.rubyonrails.org/classes/ActiveStorage/FixtureSet.html
 
 Implementing Support for Other Cloud Services
 ---------------------------------------------
