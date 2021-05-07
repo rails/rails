@@ -45,6 +45,7 @@ module ActionDispatch
       # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
       # to put a new one.
       def flash
+        return Flash::NullFlash unless session.respond_to?(:loaded?)
         flash = flash_hash
         return flash if flash
         self.flash = Flash::FlashHash.from_session_value(session["flash"])
@@ -76,6 +77,20 @@ module ActionDispatch
       def reset_session # :nodoc:
         super
         self.flash = nil
+      end
+    end
+
+    module NullFlash #:nodoc:
+      class << self
+        def []=(k, v); end
+
+        def [](k); end
+
+        def alert=(message); end
+
+        def notice=(message); end
+
+        def empty?; end
       end
     end
 
