@@ -462,8 +462,8 @@ connections globally.
 ### Handling associations with joins across databases
 
 As of Rails 7.0+, Active Record has an option for handling associations that would perform
-a join across multiple databases. If you have a has many through association that you want to
-disable joining and perform 2 or more queries, pass the `disable_joins: true` option.
+a join across multiple databases. If you have a has many through or a has one through association 
+that you want to disable joining and perform 2 or more queries, pass the `disable_joins: true` option.
 
 For example:
 
@@ -471,12 +471,16 @@ For example:
 class Dog < AnimalsRecord
   has_many :treats, through: :humans, disable_joins: true
   has_many :humans
+
+  belongs_to :home
+  has_one :yard, through: :home, disable_joins: true
 end
 ```
 
-Previously calling `@dog.treats` without `disable_joins` would raise an error because databases are unable
-to handle joins across clusters. With the `disable_joins` option, Rails will generate multiple select queries
-to avoid attempting joining across clusters. For the above association `@dog.treats` would generate the
+Previously calling `@dog.treats` without `disable_joins` or `@dog.yard` without `disable_joins` 
+would raise an error because databases are unable to handle joins across clusters. With the 
+`disable_joins` option, Rails will generate multiple select queries
+to avoid attempting joining across clusters. For the above association, `@dog.treats` would generate the
 following SQL:
 
 ```sql
@@ -484,14 +488,21 @@ SELECT "humans"."id" FROM "humans" WHERE "humans"."dog_id" = ?  [["dog_id", 1]]
 SELECT "treats".* FROM "treats" WHERE "treats"."human_id" IN (?, ?, ?)  [["human_id", 1], ["human_id", 2], ["human_id", 3]]
 ```
 
+While `@dog.yard` would generate the following SQL:
+
+```sql
+SELECT "home"."id" FROM "homes" WHERE "homes"."dog_id" = ? [["dog_id", 1]]
+SELECT "yards".* FROM "yards" WHERE "yards"."home_id" = ? [["home_id", 1]]
+```
+
 There are some important things to be aware of with this option:
 
 1) There may be performance implications since now two or more queries will be performed (depending
 on the association) rather than a join. If the select for `humans` returned a high number of IDs
 the select for `treats` may send too many IDs.
-2) Since we are no longer performing joins a query with an order or limit is now sorted in-memory since
+2) Since we are no longer performing joins, a query with an order or limit is now sorted in-memory since
 order from one table cannot be applied to another table.
-3) This setting must be added to all associations that you want joining to be disabled.
+3) This setting must be added to all associations where you want joining to be disabled.
 Rails can't guess this for you because association loading is lazy, to load `treats` in `@dog.treats`
 Rails already needs to know what SQL should be generated.
 
