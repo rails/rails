@@ -1,3 +1,24 @@
+*   Disallow setting keys with the names of `Hash` methods on `ActiveSupport::OrderedOptions`
+
+    Attempting to set a key on an instance `ActiveSupport::OrderedOptions` of
+    with the name of any instance method that is present on `Hash` will now
+    raise a `NameError`. This is because the corresponding accessor method
+    would be masked by the `Hash` method.
+
+    For example:
+
+    ```ruby
+    require "active_support"
+
+    oo = ActiveSupport::OrderedOptions.new
+
+    oo.count = 999
+    puts oo.count
+    # => 1
+    ```
+
+    *Malcolm Locke*
+
 *   Deprecate `ActiveSupport::SafeBuffer`'s incorrect implicit conversion of objects into string.
 
     Except for a few methods like `String#%`, objects must implement `#to_str`

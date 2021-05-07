@@ -125,4 +125,16 @@ class OrderedOptionsTest < ActiveSupport::TestCase
 
     assert_equal "#<ActiveSupport::OrderedOptions {:foo=>:bar, :baz=>:quz}>", a.inspect
   end
+
+  def test_hash_method_names
+    a = ActiveSupport::OrderedOptions.new
+
+    assert_raises(NameError) do
+      a.keys = "value"
+    end
+
+    assert_raises(NameError) do
+      a[:select] = "value"
+    end
+  end
 end

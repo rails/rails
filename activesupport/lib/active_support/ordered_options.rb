@@ -33,6 +33,7 @@ module ActiveSupport
     protected :_get # make it protected
 
     def []=(key, value)
+      raise_if_hash_method(key)
       super(key.to_sym, value)
     end
 
@@ -43,6 +44,7 @@ module ActiveSupport
     def method_missing(name, *args)
       name_string = +name.to_s
       if name_string.chomp!("=")
+        raise_if_hash_method(name_string)
         self[name_string] = args.first
       else
         bangs = name_string.chomp!("!")
@@ -66,6 +68,13 @@ module ActiveSupport
     def inspect
       "#<#{self.class.name} #{super}>"
     end
+
+    private
+      def raise_if_hash_method(method_name)
+        if Hash.method_defined?(method_name.to_sym)
+          raise(NameError, "invalid key name #{method_name} would be masked by Hash method with the same name")
+        end
+      end
   end
 
   # +InheritableOptions+ provides a constructor to build an +OrderedOptions+
