@@ -603,7 +603,7 @@ module Rails
       routes.draw_paths.concat(external_paths)
 
       if routes? || routing_paths.any?
-        app.routes_reloader.paths.unshift(*routing_paths)
+        app.routes.source_paths.unshift(*routing_paths)
         app.routes_reloader.route_sets << routes
         app.routes_reloader.external_routes.unshift(*external_paths)
       end

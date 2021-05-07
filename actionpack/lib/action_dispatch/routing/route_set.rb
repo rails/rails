@@ -334,7 +334,7 @@ module ActionDispatch
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :draw_paths
-      attr_reader :env_key, :polymorphic_mappings
+      attr_reader :env_key, :polymorphic_mappings, :source_paths
 
       alias :routes :set
 
@@ -373,11 +373,17 @@ module ActionDispatch
         @disable_clear_and_finalize = false
         @finalized                  = false
         @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME"
+        @source_paths               = []
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
         @formatter = Journey::Formatter.new self
         @polymorphic_mappings = {}
+      end
+
+      def load
+        source_paths.each { |path| Kernel.load(path) }
+        finalize!
       end
 
       def eager_load!
@@ -476,6 +482,7 @@ module ActionDispatch
       end
 
       def url_helpers(supports_path = true)
+        load
         if supports_path
           @url_helpers_with_paths ||= generate_url_helpers(true)
         else

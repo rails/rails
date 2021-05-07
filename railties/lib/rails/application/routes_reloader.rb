@@ -21,9 +21,6 @@ module Rails
 
       def reload!
         clear!
-        load_paths
-        finalize!
-        route_sets.each(&:eager_load!) if eager_load
       ensure
         revert
       end
@@ -46,17 +43,8 @@ module Rails
         end
       end
 
-      def load_paths
-        paths.each { |path| load(path) }
-        run_after_load_paths.call
-      end
-
       def run_after_load_paths
         @run_after_load_paths ||= -> { }
-      end
-
-      def finalize!
-        route_sets.each(&:finalize!)
       end
 
       def revert
