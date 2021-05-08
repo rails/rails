@@ -517,6 +517,16 @@ INFO. Cache stores may add their own keys
 }
 ```
 
+#### rotation.active_support
+
+| Key            | Value                                             |
+| -------------- | ------------------------------------------------- |
+|                |                                                   |
+
+```ruby
+{}
+```
+
 ### Active Job
 
 #### enqueue_at.active_job
