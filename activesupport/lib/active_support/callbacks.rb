@@ -5,6 +5,7 @@ require "active_support/descendants_tracker"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/string/filters"
+require "active_support/core_ext/object/blank"
 require "thread"
 
 module ActiveSupport
