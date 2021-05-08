@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/member"
+require "models/member_detail"
 require "models/organization"
 
 class HasOneThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
