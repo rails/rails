@@ -21,7 +21,7 @@ How to Load Core Extensions
 
 ### Stand-Alone Active Support
 
-In order to have a near-zero default footprint, Active Support does not load anything by default. It is broken in small pieces so that you can load just what you need, and also has some convenience entry points to load related extensions in one shot, even everything.
+In order to have the smallest default footprint possible, Active Support loads the minimum dependencies by default. It is broken in small pieces so that only the desired extensions can be loaded. It also has some convenience entry points to load related extensions in one shot, even everything.
 
 Thus, after a simple require like:
 
@@ -29,34 +29,38 @@ Thus, after a simple require like:
 require "active_support"
 ```
 
-objects do not even respond to [`blank?`][Object#blank?]. Let's see how to load its definition.
+only the extensions required by the Active Support framework are loaded.
 
 #### Cherry-picking a Definition
 
-The most lightweight way to get `blank?` is to cherry-pick the file that defines it.
+This example shows how to load [`Hash#with_indifferent_access`][Hash#with_indifferent_access].  This extension enables the conversion of a `Hash` into an [`ActiveSupport::HashWithIndifferentAccess`][ActiveSupport::HashWithIndifferentAccess] which permits access to the keys as either strings or symbols.
 
-For every single method defined as a core extension this guide has a note that says where such a method is defined. In the case of `blank?` the note reads:
+```ruby
+{a: 1}.with_indifferent_access["a"] # => 1
+```
 
-NOTE: Defined in `active_support/core_ext/object/blank.rb`.
+For every single method defined as a core extension this guide has a note that says where such a method is defined. In the case of `with_indifferent_access` the note reads:
+
+NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
 
 That means that you can require it like this:
 
 ```ruby
 require "active_support"
-require "active_support/core_ext/object/blank"
+require "active_support/core_ext/hash/indifferent_access"
 ```
 
 Active Support has been carefully revised so that cherry-picking a file loads only strictly needed dependencies, if any.
 
 #### Loading Grouped Core Extensions
 
-The next level is to simply load all extensions to `Object`. As a rule of thumb, extensions to `SomeClass` are available in one shot by loading `active_support/core_ext/some_class`.
+The next level is to simply load all extensions to `Hash`. As a rule of thumb, extensions to `SomeClass` are available in one shot by loading `active_support/core_ext/some_class`.
 
-Thus, to load all extensions to `Object` (including `blank?`):
+Thus, to load all extensions to `Hash` (including `with_indifferent_access`):
 
 ```ruby
 require "active_support"
-require "active_support/core_ext/object"
+require "active_support/core_ext/hash"
 ```
 
 #### Loading All Core Extensions
