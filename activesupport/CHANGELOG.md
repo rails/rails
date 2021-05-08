@@ -67,6 +67,21 @@
 
     *Andrew White*
 
+*   Deprecates Rails custom `Enumerable#sum` and `Array#sum` in favor of Ruby's native implementation which
+    is considerably faster.
+
+    Ruby requires an initializer for non-numeric type as per examples below:
+
+    ```ruby
+    %w[foo bar].sum('') 
+    # instead of %w[foo bar].sum
+    
+    [[1, 2], [3, 4, 5]].sum([])
+    #instead of [[1, 2], [3, 4, 5]].sum
+    ```
+
+    *Alberto Mota*
+
 *   Tests parallelization is now disabled when running individual files to prevent the setup overhead.
 
     It can still be enforced if the environment variable `PARALLEL_WORKERS` is present and set to a value greater than 1.
