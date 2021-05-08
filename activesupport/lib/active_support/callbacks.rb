@@ -676,9 +676,31 @@ module ActiveSupport
         # <tt>:unless</tt> options may be passed in order to control when the
         # callback is skipped.
         #
-        #   class Writer < Person
-        #      skip_callback :validate, :before, :check_membership, if: -> { age > 18 }
+        #   class Writer < PersonRecord
+        #     attr_accessor :age
+        #     skip_callback :save, :before, :saving_message, if: -> { age > 18 }
         #   end
+        #
+        # When if option returns true, callback is skipped.
+        #
+        #   writer = Writer.new
+        #   writer.age = 20
+        #   writer.save
+        #
+        # Output:
+        #   - save
+        #   saved
+        #
+        # When if option returns false, callback is NOT skipped.
+        #
+        #   young_writer = Writer.new
+        #   young_writer.age = 17
+        #   young_writer.save
+        #
+        # Output:
+        #   saving...
+        #   - save
+        #   saved
         #
         # An <tt>ArgumentError</tt> will be raised if the callback has not
         # already been set (unless the <tt>:raise</tt> option is set to <tt>false</tt>).
