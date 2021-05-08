@@ -577,6 +577,28 @@ class CookiesTest < ActionController::TestCase
     assert_equal 45, verifier.verify(@response.cookies["user_id"])
   end
 
+  def test_notification_for_rotation
+    events = []
+
+    ActiveSupport::Notifications.subscribe "rotation.active_support" do |*args|
+      events << ActiveSupport::Notifications::Event.new(*args)
+    end
+
+    secret = "b3c631c314c0bbca50c1b2843150fe33"
+
+    @request.env["action_dispatch.signed_cookie_digest"] = "SHA256"
+    @request.env["action_dispatch.cookies_rotations"].rotate :signed, secret, digest: "SHA1"
+
+    old_message = ActiveSupport::MessageVerifier.new(secret, digest: "SHA1", serializer: Marshal).generate(45)
+    @request.headers["Cookie"] = "user_id=#{old_message}"
+
+    get :get_signed_cookie
+
+    assert_equal :user_id, events[0].payload[:cookie_name]
+  ensure
+    ActiveSupport::Notifications.unsubscribe("rotation.active_support")
+  end
+
   def test_tampered_with_signed_cookie
     key_generator = @request.env["action_dispatch.key_generator"]
     secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])

@@ -47,7 +47,10 @@ module ActiveSupport
         def run_rotations(on_rotation)
           @rotations.find do |rotation|
             if message = yield(rotation) rescue next
-              on_rotation&.call
+              ActiveSupport::Notifications.instrument("rotation.active_support") do |payload|
+                on_rotation&.call(payload)
+              end
+
               return message
             end
           end

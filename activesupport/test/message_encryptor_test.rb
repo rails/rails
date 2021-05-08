@@ -209,6 +209,24 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_equal "metadata", encryptor.decrypt_and_verify(old_message, purpose: :rotation)
   end
 
+  def test_notification_for_rotation
+    events = []
+
+    ActiveSupport::Notifications.subscribe "rotation.active_support" do |*args|
+      events << ActiveSupport::Notifications::Event.new(*args)
+    end
+
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], cipher: "aes-256-gcm").encrypt_and_sign("old")
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
+    encryptor.rotate(secrets[:old])
+    encryptor.decrypt_and_verify(old_message)
+
+    assert_equal 1, events.length
+    assert_equal "rotation.active_support", events[0].name
+  ensure
+    ActiveSupport::Notifications.unsubscribe("rotation.active_support")
+  end
+
   private
     def assert_aead_not_decrypted(encryptor, value)
       assert_raise(ActiveSupport::MessageEncryptor::InvalidMessage) do
