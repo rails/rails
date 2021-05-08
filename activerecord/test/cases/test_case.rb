@@ -101,6 +101,18 @@ module ActiveRecord
         subclass.send("_#{kind}_callbacks=", old_callbacks[subclass])
       end
     end
+
+    def with_postgresql_datetime_type(type)
+      adapter = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+      adapter.remove_instance_variable(:@native_database_types) if adapter.instance_variable_defined?(:@native_database_types)
+      datetime_type_was = adapter.datetime_type
+      adapter.datetime_type = type
+      yield
+    ensure
+      adapter = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+      adapter.datetime_type = datetime_type_was
+      adapter.remove_instance_variable(:@native_database_types) if adapter.instance_variable_defined?(:@native_database_types)
+    end
   end
 
   class PostgreSQLTestCase < TestCase

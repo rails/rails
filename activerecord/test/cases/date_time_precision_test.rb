@@ -100,10 +100,75 @@ if supports_datetime_with_precision?
 
       assert foo = Foo.find_by(created_at: date)
       assert_equal 1, Foo.where(updated_at: date).count
+      assert_equal date.to_i, foo.created_at.to_i
       assert_equal date.to_s, foo.created_at.to_s
       assert_equal date.to_s, foo.updated_at.to_s
       assert_equal 000000, foo.created_at.usec
       assert_equal 999900, foo.updated_at.usec
+    end
+
+    def test_formatting_datetime_according_to_precision_when_time_zone_aware
+      with_timezone_config aware_attributes: true, zone: "Pacific Time (US & Canada)" do
+        @connection.create_table(:foos, force: true) do |t|
+          t.datetime :created_at, precision: 0
+          t.datetime :updated_at, precision: 4
+        end
+
+        date = ::Time.utc(2014, 8, 17, 12, 30, 0, 999999)
+        Foo.create!(created_at: date, updated_at: date)
+
+        assert foo = Foo.find_by(created_at: date)
+        assert_equal 1, Foo.where(updated_at: date).count
+        assert_equal date.to_i, foo.created_at.to_i
+        assert_equal date.in_time_zone.to_s, foo.created_at.to_s
+        assert_equal date.in_time_zone.to_s, foo.updated_at.to_s
+        assert_equal 000000, foo.created_at.usec
+        assert_equal 999900, foo.updated_at.usec
+      end
+    end
+
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_formatting_datetime_according_to_precision_using_timestamptz
+        with_postgresql_datetime_type(:timestamptz) do
+          @connection.create_table(:foos, force: true) do |t|
+            t.datetime :created_at, precision: 0
+            t.datetime :updated_at, precision: 4
+          end
+
+          date = ::Time.utc(2014, 8, 17, 12, 30, 0, 999999)
+          Foo.create!(created_at: date, updated_at: date)
+
+          assert foo = Foo.find_by(created_at: date)
+          assert_equal 1, Foo.where(updated_at: date).count
+          assert_equal date.to_i, foo.created_at.to_i
+          assert_equal date.to_s, foo.created_at.to_s
+          assert_equal date.to_s, foo.updated_at.to_s
+          assert_equal 000000, foo.created_at.usec
+          assert_equal 999900, foo.updated_at.usec
+        end
+      end
+
+      def test_formatting_datetime_according_to_precision_when_time_zone_aware_using_timestamptz
+        with_postgresql_datetime_type(:timestamptz) do
+          with_timezone_config aware_attributes: true, zone: "Pacific Time (US & Canada)" do
+            @connection.create_table(:foos, force: true) do |t|
+              t.datetime :created_at, precision: 0
+              t.datetime :updated_at, precision: 4
+            end
+
+            date = ::Time.utc(2014, 8, 17, 12, 30, 0, 999999)
+            Foo.create!(created_at: date, updated_at: date)
+
+            assert foo = Foo.find_by(created_at: date)
+            assert_equal 1, Foo.where(updated_at: date).count
+            assert_equal date.to_i, foo.created_at.to_i
+            assert_equal date.in_time_zone.to_s, foo.created_at.to_s
+            assert_equal date.in_time_zone.to_s, foo.updated_at.to_s
+            assert_equal 000000, foo.created_at.usec
+            assert_equal 999900, foo.updated_at.usec
+          end
+        end
+      end
     end
 
     def test_schema_dump_includes_datetime_precision
