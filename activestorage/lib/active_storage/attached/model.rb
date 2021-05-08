@@ -72,9 +72,9 @@ module ActiveStorage
 
         scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
 
-        after_save { attachment_changes[name.to_s]&.save }
-
-        after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
+        after_save do
+          attachment_changes[name.to_s]&.save && attachment_changes.delete(name.to_s).try(:upload)
+        end
 
         reflection = ActiveRecord::Reflection.create(
           :has_one_attached,
@@ -168,9 +168,9 @@ module ActiveStorage
 
         scope :"with_attached_#{name}", -> { includes("#{name}_attachments": :blob) }
 
-        after_save { attachment_changes[name.to_s]&.save }
-
-        after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
+        after_save do
+          attachment_changes[name.to_s]&.save && attachment_changes.delete(name.to_s).try(:upload)
+        end
 
         reflection = ActiveRecord::Reflection.create(
           :has_many_attached,

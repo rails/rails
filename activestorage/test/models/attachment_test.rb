@@ -83,6 +83,35 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     end
   end
 
+  test "successfully attaches blob within a transaction" do
+    ActiveRecord::Base.transaction do
+      @user.avatar.attach fixture_file_upload("racecar.jpg")
+    end
+
+    assert ActiveStorage::Blob.service.exist?(@user.avatar.key)
+  end
+
+  test "successfully attaches multiple blobs within a transaction" do
+    ActiveRecord::Base.transaction do
+      @user.highlights.attach fixture_file_upload("racecar.jpg")
+      @user.highlights.attach fixture_file_upload("video.mp4")
+    end
+
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+  end
+
+  test "successfully attaches blob when reloading within a transaction" do
+    @user.avatar = fixture_file_upload("racecar.jpg")
+
+    @user.transaction do
+      @user.save!
+      @user.reload
+    end
+
+    assert @user.avatar.service.exist?(@user.avatar.key)
+  end
+
   test "getting a signed blob ID from an attachment" do
     blob = create_blob
     @user.avatar.attach(blob)
