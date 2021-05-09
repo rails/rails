@@ -7,6 +7,6 @@
     "actionview"
   ],
   "dependencies": {
-    "webpack": "^4.17.1"
+    "webpack": "^5.36.2"
   }
 }
