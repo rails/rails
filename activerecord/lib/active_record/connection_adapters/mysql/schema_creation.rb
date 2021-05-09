@@ -40,6 +40,7 @@ module ActiveRecord
             sql << "USING #{o.using}" if o.using
             sql << "ON #{quote_table_name(o.table)}" if create
             sql << "(#{quoted_columns(o)})"
+            sql << "WITH PARSER #{o.parser}" if o.parser
 
             add_sql_comment!(sql.join(" "), o.comment)
           end

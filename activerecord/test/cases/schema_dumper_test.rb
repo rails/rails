@@ -262,6 +262,38 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   if current_adapter?(:Mysql2Adapter)
+    def test_schema_dump_includes_parser_attribute
+      migration, original, $stdout = nil, $stdout, StringIO.new
+
+      migration = Class.new(ActiveRecord::Migration::Current) do
+        def up
+          create_table(:juices) do |t|
+            t.text    :description
+          end
+          execute "CREATE FULLTEXT INDEX index_juices_on_description ON juices(description) WITH PARSER ngram"
+
+          create_table(:soups) do |t|
+            t.text    :description
+          end
+          add_index :soups, :description, type: :fulltext, parser: :ngram
+        end
+        def down
+          drop_table("juices")
+          drop_table("soups")
+        end
+      end
+      migration.migrate(:up)
+
+      output = perform_schema_dump
+      assert output.include?('t.index ["description"], name: "index_juices_on_description", type: :fulltext, parser: ngram')
+      assert output.include?('t.index ["description"], name: "index_soups_on_description", type: :fulltext, parser: ngram')
+    ensure
+      migration.migrate(:down)
+      $stdout = original
+    end
+  end
+
+  if current_adapter?(:Mysql2Adapter)
     def test_schema_dump_includes_length_for_mysql_binary_fields
       output = dump_table_schema "binary_fields"
       assert_match %r{t\.binary\s+"var_binary",\s+limit: 255$}, output

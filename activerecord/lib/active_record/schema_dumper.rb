@@ -99,6 +99,10 @@ HEADER
       def extensions(stream)
       end
 
+      # parser are only supported by MySQL
+      def check_parser(index)
+      end
+
       def tables(stream)
         sorted_tables = @connection.tables.sort
 
@@ -215,6 +219,7 @@ HEADER
         index_parts << "where: #{index.where.inspect}" if index.where
         index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
         index_parts << "type: #{index.type.inspect}" if index.type
+        index_parts << "parser: #{check_parser(index)}" if check_parser(index)
         index_parts << "comment: #{index.comment.inspect}" if index.comment
         index_parts
       end

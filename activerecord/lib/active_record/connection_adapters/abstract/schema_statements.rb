@@ -1303,7 +1303,7 @@ module ActiveRecord
       end
 
       def add_index_options(table_name, column_name, name: nil, if_not_exists: false, internal: false, **options) # :nodoc:
-        options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm)
+        options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :parser)
 
         column_names = index_column_names(column_name)
 
@@ -1322,7 +1322,8 @@ module ActiveRecord
           where: options[:where],
           type: options[:type],
           using: options[:using],
-          comment: options[:comment]
+          comment: options[:comment],
+          parser: options[:parser]
         )
 
         [index, index_algorithm(options[:algorithm]), if_not_exists]

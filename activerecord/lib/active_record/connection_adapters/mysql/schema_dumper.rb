@@ -65,6 +65,13 @@ module ActiveRecord
             end
           end
 
+          def check_parser(index)
+            query = @connection.query("show create table #{index.table}").to_h
+            return unless query[index.table].include? "WITH PARSER"
+
+            query[index.table][/#{index.name}.*#{index.columns.first}.*WITH PARSER `(.+)`/, 1]
+          end
+
           def extract_expression_for_virtual_column(column)
             if @connection.mariadb? && @connection.database_version < "10.2.5"
               create_table_info = @connection.send(:create_table_info, table_name)
