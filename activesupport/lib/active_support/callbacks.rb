@@ -347,11 +347,8 @@ module ActiveSupport
         end
 
         private
-          EMPTY_ARRAY = [].freeze
-          private_constant :EMPTY_ARRAY
-
           def check_conditionals(conditionals)
-            return EMPTY_ARRAY if conditionals.blank?
+            return [].freeze if conditionals.blank?
 
             conditionals = Array(conditionals)
             if conditionals.any?(String)
