@@ -68,7 +68,8 @@ module ActiveSupport
       class_attribute :__callbacks, instance_writer: false, default: {}
     end
 
-    CALLBACK_FILTER_TYPES = [:before, :after, :around]
+    CALLBACK_FILTER_TYPES = [:before, :after, :around].freeze
+    private_constant :CALLBACK_FILTER_TYPES
 
     # Runs the callbacks for the given event.
     #
