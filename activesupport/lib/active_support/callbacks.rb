@@ -319,12 +319,7 @@ module ActiveSupport
         end
 
         def duplicates?(other)
-          case @filter
-          when Symbol
-            matches?(other.kind, other.filter)
-          else
-            false
-          end
+          Symbol === @filter ? matches?(other.kind, other.filter) : false
         end
 
         # Wraps code with filter
