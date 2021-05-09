@@ -148,7 +148,7 @@ module ActiveSupport
       def halted_callback_hook(filter, name)
       end
 
-      module Conditionals # :nodoc:
+      module Conditionals # :nodoc: all
         class Value
           def initialize(&block)
             @block = block
@@ -157,7 +157,7 @@ module ActiveSupport
         end
       end
 
-      module Filters
+      module Filters # :nodoc: all
         Environment = Struct.new(:target, :halted, :value)
 
         class Before
