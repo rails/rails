@@ -314,8 +314,8 @@ module ActiveSupport
           self.class.build chain, @filter, @kind, options
         end
 
-        def matches?(_kind, _filter)
-          @kind == _kind && filter == _filter
+        def matches?(kind, filter)
+          @kind == kind && @filter == filter
         end
 
         def duplicates?(other)
