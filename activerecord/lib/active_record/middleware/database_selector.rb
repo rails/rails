@@ -22,6 +22,7 @@ module ActiveRecord
     # To use the DatabaseSelector in your application with default settings add
     # the following options to your environment config:
     #
+    #   # This require is only necessary when using `rails new app --minimal`
     #   require "active_support/core_ext/integer/time"
     #
     #   class Application < Rails::Application
