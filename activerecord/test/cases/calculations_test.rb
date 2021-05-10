@@ -503,7 +503,15 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_not_overshadow_enumerable_sum
+    some_companies = companies(:rails_core).companies.order(:id)
+
     assert_equal 6, [1, 2, 3].sum(&:abs)
+    assert_equal 15, some_companies.sum(&:id)
+    assert_equal 25, some_companies.sum(10, &:id)
+    assert_deprecated do
+      assert_equal "LeetsoftJadedpixel", some_companies.sum(&:name)
+    end
+    assert_equal "companies: LeetsoftJadedpixel", some_companies.sum("companies: ", &:name)
   end
 
   def test_should_sum_scoped_field
@@ -1338,12 +1346,6 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_count_with_block_and_column_name_raises_an_error
     assert_raises(ArgumentError) do
       Account.count(:firm_id) { true }
-    end
-  end
-
-  def test_sum_with_block_and_column_name_raises_an_error
-    assert_raises(ArgumentError) do
-      Account.sum(:firm_id) { 1 }
     end
   end
 
