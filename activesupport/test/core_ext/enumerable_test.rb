@@ -55,16 +55,28 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 60, enum.sum { |i| i * 2 }
 
     enum = GenericEnumerable.new(%w(a b c))
-    assert_equal "abc", enum.sum
-    assert_equal "aabbcc", enum.sum { |i| i * 2 }
+    assert_equal "abc", enum.sum("")
+    assert_equal "aabbcc", enum.sum("") { |i| i * 2 }
+    assert_deprecated do
+      assert_equal "abc", enum.sum
+    end
+    assert_deprecated do
+      assert_equal "aabbcc", enum.sum { |i| i * 2 }
+    end
 
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
     assert_equal 30, payments.sum(&:price)
     assert_equal 60, payments.sum { |p| p.price * 2 }
 
     payments = GenericEnumerable.new([ SummablePayment.new(5), SummablePayment.new(15) ])
-    assert_equal SummablePayment.new(20), payments.sum
-    assert_equal SummablePayment.new(20), payments.sum { |p| p }
+    assert_deprecated do
+      assert_equal SummablePayment.new(20), payments.sum
+    end
+    assert_equal SummablePayment.new(20), payments.sum(SummablePayment.new(0))
+    assert_equal SummablePayment.new(20), payments.sum(SummablePayment.new(0)) { |p| p }
+    assert_deprecated do
+      assert_equal SummablePayment.new(20), payments.sum { |p| p }
+    end
 
     sum = GenericEnumerable.new([3, 5.quo(1)]).sum
     assert_typed_equal(8, sum, Rational)
@@ -105,6 +117,9 @@ class EnumerableTests < ActiveSupport::TestCase
     expected_raise = TypeError
 
     assert_raise(expected_raise) { GenericEnumerable.new([5, 15, nil]).sum }
+    assert_deprecated do
+      assert_equal 0, [nil].sum
+    end
 
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10), Payment.new(nil) ])
     assert_raise(expected_raise) { payments.sum(&:price) }
@@ -114,7 +129,9 @@ class EnumerableTests < ActiveSupport::TestCase
 
   def test_empty_sums
     assert_equal 0, GenericEnumerable.new([]).sum
+    assert_equal [], GenericEnumerable.new([]).sum([])
     assert_equal 0, GenericEnumerable.new([]).sum { |i| i + 10 }
+    assert_equal [], GenericEnumerable.new([]).sum([]) { |i| i + 10 }
     assert_equal Payment.new(0), GenericEnumerable.new([]).sum(Payment.new(0))
     assert_typed_equal 0.0, GenericEnumerable.new([]).sum(0.0), Float
   end
@@ -124,7 +141,10 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 10, (1..4).sum
     assert_equal 10, (1..4.5).sum
     assert_equal 6, (1...4).sum
-    assert_equal "abc", ("a".."c").sum
+    assert_deprecated do
+      assert_equal "abc", ("a".."c").sum
+    end
+    assert_equal "abc", ("a".."c").sum("")
     assert_equal 50_000_005_000_000, (0..10_000_000).sum
     assert_equal 0, (10..0).sum
     assert_equal 5, (10..0).sum(5)
@@ -142,16 +162,28 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 60, enum.sum { |i| i * 2 }
 
     enum = %w(a b c)
-    assert_equal "abc", enum.sum
-    assert_equal "aabbcc", enum.sum { |i| i * 2 }
+    assert_deprecated do
+      assert_equal "abc", enum.sum
+    end
+    assert_equal "abc", enum.sum("")
+    assert_deprecated do
+      assert_equal "aabbcc", enum.sum { |i| i * 2 }
+    end
+    assert_equal "aabbcc", enum.sum("") { |i| i * 2 }
 
     payments = [ Payment.new(5), Payment.new(15), Payment.new(10) ]
     assert_equal 30, payments.sum(&:price)
     assert_equal 60, payments.sum { |p| p.price * 2 }
 
     payments = [ SummablePayment.new(5), SummablePayment.new(15) ]
-    assert_equal SummablePayment.new(20), payments.sum
-    assert_equal SummablePayment.new(20), payments.sum { |p| p }
+    assert_deprecated do
+      assert_equal SummablePayment.new(20), payments.sum
+    end
+    assert_equal SummablePayment.new(20), payments.sum(SummablePayment.new(0))
+    assert_deprecated do
+      assert_equal SummablePayment.new(20), payments.sum { |p| p }
+    end
+    assert_equal SummablePayment.new(20), payments.sum(SummablePayment.new(0)) { |p| p }
 
     sum = [3, 5.quo(1)].sum
     assert_typed_equal(8, sum, Rational)

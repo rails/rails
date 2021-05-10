@@ -250,9 +250,7 @@ module ActiveRecord
       def remove_column(table_name, column_name, type = nil, **options) #:nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
-          definition.foreign_keys.delete_if do |_, fk_options|
-            fk_options[:column] == column_name.to_s
-          end
+          definition.foreign_keys.delete_if { |fk| fk.column == column_name.to_s }
         end
       end
 
@@ -262,9 +260,7 @@ module ActiveRecord
             definition.remove_column column_name
           end
           column_names = column_names.map(&:to_s)
-          definition.foreign_keys.delete_if do |_, fk_options|
-            column_names.include?(fk_options[:column])
-          end
+          definition.foreign_keys.delete_if { |fk| column_names.include?(fk.column) }
         end
       end
 

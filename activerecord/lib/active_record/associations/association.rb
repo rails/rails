@@ -215,6 +215,12 @@ module ActiveRecord
       end
 
       private
+        # Reader and writer methods call this so that consistent errors are presented
+        # when the association target class does not exist.
+        def ensure_klass_exists!
+          klass
+        end
+
         def find_target
           if violates_strict_loading? && owner.validation_context.nil?
             Base.strict_loading_violation!(owner: owner.class, reflection: reflection)

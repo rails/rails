@@ -423,6 +423,7 @@ by default has been mixed into Active Record classes.
 You can extend the list of supported argument types. You just need to define your own serializer:
 
 ```ruby
+# app/serializers/money_serializer.rb
 class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
   # Checks if an argument should be serialized by this serializer.
   def serialize?(argument)
@@ -449,7 +450,20 @@ end
 and add this serializer to the list:
 
 ```ruby
+# config/initializer/custom_serializers.rb
 Rails.application.config.active_job.custom_serializers << MoneySerializer
+```
+
+Note that auto-loading reloadable code during initialization is not supported. Thus it is recommended
+to set-up serializers to be loaded only once, e.g. by amending `config/application.rb` like this:
+
+```ruby
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    config.autoload_once_paths << Rails.root.join('app', 'serializers')
+  end
+end
 ```
 
 Exceptions

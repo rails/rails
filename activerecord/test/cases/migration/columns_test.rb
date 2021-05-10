@@ -328,7 +328,7 @@ module ActiveRecord
           t.integer "col_two"
         end
 
-        # SQLite3's ALTER TABLE statement has several limitations. To mange
+        # SQLite3's ALTER TABLE statement has several limitations. To manage
         # this, the adapter creates a temporary table, copies the data, drops
         # the old table, creates the new table, then copies the data back.
         expected_query_count = current_adapter?(:SQLite3Adapter) ? 12 : 1

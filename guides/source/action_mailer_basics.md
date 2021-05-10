@@ -880,16 +880,25 @@ class SandboxEmailInterceptor
 end
 ```
 
-Before the interceptor can do its job you need to register it using
-[`register_interceptor`][]. There are multiples ways to subscribe.
+Before the interceptor can do its job you need to register it.
+There are multiples ways to subscribe.
 
 To be called on every email sent:
 
-* In a config file
+* Using the `interceptors` config option
 
 ```ruby
 # config/environments/staging.rb
 config.action_mailer.interceptors = [SandboxEmailInterceptor]
+```
+
+```ruby
+# config/initializers/mail_interceptors.rb
+Rails.application.configure do
+  if Rails.env.staging?
+    config.action_mailer.interceptors = %w[SandboxEmailInterceptor]
+  end
+end
 ```
 
 * In `ApplicationMailer`
@@ -898,17 +907,8 @@ config.action_mailer.interceptors = [SandboxEmailInterceptor]
 # app/mailers/application_mailer.rb
 class ApplicationMailer < ActionMailer::Base
   if Rails.env.staging?
-    register_interceptor(SandboxEmailInterceptor)
+    register_interceptor SandboxEmailInterceptor
   end
-end
-```
-
-* In an initializer
-
-```ruby
-# config/initializers/sandbox_email_interceptor.rb
-if Rails.env.staging?
-  ActionMailer::Base.register_interceptor(SandboxEmailInterceptor)
 end
 ```
 
@@ -918,7 +918,7 @@ To be called only for email sent from a specific mailer:
 # app/mailers/user_mailer.rb
 class UserMailer < ActionMailer::Base
   if Rails.env.staging?
-    register_interceptor(SandboxEmailInterceptor)
+    register_interceptor SandboxEmailInterceptor
   end
 end
 ```
@@ -927,8 +927,6 @@ NOTE: The example above uses a custom environment called "staging" for a
 production like server but for testing purposes. You can read
 [Creating Rails Environments](configuring.html#creating-rails-environments)
 for more information about custom Rails environments.
-
-[`register_interceptor`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-c-register_interceptor
 
 ### Observing Emails
 
@@ -944,15 +942,22 @@ class EmailDeliveryObserver
 end
 ```
 
-Similar to interceptors, you must register observers using [`register_observer`][].
+Similar to interceptors, you must register observers.
 
 To be called on every email sent:
 
-* In a config file
+* Using the `observers` config option
 
 ```ruby
 # config/application.rb
 config.action_mailer.observers = [EmailDeliveryObserver]
+```
+
+```ruby
+# config/initializers/mail_observers.rb
+Rails.application.configure do
+  config.action_mailer.observers = %w[EmailDeliveryObserver]
+end
 ```
 
 * In `ApplicationMailer`
@@ -960,15 +965,8 @@ config.action_mailer.observers = [EmailDeliveryObserver]
 ```ruby
 # app/mailers/application_mailer.rb
 class ApplicationMailer < ActionMailer::Base
-  register_observer(EmailDeliveryObserver)
+  register_observer EmailDeliveryObserver
 end
-```
-
-* In an initializer
-
-```ruby
-# config/initializers/email_delivery_observer.rb
-ActionMailer::Base.register_observer(EmailDeliveryObserver)
 ```
 
 To be called only for email sent from a specific mailer:
@@ -976,8 +974,6 @@ To be called only for email sent from a specific mailer:
 ```ruby
 # app/mailers/user_mailer.rb
 class UserMailer < ActionMailer::Base
-  register_observer(EmailDeliveryObserver)
+  register_observer EmailDeliveryObserver
 end
 ```
-
-[`register_observer`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-c-register_observer

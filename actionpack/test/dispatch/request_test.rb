@@ -597,7 +597,7 @@ class RequestCookie < BaseRequestTest
 end
 
 class RequestParamsParsing < BaseRequestTest
-  test "doesnt break when content type has charset" do
+  test "doesn't break when content type has charset" do
     request = stub_request(
       "REQUEST_METHOD" => "POST",
       "CONTENT_LENGTH" => "flamenco=love".length,
@@ -608,7 +608,7 @@ class RequestParamsParsing < BaseRequestTest
     assert_equal({ "flamenco" => "love" }, request.request_parameters)
   end
 
-  test "doesnt interpret request uri as query string when missing" do
+  test "doesn't interpret request uri as query string when missing" do
     request = stub_request("REQUEST_URI" => "foo")
     assert_equal({}, request.query_parameters)
   end

@@ -15,8 +15,11 @@ module ActionDispatch
         #
         # The screenshot will be displayed in your console, if supported.
         #
+        # The default screenshots directory is +tmp/screenshots+ but you can set a different
+        # one with +Capybara.save_path+
+        #
         # You can set the +RAILS_SYSTEM_TESTING_SCREENSHOT_HTML+ environment variable to
-        # save the HTML from the page that is being screenhoted so you can investigate the
+        # save the HTML from the page that is being screenshotted so you can investigate the
         # elements on the page at the time of the screenshot
         #
         # You can set the +RAILS_SYSTEM_TESTING_SCREENSHOT+ environment variable to
@@ -76,7 +79,11 @@ module ActionDispatch
           end
 
           def absolute_path
-            Rails.root.join("tmp/screenshots/#{image_name}")
+            Rails.root.join(screenshots_dir, image_name)
+          end
+
+          def screenshots_dir
+            Capybara.save_path.presence || "tmp/screenshots"
           end
 
           def absolute_image_path

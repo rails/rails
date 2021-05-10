@@ -1,3 +1,13 @@
+*   Deprecate `ActiveSupport::SafeBuffer`'s incorrect implicit conversion of objects into string.
+
+    Except for a few methods like `String#%`, objects must implement `#to_str`
+    to be implicitly converted to a String in string operations. In some
+    circumstances `ActiveSupport::SafeBuffer` was incorrectly calling the
+    explicit conversion method (`#to_s`) on them. This behavior is now
+    deprecated.
+
+    *Jean Boussier*
+
 *   Allow nested access to keys on `Rails.application.credentials`
 
     Previously only top level keys in `credentials.yml.enc` could be accessed with method calls. Now any key can.
@@ -56,6 +66,21 @@
 *   Deprecate `ActiveSupport::TimeWithZone.name` so that from Rails 7.1 it will use the default implementation.
 
     *Andrew White*
+
+*   Deprecates Rails custom `Enumerable#sum` and `Array#sum` in favor of Ruby's native implementation which
+    is considerably faster.
+
+    Ruby requires an initializer for non-numeric type as per examples below:
+
+    ```ruby
+    %w[foo bar].sum('') 
+    # instead of %w[foo bar].sum
+    
+    [[1, 2], [3, 4, 5]].sum([])
+    #instead of [[1, 2], [3, 4, 5]].sum
+    ```
+
+    *Alberto Mota*
 
 *   Tests parallelization is now disabled when running individual files to prevent the setup overhead.
 

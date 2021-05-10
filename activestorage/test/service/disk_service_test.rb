@@ -26,4 +26,17 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
   test "headers_for_direct_upload generation" do
     assert_equal({ "Content-Type" => "application/json" }, @service.headers_for_direct_upload(@key, content_type: "application/json"))
   end
+
+  test "root" do
+    assert_equal tmp_config.dig(:tmp, :root), @service.root
+  end
+
+  test "can change root" do
+    tmp_path_2 = File.join(Dir.tmpdir, "active_storage_2")
+    @service.root = tmp_path_2
+
+    assert_equal tmp_path_2, @service.root
+  ensure
+    @service.root = tmp_config.dig(:tmp, :root)
+  end
 end
