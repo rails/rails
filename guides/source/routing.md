@@ -1270,10 +1270,11 @@ edit_video_path(video) # => "/videos/Roman-Holiday/edit"
 Breaking up *very* large route file into multiple small ones:
 -------------------------------------------------------
 
-If you work in a large application with thousands of routes,
-a single `config/routes.rb` file can become cumbersome and hard to read.
+If you work in a large application with thousands of routes, a single `config/routes.rb` file can become cumbersome and hard to read.
 
 Rails offers a way to break a gigantic single `routes.rb` file into multiple small ones using the [`draw`][] macro.
+
+You could have an `admin.rb` route that contains all the routes for the admin area, another `api.rb` file for API related resources, etc.
 
 ```ruby
 # config/routes.rb
@@ -1294,18 +1295,16 @@ end
 ```
 
 Calling `draw(:admin)` inside the `Rails.application.routes.draw` block itself will try to load a route
-file that has the same name as the argument given (`admin.rb` in this case).
+file that has the same name as the argument given (`admin.rb` in this example).
 The file needs to be located inside the `config/routes` directory or any sub-directory (i.e. `config/routes/admin.rb` or `config/routes/external/admin.rb`).
 
-You can use the normal routing DSL inside the `admin.rb` routing file, **however** you shouldn't surround it with the `Rails.application.routes.draw` block like you did in the main `config/routes.rb` file.
+You can use the normal routing DSL inside the `admin.rb` routing file, but you **shouldn't** surround it with the `Rails.application.routes.draw` block like you did in the main `config/routes.rb` file.
 
 [`draw`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-draw
 
-### When to use and not use this feature
+### Don't use this feature unless you really need it
 
-Drawing routes from external files can be very useful to organise a large set of routes into multiple organised ones. You could have a `admin.rb` route that contains all the routes for the admin area, another `api.rb` file to route API related resources, etc...
-
-However, you shouldn't abuse this feature as having too many route files make discoverability and understandability more difficult. Depending on the application, it might be easier for developers to have a single routing file even if you have few hundreds routes. You shouldn't try to create a new routing file for each category (e.g. admin, api, ...) at all cost; the Rails routing DSL already offers a way to break routes in a organised manner with `namespaces` and `scopes`.
+Having multiple routing files makes discoverability and understandability harder. For most applications - even those with a few hundred routes - it's easier for developers to have a single routing file. The Rails routing DSL already offers a way to break routes in an organized manner with `namespace` and `scope`.
 
 
 Inspecting and Testing Routes
