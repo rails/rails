@@ -33,6 +33,7 @@ require "tmpdir"
 Rails.configuration.active_storage.service_configurations = SERVICE_CONFIGURATIONS.merge(
   "local" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests") },
   "local_public" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests"), "public" => true },
+  "local_developent_only" => { "service" => "Disk", "environment" => "development", "root" => Dir.mktmpdir("active_storage_tests") },
   "disk_mirror_1" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_1") },
   "disk_mirror_2" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_2") },
   "disk_mirror_3" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_3") },

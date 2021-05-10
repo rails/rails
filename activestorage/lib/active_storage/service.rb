@@ -42,6 +42,7 @@ module ActiveStorage
     extend ActiveSupport::Autoload
     autoload :Configurator
     attr_accessor :name
+    attr_accessor :environment
 
     class << self
       # Configure an Active Storage service by name from a set of configurations,
@@ -57,9 +58,10 @@ module ActiveStorage
       # Passes the configurator and all of the service's config as keyword args.
       #
       # See MirrorService for an example.
-      def build(configurator:, name:, service: nil, **service_config) #:nodoc:
+      def build(configurator:, name:, environment: nil, service: nil, **service_config) #:nodoc:
         new(**service_config).tap do |service_instance|
           service_instance.name = name
+          service_instance.environment = environment
         end
       end
     end
@@ -141,7 +143,19 @@ module ActiveStorage
       @public
     end
 
+    def check_if_environment_is_permitted!
+      raise_incorrect_environment! unless permitted_in_current_environment?
+    end
+
     private
+      def raise_incorrect_environment!
+        raise(ActiveStorage::EnvironmentMismatchError.new(service_name, environment))
+      end
+
+      def permitted_in_current_environment?
+        environment.blank? || Array(environment).include?(Rails.env)
+      end
+
       def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
         raise NotImplementedError
       end

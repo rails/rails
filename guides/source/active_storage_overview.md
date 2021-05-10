@@ -52,19 +52,25 @@ below declares three services named `local`, `test`, and `amazon`:
 ```yaml
 local:
   service: Disk
+  environment: development
   root: <%= Rails.root.join("storage") %>
 
 test:
   service: Disk
+  environment: test
   root: <%= Rails.root.join("tmp/storage") %>
 
 amazon:
   service: S3
+  environment: production
   access_key_id: ""
   secret_access_key: ""
   bucket: ""
   region: "" # e.g. 'us-east-1'
 ```
+
+The `environment` configuration is optional, but makes Active Storage more secure
+by preventing access to the specified except when Rails is running in the specified environment.
 
 Tell Active Storage which service to use by setting
 `Rails.application.config.active_storage.service`. Because each environment will
