@@ -1847,7 +1847,7 @@ class Comment < ApplicationRecord
 end
 ```
 
-Class methods can also be added to concerns. If we want a count of public articles or comments to display on our main page, we might add a class method to Visible as follows:
+Class methods can also be added to concerns. If we want to display a count of public articles or comments on our main page, we might add a class method to Visible as follows:
 
 ```ruby
 module Visible
