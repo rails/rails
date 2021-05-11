@@ -9,6 +9,13 @@ module ActiveSupport
 
     config.eager_load_namespaces << ActiveSupport
 
+    initializer "active_support.remove_deprecated_time_with_zone_name" do |app|
+      if app.config.active_support.remove_deprecated_time_with_zone_name
+        require "active_support/time_with_zone"
+        TimeWithZone.singleton_class.remove_method(:name)
+      end
+    end
+
     initializer "active_support.set_authenticated_message_encryption" do |app|
       config.after_initialize do
         unless app.config.active_support.use_authenticated_message_encryption.nil?

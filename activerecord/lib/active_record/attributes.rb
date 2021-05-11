@@ -207,6 +207,8 @@ module ActiveRecord
       # methods in ActiveModel::Type::Value for more details.
       def attribute(name, cast_type = nil, default: NO_DEFAULT_PROVIDED, **options)
         name = name.to_s
+        name = attribute_aliases[name] || name
+
         reload_schema_from_cache
 
         case cast_type

@@ -6,7 +6,7 @@ module ActiveRecord
       module SchemaStatements # :nodoc:
         # Returns an array of indexes for the given table.
         def indexes(table_name)
-          exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
+          exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").filter_map do |row|
             # Indexes SQLite creates implicitly for internal use start with "sqlite_".
             # See https://www.sqlite.org/fileformat2.html#intschema
             next if row["name"].start_with?("sqlite_")
@@ -49,7 +49,7 @@ module ActiveRecord
               where: where,
               orders: orders
             )
-          end.compact
+          end
         end
 
         def add_foreign_key(from_table, to_table, **options)

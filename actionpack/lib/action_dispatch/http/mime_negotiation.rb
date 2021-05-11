@@ -102,7 +102,7 @@ module ActionDispatch
       def variant=(variant)
         variant = Array(variant)
 
-        if variant.all? { |v| v.is_a?(Symbol) }
+        if variant.all?(Symbol)
           @variant = ActiveSupport::ArrayInquirer.new(variant)
         else
           raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols."

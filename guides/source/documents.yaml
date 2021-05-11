@@ -178,6 +178,11 @@
       work_in_progress: true
       url: active_record_multiple_databases.html
       description: This guide covers using multiple databases in your application.
+    -
+      name: Active Record Encryption
+      work_in_progress: true
+      url: active_record_encryption.html
+      description: This guide covers encrypting your database information using Active Record.
 
 -
   name: Extending Rails

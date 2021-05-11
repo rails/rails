@@ -1162,7 +1162,7 @@ class CookiesTest < ActionController::TestCase
     assert_cookie_header "user_name=rizwanreza; domain=.example3.com; path=/; SameSite=Lax"
   end
 
-  def test_deletings_cookie_with_several_preset_domains_using_one_of_these_domains
+  def test_deleting_cookie_with_several_preset_domains_using_one_of_these_domains
     @request.host = "example2.com"
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_domains
@@ -1170,7 +1170,7 @@ class CookiesTest < ActionController::TestCase
     assert_cookie_header "user_name=; domain=example2.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
-  def test_deletings_cookie_with_several_preset_domains_using_other_domain
+  def test_deleting_cookie_with_several_preset_domains_using_other_domain
     @request.host = "other-domain.com"
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_domains

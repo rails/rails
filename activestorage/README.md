@@ -32,7 +32,7 @@ class User < ApplicationRecord
 end
 
 # Attach an avatar to the user.
-user.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
+user.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
 
 # Does the user have an avatar?
 user.avatar.attached? # => true

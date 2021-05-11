@@ -42,6 +42,10 @@ class NamingTest < ActiveModel::TestCase
   def test_i18n_key
     assert_equal :"post/track_back", @model_name.i18n_key
   end
+
+  def test_uncountable
+    assert_equal false, @model_name.uncountable?
+  end
 end
 
 class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase

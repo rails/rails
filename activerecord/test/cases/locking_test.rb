@@ -465,7 +465,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   def test_quote_table_name
     ref = references(:michael_magician)
-    ref.favourite = !ref.favourite
+    ref.favorite = !ref.favorite
     assert ref.save
   end
 

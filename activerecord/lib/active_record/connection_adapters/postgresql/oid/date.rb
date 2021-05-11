@@ -16,6 +16,14 @@ module ActiveRecord
               super
             end
           end
+
+          def type_cast_for_schema(value)
+            case value
+            when ::Float::INFINITY then "::Float::INFINITY"
+            when -::Float::INFINITY then "-::Float::INFINITY"
+            else super
+            end
+          end
         end
       end
     end

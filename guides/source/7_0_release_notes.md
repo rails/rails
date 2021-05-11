@@ -17,7 +17,7 @@ coverage before going in. You should also first upgrade to Rails 6.1 in case you
 haven't and make sure your application still runs as expected before attempting
 an update to Rails 7.0. A list of things to watch out for when upgrading is
 available in the
-[Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-6-1-to-rails-6-2)
+[Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-6-1-to-rails-7-0)
 guide.
 
 Major Features

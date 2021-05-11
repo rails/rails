@@ -63,6 +63,9 @@ Layout/EndAlignment:
   EnforcedStyleAlignWith: variable
   AutoCorrect: true
 
+Layout/EndOfLine:
+  Enabled: true
+
 Layout/EmptyLineAfterMagicComment:
   Enabled: true
 
@@ -87,9 +90,6 @@ Layout/EmptyLinesAroundModuleBody:
 
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
 Style/HashSyntax:
-  Enabled: true
-
-Layout/FirstArgumentIndentation:
   Enabled: true
 
 # Method definitions after `private` or `protected` isolated calls need one
@@ -256,6 +256,12 @@ Performance/BindCall:
 Performance/FlatMap:
   Enabled: true
 
+Performance/MapCompact:
+  Enabled: true
+
+Performance/SelectMap:
+  Enabled: true
+
 Performance/RedundantMerge:
   Enabled: true
 
@@ -269,6 +275,9 @@ Performance/RegexpMatch:
   Enabled: true
 
 Performance/ReverseEach:
+  Enabled: true
+
+Performance/StringReplacement:
   Enabled: true
 
 Performance/UnfreezeString:

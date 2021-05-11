@@ -54,7 +54,7 @@ module ActiveRecord
 
         # Checks if the model has any default scopes. If all_queries
         # is set to true, the method will check if there are any
-        # default_scopes for the model  where `all_queries` is true.
+        # default_scopes for the model  where +all_queries+ is true.
         def default_scopes?(all_queries: false)
           if all_queries
             self.default_scopes.map(&:all_queries).include?(true)
@@ -80,7 +80,7 @@ module ActiveRecord
           #   Article.create.published # => true
           #
           # To apply a #default_scope when updating or deleting a record, add
-          # `all_queries: true`:
+          # <tt>all_queries: true</tt>:
           #
           #   class Article < ActiveRecord::Base
           #     default_scope { where(blog_id: 1) }, all_queries: true
@@ -146,9 +146,7 @@ module ActiveRecord
             if default_scope_override
               # The user has defined their own default scope method, so call that
               evaluate_default_scope do
-                if scope = default_scope
-                  relation.merge!(scope)
-                end
+                relation.scoping { default_scope }
               end
             elsif default_scopes.any?
               evaluate_default_scope do
@@ -173,11 +171,11 @@ module ActiveRecord
           end
 
           def ignore_default_scope?
-            ScopeRegistry.value_for(:ignore_default_scope, base_class)
+            ScopeRegistry.ignore_default_scope(base_class)
           end
 
           def ignore_default_scope=(ignore)
-            ScopeRegistry.set_value_for(:ignore_default_scope, base_class, ignore)
+            ScopeRegistry.set_ignore_default_scope(base_class, ignore)
           end
 
           # The ignore_default_scope flag is used to prevent an infinite recursion

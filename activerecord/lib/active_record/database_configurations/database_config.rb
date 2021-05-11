@@ -48,6 +48,18 @@ module ActiveRecord
         raise NotImplementedError
       end
 
+      def min_threads
+        raise NotImplementedError
+      end
+
+      def max_threads
+        raise NotImplementedError
+      end
+
+      def max_queue
+        raise NotImplementedError
+      end
+
       def checkout_timeout
         raise NotImplementedError
       end

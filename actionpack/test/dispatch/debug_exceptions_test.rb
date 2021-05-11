@@ -26,12 +26,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   class Boomer
     attr_accessor :closed
 
-    class NilAnnotedSourceCodeError < StandardError
-      def annoted_source_code
-        nil
-      end
-    end
-
     def initialize(detailed = false)
       @detailed = detailed
       @closed = false
@@ -58,10 +52,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       rescue
         raise "Third error"
       end
-    end
-
-    def method_that_raises_nil_annoted_source_code
-      raise NilAnnotedSourceCodeError, "nil annoted_source_code"
     end
 
     def call(env)
@@ -123,8 +113,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise_nested_exceptions
       when %r{/actionable_error}
         raise CustomActionableError
-      when %r{/nil_annoted_source_code_error}
-        method_that_raises_nil_annoted_source_code
       when "/utf8_template_error"
         begin
           eval "“fancy string”"
@@ -742,20 +730,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 400
     assert_match "ActionController::BadRequest", body
-  end
-
-  test "debug exceptions with misbehaving Exception#annoted_source_code" do
-    @app = DevelopmentApp
-
-    io = StringIO.new
-    logger = ActiveSupport::Logger.new(io)
-
-    get "/nil_annoted_source_code_error", headers: { "action_dispatch.show_exceptions" => true, "action_dispatch.logger" => logger }
-
-    assert_select "header h1", /DebugExceptionsTest::Boomer::NilAnnotedSourceCodeError/
-    assert_select "#container div.exception-message" do
-      assert_select "div", /nil annoted_source_code/
-    end
   end
 
   test "debug exceptions app shows diagnostics for template errors that contain UTF-8 characters" do

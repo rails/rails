@@ -245,6 +245,19 @@ class ActiveRecord::Relation
       assert_equal only_common, common_with_extra.or(only_common)
     end
 
+    test "supports hash equality" do
+      h = Hash.new(0)
+      h[WhereClause.new(["a"])] += 1
+      h[WhereClause.new(["a"])] += 1
+      h[WhereClause.new(["b"])] += 1
+
+      expected = {
+        WhereClause.new(["a"]) => 2,
+        WhereClause.new(["b"]) => 1
+      }
+      assert_equal expected, h
+    end
+
     private
       def table
         Arel::Table.new("table")

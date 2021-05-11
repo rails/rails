@@ -327,6 +327,7 @@ module ActiveRecord #:nodoc:
     include SecureToken
     include SignedId
     include Suppressor
+    include Encryption::EncryptableRecord
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)

@@ -173,7 +173,7 @@ class RoutingAssertionsTest < ActionController::TestCase
     assert_match err.message, "This is a really bad msg"
   end
 
-  def test_assert_recognizes_continue_to_recoginize_after_it_tried_engines
+  def test_assert_recognizes_continue_to_recognize_after_it_tried_engines
     assert_recognizes({ controller: "query_articles", action: "index" }, "/shelf/foo")
   end
 

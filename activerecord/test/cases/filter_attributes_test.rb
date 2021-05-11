@@ -63,6 +63,13 @@ class FilterAttributesTest < ActiveRecord::TestCase
     assert_includes account.inspect, 'name: "slangis73"'
   end
 
+  test "proc filter_attributes don't prevent marshal dump" do
+    ActiveRecord::Base.filter_attributes = [ lambda { |key, value| value.reverse! if key == "name" } ]
+    account = Admin::Account.new(id: 123, name: "37signals")
+    account.inspect
+    assert_equal account, Marshal.load(Marshal.dump(account))
+  end
+
   test "filter_attributes could be overwritten by models" do
     Admin::Account.all.each do |account|
       assert_includes account.inspect, "name: [FILTERED]"

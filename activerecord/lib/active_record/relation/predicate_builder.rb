@@ -9,10 +9,6 @@ module ActiveRecord
     require "active_record/relation/predicate_builder/association_query_value"
     require "active_record/relation/predicate_builder/polymorphic_array_value"
 
-    # No-op BaseHandler to work Mashal.load(File.read("legacy_relation.dump")).
-    # TODO: Remove the constant alias once Rails 6.1 has released.
-    BaseHandler = BasicObjectHandler
-
     def initialize(table)
       @table = table
       @handlers = []
@@ -69,8 +65,7 @@ module ActiveRecord
     end
 
     def build_bind_attribute(column_name, value)
-      attr = Relation::QueryAttribute.new(column_name, value, table.type(column_name))
-      Arel::Nodes::BindParam.new(attr)
+      Relation::QueryAttribute.new(column_name, value, table.type(column_name))
     end
 
     def resolve_arel_attribute(table_name, column_name, &block)
@@ -103,7 +98,9 @@ module ActiveRecord
 
             klass ||= AssociationQueryValue
             queries = klass.new(associated_table, value).queries.map! do |query|
-              expand_from_hash(query)
+              # If the query produced is identical to attributes don't go any deeper.
+              # Prevents stack level too deep errors when association and foreign_key are identical.
+              query == attributes ? self[key, value] : expand_from_hash(query)
             end
 
             grouping_queries(queries)

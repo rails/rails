@@ -1,3 +1,42 @@
+*   Add support for 'require-trusted-types-for' and 'trusted-types' headers.
+
+    Fixes #42034
+
+    *lfalcao*
+
+*   Remove inline styles and address basic accessibility issues on rescue templates.
+
+    *Jacob Herrington*
+
+*   Add support for 'private, no-store' Cache-Control headers.
+
+    Previously, 'no-store' was exclusive; no other directives could be specified.
+
+    *Alex Smith*
+
+*   Expand payload of `unpermitted_parameters.action_controller` instrumentation to allow subscribers to
+    know which controller action received unpermitted parameters.
+
+    *bbuchalter*
+
+*   Add `ActionController::Live#send_stream` that makes it more convenient to send generated streams:
+
+    ```ruby
+    send_stream(filename: "subscribers.csv") do |stream|
+      stream.writeln "email_address,updated_at"
+
+      @subscribers.find_each do |subscriber|
+        stream.writeln [ subscriber.email_address, subscriber.updated_at ].join(",")
+      end
+    end
+    ```
+
+    *DHH*
+
+*   Add `ActionController::Live::Buffer#writeln` to write a line to the stream with a newline included.
+
+    *DHH*
+
 *   `ActionDispatch::Request#content_type` now returned Content-Type header as it is.
 
     Previously, `ActionDispatch::Request#content_type` returned value does NOT contain charset part.
@@ -30,9 +69,21 @@
 
     *Janko Marohnić*
 
+*   Allow anything with `#to_str` (like `Addressable::URI`) as a `redirect_to` location
+
+    *ojab*
+
 *   Change the request method to a `GET` when passing failed requests down to `config.exceptions_app`.
 
     *Alex Robbin*
+
+*   Deprecate the ability to assign a single value to `config.action_dispatch.trusted_proxies`
+    as `RemoteIp` middleware behaves inconsistently depending on whether this is configured
+    with a single value or an enumerable.
+
+    Fixes #40772
+
+    *Christian Sutter*
 
 *   Add `redirect_back_or_to(fallback_location, **)` as a more aesthetically pleasing version of `redirect_back fallback_location:, **`.
     The old method name is retained without explicit deprecation.

@@ -29,5 +29,7 @@ end
 class PublishedBook < ActiveRecord::Base
   self.table_name = "books"
 
+  enum :cover, { hard: "0", soft: "1" }, default: :hard
+
   validates_uniqueness_of :isbn
 end

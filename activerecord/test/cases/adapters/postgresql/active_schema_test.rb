@@ -40,6 +40,9 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     expected = %(CREATE INDEX CONCURRENTLY "index_people_on_last_name" ON "people" ("last_name"))
     assert_equal expected, add_index(:people, :last_name, algorithm: :concurrently)
 
+    expected = %(CREATE INDEX CONCURRENTLY IF NOT EXISTS "index_people_on_last_name" ON "people" ("last_name"))
+    assert_equal expected, add_index(:people, :last_name, if_not_exists: true, algorithm: :concurrently)
+
     expected = %(CREATE INDEX "index_people_on_last_name_and_first_name" ON "people" ("last_name" DESC, "first_name" ASC))
     assert_equal expected, add_index(:people, [:last_name, :first_name], order: { last_name: :desc, first_name: :asc })
     assert_equal expected, add_index(:people, ["last_name", :first_name], order: { last_name: :desc, "first_name" => :asc })
@@ -103,8 +106,7 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   private
-    def method_missing(method_symbol, *arguments)
-      ActiveRecord::Base.connection.public_send(method_symbol, *arguments)
+    def method_missing(...)
+      ActiveRecord::Base.connection.public_send(...)
     end
-    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 end

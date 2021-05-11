@@ -15,15 +15,15 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
 
   def test_merging_multiple_left_joins_from_different_associations
     count = Author.joins(:posts).merge(Post.left_joins(:comments).merge(Comment.left_joins(:ratings))).count
-    assert_equal 16, count
+    assert_equal 17, count
 
     count = Author.left_joins(:posts).merge(Post.left_joins(:comments).merge(Comment.left_joins(:ratings))).count
-    assert_equal 16, count
+    assert_equal 17, count
   end
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
-    result = Author.left_outer_joins(:thinking_posts, :welcome_posts).to_a
-    assert_equal authors(:david), result.first
+    result = Author.left_outer_joins(:thinking_posts, :welcome_posts).first
+    assert_equal authors(:david), result
   end
 
   def test_construct_finder_sql_does_not_table_name_collide_on_duplicate_associations
@@ -37,8 +37,8 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_left_outer_joins_count_is_same_as_size_of_loaded_results
-    assert_equal 17, Post.left_outer_joins(:comments).to_a.size
-    assert_equal 17, Post.left_outer_joins(:comments).count
+    assert_equal 18, Post.left_outer_joins(:comments).to_a.size
+    assert_equal 18, Post.left_outer_joins(:comments).count
   end
 
   def test_merging_left_joins_should_be_left_joins
@@ -80,7 +80,7 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_left_outer_joins_with_string_join
-    assert_equal 16, Author.left_outer_joins(:posts).joins("LEFT OUTER JOIN comments ON comments.post_id = posts.id").count
+    assert_equal 17, Author.left_outer_joins(:posts).joins("LEFT OUTER JOIN comments ON comments.post_id = posts.id").count
   end
 
   def test_left_outer_joins_with_arel_join
@@ -89,7 +89,7 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     constraint = comments[:post_id].eq(posts[:id])
     arel_join = comments.create_join(comments, comments.create_on(constraint), Arel::Nodes::OuterJoin)
 
-    assert_equal 16, Author.left_outer_joins(:posts).joins(arel_join).count
+    assert_equal 17, Author.left_outer_joins(:posts).joins(arel_join).count
   end
 
   def test_join_conditions_added_to_join_clause

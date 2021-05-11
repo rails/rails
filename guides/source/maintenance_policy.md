@@ -59,6 +59,11 @@ be built from 1.2.2, and then added to the end of 1-2-stable. This means that
 security releases are easy to upgrade to if you're running the latest version
 of Rails.
 
+Only direct security patches will be included in security releases. Fixes for
+non-security related bugs resulting from a security patch may be published on a
+release's x-y-stable branch, and will only be released as a new gem in
+accordance with the Bug Fixes policy.
+
 **Currently included series:** `7.0.Z`, `6.1.Z`, `5.2.Z`.
 
 Severe Security Issues

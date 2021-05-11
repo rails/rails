@@ -84,7 +84,7 @@ module ActionController
     #
     # If no <tt>options</tt> hash is passed or if <tt>:update</tt> is specified, then:
     #
-    # If an object responding to `render_in` is passed, `render_in` is called on the object,
+    # If an object responding to +render_in+ is passed, +render_in+ is called on the object,
     # passing in the current view context.
     #
     # Otherwise, a partial is rendered using the second parameter as the locals hash.

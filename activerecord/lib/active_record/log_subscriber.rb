@@ -39,6 +39,7 @@ module ActiveRecord
 
       name  = "#{payload[:name]} (#{event.duration.round(1)}ms)"
       name  = "CACHE #{name}" if payload[:cached]
+      name  = "ASYNC #{name}" if payload[:async]
       sql   = payload[:sql]
       binds = nil
 

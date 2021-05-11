@@ -5,7 +5,7 @@ require "rails-html-sanitizer"
 module ActionText
   module ContentHelper
     mattr_accessor(:sanitizer) { Rails::Html::Sanitizer.safe_list_sanitizer.new }
-    mattr_accessor(:allowed_tags) { sanitizer.class.allowed_tags + [ ActionText::Attachment::TAG_NAME, "figure", "figcaption" ] }
+    mattr_accessor(:allowed_tags) { sanitizer.class.allowed_tags + [ ActionText::Attachment.tag_name, "figure", "figcaption" ] }
     mattr_accessor(:allowed_attributes) { sanitizer.class.allowed_attributes + ActionText::Attachment::ATTRIBUTES }
     mattr_accessor(:scrubber)
 

@@ -173,6 +173,22 @@ if ActiveRecord::Base.connection.prepared_statements
         end
       end
 
+      def test_nested_unprepared_statements
+        assert_predicate @connection, :prepared_statements?
+
+        @connection.unprepared_statement do
+          assert_not_predicate @connection, :prepared_statements?
+
+          @connection.unprepared_statement do
+            assert_not_predicate @connection, :prepared_statements?
+          end
+
+          assert_not_predicate @connection, :prepared_statements?
+        end
+
+        assert_predicate @connection, :prepared_statements?
+      end
+
       private
         def assert_bind_params_to_sql
           table = Author.quoted_table_name

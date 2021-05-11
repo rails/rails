@@ -86,6 +86,14 @@ class PostgresqlIntervalTest < ActiveRecord::PostgreSQLTestCase
     assert_equal "P1DT1H", i.legacy_term
   end
 
+  def test_average_interval_type
+    IntervalDataType.create!([{ maximum_term: 6.years }, { maximum_term: 4.months }])
+    value = IntervalDataType.average(:maximum_term)
+
+    assert_equal 3.years + 2.months, value
+    assert_instance_of ActiveSupport::Duration, value
+  end
+
   def test_deprecated_legacy_type
     assert_deprecated do
       DeprecatedIntervalDataType.new

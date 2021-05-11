@@ -363,7 +363,7 @@ class TemplateDigestorTest < ActionView::TestCase
 
     def tree_template_formats(template_name)
       tree = ActionView::Digestor.tree(template_name, finder)
-      tree.flatten.map(&:template).compact.map(&:format)
+      tree.flatten.filter_map { |node| node.template&.format }
     end
 
     def disable_resolver_caching

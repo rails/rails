@@ -79,8 +79,7 @@ a class `Book`, you should have a database table called **books**. The Rails
 pluralization mechanisms are very powerful, being capable of pluralizing (and
 singularizing) both regular and irregular words. When using class names composed
 of two or more words, the model class name should follow the Ruby conventions,
-using the CamelCase form, while the table name must contain the words separated
-by underscores. Examples:
+using the CamelCase form, while the table name must use the snake_case form. Examples:
 
 * Model Class - Singular with the first letter of each word capitalized (e.g.,
 `BookClub`).
@@ -369,7 +368,7 @@ database that Active Record supports using `rake`. Here's a migration that
 creates a table:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration[6.0]
+class CreatePublications < ActiveRecord::Migration[7.0]
   def change
     create_table :publications do |t|
       t.string :title

@@ -17,8 +17,8 @@ class Person < ActiveRecord::Base
 
   has_many :references
   has_many :bad_references
-  has_many :fixed_bad_references, -> { where favourite: true }, class_name: "BadReference"
-  has_one  :favourite_reference, -> { where "favourite=?", true }, class_name: "Reference"
+  has_many :fixed_bad_references, -> { where favorite: true }, class_name: "BadReference"
+  has_one  :favorite_reference, -> { where "favorite=?", true }, class_name: "Reference"
   has_many :posts_with_comments_sorted_by_comment_id, -> { includes(:comments).order("comments.id") }, through: :readers, source: :post
   has_many :first_posts, -> { where(id: [1, 2]) }, through: :readers
 

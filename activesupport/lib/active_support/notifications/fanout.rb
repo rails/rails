@@ -70,6 +70,10 @@ module ActiveSupport
         listeners_for(name).each { |s| s.publish(name, *args) }
       end
 
+      def publish_event(event)
+        listeners_for(event.name).each { |s| s.publish_event(event) }
+      end
+
       def listeners_for(name)
         # this is correctly done double-checked locking (Concurrent::Map's lookups have volatile semantics)
         @listeners_for[name] || synchronize do
@@ -144,11 +148,20 @@ module ActiveSupport
             @pattern = Matcher.wrap(pattern)
             @delegate = delegate
             @can_publish = delegate.respond_to?(:publish)
+            @can_publish_event = delegate.respond_to?(:publish_event)
           end
 
           def publish(name, *args)
             if @can_publish
               @delegate.publish name, *args
+            end
+          end
+
+          def publish_event(event)
+            if @can_publish_event
+              @delegate.publish_event event
+            else
+              publish(event.name, event.time, event.end, event.transaction_id, event.payload)
             end
           end
 
@@ -220,6 +233,10 @@ module ActiveSupport
             event = stack.pop
             event.payload = payload
             event.finish!
+            @delegate.call event
+          end
+
+          def publish_event(event)
             @delegate.call event
           end
 

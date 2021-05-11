@@ -402,7 +402,7 @@ by asking the debugger for help. Type: `help`
   frame      -- Moves to a frame in the call stack
   help       -- Helps you using byebug
   history    -- Shows byebug's history of commands
-  info       -- Shows several informations about the program being debugged
+  info       -- Shows several information about the program being debugged
   interrupt  -- Interrupts the program
   irb        -- Starts an IRB session
   kill       -- Sends a signal to the current process
@@ -722,7 +722,7 @@ Ruby instruction to be executed -- in this case, Active Support's `week` method.
    49:
    50:   # Returns a Duration instance matching the number of weeks provided.
    51:   #
-   52:   #   2.weeks # => 14 days
+   52:   #   2.weeks # => 2 weeks
    53:   def weeks
 => 54:     ActiveSupport::Duration.weeks(self)
    55:   end
@@ -819,7 +819,7 @@ deleted when that breakpoint is reached.
 * `finish [n]`: execute until the selected stack frame returns. If no frame
 number is given, the application will run until the currently selected frame
 returns. The currently selected frame starts out the most-recent frame or 0 if
-no frame positioning (e.g up, down, or frame) has been performed. If a frame
+no frame positioning (e.g. up, down, or frame) has been performed. If a frame
 number is given it will run until the specified frame returns.
 
 ### Editing
@@ -962,6 +962,7 @@ For further information on how to install Valgrind and use with Ruby, refer to
 by Evan Weaver.
 
 ### Find a Memory Leak
+
 There is an excellent article about detecting and fixing memory leaks at Derailed, [which you can read here](https://github.com/schneems/derailed_benchmarks#is-my-app-leaking-memory).
 
 

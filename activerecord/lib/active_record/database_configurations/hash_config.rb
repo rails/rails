@@ -66,6 +66,18 @@ module ActiveRecord
         (configuration_hash[:pool] || 5).to_i
       end
 
+      def min_threads
+        (configuration_hash[:min_threads] || 0).to_i
+      end
+
+      def max_threads
+        (configuration_hash[:max_threads] || pool).to_i
+      end
+
+      def max_queue
+        max_threads * 4
+      end
+
       def checkout_timeout
         (configuration_hash[:checkout_timeout] || 5).to_f
       end

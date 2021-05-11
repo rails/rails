@@ -27,16 +27,6 @@ module ActiveRecord
       RUBY
     end
 
-    def build(attributes = nil, &block)
-      if attributes.is_a?(Array)
-        attributes.collect { |attr| build(attr, &block) }
-      else
-        block = current_scope_restoring_block(&block)
-        scoping { _new(attributes, &block) }
-      end
-    end
-    alias new build
-
     private
       def _new(attributes, &block)
         @association.build(attributes, &block)

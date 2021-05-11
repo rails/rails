@@ -1,4 +1,4 @@
-APP_ROOT = File.expand_path('..', __dir__)
+APP_ROOT = File.expand_path("..", __dir__)
 Dir.chdir(APP_ROOT) do
   yarn = ENV["PATH"].split(File::PATH_SEPARATOR).
     select { |dir| File.expand_path(dir) != __dir__ }.

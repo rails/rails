@@ -63,3 +63,10 @@ sub_special_comment:
   post_id: 4
   body: Sub special comment
   type: SubSpecialComment
+
+recursive_association_comment:
+  id: 13
+  post_id: 5
+  body: afrase
+  type: Comment
+  company: 15

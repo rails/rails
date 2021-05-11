@@ -97,5 +97,4 @@ else
       assert_not_equal derived_key, different_length_key
     end
   end
-
 end

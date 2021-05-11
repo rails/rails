@@ -2,9 +2,8 @@
 
 Action Pack is a framework for handling and responding to web requests. It
 provides mechanisms for *routing* (mapping request URLs to actions), defining
-*controllers* that implement actions, and generating responses by rendering
-*views*, which are templates of various formats. In short, Action Pack
-provides the view and controller layers in the MVC paradigm.
+*controllers* that implement actions, and generating responses. In short, Action Pack
+provides the controller layer in the MVC paradigm.
 
 It consists of several modules:
 

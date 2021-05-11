@@ -21,7 +21,7 @@ How to Load Core Extensions
 
 ### Stand-Alone Active Support
 
-In order to have a near-zero default footprint, Active Support does not load anything by default. It is broken in small pieces so that you can load just what you need, and also has some convenience entry points to load related extensions in one shot, even everything.
+In order to have the smallest default footprint possible, Active Support loads the minimum dependencies by default. It is broken in small pieces so that only the desired extensions can be loaded. It also has some convenience entry points to load related extensions in one shot, even everything.
 
 Thus, after a simple require like:
 
@@ -29,34 +29,38 @@ Thus, after a simple require like:
 require "active_support"
 ```
 
-objects do not even respond to [`blank?`][Object#blank?]. Let's see how to load its definition.
+only the extensions required by the Active Support framework are loaded.
 
 #### Cherry-picking a Definition
 
-The most lightweight way to get `blank?` is to cherry-pick the file that defines it.
+This example shows how to load [`Hash#with_indifferent_access`][Hash#with_indifferent_access].  This extension enables the conversion of a `Hash` into an [`ActiveSupport::HashWithIndifferentAccess`][ActiveSupport::HashWithIndifferentAccess] which permits access to the keys as either strings or symbols.
 
-For every single method defined as a core extension this guide has a note that says where such a method is defined. In the case of `blank?` the note reads:
+```ruby
+{a: 1}.with_indifferent_access["a"] # => 1
+```
 
-NOTE: Defined in `active_support/core_ext/object/blank.rb`.
+For every single method defined as a core extension this guide has a note that says where such a method is defined. In the case of `with_indifferent_access` the note reads:
+
+NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
 
 That means that you can require it like this:
 
 ```ruby
 require "active_support"
-require "active_support/core_ext/object/blank"
+require "active_support/core_ext/hash/indifferent_access"
 ```
 
 Active Support has been carefully revised so that cherry-picking a file loads only strictly needed dependencies, if any.
 
 #### Loading Grouped Core Extensions
 
-The next level is to simply load all extensions to `Object`. As a rule of thumb, extensions to `SomeClass` are available in one shot by loading `active_support/core_ext/some_class`.
+The next level is to simply load all extensions to `Hash`. As a rule of thumb, extensions to `SomeClass` are available in one shot by loading `active_support/core_ext/some_class`.
 
-Thus, to load all extensions to `Object` (including `blank?`):
+Thus, to load all extensions to `Hash` (including `with_indifferent_access`):
 
 ```ruby
 require "active_support"
-require "active_support/core_ext/object"
+require "active_support/core_ext/hash"
 ```
 
 #### Loading All Core Extensions
@@ -446,7 +450,7 @@ NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
 
 ### JSON support
 
-Active Support provides a better implementation of `to_json` than the `json` gem ordinarily provides for Ruby objects. This is because some classes, like `Hash`, `OrderedHash` and `Process::Status` need special handling in order to provide a proper JSON representation.
+Active Support provides a better implementation of `to_json` than the `json` gem ordinarily provides for Ruby objects. This is because some classes, like `Hash` and `Process::Status` need special handling in order to provide a proper JSON representation.
 
 NOTE: Defined in `active_support/core_ext/object/json.rb`.
 
@@ -599,22 +603,11 @@ NOTE: Defined in `active_support/core_ext/module/attr_internal.rb`.
 
 The macros [`mattr_reader`][Module#mattr_reader], [`mattr_writer`][Module#mattr_writer], and [`mattr_accessor`][Module#mattr_accessor] are the same as the `cattr_*` macros defined for class. In fact, the `cattr_*` macros are just aliases for the `mattr_*` macros. Check [Class Attributes](#class-attributes).
 
-For example, the dependencies mechanism uses them:
+For example, the API for the logger of Active Storage is generated with `mattr_accessor`:
 
 ```ruby
-module ActiveSupport
-  module Dependencies
-    mattr_accessor :warnings_on_first_load
-    mattr_accessor :history
-    mattr_accessor :loaded
-    mattr_accessor :mechanism
-    mattr_accessor :load_paths
-    mattr_accessor :load_once_paths
-    mattr_accessor :autoloaded_constants
-    mattr_accessor :explicitly_unloadable_constants
-    mattr_accessor :constant_watch_stack
-    mattr_accessor :constant_watch_stack_mutex
-  end
+module ActiveStorage
+  mattr_accessor :logger
 end
 ```
 
@@ -2161,7 +2154,7 @@ Extensions to `BigDecimal`
 
 ### `to_s`
 
-The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating point representation instead of engineering notation:
+The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating-point representation instead of engineering notation:
 
 ```ruby
 BigDecimal(5.00, 6).to_s       # => "5.0"
@@ -4010,25 +4003,6 @@ The auxiliary file is written in a standard directory for temporary files, but y
 NOTE: Defined in `active_support/core_ext/file/atomic.rb`.
 
 [File.atomic_write]: https://api.rubyonrails.org/classes/File.html#method-c-atomic_write
-
-Extensions to `Marshal`
------------------------
-
-### `load`
-
-Active Support adds constant autoloading support to `load`.
-
-For example, the file cache store deserializes this way:
-
-```ruby
-File.open(file_name) { |f| Marshal.load(f) }
-```
-
-If the cached data refers to a constant that is unknown at that point, the autoloading mechanism is triggered and if it succeeds the deserialization is retried transparently.
-
-WARNING. If the argument is an `IO` it needs to respond to `rewind` to be able to retry. Regular files respond to `rewind`.
-
-NOTE: Defined in `active_support/core_ext/marshal.rb`.
 
 Extensions to `NameError`
 -------------------------

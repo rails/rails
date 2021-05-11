@@ -24,6 +24,15 @@ class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
     assert_select content, "img:match('src', ?)", %r"//loocalhoost/.+/racecar"
   end
 
+  test "renders Trix with content attachment as HTML when the request format is not HTML" do
+    message_with_person_attachment = messages(:hello_alice)
+
+    get edit_message_path(message_with_person_attachment, format: :json)
+
+    form_html = response.parsed_body["form"]
+    assert_match %r" class=\S+mentionable-person\b", form_html
+  end
+
   test "resolves partials when controller is namespaced" do
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
     message = Message.create!(content: ActionText::Content.new.append_attachables(blob))

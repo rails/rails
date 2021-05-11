@@ -254,7 +254,7 @@ Please refer to the [Changelog][railties] for detailed changes.
     using the environment variable `RAILS_LOG_TO_STDOUT`.
     ([Pull Request](https://github.com/rails/rails/pull/23734))
 
-*   Enable HSTS with IncludeSudomains header for new applications.
+*   Enable HSTS with IncludeSubdomains header for new applications.
     ([Pull Request](https://github.com/rails/rails/pull/23852))
 
 *   The application generator writes a new file `config/spring.rb`, which tells

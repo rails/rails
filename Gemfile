@@ -36,7 +36,7 @@ group :rubocop do
 end
 
 group :doc do
-  gem "sdoc", ">= 2.0.3"
+  gem "sdoc", ">= 2.1.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "kindlerb", "~> 1.2.0"
@@ -76,7 +76,7 @@ group :cable do
   gem "hiredis", require: false
   gem "redis", "~> 4.0", require: false
 
-  gem "redis-namespace", github: "resque/redis-namespace"
+  gem "redis-namespace"
 
   gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
 end

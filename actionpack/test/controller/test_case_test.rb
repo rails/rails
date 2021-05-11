@@ -909,7 +909,7 @@ XML
   def test_fixture_file_upload_with_binary
     filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
-    content_type = "image/jpg"
+    content_type = "image/jpeg"
 
     binary_file_upload = fixture_file_upload(path, content_type, :binary)
     assert_equal File.open(path, READ_BINARY).read, binary_file_upload.read
@@ -919,14 +919,14 @@ XML
   end
 
   def test_fixture_file_upload_should_be_able_access_to_tempfile
-    file = fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpg")
+    file = fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpeg")
     assert_respond_to file, :tempfile
   end
 
   def test_fixture_file_upload
     post :test_file_upload,
       params: {
-        file: fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpg")
+        file: fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpeg")
       }
     assert_equal "45142", @response.body
   end
@@ -935,7 +935,7 @@ XML
     TestCaseTest.stub :fixture_path, File.expand_path("../fixtures", __dir__) do
       TestCaseTest.stub :file_fixture_path, nil do
         assert_deprecated(/In Rails 7.0, the path needs to be relative to `file_fixture_path`/) do
-          fixture_file_upload("multipart/ruby_on_rails.jpg", "image/jpg")
+          fixture_file_upload("multipart/ruby_on_rails.jpg", "image/jpeg")
         end
       end
     end
@@ -944,7 +944,7 @@ XML
   def test_fixture_file_upload_does_not_output_deprecation_when_file_fixture_path_is_set
     TestCaseTest.stub :fixture_path, File.expand_path("../fixtures", __dir__) do
       assert_not_deprecated do
-        fixture_file_upload("ruby_on_rails.jpg", "image/jpg")
+        fixture_file_upload("ruby_on_rails.jpg", "image/jpeg")
       end
     end
   end
@@ -954,7 +954,7 @@ XML
       expected = "`fixture_file_upload(\"multipart/ruby_on_rails.jpg\")` to `fixture_file_upload(\"ruby_on_rails.jpg\")`"
 
       assert_deprecated(expected) do
-        uploaded_file = fixture_file_upload("multipart/ruby_on_rails.jpg", "image/jpg")
+        uploaded_file = fixture_file_upload("multipart/ruby_on_rails.jpg", "image/jpeg")
         assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
       end
     end
@@ -975,13 +975,13 @@ XML
 
   def test_fixture_file_upload_ignores_fixture_path_given_full_path
     TestCaseTest.stub :fixture_path, __dir__ do
-      uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpg")
+      uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpeg")
       assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
     end
   end
 
   def test_fixture_file_upload_ignores_nil_fixture_path
-    uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpg")
+    uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpeg")
     assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
   end
 
@@ -989,7 +989,7 @@ XML
     filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
     post :test_file_upload, params: {
-      file: Rack::Test::UploadedFile.new(path, "image/jpg", true)
+      file: Rack::Test::UploadedFile.new(path, "image/jpeg", true)
     }
     assert_equal "45142", @response.body
   end

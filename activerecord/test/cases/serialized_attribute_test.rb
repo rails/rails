@@ -41,6 +41,21 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal(myobj, topic.content)
   end
 
+  def test_serialized_attribute_on_alias_attribute
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      alias_attribute :object, :content
+      serialize :object, MyObject
+    end
+
+    myobj = MyObject.new("value1", "value2")
+    topic = klass.create!(object: myobj)
+    assert_equal(myobj, topic.object)
+
+    topic.reload
+    assert_equal(myobj, topic.object)
+  end
+
   def test_serialized_attribute_with_default
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name

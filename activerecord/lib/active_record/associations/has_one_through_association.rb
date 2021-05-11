@@ -6,6 +6,12 @@ module ActiveRecord
     class HasOneThroughAssociation < HasOneAssociation #:nodoc:
       include ThroughAssociation
 
+      def find_target
+        return scope.first if disable_joins
+
+        super
+      end
+
       private
         def replace(record, save = true)
           create_through_record(record, save)

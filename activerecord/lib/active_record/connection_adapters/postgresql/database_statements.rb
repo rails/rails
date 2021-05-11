@@ -47,8 +47,8 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false)
-          execute_and_clear(sql, name, binds, prepare: prepare) do |result|
+        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
+          execute_and_clear(sql, name, binds, prepare: prepare, async: async) do |result|
             types = {}
             fields = result.fields
             fields.each_with_index do |fname, i|

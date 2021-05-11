@@ -4,7 +4,7 @@ require "cases/helper"
 require "models/post"
 
 if supports_optimizer_hints?
-  class PostgresqlOptimzerHintsTest < ActiveRecord::PostgreSQLTestCase
+  class PostgresqlOptimizerHintsTest < ActiveRecord::PostgreSQLTestCase
     fixtures :posts
 
     def setup

@@ -16,7 +16,6 @@ rescue LoadError
 end
 
 require "active_support/digest"
-require "active_support/core_ext/marshal"
 
 module ActiveSupport
   module Cache
@@ -169,7 +168,7 @@ module ActiveSupport
       # Race condition TTL is not set by default. This can be used to avoid
       # "thundering herd" cache writes when hot cache entries are expired.
       # See <tt>ActiveSupport::Cache::Store#fetch</tt> for more.
-      def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: DEFAULT_CODER, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
+      def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: default_coder, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
         @redis_options = redis_options
 
         @max_key_bytesize = MAX_KEY_BYTESIZE
@@ -389,7 +388,7 @@ module ActiveSupport
         #
         # Requires Redis 2.6.12+ for extended SET options.
         def write_entry(key, entry, unless_exist: false, raw: false, expires_in: nil, race_condition_ttl: nil, **options)
-          serialized_entry = serialize_entry(entry, raw: raw)
+          serialized_entry = serialize_entry(entry, raw: raw, **options)
 
           # If race condition TTL is in use, ensure that cache entries
           # stick around a bit longer after they would have expired
@@ -434,7 +433,10 @@ module ActiveSupport
           if entries.any?
             if mset_capable? && expires_in.nil?
               failsafe :write_multi_entries do
-                redis.with { |c| c.mapped_mset(serialize_entries(entries, raw: options[:raw])) }
+                payload = serialize_entries(entries, **options)
+                redis.with do |c|
+                  c.mapped_mset(payload)
+                end
               end
             else
               super
@@ -459,23 +461,23 @@ module ActiveSupport
 
         def deserialize_entry(payload, raw:)
           if payload && raw
-            Entry.new(payload, compress: false)
+            Entry.new(payload)
           else
             super(payload)
           end
         end
 
-        def serialize_entry(entry, raw: false)
+        def serialize_entry(entry, raw: false, **options)
           if raw
             entry.value.to_s
           else
-            super(entry)
+            super(entry, raw: raw, **options)
           end
         end
 
-        def serialize_entries(entries, raw: false)
+        def serialize_entries(entries, **options)
           entries.transform_values do |entry|
-            serialize_entry entry, raw: raw
+            serialize_entry(entry, **options)
           end
         end
 

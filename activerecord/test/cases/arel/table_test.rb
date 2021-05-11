@@ -42,13 +42,6 @@ module Arel
       assert_equal "bar", join.right
     end
 
-    it "should return an insert manager" do
-      im = @relation.compile_insert "VALUES(NULL)"
-      assert_kind_of Arel::InsertManager, im
-      im.into Table.new(:users)
-      assert_equal "INSERT INTO \"users\" VALUES(NULL)", im.to_sql
-    end
-
     describe "skip" do
       it "should add an offset" do
         sm = @relation.skip 2

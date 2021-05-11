@@ -106,7 +106,7 @@ NOTE: `belongs_to` associations _must_ use the singular term. If you used the pl
 The corresponding migration might look like this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[6.0]
+class CreateBooks < ActiveRecord::Migration[7.0]
   def change
     create_table :authors do |t|
       t.string :name
@@ -153,7 +153,7 @@ The main difference from `belongs_to` is that the link column `supplier_id` is l
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[6.0]
+class CreateSuppliers < ActiveRecord::Migration[7.0]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -199,7 +199,7 @@ NOTE: The name of the other model is pluralized when declaring a `has_many` asso
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAuthors < ActiveRecord::Migration[6.0]
+class CreateAuthors < ActiveRecord::Migration[7.0]
   def change
     create_table :authors do |t|
       t.string :name
@@ -251,7 +251,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAppointments < ActiveRecord::Migration[6.0]
+class CreateAppointments < ActiveRecord::Migration[7.0]
   def change
     create_table :physicians do |t|
       t.string :name
@@ -337,7 +337,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAccountHistories < ActiveRecord::Migration[6.0]
+class CreateAccountHistories < ActiveRecord::Migration[7.0]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -380,7 +380,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAssembliesAndParts < ActiveRecord::Migration[6.0]
+class CreateAssembliesAndParts < ActiveRecord::Migration[7.0]
   def change
     create_table :assemblies do |t|
       t.string :name
@@ -419,7 +419,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[6.0]
+class CreateSuppliers < ActiveRecord::Migration[7.0]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -501,7 +501,7 @@ Similarly, you can retrieve `@product.pictures`.
 If you have an instance of the `Picture` model, you can get to its parent via `@picture.imageable`. To make this work, you need to declare both a foreign key column and a type column in the model that declares the polymorphic interface:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[6.0]
+class CreatePictures < ActiveRecord::Migration[7.0]
   def change
     create_table :pictures do |t|
       t.string  :name
@@ -518,7 +518,7 @@ end
 This migration can be simplified by using the `t.references` form:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[6.0]
+class CreatePictures < ActiveRecord::Migration[7.0]
   def change
     create_table :pictures do |t|
       t.string :name
@@ -549,7 +549,7 @@ With this setup, you can retrieve `@employee.subordinates` and `@employee.manage
 In your migrations/schema, you will add a references column to the model itself.
 
 ```ruby
-class CreateEmployees < ActiveRecord::Migration[6.0]
+class CreateEmployees < ActiveRecord::Migration[7.0]
   def change
     create_table :employees do |t|
       t.references :manager, foreign_key: { to_table: :employees }
@@ -619,7 +619,7 @@ end
 This declaration needs to be backed up by a corresponding foreign key column in the books table. For a brand new table, the migration might look something like this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[6.0]
+class CreateBooks < ActiveRecord::Migration[7.0]
   def change
     create_table :books do |t|
       t.datetime   :published_at
@@ -633,7 +633,7 @@ end
 Whereas for an existing table, it might look like this:
 
 ```ruby
-class AddAuthorToBooks < ActiveRecord::Migration[6.0]
+class AddAuthorToBooks < ActiveRecord::Migration[7.0]
   def change
     add_reference :books, :author
   end
@@ -663,7 +663,7 @@ end
 These need to be backed up by a migration to create the `assemblies_parts` table. This table should be created without a primary key:
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[6.0]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.0]
   def change
     create_table :assemblies_parts, id: false do |t|
       t.bigint :assembly_id
@@ -681,7 +681,7 @@ We pass `id: false` to `create_table` because that table does not represent a mo
 You can also use the method `create_join_table`
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[6.0]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.0]
   def change
     create_join_table :assemblies, :parts do |t|
       t.index :assembly_id
@@ -1005,12 +1005,16 @@ side of the association.
 Counter cache columns are added to the containing model's list of read-only attributes through `attr_readonly`.
 
 ##### `:dependent`
+
 If you set the `:dependent` option to:
 
 * `:destroy`, when the object is destroyed, `destroy` will be called on its
 associated objects.
 * `:delete`, when the object is destroyed, all its associated objects will be
 deleted directly from the database without calling their `destroy` method.
+* `:destroy_async`: when the object is destroyed, an `ActiveRecord::DestroyAssociationAsyncJob`
+job is enqueued which will call destroy on its associated objects. Active Job must be set up
+for this to work.
 
 WARNING: You should not specify this option on a `belongs_to` association that is connected with a `has_many` association on the other class. Doing so can lead to orphaned records in your database.
 
@@ -1089,7 +1093,7 @@ end
 
 ##### `:validate`
 
-If you set the `:validate` option to `true`, then associated objects will be validated whenever you save this object. By default, this is `false`: associated objects will not be validated when this object is saved.
+If you set the `:validate` option to `true`, then new associated objects will be validated whenever you save this object. By default, this is `false`: new associated objects will not be validated when this object is saved.
 
 ##### `:optional`
 
@@ -1312,6 +1316,7 @@ Controls what happens to the associated object when its owner is destroyed:
 
 * `:destroy` causes the associated object to also be destroyed
 * `:delete` causes the associated object to be deleted directly from the database (so callbacks will not execute)
+* `:destroy_async`: when the object is destroyed, an `ActiveRecord::DestroyAssociationAsyncJob` job is enqueued which will call destroy on its associated objects. Active Job must be set up for this to work.
 * `:nullify` causes the foreign key to be set to `NULL`. Polymorphic type column is also nullified on polymorphic associations. Callbacks are not executed.
 * `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError` exception to be raised if there is an associated record
 * `:restrict_with_error` causes an error to be added to the owner if there is an associated object
@@ -1408,7 +1413,7 @@ end
 
 ##### `:validate`
 
-If you set the `:validate` option to `true`, then associated objects will be validated whenever you save this object. By default, this is `false`: associated objects will not be validated when this object is saved.
+If you set the `:validate` option to `true`, then new associated objects will be validated whenever you save this object. By default, this is `false`: new associated objects will not be validated when this object is saved.
 
 #### Scopes for `has_one`
 
@@ -1632,7 +1637,7 @@ The [`collection.clear`][] method removes all objects from the collection accord
 @author.books.clear
 ```
 
-WARNING: Objects will be deleted if they're associated with `dependent: :destroy`,
+WARNING: Objects will be deleted if they're associated with `dependent: :destroy` or `dependent: :destroy_async`,
 just like `dependent: :delete_all`.
 
 ##### `collection.empty?`
@@ -1768,6 +1773,7 @@ Controls what happens to the associated objects when their owner is destroyed:
 
 * `:destroy` causes all the associated objects to also be destroyed
 * `:delete_all` causes all the associated objects to be deleted directly from the database (so callbacks will not execute)
+* `:destroy_async`: when the object is destroyed, an `ActiveRecord::DestroyAssociationAsyncJob` job is enqueued which will call destroy on its associated objects. Active Job must be set up for this to work.
 * `:nullify` causes the foreign key to be set to `NULL`. Polymorphic type column is also nullified on polymorphic associations. Callbacks are not executed.
 * `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError` exception to be raised if there are any associated records
 * `:restrict_with_error` causes an error to be added to the owner if there are any associated objects
@@ -1846,7 +1852,7 @@ The `:through` option specifies a join model through which to perform the query.
 
 ##### `:validate`
 
-If you set the `:validate` option to `false`, then associated objects will not be validated whenever you save this object. By default, this is `true`: associated objects will be validated when this object is saved.
+If you set the `:validate` option to `false`, then new associated objects will not be validated whenever you save this object. By default, this is `true`: new associated objects will be validated when this object is saved.
 
 #### Scopes for `has_many`
 
@@ -2322,7 +2328,7 @@ If the default name of the join table, based on lexical ordering, is not what yo
 
 ##### `:validate`
 
-If you set the `:validate` option to `false`, then associated objects will not be validated whenever you save this object. By default, this is `true`: associated objects will be validated when this object is saved.
+If you set the `:validate` option to `false`, then new associated objects will not be validated whenever you save this object. By default, this is `true`: new associated objects will be validated when this object is saved.
 
 #### Scopes for `has_and_belongs_to_many`
 

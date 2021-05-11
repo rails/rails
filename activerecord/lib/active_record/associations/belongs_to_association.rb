@@ -9,8 +9,7 @@ module ActiveRecord
 
         case options[:dependent]
         when :destroy
-          target.destroy
-          raise ActiveRecord::Rollback unless target.destroyed?
+          raise ActiveRecord::Rollback unless target.destroy
         when :destroy_async
           id = owner.public_send(reflection.foreign_key.to_sym)
           primary_key_column = reflection.active_record_primary_key.to_sym

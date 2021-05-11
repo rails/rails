@@ -171,6 +171,7 @@ module ActiveModel
       @klass        = klass
       @singular     = _singularize(@name)
       @plural       = ActiveSupport::Inflector.pluralize(@singular, locale)
+      @uncountable  = @plural == @singular
       @element      = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(@name))
       @human        = ActiveSupport::Inflector.humanize(@element)
       @collection   = ActiveSupport::Inflector.tableize(@name)
@@ -179,7 +180,7 @@ module ActiveModel
 
       @route_key          = (namespace ? ActiveSupport::Inflector.pluralize(@param_key, locale) : @plural.dup)
       @singular_route_key = ActiveSupport::Inflector.singularize(@route_key, locale)
-      @route_key << "_index" if @plural == @singular
+      @route_key << "_index" if @uncountable
     end
 
     # Transform the model name into a more human format, using I18n. By default,
@@ -205,6 +206,10 @@ module ActiveModel
 
       options = { scope: [@klass.i18n_scope, :models], count: 1, default: defaults }.merge!(options.except(:default))
       I18n.translate(defaults.shift, **options)
+    end
+
+    def uncountable?
+      @uncountable
     end
 
     private
@@ -280,7 +285,7 @@ module ActiveModel
     #   ActiveModel::Naming.uncountable?(Sheep) # => true
     #   ActiveModel::Naming.uncountable?(Post)  # => false
     def self.uncountable?(record_or_class)
-      plural(record_or_class) == singular(record_or_class)
+      model_name_from_record_or_class(record_or_class).uncountable?
     end
 
     # Returns string to use while generating route names. It differs for

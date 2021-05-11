@@ -26,9 +26,10 @@ module ActiveRecord
 
       attr_accessor :schema_cache
 
-      def connection_klass
-        nil
-      end
+      def connection_klass; end
+      def checkin(_); end
+      def remove(_); end
+      def async_executor; end
     end
 
     # Connection pool base class for managing Active Record database
@@ -97,7 +98,7 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :size, :reaper, :pool_config, :connection_klass
+      attr_reader :db_config, :size, :reaper, :pool_config, :connection_klass, :async_executor
 
       delegate :schema_cache, :schema_cache=, to: :pool_config
 
@@ -143,6 +144,8 @@ module ActiveRecord
         @available = ConnectionLeasingQueue.new self
 
         @lock_thread = false
+
+        @async_executor = build_async_executor
 
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
@@ -450,7 +453,28 @@ module ActiveRecord
         end
       end
 
+      def schedule_query(future_result) # :nodoc:
+        @async_executor.post { future_result.execute_or_skip }
+        Thread.pass
+      end
+
       private
+        def build_async_executor
+          case Base.async_query_executor
+          when :multi_thread_pool
+            if @db_config.max_threads > 0
+              Concurrent::ThreadPoolExecutor.new(
+                min_threads: @db_config.min_threads,
+                max_threads: @db_config.max_threads,
+                max_queue: @db_config.max_queue,
+                fallback_policy: :caller_runs
+              )
+            end
+          when :global_thread_pool
+            Base.global_thread_pool_async_query_executor
+          end
+        end
+
         #--
         # this is unfortunately not concurrent
         def bulk_make_new_connections(num_new_conns_needed)

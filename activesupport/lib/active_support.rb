@@ -87,6 +87,19 @@ module ActiveSupport
   end
 
   cattr_accessor :test_order # :nodoc:
+  cattr_accessor :test_parallelization_disabled, default: false # :nodoc:
+
+  def self.disable_test_parallelization!
+    self.test_parallelization_disabled = true unless ENV["PARALLEL_WORKERS"]
+  end
+
+  def self.cache_format_version
+    Cache.format_version
+  end
+
+  def self.cache_format_version=(value)
+    Cache.format_version = value
+  end
 
   def self.to_time_preserves_timezone
     DateAndTime::Compatibility.preserve_timezone

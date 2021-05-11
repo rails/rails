@@ -15,6 +15,7 @@ module ActiveRecord
   # = Active Record Railtie
   class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
+    config.active_record.encryption = ActiveSupport::OrderedOptions.new
 
     config.app_generators.orm :active_record, migration: true,
                                               timestamps: true
@@ -202,7 +203,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
         configs = app.config.active_record
 
         configs.each do |k, v|
-          send "#{k}=", v
+          send "#{k}=", v if k != :encryption
         end
       end
     end
@@ -240,6 +241,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
     initializer "active_record.set_executor_hooks" do
       ActiveRecord::QueryCache.install_executor_hooks
+      ActiveRecord::AsynchronousQueriesTracker.install_executor_hooks
     end
 
     initializer "active_record.add_watchable_files" do |app|
@@ -273,6 +275,36 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.set_signed_id_verifier_secret" do
       ActiveSupport.on_load(:active_record) do
         self.signed_id_verifier_secret ||= -> { Rails.application.key_generator.generate_key("active_record/signed_id") }
+      end
+    end
+
+    initializer "active_record_encryption.configuration" do |app|
+      ActiveRecord::Encryption.configure \
+         primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
+         deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
+         key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
+         **config.active_record.encryption
+
+      ActiveSupport.on_load(:active_record) do
+        # Support extended queries for deterministic attributes and validations
+        if ActiveRecord::Encryption.config.extend_queries
+          ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
+          ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
+        end
+      end
+
+      ActiveSupport.on_load(:active_record_fixture_set) do
+        # Encrypt active record fixtures
+        if ActiveRecord::Encryption.config.encrypt_fixtures
+          ActiveRecord::Fixture.prepend ActiveRecord::Encryption::EncryptedFixtures
+        end
+      end
+
+      # Filtered params
+      ActiveSupport.on_load(:action_controller) do
+        if ActiveRecord::Encryption.config.add_to_filter_parameters
+          ActiveRecord::Encryption.install_auto_filtered_parameters(app)
+        end
       end
     end
   end

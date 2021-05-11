@@ -19,7 +19,7 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsControllerTest < ActionDi
   test "receiving an inbound email from Mandrill" do
     assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
       post rails_mandrill_inbound_emails_url,
-        headers: { "X-Mandrill-Signature" => "gldscd2tAb/G+DmpiLcwukkLrC4=" }, params: { mandrill_events: @events }
+        headers: { "X-Mandrill-Signature" => "1bNbyqkMFL4VYIT5+RQCrPs/mRY=" }, params: { mandrill_events: @events }
     end
 
     assert_response :ok

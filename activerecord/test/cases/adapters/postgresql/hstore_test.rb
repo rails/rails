@@ -111,8 +111,8 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   def test_type_cast_hstore
     assert_equal({ "1" => "2" }, @type.deserialize("\"1\"=>\"2\""))
     assert_equal({}, @type.deserialize(""))
-    assert_equal({ "key" => nil }, @type.deserialize("key => NULL"))
-    assert_equal({ "c" => "}", '"a"' => 'b "a b' }, @type.deserialize(%q(c=>"}", "\"a\""=>"b \"a b")))
+    assert_cycle("key" => nil)
+    assert_cycle("c" => "}", '"a"' => 'b "a b')
   end
 
   def test_with_store_accessors
@@ -198,48 +198,36 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     assert_not_predicate hstore, :changed?
   end
 
-  def test_gen1
-    assert_equal('" "=>""', @type.serialize(" " => ""))
+  def test_spaces
+    assert_cycle(" " => " ")
   end
 
-  def test_gen2
-    assert_equal('","=>""', @type.serialize("," => ""))
+  def test_commas
+    assert_cycle("," => "")
   end
 
-  def test_gen3
-    assert_equal('"="=>""', @type.serialize("=" => ""))
+  def test_signs
+    assert_cycle("=" => ">")
   end
 
-  def test_gen4
-    assert_equal('">"=>""', @type.serialize(">" => ""))
+  def test_various_null
+    assert_cycle({ "a" => nil, "b" => nil, "c" => "NuLl", "null" => "c" })
   end
 
-  def test_parse1
-    assert_equal({ "a" => nil, "b" => nil, "c" => "NuLl", "null" => "c" }, @type.deserialize('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
-  end
-
-  def test_parse2
-    assert_equal({ " " => " " },  @type.deserialize("\\ =>\\ "))
-  end
-
-  def test_parse3
-    assert_equal({ "=" => ">" },  @type.deserialize("==>>"))
-  end
-
-  def test_parse4
-    assert_equal({ "=a" => "q=w" },   @type.deserialize('\=a=>q=w'))
+  def test_equal_signs
+    assert_cycle("=a" => "q=w")
   end
 
   def test_parse5
-    assert_equal({ "=a" => "q=w" },   @type.deserialize('"=a"=>q\=w'))
+    assert_cycle("=a" => "q=w")
   end
 
   def test_parse6
-    assert_equal({ "\"a" => "q>w" },  @type.deserialize('"\"a"=>q>w'))
+    assert_cycle("\"a" => "q>w")
   end
 
   def test_parse7
-    assert_equal({ "\"a" => "q\"w" }, @type.deserialize('\"a=>q"w'))
+    assert_cycle("\"a" => "q\"w")
   end
 
   def test_rewrite
@@ -303,6 +291,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
 
   def test_backslash
     assert_cycle('a\\b' => 'b\\ar', '1"foo' => "2")
+    assert_cycle('a\\"' => 'b\\ar', '1"foo' => "2")
   end
 
   def test_comma

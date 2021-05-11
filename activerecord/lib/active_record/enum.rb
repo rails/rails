@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
@@ -7,7 +8,7 @@ module ActiveRecord
   # but can be queried by name. Example:
   #
   #   class Conversation < ActiveRecord::Base
-  #     enum status: [ :active, :archived ]
+  #     enum :status, [ :active, :archived ]
   #   end
   #
   #   # conversation.update! status: 0
@@ -41,16 +42,16 @@ module ActiveRecord
   #   Conversation.where(status: [:active, :archived])
   #   Conversation.where.not(status: :active)
   #
-  # Defining scopes can be disabled by setting +:_scopes+ to +false+.
+  # Defining scopes can be disabled by setting +:scopes+ to +false+.
   #
   #   class Conversation < ActiveRecord::Base
-  #     enum status: [ :active, :archived ], _scopes: false
+  #     enum :status, [ :active, :archived ], scopes: false
   #   end
   #
-  # You can set the default enum value by setting +:_default+, like:
+  # You can set the default enum value by setting +:default+, like:
   #
   #   class Conversation < ActiveRecord::Base
-  #     enum status: [ :active, :archived ], _default: "active"
+  #     enum :status, [ :active, :archived ], default: :active
   #   end
   #
   #   conversation = Conversation.new
@@ -60,7 +61,7 @@ module ActiveRecord
   # database integer with a hash:
   #
   #   class Conversation < ActiveRecord::Base
-  #     enum status: { active: 0, archived: 1 }
+  #     enum :status, active: 0, archived: 1
   #   end
   #
   # Note that when an array is used, the implicit mapping from the values to database
@@ -85,14 +86,14 @@ module ActiveRecord
   #
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
   #
-  # You can use the +:_prefix+ or +:_suffix+ options when you need to define
+  # You can use the +:prefix+ or +:suffix+ options when you need to define
   # multiple enums with same values. If the passed value is +true+, the methods
   # are prefixed/suffixed with the name of the enum. It is also possible to
   # supply a custom value:
   #
   #   class Conversation < ActiveRecord::Base
-  #     enum status: [:active, :archived], _suffix: true
-  #     enum comments_status: [:active, :inactive], _prefix: :comments
+  #     enum :status, [ :active, :archived ], suffix: true
+  #     enum :comments_status, [ :active, :inactive ], prefix: :comments
   #   end
   #
   # With the above example, the bang and predicate methods along with the
@@ -127,10 +128,8 @@ module ActiveRecord
           value.to_s
         elsif mapping.has_value?(value)
           mapping.key(value)
-        elsif value.blank?
-          nil
         else
-          assert_valid_value(value)
+          value.presence
         end
       end
 
@@ -138,16 +137,16 @@ module ActiveRecord
         mapping.key(subtype.deserialize(value))
       end
 
-      def serializable?(value)
-        (value.blank? || mapping.has_key?(value) || mapping.has_value?(value)) && super
+      def serialize(value)
+        subtype.serialize(mapping.fetch(value, value))
       end
 
-      def serialize(value)
-        mapping.fetch(value, value)
+      def serializable?(value, &block)
+        subtype.serializable?(mapping.fetch(value, value), &block)
       end
 
       def assert_valid_value(value)
-        unless serializable?(value)
+        unless value.blank? || mapping.has_key?(value) || mapping.has_value?(value)
           raise ArgumentError, "'#{value}' is not a valid #{name}"
         end
       end
@@ -158,17 +157,16 @@ module ActiveRecord
         attr_reader :name, :mapping
     end
 
-    def enum(definitions)
-      prefix = definitions.delete(:_prefix)
-      suffix = definitions.delete(:_suffix)
-      scopes = definitions.delete(:_scopes) != false
-
-      default = {}
-      default[:default] = definitions.delete(:_default) if definitions.key?(:_default)
-
-      definitions.each do |name, values|
-        _enum(name, values, prefix: prefix, suffix: suffix, scopes: scopes, **default)
+    def enum(name = nil, values = nil, **options)
+      if name
+        values, options = options, {} unless values
+        return _enum(name, values, **options)
       end
+
+      definitions = options.slice!(:_prefix, :_suffix, :_scopes, :_default)
+      options.transform_keys! { |key| :"#{key[1..-1]}" }
+
+      definitions.each { |name, values| _enum(name, values, **options) }
     end
 
     private
@@ -186,11 +184,9 @@ module ActiveRecord
         detect_enum_conflict!(name, name)
         detect_enum_conflict!(name, "#{name}=")
 
-        attr = attribute_alias?(name) ? attribute_alias(name) : name
-
-        attribute(attr, **options) do |subtype|
+        attribute(name, **options) do |subtype|
           subtype = subtype.subtype if EnumType === subtype
-          EnumType.new(attr, enum_values, subtype)
+          EnumType.new(name, enum_values, subtype)
         end
 
         value_method_names = []
@@ -264,7 +260,7 @@ module ActiveRecord
       end
 
       def assert_valid_enum_definition_values(values)
-        unless values.is_a?(Hash) || values.all? { |v| v.is_a?(Symbol) } || values.all? { |v| v.is_a?(String) }
+        unless values.is_a?(Hash) || values.all?(Symbol) || values.all?(String)
           error_message = <<~MSG
             Enum values #{values} must be either a hash, an array of symbols, or an array of strings.
           MSG

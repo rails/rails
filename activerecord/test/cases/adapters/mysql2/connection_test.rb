@@ -93,9 +93,28 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     end
   end
 
-  def test_mysql_connection_collation_is_configured
+  def test_character_set_connection_is_configured
+    run_without_connection do |orig_connection|
+      configuration_hash = orig_connection.except(:encoding, :collation)
+      ActiveRecord::Base.establish_connection(configuration_hash.merge!(encoding: "cp932"))
+      connection = ActiveRecord::Base.connection
+
+      assert_equal "cp932", connection.show_variable("character_set_client")
+      assert_equal "cp932", connection.show_variable("character_set_results")
+      assert_equal "cp932", connection.show_variable("character_set_connection")
+      assert_equal "cp932_japanese_ci", connection.show_variable("collation_connection")
+
+      expected = "こんにちは".encode(Encoding::CP932)
+      assert_equal expected, connection.query_value("SELECT 'こんにちは'")
+    end
+  end
+
+  def test_collation_connection_is_configured
     assert_equal "utf8mb4_unicode_ci", @connection.show_variable("collation_connection")
+    assert_equal 1, @connection.query_value("SELECT 'こんにちは' = 'コンニチハ'")
+
     assert_equal "utf8mb4_general_ci", ARUnit2Model.connection.show_variable("collation_connection")
+    assert_equal 0, ARUnit2Model.connection.query_value("SELECT 'こんにちは' = 'コンニチハ'")
   end
 
   def test_mysql_default_in_strict_mode
@@ -201,59 +220,8 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
       "expected release_advisory_lock to return false when there was no lock to release"
   end
 
-  def test_with_advisory_lock
-    lock_name = "test lock'n'name"
-
-    got_lock = @connection.with_advisory_lock(lock_name) do
-      assert_equal test_lock_free(lock_name), false,
-      "expected the test advisory lock to be held but it wasn't"
-    end
-
-    assert got_lock, "get_advisory_lock should have returned true but it didn't"
-
-    assert test_lock_free(lock_name), "expected the test lock to be available after releasing"
-  end
-
-  def test_with_advisory_lock_with_an_already_existing_lock
-    lock_name = "test lock'n'name"
-
-    with_another_process_holding_lock(lock_name) do
-      assert_equal test_lock_free(lock_name), false, "expected the test advisory lock to be held but it wasn't"
-
-      got_lock = @connection.with_advisory_lock(lock_name) do
-        flunk "lock should not be acquired"
-      end
-
-      assert_equal test_lock_free(lock_name), false, "expected the test advisory lock to be held but it wasn't"
-
-      assert_not got_lock, "get_advisory_lock should have returned false but it didn't"
-    end
-  end
-
   private
     def test_lock_free(lock_name)
       @connection.select_value("SELECT IS_FREE_LOCK(#{@connection.quote(lock_name)})") == 1
-    end
-
-    def with_another_process_holding_lock(lock_id)
-      thread_lock = Concurrent::CountDownLatch.new
-      test_terminated = Concurrent::CountDownLatch.new
-
-      other_process = Thread.new do
-        conn = ActiveRecord::Base.connection_pool.checkout
-        conn.get_advisory_lock(lock_id)
-        thread_lock.count_down
-        test_terminated.wait # hold the lock open until we tested everything
-      ensure
-        conn.release_advisory_lock(lock_id)
-        ActiveRecord::Base.connection_pool.checkin(conn)
-      end
-
-      thread_lock.wait # wait until the 'other process' has the lock
-
-      yield
-
-      test_terminated.count_down
-      other_process.join
     end
 end

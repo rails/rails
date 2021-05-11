@@ -1,11 +1,11 @@
-<header>
+<header role="banner">
   <h1>
     <%= @exception.cause.class.to_s %> in
     <%= @request.parameters["controller"].camelize if @request.parameters["controller"] %>#<%= @request.parameters["action"] %>
   </h1>
 </header>
 
-<div id="container">
+<main role="main" id="container">
   <p>
     Showing <i><%= @exception.file_name %></i> where line <b>#<%= @exception.line_number %></b> raised:
   </p>
@@ -17,4 +17,4 @@
 
   <%= render "rescues/trace", traces: @traces, trace_to_show: @trace_to_show %>
   <%= render template: "rescues/_request_and_response" %>
-</div>
+</main>

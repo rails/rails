@@ -15,6 +15,7 @@ class Company < AbstractCompany
   has_many :developers, through: :contracts
   has_many :special_contracts, -> { includes(:special_developer).where.not("developers.id": nil) }
   has_many :special_developers, through: :special_contracts
+  has_many :comments, foreign_key: "company"
 
   alias_attribute :new_name, :name
   attribute :metadata, :json

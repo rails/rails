@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/hash/deep_merge"
-require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActiveSupport
   class OptionMerger #:nodoc:

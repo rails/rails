@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "action_view/helpers/tag_helper"
-require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActionView
   # = Action View Translation Helpers
@@ -94,7 +93,9 @@ module ActionView
             break translated unless translated.equal?(MISSING_TRANSLATION)
           end
 
-          break alternatives.first if alternatives.present? && !alternatives.first.is_a?(Symbol)
+          if alternatives.present? && !alternatives.first.is_a?(Symbol)
+            break alternatives.first && I18n.translate(**options, default: alternatives)
+          end
 
           first_key ||= key
           key = alternatives&.shift

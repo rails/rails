@@ -15,8 +15,6 @@ module ActionView
   class LookupContext #:nodoc:
     attr_accessor :prefixes, :rendered_format
 
-    mattr_accessor :fallbacks, default: FallbackFileSystemResolver.instances
-
     mattr_accessor :registered_details, default: []
 
     def self.register_detail(name, &block)
@@ -75,7 +73,6 @@ module ActionView
         ActionView::ViewPaths.all_view_paths.each do |path_set|
           path_set.each(&:clear_cache)
         end
-        ActionView::LookupContext.fallbacks.each(&:clear_cache)
         @view_context_class = nil
         @details_keys.clear
         @digest_cache.clear
@@ -141,21 +138,6 @@ module ActionView
         @view_paths.exists?(*args_for_any(name, prefixes, partial))
       end
       alias :any_templates? :any?
-
-      # Adds fallbacks to the view paths. Useful in cases when you are rendering
-      # a :file.
-      def with_fallbacks
-        view_paths = build_view_paths((@view_paths.paths + self.class.fallbacks).uniq)
-
-        if block_given?
-          raise ArgumentError, <<~eowarn.squish
-          Calling `with_fallbacks` with a block is not supported. Call methods on
-          the lookup context returned by `with_fallbacks` instead.
-          eowarn
-        else
-          ActionView::LookupContext.new(view_paths, @details, @prefixes)
-        end
-      end
 
     private
       # Whenever setting view paths, makes a copy so that we can manipulate them in

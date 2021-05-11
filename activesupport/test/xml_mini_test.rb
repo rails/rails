@@ -134,6 +134,14 @@ module XmlMiniTest
       assert_xml("<b type=\"dateTime\">1993-02-24T12:00:00+09:00</b>")
     end
 
+    test "#to_tag accepts ActiveSupport::TimeWithZone types" do
+      time = ActiveSupport::TimeWithZone.new(Time.new(1993, 02, 24, 12, 0, 0, "+09:00"), ActiveSupport::TimeZone["Europe/Paris"])
+      ActiveSupport::TimeWithZone.stub(:name, "ActiveSupport::TimeWithZone") do
+        @xml.to_tag(:b, time, @options)
+        assert_xml("<b type=\"dateTime\">1993-02-24T13:00:00+01:00</b>")
+      end
+    end
+
     test "#to_tag accepts array types" do
       @xml.to_tag(:b, ["first_name", "last_name"], @options)
       assert_xml("<b type=\"array\"><b>first_name</b><b>last_name</b></b>")

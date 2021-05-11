@@ -13,7 +13,9 @@ module ActiveRecord
       def setup
         @legacy_setting = ActiveRecord::Base.legacy_connection_handling
         ActiveRecord::Base.legacy_connection_handling = true
-        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+        assert_deprecated do
+          ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+        end
 
         @handlers = { writing: ConnectionHandler.new, reading: ConnectionHandler.new }
         @rw_handler = @handlers[:writing]

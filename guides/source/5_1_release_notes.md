@@ -144,9 +144,9 @@ This will generate the singular URL `/basket` instead of the usual `/baskets/:id
 The `direct` method allows creation of custom URL helpers.
 
 ```ruby
-direct(:homepage) { "http://www.rubyonrails.org" }
+direct(:homepage) { "https://rubyonrails.org" }
 
-homepage_url # => "http://www.rubyonrails.org"
+homepage_url # => "https://rubyonrails.org"
 ```
 
 The return value of the block must be a valid argument for the `url_for`

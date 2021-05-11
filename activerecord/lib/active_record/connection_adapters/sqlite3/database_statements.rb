@@ -31,7 +31,7 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = nil, binds = [], prepare: false)
+        def exec_query(sql, name = nil, binds = [], prepare: false, async: false)
           check_if_write_query(sql)
 
           materialize_transactions
@@ -39,7 +39,7 @@ module ActiveRecord
 
           type_casted_binds = type_casted_binds(binds)
 
-          log(sql, name, binds, type_casted_binds) do
+          log(sql, name, binds, type_casted_binds, async: async) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
               # Don't cache statements if they are not prepared
               unless prepare

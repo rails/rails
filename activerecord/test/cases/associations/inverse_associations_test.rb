@@ -327,7 +327,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
     assert_equal face, human.face
     assert_equal face.description, human.face.description, "Description of the face should be the same before changes to child instance"
     face.description = "Bongo"
-    assert_equal face.description, human.face.description, "Description of the face should be the same after changes to chield instance"
+    assert_equal face.description, human.face.description, "Description of the face should be the same after changes to child instance"
     human.face.description = "Mungo"
     assert_equal face.description, human.face.description, "Description of the face should be the same after changes to replaced-parent-owned instance"
   end

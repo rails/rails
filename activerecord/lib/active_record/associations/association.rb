@@ -33,7 +33,7 @@ module ActiveRecord
     # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
     # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
     class Association #:nodoc:
-      attr_reader :owner, :target, :reflection
+      attr_reader :owner, :target, :reflection, :disable_joins
 
       delegate :options, to: :reflection
 
@@ -41,6 +41,7 @@ module ActiveRecord
         reflection.check_validity!
 
         @owner, @reflection = owner, reflection
+        @disable_joins = @reflection.options[:disable_joins] || false
 
         reset
         reset_scope
@@ -97,8 +98,12 @@ module ActiveRecord
       end
 
       def scope
-        if (scope = klass.current_scope) && scope.try(:proxy_association) == self
+        if disable_joins
+          DisableJoinsAssociationScope.create.scope(self)
+        elsif (scope = klass.current_scope) && scope.try(:proxy_association) == self
           scope.spawn
+        elsif scope = klass.global_current_scope
+          target_scope.merge!(association_scope).merge!(scope)
         else
           target_scope.merge!(association_scope)
         end
@@ -210,8 +215,14 @@ module ActiveRecord
       end
 
       private
+        # Reader and writer methods call this so that consistent errors are presented
+        # when the association target class does not exist.
+        def ensure_klass_exists!
+          klass
+        end
+
         def find_target
-          if (owner.strict_loading? || reflection.strict_loading?) && owner.validation_context.nil?
+          if violates_strict_loading? && owner.validation_context.nil?
             Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
           end
 
@@ -224,7 +235,20 @@ module ActiveRecord
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute(binds, klass.connection) { |record| set_inverse_instance(record) }
+          sc.execute(binds, klass.connection) do |record|
+            set_inverse_instance(record)
+            if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
+              record.strict_loading!
+            else
+              record.strict_loading_mode = owner.strict_loading_mode
+            end
+          end
+        end
+
+        def violates_strict_loading?
+          return reflection.strict_loading? if reflection.options.key?(:strict_loading)
+
+          owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
         end
 
         # The scope for this association.
@@ -235,7 +259,11 @@ module ActiveRecord
         # actually gets built.
         def association_scope
           if klass
-            @association_scope ||= AssociationScope.scope(self)
+            @association_scope ||= if disable_joins
+              DisableJoinsAssociationScope.scope(self)
+            else
+              AssociationScope.scope(self)
+            end
           end
         end
 

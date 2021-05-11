@@ -74,10 +74,10 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     parent.destroy
 
     assert_difference -> { DlKeyedJoin.count }, -2 do
-     assert_difference -> { DlKeyedHasManyThrough.count }, -2 do
-      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      assert_difference -> { DlKeyedHasManyThrough.count }, -2 do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
     end
-   end
   ensure
     DlKeyedHasManyThrough.delete_all
     DestroyAsyncParent.delete_all
@@ -162,7 +162,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     BookDestroyAsync.delete_all
   end
 
-  test "has_many with sti parent class destroys all children class records" do
+  test "has_many with STI parent class destroys all children class records" do
     book = BookDestroyAsync.create!
     LongEssayDestroyAsync.create!(book: book)
     ShortEssayDestroyAsync.create!(book: book)

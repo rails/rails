@@ -37,9 +37,14 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   end
 
   test "reading configuration by key file" do
-    @credentials.write({ something: { good: true } }.to_yaml)
+    @credentials.write({ something: { good: true, bad: false, nested: { foo: "bar" } } }.to_yaml)
 
     assert @credentials.something[:good]
+    assert_not @credentials.something[:bad]
+    assert @credentials.something.good
+    assert_not @credentials.something.bad
+    assert_equal "bar", @credentials.dig(:something, :nested, :foo)
+    assert_equal "bar", @credentials.something.nested.foo
   end
 
   test "reading comment-only configuration" do

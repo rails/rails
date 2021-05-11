@@ -78,10 +78,12 @@ class QueryCacheTest < ActiveRecord::TestCase
     old_value = ActiveRecord::Base.legacy_connection_handling
     ActiveRecord::Base.legacy_connection_handling = true
 
-    ActiveRecord::Base.connection_handlers = {
-      writing: ActiveRecord::Base.default_connection_handler,
-      reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-    }
+    assert_deprecated do
+      ActiveRecord::Base.connection_handlers = {
+        writing: ActiveRecord::Base.default_connection_handler,
+        reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+      }
+    end
 
     ActiveRecord::Base.connected_to(role: :reading) do
       db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
@@ -126,10 +128,13 @@ class QueryCacheTest < ActiveRecord::TestCase
     def test_query_cache_with_multiple_handlers_and_forked_processes_legacy_handling
       old_value = ActiveRecord::Base.legacy_connection_handling
       ActiveRecord::Base.legacy_connection_handling = true
-      ActiveRecord::Base.connection_handlers = {
-        writing: ActiveRecord::Base.default_connection_handler,
-        reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-      }
+
+      assert_deprecated do
+        ActiveRecord::Base.connection_handlers = {
+          writing: ActiveRecord::Base.default_connection_handler,
+          reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+        }
+      end
 
       ActiveRecord::Base.connected_to(role: :reading) do
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
@@ -663,10 +668,12 @@ class QueryCacheTest < ActiveRecord::TestCase
     old_value = ActiveRecord::Base.legacy_connection_handling
     ActiveRecord::Base.legacy_connection_handling = true
 
-    ActiveRecord::Base.connection_handlers = {
-      writing: ActiveRecord::Base.default_connection_handler,
-      reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-    }
+    assert_deprecated do
+      ActiveRecord::Base.connection_handlers = {
+        writing: ActiveRecord::Base.default_connection_handler,
+        reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+      }
+    end
 
     ActiveRecord::Base.connected_to(role: :reading) do
       db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")

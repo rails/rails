@@ -275,6 +275,7 @@ db_namespace = namespace :db do
   desc "Rolls the schema back to the previous version (specify steps w/ STEP=n)."
   task rollback: :load_config do
     ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:rollback")
+    raise "VERSION is not supported - To rollback a specific version, use db:migrate:down" if ENV["VERSION"]
 
     step = ENV["STEP"] ? ENV["STEP"].to_i : 1
 
@@ -547,6 +548,20 @@ db_namespace = namespace :db do
           db_namespace["schema:load:#{name}"].invoke
         end
       end
+    end
+  end
+
+  namespace :encryption do
+    desc "Generate a set of keys for configuring Active Record encryption in a given environment"
+    task :init do
+      puts <<~MSG
+        Add this entry to the credentials of the target environment:#{' '}
+
+        active_record_encryption:
+          primary_key: #{SecureRandom.alphanumeric(32)}
+          deterministic_key: #{SecureRandom.alphanumeric(32)}
+          key_derivation_salt: #{SecureRandom.alphanumeric(32)}
+      MSG
     end
   end
 

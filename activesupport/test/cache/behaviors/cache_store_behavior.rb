@@ -183,7 +183,7 @@ module CacheStoreBehavior
   end
 
   def test_nil_with_compress_low_compress_threshold
-    assert_uncompressed(nil, compress: true, compress_threshold: 1)
+    assert_uncompressed(nil, compress: true, compress_threshold: 20)
   end
 
   def test_small_string_with_default_compression_settings
@@ -242,19 +242,19 @@ module CacheStoreBehavior
     assert_uncompressed(LARGE_OBJECT, compress: true, compress_threshold: 1.megabyte)
   end
 
-  def test_incompressable_data
-    assert_uncompressed(nil, compress: true, compress_threshold: 1)
-    assert_uncompressed(true, compress: true, compress_threshold: 1)
-    assert_uncompressed(false, compress: true, compress_threshold: 1)
-    assert_uncompressed(0, compress: true, compress_threshold: 1)
-    assert_uncompressed(1.2345, compress: true, compress_threshold: 1)
-    assert_uncompressed("", compress: true, compress_threshold: 1)
+  def test_incompressible_data
+    assert_uncompressed(nil, compress: true, compress_threshold: 30)
+    assert_uncompressed(true, compress: true, compress_threshold: 30)
+    assert_uncompressed(false, compress: true, compress_threshold: 30)
+    assert_uncompressed(0, compress: true, compress_threshold: 30)
+    assert_uncompressed(1.2345, compress: true, compress_threshold: 30)
+    assert_uncompressed("", compress: true, compress_threshold: 30)
 
     incompressible = nil
 
     # generate an incompressible string
     loop do
-      incompressible = SecureRandom.random_bytes(1.kilobyte)
+      incompressible = Random.bytes(1.kilobyte)
       break if incompressible.bytesize < Zlib::Deflate.deflate(incompressible).bytesize
     end
 
@@ -393,15 +393,41 @@ module CacheStoreBehavior
     time = Time.local(2008, 4, 24)
 
     Time.stub(:now, time) do
-      @cache.write("foo", "bar")
+      @cache.write("foo", "bar", expires_in: 1.minute)
+      @cache.write("egg", "spam", expires_in: 2.minute)
       assert_equal "bar", @cache.read("foo")
+      assert_equal "spam", @cache.read("egg")
     end
 
     Time.stub(:now, time + 30) do
       assert_equal "bar", @cache.read("foo")
+      assert_equal "spam", @cache.read("egg")
     end
 
     Time.stub(:now, time + 61) do
+      assert_nil @cache.read("foo")
+      assert_equal "spam", @cache.read("egg")
+    end
+
+    Time.stub(:now, time + 121) do
+      assert_nil @cache.read("foo")
+      assert_nil @cache.read("egg")
+    end
+  end
+
+  def test_expires_at
+    time = Time.local(2008, 4, 24)
+
+    Time.stub(:now, time) do
+      @cache.write("foo", "bar", expires_at: time + 15.seconds)
+      assert_equal "bar", @cache.read("foo")
+    end
+
+    Time.stub(:now, time + 10) do
+      assert_equal "bar", @cache.read("foo")
+    end
+
+    Time.stub(:now, time + 30) do
       assert_nil @cache.read("foo")
     end
   end
@@ -574,8 +600,11 @@ module CacheStoreBehavior
       actual_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "actual", {}), **{})
       uncompressed_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "uncompressed", {}), **{})
 
-      actual_size = Marshal.dump(actual_entry).bytesize
-      uncompressed_size = Marshal.dump(uncompressed_entry).bytesize
+      actual_payload = @cache.send(:serialize_entry, actual_entry, **@cache.send(:merged_options, options))
+      uncompressed_payload = @cache.send(:serialize_entry, uncompressed_entry, compress: false)
+
+      actual_size = actual_payload.bytesize
+      uncompressed_size = uncompressed_payload.bytesize
 
       if should_compress
         assert_operator actual_size, :<, uncompressed_size, "value should be compressed"
