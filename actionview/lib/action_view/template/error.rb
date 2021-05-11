@@ -97,9 +97,9 @@ module ActionView
 
         candidates = @error.paths.flat_map(&:all_template_paths).uniq
         if @error.partial
-          candidates = candidates.select!(&:partial?)
+          candidates.select!(&:partial?)
         else
-          candidates = candidates.reject!(&:partial?)
+          candidates.reject!(&:partial?)
         end
 
         # Group by possible prefixes
