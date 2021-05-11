@@ -164,9 +164,9 @@ module ActionView
           # Remove trailing "/*"
           prefixes = wildcard_dependencies.map { |query| query[0..-3] }
 
-          @view_paths.flat_map(&:all_template_paths).uniq.select { |path|
-            prefixes.include?(path.prefix)
-          }.map(&:to_s).sort
+          @view_paths.flat_map(&:all_template_paths).uniq.filter_map { |path|
+            path.to_s if prefixes.include?(path.prefix)
+          }.sort
         end
 
         def explicit_dependencies
