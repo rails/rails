@@ -48,13 +48,6 @@ class TemplatePathTest < ActiveSupport::TestCase
     assert path.partial?
   end
 
-  def test_parse_partial
-    path = ActionView::TemplatePath.parse("foo/_bar")
-    assert_equal "foo", path.prefix
-    assert_equal "bar", path.name
-    assert path.partial?
-  end
-
   def test_parse_template
     path = ActionView::TemplatePath.parse("foo/bar")
     assert_equal "foo", path.prefix
