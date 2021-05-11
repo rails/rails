@@ -13,9 +13,9 @@ module ActionView
     Path = ActionView::TemplatePath
     deprecate_constant :Path
 
-    TemplateDetails = Struct.new(:path, :locale, :handler, :format, :variant)
-
     class PathParser # :nodoc:
+      ParsedPath = Struct.new(:path, :details)
+
       def build_path_regex
         handlers = Template::Handlers.extensions.map { |x| Regexp.escape(x) }.join("|")
         formats = Template::Types.symbols.map { |x| Regexp.escape(x) }.join("|")
@@ -39,13 +39,13 @@ module ActionView
         @regex ||= build_path_regex
         match = @regex.match(path)
         path = TemplatePath.build(match[:action], match[:prefix] || "", !!match[:partial])
-        TemplateDetails.new(
-          path,
+        details = TemplateDetails.new(
           match[:locale]&.to_sym,
           match[:handler]&.to_sym,
           match[:format]&.to_sym,
-          match[:variant]
+          match[:variant]&.to_sym
         )
+        ParsedPath.new(path, details)
       end
     end
 
@@ -205,10 +205,11 @@ module ActionView
     private
       def _find_all(name, prefix, partial, details, key, locals)
         path = TemplatePath.build(name, prefix, partial)
-        query(path, details, details[:formats], locals, cache: !!key)
+        requested_details = TemplateDetails::Requested.new(**details)
+        query(path, requested_details, locals, cache: !!key)
       end
 
-      def query(path, details, formats, locals, cache:)
+      def query(path, requested_details, locals, cache:)
         cache = cache ? @unbound_templates : Concurrent::Map.new
 
         unbound_templates =
@@ -216,7 +217,7 @@ module ActionView
             unbound_templates_from_path(path)
           end
 
-        filter_and_sort_by_details(unbound_templates, details).map do |unbound_template|
+        filter_and_sort_by_details(unbound_templates, requested_details).map do |unbound_template|
           unbound_template.bind_locals(locals)
         end
       end
@@ -226,17 +227,15 @@ module ActionView
       end
 
       def build_unbound_template(template)
-        details = @path_parser.parse(template.from(@path.size + 1))
+        parsed = @path_parser.parse(template.from(@path.size + 1))
+        details = parsed.details
         source = source_for_template(template)
 
         UnboundTemplate.new(
           source,
           template,
-          details.handler,
-          virtual_path: details.path.virtual,
-          locale: details.locale,
-          format: details.format,
-          variant: details.variant,
+          details: details,
+          virtual_path: parsed.path.virtual,
         )
       end
 
@@ -257,39 +256,18 @@ module ActionView
         end
       end
 
-      def filter_and_sort_by_details(templates, details)
-        locale = details[:locale]
-        formats = details[:formats]
-        variants = details[:variants]
-        handlers = details[:handlers]
-
-        results = templates.map do |template|
-          locale_match = details_match_sort_key(template.locale, locale) || next
-          format_match = details_match_sort_key(template.format, formats) || next
-          variant_match =
-            if variants == :any
-              template.variant ? 1 : 0
-            else
-              details_match_sort_key(template.variant&.to_sym, variants) || next
-            end
-          handler_match = details_match_sort_key(template.handler, handlers) || next
-
-          [template, [locale_match, format_match, variant_match, handler_match]]
+      def filter_and_sort_by_details(templates, requested_details)
+        filtered_templates = templates.select do |template|
+          template.details.matches?(requested_details)
         end
 
-        results.compact!
-        results.sort_by!(&:last) if results.size > 1
-        results.map!(&:first)
-
-        results
-      end
-
-      def details_match_sort_key(have, want)
-        if have
-          want.index(have)
-        else
-          want.size
+        if filtered_templates.count > 1
+          filtered_templates.sort_by! do |template|
+            template.details.sort_key_for(requested_details)
+          end
         end
+
+        filtered_templates
       end
 
       # Safe glob within @path
