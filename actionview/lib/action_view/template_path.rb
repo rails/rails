@@ -1,11 +1,17 @@
 # frozen_string_literal: true
 
 module ActionView
+  # Represents a template path within ActionView's lookup and rendering system,
+  # like "users/show"
+  #
+  # TemplatePath makes it convenient to convert between separate name, prefix,
+  # partial arguments and the virtual path.
   class TemplatePath
     attr_reader :name, :prefix, :partial, :virtual
     alias_method :partial?, :partial
     alias_method :virtual_path, :virtual
 
+    # Convert name, prefix, and partial into a virtual path string
     def self.virtual(name, prefix, partial)
       if prefix.empty?
         "#{partial ? "_" : ""}#{name}"
@@ -16,6 +22,7 @@ module ActionView
       end
     end
 
+    # Build a TemplatePath form a virtual path
     def self.parse(virtual)
       if nameidx = virtual.rindex("/")
         prefix = virtual[0, nameidx]
@@ -30,6 +37,7 @@ module ActionView
       new name, prefix, partial, virtual
     end
 
+    # Convert name, prefix, and partial into a TemplatePath
     def self.build(name, prefix, partial)
       new name, prefix, partial, virtual(name, prefix, partial)
     end
@@ -41,18 +49,16 @@ module ActionView
       @virtual = virtual
     end
 
-    def to_str
-      @virtual
-    end
-    alias :to_s :to_str
+    alias :to_str :virtual
+    alias :to_s :virtual
 
-    def hash
+    def hash # :nodoc:
       @virtual.hash
     end
 
-    def eql?(other)
+    def eql?(other) # :nodoc:
       @virtual == other.virtual
     end
-    alias :== :eql?
+    alias :== :eql? # :nodoc:
   end
 end
