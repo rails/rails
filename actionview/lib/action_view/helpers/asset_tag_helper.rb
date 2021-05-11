@@ -98,7 +98,7 @@ module ActionView
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
-          if preload_links_header && !options["defer"]
+          if preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:")
             preload_link = "<#{href}>; rel=#{rel}; as=script"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
@@ -178,7 +178,7 @@ module ActionView
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_stylesheet(source, path_options)
-          if preload_links_header
+          if preload_links_header && href.present? && !href.start_with?("data:")
             preload_link = "<#{href}>; rel=preload; as=style"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
@@ -543,6 +543,8 @@ module ActionView
 
         MAX_HEADER_SIZE = 8_000 # Some HTTP client and proxies have a 8kiB header limit
         def send_preload_links_header(preload_links, max_header_size: MAX_HEADER_SIZE)
+          return if preload_links.empty?
+
           if respond_to?(:request) && request
             request.send_early_hints("Link" => preload_links.join("\n"))
           end
