@@ -1059,14 +1059,14 @@
     Deprecated behavior:
 
     ```ruby
-    db_config = ActiveRecord::Base.configs_for(env_name: "development", spec_name: "primary")
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "development", spec_name: "primary")
     db_config.spec_name
     ```
 
     New behavior:
 
     ```ruby
-    db_config = ActiveRecord::Base.configs_for(env_name: "development", name: "primary")
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "development", name: "primary")
     db_config.name
     ```
 
