@@ -42,7 +42,7 @@ class TemplatePathTest < ActiveSupport::TestCase
   end
 
   def test_parse_root_partial_with_slash
-    path = ActionView::TemplatePath.parse("_foo")
+    path = ActionView::TemplatePath.parse("/_foo")
     assert_equal "", path.prefix
     assert_equal "foo", path.name
     assert path.partial?
