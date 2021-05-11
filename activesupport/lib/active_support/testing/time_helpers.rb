@@ -126,7 +126,7 @@ module ActiveSupport
       #   end
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       def travel_to(date_or_time)
-        if block_given? && simple_stubs.stubbing(Time, :now)
+        if block_given? && in_block
           travel_to_nested_block_call = <<~MSG
 
       Calling `travel_to` with a block, when we have previously already made a call to `travel_to`, can lead to confusing time stubbing.
@@ -168,9 +168,11 @@ module ActiveSupport
 
         if block_given?
           begin
+            self.in_block = true
             yield
           ensure
             travel_back
+            self.in_block = false
           end
         end
       end
@@ -232,6 +234,8 @@ module ActiveSupport
         def simple_stubs
           @simple_stubs ||= SimpleStubs.new
         end
+
+        attr_accessor :in_block
     end
   end
 end
