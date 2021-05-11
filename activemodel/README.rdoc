@@ -56,7 +56,7 @@ behavior out of the box:
     person.clear_name
     person.clear_age
 
-  {Learn more}[link:classes/ActiveModel/AttributeMethods.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveModel/AttributeMethods.html]
 
 * Callbacks for certain operations
 
@@ -74,7 +74,7 @@ behavior out of the box:
   This generates +before_create+, +around_create+ and +after_create+
   class methods that wrap your create method.
 
-  {Learn more}[link:classes/ActiveModel/Callbacks.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveModel/Callbacks.html]
 
 * Tracking value changes
 
@@ -110,7 +110,7 @@ behavior out of the box:
     person.save
     person.previous_changes # => {'name' => ['bob, 'robert']}
 
-  {Learn more}[link:classes/ActiveModel/Dirty.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveModel/Dirty.html]
 
 * Adding +errors+ interface to objects
 
@@ -141,7 +141,7 @@ behavior out of the box:
     person.errors.full_messages
     # => ["Name cannot be nil"]
 
-  {Learn more}[link:classes/ActiveModel/Errors.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveModel/Errors.html]
 
 * Model name introspection
 
@@ -152,7 +152,7 @@ behavior out of the box:
     NamedPerson.model_name.name   # => "NamedPerson"
     NamedPerson.model_name.human  # => "Named person"
 
-  {Learn more}[link:classes/ActiveModel/Naming.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveModel/Naming.html]
 
 * Making objects serializable
 
@@ -179,7 +179,7 @@ behavior out of the box:
     s = SerialPerson.new
     s.to_json             # => "{\"name\":null}"
 
-  {Learn more}[link:classes/ActiveModel/Serialization.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveModel/Serialization.html]
 
 * Internationalization (i18n) support
 
@@ -190,7 +190,7 @@ behavior out of the box:
     Person.human_attribute_name('my_attribute')
     # => "My attribute"
 
-  {Learn more}[link:classes/ActiveModel/Translation.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveModel/Translation.html]
 
 * Validation support
 
@@ -208,7 +208,7 @@ behavior out of the box:
     person.first_name = 'zoolander'
     person.valid?  # => false
 
-  {Learn more}[link:classes/ActiveModel/Validations.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveModel/Validations.html]
 
 * Custom validators
 
@@ -230,7 +230,7 @@ behavior out of the box:
     p.name = "Bob"
     p.valid?                  # =>  true
 
-  {Learn more}[link:classes/ActiveModel/Validator.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveModel/Validator.html]
 
 
 == Download and installation
