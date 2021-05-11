@@ -10,37 +10,8 @@ require "concurrent/map"
 module ActionView
   # = Action View Resolver
   class Resolver
-    # Keeps all information about view path and builds virtual path.
-    class Path
-      attr_reader :name, :prefix, :partial, :virtual
-      alias_method :partial?, :partial
-
-      def self.virtual(name, prefix, partial)
-        if prefix.empty?
-          "#{partial ? "_" : ""}#{name}"
-        elsif partial
-          "#{prefix}/_#{name}"
-        else
-          "#{prefix}/#{name}"
-        end
-      end
-
-      def self.build(name, prefix, partial)
-        new name, prefix, partial, virtual(name, prefix, partial)
-      end
-
-      def initialize(name, prefix, partial, virtual)
-        @name    = name
-        @prefix  = prefix
-        @partial = partial
-        @virtual = virtual
-      end
-
-      def to_str
-        @virtual
-      end
-      alias :to_s :to_str
-    end
+    Path = ActionView::TemplatePath
+    deprecate_constant :Path
 
     TemplateDetails = Struct.new(:path, :locale, :handler, :format, :variant)
 
@@ -67,7 +38,7 @@ module ActionView
       def parse(path)
         @regex ||= build_path_regex
         match = @regex.match(path)
-        path = Path.build(match[:action], match[:prefix] || "", !!match[:partial])
+        path = TemplatePath.build(match[:action], match[:prefix] || "", !!match[:partial])
         TemplateDetails.new(
           path,
           match[:locale]&.to_sym,
@@ -226,12 +197,14 @@ module ActionView
       paths = template_glob("**/*")
       paths.map do |filename|
         filename.from(@path.size + 1).remove(/\.[^\/]*\z/)
-      end.uniq
+      end.uniq.map do |filename|
+        TemplatePath.parse(filename)
+      end
     end
 
     private
       def _find_all(name, prefix, partial, details, key, locals)
-        path = Path.build(name, prefix, partial)
+        path = TemplatePath.build(name, prefix, partial)
         query(path, details, details[:formats], locals, cache: !!key)
       end
 
