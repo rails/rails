@@ -132,6 +132,12 @@ module Arel # :nodoc: all
             end
           end
 
+          visit_Arel_Nodes_SelectOptions(o, collector)
+        end
+
+        # The Oracle enhanced adapter uses this private method,
+        # see https://github.com/rsim/oracle-enhanced/issues/2186
+        def visit_Arel_Nodes_SelectOptions(o, collector)
           collector = maybe_visit o.limit, collector
           collector = maybe_visit o.offset, collector
           maybe_visit o.lock, collector
