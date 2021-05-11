@@ -1044,7 +1044,9 @@ module ActiveRecord
       end
 
       def load_migration
-        require(File.expand_path(filename))
+        Object.send(:remove_const, name) rescue nil
+
+        load(File.expand_path(filename))
         name.constantize.new(name, version)
       end
   end
