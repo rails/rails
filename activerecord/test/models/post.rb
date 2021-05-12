@@ -384,6 +384,8 @@ class Postesque < ActiveRecord::Base
 end
 
 class PostRecord < ActiveRecord::Base
+  has_many :comments
+
   class << self
     def model_name
       ActiveModel::Name.new(self, nil, "Post")

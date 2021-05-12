@@ -665,7 +665,7 @@ module ActiveRecord
           elsif options[:as]
             "#{options[:as]}_id"
           else
-            active_record.name.foreign_key
+            active_record.model_name.to_s.foreign_key
           end
         end
 
