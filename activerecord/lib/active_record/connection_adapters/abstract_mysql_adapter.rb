@@ -76,6 +76,10 @@ module ActiveRecord
         !mariadb? && database_version >= "8.0.13"
       end
 
+      def supports_full_text_parser?
+        !mariadb?
+      end
+
       def supports_transaction_isolation?
         true
       end

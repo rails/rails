@@ -261,8 +261,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:Mysql2Adapter)
-    def test_schema_dump_includes_parser_attribute
+  if ActiveRecord::Base.connection.supports_full_text_parser?
+    def test_schema_dump_includes_full_text_parser_attribute
       migration, original, $stdout = nil, $stdout, StringIO.new
 
       migration = Class.new(ActiveRecord::Migration::Current) do

@@ -322,6 +322,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support full text parser
+      def supports_full_text_parser?
+        false
+      end
+
       # Does this adapter support partial indices?
       def supports_partial_index?
         false
