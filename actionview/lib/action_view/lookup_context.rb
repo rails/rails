@@ -194,6 +194,7 @@ module ActionView
 
       # Fix when prefix is specified as part of the template name
       def normalize_name(name, prefixes)
+        name = name.to_s
         idx = name.rindex("/")
         return name, prefixes.presence || [""] unless idx
 
