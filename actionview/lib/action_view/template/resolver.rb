@@ -205,7 +205,7 @@ module ActionView
     private
       def _find_all(name, prefix, partial, details, key, locals)
         path = TemplatePath.build(name, prefix, partial)
-        requested_details = TemplateDetails::Requested.new(**details)
+        requested_details = key || TemplateDetails::Requested.new(**details)
         query(path, requested_details, locals, cache: !!key)
       end
 
