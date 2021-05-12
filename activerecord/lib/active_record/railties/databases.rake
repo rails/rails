@@ -87,24 +87,46 @@ db_namespace = namespace :db do
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task migrate: :load_config do
     original_db_config = ActiveRecord::Base.connection_db_config
+    db_configs = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env)
 
-    db_config_by_version = {}
+    # no additional job if it's only single db app
+    if db_configs.size == 1
+      ActiveRecord::Base.establish_connection(db_configs[0])
+      ActiveRecord::Tasks::DatabaseTasks.migrate
+    else
+      db_config_by_version = {}
+      scope = ENV["SCOPE"]
+      down_direction = false
 
-    ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-      ActiveRecord::Base.establish_connection(db_config)
-      versions_to_run = ActiveRecord::Base.connection.migration_context.pending_migration_versions
-      target_version = ActiveRecord::Tasks::DatabaseTasks.target_version
+      db_configs.each do |db_config|
+        ActiveRecord::Base.establish_connection(db_config)
+        migrations_to_run = ActiveRecord::Base.connection.migration_context.pending_migrations
+        current_version = ActiveRecord::Base.connection.migration_context.current_version
+        target_version = ActiveRecord::Tasks::DatabaseTasks.target_version
 
-      versions_to_run.each do |version|
-        # if VERSION is set, only add versions that match the set target_version
-        next if target_version && target_version != version
-        db_config_by_version[version] = db_config
+        if target_version && target_version < current_version
+          down_direction = true
+          break
+        end
+
+        migrations_to_run.each do |migration|
+          # if SCOPE is set, only add versions that match the set scope
+          next if scope.present? && migration.scope != scope
+          version = migration.version
+          # if VERSION is set, only add versions that match the set target_version
+          next if target_version && target_version != version
+          db_config_by_version[version] = db_config
+        end
       end
-    end
 
-    db_config_by_version.sort.each do |version, db_config|
-      ActiveRecord::Base.establish_connection(db_config)
-      ActiveRecord::Tasks::DatabaseTasks.migrate(version)
+      if down_direction
+        ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:migrate previous VERSION")
+      end
+
+      db_config_by_version.sort.each do |version, db_config|
+        ActiveRecord::Base.establish_connection(db_config)
+        ActiveRecord::Tasks::DatabaseTasks.migrate(version)
+      end
     end
 
     db_namespace["_dump"].invoke

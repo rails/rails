@@ -1140,11 +1140,15 @@ module ActiveRecord
     end
 
     def needs_migration? # :nodoc:
-      pending_migration_versions.size > 0
+      !pending_migration_versions.empty?
     end
 
     def pending_migration_versions # :nodoc:
-      migrations.collect(&:version) - get_all_versions
+      migrations.map(&:version) - get_all_versions
+    end
+
+    def pending_migrations # :nodoc:
+      migrations.select { |migration| pending_migration_versions.include?(migration.version) }
     end
 
     def migrations # :nodoc:
