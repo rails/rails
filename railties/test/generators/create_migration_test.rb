@@ -55,6 +55,8 @@ class CreateMigrationTest < Rails::Generators::TestCase
   def test_invoke_pretended
     create_migration(default_destination_path, {}, { pretend: true })
 
+    stdout = invoke!
+    assert_match(/create  db\/migrate\/1_create_articles\.rb\n/, stdout)
     assert_no_file @migration.destination
   end
 

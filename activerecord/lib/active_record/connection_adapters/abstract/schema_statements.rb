@@ -29,7 +29,7 @@ module ActiveRecord
         table_name[0...table_alias_length].tr(".", "_")
       end
 
-      # Returns the relation names useable to back Active Record models.
+      # Returns the relation names usable to back Active Record models.
       # For most adapters this means all #tables and #views.
       def data_sources
         query_values(data_source_sql, "SCHEMA")
@@ -523,7 +523,7 @@ module ActiveRecord
       # <tt>:primary_key</tt>, <tt>:string</tt>, <tt>:text</tt>,
       # <tt>:integer</tt>, <tt>:bigint</tt>, <tt>:float</tt>, <tt>:decimal</tt>, <tt>:numeric</tt>,
       # <tt>:datetime</tt>, <tt>:time</tt>, <tt>:date</tt>,
-      # <tt>:binary</tt>, <tt>:boolean</tt>.
+      # <tt>:binary</tt>, <tt>:blob</tt>, <tt>:boolean</tt>.
       #
       # You may use a type not in this list as long as it is supported by your
       # database (for example, "polygon" in MySQL), but this will not be database
@@ -532,7 +532,7 @@ module ActiveRecord
       # Available options are (none of these exists by default):
       # * <tt>:limit</tt> -
       #   Requests a maximum column length. This is the number of characters for a <tt>:string</tt> column
-      #   and number of bytes for <tt>:text</tt>, <tt>:binary</tt>, and <tt>:integer</tt> columns.
+      #   and number of bytes for <tt>:text</tt>, <tt>:binary</tt>, <tt>:blob</tt>, and <tt>:integer</tt> columns.
       #   This option is ignored by some backends.
       # * <tt>:default</tt> -
       #   The column's default value. Use +nil+ for +NULL+.
@@ -629,9 +629,8 @@ module ActiveRecord
           raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)")
         end
 
-        column_names.each do |column_name|
-          remove_column(table_name, column_name, type, **options)
-        end
+        remove_column_fragments = remove_columns_for_alter(table_name, *column_names, type: type, **options)
+        execute "ALTER TABLE #{quote_table_name(table_name)} #{remove_column_fragments.join(', ')}"
       end
 
       # Removes the column from the table definition.
@@ -1256,6 +1255,25 @@ module ActiveRecord
         columns
       end
 
+      def distinct_relation_for_primary_key(relation) # :nodoc:
+        values = columns_for_distinct(
+          visitor.compile(relation.table[relation.primary_key]),
+          relation.order_values
+        )
+
+        limited = relation.reselect(values).distinct!
+        limited_ids = select_rows(limited.arel, "SQL").map(&:last)
+
+        if limited_ids.empty?
+          relation.none!
+        else
+          relation.where!(relation.primary_key => limited_ids)
+        end
+
+        relation.limit_value = relation.offset_value = nil
+        relation
+      end
+
       # Adds timestamps (+created_at+ and +updated_at+) columns to +table_name+.
       # Additional options (like +:null+) are forwarded to #add_column.
       #
@@ -1277,8 +1295,7 @@ module ActiveRecord
       #  remove_timestamps(:suppliers)
       #
       def remove_timestamps(table_name, **options)
-        remove_column table_name, :updated_at
-        remove_column table_name, :created_at
+        remove_columns table_name, :updated_at, :created_at
       end
 
       def update_table_definition(table_name, base) #:nodoc:

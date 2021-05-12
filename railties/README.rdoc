@@ -8,7 +8,6 @@ Railties is responsible for gluing all frameworks together. Overall, it:
 
 * and provides the Rails generators core.
 
-
 == Download
 
 The latest version of Railties can be installed with RubyGems:
@@ -17,7 +16,7 @@ The latest version of Railties can be installed with RubyGems:
 
 Source code can be downloaded as part of the Rails project on GitHub
 
-* https://github.com/rails/rails/tree/master/railties
+* https://github.com/rails/rails/tree/main/railties
 
 == License
 

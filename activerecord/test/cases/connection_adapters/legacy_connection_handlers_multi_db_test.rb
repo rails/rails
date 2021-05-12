@@ -13,7 +13,9 @@ module ActiveRecord
       def setup
         @old_value = ActiveRecord::Base.legacy_connection_handling
         ActiveRecord::Base.legacy_connection_handling = true
-        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+        assert_deprecated do
+          ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+        end
 
         @handlers = { writing: ConnectionHandler.new, reading: ConnectionHandler.new }
         @rw_handler = @handlers[:writing]
@@ -379,7 +381,9 @@ module ActiveRecord
       end
 
       def test_connection_handlers_are_per_thread_and_not_per_fiber
-        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler, reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new }
+        assert_deprecated do
+          ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler, reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new }
+        end
 
         reading_handler = ActiveRecord::Base.connection_handlers[:reading]
 
@@ -392,7 +396,9 @@ module ActiveRecord
       end
 
       def test_connection_handlers_swapping_connections_in_fiber
-        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler, reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new }
+        assert_deprecated do
+          ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler, reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new }
+        end
 
         reading_handler = ActiveRecord::Base.connection_handlers[:reading]
 

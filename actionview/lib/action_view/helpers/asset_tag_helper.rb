@@ -16,7 +16,7 @@ module ActionView
     #   image_tag("rails.png")
     #   # => <img src="/assets/rails.png" />
     #   stylesheet_link_tag("application")
-    #   # => <link href="/assets/application.css?body=1" media="screen" rel="stylesheet" />
+    #   # => <link href="/assets/application.css?body=1" rel="stylesheet" />
     module AssetTagHelper
       include AssetUrlHelper
       include TagHelper
@@ -24,6 +24,7 @@ module ActionView
       mattr_accessor :image_loading
       mattr_accessor :image_decoding
       mattr_accessor :preload_links_header
+      mattr_accessor :apply_stylesheet_media_default
 
       # Returns an HTML script tag for each of the +sources+ provided.
       #
@@ -93,11 +94,12 @@ module ActionView
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
         integrity = options["integrity"]
+        rel = options["type"] == "module" ? "modulepreload" : "preload"
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
-          if preload_links_header && !options["defer"]
-            preload_link = "<#{href}>; rel=preload; as=script"
+          if preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:")
+            preload_link = "<#{href}>; rel=#{rel}; as=script"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
             preload_link += "; nopush" if nopush
@@ -120,24 +122,41 @@ module ActionView
         sources_tags
       end
 
-      # Returns a stylesheet link tag for the sources specified as arguments. If
-      # you don't specify an extension, <tt>.css</tt> will be appended automatically.
+      # Returns a stylesheet link tag for the sources specified as arguments.
+      #
+      # When passing paths, the <tt>.css</tt> extension is optional.
+      # If you don't specify an extension, <tt>.css</tt> will be appended automatically.
+      # If you do not want <tt>.css</tt> appended to the path,
+      # set <tt>extname: false</tt> in the options.
       # You can modify the link attributes by passing a hash as the last argument.
-      # For historical reasons, the 'media' attribute will always be present and defaults
-      # to "screen", so you must explicitly set it to "all" for the stylesheet(s) to
-      # apply to all media types.
       #
       # If the server supports Early Hints header links for these assets will be
       # automatically pushed.
       #
+      # ==== Options
+      #
+      # * <tt>:extname</tt>  - Append an extension to the generated URL unless the extension
+      #   already exists. This only applies for relative URLs.
+      # * <tt>:protocol</tt>  - Sets the protocol of the generated URL. This option only
+      #   applies when a relative URL and +host+ options are provided.
+      # * <tt>:host</tt>  - When a relative URL is provided the host is added to the
+      #   that path.
+      # * <tt>:skip_pipeline</tt>  - This option is used to bypass the asset pipeline
+      #   when it is set to true.
+      #
+      # ==== Examples
+      #
       #   stylesheet_link_tag "style"
-      #   # => <link href="/assets/style.css" media="screen" rel="stylesheet" />
+      #   # => <link href="/assets/style.css" rel="stylesheet" />
       #
       #   stylesheet_link_tag "style.css"
-      #   # => <link href="/assets/style.css" media="screen" rel="stylesheet" />
+      #   # => <link href="/assets/style.css" rel="stylesheet" />
       #
       #   stylesheet_link_tag "http://www.example.com/style.css"
-      #   # => <link href="http://www.example.com/style.css" media="screen" rel="stylesheet" />
+      #   # => <link href="http://www.example.com/style.css" rel="stylesheet" />
+      #
+      #   stylesheet_link_tag "style.less", extname: false, skip_pipeline: true, rel: "stylesheet/less"
+      #   # => <link href="/stylesheets/style.less" rel="stylesheet/less">
       #
       #   stylesheet_link_tag "style", media: "all"
       #   # => <link href="/assets/style.css" media="all" rel="stylesheet" />
@@ -146,11 +165,11 @@ module ActionView
       #   # => <link href="/assets/style.css" media="print" rel="stylesheet" />
       #
       #   stylesheet_link_tag "random.styles", "/css/stylish"
-      #   # => <link href="/assets/random.styles" media="screen" rel="stylesheet" />
-      #   #    <link href="/css/stylish.css" media="screen" rel="stylesheet" />
+      #   # => <link href="/assets/random.styles" rel="stylesheet" />
+      #   #    <link href="/css/stylish.css" rel="stylesheet" />
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!("protocol", "host", "skip_pipeline").symbolize_keys
+        path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         preload_links = []
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
@@ -159,7 +178,7 @@ module ActionView
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_stylesheet(source, path_options)
-          if preload_links_header
+          if preload_links_header && href.present? && !href.start_with?("data:")
             preload_link = "<#{href}>; rel=preload; as=style"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
@@ -168,10 +187,14 @@ module ActionView
           end
           tag_options = {
             "rel" => "stylesheet",
-            "media" => "screen",
             "crossorigin" => crossorigin,
             "href" => href
           }.merge!(options)
+
+          if apply_stylesheet_media_default && tag_options["media"].blank?
+            tag_options["media"] = "screen"
+          end
+
           tag(:link, tag_options)
         }.join("\n").html_safe
 
@@ -518,13 +541,42 @@ module ActionView
           end
         end
 
-        def send_preload_links_header(preload_links)
+        MAX_HEADER_SIZE = 8_000 # Some HTTP client and proxies have a 8kiB header limit
+        def send_preload_links_header(preload_links, max_header_size: MAX_HEADER_SIZE)
+          return if preload_links.empty?
+
           if respond_to?(:request) && request
             request.send_early_hints("Link" => preload_links.join("\n"))
           end
 
           if respond_to?(:response) && response
-            response.headers["Link"] = [response.headers["Link"].presence, *preload_links].compact.join(",")
+            header = response.headers["Link"]
+            header = header ? header.dup : +""
+
+            # rindex count characters not bytes, but we assume non-ascii characters
+            # are rare in urls, and we have a 192 bytes margin.
+            last_line_offset = header.rindex("\n")
+            last_line_size = if last_line_offset
+              header.bytesize - last_line_offset
+            else
+              header.bytesize
+            end
+
+            preload_links.each do |link|
+              if link.bytesize + last_line_size + 1 < max_header_size
+                unless header.empty?
+                  header << ","
+                  last_line_size += 1
+                end
+              else
+                header << "\n"
+                last_line_size = 0
+              end
+              header << link
+              last_line_size += link.bytesize
+            end
+
+            response.headers["Link"] = header
           end
         end
     end

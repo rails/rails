@@ -5,6 +5,7 @@ require "active_support/descendants_tracker"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/string/filters"
+require "active_support/core_ext/object/blank"
 require "thread"
 
 module ActiveSupport
@@ -289,20 +290,16 @@ module ActiveSupport
         end
 
         attr_accessor :kind, :name
-        attr_reader :chain_config
+        attr_reader :chain_config, :filter
 
         def initialize(name, filter, kind, options, chain_config)
           @chain_config = chain_config
           @name    = name
           @kind    = kind
           @filter  = filter
-          @key     = compute_identifier filter
           @if      = check_conditionals(options[:if])
           @unless  = check_conditionals(options[:unless])
         end
-
-        def filter; @key; end
-        def raw_filter; @filter; end
 
         def merge_conditional_options(chain, if_option:, unless_option:)
           options = {
@@ -356,7 +353,7 @@ module ActiveSupport
             return EMPTY_ARRAY if conditionals.blank?
 
             conditionals = Array(conditionals)
-            if conditionals.any? { |c| c.is_a?(String) }
+            if conditionals.any?(String)
               raise ArgumentError, <<-MSG.squish
                 Passing string to be evaluated in :if and :unless conditional
                 options is not supported. Pass a symbol for an instance method,
@@ -365,15 +362,6 @@ module ActiveSupport
             end
 
             conditionals.freeze
-          end
-
-          def compute_identifier(filter)
-            case filter
-            when ::Proc
-              filter.object_id
-            else
-              filter
-            end
           end
 
           def conditions_lambdas
@@ -688,9 +676,31 @@ module ActiveSupport
         # <tt>:unless</tt> options may be passed in order to control when the
         # callback is skipped.
         #
-        #   class Writer < Person
-        #      skip_callback :validate, :before, :check_membership, if: -> { age > 18 }
+        #   class Writer < PersonRecord
+        #     attr_accessor :age
+        #     skip_callback :save, :before, :saving_message, if: -> { age > 18 }
         #   end
+        #
+        # When if option returns true, callback is skipped.
+        #
+        #   writer = Writer.new
+        #   writer.age = 20
+        #   writer.save
+        #
+        # Output:
+        #   - save
+        #   saved
+        #
+        # When if option returns false, callback is NOT skipped.
+        #
+        #   young_writer = Writer.new
+        #   young_writer.age = 17
+        #   young_writer.save
+        #
+        # Output:
+        #   saving...
+        #   - save
+        #   saved
         #
         # An <tt>ArgumentError</tt> will be raised if the callback has not
         # already been set (unless the <tt>:raise</tt> option is set to <tt>false</tt>).
@@ -844,18 +854,12 @@ module ActiveSupport
             __callbacks[name.to_sym]
           end
 
-          if Module.instance_method(:method_defined?).arity == 1 # Ruby 2.5 and older
-            def set_callbacks(name, callbacks) # :nodoc:
-              self.__callbacks = __callbacks.merge(name.to_sym => callbacks)
+          def set_callbacks(name, callbacks) # :nodoc:
+            unless singleton_class.method_defined?(:__callbacks, false)
+              self.__callbacks = __callbacks.dup
             end
-          else # Ruby 2.6 and newer
-            def set_callbacks(name, callbacks) # :nodoc:
-              unless singleton_class.method_defined?(:__callbacks, false)
-                self.__callbacks = __callbacks.dup
-              end
-              self.__callbacks[name.to_sym] = callbacks
-              self.__callbacks
-            end
+            self.__callbacks[name.to_sym] = callbacks
+            self.__callbacks
           end
       end
   end

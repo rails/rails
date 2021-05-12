@@ -12,6 +12,7 @@ module ActionView
     config.action_view.default_enforce_utf8 = nil
     config.action_view.image_loading = nil
     config.action_view.image_decoding = nil
+    config.action_view.apply_stylesheet_media_default = true
 
     config.eager_load_namespaces << ActionView
 
@@ -40,9 +41,17 @@ module ActionView
     end
 
     config.after_initialize do |app|
+      button_to_generates_button_tag = app.config.action_view.delete(:button_to_generates_button_tag)
+      unless button_to_generates_button_tag.nil?
+        ActionView::Helpers::UrlHelper.button_to_generates_button_tag = button_to_generates_button_tag
+      end
+    end
+
+    config.after_initialize do |app|
       ActionView::Helpers::AssetTagHelper.image_loading = app.config.action_view.delete(:image_loading)
       ActionView::Helpers::AssetTagHelper.image_decoding = app.config.action_view.delete(:image_decoding)
       ActionView::Helpers::AssetTagHelper.preload_links_header = app.config.action_view.delete(:preload_links_header)
+      ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default = app.config.action_view.delete(:apply_stylesheet_media_default)
     end
 
     config.after_initialize do |app|
@@ -50,7 +59,7 @@ module ActionView
         app.config.action_view.each do |k, v|
           if k == :raise_on_missing_translations
             ActiveSupport::Deprecation.warn \
-              "action_view.raise_on_missing_translations is deprecated and will be removed in Rails 6.2. " \
+              "action_view.raise_on_missing_translations is deprecated and will be removed in Rails 7.0. " \
               "Set i18n.raise_on_missing_translations instead. " \
               "Note that this new setting also affects how missing translations are handled in controllers."
           end
@@ -89,7 +98,7 @@ module ActionView
       end
 
       unless enable_caching
-        app.executor.to_run ActionView::CacheExpiry::Executor.new(watcher: app.config.file_watcher)
+        app.executor.register_hook ActionView::CacheExpiry::Executor.new(watcher: app.config.file_watcher)
       end
     end
 

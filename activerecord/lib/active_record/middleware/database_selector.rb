@@ -22,9 +22,14 @@ module ActiveRecord
     # To use the DatabaseSelector in your application with default settings add
     # the following options to your environment config:
     #
-    #   config.active_record.database_selector = { delay: 2.seconds }
-    #   config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
-    #   config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+    #   # This require is only necessary when using `rails new app --minimal`
+    #   require "active_support/core_ext/integer/time"
+    #
+    #   class Application < Rails::Application
+    #     config.active_record.database_selector = { delay: 2.seconds }
+    #     config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+    #     config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+    #   end
     #
     # New applications will include these lines commented out in the production.rb.
     #

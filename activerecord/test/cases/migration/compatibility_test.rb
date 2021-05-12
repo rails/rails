@@ -204,7 +204,7 @@ module ActiveRecord
         e = assert_raises(StandardError) do
           class_eval("class LegacyMigration < ActiveRecord::Migration; end")
         end
-        assert_match(/LegacyMigration < ActiveRecord::Migration\[4\.2\]/, e.message)
+        assert_match(/LegacyMigration < ActiveRecord::Migration\[\d\.\d\]/, e.message)
       end
 
       def test_legacy_migrations_not_raise_exception_on_reverting_transaction

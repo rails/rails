@@ -7,7 +7,7 @@
   </h1>
 </header>
 
-<div id="container">
+<main role="main" id="container">
   <%= render "rescues/message_and_suggestions", exception: @exception %>
   <%= render "rescues/actions", exception: @exception, request: @request %>
 
@@ -20,16 +20,16 @@
 
   <% @exception_wrapper.wrapped_causes.each.with_index(1) do |wrapper, index| %>
     <div class="details">
-      <a class="summary" href="#" style="color: #F0F0F0; text-decoration: none; background: #C52F24; border-bottom: none;" onclick="return toggle(<%= wrapper.exception.object_id %>)">
+      <a class="summary" href="#" onclick="return toggle(<%= wrapper.exception.object_id %>)">
         <%= wrapper.exception.class.name %>: <%= h wrapper.exception.message %>
       </a>
     </div>
 
-    <div id="<%= wrapper.exception.object_id %>" style="display: none;">
+    <div id="<%= wrapper.exception.object_id %>" class="hidden">
       <%= render "rescues/source", source_extracts: wrapper.source_extracts, show_source_idx: wrapper.source_to_show_id, error_index: index %>
       <%= render "rescues/trace", traces: wrapper.traces, trace_to_show: wrapper.trace_to_show, error_index: index %>
     </div>
   <% end %>
 
   <%= render template: "rescues/_request_and_response" %>
-</div>
+</main>

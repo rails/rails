@@ -114,9 +114,13 @@ module ActiveSupport
     def finish(name, id, payload)
       super if logger
     rescue => e
-      if logger
-        logger.error "Could not log #{name.inspect} event. #{e.class}: #{e.message} #{e.backtrace}"
-      end
+      log_exception(name, e)
+    end
+
+    def publish_event(event)
+      super if logger
+    rescue => e
+      log_exception(event.name, e)
     end
 
   private
@@ -137,6 +141,12 @@ module ActiveSupport
       color = self.class.const_get(color.upcase) if color.is_a?(Symbol)
       bold  = bold ? BOLD : ""
       "#{bold}#{color}#{text}#{CLEAR}"
+    end
+
+    def log_exception(name, e)
+      if logger
+        logger.error "Could not log #{name.inspect} event. #{e.class}: #{e.message} #{e.backtrace}"
+      end
     end
   end
 end

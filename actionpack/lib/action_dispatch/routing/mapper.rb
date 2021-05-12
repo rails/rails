@@ -4,7 +4,6 @@ require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/regexp"
-require "active_support/core_ext/symbol/starts_ends_with"
 require "action_dispatch/routing/redirection"
 require "action_dispatch/routing/endpoint"
 
@@ -1306,6 +1305,16 @@ module ActionDispatch
         #   PATCH/PUT /profile
         #   DELETE    /profile
         #   POST      /profile
+        #
+        # If you want instances of a model to work with this resource via
+        # record identification (eg. in +form_with+ or +redirect_to+), you
+        # will need to call resolve[rdoc-ref:CustomUrls#resolve]:
+        #
+        #   resource :profile
+        #   resolve('Profile') { [:profile] }
+        #
+        #   # Enables this to work with singular routes:
+        #   form_with(model: @profile) {}
         #
         # === Options
         # Takes same options as resources[rdoc-ref:#resources]

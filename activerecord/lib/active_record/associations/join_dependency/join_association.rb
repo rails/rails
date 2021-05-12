@@ -42,16 +42,17 @@ module ActiveRecord
           chain.reverse_each do |reflection, table|
             klass = reflection.klass
 
-            join_scope = reflection.join_scope(table, foreign_table, foreign_klass)
+            scope = reflection.join_scope(table, foreign_table, foreign_klass)
 
-            unless join_scope.references_values.empty?
-              join_dependency = join_scope.construct_join_dependency(
-                join_scope.eager_load_values | join_scope.includes_values, Arel::Nodes::OuterJoin
-              )
-              join_scope.joins!(join_dependency)
+            unless scope.references_values.empty?
+              associations = scope.eager_load_values | scope.includes_values
+
+              unless associations.empty?
+                scope.joins! scope.construct_join_dependency(associations, Arel::Nodes::OuterJoin)
+              end
             end
 
-            arel = join_scope.arel(alias_tracker.aliases)
+            arel = scope.arel(alias_tracker.aliases)
             nodes = arel.constraints.first
 
             if nodes.is_a?(Arel::Nodes::And)

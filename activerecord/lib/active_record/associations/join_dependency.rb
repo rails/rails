@@ -195,7 +195,7 @@ module ActiveRecord
               next table, true
             end
 
-            table_name = @references[reflection.name.to_sym]
+            table_name = @references[reflection.name.to_sym]&.to_s
 
             table = alias_tracker.aliased_table_for(reflection.klass.arel_table, table_name) do
               name = reflection.alias_candidate(parent.table_name)

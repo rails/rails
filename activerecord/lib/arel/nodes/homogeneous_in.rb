@@ -55,6 +55,10 @@ module Arel # :nodoc: all
         casted_values
       end
 
+      def proc_for_binds
+        -> value { ActiveModel::Attribute.with_cast_value(attribute.name, value, attribute.type_caster) }
+      end
+
       def fetch_attribute(&block)
         if attribute
           yield attribute

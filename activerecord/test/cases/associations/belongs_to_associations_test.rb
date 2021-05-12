@@ -25,6 +25,8 @@ require "models/admin/user"
 require "models/ship"
 require "models/treasure"
 require "models/parrot"
+require "models/book"
+require "models/citation"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -44,9 +46,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal [authors(:david)], Author.where(owned_essay: essays(:david_modest_proposal))
   end
 
+  def test_find_by_with_custom_primary_key
+    assert_equal authors(:david), Author.find_by(owned_essay: essays(:david_modest_proposal))
+  end
+
   def test_where_on_polymorphic_association_with_nil
     assert_equal comments(:greetings), Comment.where(author: nil).first
     assert_equal comments(:greetings), Comment.where(author: [nil]).first
+  end
+
+  def test_where_on_polymorphic_association_with_empty_array
+    assert_empty Comment.where(author: [])
   end
 
   def test_assigning_belongs_to_on_destroyed_object
@@ -986,15 +996,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_polymorphic_assignment_foreign_key_type_string
     comment = Comment.first
-    comment.author   = Author.first
-    comment.resource = Member.first
+    comment.author   = authors(:david)
+    comment.resource = members(:groucho)
     comment.save
 
-    assert_equal Comment.all.to_a,
-      Comment.includes(:author).to_a
+    assert_equal 1, authors(:david).id
+    assert_equal 1, comment.author_id
+    assert_equal authors(:david), Comment.includes(:author).first.author
 
-    assert_equal Comment.all.to_a,
-      Comment.includes(:resource).to_a
+    assert_equal 1, members(:groucho).id
+    assert_equal "1", comment.resource_id
+    assert_equal members(:groucho), Comment.includes(:resource).first.resource
   end
 
   def test_polymorphic_assignment_foreign_type_field_updating
@@ -1122,6 +1134,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal error.message, "The :dependent option must be one of [:destroy, :delete, :destroy_async], but is :nullify"
   end
 
+  class EssayDestroy < ActiveRecord::Base
+    self.table_name = "essays"
+    belongs_to :book, dependent: :destroy, class_name: "DestroyableBook"
+  end
+
   class DestroyableBook < ActiveRecord::Base
     self.table_name = "books"
     belongs_to :author, class_name: "UndestroyableAuthor", dependent: :destroy
@@ -1143,6 +1160,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_no_difference ["UndestroyableAuthor.count", "DestroyableBook.count"] do
       assert_not book.destroy
+    end
+  end
+
+  def test_dependency_should_halt_parent_destruction_with_cascaded_three_levels
+    author = UndestroyableAuthor.create!(name: "Test")
+    book = DestroyableBook.create!(author: author)
+    essay = EssayDestroy.create!(book: book)
+
+    assert_no_difference ["UndestroyableAuthor.count", "DestroyableBook.count", "EssayDestroy.count"] do
+      assert_not essay.destroy
+      assert_not essay.destroyed?
     end
   end
 
@@ -1175,6 +1203,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_predicate firm_with_condition_proxy, :stale_target?
     assert_equal companies(:another_firm), client.firm
     assert_equal companies(:another_firm), client.firm_with_condition
+  end
+
+  def test_destroying_child_with_unloaded_parent_and_foreign_key_and_touch_is_possible_with_has_many_inversing
+    with_has_many_inversing do
+      book     = Book.create!
+      citation = book.citations.create!
+
+      assert_difference "Citation.count", -1 do
+        Citation.find(citation.id).destroy
+      end
+    end
   end
 
   def test_polymorphic_reassignment_of_associated_id_updates_the_object
@@ -1357,6 +1396,21 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sponsor = Sponsor.create!(sponsorable: toy)
 
     assert_equal toy, sponsor.reload.sponsorable
+  end
+
+  class SponsorWithTouchInverse < Sponsor
+    belongs_to :sponsorable, polymorphic: true, inverse_of: :sponsors, touch: true
+  end
+
+  def test_destroying_polymorphic_child_with_unloaded_parent_and_touch_is_possible_with_has_many_inversing
+    with_has_many_inversing do
+      toy     = Toy.create!
+      sponsor = toy.sponsors.create!
+
+      assert_difference "Sponsor.count", -1 do
+        SponsorWithTouchInverse.find(sponsor.id).destroy
+      end
+    end
   end
 
   def test_polymorphic_with_false

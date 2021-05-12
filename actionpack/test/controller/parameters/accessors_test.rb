@@ -392,9 +392,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   test "#dig converts hashes to parameters" do
     assert_kind_of ActionController::Parameters, @params.dig(:person)
     assert_kind_of ActionController::Parameters, @params.dig(:person, :addresses, 0)
-    assert @params.dig(:person, :addresses).all? do |value|
-      value.is_a?(ActionController::Parameters)
-    end
+    assert @params.dig(:person, :addresses).all?(ActionController::Parameters)
   end
 
   test "mutating #dig return value mutates underlying parameters" do

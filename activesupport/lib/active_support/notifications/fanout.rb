@@ -24,12 +24,15 @@ module ActiveSupport
       def subscribe(pattern = nil, callable = nil, monotonic: false, &block)
         subscriber = Subscribers.new(pattern, callable || block, monotonic)
         synchronize do
-          if String === pattern
+          case pattern
+          when String
             @string_subscribers[pattern] << subscriber
             @listeners_for.delete(pattern)
-          else
+          when NilClass, Regexp
             @other_subscribers << subscriber
             @listeners_for.clear
+          else
+            raise ArgumentError,  "pattern must be specified as a String, Regexp or empty"
           end
         end
         subscriber
@@ -65,6 +68,10 @@ module ActiveSupport
 
       def publish(name, *args)
         listeners_for(name).each { |s| s.publish(name, *args) }
+      end
+
+      def publish_event(event)
+        listeners_for(event.name).each { |s| s.publish_event(event) }
       end
 
       def listeners_for(name)
@@ -141,11 +148,20 @@ module ActiveSupport
             @pattern = Matcher.wrap(pattern)
             @delegate = delegate
             @can_publish = delegate.respond_to?(:publish)
+            @can_publish_event = delegate.respond_to?(:publish_event)
           end
 
           def publish(name, *args)
             if @can_publish
               @delegate.publish name, *args
+            end
+          end
+
+          def publish_event(event)
+            if @can_publish_event
+              @delegate.publish_event event
+            else
+              publish(event.name, event.time, event.end, event.transaction_id, event.payload)
             end
           end
 
@@ -217,6 +233,10 @@ module ActiveSupport
             event = stack.pop
             event.payload = payload
             event.finish!
+            @delegate.call event
+          end
+
+          def publish_event(event)
             @delegate.call event
           end
 

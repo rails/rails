@@ -47,6 +47,9 @@ module ActionText
 
         copy_file "#{GEM_ROOT}/app/views/active_storage/blobs/_blob.html.erb",
           "app/views/active_storage/blobs/_blob.html.erb"
+
+        copy_file "#{GEM_ROOT}/app/views/layouts/action_text/contents/_content.html.erb",
+          "app/views/layouts/action_text/contents/_content.html.erb"
       end
 
       def create_migrations
@@ -65,7 +68,7 @@ module ActionText
         end
 
         def yarn_command(command, config = {})
-          in_root { run "bin/yarn #{command}", abort_on_failure: true, **config }
+          in_root { run "#{Thor::Util.ruby_command} bin/yarn #{command}", abort_on_failure: true, **config }
         end
     end
   end

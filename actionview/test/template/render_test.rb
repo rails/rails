@@ -331,13 +331,6 @@ module RenderTestCases
     assert_equal "Hello: davidHello: mary", @view.render(partial: "test/customer", collection: [ Customer.new("david"), Customer.new("mary") ])
   end
 
-  def test_render_partial_collection_with_partial_name_containing_dot
-    assert_deprecated do
-      assert_equal "Hello: davidHello: mary",
-        @view.render(partial: "test/customer.mobile", collection: [ Customer.new("david"), Customer.new("mary") ])
-    end
-  end
-
   def test_render_partial_collection_as_by_string
     assert_equal "david david davidmary mary mary",
       @view.render(partial: "test/customer_with_var", collection: [ Customer.new("david"), Customer.new("mary") ], as: "customer")
@@ -630,6 +623,38 @@ module RenderTestCases
     assert_match "Missing partial /_true with", e.message
   end
 
+  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+    def test_render_partial_provides_spellcheck
+      e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/partail") }
+      assert_match %r{Did you mean\?  test/partial\n *test/partialhtml}, e.message
+    end
+
+    def test_spellcheck_doesnt_list_directories
+      e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/directory") }
+      assert_match %r{Did you mean\?}, e.message
+      assert_no_match %r{Did you mean\?  test/directory\n}, e.message # test/hello is a directory
+    end
+
+    def test_spellcheck_only_lists_templates
+      e = assert_raises(ActionView::MissingTemplate) { @view.render(template: "test/partial") }
+
+      assert_match %r{Did you mean\?}, e.message
+      assert_no_match %r{Did you mean\?  test/partial\n}, e.message
+    end
+
+    def test_spellcheck_only_lists_partials
+      e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/template") }
+
+      assert_match %r{Did you mean\?}, e.message
+      assert_no_match %r{Did you mean\?  test/template\n}, e.message
+    end
+  end
+
+  def test_render_partial_wrong_details_no_spellcheck
+    e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/partial_with_only_html_version", formats: [:xml]) }
+    assert_no_match %r{Did you mean\?}, e.message
+  end
+
   def test_render_with_nested_layout
     assert_equal %(<title>title</title>\n\n<div id="column">column</div>\n<div id="content">content</div>\n),
       @view.render(template: "test/nested_layout", layout: "layouts/yield")
@@ -671,7 +696,7 @@ class CachedViewRenderTest < ActiveSupport::TestCase
   def setup
     ActionView::LookupContext::DetailsKey.clear
     view_paths = ActionController::Base.view_paths
-    assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
+    assert_equal ActionView::FileSystemResolver, view_paths.first.class
     setup_view(view_paths)
   end
 
@@ -745,7 +770,7 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     ActionView::LookupContext::DetailsKey.clear
 
     view_paths = ActionController::Base.view_paths
-    assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
+    assert_equal ActionView::FileSystemResolver, view_paths.first.class
 
     ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new
 

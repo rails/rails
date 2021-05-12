@@ -28,7 +28,11 @@ ActiveSupport.to_time_preserves_timezone = ENV["PRESERVE_TIMEZONES"] == "1"
 I18n.enforce_available_locales = false
 
 class ActiveSupport::TestCase
-  parallelize
+  if Process.respond_to?(:fork) && !Gem.win_platform?
+    parallelize
+  else
+    parallelize(with: :threads)
+  end
 
   include ActiveSupport::Testing::MethodCallAssertions
 

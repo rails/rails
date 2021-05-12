@@ -1129,15 +1129,6 @@ module CallbacksTest
       }
     end
 
-    def test_skip_lambda # raises error
-      calls = []
-      callback = ->(o) { calls << o }
-      klass = build_class(callback)
-      assert_raises(ArgumentError) { klass.skip callback }
-      klass.new.run
-      assert_equal 10, calls.length
-    end
-
     def test_skip_symbol # removes all
       calls = []
       klass = build_class(:bar)

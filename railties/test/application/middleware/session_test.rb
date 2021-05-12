@@ -246,7 +246,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ActionController::Base
           def write_raw_session
-            # AES-256-CBC with SHA1 HMAC
+            # AES-256-CBC with SHA1 HMAC & SHA1 key derivation
             # {"session_id"=>"1965d95720fffc123941bdfb7d2e6870", "foo"=>1}
             cookies[:_myapp_session] = "TlgrdS85aUpDd1R2cDlPWlR6K0FJeGExckwySjZ2Z0pkR3d2QnRObGxZT25aalJWYWVvbFVLcHF4d0VQVDdSaFF2QjFPbG9MVjJzeWp3YjcyRUlKUUU2ZlR4bXlSNG9ZUkJPRUtld0E3dVU9LS0xNDZXbGpRZ3NjdW43N2haUEZJSUNRPT0=--3639b5ce54c09495cfeaae928cd5634e0c4b2e96"
             head :ok
@@ -277,6 +277,9 @@ module ApplicationTests
 
         # Enable AEAD cookies
         config.action_dispatch.use_authenticated_cookie_encryption = true
+
+        # Use SHA1 key derivation
+        config.active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA1
       RUBY
 
       begin

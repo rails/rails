@@ -23,4 +23,7 @@ module ActiveStorage
   # Raised when ActiveStorage::Blob#download is called on a blob where the
   # backing file is no longer present in its service.
   class FileNotFoundError < Error; end
+
+  # Raised when a Previewer is unable to generate a preview image.
+  class PreviewError < Error; end
 end

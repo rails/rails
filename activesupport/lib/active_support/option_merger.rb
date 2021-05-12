@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/hash/deep_merge"
-require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActiveSupport
   class OptionMerger #:nodoc:
@@ -25,20 +24,9 @@ module ActiveSupport
           options = @options
         end
 
-        invoke_method(method, arguments, options, &block)
-      end
-
-      if RUBY_VERSION >= "2.7"
-        def invoke_method(method, arguments, options, &block)
-          if options
-            @context.__send__(method, *arguments, **options, &block)
-          else
-            @context.__send__(method, *arguments, &block)
-          end
-        end
-      else
-        def invoke_method(method, arguments, options, &block)
-          arguments << options.dup if options
+        if options
+          @context.__send__(method, *arguments, **options, &block)
+        else
           @context.__send__(method, *arguments, &block)
         end
       end

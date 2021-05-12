@@ -180,7 +180,7 @@ module ActiveRecord
     #   member.posts.second.title # => '[UPDATED] other post'
     #
     # However, the above applies if the parent model is being updated as well.
-    # For example, If you wanted to create a +member+ named _joe_ and wanted to
+    # For example, if you wanted to create a +member+ named _joe_ and wanted to
     # update the +posts+ at the same time, that would give an
     # ActiveRecord::RecordNotFound error.
     #
@@ -486,7 +486,7 @@ module ActiveRecord
         existing_records = if association.loaded?
           association.target
         else
-          attribute_ids = attributes_collection.map { |a| a["id"] || a[:id] }.compact
+          attribute_ids = attributes_collection.filter_map { |a| a["id"] || a[:id] }
           attribute_ids.empty? ? [] : association.scope.where(association.klass.primary_key => attribute_ids)
         end
 

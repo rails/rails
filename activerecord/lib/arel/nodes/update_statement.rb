@@ -5,8 +5,9 @@ module Arel # :nodoc: all
     class UpdateStatement < Arel::Nodes::Node
       attr_accessor :relation, :wheres, :values, :orders, :limit, :offset, :key
 
-      def initialize
-        @relation = nil
+      def initialize(relation = nil)
+        super()
+        @relation = relation
         @wheres   = []
         @values   = []
         @orders   = []

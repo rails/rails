@@ -113,11 +113,11 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "3600 seconds",                    (1.day / 24).inspect
   end
 
-  def test_inspect_locale
+  def test_inspect_ignores_locale
     current_locale = I18n.default_locale
     I18n.default_locale = :de
     I18n.backend.store_translations(:de, support: { array: { last_word_connector: " und " } })
-    assert_equal "10 years, 1 month und 1 day", (10.years + 1.month + 1.day).inspect
+    assert_equal "10 years, 1 month, and 1 day", (10.years + 1.month + 1.day).inspect
   ensure
     I18n.default_locale = current_locale
   end
@@ -318,7 +318,7 @@ class DurationTest < ActiveSupport::TestCase
     Time.zone = nil
   end
 
-  def test_before_and_afer
+  def test_before_and_after
     t = Time.local(2000)
     assert_equal t + 1, 1.second.after(t)
     assert_equal t - 1, 1.second.before(t)
@@ -732,6 +732,22 @@ class DurationTest < ActiveSupport::TestCase
     end
 
     assert_equal "can't build an ActiveSupport::Duration from a NilClass", error.message
+  end
+
+  def test_variable
+    assert_not 12.seconds.variable?
+    assert_not 12.minutes.variable?
+    assert_not 12.hours.variable?
+
+    assert 12.days.variable?
+    assert 12.weeks.variable?
+    assert 12.months.variable?
+    assert 12.years.variable?
+
+    assert_not (12.hours + 12.minutes).variable?
+
+    assert (12.hours + 1.day).variable?
+    assert (1.day + 12.hours).variable?
   end
 
   private

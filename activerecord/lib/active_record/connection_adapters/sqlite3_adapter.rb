@@ -84,6 +84,7 @@ module ActiveRecord
       end
 
       def initialize(connection, logger, connection_options, config)
+        @memory_database = config[:database] == ":memory:"
         super(connection, logger, config)
         configure_connection
       end
@@ -152,6 +153,10 @@ module ActiveRecord
       alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
       alias supports_insert_conflict_target? supports_insert_on_conflict?
+
+      def supports_concurrent_connections?
+        !@memory_database
+      end
 
       def active?
         !@connection.closed?
@@ -245,9 +250,17 @@ module ActiveRecord
       def remove_column(table_name, column_name, type = nil, **options) #:nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
-          definition.foreign_keys.delete_if do |_, fk_options|
-            fk_options[:column] == column_name.to_s
+          definition.foreign_keys.delete_if { |fk| fk.column == column_name.to_s }
+        end
+      end
+
+      def remove_columns(table_name, *column_names, type: nil, **options) # :nodoc:
+        alter_table(table_name) do |definition|
+          column_names.each do |column_name|
+            definition.remove_column column_name
           end
+          column_names = column_names.map(&:to_s)
+          definition.foreign_keys.delete_if { |fk| column_names.include?(fk.column) }
         end
       end
 
@@ -271,7 +284,7 @@ module ActiveRecord
       def change_column(table_name, column_name, type, **options) #:nodoc:
         alter_table(table_name) do |definition|
           definition[column_name].instance_eval do
-            self.type = type
+            self.type = aliased_types(type.to_s, type)
             self.options.merge!(options)
           end
         end
@@ -308,8 +321,12 @@ module ActiveRecord
           sql << " ON CONFLICT #{insert.conflict_target} DO NOTHING"
         elsif insert.update_duplicates?
           sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
-          sql << insert.touch_model_timestamps_unless { |column| "#{column} IS excluded.#{column}" }
-          sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
+          if insert.raw_update_sql?
+            sql << insert.raw_update_sql
+          else
+            sql << insert.touch_model_timestamps_unless { |column| "#{column} IS excluded.#{column}" }
+            sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
+          end
         end
 
         sql
@@ -446,6 +463,7 @@ module ActiveRecord
               options = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
               options[:unique] = true if index.unique
               options[:where] = index.where if index.where
+              options[:order] = index.orders if index.orders
               add_index(to, columns, **options)
             end
           end

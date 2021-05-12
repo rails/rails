@@ -126,7 +126,7 @@ Please refer to the [Changelog][railties] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/29534))
 
 *   Skip unused components when running `bin/rails app:update`.
-    If the initial app generation skipped Action Cable, Active Record etc.,
+    If the initial app generation skipped Action Cable, Active Record, etc.,
     the update task honors those skips too.
     ([Pull Request](https://github.com/rails/rails/pull/29645))
 
@@ -180,8 +180,8 @@ Please refer to the [Changelog][railties] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/30633))
 
 *   `rails new` and `rails plugin new` get `Active Storage` by default.
-     Add ability to skip `Active Storage` with `--skip-active-storage`
-     and do so automatically when `--skip-active-record` is used.
+    Add ability to skip `Active Storage` with `--skip-active-storage`
+    and do so automatically when `--skip-active-record` is used.
     ([Pull Request](https://github.com/rails/rails/pull/30101))
 
 Action Cable

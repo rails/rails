@@ -1459,6 +1459,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "projects#index", @response.body
   end
 
+  def test_optional_part_of_segment
+    draw do
+      get "/star-trek(-tng)/:episode", to: "star_trek#show"
+    end
+
+    get "/star-trek/02-15-the-trouble-with-tribbles"
+    assert_equal "star_trek#show", @response.body
+
+    get "/star-trek-tng/05-02-darmok"
+    assert_equal "star_trek#show", @response.body
+  end
+
   def test_scope_with_format_option
     draw do
       get "direct/index", as: :no_format_direct, format: false

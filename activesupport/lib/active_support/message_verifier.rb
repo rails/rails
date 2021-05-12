@@ -68,8 +68,8 @@ module ActiveSupport
   # return the original value. But messages can be set to expire at a given
   # time with +:expires_in+ or +:expires_at+.
   #
-  #   @verifier.generate(parcel, expires_in: 1.month)
-  #   @verifier.generate(doowad, expires_at: Time.now.end_of_year)
+  #   @verifier.generate("parcel", expires_in: 1.month)
+  #   @verifier.generate("doowad", expires_at: Time.now.end_of_year)
   #
   # Then the messages can be verified and returned up to the expire time.
   # Thereafter, the +verified+ method returns +nil+ while +verify+ raises

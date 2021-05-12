@@ -280,9 +280,10 @@ INFO. Additional keys may be added by the caller.
 
 ### unpermitted_parameters.action_controller
 
-| Key     | Value            |
-| ------- | ---------------- |
-| `:keys` | Unpermitted keys |
+| Key           | Value                                                                 |
+| ------------- | --------------------------------------------------------------------- |
+| `:key`        | The unpermitted keys                                                  |
+| `:context`    | Hash with the following keys: :controller, :action, :params, :request |
 
 Action Dispatch
 ---------------
@@ -458,7 +459,6 @@ INFO. Options passed to fetch will be merged with the payload when writing to th
   store: "ActiveSupport::Cache::MemCacheStore"
 }
 ```
-
 
 ### cache_fetch_hit.active_support
 

@@ -260,7 +260,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflections_should_return_keys_as_strings
-    assert Category.reflections.keys.all? { |key| key.is_a? String }, "Model.reflections is expected to return string for keys"
+    assert Category.reflections.keys.all?(String), "Model.reflections is expected to return string for keys"
   end
 
   def test_has_and_belongs_to_many_reflection
@@ -430,6 +430,13 @@ class ReflectionTest < ActiveRecord::TestCase
       ActiveRecord::Reflection.create(:has_many, :clients, nil, { class_name: Client }, Firm)
     end
     assert_equal "A class was passed to `:class_name` but we are expecting a string.", error.message
+  end
+
+  def test_class_for_source_type
+    error = assert_raises(ArgumentError) do
+      ActiveRecord::Reflection.create(:has_many, :tagged_posts, nil, { through: :taggings, source: :taggable, source_type: Post }, Tag)
+    end
+    assert_equal "A class was passed to `:source_type` but we are expecting a string.", error.message
   end
 
   def test_join_table

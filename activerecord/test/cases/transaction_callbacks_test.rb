@@ -538,6 +538,18 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [:after_rollback], records.second.history
   end
 
+  def test_after_commit_does_not_mutate_the_if_options_array
+    opts = []
+
+    Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      after_commit(if: opts, on: :create) { }
+    end
+
+    assert_empty opts
+  end
+
   private
     def add_transaction_execution_blocks(record)
       record.after_commit_block(:create) { |r| r.history << :commit_on_create }

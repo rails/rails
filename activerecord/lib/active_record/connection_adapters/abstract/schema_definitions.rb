@@ -71,6 +71,10 @@ module ActiveRecord
           end
         CODE
       end
+
+      def aliased_types(name, fallback)
+        "timestamp" == name ? :datetime : fallback
+      end
     end
 
     AddColumnDefinition = Struct.new(:column) # :nodoc:
@@ -249,6 +253,7 @@ module ActiveRecord
         define_column_methods :bigint, :binary, :boolean, :date, :datetime, :decimal,
           :float, :integer, :json, :string, :text, :time, :timestamp, :virtual
 
+        alias :blob :binary
         alias :numeric :decimal
       end
 
@@ -273,7 +278,7 @@ module ActiveRecord
     # Inside migration files, the +t+ object in {create_table}[rdoc-ref:SchemaStatements#create_table]
     # is actually of this type:
     #
-    #   class SomeMigration < ActiveRecord::Migration[6.0]
+    #   class SomeMigration < ActiveRecord::Migration[7.0]
     #     def up
     #       create_table :foo do |t|
     #         puts t.class  # => "ActiveRecord::ConnectionAdapters::TableDefinition"
@@ -430,12 +435,12 @@ module ActiveRecord
         indexes << [column_name, options]
       end
 
-      def foreign_key(table_name, **options) # :nodoc:
-        foreign_keys << [table_name, options]
+      def foreign_key(to_table, **options)
+        foreign_keys << new_foreign_key_definition(to_table, options)
       end
 
       def check_constraint(expression, **options)
-        check_constraints << [expression, options]
+        check_constraints << new_check_constraint_definition(expression, options)
       end
 
       # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
@@ -477,6 +482,19 @@ module ActiveRecord
         create_column_definition(name, type, options)
       end
 
+      def new_foreign_key_definition(to_table, options) # :nodoc:
+        prefix = ActiveRecord::Base.table_name_prefix
+        suffix = ActiveRecord::Base.table_name_suffix
+        to_table = "#{prefix}#{to_table}#{suffix}"
+        options = @conn.foreign_key_options(name, to_table, options)
+        ForeignKeyDefinition.new(name, to_table, options)
+      end
+
+      def new_check_constraint_definition(expression, options) # :nodoc:
+        options = @conn.check_constraint_options(name, expression, options)
+        CheckConstraintDefinition.new(name, expression, options)
+      end
+
       private
         def create_column_definition(name, type, options)
           ColumnDefinition.new(name, type, options)
@@ -512,7 +530,7 @@ module ActiveRecord
       def name; @td.name; end
 
       def add_foreign_key(to_table, options)
-        @foreign_key_adds << ForeignKeyDefinition.new(name, to_table, options)
+        @foreign_key_adds << @td.new_foreign_key_definition(to_table, options)
       end
 
       def drop_foreign_key(name)
@@ -520,7 +538,7 @@ module ActiveRecord
       end
 
       def add_check_constraint(expression, options)
-        @check_constraint_adds << CheckConstraintDefinition.new(name, expression, options)
+        @check_constraint_adds << @td.new_check_constraint_definition(expression, options)
       end
 
       def drop_check_constraint(constraint_name)
@@ -564,6 +582,7 @@ module ActiveRecord
     #     t.time
     #     t.date
     #     t.binary
+    #     t.blob
     #     t.boolean
     #     t.foreign_key
     #     t.json

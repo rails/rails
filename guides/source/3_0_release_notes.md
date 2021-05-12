@@ -131,7 +131,7 @@ More information: - [Make Any Ruby Object Feel Like ActiveRecord](http://yehudak
 
 ### Controller Abstraction
 
-Another big part of decoupling the core components was creating a base superclass that is separated from the notions of HTTP in order to handle rendering of views etc. This creation of `AbstractController` allowed `ActionController` and `ActionMailer` to be greatly simplified with common code removed from all these libraries and put into Abstract Controller.
+Another big part of decoupling the core components was creating a base superclass that is separated from the notions of HTTP in order to handle rendering of views, etc. This creation of `AbstractController` allowed `ActionController` and `ActionMailer` to be greatly simplified with common code removed from all these libraries and put into Abstract Controller.
 
 More Information: - [Rails Edge Architecture](http://yehudakatz.com/2009/06/11/rails-edge-architecture/)
 

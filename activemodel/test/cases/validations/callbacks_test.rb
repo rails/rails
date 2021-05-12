@@ -185,4 +185,24 @@ class CallbacksWithMethodNamesShouldBeCalled < ActiveModel::TestCase
     assert_equal ["before_validation_marker"], d.history
     assert_equal false, output
   end
+
+  def test_before_validation_does_not_mutate_the_if_options_array
+    opts = []
+
+    Class.new(Dog) do
+      before_validation(if: opts, on: :create) { }
+    end
+
+    assert_empty opts
+  end
+
+  def test_after_validation_does_not_mutate_the_if_options_array
+    opts = []
+
+    Class.new(Dog) do
+      after_validation(if: opts, on: :create) { }
+    end
+
+    assert_empty opts
+  end
 end

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "action_dispatch/http/request"
-require "active_support/core_ext/uri"
 require "active_support/core_ext/array/extract_options"
 require "rack/utils"
 require "action_controller/metal/exceptions"
@@ -164,7 +163,7 @@ module ActionDispatch
       #     "http://#{request.host_with_port}/#{path}"
       #   }
       #
-      # Note that the +do end+ syntax for the redirect block wouldn't work, as Ruby would pass
+      # Note that the <tt>do end</tt> syntax for the redirect block wouldn't work, as Ruby would pass
       # the block to +get+ instead of +redirect+. Use <tt>{ ... }</tt> instead.
       #
       # The options version of redirect allows you to supply only the parts of the URL which need

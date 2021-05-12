@@ -118,6 +118,16 @@ module ActiveRecord
     end
   end
 
+  # Raised when Active Record finds multiple records but only expected one.
+  class SoleRecordExceeded < ActiveRecordError
+    attr_reader :record
+
+    def initialize(record = nil)
+      @record = record
+      super "Wanted only one #{record&.name || "record"}"
+    end
+  end
+
   # Superclass for all database execution errors.
   #
   # Wraps the underlying database error as +cause+.
@@ -361,6 +371,11 @@ module ActiveRecord
   # * https://www.postgresql.org/docs/current/static/transaction-iso.html
   # * https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html#error_er_lock_deadlock
   class TransactionRollbackError < StatementInvalid
+  end
+
+  # AsynchronousQueryInsideTransactionError will be raised when attempting
+  # to perform an asynchronous query from inside a transaction
+  class AsynchronousQueryInsideTransactionError < ActiveRecordError
   end
 
   # SerializationFailure will be raised when a transaction is rolled

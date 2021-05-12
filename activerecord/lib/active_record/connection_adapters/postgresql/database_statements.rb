@@ -35,9 +35,7 @@ module ActiveRecord
         # Note: the PG::Result object is manually memory managed; if you don't
         # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
         def execute(sql, name = nil)
-          if preventing_writes? && write_query?(sql)
-            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
-          end
+          check_if_write_query(sql)
 
           materialize_transactions
           mark_transaction_written_if_write(sql)
@@ -49,8 +47,8 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false)
-          execute_and_clear(sql, name, binds, prepare: prepare) do |result|
+        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
+          execute_and_clear(sql, name, binds, prepare: prepare, async: async) do |result|
             types = {}
             fields = result.fields
             fields.each_with_index do |fname, i|

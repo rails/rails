@@ -69,32 +69,28 @@ class RangeTest < ActiveSupport::TestCase
     assert_not((1..5).include?(3...3))
   end
 
-  if RUBY_VERSION >= "2.6"
-    def test_include_with_endless_range
-      assert(eval("1..").include?(2))
-    end
-
-    def test_should_include_range_with_endless_range
-      assert(eval("1..").include?(2..4))
-    end
-
-    def test_should_not_include_range_with_endless_range
-      assert_not(eval("1..").include?(0..4))
-    end
+  def test_include_with_endless_range
+    assert((1..).include?(2))
   end
 
-  if RUBY_VERSION >= "2.7"
-    def test_include_with_beginless_range
-      assert(eval("..2").include?(1))
-    end
+  def test_should_include_range_with_endless_range
+    assert((1..).include?(2..4))
+  end
 
-    def test_should_include_range_with_beginless_range
-      assert(eval("..2").include?(-1..1))
-    end
+  def test_should_not_include_range_with_endless_range
+    assert_not((1..).include?(0..4))
+  end
 
-    def test_should_not_include_range_with_beginless_range
-      assert_not(eval("..2").include?(-1..3))
-    end
+  def test_include_with_beginless_range
+    assert((..2).include?(1))
+  end
+
+  def test_should_include_range_with_beginless_range
+    assert((..2).include?(-1..1))
+  end
+
+  def test_should_not_include_range_with_beginless_range
+    assert_not((..2).include?(-1..3))
   end
 
   def test_should_compare_identical_inclusive
@@ -118,24 +114,20 @@ class RangeTest < ActiveSupport::TestCase
     assert_not((1..5) === (3...3))
   end
 
-  if RUBY_VERSION >= "2.6"
-    def test_should_compare_range_with_endless_range
-      assert(eval("1..") === (2..4))
-    end
-
-    def test_should_not_compare_range_with_endless_range
-      assert_not(eval("1..") === (0..4))
-    end
+  def test_should_compare_range_with_endless_range
+    assert((1..) === (2..4))
   end
 
-  if RUBY_VERSION >= "2.7"
-    def test_should_compare_range_with_beginless_range
-      assert(eval("..2") === (-1..1))
-    end
+  def test_should_not_compare_range_with_endless_range
+    assert_not((1..) === (0..4))
+  end
 
-    def test_should_not_compare_range_with_beginless_range
-      assert_not(eval("..2") === (-1..3))
-    end
+  def test_should_compare_range_with_beginless_range
+    assert((..2) === (-1..1))
+  end
+
+  def test_should_not_compare_range_with_beginless_range
+    assert_not((..2) === (-1..3))
   end
 
   def test_exclusive_end_should_not_include_identical_with_inclusive_end
@@ -157,39 +149,6 @@ class RangeTest < ActiveSupport::TestCase
   def test_cover_is_not_override
     range = (1..3)
     assert range.method(:include?) != range.method(:cover?)
-  end
-
-  def test_should_cover_other_with_exclusive_end
-    assert((1..10).cover?(1...11))
-  end
-
-  def test_cover_returns_false_for_backwards
-    assert_not((1..10).cover?(5..3))
-  end
-
-  # Match quirky plain-Ruby behavior
-  def test_cover_returns_false_for_empty_exclusive_end
-    assert_not((1..5).cover?(3...3))
-  end
-
-  if RUBY_VERSION >= "2.6"
-    def test_should_cover_range_with_endless_range
-      assert(eval("1..").cover?(2..4))
-    end
-
-    def test_should_not_cover_range_with_endless_range
-      assert_not(eval("1..").cover?(0..4))
-    end
-  end
-
-  if RUBY_VERSION >= "2.7"
-    def test_should_cover_range_with_beginless_range
-      assert(eval("..2").cover?(-1..1))
-    end
-
-    def test_should_not_cover_range_with_beginless_range
-      assert_not(eval("..2").cover?(-1..3))
-    end
   end
 
   def test_overlaps_on_time
@@ -232,13 +191,7 @@ class RangeTest < ActiveSupport::TestCase
 
   def test_case_equals_on_time_with_zone
     twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
-    if RUBY_VERSION >= "2.6" # https://bugs.ruby-lang.org/issues/14575
-      assert ((twz - 1.hour)..twz) === twz
-    else
-      assert_deprecated do
-        assert ((twz - 1.hour)..twz) === twz
-      end
-    end
+    assert ((twz - 1.hour)..twz) === twz
   end
 
   def test_date_time_with_each

@@ -6,11 +6,11 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        attribute_method_suffix "?"
+        attribute_method_suffix "?", parameters: false
       end
 
       def query_attribute(attr_name)
-        value = self[attr_name]
+        value = self.public_send(attr_name)
 
         case value
         when true        then true

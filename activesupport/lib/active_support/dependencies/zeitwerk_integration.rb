@@ -2,6 +2,7 @@
 
 require "set"
 require "active_support/core_ext/string/inflections"
+require "zeitwerk"
 
 module ActiveSupport
   module Dependencies

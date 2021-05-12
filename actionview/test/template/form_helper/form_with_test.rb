@@ -2120,7 +2120,7 @@ class FormWithActsLikeFormForTest < FormWithTest
         end
       RUBY_EVAL
     end
-    ruby2_keywords(:fields) if respond_to?(:ruby2_keywords, true)
+    ruby2_keywords(:fields)
   end
 
   def test_form_with_with_labelled_builder

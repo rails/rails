@@ -241,7 +241,7 @@ The latest version of Active Model can be installed with RubyGems:
 
 Source code can be downloaded as part of the Rails project on GitHub
 
-* https://github.com/rails/rails/tree/master/activemodel
+* https://github.com/rails/rails/tree/main/activemodel
 
 
 == License

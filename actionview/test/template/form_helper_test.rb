@@ -2386,6 +2386,66 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
+  def test_button_with_get_formmethod_attribute
+    form_for(@post, as: :another_post) do |f|
+      concat f.button "GET", formmethod: :get
+    end
+
+    expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
+      "<button type='submit' formmethod='get' name='button'>GET</button>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_button_with_post_formmethod_attribute
+    form_for(@post, as: :another_post) do |f|
+      concat f.button "POST", formmethod: :post
+    end
+
+    expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
+      "<button type='submit' formmethod='post' name='button'>POST</button>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_button_with_other_formmethod_attribute
+    form_for(@post, as: :another_post) do |f|
+      concat f.button "Delete", formmethod: :delete
+    end
+
+    expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
+      "<button type='submit' formmethod='post' name='_method' value='delete'>Delete</button>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_button_with_other_formmethod_attribute_and_name
+    form_for(@post, as: :another_post) do |f|
+      concat f.button "Delete", formmethod: :delete, name: "existing"
+    end
+
+    expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
+      "<button type='submit' formmethod='delete' name='existing'>Delete</button>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_button_with_other_formmethod_attribute_and_value
+    form_for(@post, as: :another_post) do |f|
+      concat f.button "Delete", formmethod: :delete, value: "existing"
+    end
+
+    expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
+      "<button type='submit' formmethod='delete' name='button' value='existing'>Delete</button>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_nested_fields_for
     @comment.body = "Hello World"
     form_for(@post) do |f|

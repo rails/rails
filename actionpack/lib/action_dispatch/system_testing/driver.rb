@@ -24,7 +24,7 @@ module ActionDispatch
 
       private
         def registerable?
-          [:selenium, :poltergeist, :webkit].include?(@name)
+          [:selenium, :poltergeist, :webkit, :rack_test].include?(@name)
         end
 
         def register
@@ -35,6 +35,7 @@ module ActionDispatch
             when :selenium then register_selenium(app)
             when :poltergeist then register_poltergeist(app)
             when :webkit then register_webkit(app)
+            when :rack_test then register_rack_test(app)
             end
           end
         end
@@ -57,6 +58,10 @@ module ActionDispatch
           Capybara::Webkit::Driver.new(app, Capybara::Webkit::Configuration.to_hash.merge(@options)).tap do |driver|
             driver.resize_window_to(driver.current_window_handle, *@screen_size)
           end
+        end
+
+        def register_rack_test(app)
+          Capybara::RackTest::Driver.new(app, { respect_data_method: true }.merge(@options))
         end
 
         def setup

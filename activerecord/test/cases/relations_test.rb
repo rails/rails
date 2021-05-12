@@ -1278,6 +1278,34 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal post, comment.post
   end
 
+  def test_new_with_array
+    green_birds = Bird.where(color: "green").new([{ name: "parrot" }, { name: "canary" }])
+    assert_equal ["parrot", "canary"], green_birds.map(&:name)
+    assert_equal ["green", "green"], green_birds.map(&:color)
+    green_birds.each { |bird| assert_not_predicate bird, :persisted? }
+  end
+
+  def test_build_with_array
+    green_birds = Bird.where(color: "green").build([{ name: "parrot" }, { name: "canary" }])
+    assert_equal ["parrot", "canary"], green_birds.map(&:name)
+    assert_equal ["green", "green"], green_birds.map(&:color)
+    green_birds.each { |bird| assert_not_predicate bird, :persisted? }
+  end
+
+  def test_create_with_array
+    green_birds = Bird.where(color: "green").create([{ name: "parrot" }, { name: "canary" }])
+    assert_equal ["parrot", "canary"], green_birds.map(&:name)
+    assert_equal ["green", "green"], green_birds.map(&:color)
+    green_birds.each { |bird| assert_predicate bird, :persisted? }
+  end
+
+  def test_create_bang_with_array
+    green_birds = Bird.where(color: "green").create!([{ name: "parrot" }, { name: "canary" }])
+    assert_equal ["parrot", "canary"], green_birds.map(&:name)
+    assert_equal ["green", "green"], green_birds.map(&:color)
+    green_birds.each { |bird| assert_predicate bird, :persisted? }
+  end
+
   def test_first_or_create
     parrot = Bird.where(color: "green").first_or_create(name: "parrot")
     assert_kind_of Bird, parrot
@@ -1775,7 +1803,7 @@ class RelationTest < ActiveRecord::TestCase
     sql_log = capture_sql do
       message = <<~MSG.squish
         `.reorder(nil)` with `.first` / `.first!` no longer
-        takes non-deterministic result in Rails 6.2.
+        takes non-deterministic result in Rails 7.0.
         To continue taking non-deterministic result, use `.take` / `.take!` instead.
       MSG
       assert_deprecated(message) do
@@ -2216,7 +2244,7 @@ class RelationTest < ActiveRecord::TestCase
     mary = authors(:mary)
 
     authors = Author.where(name: ["David", "Mary"].to_set)
-    assert_equal [david, mary], authors
+    assert_equal [david, mary], authors.order(:id)
   end
 
   test "#where with empty set" do

@@ -9,18 +9,35 @@ module ActiveSupport
   # This lets Rails applications have a single secure secret, but avoid reusing that
   # key in multiple incompatible contexts.
   class KeyGenerator
+    class << self
+      def hash_digest_class=(klass)
+        if klass.kind_of?(Class) && klass < OpenSSL::Digest
+          @hash_digest_class = klass
+        else
+          raise ArgumentError, "#{klass} is expected to be an OpenSSL::Digest subclass"
+        end
+      end
+
+      def hash_digest_class
+        @hash_digest_class ||= OpenSSL::Digest::SHA1
+      end
+    end
+
     def initialize(secret, options = {})
       @secret = secret
       # The default iterations are higher than required for our key derivation uses
       # on the off chance someone uses this for password storage
       @iterations = options[:iterations] || 2**16
+      # Also allow configuration here so people can use this to build a rotation
+      # scheme when switching the digest class.
+      @hash_digest_class = options[:hash_digest_class] || self.class.hash_digest_class
     end
 
     # Returns a derived key suitable for use.  The default key_size is chosen
     # to be compatible with the default settings of ActiveSupport::MessageVerifier.
     # i.e. OpenSSL::Digest::SHA1#block_length
     def generate_key(salt, key_size = 64)
-      OpenSSL::PKCS5.pbkdf2_hmac_sha1(@secret, salt, @iterations, key_size)
+      OpenSSL::PKCS5.pbkdf2_hmac(@secret, salt, @iterations, key_size, @hash_digest_class.new)
     end
   end
 

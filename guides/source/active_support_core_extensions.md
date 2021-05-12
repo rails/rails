@@ -21,7 +21,7 @@ How to Load Core Extensions
 
 ### Stand-Alone Active Support
 
-In order to have a near-zero default footprint, Active Support does not load anything by default. It is broken in small pieces so that you can load just what you need, and also has some convenience entry points to load related extensions in one shot, even everything.
+In order to have the smallest default footprint possible, Active Support loads the minimum dependencies by default. It is broken in small pieces so that only the desired extensions can be loaded. It also has some convenience entry points to load related extensions in one shot, even everything.
 
 Thus, after a simple require like:
 
@@ -29,34 +29,38 @@ Thus, after a simple require like:
 require "active_support"
 ```
 
-objects do not even respond to [`blank?`][Object#blank?]. Let's see how to load its definition.
+only the extensions required by the Active Support framework are loaded.
 
 #### Cherry-picking a Definition
 
-The most lightweight way to get `blank?` is to cherry-pick the file that defines it.
+This example shows how to load [`Hash#with_indifferent_access`][Hash#with_indifferent_access].  This extension enables the conversion of a `Hash` into an [`ActiveSupport::HashWithIndifferentAccess`][ActiveSupport::HashWithIndifferentAccess] which permits access to the keys as either strings or symbols.
 
-For every single method defined as a core extension this guide has a note that says where such a method is defined. In the case of `blank?` the note reads:
+```ruby
+{a: 1}.with_indifferent_access["a"] # => 1
+```
 
-NOTE: Defined in `active_support/core_ext/object/blank.rb`.
+For every single method defined as a core extension this guide has a note that says where such a method is defined. In the case of `with_indifferent_access` the note reads:
+
+NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
 
 That means that you can require it like this:
 
 ```ruby
 require "active_support"
-require "active_support/core_ext/object/blank"
+require "active_support/core_ext/hash/indifferent_access"
 ```
 
 Active Support has been carefully revised so that cherry-picking a file loads only strictly needed dependencies, if any.
 
 #### Loading Grouped Core Extensions
 
-The next level is to simply load all extensions to `Object`. As a rule of thumb, extensions to `SomeClass` are available in one shot by loading `active_support/core_ext/some_class`.
+The next level is to simply load all extensions to `Hash`. As a rule of thumb, extensions to `SomeClass` are available in one shot by loading `active_support/core_ext/some_class`.
 
-Thus, to load all extensions to `Object` (including `blank?`):
+Thus, to load all extensions to `Hash` (including `with_indifferent_access`):
 
 ```ruby
 require "active_support"
-require "active_support/core_ext/object"
+require "active_support/core_ext/hash"
 ```
 
 #### Loading All Core Extensions
@@ -117,7 +121,7 @@ The method [`present?`][Object#present?] is equivalent to `!blank?`. This exampl
 ```ruby
 def set_conditional_cache_control!
   return if self["Cache-Control"].present?
-  ...
+  # ...
 end
 ```
 
@@ -446,7 +450,7 @@ NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
 
 ### JSON support
 
-Active Support provides a better implementation of `to_json` than the `json` gem ordinarily provides for Ruby objects. This is because some classes, like `Hash`, `OrderedHash` and `Process::Status` need special handling in order to provide a proper JSON representation.
+Active Support provides a better implementation of `to_json` than the `json` gem ordinarily provides for Ruby objects. This is because some classes, like `Hash` and `Process::Status` need special handling in order to provide a proper JSON representation.
 
 NOTE: Defined in `active_support/core_ext/object/json.rb`.
 
@@ -599,22 +603,11 @@ NOTE: Defined in `active_support/core_ext/module/attr_internal.rb`.
 
 The macros [`mattr_reader`][Module#mattr_reader], [`mattr_writer`][Module#mattr_writer], and [`mattr_accessor`][Module#mattr_accessor] are the same as the `cattr_*` macros defined for class. In fact, the `cattr_*` macros are just aliases for the `mattr_*` macros. Check [Class Attributes](#class-attributes).
 
-For example, the dependencies mechanism uses them:
+For example, the API for the logger of Active Storage is generated with `mattr_accessor`:
 
 ```ruby
-module ActiveSupport
-  module Dependencies
-    mattr_accessor :warnings_on_first_load
-    mattr_accessor :history
-    mattr_accessor :loaded
-    mattr_accessor :mechanism
-    mattr_accessor :load_paths
-    mattr_accessor :load_once_paths
-    mattr_accessor :autoloaded_constants
-    mattr_accessor :explicitly_unloadable_constants
-    mattr_accessor :constant_watch_stack
-    mattr_accessor :constant_watch_stack_mutex
-  end
+module ActiveStorage
+  mattr_accessor :logger
 end
 ```
 
@@ -1015,7 +1008,7 @@ NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 [Module#cattr_reader]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_reader
 [Module#cattr_writer]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_writer
 
-### Subclasses & Descendants
+### Subclasses and Descendants
 
 #### `subclasses`
 
@@ -1582,10 +1575,10 @@ Rails class and module autoloading uses `underscore` to infer the relative path 
 ```ruby
 # active_support/dependencies.rb
 def load_missing_constant(from_mod, const_name)
-  ...
+  # ...
   qualified_name = qualified_name_for from_mod, const_name
   path_suffix = qualified_name.underscore
-  ...
+  # ...
 end
 ```
 
@@ -1644,7 +1637,6 @@ Given a string with a qualified constant name, [`demodulize`][String#demodulize]
 "Admin::Hotel::ReservationUtils".demodulize # => "ReservationUtils"
 "::Inflections".demodulize                  # => "Inflections"
 "".demodulize                               # => ""
-
 ```
 
 Active Record for example uses this method to compute the name of a counter cache column:
@@ -1827,10 +1819,10 @@ def full_messages
 end
 
 def full_message
-  ...
+  # ...
   attr_name = attribute.to_s.tr('.', '_').humanize
   attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
-  ...
+  # ...
 end
 ```
 
@@ -2159,9 +2151,10 @@ NOTE: Defined in `active_support/core_ext/integer/time.rb`.
 
 Extensions to `BigDecimal`
 --------------------------
+
 ### `to_s`
 
-The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating point representation instead of engineering notation:
+The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating-point representation instead of engineering notation:
 
 ```ruby
 BigDecimal(5.00, 6).to_s       # => "5.0"
@@ -2438,7 +2431,7 @@ Let's see for example the definition of the `caches_action` controller macro:
 def caches_action(*actions)
   return unless cache_configured?
   options = actions.extract_options!
-  ...
+  # ...
 end
 ```
 
@@ -2947,7 +2940,7 @@ This method may be useful for example to easily accept both symbols and strings 
 def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")
   options = options.stringify_keys
   options["type"] = "checkbox"
-  ...
+  # ...
 end
 ```
 
@@ -2984,7 +2977,6 @@ In case of key collision, the value will be the one most recently inserted into 
 
 ```ruby
 {"a" => 1, a: 2}.symbolize_keys
-# The result will be
 # => {:a=>2}
 ```
 
@@ -2994,8 +2986,8 @@ This method may be useful for example to easily accept both symbols and strings 
 def rich_text_area_tag(name, value = nil, options = {})
   options = options.symbolize_keys
 
-  options[:input] ||= "trix_input_#{ActionText::TagHelper.id += 1}
-  ...
+  options[:input] ||= "trix_input_#{ActionText::TagHelper.id += 1}"
+  # ...
 end
 ```
 
@@ -3019,7 +3011,7 @@ NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
 #### `to_options` and `to_options!`
 
-The methods [`to_options`][Hash#to_options] and [`to_options!`][Hash#to_options!] are respectively aliases of `symbolize_keys` and `symbolize_keys!`.
+The methods [`to_options`][Hash#to_options] and [`to_options!`][Hash#to_options!] are aliases of `symbolize_keys` and `symbolize_keys!`, respectively.
 
 NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
@@ -3129,11 +3121,11 @@ Rails uses this method in a single place, also in the routing code. Multiline re
 
 ```ruby
 def verify_regexp_requirements(requirements)
-  ...
+  # ...
   if requirement.multiline?
     raise ArgumentError, "Regexp multiline option is not allowed in routing requirements: #{requirement.inspect}"
   end
-  ...
+  # ...
 end
 ```
 
@@ -3160,9 +3152,9 @@ As the example depicts, the `:db` format generates a `BETWEEN` SQL clause. That 
 
 NOTE: Defined in `active_support/core_ext/range/conversions.rb`.
 
-### `===`, `include?`, and `cover?`
+### `===` and `include?`
 
-The methods `Range#===`, `Range#include?`, and `Range#cover?` say whether some value falls between the ends of a given instance:
+The methods `Range#===` and `Range#include?` say whether some value falls between the ends of a given instance:
 
 ```ruby
 (2..3).include?(Math::E) # => true
@@ -3180,11 +3172,6 @@ Active Support extends these methods so that the argument may be another range i
 (1..10).include?(0..7)  # => false
 (1..10).include?(3..11) # => false
 (1...9).include?(3..9)  # => false
-
-(1..10).cover?(3..7)  # => true
-(1..10).cover?(0..7)  # => false
-(1..10).cover?(3..11) # => false
-(1...9).cover?(3..9)  # => false
 ```
 
 NOTE: Defined in `active_support/core_ext/range/compare_range.rb`.
@@ -4016,25 +4003,6 @@ The auxiliary file is written in a standard directory for temporary files, but y
 NOTE: Defined in `active_support/core_ext/file/atomic.rb`.
 
 [File.atomic_write]: https://api.rubyonrails.org/classes/File.html#method-c-atomic_write
-
-Extensions to `Marshal`
------------------------
-
-### `load`
-
-Active Support adds constant autoloading support to `load`.
-
-For example, the file cache store deserializes this way:
-
-```ruby
-File.open(file_name) { |f| Marshal.load(f) }
-```
-
-If the cached data refers to a constant that is unknown at that point, the autoloading mechanism is triggered and if it succeeds the deserialization is retried transparently.
-
-WARNING. If the argument is an `IO` it needs to respond to `rewind` to be able to retry. Regular files respond to `rewind`.
-
-NOTE: Defined in `active_support/core_ext/marshal.rb`.
 
 Extensions to `NameError`
 -------------------------

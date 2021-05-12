@@ -68,6 +68,15 @@ class RedirectSSLTest < SSLTest
     assert_redirected redirect: { status: 308 }
   end
 
+  test "redirect with unknown request method" do
+    self.app = build_app
+
+    process :not_an_http_method, "http://a/b?c=d"
+
+    assert_response 307
+    assert_redirected_to "https://a/b?c=d"
+  end
+
   test "redirect with ssl_default_redirect_status" do
     self.app = build_app(ssl_options: { ssl_default_redirect_status: 308 })
 

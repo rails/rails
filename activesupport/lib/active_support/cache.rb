@@ -22,13 +22,24 @@ module ActiveSupport
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
-    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl, :coder, :skip_nil]
+    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :expire_in, :expired_in, :race_condition_ttl, :coder, :skip_nil]
+
+    DEFAULT_COMPRESS_LIMIT = 1.kilobyte
+
+    # Mapping of canonical option names to aliases that a store will recognize.
+    OPTION_ALIASES = {
+      expires_in: [:expire_in, :expired_in]
+    }.freeze
 
     module Strategy
       autoload :LocalCache, "active_support/cache/strategy/local_cache"
     end
 
+    @format_version = 6.1
+
     class << self
+      attr_accessor :format_version
+
       # Creates a new Store object according to the given options.
       #
       # If no arguments are passed to this method, then a new
@@ -58,7 +69,13 @@ module ActiveSupport
         case store
         when Symbol
           options = parameters.extract_options!
-          retrieve_store_class(store).new(*parameters, **options)
+          # clean this up once Ruby 2.7 support is dropped
+          # see https://github.com/rails/rails/pull/41522#discussion_r581186602
+          if options.empty?
+            retrieve_store_class(store).new(*parameters)
+          else
+            retrieve_store_class(store).new(*parameters, **options)
+          end
         when Array
           lookup_store(*store)
         when nil
@@ -158,8 +175,6 @@ module ActiveSupport
     # threshold is configurable with the <tt>:compress_threshold</tt> option,
     # specified in bytes.
     class Store
-      DEFAULT_CODER = Marshal
-
       cattr_accessor :logger, instance_writer: true
 
       attr_reader :silence, :options
@@ -186,8 +201,12 @@ module ActiveSupport
       # except for <tt>:namespace</tt> which can be used to set the global
       # namespace for the cache.
       def initialize(options = nil)
-        @options = options ? options.dup : {}
-        @coder = @options.delete(:coder) { self.class::DEFAULT_CODER } || NullCoder
+        @options = options ? normalize_options(options) : {}
+        @options[:compress] = true unless @options.key?(:compress)
+        @options[:compress_threshold] = DEFAULT_COMPRESS_LIMIT unless @options.key?(:compress_threshold)
+
+        @coder = @options.delete(:coder) { default_coder } || NullCoder
+        @coder_supports_compression = @coder.respond_to?(:dump_compressed)
       end
 
       # Silences the logger.
@@ -249,10 +268,20 @@ module ActiveSupport
       # All caches support auto-expiring content after a specified number of
       # seconds. This value can be specified as an option to the constructor
       # (in which case all entries will be affected), or it can be supplied to
-      # the +fetch+ or +write+ method to effect just one entry.
+      # the +fetch+ or +write+ method to affect just one entry.
+      # <tt>:expire_in</tt> and <tt>:expired_in</tt> are aliases for
+      # <tt>:expires_in</tt>.
       #
       #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 5.minutes)
       #   cache.write(key, value, expires_in: 1.minute) # Set a lower value for one entry
+      #
+      # Setting <tt>:expires_at</tt> will set an absolute expiration time on the cache.
+      # All caches support auto-expiring content after a specified number of
+      # seconds. This value can only be supplied to the +fetch+ or +write+ method to
+      # affect just one entry.
+      #
+      #   cache = ActiveSupport::Cache::MemoryStore.new
+      #   cache.write(key, value, expires_at: Time.now.at_end_of_hour)
       #
       # Setting <tt>:version</tt> verifies the cache stored under <tt>name</tt>
       # is of the same version. nil is returned on mismatches despite contents.
@@ -506,6 +535,10 @@ module ActiveSupport
         end
       end
 
+      def new_entry(value, options = nil) # :nodoc:
+        Entry.new(value, **merged_options(options))
+      end
+
       # Deletes all entries with keys matching the pattern.
       #
       # Options are passed to the underlying cache implementation.
@@ -553,6 +586,10 @@ module ActiveSupport
       end
 
       private
+        def default_coder
+          Coders[Cache.format_version]
+        end
+
         # Adds the namespace defined in the options to a pattern designed to
         # match keys. Implementations that support delete_matched should call
         # this method to translate a pattern that matches names into one that
@@ -584,8 +621,13 @@ module ActiveSupport
           raise NotImplementedError.new
         end
 
-        def serialize_entry(entry)
-          @coder.dump(entry)
+        def serialize_entry(entry, **options)
+          options = merged_options(options)
+          if @coder_supports_compression && options[:compress]
+            @coder.dump_compressed(entry, options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT)
+          else
+            @coder.dump(entry)
+          end
         end
 
         def deserialize_entry(payload)
@@ -634,6 +676,7 @@ module ActiveSupport
         # Merges the default options with ones specific to a method call.
         def merged_options(call_options)
           if call_options
+            call_options = normalize_options(call_options)
             if options.empty?
               call_options
             else
@@ -642,6 +685,18 @@ module ActiveSupport
           else
             options
           end
+        end
+
+        # Normalize aliased options to their canonical form
+        def normalize_options(options)
+          options = options.dup
+          OPTION_ALIASES.each do |canonical_name, aliases|
+            alias_key = aliases.detect { |key| options.key?(key) }
+            options[canonical_name] ||= options[alias_key] if alias_key
+            options.except!(*aliases)
+          end
+
+          options
         end
 
         # Expands and namespaces the cache key. May be overridden by
@@ -726,7 +781,7 @@ module ActiveSupport
             if (race_ttl > 0) && (Time.now.to_f - entry.expires_at <= race_ttl)
               # When an entry has a positive :race_condition_ttl defined, put the stale entry back into the cache
               # for a brief period while the entry is being recalculated.
-              entry.expires_at = Time.now + race_ttl
+              entry.expires_at = Time.now.to_f + race_ttl
               write_entry(key, entry, expires_in: race_ttl * 2)
             else
               delete_entry(key, **options)
@@ -752,13 +807,87 @@ module ActiveSupport
     end
 
     module NullCoder # :nodoc:
+      extend self
+
+      def dump(entry)
+        entry
+      end
+
+      def dump_compressed(entry, threshold)
+        entry.compressed(threshold)
+      end
+
+      def load(payload)
+        payload
+      end
+    end
+
+    module Coders # :nodoc:
+      MARK_61              = "\x04\b".b.freeze # The one set by Marshal.
+      MARK_70_UNCOMPRESSED = "\x00".b.freeze
+      MARK_70_COMPRESSED   = "\x01".b.freeze
+
       class << self
-        def load(payload)
-          payload
+        def [](version)
+          case version
+          when 6.1
+            Rails61Coder
+          when 7.0
+            Rails70Coder
+          else
+            raise ArgumentError, "Unknown ActiveSupport::Cache.format_version #{Cache.format_version.inspect}"
+          end
         end
+      end
+
+      module Loader
+        extend self
+
+        def load(payload)
+          if payload.start_with?(MARK_70_UNCOMPRESSED)
+            members = Marshal.load(payload.byteslice(1..-1))
+          elsif payload.start_with?(MARK_70_COMPRESSED)
+            members = Marshal.load(Zlib::Inflate.inflate(payload.byteslice(1..-1)))
+          elsif payload.start_with?(MARK_61)
+            return Marshal.load(payload)
+          else
+            raise ArgumentError, %{Invalid cache prefix: #{payload.byteslice(0).inspect}, expected "\\x00" or "\\x01"}
+          end
+          Entry.unpack(members)
+        end
+      end
+
+      module Rails61Coder
+        include Loader
+        extend self
 
         def dump(entry)
-          entry
+          Marshal.dump(entry)
+        end
+
+        def dump_compressed(entry, threshold)
+          Marshal.dump(entry.compressed(threshold))
+        end
+      end
+
+      module Rails70Coder
+        include Loader
+        extend self
+
+        def dump(entry)
+          MARK_70_UNCOMPRESSED + Marshal.dump(entry.pack)
+        end
+
+        def dump_compressed(entry, threshold)
+          payload = Marshal.dump(entry.pack)
+          if payload.bytesize >= threshold
+            compressed_payload = Zlib::Deflate.deflate(payload)
+            if compressed_payload.bytesize < payload.bytesize
+              return MARK_70_COMPRESSED + compressed_payload
+            end
+          end
+
+          MARK_70_UNCOMPRESSED + payload
         end
       end
     end
@@ -771,19 +900,22 @@ module ActiveSupport
     # Since cache entries in most instances will be serialized, the internals of this class are highly optimized
     # using short instance variable names that are lazily defined.
     class Entry # :nodoc:
+      class << self
+        def unpack(members)
+          new(members[0], expires_at: members[1], version: members[2])
+        end
+      end
+
       attr_reader :version
 
-      DEFAULT_COMPRESS_LIMIT = 1.kilobyte
-
       # Creates a new cache entry for the specified value. Options supported are
-      # +:compress+, +:compress_threshold+, +:version+ and +:expires_in+.
-      def initialize(value, compress: true, compress_threshold: DEFAULT_COMPRESS_LIMIT, version: nil, expires_in: nil, **)
+      # +:compressed+, +:version+, +:expires_at+ and +:expires_in+.
+      def initialize(value, compressed: false, version: nil, expires_in: nil, expires_at: nil, **)
         @value      = value
         @version    = version
-        @created_at = Time.now.to_f
-        @expires_in = expires_in && expires_in.to_f
-
-        compress!(compress_threshold) if compress
+        @created_at = 0.0
+        @expires_in = expires_at&.to_f || expires_in && (expires_in.to_f + Time.now.to_f)
+        @compressed = true if compressed
       end
 
       def value
@@ -825,6 +957,38 @@ module ActiveSupport
         end
       end
 
+      def compressed? # :nodoc:
+        defined?(@compressed)
+      end
+
+      def compressed(compress_threshold)
+        return self if compressed?
+
+        case @value
+        when nil, true, false, Numeric
+          uncompressed_size = 0
+        when String
+          uncompressed_size = @value.bytesize
+        else
+          serialized = Marshal.dump(@value)
+          uncompressed_size = serialized.bytesize
+        end
+
+        if uncompressed_size >= compress_threshold
+          serialized ||= Marshal.dump(@value)
+          compressed = Zlib::Deflate.deflate(serialized)
+
+          if compressed.bytesize < uncompressed_size
+            return Entry.new(compressed, compressed: true, expires_at: expires_at, version: version)
+          end
+        end
+        self
+      end
+
+      def local?
+        false
+      end
+
       # Duplicates the value in a class. This is used by cache implementations that don't natively
       # serialize entries to protect against accidental cache modifications.
       def dup_value!
@@ -837,33 +1001,13 @@ module ActiveSupport
         end
       end
 
+      def pack
+        members = [value, expires_at, version]
+        members.pop while !members.empty? && members.last.nil?
+        members
+      end
+
       private
-        def compress!(compress_threshold)
-          case @value
-          when nil, true, false, Numeric
-            uncompressed_size = 0
-          when String
-            uncompressed_size = @value.bytesize
-          else
-            serialized = Marshal.dump(@value)
-            uncompressed_size = serialized.bytesize
-          end
-
-          if uncompressed_size >= compress_threshold
-            serialized ||= Marshal.dump(@value)
-            compressed = Zlib::Deflate.deflate(serialized)
-
-            if compressed.bytesize < uncompressed_size
-              @value = compressed
-              @compressed = true
-            end
-          end
-        end
-
-        def compressed?
-          defined?(@compressed)
-        end
-
         def uncompress(value)
           Marshal.load(Zlib::Inflate.inflate(value))
         end

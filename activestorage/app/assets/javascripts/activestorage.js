@@ -864,7 +864,7 @@
     if (!started) {
       started = true;
       document.addEventListener("click", didClick, true);
-      document.addEventListener("submit", didSubmitForm);
+      document.addEventListener("submit", didSubmitForm, true);
       document.addEventListener("ajax:before", didSubmitRemoteElement);
     }
   }

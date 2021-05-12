@@ -31,6 +31,15 @@ class ActiveStorage::Representations::RedirectControllerWithVariantsTest < Actio
 
     assert_response :not_found
   end
+
+  test "showing variant with invalid variation key" do
+    get rails_blob_representation_url(
+      filename: @blob.filename,
+      signed_blob_id: @blob.signed_id,
+      variation_key: "invalid")
+
+    assert_response :not_found
+  end
 end
 
 class ActiveStorage::Representations::RedirectControllerWithPreviewsTest < ActionDispatch::IntegrationTest
@@ -59,6 +68,15 @@ class ActiveStorage::Representations::RedirectControllerWithPreviewsTest < Actio
       filename: @blob.filename,
       signed_blob_id: "invalid",
       variation_key: ActiveStorage::Variation.encode(resize: "100x100"))
+
+    assert_response :not_found
+  end
+
+  test "showing preview with invalid variation key" do
+    get rails_blob_representation_url(
+      filename: @blob.filename,
+      signed_blob_id: @blob.signed_id,
+      variation_key: "invalid")
 
     assert_response :not_found
   end

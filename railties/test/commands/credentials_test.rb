@@ -124,12 +124,46 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
 
 
   test "diff enroll diffing" do
-    assert_match("successfully enrolled", run_diff_command(enroll: true))
+    assert_match(/\benrolled project/i, run_diff_command(enroll: true))
 
     assert_includes File.read(app_path(".gitattributes")), <<~EOM
       config/credentials/*.yml.enc diff=rails_credentials
       config/credentials.yml.enc diff=rails_credentials
     EOM
+  end
+
+  test "diff enroll diffing when already enrolled" do
+    run_diff_command(enroll: true)
+
+    assert_match(/already enrolled/i, run_diff_command(enroll: true))
+
+    assert_equal 1, File.read(app_path(".gitattributes")).scan("config/credentials.yml.enc").length
+  end
+
+  test "diff disenroll diffing" do
+    FileUtils.rm(app_path(".gitattributes"))
+    run_diff_command(enroll: true)
+
+    assert_match(/\bdisenrolled project/i, run_diff_command(disenroll: true))
+
+    assert_not File.exist?(app_path(".gitattributes"))
+  end
+
+  test "diff disenroll diffing with existing .gitattributes" do
+    File.write(app_path(".gitattributes"), "foo bar\n")
+    run_diff_command(enroll: true)
+
+    run_diff_command(disenroll: true)
+
+    assert_equal("foo bar\n", File.read(app_path(".gitattributes")))
+  end
+
+  test "diff disenroll diffing when not enrolled" do
+    FileUtils.rm(app_path(".gitattributes"))
+
+    assert_match(/not enrolled/i, run_diff_command(disenroll: true))
+
+    assert_not File.exist?(app_path(".gitattributes"))
   end
 
   test "running edit after enrolling in diffing sets diff driver" do
@@ -191,8 +225,8 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       rails "credentials:show", args, **options
     end
 
-    def run_diff_command(path = nil, enroll: nil, **options)
-      args = enroll ? ["--enroll"] : [path]
+    def run_diff_command(path = nil, enroll: nil, disenroll: nil, **options)
+      args = [path, ("--enroll" if enroll), ("--disenroll" if disenroll)].compact
       rails "credentials:diff", args, **options
     end
 end

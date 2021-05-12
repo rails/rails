@@ -32,6 +32,7 @@ class Developer < ActiveRecord::Base
 
   belongs_to :mentor
   belongs_to :strict_loading_mentor, strict_loading: true, foreign_key: :mentor_id, class_name: "Mentor"
+  belongs_to :strict_loading_off_mentor, strict_loading: false, foreign_key: :mentor_id, class_name: "Mentor"
 
   accepts_nested_attributes_for :projects
 
@@ -112,6 +113,11 @@ class Developer < ActiveRecord::Base
 end
 
 class SubDeveloper < Developer
+end
+
+class SpecialDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  has_many :special_contracts, foreign_key: "developer_id"
 end
 
 class SymbolIgnoredDeveloper < ActiveRecord::Base

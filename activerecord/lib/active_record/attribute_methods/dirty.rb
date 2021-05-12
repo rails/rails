@@ -17,13 +17,13 @@ module ActiveRecord
         class_attribute :partial_writes, instance_writer: false, default: true
 
         # Attribute methods for "changed in last call to save?"
-        attribute_method_affix(prefix: "saved_change_to_", suffix: "?")
-        attribute_method_prefix("saved_change_to_")
-        attribute_method_suffix("_before_last_save")
+        attribute_method_affix(prefix: "saved_change_to_", suffix: "?", parameters: "**options")
+        attribute_method_prefix("saved_change_to_", parameters: false)
+        attribute_method_suffix("_before_last_save", parameters: false)
 
         # Attribute methods for "will change if I call save?"
-        attribute_method_affix(prefix: "will_save_change_to_", suffix: "?")
-        attribute_method_suffix("_change_to_be_saved", "_in_database")
+        attribute_method_affix(prefix: "will_save_change_to_", suffix: "?", parameters: "**options")
+        attribute_method_suffix("_change_to_be_saved", "_in_database", parameters: false)
       end
 
       # <tt>reload</tt> the record and clears changed attributes.
@@ -156,12 +156,6 @@ module ActiveRecord
       end
 
       private
-        def write_attribute_without_type_cast(attr_name, value)
-          result = super
-          clear_attribute_change(attr_name)
-          result
-        end
-
         def _touch_row(attribute_names, time)
           @_touch_attr_names = Set.new(attribute_names)
 

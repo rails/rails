@@ -16,12 +16,12 @@ class Array
   #
   # ==== Options
   #
-  # * <tt>:words_connector</tt> - The sign or word used to join the elements
-  #   in arrays with two or more elements (default: ", ").
-  # * <tt>:two_words_connector</tt> - The sign or word used to join the elements
-  #   in arrays with two elements (default: " and ").
+  # * <tt>:words_connector</tt> - The sign or word used to join all but the last
+  #   element in arrays with three or more elements (default: ", ").
   # * <tt>:last_word_connector</tt> - The sign or word used to join the last element
   #   in arrays with three or more elements (default: ", and ").
+  # * <tt>:two_words_connector</tt> - The sign or word used to join the elements
+  #   in arrays with two elements (default: " and ").
   # * <tt>:locale</tt> - If +i18n+ is available, you can set a locale and use
   #   the connector options defined on the 'support.array' namespace in the
   #   corresponding dictionary file.
@@ -66,7 +66,7 @@ class Array
       two_words_connector: " and ",
       last_word_connector: ", and "
     }
-    if defined?(I18n)
+    if options[:locale] != false && defined?(I18n)
       i18n_connectors = I18n.translate(:'support.array', locale: options[:locale], default: {})
       default_connectors.merge!(i18n_connectors)
     end
@@ -187,7 +187,7 @@ class Array
     options[:indent]  ||= 2
     options[:builder] ||= Builder::XmlMarkup.new(indent: options[:indent])
     options[:root]    ||= \
-      if first.class != Hash && all? { |e| e.is_a?(first.class) }
+      if first.class != Hash && all?(first.class)
         underscored = ActiveSupport::Inflector.underscore(first.class.name)
         ActiveSupport::Inflector.pluralize(underscored).tr("/", "_")
       else

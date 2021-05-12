@@ -54,7 +54,11 @@ module ActionController
     #
     # Statements after +redirect_to+ in our controller get executed, so +redirect_to+ doesn't stop the execution of the function.
     # To terminate the execution of the function immediately after the +redirect_to+, use return.
+    #
     #   redirect_to post_url(@post) and return
+    #
+    # Passing user input directly into +redirect_to+ is considered dangerous (eg. `redirect_to(params[:location])`).
+    # Always use regular expressions or a permitted list when redirecting to a user specified location.
     def redirect_to(options = {}, response_options = {})
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
@@ -106,7 +110,7 @@ module ActionController
       # See https://tools.ietf.org/html/rfc3986#section-3.1
       # The protocol relative scheme starts with a double slash "//".
       when /\A([a-z][a-z\d\-+.]*:|\/\/).*/i
-        options
+        options.to_str
       when String
         request.protocol + request.host_with_port + options
       when Proc

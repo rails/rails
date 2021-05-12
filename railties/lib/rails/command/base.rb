@@ -32,7 +32,7 @@ module Rails
           if usage
             super
           else
-            @desc ||= ERB.new(File.read(usage_path)).result(binding) if usage_path
+            @desc ||= ERB.new(File.read(usage_path), trim_mode: "-").result(binding) if usage_path
           end
         end
 
@@ -86,10 +86,8 @@ module Rails
         #
         #   Rails::Command::TestCommand.base_name # => 'rails'
         def base_name
-          @base_name ||= begin
-            if base = name.to_s.split("::").first
-              base.underscore
-            end
+          @base_name ||= if base = name.to_s.split("::").first
+            base.underscore
           end
         end
 
@@ -97,11 +95,9 @@ module Rails
         #
         #   Rails::Command::TestCommand.command_name # => 'test'
         def command_name
-          @command_name ||= begin
-            if command = name.to_s.split("::").last
-              command.chomp!("Command")
-              command.underscore
-            end
+          @command_name ||= if command = name.to_s.split("::").last
+            command.chomp!("Command")
+            command.underscore
           end
         end
 

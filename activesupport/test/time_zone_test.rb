@@ -15,9 +15,25 @@ class TimeZoneTest < ActiveSupport::TestCase
       assert_equal Time.utc(1999, 12, 31, 19), zone.utc_to_local(Time.utc(2000, 1)) # standard offset -0500
       assert_equal Time.utc(2000, 6, 30, 20), zone.utc_to_local(Time.utc(2000, 7)) # dst offset -0400
     end
+
     with_utc_to_local_returns_utc_offset_times true do
       assert_equal Time.new(1999, 12, 31, 19, 0, 0, -18000), zone.utc_to_local(Time.utc(2000, 1)) # standard offset -0500
       assert_equal Time.new(2000, 6, 30, 20, 0, 0, -14400), zone.utc_to_local(Time.utc(2000, 7)) # dst offset -0400
+    end
+  end
+
+  def test_utc_to_local_with_fractional_seconds
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    usec = Rational(1, 1000000)
+
+    with_utc_to_local_returns_utc_offset_times false do
+      assert_equal Time.utc(1999, 12, 31, 19, 0, 0, 1), zone.utc_to_local(Time.utc(2000, 1, 1, 0, 0, 0, 1)) # standard offset -0500
+      assert_equal Time.utc(2000, 6, 30, 20, 0, 0, 1), zone.utc_to_local(Time.utc(2000, 7, 1, 0, 0, 0, 1)) # dst offset -0400
+    end
+
+    with_utc_to_local_returns_utc_offset_times true do
+      assert_equal Time.new(1999, 12, 31, 19, 0, usec, -18000), zone.utc_to_local(Time.utc(2000, 1, 1, 0, 0, 0, 1)) # standard offset -0500
+      assert_equal Time.new(2000, 6, 30, 20, 0, usec, -14400), zone.utc_to_local(Time.utc(2000, 7, 1, 0, 0, 0, 1)) # dst offset -0400
     end
   end
 
@@ -51,6 +67,12 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_from_duration_to_map
     assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone[-480.minutes] # PST
+  end
+
+  def test_from_tzinfo_to_map
+    tzinfo = TZInfo::Timezone.get("Europe/London")
+    assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone[tzinfo]
+    assert_same ActiveSupport::TimeZone[tzinfo], ActiveSupport::TimeZone[tzinfo]
   end
 
   ActiveSupport::TimeZone.all.each do |zone|
@@ -341,6 +363,16 @@ class TimeZoneTest < ActiveSupport::TestCase
   def test_iso8601_with_ambiguous_time
     zone = ActiveSupport::TimeZone["Moscow"]
     assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.parse("2014-10-26T01:00:00")
+  end
+
+  def test_iso8601_with_invalid_value_parseable_by_date__iso8601
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.iso8601("12936")
+    end
+
+    assert_equal "invalid date", exception.message
   end
 
   def test_parse

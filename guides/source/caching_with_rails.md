@@ -9,7 +9,7 @@ Caching means to store content generated during the request-response cycle and
 to reuse it when responding to similar requests.
 
 Caching is often the most effective way to boost an application's performance.
-Through caching, web sites running on a single server with a single database
+Through caching, websites running on a single server with a single database
 can sustain a load of thousands of concurrent users.
 
 Rails provides a set of caching features out of the box. This guide will teach
@@ -34,17 +34,12 @@ fragment caching. By default Rails provides fragment caching. In order to use
 page and action caching you will need to add `actionpack-page_caching` and
 `actionpack-action_caching` to your `Gemfile`.
 
-By default, caching is only enabled in your production environment. To play
-around with caching locally you'll want to enable caching in your local
-environment by setting `config.action_controller.perform_caching` to `true` in
-the relevant `config/environments/*.rb` file:
-
-```ruby
-config.action_controller.perform_caching = true
-```
+By default, caching is only enabled in your production environment. You can play
+around with caching locally by running `rails dev:cache`, or by setting
+`config.action_controller.perform_caching` to `true` in `config/environments/development.rb`.
 
 NOTE: Changing the value of `config.action_controller.perform_caching` will
-only have an effect on the caching provided by the Action Controller component.
+only have an effect on the caching provided by Action Controller.
 For instance, it will not impact low-level caching, that we address
 [below](#low-level-caching).
 
@@ -124,7 +119,6 @@ templates at once instead of one by one. This is done by passing `cached: true` 
 All cached templates from previous renders will be fetched at once with much
 greater speed. Additionally, the templates that haven't yet been cached will be
 written to cache and multi fetched on the next render.
-
 
 ### Russian Doll Caching
 
@@ -316,7 +310,7 @@ class ProductsController < ApplicationController
     # Run a find query
     @products = Product.all
 
-    ...
+    # ...
 
     # Run the same query again
     @products = Product.all
@@ -369,6 +363,8 @@ There are some common options that can be used by all cache implementations. The
 * `:expires_in` - This option sets an expiration time in seconds for the cache entry, if the cache store supports it, when it will be automatically removed from the cache.
 
 * `:race_condition_ttl` - This option is used in conjunction with the `:expires_in` option. It will prevent race conditions when cache entries expire by preventing multiple processes from simultaneously regenerating the same entry (also known as the dog pile effect). This option sets the number of seconds that an expired entry can be reused while a new value is being regenerated. It's a good practice to set this value if you use the `:expires_in` option.
+
+* `:coder` - This option allows to replace the default cache entry serialization mechanism by a custom one. The `coder` must respond to `dump` and `load`, and passing a custom coder disable automatic compression.
 
 #### Connection Pool Options
 
@@ -513,7 +509,7 @@ connection library by additionally adding its ruby wrapper to your Gemfile:
 gem 'hiredis'
 ```
 
-Redis cache store will automatically require & use hiredis if available. No further
+Redis cache store will automatically require and use hiredis if available. No further
 configuration is needed.
 
 Finally, add the configuration in the relevant `config/environments/*.rb` file:
@@ -543,7 +539,7 @@ config.cache_store = :redis_cache_store, { url: cache_servers,
 
 ### ActiveSupport::Cache::NullStore
 
-This cache store implementation is meant to be used only in development or test environments and it never stores anything. This can be very useful in development when you have code that interacts directly with `Rails.cache` but caching may interfere with being able to see the results of code changes. With this cache store, all `fetch` and `read` operations will result in a miss.
+This cache store is scoped to each web request, and clears stored values at the end of a request. It is meant for use in development and test environments. It can be very useful when you have code that interacts directly with `Rails.cache` but caching interferes with seeing the results of code changes.
 
 ```ruby
 config.cache_store = :null_store
@@ -576,7 +572,7 @@ Conditional GET support
 
 Conditional GETs are a feature of the HTTP specification that provide a way for web servers to tell browsers that the response to a GET request hasn't changed since the last request and can be safely pulled from the browser cache.
 
-They work by using the `HTTP_IF_NONE_MATCH` and `HTTP_IF_MODIFIED_SINCE` headers to pass back and forth both a unique content identifier and the timestamp of when the content was last changed. If the browser makes a request where the content identifier (etag) or last modified since timestamp matches the server's version then the server only needs to send back an empty response with a not modified status.
+They work by using the `HTTP_IF_NONE_MATCH` and `HTTP_IF_MODIFIED_SINCE` headers to pass back and forth both a unique content identifier and the timestamp of when the content was last changed. If the browser makes a request where the content identifier (ETag) or last modified since timestamp matches the server's version then the server only needs to send back an empty response with a not modified status.
 
 It is the server's (i.e. our) responsibility to look for a last modified timestamp and the if-none-match header and determine whether or not to send back the full response. With conditional-get support in Rails this is a pretty easy task:
 
@@ -704,6 +700,9 @@ Development mode is now being cached.
 $ bin/rails dev:cache
 Development mode is no longer being cached.
 ```
+
+NOTE: By default, when development mode caching is *off*, Rails uses
+[`ActiveSupport::Cache::NullStore`](#activesupport-cache-nullstore).
 
 References
 ----------

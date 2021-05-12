@@ -48,9 +48,6 @@ module ActiveSupport #:nodoc:
 
     # :nodoc:
 
-    # Should we turn on Ruby warnings on the first load of dependent files?
-    mattr_accessor :warnings_on_first_load, default: false
-
     # All files ever loaded.
     mattr_accessor :history, default: Set.new
 
@@ -85,12 +82,6 @@ module ActiveSupport #:nodoc:
     # An array of constant names that need to be unloaded on every request. Used
     # to allow arbitrary constants to be marked for unloading.
     mattr_accessor :explicitly_unloadable_constants, default: []
-
-    # The logger used when tracing autoloads.
-    mattr_accessor :logger
-
-    # If true, trace autoloads with +logger.debug+.
-    mattr_accessor :verbose, default: false
 
     # The WatchStack keeps a stack of the modules being watched as files are
     # loaded. If a file in the process of being loaded (parent.rb) triggers the
@@ -298,9 +289,6 @@ module ActiveSupport #:nodoc:
         else
           yield
         end
-      rescue Exception => exception  # errors from loading file
-        exception.blame_file! file if exception.respond_to? :blame_file!
-        raise
       end
 
       # Mark the given constant as unloadable. Unloadable constants are removed
@@ -334,31 +322,9 @@ module ActiveSupport #:nodoc:
         end
     end
 
-    # Exception file-blaming.
-    module Blamable #:nodoc:
-      def blame_file!(file)
-        (@blamed_files ||= []).unshift file
-      end
-
-      def blamed_files
-        @blamed_files ||= []
-      end
-
-      def describe_blame
-        return nil if blamed_files.empty?
-        "This error occurred while loading the following files:\n   #{blamed_files.join "\n   "}"
-      end
-
-      def copy_blame!(exc)
-        @blamed_files = exc.blamed_files.clone
-        self
-      end
-    end
-
     def hook!
       Loadable.include_into(Object)
       ModuleConstMissing.include_into(Module)
-      Exception.include(Blamable)
     end
 
     def unhook!
@@ -381,7 +347,6 @@ module ActiveSupport #:nodoc:
           load_error.message
         end
         load_error_message.replace(message % file_name)
-        load_error.copy_blame!(load_error)
       end
       raise
     end
@@ -410,16 +375,10 @@ module ActiveSupport #:nodoc:
 
         begin
           if load?
-            # Enable warnings if this file has not been loaded before and
-            # warnings_on_first_load is set.
             load_args = ["#{file_name}.rb"]
             load_args << const_path unless const_path.nil?
 
-            if !warnings_on_first_load || history.include?(expanded)
-              result = load_file(*load_args)
-            else
-              enable_warnings { result = load_file(*load_args) }
-            end
+            result = load_file(*load_args)
           else
             result = require file_name
           end
@@ -500,7 +459,6 @@ module ActiveSupport #:nodoc:
       return nil unless base_path = autoloadable_module?(path_suffix)
       mod = Module.new
       into.const_set const_name, mod
-      log("constant #{qualified_name} autoloaded (module autovivified from #{File.join(base_path, path_suffix)})")
       autoloaded_constants << qualified_name unless autoload_once_paths.include?(base_path)
       autoloaded_constants.uniq!
       mod
@@ -558,7 +516,6 @@ module ActiveSupport #:nodoc:
           require_or_load(expanded, qualified_name)
 
           if from_mod.const_defined?(const_name, false)
-            log("constant #{qualified_name} autoloaded from #{expanded}.rb")
             return from_mod.const_get(const_name)
           else
             raise LoadError, "Unable to autoload constant #{qualified_name}, expected #{file_path} to define it"
@@ -611,66 +568,21 @@ module ActiveSupport #:nodoc:
     # as the environment will be in an inconsistent state, e.g. other constants
     # may have already been unloaded and not accessible.
     def remove_unloadable_constants!
-      log("removing unloadable constants")
       autoloaded_constants.each { |const| remove_constant const }
       autoloaded_constants.clear
-      Reference.clear!
       explicitly_unloadable_constants.each { |const| remove_constant const }
-    end
-
-    class ClassCache
-      def initialize
-        @store = Concurrent::Map.new
-      end
-
-      def empty?
-        @store.empty?
-      end
-
-      def key?(key)
-        @store.key?(key)
-      end
-
-      def get(key)
-        key = key.name if key.respond_to?(:name)
-        @store[key] ||= Inflector.constantize(key)
-      end
-      alias :[] :get
-
-      def safe_get(key)
-        key = key.name if key.respond_to?(:name)
-        @store[key] ||= Inflector.safe_constantize(key)
-      end
-
-      def store(klass)
-        return self unless klass.respond_to?(:name)
-        raise(ArgumentError, "anonymous classes cannot be cached") if klass.name.empty?
-        @store[klass.name] = klass
-        self
-      end
-
-      def clear!
-        @store.clear
-      end
-    end
-
-    Reference = ClassCache.new
-
-    # Store a reference to a class +klass+.
-    def reference(klass)
-      Reference.store klass
     end
 
     # Get the reference for class named +name+.
     # Raises an exception if referenced class does not exist.
     def constantize(name)
-      Reference.get(name)
+      Inflector.constantize(name)
     end
 
     # Get the reference for class named +name+ if one exists.
     # Otherwise returns +nil+.
     def safe_constantize(name)
-      Reference.safe_get(name)
+      Inflector.safe_constantize(name)
     end
 
     # Determine if the given constant has been automatically loaded.
@@ -802,25 +714,15 @@ module ActiveSupport #:nodoc:
       end
     end
 
-    def log(message)
-      logger.debug("autoloading: #{message}") if logger && verbose
-    end
-
     private
-      if RUBY_VERSION < "2.6"
-        def uninitialized_constant(qualified_name, const_name, receiver:)
-          NameError.new("uninitialized constant #{qualified_name}", const_name)
-        end
-      else
-        def uninitialized_constant(qualified_name, const_name, receiver:)
-          NameError.new("uninitialized constant #{qualified_name}", const_name, receiver: receiver)
-        end
+      def uninitialized_constant(qualified_name, const_name, receiver:)
+        NameError.new("uninitialized constant #{qualified_name}", const_name, receiver: receiver)
       end
 
       # Returns the original name of a class or module even if `name` has been
       # overridden.
       def real_mod_name(mod)
-        UNBOUND_METHOD_MODULE_NAME.bind(mod).call
+        UNBOUND_METHOD_MODULE_NAME.bind_call(mod)
       end
   end
 end

@@ -24,9 +24,10 @@ module ActiveModel
     class << self
       attr_accessor :registry # :nodoc:
 
-      # Add a new type to the registry, allowing it to be gotten through ActiveModel::Type#lookup
-      def register(type_name, klass = nil, **options, &block)
-        registry.register(type_name, klass, **options, &block)
+      # Add a new type to the registry, allowing it to be referenced as a
+      # symbol by {attribute}[rdoc-ref:Attributes::ClassMethods#attribute].
+      def register(type_name, klass = nil, &block)
+        registry.register(type_name, klass, &block)
       end
 
       def lookup(*args, **kwargs) # :nodoc:

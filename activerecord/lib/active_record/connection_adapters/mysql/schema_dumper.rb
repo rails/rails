@@ -79,7 +79,10 @@ module ActiveRecord
                     " WHERE table_schema = #{scope[:schema]}" \
                     "   AND table_name = #{scope[:name]}" \
                     "   AND column_name = #{column_name}"
-              @connection.query_value(sql, "SCHEMA").inspect
+              # Calling .inspect leads into issues with the query result
+              # which already returns escaped quotes.
+              # We remove the escape sequence from the result in order to deal with double escaping issues.
+              @connection.query_value(sql, "SCHEMA").gsub("\\'", "'").inspect
             end
           end
       end

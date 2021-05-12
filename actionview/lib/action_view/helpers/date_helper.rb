@@ -1060,7 +1060,7 @@ module ActionView
           (content_tag("select", select_html.html_safe, select_options) + "\n").html_safe
         end
 
-        # Builds the css class value for the select element
+        # Builds the CSS class value for the select element
         #  css_class_attribute(:year, 'date optional', { year: 'my-year' })
         #  => "date optional my-year"
         def css_class_attribute(type, html_options_class, options) # :nodoc:

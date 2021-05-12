@@ -89,7 +89,7 @@ class ActiveStorage::Variant
   end
 
   def filename
-    ActiveStorage::Filename.new "#{blob.filename.base}.#{variation.format}"
+    ActiveStorage::Filename.new "#{blob.filename.base}.#{variation.format.downcase}"
   end
 
   alias_method :content_type_for_serving, :content_type

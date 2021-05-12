@@ -43,6 +43,8 @@ module ActiveRecord
       # Determines whether to store the full constant name including namespace when using STI.
       # This is true, by default.
       class_attribute :store_full_sti_class, instance_writer: false, default: true
+
+      set_base_class
     end
 
     module ClassMethods
@@ -98,17 +100,7 @@ module ActiveRecord
       #
       # If B < A and C < B and if A is an abstract_class then both B.base_class
       # and C.base_class would return B as the answer since A is an abstract_class.
-      def base_class
-        unless self < Base
-          raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
-        end
-
-        if superclass == Base || superclass.abstract_class?
-          self
-        else
-          superclass.base_class
-        end
-      end
+      attr_reader :base_class
 
       # Returns whether the class is a base class.
       # See #base_class for more information.
@@ -164,6 +156,21 @@ module ActiveRecord
         defined?(@abstract_class) && @abstract_class == true
       end
 
+      # Sets the application record class for Active Record
+      #
+      # This is useful if your application uses a different class than
+      # ApplicationRecord for your primary abstract class. This class
+      # will share a database connection with Active Record. It is the class
+      # that connects to your primary database.
+      def primary_abstract_class
+        if Base.application_record_class && Base.application_record_class.name != name
+          raise ArgumentError, "The `primary_abstract_class` is already set to #{Base.application_record_class.inspect}. There can only be one `primary_abstract_class` in an application."
+        end
+
+        self.abstract_class = true
+        Base.application_record_class = self
+      end
+
       # Returns the value to be stored in the inheritance column for STI.
       def sti_name
         store_full_sti_class && store_full_class_name ? name : name.demodulize
@@ -203,8 +210,22 @@ module ActiveRecord
       end
 
       def inherited(subclass)
+        subclass.set_base_class
         subclass.instance_variable_set(:@_type_candidates_cache, Concurrent::Map.new)
         super
+      end
+
+      def dup # :nodoc:
+        # `initialize_dup` / `initialize_copy` don't work when defined
+        # in the `singleton_class`.
+        other = super
+        other.set_base_class
+        other
+      end
+
+      def initialize_clone(other) # :nodoc:
+        super
+        set_base_class
       end
 
       protected
@@ -235,6 +256,22 @@ module ActiveRecord
             end
 
             raise NameError.new("uninitialized constant #{candidates.first}", candidates.first)
+          end
+        end
+
+        def set_base_class # :nodoc:
+          @base_class = if self == Base
+            self
+          else
+            unless self < Base
+              raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
+            end
+
+            if superclass == Base || superclass.abstract_class?
+              self
+            else
+              superclass.base_class
+            end
           end
         end
 

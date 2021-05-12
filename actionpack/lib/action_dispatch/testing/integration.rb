@@ -199,11 +199,11 @@ module ActionDispatch
       #   merged into the Rack env hash.
       # - +env+: Additional env to pass, as a Hash. The headers will be
       #   merged into the Rack env hash.
-      # - +xhr+: Set to `true` if you want to make and Ajax request.
+      # - +xhr+: Set to +true+ if you want to make and Ajax request.
       #   Adds request headers characteristic of XMLHttpRequest e.g. HTTP_X_REQUESTED_WITH.
       #   The headers will be merged into the Rack env hash.
       # - +as+: Used for encoding the request with different content type.
-      #   Supports `:json` by default and will set the appropriate request headers.
+      #   Supports +:json+ by default and will set the appropriate request headers.
       #   The headers will be merged into the Rack env hash.
       #
       # This method is rarely used directly. Use +#get+, +#post+, or other standard
@@ -363,13 +363,11 @@ module ActionDispatch
           reset_html_document = "@html_document = nil"
         end
 
-        definition = RUBY_VERSION >= "2.7" ? "..." : "*args"
-
         module_eval <<~RUBY, __FILE__, __LINE__ + 1
-          def #{method}(#{definition})
+          def #{method}(...)
             #{reset_html_document}
 
-            result = integration_session.#{method}(#{definition})
+            result = integration_session.#{method}(...)
             copy_session_variables!
             result
           end
@@ -433,7 +431,7 @@ module ActionDispatch
           super
         end
       end
-      ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
+      ruby2_keywords(:method_missing)
     end
   end
 

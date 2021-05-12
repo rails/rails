@@ -11,6 +11,7 @@ class SlowDalliClient < Dalli::Client
   def get(key, options = {})
     if /latency/.match?(key)
       sleep 3
+      super
     else
       super
     end
@@ -36,17 +37,27 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def lookup_store(options = {})
-    ActiveSupport::Cache.lookup_store(*store, { namespace: @namespace }.merge(options))
+    cache = ActiveSupport::Cache.lookup_store(*store, { namespace: @namespace }.merge(options))
+    (@_stores ||= []) << cache
+    cache
   end
 
   def setup
     skip "memcache server is not up" unless MEMCACHE_UP
 
-    @namespace = "test-#{SecureRandom.hex}"
+    @namespace = "test-#{Random.rand(16**32).to_s(16)}"
     @cache = lookup_store(expires_in: 60)
     @peek = lookup_store
-    @cache.silence!
     @cache.logger = ActiveSupport::Logger.new(File::NULL)
+  end
+
+  def after_teardown
+    stores, @_stores = @_stores, []
+    stores.each do |store|
+      # Eagerly closing Dalli connection avoid file descriptor exhaustion.
+      # Otherwise the test suite is flaky when ran repeatedly
+      store.instance_variable_get(:@data).close
+    end
   end
 
   include CacheStoreBehavior
@@ -56,7 +67,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
   include EncodedKeyCacheBehavior
-  include AutoloadingCacheBehavior
   include ConnectionPoolBehavior
   include FailureSafetyBehavior
 
@@ -79,7 +89,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     cache = lookup_store(raw: true)
     cache.write("foo", 2)
 
-    assert_not_called_on_instance_of ActiveSupport::Cache::Entry, :compress! do
+    assert_not_called_on_instance_of ActiveSupport::Cache::Entry, :compressed do
       cache.read("foo")
     end
   end
@@ -172,7 +182,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_unless_exist_expires_when_configured
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
-    assert_called_with client(cache), :add, [ "foo", ActiveSupport::Cache::Entry, 1, Hash ] do
+    assert_called_with client(cache), :add, [ "foo", Object, 1, Hash ] do
       cache.write("foo", "bar", expires_in: 1, unless_exist: true)
     end
   end
@@ -193,6 +203,14 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def test_falls_back_to_localhost_if_no_address_provided_and_memcache_servers_undefined
     with_memcache_servers_environment_variable(nil) do
       cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+
+      assert_equal ["127.0.0.1:11211"], servers(cache)
+    end
+  end
+
+  def test_falls_back_to_localhost_if_address_provided_as_nil
+    with_memcache_servers_environment_variable(nil) do
+      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, nil)
 
       assert_equal ["127.0.0.1:11211"], servers(cache)
     end
@@ -262,4 +280,37 @@ class MemCacheStoreTest < ActiveSupport::TestCase
         ENV["MEMCACHE_SERVERS"] = original_value
       end
     end
+end
+
+class OptimizedMemCacheStoreTest < MemCacheStoreTest
+  def setup
+    @previous_format = ActiveSupport::Cache.format_version
+    ActiveSupport::Cache.format_version = 7.0
+    super
+  end
+
+  def forward_compatibility
+    previous_format = ActiveSupport::Cache.format_version
+    ActiveSupport::Cache.format_version = 6.1
+    @old_store = lookup_store
+    ActiveSupport::Cache.format_version = previous_format
+
+    @old_store.write("foo", "bar")
+    assert_equal "bar", @cache.read("foo")
+  end
+
+  def forward_compatibility
+    previous_format = ActiveSupport::Cache.format_version
+    ActiveSupport::Cache.format_version = 6.1
+    @old_store = lookup_store
+    ActiveSupport::Cache.format_version = previous_format
+
+    @cache.write("foo", "bar")
+    assert_equal "bar", @old_store.read("foo")
+  end
+
+  def teardown
+    super
+    ActiveSupport::Cache.format_version = @previous_format
+  end
 end

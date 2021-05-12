@@ -13,9 +13,50 @@ module ActiveRecord
         const_get(name)
       end
 
-      V6_2 = Current
+      V7_0 = Current
 
-      class V6_1 < V6_2
+      class V6_1 < V7_0
+        class PostgreSQLCompat
+          def self.compatible_timestamp_type(type, connection)
+            if connection.adapter_name == "PostgreSQL"
+              # For Rails <= 6.1, :datetime was aliased to :timestamp
+              # See: https://github.com/rails/rails/blob/v6.1.3.2/activerecord/lib/active_record/connection_adapters/postgresql_adapter.rb#L108
+              # From Rails 7 onwards, you can define what :datetime resolves to (the default is still :timestamp)
+              # See `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type`
+              type.to_sym == :datetime ? :timestamp : type
+            else
+              type
+            end
+          end
+        end
+
+        def add_column(table_name, column_name, type, **options)
+          type = PostgreSQLCompat.compatible_timestamp_type(type, connection)
+          super
+        end
+
+        def create_table(table_name, **options)
+          if block_given?
+            super { |t| yield compatible_table_definition(t) }
+          else
+            super
+          end
+        end
+
+        module TableDefinition
+          def new_column_definition(name, type, **options)
+            type = PostgreSQLCompat.compatible_timestamp_type(type, @conn)
+            super
+          end
+        end
+
+        private
+          def compatible_table_definition(t)
+            class << t
+              prepend TableDefinition
+            end
+            t
+          end
       end
 
       class V6_0 < V6_1
@@ -59,7 +100,8 @@ module ActiveRecord
         end
 
         def add_reference(table_name, ref_name, **options)
-          ReferenceDefinition.new(ref_name, **options).add_to(update_table_definition(table_name, self))
+          ReferenceDefinition.new(ref_name, **options)
+            .add_to(connection.update_table_definition(table_name, self))
         end
         alias :add_belongs_to :add_reference
 

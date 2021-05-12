@@ -9,7 +9,7 @@ module ActiveRecord
       end
 
       def queries
-        [associated_table.join_foreign_key => ids]
+        [ associated_table.join_foreign_key => ids ]
       end
 
       private

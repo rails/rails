@@ -31,7 +31,7 @@ module Rails
           sslcapath: "--ssl-capath",
           sslcipher: "--ssl-cipher",
           sslkey: "--ssl-key"
-        }.map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }.compact
+        }.filter_map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }
 
         if config[:password] && @options[:include_password]
           args << "--password=#{config[:password]}"

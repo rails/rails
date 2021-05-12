@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "action_view/helpers/tag_helper"
-require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActionView
   # = Action View Translation Helpers
@@ -94,7 +93,9 @@ module ActionView
             break translated unless translated.equal?(MISSING_TRANSLATION)
           end
 
-          break alternatives.first if alternatives.present? && !alternatives.first.is_a?(Symbol)
+          if alternatives.present? && !alternatives.first.is_a?(Symbol)
+            break alternatives.first && I18n.translate(**options, default: alternatives)
+          end
 
           first_key ||= key
           key = alternatives&.shift
@@ -131,10 +132,10 @@ module ActionView
 
         def scope_key_by_partial(key)
           if key&.start_with?(".")
-            if @current_template&.virtual_path
+            if @virtual_path
               @_scope_key_by_partial_cache ||= {}
-              @_scope_key_by_partial_cache[@current_template.virtual_path] ||= @current_template.virtual_path.gsub(%r{/_?}, ".")
-              "#{@_scope_key_by_partial_cache[@current_template.virtual_path]}#{key}"
+              @_scope_key_by_partial_cache[@virtual_path] ||= @virtual_path.gsub(%r{/_?}, ".")
+              "#{@_scope_key_by_partial_cache[@virtual_path]}#{key}"
             else
               raise "Cannot use t(#{key.inspect}) shortcut because path is not available"
             end

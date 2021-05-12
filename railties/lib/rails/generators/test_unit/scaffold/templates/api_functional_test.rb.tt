@@ -16,7 +16,7 @@ class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTe
   end
 
   test "should create <%= singular_table_name %>" do
-    assert_difference('<%= class_name %>.count') do
+    assert_difference("<%= class_name %>.count") do
       post <%= index_helper %>_url, params: { <%= "#{singular_table_name}: { #{attributes_string} }" %> }, as: :json
     end
 
@@ -34,7 +34,7 @@ class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTe
   end
 
   test "should destroy <%= singular_table_name %>" do
-    assert_difference('<%= class_name %>.count', -1) do
+    assert_difference("<%= class_name %>.count", -1) do
       delete <%= show_helper %>, as: :json
     end
 

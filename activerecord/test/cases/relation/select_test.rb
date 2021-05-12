@@ -41,6 +41,20 @@ module ActiveRecord
     end
     private :assert_non_select_columns_wont_be_loaded
 
+    def test_merging_select_from_different_model
+      posts = Post.select(:id, :title).joins(:comments)
+      comments = Comment.where(body: "Thank you for the welcome")
+
+      [
+        posts.merge(comments.select(:body)).first,
+        posts.merge(comments.select("comments.body")).first,
+      ].each do |post|
+        assert_equal 1, post.id
+        assert_equal "Welcome to the weblog", post.title
+        assert_equal "Thank you for the welcome", post.body
+      end
+    end
+
     def test_type_casted_extra_select_with_eager_loading
       posts = Post.select("posts.id * 1.1 AS foo").eager_load(:comments)
       assert_equal 1.1, posts.first.foo
@@ -62,6 +76,17 @@ module ActiveRecord
         id author_id title body type legacy_comments_count taggings_with_delete_all_count taggings_with_destroy_count
         tags_count indestructible_tags_count tags_with_destroy_count tags_with_nullify_count
       ), posts.first.attributes.keys
+    end
+
+    def test_enumerate_columns_in_select_statements
+      original_value = Post.enumerate_columns_in_select_statements
+      Post.enumerate_columns_in_select_statements = true
+      sql = Post.all.to_sql
+      Post.column_names.each do |column_name|
+        assert_includes sql, column_name
+      end
+    ensure
+      Post.enumerate_columns_in_select_statements = original_value
     end
   end
 end

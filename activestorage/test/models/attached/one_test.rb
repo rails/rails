@@ -38,12 +38,12 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   end
 
   test "attaching a new blob from a Hash to an existing record" do
-    @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+    @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
     assert_equal "town.jpg", @user.avatar.filename.to_s
   end
 
   test "attaching a new blob from a Hash to an existing record passes record" do
-    hash = { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" }
+    hash = { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg" }
     blob = ActiveStorage::Blob.build_after_unfurling(**hash)
     arguments = [hash.merge(record: @user, service_name: nil)]
     assert_called_with(ActiveStorage::Blob, :build_after_unfurling, arguments, returns: blob) do
@@ -98,7 +98,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     @user.name = "Tina"
     assert @user.changed?
 
-    @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+    @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
     assert_equal "town.jpg", @user.avatar.filename.to_s
     assert_not @user.avatar.persisted?
     assert @user.will_save_change_to_name?
@@ -320,7 +320,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   end
 
   test "creating an attachment as part of an autosave association through nested attributes" do
-    group = Group.create!(users_attributes: [{ name: "John", avatar: { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" } }])
+    group = Group.create!(users_attributes: [{ name: "John", avatar: { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg" } }])
     group.save!
     new_user = User.find_by(name: "John")
     assert new_user.avatar.attached?
@@ -358,7 +358,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   test "attaching a new blob from a Hash to a new record" do
     User.new(name: "Jason").tap do |user|
-      user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+      user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
       assert user.new_record?
       assert user.avatar.attachment.new_record?
       assert user.avatar.blob.new_record?
@@ -582,8 +582,8 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   test "attaching a new blob from a Hash with a custom service" do
     with_service("mirror") do
-      @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
-      @user.cover_photo.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+      @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
+      @user.cover_photo.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
 
       assert_instance_of ActiveStorage::Service::MirrorService, @user.avatar.service
       assert_instance_of ActiveStorage::Service::DiskService, @user.cover_photo.service
@@ -608,5 +608,25 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
 
     assert_match(/Cannot configure service :unknown for User#featured_photo/, error.message)
+  end
+
+  test "creating variation by variation name" do
+    @user.avatar_with_variants.attach fixture_file_upload("racecar.jpg")
+    variant = @user.avatar_with_variants.variant(:thumb).processed
+
+    image = read_image(variant)
+    assert_equal "JPEG", image.type
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
+
+  test "raises error when unknown variant name is used" do
+    @user.avatar_with_variants.attach fixture_file_upload("racecar.jpg")
+
+    error = assert_raises ArgumentError do
+      @user.avatar_with_variants.variant(:unknown).processed
+    end
+
+    assert_match(/Cannot find variant :unknown for User#avatar_with_variants/, error.message)
   end
 end

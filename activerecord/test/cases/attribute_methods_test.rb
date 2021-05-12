@@ -266,7 +266,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "case-sensitive attributes hash" do
-    assert_equal @loaded_fixtures["computers"]["workstation"].to_hash, Computer.first.attributes
+    expected = ["created_at", "developer", "extendedWarranty", "id", "system", "timezone", "updated_at"]
+    assert_equal expected, Computer.first.attributes.keys.sort
   end
 
   test "attributes without primary key" do
@@ -427,6 +428,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.new(title: "a")
     def topic.title() "b" end
     assert_equal "a", topic[:title]
+  end
+
+  test "read overridden attribute with predicate respects override" do
+    topic = Topic.new
+
+    topic.approved = true
+
+    def topic.approved; false; end
+
+    assert_not topic.approved?, "overridden approved should be false"
   end
 
   test "string attribute predicate" do
