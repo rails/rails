@@ -25,7 +25,9 @@ module ActionDispatch
       end
 
       def self.disabled(req)
-        new(nil, req, enabled: false)
+        new(nil, req, enabled: false).tap do
+          Session::Options.set(req, Session::Options.new(nil, { id: nil }))
+        end
       end
 
       def self.find(req)
