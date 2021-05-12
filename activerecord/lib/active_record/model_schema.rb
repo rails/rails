@@ -213,6 +213,21 @@ module ActiveRecord
       # the table name guess for an Invoice class becomes "myapp_invoices".
       # Invoice::Lineitem becomes "myapp_invoice_lineitems".
       #
+      # Active Model Naming's +model_name+ is the base name used to guess the
+      # table name. In case a custom Active Model Name is defined, it will be
+      # used for the table name as well:
+      #
+      #   class PostRecord < ActiveRecord::Base
+      #     class << self
+      #       def model_name
+      #         ActiveModel::Name.new(self, nil, "Post")
+      #       end
+      #     end
+      #   end
+      #
+      #   PostRecord.table_name
+      #   # => "posts"
+      #
       # You can also set your own table name explicitly:
       #
       #   class Mouse < ActiveRecord::Base
@@ -587,8 +602,8 @@ module ActiveRecord
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
-        def undecorated_table_name(class_name = base_class.name)
-          table_name = class_name.to_s.demodulize.underscore
+        def undecorated_table_name(model_name)
+          table_name = model_name.to_s.demodulize.underscore
           pluralize_table_names ? table_name.pluralize : table_name
         end
 
@@ -602,7 +617,7 @@ module ActiveRecord
               contained += "_"
             end
 
-            "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{full_table_name_suffix}"
+            "#{full_table_name_prefix}#{contained}#{undecorated_table_name(model_name)}#{full_table_name_suffix}"
           else
             # STI subclasses always use their superclass' table.
             base_class.table_name

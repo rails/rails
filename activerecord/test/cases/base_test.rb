@@ -505,6 +505,10 @@ class BasicsTest < ActiveRecord::TestCase
     Post.reset_table_name
   end
 
+  def test_table_name_based_on_model_name
+    assert_equal "posts", PostRecord.table_name
+  end
+
   def test_null_fields
     assert_nil Topic.find(1).parent_id
     assert_nil Topic.create("title" => "Hey you").parent_id
@@ -1478,6 +1482,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   test "scoped can take a values hash" do
     klass = Class.new(ActiveRecord::Base)
+    klass.table_name = "bar"
     assert_equal ["foo"], klass.all.merge!(select: "foo").select_values
   end
 

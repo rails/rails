@@ -965,6 +965,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "define_attribute_method works with both symbol and string" do
     klass = Class.new(ActiveRecord::Base)
+    klass.table_name = "foo"
 
     assert_nothing_raised { klass.define_attribute_method(:foo) }
     assert_nothing_raised { klass.define_attribute_method("bar") }
