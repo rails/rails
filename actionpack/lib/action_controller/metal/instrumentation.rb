@@ -16,33 +16,6 @@ module ActionController
 
     attr_internal :view_runtime
 
-    def process_action(*)
-      raw_payload = {
-        controller: self.class.name,
-        action: action_name,
-        request: request,
-        params: request.filtered_parameters,
-        headers: request.headers,
-        format: request.format.ref,
-        method: request.request_method,
-        path: request.fullpath
-      }
-
-      ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload)
-
-      ActiveSupport::Notifications.instrument("process_action.action_controller", raw_payload) do |payload|
-        result = super
-        payload[:response] = response
-        payload[:status]   = response.status
-        result
-      rescue => error
-        payload[:status] = ActionDispatch::ExceptionWrapper.status_code_for_exception(error.class.name)
-        raise
-      ensure
-        append_info_to_payload(payload)
-      end
-    end
-
     def render(*)
       render_output = nil
       self.view_runtime = cleanup_view_runtime do
@@ -74,6 +47,33 @@ module ActionController
     end
 
   private
+    def process_action(*)
+      raw_payload = {
+        controller: self.class.name,
+        action: action_name,
+        request: request,
+        params: request.filtered_parameters,
+        headers: request.headers,
+        format: request.format.ref,
+        method: request.request_method,
+        path: request.fullpath
+      }
+
+      ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload)
+
+      ActiveSupport::Notifications.instrument("process_action.action_controller", raw_payload) do |payload|
+        result = super
+        payload[:response] = response
+        payload[:status]   = response.status
+        result
+      rescue => error
+        payload[:status] = ActionDispatch::ExceptionWrapper.status_code_for_exception(error.class.name)
+        raise
+      ensure
+        append_info_to_payload(payload)
+      end
+    end
+
     # A hook invoked every time a before callback is halted.
     def halted_callback_hook(filter, _)
       ActiveSupport::Notifications.instrument("halted_callback.action_controller", filter: filter)
