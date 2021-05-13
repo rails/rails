@@ -33,7 +33,7 @@ directives](https://ruby.github.io/rdoc/RDoc/Parser/Ruby.html).
 Links
 -----
 
-Rails API documentation are not meant to be viewed on GitHub and so links should use the RDoc [`link`](https://ruby.github.io/rdoc/RDoc/Markup.html#class-RDoc::Markup-label-Links) markup relative to the current API.
+Rails API documentation are not meant to be viewed on GitHub and therefore links should use the RDoc [`link`](https://ruby.github.io/rdoc/RDoc/Markup.html#class-RDoc::Markup-label-Links) markup relative to the current API.
 
 This is due to differences between GitHub Markdown and the generated RDoc that is published at [api.rubyonrails.org](https://api.rubyonrails.org) and [edgeapi.rubyonrails.org](https://edgeapi.rubyonrails.org).
 
