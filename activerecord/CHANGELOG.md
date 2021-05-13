@@ -1,3 +1,17 @@
+*   Don't check type when using `if_not_exists` on `add_column`.
+
+    Previously, if a migration called `add_column` with the `if_not_exists` option set to true
+    the `column_exists?` check would look for a column with the same name and type as the migration.
+
+    Recently it was discovered that the type passed to the migration is not always the same type
+    as the column after migration. For example a column set to `:mediumblob` in the migration will
+    be casted to `binary` when calling `column.type`. Since there is no straightforward way to cast
+    the type to the database type without running the migration, we opted to drop the type check from
+    `add_column`. This means that migrations adding a duplicate column with a different type will no
+    longer raise an error.
+
+    *Eileen M. Uchitelle*
+
 *   Log a warning message when running SQLite in production
 
     Using SQLite in production ENV is generally discouraged. SQLite is also the default adapter
