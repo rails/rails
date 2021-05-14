@@ -71,6 +71,8 @@ module ActiveStorage
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
+  mattr_accessor :silence_invalid_content_types_warning, default: false
+
   module Transformers
     extend ActiveSupport::Autoload
 

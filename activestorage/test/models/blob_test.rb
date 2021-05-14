@@ -293,6 +293,32 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "warning if blob is created with invalid mime type" do
+    assert_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpg")
+    end
+
+    assert_not_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpeg")
+    end
+  end
+
+  test "warning if blob is created with invalid mime type can be disabled" do
+    warning_was = ActiveStorage.silence_invalid_content_types_warning
+    ActiveStorage.silence_invalid_content_types_warning = true
+
+    assert_not_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpg")
+    end
+
+    assert_not_deprecated do
+      create_blob(filename: "funky.jpg", content_type: "image/jpeg")
+    end
+
+  ensure
+    ActiveStorage.silence_invalid_content_types_warning = warning_was
+  end
+
   private
     def expected_url_for(blob, disposition: :attachment, filename: nil, content_type: nil, service_name: :local)
       filename ||= blob.filename
