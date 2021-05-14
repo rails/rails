@@ -32,11 +32,9 @@ module ActiveStorage
     config.active_storage.variable_content_types = %w(
       image/png
       image/gif
-      image/jpg
       image/jpeg
-      image/pjpeg
       image/tiff
-      image/bmp
+      image/x-bmp
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
       image/webp
@@ -45,13 +43,12 @@ module ActiveStorage
     config.active_storage.web_image_content_types = %w(
       image/png
       image/jpeg
-      image/jpg
       image/gif
     )
 
     config.active_storage.content_types_to_serve_as_binary = %w(
       text/html
-      text/javascript
+      application/javascript
       image/svg+xml
       application/postscript
       application/x-shockwave-flash
@@ -65,10 +62,9 @@ module ActiveStorage
     config.active_storage.content_types_allowed_inline = %w(
       image/png
       image/gif
-      image/jpg
       image/jpeg
       image/tiff
-      image/bmp
+      image/x-bmp
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
       application/pdf
