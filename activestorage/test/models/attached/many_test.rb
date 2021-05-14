@@ -655,9 +655,10 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       @user.reload
 
       racecar_blob = fixture_file_upload("racecar.jpg")
+      attachment_id = town_blob.attachments.find_by!(record: @user).id
       @user.update(
         highlights: [racecar_blob],
-        highlights_attachments_attributes: [{ id: town_blob.id, _destroy: true }]
+        highlights_attachments_attributes: [{ id: attachment_id, _destroy: true }]
       )
 
       assert @user.reload.highlights.attached?
