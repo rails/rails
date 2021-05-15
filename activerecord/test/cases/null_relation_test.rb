@@ -51,7 +51,7 @@ class NullRelationTest < ActiveRecord::TestCase
   end
 
   def test_null_relation_metadata_methods
-    assert_equal "", Developer.none.to_sql
+    assert_includes Developer.none.to_sql, " WHERE (1=0)"
     assert_equal({}, Developer.none.where_values_hash)
   end
 

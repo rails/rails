@@ -38,10 +38,6 @@ module ActiveRecord
       false
     end
 
-    def to_sql
-      ""
-    end
-
     def calculate(operation, _column_name)
       case operation
       when :count, :sum
