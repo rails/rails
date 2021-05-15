@@ -1,3 +1,9 @@
+*   Don't raise an error if the mime type is not recognized.
+
+    Fixes #41777.
+
+    *Alex Ghiculescu*
+
 *   `ActiveStorage::PreviewError` is raised when a previewer is unable to generate a preview image.
 
     *Alex Robbin*
