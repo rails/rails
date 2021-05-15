@@ -187,6 +187,20 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
+  test "doesn't crash content_type not recognized by mini_mime" do
+    blob = create_file_blob(filename: "racecar.jpg")
+
+    # image/jpg is not recognised by mini_mime (image/jpeg is correct)
+    blob.update(content_type: "image/jpg")
+
+    assert_nothing_raised do
+      blob.variant(resize: "100x100")
+    end
+
+    assert_nil blob.send(:format)
+    assert_equal :png, blob.send(:default_variant_format)
+  end
+
   private
     def process_variants_with(processor)
       previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, processor
