@@ -359,14 +359,8 @@ module ActionDispatch
       get_header("rack.input")
     end
 
-    # TODO This should be broken apart into AD::Request::Session and probably
-    # be included by the session middleware.
     def reset_session
-      if session && session.respond_to?(:destroy)
-        session.destroy
-      else
-        self.session = {}
-      end
+      session.destroy
     end
 
     def session=(session) #:nodoc:
@@ -446,6 +440,10 @@ module ActionDispatch
       def check_method(name)
         HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS[0...-1].join(', ')}, and #{HTTP_METHODS[-1]}")
         name
+      end
+
+      def default_session
+        Session.disabled(self)
       end
   end
 end

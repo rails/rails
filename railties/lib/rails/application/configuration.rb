@@ -201,6 +201,10 @@ module Rails
             action_dispatch.return_only_request_media_type_on_content_type = false
           end
 
+          if respond_to?(:action_controller)
+            action_controller.silence_disabled_session_errors = false
+          end
+
           if respond_to?(:action_view)
             action_view.button_to_generates_button_tag = true
             action_view.apply_stylesheet_media_default = false

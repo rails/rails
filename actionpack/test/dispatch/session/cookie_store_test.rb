@@ -221,6 +221,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       get "/call_reset_session"
       assert_response :success
       assert_not_equal [], headers["Set-Cookie"]
+      assert_not_nil headers["Set-Cookie"]
       assert_not_nil session_payload
       assert_not_equal session_payload, cookies[SessionKey]
 
