@@ -1,3 +1,18 @@
+*   Allow a job to retry indefinitely
+
+    The `attempts` parameter of the `retry_on` method now accepts the
+    symbol reference `:unlimited` in addition to a specific number of retry
+    attempts to allow a developer to specify that a job should retry
+    forever until it succeeds.
+
+        class MyJob < ActiveJob::Base
+          retry_on(AlwaysRetryException, attempts: :unlimited)
+
+          # the actual job code
+        end
+
+    *Daniel Morton*
+
 *   Communicate enqueue failures to callers of `perform_later`.
 
     `perform_later` can now optionally take a block which will execute after
