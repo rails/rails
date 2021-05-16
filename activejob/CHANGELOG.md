@@ -1,3 +1,7 @@
+*   Add a Serializer for the Range class
+
+    This should allow things like `MyJob.perform_later(range: 1..100)`
+
 *   Communicate enqueue failures to callers of `perform_later`.
 
     `perform_later` can now optionally take a block which will execute after
