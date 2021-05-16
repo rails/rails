@@ -70,7 +70,7 @@ amazon:
 ```
 
 The `environment` configuration is optional, but makes Active Storage more secure
-by preventing access to the specified except when Rails is running in the specified environment.
+by preventing access to the specified service except when Rails is running in the stated environment.
 
 Tell Active Storage which service to use by setting
 `Rails.application.config.active_storage.service`. Because each environment will
