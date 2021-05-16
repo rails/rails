@@ -149,6 +149,10 @@ module ActiveRecord
         COLUMN_NAME_WITH_ORDER
       end
 
+      def column_name_without_alias_matcher # :nodoc:
+        COLUMN_NAME_WITHOUT_ALIAS
+      end
+
       # Regexp for column names (with or without a table name prefix).
       # Matches the following:
       #
@@ -192,7 +196,24 @@ module ActiveRecord
         \z
       /ix
 
-      private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
+      # Regexp for column names (with or without a table name prefix).
+      # Matches the following:
+      #
+      #   "#{table_name}.#{column_name}"
+      #   "#{column_name}"
+      COLUMN_NAME_WITHOUT_ALIAS = /
+        \A
+        (
+          (?:
+            # table_name.column_name | function(one or no argument)
+            ((?:\w+\.)?\w+) | \w+\((?:|\g<2>)\)
+          )
+        )
+        (?:\s*,\s*\g<1>)*
+        \z
+      /ix
+
+      private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER, :COLUMN_NAME_WITHOUT_ALIAS
 
       private
         def type_casted_binds(binds)

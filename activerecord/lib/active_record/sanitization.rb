@@ -134,14 +134,26 @@ module ActiveRecord
         end
       end
 
-      def disallow_raw_sql!(args, permit: connection.column_name_matcher) # :nodoc:
+      def disallow_raw_sql!(args, permit: connection.column_name_matcher, deprecated: false) # :nodoc:
         unexpected = nil
         args.each do |arg|
           next if arg.is_a?(Symbol) || Arel.arel_node?(arg) || permit.match?(arg.to_s.strip)
           (unexpected ||= []) << arg
         end
 
-        if unexpected
+        return unless unexpected
+
+        if deprecated
+          ActiveSupport::Deprecation.warn(
+            "Dangerous query method (method whose arguments are used as raw " \
+            "SQL) called with non-attribute argument(s): " \
+            "#{unexpected.map(&:inspect).join(", ")}. Non-attribute " \
+            "arguments will be disallowed in Rails 8. This method should " \
+            "not be called with user-provided values, such as request " \
+            "parameters or model attributes. Known-safe values can be passed " \
+            "by wrapping them in Arel.sql()."
+          )
+        else
           raise(ActiveRecord::UnknownAttributeReference,
             "Query method called with non-attribute argument(s): " +
             unexpected.map(&:inspect).join(", ")
