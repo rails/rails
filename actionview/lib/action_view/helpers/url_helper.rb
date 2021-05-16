@@ -85,6 +85,8 @@ module ActionView
       #     # name
       #   end
       #
+      #   link_to(active_record_model)
+      #
       # ==== Options
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
       # * <tt>method: symbol of HTTP verb</tt> - This modifier will dynamically
@@ -146,6 +148,12 @@ module ActionView
       #   link_to nil, "http://example.com"
       #   # => <a href="http://www.example.com">http://www.example.com</a>
       #
+      # More concise yet, when +name+ is an ActiveRecord model that defines a
+      # +to_s+ method returning a default value or a model instance attribute
+      #
+      #   link_to @profile
+      #   # => <a href="http://www.example.com/profiles/1">Eileen</a>
+      #
       # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
       #
       #   <%= link_to(@profile) do %>
@@ -201,7 +209,7 @@ module ActionView
 
         html_options = convert_options_to_data_attributes(options, html_options)
 
-        url = url_for(options)
+        url = url_target(name, options)
         html_options["href"] ||= url
 
         content_tag("a", name || url, html_options, &block)
@@ -713,6 +721,14 @@ module ActionView
             html_options
           else
             link_to_remote_options?(options) ? { "data-remote" => "true" } : {}
+          end
+        end
+
+        def url_target(name, options)
+          if name.respond_to?(:model_name) && options.empty?
+            url_for(name)
+          else
+            url_for(options)
           end
         end
 

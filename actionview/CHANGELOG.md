@@ -1,3 +1,26 @@
+*   Allow `link_to` helper to infer link name from `Model#to_s` when it 
+    is used with a single argument:
+
+        link_to @profile
+        #=> <a href="/profiles/1">Eileen</a>
+
+    This assumes the model class implements a `to_s` method like this: 
+
+        class Profile < ApplicationRecord 
+          # ...
+          def to_s
+            name
+          end
+        end
+
+    Previously you had to supply a second argument even if the `Profile`
+    model implemented a `#to_s` method that called the `name` method.
+
+        link_to @profile, @profile.name
+        #=> <a href="/profiles/1">Eileen</a>
+
+    *Olivier Lacan*
+
 *   Add `weekday_options_for_select` and `weekday_select` helper methods. Also adds `weekday_select` to `FormBuilder`.
 
     *Drew Bragg*, *Dana Kashubeck*, *Kasper Timm Hansen*
