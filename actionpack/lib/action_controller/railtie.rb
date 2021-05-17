@@ -66,12 +66,6 @@ module ActionController
       end
     end
 
-    initializer "action_controller.compile_config_methods" do
-      ActiveSupport.on_load(:action_controller) do
-        config.compile_methods! if config.respond_to?(:compile_methods!)
-      end
-    end
-
     initializer "action_controller.request_forgery_protection" do |app|
       ActiveSupport.on_load(:action_controller_base) do
         if app.config.action_controller.default_protect_from_forgery

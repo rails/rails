@@ -71,12 +71,6 @@ module ActionMailer
       end
     end
 
-    initializer "action_mailer.compile_config_methods" do
-      ActiveSupport.on_load(:action_mailer) do
-        config.compile_methods! if config.respond_to?(:compile_methods!)
-      end
-    end
-
     initializer "action_mailer.eager_load_actions" do
       ActiveSupport.on_load(:after_initialize) do
         ActionMailer::Base.descendants.each(&:action_methods) if config.eager_load
