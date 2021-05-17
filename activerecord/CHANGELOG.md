@@ -1,3 +1,10 @@
+*   `ActiveRecord::Base.logger` is now a `class_attribute`.
+
+    This means it can no longer be accessed directly through `@@logger`, and that setting `logger =`
+    on a subclass won't change the parent's logger.
+
+    *Jean Boussier*
+
 *   Add `.asc.nulls_first` for all databases. Unfortunately MySQL still doesn't like `nulls_last`.
 
     *Keenan Brock*
