@@ -229,8 +229,8 @@ module ActiveRecord
 
         To resolve this issue:
 
-        - Not created a database for this app, or deleted it? You may need to create your database.
-        - Database name changed? Check your database.yml config has the correct database name.
+        - Did you create the database for this app, or delete it? You may need to create your database.
+        - Has the database name changed? Check your database.yml config has the correct database name.
 
         To create your database, run:\n\n        bin/rails db:create
         MSG
@@ -246,14 +246,14 @@ module ActiveRecord
     class << self
       def hostname_error(hostname)
         DatabaseConnectionError.new(<<~MSG)
-        We are having an issue connecting with your hostname: #{hostname}.\n
-        Please check your database configuration or ensure there is a connection open to your hostname.
+        There is an issue connecting with your hostname: #{hostname}.\n
+        Please check your database configuration and ensure there is a valid connection to your database.
         MSG
       end
 
       def username_error(username)
         DatabaseConnectionError.new(<<~MSG)
-        We are having an issue connecting to your database with your username/password, username: #{username}.\n
+        There is an issue connecting to your database with your username/password, username: #{username}.\n
         Please check your database configuration to ensure the username/password are valid.
         MSG
       end
