@@ -399,8 +399,8 @@ module ActiveRecord
       # to provide one in a migration's +change+ method so it can be reverted.
       # In that case, the block will be used by #create_join_table.
       def drop_join_table(table_1, table_2, **options)
-        join_table_name = find_join_table_name(table_1, table_2, options)
-        drop_table(join_table_name)
+        join_table_name = find_join_table_name(table_1, table_2, **options.slice(:table_name))
+        drop_table(join_table_name, **options.except(:table_name))
       end
 
       # A block for changing columns in +table+.
