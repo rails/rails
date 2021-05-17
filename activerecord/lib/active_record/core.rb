@@ -209,7 +209,6 @@ module ActiveRecord
           self == Base.application_record_class
         else
           if defined?(ApplicationRecord) && self == ApplicationRecord
-            Base.application_record_class = self
             true
           end
         end
