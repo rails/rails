@@ -78,16 +78,6 @@ module Arel # :nodoc: all
           visit o.right, collector
         end
 
-        def visit_Arel_Nodes_NullsFirst(o, collector)
-          visit o.expr, collector
-          collector << " NULLS FIRST"
-        end
-
-        def visit_Arel_Nodes_NullsLast(o, collector)
-          visit o.expr, collector
-          collector << " NULLS LAST"
-        end
-
         BIND_BLOCK = proc { |i| "$#{i}" }
         private_constant :BIND_BLOCK
 
