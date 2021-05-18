@@ -740,7 +740,7 @@ Please refer to the [OpenSSL::SSL::SSLContext documentation](https://docs.ruby-l
 
 If you are using self-signed certificates for redis adapter behind a firewall and opt to skip certificate check, then the ssl `verify_mode` should be set as `OpenSSL::SSL::VERIFY_NONE`.
 
-WARNING: It is not recommended to use `VERIFY_NONE` in production unless you absolutely understand the security implications. In order to set this option for the Redis adapter, the config should be `ssl_params: { <%= OpenSSL::SSL::VERIFY_NONE %> }`.
+WARNING: It is not recommended to use `VERIFY_NONE` in production unless you absolutely understand the security implications. In order to set this option for the Redis adapter, the config should be `ssl_params: { verify_mode: <%= OpenSSL::SSL::VERIFY_NONE %> }`.
 
 ##### PostgreSQL Adapter
 
