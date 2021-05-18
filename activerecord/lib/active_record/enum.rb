@@ -217,7 +217,11 @@ module ActiveRecord
             end
           end
         end
-        detect_negative_enum_conditions!(value_method_names) if scopes
+
+        if scopes || scopes.is_a?(Hash) && scopes[:negatives] != false
+          detect_negative_enum_conditions!(value_method_names)
+        end
+
         enum_values.freeze
       end
 
@@ -244,8 +248,10 @@ module ActiveRecord
               klass.send(:detect_enum_conflict!, name, value_method_name, true)
               klass.scope value_method_name, -> { where(name => value) }
 
-              klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
-              klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
+              unless scopes.is_a?(Hash) && scopes[:negatives] == false
+                klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
+                klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
+              end
             end
           end
       end

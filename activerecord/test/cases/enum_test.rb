@@ -725,6 +725,15 @@ class EnumTest < ActiveRecord::TestCase
     assert_raises(NoMethodError) { klass.proposed }
   end
 
+  test "negative scopes can be disabled by :_scopes" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written], _scopes: { negatives: false }
+    end
+
+    assert_raises(NoMethodError) { klass.not_proposed }
+  end
+
   test "overloaded default by :default" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
@@ -741,6 +750,15 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_raises(NoMethodError) { klass.proposed }
+  end
+
+  test "negative scopes can be disabled by :scopes" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written], scopes: { negatives: false }
+    end
+
+    assert_raises(NoMethodError) { klass.not_proposed }
   end
 
   test "query state by predicate with :prefix" do
