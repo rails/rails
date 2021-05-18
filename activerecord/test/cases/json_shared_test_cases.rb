@@ -213,6 +213,18 @@ module JSONSharedTestCases
     assert_equal 1.234, json.payload
   end
 
+  def test_select_by_integer_value
+    json = klass.create!(payload: 42)
+    x = klass.where(payload: 42).first
+    assert_equal(json, x)
+  end
+
+  def test_select_by_float_value
+    json = klass.create!(payload: 1.234)
+    x = klass.where(payload: 1.234).first
+    assert_equal(json, x)
+  end
+
   def test_assigning_boolean
     json = klass.create!(payload: true)
     assert_equal true, json.payload

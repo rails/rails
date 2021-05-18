@@ -3,6 +3,7 @@
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/mysql/column"
+require "active_record/connection_adapters/mysql/json"
 require "active_record/connection_adapters/mysql/explain_pretty_printer"
 require "active_record/connection_adapters/mysql/quoting"
 require "active_record/connection_adapters/mysql/schema_creation"
@@ -593,6 +594,13 @@ module ActiveRecord
 
             m.register_type %r(^enum)i, Type.lookup(:string, adapter: :mysql2)
             m.register_type %r(^set)i,  Type.lookup(:string, adapter: :mysql2)
+            m.register_type(%r(^json)i) do |sql_type|
+              if /^json/.match?(sql_type)
+                MySQL::Json.new
+              else
+                Type.lookup(:string, adapter: :mysql2)
+              end
+            end
           end
 
           def register_integer_type(mapping, key, **options)
