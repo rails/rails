@@ -35,9 +35,14 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     1...,
     1..5,
     1...5,
+    "a".."z",
+    "A".."Z",
     Date.new(2001, 2, 3)..,
+    10.days.ago..Date.today,
     Time.new(2002, 10, 31, 2, 2, 2.123456789r, "+02:00")..,
+    10.hours.ago..Time.current,
     DateTime.new(2001, 2, 3, 4, 5, 6.123456r, "+03:00")..,
+    (DateTime.current - 4.weeks)..DateTime.current,
     ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, "59.123456789".to_r), ActiveSupport::TimeZone["UTC"])..,
   ].each do |arg|
     test "serializes #{arg.class} - #{arg.inspect} verbatim" do

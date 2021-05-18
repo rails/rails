@@ -7,13 +7,11 @@ module ActiveJob
 
       def serialize(range)
         args = Arguments.serialize([range.begin, range.end, range.exclude_end?])
-        hash = KEYS.zip(args).to_h
-        super(hash)
+        super(KEYS.zip(args).to_h)
       end
 
       def deserialize(hash)
-        args = Arguments.deserialize(hash.values_at(*KEYS))
-        Range.new(*args)
+        klass.new(*Arguments.deserialize(hash.values_at(*KEYS)))
       end
 
       private
