@@ -41,6 +41,61 @@ class PostgresqlJSONTest < ActiveRecord::PostgreSQLTestCase
   def column_type
     :json
   end
+
+  # PostgreSQL's `json` type differs from `jsonb`
+  # you cannot select by a single numeric value w/o explicit casts for raw sql params
+  # but since PostgreSQL's `json` is in fact just `text` casts are ok
+  def test_select_by_integer_value
+    json = klass.create!(payload: 42)
+    x = klass.where("payload::text = ?::text", 42).first
+    assert_equal(json, x)
+  end
+
+  def test_select_by_float_value
+    json = klass.create!(payload: 1.234)
+    x = klass.where("payload::text = ?::text", 1.234).first
+    assert_equal(json, x)
+  end
+
+  def test_select_by_integer_value_without_cast
+    error = assert_raises(ActiveRecord::StatementInvalid) do
+      klass.where(payload: 42).first
+    end
+
+    assert_match(
+      %r/operator does not exist: json = unknown/,
+      error.message
+    )
+
+    assert_match(
+      %r/WHERE "json_data_type"\."payload" = \$1 ORDER/,
+      error.message
+    )
+
+    assert_not_nil error.cause
+  ensure
+    @connection.reconnect! if @connection.raw_connection.transaction_status == 3 # PG::PQTRANS_INERROR
+  end
+
+  def test_select_by_float_value_without_cast
+    error = assert_raises(ActiveRecord::StatementInvalid) do
+      klass.where(payload: 1.234).first
+    end
+
+    assert_match(
+      %r/operator does not exist: json = unknown/,
+      error.message
+    )
+
+    assert_match(
+      %r/WHERE "json_data_type"\."payload" = \$1 ORDER/,
+      error.message
+    )
+
+    assert_not_nil error.cause
+  ensure
+    @connection.reconnect! if @connection.raw_connection.transaction_status == 3 # PG::PQTRANS_INERROR
+  end
 end
 
 class PostgresqlJSONBTest < ActiveRecord::PostgreSQLTestCase
