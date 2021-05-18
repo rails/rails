@@ -111,9 +111,12 @@ module ActiveRecord
 
       def test_bad_timeout
         assert_raises(TypeError) do
-          Base.sqlite3_connection database: ":memory:",
-                                  adapter: "sqlite3",
-                                  timeout: "usa"
+          adapter = Base.sqlite3_connection(
+            database: ":memory:",
+            adapter: "sqlite3",
+            timeout: "usa",
+          )
+          adapter.raw_connection
         end
       end
 
@@ -279,6 +282,7 @@ module ActiveRecord
       end
 
       def test_tables_logs_name
+        @conn.raw_connection
         sql = <<~SQL
           SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND type IN ('table')
         SQL
@@ -568,14 +572,16 @@ module ActiveRecord
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         db = ::SQLite3::Database.new(db_config.database)
 
-        statement = ::SQLite3::Statement.new(db,
-                                           "CREATE TABLE statement_test (number integer not null)")
-        statement.stub(:step, -> { raise ::SQLite3::BusyException.new("busy") }) do
-          assert_called(statement, :columns, returns: []) do
-            assert_called(statement, :close) do
-              ::SQLite3::Statement.stub(:new, statement) do
-                assert_raises ActiveRecord::StatementInvalid do
-                  @conn.exec_query "select * from statement_test"
+        @conn.stub(:connection, db) do
+          statement = ::SQLite3::Statement.new(db,
+                                             "CREATE TABLE statement_test (number integer not null)")
+          statement.stub(:step, -> { raise ::SQLite3::BusyException.new("busy") }) do
+            assert_called(statement, :columns, returns: []) do
+              assert_called(statement, :close) do
+                ::SQLite3::Statement.stub(:new, statement) do
+                  assert_raises ActiveRecord::StatementInvalid do
+                    @conn.exec_query "select * from statement_test"
+                  end
                 end
               end
             end

@@ -43,7 +43,7 @@ module ActiveRecord
 
           # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
           # made since we established the connection
-          @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
+          connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
 
           super
         end
@@ -92,7 +92,7 @@ module ActiveRecord
           end
 
           def last_inserted_id(result)
-            @connection.last_id
+            @connection&.last_id
           end
 
           def multi_statements_enabled?
@@ -109,13 +109,13 @@ module ActiveRecord
             multi_statements_was = multi_statements_enabled?
 
             unless multi_statements_was
-              @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
+              connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
             end
 
             yield
           ensure
             unless multi_statements_was
-              @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
+              connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
             end
           end
 
