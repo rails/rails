@@ -1,3 +1,15 @@
+*   Deprecate raw SQL in `group` method without marking the SQL as safe.
+
+    ```ruby
+    # Before:
+    Post.group("<sql>").count
+
+    # After:
+    Post.group(Arel.sql("<sql>")).count
+    ```
+
+    *Andrew Kane*
+
 *   Improve performance of `one?` and `many?` by limiting the generated count query to 2 results.
 
     *Gonzalo Riestra*

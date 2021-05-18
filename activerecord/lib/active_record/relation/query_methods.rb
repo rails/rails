@@ -350,6 +350,7 @@ module ActiveRecord
     end
 
     def group!(*args) # :nodoc:
+      @klass.disallow_raw_sql!(args, permit: connection.column_name_without_alias_matcher, deprecated: true) unless args.empty?
       self.group_values += args
       self
     end

@@ -86,6 +86,10 @@ module ActiveRecord
           COLUMN_NAME_WITH_ORDER
         end
 
+        def column_name_without_alias_matcher
+          COLUMN_NAME_WITHOUT_ALIAS
+        end
+
         COLUMN_NAME = /
           \A
           (
@@ -113,7 +117,19 @@ module ActiveRecord
           \z
         /ix
 
-        private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
+        COLUMN_NAME_WITHOUT_ALIAS = /
+          \A
+          (
+            (?:
+              # "table_name"."column_name"::type_name | function(one or no argument)::type_name
+              ((?:\w+\.|"\w+"\.)?(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
+            )
+          )
+          (?:\s*,\s*\g<1>)*
+          \z
+        /ix
+
+        private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER, :COLUMN_NAME_WITHOUT_ALIAS
 
         private
           def lookup_cast_type(sql_type)

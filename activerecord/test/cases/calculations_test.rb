@@ -133,7 +133,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_multiple_fields_having_functions
-    c = Topic.group(:author_name, "COALESCE(type, title)").count(:all)
+    c = Topic.group(:author_name, Arel.sql("COALESCE(type, title)")).count(:all)
     assert_equal 1, c[["Carl", "The Third Topic of the day"]]
     assert_equal 1, c[["Mary", "Reply"]]
     assert_equal 1, c[["David", "The First Topic"]]

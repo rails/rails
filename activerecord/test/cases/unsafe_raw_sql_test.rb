@@ -271,4 +271,85 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
     assert_match(/Query method called with non-attribute argument\(s\):/, e.message)
   end
+
+  test "group: allows string column name" do
+    counts_expected = Post.group(Arel.sql("title")).count
+
+    counts = Post.group("title").count
+
+    assert_equal counts_expected, counts
+  end
+
+  test "group: allows string column name with function" do
+    counts_expected = Post.group(Arel.sql("UPPER(title)")).count
+
+    counts = Post.group("UPPER(title)").count
+
+    assert_equal counts_expected, counts
+  end
+
+  test "group: allows symbol column name" do
+    counts_expected = Post.group(Arel.sql("title")).count
+
+    counts = Post.group(:title).count
+
+    assert_equal counts_expected, counts
+  end
+
+  test "group: allows multiple columns" do
+    counts_expected = Post.group(Arel.sql("author_id"), Arel.sql("title")).count
+
+    counts = Post.group(:author_id, :title).count
+
+    assert_equal counts_expected, counts
+  end
+
+  test "group: allows table and column names" do
+    counts_expected = Post.group(Arel.sql("title")).count
+
+    counts = Post.group("posts.title").count
+
+    assert_equal counts_expected, counts
+  end
+
+  test "group: allows quoted table and column names" do
+    counts_expected = Post.group(Arel.sql("title")).count
+
+    quoted_title = Post.connection.quote_table_name("posts.title")
+    counts = Post.group(quoted_title).count
+
+    assert_equal counts_expected, counts
+  end
+
+  test "group: disallows invalid column name" do
+    assert_deprecated(/Dangerous query method/) do
+      Post.group("REPLACE(title, 'misc', 'zzzz')").count
+    end
+  end
+
+  test "group: always allows Arel" do
+    counts = Post.group(Arel.sql("REPLACE(title, 'misc', 'zzzz')")).count
+
+    assert_not_empty counts
+  end
+
+  test "group: disallows invalid Array arguments" do
+    assert_deprecated(/Dangerous query method/) do
+      Post.group(["author_id", "REPLACE(title, 'misc', 'zzzz')"]).count
+    end
+  end
+
+  test "group: allows valid Array arguments" do
+    counts_expected = Post.group([Arel.sql("author_id"), Arel.sql("length(title)")]).count
+
+    counts = Post.group(["author_id", "length(title)"]).count
+
+    assert_equal counts_expected, counts
+  end
+
+  test "group: disallows unrecognized column" do
+    assert_deprecated(/Dangerous query method/) do
+      Post.group("REPLACE(title, 'misc', 'zzzz')").count
+    end
+  end
 end
