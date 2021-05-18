@@ -57,6 +57,17 @@ module ActionController #:nodoc:
   module RequestForgeryProtection
     extend ActiveSupport::Concern
 
+    class DisabledSessionError < StandardError
+      MESSAGE = <<~EOS.squish
+        Request forgery protection requires a working session store but your application has sessions disabled.
+        You need to either disable request forgery protection, or configure a working session store.
+      EOS
+
+      def initialize(message = MESSAGE)
+        super
+      end
+    end
+
     include AbstractController::Helpers
     include AbstractController::Callbacks
 
@@ -89,6 +100,11 @@ module ActionController #:nodoc:
       # Controls whether forgery protection is enabled by default.
       config_accessor :default_protect_from_forgery
       self.default_protect_from_forgery = false
+
+      # Controls whether trying to use forgery protection without a working session store
+      # issues a warning or raises an error.
+      config_accessor :silence_disabled_session_errors
+      self.silence_disabled_session_errors = true
 
       # Controls whether URL-safe CSRF tokens are generated.
       config_accessor :urlsafe_csrf_tokens, instance_writer: false
@@ -438,7 +454,20 @@ module ActionController #:nodoc:
 
       # Checks if the controller allows forgery protection.
       def protect_against_forgery? # :doc:
-        allow_forgery_protection
+        allow_forgery_protection && ensure_session_is_enabled!
+      end
+
+      def ensure_session_is_enabled!
+        if !session.respond_to?(:enabled?) || session.enabled?
+          true
+        else
+          if silence_disabled_session_errors
+            ActiveSupport::Deprecation.warn(DisabledSessionError::MESSAGE)
+            false
+          else
+            raise DisabledSessionError
+          end
+        end
       end
 
       NULL_ORIGIN_MESSAGE = <<~MSG

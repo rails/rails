@@ -93,6 +93,7 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
       get "/call_reset_session"
       assert_response :success
       assert_not_equal [], headers["Set-Cookie"]
+      assert_not_nil headers["Set-Cookie"]
 
       get "/get_session_value"
       assert_response :success
