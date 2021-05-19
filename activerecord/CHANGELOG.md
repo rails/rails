@@ -1,3 +1,7 @@
+*   Add `.asc.nulls_first` for all databases. Unfortunately MySQL still doesn't like `nulls_last`.
+
+    *Keenan Brock*
+
 *   Improve performance of `one?` and `many?` by limiting the generated count query to 2 results.
 
     *Gonzalo Riestra*
