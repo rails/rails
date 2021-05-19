@@ -244,7 +244,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
   SessionKey = "_myapp_session"
   Generator = ActiveSupport::CachingKeyGenerator.new(
     ActiveSupport::KeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33", iterations: 1000)
- )
+  )
   Rotations = ActiveSupport::Messages::RotationConfiguration.new
   SIGNED_COOKIE_SALT = "signed cookie"
 

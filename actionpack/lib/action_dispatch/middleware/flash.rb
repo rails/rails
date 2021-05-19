@@ -45,7 +45,6 @@ module ActionDispatch
       # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
       # to put a new one.
       def flash
-        return Flash::NullFlash unless session.respond_to?(:loaded?)
         flash = flash_hash
         return flash if flash
         self.flash = Flash::FlashHash.from_session_value(session["flash"])
@@ -60,16 +59,14 @@ module ActionDispatch
       end
 
       def commit_flash # :nodoc:
-        session    = self.session || {}
-        flash_hash = self.flash_hash
+        return unless session.enabled?
 
         if flash_hash && (flash_hash.present? || session.key?("flash"))
           session["flash"] = flash_hash.to_session_value
           self.flash = flash_hash.dup
         end
 
-        if (!session.respond_to?(:loaded?) || session.loaded?) && # reset_session uses {}, which doesn't implement #loaded?
-            session.key?("flash") && session["flash"].nil?
+        if session.loaded? && session.key?("flash") && session["flash"].nil?
           session.delete("flash")
         end
       end
@@ -77,20 +74,6 @@ module ActionDispatch
       def reset_session # :nodoc:
         super
         self.flash = nil
-      end
-    end
-
-    module NullFlash #:nodoc:
-      class << self
-        def []=(k, v); end
-
-        def [](k); end
-
-        def alert=(message); end
-
-        def notice=(message); end
-
-        def empty?; end
       end
     end
 
