@@ -49,16 +49,6 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 2, r.errors.count
   end
 
-  def test_single_error_per_attr_iteration
-    r = Reply.new
-    r.valid?
-
-    errors = assert_deprecated { r.errors.collect { |attr, messages| [attr.to_s, messages] } }
-
-    assert_includes errors, ["title", "is Empty"]
-    assert_includes errors, ["content", "is Empty"]
-  end
-
   def test_multiple_errors_per_attr_iteration_with_full_error_composition
     r = Reply.new
     r.title   = ""
@@ -74,7 +64,7 @@ class ValidationsTest < ActiveModel::TestCase
 
   def test_errors_on_nested_attributes_expands_name
     t = Topic.new
-    assert_deprecated { t.errors["replies.name"] << "can't be blank" }
+    t.errors.add("replies.name", "can't be blank")
     assert_equal ["Replies name can't be blank"], t.errors.full_messages
   end
 
@@ -222,11 +212,6 @@ class ValidationsTest < ActiveModel::TestCase
     t = Topic.new
     assert_predicate t, :invalid?
 
-    xml = assert_deprecated { t.errors.to_xml }
-    assert_match %r{<errors>}, xml
-    assert_match %r{<error>Title can't be blank</error>}, xml
-    assert_match %r{<error>Content can't be blank</error>}, xml
-
     hash = {}
     hash[:title] = ["can't be blank"]
     hash[:content] = ["can't be blank"]
@@ -239,7 +224,8 @@ class ValidationsTest < ActiveModel::TestCase
 
     t = Topic.new("title" => "")
     assert_predicate t, :invalid?
-    assert_equal "can't be blank", t.errors["title"].first
+    assert_equal :blank, t.errors.first.type
+
     Topic.validates_presence_of :title, :author_name
     Topic.validate { errors.add("author_email_address", "will never be valid") }
     Topic.validates_length_of :title, :content, minimum: 2
@@ -247,15 +233,26 @@ class ValidationsTest < ActiveModel::TestCase
     t = Topic.new title: ""
     assert_predicate t, :invalid?
 
-    assert_equal :title, key = assert_deprecated { t.errors.keys[0] }
-    assert_equal "can't be blank", t.errors[key][0]
-    assert_equal "is too short (minimum is 2 characters)", t.errors[key][1]
-    assert_equal :author_name, key = assert_deprecated { t.errors.keys[1] }
-    assert_equal "can't be blank", t.errors[key][0]
-    assert_equal :author_email_address, key = assert_deprecated { t.errors.keys[2] }
-    assert_equal "will never be valid", t.errors[key][0]
-    assert_equal :content, key = assert_deprecated { t.errors.keys[3] }
-    assert_equal "is too short (minimum is 2 characters)", t.errors[key][0]
+    t.errors[0].tap do |error|
+      assert_equal :title, error.attribute
+      assert_equal :blank, error.type
+    end
+    t.errors[1].tap do |error|
+      assert_equal :title, error.attribute
+      assert_equal :too_short, error.type
+    end
+    t.errors[3].tap do |error|
+      assert_equal :author_name, error.attribute
+      assert_equal :blank, error.type
+    end
+    t.errors[4].tap do |error|
+      assert_equal :author_email_address, error.attribute
+      assert_equal "will never be valid", error.message
+    end
+    t.errors[6].tap do |error|
+      assert_equal :content, error.attribute
+      assert_equal :too_short, error.type
+    end
   end
 
   def test_validation_with_if_and_on

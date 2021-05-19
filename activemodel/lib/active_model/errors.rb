@@ -185,8 +185,12 @@ module ActiveModel
     #
     #   person.errors[:name]  # => ["cannot be nil"]
     #   person.errors['name'] # => ["cannot be nil"]
-    def [](attribute)
-      messages_for(attribute)
+    def [](index_or_attribute)
+      if index_or_attribute.is_a?(Integer)
+        @errors[index_or_attribute]
+      else
+        messages_for(index_or_attribute)
+      end
     end
 
     # Iterates through each error object.
