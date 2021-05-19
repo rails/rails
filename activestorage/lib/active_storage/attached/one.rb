@@ -61,6 +61,7 @@ module ActiveStorage
       if attached?
         attachment.purge
         write_attachment nil
+        reset_changes
       end
     end
 
@@ -69,6 +70,7 @@ module ActiveStorage
       if attached?
         attachment.purge_later
         write_attachment nil
+        reset_changes
       end
     end
 

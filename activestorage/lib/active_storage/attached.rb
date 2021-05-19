@@ -16,6 +16,10 @@ module ActiveStorage
       def change
         record.attachment_changes[name]
       end
+
+      def reset_changes
+        record.attachment_changes.delete(name)
+      end
   end
 end
 
