@@ -1,3 +1,12 @@
+*   Fix compatibility with `psych >= 4`.
+
+    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
+    Active Record's schema cache loader and `YAMLColumn` now uses `YAML.unsafe_load` if available.
+
+    *Jean Boussier*
+
+*   `ActiveRecord::Base.logger` is now a `class_attribute`.
+
 ## Rails 6.1.4 (June 24, 2021) ##
 
 *   Do not try to rollback transactions that failed due to a `ActiveRecord::TransactionRollbackError`.
