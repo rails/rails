@@ -52,7 +52,9 @@ module ActiveRecord
         cache.dump_to(tempfile.path)
 
         # Unzip and load manually.
-        cache = Zlib::GzipReader.open(tempfile.path) { |gz| YAML.load(gz.read) }
+        cache = Zlib::GzipReader.open(tempfile.path) do |gz|
+          YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(gz.read) : YAML.load(gz.read)
+        end
 
         # Give it a connection. Usually the connection
         # would get set on the cache when it's retrieved

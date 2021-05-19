@@ -211,7 +211,8 @@ class TimeWithZoneTest < ActiveSupport::TestCase
       time: 1999-12-31 19:00:00.000000000 Z
     EOF
 
-    assert_equal(@twz, YAML.load(yaml))
+    loaded = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(yaml) : YAML.load(yaml)
+    assert_equal(@twz, loaded)
   end
 
   def test_ruby_yaml_load
@@ -224,7 +225,8 @@ class TimeWithZoneTest < ActiveSupport::TestCase
         time: 1999-12-31 19:00:00.000000000 Z
     EOF
 
-    assert_equal({ "twz" => @twz }, YAML.load(yaml))
+    loaded = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(yaml) : YAML.load(yaml)
+    assert_equal({ "twz" => @twz }, loaded)
   end
 
   def test_httpdate

@@ -1,3 +1,10 @@
+*   Fix compatibility with `psych >= 4`.
+
+    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
+    Active Record's schema cache loader and `YAMLColumn` now uses `YAML.unsafe_load` if available.
+
+    *Jean Boussier*
+
 *   Changed Arel predications `contains` and `overlaps` to use
     `quoted_node` so that PostgreSQL arrays are quoted properly.
 
