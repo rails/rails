@@ -713,7 +713,8 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_durations_survive_yaml_serialization
-    d1 = YAML.load(YAML.dump(10.minutes))
+    payload = YAML.dump(10.minutes)
+    d1 = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
     assert_equal 600, d1.to_i
     assert_equal 660, (d1 + 60).to_i
   end

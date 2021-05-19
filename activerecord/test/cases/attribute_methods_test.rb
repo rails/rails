@@ -789,7 +789,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     in_time_zone "Pacific Time (US & Canada)" do
       record = Topic.new(id: 1)
       record.written_on = "Jan 01 00:00:00 2014"
-      assert_equal record, YAML.load(YAML.dump(record))
+      payload = YAML.dump(record)
+      assert_equal record, YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
     end
   ensure
     # NOTE: Reset column info because global topics
