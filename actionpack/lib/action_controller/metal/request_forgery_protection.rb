@@ -199,6 +199,10 @@ module ActionController #:nodoc:
             def exists?
               true
             end
+
+            def enabled?
+              false
+            end
           end
 
           class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:

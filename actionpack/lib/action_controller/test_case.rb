@@ -211,6 +211,10 @@ module ActionController
       @data.fetch(key.to_s, *args, &block)
     end
 
+    def enabled?
+      true
+    end
+
     private
       def load!
         @id
