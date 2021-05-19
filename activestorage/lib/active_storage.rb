@@ -67,6 +67,7 @@ module ActiveStorage
 
   mattr_accessor :replace_on_assign_to_many, default: false
   mattr_accessor :track_variants, default: false
+  mattr_accessor :cdn_host
 
   module Transformers
     extend ActiveSupport::Autoload

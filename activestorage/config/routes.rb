@@ -30,7 +30,18 @@ Rails.application.routes.draw do
   resolve("ActiveStorage::Blob")       { |blob, options| route_for(ActiveStorage.resolve_model_to_route, blob, options) }
   resolve("ActiveStorage::Attachment") { |attachment, options| route_for(ActiveStorage.resolve_model_to_route, attachment.blob, options) }
 
-  direct :rails_storage_proxy do |model, options|
+  direct :rails_storage_proxy do |model, options = {}|
+    if ActiveStorage.cdn_host.present?
+      cdn_uri = URI.parse(ActiveStorage.cdn_host)
+      cdn_uri = URI.parse("//#{ActiveStorage.cdn_host}") if cdn_uri.scheme.nil?
+
+      options = {
+        host: cdn_uri.host,
+        port: cdn_uri.port,
+        protocol: cdn_uri.scheme
+      }.merge(options)
+    end
+
     if model.respond_to?(:signed_id)
       route_for(
         :rails_service_blob_proxy,

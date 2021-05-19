@@ -45,6 +45,9 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
+  # Enable serving of attachments from a CDN.
+  # config.active_storage.cdn_host = "http://cdn.example.com"
+
   <%- end -%>
   <%- unless options[:skip_action_cable] -%>
   # Mount Action Cable outside main process or domain.

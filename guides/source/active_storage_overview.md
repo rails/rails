@@ -529,6 +529,30 @@ jobs, Cronjobs, etc.), you can access the `rails_blob_path` like this:
 Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: true)
 ```
 
+### Proxy mode
+
+Optionally, files can be proxied instead. This means that your application servers will download file data from the storage service in response to requests. This can be useful for serving files from a CDN.
+
+Explicitly proxy attachments using the `rails_storage_proxy_path` and `_url` route helpers:
+
+```erb
+<%= image_tag rails_storage_proxy_path(@user.avatar) %>
+```
+
+Or configure Active Storage to use proxying by default:
+
+```ruby
+# config/initializers/active_storage.rb
+Rails.application.config.active_storage.resolve_model_to_route = :rails_storage_proxy
+```
+
+In order to configure a CDN for Active Storage set the corresponding host in `config/environments/production.rb` like:
+```ruby
+  config.active_storage.cdn_host = "https://cdn.example.com"
+```
+
+The CDN host will only affect routes generated with proxy mode.
+
 Downloading Files
 -----------------
 

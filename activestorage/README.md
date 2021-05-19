@@ -137,6 +137,13 @@ Or configure Active Storage to use proxying by default:
 Rails.application.config.active_storage.resolve_model_to_route = :rails_storage_proxy
 ```
 
+In order to configure a CDN for Active Storage set the corresponding host in `config/environments/production.rb` like:
+```ruby
+  config.active_storage.cdn_host = "https://cdn.example.com"
+```
+
+The CDN host will only affect routes generated with proxy mode.
+
 ## Direct uploads
 
 Active Storage, with its included JavaScript library, supports uploading directly from the client to the cloud.

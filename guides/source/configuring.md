@@ -1058,6 +1058,8 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
     The default is `:rails_storage_redirect`.
 
+* `config.active_storage.cdn_host` can be used to set a CDN for ActiveStorage when generating links with proxy mode.
+
 ### Configuring Action Text
 
 * `config.action_text.attachment_tag_name` accepts a string for the HTML tag used to wrap attachments. Defaults to `"action-text-attachment"`.
