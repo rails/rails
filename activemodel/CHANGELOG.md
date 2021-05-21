@@ -1,3 +1,9 @@
+*   Fix delegation in ActiveModel::Type::Registry#lookup
+
+    Passing a last positional argument `{}` would be incorrectly considered as keyword argument.
+
+    *Benoit Daloze*
+
 *   Cache and re-use generated attribute methods.
 
     Generated methods with identical implementations will now share their instruction sequences
