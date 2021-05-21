@@ -875,8 +875,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
   end
 
-  def test_master_option
-    run_generator [destination_root, "--master"]
+  def test_main_option_using_alias
+    run_generator [destination_root, "--main"]
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']main["']$}
   end
 
