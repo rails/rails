@@ -61,27 +61,27 @@ module Rails
         end
 
         def inquire_action_cable
-          say "Action cable integrates web sockets with your rails application: https://github.com/rails/rails/tree/master/actioncable"
+          say "Action cable integrates web sockets with your rails application: https://guides.rubyonrails.org/action_cable_overview.html"
           inquire_boolean("Skip action cable?", options[:skip_action_cable])
         end
 
         def inquire_action_mailer
-          say "Action mailer is a framework for designing email services: https://github.com/rails/rails/tree/main/actionmailer"
+          say "Action mailer is a framework for designing email services: https://guides.rubyonrails.org/action_mailer_basics.html"
           inquire_boolean("Skip action mailer?", options[:skip_action_mailer])
         end
 
         def inquire_action_mailbox
-          say "Action Mailbox routes incoming emails to controller-like mailboxes for processing in Rails: https://github.com/rails/rails/tree/main/actionmailbox"
+          say "Action Mailbox routes incoming emails to controller-like mailboxes for processing in Rails: https://guides.rubyonrails.org/action_mailbox_basics.html"
           inquire_boolean("Skip action mailbox?", options[:skip_action_mailbox])
         end
 
         def inquire_active_storage
-          say "Active Storage makes it simple to upload and reference files in cloud services: https://github.com/rails/rails/tree/main/activestorage"
+          say "Active Storage makes it simple to upload and reference files in cloud services: https://guides.rubyonrails.org/active_storage_overview.html"
           inquire_boolean("Skip active storage?", options[:skip_active_storage])
         end
 
         def inquire_action_text
-          say "Action Text brings rich text content and editing to Rails: https://github.com/rails/rails/tree/main/actiontext"
+          say "Action Text brings rich text content and editing to Rails: https://guides.rubyonrails.org/action_text_overview.html"
           inquire_boolean("Skip action text?", options[:skip_action_text])
         end
 
