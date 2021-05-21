@@ -21,15 +21,16 @@ module ActiveModel
         registrations << registration_klass.new(type_name, block, **options)
       end
 
-      def lookup(symbol, *args, **kwargs)
-        registration = find_registration(symbol, *args, **kwargs)
+      def lookup(symbol, *args)
+        registration = find_registration(symbol, *args)
 
         if registration
-          registration.call(self, symbol, *args, **kwargs)
+          registration.call(self, symbol, *args)
         else
           raise ArgumentError, "Unknown type #{symbol.inspect}"
         end
       end
+      ruby2_keywords(:lookup) if respond_to?(:ruby2_keywords, true)
 
       private
         attr_reader :registrations
@@ -50,13 +51,10 @@ module ActiveModel
         @block = block
       end
 
-      def call(_registry, *args, **kwargs)
-        if kwargs.any? # https://bugs.ruby-lang.org/issues/10856
-          block.call(*args, **kwargs)
-        else
-          block.call(*args)
-        end
+      def call(_registry, *args)
+        block.call(*args)
       end
+      ruby2_keywords(:call) if respond_to?(:ruby2_keywords, true)
 
       def matches?(type_name, *args, **kwargs)
         type_name == name

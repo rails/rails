@@ -1,3 +1,10 @@
+*   Fix delegation in ActiveModel::Type::Registry#lookup
+
+    Passing a last positional argument `{}` would be incorrectly considered as keyword argument.
+
+    *Benoit Daloze*
+
+
 ## Rails 6.1.4 (June 24, 2021) ##
 
 *   Fix `to_json` for `ActiveModel::Dirty` object.
