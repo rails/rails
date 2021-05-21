@@ -294,6 +294,7 @@ module Rails
 
       class_option :minimal, type: :boolean,
                              desc: "Preconfigure a minimal rails app"
+
       class_option :interactive, type: :boolean, default: false, aliases: "-i",
                                  desc: "Interactive setup for your rails app"
 
