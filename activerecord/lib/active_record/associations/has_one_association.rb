@@ -61,7 +61,7 @@ module ActiveRecord
             save &&= owner.persisted?
 
             transaction_if(save) do
-              remove_target!(options[:dependent]) if target && !target.destroyed? && assigning_another_record
+              remove_target!(options[:dependent]) if target && !target.destroyed? && assigning_another_record && owner.persisted?
 
               if record
                 set_owner_attributes(record)
