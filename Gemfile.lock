@@ -395,7 +395,7 @@ GEM
     rb-fsevent (0.10.4)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
-    rdoc (6.3.0)
+    rdoc (6.3.1)
     redcarpet (3.2.3)
     redis (4.2.5)
     redis-namespace (1.8.1)
@@ -458,7 +458,7 @@ GEM
       sprockets (> 3.0)
       sprockets-rails
       tilt
-    sdoc (2.1.0)
+    sdoc (2.2.0)
       rdoc (>= 5.0)
     selenium-webdriver (4.0.0.beta3)
       childprocess (>= 0.5, < 5.0)
@@ -613,7 +613,7 @@ DEPENDENCIES
   rubocop-performance
   rubocop-rails
   sass-rails
-  sdoc (>= 2.1.0)
+  sdoc (>= 2.2.0)
   selenium-webdriver (>= 4.0.0.alpha7)
   sequel
   sidekiq
