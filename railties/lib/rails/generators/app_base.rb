@@ -97,7 +97,7 @@ module Rails
         class_option :edge,                type: :boolean, default: false,
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository"
 
-        class_option :main,                type: :boolean, default: false, aliases: "--master",
+        class_option :main,                type: :boolean, default: false, aliases: "--main",
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository main branch"
 
         class_option :rc,                  type: :string, default: nil,
