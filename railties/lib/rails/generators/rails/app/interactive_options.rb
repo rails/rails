@@ -22,7 +22,7 @@ module Rails
         case inquire_rails_version
         when "dev"    then options[:dev] = true
         when "edge"   then options[:edge] = true
-        when "master" then options[:master] = true
+        when "main" then options[:main] = true
         end
 
         options[:database]             = inquire_database
@@ -50,10 +50,10 @@ module Rails
           Target different versions of rails for your application.
           *dev* will target your checked out version of rails.
           *edge* will target the latest commit on rails.
-          *master* will target the rails master branch.
+          *main* will target the rails main branch.
           *stable* will target the rails gem version you have installed.
           MESSAGE
-          inquire_from_list("What is your preferred rails version?", %w(dev edge master stable), "stable")
+          inquire_from_list("What is your preferred rails version?", %w(dev edge main stable), "stable")
         end
 
         def inquire_database
@@ -66,27 +66,27 @@ module Rails
         end
 
         def inquire_action_mailer
-          say "Action mailer is a framework for designing email services: https://github.com/rails/rails/tree/master/actionmailer"
+          say "Action mailer is a framework for designing email services: https://github.com/rails/rails/tree/main/actionmailer"
           inquire_boolean("Skip action mailer?", options[:skip_action_mailer])
         end
 
         def inquire_action_mailbox
-          say "Action Mailbox routes incoming emails to controller-like mailboxes for processing in Rails: https://github.com/rails/rails/tree/master/actionmailbox"
+          say "Action Mailbox routes incoming emails to controller-like mailboxes for processing in Rails: https://github.com/rails/rails/tree/main/actionmailbox"
           inquire_boolean("Skip action mailbox?", options[:skip_action_mailbox])
         end
 
         def inquire_active_storage
-          say "Active Storage makes it simple to upload and reference files in cloud services: https://github.com/rails/rails/tree/master/activestorage"
+          say "Active Storage makes it simple to upload and reference files in cloud services: https://github.com/rails/rails/tree/main/activestorage"
           inquire_boolean("Skip active storage?", options[:skip_active_storage])
         end
 
         def inquire_action_text
-          say "Action Text brings rich text content and editing to Rails: https://github.com/rails/rails/tree/master/actiontext"
+          say "Action Text brings rich text content and editing to Rails: https://github.com/rails/rails/tree/main/actiontext"
           inquire_boolean("Skip action text?", options[:skip_action_text])
         end
 
         def inquire_bootsnap
-          say "Bootsnap boots rails apps, faster: https://github.com/Shopify/bootsnap"
+          say "Bootsnap makes Rails application boot faster: https://github.com/Shopify/bootsnap"
           inquire_boolean("Skip bootsnap?", options[:skip_bootsnap])
         end
 
