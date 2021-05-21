@@ -920,7 +920,7 @@ As long as `MyRackApp` responds to `call` and returns a `[status, headers, body]
 
 NOTE: For the curious, `'articles#index'` actually expands out to `ArticlesController.action(:index)`, which returns a valid Rack application.
 
-NOTE: Since procs/lambdas are objects that happen to respond to `call` you can implement very simple routes (e.g. for health checks) inline:<br>`get '/health', to: ->(env) { [204, {}, ''] }`
+NOTE: Since procs/lambdas are objects that respond to `call`, you can implement very simple routes (e.g. for health checks) inline:<br>`get '/health', to: ->(env) { [204, {}, ['']] }`
 
 If you specify a Rack application as the endpoint for a matcher, remember that
 the route will be unchanged in the receiving application. With the following
