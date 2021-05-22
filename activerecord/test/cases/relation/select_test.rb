@@ -88,5 +88,18 @@ module ActiveRecord
     ensure
       Post.enumerate_columns_in_select_statements = original_value
     end
+
+    def test_select_without_any_arguments
+      error = assert_raises(ArgumentError) { Post.select }
+      assert_equal "Call `select' with at least one field.", error.message
+    end
+
+    def test_select_with_block_without_any_arguments
+      error = assert_raises(ArgumentError) do
+        Post.select("invalid_argument") { }
+      end
+
+      assert_equal "`select' with block doesn't take arguments.", error.message
+    end
   end
 end
