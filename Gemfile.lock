@@ -570,7 +570,7 @@ DEPENDENCIES
   azure-storage-blob
   backburner
   bcrypt (~> 3.1.11)
-  benchmark-ips
+  benchmark-ips (< 2.9.0)
   blade
   bootsnap (>= 1.4.4)
   byebug
@@ -634,4 +634,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.2.15
+   2.2.16
