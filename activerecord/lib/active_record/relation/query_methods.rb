@@ -1162,7 +1162,7 @@ module ActiveRecord
       records.compact!
 
       unless records.all?(klass)
-        raise ArgumentError, "You must only pass a single or collection of #{klass.name} objects to #excluding."
+        raise ArgumentError, "You must only pass a single or collection of #{klass.name} objects to ##{__callee__}."
       end
 
       spawn.excluding!(records)
