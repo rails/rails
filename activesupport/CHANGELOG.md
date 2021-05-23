@@ -1,3 +1,15 @@
+*   The `from:` option is added to `ActiveSupport::TestCase#assert_no_changes`.
+
+    It permits asserting on the initial value that is expected not to change.
+
+    ```ruby
+    assert_no_changes -> { Status.all_good? }, from: true do
+      post :create, params: { status: { ok: true } }
+    end
+    ```
+  
+    *George Claghorn*
+
 *   Deprecate `ActiveSupport::SafeBuffer`'s incorrect implicit conversion of objects into string.
 
     Except for a few methods like `String#%`, objects must implement `#to_str`
@@ -73,9 +85,9 @@
     Ruby requires an initializer for non-numeric type as per examples below:
 
     ```ruby
-    %w[foo bar].sum('') 
+    %w[foo bar].sum('')
     # instead of %w[foo bar].sum
-    
+
     [[1, 2], [3, 4, 5]].sum([])
     #instead of [[1, 2], [3, 4, 5]].sum
     ```
