@@ -8,7 +8,12 @@ class CreateActiveStorageTables < ActiveRecord::Migration[5.2]
       t.string   :service_name, null: false
       t.bigint   :byte_size,    null: false
       t.string   :checksum,     null: false
-      t.datetime :created_at,   null: false
+
+      if connection.supports_datetime_with_precision?
+        t.datetime :created_at, precision: 6, null: false
+      else
+        t.datetime :created_at, null: false
+      end
 
       t.index [ :key ], unique: true
     end
@@ -18,7 +23,11 @@ class CreateActiveStorageTables < ActiveRecord::Migration[5.2]
       t.references :record,   null: false, polymorphic: true, index: false
       t.references :blob,     null: false
 
-      t.datetime :created_at, null: false
+      if connection.supports_datetime_with_precision?
+        t.datetime :created_at, precision: 6, null: false
+      else
+        t.datetime :created_at, null: false
+      end
 
       t.index [ :record_type, :record_id, :name, :blob_id ], name: "index_active_storage_attachments_uniqueness", unique: true
       t.foreign_key :active_storage_blobs, column: :blob_id
