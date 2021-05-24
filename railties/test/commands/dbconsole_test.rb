@@ -226,6 +226,25 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     end
   end
 
+  def test_specifying_a_replica_database
+    options = {
+      database: "primary_replica",
+    }
+
+    sample_config = {
+      "test" => {
+        "primary" => {},
+        "primary_replica" => {
+          "replica" => true
+        }
+      }
+    }
+
+    app_db_config(sample_config) do
+      assert_equal "primary_replica", Rails::DBConsole.new(options).db_config.name
+    end
+  end
+
   def test_specifying_a_missing_database
     app_db_config({}) do
       e = assert_raises(ActiveRecord::AdapterNotSpecified) do
