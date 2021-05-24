@@ -959,7 +959,7 @@ module ActiveRecord
     end
 
     def destroy_row
-      _delete_row
+      @_destroy_row_affected_rows ||= _delete_row
     end
 
     def _delete_row

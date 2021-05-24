@@ -1,3 +1,17 @@
+*   Fix inconsistent counter cache behaviour when optimistic locking enabled
+
+    Previously if optimistic locking was enabled on a model which `belongs_to`
+    some associate model, with `counter_cache: true`, the counter cache column
+    on the associate record would not be updated when destroying the belonging
+    record.
+
+    Now the counter caching will be updated, as expected, whether using
+    optimistic locking or not on the belonging model.
+
+    Fixes #41655
+
+    *Unathi Chonco*
+
 *   Add config option for ignoring tables when dumping the schema cache.
 
     Applications can now be configured to ignore certain tables when dumping the schema cache.
