@@ -1378,7 +1378,7 @@ Displaying Validation Errors in Views
 
 Once you've created a model and added validations, if that model is created via
 a web form, you probably want to display an error message when one of the
-validations fail.
+validations fails.
 
 Because every application handles this kind of thing differently, Rails does
 not include any view helpers to help you generate these messages directly.
