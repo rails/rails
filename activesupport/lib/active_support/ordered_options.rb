@@ -42,17 +42,8 @@ module ActiveSupport
 
     def method_missing(name, *args)
       name_string = +name.to_s
-      if name_string.chomp!("=")
-        self[name_string] = args.first
-      else
-        bangs = name_string.chomp!("!")
-
-        if bangs
-          self[name_string].presence || raise(KeyError.new(":#{name_string} is blank"))
-        else
-          self[name_string]
-        end
-      end
+      define_accessors_for(name_string)
+      self.send(name_string, *args)
     end
 
     def respond_to_missing?(name, include_private)
@@ -66,6 +57,20 @@ module ActiveSupport
     def inspect
       "#<#{self.class.name} #{super}>"
     end
+
+    private
+      def define_accessors_for(name)
+        name = name.dup
+        name.chomp!("=")
+        name.chomp!("!")
+        self.class.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def #{name}; self["#{name}"]; end
+          def #{name}!
+            self["#{name}"].presence || raise(KeyError.new(":#{name} is blank"))
+          end
+          def #{name}=(value); self["#{name}"] = value; end
+        RUBY
+      end
   end
 
   # +InheritableOptions+ provides a constructor to build an +OrderedOptions+

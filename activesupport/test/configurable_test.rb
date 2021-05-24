@@ -72,24 +72,6 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     assert_equal :bar, Parent.config.foo
   end
 
-  test "configuration is crystalizeable" do
-    parent = Class.new { include ActiveSupport::Configurable }
-    child  = Class.new(parent)
-
-    parent.config.bar = :foo
-    assert_method_not_defined parent.config, :bar
-    assert_method_not_defined child.config, :bar
-    assert_method_not_defined child.new.config, :bar
-
-    parent.config.compile_methods!
-    assert_equal :foo, parent.config.bar
-    assert_equal :foo, child.new.config.bar
-
-    assert_method_defined parent.config, :bar
-    assert_method_defined child.config, :bar
-    assert_method_defined child.new.config, :bar
-  end
-
   test "should raise name error if attribute name is invalid" do
     assert_raises NameError do
       Class.new do

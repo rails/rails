@@ -125,4 +125,10 @@ class OrderedOptionsTest < ActiveSupport::TestCase
 
     assert_equal "#<ActiveSupport::OrderedOptions {:foo=>:bar, :baz=>:quz}>", a.inspect
   end
+
+  def test_methods_are_not_masked_by_hash
+    a = ActiveSupport::OrderedOptions.new
+    a.count = 99
+    assert_equal 99, a.count
+  end
 end

@@ -1,3 +1,18 @@
+*   Generate `ActiveSupport::OrderedOptions` accessors on first access.
+
+    Getter and setter methods on `ActiveSupport::OrderedOptions` are now
+    generated on each instance the first time an accessor method is called.
+
+    This fixes a bug where methods on `Hash` would mask keys with the same
+    name on `ActiveSupport::OrderedOptions` and by extension
+    `ActiveSupport::Configurable` (e.g. `Rails.application.config`).
+
+    This change also increases the read performance of
+    `ActiveSupport::OrderedOptions` and removes the need for
+    `ActiveSupport::Configurable::Configuration#compile_methods!`.
+
+    *Malcolm Locke*
+
 *   Deprecate `ActiveSupport::SafeBuffer`'s incorrect implicit conversion of objects into string.
 
     Except for a few methods like `String#%`, objects must implement `#to_str`
