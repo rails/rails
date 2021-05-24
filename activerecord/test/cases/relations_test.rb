@@ -983,14 +983,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal first.heading, topic.heading
   end
 
-  def test_select_argument_error
-    assert_raises(ArgumentError) { Developer.select }
-  end
-
-  def test_select_argument_error_with_block
-    assert_raises(ArgumentError) { Developer.select(:id) { |d| d.id % 2 == 0 } }
-  end
-
   def test_count
     posts = Post.all
 
