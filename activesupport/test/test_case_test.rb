@@ -286,6 +286,37 @@ class AssertionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_no_changes_with_from_option
+    assert_no_changes "@object.num", from: 0 do
+      # ...
+    end
+  end
+
+  def test_assert_no_changes_with_from_option_with_wrong_value
+    assert_raises Minitest::Assertion do
+      assert_no_changes "@object.num", from: -1 do
+        # ...
+      end
+    end
+  end
+
+  def test_assert_no_changes_with_from_option_with_nil
+    error = assert_raises Minitest::Assertion do
+      assert_no_changes "@object.num", from: nil do
+        @object.increment
+      end
+    end
+    assert_equal "Expected initial value of nil", error.message
+  end
+
+  def test_assert_no_changes_with_from_and_case_operator
+    token = SecureRandom.hex
+
+    assert_no_changes -> { token }, from: /\w{32}/ do
+      # ...
+    end
+  end
+
   def test_assert_no_changes_with_message
     error = assert_raises Minitest::Assertion do
       assert_no_changes "@object.num", "@object.num should not change" do
