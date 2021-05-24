@@ -118,20 +118,20 @@ module ActiveRecord
         end
 
         def destroy_row
-          return super unless locking_enabled?
+          if locking_enabled?
+            delete_constraints = _primary_key_constraints_hash
+            locking_column = self.class.locking_column
+            delete_constraints[locking_column] = _lock_value_for_database(locking_column)
 
-          locking_column = self.class.locking_column
+            @_destroy_row_affected_rows = self.class._delete_record(delete_constraints)
 
-          delete_constraints = _primary_key_constraints_hash
-          delete_constraints[locking_column] = _lock_value_for_database(locking_column)
 
-          affected_rows = self.class._delete_record(delete_constraints)
-
-          if affected_rows != 1
-            raise ActiveRecord::StaleObjectError.new(self, "destroy")
+            if @_destroy_row_affected_rows != 1
+              raise ActiveRecord::StaleObjectError.new(self, "destroy")
+            end
           end
 
-          affected_rows
+          super
         end
 
         def _lock_value_for_database(locking_column)

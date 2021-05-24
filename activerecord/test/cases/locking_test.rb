@@ -607,6 +607,23 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     PersonalLegacyThing.reset_column_information
   end
 
+  def test_destroy_child_with_locking_enabled_updates_counter_on_parent
+    # Establish dependent relationship between Person and PersonalLegacyThing
+    add_counter_column_to(Person, "personal_legacy_things_count")
+    PersonalLegacyThing.reset_column_information
+
+    person = Person.create!(first_name: "unathi")
+    thing = PersonalLegacyThing.create!(person: person)
+    assert_equal 1, person.personal_legacy_things_count
+
+    assert_difference "person.reload.personal_legacy_things_count", -1 do
+      thing.destroy
+    end
+  ensure
+    remove_counter_column_from(Person, "personal_legacy_things_count")
+    PersonalLegacyThing.reset_column_information
+  end
+
   def test_destroy_existing_object_with_locking_column_value_null_in_the_database
     ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
     t1 = LockWithoutDefault.last
