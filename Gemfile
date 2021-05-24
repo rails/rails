@@ -119,7 +119,7 @@ group :test do
     gem "byebug"
   end
 
-  gem "benchmark-ips", "< 2.9.0"
+  gem "benchmark-ips"
 end
 
 platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do

@@ -157,7 +157,7 @@ GEM
     bcrypt (3.1.16)
     bcrypt (3.1.16-java)
     beaneater (1.0.0)
-    benchmark-ips (2.8.4)
+    benchmark-ips (2.9.1)
     blade (0.7.2)
       activesupport (>= 3.0.0)
       blade-qunit_adapter (>= 2.0.1)
@@ -570,7 +570,7 @@ DEPENDENCIES
   azure-storage-blob
   backburner
   bcrypt (~> 3.1.11)
-  benchmark-ips (< 2.9.0)
+  benchmark-ips
   blade
   bootsnap (>= 1.4.4)
   byebug
