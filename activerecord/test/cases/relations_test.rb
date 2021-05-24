@@ -537,45 +537,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, person_with_reader_and_post.size
   end
 
-  def test_no_arguments_to_query_methods_raise_errors
-    error = assert_raises(ArgumentError) { Topic.references() }
-    assert_equal "The method .references() must contain arguments.", error.message
-
-    error = assert_raises(ArgumentError) { Topic.includes() }
-    assert_equal "The method .includes() must contain arguments.", error.message
-
-    error = assert_raises(ArgumentError) { Topic.preload() }
-    assert_equal "The method .preload() must contain arguments.", error.message
-
-    error = assert_raises(ArgumentError) { Topic.group() }
-    assert_equal "The method .group() must contain arguments.", error.message
-
-    error = assert_raises(ArgumentError) { Topic.reorder() }
-    assert_equal "The method .reorder() must contain arguments.", error.message
-
-    error = assert_raises(ArgumentError) { Topic.order() }
-    assert_equal "The method .order() must contain arguments.", error.message
-
-    error = assert_raises(ArgumentError) { Topic.eager_load() }
-    assert_equal "The method .eager_load() must contain arguments.", error.message
-
-    error = assert_raises(ArgumentError) { Topic.reselect() }
-    assert_equal "The method .reselect() must contain arguments.", error.message
-
-    error = assert_raises(ArgumentError) { Topic.unscope() }
-    assert_equal "The method .unscope() must contain arguments.", error.message
-
-    error = assert_raises(ArgumentError) { Topic.joins() }
-    assert_equal "The method .joins() must contain arguments.", error.message
-
-    error = assert_raises(ArgumentError) { Topic.left_joins() }
-    assert_equal "The method .left_joins() must contain arguments.", error.message
-
-    error = assert_raises(ArgumentError) { Topic.optimizer_hints() }
-    assert_equal "The method .optimizer_hints() must contain arguments.", error.message
-
-    error = assert_raises(ArgumentError) { Topic.annotate() }
-    assert_equal "The method .annotate() must contain arguments.", error.message
+  %w( references includes preload eager_load group order reorder reselect unscope
+      joins left_joins left_outer_joins optimizer_hints annotate ).each do |method|
+    class_eval <<~RUBY
+      def test_no_arguments_to_#{method}_raise_errors
+        error = assert_raises(ArgumentError) { Topic.#{method}() }
+        assert_equal "The method .#{method}() must contain arguments.", error.message
+      end
+    RUBY
   end
 
   def test_blank_like_arguments_to_query_methods_dont_raise_errors
