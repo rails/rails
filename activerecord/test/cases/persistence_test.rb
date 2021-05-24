@@ -53,6 +53,14 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_equal "2 updated", Topic.find(2).content
   end
 
+  def test_update_with_different_size_arrays
+    topic_keys = [1, 2, 999]
+    topic_value = [{ "content" => "1 updated" }, { "content" => "2 updated" }]
+    assert_raise(ArgumentError) do
+      Topic.update(topic_keys, topic_value)
+    end
+  end
+
   def test_class_level_update_without_ids
     topics = Topic.all
     assert_equal 5, topics.length
