@@ -469,6 +469,30 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal({ "trial" => true }, topic.content)
   end
 
+  def test_mutation_detection
+    mutable_model = Class.new(Topic) do
+      # self.immutable_strings_by_default = true
+      attribute :content, ActiveModel::Type::String.new
+      serialize :content, Hash
+    end
+    topic = mutable_model.create!(content: { "foo" => "bar" })
+    assert_not_predicate topic, :changed?
+    topic.content["foo"] = "plop"
+    assert_predicate topic, :changed?
+  end
+
+  def test_mutation_detection_with_immutable_string
+    mutable_model = Class.new(Topic) do
+      # self.immutable_strings_by_default = true
+      attribute :content, ActiveModel::Type::ImmutableString.new
+      serialize :content, Hash
+    end
+    topic = mutable_model.create!(content: { "foo" => "bar" })
+    assert_not_predicate topic, :changed?
+    topic.content["foo"] = "plop"
+    assert_predicate topic, :changed?
+  end
+
   def test_mutation_detection_does_not_double_serialize
     coder = Object.new
     def coder.dump(value)
