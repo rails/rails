@@ -64,6 +64,18 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_equal "1 updated", Topic.first.content
   end
 
+  def test_update_many_with_array_of_active_record_base_objects
+    error = assert_raise(ArgumentError) do
+      Topic.update(Topic.first(2), content: "updated")
+    end
+
+    assert_equal "You are passing an array of ActiveRecord::Base instances to `update`. " \
+    "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`.", error.message
+
+    assert_not_equal "updated", Topic.first.content
+    assert_not_equal "updated", Topic.second
+  end
+
   def test_class_level_update_without_ids
     topics = Topic.all
     assert_equal 5, topics.length
