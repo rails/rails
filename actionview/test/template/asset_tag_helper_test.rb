@@ -24,6 +24,7 @@ class AssetTagHelperTest < ActionView::TestCase
     def headers
       @headers ||= {}
     end
+    def sending?; false; end
   end
 
   def setup
