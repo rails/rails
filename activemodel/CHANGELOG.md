@@ -1,4 +1,4 @@
-*   Fix delegation in ActiveModel::Type::Registry#lookup
+*   Fix delegation in ActiveModel::Type::Registry#lookup and ActiveModel::Type.lookup
 
     Passing a last positional argument `{}` would be incorrectly considered as keyword argument.
 
