@@ -296,12 +296,25 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal("New Topic", topic_reloaded.title)
   end
 
-  def test_save!
+  def test_save_valid_record
     topic = Topic.new(title: "New Topic")
     assert topic.save!
+  end
 
-    reply = WrongReply.new
-    assert_raise(ActiveRecord::RecordInvalid) { reply.save! }
+  def test_save_invalid_record
+    reply = WrongReply.new(title: "New reply")
+    error = assert_raise(ActiveRecord::RecordInvalid) { reply.save! }
+
+    assert_equal "Validation failed: Content Empty", error.message
+  end
+
+  def test_save_destroyed_object
+    topic = Topic.create!(title: "New Topic")
+    topic.destroy!
+
+    error = assert_raise(ActiveRecord::RecordNotSaved) { topic.save! }
+
+    assert_equal "Failed to save the record", error.message
   end
 
   def test_save_null_string_attributes
