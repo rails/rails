@@ -30,10 +30,9 @@ module ActiveModel
         registry.register(type_name, klass, &block)
       end
 
-      def lookup(*args) # :nodoc:
-        registry.lookup(*args)
+      def lookup(...) # :nodoc:
+        registry.lookup(...)
       end
-      ruby2_keywords(:lookup)
 
       def default_value # :nodoc:
         @default_value ||= Value.new
