@@ -30,8 +30,8 @@ module ActiveModel
         registry.register(type_name, klass, &block)
       end
 
-      def lookup(*args, **kwargs) # :nodoc:
-        registry.lookup(*args, **kwargs)
+      def lookup(...) # :nodoc:
+        registry.lookup(...)
       end
 
       def default_value # :nodoc:
