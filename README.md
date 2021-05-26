@@ -5,7 +5,7 @@
 </p>
 
 # Welcome to Rails
-
+Bonjour Belgique!
 ## What's Rails?
 
 Rails is a web-application framework that includes everything needed to
