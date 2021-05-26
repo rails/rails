@@ -39,7 +39,9 @@ class UpdateAllTest < ActiveRecord::TestCase
   end
 
   def test_update_all_with_blank_argument
-    assert_raises(ArgumentError) { Comment.update_all({}) }
+    error = assert_raises(ArgumentError) { Comment.update_all({}) }
+
+    assert_equal "Empty list of attributes to change", error.message
   end
 
   def test_update_all_with_joins
