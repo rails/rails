@@ -39,7 +39,7 @@
 *   Added a faster and more compact `ActiveSupport::Cache` serialization format.
 
     It can be enabled with `config.active_support.cache_format_version = 7.0` or
-    `config.load_defaults(7.0)`. Regardless of the configuration Active Support
+    `config.load_defaults 7.0`. Regardless of the configuration Active Support
     7.0 can read cache entries serialized by Active Support 6.1 which allows to
     upgrade without invalidating the cache. However Rails 6.1 can't read the
     new format, so all readers must be upgraded before the new format is enabled.

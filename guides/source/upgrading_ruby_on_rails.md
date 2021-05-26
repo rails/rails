@@ -131,7 +131,7 @@ To enable it you must set `config.active_support.cache_format_version = 7.0`:
 ```ruby
 # config/application.rb
 
-config.load_defaults(6.1)
+config.load_defaults 6.1
 config.active_support.cache_format_version = 7.0
 ```
 
@@ -140,7 +140,7 @@ Or simply:
 ```ruby
 # config/application.rb
 
-config.load_defaults(7.0)
+config.load_defaults 7.0
 ```
 
 However Rails 6.1 applications are not able to read this new serialization format,
