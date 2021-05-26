@@ -101,6 +101,25 @@ NOTE: Configuration files that are environment-specific will take precedence:
 in production, for example, the `config/storage/production.yml` file (if existent)
 will take precedence over the `config/storage.yml` file.
 
+It is recommended to use `Rails.env` in the bucket names to further reduce the risk of accidentally destroying production data.
+
+```yaml
+amazon:
+  service: S3
+  # ...
+  bucket: your_own_bucket-<%= Rails.env %>
+
+google:
+  service: GCS
+  # ...
+  bucket: your_own_bucket-<%= Rails.env %>
+
+azure:
+  service: AzureStorage
+  # ...
+  container: your_container_name-<%= Rails.env %>
+```
+
 ### Disk Service
 
 Declare a Disk service in `config/storage.yml`:
