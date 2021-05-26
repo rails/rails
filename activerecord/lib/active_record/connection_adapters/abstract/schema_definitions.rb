@@ -411,6 +411,12 @@ module ActiveRecord
           end
         end
 
+        if @conn.supports_datetime_with_precision?
+          if type == :datetime && !options.key?(:precision)
+            options[:precision] = 6
+          end
+        end
+
         @columns_hash[name] = new_column_definition(name, type, **options)
 
         if index

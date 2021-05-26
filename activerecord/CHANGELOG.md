@@ -1,3 +1,9 @@
+*   Set precision 6 by default for `datetime` columns
+
+    By default, datetime columns will have microseconds precision instead of seconds precision.
+
+    *Roberto Miranda*
+
 *   Allow preloading of associations with instance dependent scopes
 
     *John Hawthorn*, *John Crepezzi*, *Adam Hess*, *Eileen M. Uchitelle*, *Dinah Shi*

@@ -295,6 +295,11 @@ module ActiveRecord
             options[:null] = true if options[:null].nil?
             super
           end
+
+          def column(name, type, index: nil, **options)
+            options[:precision] ||= nil
+            super
+          end
         end
 
         def add_reference(table_name, ref_name, **options)
@@ -321,6 +326,14 @@ module ActiveRecord
 
         def remove_index(table_name, column_name = nil, **options)
           options[:name] = index_name_for_remove(table_name, column_name, options)
+          super
+        end
+
+        def add_column(table_name, column_name, type, **options)
+          if type == :datetime
+            options[:precision] ||= nil
+          end
+
           super
         end
 
