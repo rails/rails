@@ -139,6 +139,8 @@ numbers. It also filters out sensitive values of database columns when call `#in
 
 * `config.rake_eager_load` when `true`, eager load the application when running Rake tasks. Defaults to `false`.
 
+* `config.relative_url_root` can be used to tell Rails that you are [deploying to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
+
 * `config.reload_classes_only_on_change` enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to `true`. If `config.cache_classes` is `true`, this option is ignored.
 
 * `config.credentials.content_path` configures lookup path for encrypted credentials.
@@ -530,8 +532,6 @@ The schema dumper adds two additional configuration options:
 * `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController::Base`.
 
 * `config.action_controller.urlsafe_csrf_tokens` configures whether generated CSRF tokens are URL-safe.
-
-* `config.action_controller.relative_url_root` can be used to tell Rails that you are [deploying to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
 * `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.
 
