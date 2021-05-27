@@ -132,6 +132,93 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
   end
 
+  test "attaching new blobs within a transaction uploads all the files" do
+    @user.highlights.attach fixture_file_upload("image.gif")
+
+    ActiveRecord::Base.transaction do
+      @user.highlights.attach fixture_file_upload("racecar.jpg")
+      @user.highlights.attach fixture_file_upload("video.mp4")
+    end
+
+    assert_equal "image.gif", @user.highlights.first.filename.to_s
+    assert_equal "racecar.jpg", @user.highlights.second.filename.to_s
+    assert_equal "video.mp4", @user.highlights.third.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.third.key)
+  end
+
+  test "attaching many new blobs within a transaction uploads all the files" do
+    ActiveRecord::Base.transaction do
+      @user.highlights.attach [fixture_file_upload("image.gif"), fixture_file_upload("racecar.jpg")]
+      @user.highlights.attach fixture_file_upload("video.mp4")
+    end
+
+    assert_equal "image.gif", @user.highlights.first.filename.to_s
+    assert_equal "racecar.jpg", @user.highlights.second.filename.to_s
+    assert_equal "video.mp4", @user.highlights.third.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.third.key)
+  end
+
+  test "attaching many new blobs within a transaction on a dirty record uploads all the files" do
+    @user.name = "Tina"
+
+    ActiveRecord::Base.transaction do
+      @user.highlights.attach fixture_file_upload("image.gif")
+      @user.highlights.attach fixture_file_upload("racecar.jpg")
+    end
+
+    @user.highlights.attach fixture_file_upload("video.mp4")
+    @user.save
+
+    assert_equal "image.gif", @user.highlights.first.filename.to_s
+    assert_equal "racecar.jpg", @user.highlights.second.filename.to_s
+    assert_equal "video.mp4", @user.highlights.third.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.third.key)
+  end
+
+  test "attaching new blobs within a transaction create the exact amount of records" do
+    assert_difference -> { ActiveStorage::Blob.count }, +2 do
+      ActiveRecord::Base.transaction do
+        @user.highlights.attach fixture_file_upload("racecar.jpg")
+        @user.highlights.attach fixture_file_upload("video.mp4")
+      end
+    end
+
+    assert_equal 2, @user.highlights.count
+  end
+
+  test "attaching new blobs within a transaction with append_on_assign config uploads all the files" do
+    append_on_assign do
+      ActiveRecord::Base.transaction do
+        @user.highlights.attach fixture_file_upload("racecar.jpg")
+        @user.highlights.attach fixture_file_upload("video.mp4")
+      end
+
+      assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
+      assert_equal "video.mp4", @user.highlights.second.filename.to_s
+      assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+      assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+    end
+  end
+
+  test "attaching new blobs within a transaction with append_on_assign config create the exact amount of records" do
+    append_on_assign do
+      assert_difference -> { ActiveStorage::Blob.count }, +2 do
+        ActiveRecord::Base.transaction do
+          @user.highlights.attach fixture_file_upload("racecar.jpg")
+          @user.highlights.attach fixture_file_upload("video.mp4")
+        end
+      end
+
+      assert_equal 2, @user.highlights.count
+    end
+  end
+
   test "attaching existing blobs to an existing record one at a time" do
     @user.highlights.attach create_blob(filename: "funky.jpg")
     @user.highlights.attach create_blob(filename: "town.jpg")
