@@ -1525,6 +1525,7 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActiveJob::TestCase`                | `active_job_test_case`               |
 | `ActiveRecord::Base`                 | `active_record`                      |
 | `ActiveStorage::Attachment`          | `active_storage_attachment`          |
+| `ActiveStorage::VariantRecord`       | `active_storage_variant_record`      |
 | `ActiveStorage::Blob`                | `active_storage_blob`                |
 | `ActiveStorage::Record`              | `active_storage_record`              |
 | `ActiveSupport::TestCase`            | `active_support_test_case`           |
