@@ -73,7 +73,7 @@ class PersistenceTest < ActiveRecord::TestCase
     "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`.", error.message
 
     assert_not_equal "updated", Topic.first.content
-    assert_not_equal "updated", Topic.second
+    assert_not_equal "updated", Topic.second.content
   end
 
   def test_class_level_update_without_ids
