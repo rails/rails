@@ -60,6 +60,20 @@ module ActiveRecord
       end
     end
 
+    def test_errors_when_a_create_table_query_is_called_while_preventing_writes
+      ActiveRecord::Base.while_preventing_writes do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @connection.execute("CREATE TABLE subscribers2 (nick VARCHAR(255))")
+        end
+      end
+    end
+
+    def test_doesnt_error_when_a_create_temporary_table_query_is_called_while_preventing_writes
+      ActiveRecord::Base.while_preventing_writes do
+        @connection.execute("CREATE TEMPORARY TABLE subscribers2 (nick VARCHAR(255))")
+      end
+    end
+
     if ActiveRecord::Base.connection.supports_common_table_expressions?
       def test_doesnt_error_when_a_read_query_with_a_cte_is_called_while_preventing_writes
         @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
@@ -183,6 +197,20 @@ module ActiveRecord
       @connection_handler.while_preventing_writes do
         result = @connection.select_all("SELECT subscribers.* FROM subscribers WHERE nick = '138853948594'")
         assert_equal 1, result.length
+      end
+    end
+
+    def test_errors_when_a_create_table_query_is_called_while_preventing_writes
+      @connection_handler.while_preventing_writes do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @connection.execute("CREATE TABLE subscribers2 (nick VARCHAR(255))")
+        end
+      end
+    end
+
+    def test_doesnt_error_when_a_create_temporary_table_query_is_called_while_preventing_writes
+      @connection_handler.while_preventing_writes do
+        @connection.execute("CREATE TEMPORARY TABLE subscribers2 (nick VARCHAR(255))")
       end
     end
 

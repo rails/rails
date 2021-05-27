@@ -62,7 +62,7 @@ module ActiveRecord
         end
       end
 
-      DEFAULT_READ_QUERY = [:begin, :commit, :explain, :release, :rollback, :savepoint, :select, :with] # :nodoc:
+      DEFAULT_READ_QUERY = [:begin, :commit, :explain, :release, :rollback, :savepoint, :select, :with, /CREATE\s+TEMPORARY\s+TABLE/] # :nodoc:
       private_constant :DEFAULT_READ_QUERY
 
       def self.build_read_query_regexp(*parts) # :nodoc:
