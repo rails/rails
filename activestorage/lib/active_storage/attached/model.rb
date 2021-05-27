@@ -138,13 +138,14 @@ module ActiveStorage
 
           def #{name}=(attachables)
             attachables = Array(attachables).compact_blank
+            pending_uploads = attachment_changes["#{name}"].try(:pending_uploads)
 
             if ActiveStorage.replace_on_assign_to_many
               attachment_changes["#{name}"] =
                 if attachables.none?
                   ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
                 else
-                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables)
+                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables, pending_uploads: pending_uploads)
                 end
             else
               ActiveSupport::Deprecation.warn \
@@ -155,7 +156,7 @@ module ActiveStorage
 
               if attachables.any?
                 attachment_changes["#{name}"] =
-                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs + attachables)
+                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs + attachables, pending_uploads: pending_uploads)
               end
             end
           end
