@@ -1,3 +1,26 @@
+*   Previously, `acts_like?` would return true no matter what `acts_like_*` returned,
+    however this behavior is now deprecated for non-boolean return values.
+
+    ```ruby
+    class RubberDuck
+      # Deprecated
+      def acts_like_duck; end
+
+      # Should be updated to
+      def acts_like_duck
+        true
+      end
+    end
+    ```
+
+    The return value of `acts_like_*` will always be used by enabling the configuration:
+
+    ```ruby
+    config.active_support.use_acts_like_return_value = true
+    ```
+
+    *Hartley McGuire*
+
 *   Add `ActiveSupport::TestCase#stub_const` to stub a constant for the duration of a yield.
 
     *DHH*

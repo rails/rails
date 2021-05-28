@@ -148,5 +148,13 @@ module ActiveSupport
         end
       end
     end
+
+    initializer "active_support.set_use_acts_like_return_value" do |app|
+      config.after_initialize do
+        if app.config.active_support.use_acts_like_return_value
+          ActiveSupport.use_acts_like_return_value = true
+        end
+      end
+    end
   end
 end

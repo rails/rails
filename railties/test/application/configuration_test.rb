@@ -3537,6 +3537,32 @@ module ApplicationTests
       assert_equal true, ActionController::Base.raise_on_missing_callback_actions
     end
 
+    test "ActiveSupport.use_acts_like_return_value is true by default for new apps" do
+      app "development"
+
+      assert_equal true, ActiveSupport.use_acts_like_return_value
+    end
+
+    test "ActiveSupport.use_acts_like_return_value is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+      app "development"
+
+      assert_equal false, ActiveSupport.use_acts_like_return_value
+    end
+
+    test "ActiveSupport.use_acts_like_return_value can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.active_support.use_acts_like_return_value = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveSupport.use_acts_like_return_value
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
