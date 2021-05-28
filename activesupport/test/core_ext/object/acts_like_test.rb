@@ -13,6 +13,36 @@ class ObjectTests < ActiveSupport::TestCase
     end
   end
 
+  class TimeSubclass < Time
+    def acts_like_time?
+      false
+    end
+  end
+
+  class DateSubclass < Date
+    def acts_like_date?
+      false
+    end
+  end
+
+  class StringSubclass < String
+    def acts_like_string?
+      false
+    end
+  end
+
+  class Duck
+    def acts_like_duck?
+      true
+    end
+  end
+
+  class RubberDuck < Duck
+    def acts_like_duck?
+      false
+    end
+  end
+
   def test_duck_typing
     object = Object.new
     time   = Time.now
@@ -34,5 +64,20 @@ class ObjectTests < ActiveSupport::TestCase
 
     assert duck.acts_like?(:time)
     assert_not duck.acts_like?(:date)
+  end
+
+  def test_subclasses_can_override
+    time_sub = TimeSubclass.now
+    date_sub = DateSubclass.today
+    string_sub = StringSubclass.new
+    duck = Duck.new
+    rubber_duck = RubberDuck.new
+
+    assert_not time_sub.acts_like?(:time)
+    assert_not date_sub.acts_like?(:date)
+    assert_not string_sub.acts_like?(:string)
+
+    assert duck.acts_like?(:duck)
+    assert_not rubber_duck.acts_like?(:duck)
   end
 end
