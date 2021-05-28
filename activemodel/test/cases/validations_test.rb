@@ -7,7 +7,6 @@ require "models/reply"
 require "models/custom_reader"
 
 require "active_support/json"
-require "active_support/xml_mini"
 
 class ValidationsTest < ActiveModel::TestCase
   class CustomStrictValidationException < StandardError; end
