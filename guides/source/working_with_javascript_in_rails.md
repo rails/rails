@@ -146,6 +146,53 @@ concatenator. We can serve our entire JavaScript bundle on every page, which
 means that it'll get downloaded on the first page load and then be cached on
 every page after that. Lots of little benefits really add up.
 
+As usual, Rails has opinions about how the software should be structured and this applies to JavaScript too. Rails provides an `app\javascript` directory as a home for our JavaScript. If we use more and more JavaScript in our apps, it is worth spreading out the files across a directory strucure, but for now, it is better to split the JavaScript and put it in two places. The function itself should go in `app\javascript\paint.js` after adding the export statements
+
+```js
+export default function paintIt(element, backgroundColor, textColor) {
+  element.style.backgroundColor = backgroundColor;
+  if (textColor) {
+    element.style.color = textColor;
+  }
+}
+```
+and the listener should be added to `app\javascript\packs\application.js`.
+
+
+```js
+// This file is automatically compiled by Webpack, along with any other files
+// present in this directory. You're encouraged to place your actual application logic in
+// a relevant structure within app/javascript and only use these pack files to reference
+// that code so it'll be compiled.
+
+import Rails from "@rails/ujs"
+import Turbolinks from "turbolinks"
+import * as ActiveStorage from "@rails/activestorage"
+import "channels"
+import paintIt from "paint"
+ 
+
+Rails.start()
+Turbolinks.start()
+ActiveStorage.start()
+
+window.addEventListener("load", () => {
+  const links = document.querySelectorAll(
+    "a[data-background-color]"
+  );
+  links.forEach((element) => {
+    element.addEventListener("click", (event) => {
+      event.preventDefault();
+
+      const {backgroundColor, textColor} = element.dataset;
+      paintIt(element, backgroundColor, textColor);
+    });
+  });
+});
+```
+
+One final change (see below) is to make the listener for a (slightly) different event. As the default Rails app uses Turbolinks, we don't get a "load" event everytime. Mostly, we need to listen for "turbolinks:load" instead.
+
 Built-in Helpers
 ----------------
 
