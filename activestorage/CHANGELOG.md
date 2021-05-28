@@ -1,3 +1,26 @@
+*   Active Storage now supports an `environment` key in the `storage.yml` file. When set,
+    a service cannot be accessed unless the `Rails.env` matches the given environment.
+
+    ```yml
+    # config/storage.yml
+
+    local:
+      service: Disk
+      environment: development
+      # ...
+
+    amazon:
+      service: S3
+      environment:
+        - production
+        - staging
+      # ...
+    ```
+
+    This can prevent [data loss](https://github.com/rails/rails/issues/42186) from bad blob data.
+
+    *Alex Ghiculescu*
+
 *   `ActiveStorage::PreviewError` is raised when a previewer is unable to generate a preview image.
 
     *Alex Robbin*

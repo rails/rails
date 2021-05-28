@@ -14,12 +14,13 @@ module ActiveStorage
         else
           if block_given?
             yield key
+            nil
           else
             raise KeyError, "Missing configuration for the #{key} Active Storage service. " \
               "Configurations available for the #{configurations.keys.to_sentence} services."
           end
         end
-      end
+      end.tap { |service| service&.check_if_environment_is_permitted! }
     end
 
     private

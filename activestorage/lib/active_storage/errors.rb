@@ -26,4 +26,12 @@ module ActiveStorage
 
   # Raised when a Previewer is unable to generate a preview image.
   class PreviewError < Error; end
+
+  class EnvironmentMismatchError < Error
+    def initialize(name, permitted_env)
+      msg = +"You are attempting to access the `#{name}` Active Storage service that can only be accessed in the `#{permitted_env}` environment.\n"
+      msg << "If the `#{name}` service should work in the `#{Rails.env}` environment, set it as the `environment` in config/storage.yml."
+      super(msg)
+    end
+  end
 end

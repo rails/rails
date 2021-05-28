@@ -278,6 +278,26 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "can access service if service is permitted" do
+    with_rails_env("development") do
+      with_service("local_developent_only") do
+        blob = create_blob(filename: "funky.jpg", service_name: :local_developent_only)
+        assert_instance_of ActiveStorage::Service::DiskService, blob.service
+      end
+    end
+  end
+
+  test "can't access service if service not permitted" do
+    assert_raises ActiveStorage::EnvironmentMismatchError do
+      with_rails_env("test") do
+        with_service("local_developent_only") do
+          blob = create_blob(filename: "funky.jpg", service_name: :local_developent_only)
+          assert_instance_of ActiveStorage::Service::DiskService, blob.service
+        end
+      end
+    end
+  end
+
   private
     def expected_url_for(blob, disposition: :attachment, filename: nil, content_type: nil, service_name: :local)
       filename ||= blob.filename
@@ -286,5 +306,13 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
       key_params = { key: blob.key, disposition: ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized), content_type: content_type, service_name: service_name }
 
       "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(key_params, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}"
+    end
+
+    def with_rails_env(env)
+      old_rails_env = Rails.env
+      Rails.env = env
+      yield
+    ensure
+      Rails.env = old_rails_env
     end
 end
