@@ -510,6 +510,56 @@ user.avatar.purge_later
 [Attached::One#purge]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge
 [Attached::One#purge_later]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge_later
 
+Validating Files
+----------------
+
+Active Storage includes attachment validators for the following properties:
+
+* Byte Size
+* Content Type
+
+### Size
+
+Validates the size (in bytes) of the attached `Blob` object:
+
+    ```ruby
+    validates :avatar, attachment_byte_size: { in: 0..1.megabyte }
+    validates :avatar, attachment_byte_size: { minimum: 17.kilobytes }
+    validates :avatar, attachment_byte_size: { maximum: 38.megabytes }
+    ```
+
+Also accepts a `Range` as a shortcut option for `:in`:
+
+    ```ruby
+    validates :avatar, attachment_size: 0..1.megabyte
+    ```
+
+### Content Type
+
+Validates the content type of the attached `Blob` object:
+
+    ```ruby
+    validates :avatar, attachment_byte_content_type: { in: %w[image/jpeg image/png] }
+    validates :avatar, attachment_byte_content_type: { not: %w[application/pdf] }
+    ```
+
+Also accepts a `Array` or `String` as a shortcut option for `:in`:
+
+    ```ruby
+    validates :avatar, attachment_byte_content_type: %w[image/jpeg image/png]
+    validates :avatar, attachment_byte_content_type: "image/jpeg"
+    ```
+
+### Validation Helper
+
+Active Storage also provides a more readable validation helper named
+`validates_attachment()` which provides the same functionality as `validates()`
+but does not require the `attachment_` prefix on keys:
+
+    ```ruby
+    validates_attachment :avatar, byte_size: { in: 0..1.megabyte }, content_type: "image/jpeg"
+    ```
+
 Linking to Files
 ----------------
 

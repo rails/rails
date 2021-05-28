@@ -5,8 +5,13 @@
 # the blob that was created up front.
 class ActiveStorage::DirectUploadsController < ActiveStorage::BaseController
   def create
-    blob = ActiveStorage::Blob.create_before_direct_upload!(**blob_args)
-    render json: direct_upload_json(blob)
+    blob = ActiveStorage::Blob.build_for_direct_upload(**blob_args)
+    if blob.valid_with?(params.dig(:blob, :model))
+      blob.save!
+      render json: direct_upload_json(blob)
+    else
+      head :unprocessable_entity
+    end
   end
 
   private
