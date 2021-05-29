@@ -1,4 +1,4 @@
-*   `bin/rails tmp:clear` deletes files and directories in `tmp/storage`.
+*   `bin/rails tmp:clear` deletes also files and directories in `tmp/storage`.
 
     *George Claghorn*
 
