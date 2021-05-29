@@ -1,3 +1,7 @@
+*   `bin/rails tmp:clear` deletes files and directories in `tmp/storage`.
+
+    *George Claghorn*
+
 *   Fix compatibility with `psych >= 4`.
 
     Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility

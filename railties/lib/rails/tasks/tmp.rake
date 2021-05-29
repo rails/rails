@@ -2,7 +2,7 @@
 
 namespace :tmp do
   desc "Clear cache, socket and screenshot files from tmp/ (narrow w/ tmp:cache:clear, tmp:sockets:clear, tmp:screenshots:clear)"
-  task clear: ["tmp:cache:clear", "tmp:sockets:clear", "tmp:screenshots:clear"]
+  task clear: ["tmp:cache:clear", "tmp:sockets:clear", "tmp:screenshots:clear", "tmp:storage:clear"]
 
   tmp_dirs = [ "tmp/cache",
                "tmp/sockets",
@@ -39,6 +39,13 @@ namespace :tmp do
     # desc "Clears all files in tmp/screenshots"
     task :clear do
       rm Dir["tmp/screenshots/[^.]*"], verbose: false
+    end
+  end
+
+  namespace :storage do
+    # desc "Clear all files and directories in tmp/storage"
+    task :clear do
+      rm_rf Dir["tmp/storage/[^.]*"], verbose: false
     end
   end
 end
