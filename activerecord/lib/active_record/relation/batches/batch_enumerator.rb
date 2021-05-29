@@ -12,6 +12,20 @@ module ActiveRecord
         @finish = finish
       end
 
+      # The primary key value from which the BatchEnumerator starts, inclusive of the value.
+      attr_reader :start
+
+      # The primary key value at which the BatchEnumerator ends, inclusive of the value.
+      attr_reader :finish
+
+      # The relation from which the BatchEnumerator yields batches.
+      attr_reader :relation
+
+      # The size of the batches yielded by the BatchEnumerator.
+      def batch_size
+        @of
+      end
+
       # Looping through a collection of records from the database (using the
       # +all+ method, for example) is very inefficient since it will try to
       # instantiate all the objects at once.
