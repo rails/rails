@@ -146,7 +146,7 @@ concatenator. We can serve our entire JavaScript bundle on every page, which
 means that it'll get downloaded on the first page load and then be cached on
 every page after that. Lots of little benefits really add up.
 
-As usual, Rails has opinions about how the software should be structured and this applies to JavaScript too. Rails provides an `app\javascript` directory as a home for our JavaScript. If we use more and more JavaScript in our app, it is worth spreading out the files across a directory structure, but for now, it is be better to split the JavaScript and put it in two places. The function itself should go in `app\javascript\paint.js` after adding the export statements
+As usual, Rails has opinions about how the software should be structured and this applies to JavaScript too. Rails provides an `app\javascript` directory as a home for our JavaScript. If we use more and more JavaScript in our app, it is worth spreading out the files across a directory structure, but for now, it is better to split the JavaScript and put it in two places. The function itself should go in `app\javascript\paint.js` after adding the export statements
 
 ```js
 export default function paintIt(element, backgroundColor, textColor) {
