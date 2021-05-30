@@ -85,7 +85,7 @@ end
 
 **Note:** you don't need to add a `content` field to your `messages` table.
 
-Then refer to this field in the form for the model:
+Then use [`rich_text_area`] to refer to this field in the form for the model:
 
 ```erb
 <%# app/views/messages/_form.html.erb %>
@@ -113,6 +113,8 @@ class MessagesController < ApplicationController
   end
 end
 ```
+
+[`rich_text_area`]: https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-rich_text_area
 
 ## Rendering Rich Text content
 
