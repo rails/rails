@@ -108,9 +108,9 @@ module ActiveRecord
 
       ReversibleAndIrreversibleMethods.each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
-          def #{method}(*args, &block)          # def create_table(*args, &block)
-            record(:"#{method}", args, &block)  #   record(:create_table, args, &block)
-          end                                   # end
+          def #{method}(...)                # def create_table(...)
+            record(:"#{method}", ...)       #   record(:create_table, ...)
+          end                               # end
         EOV
         ruby2_keywords(method)
       end
