@@ -36,6 +36,45 @@ module Arel # :nodoc: all
           infix_value o, collector, op
         end
 
+        def visit_Arel_Nodes_HomogeneousIn(o, collector)
+          if o.type == :in && o.attribute.type_caster.type == :point
+            collector.preparable = false
+
+            collector << quote_table_name(o.table_name) << "." << quote_column_name(o.column_name) << " ~= "
+
+            values = o.casted_values
+            if values.empty?
+              collector << @connection.quote(nil)
+            else
+              collector << "'(#{values.join(', ')})'"
+            end
+
+            collector
+          else
+            super
+          end
+        end
+
+        def visit_Arel_Nodes_Equality(o, collector)
+          left = o.left
+          if left.try(:able_to_type_cast?) && left.type_caster.type == :point
+            right = o.right
+
+            return collector << "1=0" if unboundable?(right)
+
+            collector = visit o.left, collector
+
+            if right.nil?
+              collector << " IS NULL"
+            else
+              collector << " ~= "
+              visit right, collector
+            end
+          else
+            super
+          end
+        end
+
         def visit_Arel_Nodes_DistinctOn(o, collector)
           collector << "DISTINCT ON ( "
           visit(o.expr, collector) << " )"
