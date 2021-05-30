@@ -26,7 +26,7 @@ module Rails
 
       def edit
         extract_environment_option_from_argument(default_environment: nil)
-        require_application!
+        require_application_and_environment!
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
 
@@ -91,7 +91,7 @@ module Rails
 
         def change_credentials_in_system_editor
           credentials.change do |tmp_path|
-            system("#{ENV["EDITOR"]} #{tmp_path}")
+            system("#{default_editor} #{tmp_path}")
           end
         end
 

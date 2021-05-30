@@ -7,12 +7,15 @@ module Rails
     module Helpers
       module Editor
         private
+
           def ensure_editor_available(command:)
-            if ENV["EDITOR"].to_s.empty?
+            if default_editor.to_s.empty?
               say "No $EDITOR to open file in. Assign one like this:"
               say ""
               say %(EDITOR="mate --wait" #{command})
               say ""
+              say "You can also assign a default editor in an environment file like development.rb:"
+              say "config.credentials.default_editor = 'vim'"
               say "For editors that fork and exit immediately, it's important to pass a wait flag,"
               say "otherwise the credentials will be saved immediately with no chance to edit."
 
@@ -20,6 +23,10 @@ module Rails
             else
               true
             end
+          end
+
+          def default_editor
+            ENV["EDITOR"] || Rails.application.config.credentials&.default_editor
           end
 
           def catch_editing_exceptions
