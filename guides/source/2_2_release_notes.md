@@ -3,7 +3,7 @@
 Ruby on Rails 2.2 Release Notes
 ===============================
 
-Rails 2.2 delivers a number of new and improved features. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/2-2-stable) in the main Rails repository on GitHub.
+Rails 2.2 delivers several new and improved features. This list covers the major upgrades but doesn't include every little bug fix and change. If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/2-2-stable) in the main Rails repository on GitHub.
 
 Along with Rails, 2.2 marks the launch of the [Ruby on Rails Guides](https://guides.rubyonrails.org/), the first results of the ongoing [Rails Guides hackfest](http://hackfest.rubyonrails.org/guide). This site will deliver high-quality documentation of the major features of Rails.
 
@@ -77,7 +77,7 @@ class ArticlesController < ApplicationController
     # to the stale? call is set on the response).
     #
     # If the request headers match, then the request is fresh and the respond_to block is
-    # not triggered. Instead the default render will occur, which will check the last-modified
+    # not triggered. Instead, the default render will occur, which will check the last-modified
     # and etag headers and conclude that it only needs to send a "304 Not Modified" instead
     # of rendering the template.
     if stale?(:last_modified => @article.published_at.utc, :etag => @article)
