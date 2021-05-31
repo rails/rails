@@ -11,7 +11,7 @@ Highlights in Rails 4.0:
 * Russian Doll Caching
 
 These release notes cover only the major changes. To learn about various bug
-fixes and changes, please refer to the change logs or check out the [list of
+fixes and changes, please refer to the changelogs or check out the [list of
 commits](https://github.com/rails/rails/commits/4-0-stable) in the main Rails
 repository on GitHub.
 
