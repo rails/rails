@@ -3,7 +3,7 @@
 Ruby on Rails 2.3 Release Notes
 ===============================
 
-Rails 2.3 delivers a variety of new and improved features, including pervasive Rack integration, refreshed support for Rails Engines, nested transactions for Active Record, dynamic and default scopes, unified rendering, more efficient routing, application templates, and quiet backtraces. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/2-3-stable) in the main Rails repository on GitHub or review the `CHANGELOG` files for the individual Rails components.
+Rails 2.3 delivers a variety of new and improved features, including pervasive Rack integration, refreshed support for Rails Engines, nested transactions for Active Record, dynamic and default scopes, unified rendering, more efficient routing, application templates, and quiet backtraces. This list covers the major upgrades but doesn't include every little bug fix and change. If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/2-3-stable) in the main Rails repository on GitHub or review the `CHANGELOG` files for the individual Rails components.
 
 --------------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ There are two major changes in the architecture of Rails applications: complete 
 
 ### Rack Integration
 
-Rails has now broken with its CGI past, and uses Rack everywhere. This required and resulted in a tremendous number of internal changes (but if you use CGI, don't worry; Rails now supports CGI through a proxy interface). Still, this is a major change to Rails internals. After upgrading to 2.3, you should test on your local environment and your production environment. Some things to test:
+Rails has now broken with its CGI past and uses Rack everywhere. This required and resulted in a tremendous number of internal changes (but if you use CGI, don't worry; Rails now supports CGI through a proxy interface). Still, this is a major change to Rails internals. After upgrading to 2.3, you should test on your local environment and your production environment. Some things to test:
 
 * Sessions
 * Cookies
@@ -30,7 +30,7 @@ Here's a summary of the rack-related changes:
 * The integration test runner has been modified to execute the entire middleware and application stack. This makes integration tests perfect for testing Rack middleware.
 * `ActionController::CGIHandler` is a backwards compatible CGI wrapper around Rack. The `CGIHandler` is meant to take an old CGI object and convert its environment information into a Rack compatible form.
 * `CgiRequest` and `CgiResponse` have been removed.
-* Session stores are now lazy loaded. If you never access the session object during a request, it will never attempt to load the session data (parse the cookie, load the data from memcache, or lookup an Active Record object).
+* Session stores are now lazy-loaded. If you never access the session object during a request, it will never attempt to load the session data (parse the cookie, load the data from memcache, or lookup an Active Record object).
 * You no longer need to use `CGI::Cookie.new` in your tests for setting a cookie value. Assigning a `String` value to request.cookies["foo"] now sets the cookie as expected.
 * `CGI::Session::CookieStore` has been replaced by `ActionController::Session::CookieStore`.
 * `CGI::Session::MemCacheStore` has been replaced by `ActionController::Session::MemCacheStore`.
@@ -297,7 +297,7 @@ In some of the first fruits of the Rails-Merb team merger, Rails 2.3 includes so
 
 ### Improved Caching Performance
 
-Rails now keeps a per-request local cache of read from the remote cache stores, cutting down on unnecessary reads and leading to better site performance. While this work was originally limited to `MemCacheStore`, it is available to any remote store than implements the required methods.
+Rails now keeps a per-request local cache of read from the remote cache stores, cutting down on unnecessary reads and leading to better site performance. While this work was originally limited to `MemCacheStore`, it is available to any remote store that implements the required methods.
 
 * Lead Contributor: [Nahum Wild](http://www.motionstandingstill.com/)
 
@@ -314,7 +314,7 @@ A change to the translation API makes things easier and less repetitive to write
 ### Other Action Controller Changes
 
 * ETag handling has been cleaned up a bit: Rails will now skip sending an ETag header when there's no body to the response or when sending files with `send_file`.
-* The fact that Rails checks for IP spoofing can be a nuisance for sites that do heavy traffic with cell phones, because their proxies don't generally set things up right. If that's you, you can now set `ActionController::Base.ip_spoofing_check = false` to disable the check entirely.
+* The fact that Rails checks for IP spoofing can be a nuisance for sites that do heavy traffic with cell phones because their proxies don't generally set things up right. If that's you, you can now set `ActionController::Base.ip_spoofing_check = false` to disable the check entirely.
 * `ActionController::Dispatcher` now implements its own middleware stack, which you can see by running `rake middleware`.
 * Cookie sessions now have persistent session identifiers, with API compatibility with the server-side stores.
 * You can now use symbols for the `:type` option of `send_file` and `send_data`, like this: `send_file("fabulous.png", :type => :png)`.
