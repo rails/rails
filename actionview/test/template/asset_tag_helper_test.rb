@@ -6,8 +6,21 @@ require "active_support/ordered_options"
 require "action_dispatch"
 ActionView::Template::Types.delegate_to Mime
 
+module AssetTagHelperTestHelpers
+  def with_preload_links_header(new_preload_links_header = true)
+    original_preload_links_header = ActionView::Helpers::AssetTagHelper.preload_links_header
+    ActionView::Helpers::AssetTagHelper.preload_links_header = new_preload_links_header
+
+    yield
+  ensure
+    ActionView::Helpers::AssetTagHelper.preload_links_header = original_preload_links_header
+  end
+end
+
 class AssetTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
+
+  include AssetTagHelperTestHelpers
 
   attr_reader :request, :response
 
@@ -789,16 +802,6 @@ class AssetTagHelperTest < ActionView::TestCase
       assert_equal "http://localhost/images/xml.png", image_path("xml.png")
     end
   end
-
-  private
-    def with_preload_links_header(new_preload_links_header = true)
-      original_preload_links_header = ActionView::Helpers::AssetTagHelper.preload_links_header
-      ActionView::Helpers::AssetTagHelper.preload_links_header = new_preload_links_header
-
-      yield
-    ensure
-      ActionView::Helpers::AssetTagHelper.preload_links_header = original_preload_links_header
-    end
 end
 
 class AssetTagHelperNonVhostTest < ActionView::TestCase
@@ -949,6 +952,32 @@ class AssetTagHelperWithoutRequestTest < ActionView::TestCase
 
   def test_javascript_include_tag_without_request
     assert_dom_equal %(<script src="/javascripts/foo.js"></script>), javascript_include_tag("foo.js")
+  end
+end
+
+class AssetTagHelperWithStreamingRequest < ActionView::TestCase
+  tests ActionView::Helpers::AssetTagHelper
+
+  include AssetTagHelperTestHelpers
+
+  def setup
+    super
+    response.sending!
+  end
+
+  def test_stylesheet_link_tag_with_streaming
+    with_preload_links_header do
+      assert_dom_equal(
+        %(<link rel="stylesheet" href="/stylesheets/foo.css" />),
+        stylesheet_link_tag("foo.css")
+      )
+    end
+  end
+
+  def test_javascript_include_tag_with_streaming
+    with_preload_links_header do
+      assert_dom_equal %(<script src="/javascripts/foo.js"></script>), javascript_include_tag("foo.js")
+    end
   end
 end
 
