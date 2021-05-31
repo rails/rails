@@ -48,7 +48,7 @@ Rails will use that particular setting to configure Active Record.
 
 WARNING: Use the public configuration methods over calling directly to the associated class. e.g. `config.application.action_mailer.options` instead of `ActionMailer::Base.options`.
 
-NOTE: If you need to apply configuration directly to a class, use a [lazy load hook](https://api.rubyonrails.org/classes/ActiveSupport/LazyLoadHooks.html) in an initializer in order to avoid auto-loading the class before initialization has completed. This will break.
+NOTE: If you need to apply configuration directly to a class, use a [lazy load hook](https://api.rubyonrails.org/classes/ActiveSupport/LazyLoadHooks.html) in an initializer to avoid auto-loading the class before initialization has completed. This will break because autoloading during initialization cannot be safely repeated when the app reloads.
 
 ### Rails General Configuration
 
