@@ -680,6 +680,32 @@ SELECT * FROM customers WHERE (customers.last_name = 'Smith' OR customers.orders
 
 [`or`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-or
 
+### AND Conditions
+
+`AND` conditions can be built by chaining `where` conditions.
+
+```ruby
+Customer.where(last_name: 'Smith').where(orders_count: [1,3,5]))
+```
+
+```sql
+SELECT * FROM customers WHERE customers.last_name = 'Smith' AND customers.orders_count IN (1,3,5)
+```
+
+`AND` conditions for the logical intersection between relations can be built by
+calling [`and`][] on the first relation, and passing the second one as an
+argument.
+
+```ruby
+Customer.where(id: [1, 2]).and(Customer.where(id: [2, 3]))
+```
+
+```sql
+SELECT * FROM customers WHERE (customers.id IN (1, 2) AND customers.id IN (2, 3))
+```
+
+[`and`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-and
+
 Ordering
 --------
 
