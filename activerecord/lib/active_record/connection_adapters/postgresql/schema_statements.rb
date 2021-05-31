@@ -483,7 +483,7 @@ module ActiveRecord
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
           fk_info = exec_query(<<~SQL, "SCHEMA")
-            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid
+            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
             JOIN pg_class t2 ON c.confrelid = t2.oid
@@ -505,6 +505,8 @@ module ActiveRecord
 
             options[:on_delete] = extract_foreign_key_action(row["on_delete"])
             options[:on_update] = extract_foreign_key_action(row["on_update"])
+            options[:deferrable] = extract_foreign_key_deferrable(row["deferrable"], row["deferred"])
+
             options[:validate] = row["valid"]
 
             ForeignKeyDefinition.new(table_name, row["to_table"], options)
@@ -710,6 +712,10 @@ module ActiveRecord
             when "n"; :nullify
             when "r"; :restrict
             end
+          end
+
+          def extract_foreign_key_deferrable(deferrable, deferred)
+            deferrable && (deferred ? :deferred : true)
           end
 
           def add_column_for_alter(table_name, column_name, type, **options)

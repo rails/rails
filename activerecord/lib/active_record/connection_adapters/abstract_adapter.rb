@@ -363,6 +363,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support creating deferrable constraints?
+      def supports_deferrable_constraints?
+        false
+      end
+
       # Does this adapter support creating check constraints?
       def supports_check_constraints?
         false

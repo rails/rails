@@ -10,7 +10,14 @@ module ActiveRecord
           end
 
           def visit_AddForeignKey(o)
-            super.dup.tap { |sql| sql << " NOT VALID" unless o.validate? }
+            super.dup.tap do |sql|
+              if o.deferrable
+                sql << " DEFERRABLE"
+                sql << " INITIALLY #{o.deferrable.to_s.upcase}" unless o.deferrable == true
+              end
+
+              sql << " NOT VALID" unless o.validate?
+            end
           end
 
           def visit_CheckConstraintDefinition(o)
