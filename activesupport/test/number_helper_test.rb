@@ -207,6 +207,7 @@ module ActiveSupport
           assert_equal "9775.0000000000000000", number_helper.number_to_rounded("9775", precision: 20, significant: true)
           assert_equal "9775." + "0" * 96, number_helper.number_to_rounded("9775", precision: 100, significant: true)
           assert_equal("97.7", number_helper.number_to_rounded(Rational(9772, 100), precision: 3, significant: true))
+          assert_equal "28729870200000000000000", number_helper.number_to_rounded(0.287298702e23.to_d, precision: 0, significant: true)
         end
       end
 
