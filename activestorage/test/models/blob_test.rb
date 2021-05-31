@@ -245,6 +245,13 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "purge doesn't raise when blob is not persisted" do
+    build_blob_after_unfurling.tap do |blob|
+      assert_nothing_raised { blob.purge }
+      assert blob.destroyed?
+    end
+  end
+
   test "uses service from blob when provided" do
     with_service("mirror") do
       blob = create_blob(filename: "funky.jpg", service_name: :local)

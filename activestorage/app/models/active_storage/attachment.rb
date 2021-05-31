@@ -23,7 +23,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   def purge
     transaction do
       delete
-      record&.touch
+      record.touch if record&.persisted?
     end
     blob&.purge
   end
@@ -32,7 +32,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   def purge_later
     transaction do
       delete
-      record&.touch
+      record.touch if record&.persisted?
     end
     blob&.purge_later
   end
