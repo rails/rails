@@ -627,31 +627,29 @@ module RenderTestCases
     assert_match "Missing partial /_true with", e.message
   end
 
-  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-    def test_render_partial_provides_spellcheck
-      e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/partail") }
-      assert_match %r{Did you mean\?  test/partial\n *test/partialhtml}, e.message
-    end
+  def test_render_partial_provides_spellcheck
+    e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/partail") }
+    assert_match %r{Did you mean\?  test/partial\n *test/partialhtml}, e.message
+  end
 
-    def test_spellcheck_doesnt_list_directories
-      e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/directory") }
-      assert_match %r{Did you mean\?}, e.message
-      assert_no_match %r{Did you mean\?  test/directory\n}, e.message # test/hello is a directory
-    end
+  def test_spellcheck_doesnt_list_directories
+    e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/directory") }
+    assert_match %r{Did you mean\?}, e.message
+    assert_no_match %r{Did you mean\?  test/directory\n}, e.message # test/hello is a directory
+  end
 
-    def test_spellcheck_only_lists_templates
-      e = assert_raises(ActionView::MissingTemplate) { @view.render(template: "test/partial") }
+  def test_spellcheck_only_lists_templates
+    e = assert_raises(ActionView::MissingTemplate) { @view.render(template: "test/partial") }
 
-      assert_match %r{Did you mean\?}, e.message
-      assert_no_match %r{Did you mean\?  test/partial\n}, e.message
-    end
+    assert_match %r{Did you mean\?}, e.message
+    assert_no_match %r{Did you mean\?  test/partial\n}, e.message
+  end
 
-    def test_spellcheck_only_lists_partials
-      e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/template") }
+  def test_spellcheck_only_lists_partials
+    e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/template") }
 
-      assert_match %r{Did you mean\?}, e.message
-      assert_no_match %r{Did you mean\?  test/template\n}, e.message
-    end
+    assert_match %r{Did you mean\?}, e.message
+    assert_no_match %r{Did you mean\?  test/template\n}, e.message
   end
 
   def test_render_partial_wrong_details_no_spellcheck

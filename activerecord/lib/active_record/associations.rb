@@ -13,27 +13,15 @@ module ActiveRecord
       end
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.association_name
-          maybe_these = @error.record.class.reflections.keys
-
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.association_name.to_s, n)
-          }.reverse.first(4)
-        else
-          []
+        @corrections ||= begin
+          maybe_these = record&.class&.reflections&.keys
+          DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(association_name.to_s)
         end
       end
-    end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 
@@ -49,27 +37,19 @@ module ActiveRecord
       end
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.reflection && @error.associated_class
-          maybe_these = @error.associated_class.reflections.keys
-
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.reflection.options[:inverse_of].to_s, n)
-          }.reverse.first(4)
+        if reflection && associated_class
+          @corrections ||= begin
+            maybe_these = associated_class.reflections.keys
+            DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(reflection.options[:inverse_of].to_s)
+          end
         else
           []
         end
       end
-    end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 
@@ -86,28 +66,20 @@ module ActiveRecord
       end
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.reflection && @error.owner_class
-          maybe_these = @error.owner_class.reflections.keys
-          maybe_these -= [@error.reflection.name.to_s] # remove failing reflection
-
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.reflection.options[:through].to_s, n)
-          }.reverse.first(4)
+        if owner_class && reflection
+          @corrections ||= begin
+            maybe_these = owner_class.reflections.keys
+            maybe_these -= [reflection.name.to_s] # remove failing reflection
+            DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(reflection.options[:through].to_s)
+          end
         else
           []
         end
       end
-    end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 

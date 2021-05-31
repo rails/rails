@@ -26,7 +26,7 @@ module Rails
           include DidYouMean::Correctable
 
           def corrections
-            DidYouMean::SpellChecker.new(dictionary: options).correct(key)
+            @corrections ||= DidYouMean::SpellChecker.new(dictionary: options).correct(key)
           end
         end
       end
