@@ -656,10 +656,9 @@ module ActiveRecord
         end
       end
 
-      def method_missing(name, *args, &block) #:nodoc:
-        nearest_delegate.send(name, *args, &block)
+      def method_missing(...) #:nodoc:
+        nearest_delegate.send(...)
       end
-      ruby2_keywords(:method_missing)
 
       def migrate(direction)
         new.migrate direction
