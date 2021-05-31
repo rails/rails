@@ -1055,6 +1055,8 @@ module ActiveRecord
       #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
       # [<tt>:validate</tt>]
       #   (PostgreSQL only) Specify whether or not the constraint should be validated. Defaults to +true+.
+      # [<tt>:deferrable</tt>]
+      #   (PostgreSQL only) Specify whether or not the foreign key should be deferrable. Valid values are booleans or +:deferred+ or +:immediate+ to specify the default behavior. Defaults to +false+.
       def add_foreign_key(from_table, to_table, **options)
         return unless supports_foreign_keys?
 

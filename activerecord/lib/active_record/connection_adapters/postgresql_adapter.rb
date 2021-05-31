@@ -204,6 +204,10 @@ module ActiveRecord
         true
       end
 
+      def supports_deferrable_constraints?
+        true
+      end
+
       def supports_views?
         true
       end

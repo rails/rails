@@ -106,6 +106,10 @@ module ActiveRecord
         options[:on_update]
       end
 
+      def deferrable
+        options[:deferrable]
+      end
+
       def custom_primary_key?
         options[:primary_key] != default_primary_key
       end
