@@ -428,10 +428,6 @@ module ActionDispatch
     def commit_flash
     end
 
-    def ssl?
-      super || scheme == "wss"
-    end
-
     def inspect # :nodoc:
       "#<#{self.class.name} #{method} #{original_url.dump} for #{remote_ip}>"
     end
