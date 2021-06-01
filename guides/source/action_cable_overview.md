@@ -767,6 +767,15 @@ config.action_cable.disable_request_forgery_protection = true
 By default, Action Cable allows all requests from localhost:3000 when running
 in the development environment.
 
+In some cases you may need to add more origins to allow requests in development depending on the environment.
+
+```ruby
+# config/environments/development.rb
+config.action_cable.allowed_request_origins = [/http:\/\/*/, /https:\/\/*/, /file:\/\/*/, 'file://', nil]
+```
+
+For the `nil` case in particular may be necessary to allow external services like Postman in development.
+
 ### Consumer Configuration
 
 To configure the URL, add a call to [`action_cable_meta_tag`][] in your HTML layout
