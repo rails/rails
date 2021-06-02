@@ -385,5 +385,36 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       assert app.config.session_options[:cookie_only], "Expected cookie_only to be set to true"
     end
+
+    test "session uses default options if previous sessions exist" do
+      add_to_config <<-RUBY
+        config.api_only = true
+        config.session_store :cookie_store, key: "_random_key"
+        config.middleware.use ActionDispatch::Cookies
+        config.middleware.use config.session_store, config.session_options
+        config.active_record.database_selector = { delay: 2.seconds }
+        config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+        config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+      RUBY
+
+      controller :test, <<-RUBY
+        class TestController < ApplicationController
+          def test_action
+            head :ok
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get "/test_action" => "test#test_action"
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      get "/test_action"
+      assert_equal 200, last_response.status
+    end
   end
 end

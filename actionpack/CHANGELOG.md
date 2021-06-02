@@ -1,3 +1,7 @@
+*   Set session options when initializing a basic session.
+
+    *Gannon McGibbon*
+
 *   Add `cache_control: {}` option to `fresh_when` and `stale?`
 
     Works as a shortcut to set `response.cache_control` with the above methods.

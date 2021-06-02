@@ -1381,3 +1381,17 @@ class RequestInspectTest < BaseRequestTest
     assert_match %r(#<ActionDispatch::Request POST "https://example.com/path/\?q=1" for 1.2.3.4>), request.inspect
   end
 end
+
+class RequestSession < BaseRequestTest
+  def setup
+    super
+    @request = stub_request
+  end
+
+  test "#session" do
+    @request.session
+
+    assert_not_predicate(ActionDispatch::Request::Session.find(@request), :enabled?)
+    assert_instance_of(ActionDispatch::Request::Session::Options, ActionDispatch::Request::Session::Options.find(@request))
+  end
+end
