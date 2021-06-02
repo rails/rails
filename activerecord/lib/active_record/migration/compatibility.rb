@@ -12,7 +12,7 @@ module ActiveRecord
         end
         const_get(name)
       end
-      
+
       # This file exists to ensure that old migrations run the same way they did before a Rails upgrade.
       # eg. if you write a migration on Rails 6.1, then upgrade to Rails 7, the migration should do the same thing to your
       # database as it did when you were running Rails 6.1
