@@ -42,11 +42,8 @@ module ActionDispatch
         HTTP_NEGOTIATE HTTP_PRAGMA HTTP_CLIENT_IP
         HTTP_X_FORWARDED_FOR HTTP_ORIGIN HTTP_VERSION
         HTTP_X_CSRF_TOKEN HTTP_X_REQUEST_ID HTTP_X_FORWARDED_HOST
-        SERVER_ADDR
         ].freeze
 
-    # TODO: Remove SERVER_ADDR when we remove support to Rack 2.1.
-    # See https://github.com/rack/rack/commit/c173b188d81ee437b588c1e046a1c9f031dea550
     ENV_METHODS.each do |env|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
         # frozen_string_literal: true

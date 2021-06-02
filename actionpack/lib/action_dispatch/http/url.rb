@@ -222,7 +222,7 @@ module ActionDispatch
         if forwarded = x_forwarded_host.presence
           forwarded.split(/,\s?/).last
         else
-          get_header("HTTP_HOST") || "#{server_name || server_addr}:#{get_header('SERVER_PORT')}"
+          get_header("HTTP_HOST") || "#{server_name}:#{get_header('SERVER_PORT')}"
         end
       end
 
