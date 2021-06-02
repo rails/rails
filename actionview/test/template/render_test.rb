@@ -710,6 +710,18 @@ class CachedViewRenderTest < ActiveSupport::TestCase
 
     assert_not_equal cat, dog
   end
+
+  def test_caching_predicate_method
+    result = @view.render(template: "test/caching_predicate")
+
+    assert_match "Cached!", result
+  end
+
+  def test_caching_predicate_method_outside_of_cache
+    result = @view.render(template: "test/caching_predicate_outside_cache")
+
+    assert_match "Not cached!", result
+  end
 end
 
 class LazyViewRenderTest < ActiveSupport::TestCase

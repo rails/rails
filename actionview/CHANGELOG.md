@@ -1,3 +1,7 @@
+*   Add `caching?` helper that returns whether the current code path is being cached.
+
+    *Ben Toews*, *John Hawthorn*, *Joel Hawksley*
+
 *   The `translate` helper now passes `default` values that aren't
     translation keys through `I18n.translate` for interpolation.
 
