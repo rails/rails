@@ -1,3 +1,30 @@
+*   Add Active Storage association_name? method to has_{many/one}_attached.
+    Returns `true` if attachable are attached.
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_one_attached :avatar
+      has_many_attached :documents
+    end
+
+    user = User.create!
+    user.documents.attach(...)
+    ```
+
+    Before:
+    ```ruby
+    user.avatar.attached?    # => false
+    user.documents.attached? # => true
+    ```
+
+    After:
+    ```ruby
+    user.avatar?    # => false
+    user.documents? # => true
+    ```
+
+    *Abhay Nikam*
+
 *   Allow to purge an attachment when record is not persisted for `has_one_attached`
 
     *Jacopo Beschi*

@@ -663,4 +663,13 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
     assert_match(/Cannot find variant :unknown for User#avatar_with_variants/, error.message)
   end
+
+  test "attachable attached with ?" do
+    assert_not @user.avatar.attached?
+    assert_not @user.avatar?
+
+    @user.avatar.attach create_blob(filename: "funky.jpg")
+    assert @user.avatar.attached?
+    assert @user.avatar?
+  end
 end

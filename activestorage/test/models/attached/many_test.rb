@@ -667,6 +667,18 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "attachables attached with ?" do
+    assert_not @user.highlights.attached?
+    assert_not @user.highlights?
+
+    @user.highlights.attach(
+      { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpeg" },
+      { io: StringIO.new("THINGS"), filename: "town.jpg", content_type: "image/jpeg" }
+    )
+    assert @user.highlights.attached?
+    assert @user.highlights?
+  end
+
   private
     def append_on_assign
       ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many
