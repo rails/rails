@@ -203,4 +203,54 @@ class Module
     mattr_writer(*syms, instance_writer: instance_writer, instance_accessor: instance_accessor, default: default, location: location)
   end
   alias :cattr_accessor :mattr_accessor
+
+  def singleton_attr_reader(*syms, instance_reader: true, instance_accessor: true, default: nil)
+    raise TypeError, "singleton attributes should be defined directly on class, not singleton" if singleton_class?
+
+    syms.each do |sym|
+      singleton_class.attr_reader(sym)
+
+      if instance_reader && instance_accessor
+        define_singleton_attr_instance_reader(sym)
+      end
+
+      sym_default_value = (block_given? && default.nil?) ? yield : default
+      instance_variable_set("@#{sym}", sym_default_value) unless sym_default_value.nil? && instance_variable_defined?("@#{sym}")
+    end
+  end
+
+  def singleton_attr_writer(*syms, instance_writer: true, instance_accessor: true, default: nil)
+    raise TypeError, "singleton attributes should be defined directly on class, not singleton" if singleton_class?
+
+    syms.each do |sym|
+      singleton_class.attr_writer(sym)
+
+      if instance_writer && instance_accessor
+        define_singleton_attr_instance_writer(:"#{sym}=")
+      end
+
+      sym_default_value = (block_given? && default.nil?) ? yield : default
+      instance_variable_set("@#{sym}", sym_default_value) unless sym_default_value.nil? && instance_variable_defined?("@#{sym}")
+    end
+  end
+
+  def singleton_attr_accessor(*syms, instance_reader: true, instance_writer: true, instance_accessor: true, default: nil, &blk)
+    singleton_attr_reader(*syms, instance_reader: instance_reader, instance_accessor: instance_accessor, default: default, &blk)
+    singleton_attr_writer(*syms, instance_writer: instance_writer, instance_accessor: instance_accessor, default: default)
+  end
+
+  private
+    def define_singleton_attr_instance_reader(sym)
+      mod = self
+      define_method(sym) do
+        mod.send(sym)
+      end
+    end
+
+    def define_singleton_attr_instance_writer(sym)
+      mod = self
+      define_method(sym) do |value|
+        mod.send(sym, value)
+      end
+    end
 end
