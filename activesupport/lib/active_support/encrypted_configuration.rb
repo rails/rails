@@ -35,7 +35,13 @@ module ActiveSupport
 
     private
       def deep_transform(hash)
-        hash.transform_values { |value| value.is_a?(Hash) ? ActiveSupport::InheritableOptions.new(deep_transform(value)) : value }
+        return hash unless hash.is_a?(Hash)
+
+        h = ActiveSupport::InheritableOptions.new
+        hash.each do |k, v|
+          h[k] = deep_transform(v)
+        end
+        h
       end
 
       def options
