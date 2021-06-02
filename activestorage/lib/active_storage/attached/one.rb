@@ -13,6 +13,13 @@ module ActiveStorage
       change.present? ? change.attachment : record.public_send("#{name}_attachment")
     end
 
+    # Returns +true+ if an attachment is not attached.
+    #
+    #   class User < ApplicationRecord
+    #     has_one_attached :avatar
+    #   end
+    #
+    #   User.new.avatar.blank? # => true
     def blank?
       !attached?
     end
