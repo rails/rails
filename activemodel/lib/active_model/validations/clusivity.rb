@@ -27,12 +27,16 @@ module ActiveModel
         if value.is_a?(Array)
           value.all? { |v| members.public_send(inclusion_method(members), v) }
         else
-          members.public_send(inclusion_method(members), value)
+          members.public_send(inclusion_method(members), value) || nan_included?(members, value)
         end
       end
 
       def delimiter
         @delimiter ||= options[:in] || options[:within]
+      end
+
+      def nan_included?(members, value)
+        value.respond_to?(:nan?) && value.nan? && members.any?(&:nan?)
       end
 
       # After Ruby 2.2, <tt>Range#include?</tt> on non-number-or-time-ish ranges checks all

@@ -2,6 +2,7 @@
 
 require "cases/helper"
 
+require "bigdecimal"
 require "models/topic"
 require "models/person"
 
@@ -170,6 +171,32 @@ class InclusionValidationTest < ActiveModel::TestCase
     p = Person.new
     p.karma = %w(abe monkey)
 
+    assert p.valid?
+  ensure
+    Person.clear_validators!
+  end
+
+  def test_validates_inclusion_of_float_nan
+    Person.validates_inclusion_of :salary, in: [Float::NAN, 0, 1]
+
+    p = Person.new
+    p.salary = 1
+    assert p.valid?
+
+    p = Person.new
+    p.salary = 2
+    assert_not p.valid?
+
+    p = Person.new
+    p.salary = 0
+    assert p.valid?
+
+    p = Person.new
+    p.salary = Float::NAN
+    assert p.valid?
+
+    p = Person.new
+    p.salary = BigDecimal(Float::NAN)
     assert p.valid?
   ensure
     Person.clear_validators!
