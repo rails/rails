@@ -12,7 +12,24 @@ module ActiveRecord
         end
         const_get(name)
       end
-
+      
+      # This file exists to ensure that old migrations run the same way they did before a Rails upgrade.
+      # eg. if you write a migration on Rails 6.1, then upgrade to Rails 7, the migration should do the same thing to your
+      # database as it did when you were running Rails 6.1
+      #
+      # "Current" is an alias for `ActiveRecord::Migration`, it represents the current Rails version.
+      # New migration functionality that will never be backward compatible should be added directly to `ActiveRecord::Migration`.
+      #
+      # There are classes for each prior Rails version. Each class descends from the *next* Rails version, so:
+      # 6.1 < 7.0
+      # 5.2 < 6.0 < 6.1 < 7.0
+      #
+      # If you are introducing new migration functionality that should only apply from Rails 7 onward, then you should
+      # find the class that immediately precedes it (6.1), and override the relevant migration methods to undo your changes.
+      #
+      # For example, Rails 6 added a default value for the `precision` option on datetime columns. So in this file, the `V5_2`
+      # class sets the value of `precision` to `nil` if it's not explicitly provided. This way, the default value will not apply
+      # for migrations written for 5.2, but will for migrations written for 6.0.
       V7_0 = Current
 
       class V6_1 < V7_0
