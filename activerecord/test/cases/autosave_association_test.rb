@@ -267,7 +267,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
     firm = Firm.first
     firm.account = Account.first
-    assert_queries(Firm.partial_writes? ? 0 : 1) { firm.save! }
+    assert_queries(Firm.partial_updates? ? 0 : 1) { firm.save! }
 
     firm = Firm.first.dup
     firm.account = Account.first
