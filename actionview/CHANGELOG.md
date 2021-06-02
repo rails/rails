@@ -1,3 +1,7 @@
+*   Add `caching?` helper that returns whether the current code path is being cached and `unacheable!` to denote helper methods that can't participate in fragment caching.
+
+    *Ben Toews*, *John Hawthorn*, *Kasper Timm Hansen*, *Joel Hawksley*
+
 *   Add `include_seconds` option for `time_field`
 
         <%= form.time_field :foo, include_seconds: false %>
