@@ -124,17 +124,17 @@ When the application is configured to proxy files by default, use the `rails_sto
 
 Optionally, files can be proxied instead. This means that your application servers will download file data from the storage service in response to requests. This can be useful for serving files from a CDN.
 
-Explicitly proxy attachments using the `rails_storage_proxy_path` and `_url` route helpers:
-
-```erb
-<%= image_tag rails_storage_proxy_path(@user.avatar) %>
-```
-
-Or configure Active Storage to use proxying by default:
+You can configure Active Storage to use proxying by default:
 
 ```ruby
 # config/initializers/active_storage.rb
 Rails.application.config.active_storage.resolve_model_to_route = :rails_storage_proxy
+```
+
+Or if you want to explicitly proxy specific attachments there are URL helpers you can use in the form of `rails_storage_proxy_path` and `rails_storage_proxy_url`.
+
+```erb
+<%= image_tag rails_storage_proxy_path(@user.avatar) %>
 ```
 
 ## Direct uploads
