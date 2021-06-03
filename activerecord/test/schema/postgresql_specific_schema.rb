@@ -2,15 +2,13 @@
 
 ActiveRecord::Schema.define do
   enable_extension!("uuid-ossp", ActiveRecord::Base.connection)
-  enable_extension!("pgcrypto",  ActiveRecord::Base.connection) if ActiveRecord::Base.connection.supports_pgcrypto_uuid?
+  enable_extension!("pgcrypto",  ActiveRecord::Base.connection)
 
-  uuid_default = connection.supports_pgcrypto_uuid? ? {} : { default: "uuid_generate_v4()" }
-
-  create_table :uuid_parents, id: :uuid, force: true, **uuid_default do |t|
+  create_table :uuid_parents, id: :uuid, force: true do |t|
     t.string :name
   end
 
-  create_table :uuid_children, id: :uuid, force: true, **uuid_default do |t|
+  create_table :uuid_children, id: :uuid, force: true do |t|
     t.string :name
     t.uuid :uuid_parent_id
   end
@@ -106,23 +104,23 @@ _SQL
   end
 
   create_table :uuid_comments, force: true, id: false do |t|
-    t.uuid :uuid, primary_key: true, **uuid_default
+    t.uuid :uuid, primary_key: true
     t.string :content
   end
 
   create_table :uuid_entries, force: true, id: false do |t|
-    t.uuid :uuid, primary_key: true, **uuid_default
+    t.uuid :uuid, primary_key: true
     t.string :entryable_type, null: false
     t.uuid :entryable_uuid, null: false
   end
 
   create_table :uuid_items, force: true, id: false do |t|
-    t.uuid :uuid, primary_key: true, **uuid_default
+    t.uuid :uuid, primary_key: true
     t.string :title
   end
 
   create_table :uuid_messages, force: true, id: false do |t|
-    t.uuid :uuid, primary_key: true, **uuid_default
+    t.uuid :uuid, primary_key: true
     t.string :subject
   end
 

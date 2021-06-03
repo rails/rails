@@ -234,6 +234,10 @@ module ActiveRecord
       end
     end
 
+    def test_supports_supports_pgcrypto_uuid_is_deprecated
+      assert_deprecated { @connection.supports_pgcrypto_uuid? }
+    end
+
     private
       def with_warning_suppression
         log_level = @connection.client_min_messages

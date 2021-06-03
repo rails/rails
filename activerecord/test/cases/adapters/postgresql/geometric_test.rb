@@ -247,9 +247,6 @@ class PostgreSQLGeometricLineTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlLine < ActiveRecord::Base; end
 
   setup do
-    unless ActiveRecord::Base.connection.database_version >= 90400
-      skip("line type is not fully implemented")
-    end
     @connection = ActiveRecord::Base.connection
     @connection.create_table("postgresql_lines") do |t|
       t.line :a_line
