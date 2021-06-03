@@ -541,6 +541,32 @@ module ActiveRecord
           end
         end
 
+        def exclusion_constraints(table_name) # :nodoc:
+          scope = quoted_scope(table_name)
+
+          exclusion_info = exec_query(<<-SQL, "SCHEMA")
+            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef
+            FROM pg_constraint c
+            JOIN pg_class t ON c.conrelid = t.oid
+            WHERE c.contype = 'x'
+              AND t.relname = #{scope[:name]}
+          SQL
+
+          exclusion_info.map do |row|
+            method_and_elements, predicate = row["constraintdef"].split(" WHERE ")
+            method_and_elements_parts = method_and_elements.match(/EXCLUDE(?: USING (?<using>\S+))? \((?<expression>.+)\)/)
+            predicate = predicate.from(2).to(-3) if predicate # strip 2 opening and closing parentheses
+
+            options = {
+              name: row["conname"],
+              using: method_and_elements_parts["using"].to_sym,
+              where: predicate
+            }
+
+            ExclusionConstraintDefinition.new(table_name, method_and_elements_parts["expression"], options)
+          end
+        end
+
         # Maps logical Rails types to PostgreSQL-specific data types.
         def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, **) # :nodoc:
           sql = \

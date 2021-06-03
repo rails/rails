@@ -200,6 +200,10 @@ module ActiveRecord
         true
       end
 
+      def supports_exclusion_constraints?
+        true
+      end
+
       def supports_validate_constraints?
         true
       end
