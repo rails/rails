@@ -57,7 +57,7 @@ module ActiveRecord
         # default_scopes for the model  where +all_queries+ is true.
         def default_scopes?(all_queries: false)
           if all_queries
-            self.default_scopes.map(&:all_queries).include?(true)
+            self.default_scopes.any?(&:all_queries)
           else
             self.default_scopes.any?
           end
