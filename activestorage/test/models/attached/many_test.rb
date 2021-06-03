@@ -483,6 +483,33 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "purging when record is not persisted" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      user = User.new
+      user.highlights.attach blobs
+      assert user.highlights.attached?
+
+      attachments = user.highlights.attachments
+      user.highlights.purge
+
+      assert_not user.highlights.attached?
+      assert attachments.all?(&:destroyed?)
+      blobs.each do |blob|
+        assert_not ActiveStorage::Blob.exists?(blob.id)
+        assert_not ActiveStorage::Blob.service.exist?(blob.key)
+      end
+    end
+  end
+
+  test "purging delete changes when record is not persisted" do
+    user = User.new
+    user.highlights = []
+
+    user.highlights.purge
+
+    assert_nil user.attachment_changes["highlights"]
+  end
+
   test "purging later" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       @user.highlights.attach blobs
@@ -528,6 +555,24 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
       assert ActiveStorage::Blob.service.exist?(blobs.second.key)
       assert ActiveStorage::Blob.service.exist?(blobs.third.key)
+    end
+  end
+
+  test "purging attachment later when record is not persisted" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      user = User.new
+      user.highlights.attach blobs
+      assert user.highlights.attached?
+
+      perform_enqueued_jobs do
+        user.highlights.purge_later
+      end
+
+      assert_not user.highlights.attached?
+      blobs.each do |blob|
+        assert_not ActiveStorage::Blob.exists?(blob.id)
+        assert_not ActiveStorage::Blob.service.exist?(blob.key)
+      end
     end
   end
 

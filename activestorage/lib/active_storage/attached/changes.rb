@@ -11,6 +11,9 @@ module ActiveStorage
 
       autoload :DeleteOne
       autoload :DeleteMany
+
+      autoload :PurgeOne
+      autoload :PurgeMany
     end
   end
 end

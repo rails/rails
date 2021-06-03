@@ -497,6 +497,15 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "purging delete changes when record is not persisted" do
+    user = User.new
+    user.avatar = nil
+
+    user.avatar.purge
+
+    assert_nil user.attachment_changes["avatar"]
+  end
+
   test "purging later" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob
