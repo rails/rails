@@ -464,12 +464,12 @@ class TagHelperTest < ActionView::TestCase
 
   def test_style_option_with_string_value
     assert_dom_equal '<div style="color: #ff0000; border-bottom: 1px solid #ff0000;">content</div>',
-      content_tag('div', 'content', style: "color: #ff0000; border-bottom: 1px solid #ff0000;")
+      content_tag("div", "content", style: "color: #ff0000; border-bottom: 1px solid #ff0000;")
   end
 
   def test_style_option_with_hash_value
     assert_dom_equal '<div style="color: #ff0000; border-bottom: 1px solid #ff0000;">content</div>',
-      content_tag('div', 'content', style: { color: '#ff0000', 'border-bottom': '1px solid #ff0000' })
+      content_tag("div", "content", style: { color: "#ff0000", "border-bottom": "1px solid #ff0000" })
   end
 
   def test_data_attributes

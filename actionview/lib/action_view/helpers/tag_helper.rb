@@ -131,7 +131,7 @@ module ActionView
         def style_tag_option(key, value, escape)
           case value
           when Hash
-            value = value.map { |k, v| "#{k}: #{v}\;" }.join(' ')
+            value = value.map { |k, v| "#{k}: #{v}\;" }.join(" ")
             tag_option(key, value, escape)
           else
             tag_option(key, value, escape)
