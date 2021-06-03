@@ -154,7 +154,7 @@ module ActiveRecord
 
       mattr_accessor :reading_role, instance_accessor: false, default: :reading
 
-      mattr_accessor :has_many_inversing, instance_accessor: false, default: false
+      class_attribute :has_many_inversing, instance_accessor: false, default: false
 
       mattr_accessor :sqlite3_production_warning, instance_accessor: false, default: true
 
