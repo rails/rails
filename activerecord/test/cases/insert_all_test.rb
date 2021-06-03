@@ -226,11 +226,18 @@ class InsertAllTest < ActiveRecord::TestCase
 
       Cart.upsert_all [{ id: 3, shop_id: 2, title: "My other cart" }], unique_by: [:shop_id, :id]
     end
+  end
 
-    error = assert_raises ArgumentError do
-      Cart.insert_all! [{ id: 2, shop_id: 1, title: "My cart" }]
+  def test_insert_all_without_unique_by_can_work_without_a_matching_index
+    skip unless supports_insert_conflict_target?
+
+    assert_difference "Cart.count", 1 do
+      Cart.insert_all [{ id: 2, shop_id: 1, title: "My cart" }]
     end
-    assert_match "No unique index found for id", error.message
+
+    assert_difference "Cart.count", 1 do
+      Cart.insert_all! [{ id: 2, shop_id: 2, title: "My cart" }]
+    end
   end
 
   def test_insert_all_and_upsert_all_works_with_composite_primary_keys_when_unique_by_is_not_provided

@@ -28,7 +28,7 @@ module ActiveRecord
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
 
-      @unique_by = find_unique_index_for(unique_by)
+      @unique_by = find_unique_index_for(unique_by) if unique_by || @on_duplicate == :update
       @on_duplicate = :skip if @on_duplicate == :update && updatable_columns.empty?
 
       ensure_valid_options_for_connection!
