@@ -319,5 +319,20 @@ To keep using the current cache store, you can turn off cache versioning entirel
         end
       end
     end
+
+    initializer "active_record.query_log_tags_config" do |app|
+      config.after_initialize do
+        if app.config.active_record.query_log_tags_enabled
+          comment_context = ConnectionAdapters::AbstractAdapter::QueryLogTagsContext
+          if comment_context.application.nil?
+            name = Rails.application.class.name.split("::").first
+            comment_context.update(application_name: name)
+          end
+          ActiveSupport.on_load(:active_record) do
+            ConnectionAdapters::AbstractAdapter.prepend_execution_methods
+          end
+        end
+      end
+    end
   end
 end

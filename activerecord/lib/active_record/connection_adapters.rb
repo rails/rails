@@ -34,6 +34,7 @@ module ActiveRecord
       autoload :Quoting
       autoload :ConnectionHandler
       autoload :QueryCache
+      autoload :QueryLogTags
       autoload :Savepoints
     end
 

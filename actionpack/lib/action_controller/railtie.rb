@@ -85,5 +85,21 @@ module ActionController
         ActionController::Metal.descendants.each(&:action_methods) if config.eager_load
       end
     end
+
+    initializer "action_controller.query_log_tags" do |app|
+      ActiveSupport.on_load(:action_controller_base) do
+        mattr_accessor :query_log_tags_action_filter_enabled, instance_accessor: false, default: true
+      end
+
+      ActiveSupport.on_load(:active_record) do
+        require "active_record/railties/query_log_tags"
+
+        if app.config.active_record.query_log_tags_enabled
+          ActionController::Base.include(ActiveRecord::Railties::QueryLogTags::ActionController)
+          ActionController::API.include(ActiveRecord::Railties::QueryLogTags::ActionController)
+          ActiveRecord::ConnectionAdapters::AbstractAdapter::QueryLogTagsContext.components.concat [:controller, :action]
+        end
+      end
+    end
   end
 end

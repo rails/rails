@@ -54,6 +54,10 @@ module ActiveRecord
         configuration_hash[:host]
       end
 
+      def socket # :nodoc:
+        configuration_hash[:socket]
+      end
+
       def database
         configuration_hash[:database]
       end

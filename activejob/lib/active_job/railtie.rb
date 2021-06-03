@@ -49,5 +49,21 @@ module ActiveJob
         end
       end
     end
+
+    initializer "active_job.query_log_tags" do |app|
+      require "active_record/railties/query_log_tags"
+
+      ActiveSupport.on_load(:active_job) do
+        mattr_accessor :query_log_tags_action_filter_enabled, instance_accessor: false, default: true
+      end
+
+      ActiveSupport.on_load(:active_record) do
+        if app.config.active_record.query_log_tags_enabled
+          filter_enabled = app.config.active_job.query_log_tags_action_filter_enabled
+          ActiveJob::Base.query_log_tags_action_filter_enabled = filter_enabled unless filter_enabled.nil?
+          ActiveJob::Base.include(ActiveRecord::Railties::QueryLogTags::ActiveJob)
+        end
+      end
+    end
   end
 end

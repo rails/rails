@@ -166,7 +166,22 @@ module ActiveRecord
 
       mattr_accessor :legacy_connection_handling, instance_writer: false, default: true
 
-      mattr_accessor :application_record_class, instance_accessor: false, default: nil
+      ##
+      # :singleton-method:
+      # Specify whether or not to enable adapter-level query comments.
+      # To enable:
+      #
+      #    config.active_record.query_log_tags_enabled = true
+      #
+      # When included in +ActionController+, controller context is automatically updated via an
+      # +around_action+ filter. This behaviour can be disabled as follows:
+      #
+      #    config.action_controller.query_log_tags_action_filter_enabled = false
+      #
+      # This behaviour can be disabled for +ActiveJob+ in a similar way:
+      #
+      #    config.active_job.query_log_tags_action_filter_enabled = false
+      mattr_accessor :query_log_tags_enabled, instance_accessor: false, default: false
 
       # Sets the async_query_executor for an application. By default the thread pool executor
       # set to +nil+ which will not run queries in the background. Applications must configure
@@ -203,6 +218,8 @@ module ActiveRecord
       def self.global_executor_concurrency # :nodoc:
         @@global_executor_concurrency ||= nil
       end
+
+      mattr_accessor :application_record_class, instance_accessor: false, default: nil
 
       def self.application_record_class? # :nodoc:
         if Base.application_record_class
