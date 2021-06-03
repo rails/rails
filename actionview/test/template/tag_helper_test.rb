@@ -462,6 +462,16 @@ class TagHelperTest < ActionView::TestCase
     assert_equal '<a href="&amp;">content</a>', tag.a(href: "&amp;", escape_attributes: false) { "content" }
   end
 
+  def test_style_option_with_string_value
+    assert_dom_equal '<div style="color: #ff0000; border-bottom: 1px solid #ff0000;">content</div>',
+      content_tag('div', 'content', style: "color: #ff0000; border-bottom: 1px solid #ff0000;")
+  end
+
+  def test_style_option_with_hash_value
+    assert_dom_equal '<div style="color: #ff0000; border-bottom: 1px solid #ff0000;">content</div>',
+      content_tag('div', 'content', style: { color: '#ff0000', 'border-bottom': '1px solid #ff0000' })
+  end
+
   def test_data_attributes
     ["data", :data].each { |data|
       assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string-with-quotes="double&quot;quote&quot;party&quot;" data-string="hello" data-symbol="foo" />',

@@ -113,6 +113,9 @@ module ActionView
                 output << sep
                 output << boolean_tag_option(key)
               end
+            elsif key.to_sym == :style
+              output << sep
+              output << style_tag_option(key, value, escape)
             elsif !value.nil?
               output << sep
               output << tag_option(key, value, escape)
@@ -123,6 +126,16 @@ module ActionView
 
         def boolean_tag_option(key)
           %(#{key}="#{key}")
+        end
+
+        def style_tag_option(key, value, escape)
+          case value
+          when Hash
+            value = value.map { |k, v| "#{k}: #{v}\;" }.join(' ')
+            tag_option(key, value, escape)
+          else
+            tag_option(key, value, escape)
+          end
         end
 
         def tag_option(key, value, escape)
