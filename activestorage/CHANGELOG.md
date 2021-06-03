@@ -1,3 +1,7 @@
+*   Respect Active Record's primary_key_type in Active Storage migrations. Backported from 7.0.
+
+    *fatkodima*
+
 ## Rails 6.1.6 (May 09, 2022) ##
 
 *   No changes.
