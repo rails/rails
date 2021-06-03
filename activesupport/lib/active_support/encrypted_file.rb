@@ -98,7 +98,7 @@ module ActiveSupport
 
 
       def read_env_key
-        ENV[env_key]
+        ENV[env_key].presence
       end
 
       def read_key_file
