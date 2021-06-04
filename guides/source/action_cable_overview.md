@@ -66,7 +66,7 @@ one per tab/device open to your connection).
 ### Pub/Sub
 
 [Pub/Sub](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) or
-Publish-Subscribe, refers to a message queue paradigm whereby senders of
+Publish-Subscribe refers to a message queue paradigm whereby senders of
 information (publishers), send data to an abstract class of recipients
 (subscribers), without specifying individual recipients. Action Cable uses this
 approach to communicate between the server and many clients.
@@ -83,14 +83,14 @@ Each channel can be streaming zero or more broadcastings.
 
 For every WebSocket accepted by the server, a connection object is instantiated. This
 object becomes the parent of all the *channel subscriptions* that are created
-from there on. The connection itself does not deal with any specific application
+from thereon. The connection itself does not deal with any specific application
 logic beyond authentication and authorization. The client of a WebSocket
 connection is called the connection *consumer*. An individual user will create
 one consumer-connection pair per browser tab, window, or device they have open.
 
 Connections are instances of `ApplicationCable::Connection`, which extends
 [`ActionCable::Connection::Base`][]. In `ApplicationCable::Connection`, you
-authorize the incoming connection, and proceed to establish it if the user can
+authorize the incoming connection and proceed to establish it if the user can
 be identified.
 
 #### Connection Setup
@@ -258,7 +258,7 @@ The connection won't be established until you've also specified at least one sub
 you're interested in having.
 
 The consumer can optionally take an argument that specifies the URL to connect to. This
-can be a string, or a function that returns a string that will be called when the
+can be a string or a function that returns a string that will be called when the
 WebSocket is opened.
 
 ```js
@@ -399,7 +399,7 @@ consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
 
 ### Passing Parameters to Channels
 
-You can pass parameters from the client side to the server side when creating a
+You can pass parameters from the client-side to the server-side when creating a
 subscription. For example:
 
 ```ruby
@@ -711,7 +711,7 @@ production:
 
 #### Adapter Configuration
 
-Below is a list of the subscription adapters available for end users.
+Below is a list of the subscription adapters available for end-users.
 
 ##### Async Adapter
 
@@ -723,7 +723,7 @@ The Redis adapter requires users to provide a URL pointing to the Redis server.
 Additionally, a `channel_prefix` may be provided to avoid channel name collisions
 when using the same Redis server for multiple applications. See the [Redis PubSub documentation](https://redis.io/topics/pubsub#database-amp-scoping) for more details.
 
-The Redis adapter also supports SSL/TLS connections. The required SSL/TLS parameters can be be passed in `ssl_params` key in the configuration yaml file.
+The Redis adapter also supports SSL/TLS connections. The required SSL/TLS parameters can be passed in `ssl_params` key in the configuration yaml file.
 
 ```
 production:
@@ -790,9 +790,9 @@ connections as you have workers. The default worker pool size is set to 4, so
 that means you have to make at least 4 database connections available.
 You can change that in `config/database.yml` through the `pool` attribute.
 
-### Client side logging
+### Client-side logging
 
-Client side logging is disabled by default. You can enable this by setting the `ActionCable.logger.enabled` to true.
+Client-side logging is disabled by default. You can enable this by setting the `ActionCable.logger.enabled` to true.
 
 ```ruby
 import * as ActionCable from '@rails/actioncable'
@@ -836,7 +836,7 @@ You can use `ActionCable.createConsumer()` to connect to the cable
 server if `action_cable_meta_tag` is invoked in the layout. Otherwise, A path is
 specified as first argument to `createConsumer` (e.g. `ActionCable.createConsumer("/websocket")`).
 
-For every instance of your server you create and for every worker your server
+For every instance of your server, you create and for every worker your server
 spawns, you will also have a new instance of Action Cable, but the Redis or
 PostgreSQL adapter keeps messages synced across connections.
 
