@@ -467,6 +467,11 @@ module ActiveRecord
       @previously_new_record
     end
 
+    # Returns true if this object was previously persisted but now it has been deleted.
+    def previously_persisted?
+      !new_record? && destroyed?
+    end
+
     # Returns true if this object has been destroyed, otherwise returns false.
     def destroyed?
       @destroyed

@@ -1,3 +1,7 @@
+*   Add `ActiveRecord::Base#previously_persisted?`
+
+    Returns `true` if the object has been previously persisted but now it has been deleted.
+
 *   Deprecate `partial_writes` in favor of `partial_inserts` and `partial_updates`.
 
     This allows to have a different behavior on update and create.
