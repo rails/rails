@@ -293,9 +293,8 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # blobs. Note, though, that deleting the file off the service will initiate an HTTP connection to the service, which may
   # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use #purge_later instead.
   def purge
-    previously_persisted = persisted?
     destroy
-    delete if previously_persisted
+    delete if previously_persisted?
   rescue ActiveRecord::InvalidForeignKey
   end
 

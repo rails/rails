@@ -800,6 +800,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal false, Topic.find(1).previously_new_record?
   end
 
+  def test_previously_persisted_returns_boolean
+    assert_equal false, Topic.new.previously_persisted?
+    assert_equal false, Topic.new.destroy.previously_persisted?
+    assert_equal false, Topic.first.previously_persisted?
+    assert_equal true, Topic.first.destroy.previously_persisted?
+    assert_equal true, Topic.first.delete.previously_persisted?
+  end
+
   def test_dup
     topic = Topic.find(1)
     duped_topic = nil
