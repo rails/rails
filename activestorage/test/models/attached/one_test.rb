@@ -31,7 +31,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   test "attaching an existing blob from a signed ID passes record" do
     blob = create_blob(filename: "funky.jpg")
-    arguments = [blob.signed_id, record: @user]
+    arguments = [blob.signed_id, record: @user, purpose: :blob_id]
     assert_called_with(ActiveStorage::Blob, :find_signed!, arguments, returns: blob) do
       @user.avatar.attach blob.signed_id
     end
@@ -662,5 +662,43 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
 
     assert_match(/Cannot find variant :unknown for User#avatar_with_variants/, error.message)
+  end
+
+  test "doesn't accept :private_id signing purpose with default blob attachment mode" do
+    assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
+      @user.avatar.attach create_blob(filename: "funky.jpg").signed_id(purpose: :private_id)
+    end
+  end
+
+  test "using a :private_id_with_fallback blob attachment mode attaches record with a :blob_id signing purpose" do
+    with_blob_attachment_mode :private_id_with_fallback do
+      @user.avatar.attach create_blob(filename: "funky.jpg").signed_id(purpose: :blob_id)
+
+      assert_equal "funky.jpg", @user.avatar.filename.to_s
+    end
+  end
+
+  test "using a :private_id_with_fallback blob attachment mode attaches record with a :private_id signing purpose" do
+    with_blob_attachment_mode :private_id_with_fallback do
+      @user.avatar.attach create_blob(filename: "town.jpg").signed_id(purpose: :private_id)
+
+      assert_equal "town.jpg", @user.avatar.filename.to_s
+    end
+  end
+
+  test "using a :private_id blob attachment mode attaches record with a :private_id signing purpose" do
+    with_blob_attachment_mode :private_id do
+      @user.avatar.attach create_blob(filename: "town.jpg").signed_id(purpose: :private_id)
+
+      assert_equal "town.jpg", @user.avatar.filename.to_s
+    end
+  end
+
+  test "using a :private_id blob attachment mode rejects record with a :blob_id signing purpose" do
+    with_blob_attachment_mode :private_id do
+      assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
+        @user.avatar.attach create_blob(filename: "funky.jpg").signed_id(purpose: :blob_id)
+      end
+    end
   end
 end

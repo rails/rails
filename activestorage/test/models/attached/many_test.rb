@@ -667,6 +667,38 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "doesn't accept :private_id signing purpose with default blob attachment mode" do
+    assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
+      @user.highlights.attach create_blob(filename: "funky.jpg").signed_id(purpose: :private_id), create_blob(filename: "town.jpg").signed_id(purpose: :private_id)
+    end
+  end
+
+  test "using a :private_id_with_fallback blob attachment mode attaches records with :private_id and :blob_id signing purposes" do
+    with_blob_attachment_mode :private_id_with_fallback do
+      @user.highlights.attach create_blob(filename: "funky.jpg").signed_id, create_blob(filename: "town.jpg").signed_id(purpose: :private_id)
+
+      assert_equal "funky.jpg", @user.highlights.first.filename.to_s
+      assert_equal "town.jpg", @user.highlights.second.filename.to_s
+    end
+  end
+
+  test "using a :private_id blob attachment mode attaches records with a :private_id signing purpose" do
+    with_blob_attachment_mode :private_id do
+      @user.highlights.attach create_blob(filename: "funky.jpg").signed_id(purpose: :private_id), create_blob(filename: "town.jpg").signed_id(purpose: :private_id)
+
+      assert_equal "funky.jpg", @user.highlights.first.filename.to_s
+      assert_equal "town.jpg", @user.highlights.second.filename.to_s
+    end
+  end
+
+  test "using a :private_id blob attachment mode rejects records with a :blob_id signing purpose" do
+    with_blob_attachment_mode :private_id do
+      assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
+        @user.highlights.attach create_blob(filename: "funky.jpg").signed_id(purpose: :blob_id), create_blob(filename: "town.jpg").signed_id(purpose: :blob_id)
+      end
+    end
+  end
+
   private
     def append_on_assign
       ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many

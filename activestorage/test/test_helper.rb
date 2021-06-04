@@ -108,6 +108,14 @@ class ActiveSupport::TestCase
     ensure
       ActiveStorage::Blob.service = previous_service
     end
+
+    def with_blob_attachment_mode(mode)
+      ActiveStorage.blob_attachment_mode, previous = mode, ActiveStorage.blob_attachment_mode
+
+      yield
+    ensure
+      ActiveStorage.blob_attachment_mode = previous
+    end
 end
 
 require "global_id"

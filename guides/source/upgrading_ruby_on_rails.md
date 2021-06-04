@@ -151,6 +151,35 @@ processes have been updated you can set `config.active_support.cache_format_vers
 Rails 7.0 is able to read both formats so the cache won't be invalidated during the
 upgrade.
 
+### New signature purpose for ActiveStorage when attaching by signed_id
+
+When attaching blobs with a signed id the default before Rails 7.0 is to use `:blob_id` as
+the signature purpose, however, this causes a security vulnerability where malicious users
+are able to attach another user's blob to one of their DB records.
+
+When upgrading the goal is to change the `config.active_storage.blob_attachment_mode` from `:blob_id` to
+`:private_id`. After doing this, ActiveStorage will no longer attach blobs by their signed id's with the
+default purpose `:blob_id` and instead will start requiring the `:private_id` signing purpose.
+
+For a smooth migration first set `config.active_storage.blob_attachment_mode = :private_id_with_fallback` which
+will accept both `:blob_id` and `:private_id` signing purposes. If you have custom code that attaches or finds blobs by their signed ids
+make sure you migrate the code as well to generate the signature with `:private_id` purpose and use this same signature to find them.
+
+```ruby
+# from
+user.avatar.attach(blob.signed_id)
+blob = ActiveStorage::Blob.find_signed(some_signed_id)
+
+# to
+user.avatar.attach(blob.signed_id(purpose: :private_id))
+blob = ActiveStorage::Blob.find_signed(some_signed_id, purpose: :private_id)
+```
+
+Once this change has been successfully deployed to all environments, you can set `config.active_storage.blob_attachment_mode = :private_id` which
+will require `:private_id` as the singing purpose.
+
+If you don't do any of the above the app will keep its current behavior but you may be vulnerable to attacks.
+
 Upgrading from Rails 6.0 to Rails 6.1
 -------------------------------------
 

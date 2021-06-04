@@ -95,6 +95,7 @@ module ActiveStorage
 
         ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
+        ActiveStorage.blob_attachment_mode = app.config.active_storage.blob_attachment_mode || :blob_id
       end
     end
 
