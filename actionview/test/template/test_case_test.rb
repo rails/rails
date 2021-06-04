@@ -56,6 +56,10 @@ module ActionView
       assert_same _view, view
     end
 
+    test "returns controller_name" do
+      assert_equal "test", controller_name
+    end
+
     test "retrieve non existing config values" do
       assert_nil ActionView::Base.empty.config.something_odd
     end
