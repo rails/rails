@@ -65,6 +65,10 @@ module ActiveStorage
                 ActiveStorage::Attached::Changes::CreateOne.new("#{name}", self, attachable)
               end
           end
+
+          def #{name}?
+            ActiveStorage::Attached::One.new("#{name}", self).attached?
+          end
         CODE
 
         has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
@@ -150,6 +154,10 @@ module ActiveStorage
                   ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs + attachables)
               end
             end
+          end
+
+          def #{name}?
+            ActiveStorage::Attached::Many.new("#{name}", self).attached?
           end
         CODE
 
