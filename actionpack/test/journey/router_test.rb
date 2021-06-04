@@ -6,6 +6,35 @@ require "rack/utils"
 module ActionDispatch
   module Journey
     class TestRouter < ActiveSupport::TestCase
+      class ParameterEncodingController < ActionController::Base
+        skip_parameter_encoding :test_bar
+        skip_parameter_encoding :test_all_values_encoding
+
+        def test_foo
+          render body: params[:foo].encoding
+        end
+
+        def test_bar
+          render body: params[:bar].encoding
+        end
+
+        def test_all_values_encoding
+          render body: ::JSON.dump(params.except(:action, :controller).values.map(&:encoding).map(&:name))
+        end
+      end
+
+      class CheckEncodingController < ActionController::Base
+        skip_parameter_encoding :another_path
+
+        def some_path
+          head :ok
+        end
+
+        def another_path
+          head :ok
+        end
+      end
+
       attr_reader :mapper, :routes, :route_set, :router
 
       def setup
@@ -485,6 +514,120 @@ module ActionDispatch
 
       def test_eager_load_without_routes
         assert_nil router.eager_load!
+      end
+
+      test "path parameters with invalid UTF8 encoding raise BadRequest" do
+        get "/check_encoding/:action", controller: "action_dispatch/journey/test_router/check_encoding"
+        env = { "PATH_INFO" => "/check_encoding/%81E" }
+
+        err = assert_raises(ActionController::BadRequest) { router.serve(rails_env(env)) }
+        assert_predicate err.message, :valid_encoding?
+        assert_equal "Invalid path parameters: Invalid encoding for parameter: �E", err.message
+      end
+
+      test "query parameters containing an invalid UTF8 character raise BadRequest" do
+        get "/check_encoding/:action", controller: "action_dispatch/journey/test_router/check_encoding"
+        env = { "PATH_INFO" => "/check_encoding/some_path", "QUERY_STRING" => "foo=%81E" }
+
+        err = assert_raises(ActionController::BadRequest) { router.serve(rails_env(env)) }
+        assert_predicate err.message, :valid_encoding?
+        assert_equal "Invalid query parameters: Invalid encoding for parameter: �E", err.message
+      end
+
+      test "query parameters containing a deeply nested invalid UTF8 character raise BadRequest" do
+        get "/check_encoding/:action", controller: "action_dispatch/journey/test_router/check_encoding"
+        env = { "PATH_INFO" => "/check_encoding/some_path", "QUERY_STRING" => "foo[bar]=%81E" }
+
+        err = assert_raises(ActionController::BadRequest) { router.serve(rails_env(env)) }
+        assert_predicate err.message, :valid_encoding?
+        assert_equal "Invalid query parameters: Invalid encoding for parameter: �E", err.message
+      end
+
+      test "POST parameters containing invalid UTF8 character raise BadRequest" do
+        match "/check_encoding/:action", controller: "action_dispatch/journey/test_router/check_encoding", via: :post
+        data = "foo=%81E"
+        env = {
+          "REQUEST_METHOD" => "POST",
+          "PATH_INFO" => "/check_encoding/some_path",
+          "CONTENT_LENGTH" => data.length,
+          "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
+          "rack.input" => StringIO.new(data)
+        }
+
+        err = assert_raises(ActionController::BadRequest) { router.serve(rails_env(env)) }
+        assert_predicate err.message, :valid_encoding?
+        assert_equal "Invalid request parameters: Invalid encoding for parameter: �E", err.message
+      end
+
+      test "query parameters specified as ASCII_8BIT encoded do not raise BadRequest" do
+        get "/check_encoding/:action", controller: "action_dispatch/journey/test_router/check_encoding"
+        env = { "PATH_INFO" => "/check_encoding/another_path", "QUERY_STRING" => "foo=%81E" }
+
+        status, _, _ = router.serve(rails_env(env))
+        assert_equal 200, status
+      end
+
+      test "POST parameters specified as ASCII_8BIT encoded do not raise BadRequest" do
+        match "/check_encoding/:action", controller: "action_dispatch/journey/test_router/check_encoding", via: :post
+        data = "foo=%81E"
+        env = {
+          "REQUEST_METHOD" => "POST",
+          "PATH_INFO" => "/check_encoding/another_path",
+          "CONTENT_LENGTH" => data.length,
+          "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
+          "rack.input" => StringIO.new(data)
+        }
+
+        status, _, _ = router.serve(rails_env(env))
+        assert_equal 200, status
+      end
+
+      test "properly transcodes UTF8 parameters into declared encodings" do
+        match "/parameter_encoding/:action", controller: "action_dispatch/journey/test_router/parameter_encoding", via: :post
+        data = "foo=foo&bar=bar&baz=baz"
+        env = {
+          "REQUEST_METHOD" => "POST",
+          "PATH_INFO" => "/parameter_encoding/test_foo",
+          "CONTENT_LENGTH" => data.length,
+          "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
+          "rack.input" => StringIO.new(data)
+        }
+
+        status, _, rack_body = router.serve(rails_env(env))
+        assert_equal 200, status
+        assert_equal "UTF-8", rack_body.body
+      end
+
+      test "properly encodes ASCII_8BIT parameters into binary" do
+        match "/parameter_encoding/:action", controller: "action_dispatch/journey/test_router/parameter_encoding", via: :post
+        data = "foo=foo&bar=bar&baz=baz"
+        env = {
+          "REQUEST_METHOD" => "POST",
+          "PATH_INFO" => "/parameter_encoding/test_bar",
+          "CONTENT_LENGTH" => data.length,
+          "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
+          "rack.input" => StringIO.new(data)
+        }
+
+        status, _, rack_body = router.serve(rails_env(env))
+        assert_equal 200, status
+        assert_equal "ASCII-8BIT", rack_body.body
+      end
+
+      test "properly encodes all ASCII_8BIT parameters into binary" do
+        match "/parameter_encoding/:action", controller: "action_dispatch/journey/test_router/parameter_encoding", via: :post
+        data = "foo=foo&bar=bar&baz=baz"
+        env = {
+          "REQUEST_METHOD" => "POST",
+          "PATH_INFO" => "/parameter_encoding/test_all_values_encoding",
+          "CONTENT_LENGTH" => data.length,
+          "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
+          "rack.input" => StringIO.new(data)
+        }
+
+        status, _, rack_body = router.serve(rails_env(env))
+        assert_equal 200, status
+        assert_equal ["ASCII-8BIT"], JSON.parse(rack_body.body).uniq
       end
 
       private

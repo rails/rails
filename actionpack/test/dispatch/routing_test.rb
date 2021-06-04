@@ -4630,7 +4630,7 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
       get "/foo/show/%E2%EF%BF%BD%A6?something_else=%E2%EF%BF%BD%A6"
       assert_response :bad_request
 
-      get "/foo/show/%E2%EF%BF%BD%A6?something_else=%E2%EF%BF%BD%A6"
+      get "/bar/show/%E2%EF%BF%BD%A6?something_else=%E2%EF%BF%BD%A6"
       assert_response :bad_request
     end
   end

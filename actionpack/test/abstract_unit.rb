@@ -267,6 +267,7 @@ module ActionDispatch
       params = { "PATH_INFO" => path,
                  "REQUEST_METHOD" => method,
                  "HTTP_HOST" => host }
+      params.merge!("rack.input" => StringIO.new("foo")) if method == "POST"
 
       routes.call(params)
     end

@@ -373,16 +373,11 @@ module ActionDispatch
 
     # Override Rack's GET method to support indifferent access.
     def GET
-      fetch_header("action_dispatch.request.query_parameters") do |k|
+      fetch_header("action_dispatch.request.query_parameters") do
         rack_query_params = super || {}
-        controller = path_parameters[:controller]
-        action = path_parameters[:action]
-        rack_query_params = Request::Utils.set_binary_encoding(self, rack_query_params, controller, action)
-        # Check for non UTF-8 parameter values, which would cause errors later
-        Request::Utils.check_param_encoding(rack_query_params)
-        set_header k, Request::Utils.normalize_encode_params(rack_query_params)
+        self.query_parameters = Request::Utils.normalize_encode_params(rack_query_params)
       end
-    rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
+    rescue Rack::Utils::ParameterTypeError => e
       raise ActionController::BadRequest.new("Invalid query parameters: #{e.message}")
     end
     alias :query_parameters :GET
@@ -393,11 +388,9 @@ module ActionDispatch
         pr = parse_formatted_parameters(params_parsers) do |params|
           super || {}
         end
-        pr = Request::Utils.set_binary_encoding(self, pr, path_parameters[:controller], path_parameters[:action])
-        Request::Utils.check_param_encoding(pr)
         self.request_parameters = Request::Utils.normalize_encode_params(pr)
       end
-    rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
+    rescue Rack::Utils::ParameterTypeError => e
       raise ActionController::BadRequest.new("Invalid request parameters: #{e.message}")
     end
     alias :request_parameters :POST
@@ -414,6 +407,11 @@ module ActionDispatch
     # True if the request came from localhost, 127.0.0.1, or ::1.
     def local?
       LOCALHOST.match?(remote_addr) && LOCALHOST.match?(remote_ip)
+    end
+
+    def query_parameters=(params)
+      raise if params.nil?
+      set_header("action_dispatch.request.query_parameters", params)
     end
 
     def request_parameters=(params)
