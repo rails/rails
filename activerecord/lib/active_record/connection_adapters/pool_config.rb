@@ -51,7 +51,16 @@ module ActiveRecord
       def pool
         ActiveSupport::ForkTracker.check!
 
-        @pool || synchronize { @pool ||= ConnectionAdapters::ConnectionPool.new(self) }
+        @pool || synchronize { @pool ||= pool_class.new(self) }
+      end
+
+      def pool_class
+        klass = db_config.configuration_hash.fetch(:pool_class, ConnectionAdapters::ConnectionPool)
+        if klass.is_a?(String)
+          klass.constantize
+        else
+          klass
+        end
       end
 
       def discard_pool!
