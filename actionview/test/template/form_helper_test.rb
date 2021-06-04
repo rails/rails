@@ -836,7 +836,7 @@ class FormHelperTest < ActionView::TestCase
   def test_radio_button_is_checked_with_integers
     assert_dom_equal('<input checked="checked" id="post_secret_1" name="post[secret]" type="radio" value="1" />',
       radio_button("post", "secret", "1")
-   )
+    )
   end
 
   def test_radio_button_with_negative_integer_value
@@ -847,7 +847,7 @@ class FormHelperTest < ActionView::TestCase
   def test_radio_button_respects_passed_in_id
     assert_dom_equal('<input checked="checked" id="foo" name="post[secret]" type="radio" value="1" />',
       radio_button("post", "secret", "1", id: "foo")
-   )
+    )
   end
 
   def test_radio_button_with_booleans
@@ -1486,7 +1486,7 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(
       %{<input checked="checked" id="post_#{pid}_title_hello_world" name="post[#{pid}][title]" type="radio" value="Hello World" />},
       radio_button("post[]", "title", "Hello World")
-     )
+    )
     assert_dom_equal(
       %{<input id="post_#{pid}_title_goodbye_world" name="post[#{pid}][title]" type="radio" value="Goodbye World" />},
       radio_button("post[]", "title", "Goodbye World")
@@ -1510,7 +1510,7 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(
       %{<input checked="checked" name="post[#{pid}][title]" type="radio" value="Hello World" />},
        radio_button("post[]", "title", "Hello World", id: nil)
-     )
+    )
     assert_dom_equal(
       %{<input name="post[#{pid}][title]" type="radio" value="Goodbye World" />},
       radio_button("post[]", "title", "Goodbye World", id: nil)
