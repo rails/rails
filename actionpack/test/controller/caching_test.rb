@@ -405,6 +405,12 @@ class CollectionCacheController < ActionController::Base
     render "index"
   end
 
+  def index_ordered_with_cache_invalidation_on_new_entry
+    @customers = [Customer.new("david", 1), Customer.new("david", 2), Customer.new("david", 3)]
+    @customers.push(Customer.new("david", 4)) if params[:invalidate]
+    render partial: "customers/customer_no_cache", collection: @customers, cached: true, invalidate_cache_on_new_entry: params[:invalidate]
+  end
+
   def index_explicit_render_in_controller
     @customers = [Customer.new("david", 1)]
     render partial: "customers/customer", collection: @customers, cached: true
@@ -448,6 +454,23 @@ class CollectionCacheTest < ActionController::TestCase
     get :index_ordered
     assert_equal 3, @controller.partial_rendered_times
     assert_select ":root", "david, 1\n  david, 2\n  david, 3"
+  end
+
+  def test_invalidate_cache_if_new_entry
+    get :index_ordered_with_cache_invalidation_on_new_entry
+    assert_equal 3, @controller.partial_rendered_times
+    assert_select ":root", "david, 1\ndavid, 2\ndavid, 3"
+
+    get :index_ordered_with_cache_invalidation_on_new_entry
+    assert_equal 3, @controller.partial_rendered_times
+
+    get :index_ordered_with_cache_invalidation_on_new_entry, params: { invalidate: true }
+    assert_equal 7, @controller.partial_rendered_times
+    assert_select ":root", "david, 1\ndavid, 2\ndavid, 3\ndavid, 4"
+
+    get :index_ordered_with_cache_invalidation_on_new_entry, params: { invalidate: true }
+    assert_equal 7, @controller.partial_rendered_times
+    assert_select ":root", "david, 1\ndavid, 2\ndavid, 3\ndavid, 4"
   end
 
   def test_explicit_render_call_with_options
