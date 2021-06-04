@@ -382,3 +382,13 @@ class Postesque < ActiveRecord::Base
   belongs_to :author_with_address, class_name: "Author", foreign_key: :author_id
   belongs_to :author_with_the_letter_a, class_name: "Author", foreign_key: :author_id
 end
+
+class PostRecord < ActiveRecord::Base
+  has_many :comments
+
+  class << self
+    def model_name
+      ActiveModel::Name.new(self, nil, "Post")
+    end
+  end
+end

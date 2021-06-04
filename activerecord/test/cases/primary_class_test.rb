@@ -79,6 +79,27 @@ class PrimaryClassTest < ActiveRecord::TestCase
     Object.send(:remove_const, :ApplicationRecord)
   end
 
+  def test_setting_primary_abstract_class_explicitly_wins_over_application_record_set_implicitly
+    Object.const_set(:ApplicationRecord, ApplicationRecord)
+
+    assert_predicate ApplicationRecord, :primary_class?
+    assert_predicate ApplicationRecord, :application_record_class?
+    assert_predicate ApplicationRecord, :abstract_class?
+
+    PrimaryClassTest::PrimaryAppRecord.primary_abstract_class
+
+    assert_predicate PrimaryClassTest::PrimaryAppRecord, :primary_class?
+    assert_predicate PrimaryClassTest::PrimaryAppRecord, :application_record_class?
+    assert_predicate PrimaryClassTest::PrimaryAppRecord, :abstract_class?
+
+    assert_not_predicate ApplicationRecord, :primary_class?
+    assert_not_predicate ApplicationRecord, :application_record_class?
+    assert_predicate ApplicationRecord, :abstract_class?
+  ensure
+    ActiveRecord::Base.application_record_class = nil
+    Object.send(:remove_const, :ApplicationRecord)
+  end
+
   unless in_memory_db?
     def test_application_record_shares_a_connection_with_active_record_by_default
       Object.const_set(:ApplicationRecord, ApplicationRecord)

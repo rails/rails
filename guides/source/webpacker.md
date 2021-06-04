@@ -55,7 +55,7 @@ Webpacker is installed by default in Rails 6.0 and up. You can install it with a
 
 |File                    |Location                |Explanation                                                                                         |
 |------------------------|------------------------|----------------------------------------------------------------------------------------------------|
-|Javascript Folder       | `app/javascript`       |A place for your front-end source                                                                   |
+|JavaScript Folder       | `app/javascript`       |A place for your front-end source                                                                   |
 |Webpacker Configuration | `config/webpacker.yml` |Configure the Webpacker gem                                                                         |
 |Babel Configuration     | `babel.config.js`      |Configuration for the [Babel](https://babeljs.io) JavaScript Compiler                               |
 |PostCSS Configuration   | `postcss.config.js`    |Configuration for the [PostCSS](https://postcss.org) CSS Post-Processor                             |
@@ -74,14 +74,14 @@ INFO. It's possible to install frameworks not included in this list. These are b
 
 |Framework         |Install command                         |Description                                       |
 |------------------|----------------------------------------|--------------------------------------------------|
-|Angular           |`bin/rails webpacker:install:angular`   |Sets up Angular and Typescript                    |
+|Angular           |`bin/rails webpacker:install:angular`   |Sets up Angular and TypeScript                    |
 |CoffeeScript      |`bin/rails webpacker:install:coffee`    |Sets up CoffeeScript                              |
 |Elm               |`bin/rails webpacker:install:elm`       |Sets up Elm                                       |
-|ERB               |`bin/rails webpacker:install:erb`       |Sets up ERB support on your Javascript files      |
+|ERB               |`bin/rails webpacker:install:erb`       |Sets up ERB support on your JavaScript files      |
 |React             |`bin/rails webpacker:install:react`     |Sets up ReactJS                                   |
 |Stimulus          |`bin/rails webpacker:install:stimulus`  |Sets up StimulusJS                                |
 |Svelte            |`bin/rails webpacker:install:svelte`    |Sets up Svelte JS                                 |
-|TypeScript        |`bin/rails webpacker:install:typescript`|Sets up Typescript for your project using Babel's TypeScript support|
+|TypeScript        |`bin/rails webpacker:install:typescript`|Sets up TypeScript for your project using Babel's TypeScript support|
 |Vue               |`bin/rails webpacker:install:vue`       |Sets up VueJS                                     |
 
 For more information about the existing integrations, consult the [README](https://github.com/rails/webpacker#integrations).

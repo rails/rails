@@ -35,14 +35,6 @@ module AbstractController
                        skip_after_callbacks_if_terminated: true
     end
 
-    # Override <tt>AbstractController::Base#process_action</tt> to run the
-    # <tt>process_action</tt> callbacks around the normal behavior.
-    def process_action(*)
-      run_callbacks(:process_action) do
-        super
-      end
-    end
-
     module ClassMethods
       # If +:only+ or +:except+ are used, convert the options into the
       # +:if+ and +:unless+ options of ActiveSupport::Callbacks.
@@ -220,5 +212,14 @@ module AbstractController
         alias_method :"append_#{callback}_action", :"#{callback}_action"
       end
     end
+
+    private
+      # Override <tt>AbstractController::Base#process_action</tt> to run the
+      # <tt>process_action</tt> callbacks around the normal behavior.
+      def process_action(*)
+        run_callbacks(:process_action) do
+          super
+        end
+      end
   end
 end

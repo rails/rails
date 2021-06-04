@@ -1,3 +1,14 @@
+*   Allow to purge an attachment when record is not persisted for `has_one_attached`
+
+    *Jacopo Beschi*
+
+*   Add a load hook called `active_storage_variant_record` (providing `ActiveStorage::VariantRecord`)
+    to allow for overriding aspects of the `ActiveStorage::VariantRecord` class. This makes
+    `ActiveStorage::VariantRecord` consistent with `ActiveStorage::Blob` and `ActiveStorage::Attachment`
+    that already have load hooks.
+
+    *Brendon Muir*
+
 *   `ActiveStorage::PreviewError` is raised when a previewer is unable to generate a preview image.
 
     *Alex Robbin*

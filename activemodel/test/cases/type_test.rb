@@ -18,6 +18,7 @@ module ActiveModel
       ActiveModel::Type.register(:foo, type)
 
       assert_equal type.new(:arg), ActiveModel::Type.lookup(:foo, :arg)
+      assert_equal type.new({}), ActiveModel::Type.lookup(:foo, {})
     end
   end
 end

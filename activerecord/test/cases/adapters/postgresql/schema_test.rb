@@ -158,6 +158,8 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     song = Song.create
     album = song.albums.create
     assert_equal song, Song.includes(:albums).where("albums.id": album.id).first
+    assert_equal [album.id], Song.joins(:albums).pluck("albums.id")
+    assert_equal [album.id], Song.joins(:albums).pluck("music.albums.id")
   ensure
     ActiveRecord::Base.connection.drop_schema "music", if_exists: true
   end

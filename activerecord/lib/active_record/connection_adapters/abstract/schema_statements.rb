@@ -29,7 +29,7 @@ module ActiveRecord
         table_name[0...table_alias_length].tr(".", "_")
       end
 
-      # Returns the relation names useable to back Active Record models.
+      # Returns the relation names usable to back Active Record models.
       # For most adapters this means all #tables and #views.
       def data_sources
         query_values(data_source_sql, "SCHEMA")
@@ -604,7 +604,7 @@ module ActiveRecord
       #  # Ignores the method call if the column exists
       #  add_column(:shapes, :triangle, 'polygon', if_not_exists: true)
       def add_column(table_name, column_name, type, **options)
-        return if options[:if_not_exists] == true && column_exists?(table_name, column_name, type)
+        return if options[:if_not_exists] == true && column_exists?(table_name, column_name)
 
         at = create_alter_table table_name
         at.add_column(column_name, type, **options)

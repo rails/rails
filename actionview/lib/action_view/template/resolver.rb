@@ -10,41 +10,12 @@ require "concurrent/map"
 module ActionView
   # = Action View Resolver
   class Resolver
-    # Keeps all information about view path and builds virtual path.
-    class Path
-      attr_reader :name, :prefix, :partial, :virtual
-      alias_method :partial?, :partial
-
-      def self.virtual(name, prefix, partial)
-        if prefix.empty?
-          "#{partial ? "_" : ""}#{name}"
-        elsif partial
-          "#{prefix}/_#{name}"
-        else
-          "#{prefix}/#{name}"
-        end
-      end
-
-      def self.build(name, prefix, partial)
-        new name, prefix, partial, virtual(name, prefix, partial)
-      end
-
-      def initialize(name, prefix, partial, virtual)
-        @name    = name
-        @prefix  = prefix
-        @partial = partial
-        @virtual = virtual
-      end
-
-      def to_str
-        @virtual
-      end
-      alias :to_s :to_str
-    end
-
-    TemplateDetails = Struct.new(:path, :locale, :handler, :format, :variant)
+    Path = ActionView::TemplatePath
+    deprecate_constant :Path
 
     class PathParser # :nodoc:
+      ParsedPath = Struct.new(:path, :details)
+
       def build_path_regex
         handlers = Template::Handlers.extensions.map { |x| Regexp.escape(x) }.join("|")
         formats = Template::Types.symbols.map { |x| Regexp.escape(x) }.join("|")
@@ -67,14 +38,14 @@ module ActionView
       def parse(path)
         @regex ||= build_path_regex
         match = @regex.match(path)
-        path = Path.build(match[:action], match[:prefix] || "", !!match[:partial])
-        TemplateDetails.new(
-          path,
+        path = TemplatePath.build(match[:action], match[:prefix] || "", !!match[:partial])
+        details = TemplateDetails.new(
           match[:locale]&.to_sym,
           match[:handler]&.to_sym,
           match[:format]&.to_sym,
-          match[:variant]
+          match[:variant]&.to_sym
         )
+        ParsedPath.new(path, details)
       end
     end
 
@@ -226,16 +197,19 @@ module ActionView
       paths = template_glob("**/*")
       paths.map do |filename|
         filename.from(@path.size + 1).remove(/\.[^\/]*\z/)
-      end.uniq
+      end.uniq.map do |filename|
+        TemplatePath.parse(filename)
+      end
     end
 
     private
       def _find_all(name, prefix, partial, details, key, locals)
-        path = Path.build(name, prefix, partial)
-        query(path, details, details[:formats], locals, cache: !!key)
+        path = TemplatePath.build(name, prefix, partial)
+        requested_details = TemplateDetails::Requested.new(**details)
+        query(path, requested_details, locals, cache: !!key)
       end
 
-      def query(path, details, formats, locals, cache:)
+      def query(path, requested_details, locals, cache:)
         cache = cache ? @unbound_templates : Concurrent::Map.new
 
         unbound_templates =
@@ -243,7 +217,7 @@ module ActionView
             unbound_templates_from_path(path)
           end
 
-        filter_and_sort_by_details(unbound_templates, details).map do |unbound_template|
+        filter_and_sort_by_details(unbound_templates, requested_details).map do |unbound_template|
           unbound_template.bind_locals(locals)
         end
       end
@@ -253,17 +227,15 @@ module ActionView
       end
 
       def build_unbound_template(template)
-        details = @path_parser.parse(template.from(@path.size + 1))
+        parsed = @path_parser.parse(template.from(@path.size + 1))
+        details = parsed.details
         source = source_for_template(template)
 
         UnboundTemplate.new(
           source,
           template,
-          details.handler,
-          virtual_path: details.path.virtual,
-          locale: details.locale,
-          format: details.format,
-          variant: details.variant,
+          details: details,
+          virtual_path: parsed.path.virtual,
         )
       end
 
@@ -284,39 +256,18 @@ module ActionView
         end
       end
 
-      def filter_and_sort_by_details(templates, details)
-        locale = details[:locale]
-        formats = details[:formats]
-        variants = details[:variants]
-        handlers = details[:handlers]
-
-        results = templates.map do |template|
-          locale_match = details_match_sort_key(template.locale, locale) || next
-          format_match = details_match_sort_key(template.format, formats) || next
-          variant_match =
-            if variants == :any
-              template.variant ? 1 : 0
-            else
-              details_match_sort_key(template.variant&.to_sym, variants) || next
-            end
-          handler_match = details_match_sort_key(template.handler, handlers) || next
-
-          [template, [locale_match, format_match, variant_match, handler_match]]
+      def filter_and_sort_by_details(templates, requested_details)
+        filtered_templates = templates.select do |template|
+          template.details.matches?(requested_details)
         end
 
-        results.compact!
-        results.sort_by!(&:last) if results.size > 1
-        results.map!(&:first)
-
-        results
-      end
-
-      def details_match_sort_key(have, want)
-        if have
-          want.index(have)
-        else
-          want.size
+        if filtered_templates.count > 1
+          filtered_templates.sort_by! do |template|
+            template.details.sort_key_for(requested_details)
+          end
         end
+
+        filtered_templates
       end
 
       # Safe glob within @path

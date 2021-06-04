@@ -48,8 +48,8 @@ module Enumerable
   # It can also calculate the sum without the use of a block.
   #
   #  [5, 15, 10].sum # => 30
-  #  ['foo', 'bar'].sum # => "foobar"
-  #  [[1, 2], [3, 1, 5]].sum # => [1, 2, 3, 1, 5]
+  #  ['foo', 'bar'].sum('') # => "foobar"
+  #  [[1, 2], [3, 1, 5]].sum([]) # => [1, 2, 3, 1, 5]
   #
   # The default sum of an empty list is zero. You can override this default:
   #
@@ -58,8 +58,19 @@ module Enumerable
     if identity
       _original_sum_with_required_identity(identity, &block)
     elsif block_given?
-      map(&block).sum(identity)
+      map(&block).sum
+    # we check `first(1) == []` to check if we have an
+    # empty Enumerable; checking `empty?` would return
+    # true for `[nil]`, which we want to deprecate to
+    # keep consistent with Ruby
+    elsif first.is_a?(Numeric) || first(1) == []
+      identity ||= 0
+      _original_sum_with_required_identity(identity, &block)
     else
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        Rails 7.0 has deprecated Enumerable.sum in favor of Ruby's native implementation available since 2.4.
+        Sum of non-numeric elements requires an initial argument.
+      MSG
       inject(:+) || 0
     end
   end
@@ -279,7 +290,6 @@ using Module.new {
 }
 
 class Array #:nodoc:
-  # Array#sum was added in Ruby 2.4 but it only works with Numeric elements.
   def sum(init = nil, &block)
     if init.is_a?(Numeric) || first.is_a?(Numeric)
       init ||= 0

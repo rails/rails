@@ -12,6 +12,8 @@ module ActiveModel
 
         assert_equal "", registry.lookup(:foo)
         assert_equal [], registry.lookup(:bar)
+        assert_equal [:a, :a], registry.lookup(:bar, 2, :a) # Array.new(2, :a)
+        assert_equal [{}, {}], registry.lookup(:bar, 2, {}) # Array.new(2, {})
       end
 
       test "a block can be registered" do

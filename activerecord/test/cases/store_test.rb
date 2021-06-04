@@ -276,11 +276,12 @@ class StoreTest < ActiveRecord::TestCase
 
   test "dump, load and dump again a model" do
     dumped = YAML.dump(@john)
-    loaded = YAML.load(dumped)
+    loaded = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(dumped) : YAML.load(dumped)
     assert_equal @john, loaded
 
     second_dump = YAML.dump(loaded)
-    assert_equal @john, YAML.load(second_dump)
+    second_loaded = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(second_dump) : YAML.load(second_dump)
+    assert_equal @john, second_loaded
   end
 
   test "read store attributes through accessors with default suffix" do

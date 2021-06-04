@@ -1,3 +1,31 @@
+*   Drop support for the `SERVER_ADDR` header
+
+    Following up https://github.com/rack/rack/pull/1573 and https://github.com/rails/rails/pull/42349
+
+    *Ricardo Díaz*
+
+*   Set session options when initializing a basic session.
+
+    *Gannon McGibbon*
+
+*   Add `cache_control: {}` option to `fresh_when` and `stale?`
+
+    Works as a shortcut to set `response.cache_control` with the above methods.
+
+    *Jacopo Beschi*
+
+*   Writing into a disabled session will now raise an error.
+
+    Previously when no session store was set, writing into the session would silently fail.
+
+    *Jean Boussier*
+
+*   Add support for 'require-trusted-types-for' and 'trusted-types' headers.
+
+    Fixes #42034
+
+    *lfalcao*
+
 *   Remove inline styles and address basic accessibility issues on rescue templates.
 
     *Jacob Herrington*

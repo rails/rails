@@ -31,6 +31,40 @@ module Arel # :nodoc: all
       end
 
       private
+        def visit_Arel_Nodes_Function(o)
+          visit_edge o, "expressions"
+          visit_edge o, "distinct"
+          visit_edge o, "alias"
+        end
+
+        def visit_Arel_Nodes_Unary(o)
+          visit_edge o, "expr"
+        end
+
+        def visit_Arel_Nodes_Binary(o)
+          visit_edge o, "left"
+          visit_edge o, "right"
+        end
+
+        def visit_Arel_Nodes_UnaryOperation(o)
+          visit_edge o, "operator"
+          visit_edge o, "expr"
+        end
+
+        def visit_Arel_Nodes_InfixOperation(o)
+          visit_edge o, "operator"
+          visit_edge o, "left"
+          visit_edge o, "right"
+        end
+
+        def visit__regexp(o)
+          visit_edge o, "left"
+          visit_edge o, "right"
+          visit_edge o, "case_sensitive"
+        end
+        alias :visit_Arel_Nodes_Regexp :visit__regexp
+        alias :visit_Arel_Nodes_NotRegexp :visit__regexp
+
         def visit_Arel_Nodes_Ordering(o)
           visit_edge o, "expr"
         end
@@ -53,71 +87,29 @@ module Arel # :nodoc: all
           visit_edge o, "left"
         end
 
-        def visit_Arel_Nodes_InnerJoin(o)
-          visit_edge o, "left"
-          visit_edge o, "right"
-        end
-        alias :visit_Arel_Nodes_FullOuterJoin  :visit_Arel_Nodes_InnerJoin
-        alias :visit_Arel_Nodes_OuterJoin      :visit_Arel_Nodes_InnerJoin
-        alias :visit_Arel_Nodes_RightOuterJoin :visit_Arel_Nodes_InnerJoin
-
-        def visit_Arel_Nodes_DeleteStatement(o)
-          visit_edge o, "relation"
-          visit_edge o, "wheres"
-        end
-
-        def unary(o)
-          visit_edge o, "expr"
-        end
-        alias :visit_Arel_Nodes_Group             :unary
-        alias :visit_Arel_Nodes_Cube              :unary
-        alias :visit_Arel_Nodes_RollUp            :unary
-        alias :visit_Arel_Nodes_GroupingSet       :unary
-        alias :visit_Arel_Nodes_GroupingElement   :unary
-        alias :visit_Arel_Nodes_Grouping          :unary
-        alias :visit_Arel_Nodes_Having            :unary
-        alias :visit_Arel_Nodes_Limit             :unary
-        alias :visit_Arel_Nodes_Not               :unary
-        alias :visit_Arel_Nodes_Offset            :unary
-        alias :visit_Arel_Nodes_On                :unary
-        alias :visit_Arel_Nodes_UnqualifiedColumn :unary
-        alias :visit_Arel_Nodes_OptimizerHints    :unary
-        alias :visit_Arel_Nodes_Preceding         :unary
-        alias :visit_Arel_Nodes_Following         :unary
-        alias :visit_Arel_Nodes_Rows              :unary
-        alias :visit_Arel_Nodes_Range             :unary
-
-        def window(o)
+        def visit_Arel_Nodes_Window(o)
           visit_edge o, "partitions"
           visit_edge o, "orders"
           visit_edge o, "framing"
         end
-        alias :visit_Arel_Nodes_Window            :window
 
-        def named_window(o)
+        def visit_Arel_Nodes_NamedWindow(o)
           visit_edge o, "partitions"
           visit_edge o, "orders"
           visit_edge o, "framing"
           visit_edge o, "name"
         end
-        alias :visit_Arel_Nodes_NamedWindow       :named_window
 
-        def function(o)
-          visit_edge o, "expressions"
-          visit_edge o, "distinct"
-          visit_edge o, "alias"
+        def visit__no_edges(o)
+          # intentionally left blank
         end
-        alias :visit_Arel_Nodes_Exists :function
-        alias :visit_Arel_Nodes_Min    :function
-        alias :visit_Arel_Nodes_Max    :function
-        alias :visit_Arel_Nodes_Avg    :function
-        alias :visit_Arel_Nodes_Sum    :function
+        alias :visit_Arel_Nodes_CurrentRow :visit__no_edges
+        alias :visit_Arel_Nodes_Distinct :visit__no_edges
 
-        def extract(o)
+        def visit_Arel_Nodes_Extract(o)
           visit_edge o, "expressions"
           visit_edge o, "alias"
         end
-        alias :visit_Arel_Nodes_Extract :extract
 
         def visit_Arel_Nodes_NamedFunction(o)
           visit_edge o, "name"
@@ -130,13 +122,19 @@ module Arel # :nodoc: all
           visit_edge o, "relation"
           visit_edge o, "columns"
           visit_edge o, "values"
+          visit_edge o, "select"
         end
 
         def visit_Arel_Nodes_SelectCore(o)
           visit_edge o, "source"
           visit_edge o, "projections"
           visit_edge o, "wheres"
-          visit_edge o,  "windows"
+          visit_edge o, "windows"
+          visit_edge o, "groups"
+          visit_edge o, "comment"
+          visit_edge o, "havings"
+          visit_edge o, "set_quantifier"
+          visit_edge o, "optimizer_hints"
         end
 
         def visit_Arel_Nodes_SelectStatement(o)
@@ -144,12 +142,27 @@ module Arel # :nodoc: all
           visit_edge o, "limit"
           visit_edge o, "orders"
           visit_edge o, "offset"
+          visit_edge o, "lock"
+          visit_edge o, "with"
         end
 
         def visit_Arel_Nodes_UpdateStatement(o)
           visit_edge o, "relation"
           visit_edge o, "wheres"
           visit_edge o, "values"
+          visit_edge o, "orders"
+          visit_edge o, "limit"
+          visit_edge o, "offset"
+          visit_edge o, "key"
+        end
+
+        def visit_Arel_Nodes_DeleteStatement(o)
+          visit_edge o, "relation"
+          visit_edge o, "wheres"
+          visit_edge o, "orders"
+          visit_edge o, "limit"
+          visit_edge o, "offset"
+          visit_edge o, "key"
         end
 
         def visit_Arel_Table(o)
@@ -172,36 +185,13 @@ module Arel # :nodoc: all
           visit_edge o, "name"
         end
 
-        def nary(o)
-          o.children.each_with_index do |x, i|
-            edge(i) { visit x }
+        def visit__children(o)
+          o.children.each_with_index do |child, i|
+            edge(i) { visit child }
           end
         end
-        alias :visit_Arel_Nodes_And :nary
-
-        def binary(o)
-          visit_edge o, "left"
-          visit_edge o, "right"
-        end
-        alias :visit_Arel_Nodes_As                 :binary
-        alias :visit_Arel_Nodes_Assignment         :binary
-        alias :visit_Arel_Nodes_Between            :binary
-        alias :visit_Arel_Nodes_Concat             :binary
-        alias :visit_Arel_Nodes_DoesNotMatch       :binary
-        alias :visit_Arel_Nodes_Equality           :binary
-        alias :visit_Arel_Nodes_GreaterThan        :binary
-        alias :visit_Arel_Nodes_GreaterThanOrEqual :binary
-        alias :visit_Arel_Nodes_In                 :binary
-        alias :visit_Arel_Nodes_JoinSource         :binary
-        alias :visit_Arel_Nodes_LessThan           :binary
-        alias :visit_Arel_Nodes_LessThanOrEqual    :binary
-        alias :visit_Arel_Nodes_IsNotDistinctFrom  :binary
-        alias :visit_Arel_Nodes_IsDistinctFrom     :binary
-        alias :visit_Arel_Nodes_Matches            :binary
-        alias :visit_Arel_Nodes_NotEqual           :binary
-        alias :visit_Arel_Nodes_NotIn              :binary
-        alias :visit_Arel_Nodes_Or                 :binary
-        alias :visit_Arel_Nodes_Over               :binary
+        alias :visit_Arel_Nodes_And :visit__children
+        alias :visit_Arel_Nodes_With :visit__children
 
         def visit_String(o)
           @node_stack.last.fields << o
@@ -219,28 +209,34 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_SqlLiteral :visit_String
 
         def visit_Arel_Nodes_BindParam(o)
-          edge("value") { visit o.value }
+          visit_edge(o, "value")
         end
 
         def visit_ActiveModel_Attribute(o)
-          edge("value_before_type_cast") { visit o.value_before_type_cast }
+          visit_edge(o, "value_before_type_cast")
         end
 
         def visit_Hash(o)
           o.each_with_index do |pair, i|
-            edge("pair_#{i}")   { visit pair }
+            edge("pair_#{i}") { visit pair }
           end
         end
 
         def visit_Array(o)
-          o.each_with_index do |x, i|
-            edge(i) { visit x }
+          o.each_with_index do |member, i|
+            edge(i) { visit member }
           end
         end
         alias :visit_Set :visit_Array
 
         def visit_Arel_Nodes_Comment(o)
           visit_edge(o, "values")
+        end
+
+        def visit_Arel_Nodes_Case(o)
+          visit_edge(o, "case")
+          visit_edge(o, "conditions")
+          visit_edge(o, "default")
         end
 
         def visit_edge(o, method)

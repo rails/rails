@@ -152,6 +152,15 @@ module Arel
           }
         end
       end
+
+      describe "Nodes::Ordering" do
+        it "should no-op ascending nulls first" do
+          test = Table.new(:users)[:first_name].asc.nulls_first
+          _(compile(test)).must_be_like %{
+            "users"."first_name" ASC
+          }
+        end
+      end
     end
   end
 end

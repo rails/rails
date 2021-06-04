@@ -290,6 +290,39 @@ module ActiveRecord
         end
       end
 
+      def test_add_column_with_postgresql_datetime_type
+        connection.create_table :testings do |t|
+          t.column :foo, :datetime
+        end
+
+        column = connection.columns(:testings).find { |c| c.name == "foo" }
+
+        assert_equal :datetime, column.type
+
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_equal "timestamp without time zone", column.sql_type
+        elsif current_adapter?(:Mysql2Adapter)
+          assert_equal "datetime", column.sql_type
+        else
+          assert_equal connection.type_to_sql("datetime"), column.sql_type
+        end
+      end
+
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_add_column_with_datetime_in_timestamptz_mode
+          with_postgresql_datetime_type(:timestamptz) do
+            connection.create_table :testings do |t|
+              t.column :foo, :datetime
+            end
+
+            column = connection.columns(:testings).find { |c| c.name == "foo" }
+
+            assert_equal :datetime, column.type
+            assert_equal "timestamp with time zone", column.sql_type
+          end
+        end
+      end
+
       def test_change_column_with_timestamp_type
         connection.create_table :testings do |t|
           t.column :foo, :datetime, null: false

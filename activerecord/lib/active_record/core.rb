@@ -17,7 +17,7 @@ module ActiveRecord
       # Accepts a logger conforming to the interface of Log4r which is then
       # passed on to any new database connections made and which can be
       # retrieved on both a class and instance level by calling +logger+.
-      mattr_accessor :logger, instance_writer: false
+      class_attribute :logger, instance_writer: false
 
       ##
       # :singleton-method:
@@ -101,7 +101,7 @@ module ActiveRecord
       ##
       # :singleton-method:
       # Specify whether schema dump should happen at the end of the
-      # db:migrate rails command. This is true by default, which is useful for the
+      # bin/rails db:migrate command. This is true by default, which is useful for the
       # development environment. This should ideally be false in the production
       # environment where dumping schema is rarely needed.
       mattr_accessor :dump_schema_after_migration, instance_writer: false, default: true
@@ -154,7 +154,9 @@ module ActiveRecord
 
       mattr_accessor :reading_role, instance_accessor: false, default: :reading
 
-      mattr_accessor :has_many_inversing, instance_accessor: false, default: false
+      class_attribute :has_many_inversing, instance_accessor: false, default: false
+
+      mattr_accessor :sqlite3_production_warning, instance_accessor: false, default: true
 
       class_attribute :default_connection_handler, instance_writer: false
 
@@ -207,7 +209,6 @@ module ActiveRecord
           self == Base.application_record_class
         else
           if defined?(ApplicationRecord) && self == ApplicationRecord
-            Base.application_record_class = self
             true
           end
         end

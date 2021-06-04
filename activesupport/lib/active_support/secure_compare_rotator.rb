@@ -17,7 +17,7 @@ module ActiveSupport
   #
   #   class MyController < ApplicationController
   #     def authenticate_request
-  #       rotator = ActiveSupport::SecureComparerotator.new('new_password')
+  #       rotator = ActiveSupport::SecureCompareRotator.new('new_password')
   #       rotator.rotate('old_password')
   #
   #       authenticate_or_request_with_http_basic do |username, password|

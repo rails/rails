@@ -161,20 +161,18 @@ module ActionView
           return [] unless @view_paths
           return [] if wildcard_dependencies.empty?
 
-          # Remove trailing "*"
-          prefixes = wildcard_dependencies.map { |query| query[0..-2] }
+          # Remove trailing "/*"
+          prefixes = wildcard_dependencies.map { |query| query[0..-3] }
 
-          @view_paths.flat_map(&:all_template_paths).uniq.select { |path|
-            prefixes.any? do |prefix|
-              path.start_with?(prefix) && !path.index("/", prefix.size)
-            end
+          @view_paths.flat_map(&:all_template_paths).uniq.filter_map { |path|
+            path.to_s if prefixes.include?(path.prefix)
           }.sort
         end
 
         def explicit_dependencies
           dependencies = source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
 
-          wildcards, explicits = dependencies.partition { |dependency| dependency.end_with?("*") }
+          wildcards, explicits = dependencies.partition { |dependency| dependency.end_with?("/*") }
 
           (explicits + resolve_directories(wildcards)).uniq
         end

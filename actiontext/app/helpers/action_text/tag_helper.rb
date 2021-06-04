@@ -11,7 +11,8 @@ module ActionText
     # that Trix will write to on changes, so the content will be sent on form submissions.
     #
     # ==== Options
-    # * <tt>:class</tt> - Defaults to "trix-content" which ensures default styling is applied.
+    # * <tt>:class</tt> - Defaults to "trix-content" so that default styles will be applied.
+    #   Setting this to a different value will prevent default styles from being applied.
     #
     # ==== Example
     #

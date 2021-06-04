@@ -128,6 +128,8 @@ class User < ActiveRecord::Base
   has_many_attached :highlights_with_variants do |attachable|
     attachable.variant :thumb, resize: "100x100"
   end
+
+  accepts_nested_attributes_for :highlights_attachments, allow_destroy: true
 end
 
 class Group < ActiveRecord::Base

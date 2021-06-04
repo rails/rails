@@ -127,7 +127,7 @@ module ActiveRecord
     end
 
     def should_record_timestamps?
-      record_timestamps && (!partial_writes? || has_changes_to_save?)
+      record_timestamps && (!partial_updates? || has_changes_to_save?)
     end
 
     def timestamp_attributes_for_create_in_model

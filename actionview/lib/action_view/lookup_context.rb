@@ -192,19 +192,21 @@ module ActionView
         end
       end
 
-      # Support legacy foo.erb names even though we now ignore .erb
-      # as well as incorrectly putting part of the path in the template
-      # name instead of the prefix.
+      # Fix when prefix is specified as part of the template name
       def normalize_name(name, prefixes)
-        prefixes = prefixes.presence
-        parts    = name.to_s.split("/")
-        parts.shift if parts.first.empty?
-        name = parts.pop
+        name = name.to_s
+        idx = name.rindex("/")
+        return name, prefixes.presence || [""] unless idx
 
-        return name, prefixes || [""] if parts.empty?
+        path_prefix = name[0, idx]
+        path_prefix = path_prefix.from(1) if path_prefix.start_with?("/")
+        name = name.from(idx + 1)
 
-        parts    = parts.join("/")
-        prefixes = prefixes ? prefixes.map { |p| "#{p}/#{parts}" } : [parts]
+        if !prefixes || prefixes.empty?
+          prefixes = [path_prefix]
+        else
+          prefixes = prefixes.map { |p| "#{p}/#{path_prefix}" }
+        end
 
         return name, prefixes
       end

@@ -687,7 +687,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_with_has_many_inversing_should_try_to_set_inverse_instances_when_the_inverse_is_a_has_many
-    with_has_many_inversing do
+    with_has_many_inversing(Interest) do
       interest = interests(:trainspotting)
       human = interest.human
       assert_not_nil human.interests
@@ -702,7 +702,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_with_has_many_inversing_should_have_single_record_when_setting_record_through_attribute_in_build_method
-    with_has_many_inversing do
+    with_has_many_inversing(Interest) do
       human = Human.create!
       human.interests.build(
         human: human
@@ -714,7 +714,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_with_has_many_inversing_does_not_trigger_association_callbacks_on_set_when_the_inverse_is_a_has_many
-    with_has_many_inversing do
+    with_has_many_inversing(Interest) do
       human = interests(:trainspotting).human_with_callbacks
       assert_not_predicate human, :add_callback_called?
     end
@@ -766,7 +766,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_building_has_many_parent_association_inverses_one_record
-    with_has_many_inversing do
+    with_has_many_inversing(Interest) do
       interest = Interest.new
       interest.build_human
       assert_equal 1, interest.human.interests.size
@@ -868,7 +868,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_with_has_many_inversing_should_try_to_set_inverse_instances_when_the_inverse_is_a_has_many
-    with_has_many_inversing do
+    with_has_many_inversing(Interest) do
       interest = interests(:llama_wrangling)
       human = interest.polymorphic_human
       assert_not_nil human.polymorphic_interests
@@ -883,7 +883,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_with_has_many_inversing_does_not_trigger_association_callbacks_on_set_when_the_inverse_is_a_has_many
-    with_has_many_inversing do
+    with_has_many_inversing(Interest) do
       human = interests(:llama_wrangling).polymorphic_human_with_callbacks
       assert_not_predicate human, :add_callback_called?
     end

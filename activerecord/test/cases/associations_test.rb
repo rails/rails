@@ -359,6 +359,28 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  class ModelAssociatedToClassesThatDoNotExist < ActiveRecord::Base
+    self.table_name = "accounts" # this is just to avoid adding a new model just for this test
+
+    has_one :non_existent_has_one_class
+    belongs_to :non_existent_belongs_to_class
+    has_many :non_existent_has_many_classes
+  end
+
+  def test_associations_raise_with_name_error_if_associated_to_classes_that_do_not_exist
+    assert_raises NameError do
+      ModelAssociatedToClassesThatDoNotExist.new.non_existent_has_one_class
+    end
+
+    assert_raises NameError do
+      ModelAssociatedToClassesThatDoNotExist.new.non_existent_belongs_to_class
+    end
+
+    assert_raises NameError do
+      ModelAssociatedToClassesThatDoNotExist.new.non_existent_has_many_classes
+    end
+  end
 end
 
 class PreloaderTest < ActiveRecord::TestCase

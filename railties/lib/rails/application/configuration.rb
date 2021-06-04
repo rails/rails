@@ -201,6 +201,10 @@ module Rails
             action_dispatch.return_only_request_media_type_on_content_type = false
           end
 
+          if respond_to?(:action_controller)
+            action_controller.silence_disabled_session_errors = false
+          end
+
           if respond_to?(:action_view)
             action_view.button_to_generates_button_tag = true
             action_view.apply_stylesheet_media_default = false
@@ -271,10 +275,13 @@ module Rails
         if path = paths["config/database"].existent.first
           require "rails/application/dummy_erb_compiler"
 
-          yaml = Pathname.new(path)
-          erb = DummyERB.new(yaml.read)
+          yaml = DummyERB.new(Pathname.new(path).read).result
 
-          YAML.load(erb.result) || {}
+          if YAML.respond_to?(:unsafe_load)
+            YAML.unsafe_load(yaml) || {}
+          else
+            YAML.load(yaml) || {}
+          end
         else
           {}
         end

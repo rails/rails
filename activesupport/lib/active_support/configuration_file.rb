@@ -19,7 +19,12 @@ module ActiveSupport
     end
 
     def parse(context: nil, **options)
-      YAML.load(render(context), **options) || {}
+      source = render(context)
+      if YAML.respond_to?(:unsafe_load)
+        YAML.unsafe_load(source, **options) || {}
+      else
+        YAML.load(source, **options) || {}
+      end
     rescue Psych::SyntaxError => error
       raise "YAML syntax error occurred while parsing #{@content_path}. " \
             "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \

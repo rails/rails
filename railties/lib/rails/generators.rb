@@ -34,12 +34,9 @@ module Rails
         actions: "-a",
         orm: "-o",
         javascripts: "-j",
-        javascript_engine: "-je",
         resource_controller: "-c",
         scaffold_controller: "-c",
         stylesheets: "-y",
-        stylesheet_engine: "-se",
-        scaffold_stylesheet: "-ss",
         template_engine: "-e",
         test_framework: "-t"
       },
@@ -275,12 +272,11 @@ module Rails
           klass.start(args, config)
           run_after_generate_callback if config[:behavior] == :invoke
         else
-          options     = sorted_groups.flat_map(&:last)
-          suggestion  = Rails::Command::Spellchecker.suggest(namespace.to_s, from: options)
-          suggestion_msg = "Maybe you meant #{suggestion.inspect}?" if suggestion
+          options = sorted_groups.flat_map(&:last)
+          error   = Command::Base::CorrectableError.new("Could not find generator '#{namespace}'.", namespace, options)
 
           puts <<~MSG
-            Could not find generator '#{namespace}'. #{suggestion_msg}
+            #{error.message}
             Run `bin/rails generate --help` for more options.
           MSG
         end

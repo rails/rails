@@ -2278,6 +2278,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_no_queries { assert firm.clients.many? }
   end
 
+  def test_subsequent_calls_to_many_should_not_use_query
+    firm = companies(:first_firm)
+    assert_queries(1) do
+      firm.clients.many?
+      firm.clients.many?
+    end
+  end
+
   def test_calling_many_should_defer_to_collection_if_using_a_block
     firm = companies(:first_firm)
     assert_queries(1) do
@@ -2352,6 +2360,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
     firm.clients.load  # force load
     assert_no_queries { assert_not firm.clients.one? }
+  end
+
+  def test_subsequent_calls_to_one_should_not_use_query
+    firm = companies(:first_firm)
+    assert_queries(1) do
+      firm.clients.one?
+      firm.clients.one?
+    end
   end
 
   def test_calling_one_should_defer_to_collection_if_using_a_block

@@ -37,7 +37,7 @@ module ActiveStorage
   #     blob: first_thumbnail_blob
   #
   # When processed, Active Record will insert database records for each fixture
-  # entry and will ensure the Action Text relationship is intact.
+  # entry and will ensure the Active Storage relationship is intact.
   class FixtureSet
     include ActiveSupport::Testing::FileFixtures
     include ActiveRecord::SecureToken

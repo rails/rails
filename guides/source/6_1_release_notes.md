@@ -12,7 +12,7 @@ Highlights in Rails 6.1:
 * Destroy Associations Async
 
 These release notes cover only the major changes. To learn about various bug
-fixes and changes, please refer to the change logs or check out the [list of
+fixes and changes, please refer to the changelogs or check out the [list of
 commits](https://github.com/rails/rails/commits/6-1-stable) in the main Rails
 repository on GitHub.
 
@@ -47,7 +47,7 @@ your associations are loaded eagerly and stop N+1's before they happen.
 
 ### Delegated Types
 
-[Delegated Types](https://github.com/rails/rails/pull/39341) is an alternative to single-table inheritance. This is helpful for representing class hierarchies allowing the superclass to be a concrete class that is represented by its own table. Each subclass has its own table for additional attributes.
+[Delegated Types](https://github.com/rails/rails/pull/39341) is an alternative to single-table inheritance. This helps represent class hierarchies allowing the superclass to be a concrete class that is represented by its own table. Each subclass has its own table for additional attributes.
 
 ### Destroy Associations Async
 
@@ -244,9 +244,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 ### Notable changes
 
 *   MySQL: Uniqueness validator now respects default database collation,
-    no longer enforce case sensitive comparison by default.
+    no longer enforce case-sensitive comparison by default.
 
-*   `relation.create` does no longer leak scope to class level querying methods
+*   `relation.create` does no longer leak scope to class-level querying methods
     in initialization block and callbacks.
 
     Before:
@@ -265,7 +265,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     end
     ```
 
-*   Named scope chain does no longer leak scope to class level querying methods.
+*   Named scope chain does no longer leak scope to class-level querying methods.
 
     ```ruby
     class User < ActiveRecord::Base

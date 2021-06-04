@@ -31,6 +31,7 @@ module ActiveRecord
     config.active_record.check_schema_cache_dump_version = true
     config.active_record.maintain_test_schema = true
     config.active_record.has_many_inversing = false
+    config.active_record.sqlite3_production_warning = true
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
@@ -216,7 +217,18 @@ To keep using the current cache store, you can turn off cache versioning entirel
           self.connection_handlers = { writing_role => ActiveRecord::Base.default_connection_handler }
         end
         self.configurations = Rails.application.config.database_configuration
+
         establish_connection
+      end
+    end
+
+    SQLITE3_PRODUCTION_WARN = "You are running SQLite in production, this is generally not recommended."\
+      " You can disable this warning by setting \"config.active_record.sqlite3_production_warning=false\"."
+    initializer "active_record.sqlite3_production_warning" do
+      if config.active_record.sqlite3_production_warning && Rails.env.production?
+        ActiveSupport.on_load(:active_record_sqlite3adapter) do
+          Rails.logger.warn(SQLITE3_PRODUCTION_WARN)
+        end
       end
     end
 

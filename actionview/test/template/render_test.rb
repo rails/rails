@@ -149,6 +149,10 @@ module RenderTestCases
     assert_equal "4", @view.render(inline: "(2**2).to_s", type: :ruby)
   end
 
+  def test_render_template_via_symbol_lookup
+    assert_equal "Hello from Ruby code", @view.render(template: :ruby_template)
+  end
+
   def test_render_template_with_localization_on_context_level
     old_locale, @view.locale = @view.locale, :da
     assert_equal "Hey verden", @view.render(template: "test/hello_world")

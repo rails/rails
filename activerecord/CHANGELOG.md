@@ -1,3 +1,96 @@
+*   Add `ActiveRecord::Base#previously_persisted?`
+
+    Returns `true` if the object has been previously persisted but now it has been deleted.
+
+*   Deprecate `partial_writes` in favor of `partial_inserts` and `partial_updates`.
+
+    This allows to have a different behavior on update and create.
+
+    *Jean Boussier*
+
+*   Fix compatibility with `psych >= 4`.
+
+    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
+    Active Record's schema cache loader and `YAMLColumn` now uses `YAML.unsafe_load` if available.
+
+    *Jean Boussier*
+
+*   `ActiveRecord::Base.logger` is now a `class_attribute`.
+
+    This means it can no longer be accessed directly through `@@logger`, and that setting `logger =`
+    on a subclass won't change the parent's logger.
+
+    *Jean Boussier*
+
+*   Add `.asc.nulls_first` for all databases. Unfortunately MySQL still doesn't like `nulls_last`.
+
+    *Keenan Brock*
+
+*   Improve performance of `one?` and `many?` by limiting the generated count query to 2 results.
+
+    *Gonzalo Riestra*
+
+*   Don't check type when using `if_not_exists` on `add_column`.
+
+    Previously, if a migration called `add_column` with the `if_not_exists` option set to true
+    the `column_exists?` check would look for a column with the same name and type as the migration.
+
+    Recently it was discovered that the type passed to the migration is not always the same type
+    as the column after migration. For example a column set to `:mediumblob` in the migration will
+    be casted to `binary` when calling `column.type`. Since there is no straightforward way to cast
+    the type to the database type without running the migration, we opted to drop the type check from
+    `add_column`. This means that migrations adding a duplicate column with a different type will no
+    longer raise an error.
+
+    *Eileen M. Uchitelle*
+
+*   Log a warning message when running SQLite in production
+
+    Using SQLite in production ENV is generally discouraged. SQLite is also the default adapter
+    in a new Rails application.
+    For the above reasons log a warning message when running SQLite in production.
+
+    The warning can be disabled by setting `config.active_record.sqlite3_production_warning=false`.
+
+    *Jacopo Beschi*
+
+*   Add option to disable joins for `has_one` associations.
+
+    In a multiple database application, associations can't join across
+    databases. When set, this option instructs Rails to generate 2 or
+    more queries rather than generating joins for `has_one` associations.
+
+    Set the option on a has one through association:
+
+    ```ruby
+    class Person
+      belongs_to :dog
+      has_one :veterinarian, through: :dog, disable_joins: true
+    end
+    ```
+
+    Then instead of generating join SQL, two queries are used for `@person.veterinarian`:
+
+    ```
+    SELECT "dogs"."id" FROM "dogs" WHERE "dogs"."person_id" = ?  [["person_id", 1]]
+    SELECT "veterinarians".* FROM "veterinarians" WHERE "veterinarians"."dog_id" = ?  [["dog_id", 1]]
+    ```
+
+    *Sarah Vessels*, *Eileen M. Uchitelle*
+
+*   `Arel::Visitors::Dot` now renders a complete set of properties when visiting
+    `Arel::Nodes::SelectCore`, `SelectStatement`, `InsertStatement`, `UpdateStatement`, and
+    `DeleteStatement`, which fixes #42026. Previously, some properties were omitted.
+
+    *Mike Dalessio*
+
+*   `Arel::Visitors::Dot` now supports `Arel::Nodes::Bin`, `Case`, `CurrentRow`, `Distinct`,
+    `DistinctOn`, `Else`, `Except`, `InfixOperation`, `Intersect`, `Lock`, `NotRegexp`, `Quoted`,
+    `Regexp`, `UnaryOperation`, `Union`, `UnionAll`, `When`, and `With`. Previously, these node
+    types caused an exception to be raised by `Arel::Visitors::Dot#accept`.
+
+    *Mike Dalessio*
+
 *   Optimize `remove_columns` to use a single SQL statement.
 
     ```ruby
@@ -390,6 +483,18 @@
     (see `ActiveRecord::Attributes::ClassMethods` for documentation).
 
     *Josua Schmid*
+
+*   PostgreSQL: introduce `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type`
+
+    This setting controls what native type Active Record should use when you call `datetime` in
+    a migration or schema. It takes a symbol which must correspond to one of the configured
+    `NATIVE_DATABASE_TYPES`. The default is `:timestamp`, meaning `t.datetime` in a migration
+    will create a "timestamp without time zone" column. To use "timestamp with time zone",
+    change this to `:timestamptz` in an initializer.
+
+    You should run `bin/rails db:migrate` to rebuild your schema.rb if you change this.
+
+    *Alex Ghiculescu*
 
 *   PostgreSQL: handle `timestamp with time zone` columns correctly in `schema.rb`.
 

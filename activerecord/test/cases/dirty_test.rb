@@ -943,11 +943,14 @@ class DirtyTest < ActiveRecord::TestCase
 
   private
     def with_partial_writes(klass, on = true)
-      old = klass.partial_writes?
-      klass.partial_writes = on
+      old_inserts = klass.partial_inserts?
+      old_updates = klass.partial_updates?
+      klass.partial_inserts = on
+      klass.partial_updates = on
       yield
     ensure
-      klass.partial_writes = old
+      klass.partial_inserts = old_inserts
+      klass.partial_updates = old_updates
     end
 
     def check_pirate_after_save_failure(pirate)

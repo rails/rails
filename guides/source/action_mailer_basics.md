@@ -877,13 +877,14 @@ class SandboxEmailInterceptor
 end
 ```
 
-Before the interceptor can do its job you need to register it using
-[`register_interceptor`][]. You can do this in an initializer file like
-`config/initializers/sandbox_email_interceptor.rb`:
+Before the interceptor can do its job you need to register it using the `interceptors` config option.
+You can do this in an initializer file like `config/initializers/mail_interceptors.rb`:
 
 ```ruby
-if Rails.env.staging?
-  ActionMailer::Base.register_interceptor(SandboxEmailInterceptor)
+Rails.application.configure do
+  if Rails.env.staging?
+    config.action_mailer.interceptors = %w[SandboxEmailInterceptor]
+  end
 end
 ```
 
@@ -891,8 +892,6 @@ NOTE: The example above uses a custom environment called "staging" for a
 production like server but for testing purposes. You can read
 [Creating Rails Environments](configuring.html#creating-rails-environments)
 for more information about custom Rails environments.
-
-[`register_interceptor`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-c-register_interceptor
 
 ### Observing Emails
 
@@ -906,11 +905,11 @@ class EmailDeliveryObserver
 end
 ```
 
-Similar to interceptors, you must register observers using [`register_observer`][]. You can do this in an initializer file
-like `config/initializers/email_delivery_observer.rb`:
+Similar to interceptors, you must register observers using the `observers` config option.
+You can do this in an initializer file like `config/initializers/mail_observers.rb`:
 
 ```ruby
-ActionMailer::Base.register_observer(EmailDeliveryObserver)
+Rails.application.configure do
+  config.action_mailer.observers = %w[EmailDeliveryObserver]
+end
 ```
-
-[`register_observer`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-c-register_observer

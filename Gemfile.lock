@@ -45,7 +45,7 @@ PATH
     actionpack (7.0.0.alpha)
       actionview (= 7.0.0.alpha)
       activesupport (= 7.0.0.alpha)
-      rack (~> 2.0, >= 2.0.9)
+      rack (~> 2.0, >= 2.2.0)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.2.0)
@@ -156,6 +156,7 @@ GEM
       dante (> 0.1.5)
     bcrypt (3.1.16)
     bcrypt (3.1.16-java)
+
     beaneater (1.1.1)
     benchmark-ips (2.8.4)
     blade (0.7.2)
@@ -397,7 +398,7 @@ GEM
     rb-fsevent (0.10.4)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
-    rdoc (6.3.0)
+    rdoc (6.3.1)
     redcarpet (3.2.3)
     redis (4.2.5)
     redis-namespace (1.8.1)
@@ -460,7 +461,7 @@ GEM
       sprockets (> 3.0)
       sprockets-rails
       tilt
-    sdoc (2.1.0)
+    sdoc (2.2.0)
       rdoc (>= 5.0)
     selenium-webdriver (4.0.0.beta3)
       childprocess (>= 0.5, < 5.0)
@@ -615,7 +616,7 @@ DEPENDENCIES
   rubocop-performance
   rubocop-rails
   sass-rails
-  sdoc (>= 2.1.0)
+  sdoc (>= 2.2.0)
   selenium-webdriver (>= 4.0.0.alpha7)
   sequel
   sidekiq
@@ -636,3 +637,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
+  2.2.15

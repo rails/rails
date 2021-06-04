@@ -97,18 +97,17 @@ module ActionView
 
         candidates = @error.paths.flat_map(&:all_template_paths).uniq
         if @error.partial
-          candidates = candidates.grep(%r{_[^/]+\z})
+          candidates.select!(&:partial?)
         else
-          candidates = candidates.grep_v(%r{_[^/]+\z})
+          candidates.reject!(&:partial?)
         end
 
         # Group by possible prefixes
-        files_by_dir = candidates.group_by do |x|
-          File.dirname(x)
-        end.transform_values do |files|
+        files_by_dir = candidates.group_by(&:prefix)
+        files_by_dir.transform_values! do |files|
           files.map do |file|
-            # Remove directory
-            File.basename(file)
+            # Remove prefix
+            File.basename(file.to_s)
           end
         end
 

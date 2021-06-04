@@ -33,6 +33,7 @@ module ActiveRecord
       @delegate_to_klass = false
       @future_result = nil
       @records = nil
+      @limited_count = nil
     end
 
     def initialize_copy(other)
@@ -294,13 +295,15 @@ module ActiveRecord
     # Returns true if there is exactly one record.
     def one?
       return super if block_given?
-      limit_value ? records.one? : size == 1
+      return records.one? if limit_value || loaded?
+      limited_count == 1
     end
 
     # Returns true if there is more than one record.
     def many?
       return super if block_given?
-      limit_value ? records.many? : size > 1
+      return records.many? if limit_value || loaded?
+      limited_count > 1
     end
 
     # Returns a stable cache key that can be used to identify this query.
@@ -690,6 +693,7 @@ module ActiveRecord
       @offsets = @take = nil
       @cache_keys = nil
       @records = nil
+      @limited_count = nil
       self
     end
 
@@ -963,6 +967,10 @@ module ActiveRecord
         # always convert table names to downcase as in Oracle quoted table names are in uppercase
         # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
         string.scan(/[a-zA-Z_][.\w]+(?=.?\.)/).map!(&:downcase) - ["raw_sql_"]
+      end
+
+      def limited_count
+        @limited_count ||= limit(2).count
       end
   end
 end

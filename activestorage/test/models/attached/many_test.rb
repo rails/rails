@@ -648,6 +648,25 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_match(/Cannot find variant :unknown for User#highlights_with_variants/, error.message)
   end
 
+  test "successfully attaches new blobs and destroys attachments marked for destruction via nested attributes" do
+    append_on_assign do
+      town_blob = create_blob(filename: "town.jpg")
+      @user.highlights.attach(town_blob)
+      @user.reload
+
+      racecar_blob = fixture_file_upload("racecar.jpg")
+      attachment_id = town_blob.attachments.find_by!(record: @user).id
+      @user.update(
+        highlights: [racecar_blob],
+        highlights_attachments_attributes: [{ id: attachment_id, _destroy: true }]
+      )
+
+      assert @user.reload.highlights.attached?
+      assert_equal 1, @user.highlights.count
+      assert_equal "racecar.jpg", @user.highlights.blobs.first.filename.to_s
+    end
+  end
+
   private
     def append_on_assign
       ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many

@@ -135,6 +135,8 @@ module Arel # :nodoc: all
           visit_Arel_Nodes_SelectOptions(o, collector)
         end
 
+        # The Oracle enhanced adapter uses this private method,
+        # see https://github.com/rsim/oracle-enhanced/issues/2186
         def visit_Arel_Nodes_SelectOptions(o, collector)
           collector = maybe_visit o.limit, collector
           collector = maybe_visit o.offset, collector
@@ -355,6 +357,17 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_Descending(o, collector)
           visit(o.expr, collector) << " DESC"
+        end
+
+        # NullsFirst is available on all but MySQL, where it is redefined.
+        def visit_Arel_Nodes_NullsFirst(o, collector)
+          visit o.expr, collector
+          collector << " NULLS FIRST"
+        end
+
+        def visit_Arel_Nodes_NullsLast(o, collector)
+          visit o.expr, collector
+          collector << " NULLS LAST"
         end
 
         def visit_Arel_Nodes_Group(o, collector)

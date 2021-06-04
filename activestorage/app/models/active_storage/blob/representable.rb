@@ -113,7 +113,7 @@ module ActiveStorage::Blob::Representable
       if filename.extension.present? && MiniMime.lookup_by_extension(filename.extension)&.content_type == content_type
         filename.extension
       else
-        MiniMime.lookup_by_content_type(content_type).extension
+        MiniMime.lookup_by_content_type(content_type)&.extension
       end
     end
 
