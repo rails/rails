@@ -3,6 +3,7 @@
 require "redcarpet"
 require "nokogiri"
 require "rails_guides/markdown/renderer"
+require "rails-html-sanitizer"
 
 module RailsGuides
   class Markdown
@@ -20,6 +21,7 @@ module RailsGuides
       @raw_body = body
       extract_raw_header_and_body
       generate_header
+      generate_description
       generate_title
       generate_body
       generate_structure
@@ -28,7 +30,6 @@ module RailsGuides
     end
 
     private
-
       def dom_id(nodes)
         dom_id = dom_id_text(nodes.last.text)
 
@@ -69,8 +70,8 @@ module RailsGuides
       end
 
       def extract_raw_header_and_body
-        if /^\-{40,}$/.match?(@raw_body)
-          @raw_header, _, @raw_body = @raw_body.partition(/^\-{40,}$/).map(&:strip)
+        if /^-{40,}$/.match?(@raw_body)
+          @raw_header, _, @raw_body = @raw_body.partition(/^-{40,}$/).map(&:strip)
         end
       end
 
@@ -80,6 +81,11 @@ module RailsGuides
 
       def generate_header
         @header = engine.render(@raw_header).html_safe
+      end
+
+      def generate_description
+        sanitizer = Rails::Html::FullSanitizer.new
+        @description = sanitizer.sanitize(@header).squish
       end
 
       def generate_structure
@@ -165,6 +171,7 @@ module RailsGuides
 
       def render_page
         @view.content_for(:header_section) { @header }
+        @view.content_for(:description) { @description }
         @view.content_for(:page_title) { @title }
         @view.content_for(:index_section) { @index }
         @view.render(layout: @layout, html: @body.html_safe)

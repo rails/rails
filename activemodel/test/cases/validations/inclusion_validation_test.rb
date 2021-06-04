@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "active_support/all"
 
 require "models/topic"
 require "models/person"
@@ -155,6 +154,23 @@ class InclusionValidationTest < ActiveModel::TestCase
     end
 
     assert_predicate p, :valid?
+  ensure
+    Person.clear_validators!
+  end
+
+  def test_validates_inclusion_of_with_array_value
+    Person.validates_inclusion_of :karma, in: %w( abe monkey )
+
+    p = Person.new
+    p.karma = %w(Lifo monkey)
+
+    assert p.invalid?
+    assert_equal ["is not included in the list"], p.errors[:karma]
+
+    p = Person.new
+    p.karma = %w(abe monkey)
+
+    assert p.valid?
   ensure
     Person.clear_validators!
   end

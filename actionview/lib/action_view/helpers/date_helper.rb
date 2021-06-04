@@ -197,8 +197,8 @@ module ActionView
       #   and +:name+ (string). A format string would be something like "%{name} (%<number>02d)" for example.
       #   See <tt>Kernel.sprintf</tt> for documentation on format sequences.
       # * <tt>:date_separator</tt>    - Specifies a string to separate the date fields. Default is "" (i.e. nothing).
-      # * <tt>:time_separator</tt>    - Specifies a string to separate the time fields. Default is "" (i.e. nothing).
-      # * <tt>:datetime_separator</tt>- Specifies a string to separate the date and time fields. Default is "" (i.e. nothing).
+      # * <tt>:time_separator</tt>    - Specifies a string to separate the time fields. Default is " : ".
+      # * <tt>:datetime_separator</tt>- Specifies a string to separate the date and time fields. Default is " &mdash; ".
       # * <tt>:start_year</tt>        - Set the start year for the year select. Default is <tt>Date.today.year - 5</tt> if
       #   you are creating new record. While editing existing record, <tt>:start_year</tt> defaults to
       #   the current selected year minus 5.
@@ -688,7 +688,6 @@ module ActionView
       end
 
       private
-
         def normalize_distance_of_time_argument_to_time(value)
           if value.is_a?(Numeric)
             Time.at(value)
@@ -831,7 +830,7 @@ module ActionView
       end
 
       def select_year
-        if !@datetime || @datetime == 0
+        if !year || @datetime == 0
           val = "1"
           middle_year = Date.today.year
         else
@@ -1054,14 +1053,14 @@ module ActionView
           select_options[:class] = css_class_attribute(type, select_options[:class], @options[:with_css_classes]) if @options[:with_css_classes]
 
           select_html = +"\n"
-          select_html << content_tag("option", "", value: "") + "\n" if @options[:include_blank]
+          select_html << content_tag("option", "", value: "", label: " ") + "\n" if @options[:include_blank]
           select_html << prompt_option_tag(type, @options[:prompt]) + "\n" if @options[:prompt]
           select_html << select_options_as_html
 
           (content_tag("select", select_html.html_safe, select_options) + "\n").html_safe
         end
 
-        # Builds the css class value for the select element
+        # Builds the CSS class value for the select element
         #  css_class_attribute(:year, 'date optional', { year: 'my-year' })
         #  => "date optional my-year"
         def css_class_attribute(type, html_options_class, options) # :nodoc:
@@ -1126,7 +1125,7 @@ module ActionView
         # Returns the id attribute for the input tag.
         #  => "post_written_on_1i"
         def input_id_from_type(type)
-          id = input_name_from_type(type).gsub(/([\[\(])|(\]\[)/, "_").gsub(/[\]\)]/, "")
+          id = input_name_from_type(type).gsub(/([\[(])|(\]\[)/, "_").gsub(/[\])]/, "")
           id = @options[:namespace] + "_" + id if @options[:namespace]
 
           id
@@ -1139,7 +1138,7 @@ module ActionView
           first_visible = order.find { |type| !@options[:"discard_#{type}"] }
           order.reverse_each do |type|
             separator = separator(type) unless type == first_visible # don't add before first visible field
-            select.insert(0, separator.to_s + send("select_#{type}").to_s)
+            select.insert(0, separator.to_s + public_send("select_#{type}").to_s)
           end
           select.html_safe
         end

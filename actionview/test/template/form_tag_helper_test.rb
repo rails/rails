@@ -187,6 +187,30 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_field_id_without_suffixes_or_index
+    value = field_id(:post, :title)
+
+    assert_equal "post_title", value
+  end
+
+  def test_field_id_with_suffixes
+    value = field_id(:post, :title, :error)
+
+    assert_equal "post_title_error", value
+  end
+
+  def test_field_id_with_suffixes_and_index
+    value = field_id(:post, :title, :error, index: 1)
+
+    assert_equal "post_1_title_error", value
+  end
+
+  def test_field_id_with_nested_object_name
+    value = field_id("post[author]", :name)
+
+    assert_equal "post_author_name", value
+  end
+
   def test_hidden_field_tag
     actual = hidden_field_tag "id", 3
     expected = %(<input id="id" name="id" type="hidden" value="3" />)
@@ -299,6 +323,13 @@ class FormTagHelperTest < ActionView::TestCase
     actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), include_blank: true
     expected = %(<select id="places" name="places"><option value="" label=" "></option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
+  end
+
+  def test_select_tag_with_include_blank_doesnt_change_options
+    options = { include_blank: true, prompt: "string" }
+    expected_options = options.dup
+    select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), options
+    expected_options.each { |k, v| assert_equal v, options[k] }
   end
 
   def test_select_tag_with_include_blank_false
@@ -526,6 +557,16 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(
       %(<input name='commit' type="submit" value="Save" />),
       submit_tag("Save")
+    )
+  ensure
+    ActionView::Base.automatically_disable_submit_tag = true
+  end
+
+  def test_empty_submit_tag_with_opt_out_and_explicit_disabling
+    ActionView::Base.automatically_disable_submit_tag = false
+    assert_dom_equal(
+      %(<input name='commit' type="submit" value="Save" />),
+      submit_tag("Save", data: { disable_with: false })
     )
   ensure
     ActionView::Base.automatically_disable_submit_tag = true
@@ -796,7 +837,6 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   private
-
     def root_elem(rendered_content)
       Nokogiri::HTML::DocumentFragment.parse(rendered_content).children.first # extract from nodeset
     end

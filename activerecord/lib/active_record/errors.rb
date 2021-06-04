@@ -7,6 +7,10 @@ module ActiveRecord
   class ActiveRecordError < StandardError
   end
 
+  # Raised when trying to use a feature in Active Record which requires Active Job but the gem is not present.
+  class ActiveJobRequiredError < ActiveRecordError
+  end
+
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
   # {ActiveRecord::Base.inheritance_column}[rdoc-ref:ModelSchema::ClassMethods#inheritance_column]
@@ -38,6 +42,10 @@ module ActiveRecord
   class AdapterNotSpecified < ActiveRecordError
   end
 
+  # Raised when a model makes a query but it has not specified an associated table.
+  class TableNotSpecified < ActiveRecordError
+  end
+
   # Raised when Active Record cannot find database adapter specified in
   # +config/database.yml+ or programmatically.
   class AdapterNotFound < ActiveRecordError
@@ -47,6 +55,19 @@ module ActiveRecord
   # {ActiveRecord::Base.connection=}[rdoc-ref:ConnectionHandling#connection]
   # is given a +nil+ object).
   class ConnectionNotEstablished < ActiveRecordError
+  end
+
+  # Raised when a connection could not be obtained within the connection
+  # acquisition timeout period: because max connections in pool
+  # are in use.
+  class ConnectionTimeoutError < ConnectionNotEstablished
+  end
+
+  # Raised when a pool was unable to get ahold of all its connections
+  # to perform a "group" action such as
+  # {ActiveRecord::Base.connection_pool.disconnect!}[rdoc-ref:ConnectionAdapters::ConnectionPool#disconnect!]
+  # or {ActiveRecord::Base.clear_reloadable_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_reloadable_connections!].
+  class ExclusiveConnectionTimeoutError < ConnectionTimeoutError
   end
 
   # Raised when a write to the database is attempted on a read only connection.
@@ -68,7 +89,7 @@ module ActiveRecord
 
   # Raised by {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] and
   # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!]
-  # methods when a record is invalid and can not be saved.
+  # methods when a record is invalid and cannot be saved.
   class RecordNotSaved < ActiveRecordError
     attr_reader :record
 
@@ -97,12 +118,22 @@ module ActiveRecord
     end
   end
 
+  # Raised when Active Record finds multiple records but only expected one.
+  class SoleRecordExceeded < ActiveRecordError
+    attr_reader :record
+
+    def initialize(record = nil)
+      @record = record
+      super "Wanted only one #{record&.name || "record"}"
+    end
+  end
+
   # Superclass for all database execution errors.
   #
   # Wraps the underlying database error as +cause+.
   class StatementInvalid < ActiveRecordError
     def initialize(message = nil, sql: nil, binds: nil)
-      super(message || $!.try(:message))
+      super(message || $!&.message)
       @sql = sql
       @binds = binds
     end
@@ -126,16 +157,26 @@ module ActiveRecord
 
   # Raised when a foreign key constraint cannot be added because the column type does not match the referenced column type.
   class MismatchedForeignKey < StatementInvalid
-    def initialize(adapter = nil, message: nil, sql: nil, binds: nil, table: nil, foreign_key: nil, target_table: nil, primary_key: nil)
-      @adapter = adapter
+    def initialize(
+      message: nil,
+      sql: nil,
+      binds: nil,
+      table: nil,
+      foreign_key: nil,
+      target_table: nil,
+      primary_key: nil,
+      primary_key_column: nil
+    )
       if table
-        msg = +<<~EOM
-          Column `#{foreign_key}` on table `#{table}` has a type of `#{column_type(table, foreign_key)}`.
-          This does not match column `#{primary_key}` on `#{target_table}`, which has type `#{column_type(target_table, primary_key)}`.
-          To resolve this issue, change the type of the `#{foreign_key}` column on `#{table}` to be :integer. (For example `t.integer #{foreign_key}`).
+        type = primary_key_column.bigint? ? :bigint : primary_key_column.type
+        msg = <<~EOM.squish
+          Column `#{foreign_key}` on table `#{table}` does not match column `#{primary_key}` on `#{target_table}`,
+          which has type `#{primary_key_column.sql_type}`.
+          To resolve this issue, change the type of the `#{foreign_key}` column on `#{table}` to be :#{type}.
+          (For example `t.#{type} :#{foreign_key}`).
         EOM
       else
-        msg = +<<~EOM
+        msg = <<~EOM.squish
           There is a mismatch between the foreign key and primary key column types.
           Verify that the foreign key column type and the primary key of the associated table match types.
         EOM
@@ -145,11 +186,6 @@ module ActiveRecord
       end
       super(msg, sql: sql, binds: binds)
     end
-
-    private
-      def column_type(table, column)
-        @adapter.columns(table).detect { |c| c.name == column }.sql_type
-      end
   end
 
   # Raised when a record cannot be inserted or updated because it would violate a not null constraint.
@@ -164,9 +200,9 @@ module ActiveRecord
   class RangeError < StatementInvalid
   end
 
-  # Raised when number of bind variables in statement given to +:condition+ key
-  # (for example, when using {ActiveRecord::Base.find}[rdoc-ref:FinderMethods#find] method)
-  # does not match number of expected values supplied.
+  # Raised when the number of placeholders in an SQL fragment passed to
+  # {ActiveRecord::Base.where}[rdoc-ref:QueryMethods#where]
+  # does not match the number of values supplied.
   #
   # For example, when there are two placeholders with only one value supplied:
   #
@@ -176,6 +212,10 @@ module ActiveRecord
 
   # Raised when a given database does not exist.
   class NoDatabaseError < StatementInvalid
+  end
+
+  # Raised when creating a database if it exists.
+  class DatabaseAlreadyExists < StatementInvalid
   end
 
   # Raised when PostgreSQL returns 'cached plan must not change result type' and
@@ -213,6 +253,10 @@ module ActiveRecord
 
   # Raised on attempt to update record that is instantiated as read only.
   class ReadOnlyRecord < ActiveRecordError
+  end
+
+  # Raised on attempt to lazily load records that are marked as strict loading.
+  class StrictLoadingViolationError < ActiveRecordError
   end
 
   # {ActiveRecord::Base.transaction}[rdoc-ref:Transactions::ClassMethods#transaction]
@@ -325,8 +369,13 @@ module ActiveRecord
   # See the following:
   #
   # * https://www.postgresql.org/docs/current/static/transaction-iso.html
-  # * https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html#error_er_lock_deadlock
+  # * https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html#error_er_lock_deadlock
   class TransactionRollbackError < StatementInvalid
+  end
+
+  # AsynchronousQueryInsideTransactionError will be raised when attempting
+  # to perform an asynchronous query from inside a transaction
+  class AsynchronousQueryInsideTransactionError < ActiveRecordError
   end
 
   # SerializationFailure will be raised when a transaction is rolled
@@ -344,30 +393,36 @@ module ActiveRecord
   class IrreversibleOrderError < ActiveRecordError
   end
 
+  # Superclass for errors that have been aborted (either by client or server).
+  class QueryAborted < StatementInvalid
+  end
+
   # LockWaitTimeout will be raised when lock wait timeout exceeded.
   class LockWaitTimeout < StatementInvalid
   end
 
   # StatementTimeout will be raised when statement timeout exceeded.
-  class StatementTimeout < StatementInvalid
+  class StatementTimeout < QueryAborted
   end
 
   # QueryCanceled will be raised when canceling statement due to user request.
-  class QueryCanceled < StatementInvalid
+  class QueryCanceled < QueryAborted
+  end
+
+  # AdapterTimeout will be raised when database clients times out while waiting from the server.
+  class AdapterTimeout < QueryAborted
   end
 
   # UnknownAttributeReference is raised when an unknown and potentially unsafe
-  # value is passed to a query method when allow_unsafe_raw_sql is set to
-  # :disabled. For example, passing a non column name value to a relation's
-  # #order method might cause this exception.
+  # value is passed to a query method. For example, passing a non column name
+  # value to a relation's #order method might cause this exception.
   #
   # When working around this exception, caution should be taken to avoid SQL
   # injection vulnerabilities when passing user-provided values to query
   # methods. Known-safe values can be passed to query methods by wrapping them
   # in Arel.sql.
   #
-  # For example, with allow_unsafe_raw_sql set to :disabled, the following
-  # code would raise this exception:
+  # For example, the following code would raise this exception:
   #
   #   Post.order("length(title)").first
   #

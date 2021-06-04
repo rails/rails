@@ -550,7 +550,7 @@
       this.file = file;
       this.attributes = {
         filename: file.name,
-        content_type: file.type,
+        content_type: file.type || "application/octet-stream",
         byte_size: file.size,
         checksum: checksum
       };
@@ -864,7 +864,7 @@
     if (!started) {
       started = true;
       document.addEventListener("click", didClick, true);
-      document.addEventListener("submit", didSubmitForm);
+      document.addEventListener("submit", didSubmitForm, true);
       document.addEventListener("ajax:before", didSubmitRemoteElement);
     }
   }

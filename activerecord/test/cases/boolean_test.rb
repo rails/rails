@@ -40,4 +40,13 @@ class BooleanTest < ActiveRecord::TestCase
     assert_equal b_false, Boolean.find_by(value: "false")
     assert_equal b_true, Boolean.find_by(value: "true")
   end
+
+  def test_find_by_falsy_boolean_symbol
+    ActiveModel::Type::Boolean::FALSE_VALUES.each do |value|
+      b_false = Boolean.create!(value: value)
+
+      assert_not_predicate b_false, :value?
+      assert_equal b_false, Boolean.find_by(id: b_false.id, value: value.to_s.to_sym)
+    end
+  end
 end

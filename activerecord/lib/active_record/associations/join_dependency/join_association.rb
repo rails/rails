@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_record/associations/join_dependency/join_part"
+require "active_support/core_ext/array/extract"
 
 module ActiveRecord
   module Associations
@@ -13,7 +14,6 @@ module ActiveRecord
           super(reflection.klass, children)
 
           @reflection = reflection
-          @tables     = nil
         end
 
         def match?(other)
@@ -23,24 +23,49 @@ module ActiveRecord
 
         def join_constraints(foreign_table, foreign_klass, join_type, alias_tracker)
           joins = []
+          chain = []
+
+          reflection.chain.each do |reflection|
+            table, terminated = yield reflection
+            @table ||= table
+
+            if terminated
+              foreign_table, foreign_klass = table, reflection.klass
+              break
+            end
+
+            chain << [reflection, table]
+          end
 
           # The chain starts with the target table, but we want to end with it here (makes
           # more sense in this context), so we reverse
-          reflection.chain.reverse_each.with_index(1) do |reflection, i|
-            table = tables[-i]
+          chain.reverse_each do |reflection, table|
             klass = reflection.klass
 
-            constraint = reflection.build_join_constraint(table, foreign_table)
+            scope = reflection.join_scope(table, foreign_table, foreign_klass)
 
-            joins << table.create_join(table, table.create_on(constraint), join_type)
+            unless scope.references_values.empty?
+              associations = scope.eager_load_values | scope.includes_values
 
-            join_scope = reflection.join_scope(table, foreign_klass)
-            arel = join_scope.arel(alias_tracker.aliases)
+              unless associations.empty?
+                scope.joins! scope.construct_join_dependency(associations, Arel::Nodes::OuterJoin)
+              end
+            end
 
-            if arel.constraints.any?
+            arel = scope.arel(alias_tracker.aliases)
+            nodes = arel.constraints.first
+
+            if nodes.is_a?(Arel::Nodes::And)
+              others = nodes.children.extract! do |node|
+                !Arel.fetch_attribute(node) { |attr| attr.relation.name == table.name }
+              end
+            end
+
+            joins << join_type.new(table, Arel::Nodes::On.new(nodes))
+
+            if others && !others.empty?
               joins.concat arel.join_sources
-              right = joins.last.right
-              right.expr = right.expr.and(arel.constraints)
+              append_constraints(joins.last, others)
             end
 
             # The current table in this iteration becomes the foreign table in the next
@@ -50,16 +75,28 @@ module ActiveRecord
           joins
         end
 
-        def tables=(tables)
-          @tables = tables
-          @table  = tables.first
-        end
-
         def readonly?
           return @readonly if defined?(@readonly)
 
           @readonly = reflection.scope && reflection.scope_for(base_klass.unscoped).readonly_value
         end
+
+        def strict_loading?
+          return @strict_loading if defined?(@strict_loading)
+
+          @strict_loading = reflection.scope && reflection.scope_for(base_klass.unscoped).strict_loading_value
+        end
+
+        private
+          def append_constraints(join, constraints)
+            if join.is_a?(Arel::Nodes::StringJoin)
+              join_string = Arel::Nodes::And.new(constraints.unshift join.left)
+              join.left = Arel.sql(base_klass.connection.visitor.compile(join_string))
+            else
+              right = join.right
+              right.expr = Arel::Nodes::And.new(constraints.unshift right.expr)
+            end
+          end
       end
     end
   end

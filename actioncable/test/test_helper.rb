@@ -41,3 +41,5 @@ class ActionCable::TestCase < ActiveSupport::TestCase
     end
   end
 end
+
+require_relative "../../tools/test_common"

@@ -21,7 +21,7 @@ class TestJob < ActiveJob::Base
     File.open(Rails.root.join("tmp/\#{x}.new"), "wb+") do |f|
       f.write Marshal.dump({
         "locale" => I18n.locale.to_s || "en",
-        "timezone" => Time.zone.try(:name) || "UTC",
+        "timezone" => Time.zone&.name || "UTC",
         "executed_at" => Time.now.to_r
       })
     end

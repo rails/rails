@@ -37,7 +37,6 @@ module ActiveRecord
         end
 
         private
-
           def compute_column_widths(result)
             [].tap do |widths|
               result.columns.each_with_index do |column, i|
@@ -57,7 +56,7 @@ module ActiveRecord
             items.each_with_index do |item, i|
               item = "NULL" if item.nil?
               justifier = item.is_a?(Numeric) ? "rjust" : "ljust"
-              cells << item.to_s.send(justifier, widths[i])
+              cells << item.to_s.public_send(justifier, widths[i])
             end
             "| " + cells.join(" | ") + " |"
           end

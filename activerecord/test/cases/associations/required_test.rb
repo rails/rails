@@ -117,7 +117,6 @@ class RequiredAssociationsTest < ActiveRecord::TestCase
   end
 
   private
-
     def subclass_of(klass, &block)
       subclass = Class.new(klass, &block)
       def subclass.name

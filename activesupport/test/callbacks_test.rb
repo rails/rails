@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
+require "active_support/core_ext/kernel/singleton_class"
 
 module CallbacksTest
   class Record
@@ -58,11 +59,11 @@ module CallbacksTest
 
     [:before_save, :after_save].each do |callback_method|
       callback_method_sym = callback_method.to_sym
-      send(callback_method, callback_symbol(callback_method_sym))
-      send(callback_method, callback_proc(callback_method_sym))
-      send(callback_method, callback_object(callback_method_sym.to_s.gsub(/_save/, "")))
-      send(callback_method, CallbackClass)
-      send(callback_method) { |model| model.history << [callback_method_sym, :block] }
+      public_send(callback_method, callback_symbol(callback_method_sym))
+      public_send(callback_method, callback_proc(callback_method_sym))
+      public_send(callback_method, callback_object(callback_method_sym.to_s.gsub(/_save/, "")))
+      public_send(callback_method, CallbackClass)
+      public_send(callback_method) { |model| model.history << [callback_method_sym, :block] }
     end
 
     def save
@@ -256,7 +257,7 @@ module CallbacksTest
     end
 
     def respond_to_missing?(sym)
-      sym =~ /^(log|wrap)_/ || super
+      sym.match?(/^(log|wrap)_/) || super
     end
   end
 
@@ -397,7 +398,6 @@ module CallbacksTest
     end
 
     private
-
       def record1
         @recorder << 1
       end
@@ -610,7 +610,7 @@ module CallbacksTest
       set_callback :save, :after, :third
     end
 
-    attr_reader :history, :saved, :halted
+    attr_reader :history, :saved, :halted, :callback_name
     def initialize
       @history = []
     end
@@ -640,8 +640,9 @@ module CallbacksTest
       end
     end
 
-    def halted_callback_hook(filter)
+    def halted_callback_hook(filter, name)
       @halted = filter
+      @callback_name = name
     end
   end
 
@@ -824,6 +825,7 @@ module CallbacksTest
       terminator = CallbackTerminator.new
       terminator.save
       assert_equal :second, terminator.halted
+      assert_equal :save, terminator.callback_name
     end
 
     def test_block_never_called_if_terminated
@@ -989,6 +991,7 @@ module CallbacksTest
         define_callbacks :foo, scope: [:name]
         set_callback :foo, :before, :foo, if: callback
         def run; run_callbacks :foo; end
+
         private
           def foo; end
       }
@@ -1124,15 +1127,6 @@ module CallbacksTest
         assert_equal i, calls.length
         calls.clear
       }
-    end
-
-    def test_skip_lambda # raises error
-      calls = []
-      callback = ->(o) { calls << o }
-      klass = build_class(callback)
-      assert_raises(ArgumentError) { klass.skip callback }
-      klass.new.run
-      assert_equal 10, calls.length
     end
 
     def test_skip_symbol # removes all

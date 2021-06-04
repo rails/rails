@@ -33,6 +33,13 @@ class DeleteAllTest < ActiveRecord::TestCase
     assert_not_predicate davids, :loaded?
   end
 
+  def test_delete_all_with_index_hint
+    davids = Author.where(name: "David").from("#{Author.quoted_table_name} /*! USE INDEX (PRIMARY) */")
+
+    assert_difference("Author.count", -1) { davids.delete_all }
+    assert_not_predicate davids, :loaded?
+  end
+
   def test_delete_all_loaded
     davids = Author.where(name: "David")
 
@@ -56,7 +63,15 @@ class DeleteAllTest < ActiveRecord::TestCase
     pets = Pet.joins(:toys).where(toys: { name: "Bone" })
 
     assert_equal true, pets.exists?
-    assert_equal pets.count, pets.delete_all
+    sqls = capture_sql do
+      assert_equal pets.count, pets.delete_all
+    end
+
+    if current_adapter?(:Mysql2Adapter)
+      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(Pet.connection.quote_table_name("pets.pet_id"))}/, sqls.last
+    else
+      assert_match %r/SELECT #{Regexp.escape(Pet.connection.quote_table_name("pets.pet_id"))}/, sqls.last
+    end
   end
 
   def test_delete_all_with_joins_and_where_part_is_not_hash
@@ -80,25 +95,23 @@ class DeleteAllTest < ActiveRecord::TestCase
     assert_equal pets.count, pets.delete_all
   end
 
-  unless current_adapter?(:OracleAdapter)
-    def test_delete_all_with_order_and_limit_deletes_subset_only
-      author = authors(:david)
-      limited_posts = Post.where(author: author).order(:id).limit(1)
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.delete_all
-      assert_raise(ActiveRecord::RecordNotFound) { posts(:welcome) }
-      assert posts(:thinking)
-    end
+  def test_delete_all_with_order_and_limit_deletes_subset_only
+    author = authors(:david)
+    limited_posts = Post.where(author: author).order(:id).limit(1)
+    assert_equal 1, limited_posts.size
+    assert_equal 2, limited_posts.limit(2).size
+    assert_equal 1, limited_posts.delete_all
+    assert_raise(ActiveRecord::RecordNotFound) { posts(:welcome) }
+    assert posts(:thinking)
+  end
 
-    def test_delete_all_with_order_and_limit_and_offset_deletes_subset_only
-      author = authors(:david)
-      limited_posts = Post.where(author: author).order(:id).limit(1).offset(1)
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.delete_all
-      assert_raise(ActiveRecord::RecordNotFound) { posts(:thinking) }
-      assert posts(:welcome)
-    end
+  def test_delete_all_with_order_and_limit_and_offset_deletes_subset_only
+    author = authors(:david)
+    limited_posts = Post.where(author: author).order(:id).limit(1).offset(1)
+    assert_equal 1, limited_posts.size
+    assert_equal 2, limited_posts.limit(2).size
+    assert_equal 1, limited_posts.delete_all
+    assert_raise(ActiveRecord::RecordNotFound) { posts(:thinking) }
+    assert posts(:welcome)
   end
 end

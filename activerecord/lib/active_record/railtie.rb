@@ -2,6 +2,7 @@
 
 require "active_record"
 require "rails"
+require "active_support/core_ext/object/try"
 require "active_model/railtie"
 
 # For now, action_controller must always be present with
@@ -14,6 +15,7 @@ module ActiveRecord
   # = Active Record Railtie
   class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
+    config.active_record.encryption = ActiveSupport::OrderedOptions.new
 
     config.app_generators.orm :active_record, migration: true,
                                               timestamps: true
@@ -26,18 +28,18 @@ module ActiveRecord
     )
 
     config.active_record.use_schema_cache_dump = true
+    config.active_record.check_schema_cache_dump_version = true
     config.active_record.maintain_test_schema = true
+    config.active_record.has_many_inversing = false
+    config.active_record.sqlite3_production_warning = true
 
-    config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
-    config.active_record.sqlite3.represent_boolean_as_integer = nil
+    config.active_record.queues = ActiveSupport::InheritableOptions.new
 
     config.eager_load_namespaces << ActiveRecord
 
     rake_tasks do
       namespace :db do
         task :load_config do
-          ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
-
           if defined?(ENGINE_ROOT) && engine = Rails::Engine.find(ENGINE_ROOT)
             if engine.paths["db/migrate"].existent
               ActiveRecord::Tasks::DatabaseTasks.migrations_paths += engine.paths["db/migrate"].to_a
@@ -57,6 +59,7 @@ module ActiveRecord
       require "active_record/base"
       unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
         console = ActiveSupport::Logger.new(STDERR)
+        console.level = Rails.logger.level
         Rails.logger.extend ActiveSupport::Logger.broadcast console
       end
       ActiveRecord::Base.verbose_query_logs = false
@@ -81,10 +84,19 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner }
     end
 
-    initializer "active_record.migration_error" do
+    initializer "active_record.migration_error" do |app|
       if config.active_record.delete(:migration_error) == :page_load
         config.app_middleware.insert_after ::ActionDispatch::Callbacks,
-          ActiveRecord::Migration::CheckPending
+          ActiveRecord::Migration::CheckPending,
+          file_watcher: app.config.file_watcher
+      end
+    end
+
+    initializer "active_record.database_selector" do
+      if options = config.active_record.delete(:database_selector)
+        resolver = config.active_record.delete(:database_resolver)
+        operations = config.active_record.delete(:database_resolver_context)
+        config.app_middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, operations, options
       end
     end
 
@@ -106,7 +118,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
     config.active_record.cache_versioning = false
 
-end_error
+              end_error
             end
           end
         end
@@ -114,24 +126,37 @@ end_error
     end
 
     initializer "active_record.check_schema_cache_dump" do
+      check_schema_cache_dump_version = config.active_record.delete(:check_schema_cache_dump_version)
+
       if config.active_record.delete(:use_schema_cache_dump)
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
-            filename = File.join(app.config.paths["db"].first, "schema_cache.yml")
+            db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).first
 
-            if File.file?(filename)
-              current_version = ActiveRecord::Migrator.current_version
+            filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
+              db_config.name,
+              schema_cache_path: db_config&.schema_cache_path
+            )
 
+            cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
+            next if cache.nil?
+
+            if check_schema_cache_dump_version
+              current_version = begin
+                ActiveRecord::Migrator.current_version
+              rescue ActiveRecordError => error
+                warn "Failed to validate the schema cache because of #{error.class}: #{error.message}"
+                nil
+              end
               next if current_version.nil?
 
-              cache = YAML.load(File.read(filename))
-              if cache.version == current_version
-                connection.schema_cache = cache
-                connection_pool.schema_cache = cache.dup
-              else
-                warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
+              if cache.version != current_version
+                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
+                next
               end
             end
+
+            connection_pool.set_schema_cache(cache)
           end
         end
       end
@@ -141,16 +166,25 @@ end_error
       config.after_initialize do
         ActiveSupport.on_load(:active_record) do
           if app.config.eager_load
-            descendants.each do |model|
-              # SchemaMigration and InternalMetadata both override `table_exists?`
-              # to bypass the schema cache, so skip them to avoid the extra queries.
-              next if model._internal?
+            begin
+              descendants.each do |model|
+                # If the schema cache was loaded from a dump, we can use it without connecting
+                schema_cache = model.connection_pool.schema_cache
 
-              # If there's no connection yet, or the schema cache doesn't have the columns
-              # hash for the model cached, `define_attribute_methods` would trigger a query.
-              next unless model.connected? && model.connection.schema_cache.columns_hash?(model.table_name)
+                # If there's no connection yet, we avoid connecting.
+                schema_cache ||= model.connected? && model.connection.schema_cache
 
-              model.define_attribute_methods
+                # If the schema cache doesn't have the columns
+                # hash for the model cached, `define_attribute_methods` would trigger a query.
+                if schema_cache && schema_cache.columns_hash?(model.table_name)
+                  model.define_attribute_methods
+                end
+              end
+            rescue ActiveRecordError => error
+              # Regardless of whether there was already a connection or not, we rescue any database
+              # error because it is critical that the application can boot even if the database
+              # is unhealthy.
+              warn "Failed to define attribute methods because of #{error.class}: #{error.message}"
             end
           end
         end
@@ -167,10 +201,10 @@ end_error
 
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
-        configs = app.config.active_record.dup
-        configs.delete(:sqlite3)
+        configs = app.config.active_record
+
         configs.each do |k, v|
-          send "#{k}=", v
+          send "#{k}=", v if k != :encryption
         end
       end
     end
@@ -179,8 +213,22 @@ end_error
     # and then establishes the connection.
     initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
+        if ActiveRecord::Base.legacy_connection_handling
+          self.connection_handlers = { writing_role => ActiveRecord::Base.default_connection_handler }
+        end
         self.configurations = Rails.application.config.database_configuration
+
         establish_connection
+      end
+    end
+
+    SQLITE3_PRODUCTION_WARN = "You are running SQLite in production, this is generally not recommended."\
+      " You can disable this warning by setting \"config.active_record.sqlite3_production_warning=false\"."
+    initializer "active_record.sqlite3_production_warning" do
+      if config.active_record.sqlite3_production_warning && Rails.env.production?
+        ActiveSupport.on_load(:active_record_sqlite3adapter) do
+          Rails.logger.warn(SQLITE3_PRODUCTION_WARN)
+        end
       end
     end
 
@@ -189,13 +237,6 @@ end_error
       require "active_record/railties/controller_runtime"
       ActiveSupport.on_load(:action_controller) do
         include ActiveRecord::Railties::ControllerRuntime
-      end
-    end
-
-    initializer "active_record.collection_cache_association_loading" do
-      require "active_record/railties/collection_cache_association_loading"
-      ActiveSupport.on_load(:action_view) do
-        ActionView::PartialRenderer.prepend(ActiveRecord::Railties::CollectionCacheAssociationLoading)
       end
     end
 
@@ -212,6 +253,7 @@ end_error
 
     initializer "active_record.set_executor_hooks" do
       ActiveRecord::QueryCache.install_executor_hooks
+      ActiveRecord::AsynchronousQueriesTracker.install_executor_hooks
     end
 
     initializer "active_record.add_watchable_files" do |app|
@@ -236,38 +278,45 @@ end_error
       end
     end
 
-    initializer "active_record.check_represent_sqlite3_boolean_as_integer" do
-      config.after_initialize do
-        ActiveSupport.on_load(:active_record_sqlite3adapter) do
-          represent_boolean_as_integer = Rails.application.config.active_record.sqlite3.delete(:represent_boolean_as_integer)
-          unless represent_boolean_as_integer.nil?
-            ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = represent_boolean_as_integer
-          end
-
-          unless ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
-            ActiveSupport::Deprecation.warn <<-MSG
-Leaving `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
-set to false is deprecated. SQLite databases have used 't' and 'f' to serialize
-boolean values and must have old data converted to 1 and 0 (its native boolean
-serialization) before setting this flag to true. Conversion can be accomplished
-by setting up a rake task which runs
-
-  ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
-  ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
-
-for all models and all boolean columns, after which the flag must be set to
-true by adding the following to your application.rb file:
-
-  Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
-MSG
-          end
-        end
-      end
-    end
-
     initializer "active_record.set_filter_attributes" do
       ActiveSupport.on_load(:active_record) do
         self.filter_attributes += Rails.application.config.filter_parameters
+      end
+    end
+
+    initializer "active_record.set_signed_id_verifier_secret" do
+      ActiveSupport.on_load(:active_record) do
+        self.signed_id_verifier_secret ||= -> { Rails.application.key_generator.generate_key("active_record/signed_id") }
+      end
+    end
+
+    initializer "active_record_encryption.configuration" do |app|
+      ActiveRecord::Encryption.configure \
+         primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
+         deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
+         key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
+         **config.active_record.encryption
+
+      ActiveSupport.on_load(:active_record) do
+        # Support extended queries for deterministic attributes and validations
+        if ActiveRecord::Encryption.config.extend_queries
+          ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
+          ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
+        end
+      end
+
+      ActiveSupport.on_load(:active_record_fixture_set) do
+        # Encrypt active record fixtures
+        if ActiveRecord::Encryption.config.encrypt_fixtures
+          ActiveRecord::Fixture.prepend ActiveRecord::Encryption::EncryptedFixtures
+        end
+      end
+
+      # Filtered params
+      ActiveSupport.on_load(:action_controller) do
+        if ActiveRecord::Encryption.config.add_to_filter_parameters
+          ActiveRecord::Encryption.install_auto_filtered_parameters(app)
+        end
       end
     end
   end

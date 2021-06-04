@@ -2,11 +2,8 @@
 
 module ActiveRecord
   module Associations
-    # Association proxies in Active Record are middlemen between the object that
-    # holds the association, known as the <tt>@owner</tt>, and the actual associated
-    # object, known as the <tt>@target</tt>. The kind of association any proxy is
-    # about is available in <tt>@reflection</tt>. That's an instance of the class
-    # ActiveRecord::Reflection::AssociationReflection.
+    # Collection proxies in Active Record are middlemen between an
+    # <tt>association</tt>, and its <tt>target</tt> result set.
     #
     # For example, given
     #
@@ -16,21 +13,21 @@ module ActiveRecord
     #
     #   blog = Blog.first
     #
-    # the association proxy in <tt>blog.posts</tt> has the object in +blog+ as
-    # <tt>@owner</tt>, the collection of its posts as <tt>@target</tt>, and
-    # the <tt>@reflection</tt> object represents a <tt>:has_many</tt> macro.
+    # The collection proxy returned by <tt>blog.posts</tt> is built from a
+    # <tt>:has_many</tt> <tt>association</tt>, and delegates to a collection
+    # of posts as the <tt>target</tt>.
     #
-    # This class delegates unknown methods to <tt>@target</tt> via
-    # <tt>method_missing</tt>.
+    # This class delegates unknown methods to the <tt>association</tt>'s
+    # relation class via a delegate cache.
     #
-    # The <tt>@target</tt> object is not \loaded until needed. For example,
+    # The <tt>target</tt> result set is not loaded until needed. For example,
     #
     #   blog.posts.count
     #
     # is computed directly through SQL and does not trigger by itself the
     # instantiation of the actual post records.
     class CollectionProxy < Relation
-      def initialize(klass, association) #:nodoc:
+      def initialize(klass, association, **) #:nodoc:
         @association = association
         super klass
 
@@ -49,11 +46,12 @@ module ActiveRecord
       # Returns +true+ if the association has been loaded, otherwise +false+.
       #
       #   person.pets.loaded? # => false
-      #   person.pets
+      #   person.pets.records
       #   person.pets.loaded? # => true
       def loaded?
         @association.loaded?
       end
+      alias :loaded :loaded?
 
       ##
       # :method: select
@@ -103,7 +101,7 @@ module ActiveRecord
       # converting them into an array and iterating through them using
       # Array#select.
       #
-      #   person.pets.select { |pet| pet.name =~ /oo/ }
+      #   person.pets.select { |pet| /oo/.match?(pet.name) }
       #   # => [
       #   #      #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
@@ -366,34 +364,6 @@ module ActiveRecord
         @association.create!(attributes, &block)
       end
 
-      # Add one or more records to the collection by setting their foreign keys
-      # to the association's primary key. Since #<< flattens its argument list and
-      # inserts each record, +push+ and #concat behave identically. Returns +self+
-      # so method calls may be chained.
-      #
-      #   class Person < ActiveRecord::Base
-      #     has_many :pets
-      #   end
-      #
-      #   person.pets.size # => 0
-      #   person.pets.concat(Pet.new(name: 'Fancy-Fancy'))
-      #   person.pets.concat(Pet.new(name: 'Spook'), Pet.new(name: 'Choo-Choo'))
-      #   person.pets.size # => 3
-      #
-      #   person.id # => 1
-      #   person.pets
-      #   # => [
-      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
-      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
-      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
-      #   #    ]
-      #
-      #   person.pets.concat([Pet.new(name: 'Brain'), Pet.new(name: 'Benny')])
-      #   person.pets.size # => 5
-      def concat(*records)
-        @association.concat(*records)
-      end
-
       # Replaces this collection with +other_array+. This will perform a diff
       # and delete/add only records that have changed.
       #
@@ -404,7 +374,7 @@ module ActiveRecord
       #   person.pets
       #   # => [#<Pet id: 1, name: "Gorby", group: "cats", person_id: 1>]
       #
-      #   other_pets = [Pet.new(name: 'Puff', group: 'celebrities']
+      #   other_pets = [Pet.new(name: 'Puff', group: 'celebrities')]
       #
       #   person.pets.replace(other_pets)
       #
@@ -843,7 +813,7 @@ module ActiveRecord
       # to <tt>collection.size.zero?</tt>. If the collection has not been loaded,
       # it is equivalent to <tt>!collection.exists?</tt>. If the collection has
       # not already been loaded and you are going to fetch the records anyway it
-      # is better to check <tt>collection.length.zero?</tt>.
+      # is better to check <tt>collection.load.empty?</tt>.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -878,6 +848,11 @@ module ActiveRecord
       #   person.pets << Pet.new(name: 'Snoop')
       #   person.pets.count # => 1
       #   person.pets.any?  # => true
+      #
+      # Calling it without a block when the collection is not yet
+      # loaded is equivalent to <tt>collection.exists?</tt>.
+      # If you're going to load the collection anyway, it is better
+      # to call <tt>collection.load.any?</tt> to avoid an extra query.
       #
       # You can also pass a +block+ to define criteria. The behavior
       # is the same, it returns true if the collection based on the
@@ -951,7 +926,7 @@ module ActiveRecord
         !!@association.include?(record)
       end
 
-      def proxy_association
+      def proxy_association # :nodoc:
         @association
       end
 
@@ -1033,8 +1008,9 @@ module ActiveRecord
       end
 
       # Adds one or more +records+ to the collection by setting their foreign keys
-      # to the association's primary key. Returns +self+, so several appends may be
-      # chained together.
+      # to the association's primary key. Since <tt><<</tt> flattens its argument list and
+      # inserts each record, +push+ and +concat+ behave identically. Returns +self+
+      # so several appends may be chained together.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -1057,8 +1033,9 @@ module ActiveRecord
       end
       alias_method :push, :<<
       alias_method :append, :<<
+      alias_method :concat, :<<
 
-      def prepend(*args)
+      def prepend(*args) # :nodoc:
         raise NoMethodError, "prepend on association is not defined. Please use <<, push or append"
       end
 
@@ -1115,9 +1092,14 @@ module ActiveRecord
       end
 
       def reset_scope # :nodoc:
-        @offsets = {}
+        @offsets = @take = nil
         @scope = nil
         self
+      end
+
+      def inspect # :nodoc:
+        load_target if find_from_target?
+        super
       end
 
       delegate_methods = [
@@ -1125,12 +1107,13 @@ module ActiveRecord
         SpawnMethods,
       ].flat_map { |klass|
         klass.public_instance_methods(false)
-      } - self.public_instance_methods(false) - [:select] + [:scoping, :values]
+      } - self.public_instance_methods(false) - [:select] + [
+        :scoping, :values, :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all
+      ]
 
       delegate(*delegate_methods, to: :scope)
 
       private
-
         def find_nth_with_limit(index, limit)
           load_target if find_from_target?
           super

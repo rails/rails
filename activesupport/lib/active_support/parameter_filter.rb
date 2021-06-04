@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/duplicable"
-require "active_support/core_ext/array/extract"
 
 module ActiveSupport
   # +ParameterFilter+ allows you to specify keys for sensitive data from
@@ -17,12 +16,17 @@ module ActiveSupport
   #   ActiveSupport::ParameterFilter.new([:foo, "bar"])
   #   => replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
   #
+  #   ActiveSupport::ParameterFilter.new([/\Apin\z/i, /\Apin_/i])
+  #   => replaces the value for the exact (case-insensitive) key 'pin' and all
+  #   (case-insensitive) keys beginning with 'pin_', with "[FILTERED]".
+  #   Does not match keys with 'pin' as a substring, such as 'shipping_id'.
+  #
   #   ActiveSupport::ParameterFilter.new(["credit_card.code"])
   #   => replaces { credit_card: {code: "xxxx"} } with "[FILTERED]", does not
   #   change { file: { code: "xxxx"} }
   #
   #   ActiveSupport::ParameterFilter.new([-> (k, v) do
-  #     v.reverse! if k =~ /secret/i
+  #     v.reverse! if /secret/i.match?(k)
   #   end])
   #   => reverses the value to all keys matching /secret/i
   class ParameterFilter
@@ -34,7 +38,7 @@ module ActiveSupport
     #
     # ==== Options
     #
-    # * <tt>:mask</tt> - A replaced object when filtered. Defaults to +"[FILTERED]"+
+    # * <tt>:mask</tt> - A replaced object when filtered. Defaults to <tt>"[FILTERED]"</tt>.
     def initialize(filters = [], mask: FILTERED)
       @filters = filters
       @mask = mask
@@ -51,7 +55,6 @@ module ActiveSupport
     end
 
   private
-
     def compiled_filter
       @compiled_filter ||= CompiledFilter.compile(@filters, mask: @mask)
     end
@@ -60,24 +63,30 @@ module ActiveSupport
       def self.compile(filters, mask:)
         return lambda { |params| params.dup } if filters.empty?
 
-        strings, regexps, blocks = [], [], []
+        strings, regexps, blocks, deep_regexps, deep_strings = [], [], [], nil, nil
 
         filters.each do |item|
           case item
           when Proc
             blocks << item
           when Regexp
-            regexps << item
+            if item.to_s.include?("\\.")
+              (deep_regexps ||= []) << item
+            else
+              regexps << item
+            end
           else
-            strings << Regexp.escape(item.to_s)
+            s = Regexp.escape(item.to_s)
+            if s.include?("\\.")
+              (deep_strings ||= []) << s
+            else
+              strings << s
+            end
           end
         end
 
-        deep_regexps = regexps.extract! { |r| r.to_s.include?("\\.") }
-        deep_strings = strings.extract! { |s| s.include?("\\.") }
-
         regexps << Regexp.new(strings.join("|"), true) unless strings.empty?
-        deep_regexps << Regexp.new(deep_strings.join("|"), true) unless deep_strings.empty?
+        (deep_regexps ||= []) << Regexp.new(deep_strings.join("|"), true) if deep_strings&.any?
 
         new regexps, deep_regexps, blocks, mask: mask
       end
@@ -86,7 +95,7 @@ module ActiveSupport
 
       def initialize(regexps, deep_regexps, blocks, mask:)
         @regexps = regexps
-        @deep_regexps = deep_regexps.any? ? deep_regexps : nil
+        @deep_regexps = deep_regexps&.any? ? deep_regexps : nil
         @blocks = blocks
         @mask = mask
       end
@@ -103,14 +112,19 @@ module ActiveSupport
 
       def value_for_key(key, value, parents = [], original_params = nil)
         parents.push(key) if deep_regexps
-        if regexps.any? { |r| r.match?(key) }
+        if regexps.any? { |r| r.match?(key.to_s) }
           value = @mask
         elsif deep_regexps && (joined = parents.join(".")) && deep_regexps.any? { |r| r.match?(joined) }
           value = @mask
         elsif value.is_a?(Hash)
           value = call(value, parents, original_params)
         elsif value.is_a?(Array)
-          value = value.map { |v| v.is_a?(Hash) ? call(v, parents, original_params) : v }
+          # If we don't pop the current parent it will be duplicated as we
+          # process each array value.
+          parents.pop if deep_regexps
+          value = value.map { |v| value_for_key(key, v, parents, original_params) }
+          # Restore the parent stack after processing the array.
+          parents.push(key) if deep_regexps
         elsif blocks.any?
           key = key.dup if key.duplicable?
           value = value.dup if value.duplicable?

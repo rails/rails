@@ -22,18 +22,28 @@ module ActionView
       #   type of <tt>text/plain</tt> from <tt>ActionDispatch::Response</tt>
       #   object.
       #
-      # If no options hash is passed or :update specified, the default is to render a partial and use the second parameter
-      # as the locals hash.
+      # If no <tt>options</tt> hash is passed or if <tt>:update</tt> is specified, then:
+      #
+      # If an object responding to +render_in+ is passed, +render_in+ is called on the object,
+      # passing in the current view context.
+      #
+      # Otherwise, a partial is rendered using the second parameter as the locals hash.
       def render(options = {}, locals = {}, &block)
         case options
         when Hash
-          if block_given?
-            view_renderer.render_partial(self, options.merge(partial: options[:layout]), &block)
-          else
-            view_renderer.render(self, options)
+          in_rendering_context(options) do |renderer|
+            if block_given?
+              view_renderer.render_partial(self, options.merge(partial: options[:layout]), &block)
+            else
+              view_renderer.render(self, options)
+            end
           end
         else
-          view_renderer.render_partial(self, partial: options, locals: locals, &block)
+          if options.respond_to?(:render_in)
+            options.render_in(self, &block)
+          else
+            view_renderer.render_partial(self, partial: options, locals: locals, &block)
+          end
         end
       end
 

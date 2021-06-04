@@ -26,7 +26,14 @@ module ActionView
     extend ActiveSupport::Concern
     include ActionView::ViewPaths
 
-    # Overwrite process to setup I18n proxy.
+    attr_reader :rendered_format
+
+    def initialize
+      @rendered_format = nil
+      super
+    end
+
+    # Overwrite process to set up I18n proxy.
     def process(*) #:nodoc:
       old_config, I18n.config = I18n.config, I18nProxy.new(I18n.config, lookup_context)
       super
@@ -35,30 +42,40 @@ module ActionView
     end
 
     module ClassMethods
-      def view_context_class
-        @view_context_class ||= begin
-          supports_path = supports_path?
-          routes  = respond_to?(:_routes)  && _routes
-          helpers = respond_to?(:_helpers) && _helpers
+      def _routes
+      end
 
-          Class.new(ActionView::Base) do
-            if routes
-              include routes.url_helpers(supports_path)
-              include routes.mounted_helpers
-            end
+      def _helpers
+      end
 
-            if helpers
-              include helpers
-            end
+      def build_view_context_class(klass, supports_path, routes, helpers)
+        Class.new(klass) do
+          if routes
+            include routes.url_helpers(supports_path)
+            include routes.mounted_helpers
+          end
+
+          if helpers
+            include helpers
           end
         end
       end
+
+      def view_context_class
+        klass = ActionView::LookupContext::DetailsKey.view_context_class(ActionView::Base)
+
+        @view_context_class ||= build_view_context_class(klass, supports_path?, _routes, _helpers)
+
+        if klass.changed?(@view_context_class)
+          @view_context_class = build_view_context_class(klass, supports_path?, _routes, _helpers)
+        end
+
+        @view_context_class
+      end
     end
 
-    attr_internal_writer :view_context_class
-
     def view_context_class
-      @_view_context_class ||= self.class.view_context_class
+      self.class.view_context_class
     end
 
     # An instance of a view class. The default view class is ActionView::Base.
@@ -72,11 +89,12 @@ module ActionView
     #
     # Override this method in a module to change the default behavior.
     def view_context
-      view_context_class.new(view_renderer, view_assigns, self)
+      view_context_class.new(lookup_context, view_assigns, self)
     end
 
     # Returns an object that is able to render templates.
     def view_renderer # :nodoc:
+      # Lifespan: Per controller
       @_view_renderer ||= ActionView::Renderer.new(lookup_context)
     end
 
@@ -85,12 +103,7 @@ module ActionView
       _render_template(options)
     end
 
-    def rendered_format
-      Template::Types[lookup_context.rendered_format]
-    end
-
     private
-
       # Find and render a template based on the options given.
       def _render_template(options)
         variant = options.delete(:variant)
@@ -98,17 +111,22 @@ module ActionView
         context = view_context
 
         context.assign assigns if assigns
-        lookup_context.rendered_format = nil if options[:formats]
         lookup_context.variants = variant if variant
 
-        view_renderer.render(context, options)
+        rendered_template = context.in_rendering_context(options) do |renderer|
+          renderer.render_to_object(context, options)
+        end
+
+        rendered_format = rendered_template.format || lookup_context.formats.first
+        @rendered_format = Template::Types[rendered_format]
+
+        rendered_template.body
       end
 
       # Assign the rendered format to look up context.
       def _process_format(format)
         super
-        lookup_context.formats = [format.to_sym]
-        lookup_context.rendered_format = lookup_context.formats.first
+        lookup_context.formats = [format.to_sym] if format.to_sym
       end
 
       # Normalize args by converting render "foo" to render :action => "foo" and
@@ -126,6 +144,8 @@ module ActionView
         else
           if action.respond_to?(:permitted?) && action.permitted?
             options = action
+          elsif action.respond_to?(:render_in)
+            options[:renderable] = action
           else
             options[:partial] = action
           end

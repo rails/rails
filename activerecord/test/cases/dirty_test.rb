@@ -16,6 +16,10 @@ class DirtyTest < ActiveRecord::TestCase
     Person.create first_name: "foo"
   end
 
+  def teardown
+    Person.delete_by(first_name: "foo")
+  end
+
   def test_attribute_changes
     # New record - no changes.
     pirate = Pirate.new
@@ -150,8 +154,28 @@ class DirtyTest < ActiveRecord::TestCase
     pirate = Pirate.create!(catchphrase: "Yar!")
     pirate.catchphrase = "Ahoy!"
 
+    assert_equal "Ahoy!", pirate.catchphrase
+    assert_equal ["Yar!", "Ahoy!"], pirate.catchphrase_change
+
     pirate.restore_catchphrase!
+
+    assert_nil pirate.catchphrase_change
     assert_equal "Yar!", pirate.catchphrase
+    assert_equal Hash.new, pirate.changes
+    assert_not_predicate pirate, :catchphrase_changed?
+  end
+
+  def test_clear_attribute_change
+    pirate = Pirate.create!(catchphrase: "Yar!")
+    pirate.catchphrase = "Ahoy!"
+
+    assert_equal "Ahoy!", pirate.catchphrase
+    assert_equal ["Yar!", "Ahoy!"], pirate.catchphrase_change
+
+    pirate.clear_catchphrase_change
+
+    assert_nil pirate.catchphrase_change
+    assert_equal "Ahoy!", pirate.catchphrase
     assert_equal Hash.new, pirate.changes
     assert_not_predicate pirate, :catchphrase_changed?
   end
@@ -326,6 +350,13 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not_predicate topic, :approved_changed?
   end
 
+  def test_string_attribute_should_compare_with_typecast_symbol_after_update
+    pirate = Pirate.create!(catchphrase: :foo)
+    pirate.update_column :catchphrase, :foo
+    pirate.catchphrase
+    assert_not_predicate pirate, :catchphrase_changed?
+  end
+
   def test_partial_update
     pirate = Pirate.new(catchphrase: "foo")
     old_updated_on = 1.hour.ago.beginning_of_day
@@ -352,7 +383,7 @@ class DirtyTest < ActiveRecord::TestCase
       Person.where(id: person.id).update_all(first_name: "baz")
     end
 
-    old_lock_version = person.lock_version
+    old_lock_version = person.lock_version + 1
 
     with_partial_writes Person, true do
       assert_no_queries { 2.times { person.save! } }
@@ -491,6 +522,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 4, pirate.previous_changes.size
     assert_equal [nil, "arrr"], pirate.previous_changes["catchphrase"]
+    assert_nil pirate.catchphrase_previously_was
     assert_equal [nil, pirate.id], pirate.previous_changes["id"]
     assert_nil pirate.previous_changes["updated_on"][0]
     assert_not_nil pirate.previous_changes["updated_on"][1]
@@ -507,6 +539,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 4, pirate.previous_changes.size
     assert_equal [nil, "arrr"], pirate.previous_changes["catchphrase"]
+    assert_nil pirate.catchphrase_previously_was
     assert_equal [nil, pirate.id], pirate.previous_changes["id"]
     assert_includes pirate.previous_changes, "updated_on"
     assert_includes pirate.previous_changes, "created_on"
@@ -525,6 +558,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 2, pirate.previous_changes.size
     assert_equal ["arrr", "Me Maties!"], pirate.previous_changes["catchphrase"]
+    assert_equal "arrr", pirate.catchphrase_previously_was
     assert_not_nil pirate.previous_changes["updated_on"][0]
     assert_not_nil pirate.previous_changes["updated_on"][1]
     assert_not pirate.previous_changes.key?("parrot_id")
@@ -539,6 +573,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 2, pirate.previous_changes.size
     assert_equal ["Me Maties!", "Thar She Blows!"], pirate.previous_changes["catchphrase"]
+    assert_equal "Me Maties!", pirate.catchphrase_previously_was
     assert_not_nil pirate.previous_changes["updated_on"][0]
     assert_not_nil pirate.previous_changes["updated_on"][1]
     assert_not pirate.previous_changes.key?("parrot_id")
@@ -551,6 +586,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 2, pirate.previous_changes.size
     assert_equal ["Thar She Blows!", "Ahoy!"], pirate.previous_changes["catchphrase"]
+    assert_equal "Thar She Blows!", pirate.catchphrase_previously_was
     assert_not_nil pirate.previous_changes["updated_on"][0]
     assert_not_nil pirate.previous_changes["updated_on"][1]
     assert_not pirate.previous_changes.key?("parrot_id")
@@ -563,6 +599,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 2, pirate.previous_changes.size
     assert_equal ["Ahoy!", "Ninjas suck!"], pirate.previous_changes["catchphrase"]
+    assert_equal "Ahoy!", pirate.catchphrase_previously_was
     assert_not_nil pirate.previous_changes["updated_on"][0]
     assert_not_nil pirate.previous_changes["updated_on"][1]
     assert_not pirate.previous_changes.key?("parrot_id")
@@ -583,7 +620,7 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_datetime_attribute_can_be_updated_with_fractional_seconds
-    skip "Fractional seconds are not supported" unless subsecond_precision_supported?
+    skip "Fractional seconds are not supported" unless supports_datetime_with_precision?
     in_time_zone "Paris" do
       target = Class.new(ActiveRecord::Base)
       target.table_name = "topics"
@@ -906,11 +943,14 @@ class DirtyTest < ActiveRecord::TestCase
 
   private
     def with_partial_writes(klass, on = true)
-      old = klass.partial_writes?
-      klass.partial_writes = on
+      old_inserts = klass.partial_inserts?
+      old_updates = klass.partial_updates?
+      klass.partial_inserts = on
+      klass.partial_updates = on
       yield
     ensure
-      klass.partial_writes = old
+      klass.partial_inserts = old_inserts
+      klass.partial_updates = old_updates
     end
 
     def check_pirate_after_save_failure(pirate)

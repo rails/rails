@@ -1,157 +1,65 @@
-*   Replace `config.active_storage.queue` with two options that indicate which
-    queues analysis and purge jobs should use, respectively:
+*   Allow to purge an attachment when record is not persisted for `has_one_attached`
 
-    * `config.active_storage.queues.analysis`
-    * `config.active_storage.queues.purge`
+    *Jacopo Beschi*
 
-    `config.active_storage.queue` is preferred over the new options when it's
-    set, but it is deprecated and will be removed in Rails 6.1.
+*   Add a load hook called `active_storage_variant_record` (providing `ActiveStorage::VariantRecord`)
+    to allow for overriding aspects of the `ActiveStorage::VariantRecord` class. This makes
+    `ActiveStorage::VariantRecord` consistent with `ActiveStorage::Blob` and `ActiveStorage::Attachment`
+    that already have load hooks.
 
-    *George Claghorn*
+    *Brendon Muir*
 
-*   Permit generating variants of TIFF images.
+*   `ActiveStorage::PreviewError` is raised when a previewer is unable to generate a preview image.
 
-    *Luciano Sousa*
+    *Alex Robbin*
 
-*   Use base36 (all lowercase) for all new Blob keys to prevent
-    collisions and undefined behavior with case-insensitive filesystems and
-    database indices.
-
-    *Julik Tarkhanov*
-
-*   It doesn’t include an `X-CSRF-Token` header if a meta tag is not found on
-    the page. It previously included one with a value of `undefined`.
-
-    *Cameron Bothner*
-
-*   Fix `ArgumentError` when uploading to amazon s3
-
-    *Hiroki Sanpei*
-
-*   Add progressive JPG to default list of variable content types
-
-    *Maurice Kühlborn*
-
-*   Add `ActiveStorage.routes_prefix` for configuring generated routes.
-
-    *Chris Bisnett*
-
-*   `ActiveStorage::Service::AzureStorageService` only handles specifically
-    relevant types of `Azure::Core::Http::HTTPError`. It previously obscured
-    other types of `HTTPError`, which is the azure-storage gem’s catch-all
-    exception class.
-
-    *Cameron Bothner*
-
-*   `ActiveStorage::DiskController#show` generates a 404 Not Found response when
-    the requested file is missing from the disk service. It previously raised
-    `Errno::ENOENT`.
-
-    *Cameron Bothner*
-
-*   `ActiveStorage::Blob#download` and `ActiveStorage::Blob#open` raise
-    `ActiveStorage::FileNotFoundError` when the corresponding file is missing
-    from the storage service. Services translate service-specific missing object
-    exceptions (e.g. `Google::Cloud::NotFoundError` for the GCS service and
-    `Errno::ENOENT` for the disk service) into
-    `ActiveStorage::FileNotFoundError`.
-
-    *Cameron Bothner*
-
-*   Added the `ActiveStorage::SetCurrent` concern for custom Active Storage
-    controllers that can't inherit from `ActiveStorage::BaseController`.
-
-    *George Claghorn*
-
-*   Active Storage error classes like `ActiveStorage::IntegrityError` and
-    `ActiveStorage::UnrepresentableError` now inherit from `ActiveStorage::Error`
-    instead of `StandardError`. This permits rescuing `ActiveStorage::Error` to
-    handle all Active Storage errors.
-
-    *Andrei Makarov*, *George Claghorn*
-
-*   Uploaded files assigned to a record are persisted to storage when the record
-    is saved instead of immediately.
-
-    In Rails 5.2, the following causes an uploaded file in `params[:avatar]` to
-    be stored:
+*   Add `ActiveStorage::Streaming` module that can be included in a controller to get access to `#send_blob_stream`,
+    which wraps the new `ActionController::Base#send_stream` method to stream a blob from cloud storage:
 
     ```ruby
-    @user.avatar = params[:avatar]
+    class MyPublicBlobsController < ApplicationController
+      include ActiveStorage::SetBlob, ActiveStorage::Streaming
+
+      def show
+        http_cache_forever(public: true) do
+          send_blob_stream @blob, disposition: params[:disposition]
+        end
+      end
+    end
     ```
 
-    In Rails 6, the uploaded file is stored when `@user` is successfully saved.
+    *DHH*
 
-    *George Claghorn*
-
-*   Add the ability to reflect on defined attachments using the existing
-    ActiveRecord reflection mechanism.
-
-    *Kevin Deisz*
-
-*   Variant arguments of `false` or `nil` will no longer be passed to the
-    processor. For example, the following will not have the monochrome
-    variation applied:
+*   Add ability to use pre-defined variants.
 
     ```ruby
-      avatar.variant(monochrome: false)
+    class User < ActiveRecord::Base
+      has_one_attached :avatar do |attachable|
+        attachable.variant :thumb, resize: "100x100"
+        attachable.variant :medium, resize: "300x300", monochrome: true
+      end
+    end
+
+    class Gallery < ActiveRecord::Base
+      has_many_attached :photos do |attachable|
+        attachable.variant :thumb, resize: "100x100"
+        attachable.variant :medium, resize: "300x300", monochrome: true
+      end
+    end
+
+    <%= image_tag user.avatar.variant(:thumb) %>
     ```
 
-    *Jacob Smith*
+    *fatkodima*
 
-*   Generated attachment getter and setter methods are created
-    within the model's `GeneratedAssociationMethods` module to
-    allow overriding and composition using `super`.
+*   After setting `config.active_storage.resolve_model_to_route = :rails_storage_proxy`
+    `rails_blob_path` and `rails_representation_path` will generate proxy URLs by default.
 
-    *Josh Susser*, *Jamon Douglas*
+    *Ali Ismayilov*
 
-*   Add `ActiveStorage::Blob#open`, which downloads a blob to a tempfile on disk
-    and yields the tempfile. Deprecate `ActiveStorage::Downloading`.
+*   Declare `ActiveStorage::FixtureSet` and `ActiveStorage::FixtureSet.blob` to
+    improve fixture integration
 
-    *David Robertson*, *George Claghorn*
+    *Sean Doyle*
 
-*   Pass in `identify: false` as an argument when providing a `content_type` for
-    `ActiveStorage::Attached::{One,Many}#attach` to bypass automatic content
-    type inference. For example:
-
-    ```ruby
-      @message.image.attach(
-        io: File.open('/path/to/file'),
-        filename: 'file.pdf',
-        content_type: 'application/pdf',
-        identify: false
-      )
-    ```
-
-    *Ryan Davidson*
-
-*   The Google Cloud Storage service properly supports streaming downloads.
-    It now requires version 1.11 or newer of the google-cloud-storage gem.
-
-    *George Claghorn*
-
-*   Use the [ImageProcessing](https://github.com/janko-m/image_processing) gem
-    for Active Storage variants, and deprecate the MiniMagick backend.
-
-    This means that variants are now automatically oriented if the original
-    image was rotated. Also, in addition to the existing ImageMagick
-    operations, variants can now use `:resize_to_fit`, `:resize_to_fill`, and
-    other ImageProcessing macros. These are now recommended over raw `:resize`,
-    as they also sharpen the thumbnail after resizing.
-
-    The ImageProcessing gem also comes with a backend implemented on
-    [libvips](http://jcupitt.github.io/libvips/), an alternative to
-    ImageMagick which has significantly better performance than
-    ImageMagick in most cases, both in terms of speed and memory usage. In
-    Active Storage it's now possible to switch to the libvips backend by
-    changing `Rails.application.config.active_storage.variant_processor` to
-    `:vips`.
-
-    *Janko Marohnić*
-
-*   Rails 6 requires Ruby 2.5.0 or newer.
-
-    *Jeremy Daer*, *Kasper Timm Hansen*
-
-
-Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activestorage/CHANGELOG.md) for previous changes.
+Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/activestorage/CHANGELOG.md) for previous changes.

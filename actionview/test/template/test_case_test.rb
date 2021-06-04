@@ -24,6 +24,11 @@ module ActionView
     DeveloperStruct = Struct.new(:name)
 
     module SharedTests
+      def setup
+        ActionView::LookupContext::DetailsKey.clear
+        super
+      end
+
       def self.included(test_case)
         test_case.class_eval do
           test "helpers defined on ActionView::TestCase are available" do
@@ -52,7 +57,7 @@ module ActionView
     end
 
     test "retrieve non existing config values" do
-      assert_nil ActionView::Base.new.config.something_odd
+      assert_nil ActionView::Base.empty.config.something_odd
     end
 
     test "works without testing a helper module" do
@@ -151,6 +156,13 @@ module ActionView
 
       assert_equal "controller_helper_method", some_method
     end
+
+    class AnotherTestClass < ActionView::TestCase
+      test "doesn't use controller helpers from other tests" do
+        assert_not_respond_to view, :render_from_helper
+        assert_not_includes @controller._helpers.instance_methods, :render_from_helper
+      end
+    end
   end
 
   class ViewAssignsTest < ActionView::TestCase
@@ -171,14 +183,14 @@ module ActionView
   class HelperExposureTest < ActionView::TestCase
     helper(Module.new do
       def render_from_helper
-        from_test_case
+        from_test_case(suffix: "!")
       end
     end)
     test "is able to make methods available to the view" do
       assert_equal "Word!", render(partial: "test/from_helper")
     end
 
-    def from_test_case; "Word!"; end
+    def from_test_case(suffix: "?"); "Word#{suffix}"; end
     helper_method :from_test_case
   end
 
@@ -279,7 +291,7 @@ module ActionView
       @controller.controller_path = "test"
 
       @customers = [DeveloperStruct.new("Eloy"), DeveloperStruct.new("Manfred")]
-      assert_match(/Hello: EloyHello: Manfred/, render(file: "test/list"))
+      assert_match(/Hello: EloyHello: Manfred/, render(template: "test/list"))
     end
 
     test "is able to render partials from templates and also use instance variables after view has been referenced" do
@@ -288,7 +300,7 @@ module ActionView
       view
 
       @customers = [DeveloperStruct.new("Eloy"), DeveloperStruct.new("Manfred")]
-      assert_match(/Hello: EloyHello: Manfred/, render(file: "test/list"))
+      assert_match(/Hello: EloyHello: Manfred/, render(template: "test/list"))
     end
 
     test "is able to use helpers that depend on the view flow" do

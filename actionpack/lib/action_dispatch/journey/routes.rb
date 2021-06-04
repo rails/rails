@@ -41,7 +41,7 @@ module ActionDispatch
       end
 
       def partition_route(route)
-        if route.path.anchored && route.ast.grep(Nodes::Symbol).all?(&:default_regexp?)
+        if route.path.anchored && route.path.requirements_anchored?
           anchored_routes << route
         else
           custom_routes << route
@@ -56,7 +56,6 @@ module ActionDispatch
       end
 
       def simulator
-        return if ast.nil?
         @simulator ||= begin
           gtg = GTG::Builder.new(ast).transition_table
           GTG::Simulator.new(gtg)
@@ -72,7 +71,6 @@ module ActionDispatch
       end
 
       private
-
         def clear_cache!
           @ast                = nil
           @simulator          = nil

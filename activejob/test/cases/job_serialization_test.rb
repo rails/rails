@@ -22,6 +22,9 @@ class JobSerializationTest < ActiveSupport::TestCase
   end
 
   test "serialize and deserialize are symmetric" do
+    # Ensure `enqueued_at` does not change between serializations
+    freeze_time
+
     # Round trip a job in memory only
     h1 = HelloJob.new("Rafael")
     h2 = HelloJob.deserialize(h1.serialize)
@@ -60,5 +63,16 @@ class JobSerializationTest < ActiveSupport::TestCase
       job = HelloJob.new
       assert_equal "Hawaii", job.serialize["timezone"]
     end
+  end
+
+  test "serialize stores the enqueued_at time" do
+    h1 = HelloJob.new
+    type = h1.serialize["enqueued_at"].class
+    assert_equal String, type
+
+    h2 = HelloJob.deserialize(h1.serialize)
+    # We should be able to parse a timestamp
+    type = Time.parse(h2.enqueued_at).class
+    assert_equal Time, type
   end
 end

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "active_support/callbacks"
+require "active_support/core_ext/enumerable"
+require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
@@ -91,7 +93,7 @@ module ActiveSupport
     class << self
       # Returns singleton instance for this class in this thread. If none exists, one is created.
       def instance
-        current_instances[name] ||= new
+        current_instances[current_instances_key] ||= new
       end
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
@@ -119,10 +121,16 @@ module ActiveSupport
         end
       end
 
+      # Calls this block before #reset is called on the instance. Used for resetting external collaborators that depend on current values.
+      def before_reset(&block)
+        set_callback :reset, :before, &block
+      end
+
       # Calls this block after #reset is called on the instance. Used for resetting external collaborators, like Time.zone.
       def resets(&block)
         set_callback :reset, :after, &block
       end
+      alias_method :after_reset, :resets
 
       delegate :set, :reset, to: :instance
 
@@ -144,6 +152,10 @@ module ActiveSupport
           Thread.current[:current_attributes_instances] ||= {}
         end
 
+        def current_instances_key
+          @current_instances_key ||= name.to_sym
+        end
+
         def method_missing(name, *args, &block)
           # Caches the method definition as a singleton method of the receiver.
           #
@@ -151,6 +163,11 @@ module ActiveSupport
           singleton_class.delegate name, to: :instance
 
           send(name, *args, &block)
+        end
+        ruby2_keywords(:method_missing)
+
+        def respond_to_missing?(name, _)
+          super || instance.respond_to?(name)
         end
     end
 
@@ -191,7 +208,7 @@ module ActiveSupport
       end
 
       def compute_attributes(keys)
-        keys.collect { |key| [ key, public_send(key) ] }.to_h
+        keys.index_with { |key| public_send(key) }
       end
   end
 end

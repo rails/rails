@@ -12,12 +12,10 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-    begin
-      @connection.transaction do
-        @connection.create_table("bytea_data_type") do |t|
-          t.binary "payload"
-          t.binary "serialized"
-        end
+    @connection.transaction do
+      @connection.create_table("bytea_data_type") do |t|
+        t.binary "payload"
+        t.binary "serialized"
       end
     end
     @column = ByteaDataType.columns_hash["payload"]
@@ -35,7 +33,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_binary_columns_are_limitless_the_upper_limit_is_one_GB
     assert_equal "bytea", @connection.type_to_sql(:binary, limit: 100_000)
-    assert_raise ActiveRecord::ActiveRecordError do
+    assert_raise ArgumentError do
       @connection.type_to_sql(:binary, limit: 4294967295)
     end
   end

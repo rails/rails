@@ -9,7 +9,7 @@ class Mysql2CharsetCollationTest < ActiveRecord::Mysql2TestCase
 
   setup do
     @connection = ActiveRecord::Base.connection
-    @connection.create_table :charset_collations, force: true do |t|
+    @connection.create_table :charset_collations, id: { type: :string, collation: "utf8mb4_bin" }, force: true do |t|
       t.string :string_ascii_bin, charset: "ascii", collation: "ascii_bin"
       t.text :text_ucs2_unicode_ci, charset: "ucs2", collation: "ucs2_unicode_ci"
     end
@@ -50,6 +50,7 @@ class Mysql2CharsetCollationTest < ActiveRecord::Mysql2TestCase
 
   test "schema dump includes collation" do
     output = dump_table_schema("charset_collations")
+    assert_match %r/create_table "charset_collations", id: { type: :string, collation: "utf8mb4_bin" }/, output
     assert_match %r{t\.string\s+"string_ascii_bin",\s+collation: "ascii_bin"$}, output
     assert_match %r{t\.text\s+"text_ucs2_unicode_ci",\s+collation: "ucs2_unicode_ci"$}, output
   end

@@ -28,6 +28,14 @@ module ActionDispatch
       assert_equal "inline; #{disposition.ascii_filename}; #{disposition.utf8_filename}", disposition.to_s
     end
 
+    test "encoding a filename with permitted chars" do
+      disposition = Http::ContentDisposition.new(disposition: :inline, filename: "argh+!#$-123_|&^`~.jpg")
+
+      assert_equal %(filename="argh+!\#$-123_|%26^`~.jpg"), disposition.ascii_filename
+      assert_equal "filename*=UTF-8''argh+!\#$-123_|&^`~.jpg", disposition.utf8_filename
+      assert_equal "inline; #{disposition.ascii_filename}; #{disposition.utf8_filename}", disposition.to_s
+    end
+
     test "without filename" do
       disposition = Http::ContentDisposition.new(disposition: :inline, filename: nil)
 

@@ -2,11 +2,13 @@
 
 require "test_helper"
 require_relative "common"
+require_relative "channel_prefix"
 
 require "active_record"
 
 class PostgresqlAdapterTest < ActionCable::TestCase
   include CommonSubscriptionAdapterTest
+  include ChannelPrefixTest
 
   def setup
     database_config = { "adapter" => "postgresql", "database" => "activerecord_unittest" }
@@ -61,5 +63,25 @@ class PostgresqlAdapterTest < ActionCable::TestCase
     ActiveRecord::Base.clear_reloadable_connections!
 
     assert adapter.active?
+  end
+
+  def test_default_subscription_connection_identifier
+    subscribe_as_queue("channel") { }
+
+    identifiers = ActiveRecord::Base.connection.exec_query("SELECT application_name FROM pg_stat_activity").rows
+    assert_includes identifiers, ["ActionCable-PID-#{$$}"]
+  end
+
+  def test_custom_subscription_connection_identifier
+    server = ActionCable::Server::Base.new
+    server.config.cable = cable_config.merge(id: "hello-world-42").with_indifferent_access
+    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
+
+    adapter = server.config.pubsub_adapter.new(server)
+
+    subscribe_as_queue("channel", adapter) { }
+
+    identifiers = ActiveRecord::Base.connection.exec_query("SELECT application_name FROM pg_stat_activity").rows
+    assert_includes identifiers, ["hello-world-42"]
   end
 end

@@ -3,7 +3,7 @@
 require "active_job"
 
 module ActionMailer
-  # The <tt>ActionMailer::NewDeliveryJob</tt> class is used when you
+  # The <tt>ActionMailer::MailDeliveryJob</tt> class is used when you
   # want to send emails outside of the request-response cycle. It supports
   # sending either parameterized or normal mail.
   #
@@ -13,9 +13,14 @@ module ActionMailer
 
     rescue_from StandardError, with: :handle_exception_with_mailer_class
 
-    def perform(mailer, mail_method, delivery_method, args:, params: nil) #:nodoc:
+    def perform(mailer, mail_method, delivery_method, args:, kwargs: nil, params: nil)
       mailer_class = params ? mailer.constantize.with(params) : mailer.constantize
-      mailer_class.public_send(mail_method, *args).send(delivery_method)
+      message = if kwargs
+        mailer_class.public_send(mail_method, *args, **kwargs)
+      else
+        mailer_class.public_send(mail_method, *args)
+      end
+      message.send(delivery_method)
     end
 
     private

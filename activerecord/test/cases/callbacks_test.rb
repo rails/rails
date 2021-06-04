@@ -29,7 +29,7 @@ class CallbackDeveloper < ActiveRecord::Base
   end
 
   ActiveRecord::Callbacks::CALLBACKS.each do |callback_method|
-    next if callback_method.to_s.start_with?("around_")
+    next if callback_method.start_with?("around_")
     define_callback_method(callback_method)
     send(callback_method, callback_proc(callback_method))
     send(callback_method, callback_object(callback_method))
@@ -458,10 +458,6 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :before_validation, :object ],
       [ :before_validation, :block  ],
       [ :before_validation, :throwing_abort ],
-      [ :after_rollback,    :block  ],
-      [ :after_rollback,    :object ],
-      [ :after_rollback,    :proc   ],
-      [ :after_rollback,    :method ],
     ], david.history
   end
 

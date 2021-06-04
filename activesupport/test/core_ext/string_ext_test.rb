@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require "date"
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "timeout"
-require "inflector_test_cases"
-require "constantize_test_cases"
+require_relative "../inflector_test_cases"
+require_relative "../constantize_test_cases"
 
 require "active_support/inflector"
 require "active_support/core_ext/string"
@@ -12,7 +12,7 @@ require "active_support/time"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/indent"
 require "active_support/core_ext/string/strip"
-require "time_zone_test_helpers"
+require_relative "../time_zone_test_helpers"
 require "yaml"
 
 class StringInflectionsTest < ActiveSupport::TestCase
@@ -112,6 +112,10 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal("capital", "Capital".camelize(:lower))
   end
 
+  def test_camelize_upper
+    assert_equal("Capital", "Capital".camelize(:upper))
+  end
+
   def test_camelize_invalid_option
     e = assert_raise ArgumentError do
       "Capital".camelize(nil)
@@ -206,6 +210,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_parameterize_with_locale
+    word = "Fünf autos"
+    I18n.backend.store_translations(:de, i18n: { transliterate: { rule: { "ü" => "ue" } } })
+    assert_equal("fuenf-autos", word.parameterize(locale: :de))
+  end
+
   def test_humanize
     UnderscoreToHuman.each do |underscore, human|
       assert_equal(human, underscore.humanize)
@@ -283,6 +293,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello[...]", "Hello Big World!".truncate(13, omission: "[...]", separator: /\s/)
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, omission: "[...]", separator: /\s/)
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, omission: "[...]", separator: /\s/)
+  end
+
+  def test_truncate_returns_frozen_string
+    assert_not "Hello World!".truncate(12).frozen?
+    assert_not "Hello World!!".truncate(12).frozen?
   end
 
   def test_truncate_bytes
@@ -444,6 +459,8 @@ class StringAccessTest < ActiveSupport::TestCase
 
   test "#to with negative Integer, position is counted from the end" do
     assert_equal "hell", "hello".to(-2)
+    assert_equal "h", "hello".to(-5)
+    assert_equal "", "hello".to(-7)
   end
 
   test "#from and #to can be combined" do
@@ -469,12 +486,16 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_not_same different_string, string
   end
 
-  test "#first with negative Integer is deprecated" do
-    string = "hello"
-    message = "Calling String#first with a negative integer limit " \
-              "will raise an ArgumentError in Rails 6.1."
-    assert_deprecated(message) do
-      string.first(-1)
+  test "#first with Integer returns a non-frozen string" do
+    string = "he"
+    (0..string.length + 1).each do |limit|
+      assert_not string.first(limit).frozen?
+    end
+  end
+
+  test "#first with negative Integer raises ArgumentError" do
+    assert_raise ArgumentError do
+      "hello".first(-1)
     end
   end
 
@@ -496,12 +517,16 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_not_same different_string, string
   end
 
-  test "#last with negative Integer is deprecated" do
-    string = "hello"
-    message = "Calling String#last with a negative integer limit " \
-              "will raise an ArgumentError in Rails 6.1."
-    assert_deprecated(message) do
-      string.last(-1)
+  test "#last with Integer returns a non-frozen string" do
+    string = "he"
+    (0..string.length + 1).each do |limit|
+      assert_not string.last(limit).frozen?
+    end
+  end
+
+  test "#last with negative Integer raises ArgumentError" do
+    assert_raise ArgumentError do
+      "hello".last(-1)
     end
   end
 
@@ -550,6 +575,14 @@ class StringConversionsTest < ActiveSupport::TestCase
       assert_nil "010".to_time
       assert_nil "".to_time
     end
+  end
+
+  def test_timestamp_string_to_time
+    exception = assert_raises(ArgumentError) do
+      "1604326192".to_time
+    end
+
+    assert_equal "argument out of range", exception.message
   end
 
   def test_string_to_time_utc_offset
@@ -753,8 +786,13 @@ class OutputSafetyTest < ActiveSupport::TestCase
   def setup
     @string = +"hello"
     @object = Class.new(Object) do
-      def to_s
+      def to_str
         "other"
+      end
+    end.new
+    @to_s_object = Class.new(Object) do
+      def to_s
+        "to_s"
       end
     end.new
   end
@@ -782,6 +820,14 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test "An object is unsafe by default" do
     assert_not_predicate @object, :html_safe?
+  end
+
+  test "Adding an object not responding to `#to_str` to a safe string is deprecated" do
+    string = @string.html_safe
+    assert_deprecated("Implicit conversion of #{@to_s_object.class} into String by ActiveSupport::SafeBuffer is deprecated") do
+      string << @to_s_object
+    end
+    assert_equal "helloto_s", string
   end
 
   test "Adding an object to a safe string returns a safe string" do
@@ -878,6 +924,11 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     @other_string = @other_string % string
     assert_not_predicate @other_string, :html_safe?
+  end
+
+  test "% method explicitly cast the argument to string" do
+    @other_string = "other%s"
+    assert_equal "otherto_s", @other_string % @to_s_object
   end
 
   test "Concatting unsafe onto safe with % yields escaped safe" do

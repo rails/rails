@@ -2,6 +2,7 @@
   fire, delegate
   getData, $
   refreshCSRFTokens, CSRFProtection
+  loadCSPNonce
   enableElement, disableElement, handleDisabledElement
   handleConfirm, preventInsignificantClick
   handleRemote, formSubmitButtonClick,
@@ -67,6 +68,7 @@ Rails.start = ->
   delegate document, Rails.formInputClickSelector, 'click', formSubmitButtonClick
 
   document.addEventListener('DOMContentLoaded', refreshCSRFTokens)
+  document.addEventListener('DOMContentLoaded', loadCSPNonce)
   window._rails_loaded = true
 
 if window.Rails is Rails and fire(document, 'rails:attachBindings')

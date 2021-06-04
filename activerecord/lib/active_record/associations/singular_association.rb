@@ -5,6 +5,8 @@ module ActiveRecord
     class SingularAssociation < Association #:nodoc:
       # Implements the reader method, e.g. foo.bar for Foo.has_one :bar
       def reader
+        ensure_klass_exists!
+
         if !loaded? || stale_target?
           reload
         end
@@ -17,7 +19,7 @@ module ActiveRecord
         replace(record)
       end
 
-      def build(attributes = {}, &block)
+      def build(attributes = nil, &block)
         record = build_record(attributes, &block)
         set_new_record(record)
         record
@@ -37,8 +39,6 @@ module ActiveRecord
 
         def find_target
           super.first
-        rescue ::RangeError
-          nil
         end
 
         def replace(record)

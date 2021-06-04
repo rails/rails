@@ -11,7 +11,7 @@ module Rails
     # Disable color in output. Easier to debug.
     no_color!
 
-    # This class provides a TestCase for testing generators. To setup, you need
+    # This class provides a TestCase for testing generators. To set up, you need
     # just to configure the destination and set which generator is being tested:
     #
     #   class AppGeneratorTest < Rails::Generators::TestCase

@@ -18,7 +18,7 @@ module ActionController #:nodoc:
     end
 
     private
-      def process_action(*args)
+      def process_action(*)
         super
       rescue Exception => exception
         request.env["action_dispatch.show_detailed_exceptions"] ||= show_detailed_exceptions?

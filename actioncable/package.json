@@ -1,6 +1,6 @@
 {
-  "name": "actioncable",
-  "version": "6.0.0-alpha",
+  "name": "@rails/actioncable",
+  "version": "7.0.0-alpha",
   "description": "WebSocket framework for Ruby on Rails.",
   "main": "app/assets/javascripts/action_cable.js",
   "files": [
@@ -21,7 +21,7 @@
   "bugs": {
     "url": "https://github.com/rails/rails/issues"
   },
-  "homepage": "http://rubyonrails.org/",
+  "homepage": "https://rubyonrails.org/",
   "devDependencies": {
     "babel-core": "^6.25.0",
     "babel-plugin-external-helpers": "^6.22.0",

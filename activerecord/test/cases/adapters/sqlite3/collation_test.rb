@@ -11,6 +11,10 @@ class SQLite3CollationTest < ActiveRecord::SQLite3TestCase
     @connection.create_table :collation_table_sqlite3, force: true do |t|
       t.string :string_nocase, collation: "NOCASE"
       t.text :text_rtrim, collation: "RTRIM"
+      # The decimal column might interfere with collation parsing.
+      # Thus, add this column type and some other string column afterwards.
+      t.decimal :decimal_col, precision: 6, scale: 2
+      t.string :string_after_decimal_nocase, collation: "NOCASE"
     end
   end
 
@@ -20,6 +24,11 @@ class SQLite3CollationTest < ActiveRecord::SQLite3TestCase
 
   test "string column with collation" do
     column = @connection.columns(:collation_table_sqlite3).find { |c| c.name == "string_nocase" }
+    assert_equal :string, column.type
+    assert_equal "NOCASE", column.collation
+
+    # Verify collation of a column behind the decimal column as well.
+    column = @connection.columns(:collation_table_sqlite3).find { |c| c.name == "string_after_decimal_nocase" }
     assert_equal :string, column.type
     assert_equal "NOCASE", column.collation
   end

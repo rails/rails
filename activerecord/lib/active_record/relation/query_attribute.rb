@@ -18,24 +18,25 @@ module ActiveRecord
       end
 
       def nil?
-        !value_before_type_cast.is_a?(StatementCache::Substitute) &&
-          (value_before_type_cast.nil? || value_for_database.nil?)
+        unless value_before_type_cast.is_a?(StatementCache::Substitute)
+          value_before_type_cast.nil? ||
+            type.respond_to?(:subtype) && serializable? && value_for_database.nil?
+        end
       end
 
-      def boundable?
-        return @_boundable if defined?(@_boundable)
-        nil?
-        @_boundable = true
-      rescue ::RangeError
-        @_boundable = false
+      def infinite?
+        infinity?(value_before_type_cast) || serializable? && infinity?(value_for_database)
       end
 
-      def infinity?
-        _infinity?(value_before_type_cast) || boundable? && _infinity?(value_for_database)
+      def unboundable?
+        unless defined?(@_unboundable)
+          serializable? { |value| @_unboundable = value <=> 0 } && @_unboundable = nil
+        end
+        @_unboundable
       end
 
       private
-        def _infinity?(value)
+        def infinity?(value)
           value.respond_to?(:infinite?) && value.infinite?
         end
     end

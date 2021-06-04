@@ -9,7 +9,7 @@ module ActiveRecord
         end
 
         if value.select_values.empty?
-          value = value.select(value.arel_attribute(value.klass.primary_key))
+          value = value.select(value.table[value.klass.primary_key])
         end
 
         attribute.in(value.arel)

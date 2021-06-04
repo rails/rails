@@ -42,6 +42,13 @@ module ActiveModel
       #   # => { "user" => { "id" => 1, "name" => "Konata Izumi", "age" => 16,
       #   #                  "created_at" => "2006-08-01T17:27:13.000Z", "awesome" => true } }
       #
+      # If you prefer, <tt>:root</tt> may also be set to a custom string key instead as in:
+      #
+      #   user = User.find(1)
+      #   user.as_json(root: "author")
+      #   # => { "author" => { "id" => 1, "name" => "Konata Izumi", "age" => 16,
+      #   #                  "created_at" => "2006-08-01T17:27:13.000Z", "awesome" => true } }
+      #
       # Without any +options+, the returned Hash will include all the model's
       # attributes.
       #

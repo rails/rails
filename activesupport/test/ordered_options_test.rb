@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/ordered_options"
 
 class OrderedOptionsTest < ActiveSupport::TestCase
@@ -114,5 +114,15 @@ class OrderedOptionsTest < ActiveSupport::TestCase
       a.foo!
     end
     assert_raises(KeyError) { a.non_existing_key! }
+  end
+
+  def test_inspect
+    a = ActiveSupport::OrderedOptions.new
+    assert_equal "#<ActiveSupport::OrderedOptions {}>", a.inspect
+
+    a.foo   = :bar
+    a[:baz] = :quz
+
+    assert_equal "#<ActiveSupport::OrderedOptions {:foo=>:bar, :baz=>:quz}>", a.inspect
   end
 end

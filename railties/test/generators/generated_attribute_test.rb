@@ -2,9 +2,20 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/generated_attribute"
+require "rails/generators/base"
 
 class GeneratedAttributeTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
+
+  def setup
+    @old_belongs_to_required_by_default = Rails.application.config.active_record.belongs_to_required_by_default
+    Rails.application.config.active_record.belongs_to_required_by_default = true
+    ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+  end
+
+  def teardown
+    Rails.application.config.active_record.belongs_to_required_by_default = @old_belongs_to_required_by_default
+  end
 
   def test_field_type_returns_number_field
     assert_field_type :integer, :number_field
@@ -38,10 +49,23 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_field_type :boolean, :check_box
   end
 
-  def test_field_type_with_unknown_type_returns_text_field
-    %w(foo bar baz).each do |attribute_type|
-      assert_field_type attribute_type, :text_field
+  def test_field_type_returns_rich_text_area
+    assert_field_type :rich_text, :rich_text_area
+  end
+
+  def test_field_type_returns_file_field
+    %w(attachment attachments).each do |attribute_type|
+      assert_field_type attribute_type, :file_field
     end
+  end
+
+  def test_field_type_with_unknown_type_raises_error
+    field_type = :unknown
+    e = assert_raise Rails::Generators::Error do
+      create_generated_attribute field_type
+    end
+    message = "Could not generate field 'test' with unknown type 'unknown'"
+    assert_match message, e.message
   end
 
   def test_default_value_is_integer
@@ -84,13 +108,13 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   end
 
   def test_default_value_is_nil
-    %w(references belongs_to).each do |attribute_type|
+    %w(references belongs_to rich_text attachment attachments).each do |attribute_type|
       assert_field_default_value attribute_type, nil
     end
   end
 
   def test_default_value_is_empty_string
-    %w(foo bar baz).each do |attribute_type|
+    %w(digest token).each do |attribute_type|
       assert_field_default_value attribute_type, ""
     end
   end
@@ -109,7 +133,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   end
 
   def test_reference_is_false
-    %w(foo bar baz).each do |attribute_type|
+    %w(string text float).each do |attribute_type|
       assert_not_predicate create_generated_attribute(attribute_type), :reference?
     end
   end
@@ -121,12 +145,12 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   end
 
   def test_polymorphic_reference_is_false
-    %w(foo bar baz).each do |attribute_type|
-      assert_not_predicate create_generated_attribute("#{attribute_type}{polymorphic}"), :polymorphic?
+    %w(references belongs_to).each do |attribute_type|
+      assert_not_predicate create_generated_attribute(attribute_type), :polymorphic?
     end
   end
 
-  def test_blank_type_defaults_to_string_raises_exception
+  def test_blank_type_defaults_to_string
     assert_equal :string, create_generated_attribute(nil, "title").type
     assert_equal :string, create_generated_attribute("", "title").type
   end
@@ -144,11 +168,23 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_equal "post_id", create_generated_attribute("belongs_to", "post").column_name
   end
 
+  def test_parse_works_with_adapter_specific_types
+    att = Rails::Generators::GeneratedAttribute.parse("document:json")
+    assert_equal "document", att.name
+    assert_equal :json, att.type
+  end
+
   def test_parse_required_attribute_with_index
-    att = Rails::Generators::GeneratedAttribute.parse("supplier:references{required}:index")
+    att = Rails::Generators::GeneratedAttribute.parse("supplier:references:index")
     assert_equal "supplier", att.name
     assert_equal :references, att.type
     assert_predicate att, :has_index?
     assert_predicate att, :required?
+  end
+
+  def test_parse_required_attribute_with_index_false_when_belongs_to_required_by_default_global_config_is_false
+    Rails.application.config.active_record.belongs_to_required_by_default = false
+    att = Rails::Generators::GeneratedAttribute.parse("supplier:references:index")
+    assert_not_predicate att, :required?
   end
 end

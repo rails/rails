@@ -6,7 +6,7 @@ class Author < ActiveRecord::Base
   has_one :post
   has_many :very_special_comments, through: :posts
   has_many :posts_with_comments, -> { includes(:comments) }, class_name: "Post"
-  has_many :popular_grouped_posts, -> { includes(:comments).group("type").having("SUM(comments_count) > 1").select("type") }, class_name: "Post"
+  has_many :popular_grouped_posts, -> { includes(:comments).group("type").having("SUM(legacy_comments_count) > 1").select("type") }, class_name: "Post"
   has_many :posts_with_comments_sorted_by_comment_id, -> { includes(:comments).order("comments.id") }, class_name: "Post"
   has_many :posts_sorted_by_id, -> { order(:id) }, class_name: "Post"
   has_many :posts_sorted_by_id_limited, -> { order("posts.id").limit(1) }, class_name: "Post"
@@ -20,6 +20,50 @@ class Author < ActiveRecord::Base
       Rating.joins(:comment).merge(self)
     end
   end
+
+  has_many :comments_with_order, -> { ordered_by_post_id }, through: :posts, source: :comments
+  has_many :no_joins_comments, through: :posts, disable_joins: :true, source: :comments
+
+  has_many :comments_with_foreign_key, through: :posts, source: :comments, foreign_key: :post_id
+  has_many :no_joins_comments_with_foreign_key, through: :posts, disable_joins: :true, source: :comments, foreign_key: :post_id
+
+  has_many :members,
+    through: :comments_with_order,
+    source: :origin,
+    source_type: "Member"
+
+  has_many :no_joins_members,
+    through: :comments_with_order,
+    source: :origin,
+    source_type: "Member",
+    disable_joins: true
+
+  has_many :ordered_members,
+    -> { order(id: :desc) },
+    through: :comments_with_order,
+    source: :origin,
+    source_type: "Member"
+
+  has_many :no_joins_ordered_members,
+    -> { order(id: :desc) },
+    through: :comments_with_order,
+    source: :origin,
+    source_type: "Member",
+    disable_joins: true
+
+  has_many :ratings, through: :comments
+  has_many :good_ratings,
+    -> { where("ratings.value > 5") },
+    through: :comments,
+    source: :ratings
+
+  has_many :no_joins_ratings, through: :no_joins_comments, disable_joins: :true, source: :ratings
+  has_many :no_joins_good_ratings,
+    -> { where("ratings.value > 5") },
+    through: :comments,
+    source: :ratings,
+    disable_joins: true
+
   has_many :comments_containing_the_letter_e, through: :posts, source: :comments
   has_many :comments_with_order_and_conditions, -> { order("comments.body").where("comments.body like 'Thank%'") }, through: :posts, source: :comments
   has_many :comments_with_include, -> { includes(:post).where(posts: { type: "Post" }) }, through: :posts, source: :comments
@@ -35,10 +79,10 @@ class Author < ActiveRecord::Base
   has_many :welcome_posts, -> { where(title: "Welcome to the weblog") }, class_name: "Post"
 
   has_many :welcome_posts_with_one_comment,
-           -> { where(title: "Welcome to the weblog").where("comments_count = ?", 1) },
+           -> { where(title: "Welcome to the weblog").where(comments_count: 1) },
            class_name: "Post"
   has_many :welcome_posts_with_comments,
-           -> { where(title: "Welcome to the weblog").where(Post.arel_table[:comments_count].gt(0)) },
+           -> { where(title: "Welcome to the weblog").where("legacy_comments_count > 0") },
            class_name: "Post"
 
   has_many :comments_desc, -> { order("comments.id DESC") }, through: :posts_sorted_by_id, source: :comments
@@ -62,6 +106,7 @@ class Author < ActiveRecord::Base
   has_many :hello_posts, -> { where "posts.body = 'hello'" }, class_name: "Post"
   has_many :hello_post_comments, through: :hello_posts, source: :comments
   has_many :posts_with_no_comments, -> { where("comments.id" => nil).includes(:comments) }, class_name: "Post"
+  has_many :posts_with_no_comments_2, -> { left_joins(:comments).where("comments.id": nil) }, class_name: "Post"
 
   has_many :hello_posts_with_hash_conditions, -> { where(body: "hello") }, class_name: "Post"
   has_many :hello_post_comments_with_hash_conditions, through: :hello_posts_with_hash_conditions, source: :comments
@@ -71,6 +116,10 @@ class Author < ActiveRecord::Base
            after_add: :log_after_adding,
            before_remove: :log_before_removing,
            after_remove: :log_after_removing
+  has_many :posts_with_thrown_callbacks, class_name: "Post", before_add: :throw_abort,
+           after_add: :ensure_not_called,
+           before_remove: :throw_abort,
+           after_remove: :ensure_not_called
   has_many :posts_with_proc_callbacks, class_name: "Post",
            before_add: Proc.new { |o, r| o.post_log << "before_adding#{r.id || '<new>'}" },
            after_add: Proc.new { |o, r| o.post_log << "after_adding#{r.id || '<new>'}" },
@@ -88,6 +137,9 @@ class Author < ActiveRecord::Base
   has_many :special_categorizations
   has_many :special_categories, through: :special_categorizations, source: :category
   has_one  :special_category,   through: :special_categorizations, source: :category
+
+  has_many :general_categorizations, -> { joins(:category).where("categories.name": "General") }, class_name: "Categorization"
+  has_many :general_posts, through: :general_categorizations, source: :post
 
   has_many :special_categories_with_conditions, -> { where(categorizations: { special: true }) }, through: :categorizations, source: :category
   has_many :nonspecial_categories_with_conditions, -> { where(categorizations: { special: false }) }, through: :categorizations, source: :category
@@ -116,6 +168,7 @@ class Author < ActiveRecord::Base
   has_many :tags_with_primary_key, through: :posts
 
   has_many :books
+  has_many :published_books, class_name: "PublishedBook"
   has_many :unpublished_books, -> { where(status: [:proposed, :written]) }, class_name: "Book"
   has_many :subscriptions,        through: :books
   has_many :subscribers, -> { order("subscribers.nick") }, through: :subscriptions
@@ -153,6 +206,10 @@ class Author < ActiveRecord::Base
   has_many :comments_on_posts_with_default_include, through: :posts_with_default_include, source: :comments
 
   has_many :posts_with_signature, ->(record) { where("posts.title LIKE ?", "%by #{record.name.downcase}%") }, class_name: "Post"
+  has_many :posts_mentioning_author, ->(record = nil) { where("posts.body LIKE ?", "%#{record&.name&.downcase}%") }, class_name: "Post"
+
+  has_one :recent_post, -> { order(id: :desc) }, class_name: "Post"
+  has_one :recent_response, through: :recent_post, source: :comments
 
   has_many :posts_with_extension, -> { order(:title) }, class_name: "Post" do
     def extension_method; end
@@ -164,6 +221,14 @@ class Author < ActiveRecord::Base
 
   has_many :top_posts, -> { order(id: :asc) }, class_name: "Post"
   has_many :other_top_posts, -> { order(id: :asc) }, class_name: "Post"
+
+  has_many :topics, primary_key: "name", foreign_key: "author_name"
+  has_many :topics_without_type, -> { select(:id, :title, :author_name) },
+    class_name: "Topic", primary_key: "name", foreign_key: "author_name"
+
+  has_many :lazy_readers_skimmers_or_not, through: :posts
+  has_many :lazy_readers_skimmers_or_not_2, through: :posts_with_no_comments, source: :lazy_readers_skimmers_or_not
+  has_many :lazy_readers_skimmers_or_not_3, through: :posts_with_no_comments_2, source: :lazy_readers_skimmers_or_not
 
   attr_accessor :post_log
   after_initialize :set_post_log
@@ -183,6 +248,14 @@ class Author < ActiveRecord::Base
   validates_presence_of :name
 
   private
+    def throw_abort(_)
+      throw(:abort)
+    end
+
+    def ensure_not_called(_)
+      raise
+    end
+
     def log_before_adding(object)
       @post_log << "before_adding#{object.id || '<new>'}"
     end
@@ -217,6 +290,15 @@ class AuthorAddress < ActiveRecord::Base
 end
 
 class AuthorFavorite < ActiveRecord::Base
+  belongs_to :author
+  belongs_to :favorite_author, class_name: "Author"
+end
+
+class AuthorFavoriteWithScope < ActiveRecord::Base
+  self.table_name = "author_favorites"
+
+  default_scope { order(id: :asc) }
+
   belongs_to :author
   belongs_to :favorite_author, class_name: "Author"
 end

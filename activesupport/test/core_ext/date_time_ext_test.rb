@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/time"
-require "core_ext/date_and_time_behavior"
-require "time_zone_test_helpers"
+require_relative "../core_ext/date_and_time_behavior"
+require_relative "../time_zone_test_helpers"
 
 class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   def date_time_init(year, month, day, hour, minute, second, usec = 0)
@@ -15,13 +15,14 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_to_s
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
-    assert_equal "2005-02-21 14:30:00",               datetime.to_s(:db)
-    assert_equal "14:30",                             datetime.to_s(:time)
-    assert_equal "21 Feb 14:30",                      datetime.to_s(:short)
-    assert_equal "February 21, 2005 14:30",           datetime.to_s(:long)
-    assert_equal "Mon, 21 Feb 2005 14:30:00 +0000",   datetime.to_s(:rfc822)
-    assert_equal "February 21st, 2005 14:30",         datetime.to_s(:long_ordinal)
-    assert_match(/^2005-02-21T14:30:00(Z|\+00:00)$/,  datetime.to_s)
+    assert_equal "2005-02-21 14:30:00",                 datetime.to_s(:db)
+    assert_equal "2005-02-21 14:30:00.000000000 +0000", datetime.to_s(:inspect)
+    assert_equal "14:30",                               datetime.to_s(:time)
+    assert_equal "21 Feb 14:30",                        datetime.to_s(:short)
+    assert_equal "February 21, 2005 14:30",             datetime.to_s(:long)
+    assert_equal "Mon, 21 Feb 2005 14:30:00 +0000",     datetime.to_s(:rfc822)
+    assert_equal "February 21st, 2005 14:30",           datetime.to_s(:long_ordinal)
+    assert_match(/^2005-02-21T14:30:00(Z|\+00:00)$/,    datetime.to_s)
 
     with_env_tz "US/Central" do
       assert_equal "2009-02-05T14:30:05-06:00", DateTime.civil(2009, 2, 5, 14, 30, 5, Rational(-21600, 86400)).to_s(:iso8601)
@@ -253,9 +254,81 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_yesterday_with_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  DateTime.civil(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)).yesterday?
+      assert_equal false, DateTime.civil(2000, 1, 1, 0, 0, 0, Rational(-18000, 86400)).yesterday?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59, Rational(-18000, 86400)).yesterday?
+      assert_equal true,  DateTime.civil(1999, 12, 31, 0, 0, 0, Rational(-18000, 86400)).yesterday?
+    end
+  end
+
+  def test_yesterday_without_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  DateTime.civil(1999, 12, 31, 23, 59, 59).yesterday?
+      assert_equal false, DateTime.civil(2000, 1, 1, 0).yesterday?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59).yesterday?
+      assert_equal false, DateTime.civil(2000, 1, 2, 0).yesterday?
+    end
+  end
+
+  def test_prev_day_with_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  DateTime.civil(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)).prev_day?
+      assert_equal false, DateTime.civil(2000, 1, 1, 0, 0, 0, Rational(-18000, 86400)).prev_day?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59, Rational(-18000, 86400)).prev_day?
+      assert_equal true,  DateTime.civil(1999, 12, 31, 0, 0, 0, Rational(-18000, 86400)).prev_day?
+    end
+  end
+
+  def test_prev_day_without_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  DateTime.civil(1999, 12, 31, 23, 59, 59).prev_day?
+      assert_equal false, DateTime.civil(2000, 1, 1, 0).prev_day?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59).prev_day?
+      assert_equal false, DateTime.civil(2000, 1, 2, 0).prev_day?
+    end
+  end
+
+  def test_tomorrow_with_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, DateTime.civil(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)).tomorrow?
+      assert_equal true,  DateTime.civil(2000, 1, 2, 0, 0, 0, Rational(-18000, 86400)).tomorrow?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59, Rational(-18000, 86400)).tomorrow?
+      assert_equal true,  DateTime.civil(2000, 1, 2, 23, 59, 59, Rational(-18000, 86400)).tomorrow?
+    end
+  end
+
+  def test_tomorrow_without_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, DateTime.civil(1999, 12, 31, 23, 59, 59).tomorrow?
+      assert_equal true,  DateTime.civil(2000, 1, 2, 0).tomorrow?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59).tomorrow?
+      assert_equal false, DateTime.civil(2000, 1, 3, 0).tomorrow?
+    end
+  end
+
+  def test_next_day_with_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, DateTime.civil(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)).next_day?
+      assert_equal true,  DateTime.civil(2000, 1, 2, 0, 0, 0, Rational(-18000, 86400)).next_day?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59, Rational(-18000, 86400)).next_day?
+      assert_equal true,  DateTime.civil(2000, 1, 2, 23, 59, 59, Rational(-18000, 86400)).next_day?
+    end
+  end
+
+  def test_next_day_without_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, DateTime.civil(1999, 12, 31, 23, 59, 59).next_day?
+      assert_equal true,  DateTime.civil(2000, 1, 2, 0).next_day?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59).next_day?
+      assert_equal false, DateTime.civil(2000, 1, 3, 0).next_day?
+    end
+  end
+
   def test_past_with_offset
     DateTime.stub(:current, DateTime.civil(2005, 2, 10, 15, 30, 45, Rational(-18000, 86400))) do
-      assert_equal true,  DateTime.civil(2005, 2, 10, 15, 30, 44, Rational(-18000, 86400)).past?
+      assert_equal true,   DateTime.civil(2005, 2, 10, 15, 30, 44, Rational(-18000, 86400)).past?
       assert_equal false,  DateTime.civil(2005, 2, 10, 15, 30, 45, Rational(-18000, 86400)).past?
       assert_equal false,  DateTime.civil(2005, 2, 10, 15, 30, 46, Rational(-18000, 86400)).past?
     end

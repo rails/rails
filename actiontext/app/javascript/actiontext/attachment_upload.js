@@ -1,4 +1,4 @@
-import { DirectUpload } from "activestorage"
+import { DirectUpload } from "@rails/activestorage"
 
 export class AttachmentUpload {
   constructor(attachment, element) {

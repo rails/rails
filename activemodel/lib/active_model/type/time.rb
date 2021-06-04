@@ -3,9 +3,10 @@
 module ActiveModel
   module Type
     class Time < Value # :nodoc:
+      include Helpers::Timezone
       include Helpers::TimeValue
       include Helpers::AcceptsMultiparameterTime.new(
-        defaults: { 1 => 1970, 2 => 1, 3 => 1, 4 => 0, 5 => 0 }
+        defaults: { 1 => 2000, 2 => 1, 3 => 1, 4 => 0, 5 => 0 }
       )
 
       def type
@@ -28,12 +29,11 @@ module ActiveModel
       end
 
       private
-
         def cast_value(value)
           return apply_seconds_precision(value) unless value.is_a?(::String)
           return if value.empty?
 
-          dummy_time_value = value.sub(/\A(\d\d\d\d-\d\d-\d\d |)/, "2000-01-01 ")
+          dummy_time_value = value.sub(/\A\d{4}-\d\d-\d\d(?:T|\s)|/, "2000-01-01 ")
 
           fast_string_to_time(dummy_time_value) || begin
             time_hash = ::Date._parse(dummy_time_value)

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "active_support/core_ext/object"
+require_relative "../../abstract_unit"
+require "active_support/core_ext/object/deep_dup"
 
 class DeepDupTest < ActiveSupport::TestCase
   def test_array_deep_dup
@@ -55,5 +55,15 @@ class DeepDupTest < ActiveSupport::TestCase
     hash = { Integer => 1 }
     dup = hash.deep_dup
     assert_equal 1, dup.keys.length
+  end
+
+  def test_deep_dup_with_mutable_frozen_key
+    key = { array: [] }.freeze
+    hash = { key => :value }
+
+    dup = hash.deep_dup
+    dup.transform_keys { |k| k[:array] << :array_element }
+
+    assert_not_equal hash.keys, dup.keys
   end
 end

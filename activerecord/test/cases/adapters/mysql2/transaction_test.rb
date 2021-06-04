@@ -92,7 +92,7 @@ module ActiveRecord
 
     test "raises StatementTimeout when statement timeout exceeded" do
       skip unless ActiveRecord::Base.connection.show_variable("max_execution_time")
-      assert_raises(ActiveRecord::StatementTimeout) do
+      error = assert_raises(ActiveRecord::StatementTimeout) do
         s = Sample.create!(value: 1)
         latch1 = Concurrent::CountDownLatch.new
         latch2 = Concurrent::CountDownLatch.new
@@ -117,10 +117,11 @@ module ActiveRecord
           thread.join
         end
       end
+      assert_kind_of ActiveRecord::QueryAborted, error
     end
 
     test "raises QueryCanceled when canceling statement due to user request" do
-      assert_raises(ActiveRecord::QueryCanceled) do
+      error = assert_raises(ActiveRecord::QueryCanceled) do
         s = Sample.create!(value: 1)
         latch = Concurrent::CountDownLatch.new
 
@@ -144,6 +145,7 @@ module ActiveRecord
           thread.join
         end
       end
+      assert_kind_of ActiveRecord::QueryAborted, error
     end
   end
 end

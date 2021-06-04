@@ -50,7 +50,7 @@ module ActiveRecord
       instance_eval(&block)
 
       if info[:version].present?
-        ActiveRecord::SchemaMigration.create_table
+        connection.schema_migration.create_table
         connection.assume_migrated_upto_version(info[:version])
       end
 

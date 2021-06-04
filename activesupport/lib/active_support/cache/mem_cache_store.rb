@@ -7,7 +7,7 @@ rescue LoadError => e
   raise e
 end
 
-require "active_support/core_ext/marshal"
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
 
 module ActiveSupport
@@ -28,19 +28,11 @@ module ActiveSupport
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         private
-          def read_entry(key, options)
-            entry = super
-            if options[:raw] && local_cache && entry
-              entry = deserialize_entry(entry.value)
-            end
-            entry
-          end
-
-          def write_entry(key, entry, options)
+          def write_entry(key, entry, **options)
             if options[:raw] && local_cache
               raw_entry = Entry.new(entry.value.to_s)
               raw_entry.expires_at = entry.expires_at
-              super(key, raw_entry, options)
+              super(key, raw_entry, **options)
             else
               super
             end
@@ -58,16 +50,18 @@ module ActiveSupport
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
       # Creates a new Dalli::Client instance with specified addresses and options.
-      # By default address is equal localhost:11211.
+      # If no addresses are provided, we give nil to Dalli::Client, so it uses its fallbacks:
+      # - ENV["MEMCACHE_SERVERS"] (if defined)
+      # - "127.0.0.1:11211"        (otherwise)
       #
       #   ActiveSupport::Cache::MemCacheStore.build_mem_cache
-      #     # => #<Dalli::Client:0x007f98a47d2028 @servers=["localhost:11211"], @options={}, @ring=nil>
+      #     # => #<Dalli::Client:0x007f98a47d2028 @servers=["127.0.0.1:11211"], @options={}, @ring=nil>
       #   ActiveSupport::Cache::MemCacheStore.build_mem_cache('localhost:10290')
       #     # => #<Dalli::Client:0x007f98a47b3a60 @servers=["localhost:10290"], @options={}, @ring=nil>
       def self.build_mem_cache(*addresses) # :nodoc:
         addresses = addresses.flatten
         options = addresses.extract_options!
-        addresses = ["localhost:11211"] if addresses.empty?
+        addresses = nil if addresses.compact.empty?
         pool_options = retrieve_pool_options(options)
 
         if pool_options.empty?
@@ -84,11 +78,14 @@ module ActiveSupport
       #
       #   ActiveSupport::Cache::MemCacheStore.new("localhost", "server-downstairs.localnetwork:8229")
       #
-      # If no addresses are specified, then MemCacheStore will connect to
-      # localhost port 11211 (the default memcached port).
+      # If no addresses are provided, but ENV['MEMCACHE_SERVERS'] is defined, it will be used instead. Otherwise,
+      # MemCacheStore will connect to localhost:11211 (the default memcached port).
       def initialize(*addresses)
         addresses = addresses.flatten
         options = addresses.extract_options!
+        if options.key?(:cache_nils)
+          options[:skip_nil] = !options.delete(:cache_nils)
+        end
         super(options)
 
         unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
@@ -141,34 +138,85 @@ module ActiveSupport
       end
 
       private
+        module Coders # :nodoc:
+          class << self
+            def [](version)
+              case version
+              when 6.1
+                Rails61Coder
+              when 7.0
+                Rails70Coder
+              else
+                raise ArgumentError, "Unknown ActiveSupport::Cache.format_version #{Cache.format_version.inspect}"
+              end
+            end
+          end
+
+          module Loader
+            def load(payload)
+              if payload.is_a?(Entry)
+                payload
+              else
+                Cache::Coders::Loader.load(payload)
+              end
+            end
+          end
+
+          module Rails61Coder
+            include Loader
+            extend self
+
+            def dump(entry)
+              entry
+            end
+
+            def dump_compressed(entry, threshold)
+              entry.compressed(threshold)
+            end
+          end
+
+          module Rails70Coder
+            include Cache::Coders::Rails70Coder
+            include Loader
+            extend self
+          end
+        end
+
+        def default_coder
+          Coders[Cache.format_version]
+        end
+
         # Read an entry from the cache.
-        def read_entry(key, options)
-          rescue_error_with(nil) { deserialize_entry(@data.with { |c| c.get(key, options) }) }
+        def read_entry(key, **options)
+          rescue_error_with(nil) do
+            deserialize_entry(@data.with { |c| c.get(key, options) }, raw: options[:raw])
+          end
         end
 
         # Write an entry to the cache.
-        def write_entry(key, entry, options)
-          method = options && options[:unless_exist] ? :add : :set
-          value = options[:raw] ? entry.value.to_s : entry
+        def write_entry(key, entry, **options)
+          method = options[:unless_exist] ? :add : :set
+          value = options[:raw] ? entry.value.to_s : serialize_entry(entry, **options)
           expires_in = options[:expires_in].to_i
-          if expires_in > 0 && !options[:raw]
+          if options[:race_condition_ttl] && expires_in > 0 && !options[:raw]
             # Set the memcache expire a few minutes in the future to support race condition ttls on read
             expires_in += 5.minutes
           end
           rescue_error_with false do
-            @data.with { |c| c.send(method, key, value, expires_in, options) }
+            # The value "compress: false" prevents duplicate compression within Dalli.
+            @data.with { |c| c.send(method, key, value, expires_in, **options, compress: false) }
           end
         end
 
         # Reads multiple entries from the cache implementation.
-        def read_multi_entries(names, options)
-          keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
+        def read_multi_entries(names, **options)
+          keys_to_names = names.index_by { |name| normalize_key(name, options) }
 
           raw_values = @data.with { |c| c.get_multi(keys_to_names.keys) }
           values = {}
 
           raw_values.each do |key, value|
-            entry = deserialize_entry(value)
+            entry = deserialize_entry(value, raw: options[:raw])
 
             unless entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
               values[keys_to_names[key]] = entry.value
@@ -179,7 +227,7 @@ module ActiveSupport
         end
 
         # Delete an entry from the cache.
-        def delete_entry(key, options)
+        def delete_entry(key, **options)
           rescue_error_with(false) { @data.with { |c| c.delete(key) } }
         end
 
@@ -187,17 +235,20 @@ module ActiveSupport
         # before applying the regular expression to ensure we are escaping all
         # characters properly.
         def normalize_key(key, options)
-          key = super.dup
-          key = key.force_encoding(Encoding::ASCII_8BIT)
-          key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
-          key = "#{key[0, 213]}:md5:#{ActiveSupport::Digest.hexdigest(key)}" if key.size > 250
+          key = super
+          if key
+            key = key.dup.force_encoding(Encoding::ASCII_8BIT)
+            key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
+            key = "#{key[0, 212]}:hash:#{ActiveSupport::Digest.hexdigest(key)}" if key.size > 250
+          end
           key
         end
 
-        def deserialize_entry(raw_value)
-          if raw_value
-            entry = Marshal.load(raw_value) rescue raw_value
-            entry.is_a?(Entry) ? entry : Entry.new(entry)
+        def deserialize_entry(payload, raw:)
+          if payload && raw
+            Entry.new(payload)
+          else
+            super(payload)
           end
         end
 

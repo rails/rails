@@ -27,7 +27,7 @@ if typeof CustomEvent isnt 'function'
 # obj::
 #   a native DOM element
 # name::
-#   string that corrspends to the event you want to trigger
+#   string that corresponds to the event you want to trigger
 #   e.g. 'click', 'submit'
 # data::
 #   data you want to pass when you dispatch an event
@@ -54,7 +54,7 @@ Rails.stopEverything = (e) ->
 # element::
 #   parent element that will listen for events e.g. document
 # selector::
-#   css selector; or an object that has `selector` and `exclude` properties (see: Rails.matches)
+#   CSS selector; or an object that has `selector` and `exclude` properties (see: Rails.matches)
 # eventType::
 #   string representing the event e.g. 'submit', 'click'
 # handler::

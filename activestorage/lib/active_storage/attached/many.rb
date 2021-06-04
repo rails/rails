@@ -25,19 +25,20 @@ module ActiveStorage
     #
     #   document.images.attach(params[:images]) # Array of ActionDispatch::Http::UploadedFile objects
     #   document.images.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
-    #   document.images.attach(io: File.open("/path/to/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpg")
+    #   document.images.attach(io: File.open("/path/to/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpeg")
     #   document.images.attach([ first_blob, second_blob ])
     def attach(*attachables)
       if record.persisted? && !record.changed?
-        record.update(name => blobs + attachables.flatten)
-      else
         record.public_send("#{name}=", blobs + attachables.flatten)
+        record.save
+      else
+        record.public_send("#{name}=", (change&.attachables || blobs) + attachables.flatten)
       end
     end
 
-    # Returns true if any attachments has been made.
+    # Returns true if any attachments have been made.
     #
-    #   class Gallery < ActiveRecord::Base
+    #   class Gallery < ApplicationRecord
     #     has_many_attached :photos
     #   end
     #

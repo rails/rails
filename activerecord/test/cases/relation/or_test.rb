@@ -4,11 +4,11 @@ require "cases/helper"
 require "models/author"
 require "models/categorization"
 require "models/post"
+require "models/citation"
 
 module ActiveRecord
   class OrTest < ActiveRecord::TestCase
-    fixtures :posts
-    fixtures :authors, :author_addresses
+    fixtures :posts, :authors, :author_addresses
 
     def test_or_with_relation
       expected = Post.where("id = 1 or id = 2").to_a
@@ -28,6 +28,11 @@ module ActiveRecord
     def test_or_with_null_right
       expected = Post.where("id = 1").to_a
       assert_equal expected, Post.where("id = 1").or(Post.none).to_a
+    end
+
+    def test_or_with_large_number
+      expected = Post.where("id = 1 or id = 9223372036854775808").to_a
+      assert_equal expected, Post.where(id: 1).or(Post.where(id: 9223372036854775808)).to_a
     end
 
     def test_or_with_bind_params
@@ -56,7 +61,15 @@ module ActiveRecord
       assert_equal expected, Post.order("body asc").where("id = 1").or(Post.order("body asc").where(id: [2, 3])).to_a
     end
 
-    def test_or_with_incompatible_relations
+    def test_or_with_incompatible_single_value_relations
+      error = assert_raises ArgumentError do
+        Post.distinct.where("id = 1").or(Post.where(id: [2, 3])).to_a
+      end
+
+      assert_equal "Relation passed to #or must be structurally compatible. Incompatible values: [:distinct]", error.message
+    end
+
+    def test_or_with_incompatible_multi_value_relations
       error = assert_raises ArgumentError do
         Post.order("body asc").where("id = 1").or(Post.order("id desc").where(id: [2, 3])).to_a
       end
@@ -77,22 +90,23 @@ module ActiveRecord
     end
 
     def test_or_with_unscope_order
-      expected = Post.where("id = 1 or id = 2")
-      assert_equal expected, Post.order("body asc").where("id = 1").unscope(:order).or(Post.where("id = 2")).to_a
+      expected = Post.where("id = 1 or id = 2").sort_by(&:id)
+      assert_equal expected, Post.order("body asc").where("id = 1").unscope(:order).or(Post.where("id = 2")).sort_by(&:id)
+      assert_equal expected, Post.order(:id).where("id = 1").or(Post.order(:id).where("id = 2").unscope(:order)).sort_by(&:id)
     end
 
     def test_or_with_incompatible_unscope
       error = assert_raises ArgumentError do
-        Post.order("body asc").where("id = 1").or(Post.order("body asc").where("id = 2").unscope(:order)).to_a
+        Post.order("body asc").where("id = 1").unscope(:order).or(Post.order("body asc").where("id = 2")).to_a
       end
 
       assert_equal "Relation passed to #or must be structurally compatible. Incompatible values: [:order]", error.message
     end
 
     def test_or_when_grouping
-      groups = Post.where("id < 10").group("body").select("body, COUNT(*) AS c")
-      expected = groups.having("COUNT(*) > 1 OR body like 'Such%'").to_a.map { |o| [o.body, o.c] }
-      assert_equal expected, groups.having("COUNT(*) > 1").or(groups.having("body like 'Such%'")).to_a.map { |o| [o.body, o.c] }
+      groups = Post.where("id < 10").group("body")
+      expected = groups.having("COUNT(*) > 1 OR body like 'Such%'").count
+      assert_equal expected, groups.having("COUNT(*) > 1").or(groups.having("body like 'Such%'")).count
     end
 
     def test_or_with_named_scope
@@ -105,6 +119,11 @@ module ActiveRecord
       assert_equal expected, Post.order(id: :desc).typographically_interesting
     end
 
+    def test_or_with_sti_relation
+      expected = Post.where("id = 1 or id = 2").sort_by(&:id)
+      assert_equal expected, Post.where(id: 1).or(SpecialPost.all).sort_by(&:id)
+    end
+
     def test_or_on_loaded_relation
       expected = Post.where("id = 1 or id = 2").to_a
       p = Post.where("id = 1")
@@ -114,9 +133,11 @@ module ActiveRecord
     end
 
     def test_or_with_non_relation_object_raises_error
-      assert_raises ArgumentError do
+      error = assert_raises ArgumentError do
         Post.where(id: [1, 2, 3]).or(title: "Rails")
       end
+
+      assert_equal "You have passed Hash object to #or. Pass an ActiveRecord::Relation object instead.", error.message
     end
 
     def test_or_with_references_inequality
@@ -131,6 +152,42 @@ module ActiveRecord
       author = Author.first
       assert_nothing_raised do
         author.top_posts.or(author.other_top_posts)
+      end
+    end
+
+    def test_or_with_annotate
+      quoted_posts = Regexp.escape(Post.quoted_table_name)
+      assert_match %r{#{quoted_posts} /\* foo \*/\z}, Post.annotate("foo").or(Post.all).to_sql
+      assert_match %r{#{quoted_posts} /\* foo \*/\z}, Post.annotate("foo").or(Post.annotate("foo")).to_sql
+      assert_match %r{#{quoted_posts} /\* foo \*/\z}, Post.annotate("foo").or(Post.annotate("bar")).to_sql
+      assert_match %r{#{quoted_posts} /\* foo \*/ /\* bar \*/\z}, Post.annotate("foo", "bar").or(Post.annotate("foo")).to_sql
+    end
+
+    def test_structurally_incompatible_values
+      assert_nothing_raised do
+        Post.includes(:author).includes(:author).or(Post.includes(:author))
+        Post.eager_load(:author).eager_load(:author).or(Post.eager_load(:author))
+        Post.preload(:author).preload(:author).or(Post.preload(:author))
+        Post.group(:author_id).group(:author_id).or(Post.group(:author_id))
+        Post.joins(:author).joins(:author).or(Post.joins(:author))
+        Post.left_outer_joins(:author).left_outer_joins(:author).or(Post.left_outer_joins(:author))
+        Post.from("posts").or(Post.from("posts"))
+      end
+    end
+  end
+
+  # The maximum expression tree depth is 1000 by default for SQLite3.
+  # https://www.sqlite.org/limits.html#max_expr_depth
+  unless current_adapter?(:SQLite3Adapter)
+    class TooManyOrTest < ActiveRecord::TestCase
+      fixtures :citations
+
+      def test_too_many_or
+        citations = 6000.times.map do |i|
+          Citation.where(id: i, book2_id: i * i)
+        end
+
+        assert_equal 6000, citations.inject(&:or).count
       end
     end
   end

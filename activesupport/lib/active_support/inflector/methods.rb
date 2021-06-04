@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/inflections"
+require "active_support/core_ext/object/blank"
 
 module ActiveSupport
   # The Inflector transforms words from singular to plural, class names to table
@@ -67,13 +68,17 @@ module ActiveSupport
     #   camelize(underscore('SSLError'))        # => "SslError"
     def camelize(term, uppercase_first_letter = true)
       string = term.to_s
-      if uppercase_first_letter
-        string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize }
+      # String#camelize takes a symbol (:upper or :lower), so here we also support :lower to keep the methods consistent.
+      if !uppercase_first_letter || uppercase_first_letter == :lower
+        string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase! || match }
       else
-        string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase }
+        string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize! || match }
       end
-      string.gsub!(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{inflections.acronyms[$2] || $2.capitalize}" }
-      string.gsub!("/", "::")
+      string.gsub!(/(?:_|(\/))([a-z\d]*)/i) do
+        word = $2
+        substituted = inflections.acronyms[word] || word.capitalize! || word
+        $1 ? "::#{substituted}" : substituted
+      end
       string
     end
 
@@ -89,11 +94,10 @@ module ActiveSupport
     #
     #   camelize(underscore('SSLError'))  # => "SslError"
     def underscore(camel_cased_word)
-      return camel_cased_word unless /[A-Z-]|::/.match?(camel_cased_word)
+      return camel_cased_word.to_s unless /[A-Z-]|::/.match?(camel_cased_word)
       word = camel_cased_word.to_s.gsub("::", "/")
       word.gsub!(inflections.acronyms_underscore_regex) { "#{$1 && '_' }#{$2.downcase}" }
-      word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2')
-      word.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
+      word.gsub!(/([A-Z\d]+)(?=[A-Z][a-z])|([a-z\d])(?=[A-Z])/) { ($1 || $2) << "_" }
       word.tr!("-", "_")
       word.downcase!
       word
@@ -130,18 +134,22 @@ module ActiveSupport
 
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
 
-      result.sub!(/\A_+/, "")
-      unless keep_id_suffix
-        result.sub!(/_id\z/, "")
-      end
       result.tr!("_", " ")
+      result.lstrip!
+      unless keep_id_suffix
+        result.delete_suffix!(" id")
+      end
 
-      result.gsub!(/([a-z\d]*)/i) do |match|
-        "#{inflections.acronyms[match.downcase] || match.downcase}"
+      result.gsub!(/([a-z\d]+)/i) do |match|
+        match.downcase!
+        inflections.acronyms[match] || match
       end
 
       if capitalize
-        result.sub!(/\A\w/) { |match| match.upcase }
+        result.sub!(/\A\w/) do |match|
+          match.upcase!
+          match
+        end
       end
 
       result
@@ -172,7 +180,7 @@ module ActiveSupport
     #   titleize('raiders_of_the_lost_ark')                      # => "Raiders Of The Lost Ark"
     #   titleize('string_ending_with_id', keep_id_suffix: true)  # => "String Ending With Id"
     def titleize(word, keep_id_suffix: false)
-      humanize(underscore(word), keep_id_suffix: keep_id_suffix).gsub(/\b(?<!\w['’`])[a-z]/) do |match|
+      humanize(underscore(word), keep_id_suffix: keep_id_suffix).gsub(/\b(?<!\w['’`()])[a-z]/) do |match|
         match.capitalize
       end
     end
@@ -196,7 +204,7 @@ module ActiveSupport
     #
     # Singular names are not handled correctly:
     #
-    #   classify('calculus')     # => "Calculus"
+    #   classify('calculus')     # => "Calculu"
     def classify(table_name)
       # strip out any leading schema name
       camelize(singularize(table_name.to_s.sub(/.*\./, "")))
@@ -269,34 +277,7 @@ module ActiveSupport
     # NameError is raised when the name is not in CamelCase or the constant is
     # unknown.
     def constantize(camel_cased_word)
-      names = camel_cased_word.split("::")
-
-      # Trigger a built-in NameError exception including the ill-formed constant in the message.
-      Object.const_get(camel_cased_word) if names.empty?
-
-      # Remove the first blank element in case of '::ClassName' notation.
-      names.shift if names.size > 1 && names.first.empty?
-
-      names.inject(Object) do |constant, name|
-        if constant == Object
-          constant.const_get(name)
-        else
-          candidate = constant.const_get(name)
-          next candidate if constant.const_defined?(name, false)
-          next candidate unless Object.const_defined?(name)
-
-          # Go down the ancestors to check if it is owned directly. The check
-          # stops when we reach Object or the end of ancestors tree.
-          constant = constant.ancestors.inject(constant) do |const, ancestor|
-            break const    if ancestor == Object
-            break ancestor if ancestor.const_defined?(name, false)
-            const
-          end
-
-          # owner is in Object, so raise
-          constant.const_get(name, false)
-        end
-      end
+      Object.const_get(camel_cased_word)
     end
 
     # Tries to find a constant with the name specified in the argument string.
@@ -326,8 +307,9 @@ module ActiveSupport
     rescue NameError => e
       raise if e.name && !(camel_cased_word.to_s.split("::").include?(e.name.to_s) ||
         e.name.to_s == camel_cased_word.to_s)
-    rescue ArgumentError => e
-      raise unless /not missing constant #{const_regexp(camel_cased_word)}!$/.match?(e.message)
+    rescue LoadError => e
+      message = e.respond_to?(:original_message) ? e.original_message : e.message
+      raise unless /Unable to autoload constant #{const_regexp(camel_cased_word)}/.match?(message)
     end
 
     # Returns the suffix that should be added to a number to denote the position
@@ -357,7 +339,6 @@ module ActiveSupport
     end
 
     private
-
       # Mounts a regular expression, returned as a string to ease interpolation,
       # that will match part by part the given constant.
       #
@@ -370,7 +351,7 @@ module ActiveSupport
 
         last = parts.pop
 
-        parts.reverse.inject(last) do |acc, part|
+        parts.reverse!.inject(last) do |acc, part|
           part.empty? ? acc : "#{part}(::#{acc})?"
         end
       end

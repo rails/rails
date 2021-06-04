@@ -40,7 +40,6 @@ class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
   end
 
   private
-
     def with_encoding_utf8mb4
       database_name = connection.current_database
       database_info = connection.select_one("SELECT * FROM information_schema.schemata WHERE schema_name = '#{database_name}'")

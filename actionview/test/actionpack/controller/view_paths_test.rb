@@ -77,7 +77,7 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def test_template_appends_view_path_correctly
-    @controller.instance_variable_set :@template, ActionView::Base.new(TestController.view_paths, {}, @controller)
+    @controller.instance_variable_set :@template, ActionView::Base.with_view_paths(TestController.view_paths, {}, @controller)
     class_view_paths = TestController.view_paths
 
     @controller.append_view_path "foo"
@@ -89,7 +89,7 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def test_template_prepends_view_path_correctly
-    @controller.instance_variable_set :@template, ActionView::Base.new(TestController.view_paths, {}, @controller)
+    @controller.instance_variable_set :@template, ActionView::Base.with_view_paths(TestController.view_paths, {}, @controller)
     class_view_paths = TestController.view_paths
 
     @controller.prepend_view_path "baz"
@@ -132,9 +132,10 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def test_decorate_view_paths_with_custom_resolver
-    decorator_class = Class.new(ActionView::PathResolver) do
+    decorator_class = Class.new(ActionView::Resolver) do
       def initialize(path_set)
         @path_set = path_set
+        super()
       end
 
       def find_all(*args)
@@ -143,8 +144,9 @@ class ViewLoadPathsTest < ActionController::TestCase
             "Decorated body",
             template.identifier,
             template.handler,
-              virtual_path: template.virtual_path,
-              format: template.formats
+            virtual_path: template.virtual_path,
+            format: template.format,
+            locals: template.locals
           )
         end
       end

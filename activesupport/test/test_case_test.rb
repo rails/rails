@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 
 class AssertionsTest < ActiveSupport::TestCase
   def setup
@@ -104,7 +104,7 @@ class AssertionsTest < ActiveSupport::TestCase
   def test_expression_is_evaluated_in_the_appropriate_scope
     silence_warnings do
       local_scope = "foo"
-      local_scope = local_scope  # to suppress unused variable warning
+      _ = local_scope  # to suppress unused variable warning
       assert_difference("local_scope; @object.num") { @object.increment }
     end
   end
@@ -192,7 +192,7 @@ class AssertionsTest < ActiveSupport::TestCase
         @object.increment
       end
     end
-    assert_equal "\"@object.num\" isn't nil", error.message
+    assert_equal "Expected change from nil", error.message
   end
 
   def test_assert_changes_with_to_option
@@ -208,7 +208,7 @@ class AssertionsTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "\"@object.num\" didn't change. It was already 0", error.message
+    assert_equal "\"@object.num\" didn't change. It was already 0.\nExpected 0 to not be equal to 0.", error.message
   end
 
   def test_assert_changes_with_wrong_to_option
@@ -272,16 +272,47 @@ class AssertionsTest < ActiveSupport::TestCase
 
   def test_assert_changes_with_message
     error = assert_raises Minitest::Assertion do
-      assert_changes "@object.num", "@object.num should 1", to: 1 do
+      assert_changes "@object.num", "@object.num should be 1", to: 1 do
         @object.decrement
       end
     end
 
-    assert_equal "@object.num should 1.\n\"@object.num\" didn't change to as expected\nExpected: 1\n  Actual: -1", error.message
+    assert_equal "@object.num should be 1.\nExpected change to 1\n", error.message
   end
 
   def test_assert_no_changes_pass
     assert_no_changes "@object.num" do
+      # ...
+    end
+  end
+
+  def test_assert_no_changes_with_from_option
+    assert_no_changes "@object.num", from: 0 do
+      # ...
+    end
+  end
+
+  def test_assert_no_changes_with_from_option_with_wrong_value
+    assert_raises Minitest::Assertion do
+      assert_no_changes "@object.num", from: -1 do
+        # ...
+      end
+    end
+  end
+
+  def test_assert_no_changes_with_from_option_with_nil
+    error = assert_raises Minitest::Assertion do
+      assert_no_changes "@object.num", from: nil do
+        @object.increment
+      end
+    end
+    assert_equal "Expected initial value of nil", error.message
+  end
+
+  def test_assert_no_changes_with_from_and_case_operator
+    token = SecureRandom.hex
+
+    assert_no_changes -> { token }, from: /\w{32}/ do
       # ...
     end
   end
@@ -293,7 +324,29 @@ class AssertionsTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "@object.num should not change.\n\"@object.num\" did change to 1", error.message
+    assert_equal "@object.num should not change.\n\"@object.num\" changed.\nExpected: 0\n  Actual: 1", error.message
+  end
+
+  def test_assert_no_changes_with_long_string_wont_output_everything
+    lines = "HEY\n" * 12
+
+    error = assert_raises Minitest::Assertion do
+      assert_no_changes "lines" do
+        lines += "HEY ALSO\n"
+      end
+    end
+
+    assert_match <<~output, error.message
+      "lines" changed.
+      --- expected
+      +++ actual
+      @@ -10,4 +10,5 @@
+       HEY
+       HEY
+       HEY
+      +HEY ALSO
+       "
+    output
   end
 end
 
@@ -303,9 +356,9 @@ class SetupAndTeardownTest < ActiveSupport::TestCase
   teardown :foo, :sentinel
 
   def test_inherited_setup_callbacks
-    assert_equal [:reset_callback_record, :foo], self.class._setup_callbacks.map(&:raw_filter)
+    assert_equal [:reset_callback_record, :foo], self.class._setup_callbacks.map(&:filter)
     assert_equal [:foo], @called_back
-    assert_equal [:foo, :sentinel], self.class._teardown_callbacks.map(&:raw_filter)
+    assert_equal [:foo, :sentinel], self.class._teardown_callbacks.map(&:filter)
   end
 
   def setup
@@ -315,7 +368,6 @@ class SetupAndTeardownTest < ActiveSupport::TestCase
   end
 
   private
-
     def reset_callback_record
       @called_back = []
     end
@@ -334,9 +386,9 @@ class SubclassSetupAndTeardownTest < SetupAndTeardownTest
   teardown :bar
 
   def test_inherited_setup_callbacks
-    assert_equal [:reset_callback_record, :foo, :bar], self.class._setup_callbacks.map(&:raw_filter)
+    assert_equal [:reset_callback_record, :foo, :bar], self.class._setup_callbacks.map(&:filter)
     assert_equal [:foo, :bar], @called_back
-    assert_equal [:foo, :sentinel, :bar], self.class._teardown_callbacks.map(&:raw_filter)
+    assert_equal [:foo, :sentinel, :bar], self.class._teardown_callbacks.map(&:filter)
   end
 
   private

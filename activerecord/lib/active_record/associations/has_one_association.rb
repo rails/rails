@@ -32,8 +32,20 @@ module ActiveRecord
             target.destroyed_by_association = reflection
             target.destroy
             throw(:abort) unless target.destroyed?
+          when :destroy_async
+            primary_key_column = target.class.primary_key.to_sym
+            id = target.public_send(primary_key_column)
+
+            enqueue_destroy_association(
+              owner_model_name: owner.class.to_s,
+              owner_id: owner.id,
+              association_class: reflection.klass.to_s,
+              association_ids: [id],
+              association_primary_key_column: primary_key_column,
+              ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
+            )
           when :nullify
-            target.update_columns(reflection.foreign_key => nil) if target.persisted?
+            target.update_columns(nullified_owner_attributes) if target.persisted?
           end
         end
       end
@@ -81,7 +93,9 @@ module ActiveRecord
             target.delete
           when :destroy
             target.destroyed_by_association = reflection
-            target.destroy
+            if target.persisted?
+              target.destroy
+            end
           else
             nullify_owner_attributes(target)
             remove_inverse_instance(target)

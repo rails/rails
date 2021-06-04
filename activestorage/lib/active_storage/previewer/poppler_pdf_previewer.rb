@@ -18,18 +18,18 @@ module ActiveStorage
       end
     end
 
-    def preview
+    def preview(**options)
       download_blob_to_tempfile do |input|
         draw_first_page_from input do |output|
-          yield io: output, filename: "#{blob.filename.base}.png", content_type: "image/png"
+          yield io: output, filename: "#{blob.filename.base}.png", content_type: "image/png", **options
         end
       end
     end
 
     private
       def draw_first_page_from(file, &block)
-        # use 72 dpi to match thumbnail  dimesions of the PDF
-        draw self.class.pdftoppm_path, "-singlefile", "-r", "72", "-png", file.path, &block
+        # use 72 dpi to match thumbnail dimensions of the PDF
+        draw self.class.pdftoppm_path, "-singlefile", "-cropbox", "-r", "72", "-png", file.path, &block
       end
   end
 end

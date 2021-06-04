@@ -16,13 +16,41 @@ module ActiveSupport
     # a cleanup will occur which tries to prune the cache down to three quarters
     # of the maximum size by removing the least recently used entries.
     #
+    # Unlike other Cache store implementations, MemoryStore does not compress
+    # values by default. MemoryStore does not benefit from compression as much
+    # as other Store implementations, as it does not send data over a network.
+    # However, when compression is enabled, it still pays the full cost of
+    # compression in terms of cpu use.
+    #
     # MemoryStore is thread-safe.
     class MemoryStore < Store
+      module DupCoder # :nodoc:
+        extend self
+
+        def dump(entry)
+          entry.dup_value! unless entry.compressed?
+          entry
+        end
+
+        def dump_compressed(entry, threshold)
+          entry = entry.compressed(threshold)
+          entry.dup_value! unless entry.compressed?
+          entry
+        end
+
+        def load(entry)
+          entry = entry.dup
+          entry.dup_value!
+          entry
+        end
+      end
+
       def initialize(options = nil)
         options ||= {}
+        # Disable compression by default.
+        options[:compress] ||= false
         super(options)
         @data = {}
-        @key_access = {}
         @max_size = options[:size] || 32.megabytes
         @max_prune_time = options[:max_prune_time] || 2
         @cache_size = 0
@@ -39,7 +67,6 @@ module ActiveSupport
       def clear(options = nil)
         synchronize do
           @data.clear
-          @key_access.clear
           @cache_size = 0
         end
       end
@@ -51,7 +78,7 @@ module ActiveSupport
           keys = synchronize { @data.keys }
           keys.each do |key|
             entry = @data[key]
-            delete_entry(key, options) if entry && entry.expired?
+            delete_entry(key, **options) if entry && entry.expired?
           end
         end
       end
@@ -62,13 +89,13 @@ module ActiveSupport
         return if pruning?
         @pruning = true
         begin
-          start_time = Time.now
+          start_time = Concurrent.monotonic_time
           cleanup
           instrument(:prune, target_size, from: @cache_size) do
-            keys = synchronize { @key_access.keys.sort { |a, b| @key_access[a].to_f <=> @key_access[b].to_f } }
+            keys = synchronize { @data.keys }
             keys.each do |key|
-              delete_entry(key, options)
-              return if @cache_size <= target_size || (max_time && Time.now - start_time > max_time)
+              delete_entry(key, **options)
+              return if @cache_size <= target_size || (max_time && Concurrent.monotonic_time - start_time > max_time)
             end
           end
         ensure
@@ -98,13 +125,13 @@ module ActiveSupport
           matcher = key_matcher(matcher, options)
           keys = synchronize { @data.keys }
           keys.each do |key|
-            delete_entry(key, options) if key.match(matcher)
+            delete_entry(key, **options) if key.match(matcher)
           end
         end
       end
 
       def inspect # :nodoc:
-        "<##{self.class.name} entries=#{@data.size}, size=#{@cache_size}, options=#{@options.inspect}>"
+        "#<#{self.class.name} entries=#{@data.size}, size=#{@cache_size}, options=#{@options.inspect}>"
       end
 
       # Synchronize calls to the cache. This should be called wherever the underlying cache implementation
@@ -114,54 +141,56 @@ module ActiveSupport
       end
 
       private
-
         PER_ENTRY_OVERHEAD = 240
 
-        def cached_size(key, entry)
-          key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
+        def default_coder
+          DupCoder
         end
 
-        def read_entry(key, options)
-          entry = @data[key]
+        def cached_size(key, payload)
+          key.to_s.bytesize + payload.bytesize + PER_ENTRY_OVERHEAD
+        end
+
+        def read_entry(key, **options)
+          entry = nil
           synchronize do
-            if entry
-              @key_access[key] = Time.now.to_f
-            else
-              @key_access.delete(key)
+            payload = @data.delete(key)
+            if payload
+              @data[key] = payload
+              entry = deserialize_entry(payload)
             end
           end
           entry
         end
 
-        def write_entry(key, entry, options)
-          entry.dup_value!
+        def write_entry(key, entry, **options)
+          payload = serialize_entry(entry, **options)
           synchronize do
-            old_entry = @data[key]
-            return false if @data.key?(key) && options[:unless_exist]
-            if old_entry
-              @cache_size -= (old_entry.size - entry.size)
+            return false if options[:unless_exist] && @data.key?(key)
+
+            old_payload = @data[key]
+            if old_payload
+              @cache_size -= (old_payload.bytesize - payload.bytesize)
             else
-              @cache_size += cached_size(key, entry)
+              @cache_size += cached_size(key, payload)
             end
-            @key_access[key] = Time.now.to_f
-            @data[key] = entry
+            @data[key] = payload
             prune(@max_size * 0.75, @max_prune_time) if @cache_size > @max_size
             true
           end
         end
 
-        def delete_entry(key, options)
+        def delete_entry(key, **options)
           synchronize do
-            @key_access.delete(key)
-            entry = @data.delete(key)
-            @cache_size -= cached_size(key, entry) if entry
-            !!entry
+            payload = @data.delete(key)
+            @cache_size -= cached_size(key, payload) if payload
+            !!payload
           end
         end
 
         def modify_value(name, amount, options)
+          options = merged_options(options)
           synchronize do
-            options = merged_options(options)
             if num = read(name, options)
               num = num.to_i + amount
               write(name, num, options)

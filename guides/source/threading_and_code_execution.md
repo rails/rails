@@ -176,7 +176,7 @@ The Rails framework components use these tools to manage their own concurrency
 needs too.
 
 `ActionDispatch::Executor` and `ActionDispatch::Reloader` are Rack middlewares
-that wraps the request with a supplied Executor or Reloader, respectively. They
+that wrap requests with a supplied Executor or Reloader, respectively. They
 are automatically included in the default application stack. The Reloader will
 ensure any arriving HTTP request is served with a freshly-loaded copy of the
 application if any code changes have occurred.
@@ -186,7 +186,7 @@ code to execute each job as it comes off the queue.
 
 Action Cable uses the Executor instead: because a Cable connection is linked to
 a specific instance of a class, it's not possible to reload for every arriving
-websocket message. Only the message handler is wrapped, though; a long-running
+WebSocket message. Only the message handler is wrapped, though; a long-running
 Cable connection does not prevent a reload that's triggered by a new incoming
 request or job. Instead, Action Cable uses the Reloader's `before_class_unload`
 callback to disconnect all its connections. When the client automatically
@@ -300,7 +300,6 @@ Rails.application.executor.wrap do
   end
 end
 ```
-
 
 ### ActionDispatch::DebugLocks
 

@@ -10,7 +10,7 @@ require "models/tree"
 class TouchLaterTest < ActiveRecord::TestCase
   fixtures :nodes, :trees
 
-  def test_touch_laster_raise_if_non_persisted
+  def test_touch_later_raise_if_non_persisted
     invoice = Invoice.new
     Invoice.transaction do
       assert_not_predicate invoice, :persisted?

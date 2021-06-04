@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-gem "capybara", ">= 2.15"
+gem "capybara", ">= 3.26"
 
 require "capybara/dsl"
 require "capybara/minitest"
@@ -10,7 +10,6 @@ require "action_dispatch/system_testing/browser"
 require "action_dispatch/system_testing/server"
 require "action_dispatch/system_testing/test_helpers/screenshot_helper"
 require "action_dispatch/system_testing/test_helpers/setup_and_teardown"
-require "action_dispatch/system_testing/test_helpers/undef_methods"
 
 module ActionDispatch
   # = System Testing
@@ -27,7 +26,7 @@ module ActionDispatch
   #
   # Here is an example system test:
   #
-  #   require 'application_system_test_case'
+  #   require "application_system_test_case"
   #
   #   class Users::CreateTest < ApplicationSystemTestCase
   #     test "adding a new user" do
@@ -89,18 +88,36 @@ module ActionDispatch
   #       { js_errors: true }
   #   end
   #
+  # Some drivers require browser capabilities to be passed as a block instead
+  # of through the +options+ hash.
+  #
+  # As an example, if you want to add mobile emulation on chrome, you'll have to
+  # create an instance of selenium's +Chrome::Options+ object and add
+  # capabilities with a block.
+  #
+  # The block will be passed an instance of <tt><Driver>::Options</tt> where you can
+  # define the capabilities you want. Please refer to your driver documentation
+  # to learn about supported options.
+  #
+  #   class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  #     driven_by :selenium, using: :chrome, screen_size: [1024, 768] do |driver_option|
+  #       driver_option.add_emulation(device_name: 'iPhone 6')
+  #       driver_option.add_extension('path/to/chrome_extension.crx')
+  #     end
+  #   end
+  #
   # Because <tt>ActionDispatch::SystemTestCase</tt> is a shim between Capybara
   # and Rails, any driver that is supported by Capybara is supported by system
   # tests as long as you include the required gems and files.
-  class SystemTestCase < IntegrationTest
+  class SystemTestCase < ActiveSupport::TestCase
     include Capybara::DSL
     include Capybara::Minitest::Assertions
     include SystemTesting::TestHelpers::SetupAndTeardown
     include SystemTesting::TestHelpers::ScreenshotHelper
-    include SystemTesting::TestHelpers::UndefMethods
 
     def initialize(*) # :nodoc:
       super
+      self.class.driven_by(:selenium) unless self.class.driver?
       self.class.driver.use
     end
 
@@ -134,14 +151,40 @@ module ActionDispatch
     #   driven_by :selenium, using: :firefox
     #
     #   driven_by :selenium, using: :headless_firefox
-    def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {})
-      self.driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size, options: options)
+    def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {}, &capabilities)
+      driver_options = { using: using, screen_size: screen_size, options: options }
+
+      self.driver = SystemTesting::Driver.new(driver, **driver_options, &capabilities)
     end
 
-    driven_by :selenium
+    private
+      def url_helpers
+        @url_helpers ||=
+          if ActionDispatch.test_app
+            Class.new do
+              include ActionDispatch.test_app.routes.url_helpers
+              include ActionDispatch.test_app.routes.mounted_helpers
 
-    ActiveSupport.run_load_hooks(:action_dispatch_system_test_case, self)
+              def url_options
+                default_url_options.reverse_merge(host: Capybara.app_host || Capybara.current_session.server_url)
+              end
+            end.new
+          end
+      end
+
+      def method_missing(name, *args, &block)
+        if url_helpers.respond_to?(name)
+          url_helpers.public_send(name, *args, &block)
+        else
+          super
+        end
+      end
+
+      def respond_to_missing?(name, include_private = false)
+        url_helpers.respond_to?(name)
+      end
   end
-
-  SystemTestCase.start_application
 end
+
+ActiveSupport.run_load_hooks :action_dispatch_system_test_case, ActionDispatch::SystemTestCase
+ActionDispatch::SystemTestCase.start_application

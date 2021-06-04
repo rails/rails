@@ -11,7 +11,11 @@ class RedisAdapterTest < ActionCable::TestCase
   include ChannelPrefixTest
 
   def cable_config
-    { adapter: "redis", driver: "ruby" }
+    { adapter: "redis", driver: "ruby" }.tap do |x|
+      if host = URI(ENV["REDIS_URL"] || "").hostname
+        x[:host] = host
+      end
+    end
   end
 end
 
@@ -25,28 +29,54 @@ class RedisAdapterTest::AlternateConfiguration < RedisAdapterTest
   def cable_config
     alt_cable_config = super.dup
     alt_cable_config.delete(:url)
-    alt_cable_config.merge(host: "127.0.0.1", port: 6379, db: 12)
+    alt_cable_config.merge(host: URI(ENV["REDIS_URL"] || "").hostname || "127.0.0.1", port: 6379, db: 12)
   end
 end
 
-class RedisAdapterTest::Connector < ActionCable::TestCase
-  test "slices url, host, port, db, password and id from config" do
-    config = { url: 1, host: 2, port: 3, db: 4, password: 5, id: "Some custom ID" }
+class RedisAdapterTest::ConnectorDefaultID < ActionCable::TestCase
+  def setup
+    server = ActionCable::Server::Base.new
+    server.config.cable = cable_config.merge(adapter: "redis").with_indifferent_access
+    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
-    assert_called_with ::Redis, :new, [ config ] do
-      connect config.merge(other: "unrelated", stuff: "here")
-    end
+    @adapter = server.config.pubsub_adapter.new(server)
   end
 
-  test "adds default id if it is not specified" do
-    config = { url: 1, host: 2, port: 3, db: 4, password: 5, id: "ActionCable-PID-#{$$}" }
-
-    assert_called_with ::Redis, :new, [ config ] do
-      connect config.except(:id)
-    end
+  def cable_config
+    { url: 1, host: 2, port: 3, db: 4, password: 5 }
   end
 
-  def connect(config)
-    ActionCable::SubscriptionAdapter::Redis.redis_connector.call(config)
+  def connection_id
+    "ActionCable-PID-#{$$}"
+  end
+
+  def expected_connection
+    cable_config.merge(id: connection_id)
+  end
+
+  test "sets connection id for connection" do
+    assert_called_with ::Redis, :new, [ expected_connection.stringify_keys ] do
+      @adapter.send(:redis_connection)
+    end
+  end
+end
+
+class RedisAdapterTest::ConnectorCustomID < RedisAdapterTest::ConnectorDefaultID
+  def cable_config
+    super.merge(id: connection_id)
+  end
+
+  def connection_id
+    "Some custom ID"
+  end
+end
+
+class RedisAdapterTest::ConnectorWithExcluded < RedisAdapterTest::ConnectorDefaultID
+  def cable_config
+    super.merge(adapter: "redis", channel_prefix: "custom")
+  end
+
+  def expected_connection
+    super.except(:adapter, :channel_prefix)
   end
 end

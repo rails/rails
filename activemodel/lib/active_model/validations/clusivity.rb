@@ -15,7 +15,6 @@ module ActiveModel
       end
 
     private
-
       def include?(record, value)
         members = if delimiter.respond_to?(:call)
           delimiter.call(record)
@@ -25,7 +24,11 @@ module ActiveModel
           delimiter
         end
 
-        members.send(inclusion_method(members), value)
+        if value.is_a?(Array)
+          value.all? { |v| members.public_send(inclusion_method(members), v) }
+        else
+          members.public_send(inclusion_method(members), value)
+        end
       end
 
       def delimiter

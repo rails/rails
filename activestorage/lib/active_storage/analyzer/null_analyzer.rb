@@ -6,6 +6,10 @@ module ActiveStorage
       true
     end
 
+    def self.analyze_later?
+      false
+    end
+
     def metadata
       {}
     end

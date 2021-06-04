@@ -47,29 +47,135 @@ namespace :db do
   task drop: ["db:mysql:drop", "db:postgresql:drop"]
 end
 
-%w( mysql2 postgresql sqlite3 sqlite3_mem db2 oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
+%w( mysql2 postgresql sqlite3 sqlite3_mem oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   namespace :test do
-    Rake::TestTask.new(adapter => "#{adapter}:env") { |t|
-      adapter_short = adapter == "db2" ? adapter : adapter[/^[a-z0-9]+/]
+    Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
+      adapter_short = adapter[/^[a-z0-9]+/]
       t.libs << "test"
-      t.test_files = (Dir.glob("test/cases/**/*_test.rb").reject {
-        |x| x.include?("/adapters/")
-      } + Dir.glob("test/cases/adapters/#{adapter_short}/**/*_test.rb"))
+      t.test_files = (FileList["test/cases/**/*_test.rb"].reject {
+        |x| x.include?("/adapters/") || x.include?("/encryption/performance")
+      } + FileList["test/cases/adapters/#{adapter_short}/**/*_test.rb"])
 
       t.warning = true
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
-    }
+    end
+
+    namespace :integration do
+      # Active Job Integration Tests
+      namespace :active_job do
+        Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
+          t.libs << "test"
+          t.test_files = FileList["test/activejob/*_test.rb"]
+          t.warning = true
+          t.verbose = true
+          t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+        end
+      end
+    end
 
     namespace :isolated do
       task adapter => "#{adapter}:env" do
-        adapter_short = adapter == "db2" ? adapter : adapter[/^[a-z0-9]+/]
+        adapter_short = adapter[/^[a-z0-9]+/]
         puts [adapter, adapter_short].inspect
-        (Dir["test/cases/**/*_test.rb"].reject {
-          |x| x.include?("/adapters/")
-        } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).all? do |file|
-          sh(Gem.ruby, "-w", "-Itest", file)
-        end || raise("Failures")
+
+        dash_i = [
+          "test",
+          "lib",
+          "../activesupport/lib",
+          "../activemodel/lib"
+        ].map { |dir| File.expand_path(dir, __dir__) }
+
+        dash_i.reverse_each do |x|
+          $:.unshift(x) unless $:.include?(x)
+        end
+        $-w = true
+
+        require "bundler/setup" unless defined?(Bundler)
+
+        # Every test file loads "cases/helper" first, so doing it
+        # post-fork gains us nothing.
+
+        # We need to dance around minitest autorun, though.
+        require "minitest"
+        Minitest.instance_eval do
+          alias _original_autorun autorun
+          def autorun
+            # no-op
+          end
+          require "cases/helper"
+          alias autorun _original_autorun
+        end
+
+        failing_files = []
+
+        test_options = ENV["TESTOPTS"].to_s.split(/[\s]+/)
+
+        test_files = (Dir["test/cases/**/*_test.rb"].reject {
+          |x| x.include?("/adapters/") || x.include?("/encryption/performance")
+        } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).sort
+
+        if ENV["BUILDKITE_PARALLEL_JOB_COUNT"]
+          n = ENV["BUILDKITE_PARALLEL_JOB"].to_i
+          m = ENV["BUILDKITE_PARALLEL_JOB_COUNT"].to_i
+
+          test_files = test_files.each_slice(m).filter_map { |slice| slice[n] }
+        end
+
+        test_files.each do |file|
+          puts "--- #{file}"
+          fake_command = Shellwords.join([
+            FileUtils::RUBY,
+            "-w",
+            *dash_i.map { |dir| "-I#{Pathname.new(dir).relative_path_from(Pathname.pwd)}" },
+            file,
+          ])
+          puts fake_command
+
+          # We could run these in parallel, but pretty much all of the
+          # railties tests already run in parallel, so ¯\_(⊙︿⊙)_/¯
+          Process.waitpid fork {
+            ARGV.clear.concat test_options
+            Rake.application = nil
+
+            Minitest.autorun
+
+            load file
+          }
+
+          unless $?.success?
+            failing_files << file
+            puts "^^^ +++"
+          end
+          puts
+        end
+
+        puts "--- All tests completed"
+        unless failing_files.empty?
+          puts "^^^ +++"
+          puts
+          puts "Failed in:"
+          failing_files.each do |file|
+            puts "  #{file}"
+          end
+          puts
+
+          exit 1
+        end
+      end
+    end
+
+    namespace :encryption do
+      namespace :performance do
+        Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
+          t.description = "Encryption performance tests for #{adapter}"
+          t.libs << "test"
+          t.test_files = FileList["test/cases/encryption/performance/*_test.rb"]
+
+          t.warning = true
+          t.verbose = true
+          t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+        end
       end
     end
   end
@@ -83,24 +189,29 @@ end
   end
 
   # Make sure the adapter test evaluates the env setting task
-  task "test_#{adapter}" => ["#{adapter}:env", "test:#{adapter}"]
+  task "test_#{adapter}" => ["#{adapter}:env", "test:#{adapter}", "test:integration:active_job:#{adapter}"]
   task "isolated_test_#{adapter}" => ["#{adapter}:env", "test:isolated:#{adapter}"]
 end
 
 namespace :db do
   namespace :mysql do
+    connection_arguments = lambda do |connection_name|
+      config = ARTest.config["connections"]["mysql2"][connection_name]
+      ["--user=#{config["username"]}", "--password=#{config["password"]}", ("--host=#{config["host"]}" if config["host"])].join(" ")
+    end
+
     desc "Build the MySQL test databases"
     task :build do
       config = ARTest.config["connections"]["mysql2"]
-      %x( mysql --user=#{config["arunit"]["username"]} --password=#{config["arunit"]["password"]} -e "create DATABASE #{config["arunit"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
-      %x( mysql --user=#{config["arunit2"]["username"]} --password=#{config["arunit2"]["password"]} -e "create DATABASE #{config["arunit2"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
+      %x( mysql #{connection_arguments["arunit"]} -e "create DATABASE #{config["arunit"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
+      %x( mysql #{connection_arguments["arunit2"]} -e "create DATABASE #{config["arunit2"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
     end
 
     desc "Drop the MySQL test databases"
     task :drop do
       config = ARTest.config["connections"]["mysql2"]
-      %x( mysqladmin --user=#{config["arunit"]["username"]} --password=#{config["arunit"]["password"]} -f drop #{config["arunit"]["database"]} )
-      %x( mysqladmin --user=#{config["arunit2"]["username"]} --password=#{config["arunit2"]["password"]} -f drop #{config["arunit2"]["database"]} )
+      %x( mysqladmin #{connection_arguments["arunit"]} -f drop #{config["arunit"]["database"]} )
+      %x( mysqladmin #{connection_arguments["arunit2"]} -f drop #{config["arunit2"]["database"]} )
     end
 
     desc "Rebuild the MySQL test databases"

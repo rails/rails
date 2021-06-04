@@ -7,9 +7,12 @@ end
 
 class SetupFiberedBase < ActiveSupport::TestCase
   def setup
+    ActionView::LookupContext::DetailsKey.clear
+
     view_paths = ActionController::Base.view_paths
+
     @assigns = { secret: "in the sauce", name: nil }
-    @view = ActionView::Base.new(view_paths, @assigns)
+    @view = ActionView::Base.with_empty_template_cache.with_view_paths(view_paths, @assigns)
     @controller_view = TestController.new.view_context
   end
 
@@ -44,12 +47,7 @@ class FiberedTest < SetupFiberedBase
   end
 
   def test_render_file
-    assert_equal "Hello world!", buffered_render(file: "test/hello_world")
-  end
-
-  def test_render_file_with_locals
-    locals = { secret: "in the sauce" }
-    assert_equal "The secret is in the sauce\n", buffered_render(file: "test/render_file_with_locals", locals: locals)
+    assert_equal "Hello world!", buffered_render(file: File.absolute_path("../fixtures/test/hello_world.erb", __dir__))
   end
 
   def test_render_partial

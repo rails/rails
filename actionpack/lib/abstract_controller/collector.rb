@@ -22,7 +22,6 @@ module AbstractController
     end
 
   private
-
     def method_missing(symbol, &block)
       unless mime_constant = Mime[symbol]
         raise NoMethodError, "To respond to a custom format, register it as a MIME type first: " \

@@ -13,7 +13,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, url maps, and `Rack::Builder`.
+WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, URL maps, and `Rack::Builder`.
 
 Introduction to Rack
 --------------------
@@ -33,11 +33,11 @@ Rails on Rack
 application. Any Rack compliant web server should be using
 `Rails.application` object to serve a Rails application.
 
-### `rails server`
+### `bin/rails server`
 
-`rails server` does the basic job of creating a `Rack::Server` object and starting the webserver.
+`bin/rails server` does the basic job of creating a `Rack::Server` object and starting the web server.
 
-Here's how `rails server` creates an instance of `Rack::Server`
+Here's how `bin/rails server` creates an instance of `Rack::Server`
 
 ```ruby
 Rails::Server.new.tap do |server|
@@ -52,7 +52,7 @@ The `Rails::Server` inherits from `Rack::Server` and calls the `Rack::Server#sta
 ```ruby
 class Server < ::Rack::Server
   def start
-    ...
+    # ...
     super
   end
 end
@@ -60,11 +60,11 @@ end
 
 ### `rackup`
 
-To use `rackup` instead of Rails' `rails server`, you can put the following inside `config.ru` of your Rails application's root directory:
+To use `rackup` instead of Rails' `bin/rails server`, you can put the following inside `config.ru` of your Rails application's root directory:
 
 ```ruby
 # Rails.root/config.ru
-require_relative 'config/environment'
+require_relative "config/environment"
 run Rails.application
 ```
 
@@ -97,7 +97,7 @@ but is built for better flexibility and more features to meet Rails' requirement
 Rails has a handy command for inspecting the middleware stack in use:
 
 ```bash
-$ rails middleware
+$ bin/rails middleware
 ```
 
 For a freshly generated Rails application, this might produce something like:
@@ -107,7 +107,6 @@ use Rack::Sendfile
 use ActionDispatch::Static
 use ActionDispatch::Executor
 use ActiveSupport::Cache::Strategy::LocalCache::Middleware
-use Rack::Runtime
 use Rack::MethodOverride
 use ActionDispatch::RequestId
 use ActionDispatch::RemoteIp
@@ -116,6 +115,7 @@ use Rails::Rack::Logger
 use ActionDispatch::ShowExceptions
 use WebConsole::Middleware
 use ActionDispatch::DebugExceptions
+use ActionDispatch::ActionableExceptions
 use ActionDispatch::Reloader
 use ActionDispatch::Callbacks
 use ActiveRecord::Migration::CheckPending
@@ -174,14 +174,14 @@ Add the following lines to your application configuration:
 
 ```ruby
 # config/application.rb
-config.middleware.delete Rack::Runtime
+config.middleware.delete ActionDispatch::Executor
 ```
 
-And now if you inspect the middleware stack, you'll find that `Rack::Runtime` is
+And now if you inspect the middleware stack, you'll find that `ActionDispatch::Executor` is
 not a part of it.
 
 ```bash
-$ rails middleware
+$ bin/rails middleware
 (in /Users/lifo/Rails/blog)
 use ActionDispatch::Static
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8>
@@ -229,10 +229,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 * Used for memory caching. This cache is not thread safe.
 
-**`Rack::Runtime`**
-
-* Sets an X-Runtime header, containing the time (in seconds) taken to execute the request.
-
 **`Rack::MethodOverride`**
 
 * Allows the method to be overridden if `params[:_method]` is set. This is the middleware which supports the PUT and DELETE HTTP method types.
@@ -260,6 +256,10 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`ActionDispatch::DebugExceptions`**
 
 * Responsible for logging exceptions and showing a debugging page in case the request is local.
+
+**`ActionDispatch::ActionableExceptions`**
+
+* Provides a way to dispatch actions from Rails' error pages.
 
 **`ActionDispatch::Reloader`**
 

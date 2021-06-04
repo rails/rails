@@ -13,14 +13,70 @@ module ActiveRecord
 
       def setup
         @connection = ActiveRecord::Base.connection
+        @connection_handler = ActiveRecord::Base.connection_handler
+      end
+
+      def test_connection_error
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          ActiveRecord::Base.postgresql_connection(host: File::NULL)
+        end
+      end
+
+      def test_reconnection_error
+        fake_connection = Class.new do
+          def async_exec(*)
+            [{}]
+          end
+
+          def type_map_for_queries=(_)
+          end
+
+          def type_map_for_results=(_)
+          end
+
+          def exec_params(*)
+            {}
+          end
+
+          def reset
+            raise PG::ConnectionBad
+          end
+
+          def close
+          end
+        end.new
+
+        @conn = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          fake_connection,
+          ActiveRecord::Base.logger,
+          nil,
+          { host: File::NULL }
+        )
+
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          @conn.reconnect!
+        end
       end
 
       def test_bad_connection
         assert_raise ActiveRecord::NoDatabaseError do
-          configuration = ActiveRecord::Base.configurations["arunit"].merge(database: "should_not_exist-cinco-dog-db")
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+          configuration = db_config.configuration_hash.merge(database: "should_not_exist-cinco-dog-db")
           connection = ActiveRecord::Base.postgresql_connection(configuration)
           connection.exec_query("SELECT 1")
         end
+      end
+
+      def test_database_exists_returns_false_when_the_database_does_not_exist
+        config = { database: "non_extant_database", adapter: "postgresql" }
+        assert_not ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(config),
+          "expected database #{config[:database]} to not exist"
+      end
+
+      def test_database_exists_returns_true_when_the_database_exists
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        assert ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(db_config.configuration_hash),
+          "expected database #{db_config.database} to exist"
       end
 
       def test_primary_key
@@ -198,35 +254,33 @@ module ActiveRecord
         end
       end
 
-      if ActiveRecord::Base.connection.prepared_statements
-        def test_exec_with_binds
-          with_example_table do
-            string = @connection.quote("foo")
-            @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
+      def test_exec_with_binds
+        with_example_table do
+          string = @connection.quote("foo")
+          @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-            bind = Relation::QueryAttribute.new("id", 1, Type::Value.new)
-            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
+          bind = Relation::QueryAttribute.new("id", 1, Type::Value.new)
+          result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
 
-            assert_equal 1, result.rows.length
-            assert_equal 2, result.columns.length
+          assert_equal 1, result.rows.length
+          assert_equal 2, result.columns.length
 
-            assert_equal [[1, "foo"]], result.rows
-          end
+          assert_equal [[1, "foo"]], result.rows
         end
+      end
 
-        def test_exec_typecasts_bind_vals
-          with_example_table do
-            string = @connection.quote("foo")
-            @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
+      def test_exec_typecasts_bind_vals
+        with_example_table do
+          string = @connection.quote("foo")
+          @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-            bind = Relation::QueryAttribute.new("id", "1-fuu", Type::Integer.new)
-            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
+          bind = Relation::QueryAttribute.new("id", "1-fuu", Type::Integer.new)
+          result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
 
-            assert_equal 1, result.rows.length
-            assert_equal 2, result.columns.length
+          assert_equal 1, result.rows.length
+          assert_equal 2, result.columns.length
 
-            assert_equal [[1, "foo"]], result.rows
-          end
+          assert_equal [[1, "foo"]], result.rows
         end
       end
 
@@ -240,9 +294,11 @@ module ActiveRecord
 
       def test_expression_index
         with_example_table do
-          @connection.add_index "ex", "mod(id, 10), abs(number)", name: "expression"
+          expr = "mod(id, 10), abs(number)"
+          @connection.add_index "ex", expr, name: "expression"
           index = @connection.indexes("ex").find { |idx| idx.name == "expression" }
-          assert_equal "mod(id, 10), abs(number)", index.columns
+          assert_equal expr, index.columns
+          assert_equal true, @connection.index_exists?("ex", expr, name: "expression")
         end
       end
 
@@ -286,12 +342,13 @@ module ActiveRecord
       end
 
       def test_columns_for_distinct_with_arel_order
-        order = Object.new
-        def order.to_sql
-          "posts.created_at desc"
-        end
+        Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
+
+        order = Arel.sql("posts.created_at").desc
         assert_equal "posts.created_at AS alias_0, posts.id",
           @connection.columns_for_distinct("posts.id", [order])
+      ensure
+        Arel::Table.engine = ActiveRecord::Base
       end
 
       def test_columns_for_distinct_with_nulls
@@ -376,70 +433,14 @@ module ActiveRecord
         end
       end
 
-      def test_errors_when_an_insert_query_is_called_while_preventing_writes
-        with_example_table do
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection.while_preventing_writes do
-              @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-            end
-          end
-        end
-      end
-
-      def test_errors_when_an_update_query_is_called_while_preventing_writes
-        with_example_table do
-          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection.while_preventing_writes do
-              @connection.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
-            end
-          end
-        end
-      end
-
-      def test_errors_when_a_delete_query_is_called_while_preventing_writes
-        with_example_table do
-          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection.while_preventing_writes do
-              @connection.execute("DELETE FROM ex where data = '138853948594'")
-            end
-          end
-        end
-      end
-
-      def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
-        with_example_table do
-          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
-
-          @connection.while_preventing_writes do
-            assert_equal 1, @connection.execute("SELECT * FROM ex WHERE data = '138853948594'").entries.count
-          end
-        end
-      end
-
-      def test_doesnt_error_when_a_show_query_is_called_while_preventing_writes
-        @connection.while_preventing_writes do
-          assert_equal 1, @connection.execute("SHOW TIME ZONE").entries.count
-        end
-      end
-
-      def test_doesnt_error_when_a_set_query_is_called_while_preventing_writes
-        @connection.while_preventing_writes do
-          assert_equal [], @connection.execute("SET standard_conforming_strings = on").entries
-        end
-      end
-
       private
-
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)
           super(@connection, "ex", definition, &block)
         end
 
         def connection_without_insert_returning
-          ActiveRecord::Base.postgresql_connection(ActiveRecord::Base.configurations["arunit"].merge(insert_returning: false))
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+          ActiveRecord::Base.postgresql_connection(db_config.configuration_hash.merge(insert_returning: false))
         end
     end
   end

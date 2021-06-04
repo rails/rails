@@ -3,7 +3,7 @@
 module ActiveStorage
   # Representation of a single attachment to a model.
   class Attached::One < Attached
-    delegate_missing_to :attachment
+    delegate_missing_to :attachment, allow_nil: true
 
     # Returns the associated attachment record.
     #
@@ -13,6 +13,13 @@ module ActiveStorage
       change.present? ? change.attachment : record.public_send("#{name}_attachment")
     end
 
+    # Returns +true+ if an attachment is not attached.
+    #
+    #   class User < ApplicationRecord
+    #     has_one_attached :avatar
+    #   end
+    #
+    #   User.new.avatar.blank? # => true
     def blank?
       !attached?
     end
@@ -25,11 +32,12 @@ module ActiveStorage
     #
     #   person.avatar.attach(params[:avatar]) # ActionDispatch::Http::UploadedFile object
     #   person.avatar.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
-    #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
+    #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
     #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
     def attach(attachable)
       if record.persisted? && !record.changed?
-        record.update(name => attachable)
+        record.public_send("#{name}=", attachable)
+        record.save
       else
         record.public_send("#{name}=", attachable)
       end
@@ -37,7 +45,7 @@ module ActiveStorage
 
     # Returns +true+ if an attachment has been made.
     #
-    #   class User < ActiveRecord::Base
+    #   class User < ApplicationRecord
     #     has_one_attached :avatar
     #   end
     #
@@ -60,6 +68,7 @@ module ActiveStorage
       if attached?
         attachment.purge
         write_attachment nil
+        reset_changes
       end
     end
 
@@ -68,6 +77,7 @@ module ActiveStorage
       if attached?
         attachment.purge_later
         write_attachment nil
+        reset_changes
       end
     end
 

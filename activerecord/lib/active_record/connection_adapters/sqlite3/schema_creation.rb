@@ -3,8 +3,12 @@
 module ActiveRecord
   module ConnectionAdapters
     module SQLite3
-      class SchemaCreation < AbstractAdapter::SchemaCreation # :nodoc:
+      class SchemaCreation < SchemaCreation # :nodoc:
         private
+          def supports_index_using?
+            false
+          end
+
           def add_column_options!(sql, options)
             if options[:collation]
               sql << " COLLATE \"#{options[:collation]}\""

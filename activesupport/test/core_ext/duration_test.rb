@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/inflector"
 require "active_support/time"
 require "active_support/json"
-require "time_zone_test_helpers"
+require_relative "../time_zone_test_helpers"
 require "yaml"
 
 class DurationTest < ActiveSupport::TestCase
@@ -46,6 +46,41 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "1", 1.second.to_s
   end
 
+  def test_in_seconds
+    assert_equal 86400.0, 1.day.in_seconds
+    assert_equal 1.week.to_i, 1.week.in_seconds
+  end
+
+  def test_in_minutes
+    assert_in_delta 1440.0, 1.day.in_minutes
+    assert_in_delta 0.5, 30.seconds.in_minutes
+  end
+
+  def test_in_hours
+    assert_in_delta 24.0, 1.day.in_hours
+    assert_in_delta 336.0, 2.weeks.in_hours
+  end
+
+  def test_in_days
+    assert_in_delta 0.5, 12.hours.in_days
+    assert_in_delta 30.437, 1.month.in_days
+  end
+
+  def test_in_weeks
+    assert_in_delta 8.696, 2.months.in_weeks
+    assert_in_delta 52.178, 1.year.in_weeks
+  end
+
+  def test_in_months
+    assert_in_delta 2.07, 9.weeks.in_months
+    assert_in_delta 12.0, 1.year.in_months
+  end
+
+  def test_in_years
+    assert_in_delta 0.082, 30.days.in_years
+    assert_in_delta 1.0, 365.days.in_years
+  end
+
   def test_eql
     rubinius_skip "Rubinius' #eql? definition relies on #instance_of? " \
                   "which behaves oddly for the sake of backward-compatibility."
@@ -62,6 +97,7 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_inspect
     assert_equal "0 seconds",                       0.seconds.inspect
+    assert_equal "0 days",                          0.days.inspect
     assert_equal "1 month",                         1.month.inspect
     assert_equal "1 month and 1 day",               (1.month + 1.day).inspect
     assert_equal "6 months and -2 days",            (6.months - 2.days).inspect
@@ -74,19 +110,25 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "2 weeks",                         1.fortnight.inspect
     assert_equal "0 seconds",                       (10 % 5.seconds).inspect
     assert_equal "10 minutes",                      (10.minutes + 0.seconds).inspect
+    assert_equal "3600 seconds",                    (1.day / 24).inspect
   end
 
-  def test_inspect_locale
+  def test_inspect_ignores_locale
     current_locale = I18n.default_locale
     I18n.default_locale = :de
     I18n.backend.store_translations(:de, support: { array: { last_word_connector: " und " } })
-    assert_equal "10 years, 1 month und 1 day", (10.years + 1.month + 1.day).inspect
+    assert_equal "10 years, 1 month, and 1 day", (10.years + 1.month + 1.day).inspect
   ensure
     I18n.default_locale = current_locale
   end
 
   def test_minus_with_duration_does_not_break_subtraction_of_date_from_date
     assert_nothing_raised { Date.today - Date.today }
+  end
+
+  def test_unary_plus
+    assert_equal (+ 1.second), 1.second
+    assert_instance_of ActiveSupport::Duration, + 1.second
   end
 
   def test_plus
@@ -154,20 +196,29 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration, 13.months % 1.year
   end
 
+  def test_date_added_with_zero_days
+    assert_equal Date.civil(2017, 1, 1), Date.civil(2017, 1, 1) + 0.days
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 0.days
+  end
+
   def test_date_added_with_multiplied_duration
     assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 1.day * 2
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 1.day * 2
   end
 
   def test_date_added_with_multiplied_duration_larger_than_one_month
     assert_equal Date.civil(2017, 2, 15), Date.civil(2017, 1, 1) + 1.day * 45
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 1.day * 45
   end
 
   def test_date_added_with_divided_duration
     assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 4.days / 2
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 4.days / 2
   end
 
   def test_date_added_with_divided_duration_larger_than_one_month
     assert_equal Date.civil(2017, 2, 15), Date.civil(2017, 1, 1) + 90.days / 2
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 90.days / 2
   end
 
   def test_plus_with_time
@@ -178,8 +229,8 @@ class DurationTest < ActiveSupport::TestCase
     twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Moscow"], Time.utc(2016, 4, 28, 00, 45))
     now = Time.now.utc
     %w( second minute hour day week month year ).each do |unit|
-      assert_equal((now + 1.send(unit)).class, Time, "Time + 1.#{unit} must be Time")
-      assert_equal((twz + 1.send(unit)).class, ActiveSupport::TimeWithZone, "TimeWithZone + 1.#{unit} must be TimeWithZone")
+      assert_equal((now + 1.public_send(unit)).class, Time, "Time + 1.#{unit} must be Time")
+      assert_equal((twz + 1.public_send(unit)).class, ActiveSupport::TimeWithZone, "TimeWithZone + 1.#{unit} must be TimeWithZone")
     end
   end
 
@@ -203,7 +254,9 @@ class DurationTest < ActiveSupport::TestCase
   def test_since_and_ago
     t = Time.local(2000)
     assert_equal t + 1, 1.second.since(t)
+    assert_equal t + 1, (1.minute / 60).since(t)
     assert_equal t - 1, 1.second.ago(t)
+    assert_equal t - 1, (1.minute / 60).ago(t)
   end
 
   def test_since_and_ago_without_argument
@@ -265,7 +318,7 @@ class DurationTest < ActiveSupport::TestCase
     Time.zone = nil
   end
 
-  def test_before_and_afer
+  def test_before_and_after
     t = Time.local(2000)
     assert_equal t + 1, 1.second.after(t)
     assert_equal t - 1, 1.second.before(t)
@@ -560,14 +613,18 @@ class DurationTest < ActiveSupport::TestCase
     expectations = [
       ["P1Y",           1.year                           ],
       ["P1W",           1.week                           ],
+      ["P4W",           4.week                           ],
+      ["P1Y7D",         1.year + 1.week                  ],
+      ["P1Y1M21D",      1.year + 1.month + 3.week        ],
       ["P1Y1M",         1.year + 1.month                 ],
       ["P1Y1M1D",       1.year + 1.month + 1.day         ],
-      ["-P1Y1D",        -1.year - 1.day                  ],
+      ["P-1Y-1D",       -1.year - 1.day                  ],
       ["P1Y-1DT-1S",    1.year - 1.day - 1.second        ], # Parts with different signs are exists in PostgreSQL interval datatype.
       ["PT1S",          1.second                         ],
       ["PT1.4S",        (1.4).seconds                    ],
       ["P1Y1M1DT1H",    1.year + 1.month + 1.day + 1.hour],
       ["PT0S",          0.minutes                        ],
+      ["PT-0.2S",       (-0.2).seconds                   ],
     ]
     expectations.each do |expected_output, duration|
       assert_equal expected_output, duration.iso8601, expected_output.inspect
@@ -595,7 +652,7 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_iso8601_output_and_reparsing
     patterns = %w[
-      P1Y P0.5Y P0,5Y P1Y1M P1Y0.5M P1Y0,5M P1Y1M1D P1Y1M0.5D P1Y1M0,5D P1Y1M1DT1H P1Y1M1DT0.5H P1Y1M1DT0,5H P1W +P1Y -P1Y
+      P1Y P0.5Y P0,5Y P1Y1M P1Y0.5M P1Y0,5M P1Y1M1D P1Y1M0.5D P1Y1M0,5D P1Y1M1DT1H P1Y1M1DT0.5H P1Y1M1DT0,5H P1W +P1Y -P1Y P-1Y
       P1Y1M1DT1H1M P1Y1M1DT1H0.5M P1Y1M1DT1H0,5M P1Y1M1DT1H1M1S P1Y1M1DT1H1M1.0S P1Y1M1DT1H1M1,0S P-1Y-2M3DT-4H-5M-6S
     ]
     # That could be weird, but if we parse P1Y1M0.5D and output it to ISO 8601, we'll get P1Y1MT12.0H.
@@ -656,9 +713,42 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_durations_survive_yaml_serialization
-    d1 = YAML.load(YAML.dump(10.minutes))
+    payload = YAML.dump(10.minutes)
+    d1 = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
     assert_equal 600, d1.to_i
     assert_equal 660, (d1 + 60).to_i
+  end
+
+  def test_string_build_raises_error
+    error = assert_raises(TypeError) do
+      ActiveSupport::Duration.build("9")
+    end
+
+    assert_equal "can't build an ActiveSupport::Duration from a String", error.message
+  end
+
+  def test_non_numeric_build_raises_error
+    error = assert_raises(TypeError) do
+      ActiveSupport::Duration.build(nil)
+    end
+
+    assert_equal "can't build an ActiveSupport::Duration from a NilClass", error.message
+  end
+
+  def test_variable
+    assert_not 12.seconds.variable?
+    assert_not 12.minutes.variable?
+    assert_not 12.hours.variable?
+
+    assert 12.days.variable?
+    assert 12.weeks.variable?
+    assert 12.months.variable?
+    assert 12.years.variable?
+
+    assert_not (12.hours + 12.minutes).variable?
+
+    assert (12.hours + 1.day).variable?
+    assert (1.day + 12.hours).variable?
   end
 
   private

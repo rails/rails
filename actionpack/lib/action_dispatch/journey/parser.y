@@ -21,7 +21,7 @@ rule
     | expression OR or { Or.new([val.first, val.last]) }
     ;
   star
-    : STAR       { Star.new(Symbol.new(val.last)) }
+    : STAR       { Star.new(Symbol.new(val.last, Symbol::GREEDY_EXP)) }
     ;
   terminal
     : symbol

@@ -145,15 +145,17 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_validates_acceptance_of_with_undefined_attribute_methods
-    Topic.validates_acceptance_of(:approved)
-    topic = Topic.new(approved: true)
-    Topic.undefine_attribute_methods
+    klass = Class.new(Topic)
+    klass.validates_acceptance_of(:approved)
+    topic = klass.new(approved: true)
+    klass.undefine_attribute_methods
     assert topic.approved
   end
 
   def test_validates_acceptance_of_as_database_column
-    Topic.validates_acceptance_of(:approved)
-    topic = Topic.create("approved" => true)
+    klass = Class.new(Topic)
+    klass.validates_acceptance_of(:approved)
+    topic = klass.create("approved" => true)
     assert topic["approved"]
   end
 
@@ -185,9 +187,17 @@ class ValidationsTest < ActiveRecord::TestCase
       validates_numericality_of :wibble, greater_than_or_equal_to: BigDecimal("97.18")
     end
 
-    assert_not_predicate klass.new(wibble: "97.179"), :valid?
-    assert_not_predicate klass.new(wibble: 97.179), :valid?
-    assert_not_predicate klass.new(wibble: BigDecimal("97.179")), :valid?
+    ["97.179", 97.179, BigDecimal("97.179")].each do |raw_value|
+      subject = klass.new(wibble: raw_value)
+      assert_equal BigDecimal("97.18"), subject.wibble
+      assert_predicate subject, :valid?
+    end
+
+    ["97.174", 97.174, BigDecimal("97.174")].each do |raw_value|
+      subject = klass.new(wibble: raw_value)
+      assert_equal BigDecimal("97.17"), subject.wibble
+      assert_not_predicate subject, :valid?
+    end
   end
 
   def test_numericality_validator_wont_be_affected_by_custom_getter

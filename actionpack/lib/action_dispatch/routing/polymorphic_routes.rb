@@ -145,6 +145,7 @@ module ActionDispatch
 
       %w(edit new).each do |action|
         module_eval <<-EOT, __FILE__, __LINE__ + 1
+          # frozen_string_literal: true
           def #{action}_polymorphic_url(record_or_hash, options = {})
             polymorphic_url_for_action("#{action}", record_or_hash, options)
           end
@@ -156,7 +157,6 @@ module ActionDispatch
       end
 
       private
-
         def polymorphic_url_for_action(action, record_or_hash, options)
           polymorphic_url(record_or_hash, options.merge(action: action))
         end
@@ -174,15 +174,15 @@ module ActionDispatch
         end
 
         class HelperMethodBuilder # :nodoc:
-          CACHE = { "path" => {}, "url" => {} }
+          CACHE = { path: {}, url: {} }
 
           def self.get(action, type)
-            type = type.to_s
+            type = type.to_sym
             CACHE[type].fetch(action) { build action, type }
           end
 
-          def self.url;  CACHE["url"][nil]; end
-          def self.path; CACHE["path"][nil]; end
+          def self.url;  CACHE[:url][nil]; end
+          def self.path; CACHE[:path][nil]; end
 
           def self.build(action, type)
             prefix = action ? "#{action}_" : ""
@@ -228,9 +228,9 @@ module ActionDispatch
             end
 
             if options.empty?
-              recipient.send(method, *args)
+              recipient.public_send(method, *args)
             else
-              recipient.send(method, *args, options)
+              recipient.public_send(method, *args, options)
             end
           end
 
@@ -247,7 +247,7 @@ module ActionDispatch
           end
 
           def handle_string_call(target, str)
-            target.send get_method_for_string str
+            target.public_send get_method_for_string str
           end
 
           def handle_class(klass)
@@ -255,7 +255,7 @@ module ActionDispatch
           end
 
           def handle_class_call(target, klass)
-            target.send get_method_for_class klass
+            target.public_send get_method_for_class klass
           end
 
           def handle_model(record)
@@ -277,7 +277,7 @@ module ActionDispatch
               mapping.call(target, [record], suffix == "path")
             else
               method, args = handle_model(record)
-              target.send(method, *args)
+              target.public_send(method, *args)
             end
           end
 
@@ -287,10 +287,12 @@ module ActionDispatch
 
             args = []
 
-            route = record_list.map { |parent|
+            route = record_list.map do |parent|
               case parent
-              when Symbol, String
+              when Symbol
                 parent.to_s
+              when String
+                raise(ArgumentError, "Please use symbols for polymorphic route arguments.")
               when Class
                 args << parent
                 parent.model_name.singular_route_key
@@ -298,12 +300,14 @@ module ActionDispatch
                 args << parent.to_model
                 parent.to_model.model_name.singular_route_key
               end
-            }
+            end
 
             route <<
             case record
-            when Symbol, String
+            when Symbol
               record.to_s
+            when String
+              raise(ArgumentError, "Please use symbols for polymorphic route arguments.")
             when Class
               @key_strategy.call record.model_name
             else
@@ -323,7 +327,6 @@ module ActionDispatch
           end
 
           private
-
             def polymorphic_mapping(target, record)
               if record.respond_to?(:to_model)
                 target._routes.polymorphic_mappings[record.to_model.model_name.name]
@@ -342,8 +345,8 @@ module ActionDispatch
             end
 
             [nil, "new", "edit"].each do |action|
-              CACHE["url"][action]  = build action, "url"
-              CACHE["path"][action] = build action, "path"
+              CACHE[:url][action]  = build action, "url"
+              CACHE[:path][action] = build action, "path"
             end
         end
     end

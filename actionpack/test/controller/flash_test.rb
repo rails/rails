@@ -189,27 +189,27 @@ class FlashTest < ActionController::TestCase
 
   def test_redirect_to_with_alert
     get :redirect_with_alert
-    assert_equal "Beware the nowheres!", @controller.send(:flash)[:alert]
+    assert_equal "Beware the nowheres!", @controller.flash[:alert]
   end
 
   def test_redirect_to_with_notice
     get :redirect_with_notice
-    assert_equal "Good luck in the somewheres!", @controller.send(:flash)[:notice]
+    assert_equal "Good luck in the somewheres!", @controller.flash[:notice]
   end
 
   def test_render_with_flash_now_alert
     get :render_with_flash_now_alert
-    assert_equal "Beware the nowheres now!", @controller.send(:flash)[:alert]
+    assert_equal "Beware the nowheres now!", @controller.flash[:alert]
   end
 
   def test_render_with_flash_now_notice
     get :render_with_flash_now_notice
-    assert_equal "Good luck in the somewheres now!", @controller.send(:flash)[:notice]
+    assert_equal "Good luck in the somewheres now!", @controller.flash[:notice]
   end
 
   def test_redirect_to_with_other_flashes
     get :redirect_with_other_flashes
-    assert_equal "Horses!", @controller.send(:flash)[:joyride]
+    assert_equal "Horses!", @controller.flash[:joyride]
   end
 
   def test_redirect_to_with_adding_flash_types
@@ -219,7 +219,7 @@ class FlashTest < ActionController::TestCase
     end
     @controller = test_controller_with_flash_type_foo.new
     get :redirect_with_foo_flash
-    assert_equal "for great justice", @controller.send(:flash)[:foo]
+    assert_equal "for great justice", @controller.flash[:foo]
   ensure
     @controller = original_controller
   end
@@ -242,8 +242,11 @@ end
 
 class FlashIntegrationTest < ActionDispatch::IntegrationTest
   SessionKey = "_myapp_session"
-  Generator  = ActiveSupport::LegacyKeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
-  Rotations  = ActiveSupport::Messages::RotationConfiguration.new
+  Generator = ActiveSupport::CachingKeyGenerator.new(
+    ActiveSupport::KeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33", iterations: 1000)
+  )
+  Rotations = ActiveSupport::Messages::RotationConfiguration.new
+  SIGNED_COOKIE_SALT = "signed cookie"
 
   class TestController < ActionController::Base
     add_flash_types :bar
@@ -358,14 +361,13 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   private
-
     # Overwrite get to send SessionSecret in env hash
-    def get(path, *args)
-      args[0] ||= {}
-      args[0][:env] ||= {}
-      args[0][:env]["action_dispatch.key_generator"] ||= Generator
-      args[0][:env]["action_dispatch.cookies_rotations"] = Rotations
-      super(path, *args)
+    def get(path, **options)
+      options[:env] ||= {}
+      options[:env]["action_dispatch.key_generator"] ||= Generator
+      options[:env]["action_dispatch.cookies_rotations"] = Rotations
+      options[:env]["action_dispatch.signed_cookie_salt"] = SIGNED_COOKIE_SALT
+      super(path, **options)
     end
 
     def with_test_route_set

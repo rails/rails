@@ -36,7 +36,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
 
     def get_session_id
-      render plain: "id: #{request.session.id}"
+      render plain: "id: #{request.session.id&.public_id}"
     end
 
     def get_class_after_reset_session
@@ -123,7 +123,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       encryptor = ActiveSupport::MessageEncryptor.new("A" * 32, cipher: "aes-256-gcm", serializer: Marshal)
 
-      cookies[SessionKey] = encryptor.encrypt_and_sign("foo" => "bar", "session_id" => "abc")
+      cookies[SessionKey] = encryptor.encrypt_and_sign({ "foo" => "bar", "session_id" => "abc" })
 
       get "/get_session_value"
 
@@ -221,6 +221,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       get "/call_reset_session"
       assert_response :success
       assert_not_equal [], headers["Set-Cookie"]
+      assert_not_nil headers["Set-Cookie"]
       assert_not_nil session_payload
       assert_not_equal session_payload, cookies[SessionKey]
 
@@ -300,7 +301,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       time = Time.local(2008, 4, 24)
 
       Time.stub :now, time do
-        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
+        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
         get "/set_session_value"
 
@@ -311,7 +312,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       # Second request does not access the session
       time = time + 3.hours
       Time.stub :now, time do
-        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
+        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
         get "/no_session_access"
 
@@ -327,7 +328,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       time = Time.local(2017, 11, 12)
 
       Time.stub :now, time do
-        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
+        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
         get "/set_session_value"
         get "/get_session_value"
@@ -360,14 +361,14 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   def test_session_store_without_domain
     with_test_route_set do
       get "/set_session_value"
-      assert_no_match(/domain\=/, headers["Set-Cookie"])
+      assert_no_match(/domain=/, headers["Set-Cookie"])
     end
   end
 
   def test_session_store_with_nil_domain
     with_test_route_set(domain: nil) do
       get "/set_session_value"
-      assert_no_match(/domain\=/, headers["Set-Cookie"])
+      assert_no_match(/domain=/, headers["Set-Cookie"])
     end
   end
 
@@ -379,12 +380,10 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   end
 
   private
-
     # Overwrite get to send SessionSecret in env hash
-    def get(path, *args)
-      args[0] ||= {}
-      args[0][:headers] ||= {}
-      args[0][:headers].tap do |config|
+    def get(path, **options)
+      options[:headers] ||= {}
+      options[:headers].tap do |config|
         config["action_dispatch.secret_key_base"] = SessionSecret
         config["action_dispatch.authenticated_encrypted_cookie_salt"] = SessionSalt
         config["action_dispatch.use_authenticated_cookie_encryption"] = true
@@ -393,7 +392,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
         config["action_dispatch.cookies_rotations"] ||= Rotations
       end
 
-      super(path, *args)
+      super
     end
 
     def with_test_route_set(options = {})

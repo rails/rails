@@ -15,9 +15,9 @@ module ActionCable
       end
     end
 
-    # Stub `stream_from` to track streams for the channel.
-    # Add public aliases for `subscription_confirmation_sent?` and
-    # `subscription_rejected?`.
+    # Stub +stream_from+ to track streams for the channel.
+    # Add public aliases for +subscription_confirmation_sent?+ and
+    # +subscription_rejected?+.
     module ChannelStub
       def confirmed?
         subscription_confirmation_sent?
@@ -123,7 +123,7 @@ module ActionCable
     # <b>connection</b>::
     #      An ActionCable::Channel::ConnectionStub, representing the current HTTP connection.
     # <b>subscription</b>::
-    #      An instance of the current channel, created when you call `subscribe`.
+    #      An instance of the current channel, created when you call +subscribe+.
     # <b>transmissions</b>::
     #      A list of all messages that have been transmitted into the channel.
     #
@@ -143,7 +143,7 @@ module ActionCable
     # You need to set up your connection manually to provide values for the identifiers.
     # To do this just use:
     #
-    #   stub_connection(user: users[:john])
+    #   stub_connection(user: users(:john))
     #
     # == Testing broadcasting
     #
@@ -157,9 +157,9 @@ module ActionCable
     #  end
     #
     #  def test_speak
-    #    subscribe room_id: rooms[:chat].id
+    #    subscribe room_id: rooms(:chat).id
     #
-    #    assert_broadcasts_on(rooms[:chat], text: "Hello, Rails!") do
+    #    assert_broadcast_on(rooms(:chat), text: "Hello, Rails!") do
     #      perform :speak, message: "Hello, Rails!"
     #    end
     #  end
@@ -209,7 +209,7 @@ module ActionCable
           end
         end
 
-        # Setup test connection with the specified identifiers:
+        # Set up test connection with the specified identifiers:
         #
         #   class ApplicationCable < ActionCable::Connection::Base
         #     identified_by :user, :token
@@ -246,7 +246,7 @@ module ActionCable
         # Returns messages transmitted into channel
         def transmissions
           # Return only directly sent message (via #transmit)
-          connection.transmissions.map { |data| data["message"] }.compact
+          connection.transmissions.filter_map { |data| data["message"] }
         end
 
         # Enhance TestHelper assertions to handle non-String
@@ -300,9 +300,7 @@ module ActionCable
           def broadcasting_for(stream_or_object)
             return stream_or_object if stream_or_object.is_a?(String)
 
-            self.class.channel_class.broadcasting_for(
-              [self.class.channel_class.channel_name, stream_or_object]
-            )
+            self.class.channel_class.broadcasting_for(stream_or_object)
           end
       end
 

@@ -12,11 +12,11 @@ module ActionCable
       #   </head>
       #
       # This is then used by Action Cable to determine the URL of your WebSocket server.
-      # Your CoffeeScript can then connect to the server without needing to specify the
+      # Your JavaScript can then connect to the server without needing to specify the
       # URL directly:
       #
-      #   #= require cable
-      #   @App = {}
+      #   window.Cable = require("@rails/actioncable")
+      #   window.App = {}
       #   App.cable = Cable.createConsumer()
       #
       # Make sure to specify the correct server location in each of your environment

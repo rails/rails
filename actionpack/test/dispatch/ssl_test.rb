@@ -9,7 +9,7 @@ class SSLTest < ActionDispatch::IntegrationTest
 
   def build_app(headers: {}, ssl_options: {})
     headers = HEADERS.merge(headers)
-    ActionDispatch::SSL.new lambda { |env| [200, headers, []] }, ssl_options.reverse_merge(hsts: { subdomains: true })
+    ActionDispatch::SSL.new lambda { |env| [200, headers, []] }, **ssl_options.reverse_merge(hsts: { subdomains: true })
   end
 end
 
@@ -21,7 +21,7 @@ class RedirectSSLTest < SSLTest
   end
 
   def assert_redirected(redirect: {}, from: "http://a/b?c=d", to: from.sub("http", "https"))
-    redirect = { status: 301, body: [] }.merge(redirect)
+    redirect = { body: [] }.merge(redirect)
 
     self.app = build_app ssl_options: { redirect: redirect }
 
@@ -42,7 +42,7 @@ class RedirectSSLTest < SSLTest
   end
 
   test "exclude can avoid redirect" do
-    excluding = { exclude: -> request { request.path =~ /healthcheck/ } }
+    excluding = { exclude: -> request { request.path.match?(/healthcheck/) } }
 
     assert_not_redirected "http://example.org/healthcheck", redirect: excluding
     assert_redirected from: "http://example.org/", redirect: excluding
@@ -64,8 +64,31 @@ class RedirectSSLTest < SSLTest
     assert_post_redirected
   end
 
-  test "redirect with non-301 status" do
-    assert_redirected redirect: { status: 307 }
+  test "redirect with custom status" do
+    assert_redirected redirect: { status: 308 }
+  end
+
+  test "redirect with unknown request method" do
+    self.app = build_app
+
+    process :not_an_http_method, "http://a/b?c=d"
+
+    assert_response 307
+    assert_redirected_to "https://a/b?c=d"
+  end
+
+  test "redirect with ssl_default_redirect_status" do
+    self.app = build_app(ssl_options: { ssl_default_redirect_status: 308 })
+
+    get "http://a/b?c=d"
+
+    assert_response 301
+    assert_redirected_to "https://a/b?c=d"
+
+    post "http://a/b?c=d"
+
+    assert_response 308
+    assert_redirected_to "https://a/b?c=d"
   end
 
   test "redirect with custom body" do
@@ -98,8 +121,8 @@ class RedirectSSLTest < SSLTest
 end
 
 class StrictTransportSecurityTest < SSLTest
-  EXPECTED = "max-age=31536000"
-  EXPECTED_WITH_SUBDOMAINS = "max-age=31536000; includeSubDomains"
+  EXPECTED = "max-age=63072000"
+  EXPECTED_WITH_SUBDOMAINS = "max-age=63072000; includeSubDomains"
 
   def assert_hsts(expected, url: "https://example.org", hsts: { subdomains: true }, headers: {})
     self.app = build_app ssl_options: { hsts: hsts }, headers: headers
@@ -209,7 +232,7 @@ class SecureCookiesTest < SSLTest
   end
 
   def test_cookies_as_not_secure_with_exclude
-    excluding = { exclude: -> request { request.domain =~ /example/ } }
+    excluding = { exclude: -> request { /example/.match?(request.domain) } }
     get headers: { "Set-Cookie" => DEFAULT }, ssl_options: { redirect: excluding }
 
     assert_cookies(*DEFAULT.split("\n"))
@@ -222,7 +245,7 @@ class SecureCookiesTest < SSLTest
   end
 
   def test_keeps_original_headers_behavior
-    get headers: { "Connection" => %w[close] }
+    get headers: { "Connection" => "close" }
     assert_equal "close", response.headers["Connection"]
   end
 end

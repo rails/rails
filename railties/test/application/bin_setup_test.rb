@@ -6,21 +6,12 @@ module ApplicationTests
   class BinSetupTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
-    def setup
-      build_app
-    end
-
-    def teardown
-      teardown_app
-    end
+    setup :build_app
+    teardown :teardown_app
 
     def test_bin_setup
       Dir.chdir(app_path) do
-        app_file "db/schema.rb", <<-RUBY
-          ActiveRecord::Schema.define(version: 20140423102712) do
-            create_table(:articles) {}
-          end
-        RUBY
+        rails "generate", "model", "article"
 
         list_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
         File.write("log/test.log", "zomg!")
@@ -28,15 +19,20 @@ module ApplicationTests
         assert_equal "[]", list_tables.call
         assert_equal 5, File.size("log/test.log")
         assert_not File.exist?("tmp/restart.txt")
+
         `bin/setup 2>&1`
         assert_equal 0, File.size("log/test.log")
-        assert_equal '["articles", "schema_migrations", "ar_internal_metadata"]', list_tables.call
+        assert_equal '["schema_migrations", "ar_internal_metadata", "articles"]', list_tables.call
         assert File.exist?("tmp/restart.txt")
       end
     end
 
     def test_bin_setup_output
       Dir.chdir(app_path) do
+        # SQLite3 seems to auto-create the database on first checkout.
+        rails "db:system:change", "--to=postgresql"
+        rails "db:drop", allow_failure: true
+
         app_file "db/schema.rb", ""
 
         output = `bin/setup 2>&1`
@@ -45,16 +41,24 @@ module ApplicationTests
         output.sub!(/^Resolving dependencies\.\.\.\n/, "")
         # Suppress Bundler platform warnings from output
         output.gsub!(/^The dependency .* will be unused .*\.\n/, "")
+        # Ignores dynamic data by yarn
+        output.sub!(/^yarn install v.*?$/, "yarn install")
+        output.sub!(/^\[.*?\] Resolving packages\.\.\.$/, "[1/4] Resolving packages...")
+        output.sub!(/^Done in \d+\.\d+s\.\n/, "Done in 0.00s.\n")
         # Ignore warnings such as `Psych.safe_load is deprecated`
         output.gsub!(/^warning:\s.*\n/, "")
 
         assert_equal(<<~OUTPUT, output)
           == Installing dependencies ==
           The Gemfile's dependencies are satisfied
+          yarn install
+          [1/4] Resolving packages...
+          success Already up-to-date.
+          Done in 0.00s.
 
           == Preparing database ==
-          Created database 'db/development.sqlite3'
-          Created database 'db/test.sqlite3'
+          Created database 'app_development'
+          Created database 'app_test'
 
           == Removing old logs and tempfiles ==
 

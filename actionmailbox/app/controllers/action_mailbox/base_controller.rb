@@ -3,13 +3,9 @@
 module ActionMailbox
   # The base class for all Action Mailbox ingress controllers.
   class BaseController < ActionController::Base
-    skip_forgery_protection
+    skip_forgery_protection if default_protect_from_forgery
 
     before_action :ensure_configured
-
-    def self.prepare
-      # Override in concrete controllers to run code on load.
-    end
 
     private
       def ensure_configured

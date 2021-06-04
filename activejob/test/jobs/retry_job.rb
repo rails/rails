@@ -4,6 +4,8 @@ require_relative "../support/job_buffer"
 require "active_support/core_ext/integer/inflections"
 
 class DefaultsError < StandardError; end
+class DisabledJitterError < StandardError; end
+class ZeroJitterError < StandardError; end
 class FirstRetryableErrorOfTwo < StandardError; end
 class SecondRetryableErrorOfTwo < StandardError; end
 class LongWaitError < StandardError; end
@@ -18,6 +20,8 @@ class CustomDiscardableError < StandardError; end
 
 class RetryJob < ActiveJob::Base
   retry_on DefaultsError
+  retry_on DisabledJitterError, jitter: nil
+  retry_on ZeroJitterError, jitter: 0.0
   retry_on FirstRetryableErrorOfTwo, SecondRetryableErrorOfTwo, attempts: 4
   retry_on LongWaitError, wait: 1.hour, attempts: 10
   retry_on ShortWaitTenAttemptsError, wait: 1.second, attempts: 10
@@ -30,7 +34,13 @@ class RetryJob < ActiveJob::Base
   discard_on FirstDiscardableErrorOfTwo, SecondDiscardableErrorOfTwo
   discard_on(CustomDiscardableError) { |job, error| JobBuffer.add("Dealt with a job that was discarded in a custom way. Message: #{error.message}") }
 
-  def perform(raising, attempts)
+  before_enqueue do |job|
+    if job.arguments.include?(:log_scheduled_at) && job.scheduled_at
+      JobBuffer.add("Next execution scheduled at #{job.scheduled_at}")
+    end
+  end
+
+  def perform(raising, attempts, *)
     raising = raising.shift if raising.is_a?(Array)
     if raising && executions < attempts
       JobBuffer.add("Raised #{raising} for the #{executions.ordinalize} time")

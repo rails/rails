@@ -35,29 +35,27 @@ connections:
       database: <%= FIXTURES_ROOT %>/fixture_database_2.sqlite3
       timeout:  5000
 
-  db2:
-    arunit:
-      adapter:  ibm_db
-      host:     localhost
-      username: arunit
-      password: arunit
-      database: arunit
-    arunit2:
-      adapter:  ibm_db
-      host:     localhost
-      username: arunit
-      password: arunit
-      database: arunit2
-
   mysql2:
     arunit:
       username: rails
       encoding: utf8mb4
       collation: utf8mb4_unicode_ci
+<% if ENV['MYSQL_PREPARED_STATEMENTS'] %>
+      prepared_statements: true
+<% end %>
+<% if ENV['MYSQL_HOST'] %>
+      host: <%= ENV['MYSQL_HOST'] %>
+<% end %>
     arunit2:
       username: rails
       encoding: utf8mb4
       collation: utf8mb4_general_ci
+<% if ENV['MYSQL_PREPARED_STATEMENTS'] %>
+      prepared_statements: true
+<% end %>
+<% if ENV['MYSQL_HOST'] %>
+      host: <%= ENV['MYSQL_HOST'] %>
+<% end %>
 
   oracle:
      arunit:

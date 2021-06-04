@@ -14,39 +14,12 @@ module ActionDispatch
       new response.status, response.headers, response.body
     end
 
-    # Was the response successful?
-    def success?
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-       The success? predicate is deprecated and will be removed in Rails 6.0.
-       Please use successful? as provided by Rack::Response::Helpers.
-      MSG
-      successful?
-    end
-
-    # Was the URL not found?
-    def missing?
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-       The missing? predicate is deprecated and will be removed in Rails 6.0.
-       Please use not_found? as provided by Rack::Response::Helpers.
-      MSG
-      not_found?
-    end
-
-    # Was there a server-side error?
-    def error?
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-       The error? predicate is deprecated and will be removed in Rails 6.0.
-       Please use server_error? as provided by Rack::Response::Helpers.
-      MSG
-      server_error?
-    end
-
     def parsed_body
       @parsed_body ||= response_parser.call(body)
     end
 
     def response_parser
-      @response_parser ||= RequestEncoder.parser(content_type)
+      @response_parser ||= RequestEncoder.parser(media_type)
     end
   end
 end

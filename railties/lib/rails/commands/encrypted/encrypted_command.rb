@@ -16,11 +16,12 @@ module Rails
         def help
           say "Usage:\n  #{self.class.banner}"
           say ""
+          say self.class.desc
         end
       end
 
       def edit(file_path)
-        require_application_and_environment!
+        require_application!
         encrypted = Rails.application.encrypted(file_path, key_path: options[:key])
 
         ensure_editor_available(command: "bin/rails encrypted:edit") || (return)
@@ -37,7 +38,7 @@ module Rails
       end
 
       def show(file_path)
-        require_application_and_environment!
+        require_application!
         encrypted = Rails.application.encrypted(file_path, key_path: options[:key])
 
         say encrypted.read.presence || missing_encrypted_message(key: encrypted.key, key_path: options[:key], file_path: file_path)
@@ -76,9 +77,9 @@ module Rails
 
         def missing_encrypted_message(key:, key_path:, file_path:)
           if key.nil?
-            "Missing '#{key_path}' to decrypt data. See `rails encrypted:help`"
+            "Missing '#{key_path}' to decrypt data. See `bin/rails encrypted:help`"
           else
-            "File '#{file_path}' does not exist. Use `rails encrypted:edit #{file_path}` to change that."
+            "File '#{file_path}' does not exist. Use `bin/rails encrypted:edit #{file_path}` to change that."
           end
         end
     end

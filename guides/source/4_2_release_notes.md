@@ -109,17 +109,17 @@ Caching is not used in the following scenarios:
 - The model uses single table inheritance
 - `find` with a list of ids, e.g.:
 
-  ```ruby
-  # not cached
-  Post.find(1, 2, 3)
-  Post.find([1,2])
-  ```
+    ```ruby
+    # not cached
+    Post.find(1, 2, 3)
+    Post.find([1,2])
+    ```
 
 - `find_by` with SQL fragments:
 
-  ```ruby
-  Post.find_by('published_at < ?', 2.weeks.ago)
-  ```
+    ```ruby
+    Post.find_by('published_at < ?', 2.weeks.ago)
+    ```
 
 ### Web Console
 
@@ -154,9 +154,9 @@ remove_foreign_key :accounts, column: :owner_id
 ```
 
 See the API documentation on
-[add_foreign_key](http://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_foreign_key)
+[add_foreign_key](https://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_foreign_key)
 and
-[remove_foreign_key](http://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_foreign_key)
+[remove_foreign_key](https://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_foreign_key)
 for a full description.
 
 
@@ -256,7 +256,7 @@ deprecation warnings because it is opt-in.
 `rails-deprecated_sanitizer` will be supported for Rails 4.2 only; it will not
 be maintained for Rails 5.0.
 
-See [this blog post](http://blog.plataformatec.com.br/2014/07/the-new-html-sanitizer-in-rails-4-2/)
+See [this blog post](https://blog.plataformatec.com.br/2014/07/the-new-html-sanitizer-in-rails-4-2/)
 for more details on the changes in the new sanitizer.
 
 ### `assert_select`
@@ -396,15 +396,17 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Introduced `Rails::Application.config_for` to load a configuration for the
     current environment.
 
-    ```ruby
-    # config/exception_notification.yml:
+    ```yaml
+    # config/exception_notification.yml
     production:
       url: http://127.0.0.1:8080
       namespace: my_app_production
     development:
       url: http://localhost:3001
       namespace: my_app_development
+    ```
 
+    ```ruby
     # config/environments/production.rb
     Rails.application.configure do
       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
@@ -871,13 +873,13 @@ Please refer to the [Changelog][active-support] for detailed changes.
     `module Foo; extend ActiveSupport::Concern; end` boilerplate.
     ([Commit](https://github.com/rails/rails/commit/b16c36e688970df2f96f793a759365b248b582ad))
 
-*   New [guide](autoloading_and_reloading_constants.html) about constant autoloading and reloading.
+*   New [guide](autoloading_and_reloading_constants_classic_mode.html) about constant autoloading and reloading.
 
 Credits
 -------
 
 See the
-[full list of contributors to Rails](http://contributors.rubyonrails.org/) for
+[full list of contributors to Rails](https://contributors.rubyonrails.org/) for
 the many people who spent many hours making Rails the stable and robust
 framework it is today. Kudos to all of them.
 

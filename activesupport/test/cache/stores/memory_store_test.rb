@@ -1,19 +1,32 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "active_support/cache"
 require_relative "../behaviors"
 
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
-    @cache = ActiveSupport::Cache.lookup_store(:memory_store, expires_in: 60)
+    @cache = lookup_store(expires_in: 60)
+  end
+
+  def lookup_store(options = {})
+    ActiveSupport::Cache.lookup_store(:memory_store, options)
   end
 
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
+  include CacheStoreCoderBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
+
+  def test_large_string_with_default_compression_settings
+    assert_uncompressed(LARGE_STRING)
+  end
+
+  def test_large_object_with_default_compression_settings
+    assert_uncompressed(LARGE_OBJECT)
+  end
 end
 
 class MemoryStorePruningTest < ActiveSupport::TestCase
@@ -90,7 +103,7 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
   end
 
   def test_pruning_is_capped_at_a_max_time
-    def @cache.delete_entry(*args)
+    def @cache.delete_entry(*args, **options)
       sleep(0.01)
       super
     end
@@ -105,6 +118,36 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
     assert @cache.exist?(3)
     assert @cache.exist?(2)
     assert_not @cache.exist?(1)
+  end
+
+  def test_cache_not_mutated
+    item = { "foo" => "bar" }
+    key = "test_key"
+    @cache.write(key, item)
+
+    read_item = @cache.read(key)
+    read_item["foo"] = "xyz"
+    assert_equal item, @cache.read(key)
+  end
+
+  def test_cache_different_object_ids_hash
+    item = { "foo" => "bar" }
+    key = "test_key"
+    @cache.write(key, item)
+
+    read_item = @cache.read(key)
+    assert_not_equal item.object_id, read_item.object_id
+    assert_not_equal read_item.object_id, @cache.read(key).object_id
+  end
+
+  def test_cache_different_object_ids_string
+    item = "my_string"
+    key = "test_key"
+    @cache.write(key, item)
+
+    read_item = @cache.read(key)
+    assert_not_equal item.object_id, read_item.object_id
+    assert_not_equal read_item.object_id, @cache.read(key).object_id
   end
 
   def test_write_with_unless_exist

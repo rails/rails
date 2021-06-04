@@ -73,7 +73,7 @@ class RenderersTest < ActionController::TestCase
     assert_raise ActionView::MissingTemplate do
       get :respond_to_mime, format: "csv"
     end
-    assert_equal Mime[:csv], @response.content_type
+    assert_equal Mime[:csv], @response.media_type
     assert_equal "", @response.body
   end
 
@@ -83,7 +83,7 @@ class RenderersTest < ActionController::TestCase
     end
     @request.accept = "text/csv"
     get :respond_to_mime, format: "csv"
-    assert_equal Mime[:csv], @response.content_type
+    assert_equal Mime[:csv], @response.media_type
     assert_equal "c,s,v", @response.body
   ensure
     ActionController::Renderers.remove :csv

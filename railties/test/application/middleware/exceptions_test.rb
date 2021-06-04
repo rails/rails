@@ -46,6 +46,25 @@ module ApplicationTests
       assert_equal 404, last_response.status
     end
 
+    test "renders unknown http methods as 405" do
+      request "/", { "REQUEST_METHOD" => "NOT_AN_HTTP_METHOD" }
+      assert_equal 405, last_response.status
+    end
+
+    test "renders unknown http methods as 405 when routes are used as the custom exceptions app" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+        end
+      RUBY
+
+      add_to_config "config.exceptions_app = self.routes"
+
+      app.config.action_dispatch.show_exceptions = true
+
+      request "/", { "REQUEST_METHOD" => "NOT_AN_HTTP_METHOD" }
+      assert_equal 405, last_response.status
+    end
+
     test "uses custom exceptions app" do
       add_to_config <<-RUBY
         config.exceptions_app = lambda do |env|
@@ -60,7 +79,7 @@ module ApplicationTests
       assert_equal "YOU FAILED", last_response.body
     end
 
-    test "url generation error when action_dispatch.show_exceptions is set raises an exception" do
+    test "URL generation error when action_dispatch.show_exceptions is set raises an exception" do
       controller :foo, <<-RUBY
         class FooController < ActionController::Base
           def index
@@ -135,6 +154,22 @@ module ApplicationTests
       get "/foo", utf8: "✓"
       assert_match(/boooom/, last_response.body)
       assert_match(/測試テスト시험/, last_response.body)
+    end
+
+    test "displays diagnostics message when malformed query parameters are provided" do
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+          end
+        end
+      RUBY
+
+      app.config.action_dispatch.show_exceptions = true
+      app.config.consider_all_requests_local = true
+
+      get "/foo?x[y]=1&x[y][][w]=2"
+      assert_equal 400, last_response.status
+      assert_match "Invalid query parameters", last_response.body
     end
   end
 end

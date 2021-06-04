@@ -53,7 +53,6 @@ module ActiveSupport
     end
 
     private
-
       # Convert an XML element and merge into the hash
       #
       # hash::

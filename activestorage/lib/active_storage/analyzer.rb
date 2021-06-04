@@ -12,6 +12,12 @@ module ActiveStorage
       false
     end
 
+    # Implement this method in concrete subclasses. It will determine if blob analysis
+    # should be done in a job or performed inline. By default, analysis is enqueued in a job.
+    def self.analyze_later?
+      true
+    end
+
     def initialize(blob)
       @blob = blob
     end
@@ -24,14 +30,14 @@ module ActiveStorage
     private
       # Downloads the blob to a tempfile on disk. Yields the tempfile.
       def download_blob_to_tempfile(&block) #:doc:
-        blob.open tempdir: tempdir, &block
+        blob.open tmpdir: tmpdir, &block
       end
 
       def logger #:doc:
         ActiveStorage.logger
       end
 
-      def tempdir #:doc:
+      def tmpdir #:doc:
         Dir.tmpdir
       end
   end

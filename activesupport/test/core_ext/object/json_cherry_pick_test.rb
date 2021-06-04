@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 
 # These test cases were added to test that cherry-picking the json extensions
 # works correctly, primarily for dependencies problems reported in #16131. They

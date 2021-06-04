@@ -18,7 +18,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
     self.extensions = []
 
-    VALID_OPTIONS = [:class_name, :anonymous_class, :foreign_key, :validate] # :nodoc:
+    VALID_OPTIONS = [
+      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading
+    ].freeze # :nodoc:
 
     def self.build(model, name, scope, options, &block)
       if model.dangerous_attribute_method?(name)
@@ -27,40 +29,32 @@ module ActiveRecord::Associations::Builder # :nodoc:
                              "Please choose a different association name."
       end
 
-      extension = define_extensions model, name, &block
-      reflection = create_reflection model, name, scope, options, extension
+      reflection = create_reflection(model, name, scope, options, &block)
       define_accessors model, reflection
       define_callbacks model, reflection
       define_validations model, reflection
       reflection
     end
 
-    def self.create_reflection(model, name, scope, options, extension = nil)
+    def self.create_reflection(model, name, scope, options, &block)
       raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
 
       validate_options(options)
 
-      scope = build_scope(scope, extension)
+      extension = define_extensions(model, name, &block)
+      options[:extend] = [*options[:extend], extension] if extension
+
+      scope = build_scope(scope)
 
       ActiveRecord::Reflection.create(macro, name, scope, options, model)
     end
 
-    def self.build_scope(scope, extension)
-      new_scope = scope
-
+    def self.build_scope(scope)
       if scope && scope.arity == 0
-        new_scope = proc { instance_exec(&scope) }
+        proc { instance_exec(&scope) }
+      else
+        scope
       end
-
-      if extension
-        new_scope = wrap_scope new_scope, extension
-      end
-
-      new_scope
-    end
-
-    def self.wrap_scope(scope, extension)
-      scope
     end
 
     def self.macro
@@ -80,8 +74,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.define_callbacks(model, reflection)
       if dependent = reflection.options[:dependent]
-        check_dependent_options(dependent)
+        check_dependent_options(dependent, model)
         add_destroy_callbacks(model, reflection)
+        add_after_commit_jobs_callback(model, dependent)
       end
 
       Association.extensions.each do |extension|
@@ -126,7 +121,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
       raise NotImplementedError
     end
 
-    def self.check_dependent_options(dependent)
+    def self.check_dependent_options(dependent, model)
+      if dependent == :destroy_async && !model.destroy_association_async_job
+        err_message = "ActiveJob is required to use destroy_async on associations"
+        raise ActiveRecord::ActiveJobRequiredError, err_message
+      end
       unless valid_dependent_options.include? dependent
         raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{dependent}"
       end
@@ -134,7 +133,31 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.add_destroy_callbacks(model, reflection)
       name = reflection.name
-      model.before_destroy lambda { |o| o.association(name).handle_dependency }
+      model.before_destroy(->(o) { o.association(name).handle_dependency })
     end
+
+    def self.add_after_commit_jobs_callback(model, dependent)
+      if dependent == :destroy_async
+        mixin = model.generated_association_methods
+
+        unless mixin.method_defined?(:_after_commit_jobs)
+          model.after_commit(-> do
+            _after_commit_jobs.each do |job_class, job_arguments|
+              job_class.perform_later(**job_arguments)
+            end
+          end)
+
+          mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+            def _after_commit_jobs
+              @_after_commit_jobs ||= []
+            end
+          CODE
+        end
+      end
+    end
+
+    private_class_method :build_scope, :macro, :valid_options, :validate_options, :define_extensions,
+      :define_callbacks, :define_accessors, :define_readers, :define_writers, :define_validations,
+      :valid_dependent_options, :check_dependent_options, :add_destroy_callbacks, :add_after_commit_jobs_callback
   end
 end

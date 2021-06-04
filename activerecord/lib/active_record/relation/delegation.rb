@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "mutex_m"
+require "active_support/core_ext/module/delegation"
+
 module ActiveRecord
   module Delegation # :nodoc:
     module DelegateCache # :nodoc:
@@ -12,7 +15,8 @@ module ActiveRecord
         [
           ActiveRecord::Relation,
           ActiveRecord::Associations::CollectionProxy,
-          ActiveRecord::AssociationRelation
+          ActiveRecord::AssociationRelation,
+          ActiveRecord::DisableJoinsAssociationRelation
         ].each do |klass|
           delegate = Class.new(klass) {
             include ClassSpecificRelation
@@ -31,6 +35,10 @@ module ActiveRecord
         super
       end
 
+      def generate_relation_method(method)
+        generated_relation_methods.generate_method(method)
+      end
+
       protected
         def include_relation_methods(delegate)
           superclass.include_relation_methods(delegate) unless base_class?
@@ -39,27 +47,36 @@ module ActiveRecord
 
       private
         def generated_relation_methods
-          @generated_relation_methods ||= Module.new.tap do |mod|
-            mod_name = "GeneratedRelationMethods"
-            const_set mod_name, mod
-            private_constant mod_name
-          end
-        end
-
-        def generate_relation_method(method)
-          if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method)
-            generated_relation_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def #{method}(*args, &block)
-                scoping { klass.#{method}(*args, &block) }
-              end
-            RUBY
-          else
-            generated_relation_methods.define_method(method) do |*args, &block|
-              scoping { klass.public_send(method, *args, &block) }
-            end
+          @generated_relation_methods ||= GeneratedRelationMethods.new.tap do |mod|
+            const_set(:GeneratedRelationMethods, mod)
+            private_constant :GeneratedRelationMethods
           end
         end
     end
+
+    class GeneratedRelationMethods < Module # :nodoc:
+      include Mutex_m
+
+      def generate_method(method)
+        synchronize do
+          return if method_defined?(method)
+
+          if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method) && !DELEGATION_RESERVED_METHOD_NAMES.include?(method.to_s)
+            module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{method}(...)
+                scoping { klass.#{method}(...) }
+              end
+            RUBY
+          else
+            define_method(method) do |*args, &block|
+              scoping { klass.public_send(method, *args, &block) }
+            end
+            ruby2_keywords(method)
+          end
+        end
+      end
+    end
+    private_constant :GeneratedRelationMethods
 
     extend ActiveSupport::Concern
 
@@ -78,62 +95,30 @@ module ActiveRecord
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern
 
-      included do
-        @delegation_mutex = Mutex.new
-      end
-
       module ClassMethods # :nodoc:
         def name
           superclass.name
         end
-
-        def delegate_to_scoped_klass(method)
-          @delegation_mutex.synchronize do
-            return if method_defined?(method)
-
-            if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method)
-              module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                def #{method}(*args, &block)
-                  scoping { @klass.#{method}(*args, &block) }
-                end
-              RUBY
-            else
-              define_method method do |*args, &block|
-                scoping { @klass.public_send(method, *args, &block) }
-              end
-            end
-          end
-        end
       end
 
       private
-
         def method_missing(method, *args, &block)
           if @klass.respond_to?(method)
-            self.class.delegate_to_scoped_klass(method)
+            @klass.generate_relation_method(method)
             scoping { @klass.public_send(method, *args, &block) }
-          elsif @delegate_to_klass && @klass.respond_to?(method, true)
-            ActiveSupport::Deprecation.warn \
-              "Delegating missing #{method} method to #{@klass}. " \
-              "Accessibility of private/protected class methods in :scope is deprecated and will be removed in Rails 6.0."
-            @klass.send(method, *args, &block)
-          elsif arel.respond_to?(method)
-            ActiveSupport::Deprecation.warn \
-              "Delegating #{method} to arel is deprecated and will be removed in Rails 6.0."
-            arel.public_send(method, *args, &block)
           else
             super
           end
         end
+        ruby2_keywords(:method_missing)
     end
 
     module ClassMethods # :nodoc:
-      def create(klass, *args)
-        relation_class_for(klass).new(klass, *args)
+      def create(klass, *args, **kwargs)
+        relation_class_for(klass).new(klass, *args, **kwargs)
       end
 
       private
-
         def relation_class_for(klass)
           klass.relation_delegate_class(self)
         end
@@ -141,7 +126,7 @@ module ActiveRecord
 
     private
       def respond_to_missing?(method, _)
-        super || @klass.respond_to?(method) || arel.respond_to?(method)
+        super || @klass.respond_to?(method)
       end
   end
 end

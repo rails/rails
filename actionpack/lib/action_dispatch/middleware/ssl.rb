@@ -13,7 +13,7 @@ module ActionDispatch
   #
   #    Requests can opt-out of redirection with +exclude+:
   #
-  #      config.ssl_options = { redirect: { exclude: -> request { request.path =~ /healthcheck/ } } }
+  #      config.ssl_options = { redirect: { exclude: -> request { /healthcheck/.match?(request.path) } } }
   #
   #    Cookies will not be flagged as secure for excluded requests.
   #
@@ -29,7 +29,7 @@ module ActionDispatch
   #
   #    * +expires+: How long, in seconds, these settings will stick. The minimum
   #      required to qualify for browser preload lists is 1 year. Defaults to
-  #      1 year (recommended).
+  #      2 years (recommended).
   #
   #    * +subdomains+: Set to +true+ to tell the browser to apply these settings
   #      to all subdomains. This protects your cookies from interception by a
@@ -49,14 +49,16 @@ module ActionDispatch
   class SSL
     # :stopdoc:
 
-    # Default to 1 year, the minimum for browser preload lists.
-    HSTS_EXPIRES_IN = 31536000
+    # Default to 2 years as recommended on hstspreload.org.
+    HSTS_EXPIRES_IN = 63072000
+
+    PERMANENT_REDIRECT_REQUEST_METHODS = %w[GET HEAD] # :nodoc:
 
     def self.default_hsts_options
       { expires: HSTS_EXPIRES_IN, subdomains: true, preload: false }
     end
 
-    def initialize(app, redirect: {}, hsts: {}, secure_cookies: true)
+    def initialize(app, redirect: {}, hsts: {}, secure_cookies: true, ssl_default_redirect_status: nil)
       @app = app
 
       @redirect = redirect
@@ -65,6 +67,7 @@ module ActionDispatch
       @secure_cookies = secure_cookies
 
       @hsts_header = build_hsts_header(normalize_hsts_options(hsts))
+      @ssl_default_redirect_status = ssl_default_redirect_status
     end
 
     def call(env)
@@ -126,12 +129,14 @@ module ActionDispatch
         [ @redirect.fetch(:status, redirection_status(request)),
           { "Content-Type" => "text/html",
             "Location" => https_location_for(request) },
-          @redirect.fetch(:body, []) ]
+          (@redirect[:body] || []) ]
       end
 
       def redirection_status(request)
-        if request.get? || request.head?
+        if PERMANENT_REDIRECT_REQUEST_METHODS.include?(request.raw_request_method)
           301 # Issue a permanent redirect via a GET request.
+        elsif @ssl_default_redirect_status
+          @ssl_default_redirect_status
         else
           307 # Issue a fresh request redirect to preserve the HTTP method.
         end

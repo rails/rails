@@ -22,6 +22,14 @@ module ActiveRecord
       #
       # This is +true+, by default on Rails 5.2 and above.
       class_attribute :cache_versioning, instance_writer: false, default: false
+
+      ##
+      # :singleton-method:
+      # Indicates whether to use a stable #cache_key method that is accompanied
+      # by a changing version in the #cache_version method on collections.
+      #
+      # This is +false+, by default until Rails 6.1.
+      class_attribute :collection_cache_versioning, instance_writer: false, default: false
     end
 
     # Returns a +String+, which Action Pack uses for constructing a URL to this
@@ -61,23 +69,14 @@ module ActiveRecord
     #
     #   Product.cache_versioning = false
     #   Product.find(5).cache_key  # => "products/5-20071224150000" (updated_at available)
-    def cache_key(*timestamp_names)
+    def cache_key
       if new_record?
         "#{model_name.cache_key}/new"
       else
-        if cache_version && timestamp_names.none?
+        if cache_version
           "#{model_name.cache_key}/#{id}"
         else
-          timestamp = if timestamp_names.any?
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Specifying a timestamp name for #cache_key has been deprecated in favor of
-              the explicit #cache_version method that can be overwritten.
-            MSG
-
-            max_updated_column_timestamp(timestamp_names)
-          else
-            max_updated_column_timestamp
-          end
+          timestamp = max_updated_column_timestamp
 
           if timestamp
             timestamp = timestamp.utc.to_s(cache_timestamp_format)
@@ -94,7 +93,7 @@ module ActiveRecord
     # cache_version, but this method can be overwritten to return something else.
     #
     # Note, this method will return nil if ActiveRecord::Base.cache_versioning is set to
-    # +false+ (which it is by default until Rails 6.0).
+    # +false+.
     def cache_version
       return unless cache_versioning
 
@@ -105,10 +104,8 @@ module ActiveRecord
         elsif timestamp = updated_at
           timestamp.utc.to_s(cache_timestamp_format)
         end
-      else
-        if self.class.has_attribute?("updated_at")
-          raise ActiveModel::MissingAttributeError, "missing attribute: updated_at"
-        end
+      elsif self.class.has_attribute?("updated_at")
+        raise ActiveModel::MissingAttributeError, "missing attribute: updated_at"
       end
     end
 
@@ -161,6 +158,10 @@ module ActiveRecord
           end
         end
       end
+
+      def collection_cache_key(collection = all, timestamp_column = :updated_at) # :nodoc:
+        collection.send(:compute_cache_key, timestamp_column)
+      end
     end
 
     private
@@ -189,7 +190,7 @@ module ActiveRecord
       #   raw_timestamp_to_cache_version(timestamp)
       #   # => "20181015200215266505"
       #
-      # Postgres truncates trailing zeros,
+      # PostgreSQL truncates trailing zeros,
       # https://github.com/postgres/postgres/commit/3e1beda2cde3495f41290e1ece5d544525810214
       # to account for this we pad the output with zeros
       def raw_timestamp_to_cache_version(timestamp)

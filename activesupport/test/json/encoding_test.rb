@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 require "securerandom"
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/core_ext/string/inflections"
 require "active_support/json"
 require "active_support/time"
-require "time_zone_test_helpers"
-require "json/encoding_test_cases"
+require_relative "../time_zone_test_helpers"
+require_relative "../json/encoding_test_cases"
 
 class TestJSONEncoding < ActiveSupport::TestCase
   include TimeZoneTestHelpers
@@ -163,7 +163,6 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
     assert_equal({ "foo" => { "foo" => "hello" } }, JSON.parse(json))
   end
-
 
   def test_hash_should_pass_encoding_options_to_children_in_as_json
     person = {
@@ -466,7 +465,6 @@ EXPECTED
   end
 
   private
-
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
     end

@@ -14,18 +14,18 @@ Today is mostly coordination tasks. Here are the things you must do today:
 Do not release with a Red CI. You can find the CI status here:
 
 ```
-https://travis-ci.org/rails/rails
+https://buildkite.com/rails/rails
 ```
 
 ### Is Sam Ruby happy? If not, make him happy.
 
 Sam Ruby keeps a [test suite](https://github.com/rubys/awdwr) that makes
 sure the code samples in his book
-([Agile Web Development with Rails](https://pragprog.com/book/rails51/agile-web-development-with-rails-51))
+([Agile Web Development with Rails](https://pragprog.com/titles/rails6))
 all work. These are valuable system tests
 for Rails. You can check the status of these tests here:
 
-[http://intertwingly.net/projects/dashboard.html](http://intertwingly.net/projects/dashboard.html)
+[https://intertwingly.net/projects/dashboard.html](https://intertwingly.net/projects/dashboard.html)
 
 Do not release with Red AWDwR tests.
 
@@ -93,7 +93,7 @@ You can review the commits for the 3.0.10 release like this:
 ```
 
 If you're doing a stable branch release, you should also ensure that all of
-the CHANGELOG entries in the stable branch are also synced to the master
+the CHANGELOG entries in the stable branch are also synced to the main
 branch.
 
 ### Put the new version in the RAILS_VERSION file.
@@ -109,22 +109,23 @@ browser.
 This will stop you from looking silly when you push an RC to rubygems.org and
 then realize it is broken.
 
-### Release to RubyGems and NPM.
+### Release to RubyGems and npm.
 
-IMPORTANT: The Action Cable client and Action View's UJS adapter are released
-as NPM packages, so you must have Node.js installed, have an NPM account
-(npmjs.com), and be a package owner for `actioncable` and `rails-ujs` (you can
-check this via `npm owner ls actioncable` and `npm owner ls rails-ujs`) in
-order to do a full release. Do not release until you're set up with NPM!
+IMPORTANT: Several gems have JavaScript components that are released as npm
+packages, so you must have Node.js installed, have an npm account (npmjs.com),
+and be a package owner for `@rails/actioncable`, `@rails/actiontext`,
+`@rails/activestorage`, and `@rails/ujs`. You can check this by making sure your
+npm user (`npm whoami`) is listed as an owner (`npm owner ls <pkg>`) of each
+package. Do not release until you're set up with npm!
 
 The release task will sign the release tag. If you haven't got commit signing
-set up, use https://git-scm.com/book/tr/v2/Git-Tools-Signing-Your-Work as a
+set up, use https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work as a
 guide. You can generate keys with the GPG suite from here: https://gpgtools.org.
 
 Run `rake changelog:header` to put a header with the new version in every
 CHANGELOG. Don't commit this, the release task handles it.
 
-Run `rake release`. This will populate the gemspecs and NPM package.json with
+Run `rake release`. This will populate the gemspecs and npm package.json with
 the current RAILS_VERSION, commit the changes, tag it, and push the gems to
 rubygems.org.
 

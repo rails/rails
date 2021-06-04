@@ -2,11 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Action Controller: Exception caught</title>
   <style>
     body {
       background-color: #FAFAFA;
       color: #333;
+      color-scheme: light dark;
+      supported-color-schemes: light dark;
       margin: 0px;
     }
 
@@ -30,19 +33,40 @@
 
     header {
       color: #F0F0F0;
-      background: #C52F24;
+      background: #C00;
       padding: 0.5em 1.5em;
     }
 
     h1 {
+      overflow-wrap: break-word;
       margin: 0.2em 0;
       line-height: 1.1em;
       font-size: 2em;
     }
 
     h2 {
-      color: #C52F24;
+      color: #C00;
       line-height: 25px;
+    }
+
+    code.traces {
+      font-size: 11px;
+    }
+
+    .response-heading, .request-heading {
+      margin-top: 30px;
+    }
+
+    .exception-message {
+      padding: 8px 0;
+    }
+
+    .exception-message .message {
+      margin-bottom: 8px;
+      line-height: 25px;
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #C00;
     }
 
     .details {
@@ -50,13 +74,20 @@
       border-radius: 4px;
       margin: 1em 0px;
       display: block;
-      width: 978px;
+      max-width: 978px;
     }
 
     .summary {
       padding: 8px 15px;
       border-bottom: 1px solid #D0D0D0;
       display: block;
+    }
+
+    a.summary {
+      color: #F0F0F0;
+      text-decoration: none;
+      background: #C52F24;
+      border-bottom: none;
     }
 
     .details pre {
@@ -78,7 +109,7 @@
     .source {
       border: 1px solid #D9D9D9;
       background: #ECECEC;
-      width: 978px;
+      max-width: 978px;
     }
 
     .source pre {
@@ -98,7 +129,7 @@
 
     .source .data .line_numbers {
       background-color: #ECECEC;
-      color: #AAA;
+      color: #555;
       padding: 1em .5em;
       border-right: 1px solid #DDD;
       text-align: right;
@@ -114,26 +145,104 @@
     }
 
     .line.active {
-      background-color: #FFCCCC;
+      background-color: #FCC;
+    }
+
+    .button_to {
+      display: inline-block;
+      margin-top: 0.75em;
+      margin-bottom: 0.75em;
     }
 
     .hidden {
       display: none;
     }
 
+    .correction {
+      list-style-type: none;
+    }
+
+    input[type="submit"] {
+      color: white;
+      background-color: #C00;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 3px #F99;
+      font-size: 13px;
+      font-weight: bold;
+      margin: 0;
+      padding: 10px 18px;
+      cursor: pointer;
+      -webkit-appearance: none;
+    }
+    input[type="submit"]:focus,
+    input[type="submit"]:hover {
+      opacity: 0.8;
+    }
+    input[type="submit"]:active {
+      box-shadow: 0 2px #F99;
+      transform: translateY(1px)
+    }
+
     a { color: #980905; }
     a:visited { color: #666; }
-    a.trace-frames { color: #666; }
-    a:hover { color: #C52F24; }
-    a.trace-frames.selected { color: #C52F24 }
+    a.trace-frames {
+      color: #666;
+      overflow-wrap: break-word;
+    }
+    a:hover, a.trace-frames.selected { color: #C00; }
+    a.summary:hover { color: #FFF; }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #222;
+        color: #ECECEC;
+      }
+
+      .details, .summary {
+        border-color: #666;
+      }
+
+      .source {
+        border-color: #555;
+        background-color: #333;
+      }
+
+      .source .data {
+        background: #444;
+      }
+
+      .source .data .line_numbers {
+        background: #333;
+        border-color: #222;
+      }
+
+      .line:hover {
+        background: #666;
+      }
+
+      .line.active {
+        background-color: #900;
+      }
+
+      input[type="submit"] {
+        box-shadow: 0 3px #800;
+      }
+      input[type="submit"]:active {
+        box-shadow: 0 2px #800;
+      }
+
+      a { color: #C00; }
+      a.trace-frames { color: #999; }
+      a:hover, a.trace-frames.selected { color: #E9382B; }
+    }
 
     <%= yield :style %>
   </style>
 
   <script>
     var toggle = function(id) {
-      var s = document.getElementById(id).style;
-      s.display = s.display == 'none' ? 'block' : 'none';
+      document.getElementById(id).classList.toggle('hidden');
       return false;
     }
     var show = function(id) {
@@ -141,9 +250,6 @@
     }
     var hide = function(id) {
       document.getElementById(id).style.display = 'none';
-    }
-    var toggleTrace = function() {
-      return toggle('blame_trace');
     }
     var toggleSessionDump = function() {
       return toggle('session_dump');
@@ -155,7 +261,7 @@
 </head>
 <body>
 
-<%= yield %>
+  <%= yield %>
 
 </body>
 </html>

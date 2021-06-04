@@ -1,12 +1,12 @@
 {
-  "name": "actiontext",
-  "version": "6.0.0-alpha",
+  "name": "@rails/actiontext",
+  "version": "7.0.0-alpha",
   "description": "Edit and display rich text in Rails applications",
   "main": "app/javascript/actiontext/index.js",
   "files": [
     "app/javascript/actiontext/*.js"
   ],
-  "homepage": "http://rubyonrails.org/",
+  "homepage": "https://rubyonrails.org/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rails/rails.git"
@@ -21,7 +21,9 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "trix": ">=1.0.0",
-    "activestorage": "6.0.0-alpha"
+    "@rails/activestorage": "7.0.0-alpha"
+  },
+  "peerDependencies": {
+    "trix": "^1.2.0"
   }
 }

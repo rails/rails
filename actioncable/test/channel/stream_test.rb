@@ -110,6 +110,39 @@ module ActionCable::StreamTests
       end
     end
 
+    test "stream_or_reject_for" do
+      run_in_eventmachine do
+        connection = TestConnection.new
+
+        channel = ChatChannel.new connection, ""
+        channel.subscribe_to_channel
+        channel.stream_or_reject_for Room.new(1)
+        wait_for_async
+
+        pubsub_call = channel.pubsub.class.class_variable_get "@@subscribe_called"
+
+        assert_equal "action_cable:stream_tests:chat:Room#1-Campfire", pubsub_call[:channel]
+        assert_instance_of Proc, pubsub_call[:callback]
+        assert_instance_of Proc, pubsub_call[:success_callback]
+      end
+    end
+
+    test "reject subscription when nil is passed to stream_or_reject_for" do
+      run_in_eventmachine do
+        connection = TestConnection.new
+        channel = ChatChannel.new connection, "{id: 1}", id: 1
+        channel.subscribe_to_channel
+        channel.stream_or_reject_for nil
+        assert_nil connection.last_transmission
+
+        wait_for_async
+
+        rejection = { "identifier" => "{id: 1}", "type" => "reject_subscription" }
+        connection.transmit(rejection)
+        assert_equal rejection, connection.last_transmission
+      end
+    end
+
     test "stream_from subscription confirmation" do
       run_in_eventmachine do
         connection = TestConnection.new
@@ -144,6 +177,115 @@ module ActionCable::StreamTests
         assert_equal 1, connection.transmissions.size
       end
     end
+
+    test "stop_all_streams" do
+      run_in_eventmachine do
+        connection = TestConnection.new
+
+        channel = ChatChannel.new connection, "{id: 3}"
+        channel.subscribe_to_channel
+
+        assert_equal 0, subscribers_of(connection).size
+
+        channel.stream_from "room_one"
+        channel.stream_from "room_two"
+
+        wait_for_async
+        assert_equal 2, subscribers_of(connection).size
+
+        channel2 = ChatChannel.new connection, "{id: 3}"
+        channel2.subscribe_to_channel
+
+        channel2.stream_from "room_one"
+        wait_for_async
+
+        subscribers = subscribers_of(connection)
+
+        assert_equal 2, subscribers.size
+        assert_equal 2, subscribers["room_one"].size
+        assert_equal 1, subscribers["room_two"].size
+
+        channel.stop_all_streams
+
+        subscribers = subscribers_of(connection)
+        assert_equal 1, subscribers.size
+        assert_equal 1, subscribers["room_one"].size
+      end
+    end
+
+    test "stop_stream_from" do
+      run_in_eventmachine do
+        connection = TestConnection.new
+
+        channel = ChatChannel.new connection, "{id: 3}"
+        channel.subscribe_to_channel
+
+        channel.stream_from "room_one"
+        channel.stream_from "room_two"
+
+        channel2 = ChatChannel.new connection, "{id: 3}"
+        channel2.subscribe_to_channel
+
+        channel2.stream_from "room_one"
+
+        subscribers = subscribers_of(connection)
+
+        wait_for_async
+
+        assert_equal 2, subscribers.size
+        assert_equal 2, subscribers["room_one"].size
+        assert_equal 1, subscribers["room_two"].size
+
+        channel.stop_stream_from "room_one"
+
+        subscribers = subscribers_of(connection)
+
+        assert_equal 2, subscribers.size
+        assert_equal 1, subscribers["room_one"].size
+        assert_equal 1, subscribers["room_two"].size
+      end
+    end
+
+    test "stop_stream_for" do
+      run_in_eventmachine do
+        connection = TestConnection.new
+
+        channel = ChatChannel.new connection, "{id: 3}"
+        channel.subscribe_to_channel
+
+        channel.stream_for Room.new(1)
+        channel.stream_for Room.new(2)
+
+        channel2 = ChatChannel.new connection, "{id: 3}"
+        channel2.subscribe_to_channel
+
+        channel2.stream_for Room.new(1)
+
+        subscribers = subscribers_of(connection)
+
+        wait_for_async
+
+        assert_equal 2, subscribers.size
+
+        assert_equal 2, subscribers[ChatChannel.broadcasting_for(Room.new(1))].size
+        assert_equal 1, subscribers[ChatChannel.broadcasting_for(Room.new(2))].size
+
+        channel.stop_stream_for Room.new(1)
+
+        subscribers = subscribers_of(connection)
+
+        assert_equal 2, subscribers.size
+        assert_equal 1, subscribers[ChatChannel.broadcasting_for(Room.new(1))].size
+        assert_equal 1, subscribers[ChatChannel.broadcasting_for(Room.new(2))].size
+      end
+    end
+
+    private
+      def subscribers_of(connection)
+        connection
+          .pubsub
+          .subscriber_map
+      end
   end
 
   require "action_cable/subscription_adapter/async"
@@ -175,7 +317,7 @@ module ActionCable::StreamTests
         subscribe_to connection, identifiers: { id: 1 }
 
         assert_called(connection.websocket, :transmit) do
-          @server.broadcast "test_room_1", { foo: "bar" }, { coder: DummyEncoder }
+          @server.broadcast "test_room_1", { foo: "bar" }, coder: DummyEncoder
           wait_for_async
           wait_for_executor connection.server.worker_pool.executor
         end

@@ -43,14 +43,8 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_class_with_blank_sti_name
     company = Company.first
     company = company.dup
-    company.extend(Module.new {
-      def _read_attribute(name)
-        return "  " if name == "type"
-        super
-      end
-    })
-    company.save!
-    company = Company.all.to_a.find { |x| x.id == company.id }
+    company.update!(type: "  ")
+    company = Company.find(company.id)
     assert_equal "  ", company.type
   end
 
@@ -196,8 +190,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_base_class_activerecord_error
-    klass = Class.new { include ActiveRecord::Inheritance }
-    assert_raise(ActiveRecord::ActiveRecordError) { klass.base_class }
+    assert_raise(ActiveRecord::ActiveRecordError) do
+      Class.new { include ActiveRecord::Inheritance }
+    end
   end
 
   def test_a_bad_type_column
@@ -227,6 +222,16 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_kind_of Cabbage, cabbage
   end
 
+  def test_becomes_sets_variables_before_initialization_callbacks
+    vegetable = Vegetable.create!(name: "yelling carrot")
+    assert_kind_of Vegetable, vegetable
+    assert_equal "yelling carrot", vegetable.name
+
+    yelling_veggie = vegetable.becomes(YellingVegetable)
+    assert_equal "YELLING CARROT", yelling_veggie.name, "YellingVegetable name should be YELLING CARROT"
+    assert_equal "YELLING CARROT", vegetable.name, "Vegetable name should be YELLING CARROT after becoming a YellingVegetable"
+  end
+
   def test_becomes_and_change_tracking_for_inheritance_columns
     cucumber = Vegetable.find(1)
     cabbage = cucumber.becomes!(Cabbage)
@@ -240,7 +245,7 @@ class InheritanceTest < ActiveRecord::TestCase
     cabbage = vegetable.becomes!(Cabbage)
     assert_equal "Cabbage", cabbage.custom_type
 
-    vegetable = cabbage.becomes!(Vegetable)
+    cabbage.becomes!(Vegetable)
     assert_nil cabbage.custom_type
   end
 
@@ -382,8 +387,8 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_inheritance_condition
-    assert_equal 11, Company.count
-    assert_equal 2, Firm.count
+    assert_equal 12, Company.count
+    assert_equal 3, Firm.count
     assert_equal 5, Client.count
   end
 
@@ -419,7 +424,7 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_destroy_all_within_inheritance
     Client.destroy_all
     assert_equal 0, Client.count
-    assert_equal 2, Firm.count
+    assert_equal 3, Firm.count
   end
 
   def test_alt_destroy_all_within_inheritance
@@ -471,9 +476,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_belongs_to_primary_key_quoting
-    con = Account.connection
+    c = Account.connection
     bind_param = Arel::Nodes::BindParam.new(nil)
-    assert_sql(/#{con.quote_table_name('companies')}\.#{con.quote_column_name('id')} = (?:#{Regexp.quote(bind_param.to_sql)}|1)/) do
+    assert_sql(/#{Regexp.escape(c.quote_table_name("companies.id"))} = (?:#{Regexp.escape(bind_param.to_sql)}|1)/i) do
       Account.all.merge!(includes: :firm).find(1)
     end
   end
@@ -488,8 +493,8 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_scope_inherited_properly
-    assert_nothing_raised { Company.of_first_firm }
-    assert_nothing_raised { Client.of_first_firm }
+    assert_nothing_raised { Company.of_first_firm.to_a }
+    assert_nothing_raised { Client.of_first_firm.to_a }
   end
 
   def test_inheritance_with_default_scope
@@ -501,11 +506,6 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
   include InheritanceTestHelper
   fixtures :companies
 
-  teardown do
-    self.class.const_remove :FirmOnTheFly rescue nil
-    Firm.const_remove :FirmOnTheFly rescue nil
-  end
-
   def test_instantiation_doesnt_try_to_require_corresponding_file
     without_store_full_sti_class do
       foo = Firm.first.clone
@@ -514,10 +514,12 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
 
       # Should fail without FirmOnTheFly in the type condition.
       assert_raise(ActiveRecord::RecordNotFound) { Firm.find(foo.id) }
+      assert_raise(ActiveRecord::RecordNotFound) { Firm.find_by!(id: foo.id) }
 
       # Nest FirmOnTheFly in the test case where Dependencies won't see it.
       self.class.const_set :FirmOnTheFly, Class.new(Firm)
       assert_raise(ActiveRecord::SubclassNotFound) { Firm.find(foo.id) }
+      assert_raise(ActiveRecord::SubclassNotFound) { Firm.find_by!(id: foo.id) }
 
       # Nest FirmOnTheFly in Firm where Dependencies will see it.
       # This is analogous to nesting models in a migration.
@@ -526,7 +528,11 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
       # And instantiate will find the existing constant rather than trying
       # to require firm_on_the_fly.
       assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
+      assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find_by!(id: foo.id) }
     end
+  ensure
+    self.class.send(:remove_const, :FirmOnTheFly) rescue nil
+    Firm.send(:remove_const, :FirmOnTheFly) rescue nil
   end
 
   def test_sti_type_from_attributes_disabled_in_non_sti_class
@@ -586,15 +592,8 @@ end
 
 class InheritanceAttributeMappingTest < ActiveRecord::TestCase
   setup do
-    @old_registry = ActiveRecord::Type.registry
-    ActiveRecord::Type.registry = ActiveRecord::Type::AdapterSpecificRegistry.new
-    ActiveRecord::Type.register :omg_sti, InheritanceAttributeMappingTest::OmgStiType
     Company.delete_all
     Sponsor.delete_all
-  end
-
-  teardown do
-    ActiveRecord::Type.registry = @old_registry
   end
 
   class OmgStiType < ActiveRecord::Type::String
@@ -612,6 +611,8 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
       end
     end
   end
+
+  ActiveRecord::Type.register :omg_sti, OmgStiType
 
   class Company < ActiveRecord::Base
     self.table_name = "companies"
@@ -654,7 +655,7 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
 
     assert_equal ["omg_inheritance_attribute_mapping_test/company"], ActiveRecord::Base.connection.select_values("SELECT sponsorable_type FROM sponsors")
 
-    sponsor = Sponsor.first
+    sponsor = Sponsor.find(sponsor.id)
     assert_equal startup, sponsor.sponsorable
   end
 end

@@ -1,185 +1,114 @@
-*   Fix the need of `#protect_against_forgery?` method defined in
-    `ActionView::Base` subclasses. This prevents the use of forms and buttons.
+*   The `translate` helper now passes `default` values that aren't
+    translation keys through `I18n.translate` for interpolation.
 
-    *Genadi Samokovarov*
+    *Jonathan Hefner*
 
-*   Fix UJS permanently showing disabled text in a[data-remote][data-disable-with] elements within forms.
-    Fixes #33889
+*   Adds option `extname` to `stylesheet_link_tag` to skip default
+    `.css` extension appended to the stylesheet path.
 
-    *Wolfgang Hobmaier*
-
-*   Prevent non-primary mouse keys from triggering Rails UJS click handlers.
-    Firefox fires click events even if the click was triggered by non-primary mouse keys such as right- or scroll-wheel-clicks.
-    For example, right-clicking a link such as the one described below (with an underlying ajax request registered on click) should not cause that request to occur.
-
-    ```
-    <%= link_to 'Remote', remote_path, class: 'remote', remote: true, data: { type: :json } %>
+    Before:
+    ```ruby
+    stylesheet_link_tag "style.less"
+    # <link href="/stylesheets/style.less.scss" rel="stylesheet">
     ```
 
-    Fixes #34541
-
-    *Wolfgang Hobmaier*
-
-*   Prevent `ActionView::TextHelper#word_wrap` from unexpectedly stripping white space from the _left_ side of lines.
-
-    For example, given input like this:
-
-    ```
-        This is a paragraph with an initial indent,
-    followed by additional lines that are not indented,
-    and finally terminated with a blockquote:
-      "A pithy saying"
+    After:
+    ```ruby
+    stylesheet_link_tag "style.less", extname: false, skip_pipeline: true, rel: "stylesheet/less"
+    # <link href="/stylesheets/style.less" rel="stylesheet/less">
     ```
 
-    Calling `word_wrap` should not trim the indents on the first and last lines.
+    *Abhay Nikam*
 
-    Fixes #34487
+*   Deprecate `render` locals to be assigned to instance variables.
 
-    *Lyle Mullican*
+    *Petrik de Heus*
 
-*   Add allocations to template rendering instrumentation.
+*   Remove legacy default `media=screen` from `stylesheet_link_tag`.
 
-    Adds the allocations for template and partial rendering to the server output on render.
+    *André Luis Leal Cardoso Junior*
 
-    ```
-      Rendered posts/_form.html.erb (Duration: 7.1ms | Allocations: 6004)
-      Rendered posts/new.html.erb within layouts/application (Duration: 8.3ms | Allocations: 6654)
-    Completed 200 OK in 858ms (Views: 848.4ms | ActiveRecord: 0.4ms | Allocations: 1539564)
-    ```
+*   Change `ActionView::Helpers::FormBuilder#button` to transform `formmethod`
+    attributes into `_method="$VERB"` Form Data to enable varied same-form actions:
 
-    *Eileen M. Uchitelle*, *Aaron Patterson*
+        <%= form_with model: post, method: :put do %>
+          <%= form.button "Update" %>
+          <%= form.button "Delete", formmethod: :delete %>
+        <% end %>
+        <%# => <form action="posts/1">
+            =>   <input type="hidden" name="_method" value="put">
+            =>   <button type="submit">Update</button>
+            =>   <button type="submit" formmethod="post" name="_method" value="delete">Delete</button>
+            => </form>
+        %>
 
-*   Respect the `only_path` option passed to `url_for` when the options are passed in as an array
+    *Sean Doyle*
 
-    Fixes #33237.
+*   Change `ActionView::Helpers::UrlHelper#button_to` to *always* render a
+    `<button>` element, regardless of whether or not the content is passed as
+    the first argument or as a block.
 
-    *Joel Ambass*
+        <%= button_to "Delete", post_path(@post), method: :delete %>
+        <%# => <form action="/posts/1"><input type="hidden" name="_method" value="delete"><button type="submit">Delete</button></form>
 
-*   Deprecate calling private model methods from view helpers.
+        <%= button_to post_path(@post), method: :delete do %>
+          Delete
+        <% end %>
+        <%# => <form action="/posts/1"><input type="hidden" name="_method" value="delete"><button type="submit">Delete</button></form>
 
-    For example, in methods like `options_from_collection_for_select`
-    and `collection_select` it is possible to call private methods from
-    the objects used.
+    *Sean Doyle*, *Dusan Orlovic*
 
-    Fixes #33546.
-
-    *Ana María Martínez Gómez*
-
-*   Fix issue with `button_to`'s `to_form_params`
-
-    `button_to` was throwing exception when invoked with `params` hash that
-    contains symbol and string keys. The reason for the exception was that
-    `to_form_params` was comparing the given symbol and string keys.
-
-    The issue is fixed by turning all keys to strings inside
-    `to_form_params` before comparing them.
-
-    *Georgi Georgiev*
-
-*   Mark arrays of translations as trusted safe by using the `_html` suffix.
-
-    Example:
-
-        en:
-          foo_html:
-            - "One"
-            - "<strong>Two</strong>"
-            - "Three &#128075; &#128578;"
-
-    *Juan Broullon*
-
-*   Add `year_format` option to date_select tag. This option makes it possible to customize year
-    names. Lambda should be passed to use this option.
-
-    Example:
-
-        date_select('user_birthday', '', start_year: 1998, end_year: 2000, year_format: ->year { "Heisei #{year - 1988}" })
-
-    The HTML produced:
-
-        <select id="user_birthday__1i" name="user_birthday[(1i)]">
-        <option value="1998">Heisei 10</option>
-        <option value="1999">Heisei 11</option>
-        <option value="2000">Heisei 12</option>
-        </select>
-        /* The rest is omitted */
-
-    *Koki Ryu*
-
-*   Fix JavaScript views rendering does not work with Firefox when using
-    Content Security Policy.
-
-    Fixes #32577.
-
-    *Yuji Yaginuma*
-
-*   Add the `nonce: true` option for `javascript_include_tag` helper to
-    support automatic nonce generation for Content Security Policy.
-    Works the same way as `javascript_tag nonce: true` does.
-
-    *Yaroslav Markin*
-
-*   Remove `ActionView::Helpers::RecordTagHelper`.
-
-    *Yoshiyuki Hirano*
-
-*   Disable `ActionView::Template` finalizers in test environment.
-
-    Template finalization can be expensive in large view test suites.
-    Add a configuration option,
-    `action_view.finalize_compiled_template_methods`, and turn it off in
-    the test environment.
-
-    *Simon Coffey*
-
-*   Extract the `confirm` call in its own, overridable method in `rails_ujs`.
-
-    Example:
-
-        Rails.confirm = function(message, element) {
-          return (my_bootstrap_modal_confirm(message));
-        }
-
-    *Mathieu Mahé*
-
-*   Enable select tag helper to mark `prompt` option as `selected` and/or `disabled` for `required`
-    field.
-
-    Example:
-
-        select :post,
-               :category,
-               ["lifestyle", "programming", "spiritual"],
-               { selected: "", disabled: "", prompt: "Choose one" },
-               { required: true }
-
-    Placeholder option would be selected and disabled.
-
-    The HTML produced:
-
-        <select required="required" name="post[category]" id="post_category">
-        <option disabled="disabled" selected="selected" value="">Choose one</option>
-        <option value="lifestyle">lifestyle</option>
-        <option value="programming">programming</option>
-        <option value="spiritual">spiritual</option></select>
-
-    *Sergey Prikhodko*
-
-*   Don't enforce UTF-8 by default.
-
-    With the disabling of TLS 1.0 by most major websites, continuing to run
-    IE8 or lower becomes increasingly difficult so default to not enforcing
-    UTF-8 encoding as it's not relevant to other browsers.
+*   Add `config.action_view.preload_links_header` to allow disabling of
+    the `Link` header being added by default when using `stylesheet_link_tag`
+    and `javascript_include_tag`.
 
     *Andrew White*
 
-*   Change translation key of `submit_tag` from `module_name_class_name` to `module_name/class_name`.
+*   The `translate` helper now resolves `default` values when a `nil` key is
+    specified, instead of always returning `nil`.
 
-    *Rui Onodera*
+    *Jonathan Hefner*
 
-*   Rails 6 requires Ruby 2.5.0 or newer.
+*   Add `config.action_view.image_loading` to configure the default value of
+    the `image_tag` `:loading` option.
 
-    *Jeremy Daer*, *Kasper Timm Hansen*
+    By setting `config.action_view.image_loading = "lazy"`, an application can opt in to
+    lazy loading images sitewide, without changing view code.
+
+    *Jonathan Hefner*
+
+*   `ActionView::Helpers::FormBuilder#id` returns the value
+    of the `<form>` element's `id` attribute. With a `method` argument, returns
+    the `id` attribute for a form field with that name.
+
+        <%= form_for @post do |f| %>
+          <%# ... %>
+
+          <% content_for :sticky_footer do %>
+            <%= form.button(form: f.id) %>
+          <% end %>
+        <% end %>
+
+    *Sean Doyle*
+
+*   `ActionView::Helpers::FormBuilder#field_id` returns the value generated by
+    the FormBuilder for the given attribute name.
+
+        <%= form_for @post do |f| %>
+          <%= f.label :title %>
+          <%= f.text_field :title, aria: { describedby: f.field_id(:title, :error) } %>
+          <%= tag.span("is blank", id: f.field_id(:title, :error) %>
+        <% end %>
+
+    *Sean Doyle*
+
+*   Add `tag.attributes` to transform a Hash into HTML Attributes, ready to be
+    interpolated into ERB.
+
+        <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %> >
+        # => <input type="text" aria-label="Search">
+
+    *Sean Doyle*
 
 
-Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionview/CHANGELOG.md) for previous changes.
+Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/actionview/CHANGELOG.md) for previous changes.

@@ -10,9 +10,11 @@
 /dist/
 /doc/
 /guides/output/
+Brewfile.lock.json
 debug.log
 node_modules/
 package-lock.json
 pkg/
 /tmp/
 /yarn-error.log
+/test-reports/

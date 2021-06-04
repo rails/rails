@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/inflector"
 
-require "inflector_test_cases"
-require "constantize_test_cases"
+require_relative "inflector_test_cases"
+require_relative "constantize_test_cases"
 
 class InflectorTest < ActiveSupport::TestCase
   include InflectorTestCases
@@ -31,6 +31,12 @@ class InflectorTest < ActiveSupport::TestCase
 
   def test_pluralize_empty_string
     assert_equal "", ActiveSupport::Inflector.pluralize("")
+  end
+
+  def test_pluralize_with_fallback
+    I18n.stub(:default_locale, :"en-GB") do
+      assert_equal "days", ActiveSupport::Inflector.pluralize("day")
+    end
   end
 
   test "uncountability of ascii word" do
@@ -134,8 +140,39 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-  def test_camelize_with_lower_downcases_the_first_letter
+  def test_camelize_with_true_upcases_the_first_letter
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("Capital", true))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", true))
+  end
+
+  def test_camelize_with_upper_upcases_the_first_letter
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("Capital", :upper))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", :upper))
+  end
+
+  def test_camelize_with_false_downcases_the_first_letter
     assert_equal("capital", ActiveSupport::Inflector.camelize("Capital", false))
+    assert_equal("capital", ActiveSupport::Inflector.camelize("capital", false))
+  end
+
+  def test_camelize_with_nil_downcases_the_first_letter
+    assert_equal("capital", ActiveSupport::Inflector.camelize("Capital", nil))
+    assert_equal("capital", ActiveSupport::Inflector.camelize("capital", nil))
+  end
+
+  def test_camelize_with_lower_downcases_the_first_letter
+    assert_equal("capital", ActiveSupport::Inflector.camelize("Capital", :lower))
+    assert_equal("capital", ActiveSupport::Inflector.camelize("capital", :lower))
+  end
+
+  def test_camelize_with_any_other_arg_upcases_the_first_letter
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", :true))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("Capital", :true))
+
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", :false))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", :foo))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", 42))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital"))
   end
 
   def test_camelize_with_underscores
@@ -224,12 +261,6 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("json_html_api", ActiveSupport::Inflector.underscore("JSONHTMLAPI"))
   end
 
-  def test_acronym_regexp_is_deprecated
-    assert_deprecated do
-      ActiveSupport::Inflector.inflections.acronym_regex
-    end
-  end
-
   def test_underscore
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(underscore, ActiveSupport::Inflector.underscore(camel))
@@ -308,6 +339,12 @@ class InflectorTest < ActiveSupport::TestCase
     StringToParameterized.each do |some_string, parameterized_string|
       assert_equal(parameterized_string.gsub("-", "__sep__"), ActiveSupport::Inflector.parameterize(some_string, separator: "__sep__"))
     end
+  end
+
+  def test_parameterize_with_locale
+    word = "Fünf autos"
+    I18n.backend.store_translations(:de, i18n: { transliterate: { rule: { "ü" => "ue" } } })
+    assert_equal("fuenf-autos", ActiveSupport::Inflector.parameterize(word, locale: :de))
   end
 
   def test_classify
@@ -560,7 +597,7 @@ class InflectorTest < ActiveSupport::TestCase
       # clear the inflections
       ActiveSupport::Inflector.inflections do |inflect|
         inflect.clear(scope)
-        assert_equal [], inflect.send(scope)
+        assert_equal [], inflect.public_send(scope)
       end
     end
   end

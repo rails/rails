@@ -17,6 +17,10 @@ module Rails
       include Actions
 
       class << self
+        def exit_on_failure? # :nodoc:
+          false
+        end
+
         # Returns true when the app is a Rails engine.
         def engine?
           defined?(ENGINE_ROOT)
@@ -28,7 +32,7 @@ module Rails
           if usage
             super
           else
-            @desc ||= ERB.new(File.read(usage_path)).result(binding) if usage_path
+            @desc ||= ERB.new(File.read(usage_path), trim_mode: "-").result(binding) if usage_path
           end
         end
 
@@ -52,7 +56,7 @@ module Rails
         def inherited(base) #:nodoc:
           super
 
-          if base.name && base.name !~ /Base$/
+          if base.name && !base.name.end_with?("Base")
             Rails::Command.subclasses << base
           end
         end
@@ -82,10 +86,8 @@ module Rails
         #
         #   Rails::Command::TestCommand.base_name # => 'rails'
         def base_name
-          @base_name ||= begin
-            if base = name.to_s.split("::").first
-              base.underscore
-            end
+          @base_name ||= if base = name.to_s.split("::").first
+            base.underscore
           end
         end
 
@@ -93,11 +95,9 @@ module Rails
         #
         #   Rails::Command::TestCommand.command_name # => 'test'
         def command_name
-          @command_name ||= begin
-            if command = name.to_s.split("::").last
-              command.chomp!("Command")
-              command.underscore
-            end
+          @command_name ||= if command = name.to_s.split("::").last
+            command.chomp!("Command")
+            command.underscore
           end
         end
 
@@ -115,7 +115,7 @@ module Rails
         # For a Rails::Command::TestCommand placed in <tt>rails/command/test_command.rb</tt>
         # would return <tt>rails/test</tt>.
         def default_command_root
-          path = File.expand_path(File.join("../commands", command_root_namespace), __dir__)
+          path = File.expand_path(relative_command_path, __dir__)
           path if File.exist?(path)
         end
 
@@ -135,12 +135,20 @@ module Rails
           end
 
           def command_root_namespace
-            (namespace.split(":") - %w( rails )).first
+            (namespace.split(":") - %w(rails)).join(":")
+          end
+
+          def relative_command_path
+            File.join("../commands", *command_root_namespace.split(":"))
           end
 
           def namespaced_commands
             commands.keys.map do |key|
-              key == command_root_namespace ? key : "#{command_root_namespace}:#{key}"
+              if command_root_namespace.match?(/(\A|:)#{key}\z/)
+                command_root_namespace
+              else
+                "#{command_root_namespace}:#{key}"
+              end
             end
           end
       end

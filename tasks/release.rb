@@ -1,6 +1,20 @@
 # frozen_string_literal: true
 
-FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer actioncable activestorage railties )
+# Order dependent. E.g. Action Mailbox depends on Active Record so it should be after.
+FRAMEWORKS = %w(
+  activesupport
+  activemodel
+  activerecord
+  actionview
+  actionpack
+  activejob
+  actionmailer
+  actioncable
+  activestorage
+  actionmailbox
+  actiontext
+  railties
+)
 FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
 
 root    = File.expand_path("..", __dir__)
@@ -122,8 +136,10 @@ namespace :changelog do
     end
   end
 
-  task :release_summary, [:base_release] do |_, args|
+  task :release_summary, [:base_release, :release] do |_, args|
     release_regexp = args[:base_release] ? Regexp.escape(args[:base_release]) : /\d+\.\d+\.\d+/
+
+    puts args[:release]
 
     FRAMEWORKS.each do |fw|
       puts "## #{FRAMEWORK_NAMES[fw]}"
@@ -131,7 +147,9 @@ namespace :changelog do
       contents = File.readlines fname
       contents.shift
       changes = []
-      until contents.first =~ /^## Rails #{release_regexp}.*$/
+      until contents.first =~ /^## Rails #{release_regexp}.*$/ ||
+          contents.first =~ /^Please check.*for previous changes\.$/ ||
+          contents.empty?
         changes << contents.shift
       end
 
@@ -159,15 +177,58 @@ namespace :all do
   end
 
   task verify: :install do
-    app_name = "pkg/verify-#{version}-#{Time.now.to_i}"
+    require "tmpdir"
+
+    cd Dir.tmpdir
+    app_name = "verify-#{version}-#{Time.now.to_i}"
     sh "rails _#{version}_ new #{app_name} --skip-bundle" # Generate with the right version.
     cd app_name
 
-    # Replace the generated gemfile entry with the exact version.
-    File.write("Gemfile", File.read("Gemfile").sub(/^gem 'rails.*/, "gem 'rails', '#{version}'"))
-    sh "bundle"
+    substitute = -> (file_name, regex, replacement) do
+      File.write(file_name, File.read(file_name).sub(regex, replacement))
+    end
 
-    sh "rails generate scaffold user name admin:boolean && rails db:migrate"
+    # Replace the generated gemfile entry with the exact version.
+    substitute.call("Gemfile", /^gem 'rails.*/, "gem 'rails', '#{version}'")
+    substitute.call("Gemfile", /^# gem 'image_processing/, "gem 'image_processing")
+    sh "bundle"
+    sh "rails action_mailbox:install"
+    sh "rails action_text:install"
+
+    sh "rails generate scaffold user name description:text admin:boolean"
+    sh "rails db:migrate"
+
+    # Replace the generated gemfile entry with the exact version.
+    substitute.call("app/models/user.rb", /end\n\z/, <<~CODE)
+        has_one_attached :avatar
+        has_rich_text :description
+      end
+    CODE
+
+    substitute.call("app/views/users/_form.html.erb", /text_area :description %>\n  <\/div>/, <<~CODE)
+      rich_text_area :description %>\n  </div>
+
+      <div class="field">
+        Avatar: <%= form.file_field :avatar %>
+      </div>
+    CODE
+
+    substitute.call("app/views/users/show.html.erb", /description %>\n<\/p>/, <<~CODE)
+      description %>\n</p>
+
+      <p>
+        <% if @user.avatar.attached? -%>
+          <%= image_tag @user.avatar.representation(resize_to_limit: [500, 500]) %>
+        <% end -%>
+      </p>
+    CODE
+
+    # Permit the avatar param.
+    substitute.call("app/controllers/users_controller.rb", /:admin/, ":admin, :avatar")
+
+    if ENV["EDITOR"]
+      `#{ENV["EDITOR"]} #{File.expand_path(app_name)}`
+    end
 
     puts "Booting a Rails server. Verify the release by:"
     puts
@@ -253,11 +314,6 @@ task :announce do
     require "erb"
     template = File.read("../tasks/release_announcement_draft.erb")
 
-    match = ERB.version.match(/\Aerb\.rb \[(?<version>[^ ]+) /)
-    if match && match[:version] >= "2.2.0" # Ruby 2.6+
-      puts ERB.new(template, trim_mode: "<>").result(binding)
-    else
-      puts ERB.new(template, nil, "<>").result(binding)
-    end
+    puts ERB.new(template, trim_mode: "<>").result(binding)
   end
 end

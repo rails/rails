@@ -25,6 +25,10 @@ module ActionView
 
             content
           end
+
+          def to_s
+            translation
+          end
         end
 
         def initialize(object_name, method_name, template_object, content_or_options = nil, options = nil)
@@ -71,7 +75,6 @@ module ActionView
         end
 
         private
-
           def render_component(builder)
             builder.translation
           end

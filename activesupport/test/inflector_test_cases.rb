@@ -119,7 +119,8 @@ module InflectorTestCases
     "Product"               => "product",
     "SpecialGuest"          => "special_guest",
     "ApplicationController" => "application_controller",
-    "Area51Controller"      => "area51_controller"
+    "Area51Controller"      => "area51_controller",
+    "AppCDir"               => "app_c_dir",
   }
 
   UnderscoreToLowerCamel = {
@@ -142,6 +143,7 @@ module InflectorTestCases
     "FreeBSD"               => "free_bsd",
     "HTML"                  => "html",
     "ForceXMLController"    => "force_xml_controller",
+    :product                => "product",
   }
 
   CamelWithModuleToUnderscoreWithSlash = {
@@ -162,7 +164,8 @@ module InflectorTestCases
 
   ClassNameToTableName = {
     "PrimarySpokesman" => "primary_spokesmen",
-    "NodeChild"        => "node_children"
+    "NodeChild"        => "node_children",
+    "Calculu"          => "calculus" # Singular names are not handled correctly
   }
 
   StringToParameterized = {
@@ -289,6 +292,9 @@ module InflectorTestCases
     "Fred’s"                => "Fred’s",
     "Fred`s"                => "Fred`s",
     "this was 'fake news'"  => "This Was 'Fake News'",
+    "new name(s)"           => "New Name(s)",
+    "new (names)"           => "New (Names)",
+    "their (mis)deeds"      => "Their (Mis)deeds",
     ActiveSupport::SafeBuffer.new("confirmation num") => "Confirmation Num"
   }
 

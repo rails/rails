@@ -55,7 +55,6 @@ module ActionMailer
       end
 
       private
-
         def interceptor_class_for(interceptor)
           case interceptor
           when String, Symbol
@@ -115,7 +114,7 @@ module ActionMailer
 
       # Returns the underscored name of the mailer preview without the suffix.
       def preview_name
-        name.sub(/Preview$/, "").underscore
+        name.delete_suffix("Preview").underscore
       end
 
       private

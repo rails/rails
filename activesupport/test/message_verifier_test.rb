@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "openssl"
 require "active_support/time"
 require "active_support/json"
@@ -53,12 +53,21 @@ class MessageVerifierTest < ActiveSupport::TestCase
     prev = ActiveSupport.use_standard_json_time_format
     ActiveSupport.use_standard_json_time_format = true
     verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", serializer: JSONSerializer.new)
-    message = verifier.generate(:foo => 123, "bar" => Time.utc(2010))
+    message = verifier.generate({ :foo => 123, "bar" => Time.utc(2010) })
     exp = { "foo" => 123, "bar" => "2010-01-01T00:00:00.000Z" }
     assert_equal exp, verifier.verified(message)
     assert_equal exp, verifier.verify(message)
   ensure
     ActiveSupport.use_standard_json_time_format = prev
+  end
+
+  def test_verify_with_parse_json_times
+    previous = [ ActiveSupport.parse_json_times, Time.zone ]
+    ActiveSupport.parse_json_times, Time.zone = true, "UTC"
+
+    assert_equal "hi", @verifier.verify(@verifier.generate("hi", expires_at: Time.now.utc + 10))
+  ensure
+    ActiveSupport.parse_json_times, Time.zone = previous
   end
 
   def test_raise_error_when_argument_class_is_not_loaded
@@ -92,6 +101,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
     assert_equal @data, @verifier.verify(signed_message)
   end
 
+
   def test_rotating_secret
     old_message = ActiveSupport::MessageVerifier.new("old", digest: "SHA1").generate("old")
 
@@ -115,7 +125,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
   end
 
   def test_on_rotation_is_called_and_verified_returns_message
-    older_message = ActiveSupport::MessageVerifier.new("older", digest: "SHA1").generate(encoded: "message")
+    older_message = ActiveSupport::MessageVerifier.new("older", digest: "SHA1").generate({ encoded: "message" })
 
     verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA512")
     verifier.rotate "old",   digest: "SHA256"
@@ -142,13 +152,21 @@ class MessageVerifierMetadataTest < ActiveSupport::TestCase
   include SharedMessageMetadataTests
 
   setup do
-    @verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", verifier_options)
+    @verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", **verifier_options)
   end
 
   def test_verify_raises_when_purpose_differs
     assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
       @verifier.verify(generate(data, purpose: "payment"), purpose: "shipping")
     end
+  end
+
+  def test_verify_with_use_standard_json_time_format_as_false
+    format_before = ActiveSupport.use_standard_json_time_format
+    ActiveSupport.use_standard_json_time_format = false
+    assert_equal "My Name", @verifier.verify(generate("My Name"))
+  ensure
+    ActiveSupport.use_standard_json_time_format = format_before
   end
 
   def test_verify_raises_when_expired
@@ -162,11 +180,11 @@ class MessageVerifierMetadataTest < ActiveSupport::TestCase
 
   private
     def generate(message, **options)
-      @verifier.generate(message, options)
+      @verifier.generate(message, **options)
     end
 
     def parse(message, **options)
-      @verifier.verified(message, options)
+      @verifier.verified(message, **options)
     end
 
     def verifier_options

@@ -204,7 +204,7 @@ module ActiveModel
       assert_not_predicate unchanged, :changed?
     end
 
-    test "an attribute can not be mutated if it has not been read,
+    test "an attribute cannot be mutated if it has not been read,
       and skips expensive calculations" do
       type_which_raises_from_all_methods = Object.new
       attribute = Attribute.from_database(:foo, "bar", type_which_raises_from_all_methods)

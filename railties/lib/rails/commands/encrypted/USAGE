@@ -1,0 +1,28 @@
+=== Storing Encrypted Files in Source Control
+
+The Rails `encrypted` commands provide access to encrypted files or configurations.
+See the `Rails.application.encrypted` documentation for using them in your app.
+
+=== Encryption Keys
+
+By default, Rails looks for the encryption key in `config/master.key` or
+`ENV["RAILS_MASTER_KEY"]`, but that lookup can be overridden with `--key`:
+
+   rails encrypted:edit config/encrypted_file.yml.enc --key config/encrypted_file.key
+
+Don't commit the key! Add it to your source control's ignore file. If you use
+Git, Rails handles this for you.
+
+=== Editing Files
+
+To edit or create an encrypted file use:
+
+   rails encrypted:edit config/encrypted_file.yml.enc
+
+This opens a temporary file in `$EDITOR` with the decrypted contents for editing.
+
+=== Viewing Files
+
+To print the decrypted contents of an encrypted file use:
+
+   rails encrypted:show config/encrypted_file.yml.enc

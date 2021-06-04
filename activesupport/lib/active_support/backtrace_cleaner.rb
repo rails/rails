@@ -16,7 +16,7 @@ module ActiveSupport
   #
   #   bc = ActiveSupport::BacktraceCleaner.new
   #   bc.add_filter   { |line| line.gsub(Rails.root.to_s, '') } # strip the Rails.root prefix
-  #   bc.add_silencer { |line| line =~ /puma|rubygems/ } # skip any lines from puma or rubygems
+  #   bc.add_silencer { |line| /puma|rubygems/.match?(line) } # skip any lines from puma or rubygems
   #   bc.clean(exception.backtrace) # perform the cleanup
   #
   # To reconfigure an existing BacktraceCleaner (like the default one in Rails)
@@ -65,7 +65,7 @@ module ActiveSupport
     # for a given line, it will be excluded from the clean backtrace.
     #
     #   # Will reject all lines that include the word "puma", like "/gems/puma/server.rb" or "/app/my_puma_server/rb"
-    #   backtrace_cleaner.add_silencer { |line| line =~ /puma/ }
+    #   backtrace_cleaner.add_silencer { |line| /puma/.match?(line) }
     def add_silencer(&block)
       @silencers << block
     end
@@ -85,14 +85,13 @@ module ActiveSupport
     end
 
     private
-
       FORMATTED_GEMS_PATTERN = /\A[^\/]+ \([\w.]+\) /
 
       def add_gem_filter
         gems_paths = (Gem.path | [Gem.default_dir]).map { |p| Regexp.escape(p) }
         return if gems_paths.empty?
 
-        gems_regexp = %r{(#{gems_paths.join('|')})/(bundler/)?gems/([^/]+)-([\w.]+)/(.*)}
+        gems_regexp = %r{\A(#{gems_paths.join('|')})/(bundler/)?gems/([^/]+)-([\w.]+)/(.*)}
         gems_result = '\3 (\4) \5'
         add_filter { |line| line.sub(gems_regexp, gems_result) }
       end
@@ -122,7 +121,11 @@ module ActiveSupport
       end
 
       def noise(backtrace)
-        backtrace - silence(backtrace)
+        backtrace.select do |line|
+          @silencers.any? do |s|
+            s.call(line)
+          end
+        end
       end
   end
 end

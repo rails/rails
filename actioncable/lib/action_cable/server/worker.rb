@@ -2,6 +2,7 @@
 
 require "active_support/callbacks"
 require "active_support/core_ext/module/attribute_accessors_per_thread"
+require "action_cable/server/worker/active_record_connection_management"
 require "concurrent"
 
 module ActionCable
@@ -18,6 +19,7 @@ module ActionCable
 
       def initialize(max_size: 5)
         @executor = Concurrent::ThreadPoolExecutor.new(
+          name: "ActionCable",
           min_threads: 1,
           max_threads: max_size,
           max_queue: 0,
@@ -66,7 +68,6 @@ module ActionCable
       end
 
       private
-
         def logger
           ActionCable.server.logger
         end

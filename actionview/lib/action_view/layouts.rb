@@ -224,7 +224,6 @@ module ActionView
       # that if no layout conditions are used, this method is not used
       module LayoutConditions # :nodoc:
         private
-
           # Determines whether the current action has a layout definition by
           # checking the action name against the :only and :except conditions
           # set by the <tt>layout</tt> method.
@@ -307,7 +306,7 @@ module ActionView
             RUBY
           when Proc
             define_method :_layout_from_proc, &_layout
-            protected :_layout_from_proc
+            private :_layout_from_proc
             <<-RUBY
               result = _layout_from_proc(#{_layout.arity == 0 ? '' : 'self'})
               return #{default_behavior} if result.nil?
@@ -322,7 +321,8 @@ module ActionView
           end
 
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def _layout(formats)
+          # frozen_string_literal: true
+          def _layout(lookup_context, formats)
             if _conditional_layout?
               #{layout_definition}
             else
@@ -334,7 +334,6 @@ module ActionView
       end
 
       private
-
         # If no layout is supplied, look for a template named the return
         # value of this method.
         #
@@ -372,7 +371,6 @@ module ActionView
     end
 
   private
-
     def _conditional_layout?
       true
     end
@@ -388,8 +386,8 @@ module ActionView
       case name
       when String     then _normalize_layout(name)
       when Proc       then name
-      when true       then Proc.new { |formats| _default_layout(formats, true)  }
-      when :default   then Proc.new { |formats| _default_layout(formats, false) }
+      when true       then Proc.new { |lookup_context, formats| _default_layout(lookup_context, formats, true)  }
+      when :default   then Proc.new { |lookup_context, formats| _default_layout(lookup_context, formats, false) }
       when false, nil then nil
       else
         raise ArgumentError,
@@ -398,7 +396,7 @@ module ActionView
     end
 
     def _normalize_layout(value)
-      value.is_a?(String) && value !~ /\blayouts/ ? "layouts/#{value}" : value
+      value.is_a?(String) && !value.match?(/\blayouts/) ? "layouts/#{value}" : value
     end
 
     # Returns the default layout for this controller.
@@ -411,9 +409,9 @@ module ActionView
     #
     # ==== Returns
     # * <tt>template</tt> - The template object for the default layout (or +nil+)
-    def _default_layout(formats, require_layout = false)
+    def _default_layout(lookup_context, formats, require_layout = false)
       begin
-        value = _layout(formats) if action_has_layout?
+        value = _layout(lookup_context, formats) if action_has_layout?
       rescue NameError => e
         raise e, "Could not render layout: #{e.message}"
       end

@@ -27,7 +27,7 @@ module ActionView #:nodoc:
   #     Name: <%= person.name %><br/>
   #   <% end %>
   #
-  # The loop is setup in regular embedding tags <tt><% %></tt>, and the name is written using the output embedding tag <tt><%= %></tt>. Note that this
+  # The loop is set up in regular embedding tags <tt><% %></tt>, and the name is written using the output embedding tag <tt><%= %></tt>. Note that this
   # is not just a usage suggestion. Regular output functions like print or puts won't work with ERB templates. So this would be wrong:
   #
   #   <%# WRONG %>
@@ -151,7 +151,7 @@ module ActionView #:nodoc:
     # Specify whether rendering within namespaced controllers should prefix
     # the partial paths for ActiveModel objects with the namespace.
     # (e.g., an Admin::PostsController would render @post using /admin/posts/_post.erb)
-    cattr_accessor :prefix_partial_path_with_controller_namespace, default: true
+    class_attribute :prefix_partial_path_with_controller_namespace, default: true
 
     # Specify default_formats that can be rendered.
     cattr_accessor :default_formats
@@ -161,6 +161,9 @@ module ActionView #:nodoc:
 
     # Specify whether submit_tag should automatically disable on click
     cattr_accessor :automatically_disable_submit_tag, default: true
+
+    # Annotate rendered view with file names
+    cattr_accessor :annotate_rendered_view_with_filenames, default: false
 
     class_attribute :_routes
     class_attribute :logger
@@ -179,35 +182,98 @@ module ActionView #:nodoc:
       def xss_safe? #:nodoc:
         true
       end
+
+      def with_empty_template_cache # :nodoc:
+        subclass = Class.new(self) {
+          # We can't implement these as self.class because subclasses will
+          # share the same template cache as superclasses, so "changed?" won't work
+          # correctly.
+          define_method(:compiled_method_container)           { subclass }
+          define_singleton_method(:compiled_method_container) { subclass }
+
+          def inspect
+            "#<ActionView::Base:#{'%#016x' % (object_id << 1)}>"
+          end
+        }
+      end
+
+      def changed?(other) # :nodoc:
+        compiled_method_container != other.compiled_method_container
+      end
     end
 
-    attr_accessor :view_renderer
+    attr_reader :view_renderer, :lookup_context
     attr_internal :config, :assigns
 
-    delegate :lookup_context, to: :view_renderer
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, to: :lookup_context
 
     def assign(new_assigns) # :nodoc:
       @_assigns = new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }
     end
 
-    def initialize(context = nil, assigns = {}, controller = nil, formats = nil) #:nodoc:
+    # :stopdoc:
+
+    def self.empty
+      with_view_paths([])
+    end
+
+    def self.with_view_paths(view_paths, assigns = {}, controller = nil)
+      with_context ActionView::LookupContext.new(view_paths), assigns, controller
+    end
+
+    def self.with_context(context, assigns = {}, controller = nil)
+      new context, assigns, controller
+    end
+
+    # :startdoc:
+
+    def initialize(lookup_context, assigns, controller) #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
-      if context.is_a?(ActionView::Renderer)
-        @view_renderer = context
-      else
-        lookup_context = context.is_a?(ActionView::LookupContext) ?
-          context : ActionView::LookupContext.new(context)
-        lookup_context.formats  = formats if formats
-        lookup_context.prefixes = controller._prefixes if controller
-        @view_renderer = ActionView::Renderer.new(lookup_context)
-      end
+      @lookup_context = lookup_context
 
-      @cache_hit = {}
+      @view_renderer = ActionView::Renderer.new @lookup_context
+      @current_template = nil
+
       assign(assigns)
       assign_controller(controller)
       _prepare_context
+    end
+
+    def _run(method, template, locals, buffer, add_to_stack: true, &block)
+      _old_output_buffer, _old_virtual_path, _old_template = @output_buffer, @virtual_path, @current_template
+      @current_template = template if add_to_stack
+      @output_buffer = buffer
+      public_send(method, locals, buffer, &block)
+    ensure
+      @output_buffer, @virtual_path, @current_template = _old_output_buffer, _old_virtual_path, _old_template
+    end
+
+    def compiled_method_container
+      raise NotImplementedError, <<~msg.squish
+        Subclasses of ActionView::Base must implement `compiled_method_container`
+        or use the class method `with_empty_template_cache` for constructing
+        an ActionView::Base subclass that has an empty cache.
+      msg
+    end
+
+    def in_rendering_context(options)
+      old_view_renderer  = @view_renderer
+      old_lookup_context = @lookup_context
+
+      if !lookup_context.html_fallback_for_js && options[:formats]
+        formats = Array(options[:formats])
+        if formats == [:js]
+          formats << :html
+        end
+        @lookup_context = lookup_context.with_prepended_formats(formats)
+        @view_renderer = ActionView::Renderer.new @lookup_context
+      end
+
+      yield @view_renderer
+    ensure
+      @view_renderer = old_view_renderer
+      @lookup_context = old_lookup_context
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)

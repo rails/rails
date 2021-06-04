@@ -22,7 +22,7 @@ module ActionController
   # Third, if we DON'T find a template AND the request is a page load in a web
   # browser (technically, a non-XHR GET request for an HTML response) where
   # you reasonably expect to have rendered a template, then we raise
-  # <tt>ActionView::UnknownFormat</tt> with an explanation.
+  # <tt>ActionController::MissingExactTemplate</tt> with an explanation.
   #
   # Finally, if we DON'T find a template AND the request isn't a browser page
   # load, then we implicitly respond with <tt>204 No Content</tt>.
@@ -30,9 +30,9 @@ module ActionController
     # :stopdoc:
     include BasicImplicitRender
 
-    def default_render(*args)
+    def default_render
       if template_exists?(action_name.to_s, _prefixes, variants: request.variant)
-        render(*args)
+        render
       elsif any_templates?(action_name.to_s, _prefixes)
         message = "#{self.class.name}\##{action_name} is missing a template " \
           "for this request format and variant.\n" \

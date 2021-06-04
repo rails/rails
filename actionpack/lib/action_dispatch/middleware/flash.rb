@@ -59,16 +59,14 @@ module ActionDispatch
       end
 
       def commit_flash # :nodoc:
-        session    = self.session || {}
-        flash_hash = self.flash_hash
+        return unless session.enabled?
 
         if flash_hash && (flash_hash.present? || session.key?("flash"))
           session["flash"] = flash_hash.to_session_value
           self.flash = flash_hash.dup
         end
 
-        if (!session.respond_to?(:loaded?) || session.loaded?) && # reset_session uses {}, which doesn't implement #loaded?
-            session.key?("flash") && session["flash"].nil?
+        if session.loaded? && session.key?("flash") && session["flash"].nil?
           session.delete("flash")
         end
       end

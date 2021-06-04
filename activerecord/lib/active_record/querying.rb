@@ -2,18 +2,24 @@
 
 module ActiveRecord
   module Querying
-    delegate :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, :none?, :one?, to: :all
-    delegate :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!, :forty_two, :forty_two!, :third_to_last, :third_to_last!, :second_to_last, :second_to_last!, to: :all
-    delegate :first_or_create, :first_or_create!, :first_or_initialize, to: :all
-    delegate :find_or_create_by, :find_or_create_by!, :create_or_find_by, :create_or_find_by!, :find_or_initialize_by, to: :all
-    delegate :find_by, :find_by!, to: :all
-    delegate :destroy_all, :delete_all, :update_all, to: :all
-    delegate :find_each, :find_in_batches, :in_batches, to: :all
-    delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :left_joins, :left_outer_joins, :or,
-             :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly, :extending,
-             :having, :create_with, :distinct, :references, :none, :unscope, :merge, to: :all
-    delegate :count, :average, :minimum, :maximum, :sum, :calculate, to: :all
-    delegate :pluck, :pick, :ids, to: :all
+    QUERYING_METHODS = [
+      :find, :find_by, :find_by!, :take, :take!, :sole, :find_sole_by, :first, :first!, :last, :last!,
+      :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!,
+      :forty_two, :forty_two!, :third_to_last, :third_to_last!, :second_to_last, :second_to_last!,
+      :exists?, :any?, :many?, :none?, :one?,
+      :first_or_create, :first_or_create!, :first_or_initialize,
+      :find_or_create_by, :find_or_create_by!, :find_or_initialize_by,
+      :create_or_find_by, :create_or_find_by!,
+      :destroy_all, :delete_all, :update_all, :touch_all, :destroy_by, :delete_by,
+      :find_each, :find_in_batches, :in_batches,
+      :select, :reselect, :order, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
+      :where, :rewhere, :invert_where, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :readonly,
+      :and, :or, :annotate, :optimizer_hints, :extending,
+      :having, :create_with, :distinct, :references, :none, :unscope, :merge, :except, :only,
+      :count, :average, :minimum, :maximum, :sum, :calculate,
+      :pluck, :pick, :ids, :strict_loading, :excluding, :without
+    ].freeze # :nodoc:
+    delegate(*QUERYING_METHODS, to: :all)
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array, with the requested columns encapsulated as attributes of the model you call
@@ -31,17 +37,30 @@ module ActiveRecord
     #
     #   # A simple SQL query spanning multiple tables
     #   Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
-    #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "first_name"=>"Quentin"}>, ...]
+    #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "author"=>"Quentin"}>, ...]
     #
     # You can use the same string replacement techniques as you can with <tt>ActiveRecord::QueryMethods#where</tt>:
     #
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
     #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
+    #
+    # Note that building your own SQL query string from user input may expose your application to
+    # injection attacks (https://guides.rubyonrails.org/security.html#sql-injection).
     def find_by_sql(sql, binds = [], preparable: nil, &block)
-      result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable)
-      column_types = result_set.column_types.dup
-      cached_columns_hash = connection.schema_cache.columns_hash(table_name)
-      cached_columns_hash.each_key { |k| column_types.delete k }
+      _load_from_sql(_query_by_sql(sql, binds, preparable: preparable), &block)
+    end
+
+    def _query_by_sql(sql, binds = [], preparable: nil, async: false) # :nodoc:
+      connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable, async: async)
+    end
+
+    def _load_from_sql(result_set, &block) # :nodoc:
+      column_types = result_set.column_types
+
+      unless column_types.empty?
+        column_types = column_types.reject { |k, _| attribute_types.key?(k) }
+      end
+
       message_bus = ActiveSupport::Notifications.instrumenter
 
       payload = {

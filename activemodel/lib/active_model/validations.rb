@@ -15,7 +15,7 @@ module ActiveModel
   #     attr_accessor :first_name, :last_name
   #
   #     validates_each :first_name, :last_name do |record, attr, value|
-  #       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
+  #       record.errors.add attr, "starts with z." if value.start_with?("z")
   #     end
   #   end
   #
@@ -61,7 +61,7 @@ module ActiveModel
       #     attr_accessor :first_name, :last_name
       #
       #     validates_each :first_name, :last_name, allow_blank: true do |record, attr, value|
-      #       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
+      #       record.errors.add attr, "starts with z." if value.start_with?("z")
       #     end
       #   end
       #
@@ -152,7 +152,7 @@ module ActiveModel
       def validate(*args, &block)
         options = args.extract_options!
 
-        if args.all? { |arg| arg.is_a?(Symbol) }
+        if args.all?(Symbol)
           options.each_key do |k|
             unless VALID_OPTIONS_FOR_VALIDATE.include?(k)
               raise ArgumentError.new("Unknown key: #{k.inspect}. Valid keys are: #{VALID_OPTIONS_FOR_VALIDATE.map(&:inspect).join(', ')}. Perhaps you meant to call `validates` instead of `validate`?")
@@ -163,10 +163,10 @@ module ActiveModel
         if options.key?(:on)
           options = options.dup
           options[:on] = Array(options[:on])
-          options[:if] = Array(options[:if])
-          options[:if].unshift ->(o) {
-            !(options[:on] & Array(o.validation_context)).empty?
-          }
+          options[:if] = [
+            ->(o) { !(options[:on] & Array(o.validation_context)).empty? },
+            *options[:if]
+          ]
         end
 
         set_callback(:validate, *args, options, &block)
@@ -402,7 +402,6 @@ module ActiveModel
     alias :read_attribute_for_validation :send
 
   private
-
     def run_validations!
       _run_validate_callbacks
       errors.empty?

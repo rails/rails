@@ -44,7 +44,9 @@ class Connection {
 
   close({allowReconnect} = {allowReconnect: true}) {
     if (!allowReconnect) { this.monitor.stop() }
-    if (this.isActive()) { return (this.webSocket ? this.webSocket.close() : undefined) }
+    if (this.isActive()) {
+      return this.webSocket.close()
+    }
   }
 
   reopen() {
@@ -65,7 +67,9 @@ class Connection {
   }
 
   getProtocol() {
-    return (this.webSocket ? this.webSocket.protocol : undefined)
+    if (this.webSocket) {
+      return this.webSocket.protocol
+    }
   }
 
   isOpen() {

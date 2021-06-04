@@ -15,13 +15,13 @@ Note that the `data` attributes this library adds are a feature of HTML5. If you
 
 ## Installation
 
-### NPM
+### npm
 
-    npm install rails-ujs --save
-    
+    npm install @rails/ujs --save
+
 ### Yarn
-    
-    yarn add rails-ujs
+
+    yarn add @rails/ujs
 
 Ensure that `.yarnclean` does not include `assets` if you use [yarn autoclean](https://yarnpkg.com/lang/en/docs/cli/autoclean/).
 
@@ -40,7 +40,7 @@ In a conventional Rails application that uses the asset pipeline, require `rails
 If you're using the Webpacker gem or some other JavaScript bundler, add the following to your main JS file:
 
 ```javascript
-import Rails from 'rails-ujs';
+import Rails from "@rails/ujs"
 Rails.start()
 ```
 
@@ -53,5 +53,5 @@ Run `bundle exec rake ujs:server` first, and then run the web tests by visiting 
 rails-ujs is released under the [MIT License](MIT-LICENSE).
 
 [data]: https://www.w3.org/TR/html5/dom.html#embedding-custom-non-visible-data-with-the-data-attributes "Embedding custom non-visible data with the data-* attributes"
-[validator]: http://validator.w3.org/
-[csrf]: http://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection.html
+[validator]: https://validator.w3.org/
+[csrf]: https://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection.html

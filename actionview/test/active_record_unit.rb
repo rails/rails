@@ -42,6 +42,12 @@ class ActiveRecordTestConnector
       self.able_to_connect = false
     end
 
+    def reconnect
+      return unless able_to_connect
+      ActiveRecord::Base.connection.reconnect!
+      load_schema
+    end
+
     private
       def setup_connection
         if Object.const_defined?(:ActiveRecord)
@@ -52,7 +58,7 @@ class ActiveRecordTestConnector
           ActiveRecord::Base.configurations = { "sqlite3_ar_integration" => options }
           ActiveRecord::Base.connection
 
-          Object.send(:const_set, :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name("type")) unless Object.const_defined?(:QUOTED_TYPE)
+          Object.const_set :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name("type") unless Object.const_defined?(:QUOTED_TYPE)
         else
           raise "Can't setup connection since ActiveRecord isn't loaded."
         end
@@ -102,3 +108,7 @@ class ActiveRecordTestCase < ActionController::TestCase
 end
 
 ActiveRecordTestConnector.setup
+
+ActiveSupport::Testing::Parallelization.after_fork_hook do
+  ActiveRecordTestConnector.reconnect
+end

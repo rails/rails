@@ -26,6 +26,7 @@ require "models/department"
 require "models/cake_designer"
 require "models/drink_designer"
 require "models/recipe"
+require "models/user_with_invalid_relation"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -69,6 +70,8 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal :string, @first.column_for_attribute(:title).type
     assert_equal :string, @first.type_for_attribute("title").type
     assert_equal :string, @first.type_for_attribute(:title).type
+    assert_equal :string, @first.type_for_attribute("heading").type
+    assert_equal :string, @first.type_for_attribute(:heading).type
     assert_equal 250, @first.column_for_attribute("title").limit
   end
 
@@ -133,6 +136,19 @@ class ReflectionTest < ActiveRecord::TestCase
     end
     reflection = ActiveRecord::Reflection.create(:has_many, "plurales_irregulares", nil, {}, ActiveRecord::Base)
     assert_equal "PluralIrregular", reflection.class_name
+  end
+
+  def test_reflection_klass_is_not_ar_subclass
+    [:account_invalid,
+     :account_class_name,
+     :info_invalids,
+     :infos_class_name,
+     :infos_through_class_name,
+    ].each do |rel|
+      assert_raise(ArgumentError) do
+        UserWithInvalidRelation.reflect_on_association(rel).klass
+      end
+    end
   end
 
   def test_aggregation_reflection
@@ -244,7 +260,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflections_should_return_keys_as_strings
-    assert Category.reflections.keys.all? { |key| key.is_a? String }, "Model.reflections is expected to return string for keys"
+    assert Category.reflections.keys.all?(String), "Model.reflections is expected to return string for keys"
   end
 
   def test_has_and_belongs_to_many_reflection
@@ -326,7 +342,7 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_association_primary_key
     # Normal association
     assert_equal "id",   Author.reflect_on_association(:posts).association_primary_key.to_s
-    assert_equal "name", Author.reflect_on_association(:essay).association_primary_key.to_s
+    assert_equal "id",   Author.reflect_on_association(:essay).association_primary_key.to_s
     assert_equal "name", Essay.reflect_on_association(:writer).association_primary_key.to_s
 
     # Through association (uses the :primary_key option from the source reflection)
@@ -405,6 +421,10 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "category_id", Post.reflect_on_association(:categorizations).foreign_key.to_s
   end
 
+  def test_foreign_key_is_inferred_from_model_name
+    assert_equal "post_id", PostRecord.reflect_on_association(:comments).foreign_key.to_s
+  end
+
   def test_symbol_for_class_name
     assert_equal Client, Firm.reflect_on_association(:unsorted_clients_with_symbol).klass
   end
@@ -414,6 +434,13 @@ class ReflectionTest < ActiveRecord::TestCase
       ActiveRecord::Reflection.create(:has_many, :clients, nil, { class_name: Client }, Firm)
     end
     assert_equal "A class was passed to `:class_name` but we are expecting a string.", error.message
+  end
+
+  def test_class_for_source_type
+    error = assert_raises(ArgumentError) do
+      ActiveRecord::Reflection.create(:has_many, :tagged_posts, nil, { through: :taggings, source: :taggable, source_type: Post }, Tag)
+    end
+    assert_equal "A class was passed to `:source_type` but we are expecting a string.", error.message
   end
 
   def test_join_table
@@ -512,7 +539,7 @@ class ReflectionTest < ActiveRecord::TestCase
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)
       options.each do |method, value|
-        assert_equal(value, reflection.send(method))
+        assert_equal(value, reflection.public_send(method))
       end
     end
 end

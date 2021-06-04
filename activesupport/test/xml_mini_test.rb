@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/xml_mini"
 require "active_support/builder"
 require "active_support/core_ext/hash"
 require "active_support/core_ext/big_decimal"
+require "active_support/core_ext/date/conversions"
 require "yaml"
 
 module XmlMiniTest
@@ -131,6 +132,14 @@ module XmlMiniTest
     test "#to_tag accepts time types" do
       @xml.to_tag(:b, Time.new(1993, 02, 24, 12, 0, 0, "+09:00"), @options)
       assert_xml("<b type=\"dateTime\">1993-02-24T12:00:00+09:00</b>")
+    end
+
+    test "#to_tag accepts ActiveSupport::TimeWithZone types" do
+      time = ActiveSupport::TimeWithZone.new(Time.new(1993, 02, 24, 12, 0, 0, "+09:00"), ActiveSupport::TimeZone["Europe/Paris"])
+      ActiveSupport::TimeWithZone.stub(:name, "ActiveSupport::TimeWithZone") do
+        @xml.to_tag(:b, time, @options)
+        assert_xml("<b type=\"dateTime\">1993-02-24T13:00:00+01:00</b>")
+      end
     end
 
     test "#to_tag accepts array types" do

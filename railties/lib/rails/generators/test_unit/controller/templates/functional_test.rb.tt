@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 <% module_namespacing do -%>
 class <%= class_name %>ControllerTest < ActionDispatch::IntegrationTest
@@ -6,7 +6,7 @@ class <%= class_name %>ControllerTest < ActionDispatch::IntegrationTest
   include Engine.routes.url_helpers
 
 <% end -%>
-<% if actions.empty? -%>
+<% if actions.empty? || options[:skip_routes] -%>
   # test "the truth" do
   #   assert true
   # end
@@ -16,7 +16,7 @@ class <%= class_name %>ControllerTest < ActionDispatch::IntegrationTest
     get <%= url_helper_prefix %>_<%= action %>_url
     assert_response :success
   end
-
+<%= "\n" unless action == actions.last -%>
 <% end -%>
 <% end -%>
 end

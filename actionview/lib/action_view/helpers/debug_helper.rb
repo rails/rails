@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "action_view/helpers/tag_helper"
+
 module ActionView
   # = Action View Debug Helper
   #

@@ -6,14 +6,14 @@ const {module, test} = QUnit
 module("ActionCable", () => {
   module("Adapters", () => {
     module("WebSocket", () => {
-      test("default is window.WebSocket", assert => {
-        assert.equal(ActionCable.adapters.WebSocket, window.WebSocket)
+      test("default is self.WebSocket", assert => {
+        assert.equal(ActionCable.adapters.WebSocket, self.WebSocket)
       })
     })
 
     module("logger", () => {
-      test("default is window.console", assert => {
-        assert.equal(ActionCable.adapters.logger, window.console)
+      test("default is self.console", assert => {
+        assert.equal(ActionCable.adapters.logger, self.console)
       })
     })
   })
@@ -40,6 +40,18 @@ module("ActionCable", () => {
       document.head.removeChild(element)
 
       assert.equal(consumer.url, testURL)
+    })
+
+    test("dynamically computes URL from function", assert => {
+      let dynamicURL = testURL
+      const generateURL = () => {
+        return dynamicURL
+      }
+      const consumer = ActionCable.createConsumer(generateURL)
+      assert.equal(consumer.url, testURL)
+
+      dynamicURL = `${testURL}foo`
+      assert.equal(consumer.url, `${testURL}foo`)
     })
   })
 })

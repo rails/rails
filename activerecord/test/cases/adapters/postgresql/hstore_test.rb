@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "support/schema_dumping_helper"
+require "support/stubs/strong_parameters"
 
 class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
@@ -9,12 +10,6 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     self.table_name = "hstores"
 
     store_accessor :settings, :language, :timezone
-  end
-
-  class FakeParameters
-    def to_unsafe_h
-      { "hi" => "hi" }
-    end
   end
 
   def setup
@@ -116,8 +111,8 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   def test_type_cast_hstore
     assert_equal({ "1" => "2" }, @type.deserialize("\"1\"=>\"2\""))
     assert_equal({}, @type.deserialize(""))
-    assert_equal({ "key" => nil }, @type.deserialize("key => NULL"))
-    assert_equal({ "c" => "}", '"a"' => 'b "a b' }, @type.deserialize(%q(c=>"}", "\"a\""=>"b \"a b")))
+    assert_cycle("key" => nil)
+    assert_cycle("c" => "}", '"a"' => 'b "a b')
   end
 
   def test_with_store_accessors
@@ -153,9 +148,26 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     assert_equal "fr", x.language
     assert_equal "GMT", x.timezone
 
-    y = YAML.load(YAML.dump(x))
+    payload = YAML.dump(x)
+    y = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
     assert_equal "fr", y.language
     assert_equal "GMT", y.timezone
+  end
+
+  def test_changes_with_store_accessors
+    x = Hstore.new(language: "de")
+    assert x.language_changed?
+    assert_nil x.language_was
+    assert_equal [nil, "de"], x.language_change
+    x.save!
+
+    assert_not x.language_changed?
+    x.reload
+
+    x.settings = nil
+    assert x.language_changed?
+    assert_equal "de", x.language_was
+    assert_equal ["de", nil], x.language_change
   end
 
   def test_changes_in_place
@@ -187,48 +199,36 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     assert_not_predicate hstore, :changed?
   end
 
-  def test_gen1
-    assert_equal('" "=>""', @type.serialize(" " => ""))
+  def test_spaces
+    assert_cycle(" " => " ")
   end
 
-  def test_gen2
-    assert_equal('","=>""', @type.serialize("," => ""))
+  def test_commas
+    assert_cycle("," => "")
   end
 
-  def test_gen3
-    assert_equal('"="=>""', @type.serialize("=" => ""))
+  def test_signs
+    assert_cycle("=" => ">")
   end
 
-  def test_gen4
-    assert_equal('">"=>""', @type.serialize(">" => ""))
+  def test_various_null
+    assert_cycle({ "a" => nil, "b" => nil, "c" => "NuLl", "null" => "c" })
   end
 
-  def test_parse1
-    assert_equal({ "a" => nil, "b" => nil, "c" => "NuLl", "null" => "c" }, @type.deserialize('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
-  end
-
-  def test_parse2
-    assert_equal({ " " => " " },  @type.deserialize("\\ =>\\ "))
-  end
-
-  def test_parse3
-    assert_equal({ "=" => ">" },  @type.deserialize("==>>"))
-  end
-
-  def test_parse4
-    assert_equal({ "=a" => "q=w" },   @type.deserialize('\=a=>q=w'))
+  def test_equal_signs
+    assert_cycle("=a" => "q=w")
   end
 
   def test_parse5
-    assert_equal({ "=a" => "q=w" },   @type.deserialize('"=a"=>q\=w'))
+    assert_cycle("=a" => "q=w")
   end
 
   def test_parse6
-    assert_equal({ "\"a" => "q>w" },  @type.deserialize('"\"a"=>q>w'))
+    assert_cycle("\"a" => "q>w")
   end
 
   def test_parse7
-    assert_equal({ "\"a" => "q\"w" }, @type.deserialize('\"a=>q"w'))
+    assert_cycle("\"a" => "q\"w")
   end
 
   def test_rewrite
@@ -292,6 +292,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
 
   def test_backslash
     assert_cycle('a\\b' => 'b\\ar', '1"foo' => "2")
+    assert_cycle('a\\"' => 'b\\ar', '1"foo' => "2")
   end
 
   def test_comma
@@ -344,7 +345,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_supports_to_unsafe_h_values
-    assert_equal("\"hi\"=>\"hi\"", @type.serialize(FakeParameters.new))
+    assert_equal "\"hi\"=>\"hi\"", @type.serialize(ProtectedParams.new("hi" => "hi"))
   end
 
   private

@@ -62,6 +62,23 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
                   "after_adding#{@thinking.id}", "after_adding_proc#{@thinking.id}"], @david.post_log
   end
 
+  def test_has_many_callbacks_halt_execution_when_abort_is_trown_when_adding_to_association
+    author = Author.create!(name: "Roger")
+    post = Post.create!(title: "hello", body: "abc")
+    author.posts_with_thrown_callbacks << post
+
+    assert_empty(author.posts_with_callbacks)
+  end
+
+  def test_has_many_callbacks_halt_execution_when_abort_is_trown_when_removing_from_association
+    author = Author.create!(name: "Roger")
+    post = Post.create!(title: "hello", body: "abc", author: author)
+
+    assert_equal(1, author.posts_with_thrown_callbacks.size)
+    author.posts_with_thrown_callbacks.destroy(post.id)
+    assert_equal(1, author.posts_with_thrown_callbacks.size)
+  end
+
   def test_has_many_callbacks_with_create
     morten = Author.create name: "Morten"
     post = morten.posts_with_proc_callbacks.create! title: "Hello", body: "How are you doing?"
@@ -166,7 +183,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
     assert_empty activerecord.developers_log
   end
 
-  def test_has_many_and_belongs_to_many_callbacks_for_save_on_parent
+  def test_has_and_belongs_to_many_callbacks_for_save_on_parent
     project = Project.new name: "Callbacks"
     project.developers_with_callbacks.build name: "Jack", salary: 95000
 

@@ -10,7 +10,13 @@ module ActionDispatch
     RESCUES_TEMPLATE_PATH = File.expand_path("templates", __dir__)
 
     def initialize(assigns)
-      super([RESCUES_TEMPLATE_PATH], assigns)
+      paths = [RESCUES_TEMPLATE_PATH]
+      lookup_context = ActionView::LookupContext.new(paths)
+      super(lookup_context, assigns, nil)
+    end
+
+    def compiled_method_container
+      self.class
     end
 
     def debug_params(params)
@@ -45,6 +51,16 @@ module ActionDispatch
       else
         super
       end
+    end
+
+    def protect_against_forgery?
+      false
+    end
+
+    def params_valid?
+      @request.parameters
+    rescue ActionController::BadRequest
+      false
     end
   end
 end

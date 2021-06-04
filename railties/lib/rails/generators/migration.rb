@@ -62,14 +62,10 @@ module Rails
         dir, base = File.split(destination)
         numbered_destination = File.join(dir, ["%migration_number%", base].join("_"))
 
-        create_migration numbered_destination, nil, config do
-          match = ERB.version.match(/\Aerb\.rb \[(?<version>[^ ]+) /)
-          if match && match[:version] >= "2.2.0" # Ruby 2.6+
-            ERB.new(::File.binread(source), trim_mode: "-", eoutvar: "@output_buffer").result(context)
-          else
-            ERB.new(::File.binread(source), nil, "-", "@output_buffer").result(context)
-          end
+        file = create_migration numbered_destination, nil, config do
+          ERB.new(::File.binread(source), trim_mode: "-", eoutvar: "@output_buffer").result(context)
         end
+        Rails::Generators.add_generated_file(file)
       end
     end
   end

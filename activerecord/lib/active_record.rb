@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2019 David Heinemeier Hansson
+# Copyright (c) 2004-2021 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -31,6 +31,7 @@ require "yaml"
 
 require "active_record/version"
 require "active_model/attribute_set"
+require "active_record/errors"
 
 module ActiveRecord
   extend ActiveSupport::Autoload
@@ -41,6 +42,8 @@ module ActiveRecord
   autoload :ConnectionHandling
   autoload :CounterCache
   autoload :DynamicMatchers
+  autoload :DelegatedType
+  autoload :Encryption
   autoload :Enum
   autoload :InternalMetadata
   autoload :Explain
@@ -55,7 +58,6 @@ module ActiveRecord
   autoload :Persistence
   autoload :QueryCache
   autoload :Querying
-  autoload :CollectionCacheKey
   autoload :ReadonlyAttributes
   autoload :RecordInvalid, "active_record/validations"
   autoload :Reflection
@@ -66,30 +68,32 @@ module ActiveRecord
   autoload :SchemaMigration
   autoload :Scoping
   autoload :Serialization
-  autoload :StatementCache
   autoload :Store
+  autoload :SignedId
   autoload :Suppressor
   autoload :Timestamp
   autoload :Transactions
   autoload :Translation
   autoload :Validations
   autoload :SecureToken
+  autoload :DestroyAssociationAsyncJob
 
   eager_autoload do
-    autoload :ActiveRecordError, "active_record/errors"
-    autoload :ConnectionNotEstablished, "active_record/errors"
-    autoload :ConnectionAdapters, "active_record/connection_adapters/abstract_adapter"
+    autoload :StatementCache
+    autoload :ConnectionAdapters
 
     autoload :Aggregations
     autoload :Associations
     autoload :AttributeAssignment
     autoload :AttributeMethods
     autoload :AutosaveAssociation
+    autoload :AsynchronousQueriesTracker
 
     autoload :LegacyYamlAdapter
 
     autoload :Relation
     autoload :AssociationRelation
+    autoload :DisableJoinsAssociationRelation
     autoload :NullRelation
 
     autoload_under "relation" do
@@ -103,6 +107,7 @@ module ActiveRecord
     end
 
     autoload :Result
+    autoload :FutureResult
     autoload :TableMetadata
     autoload :Type
   end
@@ -136,14 +141,6 @@ module ActiveRecord
     end
   end
 
-  module ConnectionAdapters
-    extend ActiveSupport::Autoload
-
-    eager_autoload do
-      autoload :AbstractAdapter
-    end
-  end
-
   module Scoping
     extend ActiveSupport::Autoload
 
@@ -151,6 +148,12 @@ module ActiveRecord
       autoload :Named
       autoload :Default
     end
+  end
+
+  module Middleware
+    extend ActiveSupport::Autoload
+
+    autoload :DatabaseSelector, "active_record/middleware/database_selector"
   end
 
   module Tasks
@@ -173,6 +176,7 @@ module ActiveRecord
     ActiveRecord::Associations.eager_load!
     ActiveRecord::AttributeMethods.eager_load!
     ActiveRecord::ConnectionAdapters.eager_load!
+    ActiveRecord::Encryption.eager_load!
   end
 end
 
@@ -187,3 +191,4 @@ end
 YAML.load_tags["!ruby/object:ActiveRecord::AttributeSet"] = "ActiveModel::AttributeSet"
 YAML.load_tags["!ruby/object:ActiveRecord::Attribute::FromDatabase"] = "ActiveModel::Attribute::FromDatabase"
 YAML.load_tags["!ruby/object:ActiveRecord::LazyAttributeHash"] = "ActiveModel::LazyAttributeHash"
+YAML.load_tags["!ruby/object:ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::MysqlString"] = "ActiveRecord::Type::String"

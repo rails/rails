@@ -17,7 +17,7 @@ module ActiveRecord
         # association.
         attr_reader :base_klass, :children
 
-        delegate :table_name, :column_names, :primary_key, to: :base_klass
+        delegate :table_name, :column_names, :primary_key, :attribute_types, to: :base_klass
 
         def initialize(base_klass, children)
           @base_klass = base_klass
@@ -62,8 +62,8 @@ module ActiveRecord
           hash
         end
 
-        def instantiate(row, aliases, &block)
-          base_klass.instantiate(extract_record(row, aliases), &block)
+        def instantiate(row, aliases, column_types = {}, &block)
+          base_klass.instantiate(extract_record(row, aliases), column_types, &block)
         end
       end
     end

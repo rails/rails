@@ -35,7 +35,7 @@ module Arel # :nodoc: all
       Not
       Offset
       On
-      Ordering
+      OptimizerHints
       RollUp
     }.each do |name|
       const_set(name, Class.new(Unary))

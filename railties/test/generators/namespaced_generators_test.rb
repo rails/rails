@@ -25,7 +25,6 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
   def test_namespaced_controller_skeleton_is_created
     run_generator
     assert_file "app/controllers/test_app/account_controller.rb",
-                /require_dependency "test_app\/application_controller"/,
                 /module TestApp/,
                 /  class AccountController < ApplicationController/
 
@@ -42,9 +41,7 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_namespaced_controller_with_additional_namespace
     run_generator ["admin/account"]
-    assert_file "app/controllers/test_app/admin/account_controller.rb", /module TestApp/, /  class Admin::AccountController < ApplicationController/ do |contents|
-      assert_match %r(require_dependency "test_app/application_controller"), contents
-    end
+    assert_file "app/controllers/test_app/admin/account_controller.rb", /module TestApp/, /  class Admin::AccountController < ApplicationController/
   end
 
   def test_helper_is_also_namespaced
@@ -101,7 +98,7 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
     run_generator ["admin/account"]
     assert_file "app/models/test_app/admin.rb", /module TestApp/, /module Admin/
     assert_file "app/models/test_app/admin.rb", /def self\.table_name_prefix/
-    assert_file "app/models/test_app/admin.rb", /'test_app_admin_'/
+    assert_file "app/models/test_app/admin.rb", /"test_app_admin_"/
     assert_file "app/models/test_app/admin/account.rb", /module TestApp/, /class Admin::Account < ApplicationRecord/
   end
 
@@ -216,7 +213,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Controller
     assert_file "app/controllers/test_app/product_lines_controller.rb",
-                /require_dependency "test_app\/application_controller"/,
                 /module TestApp/,
                 /class ProductLinesController < ApplicationController/
 
@@ -284,7 +280,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     # Controller
     assert_file "app/controllers/test_app/admin/roles_controller.rb" do |content|
       assert_match(/module TestApp\n  class Admin::RolesController < ApplicationController/, content)
-      assert_match(%r(require_dependency "test_app/application_controller"), content)
     end
 
     assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
@@ -308,7 +303,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     run_generator [ "admin/role" ], behavior: :revoke
 
     # Model
-    assert_file "app/models/test_app/admin.rb"	# ( should not be remove )
+    assert_file "app/models/test_app/admin.rb"  # ( should not be remove )
     assert_no_file "app/models/test_app/admin/role.rb"
     assert_no_file "test/models/test_app/admin/role_test.rb"
     assert_no_file "test/fixtures/test_app/admin/roles.yml"
@@ -375,7 +370,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     run_generator [ "admin/user/special/role" ], behavior: :revoke
 
     # Model
-    assert_file "app/models/test_app/admin/user/special.rb"	# ( should not be remove )
+    assert_file "app/models/test_app/admin/user/special.rb"  # ( should not be remove )
     assert_no_file "app/models/test_app/admin/user/special/role.rb"
     assert_no_file "test/models/test_app/admin/user/special/role_test.rb"
     assert_no_file "test/fixtures/test_app/admin/user/special/roles.yml"
@@ -418,7 +413,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     # Controller
     assert_file "app/controllers/test_app/admin/roles_controller.rb" do |content|
       assert_match(/module TestApp\n  class Admin::RolesController < ApplicationController/, content)
-      assert_match(%r(require_dependency "test_app/application_controller"), content)
     end
     assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
                 /module TestApp\n  class Admin::RolesControllerTest < ActionDispatch::IntegrationTest/

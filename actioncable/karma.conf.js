@@ -52,9 +52,9 @@ if (process.env.CI) {
   }
 
   function buildId() {
-    const { TRAVIS_BUILD_NUMBER, TRAVIS_BUILD_ID } = process.env
-    return TRAVIS_BUILD_NUMBER && TRAVIS_BUILD_ID
-      ? `TRAVIS #${TRAVIS_BUILD_NUMBER} (${TRAVIS_BUILD_ID})`
+    const { BUILDKITE_JOB_ID } = process.env
+    return BUILDKITE_JOB_ID
+      ? `Buildkite ${BUILDKITE_JOB_ID}`
       : ""
   }
 }

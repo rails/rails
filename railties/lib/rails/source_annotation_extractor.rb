@@ -1,12 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
-
-# Remove this deprecated class in the next minor version
-#:nodoc:
-SourceAnnotationExtractor = ActiveSupport::Deprecation::DeprecatedConstantProxy.
-  new("SourceAnnotationExtractor", "Rails::SourceAnnotationExtractor")
-
 module Rails
   # Implements the logic behind <tt>Rails::Command::NotesCommand</tt>. See <tt>rails notes --help</tt> for usage information.
   #
@@ -27,6 +20,16 @@ module Rails
       #   Rails::SourceAnnotationExtractor::Annotation.register_directories("spec", "another")
       def self.register_directories(*dirs)
         directories.push(*dirs)
+      end
+
+      def self.tags
+        @@tags ||= %w(OPTIMIZE FIXME TODO)
+      end
+
+      # Registers additional tags
+      #   Rails::SourceAnnotationExtractor::Annotation.register_tags("TESTME", "DEPRECATEME")
+      def self.register_tags(*additional_tags)
+        tags.push(*additional_tags)
       end
 
       def self.extensions
@@ -54,17 +57,12 @@ module Rails
         s << "[#{tag}] " if options[:tag]
         s << text
       end
-
-      # Used in annotations.rake
-      #:nodoc:
-      def self.notes_task_deprecation_warning
-        ActiveSupport::Deprecation.warn("This rake task is deprecated and will be removed in Rails 6.1. \nRefer to `rails notes --help` for more information.\n")
-        puts "\n"
-      end
     end
 
     # Prints all annotations with tag +tag+ under the root directories +app+,
     # +config+, +db+, +lib+, and +test+ (recursively).
+    #
+    # If +tag+ is <tt>nil</tt>, annotations with either default or registered tags are printed.
     #
     # Specific directories can be explicitly set using the <tt>:dirs</tt> key in +options+.
     #
@@ -74,8 +72,9 @@ module Rails
     #
     # See <tt>#find_in</tt> for a list of file extensions that will be taken into account.
     #
-    # This class method is the single entry point for the `rails notes` command.
-    def self.enumerate(tag, options = {})
+    # This class method is the single entry point for the <tt>rails notes</tt> command.
+    def self.enumerate(tag = nil, options = {})
+      tag ||= Annotation.tags.join("|")
       extractor = new(tag)
       dirs = options.delete(:dirs) || Annotation.directories
       extractor.display(extractor.find(dirs), options)
@@ -101,7 +100,7 @@ module Rails
       results = {}
 
       Dir.glob("#{dir}/*") do |item|
-        next if File.basename(item)[0] == ?.
+        next if File.basename(item).start_with?(".")
 
         if File.directory?(item)
           results.update(find_in(item))

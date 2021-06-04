@@ -7,7 +7,6 @@ task default: :test
 task :package
 
 Rake::TestTask.new do |t|
-  t.libs << "test"
   t.pattern = "test/**/*_test.rb"
   t.warning = true
   t.verbose = true
@@ -21,7 +20,7 @@ end
 namespace :test do
   task :isolated do
     Dir.glob("test/**/*_test.rb").all? do |file|
-      sh(Gem.ruby, "-w", "-Ilib:test", file)
+      sh(Gem.ruby, "-w", file)
     end || raise("Failures")
   end
 
@@ -31,7 +30,6 @@ namespace :test do
         task("env:#{driver}") { ENV["REDIS_DRIVER"] = driver }
 
         Rake::TestTask.new(driver => "env:#{driver}") do |t|
-          t.libs << "test"
           t.test_files = ["test/cache/stores/redis_cache_store_test.rb"]
           t.warning = true
           t.verbose = true

@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-if subsecond_precision_supported?
+if supports_datetime_with_precision?
   class TimePrecisionTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
     self.use_transactional_tests = false
@@ -45,6 +45,26 @@ if subsecond_precision_supported?
       assert_equal 123456000, foo.finish.nsec
     end
 
+    unless current_adapter?(:Mysql2Adapter)
+      def test_no_time_precision_isnt_truncated_on_assignment
+        @connection.create_table(:foos, force: true)
+        @connection.add_column :foos, :start,  :time
+        @connection.add_column :foos, :finish, :time, precision: 6
+
+        time = ::Time.now.change(nsec: 123)
+        foo = Foo.new(start: time, finish: time)
+
+        assert_equal 123, foo.start.nsec
+        assert_equal 0, foo.finish.nsec
+
+        foo.save!
+        foo.reload
+
+        assert_equal 0, foo.start.nsec
+        assert_equal 0, foo.finish.nsec
+      end
+    end
+
     def test_passing_precision_to_time_does_not_set_limit
       @connection.create_table(:foos, force: true) do |t|
         t.time :start,  precision: 3
@@ -55,7 +75,7 @@ if subsecond_precision_supported?
     end
 
     def test_invalid_time_precision_raises_error
-      assert_raises ActiveRecord::ActiveRecordError do
+      assert_raises ArgumentError do
         @connection.create_table(:foos, force: true) do |t|
           t.time :start,  precision: 7
           t.time :finish, precision: 7
@@ -68,8 +88,10 @@ if subsecond_precision_supported?
         t.time :start,  precision: 0
         t.time :finish, precision: 4
       end
+
       time = ::Time.utc(2000, 1, 1, 12, 30, 0, 999999)
       Foo.create!(start: time, finish: time)
+
       assert foo = Foo.find_by(start: time)
       assert_equal 1, Foo.where(finish: time).count
       assert_equal time.to_s, foo.start.to_s

@@ -100,30 +100,6 @@ module ApplicationTests
       assert_nothing_raised { AppTemplate::Application.new }
     end
 
-    def test_initializers_run_on_different_applications_go_to_the_same_class
-      application1 = AppTemplate::Application.new
-      run_count = 0
-
-      AppTemplate::Application.initializer :init0 do
-        run_count += 1
-      end
-
-      application1.initializer :init1 do
-        run_count += 1
-      end
-
-      AppTemplate::Application.new.initializer :init2 do
-        run_count += 1
-      end
-
-      assert_equal 0, run_count, "Without loading the initializers, the count should be 0"
-
-      # Set config.eager_load to false so that an eager_load warning doesn't pop up
-      AppTemplate::Application.create { config.eager_load = false }.initialize!
-
-      assert_equal 3, run_count, "There should have been three initializers that incremented the count"
-    end
-
     def test_consoles_run_on_different_applications_go_to_the_same_class
       run_count = 0
       AppTemplate::Application.console { run_count += 1 }
@@ -165,12 +141,12 @@ module ApplicationTests
       app.config.some_setting = "a_different_setting"
       assert_equal "a_different_setting", app.config.some_setting, "The configuration's some_setting should be set."
 
-      new_config = Rails::Application::Configuration.new("root_of_application")
+      new_config = Rails::Application::Configuration.new(Pathname.new("root_of_application"))
       new_config.some_setting = "some_setting_dude"
       app.config = new_config
 
       assert_equal "some_setting_dude", app.config.some_setting, "The configuration's some_setting should have changed."
-      assert_equal "root_of_application", app.config.root, "The root should have changed to the new config's root."
+      assert_equal "root_of_application", app.config.root.to_s, "The root should have changed to the new config's root."
       assert_equal new_config, app.config, "The application's config should have changed to the new config."
     end
   end

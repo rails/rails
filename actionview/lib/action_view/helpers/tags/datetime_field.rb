@@ -14,7 +14,6 @@ module ActionView
         end
 
         private
-
           def format_date(value)
             raise NotImplementedError
           end

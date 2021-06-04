@@ -136,7 +136,7 @@ class PerformTestChannel < ActionCable::Channel::Base
   end
 
   def ping
-    transmit type: "pong"
+    transmit({ type: "pong" })
   end
 end
 
@@ -173,14 +173,14 @@ class BroadcastsTestChannel < ActionCable::Channel::Base
   def broadcast(data)
     ActionCable.server.broadcast(
       "broadcast_#{params[:id]}",
-      text: data["message"], user_id: user_id
+      { text: data["message"], user_id: user_id }
     )
   end
 
   def broadcast_to_user(data)
     user = User.new user_id
 
-    self.class.broadcast_to user, text: data["message"]
+    broadcast_to user, text: data["message"]
   end
 end
 

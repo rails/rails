@@ -34,6 +34,22 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal "omg", p.title
   end
 
+  test "constants without a matching file raise NameError" do
+    app_file "app/models/post.rb", <<-RUBY
+      class Post
+        NON_EXISTING_CONSTANT
+      end
+    RUBY
+
+    boot_app
+
+    e = assert_raise(NameError) { User }
+    assert_equal "uninitialized constant #{self.class}::User", e.message
+
+    e = assert_raise(NameError) { Post }
+    assert_equal "uninitialized constant Post::NON_EXISTING_CONSTANT", e.message
+  end
+
   test "concerns in app are autoloaded" do
     app_file "app/controllers/concerns/trackable.rb", <<-CONCERN
       module Trackable
@@ -100,7 +116,7 @@ class LoadingTest < ActiveSupport::TestCase
     RUBY
 
     app_file "app/models/post.rb", <<-MODEL
-      class Post < ActiveRecord::Base
+      class Post < ApplicationRecord
       end
     MODEL
 
@@ -117,14 +133,19 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
+    initial = [
+      ActiveStorage::Record, ActiveStorage::Blob, ActiveStorage::Attachment,
+      ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, ApplicationRecord
+    ].collect(&:to_s).sort
+
+    assert_equal initial, ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq
     get "/load"
-    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, Post].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
+    assert_equal [Post].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort - initial
     get "/unload"
-    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
+    assert_equal ["ActiveRecord::InternalMetadata", "ActiveRecord::SchemaMigration"], ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq
   end
 
-  test "initialize cant be called twice" do
+  test "initialize can't be called twice" do
     require "#{app_path}/config/environment"
     assert_raise(RuntimeError) { Rails.application.initialize! }
   end
@@ -270,6 +291,30 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal "7", last_response.body
   end
 
+  test "routes are only loaded once on boot" do
+    add_to_config <<-RUBY
+      config.cache_classes = false
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      $counter ||= 0
+      $counter += 1
+      Rails.application.routes.draw do
+        get '/c', to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+      end
+    RUBY
+
+    boot_app "development"
+
+    require "rack/test"
+    extend Rack::Test::Methods
+
+    require "#{rails_root}/config/environment"
+
+    get "/c"
+    assert_equal "1", last_response.body
+  end
+
   test "columns migrations also trigger reloading" do
     add_to_config <<-RUBY
       config.cache_classes = false
@@ -361,7 +406,7 @@ class LoadingTest < ActiveSupport::TestCase
 
   test "frameworks aren't loaded during initialization" do
     app_file "config/initializers/raise_when_frameworks_load.rb", <<-RUBY
-      %i(action_controller action_mailer active_job active_record).each do |framework|
+      %i(action_controller action_mailer active_job active_record action_view).each do |framework|
         ActiveSupport.on_load(framework) { raise "\#{framework} loaded!" }
       end
     RUBY
@@ -438,7 +483,6 @@ class LoadingTest < ActiveSupport::TestCase
   end
 
   private
-
     def setup_ar!
       ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
       ActiveRecord::Migration.verbose = false

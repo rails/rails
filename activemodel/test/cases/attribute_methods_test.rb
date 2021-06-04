@@ -26,21 +26,26 @@ class ModelWithAttributes2
 
   attr_accessor :attributes
 
-  attribute_method_suffix "_test"
+  attribute_method_suffix "_test", "_kw"
 
 private
   def attribute(name)
     attributes[name.to_s]
   end
 
-  alias attribute_test attribute
+  def attribute_test(name, attrs = {})
+    attrs[name] = attribute(name)
+  end
+
+  def attribute_kw(name, kw: 1)
+    attribute(name)
+  end
 
   def private_method
     "<3 <3"
   end
 
 protected
-
   def protected_method
     "O_o O_o"
   end
@@ -101,8 +106,8 @@ class AttributeMethodsTest < ActiveModel::TestCase
   end
 
   test "unrelated classes should not share attribute method matchers" do
-    assert_not_equal ModelWithAttributes.send(:attribute_method_matchers),
-                     ModelWithAttributes2.send(:attribute_method_matchers)
+    assert_not_equal ModelWithAttributes.public_send(:attribute_method_matchers),
+                     ModelWithAttributes2.public_send(:attribute_method_matchers)
   end
 
   test "#define_attribute_method generates attribute method" do
@@ -141,7 +146,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     ModelWithWeirdNamesAttributes.define_attribute_method(:'a?b')
 
     assert_respond_to ModelWithWeirdNamesAttributes.new, :'a?b'
-    assert_equal "value of a?b", ModelWithWeirdNamesAttributes.new.send("a?b")
+    assert_equal "value of a?b", ModelWithWeirdNamesAttributes.new.public_send("a?b")
   ensure
     ModelWithWeirdNamesAttributes.undefine_attribute_methods
   end
@@ -177,7 +182,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     ModelWithAttributesWithSpaces.define_attribute_methods(:'foo bar')
 
     assert_respond_to ModelWithAttributesWithSpaces.new, :'foo bar'
-    assert_equal "value of foo bar", ModelWithAttributesWithSpaces.new.send(:'foo bar')
+    assert_equal "value of foo bar", ModelWithAttributesWithSpaces.new.public_send(:'foo bar')
   ensure
     ModelWithAttributesWithSpaces.undefine_attribute_methods
   end
@@ -213,9 +218,27 @@ class AttributeMethodsTest < ActiveModel::TestCase
   test "accessing a suffixed attribute" do
     m = ModelWithAttributes2.new
     m.attributes = { "foo" => "bar" }
+    attrs = {}
 
     assert_equal "bar", m.foo
-    assert_equal "bar", m.foo_test
+    assert_equal "bar", m.foo_kw(kw: 2)
+    assert_equal "bar", m.foo_test(attrs)
+    assert_equal "bar", attrs["foo"]
+  end
+
+  test "defined attribute doesn't expand positional hash argument" do
+    ModelWithAttributes2.define_attribute_methods(:foo)
+
+    m = ModelWithAttributes2.new
+    m.attributes = { "foo" => "bar" }
+    attrs = {}
+
+    assert_equal "bar", m.foo
+    assert_equal "bar", m.foo_kw(kw: 2)
+    assert_equal "bar", m.foo_test(attrs)
+    assert_equal "bar", attrs["foo"]
+  ensure
+    ModelWithAttributes2.undefine_attribute_methods
   end
 
   test "should not interfere with method_missing if the attr has a private/protected method" do
@@ -264,6 +287,5 @@ class AttributeMethodsTest < ActiveModel::TestCase
 
     assert_equal "foo",            match.attr_name
     assert_equal "attribute_test", match.target
-    assert_equal "foo_test",       match.method_name
   end
 end

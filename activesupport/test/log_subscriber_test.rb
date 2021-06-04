@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/log_subscriber/test_helper"
 
 class MyLogSubscriber < ActiveSupport::LogSubscriber
@@ -103,6 +103,17 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     assert_not_called(@log_subscriber, :some_event) do
       ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
       instrument "some_event.my_log_subscriber"
+      wait
+    end
+  end
+
+  def test_does_not_send_buffered_events_if_logger_is_nil
+    ActiveSupport::LogSubscriber.logger = nil
+    assert_not_called(@log_subscriber, :some_event) do
+      ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
+      buffer = ActiveSupport::Notifications.instrumenter.buffer
+      buffer.instrument "some_event.my_log_subscriber"
+      buffer.flush
       wait
     end
   end

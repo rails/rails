@@ -87,10 +87,9 @@ module Rails
       end
 
     private
-
       def method_missing(name, *args, &blk)
-        if name.to_s =~ /=$/
-          @@options[$`.to_sym] = args.first
+        if name.end_with?("=")
+          @@options[:"#{name[0..-2]}"] = args.first
         elsif @@options.key?(name)
           @@options[name]
         else

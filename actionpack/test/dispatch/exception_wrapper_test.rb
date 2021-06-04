@@ -21,7 +21,7 @@ module ActionDispatch
     setup do
       @cleaner = ActiveSupport::BacktraceCleaner.new
       @cleaner.remove_filters!
-      @cleaner.add_silencer { |line| line !~ /^lib/ }
+      @cleaner.add_silencer { |line| !line.start_with?("lib") }
     end
 
     test "#source_extracts fetches source fragments for every backtrace entry" do

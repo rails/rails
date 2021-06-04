@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "active_support/core_ext/object/try"
 require "active_support/core_ext/object/with_options"
 require "active_support/core_ext/array/extract_options"
 
@@ -36,7 +35,6 @@ class ResourcesTest < ActionController::TestCase
         collection: collection_methods,
         member: member_methods,
         path_names: path_names do
-
       assert_restful_routes_for :messages,
           collection: collection_methods,
           member: member_methods,
@@ -58,7 +56,6 @@ class ResourcesTest < ActionController::TestCase
           collection: collection_methods,
           member: member_methods,
           path_names: path_names do |options|
-
         collection_methods.each_key do |action|
           assert_named_route "/messages/#{path_names[action] || action}", "#{action}_messages_path", action: action
         end
@@ -785,11 +782,11 @@ class ResourcesTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :products do
-           resources :product_reviews, path: "reviews", controller: "messages"
-         end
+          resources :product_reviews, path: "reviews", controller: "messages"
+        end
         resources :tutors do
-           resources :tutor_reviews, path: "reviews", controller: "comments"
-         end
+          resources :tutor_reviews, path: "reviews", controller: "comments"
+        end
       end
 
       assert_simply_restful_for :product_reviews, controller: "messages", as: "reviews", name_prefix: "product_", path_prefix: "products/1/", options: { product_id: "1" }
@@ -1127,7 +1124,7 @@ class ResourcesTest < ActionController::TestCase
               if collection_methods
                 collection do
                   collection_methods.each do |name, method|
-                    send(method, name)
+                    public_send(method, name)
                   end
                 end
               end
@@ -1135,7 +1132,7 @@ class ResourcesTest < ActionController::TestCase
               if member_methods
                 member do
                   member_methods.each do |name, method|
-                    send(method, name)
+                    public_send(method, name)
                   end
                 end
               end
@@ -1251,7 +1248,7 @@ class ResourcesTest < ActionController::TestCase
       shallow_path = "/#{options[:shallow] ? options[:namespace] : options[:path_prefix]}#{path}"
       full_path = "/#{options[:path_prefix]}#{path}"
       name_prefix = options[:name_prefix]
-      shallow_prefix = options[:shallow] ? options[:namespace].try(:gsub, /\//, "_") : options[:name_prefix]
+      shallow_prefix = options[:shallow] ? options[:namespace]&.gsub(/\//, "_") : options[:name_prefix]
 
       new_action  = "new"
       edit_action = "edit"
@@ -1329,7 +1326,7 @@ class ResourcesTest < ActionController::TestCase
     end
 
     def assert_named_route(expected, route, options)
-      actual = @controller.send(route, options) rescue $!.class.name
+      actual = @controller.public_send(route, options) rescue $!.class.name
       assert_equal expected, actual, "Error on route: #{route}(#{options.inspect})"
     end
 

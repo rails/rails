@@ -67,12 +67,23 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     assert_file "app/javascript/channels/consumer.js"
   end
 
+  def test_invokes_default_test_framework
+    run_generator %w(chat -t=test_unit)
+
+    assert_file "test/channels/chat_channel_test.rb" do |test|
+      assert_match(/class ChatChannelTest < ActionCable::Channel::TestCase/, test)
+      assert_match(/# test "subscribes" do/, test)
+      assert_match(/#   assert subscription.confirmed\?/, test)
+    end
+  end
+
   def test_channel_on_revoke
     run_generator ["chat"]
     run_generator ["chat"], behavior: :revoke
 
     assert_no_file "app/channels/chat_channel.rb"
     assert_no_file "app/javascript/channels/chat_channel.js"
+    assert_no_file "test/channels/chat_channel_test.rb"
 
     assert_file "app/channels/application_cable/channel.rb"
     assert_file "app/channels/application_cable/connection.rb"
@@ -88,5 +99,8 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "app/javascript/channels/chat_channel_channel.js"
     assert_file "app/javascript/channels/chat_channel.js"
+
+    assert_no_file "test/channels/chat_channel_channel_test.rb"
+    assert_file "test/channels/chat_channel_test.rb"
   end
 end

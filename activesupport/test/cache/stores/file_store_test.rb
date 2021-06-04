@@ -1,16 +1,24 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "active_support/cache"
 require_relative "../behaviors"
 require "pathname"
 
 class FileStoreTest < ActiveSupport::TestCase
+  attr_reader :cache_dir
+
+  def lookup_store(options = {})
+    cache_dir = options.delete(:cache_dir) { @cache_dir }
+    ActiveSupport::Cache.lookup_store(:file_store, cache_dir, options)
+  end
+
   def setup
+    @cache_dir = Dir.mktmpdir("file-store-")
     Dir.mkdir(cache_dir) unless File.exist?(cache_dir)
-    @cache = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, expires_in: 60)
-    @peek = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, expires_in: 60)
-    @cache_with_pathname = ActiveSupport::Cache.lookup_store(:file_store, Pathname.new(cache_dir), expires_in: 60)
+    @cache = lookup_store(expires_in: 60)
+    @peek = lookup_store(expires_in: 60)
+    @cache_with_pathname = lookup_store(cache_dir: Pathname.new(cache_dir), expires_in: 60)
 
     @buffer = StringIO.new
     @cache.logger = ActiveSupport::Logger.new(@buffer)
@@ -21,17 +29,13 @@ class FileStoreTest < ActiveSupport::TestCase
   rescue Errno::ENOENT
   end
 
-  def cache_dir
-    File.join(Dir.pwd, "tmp_cache")
-  end
-
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
+  include CacheStoreCoderBehavior
   include LocalCacheBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
-  include AutoloadingCacheBehavior
 
   def test_clear
     gitkeep = File.join(cache_dir, ".gitkeep")
@@ -101,12 +105,12 @@ class FileStoreTest < ActiveSupport::TestCase
     end
     assert File.exist?(cache_dir), "Parent of top level cache dir was deleted!"
     assert File.exist?(sub_cache_dir), "Top level cache dir was deleted!"
-    assert_empty Dir.entries(sub_cache_dir).reject { |f| ActiveSupport::Cache::FileStore::EXCLUDED_DIRS.include?(f) }
+    assert_empty Dir.children(sub_cache_dir)
   end
 
   def test_log_exception_when_cache_read_fails
     File.stub(:exist?, -> { raise StandardError.new("failed") }) do
-      @cache.send(:read_entry, "winston", {})
+      @cache.send(:read_entry, "winston", **{})
       assert_predicate @buffer.string, :present?
     end
   end
@@ -125,10 +129,51 @@ class FileStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_cleanup_when_non_active_support_cache_file_exists
+    cache_file_path = @cache.send(:normalize_key, "foo", nil)
+    FileUtils.makedirs(File.dirname(cache_file_path))
+    File.atomic_write(cache_file_path, cache_dir) { |f| Marshal.dump({ "foo": "bar" }, f) }
+    assert_nothing_raised { @cache.cleanup }
+    assert_equal 1, Dir.glob(File.join(cache_dir, "**")).size
+  end
+
   def test_write_with_unless_exist
     assert_equal true, @cache.write(1, "aaaaaaaaaa")
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
     @cache.write(1, nil)
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
+  end
+end
+
+class OptimizedFileStoreTest < FileStoreTest
+  def setup
+    @previous_format = ActiveSupport::Cache.format_version
+    ActiveSupport::Cache.format_version = 7.0
+    super
+  end
+
+  def forward_compatibility
+    previous_format = ActiveSupport::Cache.format_version
+    ActiveSupport::Cache.format_version = 6.1
+    @old_store = lookup_store
+    ActiveSupport::Cache.format_version = previous_format
+
+    @old_store.write("foo", "bar")
+    assert_equal "bar", @cache.read("foo")
+  end
+
+  def forward_compatibility
+    previous_format = ActiveSupport::Cache.format_version
+    ActiveSupport::Cache.format_version = 6.1
+    @old_store = lookup_store
+    ActiveSupport::Cache.format_version = previous_format
+
+    @cache.write("foo", "bar")
+    assert_equal "bar", @old_store.read("foo")
+  end
+
+  def teardown
+    super
+    ActiveSupport::Cache.format_version = @previous_format
   end
 end

@@ -12,7 +12,7 @@ class ActionController::Base
 
     def before_actions
       filters = _process_action_callbacks.select { |c| c.kind == :before }
-      filters.map!(&:raw_filter)
+      filters.map!(&:filter)
     end
   end
 end
@@ -94,7 +94,7 @@ class FilterTest < ActionController::TestCase
 
     private
       def unreached_prepend_after_action
-        @ran_filter << "unreached_preprend_after_action_after_render"
+        @ran_filter << "unreached_prepend_after_action_after_render"
       end
   end
 
@@ -195,7 +195,7 @@ class FilterTest < ActionController::TestCase
     before_action ConditionalClassFilter, except: :show_without_action
   end
 
-  class AnomolousYetValidConditionController < ConditionalFilterController
+  class AnomalousYetValidConditionController < ConditionalFilterController
     before_action(ConditionalClassFilter, :ensure_login, Proc.new { |c| c.instance_variable_set(:"@ran_proc_action1", true) }, except: :show_without_action) { |c| c.instance_variable_set(:"@ran_proc_action2", true) }
   end
 
@@ -310,7 +310,6 @@ class FilterTest < ActionController::TestCase
     after_action  :conditional_in_parent_after, only: [:show, :another_action]
 
     private
-
       def conditional_in_parent_before
         @ran_filter ||= []
         @ran_filter << "conditional_in_parent_before"
@@ -394,11 +393,9 @@ class FilterTest < ActionController::TestCase
   end
 
   class BeforeAfterClassFilterController < PrependingController
-    begin
-      filter = AroundFilter.new
-      before_action filter
-      after_action filter
-    end
+    filter = AroundFilter.new
+    before_action filter
+    after_action filter
   end
 
   class MixedFilterController < PrependingController
@@ -508,7 +505,6 @@ class FilterTest < ActionController::TestCase
     end
 
     private
-
       def filter_one
         @filters ||= []
         @filters << "filter_one"
@@ -532,7 +528,6 @@ class FilterTest < ActionController::TestCase
     before_action :find_except, except: :edit
 
     private
-
       def find_only
         @only = "Only"
       end
@@ -547,6 +542,31 @@ class FilterTest < ActionController::TestCase
     assert_nothing_raised do
       test_process(controller, "index")
     end
+  end
+
+  def test_around_action_can_use_yield_inline_with_passed_action
+    controller = Class.new(ActionController::Base) do
+      around_action do |c, a|
+        c.values << "before"
+        a.call
+        c.values << "after"
+      end
+
+      def index
+        values << "action"
+        render inline: "index"
+      end
+
+      def values
+        @values ||= []
+      end
+    end.new
+
+    assert_nothing_raised do
+      test_process(controller, "index")
+    end
+
+    assert_equal ["before", "action", "after"], controller.values
   end
 
   def test_after_actions_are_not_run_if_around_action_does_not_yield
@@ -589,13 +609,13 @@ class FilterTest < ActionController::TestCase
   end
 
   def test_running_anomalous_yet_valid_condition_actions
-    test_process(AnomolousYetValidConditionController)
+    test_process(AnomalousYetValidConditionController)
     assert_equal %w( ensure_login ), @controller.instance_variable_get(:@ran_filter)
     assert @controller.instance_variable_get(:@ran_class_action)
     assert @controller.instance_variable_get(:@ran_proc_action1)
     assert @controller.instance_variable_get(:@ran_proc_action2)
 
-    test_process(AnomolousYetValidConditionController, "show_without_action")
+    test_process(AnomalousYetValidConditionController, "show_without_action")
     assert_not @controller.instance_variable_defined?(:@ran_filter)
     assert_not @controller.instance_variable_defined?(:@ran_class_action)
     assert_not @controller.instance_variable_defined?(:@ran_proc_action1)
@@ -732,13 +752,13 @@ class FilterTest < ActionController::TestCase
     assert_equal %w( before_action_redirects ), @controller.instance_variable_get(:@ran_filter)
   end
 
-  def test_before_action_rendering_breaks_actioning_chain_for_preprend_after_action
+  def test_before_action_rendering_breaks_actioning_chain_for_prepend_after_action
     test_process(RenderingForPrependAfterActionController)
     assert_equal %w( before_action_rendering ), @controller.instance_variable_get(:@ran_filter)
     assert_not @controller.instance_variable_defined?(:@ran_action)
   end
 
-  def test_before_action_redirects_breaks_actioning_chain_for_preprend_after_action
+  def test_before_action_redirects_breaks_actioning_chain_for_prepend_after_action
     test_process(BeforeActionRedirectionForPrependAfterActionController)
     assert_response :redirect
     assert_equal "http://test.host/filter_test/before_action_redirection_for_prepend_after_action/target_of_redirection", redirect_to_url
@@ -888,7 +908,7 @@ class ControllerWithSymbolAsFilter < PostsController
       yield
 
       # Do stuff...
-      wtf += 1
+      wtf + 1
     end
 end
 

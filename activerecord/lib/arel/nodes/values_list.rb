@@ -2,23 +2,8 @@
 
 module Arel # :nodoc: all
   module Nodes
-    class ValuesList < Node
-      attr_reader :rows
-
-      def initialize(rows)
-        @rows = rows
-        super()
-      end
-
-      def hash
-        @rows.hash
-      end
-
-      def eql?(other)
-        self.class == other.class &&
-          self.rows == other.rows
-      end
-      alias :== :eql?
+    class ValuesList < Unary
+      alias :rows :expr
     end
   end
 end

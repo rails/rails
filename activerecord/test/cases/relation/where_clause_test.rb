@@ -87,23 +87,36 @@ class ActiveRecord::Relation
       end
     end
 
-    test "invert replaces each part of the predicate with its inverse" do
-      random_object = Object.new
+    test "invert wraps the ast inside a NAND node" do
       original = WhereClause.new([
         table["id"].in([1, 2, 3]),
+        table["id"].not_in([1, 2, 3]),
         table["id"].eq(1),
+        table["id"].not_eq(2),
+        table["id"].gt(1),
+        table["id"].gteq(2),
+        table["id"].lt(1),
+        table["id"].lteq(2),
         table["id"].is_not_distinct_from(1),
         table["id"].is_distinct_from(2),
-        "sql literal",
-        random_object
+        "sql literal"
       ])
       expected = WhereClause.new([
-        table["id"].not_in([1, 2, 3]),
-        table["id"].not_eq(1),
-        table["id"].is_distinct_from(1),
-        table["id"].is_not_distinct_from(2),
-        Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new("sql literal")),
-        Arel::Nodes::Not.new(random_object)
+        Arel::Nodes::Not.new(
+          Arel::Nodes::And.new([
+            table["id"].in([1, 2, 3]),
+            table["id"].not_in([1, 2, 3]),
+            table["id"].eq(1),
+            table["id"].not_eq(2),
+            table["id"].gt(1),
+            table["id"].gteq(2),
+            table["id"].lt(1),
+            table["id"].lteq(2),
+            table["id"].is_not_distinct_from(1),
+            table["id"].is_distinct_from(2),
+            Arel::Nodes::Grouping.new("sql literal")
+          ])
+        )
       ])
 
       assert_equal expected, original.invert
@@ -232,8 +245,20 @@ class ActiveRecord::Relation
       assert_equal only_common, common_with_extra.or(only_common)
     end
 
-    private
+    test "supports hash equality" do
+      h = Hash.new(0)
+      h[WhereClause.new(["a"])] += 1
+      h[WhereClause.new(["a"])] += 1
+      h[WhereClause.new(["b"])] += 1
 
+      expected = {
+        WhereClause.new(["a"]) => 2,
+        WhereClause.new(["b"]) => 1
+      }
+      assert_equal expected, h
+    end
+
+    private
       def table
         Arel::Table.new("table")
       end

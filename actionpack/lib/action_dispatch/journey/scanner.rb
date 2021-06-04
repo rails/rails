@@ -33,7 +33,6 @@ module ActionDispatch
       end
 
       private
-
         # takes advantage of String @- deduping capabilities in Ruby 2.5 upwards
         # see: https://bugs.ruby-lang.org/issues/13077
         def dedup_scan(regex)

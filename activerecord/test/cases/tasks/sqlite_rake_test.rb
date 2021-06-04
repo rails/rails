@@ -54,9 +54,12 @@ if current_adapter?(:SQLite3Adapter)
       end
 
       def test_db_create_establishes_a_connection
-        assert_called_with(ActiveRecord::Base, :establish_connection, [@configuration]) do
+        calls = []
+        ActiveRecord::Base.stub(:establish_connection, proc { |*args| calls << args }) do
           ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
         end
+
+        assert_equal [@configuration.symbolize_keys], calls.map { |c| c.first.configuration_hash }
       end
 
       def test_db_create_with_error_prints_message

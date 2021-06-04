@@ -115,7 +115,7 @@ module ActionView
         end
 
         feed_opts = { "xml:lang" => options[:language] || "en-US", "xmlns" => "http://www.w3.org/2005/Atom" }
-        feed_opts.merge!(options).reject! { |k, v| !k.to_s.match(/^xml/) }
+        feed_opts.merge!(options).select! { |k, _| k.start_with?("xml") }
 
         xml.feed(feed_opts) do
           xml.id(options[:id] || "tag:#{request.host},#{options[:schema_date]}:#{request.fullpath.split(".")[0]}")

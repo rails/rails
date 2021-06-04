@@ -23,6 +23,7 @@ module ActionMailer
       @processed_mailer = nil
       @mail_message = nil
     end
+    ruby2_keywords(:initialize)
 
     # Method calls are delegated to the Mail::Message that's ready to deliver.
     def __getobj__ #:nodoc:
@@ -52,12 +53,14 @@ module ActionMailer
     #   Notifier.welcome(User.first).deliver_later!
     #   Notifier.welcome(User.first).deliver_later!(wait: 1.hour)
     #   Notifier.welcome(User.first).deliver_later!(wait_until: 10.hours.from_now)
+    #   Notifier.welcome(User.first).deliver_later!(priority: 10)
     #
     # Options:
     #
     # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay
     # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
     # * <tt>:queue</tt> - Enqueue the email on the specified queue
+    # * <tt>:priority</tt> - Enqueues the email with the specified priority
     #
     # By default, the email will be enqueued using <tt>ActionMailer::DeliveryJob</tt>. Each
     # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
@@ -76,12 +79,14 @@ module ActionMailer
     #   Notifier.welcome(User.first).deliver_later
     #   Notifier.welcome(User.first).deliver_later(wait: 1.hour)
     #   Notifier.welcome(User.first).deliver_later(wait_until: 10.hours.from_now)
+    #   Notifier.welcome(User.first).deliver_later(priority: 10)
     #
     # Options:
     #
     # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay.
     # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time.
     # * <tt>:queue</tt> - Enqueue the email on the specified queue.
+    # * <tt>:priority</tt> - Enqueues the email with the specified priority
     #
     # By default, the email will be enqueued using <tt>ActionMailer::DeliveryJob</tt>. Each
     # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
@@ -136,16 +141,37 @@ module ActionMailer
             "method*, or 3. use a custom Active Job instead of #deliver_later."
         else
           job = @mailer_class.delivery_job
-          args = arguments_for(job, delivery_method)
-          job.set(options).perform_later(*args)
+
+          if use_new_args?(job)
+            job.set(options).perform_later(
+              @mailer_class.name, @action.to_s, delivery_method.to_s, args: @args)
+          elsif job <= DeliveryJob
+            job.set(options).perform_later(
+              @mailer_class.name, @action.to_s, delivery_method.to_s, *@args)
+          else
+            ActiveSupport::Deprecation.warn(<<~EOM)
+              In Rails 7.0, Action Mailer will pass the mail arguments inside the `:args` keyword argument.
+              The `perform` method of the #{job} needs to change and forward the mail arguments
+              from the `args` keyword argument.
+
+              The `perform` method should now look like:
+
+              `def perform(mailer, mail_method, delivery, args:)`
+            EOM
+
+            job.set(options).perform_later(
+              @mailer_class.name, @action.to_s, delivery_method.to_s, *@args)
+          end
         end
       end
 
-      def arguments_for(delivery_job, delivery_method)
-        if delivery_job <= MailDeliveryJob
-          [@mailer_class.name, @action.to_s, delivery_method.to_s, args: @args]
-        else
-          [@mailer_class.name, @action.to_s, delivery_method.to_s, *@args]
+      def use_new_args?(job)
+        parameters = job.public_instance_method(:perform).parameters
+
+        parameters.find do |key, name|
+          return true if key == :keyreq && name == :args
+
+          key == :keyrest
         end
       end
   end

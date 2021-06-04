@@ -11,9 +11,8 @@ require "active_support/core_ext/array/extract_options"
 module Rails
   module Generators
     class AppBase < Base # :nodoc:
-      DATABASES = %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver )
-      JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
-      DATABASES.concat(JDBC_DATABASES)
+      include Database
+      include AppName
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -53,6 +52,9 @@ module Rails
         class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
                                            desc: "Skip Active Record files"
 
+        class_option :skip_active_job,     type: :boolean, default: false,
+                                           desc: "Skip Active Job"
+
         class_option :skip_active_storage, type: :boolean, default: false,
                                            desc: "Skip Active Storage files"
 
@@ -77,6 +79,9 @@ module Rails
         class_option :skip_turbolinks,     type: :boolean, default: false,
                                            desc: "Skip turbolinks gem"
 
+        class_option :skip_jbuilder,       type: :boolean, default: false,
+                                           desc: "Skip jbuilder gem"
+
         class_option :skip_test,           type: :boolean, aliases: "-T", default: false,
                                            desc: "Skip test files"
 
@@ -87,10 +92,13 @@ module Rails
                                            desc: "Skip bootsnap gem"
 
         class_option :dev,                 type: :boolean, default: false,
-                                           desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
+                                           desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
         class_option :edge,                type: :boolean, default: false,
-                                           desc: "Setup the #{name} with Gemfile pointing to Rails repository"
+                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository"
+
+        class_option :main,                type: :boolean, default: false, aliases: "--master",
+                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository main branch"
 
         class_option :rc,                  type: :string, default: nil,
                                            desc: "Path to file containing extra configuration options for rails command"
@@ -102,48 +110,22 @@ module Rails
                                            desc: "Show this help message and quit"
       end
 
-      def initialize(*args)
-        @gem_filter    = lambda { |gem| true }
-        @extra_entries = []
+      def initialize(*)
+        @gem_filter = lambda { |gem| true }
         super
-        convert_database_option_for_jruby
       end
 
     private
-
-      def gemfile_entry(name, *args) # :doc:
-        options = args.extract_options!
-        version = args.first
-        github = options[:github]
-        path   = options[:path]
-
-        if github
-          @extra_entries << GemfileEntry.github(name, github)
-        elsif path
-          @extra_entries << GemfileEntry.path(name, path)
-        else
-          @extra_entries << GemfileEntry.version(name, version)
-        end
-        self
-      end
-
       def gemfile_entries # :doc:
         [rails_gemfile_entry,
          database_gemfile_entry,
-         webserver_gemfile_entry,
+         web_server_gemfile_entry,
          assets_gemfile_entry,
          webpacker_gemfile_entry,
          javascript_gemfile_entry,
          jbuilder_gemfile_entry,
          psych_gemfile_entry,
-         cable_gemfile_entry,
-         @extra_entries].flatten.find_all(&@gem_filter)
-      end
-
-      def add_gem_entry_filter # :doc:
-        @gem_filter = lambda { |next_filter, entry|
-          yield(entry) && next_filter.call(entry)
-        }.curry[@gem_filter]
+         cable_gemfile_entry].flatten.find_all(&@gem_filter)
       end
 
       def builder # :doc:
@@ -155,7 +137,7 @@ module Rails
       end
 
       def build(meth, *args) # :doc:
-        builder.send(meth, *args) if builder.respond_to?(meth)
+        builder.public_send(meth, *args) if builder.respond_to?(meth)
       end
 
       def create_root # :doc:
@@ -191,10 +173,10 @@ module Rails
                             "Use #{options[:database]} as the database for Active Record"
       end
 
-      def webserver_gemfile_entry # :doc:
+      def web_server_gemfile_entry # :doc:
         return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 3.11", comment)
+        GemfileEntry.new("puma", "~> 5.0", comment)
       end
 
       def include_all_railties? # :doc:
@@ -204,7 +186,8 @@ module Rails
             :skip_action_mailer,
             :skip_test,
             :skip_sprockets,
-            :skip_action_cable
+            :skip_action_cable,
+            :skip_active_job
           ),
           skip_active_storage?,
           skip_action_mailbox?,
@@ -245,6 +228,10 @@ module Rails
         options[:skip_action_text] || skip_active_storage?
       end
 
+      def skip_dev_gems? # :doc:
+        options[:skip_dev_gems]
+      end
+
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
         def initialize(name, version, comment, options = {}, commented_out = false)
           super
@@ -270,7 +257,7 @@ module Rails
           version = super
 
           if version.is_a?(Array)
-            version.join("', '")
+            version.join('", "')
           else
             version
           end
@@ -283,13 +270,18 @@ module Rails
             GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
           ]
         elsif options.edge?
+          edge_branch = Rails.gem_version.prerelease? ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
           [
-            GemfileEntry.github("rails", "rails/rails")
+            GemfileEntry.github("rails", "rails/rails", edge_branch)
+          ]
+        elsif options.main?
+          [
+            GemfileEntry.github("rails", "rails/rails", "main")
           ]
         else
           [GemfileEntry.version("rails",
                             rails_version_specifier,
-                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'")]
+                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'")]
         end
       end
 
@@ -306,53 +298,22 @@ module Rails
         end
       end
 
-      def gem_for_database
-        # %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
-        case options[:database]
-        when "mysql"          then ["mysql2", [">= 0.4.4"]]
-        when "postgresql"     then ["pg", [">= 0.18", "< 2.0"]]
-        when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
-        when "frontbase"      then ["ruby-frontbase", nil]
-        when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
-        when "jdbcmysql"      then ["activerecord-jdbcmysql-adapter", nil]
-        when "jdbcsqlite3"    then ["activerecord-jdbcsqlite3-adapter", nil]
-        when "jdbcpostgresql" then ["activerecord-jdbcpostgresql-adapter", nil]
-        when "jdbc"           then ["activerecord-jdbc-adapter", nil]
-        else [options[:database], nil]
-        end
-      end
-
-      def convert_database_option_for_jruby
-        if defined?(JRUBY_VERSION)
-          opt = options.dup
-          case opt[:database]
-          when "postgresql" then opt[:database] = "jdbcpostgresql"
-          when "mysql"      then opt[:database] = "jdbcmysql"
-          when "sqlite3"    then opt[:database] = "jdbcsqlite3"
-          end
-          self.options = opt.freeze
-        end
-      end
-
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
-        GemfileEntry.version("sass-rails", "~> 5.0", "Use SCSS for stylesheets")
+        GemfileEntry.version("sass-rails", ">= 6", "Use SCSS for stylesheets")
       end
 
       def webpacker_gemfile_entry
         return [] if options[:skip_javascript]
 
-        if options.dev? || options.edge?
-          GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
-        else
-          GemfileEntry.new "webpacker", nil, "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
-        end
+        GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
       end
 
       def jbuilder_gemfile_entry
+        return [] if options[:skip_jbuilder]
         comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
-        GemfileEntry.new "jbuilder", "~> 2.5", comment, {}, options[:api]
+        GemfileEntry.new "jbuilder", "~> 2.7", comment, {}, options[:api]
       end
 
       def javascript_gemfile_entry
@@ -388,19 +349,21 @@ module Rails
         # its own vendored Thor, which could be a different version. Running both
         # things in the same process is a recipe for a night with paracetamol.
         #
-        # We unset temporary bundler variables to load proper bundler and Gemfile.
-        #
         # Thanks to James Tucker for the Gem tricks involved in this call.
         _bundle_command = Gem.bin_path("bundler", "bundle")
 
         require "bundler"
-        Bundler.with_clean_env do
-          full_command = %Q["#{Gem.ruby}" "#{_bundle_command}" #{command}]
-          if options[:quiet]
-            system(env, full_command, out: File::NULL)
-          else
-            system(env, full_command)
-          end
+        Bundler.with_original_env do
+          exec_bundle_command(_bundle_command, command, env)
+        end
+      end
+
+      def exec_bundle_command(bundle_command, command, env)
+        full_command = %Q["#{Gem.ruby}" "#{bundle_command}" #{command}]
+        if options[:quiet]
+          system(env, full_command, out: File::NULL)
+        else
+          system(env, full_command)
         end
       end
 
@@ -429,7 +392,7 @@ module Rails
       end
 
       def os_supports_listen_out_of_the_box?
-        RbConfig::CONFIG["host_os"] =~ /darwin|linux/
+        /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
       end
 
       def run_bundle
@@ -437,21 +400,25 @@ module Rails
       end
 
       def run_webpack
-        if webpack_install?
-          rails_command "webpacker:install"
-          rails_command "webpacker:install:#{options[:webpack]}" if options[:webpack] && options[:webpack] != "webpack"
+        return unless webpack_install?
+
+        unless bundle_install?
+          say <<~EXPLAIN
+            Skipping `rails webpacker:install` because `bundle install` was skipped.
+            To complete setup, you must run `bundle install` followed by `rails webpacker:install`.
+          EXPLAIN
+          return
+        end
+
+        rails_command "webpacker:install"
+        if options[:webpack] && options[:webpack] != "webpack"
+          rails_command "webpacker:install:#{options[:webpack]}"
         end
       end
 
       def generate_bundler_binstub
         if bundle_install?
           bundle_command("binstubs bundler")
-        end
-      end
-
-      def generate_spring_binstubs
-        if bundle_install? && spring_install?
-          bundle_command("exec spring binstub --all")
         end
       end
 

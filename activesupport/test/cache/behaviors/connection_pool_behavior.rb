@@ -7,8 +7,8 @@ module ConnectionPoolBehavior
     threads = []
 
     emulating_latency do
-      cache = ActiveSupport::Cache.lookup_store(store, { pool_size: 2, pool_timeout: 1 }.merge(store_options))
-      cache.clear
+      cache = ActiveSupport::Cache.lookup_store(*store, { pool_size: 2, pool_timeout: 1 }.merge(store_options))
+      cache.read("foo")
 
       assert_raises Timeout::Error do
         # One of the three threads will fail in 1 second because our pool size
@@ -32,8 +32,7 @@ module ConnectionPoolBehavior
     threads = []
 
     emulating_latency do
-      cache = ActiveSupport::Cache.lookup_store(store, store_options)
-      cache.clear
+      cache = ActiveSupport::Cache.lookup_store(*store, store_options)
 
       assert_nothing_raised do
         # Default connection pool size is 5, assuming 10 will make sure that

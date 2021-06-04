@@ -11,12 +11,12 @@ module Arel
           left  = attr.eq(10)
           right = attr.eq(11)
           node  = left.or right
-          node.expr.left.must_equal left
-          node.expr.right.must_equal right
+          _(node.expr.left).must_equal left
+          _(node.expr.right).must_equal right
 
           oror = node.or(right)
-          oror.expr.left.must_equal node
-          oror.expr.right.must_equal right
+          _(oror.expr.left).must_equal node
+          _(oror.expr.right).must_equal right
         end
       end
 

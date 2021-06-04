@@ -10,7 +10,6 @@ require "models/comment"
 
 module JsonSerializationHelpers
   private
-
     def set_include_root_in_json(value)
       original_root_in_json = ActiveRecord::Base.include_root_in_json
       ActiveRecord::Base.include_root_in_json = value
@@ -24,7 +23,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
   include JsonSerializationHelpers
 
   class NamespacedContact < Contact
-    column :name, :string
+    column :name, "string"
   end
 
   def setup
@@ -302,7 +301,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
 
   def test_should_be_able_to_encode_relation
     set_include_root_in_json(true) do
-      authors_relation = Author.where(id: [@david.id, @mary.id])
+      authors_relation = Author.where(id: [@david.id, @mary.id]).order(:id)
 
       json = ActiveSupport::JSON.encode authors_relation, only: :name
       assert_equal '[{"author":{"name":"David"}},{"author":{"name":"Mary"}}]', json

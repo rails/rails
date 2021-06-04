@@ -10,6 +10,7 @@ end
 
 class InfoControllerTest < ActionController::TestCase
   tests Rails::InfoController
+  Rails.application.config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
 
   def setup
     Rails.application.routes.draw do
@@ -48,11 +49,6 @@ class InfoControllerTest < ActionController::TestCase
   test "info controller renders a table with properties" do
     get :properties
     assert_select "table"
-  end
-
-  test "info controller renders json with properties" do
-    get :properties, format: :json
-    assert_equal Rails::Info.to_json, response.body
   end
 
   test "info controller renders with routes" do

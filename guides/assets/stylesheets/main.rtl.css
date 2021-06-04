@@ -71,9 +71,12 @@ textarea, select {
 
 table {
   margin: 0 0 1.5em;
-  border: 2px solid #CCC;
   background: #FFF;
   border-collapse: collapse;
+}
+
+tbody, thead {
+  border: 2px solid #CCC;
 }
 
 table th, table td {
@@ -88,6 +91,17 @@ table th {
   font-weight: bold;
 }
 
+@media only screen and (max-width: 480px) {
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  td {
+    min-width: 7em;
+  }
+}
+
 img {
   max-width: 100%;
 }
@@ -100,7 +114,7 @@ body {
   text-align: center;
   font-family: Helvetica, Arial, sans-serif;
   font-size: 87.5%;
-  line-height: 1.5em;
+  line-height: 1.5;
   background: #fff;
   color: #999;
   direction: rtl;
@@ -225,6 +239,26 @@ body {
   }
 }
 
+.clipboard-button {
+  background: #dbdbdb;
+  border: 0;
+  border-radius: 5px;
+  padding: 2px 10px;
+  position: absolute;
+  bottom: 2px;
+  right: 2px
+}
+
+.clipboard-button:active {
+  background: #ccc;
+}
+
+.clipboard-content {
+  opacity:0;
+  position:absolute;
+  z-index:-1;
+}
+
 #header {
   background: #c52f24 url(../images/header_tile.gif) repeat-x;
   color: #FFF;
@@ -255,9 +289,9 @@ body {
   left: 0;
   background: #FFF;
   padding: 1em 1.5em 1em 1.25em;
-  width: 17em;
+  width: 20em;
   font-size: 0.9285em;
-  line-height: 1.3846em;
+  line-height: 1.3846;
   margin-left: 1em;
 }
 
@@ -282,7 +316,7 @@ body {
 }
 
 #header .wrapper, #topNav .wrapper, #feature .wrapper {padding-right: 1em; max-width: 960px;}
-#feature .wrapper {max-width: 640px; padding-left: 23em; position: relative; z-index: 0;}
+#feature .wrapper {max-width: 720px; padding-left: 23em; position: relative; z-index: 0;}
 
 @media screen and (max-width: 960px) {
   #container .wrapper { padding-left: 23em; }
@@ -470,14 +504,14 @@ a, a:link, a:visited {
 
 h1 {
   font-size: 2.5em;
-  line-height: 1em;
+  line-height: 1;
   margin: 0.6em 0 .2em;
   font-weight: bold;
 }
 
 h2 {
   font-size: 2.1428em;
-  line-height: 1em;
+  line-height: 1;
   margin: 0.7em 0 .2333em;
   font-weight: bold;
 }
@@ -490,7 +524,7 @@ h2 {
 
 h3 {
   font-size: 1.7142em;
-  line-height: 1.286em;
+  line-height: 1.286;
   margin: 0.875em 0 0.2916em;
   font-weight: bold;
 }
@@ -503,21 +537,21 @@ h3 {
 
 h4 {
   font-size: 1.2857em;
-  line-height: 1.2em;
+  line-height: 1.2;
   margin: 1.6667em 0 .3887em;
   font-weight: bold;
 }
 
 h5 {
   font-size: 1em;
-  line-height: 1.5em;
+  line-height: 1.5;
   margin: 1em 0 .5em;
   font-weight: bold;
 }
 
 h6 {
   font-size: 1em;
-  line-height: 1.5em;
+  line-height: 1.5;
   margin: 1em 0 .5em;
   font-weight: normal;
 }
@@ -657,6 +691,7 @@ only screen and (                min-resolution: 2dppx) {
 div.code_container {
   background: #EEE url(../images/tab_grey.gif) no-repeat right top;
   padding: 0.25em 48px 0.5em 1em;
+  position: relative;
 }
 
 .note {
@@ -693,7 +728,7 @@ div.code_container {
 
 #subCol .content {
   font-size: 0.7857em;
-  line-height: 1.5em;
+  line-height: 1.5;
 }
 
 #subCol .content li {
@@ -729,34 +764,13 @@ div.important p, div.caution p, div.warning p, div.note p, div.info p {
   margin-bottom: 1em;
 }
 
-/* Edge Badge
+/* Version Badge
 --------------------------------------- */
 
-#edge-badge {
+#version-badge {
   position: fixed;
   right: 0px;
   top: 0px;
   z-index: 100;
   border: none;
-}
-
-/* Foundation v2.1.4 http://foundation.zurb.com */
-/* Artfully masterminded by ZURB  */
-
-/* Mobile */
-@media only screen and (max-width: 767px) {
-  table.responsive { margin-bottom: 0; }
-
-  .pinned { position: absolute; right: 0; top: 0; background: #fff; width: 35%; overflow: hidden; overflow-x: scroll; border-left: 1px solid #ccc; border-right: 1px solid #ccc; }
-  .pinned table { border-left: none; border-right: none; width: 100%; }
-  .pinned table th, .pinned table td { white-space: nowrap; }
-  .pinned td:last-child { border-bottom: 0; }
-
-  div.table-wrapper { position: relative; margin-bottom: 20px; overflow: hidden; border-left: 1px solid #ccc; }
-  div.table-wrapper div.scrollable table { margin-right: 35%; }
-  div.table-wrapper div.scrollable { overflow: scroll; overflow-y: hidden; }
-
-  table.responsive td, table.responsive th { position: relative; white-space: nowrap; overflow: hidden; }
-  table.responsive th:first-child, table.responsive td:first-child, table.responsive td:first-child, table.responsive.pinned td { display: none; }
-
 }

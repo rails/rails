@@ -3,16 +3,50 @@
 require "service/shared_service_tests"
 
 class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
-  SERVICE = ActiveStorage::Service::DiskService.new(root: File.join(Dir.tmpdir, "active_storage"))
+  tmp_config = { tmp: { service: "Disk", root: File.join(Dir.tmpdir, "active_storage") } }
+  SERVICE = ActiveStorage::Service.configure(:tmp, tmp_config)
 
   include ActiveStorage::Service::SharedServiceTests
 
-  test "url generation" do
-    assert_match(/^https:\/\/example.com\/rails\/active_storage\/disk\/.*\/avatar\.png\?content_type=image%2Fpng&disposition=inline/,
-      @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png"))
+  test "name" do
+    assert_equal :tmp, @service.name
+  end
+
+  test "URL generation" do
+    original_url_options = Rails.application.routes.default_url_options.dup
+    Rails.application.routes.default_url_options.merge!(protocol: "http", host: "test.example.com", port: 3001)
+    begin
+      assert_match(/^https:\/\/example.com\/rails\/active_storage\/disk\/.*\/avatar\.png$/,
+        @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png"))
+    ensure
+      Rails.application.routes.default_url_options = original_url_options
+    end
+  end
+
+  test "URL generation without ActiveStorage::Current.host set" do
+    ActiveStorage::Current.host = nil
+
+    error = assert_raises ArgumentError do
+      @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
+    end
+
+    assert_equal("Cannot generate URL for avatar.png using Disk service, please set ActiveStorage::Current.host.", error.message)
   end
 
   test "headers_for_direct_upload generation" do
     assert_equal({ "Content-Type" => "application/json" }, @service.headers_for_direct_upload(@key, content_type: "application/json"))
+  end
+
+  test "root" do
+    assert_equal tmp_config.dig(:tmp, :root), @service.root
+  end
+
+  test "can change root" do
+    tmp_path_2 = File.join(Dir.tmpdir, "active_storage_2")
+    @service.root = tmp_path_2
+
+    assert_equal tmp_path_2, @service.root
+  ensure
+    @service.root = tmp_config.dig(:tmp, :root)
   end
 end

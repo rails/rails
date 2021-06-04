@@ -54,14 +54,24 @@ module ActionController
     #
     # Statements after +redirect_to+ in our controller get executed, so +redirect_to+ doesn't stop the execution of the function.
     # To terminate the execution of the function immediately after the +redirect_to+, use return.
+    #
     #   redirect_to post_url(@post) and return
-    def redirect_to(options = {}, response_status = {})
+    #
+    # Passing user input directly into +redirect_to+ is considered dangerous (eg. `redirect_to(params[:location])`).
+    # Always use regular expressions or a permitted list when redirecting to a user specified location.
+    def redirect_to(options = {}, response_options = {})
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
 
-      self.status        = _extract_redirect_to_status(options, response_status)
+      self.status        = _extract_redirect_to_status(options, response_options)
       self.location      = _compute_redirect_to_location(request, options)
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(response.location)}\">redirected</a>.</body></html>"
+    end
+
+    # Soft deprecated alias for <tt>redirect_back_or_to</tt> where the fallback_location location is supplied as a keyword argument instead
+    # of the first positional argument.
+    def redirect_back(fallback_location:, allow_other_host: true, **args)
+      redirect_back_or_to fallback_location, allow_other_host: allow_other_host, **args
     end
 
     # Redirects the browser to the page that issued the request (the referrer)
@@ -73,21 +83,20 @@ module ActionController
     # subject to browser security settings and user preferences. If the request
     # is missing this header, the <tt>fallback_location</tt> will be used.
     #
-    #   redirect_back fallback_location: { action: "show", id: 5 }
-    #   redirect_back fallback_location: @post
-    #   redirect_back fallback_location: "http://www.rubyonrails.org"
-    #   redirect_back fallback_location: "/images/screenshot.jpg"
-    #   redirect_back fallback_location: posts_url
-    #   redirect_back fallback_location: proc { edit_post_url(@post) }
-    #   redirect_back fallback_location: '/', allow_other_host: false
+    #   redirect_back_or_to({ action: "show", id: 5 })
+    #   redirect_back_or_to @post
+    #   redirect_back_or_to "http://www.rubyonrails.org"
+    #   redirect_back_or_to "/images/screenshot.jpg"
+    #   redirect_back_or_to posts_url
+    #   redirect_back_or_to proc { edit_post_url(@post) }
+    #   redirect_back_or_to '/', allow_other_host: false
     #
     # ==== Options
-    # * <tt>:fallback_location</tt> - The default fallback location that will be used on missing +Referer+ header.
     # * <tt>:allow_other_host</tt> - Allow or disallow redirection to the host that is different to the current host, defaults to true.
     #
-    # All other options that can be passed to <tt>redirect_to</tt> are accepted as
+    # All other options that can be passed to #redirect_to are accepted as
     # options and the behavior is identical.
-    def redirect_back(fallback_location:, allow_other_host: true, **args)
+    def redirect_back_or_to(fallback_location, allow_other_host: true, **args)
       referer = request.headers["Referer"]
       redirect_to_referer = referer && (allow_other_host || _url_host_allowed?(referer))
       redirect_to redirect_to_referer ? referer : fallback_location, **args
@@ -100,8 +109,8 @@ module ActionController
       # characters; and is terminated by a colon (":").
       # See https://tools.ietf.org/html/rfc3986#section-3.1
       # The protocol relative scheme starts with a double slash "//".
-      when /\A([a-z][a-z\d\-+\.]*:|\/\/).*/i
-        options
+      when /\A([a-z][a-z\d\-+.]*:|\/\/).*/i
+        options.to_str
       when String
         request.protocol + request.host_with_port + options
       when Proc
@@ -114,11 +123,11 @@ module ActionController
     public :_compute_redirect_to_location
 
     private
-      def _extract_redirect_to_status(options, response_status)
+      def _extract_redirect_to_status(options, response_options)
         if options.is_a?(Hash) && options.key?(:status)
           Rack::Utils.status_code(options.delete(:status))
-        elsif response_status.key?(:status)
-          Rack::Utils.status_code(response_status[:status])
+        elsif response_options.key?(:status)
+          Rack::Utils.status_code(response_options[:status])
         else
           302
         end

@@ -1,38 +1,113 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/enumerable"
-require "active_support/core_ext/string/conversions"
-require "active_support/core_ext/module/remove_method"
-require "active_record/errors"
-
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
+    attr_reader :record, :association_name
     def initialize(record = nil, association_name = nil)
+      @record           = record
+      @association_name = association_name
       if record && association_name
         super("Association named '#{association_name}' was not found on #{record.class.name}; perhaps you misspelled it?")
       else
         super("Association was not found.")
       end
     end
+
+    class Correction
+      def initialize(error)
+        @error = error
+      end
+
+      def corrections
+        if @error.association_name
+          maybe_these = @error.record.class.reflections.keys
+
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.association_name.to_s, n)
+          }.reverse.first(4)
+        else
+          []
+        end
+      end
+    end
+
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
+    end
   end
 
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
+    attr_reader :reflection, :associated_class
     def initialize(reflection = nil, associated_class = nil)
       if reflection
+        @reflection = reflection
+        @associated_class = associated_class.nil? ? reflection.klass : associated_class
         super("Could not find the inverse association for #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{associated_class.nil? ? reflection.class_name : associated_class.name})")
       else
         super("Could not find the inverse association.")
       end
     end
+
+    class Correction
+      def initialize(error)
+        @error = error
+      end
+
+      def corrections
+        if @error.reflection && @error.associated_class
+          maybe_these = @error.associated_class.reflections.keys
+
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.reflection.options[:inverse_of].to_s, n)
+          }.reverse.first(4)
+        else
+          []
+        end
+      end
+    end
+
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
+    end
   end
 
   class HasManyThroughAssociationNotFoundError < ActiveRecordError #:nodoc:
-    def initialize(owner_class_name = nil, reflection = nil)
-      if owner_class_name && reflection
-        super("Could not find the association #{reflection.options[:through].inspect} in model #{owner_class_name}")
+    attr_reader :owner_class, :reflection
+
+    def initialize(owner_class = nil, reflection = nil)
+      if owner_class && reflection
+        @owner_class = owner_class
+        @reflection = reflection
+        super("Could not find the association #{reflection.options[:through].inspect} in model #{owner_class.name}")
       else
         super("Could not find the association.")
       end
+    end
+
+    class Correction
+      def initialize(error)
+        @error = error
+      end
+
+      def corrections
+        if @error.reflection && @error.owner_class
+          maybe_these = @error.owner_class.reflections.keys
+          maybe_these -= [@error.reflection.name.to_s] # remove failing reflection
+
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.reflection.options[:through].to_s, n)
+          }.reverse.first(4)
+        else
+          []
+        end
+      end
+    end
+
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
     end
   end
 
@@ -92,7 +167,7 @@ module ActiveRecord
         through_reflection      = reflection.through_reflection
         source_reflection_names = reflection.source_reflection_names
         source_associations     = reflection.through_reflection.klass._reflections.keys
-        super("Could not find the source association(s) #{source_reflection_names.collect(&:inspect).to_sentence(two_words_connector: ' or ', last_word_connector: ', or ', locale: :en)} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(two_words_connector: ' or ', last_word_connector: ', or ', locale: :en)}?")
+        super("Could not find the source association(s) #{source_reflection_names.collect(&:inspect).to_sentence(two_words_connector: ' or ', last_word_connector: ', or ')} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(two_words_connector: ' or ', last_word_connector: ', or ')}?")
       else
         super("Could not find the source association(s).")
       end
@@ -218,6 +293,7 @@ module ActiveRecord
       autoload :Preloader
       autoload :JoinDependency
       autoload :AssociationScope
+      autoload :DisableJoinsAssociationScope
       autoload :AliasTracker
     end
 
@@ -250,17 +326,7 @@ module ActiveRecord
       super
     end
 
-    def reload(*) # :nodoc:
-      clear_association_cache
-      super
-    end
-
     private
-      # Clears out the association cache.
-      def clear_association_cache
-        @association_cache.clear if persisted?
-      end
-
       def init_internals
         @association_cache = {}
         super
@@ -702,9 +768,9 @@ module ActiveRecord
       # inverse detection only works on #has_many, #has_one, and
       # #belongs_to associations.
       #
-      # Extra options on the associations, as defined in the
-      # <tt>AssociationReflection::INVALID_AUTOMATIC_INVERSE_OPTIONS</tt> constant, will
-      # also prevent the association's inverse from being found automatically.
+      # <tt>:foreign_key</tt> and <tt>:through</tt> options on the associations,
+      # or a custom scope, will also prevent the association's inverse
+      # from being found automatically.
       #
       # The automatic guessing of the inverse association uses a heuristic based
       # on the name of the class, so it may not work for all associations,
@@ -1291,9 +1357,14 @@ module ActiveRecord
         #   similar callbacks may affect the <tt>:dependent</tt> behavior, and the
         #   <tt>:dependent</tt> behavior may affect other callbacks.
         #
+        #   * <tt>nil</tt> do nothing (default).
         #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed.
+        #   * <tt>:destroy_async</tt> destroys all the associated objects in a background job. <b>WARNING:</b> Do not use
+        #     this option if the association is backed by foreign key constraints in your database. The foreign key
+        #     constraint actions will occur inside the same transaction that deletes its owner.
         #   * <tt>:delete_all</tt> causes all the associated objects to be deleted directly from the database (so callbacks will not be executed).
-        #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Callbacks are not executed.
+        #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Polymorphic type will also be nullified
+        #     on polymorphic associations. Callbacks are not executed.
         #   * <tt>:restrict_with_exception</tt> causes an <tt>ActiveRecord::DeleteRestrictionError</tt> exception to be raised if there are any associated records.
         #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there are any associated objects.
         #
@@ -1316,6 +1387,11 @@ module ActiveRecord
         #   of association, including other <tt>:through</tt> associations. Options for <tt>:class_name</tt>,
         #   <tt>:primary_key</tt> and <tt>:foreign_key</tt> are ignored, as the association uses the
         #   source reflection.
+        # [:disable_joins]
+        #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
+        #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
+        #   due to database limitations. This option is only applicable on `has_many :through` associations as
+        #   `has_many` alone do not perform a join.
         #
         #   If the association on the join model is a #belongs_to, the collection can be modified
         #   and the records on the <tt>:through</tt> model will be automatically created and removed
@@ -1355,6 +1431,12 @@ module ActiveRecord
         #   Specifies a module or array of modules that will be extended into the association object returned.
         #   Useful for defining methods on associations, especially when they should be shared between multiple
         #   association objects.
+        # [:strict_loading]
+        #   When set to +true+, enforces strict loading every time the associated record is loaded through this
+        #   association.
+        # [:ensuring_owner_was]
+        #   Specifies an instance method to be called on the owner. The method must return true in order for the
+        #   associated records to be deleted in a background job.
         #
         # Option examples:
         #   has_many :comments, -> { order("posted_on") }
@@ -1365,6 +1447,8 @@ module ActiveRecord
         #   has_many :tags, as: :taggable
         #   has_many :reports, -> { readonly }
         #   has_many :subscribers, through: :subscriptions, source: :user
+        #   has_many :subscribers, through: :subscriptions, disable_joins: true
+        #   has_many :comments, strict_loading: true
         def has_many(name, scope = nil, **options, &extension)
           reflection = Builder::HasMany.build(self, name, scope, options, &extension)
           Reflection.add_reflection self, name, reflection
@@ -1434,9 +1518,14 @@ module ActiveRecord
         #   Controls what happens to the associated object when
         #   its owner is destroyed:
         #
+        #   * <tt>nil</tt> do nothing (default).
         #   * <tt>:destroy</tt> causes the associated object to also be destroyed
+        #   * <tt>:destroy_async</tt> causes the associated object to be destroyed in a background job. <b>WARNING:</b> Do not use
+        #     this option if the association is backed by foreign key constraints in your database. The foreign key
+        #     constraint actions will occur inside the same transaction that deletes its owner.
         #   * <tt>:delete</tt> causes the associated object to be deleted directly from the database (so callbacks will not execute)
-        #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Callbacks are not executed.
+        #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Polymorphic type column is also nullified
+        #     on polymorphic associations. Callbacks are not executed.
         #   * <tt>:restrict_with_exception</tt> causes an <tt>ActiveRecord::DeleteRestrictionError</tt> exception to be raised if there is an associated record
         #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there is an associated object
         #
@@ -1466,6 +1555,22 @@ module ActiveRecord
         #
         #   If you are going to modify the association (rather than just read from it), then it is
         #   a good idea to set the <tt>:inverse_of</tt> option.
+        # [:disable_joins]
+        #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
+        #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
+        #   due to database limitations. This option is only applicable on `has_one :through` associations as
+        #   `has_one` alone does not perform a join.
+        #
+        #   If the association on the join model is a #belongs_to, the collection can be modified
+        #   and the records on the <tt>:through</tt> model will be automatically created and removed
+        #   as appropriate. Otherwise, the collection is read-only, so you should manipulate the
+        #   <tt>:through</tt> association directly.
+        #
+        #   If you are going to modify the association (rather than just read from it), then it is
+        #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
+        #   join model. This allows associated records to be built which will automatically create
+        #   the appropriate join model records when they are saved. (See the 'Association Join Models'
+        #   section above.)
         # [:source]
         #   Specifies the source association name used by #has_one <tt>:through</tt> queries.
         #   Only use it if the name cannot be inferred from the association.
@@ -1492,6 +1597,11 @@ module ActiveRecord
         #   When set to +true+, the association will also have its presence validated.
         #   This will validate the association itself, not the id. You can use
         #   +:inverse_of+ to avoid an extra query during validation.
+        # [:strict_loading]
+        #   Enforces strict loading every time the associated record is loaded through this association.
+        # [:ensuring_owner_was]
+        #   Specifies an instance method to be called on the owner. The method must return true in order for the
+        #   associated records to be deleted in a background job.
         #
         # Option examples:
         #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
@@ -1502,8 +1612,10 @@ module ActiveRecord
         #   has_one :attachment, as: :attachable
         #   has_one :boss, -> { readonly }
         #   has_one :club, through: :membership
+        #   has_one :club, through: :membership, disable_joins: true
         #   has_one :primary_address, -> { where(primary: true) }, through: :addressables, source: :addressable
         #   has_one :credit_card, required: true
+        #   has_one :credit_card, strict_loading: true
         def has_one(name, scope = nil, **options)
           reflection = Builder::HasOne.build(self, name, scope, options)
           Reflection.add_reflection self, name, reflection
@@ -1585,7 +1697,8 @@ module ActiveRecord
         #   By default this is +id+.
         # [:dependent]
         #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
-        #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method.
+        #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method. If set to
+        #   <tt>:destroy_async</tt>, the associated object is scheduled to be destroyed in a background job.
         #   This option should not be specified when #belongs_to is used in conjunction with
         #   a #has_many relationship on another class because of the potential to leave
         #   orphaned records behind.
@@ -1637,6 +1750,11 @@ module ActiveRecord
         # [:default]
         #   Provide a callable (i.e. proc or lambda) to specify that the association should
         #   be initialized with a particular record before validation.
+        # [:strict_loading]
+        #   Enforces strict loading every time the associated record is loaded through this association.
+        # [:ensuring_owner_was]
+        #   Specifies an instance method to be called on the owner. The method must return true in order for the
+        #   associated records to be deleted in a background job.
         #
         # Option examples:
         #   belongs_to :firm, foreign_key: "client_of"
@@ -1651,6 +1769,7 @@ module ActiveRecord
         #   belongs_to :company, touch: :employees_last_updated_at
         #   belongs_to :user, optional: true
         #   belongs_to :account, default: -> { company.account }
+        #   belongs_to :account, strict_loading: true
         def belongs_to(name, scope = nil, **options)
           reflection = Builder::BelongsTo.build(self, name, scope, options)
           Reflection.add_reflection self, name, reflection
@@ -1673,7 +1792,7 @@ module ActiveRecord
         # The join table should not have a primary key or a model associated with it. You must manually generate the
         # join table with a migration such as this:
         #
-        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[5.0]
+        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[7.0]
         #     def change
         #       create_join_table :developers, :projects
         #     end
@@ -1813,6 +1932,8 @@ module ActiveRecord
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
         #   <tt>:autosave</tt> to <tt>true</tt>.
+        # [:strict_loading]
+        #   Enforces strict loading every time an associated record is loaded through this association.
         #
         # Option examples:
         #   has_and_belongs_to_many :projects
@@ -1820,6 +1941,7 @@ module ActiveRecord
         #   has_and_belongs_to_many :nations, class_name: "Country"
         #   has_and_belongs_to_many :categories, join_table: "prods_cats"
         #   has_and_belongs_to_many :categories, -> { readonly }
+        #   has_and_belongs_to_many :categories, strict_loading: true
         def has_and_belongs_to_many(name, scope = nil, **options, &extension)
           habtm_reflection = ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(name, scope, options, self)
 
@@ -1850,11 +1972,11 @@ module ActiveRecord
           hm_options[:through] = middle_reflection.name
           hm_options[:source] = join_model.right_reflection.name
 
-          [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate, :join_table, :class_name, :extend].each do |k|
+          [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate, :join_table, :class_name, :extend, :strict_loading].each do |k|
             hm_options[k] = options[k] if options.key? k
           end
 
-          has_many name, scope, hm_options, &extension
+          has_many name, scope, **hm_options, &extension
           _reflections[name.to_s].parent_reflection = habtm_reflection
         end
       end

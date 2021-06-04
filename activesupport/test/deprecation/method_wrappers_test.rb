@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/deprecation"
 
 class MethodWrappersTest < ActiveSupport::TestCase
@@ -10,12 +10,10 @@ class MethodWrappersTest < ActiveSupport::TestCase
       alias_method :old_method, :new_method
 
       protected
-
         def new_protected_method; "abc" end
         alias_method :old_protected_method, :new_protected_method
 
       private
-
         def new_private_method; "abc" end
         alias_method :old_private_method, :new_private_method
     end
@@ -88,13 +86,5 @@ class MethodWrappersTest < ActiveSupport::TestCase
 
     warning = /old_method is deprecated and will be removed from Rails \d.\d \(use new_method instead\)/
     assert_deprecated(warning) { assert_equal "abc", @klass.old_method }
-  end
-
-  def test_method_with_without_deprecation_is_exposed
-    ActiveSupport::Deprecation.deprecate_methods(@klass, old_method: :new_method)
-
-    warning = /old_method is deprecated and will be removed from Rails \d.\d \(use new_method instead\)/
-    assert_deprecated(warning) { assert_equal "abc", @klass.new.old_method_with_deprecation }
-    assert_equal "abc", @klass.new.old_method_without_deprecation
   end
 end

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/marshal"
 require "active_support/core_ext/file/atomic"
 require "active_support/core_ext/string/conversions"
 require "uri/common"
@@ -16,12 +15,11 @@ module ActiveSupport
       attr_reader :cache_path
 
       DIR_FORMATTER = "%03X"
-      FILENAME_MAX_SIZE = 228 # max filename size on file system is 255, minus room for timestamp and random characters appended by Tempfile (used by atomic write)
+      FILENAME_MAX_SIZE = 226 # max filename size on file system is 255, minus room for timestamp, pid, and random characters appended by Tempfile (used by atomic write)
       FILEPATH_MAX_SIZE = 900 # max is 1024, plus some room
-      EXCLUDED_DIRS = [".", ".."].freeze
       GITKEEP_FILES = [".gitkeep", ".keep"].freeze
 
-      def initialize(cache_path, options = nil)
+      def initialize(cache_path, **options)
         super(options)
         @cache_path = cache_path.to_s
       end
@@ -35,17 +33,17 @@ module ActiveSupport
       # file store directory except for .keep or .gitkeep. Be careful which directory is specified in your
       # config file when using +FileStore+ because everything in that directory will be deleted.
       def clear(options = nil)
-        root_dirs = exclude_from(cache_path, EXCLUDED_DIRS + GITKEEP_FILES)
+        root_dirs = (Dir.children(cache_path) - GITKEEP_FILES)
         FileUtils.rm_r(root_dirs.collect { |f| File.join(cache_path, f) })
-      rescue Errno::ENOENT
+      rescue Errno::ENOENT, Errno::ENOTEMPTY
       end
 
       # Preemptively iterates through all stored keys and removes the ones which have expired.
       def cleanup(options = nil)
         options = merged_options(options)
         search_dir(cache_path) do |fname|
-          entry = read_entry(fname, options)
-          delete_entry(fname, options) if entry && entry.expired?
+          entry = read_entry(fname, **options)
+          delete_entry(fname, **options) if entry && entry.expired?
         end
       end
 
@@ -67,30 +65,31 @@ module ActiveSupport
           matcher = key_matcher(matcher, options)
           search_dir(cache_path) do |path|
             key = file_path_key(path)
-            delete_entry(path, options) if key.match(matcher)
+            delete_entry(path, **options) if key.match(matcher)
           end
         end
       end
 
       private
-
-        def read_entry(key, options)
+        def read_entry(key, **options)
           if File.exist?(key)
-            File.open(key) { |f| Marshal.load(f) }
+            entry = deserialize_entry(File.binread(key))
+            entry if entry.is_a?(Cache::Entry)
           end
         rescue => e
           logger.error("FileStoreError (#{e}): #{e.message}") if logger
           nil
         end
 
-        def write_entry(key, entry, options)
+        def write_entry(key, entry, **options)
           return false if options[:unless_exist] && File.exist?(key)
           ensure_cache_path(File.dirname(key))
-          File.atomic_write(key, cache_path) { |f| Marshal.dump(entry, f) }
+          payload = serialize_entry(entry, **options)
+          File.atomic_write(key, cache_path) { |f| f.write(payload) }
           true
         end
 
-        def delete_entry(key, options)
+        def delete_entry(key, **options)
           if File.exist?(key)
             begin
               File.delete(key)
@@ -154,7 +153,7 @@ module ActiveSupport
         # Delete empty directories in the cache.
         def delete_empty_directories(dir)
           return if File.realpath(dir) == File.realpath(cache_path)
-          if exclude_from(dir, EXCLUDED_DIRS).empty?
+          if Dir.children(dir).empty?
             Dir.delete(dir) rescue nil
             delete_empty_directories(File.dirname(dir))
           end
@@ -167,8 +166,7 @@ module ActiveSupport
 
         def search_dir(dir, &callback)
           return if !File.exist?(dir)
-          Dir.foreach(dir) do |d|
-            next if EXCLUDED_DIRS.include?(d)
+          Dir.each_child(dir) do |d|
             name = File.join(dir, d)
             if File.directory?(name)
               search_dir(name, &callback)
@@ -192,11 +190,6 @@ module ActiveSupport
               num
             end
           end
-        end
-
-        # Exclude entries from source directory
-        def exclude_from(source, excludes)
-          Dir.entries(source).reject { |f| excludes.include?(f) }
         end
     end
   end

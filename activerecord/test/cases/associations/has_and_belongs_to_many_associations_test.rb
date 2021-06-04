@@ -120,7 +120,7 @@ class Sink < ActiveRecord::Base
 end
 
 class Source < ActiveRecord::Base
-  self.table_name = "men"
+  self.table_name = "humans"
   has_and_belongs_to_many :sinks, join_table: :edges
 end
 
@@ -313,10 +313,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_build
     devel = Developer.find(1)
 
-    # Load schema information so we don't query below if running just this test.
-    Project.define_attribute_methods
-
-    proj = assert_no_queries { devel.projects.build("name" => "Projekt") }
+    proj = assert_queries(0) { devel.projects.build("name" => "Projekt") }
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
@@ -332,10 +329,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_new_aliased_to_build
     devel = Developer.find(1)
 
-    # Load schema information so we don't query below if running just this test.
-    Project.define_attribute_methods
-
-    proj = assert_no_queries { devel.projects.new("name" => "Projekt") }
+    proj = assert_queries(0) { devel.projects.new("name" => "Projekt") }
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
@@ -556,7 +550,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     developer = project.developers.first
 
-    assert_no_queries do
+    assert_queries(0) do
       assert_predicate project.developers, :loaded?
       assert_includes project.developers, developer
     end
@@ -706,10 +700,17 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal ["id"], developers(:david).projects.select(:id).first.attributes.keys
   end
 
+  def test_join_middle_table_alias
+    assert_equal(
+      2,
+      Project.includes(:developers_projects).where.not("developers_projects.joined_on": nil).to_a.size
+    )
+  end
+
   def test_join_table_alias
     assert_equal(
       3,
-      Developer.includes(projects: :developers).where.not("projects_developers_projects_join.joined_on": nil).to_a.size
+      Developer.includes(projects: :developers).where.not("developers_projects_projects_join.joined_on": nil).to_a.size
     )
   end
 
@@ -722,7 +723,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal(
       3,
-      Developer.includes(projects: :developers).where.not("projects_developers_projects_join.joined_on": nil).group(group.join(",")).to_a.size
+      Developer.includes(projects: :developers).where.not("developers_projects_projects_join.joined_on": nil).group(group.join(",")).to_a.size
     )
   end
 
@@ -751,7 +752,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_get_ids_for_loaded_associations
     developer = developers(:david)
     developer.projects.reload
-    assert_no_queries do
+    assert_queries(0) do
       developer.project_ids
       developer.project_ids
     end
@@ -879,7 +880,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_has_and_belongs_to_many_associations_on_new_records_use_null_relations
     projects = Developer.new.projects
-    assert_no_queries do
+    assert_queries(0) do
       assert_equal [], projects
       assert_equal [], projects.where(title: "omg")
       assert_equal [], projects.pluck(:title)
@@ -995,7 +996,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal first_project.salaried_developers.size, preloaded_first_project.salaried_developers.size
   end
 
-  def test_has_and_belongs_to_many_is_useable_with_belongs_to_required_by_default
+  def test_has_and_belongs_to_many_is_usable_with_belongs_to_required_by_default
     assert_difference "Project.first.developers_required_by_default.size", 1 do
       Project.first.developers_required_by_default.create!(name: "Sean", salary: 50000)
     end
@@ -1006,15 +1007,15 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised { user.jobs_pool.clear }
   end
 
-  def test_has_and_belongs_to_many_while_partial_writes_false
-    original_partial_writes = ActiveRecord::Base.partial_writes
-    ActiveRecord::Base.partial_writes = false
+  def test_has_and_belongs_to_many_while_partial_inserts_false
+    original_partial_inserts = ActiveRecord::Base.partial_inserts
+    ActiveRecord::Base.partial_inserts = false
     developer = Developer.new(name: "Mehmet Emin İNAÇ")
     developer.projects << Project.new(name: "Bounty")
 
     assert developer.save
   ensure
-    ActiveRecord::Base.partial_writes = original_partial_writes
+    ActiveRecord::Base.partial_inserts = original_partial_inserts
   end
 
   def test_has_and_belongs_to_many_with_belongs_to

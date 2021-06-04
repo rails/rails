@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-ActiveRecord::Base.connection.begin_transaction(joinable: false)
-
-at_exit do
-  ActiveRecord::Base.connection.rollback_transaction
+ActiveRecord::ConnectionAdapters::AbstractAdapter.set_callback(:checkout, :after) do
+  begin_transaction(joinable: false)
 end

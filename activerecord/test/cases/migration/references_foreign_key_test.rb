@@ -2,7 +2,7 @@
 
 require "cases/helper"
 
-if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
+if ActiveRecord::Base.connection.supports_foreign_keys?
   module ActiveRecord
     class Migration
       class ReferencesForeignKeyInCreateTest < ActiveRecord::TestCase
@@ -65,9 +65,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
       end
     end
   end
-end
 
-if ActiveRecord::Base.connection.supports_foreign_keys?
   module ActiveRecord
     class Migration
       class ReferencesForeignKeyTest < ActiveRecord::TestCase
@@ -205,13 +203,15 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.create_table :testings do |t|
             t.references :parent1, foreign_key: { to_table: :testing_parents }
             t.references :parent2, foreign_key: { to_table: :testing_parents }
+            t.references :self_join, foreign_key: { to_table: :testings }
           end
 
           fks = @connection.foreign_keys("testings").sort_by(&:column)
 
           fk_definitions = fks.map { |fk| [fk.from_table, fk.to_table, fk.column] }
           assert_equal([["testings", "testing_parents", "parent1_id"],
-                        ["testings", "testing_parents", "parent2_id"]], fk_definitions)
+                        ["testings", "testing_parents", "parent2_id"],
+                        ["testings", "testings", "self_join_id"]], fk_definitions)
         end
 
         test "multiple foreign keys can be removed to the selected one" do
@@ -230,26 +230,6 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           assert_equal([["testings", "testing_parents", "parent2_id"]], fk_definitions)
         end
       end
-    end
-  end
-else
-  class ReferencesWithoutForeignKeySupportTest < ActiveRecord::TestCase
-    setup do
-      @connection = ActiveRecord::Base.connection
-      @connection.create_table(:testing_parents, force: true)
-    end
-
-    teardown do
-      @connection.drop_table("testings", if_exists: true)
-      @connection.drop_table("testing_parents", if_exists: true)
-    end
-
-    test "ignores foreign keys defined with the table" do
-      @connection.create_table :testings do |t|
-        t.references :testing_parent, foreign_key: true
-      end
-
-      assert_includes @connection.data_sources, "testings"
     end
   end
 end

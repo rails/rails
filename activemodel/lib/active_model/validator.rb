@@ -85,7 +85,7 @@ module ActiveModel
   #
   # It can be useful to access the class that is using that validator when there are prerequisites such
   # as an +attr_accessor+ being present. This class is accessible via <tt>options[:class]</tt> in the constructor.
-  # To setup your validator override the constructor.
+  # To set up your validator override the constructor.
   #
   #   class MyValidator < ActiveModel::Validator
   #     def initialize(options={})
@@ -149,6 +149,7 @@ module ActiveModel
       attributes.each do |attribute|
         value = record.read_attribute_for_validation(attribute)
         next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
+        value = prepare_value_for_validation(value, record, attribute)
         validate_each(record, attribute, value)
       end
     end
@@ -164,6 +165,11 @@ module ActiveModel
     # +ArgumentError+ when invalid options are supplied.
     def check_validity!
     end
+
+    private
+      def prepare_value_for_validation(value, record, attr_name)
+        value
+      end
   end
 
   # +BlockValidator+ is a special +EachValidator+ which receives a block on initialization
@@ -175,7 +181,6 @@ module ActiveModel
     end
 
     private
-
       def validate_each(record, attribute, value)
         @block.call(record, attribute, value)
       end

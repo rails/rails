@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
@@ -7,7 +8,7 @@ module ActiveRecord
   # but can be queried by name. Example:
   #
   #   class Conversation < ActiveRecord::Base
-  #     enum status: [ :active, :archived ]
+  #     enum :status, [ :active, :archived ]
   #   end
   #
   #   # conversation.update! status: 0
@@ -31,7 +32,9 @@ module ActiveRecord
   # as well. With the above example:
   #
   #   Conversation.active
+  #   Conversation.not_active
   #   Conversation.archived
+  #   Conversation.not_archived
   #
   # Of course, you can also query them directly if the scopes don't fit your
   # needs:
@@ -39,19 +42,26 @@ module ActiveRecord
   #   Conversation.where(status: [:active, :archived])
   #   Conversation.where.not(status: :active)
   #
-  # You can set the default value from the database declaration, like:
+  # Defining scopes can be disabled by setting +:scopes+ to +false+.
   #
-  #   create_table :conversations do |t|
-  #     t.column :status, :integer, default: 0
+  #   class Conversation < ActiveRecord::Base
+  #     enum :status, [ :active, :archived ], scopes: false
   #   end
   #
-  # Good practice is to let the first declared status be the default.
+  # You can set the default enum value by setting +:default+, like:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum :status, [ :active, :archived ], default: :active
+  #   end
+  #
+  #   conversation = Conversation.new
+  #   conversation.status # => "active"
   #
   # Finally, it's also possible to explicitly map the relation between attribute and
   # database integer with a hash:
   #
   #   class Conversation < ActiveRecord::Base
-  #     enum status: { active: 0, archived: 1 }
+  #     enum :status, active: 0, archived: 1
   #   end
   #
   # Note that when an array is used, the implicit mapping from the values to database
@@ -76,14 +86,14 @@ module ActiveRecord
   #
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
   #
-  # You can use the +:_prefix+ or +:_suffix+ options when you need to define
+  # You can use the +:prefix+ or +:suffix+ options when you need to define
   # multiple enums with same values. If the passed value is +true+, the methods
   # are prefixed/suffixed with the name of the enum. It is also possible to
   # supply a custom value:
   #
   #   class Conversation < ActiveRecord::Base
-  #     enum status: [:active, :archived], _suffix: true
-  #     enum comments_status: [:active, :inactive], _prefix: :comments
+  #     enum :status, [ :active, :archived ], suffix: true
+  #     enum :comments_status, [ :active, :inactive ], prefix: :comments
   #   end
   #
   # With the above example, the bang and predicate methods along with the
@@ -94,7 +104,6 @@ module ActiveRecord
   #
   #   conversation.comments_inactive!
   #   conversation.comments_active? # => false
-
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
@@ -115,24 +124,25 @@ module ActiveRecord
       end
 
       def cast(value)
-        return if value.blank?
-
         if mapping.has_key?(value)
           value.to_s
         elsif mapping.has_value?(value)
           mapping.key(value)
         else
-          assert_valid_value(value)
+          value.presence
         end
       end
 
       def deserialize(value)
-        return if value.nil?
         mapping.key(subtype.deserialize(value))
       end
 
       def serialize(value)
-        mapping.fetch(value, value)
+        subtype.serialize(mapping.fetch(value, value))
+      end
+
+      def serializable?(value, &block)
+        subtype.serializable?(mapping.fetch(value, value), &block)
       end
 
       def assert_valid_value(value)
@@ -141,16 +151,26 @@ module ActiveRecord
         end
       end
 
+      attr_reader :subtype
+
       private
-        attr_reader :name, :mapping, :subtype
+        attr_reader :name, :mapping
     end
 
-    def enum(definitions)
-      klass = self
-      enum_prefix = definitions.delete(:_prefix)
-      enum_suffix = definitions.delete(:_suffix)
-      enum_scopes = definitions.delete(:_scopes)
-      definitions.each do |name, values|
+    def enum(name = nil, values = nil, **options)
+      if name
+        values, options = options, {} unless values
+        return _enum(name, values, **options)
+      end
+
+      definitions = options.slice!(:_prefix, :_suffix, :_scopes, :_default)
+      options.transform_keys! { |key| :"#{key[1..-1]}" }
+
+      definitions.each { |name, values| _enum(name, values, **options) }
+    end
+
+    private
+      def _enum(name, values, prefix: nil, suffix: nil, scopes: true, **options)
         assert_valid_enum_definition_values(values)
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
@@ -164,59 +184,83 @@ module ActiveRecord
         detect_enum_conflict!(name, name)
         detect_enum_conflict!(name, "#{name}=")
 
-        attr = attribute_alias?(name) ? attribute_alias(name) : name
-        decorate_attribute_type(attr, :enum) do |subtype|
-          EnumType.new(attr, enum_values, subtype)
+        attribute(name, **options) do |subtype|
+          subtype = subtype.subtype if EnumType === subtype
+          EnumType.new(name, enum_values, subtype)
         end
 
+        value_method_names = []
         _enum_methods_module.module_eval do
+          prefix = if prefix
+            prefix == true ? "#{name}_" : "#{prefix}_"
+          end
+
+          suffix = if suffix
+            suffix == true ? "_#{name}" : "_#{suffix}"
+          end
+
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |label, value|
-            if enum_prefix == true
-              prefix = "#{name}_"
-            elsif enum_prefix
-              prefix = "#{enum_prefix}_"
-            end
-            if enum_suffix == true
-              suffix = "_#{name}"
-            elsif enum_suffix
-              suffix = "_#{enum_suffix}"
-            end
-
-            value_method_name = "#{prefix}#{label}#{suffix}"
             enum_values[label] = value
             label = label.to_s
 
-            # def active?() status == "active" end
-            klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
-            define_method("#{value_method_name}?") { self[attr] == label }
+            value_method_name = "#{prefix}#{label}#{suffix}"
+            value_method_names << value_method_name
+            define_enum_methods(name, value_method_name, value, scopes)
 
-            # def active!() update!(status: 0) end
-            klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
-            define_method("#{value_method_name}!") { update!(attr => value) }
+            method_friendly_label = label.gsub(/[\W&&[:ascii:]]+/, "_")
+            value_method_alias = "#{prefix}#{method_friendly_label}#{suffix}"
 
-            # scope :active, -> { where(status: 0) }
-            if enum_scopes != false
-              klass.send(:detect_enum_conflict!, name, value_method_name, true)
-              klass.scope value_method_name, -> { where(attr => value) }
+            if value_method_alias != value_method_name && !value_method_names.include?(value_method_alias)
+              value_method_names << value_method_alias
+              define_enum_methods(name, value_method_alias, value, scopes)
             end
           end
         end
+        detect_negative_enum_conditions!(value_method_names) if scopes
         enum_values.freeze
       end
-    end
 
-    private
+      class EnumMethods < Module # :nodoc:
+        def initialize(klass)
+          @klass = klass
+        end
+
+        private
+          attr_reader :klass
+
+          def define_enum_methods(name, value_method_name, value, scopes)
+            # def active?() status_for_database == 0 end
+            klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
+            define_method("#{value_method_name}?") { public_send(:"#{name}_for_database") == value }
+
+            # def active!() update!(status: 0) end
+            klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
+            define_method("#{value_method_name}!") { update!(name => value) }
+
+            # scope :active, -> { where(status: 0) }
+            # scope :not_active, -> { where.not(status: 0) }
+            if scopes
+              klass.send(:detect_enum_conflict!, name, value_method_name, true)
+              klass.scope value_method_name, -> { where(name => value) }
+
+              klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
+              klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
+            end
+          end
+      end
+      private_constant :EnumMethods
+
       def _enum_methods_module
         @_enum_methods_module ||= begin
-          mod = Module.new
+          mod = EnumMethods.new(self)
           include mod
           mod
         end
       end
 
       def assert_valid_enum_definition_values(values)
-        unless values.is_a?(Hash) || values.all? { |v| v.is_a?(Symbol) } || values.all? { |v| v.is_a?(String) }
+        unless values.is_a?(Hash) || values.all?(Symbol) || values.all?(String)
           error_message = <<~MSG
             Enum values #{values} must be either a hash, an array of symbols, or an array of strings.
           MSG
@@ -254,6 +298,19 @@ module ActiveRecord
           method: method_name,
           source: source
         }
+      end
+
+      def detect_negative_enum_conditions!(method_names)
+        return unless logger
+
+        method_names.select { |m| m.start_with?("not_") }.each do |potential_not|
+          inverted_form = potential_not.sub("not_", "")
+          if method_names.include?(inverted_form)
+            logger.warn "Enum element '#{potential_not}' in #{self.name} uses the prefix 'not_'." \
+              " This has caused a conflict with auto generated negative scopes." \
+              " Avoid using enum elements starting with 'not' where the positive form is also an element."
+          end
+        end
       end
   end
 end

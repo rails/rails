@@ -66,7 +66,6 @@ module ActionDispatch
         end
 
         private
-
           def assert_tokens(expected_tokens, scanner, pattern)
             actual_tokens = []
             while token = scanner.next_token

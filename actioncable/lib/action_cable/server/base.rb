@@ -12,19 +12,22 @@ module ActionCable
       include ActionCable::Server::Broadcasting
       include ActionCable::Server::Connections
 
-      cattr_accessor :config, instance_accessor: true, default: ActionCable::Server::Configuration.new
+      cattr_accessor :config, instance_accessor: false, default: ActionCable::Server::Configuration.new
+
+      attr_reader :config
 
       def self.logger; config.logger; end
       delegate :logger, to: :config
 
       attr_reader :mutex
 
-      def initialize
+      def initialize(config: self.class.config)
+        @config = config
         @mutex = Monitor.new
         @remote_connections = @event_loop = @worker_pool = @pubsub = nil
       end
 
-      # Called by Rack to setup the server.
+      # Called by Rack to set up the server.
       def call(env)
         setup_heartbeat_timer
         config.connection_class.call.new(self, env).process

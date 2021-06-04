@@ -15,7 +15,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_match "Blocked host: www.example.com", response.body
   end
 
-  test "passes all requests to if the whitelist is empty" do
+  test "allows all requests if hosts is empty" do
     @app = ActionDispatch::HostAuthorization.new(App, nil)
 
     get "/"
@@ -24,7 +24,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal "Success", body
   end
 
-  test "passes requests to allowed host" do
+  test "hosts can be a single element array" do
     @app = ActionDispatch::HostAuthorization.new(App, %w(www.example.com))
 
     get "/"
@@ -33,13 +33,57 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal "Success", body
   end
 
-  test "the whitelist could be a single element" do
+  test "hosts can be a string" do
     @app = ActionDispatch::HostAuthorization.new(App, "www.example.com")
 
     get "/"
 
     assert_response :ok
     assert_equal "Success", body
+  end
+
+  test "hosts are matched case insensitive" do
+    @app = ActionDispatch::HostAuthorization.new(App, "Example.local")
+
+    get "/", env: {
+      "HOST" => "example.local",
+    }
+
+    assert_response :ok
+    assert_equal "Success", body
+  end
+
+  test "hosts are matched case insensitive with titlecased host" do
+    @app = ActionDispatch::HostAuthorization.new(App, "example.local")
+
+    get "/", env: {
+      "HOST" => "Example.local",
+    }
+
+    assert_response :ok
+    assert_equal "Success", body
+  end
+
+  test "hosts are matched case insensitive with hosts array" do
+    @app = ActionDispatch::HostAuthorization.new(App, ["Example.local"])
+
+    get "/", env: {
+      "HOST" => "example.local",
+    }
+
+    assert_response :ok
+    assert_equal "Success", body
+  end
+
+  test "regex matches are not title cased" do
+    @app = ActionDispatch::HostAuthorization.new(App, [/www.Example.local/])
+
+    get "/", env: {
+      "HOST" => "www.example.local",
+    }
+
+    assert_response :forbidden
+    assert_match "Blocked host: www.example.local", response.body
   end
 
   test "passes requests to allowed hosts with domain name notation" do
@@ -89,7 +133,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
   end
 
   test "blocks requests to unallowed host supporting custom responses" do
-    @app = ActionDispatch::HostAuthorization.new(App, ["w.example.co"], -> env do
+    @app = ActionDispatch::HostAuthorization.new(App, ["w.example.co"], response_app: -> env do
       [401, {}, %w(Custom)]
     end)
 
@@ -157,5 +201,51 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
 
     assert_response :ok
     assert_equal "Success", body
+  end
+
+  test "exclude matches allow any host" do
+    @app = ActionDispatch::HostAuthorization.new(App, "only.com", exclude: ->(req) { req.path == "/foo" })
+
+    get "/foo"
+
+    assert_response :ok
+    assert_equal "Success", body
+  end
+
+  test "exclude misses block unallowed hosts" do
+    @app = ActionDispatch::HostAuthorization.new(App, "only.com", exclude: ->(req) { req.path == "/bar" })
+
+    get "/foo"
+
+    assert_response :forbidden
+    assert_match "Blocked host: www.example.com", response.body
+  end
+
+  test "blocks requests with invalid hostnames" do
+    @app = ActionDispatch::HostAuthorization.new(App, ".example.com")
+
+    get "/", env: {
+      "HOST" => "attacker.com#x.example.com",
+    }
+
+    assert_response :forbidden
+    assert_match "Blocked host: attacker.com#x.example.com", response.body
+  end
+
+  test "blocks requests to similar host" do
+    @app = ActionDispatch::HostAuthorization.new(App, "sub.example.com")
+
+    get "/", env: {
+      "HOST" => "sub-example.com",
+    }
+
+    assert_response :forbidden
+    assert_match "Blocked host: sub-example.com", response.body
+  end
+
+  test "config setting action_dispatch.hosts_response_app is deprecated" do
+    assert_deprecated do
+      ActionDispatch::HostAuthorization.new(App, "example.com", ->(env) { true })
+    end
   end
 end

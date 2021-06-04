@@ -34,7 +34,7 @@ module RailtiesTest
 
     def migrations
       migration_root = File.expand_path(ActiveRecord::Migrator.migrations_paths.first, app_path)
-      ActiveRecord::MigrationContext.new(migration_root).migrations
+      ActiveRecord::MigrationContext.new(migration_root, ActiveRecord::SchemaMigration).migrations
     end
 
     test "serving sprocket's assets" do
@@ -52,7 +52,7 @@ module RailtiesTest
 
       @plugin.write "Rakefile", <<-RUBY
         APP_RAKEFILE = '#{app_path}/Rakefile'
-        load 'rails/tasks/engine.rake'
+        load "rails/tasks/engine.rake"
         task :foo => :environment do
           puts "Task ran"
         end
@@ -87,11 +87,10 @@ module RailtiesTest
         end
       RUBY
 
+      restrict_frameworks
       boot_rails
 
       Dir.chdir(app_path) do
-        # Install Active Storage, Action Mailbox, and Action Text migration files first so as not to affect test.
-        `bundle exec rake active_storage:install action_mailbox:install action_text:install`
         output = `bundle exec rake bukkits:install:migrations`
 
         ["CreateUsers", "AddLastNameToUsers", "CreateSessions"].each do |migration_name|
@@ -111,7 +110,7 @@ module RailtiesTest
 
         assert_no_match(/\d+_create_users/, output.join("\n"))
 
-        bukkits_migration_order = output.index(output.detect { |o| /NOTE: Migration \d+_create_sessions\.rb from bukkits has been skipped/ =~ o })
+        bukkits_migration_order = output.index(output.detect { |o| /NOTE: Migration \d+_create_sessions\.rb from bukkits has been skipped/.match?(o) })
         assert_not_nil bukkits_migration_order, "Expected migration to be skipped"
       end
     end
@@ -148,7 +147,7 @@ module RailtiesTest
       end
     end
 
-    test "dont reverse default railties order" do
+    test "don't reverse default railties order" do
       @api = engine "api" do |plugin|
         plugin.write "lib/api.rb", <<-RUBY
           module Api
@@ -174,11 +173,10 @@ module RailtiesTest
         class CreateKeys < ActiveRecord::Migration::Current; end
       RUBY
 
+      restrict_frameworks
       boot_rails
 
       Dir.chdir(app_path) do
-        # Install Active Storage, Action Mailbox, and Action Text migrations first so as not to affect test.
-        `bundle exec rake active_storage:install action_mailbox:install action_text:install`
         output = `bundle exec rake railties:install:migrations`.split("\n")
 
         assert_match(/Copied migration \d+_create_users\.core_engine\.rb from core_engine/, output.first)
@@ -202,7 +200,7 @@ module RailtiesTest
 
       @plugin.write "Rakefile", <<-RUBY
         APP_RAKEFILE = '#{app_path}/Rakefile'
-        load 'rails/tasks/engine.rake'
+        load "rails/tasks/engine.rake"
       RUBY
 
       add_to_config "ActiveRecord::Base.timestamped_migrations = false"
@@ -392,6 +390,37 @@ module RailtiesTest
       assert $executed
     end
 
+    test "locales can be nested" do
+      app_file "config/locales/en/models.yml", <<~YAML
+        en:
+          foo: "1"
+      YAML
+
+      app_file "config/locales/en/dates.yml", <<~YAML
+        en:
+          bar: "1"
+      YAML
+
+      app_file "config/locales/extra/nested/folder/en.yml", <<~YAML
+        en:
+          baz: "1"
+      YAML
+
+      boot_rails
+
+      expected_locales = %W(
+        #{app_path}/config/locales/en/models.yml
+        #{app_path}/config/locales/en/dates.yml
+        #{app_path}/config/locales/extra/nested/folder/en.yml
+      ).map { |path| File.expand_path(path) }
+
+      actual_locales = I18n.load_path.map { |path| File.expand_path(path) }
+
+      expected_locales.each do |expected_locale|
+        assert_includes(actual_locales, expected_locale)
+      end
+    end
+
     test "i18n files have lower priority than application ones" do
       add_to_config <<-RUBY
         config.i18n.load_path << "#{app_path}/app/locales/en.yml"
@@ -400,18 +429,18 @@ module RailtiesTest
       app_file "app/locales/en.yml", <<-YAML
 en:
   bar: "1"
-YAML
+      YAML
 
       app_file "config/locales/en.yml", <<-YAML
 en:
   foo: "2"
   bar: "2"
-YAML
+      YAML
 
       @plugin.write "config/locales/en.yml", <<-YAML
 en:
   foo: "3"
-YAML
+      YAML
 
       boot_rails
 
@@ -646,7 +675,7 @@ YAML
       assert_equal Rails.application.routes, env["action_dispatch.routes"]
     end
 
-    test "isolated engine should include only its own routes and helpers" do
+    test "isolated engine routes and helpers are isolated to that engine" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
           class Engine < ::Rails::Engine
@@ -706,26 +735,52 @@ YAML
       RUBY
 
       @plugin.write "app/controllers/bukkits/foo_controller.rb", <<-RUBY
-        class Bukkits::FooController < ActionController::Base
-          def index
-            render inline: "<%= help_the_engine %>"
-          end
+        module Bukkits
+          class FooController < ActionController::Base
+            def index
+              render inline: "<%= help_the_engine %>"
+            end
 
-          def show
-            render plain: foo_path
-          end
+            def show
+              render plain: foo_path
+            end
 
-          def from_app
-            render inline: "<%= (self.respond_to?(:bar_path) || self.respond_to?(:something)) %>"
-          end
+            def from_app
+              render inline: "<%= (self.respond_to?(:bar_path) || self.respond_to?(:something)) %>"
+            end
 
-          def routes_helpers_in_view
-            render inline: "<%= foo_path %>, <%= main_app.bar_path %>"
-          end
+            def routes_helpers_in_view
+              render inline: "<%= foo_path %>, <%= main_app.bar_path %>"
+            end
 
-          def polymorphic_path_without_namespace
-            render plain: polymorphic_path(Post.new)
+            def polymorphic_path_without_namespace
+              render plain: polymorphic_path(Post.new)
+            end
           end
+        end
+      RUBY
+
+      @plugin.write "app/controllers/bukkits/session_controller.rb", <<-RUBY
+        module Bukkits
+          class SessionController < ApplicationController
+            def index
+              render plain: default_path
+            end
+
+            private
+              def default_path
+                foo_path
+              end
+          end
+        end
+      RUBY
+
+      controller "bar", <<-RUBY
+        class BarController < Bukkits::SessionController
+          private
+            def default_path
+              bar_path
+            end
         end
       RUBY
 
@@ -745,6 +800,9 @@ YAML
       assert_equal Bukkits.railtie_namespace, Bukkits::Engine
       assert ::Bukkits::MyMailer.method_defined?(:foo_url)
       assert_not ::Bukkits::MyMailer.method_defined?(:bar_url)
+
+      get("/bar")
+      assert_equal "/bar", last_response.body
 
       get("/bukkits/from_app")
       assert_equal "false", last_response.body
@@ -879,6 +937,68 @@ YAML
       assert Bukkits::Engine.config.bukkits_seeds_loaded
     end
 
+    test "loading seed data is wrapped by the executor" do
+      app_file "db/seeds.rb", <<-RUBY
+        Rails.application.config.seeding_wrapped_by_executor = Rails.application.executor.active?
+      RUBY
+
+      boot_rails
+      Rails.application.load_seed
+
+      assert_predicate Rails.application.config, :seeding_wrapped_by_executor
+    end
+
+    test "inline jobs do not clear CurrentAttributes when loading seed data" do
+      app_file "db/seeds.rb", <<-RUBY
+        class SeedsAttributes < ActiveSupport::CurrentAttributes
+          attribute :foo
+        end
+
+        class SeedsJob < ActiveJob::Base
+          self.queue_adapter = :inline
+          def perform
+            Rails.application.config.seeds_job_ran = true
+          end
+        end
+
+        SeedsAttributes.foo = 42
+        SeedsJob.perform_later
+        Rails.application.config.seeds_attributes_foo = SeedsAttributes.foo
+      RUBY
+
+      boot_rails
+      Rails.application.load_seed
+
+      assert Rails.application.config.seeds_job_ran
+      assert_equal 42, Rails.application.config.seeds_attributes_foo
+    end
+
+    test "seed data can be loaded when ActiveJob is not present" do
+      @plugin.write "db/seeds.rb", <<-RUBY
+        Bukkits::Engine.config.bukkits_seeds_loaded = true
+      RUBY
+
+      app_file "db/seeds.rb", <<-RUBY
+        Rails.application.config.app_seeds_loaded = true
+      RUBY
+
+      boot_rails
+
+      # In a real app, config.active_job would be undefined when
+      # NOT requiring rails/all AND NOT requiring active_job/railtie
+      # that doesn't work as expected in this test environment, so:
+      undefine_config_option(:active_job)
+      assert_raise(NoMethodError) { Rails.application.config.active_job }
+
+      assert_raise(NoMethodError) { Rails.application.config.app_seeds_loaded }
+      assert_raise(NoMethodError) { Bukkits::Engine.config.bukkits_seeds_loaded }
+
+      Rails.application.load_seed
+      assert Rails.application.config.app_seeds_loaded
+      Bukkits::Engine.load_seed
+      assert Bukkits::Engine.config.bukkits_seeds_loaded
+    end
+
     test "skips nonexistent seed data" do
       FileUtils.rm "#{app_path}/db/seeds.rb"
       boot_rails
@@ -978,15 +1098,15 @@ YAML
 
       boot_rails
 
-      app_generators = Rails.application.config.generators.options[:rails]
-      assert_equal :mongoid, app_generators[:orm]
-      assert_equal :liquid, app_generators[:template_engine]
-      assert_equal :test_unit, app_generators[:test_framework]
+      app_generators = Rails.application.config.generators
+      assert_equal :mongoid, app_generators.orm
+      assert_equal :liquid, app_generators.template_engine
+      assert_equal :test_unit, app_generators.test_framework
 
-      generators = Bukkits::Engine.config.generators.options[:rails]
-      assert_equal :data_mapper, generators[:orm]
-      assert_equal :haml, generators[:template_engine]
-      assert_equal :rspec, generators[:test_framework]
+      generators = Bukkits::Engine.config.generators
+      assert_equal :data_mapper, generators.orm
+      assert_equal :haml, generators.template_engine
+      assert_equal :rspec, generators.test_framework
     end
 
     test "engine should get default generators with ability to overwrite them" do
@@ -1000,12 +1120,12 @@ YAML
 
       boot_rails
 
-      generators = Bukkits::Engine.config.generators.options[:rails]
-      assert_equal :active_record, generators[:orm]
-      assert_equal :rspec, generators[:test_framework]
+      generators = Bukkits::Engine.config.generators
+      assert_equal :active_record, generators.orm
+      assert_equal :rspec, generators.test_framework
 
-      app_generators = Rails.application.config.generators.options[:rails]
-      assert_equal :test_unit, app_generators[:test_framework]
+      app_generators = Rails.application.config.generators
+      assert_equal :test_unit, app_generators.test_framework
     end
 
     test "do not create table_name_prefix method if it already exists" do
@@ -1481,7 +1601,7 @@ YAML
     test "active_storage:install task works within engine" do
       @plugin.write "Rakefile", <<-RUBY
         APP_RAKEFILE = '#{app_path}/Rakefile'
-        load 'rails/tasks/engine.rake'
+        load "rails/tasks/engine.rake"
       RUBY
 
       Dir.chdir(@plugin.path) do
@@ -1493,9 +1613,48 @@ YAML
       end
     end
 
+    test "active_storage:update task works within engine" do
+      @plugin.write "Rakefile", <<-RUBY
+        APP_RAKEFILE = '#{app_path}/Rakefile'
+        load "rails/tasks/engine.rake"
+      RUBY
+
+      Dir.chdir(@plugin.path) do
+        output = `bundle exec rake app:active_storage:update`
+        assert $?.success?, output
+
+        assert migrations.detect { |migration| migration.name == "AddServiceNameToActiveStorageBlobs" }
+        assert migrations.detect { |migration| migration.name == "CreateActiveStorageVariantRecords" }
+      end
+    end
+
   private
     def app
       Rails.application
+    end
+
+    def undefine_config_option(name)
+      Rails.application.config.class.class_variable_get(:@@options).delete(name)
+    end
+
+    # Restrict frameworks to load in order to avoid engine frameworks affect tests.
+    def restrict_frameworks
+      remove_from_config('require "rails/all"')
+      remove_from_config('require_relative "boot"')
+      remove_from_env_config("development", "config.active_storage.*")
+      frameworks = <<~RUBY
+        require "rails"
+        require "active_model/railtie"
+        require "active_job/railtie"
+        require "active_record/railtie"
+        require "action_controller/railtie"
+        require "action_mailer/railtie"
+        require "action_view/railtie"
+        require "sprockets/railtie"
+        require "rails/test_unit/railtie"
+      RUBY
+      environment = File.read("#{app_path}/config/application.rb")
+      File.open("#{app_path}/config/application.rb", "w") { |f| f.puts frameworks + "\n" + environment }
     end
   end
 end

@@ -38,10 +38,6 @@ module ActiveRecord
       false
     end
 
-    def to_sql
-      ""
-    end
-
     def calculate(operation, _column_name)
       case operation
       when :count, :sum
@@ -60,9 +56,8 @@ module ActiveRecord
     end
 
     private
-
-      def exec_queries
-        @records = [].freeze
+      def exec_main_query(async: false)
+        [].freeze
       end
   end
 end

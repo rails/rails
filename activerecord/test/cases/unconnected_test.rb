@@ -11,6 +11,9 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
   def setup
     @underlying = ActiveRecord::Base.connection
     @specification = ActiveRecord::Base.remove_connection
+
+    # Clear out connection info from other pids (like a fork parent) too
+    ActiveRecord::ConnectionAdapters::PoolConfig.discard_pools!
   end
 
   teardown do
@@ -27,6 +30,14 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
     assert_raise(ActiveRecord::ConnectionNotEstablished) do
       TestRecord.new.save
     end
+  end
+
+  def test_error_message_when_connection_not_established
+    error = assert_raise(ActiveRecord::ConnectionNotEstablished) do
+      TestRecord.find(1)
+    end
+
+    assert_equal "No connection pool for 'ActiveRecord::Base' found.", error.message
   end
 
   def test_underlying_adapter_no_longer_active

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/core_ext/module/remove_method"
 
 class LazyLoadHooksTest < ActiveSupport::TestCase
@@ -175,7 +175,6 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
   end
 
 private
-
   def incr_amt
     5
   end

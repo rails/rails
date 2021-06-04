@@ -30,6 +30,15 @@ module Rails
     #
     #     config.middleware.swap ActionDispatch::Flash, Magical::Unicorns
     #
+    # Middlewares can be moved from one place to another:
+    #
+    #     config.middleware.move_before ActionDispatch::Flash, Magical::Unicorns
+    #
+    # This will move the <tt>Magical::Unicorns</tt> middleware before the
+    # <tt>ActionDispatch::Flash</tt>. You can also move it after:
+    #
+    #     config.middleware.move_after ActionDispatch::Flash, Magical::Unicorns
+    #
     # And finally they can also be removed from the stack completely:
     #
     #     config.middleware.delete ActionDispatch::Flash
@@ -40,35 +49,45 @@ module Rails
         @delete_operations = delete_operations
       end
 
-      def insert_before(*args, &block)
-        @operations << [__method__, args, block]
+      def insert_before(...)
+        @operations << -> middleware { middleware.insert_before(...) }
       end
 
       alias :insert :insert_before
 
-      def insert_after(*args, &block)
-        @operations << [__method__, args, block]
+      def insert_after(...)
+        @operations << -> middleware { middleware.insert_after(...) }
       end
 
-      def swap(*args, &block)
-        @operations << [__method__, args, block]
+      def swap(...)
+        @operations << -> middleware { middleware.swap(...) }
       end
 
-      def use(*args, &block)
-        @operations << [__method__, args, block]
+      def use(...)
+        @operations << -> middleware { middleware.use(...) }
       end
 
-      def delete(*args, &block)
-        @delete_operations << [__method__, args, block]
+      def delete(...)
+        @delete_operations << -> middleware { middleware.delete(...) }
       end
 
-      def unshift(*args, &block)
-        @operations << [__method__, args, block]
+      def move_before(...)
+        @delete_operations << -> middleware { middleware.move_before(...) }
+      end
+
+      alias :move :move_before
+
+      def move_after(...)
+        @delete_operations << -> middleware { middleware.move_after(...) }
+      end
+
+      def unshift(...)
+        @operations << -> middleware { middleware.unshift(...) }
       end
 
       def merge_into(other) #:nodoc:
-        (@operations + @delete_operations).each do |operation, args, block|
-          other.send(operation, *args, &block)
+        (@operations + @delete_operations).each do |operation|
+          operation.call(other)
         end
 
         other
@@ -84,7 +103,7 @@ module Rails
 
     class Generators #:nodoc:
       attr_accessor :aliases, :options, :templates, :fallbacks, :colorize_logging, :api_only
-      attr_reader :hidden_namespaces
+      attr_reader :hidden_namespaces, :after_generate_callbacks
 
       def initialize
         @aliases = Hash.new { |h, k| h[k] = {} }
@@ -94,6 +113,7 @@ module Rails
         @colorize_logging = true
         @api_only = false
         @hidden_namespaces = []
+        @after_generate_callbacks = []
       end
 
       def initialize_copy(source)
@@ -107,10 +127,20 @@ module Rails
         @hidden_namespaces << namespace
       end
 
-      def method_missing(method, *args)
-        method = method.to_s.sub(/=$/, "").to_sym
+      def after_generate(&block)
+        @after_generate_callbacks << block
+      end
 
-        return @options[method] if args.empty?
+      def method_missing(method, *args)
+        method = method.to_s.delete_suffix("=").to_sym
+
+        if args.empty?
+          if method == :rails
+            return @options[method]
+          else
+            return @options[:rails][method]
+          end
+        end
 
         if method == :rails || args.first.is_a?(Hash)
           namespace, configuration = method, args.shift

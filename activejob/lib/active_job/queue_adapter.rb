@@ -11,6 +11,9 @@ module ActiveJob
     included do
       class_attribute :_queue_adapter_name, instance_accessor: false, instance_predicate: false
       class_attribute :_queue_adapter, instance_accessor: false, instance_predicate: false
+
+      delegate :queue_adapter, to: :class
+
       self.queue_adapter = :async
     end
 
@@ -23,7 +26,7 @@ module ActiveJob
       end
 
       # Returns string denoting the name of the configured queue adapter.
-      # By default returns +"async"+.
+      # By default returns <tt>"async"</tt>.
       def queue_adapter_name
         _queue_adapter_name
       end

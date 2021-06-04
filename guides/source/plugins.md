@@ -34,7 +34,6 @@ different Rails applications using RubyGems and Bundler if desired.
 
 ### Generate a gemified plugin.
 
-
 Rails ships with a `rails plugin new` command which creates a
 skeleton for developing any kind of Rails extension with the ability
 to run integration tests using a dummy Rails application. Create your
@@ -54,15 +53,15 @@ Testing Your Newly Generated Plugin
 -----------------------------------
 
 You can navigate to the directory that contains the plugin, run the `bundle install` command
- and run the one generated test using the `bin/test` command.
+and run the one generated test using the `bin/test` command.
 
 You should see:
 
-```bash
+```
   1 runs, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-This will tell you that everything got generated properly and you are ready to start adding functionality.
+This will tell you that everything got generated properly, and you are ready to start adding functionality.
 
 Extending Core Classes
 ----------------------
@@ -85,7 +84,7 @@ end
 
 Run `bin/test` to run the test. This test should fail because we haven't implemented the `to_squawk` method:
 
-```bash
+```
 E
 
 Error:
@@ -131,15 +130,14 @@ end
 
 To test that your method does what it says it does, run the unit tests with `bin/test` from your plugin directory.
 
-```bash
+```
   2 runs, 2 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-To see this in action, change to the `test/dummy` directory, fire up a console, and start squawking:
+To see this in action, change to the `test/dummy` directory, start `bin/rails console`, and commence squawking:
 
-```bash
-$ rails console
->> "Hello World".to_squawk
+```irb
+irb> "Hello World".to_squawk
 => "squawk! Hello World"
 ```
 
@@ -241,8 +239,8 @@ We can easily generate these models in our "dummy" Rails application by running 
 
 ```bash
 $ cd test/dummy
-$ rails generate model Hickwall last_squawk:string
-$ rails generate model Wickwall last_squawk:string last_tweet:string
+$ bin/rails generate model Hickwall last_squawk:string
+$ bin/rails generate model Wickwall last_squawk:string last_tweet:string
 ```
 
 Now you can create the necessary database tables in your testing database by navigating to your dummy app
@@ -250,7 +248,7 @@ and migrating the database. First, run:
 
 ```bash
 $ cd test/dummy
-$ rails db:migrate
+$ bin/rails db:migrate
 ```
 
 While you are here, change the Hickwall and Wickwall models so that they know that they are supposed to act
@@ -262,7 +260,9 @@ like yaffles.
 class Hickwall < ApplicationRecord
   acts_as_yaffle
 end
+```
 
+```ruby
 # test/dummy/app/models/wickwall.rb
 
 class Wickwall < ApplicationRecord
@@ -285,7 +285,9 @@ module Yaffle
     end
   end
 end
+```
 
+```ruby
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base
@@ -341,7 +343,9 @@ module Yaffle
     end
   end
 end
+```
 
+```ruby
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base
@@ -353,7 +357,7 @@ end
 
 When you run `bin/test`, you should see the tests all pass:
 
-```bash
+```
   4 runs, 4 assertions, 0 failures, 0 errors, 0 skips
 ```
 
@@ -391,7 +395,7 @@ class ActsAsYaffleTest < ActiveSupport::TestCase
 end
 ```
 
-Run the test to make sure the last two tests fail with an error that contains "NoMethodError: undefined method `squawk'",
+Run the test to make sure the last two tests fail with an error that contains "NoMethodError: undefined method \`squawk'",
 then update `acts_as_yaffle.rb` to look like this:
 
 ```ruby
@@ -414,7 +418,9 @@ module Yaffle
     end
   end
 end
+```
 
+```ruby
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base
@@ -424,7 +430,7 @@ class ApplicationRecord < ActiveRecord::Base
 end
 ```
 
-Run `bin/test` one final time and you should see:
+Run `bin/test` one final time, and you should see:
 
 ```
   6 runs, 6 assertions, 0 failures, 0 errors, 0 skips
@@ -455,12 +461,28 @@ gem "yaffle", git: "https://github.com/rails/yaffle.git"
 After running `bundle install`, your gem functionality will be available to the application.
 
 When the gem is ready to be shared as a formal release, it can be published to [RubyGems](https://rubygems.org).
+
+Alternatively, you can benefit from Bundler's Rake tasks. You can see a full list with the following:
+
+```bash
+$ bundle exec rake -T
+
+$ bundle exec rake build
+# Build yaffle-0.1.0.gem into the pkg directory
+
+$ bundle exec rake install
+# Build and install yaffle-0.1.0.gem into system gems
+
+$ bundle exec rake release
+# Create tag v0.1.0 and build and push yaffle-0.1.0.gem to Rubygems
+```
+
 For more information about publishing gems to RubyGems, see: [Publishing your gem](https://guides.rubygems.org/publishing).
 
 RDoc Documentation
 ------------------
 
-Once your plugin is stable and you are ready to deploy, do everyone else a favor and document it! Luckily, writing documentation for your plugin is easy.
+Once your plugin is stable, and you are ready to deploy, do everyone else a favor and document it! Luckily, writing documentation for your plugin is easy.
 
 The first step is to update the README file with detailed information about how to use your plugin. A few key things to include are:
 
@@ -469,7 +491,7 @@ The first step is to update the README file with detailed information about how 
 * How to add the functionality to the app (several examples of common use cases)
 * Warnings, gotchas or tips that might help users and save them time
 
-Once your README is solid, go through and add rdoc comments to all of the methods that developers will use. It's also customary to add `#:nodoc:` comments to those parts of the code that are not included in the public API.
+Once your README is solid, go through and add rdoc comments to all the methods that developers will use. It's also customary to add `#:nodoc:` comments to those parts of the code that are not included in the public API.
 
 Once your comments are good to go, navigate to your plugin directory and run:
 
@@ -480,5 +502,5 @@ $ bundle exec rake rdoc
 ### References
 
 * [Developing a RubyGem using Bundler](https://github.com/radar/guides/blob/master/gem-development.md)
-* [Using .gemspecs as Intended](http://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/)
+* [Using .gemspecs as Intended](https://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/)
 * [Gemspec Reference](https://guides.rubygems.org/specification-reference/)

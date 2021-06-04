@@ -1,12 +1,12 @@
 Description:
 ============
-    Stubs out a new mailbox class in app/mailboxes and invokes your template
+    Generates a new mailbox class in app/mailboxes and invokes your template
     engine and test framework generators.
 
 Example:
 ========
-    rails generate mailbox inbox
+    bin/rails generate mailbox inbox
 
-    creates a InboxMailbox class and test:
+    creates an InboxMailbox class and test:
         Mailbox:  app/mailboxes/inbox_mailbox.rb
         Test:     test/mailboxes/inbox_mailbox_test.rb

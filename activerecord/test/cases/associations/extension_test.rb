@@ -70,8 +70,8 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     extend!(Developer)
     extend!(MyApplication::Business::Developer)
 
-    assert Object.const_get "DeveloperAssociationNameAssociationExtension"
-    assert MyApplication::Business.const_get "DeveloperAssociationNameAssociationExtension"
+    assert Developer.const_get "AssociationNameAssociationExtension"
+    assert MyApplication::Business::Developer.const_get "AssociationNameAssociationExtension"
   end
 
   def test_proxy_association_after_scoped
@@ -87,8 +87,7 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
   end
 
   private
-
     def extend!(model)
-      ActiveRecord::Associations::Builder::HasMany.define_extensions(model, :association_name) { }
+      ActiveRecord::Associations::Builder::HasMany.send(:define_extensions, model, :association_name) { }
     end
 end

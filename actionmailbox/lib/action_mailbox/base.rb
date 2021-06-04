@@ -7,7 +7,7 @@ require "action_mailbox/routing"
 
 module ActionMailbox
   # The base class for all application mailboxes. Not intended to be inherited from directly. Inherit from
-  # `ApplicationMailbox` instead, as that's where the app-specific routing is configured. This routing
+  # +ApplicationMailbox+ instead, as that's where the app-specific routing is configured. This routing
   # is specified in the following ways:
   #
   #   class ApplicationMailbox < ActionMailbox::Base
@@ -27,15 +27,15 @@ module ActionMailbox
   #     routing :all => :backstop
   #   end
   #
-  # Application mailboxes need to overwrite the `#process` method, which is invoked by the framework after
-  # callbacks have been run. The callbacks available are: `before_processing`, `after_processing`, and
-  # `around_processing`. The primary use case is ensure certain preconditions to processing are fulfilled
-  # using `before_processing` callbacks.
+  # Application mailboxes need to overwrite the +#process+ method, which is invoked by the framework after
+  # callbacks have been run. The callbacks available are: +before_processing+, +after_processing+, and
+  # +around_processing+. The primary use case is ensure certain preconditions to processing are fulfilled
+  # using +before_processing+ callbacks.
   #
-  # If a precondition fails to be met, you can halt the processing using the `#bounced!` method,
+  # If a precondition fails to be met, you can halt the processing using the +#bounced!+ method,
   # which will silently prevent any further processing, but not actually send out any bounce notice. You
   # can also pair this behavior with the invocation of an Action Mailer class responsible for sending out
-  # an actual bounce email. This is done using the `#bounce_with` method, which takes the mail object returned
+  # an actual bounce email. This is done using the +#bounce_with+ method, which takes the mail object returned
   # by an Action Mailer method, like so:
   #
   #   class ForwardsMailbox < ApplicationMailbox
@@ -50,12 +50,12 @@ module ActionMailbox
   #   end
   #
   # During the processing of the inbound email, the status will be tracked. Before processing begins,
-  # the email will normally have the `pending` status. Once processing begins, just before callbacks
-  # and the `#process` method is called, the status is changed to `processing`. If processing is allowed to
-  # complete, the status is changed to `delivered`. If a bounce is triggered, then `bounced`. If an unhandled
-  # exception is bubbled up, then `failed`.
+  # the email will normally have the +pending+ status. Once processing begins, just before callbacks
+  # and the +#process+ method is called, the status is changed to +processing+. If processing is allowed to
+  # complete, the status is changed to +delivered+. If a bounce is triggered, then +bounced+. If an unhandled
+  # exception is bubbled up, then +failed+.
   #
-  # Exceptions can be handled at the class level using the familiar `Rescuable` approach:
+  # Exceptions can be handled at the class level using the familiar +Rescuable+ approach:
   #
   #   class ForwardsMailbox < ApplicationMailbox
   #     rescue_from(ApplicationSpecificVerificationError) { bounced! }

@@ -29,7 +29,7 @@ Object Relational Mapping system.
 
 ### The Active Record Pattern
 
-[Active Record was described by Martin Fowler](http://www.martinfowler.com/eaaCatalog/activeRecord.html)
+[Active Record was described by Martin Fowler](https://www.martinfowler.com/eaaCatalog/activeRecord.html)
 in his book _Patterns of Enterprise Application Architecture_. In
 Active Record, objects carry both persistent data and behavior which
 operates on that data. Active Record takes the opinion that ensuring
@@ -45,7 +45,7 @@ relationships of the objects in an application can be easily stored and
 retrieved from a database without writing SQL statements directly and with less
 overall database access code.
 
-NOTE: If you are not familiar enough with relational database management systems (RDBMS) or structured query language (SQL), please go through [this tutorial](https://www.w3schools.com/sql/default.asp) (or [this one](http://www.sqlcourse.com/)) or study them by other means. Understanding how relational databases work is crucial to understanding Active Records and Rails in general.
+NOTE: Basic knowledge of relational database management systems (RDBMS) and structured query language (SQL) is helpful in order to fully understand Active Record. Please refer to [this tutorial](https://www.w3schools.com/sql/default.asp) (or [this one](http://www.sqlcourse.com/)) or study them by other means if you would like to learn more.
 
 ### Active Record as an ORM Framework
 
@@ -79,8 +79,7 @@ a class `Book`, you should have a database table called **books**. The Rails
 pluralization mechanisms are very powerful, being capable of pluralizing (and
 singularizing) both regular and irregular words. When using class names composed
 of two or more words, the model class name should follow the Ruby conventions,
-using the CamelCase form, while the table name must contain the words separated
-by underscores. Examples:
+using the CamelCase form, while the table name must use the snake_case form. Examples:
 
 * Model Class - Singular with the first letter of each word capitalized (e.g.,
 `BookClub`).
@@ -94,7 +93,6 @@ by underscores. Examples:
 | `Mouse`          | `mice`         |
 | `Person`         | `people`       |
 
-
 ### Schema Conventions
 
 Active Record uses naming conventions for the columns in database tables,
@@ -105,9 +103,9 @@ depending on the purpose of these columns.
   fields that Active Record will look for when you create associations between
   your models.
 * **Primary keys** - By default, Active Record will use an integer column named
-  `id` as the table's primary key. When using [Active Record
-  Migrations](active_record_migrations.html) to create your tables, this column will be
-  automatically created.
+  `id` as the table's primary key (`bigint` for PostgreSQL and MySQL, `integer`
+  for SQLite). When using [Active Record Migrations](active_record_migrations.html)
+  to create your tables, this column will be automatically created.
 
 There are also some optional column names that will add additional features
 to Active Record instances:
@@ -117,10 +115,10 @@ to Active Record instances:
 * `updated_at` - Automatically gets set to the current date and time whenever
   the record is created or updated.
 * `lock_version` - Adds [optimistic
-  locking](http://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
+  locking](https://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
   a model.
 * `type` - Specifies that the model uses [Single Table
-  Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html#class-ActiveRecord::Base-label-Single+table+inheritance).
+  Inheritance](https://api.rubyonrails.org/classes/ActiveRecord/Base.html#class-ActiveRecord::Base-label-Single+table+inheritance).
 * `(association_name)_type` - Stores the type for
   [polymorphic associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on
@@ -133,8 +131,7 @@ NOTE: While these column names are optional, they are in fact reserved by Active
 Creating Active Record Models
 -----------------------------
 
-It is very easy to create Active Record models. All you have to do is to
-subclass the `ApplicationRecord` class and you're good to go:
+To create Active Record models, subclass the `ApplicationRecord` class and you're good to go:
 
 ```ruby
 class Product < ApplicationRecord
@@ -148,13 +145,13 @@ that the `products` table was created using an SQL (or one of its extensions) st
 
 ```sql
 CREATE TABLE products (
-   id int(11) NOT NULL auto_increment,
-   name varchar(255),
-   PRIMARY KEY  (id)
+  id int(11) NOT NULL auto_increment,
+  name varchar(255),
+  PRIMARY KEY  (id)
 );
 ```
 
-Schema above declares a table with two columns: `id` and `name`. Each row of
+The schema above declares a table with two columns: `id` and `name`. Each row of
 this table represents a certain product with these two parameters. Thus, you
 would be able to write code like the following:
 
@@ -189,7 +186,7 @@ definition:
 class ProductTest < ActiveSupport::TestCase
   set_fixture_class my_products: Product
   fixtures :my_products
-  ...
+  # ...
 end
 ```
 
@@ -309,12 +306,12 @@ user = User.find_by(name: 'David')
 user.destroy
 ```
 
-If you'd like to delete several records in bulk, you may use `destroy_all`
-method:
+If you'd like to delete several records in bulk, you may use `destroy_by`
+or `destroy_all` method:
 
 ```ruby
 # find and delete all users named David
-User.where(name: 'David').destroy_all
+User.destroy_by(name: 'David')
 
 # delete all users
 User.destroy_all
@@ -340,10 +337,14 @@ A quick example to illustrate:
 class User < ApplicationRecord
   validates :name, presence: true
 end
+```
 
-user = User.new
-user.save  # => false
-user.save! # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+```irb
+irb> user = User.new
+irb> user.save
+=> false
+irb> user.save!
+ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 You can learn more about validations in the [Active Record Validations
@@ -367,7 +368,7 @@ database that Active Record supports using `rake`. Here's a migration that
 creates a table:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration[5.0]
+class CreatePublications < ActiveRecord::Migration[7.0]
   def change
     create_table :publications do |t|
       t.string :title
@@ -385,8 +386,8 @@ end
 ```
 
 Rails keeps track of which files have been committed to the database and
-provides rollback features. To actually create the table, you'd run `rails db:migrate`
-and to roll it back, `rails db:rollback`.
+provides rollback features. To actually create the table, you'd run `bin/rails db:migrate`,
+and to roll it back, `bin/rails db:rollback`.
 
 Note that the above code is database-agnostic: it will run in MySQL,
 PostgreSQL, Oracle, and others. You can learn more about migrations in the

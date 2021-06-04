@@ -4,12 +4,13 @@ awdr:
   name: "Agile Web Development with Rails"
   format: "paperback"
   status: :published
-  read_status: :read
+  last_read: :read
   language: :english
   author_visibility: :visible
   illustrator_visibility: :visible
   font_size: :medium
   difficulty: :medium
+  boolean_status: :enabled
 
 rfr:
   author_id: 1
@@ -17,7 +18,7 @@ rfr:
   name: "Ruby for Rails"
   format: "ebook"
   status: "proposed"
-  read_status: "reading"
+  last_read: "reading"
 
 ddd:
   author_id: 1
@@ -25,7 +26,7 @@ ddd:
   name: "Domain-Driven Design"
   format: "hardcover"
   status: 2
-  read_status: "forgotten"
+  last_read: "forgotten"
 
 tlg:
   author_id: 1

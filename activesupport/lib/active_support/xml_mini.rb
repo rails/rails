@@ -50,6 +50,7 @@ module ActiveSupport
         "Hash"       => "hash"
       }
     end
+    TYPE_NAMES["ActiveSupport::TimeWithZone"] = TYPE_NAMES["Time"]
 
     FORMATTING = {
       "symbol"   => Proc.new { |symbol| symbol.to_s },
@@ -155,7 +156,6 @@ module ActiveSupport
     end
 
     private
-
       def _dasherize(key)
         # $2 must be a non-greedy regex for this to work
         left, middle, right = /\A(_*)(.*?)(_*)\Z/.match(key.strip)[1, 3]

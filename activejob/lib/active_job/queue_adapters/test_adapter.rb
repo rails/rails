@@ -12,7 +12,7 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :test
     class TestAdapter
-      attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter, :reject, :queue)
+      attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter, :reject, :queue, :at)
       attr_writer(:enqueued_jobs, :performed_jobs)
 
       # Provides a store of all the enqueued jobs with the TestAdapter so you can check them.
@@ -26,35 +26,39 @@ module ActiveJob
       end
 
       def enqueue(job) #:nodoc:
-        return if filtered?(job)
-
         job_data = job_to_hash(job)
-        perform_or_enqueue(perform_enqueued_jobs, job, job_data)
+        perform_or_enqueue(perform_enqueued_jobs && !filtered?(job), job, job_data)
       end
 
       def enqueue_at(job, timestamp) #:nodoc:
-        return if filtered?(job)
-
         job_data = job_to_hash(job, at: timestamp)
-        perform_or_enqueue(perform_enqueued_at_jobs, job, job_data)
+        perform_or_enqueue(perform_enqueued_at_jobs && !filtered?(job), job, job_data)
       end
 
       private
         def job_to_hash(job, extras = {})
-          { job: job.class, args: job.serialize.fetch("arguments"), queue: job.queue_name }.merge!(extras)
+          job.serialize.tap do |job_data|
+            job_data[:job] = job.class
+            job_data[:args] = job_data.fetch("arguments")
+            job_data[:queue] = job_data.fetch("queue_name")
+          end.merge(extras)
         end
 
         def perform_or_enqueue(perform, job, job_data)
           if perform
             performed_jobs << job_data
-            Base.execute job.serialize
+            Base.execute(job.serialize)
           else
             enqueued_jobs << job_data
           end
         end
 
         def filtered?(job)
-          filtered_queue?(job) || filtered_job_class?(job)
+          filtered_queue?(job) || filtered_job_class?(job) || filtered_time?(job)
+        end
+
+        def filtered_time?(job)
+          job.scheduled_at > at.to_f if at && job.scheduled_at
         end
 
         def filtered_queue?(job)

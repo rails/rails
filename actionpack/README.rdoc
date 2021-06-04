@@ -2,9 +2,8 @@
 
 Action Pack is a framework for handling and responding to web requests. It
 provides mechanisms for *routing* (mapping request URLs to actions), defining
-*controllers* that implement actions, and generating responses by rendering
-*views*, which are templates of various formats. In short, Action Pack
-provides the view and controller layers in the MVC paradigm.
+*controllers* that implement actions, and generating responses. In short, Action Pack
+provides the controller layer in the MVC paradigm.
 
 It consists of several modules:
 
@@ -23,6 +22,7 @@ by default and Action View rendering is implicitly triggered by Action
 Controller. However, these modules are designed to function on their own and
 can be used outside of Rails.
 
+You can read more about Action Pack in the {Action Controller Overview}[https://guides.rubyonrails.org/action_controller_overview.html] guide.
 
 == Download and installation
 
@@ -32,7 +32,7 @@ The latest version of Action Pack can be installed with RubyGems:
 
 Source code can be downloaded as part of the Rails project on GitHub:
 
-* https://github.com/rails/rails/tree/master/actionpack
+* https://github.com/rails/rails/tree/main/actionpack
 
 
 == License
@@ -46,7 +46,7 @@ Action Pack is released under the MIT license:
 
 API documentation is at:
 
-* http://api.rubyonrails.org
+* https://api.rubyonrails.org
 
 Bug reports for the Ruby on Rails project can be filed here:
 
@@ -54,4 +54,4 @@ Bug reports for the Ruby on Rails project can be filed here:
 
 Feature requests should be discussed on the rails-core mailing list here:
 
-* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+* https://discuss.rubyonrails.org/c/rubyonrails-core

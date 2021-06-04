@@ -68,7 +68,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
       post "/parse", params: json, headers: { "CONTENT_TYPE" => "application/json", "action_dispatch.show_exceptions" => true, "action_dispatch.logger" => ActiveSupport::Logger.new(output) }
       assert_response :bad_request
       output.rewind && err = output.read
-      assert err =~ /Error occurred while parsing request parameters/
+      assert err.match?(/Error occurred while parsing request parameters/)
     end
   end
 

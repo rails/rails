@@ -76,6 +76,8 @@ module ActionController
 
         def http_basic_authenticate_or_request_with(name:, password:, realm: nil, message: nil)
           authenticate_or_request_with_http_basic(realm, message) do |given_name, given_password|
+            # This comparison uses & so that it doesn't short circuit and
+            # uses `secure_compare` so that length information isn't leaked.
             ActiveSupport::SecurityUtils.secure_compare(given_name, name) &
               ActiveSupport::SecurityUtils.secure_compare(given_password, password)
           end
@@ -136,7 +138,7 @@ module ActionController
     #
     # === Simple \Digest example
     #
-    #   require 'digest/md5'
+    #   require "digest/md5"
     #   class PostsController < ApplicationController
     #     REALM = "SuperSecret"
     #     USERS = {"dhh" => "secret", #plain text password
@@ -405,7 +407,7 @@ module ActionController
     module Token
       TOKEN_KEY = "token="
       TOKEN_REGEX = /^(Token|Bearer)\s+/
-      AUTHN_PAIR_DELIMITERS = /(?:,|;|\t+)/
+      AUTHN_PAIR_DELIMITERS = /(?:,|;|\t)/
       extend self
 
       module ControllerMethods
@@ -482,7 +484,7 @@ module ActionController
       def raw_params(auth)
         _raw_params = auth.sub(TOKEN_REGEX, "").split(/\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
 
-        if !(_raw_params.first =~ %r{\A#{TOKEN_KEY}})
+        if !_raw_params.first&.start_with?(TOKEN_KEY)
           _raw_params[0] = "#{TOKEN_KEY}#{_raw_params.first}"
         end
 

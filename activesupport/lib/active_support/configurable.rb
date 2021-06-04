@@ -5,7 +5,7 @@ require "active_support/ordered_options"
 
 module ActiveSupport
   # Configurable provides a <tt>config</tt> method to store and retrieve
-  # configuration options as an <tt>OrderedHash</tt>.
+  # configuration options as an <tt>OrderedOptions</tt>.
   module Configurable
     extend ActiveSupport::Concern
 
@@ -67,8 +67,8 @@ module ActiveSupport
       #   end
       #   # => NameError: invalid config attribute name
       #
-      # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.
-      # To opt out of the instance reader method, pass <tt>instance_reader: false</tt>.
+      # To omit the instance writer method, pass <tt>instance_writer: false</tt>.
+      # To omit the instance reader method, pass <tt>instance_reader: false</tt>.
       #
       #   class User
       #     include ActiveSupport::Configurable
@@ -81,7 +81,7 @@ module ActiveSupport
       #   User.new.allowed_access = true # => NoMethodError
       #   User.new.allowed_access        # => NoMethodError
       #
-      # Or pass <tt>instance_accessor: false</tt>, to opt out both instance methods.
+      # Or pass <tt>instance_accessor: false</tt>, to omit both instance methods.
       #
       #   class User
       #     include ActiveSupport::Configurable
@@ -124,9 +124,9 @@ module ActiveSupport
       private :config_accessor
     end
 
-    # Reads and writes attributes from a configuration <tt>OrderedHash</tt>.
+    # Reads and writes attributes from a configuration <tt>OrderedOptions</tt>.
     #
-    #   require 'active_support/configurable'
+    #   require "active_support/configurable"
     #
     #   class User
     #     include ActiveSupport::Configurable

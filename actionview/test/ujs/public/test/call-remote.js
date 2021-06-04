@@ -53,7 +53,7 @@ asyncTest('form default method is GET', 1, function() {
   })
 })
 
-asyncTest('form url is picked up from "action"', 1, function() {
+asyncTest('form URL is picked up from "action"', 1, function() {
   buildForm({ method: 'post' })
 
   submit(function(e, data, status, xhr) {
@@ -61,7 +61,7 @@ asyncTest('form url is picked up from "action"', 1, function() {
   })
 })
 
-asyncTest('form url is read from "action" not "href"', 1, function() {
+asyncTest('form URL is read from "action" not "href"', 1, function() {
   buildForm({ method: 'post', href: '/echo2' })
 
   submit(function(e, data, status, xhr) {
@@ -69,7 +69,7 @@ asyncTest('form url is read from "action" not "href"', 1, function() {
   })
 })
 
-asyncTest('form url is read from submit button "formaction" if submit is triggered by that button', 1, function() {
+asyncTest('form URL is read from submit button "formaction" if submit is triggered by that button', 1, function() {
   var submitButton = $('<input type="submit" formaction="/echo">')
   buildForm({ method: 'post', href: '/echo2' })
 
@@ -128,14 +128,14 @@ asyncTest('execution of JS code does not modify current DOM', 1, function() {
   })
 })
 
-asyncTest('HTML content should be plain-text', 1, function() {
+asyncTest('HTML document should be parsed', 1, function() {
   buildForm({ method: 'post', 'data-type': 'html' })
 
   $('form').append('<input type="text" name="content_type" value="text/html">')
   $('form').append('<input type="text" name="content" value="<p>hello</p>">')
 
   submit(function(e, data, status, xhr) {
-    ok(data === '<p>hello</p>', 'returned data should be a plain-text string')
+    ok(data instanceof HTMLDocument, 'returned data should be an HTML document')
   })
 })
 
@@ -223,7 +223,7 @@ asyncTest('allow empty form "action"', 1, function() {
 
       // Actual location (strip out settings.data that jQuery serializes and appends)
       // HACK: can no longer use settings.data below to see what was appended to URL, as of
-      // jQuery 1.6.3 (see http://bugs.jquery.com/ticket/10202 and https://github.com/jquery/jquery/pull/544)
+      // jQuery 1.6.3 (see https://bugs.jquery.com/ticket/10202 and https://github.com/jquery/jquery/pull/544)
       ajaxLocation = settings.url.replace('user_name=john', '').replace(/&$/, '').replace(/\?$/, '')
       equal(ajaxLocation.match(/^(.*)/)[1], currentLocation, 'URL should be current page by default')
 

@@ -49,9 +49,28 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_not_nil new_member.club
   end
 
+  def test_association_create_constructor_creates_through_record
+    new_member = Member.create(name: "Chris")
+    new_member.create_club
+    assert_not_nil new_member.current_membership
+    assert_not_nil new_member.club
+  end
+
   def test_creating_association_builds_through_record
     new_member = Member.create(name: "Chris")
     new_club = new_member.association(:club).build
+    assert new_member.current_membership
+    assert_equal new_club, new_member.club
+    assert_predicate new_club, :new_record?
+    assert_predicate new_member.current_membership, :new_record?
+    assert new_member.save
+    assert_predicate new_club, :persisted?
+    assert_predicate new_member.current_membership, :persisted?
+  end
+
+  def test_association_build_constructor_builds_through_record
+    new_member = Member.create(name: "Chris")
+    new_club = new_member.build_club
     assert new_member.current_membership
     assert_equal new_club, new_member.club
     assert_predicate new_club, :new_record?
@@ -154,9 +173,9 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_with_conditions_eager_loading
     # conditions on the through table
-    assert_equal clubs(:moustache_club), Member.all.merge!(includes: :favourite_club).find(@member.id).favourite_club
-    memberships(:membership_of_favourite_club).update_columns(favourite: false)
-    assert_nil Member.all.merge!(includes: :favourite_club).find(@member.id).reload.favourite_club
+    assert_equal clubs(:moustache_club), Member.all.merge!(includes: :favorite_club).find(@member.id).favorite_club
+    memberships(:membership_of_favorite_club).update_columns(favorite: false)
+    assert_nil Member.all.merge!(includes: :favorite_club).find(@member.id).reload.favorite_club
 
     # conditions on the source table
     assert_equal clubs(:moustache_club), Member.all.merge!(includes: :hairy_club).find(@member.id).hairy_club

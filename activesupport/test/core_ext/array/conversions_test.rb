@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "active_support/core_ext/array"
 require "active_support/core_ext/big_decimal"
 require "active_support/core_ext/hash"
@@ -67,6 +67,13 @@ class ToSentenceTest < ActiveSupport::TestCase
     assert_instance_of String, [ActiveSupport::SafeBuffer.new("one")].to_sentence
     assert_instance_of String, [ActiveSupport::SafeBuffer.new("one"), "two"].to_sentence
     assert_instance_of String, [ActiveSupport::SafeBuffer.new("one"), "two", "three"].to_sentence
+  end
+
+  def test_returns_no_frozen_string
+    assert_not [].to_sentence.frozen?
+    assert_not ["one"].to_sentence.frozen?
+    assert_not ["one", "two"].to_sentence.frozen?
+    assert_not ["one", "two", "three"].to_sentence.frozen?
   end
 end
 

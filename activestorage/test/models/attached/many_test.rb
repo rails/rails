@@ -10,12 +10,17 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     @user = User.create!(name: "Josh")
   end
 
-  teardown { ActiveStorage::Blob.all.each(&:delete) }
+  teardown do
+    ActiveStorage::Blob.all.each(&:delete)
+  end
 
   test "attaching existing blobs to an existing record" do
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
     assert_equal "funky.jpg", @user.highlights.first.filename.to_s
     assert_equal "town.jpg", @user.highlights.second.filename.to_s
+
+    assert_not_empty @user.highlights_attachments
+    assert_equal @user.highlights_blobs.count, 2
   end
 
   test "attaching existing blobs from signed IDs to an existing record" do
@@ -26,7 +31,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "attaching new blobs from Hashes to an existing record" do
     @user.highlights.attach(
-      { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpg" },
+      { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpeg" },
       { io: StringIO.new("THINGS"), filename: "town.jpg", content_type: "image/jpeg" })
 
     assert_equal "funky.jpg", @user.highlights.first.filename.to_s
@@ -76,7 +81,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert @user.changed?
 
     @user.highlights.attach(
-      { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpg" },
+      { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpeg" },
       { io: StringIO.new("THINGS"), filename: "town.jpg", content_type: "image/jpeg" })
 
     assert_equal "funky.jpg", @user.highlights.first.filename.to_s
@@ -104,6 +109,27 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     @user.save!
     assert_equal "racecar.jpg", @user.highlights.reload.first.filename.to_s
     assert_equal "video.mp4", @user.highlights.second.filename.to_s
+  end
+
+  test "attaching new blobs from uploaded files to an existing, changed record one at a time" do
+    @user.name = "Tina"
+    assert @user.changed?
+
+    @user.highlights.attach fixture_file_upload("racecar.jpg")
+    @user.highlights.attach fixture_file_upload("video.mp4")
+    assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
+    assert_equal "video.mp4", @user.highlights.second.filename.to_s
+    assert_not @user.highlights.first.persisted?
+    assert_not @user.highlights.second.persisted?
+    assert @user.will_save_change_to_name?
+    assert_not ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert_not ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+
+    @user.save!
+    assert_equal "racecar.jpg", @user.highlights.reload.first.filename.to_s
+    assert_equal "video.mp4", @user.highlights.second.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
   end
 
   test "attaching existing blobs to an existing record one at a time" do
@@ -266,44 +292,22 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "analyzing a new blob from an uploaded file after attaching it to an existing record" do
-    perform_enqueued_jobs do
-      @user.highlights.attach fixture_file_upload("racecar.jpg")
+  test "updating an existing record with attachments when appending on assign" do
+    append_on_assign do
+      @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+
+      assert_difference -> { @user.reload.highlights.count }, +2 do
+        @user.update! highlights: [ create_blob(filename: "whenever.jpg"), create_blob(filename: "wherever.jpg") ]
+      end
+
+      assert_no_difference -> { @user.reload.highlights.count } do
+        @user.update! highlights: [ ]
+      end
+
+      assert_no_difference -> { @user.reload.highlights.count } do
+        @user.update! highlights: nil
+      end
     end
-
-    assert @user.highlights.reload.first.analyzed?
-    assert_equal 4104, @user.highlights.first.metadata[:width]
-    assert_equal 2736, @user.highlights.first.metadata[:height]
-  end
-
-  test "analyzing a new blob from an uploaded file after attaching it to an existing record via update" do
-    perform_enqueued_jobs do
-      @user.update! highlights: [ fixture_file_upload("racecar.jpg") ]
-    end
-
-    assert @user.highlights.reload.first.analyzed?
-    assert_equal 4104, @user.highlights.first.metadata[:width]
-    assert_equal 2736, @user.highlights.first.metadata[:height]
-  end
-
-  test "analyzing a directly-uploaded blob after attaching it to an existing record" do
-    perform_enqueued_jobs do
-      @user.highlights.attach directly_upload_file_blob(filename: "racecar.jpg")
-    end
-
-    assert @user.highlights.reload.first.analyzed?
-    assert_equal 4104, @user.highlights.first.metadata[:width]
-    assert_equal 2736, @user.highlights.first.metadata[:height]
-  end
-
-  test "analyzing a directly-uploaded blob after attaching it to an existing record via update" do
-    perform_enqueued_jobs do
-      @user.update! highlights: [ directly_upload_file_blob(filename: "racecar.jpg") ]
-    end
-
-    assert @user.highlights.reload.first.analyzed?
-    assert_equal 4104, @user.highlights.first.metadata[:width]
-    assert_equal 2736, @user.highlights.first.metadata[:height]
   end
 
   test "attaching existing blobs to a new record" do
@@ -321,20 +325,20 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "attaching an existing blob from a signed ID to a new record" do
     User.new(name: "Jason").tap do |user|
-      user.avatar.attach create_blob(filename: "funky.jpg").signed_id
+      user.highlights.attach create_blob(filename: "funky.jpg").signed_id
       assert user.new_record?
-      assert_equal "funky.jpg", user.avatar.filename.to_s
+      assert_equal "funky.jpg", user.highlights.first.filename.to_s
 
       user.save!
-      assert_equal "funky.jpg", user.reload.avatar.filename.to_s
+      assert_equal "funky.jpg", user.reload.highlights.first.filename.to_s
     end
   end
 
   test "attaching new blobs from Hashes to a new record" do
     User.new(name: "Jason").tap do |user|
       user.highlights.attach(
-        { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpg" },
-        { io: StringIO.new("THINGS"), filename: "town.jpg", content_type: "image/jpg" })
+        { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpeg" },
+        { io: StringIO.new("THINGS"), filename: "town.jpg", content_type: "image/jpeg" })
 
       assert user.new_record?
       assert user.highlights.first.new_record?
@@ -419,24 +423,6 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal "Could not find or build blob: expected attachable, got :foo", error.message
   end
 
-  test "analyzing a new blob from an uploaded file after attaching it to a new record" do
-    perform_enqueued_jobs do
-      user = User.create!(name: "Jason", highlights: [ fixture_file_upload("racecar.jpg") ])
-      assert user.highlights.reload.first.analyzed?
-      assert_equal 4104, user.highlights.first.metadata[:width]
-      assert_equal 2736, user.highlights.first.metadata[:height]
-    end
-  end
-
-  test "analyzing a directly-uploaded blob after attaching it to a new record" do
-    perform_enqueued_jobs do
-      user = User.create!(name: "Jason", highlights: [ directly_upload_file_blob(filename: "racecar.jpg") ])
-      assert user.highlights.reload.first.analyzed?
-      assert_equal 4104, user.highlights.first.metadata[:width]
-      assert_equal 2736, user.highlights.first.metadata[:height]
-    end
-  end
-
   test "detaching" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       @user.highlights.attach blobs
@@ -459,7 +445,9 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       @user.highlights.attach blobs
       assert @user.highlights.attached?
 
-      @user.highlights.purge
+      assert_changes -> { @user.updated_at } do
+        @user.highlights.purge
+      end
       assert_not @user.highlights.attached?
       assert_not ActiveStorage::Blob.exists?(blobs.first.id)
       assert_not ActiveStorage::Blob.exists?(blobs.second.id)
@@ -501,7 +489,9 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert @user.highlights.attached?
 
       perform_enqueued_jobs do
-        @user.highlights.purge_later
+        assert_changes -> { @user.updated_at } do
+          @user.highlights.purge_later
+        end
       end
 
       assert_not @user.highlights.attached?
@@ -566,6 +556,20 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "duped record does not share attachments" do
+    @user.highlights.attach [ create_blob(filename: "funky.jpg") ]
+
+    assert_not_equal @user.highlights.first, @user.dup.highlights.first
+  end
+
+  test "duped record does not share attachment changes" do
+    @user.highlights.attach [ create_blob(filename: "funky.jpg") ]
+    assert_not_predicate @user, :changed_for_autosave?
+
+    @user.dup.highlights.attach [ create_blob(filename: "town.mp4") ]
+    assert_not_predicate @user, :changed_for_autosave?
+  end
+
   test "clearing change on reload" do
     @user.highlights = [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ]
     assert @user.highlights.attached?
@@ -593,4 +597,81 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       User.remove_method :highlights
     end
   end
+
+  test "attaching a new blob from a Hash with a custom service" do
+    with_service("mirror") do
+      @user.highlights.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
+      @user.vlogs.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
+
+      assert_instance_of ActiveStorage::Service::MirrorService, @user.highlights.first.service
+      assert_instance_of ActiveStorage::Service::DiskService, @user.vlogs.first.service
+    end
+  end
+
+  test "attaching a new blob from an uploaded file with a custom service" do
+    with_service("mirror") do
+      @user.highlights.attach fixture_file_upload("racecar.jpg")
+      @user.vlogs.attach fixture_file_upload("racecar.jpg")
+
+      assert_instance_of ActiveStorage::Service::MirrorService, @user.highlights.first.service
+      assert_instance_of ActiveStorage::Service::DiskService, @user.vlogs.first.service
+    end
+  end
+
+  test "raises error when misconfigured service is passed" do
+    error = assert_raises ArgumentError do
+      User.class_eval do
+        has_many_attached :featured_photos, service: :unknown
+      end
+    end
+
+    assert_match(/Cannot configure service :unknown for User#featured_photos/, error.message)
+  end
+
+  test "creating variation by variation name" do
+    @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
+    variant = @user.highlights_with_variants.first.variant(:thumb).processed
+
+    image = read_image(variant)
+    assert_equal "JPEG", image.type
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
+
+  test "raises error when unknown variant name is used" do
+    @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
+
+    error = assert_raises ArgumentError do
+      @user.highlights_with_variants.first.variant(:unknown).processed
+    end
+
+    assert_match(/Cannot find variant :unknown for User#highlights_with_variants/, error.message)
+  end
+
+  test "successfully attaches new blobs and destroys attachments marked for destruction via nested attributes" do
+    append_on_assign do
+      town_blob = create_blob(filename: "town.jpg")
+      @user.highlights.attach(town_blob)
+      @user.reload
+
+      racecar_blob = fixture_file_upload("racecar.jpg")
+      attachment_id = town_blob.attachments.find_by!(record: @user).id
+      @user.update(
+        highlights: [racecar_blob],
+        highlights_attachments_attributes: [{ id: attachment_id, _destroy: true }]
+      )
+
+      assert @user.reload.highlights.attached?
+      assert_equal 1, @user.highlights.count
+      assert_equal "racecar.jpg", @user.highlights.blobs.first.filename.to_s
+    end
+  end
+
+  private
+    def append_on_assign
+      ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many
+      yield
+    ensure
+      ActiveStorage.replace_on_assign_to_many = previous
+    end
 end

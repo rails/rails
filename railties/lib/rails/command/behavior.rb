@@ -44,7 +44,7 @@ module Rails
                   require path
                   return
                 rescue LoadError => e
-                  raise unless e.message =~ /#{Regexp.escape(path)}$/
+                  raise unless /#{Regexp.escape(path)}$/.match?(e.message)
                 rescue Exception => e
                   warn "[WARNING] Could not load #{command_type} #{path.inspect}. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
                 end
@@ -56,7 +56,7 @@ module Rails
           def lookup!
             $LOAD_PATH.each do |base|
               Dir[File.join(base, *file_lookup_paths)].each do |path|
-                path = path.sub("#{base}/", "")
+                path = path.delete_prefix("#{base}/")
                 require path
               rescue Exception
                 # No problem
@@ -71,8 +71,9 @@ module Rails
             paths = []
             namespaces.each do |namespace|
               pieces = namespace.split(":")
-              paths << pieces.dup.push(pieces.last).join("/")
-              paths << pieces.join("/")
+              path = pieces.join("/")
+              paths << "#{path}/#{pieces.last}"
+              paths << path
             end
             paths.uniq!
             paths

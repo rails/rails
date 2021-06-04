@@ -82,7 +82,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     %w(edit new).each do |view|
-      assert_file "app/views/product_lines/#{view}.html.erb", /render 'form', product_line: @product_line/
+      assert_file "app/views/product_lines/#{view}.html.erb", /render "form", product_line: @product_line/
     end
 
     assert_file "app/views/product_lines/_form.html.erb" do |test|
@@ -118,7 +118,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/class ProductLinesController < ApplicationController/, content)
       assert_no_match(/respond_to/, content)
 
-      assert_match(/before_action :set_product_line, only: \[:show, :update, :destroy\]/, content)
+      assert_match(/before_action :set_product_line, only: %i\[ show update destroy \]/, content)
 
       assert_instance_method :index, content do |m|
         assert_match(/@product_lines = ProductLine\.all/, m)
@@ -221,7 +221,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/helpers/product_lines_helper.rb"
 
     # Assets
-    assert_file "app/assets/stylesheets/scaffold.css", /:visited/
+    assert_file "app/assets/stylesheets/scaffold.css", /.scaffold_record/
     assert_no_file "app/assets/stylesheets/product_lines.css"
   end
 
@@ -282,10 +282,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Views
     assert_file "app/views/admin/roles/index.html.erb" do |content|
-      assert_match("'Show', admin_role", content)
-      assert_match("'Edit', edit_admin_role_path(admin_role)", content)
-      assert_match("'Destroy', admin_role", content)
-      assert_match("'New Admin Role', new_admin_role_path", content)
+      assert_match(%("New role", new_admin_role_path), content)
     end
 
     %w(edit new show _form).each do |view|
@@ -297,7 +294,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "app/helpers/admin/roles_helper.rb"
 
     # Assets
-    assert_file "app/assets/stylesheets/scaffold.css", /:visited/
+    assert_file "app/assets/stylesheets/scaffold.css", /.scaffold_record/
     assert_file "app/assets/stylesheets/admin/roles.css"
   end
 
@@ -461,19 +458,81 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/accounts/index.html.erb" do |content|
-      assert_match(/^\W{8}<td><%= account\.name %><\/td>/, content)
-      assert_match(/^\W{8}<td><%= account\.user_id %><\/td>/, content)
+      assert_match(/^\W{2}<%= render @accounts %>/, content)
     end
 
     assert_file "app/views/accounts/show.html.erb" do |content|
-      assert_match(/^\W{2}<%= @account\.name %>/, content)
-      assert_match(/^\W{2}<%= @account\.user_id %>/, content)
+      assert_match(/<%= render @account %>/, content)
+      assert_match(/link_to "Edit this account"/, content)
+      assert_match(/button_to "Destroy this account"/, content)
+      assert_match(/link_to "Back to accounts"/, content)
     end
   end
 
-  def test_scaffold_generator_database
-    with_secondary_database_configuration do
+  def test_scaffold_generator_attachments
+    run_generator ["message", "video:attachment", "photos:attachments", "images:attachments"]
+
+    assert_file "app/models/message.rb", /has_one_attached :video/
+    assert_file "app/models/message.rb", /has_many_attached :photos/
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_instance_method :message_params, content do |m|
+        assert_match(/permit\(:video, photos: \[\], images: \[\]\)/, m)
+      end
+    end
+
+    assert_file "app/views/messages/_form.html.erb" do |content|
+      assert_match(/^\W{4}<%= form\.file_field :video %>/, content)
+      assert_match(/^\W{4}<%= form\.file_field :photos, multiple: true %>/, content)
+    end
+
+    assert_file "app/views/messages/_message.html.erb" do |content|
+      assert_match(/^\W{4}<%= link_to message\.video\.filename, message\.video if message\.video\.attached\? %>/, content)
+      assert_match(/^\W{6}<div><%= link_to photo\.filename, photo %>/, content)
+    end
+
+    assert_file "test/system/messages_test.rb" do |content|
+      assert_no_match(/fill_in "Video"/, content)
+      assert_no_match(/fill_in "Photos"/, content)
+    end
+  end
+
+  def test_scaffold_generator_rich_text
+    run_generator ["message", "content:rich_text"]
+
+    assert_file "app/models/message.rb", /rich_text :content/
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_instance_method :message_params, content do |m|
+        assert_match(/permit\(:content\)/, m)
+      end
+    end
+
+    assert_file "app/views/messages/_form.html.erb" do |content|
+      assert_match(/^\W{4}<%= form\.rich_text_area :content %>/, content)
+    end
+
+    assert_file "test/system/messages_test.rb" do |content|
+      assert_no_match(/fill_in "Content"/, content)
+    end
+  end
+
+  def test_scaffold_generator_multi_db_abstract_class
+    with_database_configuration do
       run_generator ["posts", "--database=secondary"]
+
+      assert_migration "db/secondary_migrate/create_posts.rb"
+      assert_file "app/models/secondary_record.rb" do |content|
+        assert_match(/class SecondaryRecord < ApplicationRecord/, content)
+        assert_match(/connects_to database: { writing: :secondary }/, content)
+        assert_match(/self.abstract_class = true/, content)
+      end
+    end
+  end
+
+  def test_scaffold_generator_database_with_aliases
+    with_database_configuration do
+      run_generator ["posts", "--db=secondary"]
 
       assert_migration "db/secondary_migrate/create_posts.rb"
     end
@@ -511,17 +570,17 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "test/controllers/users_controller_test.rb" do |content|
-      assert_match(/password: 'secret'/, content)
-      assert_match(/password_confirmation: 'secret'/, content)
+      assert_match(/password: "secret"/, content)
+      assert_match(/password_confirmation: "secret"/, content)
     end
 
     assert_file "test/system/users_test.rb" do |content|
-      assert_match(/fill_in "Password", with: 'secret'/, content)
-      assert_match(/fill_in "Password confirmation", with: 'secret'/, content)
+      assert_match(/fill_in "Password", with: "secret"/, content)
+      assert_match(/fill_in "Password confirmation", with: "secret"/, content)
     end
 
     assert_file "test/fixtures/users.yml" do |content|
-      assert_match(/password_digest: <%= BCrypt::Password.create\('secret'\) %>/, content)
+      assert_match(/password_digest: <%= BCrypt::Password.create\("secret"\) %>/, content)
     end
   end
 

@@ -26,7 +26,7 @@ module ActiveRecord
       payload[:exception] ||
         payload[:cached] ||
         IGNORED_PAYLOADS.include?(payload[:name]) ||
-        payload[:sql] !~ EXPLAINED_SQLS
+        !payload[:sql].match?(EXPLAINED_SQLS)
     end
 
     ActiveSupport::Notifications.subscribe("sql.active_record", new)

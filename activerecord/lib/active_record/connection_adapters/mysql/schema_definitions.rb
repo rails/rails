@@ -4,53 +4,69 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module ColumnMethods
-        def blob(*args, **options)
-          args.each { |name| column(name, :blob, options) }
-        end
+        extend ActiveSupport::Concern
 
-        def tinyblob(*args, **options)
-          args.each { |name| column(name, :tinyblob, options) }
-        end
+        ##
+        # :method: blob
+        # :call-seq: blob(*names, **options)
 
-        def mediumblob(*args, **options)
-          args.each { |name| column(name, :mediumblob, options) }
-        end
+        ##
+        # :method: tinyblob
+        # :call-seq: tinyblob(*names, **options)
 
-        def longblob(*args, **options)
-          args.each { |name| column(name, :longblob, options) }
-        end
+        ##
+        # :method: mediumblob
+        # :call-seq: mediumblob(*names, **options)
 
-        def tinytext(*args, **options)
-          args.each { |name| column(name, :tinytext, options) }
-        end
+        ##
+        # :method: longblob
+        # :call-seq: longblob(*names, **options)
 
-        def mediumtext(*args, **options)
-          args.each { |name| column(name, :mediumtext, options) }
-        end
+        ##
+        # :method: tinytext
+        # :call-seq: tinytext(*names, **options)
 
-        def longtext(*args, **options)
-          args.each { |name| column(name, :longtext, options) }
-        end
+        ##
+        # :method: mediumtext
+        # :call-seq: mediumtext(*names, **options)
 
-        def unsigned_integer(*args, **options)
-          args.each { |name| column(name, :unsigned_integer, options) }
-        end
+        ##
+        # :method: longtext
+        # :call-seq: longtext(*names, **options)
 
-        def unsigned_bigint(*args, **options)
-          args.each { |name| column(name, :unsigned_bigint, options) }
-        end
+        ##
+        # :method: unsigned_integer
+        # :call-seq: unsigned_integer(*names, **options)
 
-        def unsigned_float(*args, **options)
-          args.each { |name| column(name, :unsigned_float, options) }
-        end
+        ##
+        # :method: unsigned_bigint
+        # :call-seq: unsigned_bigint(*names, **options)
 
-        def unsigned_decimal(*args, **options)
-          args.each { |name| column(name, :unsigned_decimal, options) }
+        ##
+        # :method: unsigned_float
+        # :call-seq: unsigned_float(*names, **options)
+
+        ##
+        # :method: unsigned_decimal
+        # :call-seq: unsigned_decimal(*names, **options)
+
+        included do
+          define_column_methods :blob, :tinyblob, :mediumblob, :longblob,
+            :tinytext, :mediumtext, :longtext, :unsigned_integer, :unsigned_bigint,
+            :unsigned_float, :unsigned_decimal
         end
       end
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
+
+        attr_reader :charset, :collation
+
+        def initialize(conn, name, charset: nil, collation: nil, **)
+          super
+          @charset = charset
+          @collation = collation
+        end
 
         def new_column_definition(name, type, **options) # :nodoc:
           case type

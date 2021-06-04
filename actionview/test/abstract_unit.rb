@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 $:.unshift File.expand_path("lib", __dir__)
-$:.unshift File.expand_path("fixtures/helpers", __dir__)
-$:.unshift File.expand_path("fixtures/alternate_helpers", __dir__)
 
 ENV["TMPDIR"] = File.expand_path("tmp", __dir__)
 
@@ -22,9 +20,19 @@ require "action_view"
 require "action_view/testing/resolvers"
 require "active_support/dependencies"
 require "active_model"
-require "active_record"
 
-require "pp" # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
+module ActionViewTestSuiteUtils
+  def self.require_helpers(helpers_dirs)
+    Array(helpers_dirs).each do |helpers_dir|
+      Dir.glob("#{helpers_dir}/**/*_helper.rb") do |helper_file|
+        require helper_file
+      end
+    end
+  end
+end
+
+ActionViewTestSuiteUtils.require_helpers("#{__dir__}/fixtures/helpers")
+ActionViewTestSuiteUtils.require_helpers("#{__dir__}/fixtures/alternate_helpers")
 
 ActiveSupport::Dependencies.hook!
 
@@ -36,9 +44,6 @@ ActiveSupport::Deprecation.debug = true
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
-# Register danish language for testing
-I18n.backend.store_translations "da", {}
-I18n.backend.store_translations "pt-BR", {}
 ORIGINAL_LOCALES = I18n.available_locales.map(&:to_s).sort
 
 FIXTURE_LOAD_PATH = File.expand_path("fixtures", __dir__)
@@ -48,7 +53,8 @@ module RenderERBUtils
     @view ||= begin
       path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
       view_paths = ActionView::PathSet.new([path])
-      ActionView::Base.new(view_paths)
+      view = ActionView::Base.with_empty_template_cache
+      view.with_view_paths(view_paths)
     end
   end
 
@@ -58,10 +64,11 @@ module RenderERBUtils
     template = ActionView::Template.new(
       string.strip,
       "test template",
-      ActionView::Template::Handlers::ERB,
-      {})
+      ActionView::Template.handler_for_extension(:erb),
+      format: :html, locals: [])
 
-    template.render(self, {}).strip
+    view = ActionView::Base.with_empty_template_cache
+    template.render(view.empty, {}).strip
   end
 end
 
@@ -79,7 +86,7 @@ class RoutedRackApp
 end
 
 class BasicController
-  attr_accessor :request
+  attr_accessor :request, :response
 
   def config
     @config ||= ActiveSupport::InheritableOptions.new(ActionController::Base.config).tap do |config|
@@ -146,7 +153,7 @@ module ActionController
         define_method(:setup) do
           super()
           @routes = routes
-          @controller.singleton_class.include @routes.url_helpers
+          @controller.singleton_class.include @routes.url_helpers if @controller
         end
       }
       routes
@@ -157,24 +164,6 @@ module ActionController
       @routes.draw(&block)
       @routes
     end
-  end
-end
-
-class Workshop
-  extend ActiveModel::Naming
-  include ActiveModel::Conversion
-  attr_accessor :id
-
-  def initialize(id)
-    @id = id
-  end
-
-  def persisted?
-    id.present?
-  end
-
-  def to_s
-    id.to_s
   end
 end
 
@@ -190,6 +179,12 @@ module ActionDispatch
 end
 
 class ActiveSupport::TestCase
+  if Process.respond_to?(:fork) && !Gem.win_platform?
+    parallelize
+  else
+    parallelize(with: :threads)
+  end
+
   include ActiveSupport::Testing::MethodCallAssertions
 
   private
@@ -203,3 +198,5 @@ class ActiveSupport::TestCase
       skip message if defined?(JRUBY_VERSION)
     end
 end
+
+require_relative "../../tools/test_common"

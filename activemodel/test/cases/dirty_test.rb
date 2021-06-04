@@ -39,10 +39,6 @@ class DirtyTest < ActiveModel::TestCase
     def save
       changes_applied
     end
-
-    def reload
-      clear_changes_information
-    end
   end
 
   setup do
@@ -153,6 +149,17 @@ class DirtyTest < ActiveModel::TestCase
     assert_predicate @model, :name_previously_changed?
   end
 
+  test "checking if an attribute was previously changed to a particular value" do
+    @model.name = "Ringo"
+    @model.save
+    assert @model.name_previously_changed?(from: nil, to: "Ringo")
+    assert_not @model.name_previously_changed?(from: "Pete", to: "Ringo")
+    assert @model.name_previously_changed?(to: "Ringo")
+    assert_not @model.name_previously_changed?(to: "Pete")
+    assert @model.name_previously_changed?(from: nil)
+    assert_not @model.name_previously_changed?(from: "Pete")
+  end
+
   test "previous value is preserved when changed after save" do
     assert_equal({}, @model.changed_attributes)
     @model.name = "Paul"
@@ -184,7 +191,7 @@ class DirtyTest < ActiveModel::TestCase
     assert_predicate @model, :size_changed?
   end
 
-  test "reload should reset all changes" do
+  test "clear_changes_information should reset all changes" do
     @model.name = "Dmitry"
     @model.name_changed?
     @model.save
@@ -193,7 +200,7 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal [nil, "Dmitry"], @model.previous_changes["name"]
     assert_equal "Dmitry", @model.changed_attributes["name"]
 
-    @model.reload
+    @model.clear_changes_information
 
     assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.previous_changes
     assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.changed_attributes

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/json"
 require "active_support/time"
-require "time_zone_test_helpers"
+require_relative "../time_zone_test_helpers"
 
 class TestJSONDecoding < ActiveSupport::TestCase
   include TimeZoneTestHelpers
@@ -40,6 +40,8 @@ class TestJSONDecoding < ActiveSupport::TestCase
     # needs to be *exact*
     %({"a": " 2007-01-01 01:12:34 Z "})          => { "a" => " 2007-01-01 01:12:34 Z " },
     %({"a": "2007-01-01 : it's your birthday"})  => { "a" => "2007-01-01 : it's your birthday" },
+    %({"a": "Today is:\\n2020-05-21"})           => { "a" => "Today is:\n2020-05-21" },
+    %({"a": "2007-01-01 01:12:34 Z\\nwas my birthday"}) => { "a" => "2007-01-01 01:12:34 Z\nwas my birthday" },
     %([])    => [],
     %({})    => {},
     %({"a":1}) => { "a" => 1 },
@@ -113,7 +115,6 @@ class TestJSONDecoding < ActiveSupport::TestCase
   end
 
   private
-
     def with_parse_json_times(value)
       old_value = ActiveSupport.parse_json_times
       ActiveSupport.parse_json_times = value

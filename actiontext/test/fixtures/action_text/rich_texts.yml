@@ -1,0 +1,9 @@
+hello_alice_message_content:
+  record: hello_alice (Message)
+  name: content
+  body: <p>Hello, <%= ActionText::FixtureSet.attachment("people", :alice) %></p>
+
+hello_world_review_content:
+  record: hello_world (Review)
+  name: content
+  body: <p><%= ActionText::FixtureSet.attachment("messages", :hello_world) %> is great!</p>

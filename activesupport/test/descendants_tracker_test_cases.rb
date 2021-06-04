@@ -27,10 +27,25 @@ module DescendantsTrackerTestCases
     assert_equal_sets [], Child2.descendants
   end
 
+  def test_descendants_with_garbage_collected_classes
+    1.times do
+      child_klass = Class.new(Parent)
+      assert_equal_sets [Child1, Grandchild1, Grandchild2, Child2, child_klass], Parent.descendants
+    end
+    GC.start
+    assert_equal_sets [Child1, Grandchild1, Grandchild2, Child2], Parent.descendants
+  end
+
   def test_direct_descendants
     assert_equal_sets [Child1, Child2], Parent.direct_descendants
     assert_equal_sets [Grandchild1, Grandchild2], Child1.direct_descendants
     assert_equal_sets [], Child2.direct_descendants
+  end
+
+  def test_subclasses
+    [Parent, Child1, Child2].each do |klass|
+      assert_equal klass.direct_descendants, klass.subclasses
+    end
   end
 
   def test_clear
@@ -43,7 +58,6 @@ module DescendantsTrackerTestCases
   end
 
   private
-
     def assert_equal_sets(expected, actual)
       assert_equal Set.new(expected), Set.new(actual)
     end

@@ -82,6 +82,30 @@ module ApplicationTests
       assert_equal "foo", last_response.body
     end
 
+    test "appended root takes precedence over internal welcome controller" do
+      controller :foo, <<-RUBY
+        class FooController < ApplicationController
+          def index
+            render plain: "foo"
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+        end
+
+        Rails.application.routes.append do
+          get "/", to: "foo#index"
+        end
+      RUBY
+
+      app("development")
+      get "/"
+
+      assert_equal "foo", last_response.body
+    end
+
     test "rails/welcome in production" do
       app("production")
       get "/"
@@ -265,6 +289,30 @@ module ApplicationTests
       assert_equal "WIN", last_response.body
     end
 
+    test "routes drawing from config/routes" do
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          draw :external
+        end
+      RUBY
+
+      app_file "config/routes/external.rb", <<-RUBY
+        get ':controller/:action'
+      RUBY
+
+      controller :success, <<-RUBY
+        class SuccessController < ActionController::Base
+          def index
+            render plain: "success!"
+          end
+        end
+      RUBY
+
+      app "development"
+      get "/success/index"
+      assert_equal "success!", last_response.body
+    end
+
     {
       "development" => ["baz", "http://www.apple.com", "/dashboard"],
       "production"  => ["bar", "http://www.microsoft.com", "/profile"]
@@ -307,13 +355,17 @@ module ApplicationTests
 
         app_file "config/routes.rb", <<-RUBY
           Rails.application.routes.draw do
-            get 'foo', to: 'foo#bar'
+            draw :external
             get 'custom', to: 'foo#custom'
             get 'mapping', to: 'foo#mapping'
 
             direct(:custom) { "http://www.microsoft.com" }
             resolve("User") { "/profile" }
           end
+        RUBY
+
+        app_file "config/routes/external.rb", <<-RUBY
+          get 'foo', to: 'foo#bar'
         RUBY
 
         app(mode)
@@ -329,13 +381,17 @@ module ApplicationTests
 
         app_file "config/routes.rb", <<-RUBY
           Rails.application.routes.draw do
-            get 'foo', to: 'foo#baz'
+            draw :another_external
             get 'custom', to: 'foo#custom'
             get 'mapping', to: 'foo#mapping'
 
             direct(:custom) { "http://www.apple.com" }
             resolve("User") { "/dashboard" }
           end
+        RUBY
+
+        app_file "config/routes/another_external.rb", <<-RUBY
+          get 'foo', to: 'foo#baz'
         RUBY
 
         sleep 0.1

@@ -40,16 +40,23 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "Gemfile" do |content|
-      assert_no_match(/gem 'sass-rails'/, content)
-      assert_no_match(/gem 'web-console'/, content)
-      assert_no_match(/gem 'capybara'/, content)
-      assert_no_match(/gem 'selenium-webdriver'/, content)
-      assert_match(/# gem 'jbuilder'/, content)
-      assert_match(/# gem 'rack-cors'/, content)
+      assert_no_match(/gem "sass-rails"/, content)
+      assert_no_match(/gem "web-console"/, content)
+      assert_no_match(/gem "capybara"/, content)
+      assert_no_match(/gem "selenium-webdriver"/, content)
+      assert_match(/# gem "jbuilder"/, content)
+      assert_match(/# gem "rack-cors"/, content)
     end
 
     assert_file "config/application.rb", /config\.api_only = true/
     assert_file "app/controllers/application_controller.rb", /ActionController::API/
+
+    assert_file "config/environments/development.rb" do |content|
+      assert_no_match(/action_controller\.perform_caching = true/, content)
+    end
+    assert_file "config/environments/production.rb" do |content|
+      assert_no_match(/action_controller\.perform_caching = true/, content)
+    end
   end
 
   def test_generator_if_skip_action_cable_is_given
@@ -84,11 +91,12 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
     generator = Rails::Generators::AppGenerator.new ["rails"],
       { api: true, update: true }, { destination_root: destination_root, shell: @shell }
-    quietly { generator.send(:update_config_files) }
+    quietly { generator.update_config_files }
 
     assert_no_file "config/initializers/cookies_serializer.rb"
     assert_no_file "config/initializers/assets.rb"
     assert_no_file "config/initializers/content_security_policy.rb"
+    assert_no_file "config/initializers/permissions_policy.rb"
   end
 
   def test_app_update_does_not_generate_unnecessary_bin_files
@@ -96,13 +104,12 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
     generator = Rails::Generators::AppGenerator.new ["rails"],
       { api: true, update: true }, { destination_root: destination_root, shell: @shell }
-    quietly { generator.send(:update_bin_files) }
+    quietly { generator.update_bin_files }
 
     assert_no_file "bin/yarn"
   end
 
   private
-
     def default_files
       %w(.gitignore
         .ruby-version
@@ -120,7 +127,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         bin/rails
         bin/rake
         bin/setup
-        bin/update
         config/application.rb
         config/boot.rb
         config/cable.yml
@@ -166,6 +172,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          config/initializers/assets.rb
          config/initializers/cookies_serializer.rb
          config/initializers/content_security_policy.rb
+         config/initializers/permissions_policy.rb
          lib/assets
          test/helpers
          tmp/cache/assets

@@ -18,6 +18,7 @@ class String
   #   "2012-12-13T06:12".to_time         # => 2012-12-13 06:12:00 +0100
   #   "2012-12-13T06:12".to_time(:utc)   # => 2012-12-13 06:12:00 UTC
   #   "12/13/2012".to_time               # => ArgumentError: argument out of range
+  #   "1604326192".to_time               # => ArgumentError: argument out of range
   def to_time(form = :local)
     parts = Date._parse(self, false)
     used_keys = %i(year mon mday hour min sec sec_fraction offset)

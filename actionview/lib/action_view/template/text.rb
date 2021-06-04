@@ -8,7 +8,6 @@ module ActionView #:nodoc:
 
       def initialize(string)
         @string = string.to_s
-        @type = Types[:text]
       end
 
       def identifier
@@ -25,8 +24,8 @@ module ActionView #:nodoc:
         to_str
       end
 
-      def formats
-        [@type.ref]
+      def format
+        :text
       end
     end
   end

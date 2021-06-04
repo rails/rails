@@ -18,6 +18,7 @@ module Rails
           include: %w(
             README.rdoc
             lib/active_record/**/*.rb
+            lib/arel.rb
           )
         },
 
@@ -188,7 +189,7 @@ module Rails
 
     class EdgeTask < RepoTask
       def rails_version
-        "master@#{`git rev-parse HEAD`[0, 7]}"
+        "main@#{`git rev-parse HEAD`[0, 7]}"
       end
     end
 

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "pathname"
+
 module Rails
   module Paths
     # This object is an extended hash that behaves as root of the <tt>Rails::Paths</tt> system.
@@ -98,7 +100,6 @@ module Rails
       end
 
     private
-
       def filter_by(&block)
         all_paths.find_all(&block).flat_map { |path|
           paths = path.existent
@@ -181,6 +182,14 @@ module Rails
         @paths
       end
 
+      def paths
+        raise "You need to set a path root" unless @root.path
+
+        map do |p|
+          Pathname.new(@root.path).join(p)
+        end
+      end
+
       def extensions # :nodoc:
         $1.split(",") if @glob =~ /\{([\S]+)\}/
       end
@@ -223,14 +232,11 @@ module Rails
       alias to_a expanded
 
       private
-
         def files_in(path)
-          Dir.chdir(path) do
-            files = Dir.glob(@glob)
-            files -= @exclude if @exclude
-            files.map! { |file| File.join(path, file) }
-            files.sort
-          end
+          files = Dir.glob(@glob, base: path)
+          files -= @exclude if @exclude
+          files.map! { |file| File.join(path, file) }
+          files.sort
         end
     end
   end

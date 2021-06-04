@@ -11,7 +11,7 @@ module ActiveStorage
   #
   # Example:
   #
-  #   ActiveStorage::VideoAnalyzer.new(blob).metadata
+  #   ActiveStorage::Analyzer::VideoAnalyzer.new(blob).metadata
   #   # => { width: 640.0, height: 480.0, duration: 5.0, angle: 0, display_aspect_ratio: [4, 3] }
   #
   # When a video's angle is 90 or 270 degrees, its width and height are automatically swapped for convenience.
@@ -44,7 +44,8 @@ module ActiveStorage
       end
 
       def duration
-        Float(video_stream["duration"]) if video_stream["duration"]
+        duration = video_stream["duration"] || container["duration"]
+        Float(duration) if duration
       end
 
       def angle
@@ -98,12 +99,22 @@ module ActiveStorage
         probe["streams"] || []
       end
 
+      def container
+        probe["format"] || {}
+      end
+
       def probe
-        download_blob_to_tempfile { |file| probe_from(file) }
+        @probe ||= download_blob_to_tempfile { |file| probe_from(file) }
       end
 
       def probe_from(file)
-        IO.popen([ ffprobe_path, "-print_format", "json", "-show_streams", "-v", "error", file.path ]) do |output|
+        IO.popen([ ffprobe_path,
+          "-print_format", "json",
+          "-show_streams",
+          "-show_format",
+          "-v", "error",
+          file.path
+        ]) do |output|
           JSON.parse(output.read)
         end
       rescue Errno::ENOENT

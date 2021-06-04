@@ -10,18 +10,16 @@ class Topic < ActiveRecord::Base
   scope :approved, -> { where(approved: true) }
   scope :rejected, -> { where(approved: false) }
 
+  scope :true, -> { where(approved: true) }
+  scope :false, -> { where(approved: false) }
+
+  scope :children, -> { where.not(parent_id: nil) }
+  scope :has_children, -> { where(id: Topic.children.select(:parent_id)) }
+
   scope :scope_with_lambda, lambda { all }
 
-  scope :by_private_lifo, -> { where(author_name: private_lifo) }
   scope :by_lifo, -> { where(author_name: "lifo") }
   scope :replied, -> { where "replies_count > 0" }
-
-  class << self
-    private
-      def private_lifo
-        "lifo"
-      end
-  end
 
   scope "approved_as_string", -> { where(approved: true) }
   scope :anonymous_extension, -> { } do
@@ -30,11 +28,17 @@ class Topic < ActiveRecord::Base
     end
   end
 
+  scope :scope_stats, -> stats { stats[:count] = count; self }
+
+  def self.klass_stats(stats); stats[:count] = count; self; end
+
   scope :with_object, Class.new(Struct.new(:klass)) {
     def call
       klass.where(approved: true)
     end
   }.new(self)
+
+  scope :with_kwargs, ->(approved: false) { where(approved: approved) }
 
   module NamedExtension
     def two
@@ -44,6 +48,7 @@ class Topic < ActiveRecord::Base
 
   has_many :replies, dependent: :destroy, foreign_key: "parent_id", autosave: true
   has_many :approved_replies, -> { approved }, class_name: "Reply", foreign_key: "parent_id", counter_cache: "replies_count"
+  has_many :open_replies, -> { open }, class_name: "Reply", foreign_key: "parent_id"
 
   has_many :unique_replies, dependent: :destroy, foreign_key: "parent_id"
   has_many :silly_unique_replies, dependent: :destroy, foreign_key: "parent_id"
@@ -96,14 +101,17 @@ class Topic < ActiveRecord::Base
     write_attribute(:approved, val)
   end
 
-  private
+  def self.nested_scoping(scope)
+    scope.base
+  end
 
+  private
     def default_written_on
       self.written_on = Time.now unless attribute_present?("written_on")
     end
 
     def destroy_children
-      self.class.where("parent_id = #{id}").delete_all
+      self.class.delete_by(parent_id: id)
     end
 
     def set_email_address
@@ -121,10 +129,6 @@ class Topic < ActiveRecord::Base
     def change_approved_callback
       self.approved = change_approved_before_save unless change_approved_before_save.nil?
     end
-end
-
-class ImportantTopic < Topic
-  serialize :important, Hash
 end
 
 class DefaultRejectedTopic < Topic

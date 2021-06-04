@@ -15,7 +15,7 @@ Highlights in Rails 5.1:
 * Unification of form_for and form_tag into form_with
 
 These release notes cover only the major changes. To learn about various bug
-fixes and changes, please refer to the change logs or check out the [list of
+fixes and changes, please refer to the changelogs or check out the [list of
 commits](https://github.com/rails/rails/commits/5-1-stable) in the main Rails
 repository on GitHub.
 
@@ -41,8 +41,8 @@ Major Features
 [Pull Request](https://github.com/rails/rails/pull/26836)
 
 Rails 5.1 allows managing JavaScript dependencies
-from NPM via Yarn. This will make it easy to use libraries like React, VueJS
-or any other library from NPM world. The Yarn support is integrated with
+from npm via Yarn. This will make it easy to use libraries like React, VueJS
+or any other library from npm world. The Yarn support is integrated with
 the asset pipeline so that all dependencies will work seamlessly with the
 Rails 5.1 app.
 
@@ -89,7 +89,7 @@ screenshots.
 Rails now allows management of application secrets in a secure way,
 inspired by the [sekrets](https://github.com/ahoward/sekrets) gem.
 
-Run `bin/rails secrets:setup` to setup a new encrypted secrets file. This will
+Run `bin/rails secrets:setup` to set up a new encrypted secrets file. This will
 also generate a master key, which must be stored outside of the repository. The
 secrets themselves can then be safely checked into the revision control system,
 in an encrypted form.
@@ -104,7 +104,7 @@ Secrets will be decrypted in production, using a key stored either in the
 Allows specifying common parameters used for all methods in a mailer class in
 order to share instance variables, headers, and other common setup.
 
-``` ruby
+```ruby
 class InvitationsMailer < ApplicationMailer
   before_action { @inviter, @invitee = params[:inviter], params[:invitee] }
   before_action { @account = params[:inviter].account }
@@ -113,7 +113,9 @@ class InvitationsMailer < ApplicationMailer
     mail subject: "#{@inviter.name} invited you to their Basecamp (#{@account.name})"
   end
 end
+```
 
+```ruby
 InvitationsMailer.with(inviter: person_a, invitee: person_b)
                  .account_invitation.deliver_later
 ```
@@ -125,13 +127,13 @@ InvitationsMailer.with(inviter: person_a, invitee: person_b)
 Rails 5.1 adds two new methods, `resolve` and `direct`, to the routing
 DSL. The `resolve` method allows customizing polymorphic mapping of models.
 
-``` ruby
+```ruby
 resource :basket
 
 resolve("Basket") { [:basket] }
 ```
 
-``` erb
+```erb
 <%= form_for @basket do |form| %>
   <!-- basket form -->
 <% end %>
@@ -141,18 +143,17 @@ This will generate the singular URL `/basket` instead of the usual `/baskets/:id
 
 The `direct` method allows creation of custom URL helpers.
 
-``` ruby
-direct(:homepage) { "http://www.rubyonrails.org" }
+```ruby
+direct(:homepage) { "https://rubyonrails.org" }
 
->> homepage_url
-=> "http://www.rubyonrails.org"
+homepage_url # => "https://rubyonrails.org"
 ```
 
 The return value of the block must be a valid argument for the `url_for`
 method. So, you can pass a valid string URL, Hash, Array, an
 Active Model instance, or an Active Model class.
 
-``` ruby
+```ruby
 direct :commentable do |model|
   [ model, anchor: model.dom_id ]
 end
@@ -174,7 +175,7 @@ can generate form tags based on URLs, scopes, or models.
 
 Using just a URL:
 
-``` erb
+```erb
 <%= form_with url: posts_path do |form| %>
   <%= form.text_field :title %>
 <% end %>
@@ -188,7 +189,7 @@ Using just a URL:
 
 Adding a scope prefixes the input field names:
 
-``` erb
+```erb
 <%= form_with scope: :post, url: posts_path do |form| %>
   <%= form.text_field :title %>
 <% end %>
@@ -202,7 +203,7 @@ Adding a scope prefixes the input field names:
 
 Using a model infers both the URL and scope:
 
-``` erb
+```erb
 <%= form_with model: Post.new do |form| %>
   <%= form.text_field :title %>
 <% end %>
@@ -216,7 +217,7 @@ Using a model infers both the URL and scope:
 
 An existing model makes an update form and fills out field values:
 
-``` erb
+```erb
 <%= form_with model: Post.first do |form| %>
   <%= form.text_field :title %>
 <% end %>
@@ -257,7 +258,7 @@ switch to more explicit connection management.
 If your tests spawn threads and those threads interact while also using
 explicit database transactions, this change may introduce a deadlock.
 
-The easy way to opt out of this new behavior is to disable transactional
+The easy way to opt-out of this new behavior is to disable transactional
 tests on any test cases it affects.
 
 Railties
@@ -350,9 +351,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Removed deprecated methods related to controller filters.
     ([Commit](https://github.com/rails/rails/commit/d7be30e8babf5e37a891522869e7b0191b79b757))
-    
+
 *   Removed deprecated support to `:text` and `:nothing` in `render`.
-    ([Commit](https://github.com/rails/rails/commit/79a5ea9eadb4d43b62afacedc0706cbe88c54496), 
+    ([Commit](https://github.com/rails/rails/commit/79a5ea9eadb4d43b62afacedc0706cbe88c54496),
     [Commit](https://github.com/rails/rails/commit/57e1c99a280bdc1b324936a690350320a1cd8111))
 
 *   Removed deprecated support for calling `HashWithIndifferentAccess` methods on `ActionController::Parameters`.
@@ -447,7 +448,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     `activerecord.errors.messages.restrict_dependent_destroy.many` i18n scopes.
     ([Commit](https://github.com/rails/rails/commit/00e3973a311))
 
-*   Removed deprecated force reload argument in singular and collection association readers.
+*   Removed deprecated force-reload argument in singular and collection association readers.
     ([Commit](https://github.com/rails/rails/commit/09cac8c67af))
 
 *   Removed deprecated support for passing a column to `#quote`.
@@ -644,7 +645,7 @@ Credits
 -------
 
 See the
-[full list of contributors to Rails](http://contributors.rubyonrails.org/) for
+[full list of contributors to Rails](https://contributors.rubyonrails.org/) for
 the many people who spent many hours making Rails, the stable and robust
 framework it is. Kudos to all of them.
 

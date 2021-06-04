@@ -10,6 +10,7 @@ class Date
     short: "%d %b",
     long: "%B %d, %Y",
     db: "%Y-%m-%d",
+    inspect: "%Y-%m-%d",
     number: "%Y%m%d",
     long_ordinal: lambda { |date|
       day_format = ActiveSupport::Inflector.ordinalize(date.day)
@@ -80,7 +81,7 @@ class Date
   #       If the *application's* timezone is needed, then use +in_time_zone+ instead.
   def to_time(form = :local)
     raise ArgumentError, "Expected :local or :utc, got #{form.inspect}." unless [:local, :utc].include?(form)
-    ::Time.send(form, year, month, day)
+    ::Time.public_send(form, year, month, day)
   end
 
   silence_redefinition_of_method :xmlschema

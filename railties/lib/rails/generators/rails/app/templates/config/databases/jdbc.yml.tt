@@ -3,7 +3,7 @@
 #   gem install activerecord-jdbcmssql-adapter
 #
 # Configure using Gemfile:
-#   gem 'activerecord-jdbcmssql-adapter'
+#   gem "activerecord-jdbcmssql-adapter"
 #
 # development:
 #   adapter: mssql
@@ -54,16 +54,15 @@ test:
   <<: *default
   url: jdbc:db://localhost/<%= app_name %>_test
 
-# As with config/secrets.yml, you never want to store sensitive information,
+# As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
 # ever seen by anyone, they now have access to your database.
 #
-# Instead, provide the password as a unix environment variable when you boot
-# the app. Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
-# for a full rundown on how to provide these environment variables in a
-# production deployment.
+# Instead, provide the password as an environment variable when you boot the
+# app. Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
+# for a full overview on how database connection configuration can be specified.
 #
 production:
   url: jdbc:db://localhost/<%= app_name %>_production
   username: <%= app_name %>
-  password: <%%= ENV['<%= app_name.upcase %>_DATABASE_PASSWORD'] %>
+  password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>

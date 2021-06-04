@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   module Associations
     # = Active Record Association Collection
@@ -28,6 +30,8 @@ module ActiveRecord
     class CollectionAssociation < Association #:nodoc:
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader
+        ensure_klass_exists!
+
         if stale_target?
           reload
         end
@@ -56,7 +60,7 @@ module ActiveRecord
       def ids_writer(ids)
         primary_key = reflection.association_primary_key
         pk_type = klass.type_for_attribute(primary_key)
-        ids = Array(ids).reject(&:blank?)
+        ids = Array(ids).compact_blank
         ids.map! { |i| pk_type.cast(i) }
 
         records = klass.where(primary_key => ids).index_by do |r|
@@ -101,17 +105,16 @@ module ActiveRecord
         end
       end
 
-      def build(attributes = {}, &block)
+      def build(attributes = nil, &block)
         if attributes.is_a?(Array)
           attributes.collect { |attr| build(attr, &block) }
         else
-          add_to_target(build_record(attributes, &block))
+          add_to_target(build_record(attributes, &block), replace: true)
         end
       end
 
-      # Add +records+ to this association. Returns +self+ so method calls may
-      # be chained. Since << flattens its argument list and inserts each record,
-      # +push+ and +concat+ behave identically.
+      # Add +records+ to this association. Since +<<+ flattens its argument list
+      # and inserts each record, +push+ and +concat+ behave identically.
       def concat(*records)
         records = records.flatten
         if owner.new_record?
@@ -119,21 +122,6 @@ module ActiveRecord
           concat_records(records)
         else
           transaction { concat_records(records) }
-        end
-      end
-
-      # Starts a transaction in the association class's database connection.
-      #
-      #   class Author < ActiveRecord::Base
-      #     has_many :books
-      #   end
-      #
-      #   Author.first.books.transaction do
-      #     # same effect as calling Book.transaction
-      #   end
-      def transaction(*args)
-        reflection.klass.transaction(*args) do
-          yield
         end
       end
 
@@ -229,11 +217,11 @@ module ActiveRecord
       # If the collection has been loaded
       # it is equivalent to <tt>collection.size.zero?</tt>. If the
       # collection has not been loaded, it is equivalent to
-      # <tt>collection.exists?</tt>. If the collection has not already been
+      # <tt>!collection.exists?</tt>. If the collection has not already been
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        if loaded? || @association_ids
+        if loaded? || @association_ids || reflection.has_cached_counter?
           size.zero?
         else
           target.empty? && !scope.exists?
@@ -279,11 +267,22 @@ module ActiveRecord
         target
       end
 
-      def add_to_target(record, skip_callbacks = false, &block)
-        if association_scope.distinct_value
+      def add_to_target(record, skip_callbacks: false, replace: false, &block)
+        if replace || association_scope.distinct_value
           index = @target.index(record)
         end
         replace_on_target(record, index, skip_callbacks, &block)
+      end
+
+      def target=(record)
+        return super unless ActiveRecord::Base.has_many_inversing
+
+        case record
+        when Array
+          super
+        else
+          add_to_target(record, skip_callbacks: true, replace: true)
+        end
       end
 
       def scope
@@ -298,11 +297,17 @@ module ActiveRecord
 
       def find_from_target?
         loaded? ||
+          owner.strict_loading? ||
+          reflection.strict_loading? ||
           owner.new_record? ||
           target.any? { |record| record.new_record? || record.changed? }
       end
 
       private
+        def transaction(&block)
+          reflection.klass.transaction(&block)
+        end
+
         # We have some records loaded from the database (persisted) and some that are
         # in-memory (memory). The same record may be represented in the persisted array
         # and in the memory array.
@@ -347,7 +352,6 @@ module ActiveRecord
               add_to_target(record) do
                 result = insert_record(record, true, raise) {
                   @_was_loaded = loaded?
-                  @association_ids = nil
                 }
               end
               raise ActiveRecord::Rollback unless result
@@ -380,10 +384,13 @@ module ActiveRecord
         end
 
         def remove_records(existing_records, records, method)
-          records.each { |record| callback(:before_remove, record) }
+          catch(:abort) do
+            records.each { |record| callback(:before_remove, record) }
+          end || return
 
           delete_records(existing_records, method) if existing_records.any?
           @target -= records
+          @association_ids = nil
 
           records.each { |record| callback(:after_remove, record) }
         end
@@ -424,7 +431,6 @@ module ActiveRecord
               unless owner.new_record?
                 result &&= insert_record(record, true, raise) {
                   @_was_loaded = loaded?
-                  @association_ids = nil
                 }
               end
             end
@@ -436,7 +442,9 @@ module ActiveRecord
         end
 
         def replace_on_target(record, index, skip_callbacks)
-          callback(:before_add, record) unless skip_callbacks
+          catch(:abort) do
+            callback(:before_add, record)
+          end || return unless skip_callbacks
 
           set_inverse_instance(record)
 
@@ -447,6 +455,7 @@ module ActiveRecord
           if index
             target[index] = record
           elsif @_was_loaded || !loaded?
+            @association_ids = nil
             target << record
           end
 

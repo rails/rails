@@ -17,8 +17,7 @@ class NullRelationTest < ActiveRecord::TestCase
   end
 
   def test_none_chainable
-    Developer.send(:load_schema)
-    assert_no_queries do
+    assert_queries(0) do
       assert_equal [], Developer.none.where(name: "David")
     end
   end
@@ -26,6 +25,12 @@ class NullRelationTest < ActiveRecord::TestCase
   def test_none_chainable_to_existing_scope_extension_method
     assert_no_queries do
       assert_equal 1, Topic.anonymous_extension.none.one
+    end
+  end
+
+  def test_async_query_on_null_relation
+    assert_no_queries do
+      assert_equal [], Developer.none.load_async.load
     end
   end
 
@@ -52,7 +57,7 @@ class NullRelationTest < ActiveRecord::TestCase
   end
 
   def test_null_relation_metadata_methods
-    assert_equal "", Developer.none.to_sql
+    assert_includes Developer.none.to_sql, " WHERE (1=0)"
     assert_equal({}, Developer.none.where_values_hash)
   end
 

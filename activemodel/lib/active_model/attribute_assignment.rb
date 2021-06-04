@@ -26,19 +26,17 @@ module ActiveModel
     #   cat.name # => 'Gorby'
     #   cat.status # => 'sleeping'
     def assign_attributes(new_attributes)
-      if !new_attributes.respond_to?(:stringify_keys)
+      unless new_attributes.respond_to?(:each_pair)
         raise ArgumentError, "When assigning attributes, you must pass a hash as an argument, #{new_attributes.class} passed."
       end
       return if new_attributes.empty?
 
-      attributes = new_attributes.stringify_keys
-      _assign_attributes(sanitize_for_mass_assignment(attributes))
+      _assign_attributes(sanitize_for_mass_assignment(new_attributes))
     end
 
     alias attributes= assign_attributes
 
     private
-
       def _assign_attributes(attributes)
         attributes.each do |k, v|
           _assign_attribute(k, v)
@@ -50,7 +48,7 @@ module ActiveModel
         if respond_to?(setter)
           public_send(setter, v)
         else
-          raise UnknownAttributeError.new(self, k)
+          raise UnknownAttributeError.new(self, k.to_s)
         end
       end
   end

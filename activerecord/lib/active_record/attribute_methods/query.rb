@@ -6,19 +6,18 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        attribute_method_suffix "?"
+        attribute_method_suffix "?", parameters: false
       end
 
       def query_attribute(attr_name)
-        value = self[attr_name]
+        value = self.public_send(attr_name)
 
         case value
         when true        then true
         when false, nil  then false
         else
-          column = self.class.columns_hash[attr_name]
-          if column.nil?
-            if Numeric === value || value !~ /[^0-9]/
+          if !type_for_attribute(attr_name) { false }
+            if Numeric === value || !value.match?(/[^0-9]/)
               !value.to_i.zero?
             else
               return false if ActiveModel::Type::Boolean::FALSE_VALUES.include?(value)
@@ -32,11 +31,8 @@ module ActiveRecord
         end
       end
 
-      private
-        # Handle *? for method_missing.
-        def attribute?(attribute_name)
-          query_attribute(attribute_name)
-        end
+      alias :attribute? :query_attribute
+      private :attribute?
     end
   end
 end

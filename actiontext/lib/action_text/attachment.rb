@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/try"
+
 module ActionText
   class Attachment
     include Attachments::TrixConversion, Attachments::Minification, Attachments::Caching
 
-    TAG_NAME = "action-text-attachment"
-    SELECTOR = TAG_NAME
+    mattr_accessor :tag_name, default: "action-text-attachment"
+
     ATTRIBUTES = %w( sgid content-type url href filename filesize width height previewable presentation caption )
 
     class << self
@@ -18,7 +20,7 @@ module ActionText
       end
 
       def from_attachables(attachables)
-        Array(attachables).map { |attachable| from_attachable(attachable) }.compact
+        Array(attachables).filter_map { |attachable| from_attachable(attachable) }
       end
 
       def from_attachable(attachable, attributes = {})
@@ -36,7 +38,7 @@ module ActionText
       private
         def node_from_attributes(attributes)
           if attributes = process_attributes(attributes).presence
-            ActionText::HtmlConversion.create_element(TAG_NAME, attributes)
+            ActionText::HtmlConversion.create_element(tag_name, attributes)
           end
         end
 

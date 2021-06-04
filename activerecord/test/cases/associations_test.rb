@@ -9,6 +9,7 @@ require "models/categorization"
 require "models/category"
 require "models/post"
 require "models/author"
+require "models/book"
 require "models/comment"
 require "models/tag"
 require "models/tagging"
@@ -19,12 +20,22 @@ require "models/ship"
 require "models/liquid"
 require "models/molecule"
 require "models/electron"
-require "models/man"
+require "models/human"
 require "models/interest"
+require "models/pirate"
+require "models/parrot"
+require "models/bird"
+require "models/treasure"
+require "models/price_estimate"
+require "models/invoice"
+require "models/discount"
+require "models/line_item"
+require "models/shipping_line"
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
-           :computers, :people, :readers, :authors, :author_addresses, :author_favorites
+           :computers, :people, :readers, :authors, :author_addresses, :author_favorites,
+           :comments, :posts
 
   def test_eager_loading_should_not_change_count_of_children
     liquid = Liquid.create(name: "salty")
@@ -108,7 +119,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_association_with_references
     firm = companies(:first_firm)
-    assert_includes firm.association_with_references.references_values, "foo"
+    assert_equal [:foo], firm.association_with_references.references_values
   end
 end
 
@@ -180,6 +191,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
     andreas = Developer.new name: "Andreas", log: "new developer added"
     assert_not_predicate andreas.audit_logs, :loaded?
     assert_match(/message: "new developer added"/, andreas.audit_logs.inspect)
+    assert_predicate andreas.audit_logs, :loaded?
   end
 
   def test_save_on_parent_saves_children
@@ -235,13 +247,13 @@ class AssociationProxyTest < ActiveRecord::TestCase
   end
 
   test "inverses get set of subsets of the association" do
-    man = Man.create
-    man.interests.create
+    human = Human.create
+    human.interests.create
 
-    man = Man.find(man.id)
+    human = Human.find(human.id)
 
     assert_queries(1) do
-      assert_equal man, man.interests.where("1=1").first.man
+      assert_equal human, human.interests.where("1=1").first.human
     end
   end
 
@@ -259,13 +271,22 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_no_queries { david.first_posts.pluck(:title) }
   end
 
+  def test_pick_uses_loaded_target
+    david = authors(:david)
+    assert_equal david.first_posts.pick(:title), david.first_posts.load.pick(:title)
+    assert_predicate david.first_posts, :loaded?
+    assert_no_queries { david.first_posts.pick(:title) }
+  end
+
   def test_reset_unloads_target
     david = authors(:david)
     david.posts.reload
 
     assert_predicate david.posts, :loaded?
+    assert_predicate david.posts, :loaded
     david.posts.reset
     assert_not_predicate david.posts, :loaded?
+    assert_not_predicate david.posts, :loaded
   end
 end
 
@@ -338,10 +359,325 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  class ModelAssociatedToClassesThatDoNotExist < ActiveRecord::Base
+    self.table_name = "accounts" # this is just to avoid adding a new model just for this test
+
+    has_one :non_existent_has_one_class
+    belongs_to :non_existent_belongs_to_class
+    has_many :non_existent_has_many_classes
+  end
+
+  def test_associations_raise_with_name_error_if_associated_to_classes_that_do_not_exist
+    assert_raises NameError do
+      ModelAssociatedToClassesThatDoNotExist.new.non_existent_has_one_class
+    end
+
+    assert_raises NameError do
+      ModelAssociatedToClassesThatDoNotExist.new.non_existent_belongs_to_class
+    end
+
+    assert_raises NameError do
+      ModelAssociatedToClassesThatDoNotExist.new.non_existent_has_many_classes
+    end
+  end
+end
+
+class PreloaderTest < ActiveRecord::TestCase
+  fixtures :posts, :comments, :books, :authors, :tags, :taggings
+
+  def test_preload_with_scope
+    post = posts(:welcome)
+
+    preloader = ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments, scope: Comment.where(body: "Thank you for the welcome"))
+    preloader.call
+
+    assert_predicate post.comments, :loaded?
+    assert_equal [comments(:greetings)], post.comments
+  end
+
+  def test_legacy_preload_with_scope
+    post = posts(:welcome)
+
+    assert_deprecated do
+      preloader = ActiveRecord::Associations::Preloader.new
+      preloader.preload([post], :comments, Comment.where(body: "Thank you for the welcome"))
+    end
+
+    assert_predicate post.comments, :loaded?
+    assert_equal [comments(:greetings)], post.comments
+  end
+
+  def test_preload_makes_correct_number_of_queries_on_array
+    post = posts(:welcome)
+
+    assert_queries(1) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments)
+      preloader.call
+    end
+  end
+
+  def test_preload_makes_correct_number_of_queries_on_relation
+    post = posts(:welcome)
+    relation = Post.where(id: post.id)
+
+    assert_queries(2) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: relation, associations: :comments)
+      preloader.call
+    end
+  end
+
+  def test_preload_groups_queries_with_same_scope
+    book = books(:awdr)
+    post = posts(:welcome)
+
+    assert_queries(1) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [book, post], associations: :author)
+      preloader.call
+    end
+
+    assert_no_queries do
+      book.author
+      post.author
+    end
+  end
+
+  def test_preload_grouped_queries_of_middle_records
+    comments = [
+      comments(:eager_sti_on_associations_s_comment1),
+      comments(:eager_sti_on_associations_s_comment2),
+    ]
+
+    assert_queries(2) do
+      ActiveRecord::Associations::Preloader.new(records: comments, associations: [:author, :ordinary_post]).call
+    end
+  end
+
+  def test_preload_grouped_queries_of_through_records
+    author = authors(:david)
+
+    assert_queries(3) do
+      ActiveRecord::Associations::Preloader.new(records: [author], associations: [:hello_post_comments, :comments]).call
+    end
+  end
+
+  def test_some_already_loaded_associations
+    item_discount = Discount.create(amount: 5)
+    shipping_discount = Discount.create(amount: 20)
+
+    invoice = Invoice.new
+    line_item = LineItem.new(amount: 20)
+    line_item.discount_applications << LineItemDiscountApplication.new(discount: item_discount)
+    invoice.line_items << line_item
+
+    shipping_line = ShippingLine.new(amount: 50)
+    shipping_line.discount_applications << ShippingLineDiscountApplication.new(discount: shipping_discount)
+    invoice.shipping_lines << shipping_line
+
+    invoice.save!
+    invoice.reload
+
+    # SELECT "line_items".* FROM "line_items" WHERE "line_items"."invoice_id" = ?
+    # SELECT "shipping_lines".* FROM shipping_lines WHERE "shipping_lines"."invoice_id" = ?
+    # SELECT "line_item_discount_applications".* FROM "line_item_discount_applications" WHERE "line_item_discount_applications"."line_item_id" = ?
+    # SELECT "shipping_line_discount_applications".* FROM "shipping_line_discount_applications" WHERE "shipping_line_discount_applications"."shipping_line_id" = ?
+    # SELECT "discounts".* FROM "discounts" WHERE "discounts"."id" IN (?, ?).
+    assert_queries(5) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [invoice], associations: [
+        line_items: { discount_applications: :discount },
+        shipping_lines: { discount_applications: :discount },
+      ])
+      preloader.call
+    end
+
+    assert_no_queries do
+      assert_not_nil invoice.line_items.first.discount_applications.first.discount
+      assert_not_nil invoice.shipping_lines.first.discount_applications.first.discount
+    end
+
+    invoice.reload
+    invoice.line_items.map { |i| i.discount_applications.to_a }
+    # `line_items` and `line_item_discount_applications` are already preloaded, so we expect:
+    # SELECT "shipping_lines".* FROM shipping_lines WHERE "shipping_lines"."invoice_id" = ?
+    # SELECT "shipping_line_discount_applications".* FROM "shipping_line_discount_applications" WHERE "shipping_line_discount_applications"."shipping_line_id" = ?
+    # SELECT "discounts".* FROM "discounts" WHERE "discounts"."id" = ?.
+    assert_queries(3) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [invoice], associations: [
+        line_items: { discount_applications: :discount },
+        shipping_lines: { discount_applications: :discount },
+      ])
+      preloader.call
+    end
+
+    assert_no_queries do
+      assert_not_nil invoice.line_items.first.discount_applications.first.discount
+      assert_not_nil invoice.shipping_lines.first.discount_applications.first.discount
+    end
+  end
+
+  def test_preload_through
+    comments = [
+      comments(:eager_sti_on_associations_s_comment1),
+      comments(:eager_sti_on_associations_s_comment2),
+    ]
+
+    assert_queries(2) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: comments, associations: [:author, :post])
+      preloader.call
+    end
+
+    assert_no_queries do
+      comments.each(&:author)
+    end
+  end
+
+  def test_preload_groups_queries_with_same_scope_at_second_level
+    author = nil
+
+    # Expected
+    #   SELECT FROM authors ...
+    #   SELECT FROM posts ... (thinking)
+    #   SELECT FROM posts ... (welcome)
+    #   SELECT FROM comments ... (comments for both welcome and thinking)
+    assert_queries(4) do
+      author = Author
+        .where(name: "David")
+        .includes(thinking_posts: :comments, welcome_posts: :comments)
+        .first
+    end
+
+    assert_no_queries do
+      author.thinking_posts.map(&:comments)
+      author.welcome_posts.map(&:comments)
+    end
+  end
+
+  def test_preload_groups_queries_with_same_sql_at_second_level
+    author = nil
+
+    # Expected
+    #   SELECT FROM authors ...
+    #   SELECT FROM posts ... (thinking)
+    #   SELECT FROM posts ... (welcome)
+    #   SELECT FROM comments ... (comments for both welcome and thinking)
+    assert_queries(4) do
+      author = Author
+        .where(name: "David")
+        .includes(thinking_posts: :comments, welcome_posts: :comments_with_extending)
+        .first
+    end
+
+    assert_no_queries do
+      author.thinking_posts.map(&:comments)
+      author.welcome_posts.map(&:comments_with_extending)
+    end
+  end
+
+  def test_preload_with_grouping_sets_inverse_association
+    mary = authors(:mary)
+    bob = authors(:bob)
+
+    AuthorFavorite.create!(author: mary, favorite_author: bob)
+    favorites = AuthorFavorite.all.load
+
+    assert_queries(1) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: favorites, associations: [:author, :favorite_author])
+      preloader.call
+    end
+
+    assert_no_queries do
+      favorites.first.author
+      favorites.first.favorite_author
+    end
+  end
+
+  def test_preload_can_group_separate_levels
+    mary = authors(:mary)
+    bob = authors(:bob)
+
+    AuthorFavorite.create!(author: mary, favorite_author: bob)
+
+    assert_queries(3) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: [:posts, favorite_authors: :posts])
+      preloader.call
+    end
+
+    assert_no_queries do
+      mary.posts
+      mary.favorite_authors.map(&:posts)
+    end
+  end
+
+  def test_preload_can_group_multi_level_ping_pong_through
+    mary = authors(:mary)
+    bob = authors(:bob)
+
+    AuthorFavorite.create!(author: mary, favorite_author: bob)
+
+    assert_queries(9) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: { similar_posts: :comments, favorite_authors: { similar_posts: :comments } })
+      preloader.call
+    end
+
+    assert_no_queries do
+      mary.similar_posts.map(&:comments).each(&:to_a)
+      mary.favorite_authors.flat_map(&:similar_posts).map(&:comments).each(&:to_a)
+    end
+  end
+
+  def test_preload_does_not_group_same_class_different_scope
+    post = posts(:welcome)
+    postesque = Postesque.create(author: Author.last)
+    postesque.reload
+
+    # When the scopes differ in the generated SQL:
+    # SELECT "authors".* FROM "authors" WHERE (name LIKE '%a%') AND "authors"."id" = ?
+    # SELECT "authors".* FROM "authors" WHERE "authors"."id" = ?.
+    assert_queries(2) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [post, postesque], associations: :author_with_the_letter_a)
+      preloader.call
+    end
+
+    assert_no_queries do
+      post.author_with_the_letter_a
+      postesque.author_with_the_letter_a
+    end
+
+    post.reload
+    postesque.reload
+
+    # When the generated SQL is identical, but one scope has preload values.
+    assert_queries(3) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [post, postesque], associations: :author_with_address)
+      preloader.call
+    end
+
+    assert_no_queries do
+      post.author_with_address
+      postesque.author_with_address
+    end
+  end
+
+  def test_preload_does_not_group_same_scope_different_key_name
+    post = posts(:welcome)
+    postesque = Postesque.create(author: Author.last)
+    postesque.reload
+
+    assert_queries(2) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [post, postesque], associations: :author)
+      preloader.call
+    end
+
+    assert_no_queries do
+      post.author
+      postesque.author
+    end
+  end
 end
 
 class GeneratedMethodsTest < ActiveRecord::TestCase
   fixtures :developers, :computers, :posts, :comments
+
   def test_association_methods_override_attribute_methods_of_same_name
     assert_equal(developers(:david), computers(:workstation).developer)
     # this next line will fail if the attribute methods module is generated lazily
@@ -366,5 +702,99 @@ class GeneratedMethodsTest < ActiveRecord::TestCase
 
   def test_included_module_overwrites_association_methods
     assert_equal :none, MyArticle.new.comments
+  end
+end
+
+class WithAnnotationsTest < ActiveRecord::TestCase
+  fixtures :pirates, :parrots
+
+  def test_belongs_to_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.where.not(parrot_id: nil).first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.parrot
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* that tells jokes \*/}) do
+      pirate.parrot_with_annotation
+    end
+  end
+
+  def test_has_and_belongs_to_many_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.parrots.first
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* that are very colorful \*/}) do
+      pirate.parrots_with_annotation.first
+    end
+  end
+
+  def test_has_one_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.ship
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* that is a rocket \*/}) do
+      pirate.ship_with_annotation
+    end
+  end
+
+  def test_has_many_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.birds.first
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* that are also parrots \*/}) do
+      pirate.birds_with_annotation.first
+    end
+  end
+
+  def test_has_many_through_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.treasure_estimates.first
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* yarrr \*/}) do
+      pirate.treasure_estimates_with_annotation.first
+    end
+  end
+
+  def test_has_many_through_with_annotation_includes_a_query_comment_when_eager_loading
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.treasure_estimates.first
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* yarrr \*/}) do
+      SpacePirate.includes(:treasure_estimates_with_annotation, :treasures).first
+    end
   end
 end

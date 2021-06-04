@@ -10,12 +10,12 @@ After reading this guide, you will know:
 
 * How to configure Action Text.
 * How to handle rich text content.
-* How to style rich text content.
+* How to style rich text content and attachments.
 
 --------------------------------------------------------------------------------
 
-Introduction
-------------
+What is Action Text?
+--------------------
 
 Action Text brings rich text content and editing to Rails. It includes
 the [Trix editor](https://trix-editor.org) that handles everything from formatting
@@ -45,11 +45,36 @@ happens after every keystroke, and avoids the need to use execCommand at all.
 
 ## Installation
 
-Run `rails action_text:install` to add the Yarn package and copy over the necessary migration.
+Run `bin/rails action_text:install` to add the Yarn package and copy over the necessary migration. Also, you need to set up Active Storage for embedded images and other attachments. Please refer to the [Active Storage Overview](active_storage_overview.html) guide.
 
-## Examples
+NOTE: ActionText uses polymorphic relationships with the `action_text_rich_texts` table so that it can be shared with all models that have rich text attributes. If your models with ActionText content use UUID values for identifiers, all models that use ActionText attributes will need to use UUID values for their unique identifiers. The generated migration for ActionText will also need to be updated to specify `type: :uuid` for the `:record` `references` line.
 
-Adding a rich text field to an existing model:
+After the installation is complete, a Rails app using Webpacker should have the following changes:
+
+1. Both `trix` and `@rails/actiontext` should be required in your JavaScript pack.
+
+    ```js
+    // application.js
+    require("trix")
+    require("@rails/actiontext")
+    ```
+
+2. The `trix` stylesheet should be imported into `actiontext.scss`.
+
+    ```scss
+    @import "trix/dist/trix";
+    ```
+
+    Additionally, this `actiontext.scss` file should be imported into your stylesheet pack.
+
+    ```scss
+    // application.scss
+    @import "./actiontext.scss";
+    ```
+
+## Creating Rich Text content
+
+Add a rich text field to an existing model:
 
 ```ruby
 # app/models/message.rb
@@ -58,11 +83,13 @@ class Message < ApplicationRecord
 end
 ```
 
-Then refer to this field in the form for the model:
+**Note:** you don't need to add a `content` field to your `messages` table.
+
+Then use [`rich_text_area`] to refer to this field in the form for the model:
 
 ```erb
 <%# app/views/messages/_form.html.erb %>
-<%= form_with(model: message) do |form| %>
+<%= form_with model: message do |form| %>
   <div class="field">
     <%= form.label :content %>
     <%= form.rich_text_area :content %>
@@ -70,7 +97,7 @@ Then refer to this field in the form for the model:
 <% end %>
 ```
 
-And finally display the sanitized rich text on a page:
+And finally, display the sanitized rich text on a page:
 
 ```erb
 <%= @message.content %>
@@ -87,13 +114,137 @@ class MessagesController < ApplicationController
 end
 ```
 
-## Custom styling
+[`rich_text_area`]: https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-rich_text_area
+
+## Rendering Rich Text content
+
+Action Text will sanitize and render rich content on your behalf.
 
 By default, the Action Text editor and content is styled by the Trix defaults.
-If you want to change these defaults, you'll want to remove
-the `app/assets/stylesheets/actiontext.css` linker and base your stylings on
-the [contents of that file](https://raw.githubusercontent.com/basecamp/trix/master/dist/trix.css).
 
-You can also style the HTML used for embedded images and other attachments (known as blobs).
-On installation, Action Text will copy over a partial to
+If you want to change these defaults, remove the `// require "actiontext.scss"`
+line from your `application.scss` to omit the [contents of that
+file](https://raw.githubusercontent.com/basecamp/trix/master/dist/trix.css).
+
+By default, Action Text will render rich text content into an element that
+declares the `.trix-content` class:
+
+```html+erb
+<%# app/views/layouts/action_text/contents/_content.html.erb %>
+<div class="trix-content">
+  <%= yield %>
+</div>
+```
+
+If you'd like to change the rich text's surrounding HTML with your own layout,
+declare your own `app/views/layouts/action_text/contents/_content.html.erb`
+template and call `yield` in place of the content.
+
+You can also style the HTML used for embedded images and other attachments
+(known as blobs). On installation, Action Text will copy over a partial to
 `app/views/active_storage/blobs/_blob.html.erb`, which you can specialize.
+
+### Rendering attachments
+
+In addition to attachments uploaded through Active Storage, Action Text can
+embed anything that can be resolved by a [Signed
+GlobalID](https://github.com/rails/globalid#signed-global-ids).
+
+Action Text renders embedded `<action-text-attachment>` elements by resolving
+their `sgid` attribute into an instance. Once resolved, that instance is passed
+along to
+[`render`](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/RenderingHelper.html#method-i-render).
+The resulting HTML is embedded as a descendant of the `<action-text-attachment>`
+element.
+
+For example, consider a `User` model:
+
+```ruby
+# app/models/user.rb
+class User < ApplicationRecord
+  has_one_attached :avatar
+end
+
+user = User.find(1)
+user.to_global_id.to_s #=> gid://MyRailsApp/User/1
+user.to_signed_global_id.to_s #=> BAh7CEkiCG…
+```
+
+Next, consider some rich text content that embeds an `<action-text-attachment>`
+element that references the `User` instance's signed GlobalID:
+
+```html
+<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"></action-text-attachment>.</p>
+```
+
+Action Text resolves uses the "BAh7CEkiCG…" String to resolve the `User`
+instance. Next, consider the application's `users/user` partial:
+
+```html+erb
+<%# app/views/users/_user.html.erb %>
+<span><%= image_tag user.avatar %> <%= user.name %></span>
+```
+
+The resulting HTML rendered by Action Text would look something like:
+
+```html
+<p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"><span><img src="..."> Jane Doe</span></action-text-attachment>.</p>
+```
+
+To render a different partial, define `User#to_attachable_partial_path`:
+
+```ruby
+class User < ApplicationRecord
+  def to_attachable_partial_path
+    "users/attachable"
+  end
+end
+```
+
+Then declare that partial. The `User` instance will be available as the `user`
+partial-local variable:
+
+```html+erb
+<%# app/views/users/_attachable.html.erb %>
+<span><%= image_tag user.avatar %> <%= user.name %></span>
+```
+
+To integrate with Action Text `<action-text-attachment>` element rendering, a
+class must:
+
+* include the `ActionText::Attachable` module
+* implement `#to_sgid(**options)` (made available through the [`GlobalID::Identification` concern][global-id])
+* (optional) declare `#to_attachable_partial_path`
+
+By default, all `ActiveRecord::Base` descendants mix-in
+[`GlobalID::Identification` concern][global-id], and are therefore
+`ActionText::Attachable` compatible.
+
+[global-id]: https://github.com/rails/globalid#usage
+
+## Avoid N+1 queries
+
+If you wish to preload the dependent `ActionText::RichText` model, assuming your rich text field is named `content`, you can use the named scope:
+
+```ruby
+Message.all.with_rich_text_content # Preload the body without attachments.
+Message.all.with_rich_text_content_and_embeds # Preload both body and attachments.
+```
+
+## API / Backend development
+
+1. A backend API (for example, using JSON) needs a separate endpoint for uploading files that creates an `ActiveStorage::Blob` and returns its `attachable_sgid`:
+
+    ```json
+    {
+      "attachable_sgid": "BAh7CEkiCG…"
+    }
+    ```
+
+2. Take that `attachable_sgid` and ask your frontend to insert it in rich text content using an `<action-text-attachment>` tag:
+
+    ```html
+    <action-text-attachment sgid="BAh7CEkiCG…"></action-text-attachment>
+    ```
+
+This is based on Basecamp, so if you still can't find what you are looking for, check this [Basecamp Doc](https://github.com/basecamp/bc3-api/blob/master/sections/rich_text.md).

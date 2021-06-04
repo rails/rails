@@ -9,14 +9,14 @@ incorporate real-time features into your Rails application.
 After reading this guide, you will know:
 
 * What Action Cable is and its integration backend and frontend
-* How to setup Action Cable
-* How to setup channels
+* How to set up Action Cable
+* How to set up channels
 * Deployment and Architecture setup for running Action Cable
 
 --------------------------------------------------------------------------------
 
-Introduction
-------------
+What is Action Cable?
+---------------------
 
 Action Cable seamlessly integrates
 [WebSockets](https://en.wikipedia.org/wiki/WebSocket) with the rest of your
@@ -27,28 +27,69 @@ client-side JavaScript framework and a server-side Ruby framework. You have
 access to your full domain model written with Active Record or your ORM of
 choice.
 
-What is Pub/Sub
----------------
+Terminology
+-----------
 
-[Pub/Sub](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern), or
+Action Cable uses WebSockets instead of the HTTP request-response protocol.
+Both Action Cable and WebSockets introduce some less familiar terminology:
+
+### Connections
+
+*Connections* form the foundation of the client-server relationship.
+A single Action Cable server can handle multiple connection instances. It has one
+connection instance per WebSocket connection. A single user may have multiple
+WebSockets open to your application if they use multiple browser tabs or devices.
+
+### Consumers
+
+The client of a WebSocket connection is called the *consumer*. In Action Cable
+the consumer is created by the client-side JavaScript framework.
+
+### Channels
+
+Each consumer can in turn subscribe to multiple *channels*. Each channel
+encapsulates a logical unit of work, similar to what a controller does in
+a regular MVC setup. For example, you could have a `ChatChannel` and
+an `AppearancesChannel`, and a consumer could be subscribed to either
+or to both of these channels. At the very least, a consumer should be subscribed
+to one channel.
+
+### Subscribers
+
+When the consumer is subscribed to a channel, they act as a *subscriber*.
+The connection between the subscriber and the channel is, surprise-surprise,
+called a subscription. A consumer can act as a subscriber to a given channel
+any number of times. For example, a consumer could subscribe to multiple chat rooms
+at the same time. (And remember that a physical user may have multiple consumers,
+one per tab/device open to your connection).
+
+### Pub/Sub
+
+[Pub/Sub](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) or
 Publish-Subscribe, refers to a message queue paradigm whereby senders of
 information (publishers), send data to an abstract class of recipients
 (subscribers), without specifying individual recipients. Action Cable uses this
 approach to communicate between the server and many clients.
 
+### Broadcastings
+
+A broadcasting is a pub/sub link where anything transmitted by the broadcaster is
+sent directly to the channel subscribers who are streaming that named broadcasting.
+Each channel can be streaming zero or more broadcastings.
+
 ## Server-Side Components
 
 ### Connections
 
-*Connections* form the foundation of the client-server relationship. For every
-WebSocket accepted by the server, a connection object is instantiated. This
+For every WebSocket accepted by the server, a connection object is instantiated. This
 object becomes the parent of all the *channel subscriptions* that are created
 from there on. The connection itself does not deal with any specific application
 logic beyond authentication and authorization. The client of a WebSocket
 connection is called the connection *consumer*. An individual user will create
 one consumer-connection pair per browser tab, window, or device they have open.
 
-Connections are instances of `ApplicationCable::Connection`. In this class, you
+Connections are instances of `ApplicationCable::Connection`, which extends
+[`ActionCable::Connection::Base`][]. In `ApplicationCable::Connection`, you
 authorize the incoming connection, and proceed to establish it if the user can
 be identified.
 
@@ -76,12 +117,12 @@ module ApplicationCable
 end
 ```
 
-Here `identified_by` is a connection identifier that can be used to find the
+Here [`identified_by`][] designates a connection identifier that can be used to find the
 specific connection later. Note that anything marked as an identifier will automatically
 create a delegate by the same name on any channel instances created off the connection.
 
 This example relies on the fact that you will already have handled authentication of the user
-somewhere else in your application, and that a successful authentication sets a signed
+somewhere else in your application, and that a successful authentication sets an encrypted
 cookie with the user ID.
 
 The cookie is then automatically sent to the connection instance when a new connection
@@ -90,11 +131,45 @@ by this same current user, you're also ensuring that you can later retrieve all 
 connections by a given user (and potentially disconnect them all if the user is deleted
 or unauthorized).
 
+If your authentication approach includes using a session, you use cookie store for the
+session, your session cookie is named `_session` and the user ID key is `user_id` you
+can use this approach:
+
+```ruby
+verified_user = User.find_by(id: cookies.encrypted['_session']['user_id'])
+```
+
+[`ActionCable::Connection::Base`]: https://api.rubyonrails.org/classes/ActionCable/Connection/Base.html
+[`identified_by`]: https://api.rubyonrails.org/classes/ActionCable/Connection/Identification/ClassMethods.html#method-i-identified_by
+
+#### Exception Handling
+
+By default, unhandled exceptions are caught and logged to Rails' logger. If you would like to
+globally intercept these exceptions and report them to an external bug tracking service, for
+example, you can do so with [`rescue_from`][]:
+
+```ruby
+# app/channels/application_cable/connection.rb
+module ApplicationCable
+  class Connection < ActionCable::Connection::Base
+    rescue_from StandardError, with: :report_error
+
+    private
+
+    def report_error(e)
+      SomeExternalBugtrackingService.notify(e)
+    end
+  end
+end
+```
+
+[`rescue_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from
+
 ### Channels
 
 A *channel* encapsulates a logical unit of work, similar to what a controller does in a
 regular MVC setup. By default, Rails creates a parent `ApplicationCable::Channel` class
-for encapsulating shared logic between your channels.
+(which extends [`ActionCable::Channel::Base`][]) for encapsulating shared logic between your channels.
 
 #### Parent Channel Setup
 
@@ -113,11 +188,15 @@ Then you would create your own channel classes. For example, you could have a
 # app/channels/chat_channel.rb
 class ChatChannel < ApplicationCable::Channel
 end
+```
 
+```ruby
 # app/channels/appearance_channel.rb
 class AppearanceChannel < ApplicationCable::Channel
 end
 ```
+
+[`ActionCable::Channel::Base`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Base.html
 
 A consumer could then be subscribed to either or both of these channels.
 
@@ -125,7 +204,7 @@ A consumer could then be subscribed to either or both of these channels.
 
 Consumers subscribe to channels, acting as *subscribers*. Their connection is
 called a *subscription*. Produced messages are then routed to these channel
-subscriptions based on an identifier sent by the cable consumer.
+subscriptions based on an identifier sent by the channel consumer.
 
 ```ruby
 # app/channels/chat_channel.rb
@@ -133,6 +212,24 @@ class ChatChannel < ApplicationCable::Channel
   # Called when the consumer has successfully
   # become a subscriber to this channel.
   def subscribed
+  end
+end
+```
+
+#### Exception Handling
+
+As with `ApplicationCable::Connection`, you can also use [`rescue_from`][] on a
+specific channel to handle raised exceptions:
+
+```ruby
+# app/channels/chat_channel.rb
+class ChatChannel < ApplicationCable::Channel
+  rescue_from 'MyError', with: :deliver_error_message
+
+  private
+
+  def deliver_error_message(e)
+    broadcast_to(...)
   end
 end
 ```
@@ -149,28 +246,45 @@ established using the following JavaScript, which is generated by default by Rai
 ```js
 // app/javascript/channels/consumer.js
 // Action Cable provides the framework to deal with WebSockets in Rails.
-// You can generate new channels where WebSocket features live using the `rails generate channel` command.
+// You can generate new channels where WebSocket features live using the `bin/rails generate channel` command.
 
-import ActionCable from "actioncable"
+import { createConsumer } from "@rails/actioncable"
 
-export default ActionCable.createConsumer()
+export default createConsumer()
 ```
 
 This will ready a consumer that'll connect against `/cable` on your server by default.
 The connection won't be established until you've also specified at least one subscription
 you're interested in having.
 
+The consumer can optionally take an argument that specifies the URL to connect to. This
+can be a string, or a function that returns a string that will be called when the
+WebSocket is opened.
+
+```js
+// Specify a different URL to connect to
+createConsumer('https://ws.example.com/cable')
+
+// Use a function to dynamically generate the URL
+createConsumer(getWebSocketURL)
+
+function getWebSocketURL() {
+  const token = localStorage.get('auth-token')
+  return `https://ws.example.com/cable?token=${token}`
+}
+```
+
 #### Subscriber
 
 A consumer becomes a subscriber by creating a subscription to a given channel:
 
 ```js
-// app/javascript/cable/subscriptions/chat_channel.js
+// app/javascript/channels/chat_channel.js
 import consumer from "./consumer"
 
 consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" })
 
-// app/javascript/cable/subscriptions/appearance_channel.js
+// app/javascript/channels/appearance_channel.js
 import consumer from "./consumer"
 
 consumer.subscriptions.create({ channel: "AppearanceChannel" })
@@ -183,7 +297,7 @@ A consumer can act as a subscriber to a given channel any number of times. For
 example, a consumer could subscribe to multiple chat rooms at the same time:
 
 ```js
-// app/javascript/cable/subscriptions/chat_channel.js
+// app/javascript/channels/chat_channel.js
 import consumer from "./consumer"
 
 consumer.subscriptions.create({ channel: "ChatChannel", room: "1st Room" })
@@ -195,7 +309,9 @@ consumer.subscriptions.create({ channel: "ChatChannel", room: "2nd Room" })
 ### Streams
 
 *Streams* provide the mechanism by which channels route published content
-(broadcasts) to their subscribers.
+(broadcasts) to their subscribers. For example, the following code uses
+[`stream_from`][] to subscribe to the broadcasting named `chat_Best Room` when
+the value of the `:room` parameter is `"Best Room"`:
 
 ```ruby
 # app/channels/chat_channel.rb
@@ -206,9 +322,18 @@ class ChatChannel < ApplicationCable::Channel
 end
 ```
 
-If you have a stream that is related to a model, then the broadcasting used
-can be generated from the model and channel. The following example would
-subscribe to a broadcasting like `comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`
+Then, elsewhere in your Rails application, you can broadcast to such a room by
+calling [`broadcast`][]:
+
+```ruby
+ActionCable.server.broadcast("chat_Best Room", { body: "This Room is Best Room." })
+```
+
+If you have a stream that is related to a model, then the broadcasting name
+can be generated from the channel and model. For example, the following code
+uses [`stream_for`][] to subscribe to a broadcasting like
+`comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`, where `Z2lkOi8vVGVzdEFwcC9Qb3N0LzE` is
+the GlobalID of the Post model.
 
 ```ruby
 class CommentsChannel < ApplicationCable::Channel
@@ -219,13 +344,18 @@ class CommentsChannel < ApplicationCable::Channel
 end
 ```
 
-You can then broadcast to this channel like this:
+You can then broadcast to this channel by calling [`broadcast_to`][]:
 
 ```ruby
 CommentsChannel.broadcast_to(@post, @comment)
 ```
 
-### Broadcasting
+[`broadcast`]: https://api.rubyonrails.org/classes/ActionCable/Server/Broadcasting.html#method-i-broadcast
+[`broadcast_to`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Broadcasting/ClassMethods.html#method-i-broadcast_to
+[`stream_for`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Streams.html#method-i-stream_for
+[`stream_from`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Streams.html#method-i-stream_from
+
+### Broadcastings
 
 A *broadcasting* is a pub/sub link where anything transmitted by a publisher
 is routed directly to the channel subscribers who are streaming that named
@@ -235,25 +365,6 @@ Broadcastings are purely an online queue and time-dependent. If a consumer is
 not streaming (subscribed to a given channel), they'll not get the broadcast
 should they connect later.
 
-Broadcasts are called elsewhere in your Rails application:
-
-```ruby
-WebNotificationsChannel.broadcast_to(
-  current_user,
-  title: 'New things!',
-  body: 'All the news fit to print'
-)
-```
-
-The `WebNotificationsChannel.broadcast_to` call places a message in the current
-subscription adapter's pubsub queue under a separate broadcasting name for each user.
-The default pubsub queue for Action Cable is `redis` in production and `async` in development and
-test environments. For a user with an ID of 1, the broadcasting name would be `web_notifications:1`.
-
-The channel has been instructed to stream everything that arrives at
-`web_notifications:1` directly to the client by invoking the `received`
-callback.
-
 ### Subscriptions
 
 When a consumer is subscribed to a channel, they act as a subscriber. This
@@ -261,8 +372,7 @@ connection is called a subscription. Incoming messages are then routed to
 these channel subscriptions based on an identifier sent by the cable consumer.
 
 ```js
-// app/javascript/cable/subscriptions/chat_channel.js
-// Assumes you've already requested the right to send web notifications
+// app/javascript/channels/chat_channel.js
 import consumer from "./consumer"
 
 consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
@@ -305,7 +415,7 @@ An object passed as the first argument to `subscriptions.create` becomes the
 params hash in the cable channel. The keyword `channel` is required:
 
 ```js
-// app/javascript/cable/subscriptions/chat_channel.js
+// app/javascript/channels/chat_channel.js
 import consumer from "./consumer"
 
 consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
@@ -335,8 +445,10 @@ consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
 # from a NewCommentJob.
 ActionCable.server.broadcast(
   "chat_#{room}",
-  sent_by: 'Paul',
-  body: 'This is a cool chat app.'
+  {
+    sent_by: 'Paul',
+    body: 'This is a cool chat app.'
+  }
 )
 ```
 
@@ -359,7 +471,7 @@ end
 ```
 
 ```js
-// app/javascript/cable/subscriptions/chat_channel.js
+// app/javascript/channels/chat_channel.js
 import consumer from "./consumer"
 
 const chatChannel = consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
@@ -379,15 +491,15 @@ you subscribed to the channel.
 
 The following setup steps are common to both examples:
 
-  1. [Setup your connection](#connection-setup).
-  2. [Setup your parent channel](#parent-channel-setup).
+  1. [Set up your connection](#connection-setup).
+  2. [Set up your parent channel](#parent-channel-setup).
   3. [Connect your consumer](#connect-consumer).
 
 ### Example 1: User Appearances
 
 Here's a simple example of a channel that tracks whether a user is online or not
 and what page they're on. (This is useful for creating presence features like showing
-a green dot next to a user name if they're online).
+a green dot next to a username if they're online).
 
 Create the server-side appearance channel:
 
@@ -412,14 +524,14 @@ class AppearanceChannel < ApplicationCable::Channel
 end
 ```
 
-When a subscription is initiated the `subscribed` callback gets fired and we
+When a subscription is initiated the `subscribed` callback gets fired, and we
 take that opportunity to say "the current user has indeed appeared". That
 appear/disappear API could be backed by Redis, a database, or whatever else.
 
 Create the client-side appearance channel subscription:
 
 ```js
-// app/javascript/cable/subscriptions/appearance_channel.js
+// app/javascript/channels/appearance_channel.js
 import consumer from "./consumer"
 
 consumer.subscriptions.create("AppearanceChannel", {
@@ -534,7 +646,7 @@ end
 Create the client-side web notifications channel subscription:
 
 ```js
-// app/javascript/cable/subscriptions/web_notifications_channel.js
+// app/javascript/channels/web_notifications_channel.js
 // Client-side which assumes you've already requested
 // the right to send web notifications.
 import consumer from "./consumer"
@@ -572,7 +684,7 @@ and unpacked for the data argument arriving as `received`.
 ### More Complete Examples
 
 See the [rails/actioncable-examples](https://github.com/rails/actioncable-examples)
-repository for a full example of how to setup Action Cable in a Rails app and adding channels.
+repository for a full example of how to set up Action Cable in a Rails app and adding channels.
 
 ## Configuration
 
@@ -589,13 +701,14 @@ development:
   adapter: async
 
 test:
-  adapter: async
+  adapter: test
 
 production:
   adapter: redis
   url: redis://10.10.3.153:6381
   channel_prefix: appname_production
 ```
+
 #### Adapter Configuration
 
 Below is a list of the subscription adapters available for end users.
@@ -610,6 +723,25 @@ The Redis adapter requires users to provide a URL pointing to the Redis server.
 Additionally, a `channel_prefix` may be provided to avoid channel name collisions
 when using the same Redis server for multiple applications. See the [Redis PubSub documentation](https://redis.io/topics/pubsub#database-amp-scoping) for more details.
 
+The Redis adapter also supports SSL/TLS connections. The required SSL/TLS parameters can be be passed in `ssl_params` key in the configuration yaml file.
+
+```
+production:
+  adapter: redis
+  url: rediss://10.10.3.153:tls_port
+  channel_prefix: appname_production
+  ssl_params: {
+    ca_file: "/path/to/ca.crt"
+  }
+```
+
+The options given to `ssl_params` are passed directly to the `OpenSSL::SSL::SSLContext#set_params` method and can be any valid attribute of the SSL context.
+Please refer to the [OpenSSL::SSL::SSLContext documentation](https://docs.ruby-lang.org/en/master/OpenSSL/SSL/SSLContext.html) for other available attributes.
+
+If you are using self-signed certificates for redis adapter behind a firewall and opt to skip certificate check, then the ssl `verify_mode` should be set as `OpenSSL::SSL::VERIFY_NONE`.
+
+WARNING: It is not recommended to use `VERIFY_NONE` in production unless you absolutely understand the security implications. In order to set this option for the Redis adapter, the config should be `ssl_params: { verify_mode: <%= OpenSSL::SSL::VERIFY_NONE %> }`.
+
 ##### PostgreSQL Adapter
 
 The PostgreSQL adapter uses Active Record's connection pool, and thus the
@@ -623,7 +755,7 @@ passed to the server config as an array. The origins can be instances of
 strings or regular expressions, against which a check for the match will be performed.
 
 ```ruby
-config.action_cable.allowed_request_origins = ['http://rubyonrails.com', %r{http://ruby.*}]
+config.action_cable.allowed_request_origins = ['https://rubyonrails.com', %r{http://ruby.*}]
 ```
 
 To disable and allow requests from any origin:
@@ -637,9 +769,36 @@ in the development environment.
 
 ### Consumer Configuration
 
-To configure the URL, add a call to `action_cable_meta_tag` in your HTML layout
+To configure the URL, add a call to [`action_cable_meta_tag`][] in your HTML layout
 HEAD. This uses a URL or path typically set via `config.action_cable.url` in the
 environment configuration files.
+
+[`action_cable_meta_tag`]: https://api.rubyonrails.org/classes/ActionCable/Helpers/ActionCableHelper.html#method-i-action_cable_meta_tag
+
+### Worker Pool Configuration
+
+The worker pool is used to run connection callbacks and channel actions in
+isolation from the server's main thread. Action Cable allows the application
+to configure the number of simultaneously processed threads in the worker pool.
+
+```ruby
+config.action_cable.worker_pool_size = 4
+```
+
+Also, note that your server must provide at least the same number of database
+connections as you have workers. The default worker pool size is set to 4, so
+that means you have to make at least 4 database connections available.
+You can change that in `config/database.yml` through the `pool` attribute.
+
+### Client side logging
+
+Client side logging is disabled by default. You can enable this by setting the `ActionCable.logger.enabled` to true.
+
+```ruby
+import * as ActionCable from '@rails/actioncable'
+
+ActionCable.logger.enabled = true
+```
 
 ### Other Configurations
 
@@ -657,11 +816,6 @@ config.action_cable.log_tags = [
 
 For a full list of all configuration options, see the
 `ActionCable::Server::Configuration` class.
-
-Also, note that your server must provide at least the same number of database
-connections as you have workers. The default worker pool size is set to 4, so
-that means you have to make at least that available. You can change that in
-`config/database.yml` through the `pool` attribute.
 
 ## Running Standalone Cable Servers
 
@@ -683,8 +837,8 @@ server if `action_cable_meta_tag` is invoked in the layout. Otherwise, A path is
 specified as first argument to `createConsumer` (e.g. `ActionCable.createConsumer("/websocket")`).
 
 For every instance of your server you create and for every worker your server
-spawns, you will also have a new instance of Action Cable, but the use of Redis
-keeps messages synced across connections.
+spawns, you will also have a new instance of Action Cable, but the Redis or
+PostgreSQL adapter keeps messages synced across connections.
 
 ### Standalone
 
@@ -694,7 +848,7 @@ basic setup is as follows:
 
 ```ruby
 # cable/config.ru
-require_relative '../config/environment'
+require_relative "../config/environment"
 Rails.application.eager_load!
 
 run ActionCable.server
@@ -738,3 +892,8 @@ internally, irrespective of whether the application server is multi-threaded or 
 
 Accordingly, Action Cable works with popular servers like Unicorn, Puma, and
 Passenger.
+
+## Testing
+
+You can find detailed instructions on how to test your Action Cable functionality in the
+[testing guide](testing.html#testing-action-cable).

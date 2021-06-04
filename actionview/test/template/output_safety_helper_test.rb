@@ -36,18 +36,20 @@ class OutputSafetyHelperTest < ActionView::TestCase
   end
 
   test "safe_join should return the safe string separated by $, when second argument is not passed" do
-    default_delimeter = $,
+    default_delimiter = $,
 
     begin
       $, = nil
       joined = safe_join(["a", "b"])
       assert_equal "ab", joined
 
-      $, = "|"
+      silence_warnings do
+        $, = "|"
+      end
       joined = safe_join(["a", "b"])
       assert_equal "a|b", joined
     ensure
-      $, = default_delimeter
+      $, = default_delimiter
     end
   end
 
@@ -108,7 +110,9 @@ class OutputSafetyHelperTest < ActionView::TestCase
 
   test "to_sentence is not affected by $," do
     separator_was = $,
-    $, = "|"
+    silence_warnings do
+      $, = "|"
+    end
     begin
       assert_equal "one and two", to_sentence(["one", "two"])
       assert_equal "one, two, and three", to_sentence(["one", "two", "three"])

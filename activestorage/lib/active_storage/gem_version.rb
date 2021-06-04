@@ -7,7 +7,7 @@ module ActiveStorage
   end
 
   module VERSION
-    MAJOR = 6
+    MAJOR = 7
     MINOR = 0
     TINY  = 0
     PRE   = "alpha"

@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "active_support/core_ext/hash"
+require_relative "abstract_unit"
 require "bigdecimal"
+require "yaml"
+require "active_support/core_ext/hash"
 require "active_support/core_ext/string/access"
-require "active_support/ordered_hash"
 require "active_support/core_ext/object/conversions"
 require "active_support/core_ext/object/deep_dup"
 require "active_support/inflections"
@@ -249,6 +249,14 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert [updated_with_strings, updated_with_symbols, updated_with_mixed].all? { |h| h.keys.size == 2 }
   end
 
+  def test_update_with_multiple_arguments
+    hash = HashWithIndifferentAccess.new
+    hash.update({ "a" => 1 }, { "b" => 2 })
+
+    assert_equal 1, hash["a"]
+    assert_equal 2, hash["b"]
+  end
+
   def test_update_with_to_hash_conversion
     hash = HashWithIndifferentAccess.new
     hash.update HashByConversion.new(a: 1)
@@ -272,6 +280,14 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
 
     assert_equal 1, hash[:a]
     assert_equal 2, hash["b"]
+  end
+
+  def test_merging_with_multiple_arguments
+    hash = HashWithIndifferentAccess.new
+    merged = hash.merge({ "a" => 1 }, { "b" => 2 })
+
+    assert_equal 1, merged["a"]
+    assert_equal 2, merged["b"]
   end
 
   def test_merge_with_to_hash_conversion
@@ -417,6 +433,19 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
+  def test_indifferent_deep_transform_keys
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@nested_strings).deep_transform_keys { |k| k * 2 }
+
+    assert_equal({ "aa" => { "bb" => { "cc" => 3 } } }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@nested_strings).deep_transform_keys { |k| k.to_sym }
+
+    assert_equal(3, hash[:a][:b][:c])
+    assert_equal(3, hash["a"]["b"]["c"])
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
   def test_indifferent_transform_keys_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
     indifferent_strings.transform_keys! { |k| k * 2 }
@@ -432,6 +461,21 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
+  def test_indifferent_deep_transform_keys_bang
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@nested_strings)
+    hash.deep_transform_keys! { |k| k * 2 }
+
+    assert_equal({ "aa" => { "bb" => { "cc" => 3 } } }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@nested_strings)
+    hash.deep_transform_keys! { |k| k.to_sym }
+
+    assert_equal(3, hash[:a][:b][:c])
+    assert_equal(3, hash["a"]["b"]["c"])
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
   def test_indifferent_transform_values
     hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).transform_values { |v| v * 2 }
 
@@ -445,6 +489,14 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
 
     assert_equal({ "a" => 2, "b" => 4 }, indifferent_strings)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
+  end
+
+  def test_indifferent_assoc
+    indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    key, value = indifferent_strings.assoc(:a)
+
+    assert_equal("a", key)
+    assert_equal(1, value)
   end
 
   def test_indifferent_compact
@@ -478,7 +530,7 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal @strings, roundtrip
     assert_equal "1234", roundtrip.default
 
-    # Ensure nested hashes are not HashWithIndiffereneAccess
+    # Ensure nested hashes are not HashWithIndifferentAccess
     new_to_hash = @nested_mixed.with_indifferent_access.to_hash
     assert_not new_to_hash.instance_of?(HashWithIndifferentAccess)
     assert_not new_to_hash["a"].instance_of?(HashWithIndifferentAccess)
@@ -827,5 +879,33 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     hash_wia = hash.with_indifferent_access
     assert_equal 3, hash_wia[:foo]
     assert_equal 3, hash_wia[:bar]
+  end
+
+  def test_should_copy_the_default_when_converting_non_hash_to_hash_with_indifferent_access
+    non_hash = Object.new
+
+    def non_hash.to_hash
+      h = { foo: :bar }
+      h.default = :baz
+      h
+    end
+
+    hash_wia = HashWithIndifferentAccess.new(non_hash)
+    assert_equal :bar, hash_wia[:foo]
+    assert_equal :baz, hash_wia[:missing]
+  end
+
+  def test_should_copy_the_default_proc_when_converting_non_hash_to_hash_with_indifferent_access
+    non_hash = Object.new
+
+    def non_hash.to_hash
+      h = { foo: :bar }
+      h.default_proc = ->(hash, key) { hash[key] = :baz }
+      h
+    end
+
+    hash_wia = HashWithIndifferentAccess.new(non_hash)
+    assert_equal :bar, hash_wia[:foo]
+    assert_equal :baz, hash_wia[:missing]
   end
 end

@@ -29,4 +29,12 @@ class ActiveStorage::Analyzer::ImageAnalyzerTest < ActiveSupport::TestCase
     assert_equal 792, metadata[:width]
     assert_equal 584, metadata[:height]
   end
+
+  test "analyzing an unsupported image type" do
+    blob = create_blob(data: "bad", filename: "bad_file.bad", content_type: "image/bad_type")
+    metadata = extract_metadata_from(blob)
+
+    assert_nil metadata[:width]
+    assert_nil metadata[:height]
+  end
 end

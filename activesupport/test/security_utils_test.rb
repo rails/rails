@@ -1,12 +1,16 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/security_utils"
 
 class SecurityUtilsTest < ActiveSupport::TestCase
   def test_secure_compare_should_perform_string_comparison
     assert ActiveSupport::SecurityUtils.secure_compare("a", "a")
     assert_not ActiveSupport::SecurityUtils.secure_compare("a", "b")
+  end
+
+  def test_secure_compare_return_false_on_bytesize_mismatch
+    assert_not ActiveSupport::SecurityUtils.secure_compare("a", "\u{ff41}")
   end
 
   def test_fixed_length_secure_compare_should_perform_string_comparison

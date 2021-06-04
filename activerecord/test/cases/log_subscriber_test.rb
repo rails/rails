@@ -96,6 +96,16 @@ class LogSubscriberTest < ActiveRecord::TestCase
     end
   end
 
+  def test_logging_sql_coloration_disabled
+    logger = TestDebugLogSubscriber.new
+    logger.colorize_logging = false
+
+    SQL_COLORINGS.each do |verb, color_regex|
+      logger.sql(Event.new(0.9, sql: verb.to_s))
+      assert_no_match(/#{REGEXP_BOLD}#{color_regex}#{verb}#{REGEXP_CLEAR}/i, logger.debugs.last)
+    end
+  end
+
   def test_basic_payload_name_logging_coloration_generic_sql
     logger = TestDebugLogSubscriber.new
     logger.colorize_logging = true
@@ -173,7 +183,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
   end
 
-  def test_vebose_query_logs
+  def test_verbose_query_logs
     ActiveRecord::Base.verbose_query_logs = true
 
     logger = TestDebugLogSubscriber.new
@@ -236,6 +246,12 @@ class LogSubscriberTest < ActiveRecord::TestCase
   end
 
   if ActiveRecord::Base.connection.prepared_statements
+    def test_where_in_binds_logging_include_attribute_names
+      Developer.where(id: [1, 2, 3, 4, 5]).load
+      wait
+      assert_match(%{["id", 1], ["id", 2], ["id", 3], ["id", 4], ["id", 5]}, @logger.logged(:debug).last)
+    end
+
     def test_binary_data_is_not_logged
       Binary.create(data: "some binary data")
       wait

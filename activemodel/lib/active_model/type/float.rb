@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/try"
+
 module ActiveModel
   module Type
     class Float < Value # :nodoc:
@@ -18,10 +20,7 @@ module ActiveModel
         end
       end
 
-      alias serialize cast
-
       private
-
         def cast_value(value)
           case value
           when ::Float then value

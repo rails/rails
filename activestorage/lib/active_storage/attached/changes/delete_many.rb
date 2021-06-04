@@ -8,6 +8,10 @@ module ActiveStorage
       @name, @record = name, record
     end
 
+    def attachables
+      []
+    end
+
     def attachments
       ActiveStorage::Attachment.none
     end

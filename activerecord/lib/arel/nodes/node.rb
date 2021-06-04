@@ -6,7 +6,6 @@ module Arel # :nodoc: all
     # Abstract base class for all AST nodes
     class Node
       include Arel::FactoryMethods
-      include Enumerable
 
       ###
       # Factory method to create a Nodes::Not node that has the recipient of
@@ -28,6 +27,10 @@ module Arel # :nodoc: all
         Nodes::And.new [self, right]
       end
 
+      def invert
+        Arel::Nodes::Not.new(self)
+      end
+
       # FIXME: this method should go away.  I don't like people calling
       # to_sql on non-head nodes.  This forces us to walk the AST until we
       # can find a node that has a "relation" member.
@@ -39,12 +42,10 @@ module Arel # :nodoc: all
         collector.value
       end
 
-      # Iterate through AST, nodes will be yielded depth-first
-      def each(&block)
-        return enum_for(:each) unless block_given?
-
-        ::Arel::Visitors::DepthFirst.new(block).accept self
+      def fetch_attribute
       end
+
+      def equality?; false; end
     end
   end
 end

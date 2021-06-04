@@ -23,7 +23,7 @@ namespace :test do
 
   Rake::TestTask.new(:template) do |t|
     t.libs << "test"
-    t.test_files = Dir.glob("test/template/**/*_test.rb")
+    t.test_files = FileList["test/template/**/*_test.rb"]
     t.warning = true
     t.verbose = true
     t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
@@ -31,9 +31,26 @@ namespace :test do
 
   desc "Run tests for rails-ujs"
   task :ujs do
+    system("npm run lint")
+    exit $?.exitstatus unless $?.success?
+
     begin
+      listen_host = "localhost"
+      listen_port = "4567"
+
+      runner_command = %w(ruby ../ci/qunit-selenium-runner.rb)
+      if ENV["SELENIUM_DRIVER_URL"]
+        require "socket"
+        runner_command += %W(http://#{Socket.gethostname}:#{listen_port}/ #{ENV["SELENIUM_DRIVER_URL"]})
+        listen_host = "0.0.0.0"
+      else
+        runner_command += %W(http://localhost:#{listen_port}/)
+      end
+
       Dir.mkdir("log")
-      pid = spawn("bundle exec rackup test/ujs/config.ru -p 4567 -s puma > log/test.log 2>&1", pgroup: true)
+      pid = File.open("log/test.log", "w") do |f|
+        spawn(*%W(rackup test/ujs/config.ru -o #{listen_host} -p #{listen_port} -s puma), out: f, err: f, pgroup: true)
+      end
 
       start_time = Time.now
 
@@ -41,12 +58,16 @@ namespace :test do
         break if system("lsof -i :4567", 1 => File::NULL)
 
         if Time.now - start_time > 5
-          puts "Timed out after 5 seconds"
+          puts "Failed to start puma after 5 seconds"
+          puts
+          puts File.read("log/test.log")
           exit 1
         end
+
+        sleep 0.2
       end
 
-      system("npm run lint && bundle exec ruby ../ci/qunit-selenium-runner.rb http://localhost:4567/")
+      system(*runner_command)
       status = $?.exitstatus
     ensure
       Process.kill("KILL", -pid) if pid
@@ -60,7 +81,7 @@ namespace :test do
     # Active Record Integration Tests
     Rake::TestTask.new(:active_record) do |t|
       t.libs << "test"
-      t.test_files = Dir.glob("test/activerecord/*_test.rb")
+      t.test_files = FileList["test/activerecord/*_test.rb"]
       t.warning = true
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
@@ -69,7 +90,7 @@ namespace :test do
     # Action Pack Integration Tests
     Rake::TestTask.new(:action_pack) do |t|
       t.libs << "test"
-      t.test_files = Dir.glob("test/actionpack/**/*_test.rb")
+      t.test_files = FileList["test/actionpack/**/*_test.rb"]
       t.warning = true
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)

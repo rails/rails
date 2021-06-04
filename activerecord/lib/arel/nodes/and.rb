@@ -2,7 +2,7 @@
 
 module Arel # :nodoc: all
   module Nodes
-    class And < Arel::Nodes::Node
+    class And < Arel::Nodes::NodeExpression
       attr_reader :children
 
       def initialize(children)

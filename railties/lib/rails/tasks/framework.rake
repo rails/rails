@@ -2,13 +2,13 @@
 
 namespace :app do
   desc "Update configs and some other initially generated files (or use just update:configs or update:bin)"
-  task update: [ "update:configs", "update:bin", "update:upgrade_guide_info" ]
+  task update: [ "update:configs", "update:bin", "update:active_storage", "update:upgrade_guide_info" ]
 
   desc "Applies the template supplied by LOCATION=(/path/to/template) or URL"
   task template: :environment do
     template = ENV["LOCATION"]
     raise "No LOCATION value given. Please set LOCATION either as path to a file or a URL" if template.blank?
-    template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
+    template = File.expand_path(template) unless %r{\A[A-Za-z][A-Za-z0-9+\-.]*://}.match?(template)
     require "rails/generators"
     require "rails/generators/rails/app/app_generator"
     generator = Rails::Generators::AppGenerator.new [Rails.root], {}, { destination_root: Rails.root }
@@ -51,8 +51,18 @@ namespace :app do
       Rails::AppUpdater.invoke_from_app_generator :update_bin_files
     end
 
+    task :active_storage do
+      Rails::AppUpdater.invoke_from_app_generator :update_active_storage
+    end
+
     task :upgrade_guide_info do
       Rails::AppUpdater.invoke_from_app_generator :display_upgrade_guide_info
+    end
+  end
+
+  namespace :binstub do
+    task :yarn do
+      Rails::AppUpdater.invoke_from_app_generator :update_bin_yarn
     end
   end
 end

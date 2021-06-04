@@ -161,7 +161,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     p2.first_name = "sue"
     error = assert_raise(ActiveRecord::StaleObjectError) { p2.save! }
-    assert_equal(error.record.object_id, p2.object_id)
+    assert_same error.record, p2
   end
 
   def test_lock_new_when_explicitly_passing_nil
@@ -182,7 +182,9 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     p1.touch
     assert_equal 1, p1.lock_version
-    assert_not p1.changed?, "Changes should have been cleared"
+    assert_not_predicate p1, :changed?, "Changes should have been cleared"
+    assert_predicate p1, :saved_changes?
+    assert_equal ["lock_version", "updated_at"], p1.saved_changes.keys.sort
   end
 
   def test_touch_stale_object
@@ -193,6 +195,8 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::StaleObjectError) do
       stale_person.touch
     end
+
+    assert_not_predicate stale_person, :saved_changes?
   end
 
   def test_update_with_dirty_primary_key
@@ -296,6 +300,9 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     t1.touch
 
     assert_equal 1, t1.lock_version
+    assert_not_predicate t1, :changed?
+    assert_predicate t1, :saved_changes?
+    assert_equal ["lock_version", "updated_at"], t1.saved_changes.keys.sort
   end
 
   def test_touch_stale_object_with_lock_without_default
@@ -307,6 +314,8 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::StaleObjectError) do
       stale_object.touch
     end
+
+    assert_not_predicate stale_object, :saved_changes?
   end
 
   def test_lock_without_default_should_work_with_null_in_the_database
@@ -329,6 +338,39 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StaleObjectError) { t2.save! }
     assert_equal 0, t2.lock_version
     assert_equal "new title2", t2.title
+  end
+
+  def test_update_with_lock_version_without_default_should_work_on_dirty_value_before_type_cast
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.lock_version = t1.lock_version
+
+    assert_equal 0, t1.lock_version
+    assert_equal 0, t1.lock_version_before_type_cast
+
+    assert_nothing_raised { t1.update!(title: "new title1") }
+    assert_equal 1, t1.lock_version
+    assert_equal "new title1", t1.title
+  end
+
+  def test_destroy_with_lock_version_without_default_should_work_on_dirty_value_before_type_cast
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.lock_version = t1.lock_version
+
+    assert_equal 0, t1.lock_version
+    assert_equal 0, t1.lock_version_before_type_cast
+
+    assert_nothing_raised { t1.destroy! }
+    assert_predicate t1, :destroyed?
   end
 
   def test_lock_without_default_queries_count
@@ -423,7 +465,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   def test_quote_table_name
     ref = references(:michael_magician)
-    ref.favourite = !ref.favourite
+    ref.favorite = !ref.favorite
     assert ref.save
   end
 
@@ -477,6 +519,12 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 3, car.lock_version
     assert_operator previously_updated_at, :<, car.updated_at
     assert_operator previously_wheels_owned_at, :<, car.wheels_owned_at
+
+    car.wheels << Wheel.create!
+    assert_equal 1, car.wheels_count
+    assert_equal 4, car.lock_version
+    assert_not car.lock_version_changed?
+    assert_nothing_raised { car.update(name: "herbie") }
   end
 
   def test_polymorphic_destroy_with_dependencies_and_lock_version
@@ -502,7 +550,8 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   def test_yaml_dumping_with_lock_column
     t1 = LockWithoutDefault.new
-    t2 = YAML.load(YAML.dump(t1))
+    payload = YAML.dump(t1)
+    t2 = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
 
     assert_equal t1.attributes, t2.attributes
   end
@@ -584,7 +633,6 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
   end
 
   private
-
     def add_counter_column_to(model, col = "test_count")
       model.connection.add_column model.table_name, col, :integer, null: false, default: 0
       model.reset_column_information
@@ -599,11 +647,11 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
       add_counter_column_to(model)
       object = model.first
       assert_equal 0, object.test_count
-      assert_equal 0, object.send(model.locking_column)
+      assert_equal 0, object.public_send(model.locking_column)
       yield object.id
       object.reload
       assert_equal expected_count, object.test_count
-      assert_equal 1, object.send(model.locking_column)
+      assert_equal 1, object.public_send(model.locking_column)
     ensure
       remove_counter_column_from(model)
     end

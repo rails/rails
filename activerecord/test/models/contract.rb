@@ -5,7 +5,9 @@ class Contract < ActiveRecord::Base
   belongs_to :developer, primary_key: :id
   belongs_to :firm, foreign_key: "company_id"
 
-  before_save :hi
+  attribute :metadata, :json
+
+  before_save :hi, :update_metadata
   after_save :bye
 
   attr_accessor :hi_count, :bye_count
@@ -19,8 +21,18 @@ class Contract < ActiveRecord::Base
     @bye_count ||= 0
     @bye_count += 1
   end
+
+  def update_metadata
+    self.metadata = { company_id: company_id, developer_id: developer_id }
+  end
 end
 
 class NewContract < Contract
   validates :company_id, presence: true
+end
+
+class SpecialContract < ActiveRecord::Base
+  self.table_name = "contracts"
+  belongs_to :company
+  belongs_to :special_developer, foreign_key: "developer_id"
 end

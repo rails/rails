@@ -2,10 +2,10 @@
 
 require "cgi"
 require "erb"
-require "action_view/helpers/form_helper"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/array/wrap"
+require "action_view/helpers/text_helper"
 
 module ActionView
   # = Action View Form Option Helpers
@@ -21,7 +21,7 @@ module ActionView
     #   could become:
     #
     #     <select name="post[category]" id="post_category">
-    #       <option value=""></option>
+    #       <option value="" label=" "></option>
     #       <option value="joke">joke</option>
     #       <option value="poem">poem</option>
     #     </select>
@@ -74,7 +74,6 @@ module ActionView
     #   could become:
     #
     #     <select name="post[category]" id="post_category">
-    #       <option value=""></option>
     #       <option value="joke">joke</option>
     #       <option value="poem">poem</option>
     #       <option disabled="disabled" value="restricted">restricted</option>
@@ -112,7 +111,7 @@ module ActionView
       # would become:
       #
       #   <select name="post[person_id]" id="post_person_id">
-      #     <option value=""></option>
+      #     <option value="" label=" "></option>
       #     <option value="1" selected="selected">David</option>
       #     <option value="2">Eileen</option>
       #     <option value="3">Rafael</option>
@@ -143,7 +142,7 @@ module ActionView
       #
       # The HTML specification says when +multiple+ parameter passed to select and all options got deselected
       # web browsers do not send any value to server. Unfortunately this introduces a gotcha:
-      # if an +User+ model has many +roles+ and have +role_ids+ accessor, and in the form that edits roles of the user
+      # if a +User+ model has many +roles+ and have +role_ids+ accessor, and in the form that edits roles of the user
       # the user deselects all roles from +role_ids+ multiple select box, no +role_ids+ parameter is sent. So,
       # any mass-assignment idiom like
       #
@@ -566,9 +565,10 @@ module ActionView
       # an ActiveSupport::TimeZone.
       #
       # By default, +model+ is the ActiveSupport::TimeZone constant (which can
-      # be obtained in Active Record as a value object). The only requirement
-      # is that the +model+ parameter be an object that responds to +all+, and
-      # returns an array of objects that represent time zones.
+      # be obtained in Active Record as a value object). The +model+ parameter
+      # must respond to +all+ and return an array of objects that represent time
+      # zones; each object must respond to +name+. If a Regexp is given it will
+      # attempt to match the zones using <code>match?</code> method.
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in
       # a regular HTML select tag.
@@ -580,7 +580,7 @@ module ActionView
 
         if priority_zones
           if priority_zones.is_a?(Regexp)
-            priority_zones = zones.select { |z| z =~ priority_zones }
+            priority_zones = zones.select { |z| z.match?(priority_zones) }
           end
 
           zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)
@@ -654,7 +654,7 @@ module ActionView
       #
       # ==== Gotcha
       #
-      # The HTML specification says when nothing is select on a collection of radio buttons
+      # The HTML specification says when nothing is selected on a collection of radio buttons
       # web browsers do not send any value to server.
       # Unfortunately this introduces a gotcha:
       # if a +User+ model has a +category_id+ field and in the form no category is selected, no +category_id+ parameter is sent. So,
@@ -793,24 +793,16 @@ module ActionView
 
         def extract_values_from_collection(collection, value_method, selected)
           if selected.is_a?(Proc)
-            collection.map do |element|
-              public_or_deprecated_send(element, value_method) if selected.call(element)
-            end.compact
+            collection.filter_map do |element|
+              element.public_send(value_method) if selected.call(element)
+            end
           else
             selected
           end
         end
 
         def value_for_collection(item, value)
-          value.respond_to?(:call) ? value.call(item) : public_or_deprecated_send(item, value)
-        end
-
-        def public_or_deprecated_send(item, value)
-          item.public_send(value)
-        rescue NoMethodError
-          raise unless item.respond_to?(value, true) && !item.respond_to?(value)
-          ActiveSupport::Deprecation.warn "Using private methods from view helpers is deprecated (calling private #{item.class}##{value})"
-          item.send(value)
+          value.respond_to?(:call) ? value.call(item) : item.public_send(value)
         end
 
         def prompt_text(prompt)

@@ -26,6 +26,28 @@ module ActiveRecord
           # No point in executing the counter update since we're going to destroy the parent anyway
           load_target.each { |t| t.destroyed_by_association = reflection }
           destroy_all
+        when :destroy_async
+          load_target.each do |t|
+            t.destroyed_by_association = reflection
+          end
+
+          unless target.empty?
+            association_class = target.first.class
+            primary_key_column = association_class.primary_key.to_sym
+
+            ids = target.collect do |assoc|
+              assoc.public_send(primary_key_column)
+            end
+
+            enqueue_destroy_association(
+              owner_model_name: owner.class.to_s,
+              owner_id: owner.id,
+              association_class: reflection.klass.to_s,
+              association_ids: ids,
+              association_primary_key_column: primary_key_column,
+              ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
+            )
+          end
         else
           delete_all
         end
@@ -36,16 +58,7 @@ module ActiveRecord
         super
       end
 
-      def empty?
-        if reflection.has_cached_counter?
-          size.zero?
-        else
-          super
-        end
-      end
-
       private
-
         # Returns the number of records in this collection.
         #
         # If the association has a counter cache it gets that value. Otherwise
@@ -61,7 +74,7 @@ module ActiveRecord
         # the loaded flag is set to true as well.
         def count_records
           count = if reflection.has_cached_counter?
-            owner._read_attribute(reflection.counter_cache_column).to_i
+            owner.read_attribute(reflection.counter_cache_column).to_i
           else
             scope.count(:all)
           end
@@ -69,7 +82,7 @@ module ActiveRecord
           # If there's nothing in the database and @target has no new records
           # we are certain the current target is an empty array. This is a
           # documented side-effect of the method that may avoid an extra SELECT.
-          (@target ||= []) && loaded! if count == 0
+          loaded! if count == 0
 
           [association_scope.limit_value, count].compact.min
         end
@@ -84,7 +97,7 @@ module ActiveRecord
           if reflection.counter_must_be_updated_by_has_many?
             counter = reflection.counter_cache_column
             owner.increment(counter, difference)
-            owner.send(:clear_attribute_change, counter) # eww
+            owner.send(:"clear_#{counter}_change")
           end
         end
 
@@ -92,7 +105,7 @@ module ActiveRecord
           if method == :delete_all
             scope.delete_all
           else
-            scope.update_all(reflection.foreign_key => nil)
+            scope.update_all(nullified_owner_attributes)
           end
         end
 

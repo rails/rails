@@ -14,7 +14,7 @@ module ActiveRecord
           def cast(value)
             case value
             when ::String
-              if value[0] == "(" && value[-1] == ")"
+              if value.start_with?("(") && value.end_with?(")")
                 value = value[1...-1]
               end
               cast(value.split(","))
@@ -34,9 +34,8 @@ module ActiveRecord
           end
 
           private
-
             def number_for_point(number)
-              number.to_s.gsub(/\.0$/, "")
+              number.to_s.delete_suffix(".0")
             end
         end
       end

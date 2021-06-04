@@ -130,8 +130,9 @@ module ActionView
 
         def add_dependencies(render_dependencies, arguments, pattern)
           arguments.scan(pattern) do
-            add_dynamic_dependency(render_dependencies, Regexp.last_match[:dynamic])
-            add_static_dependency(render_dependencies, Regexp.last_match[:static])
+            match = Regexp.last_match
+            add_dynamic_dependency(render_dependencies, match[:dynamic])
+            add_static_dependency(render_dependencies, match[:static], match[:quote])
           end
         end
 
@@ -141,7 +142,12 @@ module ActionView
           end
         end
 
-        def add_static_dependency(dependencies, dependency)
+        def add_static_dependency(dependencies, dependency, quote_type)
+          if quote_type == '"'
+            # Ignore if there is interpolation
+            return if dependency.include?('#{')
+          end
+
           if dependency
             if dependency.include?("/")
               dependencies << dependency
@@ -153,18 +159,20 @@ module ActionView
 
         def resolve_directories(wildcard_dependencies)
           return [] unless @view_paths
+          return [] if wildcard_dependencies.empty?
 
-          wildcard_dependencies.flat_map { |query, templates|
-            @view_paths.find_all_with_query(query).map do |template|
-              "#{File.dirname(query)}/#{File.basename(template).split('.').first}"
-            end
+          # Remove trailing "/*"
+          prefixes = wildcard_dependencies.map { |query| query[0..-3] }
+
+          @view_paths.flat_map(&:all_template_paths).uniq.filter_map { |path|
+            path.to_s if prefixes.include?(path.prefix)
           }.sort
         end
 
         def explicit_dependencies
           dependencies = source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
 
-          wildcards, explicits = dependencies.partition { |dependency| dependency[-1] == "*" }
+          wildcards, explicits = dependencies.partition { |dependency| dependency.end_with?("/*") }
 
           (explicits + resolve_directories(wildcards)).uniq
         end

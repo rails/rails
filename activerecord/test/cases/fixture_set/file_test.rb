@@ -137,12 +137,6 @@ END
         end
       end
 
-      def test_erb_filename
-        filename = "filename.yaml"
-        erb = File.new(filename).send(:prepare_erb, "<% Rails.env %>\n")
-        assert_equal erb.filename, filename
-      end
-
       private
         def tmp_yaml(name, contents)
           t = Tempfile.new name

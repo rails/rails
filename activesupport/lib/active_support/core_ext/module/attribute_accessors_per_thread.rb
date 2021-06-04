@@ -25,7 +25,7 @@ class Module
   #   end
   #   # => NameError: invalid attribute name: 1_Badname
   #
-  # If you want to opt out of the creation of the instance reader method, pass
+  # To omit the instance reader method, pass
   # <tt>instance_reader: false</tt> or <tt>instance_accessor: false</tt>.
   #
   #   class Current
@@ -33,7 +33,7 @@ class Module
   #   end
   #
   #   Current.new.user # => NoMethodError
-  def thread_mattr_reader(*syms, instance_reader: true, instance_accessor: true) # :nodoc:
+  def thread_mattr_reader(*syms, instance_reader: true, instance_accessor: true, default: nil) # :nodoc:
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
 
@@ -52,6 +52,8 @@ class Module
           end
         EOS
       end
+
+      Thread.current["attr_" + name + "_#{sym}"] = default unless default.nil?
     end
   end
   alias :thread_cattr_reader :thread_mattr_reader
@@ -66,7 +68,7 @@ class Module
   #   Current.user = "DHH"
   #   Thread.current[:attr_Current_user] # => "DHH"
   #
-  # If you want to opt out of the creation of the instance writer method, pass
+  # To omit the instance writer method, pass
   # <tt>instance_writer: false</tt> or <tt>instance_accessor: false</tt>.
   #
   #   class Current
@@ -74,7 +76,7 @@ class Module
   #   end
   #
   #   Current.new.user = "DHH" # => NoMethodError
-  def thread_mattr_writer(*syms, instance_writer: true, instance_accessor: true) # :nodoc:
+  def thread_mattr_writer(*syms, instance_writer: true, instance_accessor: true, default: nil) # :nodoc:
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
 
@@ -93,6 +95,8 @@ class Module
           end
         EOS
       end
+
+      public_send("#{sym}=", default) unless default.nil?
     end
   end
   alias :thread_cattr_writer :thread_mattr_writer
@@ -118,8 +122,8 @@ class Module
   #   Customer.user # => "Rafael"
   #   Account.user  # => "DHH"
   #
-  # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.
-  # To opt out of the instance reader method, pass <tt>instance_reader: false</tt>.
+  # To omit the instance writer method, pass <tt>instance_writer: false</tt>.
+  # To omit the instance reader method, pass <tt>instance_reader: false</tt>.
   #
   #   class Current
   #     thread_mattr_accessor :user, instance_writer: false, instance_reader: false
@@ -128,7 +132,7 @@ class Module
   #   Current.new.user = "DHH"  # => NoMethodError
   #   Current.new.user          # => NoMethodError
   #
-  # Or pass <tt>instance_accessor: false</tt>, to opt out both instance methods.
+  # Or pass <tt>instance_accessor: false</tt>, to omit both instance methods.
   #
   #   class Current
   #     thread_mattr_accessor :user, instance_accessor: false
@@ -136,8 +140,8 @@ class Module
   #
   #   Current.new.user = "DHH"  # => NoMethodError
   #   Current.new.user          # => NoMethodError
-  def thread_mattr_accessor(*syms, instance_reader: true, instance_writer: true, instance_accessor: true)
-    thread_mattr_reader(*syms, instance_reader: instance_reader, instance_accessor: instance_accessor)
+  def thread_mattr_accessor(*syms, instance_reader: true, instance_writer: true, instance_accessor: true, default: nil)
+    thread_mattr_reader(*syms, instance_reader: instance_reader, instance_accessor: instance_accessor, default: default)
     thread_mattr_writer(*syms, instance_writer: instance_writer, instance_accessor: instance_accessor)
   end
   alias :thread_cattr_accessor :thread_mattr_accessor

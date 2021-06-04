@@ -43,18 +43,6 @@ class InfoTest < ActiveSupport::TestCase
     end
   end
 
-  def test_json_includes_middleware
-    Rails::Info.module_eval do
-      property "Middleware", ["Rack::Lock", "Rack::Static"]
-    end
-
-    hash = JSON.parse(Rails::Info.to_json)
-    assert_includes hash.keys, "Middleware"
-    properties.value_for("Middleware").each do |value|
-      assert_includes hash["Middleware"], value
-    end
-  end
-
   private
     def properties
       Rails::Info.properties

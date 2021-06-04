@@ -18,6 +18,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert message.content.nil?
     assert message.content.blank?
     assert message.content.empty?
+    assert_not message.content?
     assert_not message.content.present?
   end
 
@@ -26,13 +27,32 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_not message.content.nil?
     assert message.content.blank?
     assert message.content.empty?
+    assert_not message.content?
     assert_not message.content.present?
   end
 
   test "embed extraction" do
-    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     message = Message.create!(subject: "Greetings", content: ActionText::Content.new("Hello world").append_attachables(blob))
     assert_equal "racecar.jpg", message.content.embeds.first.filename.to_s
+  end
+
+  test "embed extraction only extracts file attachments" do
+    remote_image_html = '<action-text-attachment content-type="image" url="http://example.com/cat.jpg"></action-text-attachment>'
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    content = ActionText::Content.new(remote_image_html).append_attachables(blob)
+    message = Message.create!(subject: "Greetings", content: content)
+    assert_equal [ActionText::Attachables::RemoteImage, ActiveStorage::Blob], message.content.body.attachables.map(&:class)
+    assert_equal [ActiveStorage::Attachment], message.content.embeds.map(&:class)
+  end
+
+  test "embed extraction deduplicates file attachments" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    content = ActionText::Content.new("Hello world").append_attachables([ blob, blob ])
+
+    assert_nothing_raised do
+      Message.create!(subject: "Greetings", content: content)
+    end
   end
 
   test "saving content" do
@@ -40,8 +60,49 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_equal "Hello world", message.content.to_plain_text
   end
 
-  test "save body" do
+  test "saving body" do
     message = Message.create(subject: "Greetings", body: "<h1>Hello world</h1>")
     assert_equal "Hello world", message.body.to_plain_text
+  end
+
+  test "saving content via nested attributes" do
+    message = Message.create! subject: "Greetings", content: "<h1>Hello world</h1>",
+      review_attributes: { author_name: "Marcia", content: "Nice work!" }
+    assert_equal "Nice work!", message.review.content.to_plain_text
+  end
+
+  test "updating content via nested attributes" do
+    message = Message.create! subject: "Greetings", content: "<h1>Hello world</h1>",
+      review_attributes: { author_name: "Marcia", content: "Nice work!" }
+
+    message.update! review_attributes: { id: message.review.id, content: "Great work!" }
+    assert_equal "Great work!", message.review.reload.content.to_plain_text
+  end
+
+  test "building content lazily on existing record" do
+    message = Message.create!(subject: "Greetings")
+
+    assert_no_difference -> { ActionText::RichText.count } do
+      assert_kind_of ActionText::RichText, message.content
+    end
+  end
+
+  test "eager loading" do
+    Message.create!(subject: "Subject", content: "<h1>Content</h1>")
+
+    message = assert_queries(2) { Message.with_rich_text_content.last }
+    assert_no_queries do
+      assert_equal "Content", message.content.to_plain_text
+    end
+  end
+
+  test "eager loading all rich text" do
+    Message.create!(subject: "Subject", content: "<h1>Content</h1>", body: "<h2>Body</h2>")
+
+    message = assert_queries(1) { Message.with_all_rich_text.last }
+    assert_no_queries do
+      assert_equal "Content", message.content.to_plain_text
+      assert_equal "Body", message.body.to_plain_text
+    end
   end
 end

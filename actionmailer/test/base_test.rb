@@ -36,6 +36,7 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.welcome
     assert_equal(["system@test.lindsaar.net"],    email.to)
     assert_equal(["jose@test.plataformatec.com"], email.from)
+    assert_equal(["mikel@test.lindsaar.net"],     email.reply_to)
     assert_equal("The first email on new API!",   email.subject)
   end
 
@@ -80,6 +81,12 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("text/html", mail.mime_type)
     mail = BaseMailer.plain_text_only
     assert_equal("text/plain", mail.mime_type)
+  end
+
+  test "mail() using email_address_with_name" do
+    email = BaseMailer.with_name
+    assert_equal("Sunny <sunny@example.com>", email["To"].value)
+    assert_equal("Mikel <mikel@test.lindsaar.net>", email["Reply-To"].value)
   end
 
   # Custom headers
@@ -179,6 +186,20 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("logo.png", email.parts[1].filename)
   end
 
+  test "can embed an inline attachment and other attachments" do
+    email = BaseMailer.inline_and_other_attachments
+    # Need to call #encoded to force the JIT sort on parts
+    email.encoded
+    assert_equal(2, email.parts.length)
+    assert_equal("multipart/mixed", email.mime_type)
+    assert_equal("multipart/related", email.parts[0].mime_type)
+    assert_equal("multipart/alternative", email.parts[0].parts[0].mime_type)
+    assert_equal("text/plain", email.parts[0].parts[0].parts[0].mime_type)
+    assert_equal("text/html",  email.parts[0].parts[0].parts[1].mime_type)
+    assert_equal("logo.png", email.parts[0].parts[1].filename)
+    assert_equal("certificate.pdf", email.parts[1].filename)
+  end
+
   # Defaults values
   test "uses default charset from class" do
     with_default BaseMailer, charset: "US-ASCII" do
@@ -267,6 +288,17 @@ class BaseTest < ActiveSupport::TestCase
     assert_match(/Can't add attachments after `mail` was called./, e.message)
   end
 
+  test "accessing inline attachments after mail was called works" do
+    class LateInlineAttachmentAccessorMailer < ActionMailer::Base
+      def welcome
+        mail body: "yay", from: "welcome@example.com", to: "to@example.com"
+        attachments.inline["invoice.pdf"]
+      end
+    end
+
+    assert_nothing_raised { LateInlineAttachmentAccessorMailer.welcome.message }
+  end
+
   test "adding inline attachments while rendering mail works" do
     class LateInlineAttachmentMailer < ActionMailer::Base
       def on_render
@@ -305,6 +337,16 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("TEXT Implicit Multipart", email.parts[0].body.encoded)
     assert_equal("text/html", email.parts[1].mime_type)
     assert_equal("HTML Implicit Multipart", email.parts[1].body.encoded)
+  end
+
+  test "implicit multipart formats" do
+    email = BaseMailer.implicit_multipart_formats
+    assert_equal(2, email.parts.size)
+    assert_equal("multipart/alternative", email.mime_type)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("Implicit Multipart [:text]", email.parts[0].body.encoded)
+    assert_equal("text/html", email.parts[1].mime_type)
+    assert_equal("Implicit Multipart [:html]", email.parts[1].body.encoded)
   end
 
   test "implicit multipart with sort order" do
@@ -862,6 +904,11 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal "Anonymous mailer body", mailer.welcome.body.encoded.strip
   end
 
+  test "email_address_with_name escapes" do
+    address = BaseMailer.email_address_with_name("test@example.org", 'I "<3" email')
+    assert_equal '"I \"<3\" email" <test@example.org>', address
+  end
+
   test "default_from can be set" do
     class DefaultFromMailer < ActionMailer::Base
       default to: "system@test.lindsaar.net"
@@ -913,20 +960,34 @@ class BaseTest < ActiveSupport::TestCase
     ActiveSupport::Notifications.unsubscribe "process.action_mailer"
   end
 
-  private
+  test "notification for deliver" do
+    events = []
+    ActiveSupport::Notifications.subscribe("deliver.action_mailer") do |*args|
+      events << ActiveSupport::Notifications::Event.new(*args)
+    end
 
+    BaseMailer.welcome(body: "Hello there").deliver_now
+
+    assert_equal 1, events.length
+    assert_equal "deliver.action_mailer", events[0].name
+    assert_not_nil events[0].payload[:message_id]
+  ensure
+    ActiveSupport::Notifications.unsubscribe "deliver.action_mailer"
+  end
+
+  private
     # Execute the block setting the given values and restoring old values after
     # the block is executed.
     def swap(klass, new_values)
       old_values = {}
       new_values.each do |key, value|
-        old_values[key] = klass.send key
-        klass.send :"#{key}=", value
+        old_values[key] = klass.public_send key
+        klass.public_send :"#{key}=", value
       end
       yield
     ensure
       old_values.each do |key, value|
-        klass.send :"#{key}=", value
+        klass.public_send :"#{key}=", value
       end
     end
 

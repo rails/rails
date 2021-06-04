@@ -3,6 +3,7 @@
 require "ipaddr"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
+require "active_support/configuration_file"
 require "rails/engine/configuration"
 require "rails/source_annotation_extractor"
 
@@ -12,13 +13,15 @@ module Rails
       attr_accessor :allow_concurrency, :asset_host, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
-                    :force_ssl, :helpers_paths, :hosts, :logger, :log_formatter, :log_tags,
-                    :railties_order, :relative_url_root, :secret_key_base, :secret_token,
+                    :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
+                    :log_tags, :railties_order, :relative_url_root, :secret_key_base,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
-                    :content_security_policy_nonce_generator, :require_master_key, :credentials
+                    :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
+                    :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
+                    :rake_eager_load
 
       attr_reader :encoding, :api_only, :loaded_config_version
 
@@ -30,7 +33,9 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        @hosts                                   = Array(([IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0"), "localhost"] if Rails.env.development?))
+        @hosts                                   = Array(([".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")] if Rails.env.development?))
+        @hosts.concat(ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)) if Rails.env.development?
+        @host_authorization                      = {}
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
         @public_file_server.index_name           = "index"
@@ -50,7 +55,6 @@ module Rails
         @autoflush_log                           = true
         @log_formatter                           = ActiveSupport::Logger::SimpleFormatter.new
         @eager_load                              = nil
-        @secret_token                            = nil
         @secret_key_base                         = nil
         @api_only                                = false
         @debug_exception_response_format         = nil
@@ -60,13 +64,19 @@ module Rails
         @content_security_policy                 = nil
         @content_security_policy_report_only     = false
         @content_security_policy_nonce_generator = nil
+        @content_security_policy_nonce_directives = nil
         @require_master_key                      = false
         @loaded_config_version                   = nil
         @credentials                             = ActiveSupport::OrderedOptions.new
         @credentials.content_path                = default_credentials_content_path
         @credentials.key_path                    = default_credentials_key_path
+        @disable_sandbox                         = false
+        @add_autoload_paths_to_load_path         = true
+        @permissions_policy                      = nil
+        @rake_eager_load                         = false
       end
 
+      # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
       def load_defaults(target_version)
         case target_version.to_s
         when "5.0"
@@ -97,10 +107,6 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.cache_versioning = true
-            # Remove the temporary load hook from SQLite3Adapter when this is removed
-            ActiveSupport.on_load(:active_record_sqlite3adapter) do
-              ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
-            end
           end
 
           if respond_to?(:action_dispatch)
@@ -109,7 +115,7 @@ module Rails
 
           if respond_to?(:active_support)
             active_support.use_authenticated_message_encryption = true
-            active_support.use_sha1_digests = true
+            active_support.hash_digest_class = OpenSSL::Digest::SHA1
           end
 
           if respond_to?(:action_controller)
@@ -130,13 +136,89 @@ module Rails
             action_dispatch.use_cookies_with_metadata = true
           end
 
-          if respond_to?(:active_job)
-            active_job.return_false_on_aborted_enqueue = true
+          if respond_to?(:action_mailer)
+            action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
           end
 
           if respond_to?(:active_storage)
             active_storage.queues.analysis = :active_storage_analysis
             active_storage.queues.purge    = :active_storage_purge
+
+            active_storage.replace_on_assign_to_many = true
+          end
+
+          if respond_to?(:active_record)
+            active_record.collection_cache_versioning = true
+          end
+        when "6.1"
+          load_defaults "6.0"
+
+          if respond_to?(:active_record)
+            active_record.has_many_inversing = true
+            active_record.legacy_connection_handling = false
+          end
+
+          if respond_to?(:active_job)
+            active_job.retry_jitter = 0.15
+            active_job.skip_after_callbacks_if_terminated = true
+          end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.cookies_same_site_protection = :lax
+            action_dispatch.ssl_default_redirect_status = 308
+          end
+
+          if respond_to?(:action_controller)
+            action_controller.urlsafe_csrf_tokens = true
+          end
+
+          if respond_to?(:action_view)
+            action_view.form_with_generates_remote_forms = false
+            action_view.preload_links_header = true
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.track_variants = true
+
+            active_storage.queues.analysis = nil
+            active_storage.queues.purge = nil
+          end
+
+          if respond_to?(:action_mailbox)
+            action_mailbox.queues.incineration = nil
+            action_mailbox.queues.routing = nil
+          end
+
+          if respond_to?(:action_mailer)
+            action_mailer.deliver_later_queue_name = nil
+          end
+
+          ActiveSupport.utc_to_local_returns_utc_offset_times = true
+        when "7.0"
+          load_defaults "6.1"
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.return_only_request_media_type_on_content_type = false
+          end
+
+          if respond_to?(:action_controller)
+            action_controller.silence_disabled_session_errors = false
+          end
+
+          if respond_to?(:action_view)
+            action_view.button_to_generates_button_tag = true
+            action_view.apply_stylesheet_media_default = false
+          end
+
+          if respond_to?(:active_support)
+            active_support.hash_digest_class = OpenSSL::Digest::SHA256
+            active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
+            active_support.remove_deprecated_time_with_zone_name = true
+            active_support.cache_format_version = 7.0
+          end
+
+          if respond_to?(:action_mailer)
+            action_mailer.smtp_timeout = 5
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
@@ -182,18 +264,38 @@ module Rails
         end
       end
 
+      # Load the database YAML without evaluating ERB. This allows us to
+      # create the rake tasks for multiple databases without filling in the
+      # configuration values or loading the environment. Do not use this
+      # method.
+      #
+      # This uses a DummyERB custom compiler so YAML can ignore the ERB
+      # tags and load the database.yml for the rake tasks.
+      def load_database_yaml # :nodoc:
+        if path = paths["config/database"].existent.first
+          require "rails/application/dummy_erb_compiler"
+
+          yaml = DummyERB.new(Pathname.new(path).read).result
+
+          if YAML.respond_to?(:unsafe_load)
+            YAML.unsafe_load(yaml) || {}
+          else
+            YAML.load(yaml) || {}
+          end
+        else
+          {}
+        end
+      end
+
       # Loads and returns the entire raw configuration of database from
       # values stored in <tt>config/database.yml</tt>.
       def database_configuration
         path = paths["config/database"].existent.first
         yaml = Pathname.new(path) if path
 
-        config = if yaml && yaml.exist?
-          require "yaml"
-          require "erb"
-          loaded_yaml = YAML.load(ERB.new(yaml.read).result) || {}
-          shared = loaded_yaml.delete("shared")
-          if shared
+        config = if yaml&.exist?
+          loaded_yaml = ActiveSupport::ConfigurationFile.parse(yaml)
+          if (shared = loaded_yaml.delete("shared"))
             loaded_yaml.each do |_k, values|
               values.reverse_merge!(shared)
             end
@@ -208,10 +310,6 @@ module Rails
         end
 
         config
-      rescue Psych::SyntaxError => e
-        raise "YAML syntax error occurred while parsing #{paths["config/database"].first}. " \
-              "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-              "Error: #{e.message}"
       rescue => e
         raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
       end
@@ -268,14 +366,34 @@ module Rails
         end
       end
 
+      def permissions_policy(&block)
+        if block_given?
+          @permissions_policy = ActionDispatch::PermissionsPolicy.new(&block)
+        else
+          @permissions_policy
+        end
+      end
+
+      def default_log_file
+        path = paths["log"].first
+        unless File.exist? File.dirname path
+          FileUtils.mkdir_p File.dirname path
+        end
+
+        f = File.open path, "a"
+        f.binmode
+        f.sync = autoflush_log # if true make sure every write flushes
+        f
+      end
+
       class Custom #:nodoc:
         def initialize
           @configurations = Hash.new
         end
 
         def method_missing(method, *args)
-          if method =~ /=$/
-            @configurations[$`.to_sym] = args.first
+          if method.end_with?("=")
+            @configurations[:"#{method[0..-2]}"] = args.first
           else
             @configurations.fetch(method) {
               @configurations[method] = ActiveSupport::OrderedOptions.new
@@ -289,24 +407,24 @@ module Rails
       end
 
       private
-        def credentials_available_for_current_env?
-          File.exist?("#{root}/config/credentials/#{Rails.env}.yml.enc")
-        end
-
         def default_credentials_content_path
           if credentials_available_for_current_env?
-            File.join(root, "config", "credentials", "#{Rails.env}.yml.enc")
+            root.join("config", "credentials", "#{Rails.env}.yml.enc")
           else
-            File.join(root, "config", "credentials.yml.enc")
+            root.join("config", "credentials.yml.enc")
           end
         end
 
         def default_credentials_key_path
           if credentials_available_for_current_env?
-            File.join(root, "config", "credentials", "#{Rails.env}.key")
+            root.join("config", "credentials", "#{Rails.env}.key")
           else
-            File.join(root, "config", "master.key")
+            root.join("config", "master.key")
           end
+        end
+
+        def credentials_available_for_current_env?
+          File.exist?(root.join("config", "credentials", "#{Rails.env}.yml.enc"))
         end
     end
   end

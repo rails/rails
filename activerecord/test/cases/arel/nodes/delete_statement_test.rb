@@ -9,8 +9,8 @@ describe Arel::Nodes::DeleteStatement do
       statement.wheres = %w[a b c]
 
       dolly = statement.clone
-      dolly.wheres.must_equal statement.wheres
-      dolly.wheres.wont_be_same_as statement.wheres
+      _(dolly.wheres).must_equal statement.wheres
+      _(dolly.wheres).wont_be_same_as statement.wheres
     end
   end
 

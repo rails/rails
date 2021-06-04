@@ -12,11 +12,13 @@ module ActionController
       end
 
       def setup_param_encode # :nodoc:
-        @_parameter_encodings = {}
+        @_parameter_encodings = Hash.new { |h, k| h[k] = {} }
       end
 
-      def binary_params_for?(action) # :nodoc:
-        @_parameter_encodings[action.to_s]
+      def action_encoding_template(action) # :nodoc:
+        if @_parameter_encodings.has_key?(action.to_s)
+          @_parameter_encodings[action.to_s]
+        end
       end
 
       # Specify that a given action's parameters should all be encoded as
@@ -44,7 +46,36 @@ module ActionController
       # encoded as ASCII-8BIT. This is useful in the case where an application
       # must handle data but encoding of the data is unknown, like file system data.
       def skip_parameter_encoding(action)
-        @_parameter_encodings[action.to_s] = true
+        @_parameter_encodings[action.to_s] = Hash.new { Encoding::ASCII_8BIT }
+      end
+
+      # Specify the encoding for a parameter on an action.
+      # If not specified the default is UTF-8.
+      #
+      # You can specify a binary (ASCII_8BIT) parameter with:
+      #
+      #   class RepositoryController < ActionController::Base
+      #     # This specifies that file_path is not UTF-8 and is instead ASCII_8BIT
+      #     param_encoding :show, :file_path, Encoding::ASCII_8BIT
+      #
+      #     def show
+      #       @repo = Repository.find_by_filesystem_path params[:file_path]
+      #
+      #       # params[:repo_name] remains UTF-8 encoded
+      #       @repo_name = params[:repo_name]
+      #     end
+      #
+      #     def index
+      #       @repositories = Repository.all
+      #     end
+      #   end
+      #
+      # The file_path parameter on the show action would be encoded as ASCII-8BIT,
+      # but all other arguments will remain UTF-8 encoded.
+      # This is useful in the case where an application must handle data
+      # but encoding of the data is unknown, like file system data.
+      def param_encoding(action, param, encoding)
+        @_parameter_encodings[action.to_s][param.to_s] = encoding
       end
     end
   end

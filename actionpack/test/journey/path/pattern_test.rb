@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "support/path_helper"
 
 module ActionDispatch
   module Journey
     module Path
       class TestPattern < ActiveSupport::TestCase
+        include PathHelper
+
         SEPARATORS = ["/", ".", "?"].join
 
         x = /.+/
@@ -23,7 +26,7 @@ module ActionDispatch
           "/:foo|*bar"                   => %r{\A/(?:([^/.?]+)|(.+))\Z},
         }.each do |path, expected|
           define_method(:"test_to_regexp_#{Regexp.escape(path)}") do
-            path = Pattern.build(
+            path = build_path(
               path,
               { controller: /.+/ },
               SEPARATORS,
@@ -34,20 +37,20 @@ module ActionDispatch
         end
 
         {
-          "/:controller(/:action)"       => %r{\A/(#{x})(?:/([^/.?]+))?},
-          "/:controller/foo"             => %r{\A/(#{x})/foo},
-          "/:controller/:action"         => %r{\A/(#{x})/([^/.?]+)},
-          "/:controller"                 => %r{\A/(#{x})},
-          "/:controller(/:action(/:id))" => %r{\A/(#{x})(?:/([^/.?]+)(?:/([^/.?]+))?)?},
-          "/:controller/:action.xml"     => %r{\A/(#{x})/([^/.?]+)\.xml},
-          "/:controller.:format"         => %r{\A/(#{x})\.([^/.?]+)},
-          "/:controller(.:format)"       => %r{\A/(#{x})(?:\.([^/.?]+))?},
-          "/:controller/*foo"            => %r{\A/(#{x})/(.+)},
-          "/:controller/*foo/bar"        => %r{\A/(#{x})/(.+)/bar},
-          "/:foo|*bar"                   => %r{\A/(?:([^/.?]+)|(.+))},
+          "/:controller(/:action)"       => %r{\A/(#{x})(?:/([^/.?]+))?(?:\b|\Z|/)},
+          "/:controller/foo"             => %r{\A/(#{x})/foo(?:\b|\Z|/)},
+          "/:controller/:action"         => %r{\A/(#{x})/([^/.?]+)(?:\b|\Z|/)},
+          "/:controller"                 => %r{\A/(#{x})(?:\b|\Z|/)},
+          "/:controller(/:action(/:id))" => %r{\A/(#{x})(?:/([^/.?]+)(?:/([^/.?]+))?)?(?:\b|\Z|/)},
+          "/:controller/:action.xml"     => %r{\A/(#{x})/([^/.?]+)\.xml(?:\b|\Z|/)},
+          "/:controller.:format"         => %r{\A/(#{x})\.([^/.?]+)(?:\b|\Z|/)},
+          "/:controller(.:format)"       => %r{\A/(#{x})(?:\.([^/.?]+))?(?:\b|\Z|/)},
+          "/:controller/*foo"            => %r{\A/(#{x})/(.+)(?:\b|\Z|/)},
+          "/:controller/*foo/bar"        => %r{\A/(#{x})/(.+)/bar(?:\b|\Z|/)},
+          "/:foo|*bar"                   => %r{\A/(?:([^/.?]+)|(.+))(?:\b|\Z|/)},
         }.each do |path, expected|
           define_method(:"test_to_non_anchored_regexp_#{Regexp.escape(path)}") do
-            path = Pattern.build(
+            path = build_path(
               path,
               { controller: /.+/ },
               SEPARATORS,
@@ -70,7 +73,7 @@ module ActionDispatch
           "/:controller/*foo/bar"        => %w{ controller foo },
         }.each do |path, expected|
           define_method(:"test_names_#{Regexp.escape(path)}") do
-            path = Pattern.build(
+            path = build_path(
               path,
               { controller: /.+/ },
               SEPARATORS,
@@ -81,7 +84,7 @@ module ActionDispatch
         end
 
         def test_to_regexp_with_extended_group
-          path = Pattern.build(
+          path = build_path(
             "/page/:name",
             { name: /
               #ROFL
@@ -102,13 +105,13 @@ module ActionDispatch
             ["/:foo(/:bar)", %w{ bar }],
             ["/:foo(/:bar)/:lol(/:baz)", %w{ bar baz }],
           ].each do |pattern, list|
-            path = Pattern.from_string pattern
+            path = path_from_string pattern
             assert_equal list.sort, path.optional_names.sort
           end
         end
 
         def test_to_regexp_match_non_optional
-          path = Pattern.build(
+          path = build_path(
             "/:name",
             { name: /\d+/ },
             SEPARATORS,
@@ -119,7 +122,7 @@ module ActionDispatch
         end
 
         def test_to_regexp_with_group
-          path = Pattern.build(
+          path = build_path(
             "/page/:name",
             { name: /(tender|love)/ },
             SEPARATORS,
@@ -132,7 +135,7 @@ module ActionDispatch
 
         def test_ast_sets_regular_expressions
           requirements = { name: /(tender|love)/, value: /./ }
-          path = Pattern.build(
+          path = build_path(
             "/page/:name/:value",
             requirements,
             SEPARATORS,
@@ -147,7 +150,7 @@ module ActionDispatch
         end
 
         def test_match_data_with_group
-          path = Pattern.build(
+          path = build_path(
             "/page/:name",
             { name: /(tender|love)/ },
             SEPARATORS,
@@ -159,7 +162,7 @@ module ActionDispatch
         end
 
         def test_match_data_with_multi_group
-          path = Pattern.build(
+          path = build_path(
             "/page/:name/:id",
             { name: /t(((ender|love)))()/ },
             SEPARATORS,
@@ -174,7 +177,7 @@ module ActionDispatch
 
         def test_star_with_custom_re
           z = /\d+/
-          path = Pattern.build(
+          path = build_path(
             "/page/*foo",
             { foo: z },
             SEPARATORS,
@@ -184,7 +187,7 @@ module ActionDispatch
         end
 
         def test_insensitive_regexp_with_group
-          path = Pattern.build(
+          path = build_path(
             "/page/:name/aaron",
             { name: /(tender|love)/i },
             SEPARATORS,
@@ -196,27 +199,27 @@ module ActionDispatch
         end
 
         def test_to_regexp_with_strexp
-          path = Pattern.build("/:controller", {}, SEPARATORS, true)
+          path = build_path("/:controller", {}, SEPARATORS, true)
           x = %r{\A/([^/.?]+)\Z}
 
           assert_equal(x.source, path.source)
         end
 
         def test_to_regexp_defaults
-          path = Pattern.from_string "/:controller(/:action(/:id))"
+          path = path_from_string "/:controller(/:action(/:id))"
           expected = %r{\A/([^/.?]+)(?:/([^/.?]+)(?:/([^/.?]+))?)?\Z}
           assert_equal expected, path.to_regexp
         end
 
         def test_failed_match
-          path = Pattern.from_string "/:controller(/:action(/:id(.:format)))"
+          path = path_from_string "/:controller(/:action(/:id(.:format)))"
           uri = "content"
 
           assert_not path =~ uri
         end
 
         def test_match_controller
-          path = Pattern.from_string "/:controller(/:action(/:id(.:format)))"
+          path = path_from_string "/:controller(/:action(/:id(.:format)))"
           uri = "/content"
 
           match = path =~ uri
@@ -228,7 +231,7 @@ module ActionDispatch
         end
 
         def test_match_controller_action
-          path = Pattern.from_string "/:controller(/:action(/:id(.:format)))"
+          path = path_from_string "/:controller(/:action(/:id(.:format)))"
           uri = "/content/list"
 
           match = path =~ uri
@@ -240,7 +243,7 @@ module ActionDispatch
         end
 
         def test_match_controller_action_id
-          path = Pattern.from_string "/:controller(/:action(/:id(.:format)))"
+          path = path_from_string "/:controller(/:action(/:id(.:format)))"
           uri = "/content/list/10"
 
           match = path =~ uri
@@ -252,7 +255,7 @@ module ActionDispatch
         end
 
         def test_match_literal
-          path = Path::Pattern.from_string "/books(/:action(.:format))"
+          path = path_from_string "/books(/:action(.:format))"
 
           uri = "/books"
           match = path =~ uri
@@ -262,7 +265,7 @@ module ActionDispatch
         end
 
         def test_match_literal_with_action
-          path = Path::Pattern.from_string "/books(/:action(.:format))"
+          path = path_from_string "/books(/:action(.:format))"
 
           uri = "/books/list"
           match = path =~ uri
@@ -272,13 +275,53 @@ module ActionDispatch
         end
 
         def test_match_literal_with_action_and_format
-          path = Path::Pattern.from_string "/books(/:action(.:format))"
+          path = path_from_string "/books(/:action(.:format))"
 
           uri = "/books/list.rss"
           match = path =~ uri
           assert_equal %w{ action format }, match.names
           assert_equal "list", match[1]
           assert_equal "rss", match[2]
+        end
+
+        def test_named_captures
+          path = path_from_string "/books(/:action(.:format))"
+
+          uri = "/books/list.rss"
+          match = path =~ uri
+          named_captures = { "action" => "list", "format" => "rss" }
+          assert_equal named_captures, match.named_captures
+        end
+
+        def test_requirements_for_missing_keys_check
+          name_regex = /test/
+
+          path = build_path(
+            "/page/:name",
+            { name: name_regex },
+            SEPARATORS,
+            true
+          )
+
+          transformed_regex = path.requirements_for_missing_keys_check[:name]
+          assert_not_nil transformed_regex
+          assert_equal(transformed_regex, /\A#{name_regex}\Z/)
+        end
+
+        def test_requirements_for_missing_keys_check_memoization
+          name_regex = /test/
+
+          path = build_path(
+            "/page/:name",
+            { name: name_regex },
+            SEPARATORS,
+            true
+          )
+
+          first_call = path.requirements_for_missing_keys_check[:name]
+          second_call = path.requirements_for_missing_keys_check[:name]
+
+          assert_equal(first_call.object_id, second_call.object_id)
         end
       end
     end

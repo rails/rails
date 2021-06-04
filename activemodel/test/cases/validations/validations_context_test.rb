@@ -14,13 +14,13 @@ class ValidationsContextTest < ActiveModel::TestCase
 
   class ValidatorThatAddsErrors < ActiveModel::Validator
     def validate(record)
-      record.errors[:base] << ERROR_MESSAGE
+      record.errors.add(:base, ERROR_MESSAGE)
     end
   end
 
   class AnotherValidatorThatAddsErrors < ActiveModel::Validator
     def validate(record)
-      record.errors[:base] << ANOTHER_ERROR_MESSAGE
+      record.errors.add(:base, ANOTHER_ERROR_MESSAGE)
     end
   end
 

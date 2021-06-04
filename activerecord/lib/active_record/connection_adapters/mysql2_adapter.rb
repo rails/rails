@@ -3,7 +3,7 @@
 require "active_record/connection_adapters/abstract_mysql_adapter"
 require "active_record/connection_adapters/mysql/database_statements"
 
-gem "mysql2", ">= 0.4.4"
+gem "mysql2", "~> 0.5"
 require "mysql2"
 
 module ActiveRecord
@@ -19,31 +19,48 @@ module ActiveRecord
         config[:flags] |= Mysql2::Client::FOUND_ROWS
       end
 
-      client = Mysql2::Client.new(config)
-      ConnectionAdapters::Mysql2Adapter.new(client, logger, nil, config)
-    rescue Mysql2::Error => error
-      if error.message.include?("Unknown database")
-        raise ActiveRecord::NoDatabaseError
-      else
-        raise
-      end
+      ConnectionAdapters::Mysql2Adapter.new(
+        ConnectionAdapters::Mysql2Adapter.new_client(config),
+        logger,
+        nil,
+        config,
+      )
     end
   end
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
+      ER_BAD_DB_ERROR = 1049
       ADAPTER_NAME = "Mysql2"
 
       include MySQL::DatabaseStatements
 
+      class << self
+        def new_client(config)
+          Mysql2::Client.new(config)
+        rescue Mysql2::Error => error
+          if error.error_number == ConnectionAdapters::Mysql2Adapter::ER_BAD_DB_ERROR
+            raise ActiveRecord::NoDatabaseError
+          else
+            raise ActiveRecord::ConnectionNotEstablished, error.message
+          end
+        end
+      end
+
       def initialize(connection, logger, connection_options, config)
-        super
-        @prepared_statements = false unless config.key?(:prepared_statements)
+        superclass_config = config.reverse_merge(prepared_statements: false)
+        super(connection, logger, connection_options, superclass_config)
         configure_connection
       end
 
+      def self.database_exists?(config)
+        !!ActiveRecord::Base.mysql2_connection(config)
+      rescue ActiveRecord::NoDatabaseError
+        false
+      end
+
       def supports_json?
-        !mariadb? && version >= "5.7.8"
+        !mariadb? && database_version >= "5.7.8"
       end
 
       def supports_comments?
@@ -84,6 +101,8 @@ module ActiveRecord
 
       def quote_string(string)
         @connection.escape(string)
+      rescue Mysql2::Error => error
+        raise translate_exception(error, message: error.message, sql: "<escape>", binds: [])
       end
 
       #--
@@ -109,14 +128,14 @@ module ActiveRecord
       end
 
       def discard! # :nodoc:
+        super
         @connection.automatic_close = false
         @connection = nil
       end
 
       private
-
         def connect
-          @connection = Mysql2::Client.new(@config)
+          @connection = self.class.new_client(@config)
           configure_connection
         end
 
@@ -126,7 +145,19 @@ module ActiveRecord
         end
 
         def full_version
-          @full_version ||= @connection.server_info[:version]
+          schema_cache.database_version.full_version_string
+        end
+
+        def get_full_version
+          @connection.server_info[:version]
+        end
+
+        def translate_exception(exception, message:, sql:, binds:)
+          if exception.is_a?(Mysql2::Error::TimeoutError) && !exception.error_number
+            ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds)
+          else
+            super
+          end
         end
     end
   end

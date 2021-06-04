@@ -7,12 +7,12 @@ module ActiveJob
       @job_class = job_class
     end
 
-    def perform_now(*args)
-      @job_class.new(*args).perform_now
+    def perform_now(...)
+      @job_class.new(...).perform_now
     end
 
-    def perform_later(*args)
-      @job_class.new(*args).enqueue @options
+    def perform_later(...)
+      @job_class.new(...).enqueue @options
     end
   end
 end

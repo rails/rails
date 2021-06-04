@@ -18,7 +18,7 @@ module ActiveRecord
 
         # Quotes strings for use in SQL input.
         def quote_string(s) #:nodoc:
-          @connection.escape(s)
+          PG::Connection.escape(s)
         end
 
         # Checks the following cases:
@@ -30,7 +30,7 @@ module ActiveRecord
         # - "schema.name".table_name
         # - "schema.name"."table.name"
         def quote_table_name(name) # :nodoc:
-          @quoted_table_names[name] ||= Utils.extract_schema_qualified_name(name.to_s).quoted.freeze
+          self.class.quoted_table_names[name] ||= Utils.extract_schema_qualified_name(name.to_s).quoted.freeze
         end
 
         # Quotes schema names for use in SQL queries.
@@ -44,7 +44,7 @@ module ActiveRecord
 
         # Quotes column names for use in SQL queries.
         def quote_column_name(name) # :nodoc:
-          @quoted_column_names[name] ||= PG::Connection.quote_ident(super).freeze
+          self.class.quoted_column_names[name] ||= PG::Connection.quote_ident(super).freeze
         end
 
         # Quote date/time values for use in SQL input.
@@ -67,8 +67,8 @@ module ActiveRecord
           elsif column.type == :uuid && value.is_a?(String) && /\(\)/.match?(value)
             value # Does not quote function default values for UUID columns
           elsif column.respond_to?(:array?)
-            value = type_cast_from_column(column, value)
-            quote(value)
+            type = lookup_cast_type_from_column(column)
+            quote(type.serialize(value))
           else
             super
           end
@@ -77,6 +77,43 @@ module ActiveRecord
         def lookup_cast_type_from_column(column) # :nodoc:
           type_map.lookup(column.oid, column.fmod, column.sql_type)
         end
+
+        def column_name_matcher
+          COLUMN_NAME
+        end
+
+        def column_name_with_order_matcher
+          COLUMN_NAME_WITH_ORDER
+        end
+
+        COLUMN_NAME = /
+          \A
+          (
+            (?:
+              # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
+              ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
+            )
+            (?:(?:\s+AS)?\s+(?:\w+|"\w+"))?
+          )
+          (?:\s*,\s*\g<1>)*
+          \z
+        /ix
+
+        COLUMN_NAME_WITH_ORDER = /
+          \A
+          (
+            (?:
+              # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
+              ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
+            )
+            (?:\s+ASC|\s+DESC)?
+            (?:\s+NULLS\s+(?:FIRST|LAST))?
+          )
+          (?:\s*,\s*\g<1>)*
+          \z
+        /ix
+
+        private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
 
         private
           def lookup_cast_type(sql_type)
@@ -138,7 +175,7 @@ module ActiveRecord
           end
 
           def encode_range(range)
-            "[#{type_cast_range_value(range.first)},#{type_cast_range_value(range.last)}#{range.exclude_end? ? ')' : ']'}"
+            "[#{type_cast_range_value(range.begin)},#{type_cast_range_value(range.end)}#{range.exclude_end? ? ')' : ']'}"
           end
 
           def determine_encoding_of_strings_in_array(value)

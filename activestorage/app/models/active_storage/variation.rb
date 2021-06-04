@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+require "mini_mime"
+
 # A set of transformations that can be applied to a blob to create a variant. This class is exposed via
 # the ActiveStorage::Blob#variant method and should rarely be used directly.
 #
 # In case you do need to use this directly, it's instantiated using a hash of transformations where
 # the key is the command and the value is the arguments. Example:
 #
-#   ActiveStorage::Variation.new(resize_to_fit: [100, 100], monochrome: true, trim: true, rotate: "-90")
+#   ActiveStorage::Variation.new(resize_to_limit: [100, 100], monochrome: true, trim: true, rotate: "-90")
 #
 # The options map directly to {ImageProcessing}[https://github.com/janko-m/image_processing] commands.
 class ActiveStorage::Variation
@@ -40,17 +42,31 @@ class ActiveStorage::Variation
   end
 
   def initialize(transformations)
-    @transformations = transformations
+    @transformations = transformations.deep_symbolize_keys
+  end
+
+  def default_to(defaults)
+    self.class.new transformations.reverse_merge(defaults)
   end
 
   # Accepts a File object, performs the +transformations+ against it, and
-  # saves the transformed image into a temporary file. If +format+ is specified
-  # it will be the format of the result image, otherwise the result image
-  # retains the source format.
-  def transform(file, format: nil, &block)
+  # saves the transformed image into a temporary file.
+  def transform(file, &block)
     ActiveSupport::Notifications.instrument("transform.active_storage") do
       transformer.transform(file, format: format, &block)
     end
+  end
+
+  def format
+    transformations.fetch(:format, :png).tap do |format|
+      if MiniMime.lookup_by_extension(format.to_s).nil?
+        raise ArgumentError, "Invalid variant format (#{format.inspect})"
+      end
+    end
+  end
+
+  def content_type
+    MiniMime.lookup_by_extension(format.to_s).content_type
   end
 
   # Returns a signed key for all the +transformations+ that this variation was instantiated with.
@@ -58,23 +74,12 @@ class ActiveStorage::Variation
     self.class.encode(transformations)
   end
 
+  def digest
+    Digest::SHA1.base64digest Marshal.dump(transformations)
+  end
+
   private
     def transformer
-      if ActiveStorage.variant_processor
-        begin
-          require "image_processing"
-        rescue LoadError
-          ActiveSupport::Deprecation.warn <<~WARNING
-            Generating image variants will require the image_processing gem in Rails 6.1.
-            Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
-          WARNING
-
-          ActiveStorage::Transformers::MiniMagickTransformer.new(transformations)
-        else
-          ActiveStorage::Transformers::ImageProcessingTransformer.new(transformations)
-        end
-      else
-        ActiveStorage::Transformers::MiniMagickTransformer.new(transformations)
-      end
+      ActiveStorage::Transformers::ImageProcessingTransformer.new(transformations.except(:format))
     end
 end

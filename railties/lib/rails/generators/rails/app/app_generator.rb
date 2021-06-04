@@ -66,9 +66,16 @@ module Rails
       template "gitignore", ".gitignore"
     end
 
+    def gitattributes
+      template "gitattributes", ".gitattributes"
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
-        run "git init", capture: options[:quiet]
+        run "git init", capture: options[:quiet], abort_on_failure: false
+        if user_default_branch.strip.empty?
+          `git symbolic-ref HEAD refs/heads/main`
+        end
       end
     end
 
@@ -79,7 +86,7 @@ module Rails
     def app
       directory "app"
 
-      keep_file "app/assets/images"
+      empty_directory_with_keep_file "app/assets/images"
 
       keep_file  "app/controllers/concerns"
       keep_file  "app/models/concerns"
@@ -90,41 +97,51 @@ module Rails
         "#{shebang}\n" + content
       end
       chmod "bin", 0755 & ~File.umask, verbose: false
+
+      remove_file "bin/spring" unless spring_install?
+      remove_file "bin/yarn" if options[:skip_javascript]
     end
 
     def bin_when_updating
       bin
+    end
 
-      if options[:skip_javascript]
-        remove_file "bin/yarn"
+    def yarn_when_updating
+      template "bin/yarn", force: true do |content|
+        "#{shebang}\n" + content
       end
+
+      chmod "bin", 0755 & ~File.umask, verbose: false
     end
 
     def config
       empty_directory "config"
 
       inside "config" do
-        template "routes.rb"
+        template "routes.rb" unless options[:updating]
         template "application.rb"
         template "environment.rb"
-        template "cable.yml" unless options[:skip_action_cable]
-        template "puma.rb"   unless options[:skip_puma]
+        template "cable.yml" unless options[:updating] || options[:skip_action_cable]
+        template "puma.rb"   unless options[:updating] || options[:skip_puma]
         template "spring.rb" if spring_install?
-        template "storage.yml" unless skip_active_storage?
+        template "storage.yml" unless options[:updating] || skip_active_storage?
 
         directory "environments"
         directory "initializers"
-        directory "locales"
+        directory "locales" unless options[:updating]
       end
     end
 
     def config_when_updating
-      cookie_serializer_config_exist = File.exist?("config/initializers/cookies_serializer.rb")
-      action_cable_config_exist      = File.exist?("config/cable.yml")
-      active_storage_config_exist    = File.exist?("config/storage.yml")
-      rack_cors_config_exist         = File.exist?("config/initializers/cors.rb")
-      assets_config_exist            = File.exist?("config/initializers/assets.rb")
-      csp_config_exist               = File.exist?("config/initializers/content_security_policy.rb")
+      cookie_serializer_config_exist  = File.exist?("config/initializers/cookies_serializer.rb")
+      action_cable_config_exist       = File.exist?("config/cable.yml")
+      active_storage_config_exist     = File.exist?("config/storage.yml")
+      rack_cors_config_exist          = File.exist?("config/initializers/cors.rb")
+      assets_config_exist             = File.exist?("config/initializers/assets.rb")
+      asset_manifest_exist            = File.exist?("app/assets/config/manifest.js")
+      asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
+      csp_config_exist                = File.exist?("config/initializers/content_security_policy.rb")
+      permissions_policy_config_exist = File.exist?("config/initializers/permissions_policy.rb")
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
@@ -146,6 +163,14 @@ module Rails
         remove_file "config/initializers/assets.rb"
       end
 
+      if options[:skip_sprockets] && !asset_manifest_exist
+        remove_file "app/assets/config/manifest.js"
+      end
+
+      if options[:skip_sprockets] && !asset_app_stylesheet_exist
+        remove_file "app/assets/stylesheets/application.css"
+      end
+
       unless rack_cors_config_exist
         remove_file "config/initializers/cors.rb"
       end
@@ -157,6 +182,10 @@ module Rails
 
         unless csp_config_exist
           remove_file "config/initializers/content_security_policy.rb"
+        end
+
+        unless permissions_policy_config_exist
+          remove_file "config/initializers/permissions_policy.rb"
         end
       end
     end
@@ -205,7 +234,6 @@ module Rails
     end
 
     def test
-      empty_directory_with_keep_file "test/fixtures"
       empty_directory_with_keep_file "test/fixtures/files"
       empty_directory_with_keep_file "test/controllers"
       empty_directory_with_keep_file "test/mailers"
@@ -213,6 +241,7 @@ module Rails
       empty_directory_with_keep_file "test/helpers"
       empty_directory_with_keep_file "test/integration"
 
+      template "test/channels/application_cable/connection_test.rb"
       template "test/test_helper.rb"
     end
 
@@ -224,6 +253,7 @@ module Rails
 
     def tmp
       empty_directory_with_keep_file "tmp"
+      empty_directory_with_keep_file "tmp/pids"
       empty_directory "tmp/cache"
       empty_directory "tmp/cache/assets"
     end
@@ -235,15 +265,21 @@ module Rails
     def config_target_version
       defined?(@config_target_version) ? @config_target_version : Rails::VERSION::STRING.to_f
     end
+
+    private
+      def user_default_branch
+        @user_default_branch ||= `git config init.defaultbranch`
+      end
   end
 
   module Generators
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
     # can change in Ruby 1.8.7 when we FileUtils.cd.
     RAILS_DEV_PATH = File.expand_path("../../../../../..", __dir__)
-    RESERVED_NAMES = %w[application destroy plugin runner test]
 
-    class AppGenerator < AppBase # :nodoc:
+    class AppGenerator < AppBase
+      # :stopdoc:
+
       WEBPACKS = %w( react vue angular elm stimulus )
 
       add_shared_options_for "application"
@@ -254,6 +290,9 @@ module Rails
 
       class_option :api, type: :boolean,
                          desc: "Preconfigure smaller stack for API only apps"
+
+      class_option :minimal, type: :boolean,
+                             desc: "Preconfigure a minimal rails app"
 
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
                                  desc: "Don't run bundle install"
@@ -268,7 +307,7 @@ module Rails
         super
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
-          raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
+          raise Error, "Invalid value for --database option. Supported preconfigurations are: #{DATABASES.join(", ")}."
         end
 
         # Force sprockets and yarn to be skipped when generating API only apps.
@@ -276,6 +315,31 @@ module Rails
         if options[:api]
           self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze
         end
+
+        if options[:minimal]
+          self.options = options.merge(
+            skip_action_cable: true,
+            skip_action_mailer: true,
+            skip_action_mailbox: true,
+            skip_action_text: true,
+            skip_active_job: true,
+            skip_active_storage: true,
+            skip_bootsnap: true,
+            skip_dev_gems: true,
+            skip_javascript: true,
+            skip_jbuilder: true,
+            skip_spring: true,
+            skip_system_test: true,
+            skip_webpack_install: true,
+            skip_turbolinks: true).tap do |option|
+              if option[:webpack]
+                option[:skip_webpack_install] = false
+                option[:skip_javascript] = false
+              end
+            end.freeze
+        end
+
+        @after_bundle_callbacks = []
       end
 
       public_task :set_default_accessors!
@@ -286,8 +350,13 @@ module Rails
         build(:rakefile)
         build(:ruby_version)
         build(:configru)
-        build(:gitignore)   unless options[:skip_git]
-        build(:gemfile)     unless options[:skip_gemfile]
+
+        unless options[:skip_git]
+          build(:gitignore)
+          build(:gitattributes)
+        end
+
+        build(:gemfile) unless options[:skip_gemfile]
         build(:version_control)
         build(:package_json) unless options[:skip_javascript]
       end
@@ -304,6 +373,18 @@ module Rails
         build(:bin_when_updating)
       end
       remove_task :update_bin_files
+
+      def update_bin_yarn
+        build(:yarn_when_updating)
+      end
+      remove_task :update_bin_yarn
+
+      def update_active_storage
+        unless skip_active_storage?
+          rails_command "active_storage:update", inline: true
+        end
+      end
+      remove_task :update_active_storage
 
       def create_config_files
         build(:config)
@@ -410,20 +491,35 @@ module Rails
       end
 
       def delete_js_folder_skipping_javascript
-        if options[:skip_javascript]
+        if options[:skip_javascript] && !options[:minimal]
           remove_dir "app/javascript"
+        end
+      end
+
+      def delete_js_packs_when_minimal_skipping_webpack
+        if options[:minimal] && options[:skip_webpack_install]
+          remove_dir "app/javascript/packs"
+          keep_file  "app/javascript"
         end
       end
 
       def delete_assets_initializer_skipping_sprockets
         if options[:skip_sprockets]
           remove_file "config/initializers/assets.rb"
+          remove_file "app/assets/config/manifest.js"
+          remove_file "app/assets/stylesheets/application.css"
         end
       end
 
       def delete_application_record_skipping_active_record
         if options[:skip_active_record]
           remove_file "app/models/application_record.rb"
+        end
+      end
+
+      def delete_active_job_folder_if_skipping_active_job
+        if options[:skip_active_job]
+          remove_dir "app/jobs"
         end
       end
 
@@ -440,6 +536,7 @@ module Rails
         if options[:skip_action_cable]
           remove_dir "app/javascript/channels"
           remove_dir "app/channels"
+          remove_dir "test/channels"
         end
       end
 
@@ -447,6 +544,7 @@ module Rails
         if options[:api]
           remove_file "config/initializers/cookies_serializer.rb"
           remove_file "config/initializers/content_security_policy.rb"
+          remove_file "config/initializers/permissions_policy.rb"
         end
       end
 
@@ -458,12 +556,8 @@ module Rails
 
       def delete_new_framework_defaults
         unless options[:update]
-          remove_file "config/initializers/new_framework_defaults_6_0.rb"
+          remove_file "config/initializers/new_framework_defaults_7_0.rb"
         end
-      end
-
-      def delete_bin_yarn
-        remove_file "bin/yarn" if options[:skip_javascript]
       end
 
       def finish_template
@@ -471,7 +565,7 @@ module Rails
       end
 
       public_task :apply_rails_template, :run_bundle
-      public_task :generate_bundler_binstub, :generate_spring_binstubs
+      public_task :generate_bundler_binstub
       public_task :run_webpack
 
       def run_after_bundle_callbacks
@@ -482,65 +576,22 @@ module Rails
         "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
 
-    private
+    # :startdoc:
 
+    private
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)
         create_file(*args, &block)
       end
 
-      def app_name
-        @app_name ||= original_app_name.tr("-", "_")
-      end
-
-      def original_app_name
-        @original_app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr('\\', "").tr(". ", "_")
-      end
-
-      def defined_app_name
-        defined_app_const_base.underscore
-      end
-
-      def defined_app_const_base
-        Rails.respond_to?(:application) && defined?(Rails::Application) &&
-          Rails.application.is_a?(Rails::Application) && Rails.application.class.name.sub(/::Application$/, "")
-      end
-
-      alias :defined_app_const_base? :defined_app_const_base
-
-      def app_const_base
-        @app_const_base ||= defined_app_const_base || app_name.gsub(/\W/, "_").squeeze("_").camelize
-      end
-      alias :camelized :app_const_base
-
-      def app_const
-        @app_const ||= "#{app_const_base}::Application"
-      end
-
-      def valid_const?
-        if /^\d/.match?(app_const)
-          raise Error, "Invalid application name #{original_app_name}. Please give a name which does not start with numbers."
-        elsif RESERVED_NAMES.include?(original_app_name)
-          raise Error, "Invalid application name #{original_app_name}. Please give a " \
-                       "name which does not match one of the reserved rails " \
-                       "words: #{RESERVED_NAMES.join(", ")}"
-        elsif Object.const_defined?(app_const_base)
-          raise Error, "Invalid application name #{original_app_name}, constant #{app_const_base} is already in use. Please choose another application name."
-        end
-      end
-
-      def mysql_socket
-        @mysql_socket ||= [
-          "/tmp/mysql.sock",                        # default
-          "/var/run/mysqld/mysqld.sock",            # debian/gentoo
-          "/var/tmp/mysql.sock",                    # freebsd
-          "/var/lib/mysql/mysql.sock",              # fedora
-          "/opt/local/lib/mysql/mysql.sock",        # fedora
-          "/opt/local/var/run/mysqld/mysqld.sock",  # mac + darwinports + mysql
-          "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
-          "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
-          "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
-        ].find { |f| File.exist?(f) } unless Gem.win_platform?
+      # Registers a callback to be executed after bundle and spring binstubs
+      # have run.
+      #
+      #   after_bundle do
+      #     git add: '.'
+      #   end
+      def after_bundle(&block) # :doc:
+        @after_bundle_callbacks << block
       end
 
       def get_builder_class
@@ -568,11 +619,16 @@ module Rails
       end
 
       def self.default_rc_file
-        File.expand_path("~/.railsrc")
+        xdg_config_home = ENV["XDG_CONFIG_HOME"].presence || "~/.config"
+        xdg_railsrc = File.expand_path("rails/railsrc", xdg_config_home)
+        if File.exist?(xdg_railsrc)
+          xdg_railsrc
+        else
+          File.expand_path("~/.railsrc")
+        end
       end
 
       private
-
         def handle_version_request!(argument)
           if ["--version", "-v"].include?(argument)
             require "rails/version"

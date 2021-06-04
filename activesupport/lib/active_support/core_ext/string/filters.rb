@@ -75,7 +75,7 @@ class String
         length_with_room_for_omission
       end
 
-    "#{self[0, stop]}#{omission}"
+    +"#{self[0, stop]}#{omission}"
   end
 
   # Truncates +text+ to at most <tt>bytesize</tt> bytes in length without
@@ -106,7 +106,7 @@ class String
       self.class.new.tap do |cut|
         cut_at = truncate_at - omission.bytesize
 
-        scan(/\X/) do |grapheme|
+        each_grapheme_cluster do |grapheme|
           if cut.bytesize + grapheme.bytesize <= cut_at
             cut << grapheme
           else

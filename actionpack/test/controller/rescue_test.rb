@@ -33,6 +33,8 @@ class RescueController < ActionController::Base
   class ResourceUnavailableToRescueAsString < StandardError
   end
 
+  wrap_parameters format: :json
+
   # We use a fully qualified name in some strings, and a relative constant
   # name in some other to test correct handling of both cases.
 
@@ -290,7 +292,7 @@ class RescueControllerTest < ActionController::TestCase
     assert_response :unprocessable_entity
   end
 
-  test "rescue when cause has handler, but wrapper doesnt" do
+  test "rescue when cause has handler, but wrapper doesn't" do
     get :exception_with_no_handler_for_wrapper
     assert_response :unprocessable_entity
   end
@@ -304,7 +306,6 @@ class RescueControllerTest < ActionController::TestCase
   end
 
   private
-
     def capture_log_output
       output = StringIO.new
       request.set_header "action_dispatch.logger", ActiveSupport::Logger.new(output)
@@ -351,7 +352,6 @@ class RescueTest < ActionDispatch::IntegrationTest
   end
 
   private
-
     def with_test_routing
       with_routing do |set|
         set.draw do

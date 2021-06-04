@@ -167,6 +167,31 @@ module StaticTests
     assert_not_equal "gzip", response.headers["Content-Encoding"]
   end
 
+  def test_set_vary_when_origin_compressed_but_client_cant_accept
+    file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
+    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "None")
+    assert_equal "Accept-Encoding", response.headers["Vary"]
+  end
+
+  def test_serves_brotli_files_when_header_set
+    file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
+    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "br")
+    assert_equal "application/javascript", response.headers["Content-Type"]
+    assert_equal "Accept-Encoding",        response.headers["Vary"]
+    assert_equal "br",                     response.headers["Content-Encoding"]
+
+    response = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
+    assert_not_equal "br", response.headers["Content-Encoding"]
+  end
+
+  def test_serves_brotli_files_before_gzip_files
+    file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
+    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip, deflate, sdch, br")
+    assert_equal "application/javascript", response.headers["Content-Type"]
+    assert_equal "Accept-Encoding",        response.headers["Vary"]
+    assert_equal "br",                     response.headers["Content-Encoding"]
+  end
+
   def test_does_not_modify_path_info
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
     env = { "PATH_INFO" => file_name, "HTTP_ACCEPT_ENCODING" => "gzip", "REQUEST_METHOD" => "POST" }
@@ -232,7 +257,6 @@ module StaticTests
   end
 
   private
-
     def assert_gzip(file_name, response)
       expected = File.read("#{FIXTURE_LOAD_PATH}/#{public_path}" + file_name)
       actual   = ActiveSupport::Gzip.decompress(response.body)

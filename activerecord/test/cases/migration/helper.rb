@@ -34,7 +34,6 @@ module ActiveRecord
       end
 
       private
-
         delegate(*CONNECTION_METHODS, to: :connection)
     end
   end

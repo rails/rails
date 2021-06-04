@@ -1,24 +1,33 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "active_support/core_ext/module/attribute_accessors_per_thread"
 
 class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
-  def setup
-    @class = Class.new do
-      thread_mattr_accessor :foo
-      thread_mattr_accessor :bar,  instance_writer: false
-      thread_mattr_reader   :shaq, instance_reader: false
-      thread_mattr_accessor :camp, instance_accessor: false
+  class MyClass
+    thread_mattr_accessor :foo
+    thread_mattr_accessor :bar,  instance_writer: false
+    thread_mattr_reader   :shaq, instance_reader: false
+    thread_mattr_accessor :camp, instance_accessor: false
+  end
 
-      def self.name; "MyClass" end
-    end
+  class SubMyClass < MyClass
+  end
 
-    @subclass = Class.new(@class) do
-      def self.name; "SubMyClass" end
-    end
-
+  setup do
+    @class = MyClass
+    @subclass = SubMyClass
     @object = @class.new
+  end
+
+  def test_can_initialize_with_default_value
+    Thread.new do
+      @class.thread_mattr_accessor :baz, default: "default_value"
+
+      assert_equal "default_value", @class.baz
+    end.join
+
+    assert_nil @class.baz
   end
 
   def test_should_use_mattr_default
@@ -66,23 +75,23 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
     threads = []
     threads << Thread.new do
       @class.foo = "things"
-      sleep 1
+      Thread.pass
       assert_equal "things", @class.foo
     end
 
     threads << Thread.new do
       @class.foo = "other things"
-      sleep 1
+      Thread.pass
       assert_equal "other things", @class.foo
     end
 
     threads << Thread.new do
       @class.foo = "really other things"
-      sleep 1
+      Thread.pass
       assert_equal "really other things", @class.foo
     end
 
-    threads.each { |t| t.join }
+    threads.each(&:join)
   end
 
   def test_should_raise_name_error_if_attribute_name_is_invalid

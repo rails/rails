@@ -151,7 +151,6 @@ module ActiveRecord
       end
 
       private
-
         def with_table_cleanup
           tables_before = connection.data_sources
 
