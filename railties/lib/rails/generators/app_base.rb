@@ -337,7 +337,7 @@ module Rails
         return [] if options[:skip_action_cable]
         comment = "Use Redis adapter to run Action Cable in production"
         gems = []
-        gems << GemfileEntry.new("redis", "~> 4.0", comment, {}, true)
+        gems << GemfileEntry.new("redis", "~> 4.2", comment, {}, true)
         gems
       end
 
