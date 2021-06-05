@@ -1,3 +1,7 @@
+*   Allow `expires_in` for ActiveStorage signed ids.
+
+    *aki77*
+
 *   Allow to purge an attachment when record is not persisted for `has_one_attached`
 
     *Jacopo Beschi*
