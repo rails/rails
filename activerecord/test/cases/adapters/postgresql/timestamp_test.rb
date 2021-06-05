@@ -134,4 +134,21 @@ class PostgresqlTimestampMigrationTest < ActiveRecord::PostgreSQLTestCase
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES.delete(:datetimes_as_enum)
     $stdout = original
   end
+
+  def test_adds_column_as_custom_type_with_precision
+    original, $stdout = $stdout, StringIO.new
+
+    PostgresqlTimestampWithZone.connection.execute("CREATE TYPE custom_time_format AS ENUM ('past', 'present', 'future');")
+
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES[:datetimes_as_enum] = { name: "custom_time_format" }
+    with_postgresql_datetime_type(:datetimes_as_enum) do
+      ActiveRecord::Migration.new.add_column :postgresql_timestamp_with_zones, :times, :datetime, precision: 6
+
+      assert_equal({ "data_type" => "USER-DEFINED", "udt_name" => "custom_time_format" },
+                   PostgresqlTimestampWithZone.connection.execute("select data_type, udt_name from information_schema.columns where column_name = 'times'").to_a.first)
+    end
+  ensure
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES.delete(:datetimes_as_enum)
+    $stdout = original
+  end
 end
