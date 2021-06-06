@@ -51,6 +51,9 @@ module ActiveSupport
   #
   # which will, in turn, require this file.
   class HashWithIndifferentAccess < Hash
+    TRANSFORM_KEYS_DEFAULT = Object.new
+    private_constant :TRANSFORM_KEYS_DEFAULT
+
     # Returns +true+ so that <tt>Array#extract_options!</tt> finds members of
     # this class.
     def extractable_options?
@@ -331,15 +334,24 @@ module ActiveSupport
       dup.tap { |hash| hash.transform_values!(*args, &block) }
     end
 
-    def transform_keys(*args, &block)
-      return to_enum(:transform_keys) unless block_given?
-      dup.tap { |hash| hash.transform_keys!(*args, &block) }
+    def transform_keys(keys_hash = TRANSFORM_KEYS_DEFAULT, &block)
+      return to_enum(:transform_keys) if keys_hash == TRANSFORM_KEYS_DEFAULT && !block_given?
+      dup.tap { |hash| hash.transform_keys!(keys_hash, &block) }
     end
 
-    def transform_keys!
-      return enum_for(:transform_keys!) { size } unless block_given?
-      keys.each do |key|
-        self[yield(key)] = delete(key)
+    def transform_keys!(keys_hash = TRANSFORM_KEYS_DEFAULT)
+      return to_enum(:transform_keys!) if keys_hash == TRANSFORM_KEYS_DEFAULT && !block_given?
+      keys_hash = keys_hash != TRANSFORM_KEYS_DEFAULT ? keys_hash.to_hash : nil
+      if block_given?
+        keys_hash = keys_hash&.with_indifferent_access
+        keys.each do |old_key|
+          new_key = keys_hash&.has_key?(old_key) ? keys_hash[old_key] : yield(old_key)
+          self[new_key] = delete(old_key)
+        end
+      else
+        keys_hash.each do |old_key, new_key|
+          self[new_key] = delete(old_key) if has_key?(old_key)
+        end
       end
       self
     end
