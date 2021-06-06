@@ -7,8 +7,8 @@ class Rails::ApplicationController < ActionController::Base # :nodoc:
   before_action :disable_content_security_policy_nonce!
 
   content_security_policy do |policy|
-    policy.script_src :unsafe_inline
-    policy.style_src :unsafe_inline
+    policy.script_src :self, :unsafe_inline
+    policy.style_src :self, :unsafe_inline
   end
 
   private
