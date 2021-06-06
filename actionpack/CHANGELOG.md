@@ -1,3 +1,7 @@
+*   Add `image/svg+xml` to the compressible content types of ActionDispatch::Static
+
+    *Georg Ledermann*
+
 *   Remove IE6-7-8 file download related hack/fix from ActionController::DataStreaming module
 
     Not hugely relevant due to age of those IE versions and it creates somewhat unexpected Cache-Control headers.
