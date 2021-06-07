@@ -10,6 +10,11 @@ gemfile(true) do
   # Activate the gem you are reporting the issue against.
   gem "rails", "6.1.0"
   gem "sqlite3"
+  if RUBY_VERSION >= "3.1"
+    # net-smtp, net-imap and net-pop were removed from default gems in Ruby 3.1, but is used by the `mail` gem.
+    # So we need to add them as dependencies until `mail` is fixed: https://github.com/mikel/mail/pull/1439
+    gem "net-smtp", require: false
+  end
 end
 
 require "active_record/railtie"
