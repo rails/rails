@@ -653,7 +653,9 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_count_with_too_many_parameters_raises
-    assert_raise(ArgumentError) { Account.count(1, 2, 3) }
+    error = assert_raise(ArgumentError) { Account.count(1, 2, 3) }
+
+    assert_equal "wrong number of arguments (given 3, expected 0..1)", error.message
   end
 
   def test_count_with_order
