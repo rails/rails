@@ -275,10 +275,11 @@ module ActiveRecord
     end
 
     def test_merge_raises_with_invalid_argument
-      assert_raises ArgumentError do
+      exception = assert_raises ArgumentError do
         relation = Relation.new(FakeKlass)
         relation.merge(true)
       end
+      assert_equal("true is not an ActiveRecord::Relation", exception.message)
     end
 
     def test_respond_to_for_non_selected_element
