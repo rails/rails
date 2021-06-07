@@ -2,7 +2,7 @@
     `ActiveRecord::PreparedStatementCacheExpired` errors when adding
     new column.
 
-    *Kevin Robatel*
+    *Kevin Robatel - QoQa*
 
 *   Fix compatibility with `psych >= 4`.
 
