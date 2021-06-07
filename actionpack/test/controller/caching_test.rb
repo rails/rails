@@ -408,7 +408,7 @@ class CollectionCacheController < ActionController::Base
   def index_ordered_with_cache_invalidation_on_new_entry
     @customers = [Customer.new("david", 1), Customer.new("david", 2), Customer.new("david", 3)]
     @customers.push(Customer.new("david", 4)) if params[:invalidate]
-    render partial: "customers/customer_no_cache", collection: @customers, cached: true, invalidate_cache_on_new_entry: params[:invalidate]
+    render partial: "customers/customer_no_cache", collection: @customers, cached: { invalidate_on_new_entry: params[:invalidate] }
   end
 
   def index_explicit_render_in_controller

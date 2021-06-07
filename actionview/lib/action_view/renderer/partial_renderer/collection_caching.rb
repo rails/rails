@@ -40,7 +40,7 @@ module ActionView
         # If new entries are available to the collection and cache invalidation on
         # new entry is required, we clear the cache and set the collection as the
         # initial one
-        if !collection.empty? && @options[:invalidate_cache_on_new_entry]
+        if !collection.empty? && @options[:cached].is_a?(Hash) && @options[:cached][:invalidate_on_new_entry]
           collection = keyed_collection.values
           cached_partials = {}
         end
