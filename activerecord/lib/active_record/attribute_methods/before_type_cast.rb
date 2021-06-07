@@ -66,6 +66,11 @@ module ActiveRecord
         @attributes.values_before_type_cast
       end
 
+      # Returns a hash of attributes for assignment to the database.
+      def attributes_for_database
+        @attributes.values_for_database
+      end
+
       private
         # Dispatch target for <tt>*_before_type_cast</tt> attribute methods.
         def attribute_before_type_cast(attr_name)

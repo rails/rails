@@ -216,6 +216,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  test "read attributes_for_database" do
+    topic = Topic.new
+    topic.content = { one: 1, two: 2 }
+
+    db_attributes = Topic.instantiate(topic.attributes_for_database).attributes
+    before_type_cast_attributes = Topic.instantiate(topic.attributes_before_type_cast).attributes
+
+    assert_equal topic.attributes, db_attributes
+    assert_not_equal topic.attributes, before_type_cast_attributes
+  end
+
   test "read attributes_after_type_cast on a date" do
     tz = "Pacific Time (US & Canada)"
 
