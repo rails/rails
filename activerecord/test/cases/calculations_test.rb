@@ -1346,9 +1346,11 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_count_with_block_and_column_name_raises_an_error
-    assert_raises(ArgumentError) do
+    error = assert_raises(ArgumentError) do
       Account.count(:firm_id) { true }
     end
+
+    assert_equal "Column name argument is not supported when a block is passed.", error.message
   end
 
   test "#skip_query_cache! for #pluck" do
