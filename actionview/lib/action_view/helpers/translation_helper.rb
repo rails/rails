@@ -94,7 +94,9 @@ module ActionView
             break translated unless translated.equal?(MISSING_TRANSLATION)
           end
 
-          break alternatives.first if alternatives.present? && !alternatives.first.is_a?(Symbol)
+          if alternatives.present? && !alternatives.first.is_a?(Symbol)
+            break alternatives.first && I18n.translate(**options, default: alternatives)
+          end
 
           first_key ||= key
           key = alternatives&.shift

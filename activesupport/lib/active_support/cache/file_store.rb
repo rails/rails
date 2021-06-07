@@ -20,7 +20,7 @@ module ActiveSupport
       FILEPATH_MAX_SIZE = 900 # max is 1024, plus some room
       GITKEEP_FILES = [".gitkeep", ".keep"].freeze
 
-      def initialize(cache_path, options = nil)
+      def initialize(cache_path, **options)
         super(options)
         @cache_path = cache_path.to_s
       end

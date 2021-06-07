@@ -2117,10 +2117,10 @@ module ApplicationTests
     end
 
     test "config_for containing ERB tags should evaluate" do
-      set_custom_config <<~RUBY
+      set_custom_config <<~YAML
         development:
           key: <%= 'custom key' %>
-      RUBY
+      YAML
 
       app "development"
 
@@ -2163,6 +2163,28 @@ module ApplicationTests
       YAML.stub :load, { "development" => { "key" => "value" } } do
         assert_equal({ key: "value" }, Rails.application.config_for(:custom))
       end
+    end
+
+    test "config_for returns a ActiveSupport::OrderedOptions" do
+      app_file "config/custom.yml", <<~YAML
+        shared:
+          some_key: default
+
+        development:
+          some_key: value
+
+        test:
+      YAML
+
+      app "development"
+
+      config = Rails.application.config_for(:custom)
+      assert_instance_of ActiveSupport::OrderedOptions, config
+      assert_equal "value", config.some_key
+
+      config = Rails.application.config_for(:custom, env: :test)
+      assert_instance_of ActiveSupport::OrderedOptions, config
+      assert_equal "default", config.some_key
     end
 
     test "api_only is false by default" do

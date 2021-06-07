@@ -4,6 +4,18 @@
 
     *Kevin Robatel*
 
+*   Fix compatibility with `psych >= 4`.
+
+    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
+    Active Record's schema cache loader and `YAMLColumn` now uses `YAML.unsafe_load` if available.
+
+    *Jean Boussier*
+
+*   Changed Arel predications `contains` and `overlaps` to use
+    `quoted_node` so that PostgreSQL arrays are quoted properly.
+
+    *Bradley Priest*
+
 ## Rails 6.1.3.2 (May 05, 2021) ##
 
 *   No changes.
@@ -1059,14 +1071,14 @@
     Deprecated behavior:
 
     ```ruby
-    db_config = ActiveRecord::Base.configs_for(env_name: "development", spec_name: "primary")
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "development", spec_name: "primary")
     db_config.spec_name
     ```
 
     New behavior:
 
     ```ruby
-    db_config = ActiveRecord::Base.configs_for(env_name: "development", name: "primary")
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "development", name: "primary")
     db_config.name
     ```
 

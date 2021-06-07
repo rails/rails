@@ -45,7 +45,7 @@ en:
       # Number of decimals, behind the separator (the number 1 with a precision of 2 gives: 1.00)
       precision: 3
       # Determine how rounding is performed (see BigDecimal::mode)
-      round_mode: !ruby/sym default
+      round_mode: default
       # If set to true, precision will mean the number of significant digits instead
       # of the number of decimal digits (1234 with precision 2 becomes 1200, 1.23543 becomes 1.2)
       significant: false

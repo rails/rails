@@ -1,3 +1,10 @@
+*   Fix bug in `number_with_precision` when using large `BigDecimal` values.
+
+    Fixes #42302.
+
+    *Federico Aldunate*, *Zachary Scott*
+
+
 ## Rails 6.1.3.2 (May 05, 2021) ##
 
 *   No changes.

@@ -20,6 +20,8 @@ module Rails
         end
 
         def invoke!
+          return super if pretend?
+
           invoked_file = super
           File.exist?(@destination) ? invoked_file : relative_existing_migration
         end

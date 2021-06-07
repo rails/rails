@@ -440,13 +440,11 @@ module ActiveRecord
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
-      if eager_loading?
-        relation = apply_join_dependency
-        return relation.update_all(updates)
-      end
+      arel = eager_loading? ? apply_join_dependency.arel : build_arel
+      arel.source.left = table
 
       stmt = Arel::UpdateManager.new
-      stmt.table(arel.join_sources.empty? ? table : arel.source)
+      stmt.table(arel.source)
       stmt.key = table[primary_key]
       stmt.take(arel.limit)
       stmt.offset(arel.offset)
@@ -465,7 +463,7 @@ module ActiveRecord
         stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
       end
 
-      @klass.connection.update stmt, "#{@klass} Update All"
+      klass.connection.update(stmt, "#{klass} Update All").tap { reset }
     end
 
     def update(id = :all, attributes) # :nodoc:
@@ -582,23 +580,18 @@ module ActiveRecord
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
       end
 
-      if eager_loading?
-        relation = apply_join_dependency
-        return relation.delete_all
-      end
+      arel = eager_loading? ? apply_join_dependency.arel : build_arel
+      arel.source.left = table
 
       stmt = Arel::DeleteManager.new
-      stmt.from(arel.join_sources.empty? ? table : arel.source)
+      stmt.from(arel.source)
       stmt.key = table[primary_key]
       stmt.take(arel.limit)
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
       stmt.wheres = arel.constraints
 
-      affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
-
-      reset
-      affected
+      klass.connection.delete(stmt, "#{klass} Destroy").tap { reset }
     end
 
     # Finds and destroys all records matching the specified conditions.
@@ -652,6 +645,7 @@ module ActiveRecord
       @delegate_to_klass = false
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @offsets = @take = nil
+      @cache_keys = nil
       @records = [].freeze
       self
     end

@@ -55,17 +55,28 @@ class EnumTest < ActiveRecord::TestCase
 
     assert_equal @book, Book.where(status: published).first
     assert_not_equal @book, Book.where(status: written).first
-    assert_equal @book, Book.where(status: [published]).first
-    assert_not_equal @book, Book.where(status: [written]).first
-    assert_not_equal @book, Book.where("status <> ?", published).first
-    assert_equal @book, Book.where("status <> ?", written).first
+    assert_equal @book, Book.where(status: [published, published]).first
+    assert_not_equal @book, Book.where(status: [written, written]).first
+    assert_not_equal @book, Book.where.not(status: published).first
+    assert_equal @book, Book.where.not(status: written).first
+  end
+
+  test "find via where with values.to_s" do
+    published, written = Book.statuses[:published].to_s, Book.statuses[:written].to_s
+
+    assert_equal @book, Book.where(status: published).first
+    assert_not_equal @book, Book.where(status: written).first
+    assert_equal @book, Book.where(status: [published, published]).first
+    assert_not_equal @book, Book.where(status: [written, written]).first
+    assert_not_equal @book, Book.where.not(status: published).first
+    assert_equal @book, Book.where.not(status: written).first
   end
 
   test "find via where with symbols" do
     assert_equal @book, Book.where(status: :published).first
     assert_not_equal @book, Book.where(status: :written).first
-    assert_equal @book, Book.where(status: [:published]).first
-    assert_not_equal @book, Book.where(status: [:written]).first
+    assert_equal @book, Book.where(status: [:published, :published]).first
+    assert_not_equal @book, Book.where(status: [:written, :written]).first
     assert_not_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
     assert_equal books(:ddd), Book.where(last_read: :forgotten).first
@@ -74,8 +85,8 @@ class EnumTest < ActiveRecord::TestCase
   test "find via where with strings" do
     assert_equal @book, Book.where(status: "published").first
     assert_not_equal @book, Book.where(status: "written").first
-    assert_equal @book, Book.where(status: ["published"]).first
-    assert_not_equal @book, Book.where(status: ["written"]).first
+    assert_equal @book, Book.where(status: ["published", "published"]).first
+    assert_not_equal @book, Book.where(status: ["written", "written"]).first
     assert_not_equal @book, Book.where.not(status: "published").first
     assert_equal @book, Book.where.not(status: "written").first
     assert_equal books(:ddd), Book.where(last_read: "forgotten").first

@@ -36,7 +36,7 @@ group :rubocop do
 end
 
 group :doc do
-  gem "sdoc", ">= 2.0.3"
+  gem "sdoc", ">= 2.1.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "kindlerb", "~> 1.2.0"
@@ -167,3 +167,15 @@ end
 
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "wdm", ">= 0.1.0", platforms: [:mingw, :mswin, :x64_mingw, :mswin64]
+
+if RUBY_VERSION >= "3.1"
+  # net-smtp, net-imap and net-pop were removed from default gems in Ruby 3.1, but is used by the `mail` gem.
+  # So we need to add them as dependencies until `mail` is fixed: https://github.com/mikel/mail/pull/1439
+  gem "net-smtp", require: false
+  gem "net-imap", require: false
+  gem "net-pop", require: false
+
+  # matrix was removed from default gems in Ruby 3.1, but is used by the `capybara` gem.
+  # So we need to add it as a dependency until `capybara` is fixed: https://github.com/teamcapybara/capybara/pull/2468
+  gem "matrix", require: false
+end

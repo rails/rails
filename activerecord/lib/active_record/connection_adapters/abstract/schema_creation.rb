@@ -94,8 +94,8 @@ module ActiveRecord
           sql = ["CREATE"]
           sql << "UNIQUE" if index.unique
           sql << "INDEX"
-          sql << "IF NOT EXISTS" if o.if_not_exists
           sql << o.algorithm if o.algorithm
+          sql << "IF NOT EXISTS" if o.if_not_exists
           sql << index.type if index.type
           sql << "#{quote_column_name(index.name)} ON #{quote_table_name(index.table)}"
           sql << "USING #{index.using}" if supports_index_using? && index.using

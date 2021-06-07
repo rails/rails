@@ -1,3 +1,10 @@
+*   Add support for 'private, no-store' Cache-Control headers.
+
+    Previously, 'no-store' was exclusive; no other directives could be specified.
+
+    *Alex Smith*
+
+
 ## Rails 6.1.3.2 (May 05, 2021) ##
 
 *   Prevent open redirects by correctly escaping the host allow list

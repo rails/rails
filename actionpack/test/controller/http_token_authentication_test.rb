@@ -89,7 +89,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with evil header" do
-    @request.env["HTTP_AUTHORIZATION"] = "Token ." + " " * (1024*80-8) + "."
+    @request.env["HTTP_AUTHORIZATION"] = "Token ." + " " * (1024 * 80 - 8) + "."
     Timeout.timeout(1) do
       get :index
     end

@@ -20,14 +20,18 @@ module ActiveSupport
           end
 
           formatted_string =
-            if rounded_number.nan? || rounded_number.infinite? || rounded_number == rounded_number.to_i
-              "%00.#{precision}f" % rounded_number
-            else
+            if rounded_number.finite?
               s = rounded_number.to_s("F")
-              s << "0" * precision
               a, b = s.split(".", 2)
-              a << "."
-              a << b[0, precision]
+              if precision != 0
+                b << "0" * precision
+                a << "."
+                a << b[0, precision]
+              end
+              a
+            else
+              # Infinity/NaN
+              "%f" % rounded_number
             end
         else
           formatted_string = rounded_number

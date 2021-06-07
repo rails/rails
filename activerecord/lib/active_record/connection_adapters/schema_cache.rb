@@ -9,7 +9,15 @@ module ActiveRecord
         return unless File.file?(filename)
 
         read(filename) do |file|
-          filename.include?(".dump") ? Marshal.load(file) : YAML.load(file)
+          if filename.include?(".dump")
+            Marshal.load(file)
+          else
+            if YAML.respond_to?(:unsafe_load)
+              YAML.unsafe_load(file)
+            else
+              YAML.load(file)
+            end
+          end
         end
       end
 

@@ -207,11 +207,11 @@ module Arel # :nodoc: all
     end
 
     def contains(other)
-      Arel::Nodes::Contains.new(self, other)
+      Arel::Nodes::Contains.new self, quoted_node(other)
     end
 
     def overlaps(other)
-      Arel::Nodes::Overlaps.new(self, other)
+      Arel::Nodes::Overlaps.new self, quoted_node(other)
     end
 
     def quoted_array(others)

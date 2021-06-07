@@ -16,6 +16,7 @@ module ActiveSupport
           pid
         end
       end
+      ruby2_keywords(:fork) if respond_to?(:ruby2_keywords, true)
     end
 
     module CoreExtPrivate
@@ -25,6 +26,7 @@ module ActiveSupport
         def fork(*)
           super
         end
+        ruby2_keywords(:fork) if respond_to?(:ruby2_keywords, true)
     end
 
     @pid = Process.pid

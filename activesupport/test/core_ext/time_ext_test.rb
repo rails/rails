@@ -921,7 +921,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   if RUBY_VERSION >= "2.6.0"
     def test_at_with_in_option
-      assert_equal Time.new(1970, 1, 1, 0, 42, 17, "-08:00"), Time.at(31337, in: -28800)
+      assert_equal Time.new(1970, 1, 1, 0, 42, 17, "-08:00").to_s, Time.at(31337, in: -28800).to_s
     end
   end
 

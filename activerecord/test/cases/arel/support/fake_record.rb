@@ -89,7 +89,7 @@ module FakeRecord
   end
 
   class ConnectionPool
-    class Spec < Struct.new(:config)
+    class Spec < Struct.new(:adapter, keyword_init: true)
     end
 
     attr_reader :spec, :connection

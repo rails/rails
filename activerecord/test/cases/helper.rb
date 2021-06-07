@@ -154,7 +154,7 @@ def clean_up_legacy_connection_handlers
   ActiveRecord::Base.connection_handlers = {}
 
   handler.connection_pool_names.each do |name|
-    next if ["ActiveRecord::Base", "ARUnit2Model", "Contact", "ContactSti"].include?(name)
+    next if ["ActiveRecord::Base", "ARUnit2Model", "Contact", "ContactSti", "FirstAbstractClass", "SecondAbstractClass"].include?(name)
 
     handler.send(:owner_to_pool_manager).delete(name)
   end

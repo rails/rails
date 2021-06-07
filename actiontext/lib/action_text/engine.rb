@@ -11,6 +11,10 @@ module ActionText
   class Engine < Rails::Engine
     isolate_namespace ActionText
     config.eager_load_namespaces << ActionText
+    config.autoload_once_paths = %W(
+      #{root}/app/helpers
+      #{root}/app/models
+    )
 
     initializer "action_text.attribute" do
       ActiveSupport.on_load(:active_record) do

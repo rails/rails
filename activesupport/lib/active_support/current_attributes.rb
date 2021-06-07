@@ -2,6 +2,7 @@
 
 require "active_support/callbacks"
 require "active_support/core_ext/enumerable"
+require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically

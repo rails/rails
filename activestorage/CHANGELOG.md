@@ -1,3 +1,14 @@
+*   Don't raise an error if the mime type is not recognized.
+
+    Fixes #41777.
+
+    *Alex Ghiculescu*
+
+*   `ActiveStorage::PreviewError` is raised when a previewer is unable to generate a preview image.
+
+    *Alex Robbin*
+
+
 ## Rails 6.1.3.2 (May 05, 2021) ##
 
 *   No changes.

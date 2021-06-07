@@ -1,3 +1,14 @@
+*   Fix compatibility with `psych >= 4`.
+
+    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
+    `Rails.application.config_for` now uses `YAML.unsafe_load` if available.
+
+    *Jean Boussier*
+
+*   Ensure `Rails.application.config_for` always cast hashes to `ActiveSupport::OrderedOptions`.
+
+    *Jean Boussier*
+
 ## Rails 6.1.3.2 (May 05, 2021) ##
 
 *   No changes.

@@ -1582,6 +1582,21 @@ en:
       end
     end
 
+    test "active_storage:update task works within engine" do
+      @plugin.write "Rakefile", <<-RUBY
+        APP_RAKEFILE = '#{app_path}/Rakefile'
+        load "rails/tasks/engine.rake"
+      RUBY
+
+      Dir.chdir(@plugin.path) do
+        output = `bundle exec rake app:active_storage:update`
+        assert $?.success?, output
+
+        assert migrations.detect { |migration| migration.name == "AddServiceNameToActiveStorageBlobs" }
+        assert migrations.detect { |migration| migration.name == "CreateActiveStorageVariantRecords" }
+      end
+    end
+
   private
     def app
       Rails.application

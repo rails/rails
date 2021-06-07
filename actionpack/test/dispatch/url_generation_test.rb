@@ -16,6 +16,7 @@ module TestUrlGeneration
 
     Routes.draw do
       get "/foo", to: "my_route_generating#index", as: :foo
+      get "(/optional/:optional_id)/baz", to: "my_route_generating#index", as: :baz
 
       resources :bars
 
@@ -125,6 +126,34 @@ module TestUrlGeneration
 
     test "omit subdomain when key is blank" do
       assert_equal "http://example.com/foo", foo_url(subdomain: "")
+    end
+
+    test "keep optional path parameter when given" do
+      assert_equal "http://www.example.com/optional/123/baz", baz_url(optional_id: 123)
+    end
+
+    test "keep optional path parameter when true" do
+      assert_equal "http://www.example.com/optional/true/baz", baz_url(optional_id: true)
+    end
+
+    test "omit optional path parameter when false" do
+      assert_equal "http://www.example.com/optional/false/baz", baz_url(optional_id: false)
+    end
+
+    test "omit optional path parameter when blank" do
+      assert_equal "http://www.example.com/baz", baz_url(optional_id: "")
+    end
+
+    test "keep positional path parameter when true" do
+      assert_equal "http://www.example.com/optional/true/baz", baz_url(true)
+    end
+
+    test "omit positional path parameter when false" do
+      assert_equal "http://www.example.com/optional/false/baz", baz_url(false)
+    end
+
+    test "omit positional path parameter when blank" do
+      assert_equal "http://www.example.com/baz", baz_url("")
     end
 
     test "generating URLs with trailing slashes" do

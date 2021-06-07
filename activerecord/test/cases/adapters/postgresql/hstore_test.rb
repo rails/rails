@@ -148,7 +148,8 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     assert_equal "fr", x.language
     assert_equal "GMT", x.timezone
 
-    y = YAML.load(YAML.dump(x))
+    payload = YAML.dump(x)
+    y = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
     assert_equal "fr", y.language
     assert_equal "GMT", y.timezone
   end

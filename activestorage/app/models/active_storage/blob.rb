@@ -49,7 +49,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   scope :unattached, -> { where.missing(:attachments) }
 
   after_initialize do
-    self.service_name ||= self.class.service.name
+    self.service_name ||= self.class.service&.name
   end
 
   after_update_commit :update_service_metadata, if: :content_type_previously_changed?

@@ -466,6 +466,15 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_raise(ArgumentError) { book.subscribers.upsert_all([ { nick: "Jimmy" } ]) }
   end
 
+  def test_upsert_all_with_unique_by_fails_cleanly_for_adapters_not_supporting_insert_conflict_target
+    skip if supports_insert_conflict_target?
+
+    error = assert_raises ArgumentError do
+      Book.upsert_all [{ name: "Rework", author_id: 1 }], unique_by: :isbn
+    end
+    assert_match "#{ActiveRecord::Base.connection.class} does not support :unique_by", error.message
+  end
+
   private
     def capture_log_output
       output = StringIO.new

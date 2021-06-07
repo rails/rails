@@ -310,6 +310,7 @@ module ActiveRecord
         type_cast_calculated_value(result.cast_values.first, operation) do |value|
           type = column.try(:type_caster) ||
             lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
+          type = type.subtype if Enum::EnumType === type
           type.deserialize(value)
         end
       end
@@ -387,8 +388,11 @@ module ActiveRecord
           key = key_records[key] if associated
 
           result[key] = type_cast_calculated_value(row[column_alias], operation) do |value|
-            type ||= column.try(:type_caster) ||
-              lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
+            unless type
+              type = column.try(:type_caster) ||
+                lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
+              type = type.subtype if Enum::EnumType === type
+            end
             type.deserialize(value)
           end
         end
