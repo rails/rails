@@ -1,3 +1,9 @@
+*   Use an empty query to check if the PostgreSQL connection is still active
+
+    An empty query is faster than `SELECT 1`.
+
+    *Heinrich Lee Yu*
+
 *   Add `ActiveRecord::Base#previously_persisted?`
 
     Returns `true` if the object has been previously persisted but now it has been deleted.
