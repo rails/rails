@@ -20,6 +20,10 @@ module ActiveRecord
         set_defaults
       end
 
+      def default_key_provider?
+        key_provider.is_a?(ActiveRecord::Encryption::DerivedSecretKeyProvider)
+      end
+
       alias frozen_encryption? frozen_encryption
 
       private

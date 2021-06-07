@@ -22,14 +22,14 @@ module ActiveRecord
           config.deterministic_key = deterministic_key
           config.key_derivation_salt = key_derivation_salt
 
-          context.key_provider = ActiveRecord::Encryption::DerivedSecretKeyProvider.new(primary_key)
-
           properties.each do |name, value|
             [:context, :config].each do |configurable_object_name|
               configurable_object = ActiveRecord::Encryption.send(configurable_object_name)
               configurable_object.send "#{name}=", value if configurable_object.respond_to?("#{name}=")
             end
           end
+
+          context.key_provider ||= ActiveRecord::Encryption::DerivedSecretKeyProvider.new(primary_key)
         end
 
         # Register callback to be invoked when an encrypted attribute is declared.
