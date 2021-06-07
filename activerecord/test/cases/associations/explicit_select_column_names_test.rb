@@ -17,11 +17,4 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
       end
     end
   end
-
-  def test_without_explicit_select_column_names
-    human = Human.create!
-    assert_sql(/SELECT "humans".\* FROM/) do
-      Human.find human.id
-    end
-  end
 end
