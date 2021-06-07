@@ -147,6 +147,8 @@ module ActiveRecord
 
       mattr_accessor :has_many_inversing, instance_accessor: false, default: false
 
+      mattr_accessor :explicit_select_column_names, instance_accessor: false, default: false
+
       class_attribute :default_connection_handler, instance_writer: false
 
       class_attribute :default_role, instance_writer: false

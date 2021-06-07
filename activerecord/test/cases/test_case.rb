@@ -88,6 +88,14 @@ module ActiveRecord
       ActiveRecord::Base.has_many_inversing = old
     end
 
+    def with_explicit_select_column_names
+      old = ActiveRecord::Base.explicit_select_column_names
+      ActiveRecord::Base.explicit_select_column_names = true
+      yield
+    ensure
+      ActiveRecord::Base.explicit_select_column_names = old
+    end
+
     def reset_callbacks(klass, kind)
       old_callbacks = {}
       old_callbacks[klass] = klass.send("_#{kind}_callbacks").dup

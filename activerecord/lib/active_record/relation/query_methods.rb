@@ -1282,7 +1282,7 @@ module ActiveRecord
       def build_select(arel)
         if select_values.any?
           arel.project(*arel_columns(select_values))
-        elsif klass.ignored_columns.any?
+        elsif ActiveRecord::Base.explicit_select_column_names || klass.ignored_columns.any?
           arel.project(*klass.column_names.map { |field| table[field] })
         else
           arel.project(table[Arel.star])
