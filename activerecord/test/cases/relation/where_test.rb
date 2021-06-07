@@ -423,7 +423,9 @@ module ActiveRecord
     end
 
     def test_where_with_unsupported_arguments
-      assert_raises(ArgumentError) { Author.where(42) }
+      error = assert_raises(ArgumentError) { Author.where(42) }
+
+      assert_equal "Unsupported argument type: 42 (Integer)", error.message
     end
 
     def test_invert_where
