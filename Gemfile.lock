@@ -156,7 +156,6 @@ GEM
       dante (> 0.1.5)
     bcrypt (3.1.16)
     bcrypt (3.1.16-java)
-
     beaneater (1.1.1)
     benchmark-ips (2.8.4)
     blade (0.7.2)
@@ -637,4 +636,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-  2.2.15
+   2.2.16
