@@ -472,6 +472,9 @@ in controllers and views. This defaults to `false`.
 * `config.active_record.has_many_inversing` enables setting the inverse record
   when traversing `belongs_to` to `has_many` associations.
 
+* `config.active_record.explicit_select_column_names` enables explicit SELECT
+  query instead of `SELECT *` query.
+
 * `config.active_record.legacy_connection_handling` allows to enable new connection
   handling API. For applications using multiple databases, this new API provides
   support for granular connection swapping.
