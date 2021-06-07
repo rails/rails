@@ -1,3 +1,12 @@
+*   Adds cache option `invalidate_on_new_entry` to collection rendering to
+    allow cache invalidation of the entire collection when a new entry is available.
+
+    ```html+erb
+    <%= render partial: "pictures/picture", collection: @pictures, cached: { invalidate_on_new_entry: true }  %>
+    ```
+
+    *Vincent Rolea*
+
 *   The `translate` helper now passes `default` values that aren't
     translation keys through `I18n.translate` for interpolation.
 
