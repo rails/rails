@@ -445,8 +445,18 @@ module ActiveRecord
             options = {
               name: row["name"]
             }
+
             expression = row["expression"]
-            expression = expression[1..-2] unless mariadb? # remove parentheses added by mysql
+
+            unless mariadb?
+              # remove parentheses added by MySQL
+              expression = expression[1..-2]
+
+              # MySQL returns check constraints expression in an already escaped form.
+              # This leads to duplicate escaping later (e.g. when the expression is used in the SchemaDumper).
+              expression = expression.gsub("\\'", "'")
+            end
+
             CheckConstraintDefinition.new(table_name, expression, options)
           end
         else
