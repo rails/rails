@@ -1,3 +1,7 @@
+*   Adds analyzer for audio files.
+
+    *Breno Gazzola*
+
 *   Allow `expires_in` for ActiveStorage signed ids.
 
     *aki77*
