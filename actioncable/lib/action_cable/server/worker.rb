@@ -19,6 +19,7 @@ module ActionCable
 
       def initialize(max_size: 5)
         @executor = Concurrent::ThreadPoolExecutor.new(
+          name: "ActionCable",
           min_threads: 1,
           max_threads: max_size,
           max_queue: 0,

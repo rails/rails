@@ -62,7 +62,7 @@ class Order < ApplicationRecord
   belongs_to :customer
   has_and_belongs_to_many :books, join_table: 'books_orders'
 
-  enum status: [:shipped, :being_packed, :complete, :cancelled]
+  enum :status, [:shipped, :being_packed, :complete, :cancelled]
 
   scope :created_before, ->(time) { where('created_at < ?', time) }
 end
@@ -73,7 +73,7 @@ class Review < ApplicationRecord
   belongs_to :customer
   belongs_to :book
 
-  enum state: [:not_reviewed, :published, :hidden]
+  enum :state, [:not_reviewed, :published, :hidden]
 end
 ```
 
@@ -896,9 +896,8 @@ The SQL that would be executed:
 ```sql
 SELECT * FROM books WHERE id > 100 LIMIT 20
 
-# Original query without `unscope`
+-- Original query without `unscope`
 SELECT * FROM books WHERE id > 100 ORDER BY id desc LIMIT 20
-
 ```
 
 You can also unscope specific `where` clauses. For example, this will remove `id` condition from the where clause:
@@ -930,9 +929,8 @@ The SQL that would be executed:
 ```sql
 SELECT * FROM books WHERE id > 10 ORDER BY id DESC
 
-# Original query without `only`
+-- Original query without `only`
 SELECT * FROM books WHERE id > 10 ORDER BY id DESC LIMIT 20
-
 ```
 
 [`only`]: https://api.rubyonrails.org/classes/ActiveRecord/SpawnMethods.html#method-i-only
@@ -1070,7 +1068,7 @@ Book.first.highlighted_reviews.average(:rating)
 # => Returns average rating of a book
 
 class Book
-  # Returns reviews if there are atleast 5,
+  # Returns reviews if there are at least 5,
   # else consider this as non-reviewed book
   def highlighted_reviews
     if reviews.count > 5
@@ -1256,12 +1254,11 @@ This produces:
 
 ```sql
 SELECT books.* FROM books
-  INNER JOIN reviews ON reviews.book_id = book.id
-  INNER JOIN customer ON customers.id = reviews.id
+  INNER JOIN reviews ON reviews.book_id = books.id
+  INNER JOIN customers ON customers.id = reviews.customer_id
 ```
 
 Or, in English: "return all books that have a review by a customer."
-
 
 ##### Joining Nested Associations (Multiple Level)
 
@@ -1281,7 +1278,6 @@ INNER JOIN suppliers ON suppliers.id = books.supplier_id
 ```
 
 Or, in English: "return all authors that have books with reviews _and_ have been ordered by a customer, and the suppliers for those books."
-
 
 #### Specifying Conditions on the Joined Tables
 
@@ -1363,9 +1359,19 @@ This code looks fine at the first sight. But the problem lies within the total n
 
 **Solution to N + 1 queries problem**
 
-Active Record lets you specify in advance all the associations that are going to be loaded. This is possible by specifying the [`includes`][] method of the `Model.find` call. With `includes`, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
+Active Record lets you specify in advance all the associations that are going to be loaded.
 
-Revisiting the above case, we could rewrite `Book.limit(10)` to eager load authors:
+The methods are:
+
+* [`includes`][]
+* [`preload`][]
+* [`eager_load`][]
+
+### includes
+
+With `includes`, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
+
+Revisiting the above case using the `includes` method, we could rewrite `Book.limit(10)` to eager load authors:
 
 ```ruby
 books = Book.includes(:author).limit(10)
@@ -1378,12 +1384,12 @@ end
 The above code will execute just **2** queries, as opposed to **11** queries in the previous case:
 
 ```sql
-SELECT * FROM books LIMIT 10
-SELECT authors.* FROM authors
-  WHERE (authors.id IN (1,2,3,4,5,6,7,8,9,10))
+SELECT `books`* FROM `books` LIMIT 10
+SELECT `authors`.* FROM `authors`
+  WHERE `authors`.`book_id` IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
-### Eager Loading Multiple Associations
+#### Eager Loading Multiple Associations
 
 Active Record lets you eager load any number of associations with a single `Model.find` call by using an array, hash, or a nested hash of array/hash with the `includes` method.
 
@@ -1395,7 +1401,7 @@ Customer.includes(:orders, :reviews)
 
 This loads all the customers and the associated orders and reviews for each.
 
-#### Nested Associations Hash
+##### Nested Associations Hash
 
 ```ruby
 Customer.includes(orders: {books: [:supplier, :author]}).find(1)
@@ -1403,7 +1409,7 @@ Customer.includes(orders: {books: [:supplier, :author]}).find(1)
 
 This will find the customer with id 1 and eager load all of the associated orders for it, the books for all of the orders, and the author and supplier for each of the books.
 
-### Specifying Conditions on Eager Loaded Associations
+#### Specifying Conditions on Eager Loaded Associations
 
 Even though Active Record lets you specify conditions on the eager loaded associations just like `joins`, the recommended way is to use [joins](#joining-tables) instead.
 
@@ -1436,6 +1442,56 @@ returned.
 
 NOTE: If an association is eager loaded as part of a join, any fields from a custom select clause will not be present on the loaded models.
 This is because it is ambiguous whether they should appear on the parent record, or the child.
+
+### preload
+
+With `preload`, Active record ensures that loaded using a query for every specified association.
+
+Revisiting the case where N + 1 was occurred using the `preload` method, we could rewrite `Book.limit(10)` to authors:
+
+
+```ruby
+books = Book.preload(:author).limit(10)
+
+books.each do |book|
+  puts book.author.last_name
+end
+```
+
+The above code will execute just **2** queries, as opposed to **11** queries in the previous case:
+
+```sql
+SELECT `books`* FROM `books` LIMIT 10
+SELECT `authors`.* FROM `authors`
+  WHERE `authors`.`book_id` IN (1,2,3,4,5,6,7,8,9,10)
+```
+
+NOTE: The `preload` method using an array, hash, or a nested hash of array/hash in the same way as the includes method to load any number of associations with a single `Model.find` call. However, unlike the `includes` method, it is not possible to specify conditions for eager loaded associations.
+
+### eager_load
+
+With `eager_load`, Active record ensures that force eager loading by using　`LEFT OUTER JOIN` for all specified associations.
+
+Revisiting the case where N + 1 was occurred using the `eager_load` method, we could rewrite `Book.limit(10)` to authors:
+
+```ruby
+books = Book.eager_load(:author).limit(10)
+
+books.each do |book|
+  puts book.author.last_name
+end
+```
+
+The above code will execute just **2** queries, as opposed to **11** queries in the previous case:
+
+```sql
+SELECT DISTINCT `books`.`id` FROM `books` LEFT OUTER JOIN `authors` ON `authors`.`book_id` = `books`.`id` LIMIT 10
+SELECT `books`.`id` AS t0_r0, `books`.`last_name` AS t0_r1, ...
+  FROM `books` LEFT OUTER JOIN `authors` ON `authors`.`book_id` = `books`.`id`
+  WHERE `books`.`id` IN (1,2,3,4,5,6,7,8,9,10)
+```
+
+NOTE: The `eager_load` method using an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. Also, like the `includes` method, you can specify the conditions of the eager loaded association.
 
 Scopes
 ------
@@ -1715,7 +1771,7 @@ For example, given this [`enum`][] declaration:
 
 ```ruby
 class Order < ApplicationRecord
-  enum status: [:shipped, :being_packaged, :complete, :cancelled]
+  enum :status, [:shipped, :being_packaged, :complete, :cancelled]
 end
 ```
 
@@ -1739,7 +1795,7 @@ irb> order.complete?
 ```
 
 These instance methods are created automatically and will first update the value of `status` to the named value
- and then query whether or not the status has been successfully set to the value:
+and then query whether or not the status has been successfully set to the value:
 
 ```irb
 irb> order = Order.first
@@ -1765,7 +1821,7 @@ have to be at the end of the statement.
 
 There are some examples below. This guide won't cover all the possibilities, just a few as examples.
 When an Active Record method is called, the query is not immediately generated and sent to the database.
- The query is sent only when the data is actually needed. So each example below generates a single query.
+The query is sent only when the data is actually needed. So each example below generates a single query.
 
 ### Retrieving filtered data from multiple tables
 
@@ -1789,7 +1845,8 @@ WHERE (reviews.created_at > '2019-01-08')
 ### Retrieving specific data from multiple tables
 
 ```ruby
-Book.select('books.id, books.title, authors.first_name')
+Book
+  .select('books.id, books.title, authors.first_name')
   .joins(:author)
   .find_by(title: 'Abstraction and Specification in Program Development')
 ```
@@ -1800,7 +1857,7 @@ The above should generate:
 SELECT books.id, books.title, authors.first_name
 FROM books
 INNER JOIN authors
- ON authors.id = books.author_id
+  ON authors.id = books.author_id
 WHERE books.title = $1 [["title", "Abstraction and Specification in Program Development"]]
 LIMIT 1
 ```
@@ -1818,7 +1875,7 @@ It's common that you need to find a record or create it if it doesn't exist. You
 
 The [`find_or_create_by`][] method checks whether a record with the specified attributes exists. If it doesn't, then `create` is called. Let's see an example.
 
-Suppose you want to find a customer named 'Andy', and if there's none, create one. You can do so by running:
+Suppose you want to find a customer named "Andy", and if there's none, create one. You can do so by running:
 
 ```irb
 irb> Customer.find_or_create_by(first_name: 'Andy')
@@ -1935,7 +1992,7 @@ This method will return an instance of `ActiveRecord::Result` class and calling 
 object would return you an array of hashes where each hash indicates a record.
 
 ```irb
-irb> Customer.connection.select_all("SELECT first_name, created_at FROM customers WHERE id = '1'").to_hash
+irb> Customer.connection.select_all("SELECT first_name, created_at FROM customers WHERE id = '1'").to_a
 => [{"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"}, {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}]
 ```
 
@@ -1979,7 +2036,7 @@ Customer.pluck(:id, :first_name)
 
 Unlike `select`, `pluck` directly converts a database result into a Ruby `Array`,
 without constructing `ActiveRecord` objects. This can mean better performance for
-a large or often-running query. However, any model method overrides will
+a large or frequently-run query. However, any model method overrides will
 not be available. For example:
 
 ```ruby
@@ -2001,7 +2058,7 @@ irb> Customer.pluck(:first_name)
 You are not limited to querying fields from a single table, you can query multiple tables as well.
 
 ```irb
-irb> Order.joins(:customer, :books).pluck("orders.created_at, customers.email,  books.title")
+irb> Order.joins(:customer, :books).pluck("orders.created_at, customers.email, books.title")
 ```
 
 Furthermore, unlike `select` and other `Relation` scopes, `pluck` triggers an immediate
@@ -2143,7 +2200,8 @@ SELECT COUNT(DISTINCT customers.id) FROM customers
   LEFT OUTER JOIN orders ON orders.customer_id = customers.id
   WHERE (customers.first_name = 'Ryan' AND orders.status = 0)
 ```
-assuming that Order has `enum status: [ :shipped, :being_packed, :cancelled ]`
+
+assuming that Order has `enum status: [ :shipped, :being_packed, :cancelled ]`.
 
 ### Count
 
@@ -2160,7 +2218,7 @@ If you want to see the average of a certain number in one of your tables you can
 Order.average("subtotal")
 ```
 
-This will return a number (possibly a floating point number such as 3.14159265) representing the average value in the field.
+This will return a number (possibly a floating-point number such as 3.14159265) representing the average value in the field.
 
 For options, please see the parent section, [Calculations](#calculations).
 

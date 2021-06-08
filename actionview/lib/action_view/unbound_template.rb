@@ -4,11 +4,14 @@ require "concurrent/map"
 
 module ActionView
   class UnboundTemplate
-    def initialize(source, identifier, handler, options)
+    attr_reader :virtual_path, :details
+    delegate :locale, :format, :variant, :handler, to: :@details
+
+    def initialize(source, identifier, details:, virtual_path:)
       @source = source
       @identifier = identifier
-      @handler = handler
-      @options = options
+      @details = details
+      @virtual_path = virtual_path
 
       @templates = Concurrent::Map.new(initial_capacity: 2)
     end
@@ -19,12 +22,16 @@ module ActionView
 
     private
       def build_template(locals)
-        options = @options.merge(locals: locals)
         Template.new(
           @source,
           @identifier,
-          @handler,
-          **options
+          details.handler_class,
+
+          format: details.format_or_default,
+          variant: variant&.to_s,
+          virtual_path: @virtual_path,
+
+          locals: locals
         )
       end
   end

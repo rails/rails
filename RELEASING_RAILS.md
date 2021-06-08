@@ -93,7 +93,7 @@ You can review the commits for the 3.0.10 release like this:
 ```
 
 If you're doing a stable branch release, you should also ensure that all of
-the CHANGELOG entries in the stable branch are also synced to the master
+the CHANGELOG entries in the stable branch are also synced to the main
 branch.
 
 ### Put the new version in the RAILS_VERSION file.

@@ -3,7 +3,7 @@
 #   gem install activerecord-jdbcmssql-adapter
 #
 # Configure using Gemfile:
-#   gem 'activerecord-jdbcmssql-adapter'
+#   gem "activerecord-jdbcmssql-adapter"
 #
 # development:
 #   adapter: mssql
@@ -65,4 +65,4 @@ test:
 production:
   url: jdbc:db://localhost/<%= app_name %>_production
   username: <%= app_name %>
-  password: <%%= ENV['<%= app_name.upcase %>_DATABASE_PASSWORD'] %>
+  password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>

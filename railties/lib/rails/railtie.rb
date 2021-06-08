@@ -120,11 +120,11 @@ module Rails
   # this less confusing for everyone.
   # It can be used like this:
   #
-  # class MyRailtie < Rails::Railtie
-  #   server do
-  #     WebpackServer.start
+  #   class MyRailtie < Rails::Railtie
+  #     server do
+  #       WebpackServer.start
+  #     end
   #   end
-  # end
   #
   # == Application and Engine
   #
@@ -209,7 +209,7 @@ module Rails
             super
           end
         end
-        ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
+        ruby2_keywords(:method_missing)
 
         # receives an instance variable identifier, set the variable value if is
         # blank and append given block to value, which will be used later in

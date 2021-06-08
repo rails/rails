@@ -34,7 +34,6 @@ different Rails applications using RubyGems and Bundler if desired.
 
 ### Generate a gemified plugin.
 
-
 Rails ships with a `rails plugin new` command which creates a
 skeleton for developing any kind of Rails extension with the ability
 to run integration tests using a dummy Rails application. Create your
@@ -54,7 +53,7 @@ Testing Your Newly Generated Plugin
 -----------------------------------
 
 You can navigate to the directory that contains the plugin, run the `bundle install` command
- and run the one generated test using the `bin/test` command.
+and run the one generated test using the `bin/test` command.
 
 You should see:
 
@@ -62,7 +61,7 @@ You should see:
   1 runs, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-This will tell you that everything got generated properly and you are ready to start adding functionality.
+This will tell you that everything got generated properly, and you are ready to start adding functionality.
 
 Extending Core Classes
 ----------------------
@@ -261,7 +260,9 @@ like yaffles.
 class Hickwall < ApplicationRecord
   acts_as_yaffle
 end
+```
 
+```ruby
 # test/dummy/app/models/wickwall.rb
 
 class Wickwall < ApplicationRecord
@@ -284,7 +285,9 @@ module Yaffle
     end
   end
 end
+```
 
+```ruby
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base
@@ -340,7 +343,9 @@ module Yaffle
     end
   end
 end
+```
 
+```ruby
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base
@@ -413,7 +418,9 @@ module Yaffle
     end
   end
 end
+```
 
+```ruby
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base
@@ -423,7 +430,7 @@ class ApplicationRecord < ActiveRecord::Base
 end
 ```
 
-Run `bin/test` one final time and you should see:
+Run `bin/test` one final time, and you should see:
 
 ```
   6 runs, 6 assertions, 0 failures, 0 errors, 0 skips
@@ -475,7 +482,7 @@ For more information about publishing gems to RubyGems, see: [Publishing your ge
 RDoc Documentation
 ------------------
 
-Once your plugin is stable and you are ready to deploy, do everyone else a favor and document it! Luckily, writing documentation for your plugin is easy.
+Once your plugin is stable, and you are ready to deploy, do everyone else a favor and document it! Luckily, writing documentation for your plugin is easy.
 
 The first step is to update the README file with detailed information about how to use your plugin. A few key things to include are:
 
@@ -484,7 +491,7 @@ The first step is to update the README file with detailed information about how 
 * How to add the functionality to the app (several examples of common use cases)
 * Warnings, gotchas or tips that might help users and save them time
 
-Once your README is solid, go through and add rdoc comments to all of the methods that developers will use. It's also customary to add `#:nodoc:` comments to those parts of the code that are not included in the public API.
+Once your README is solid, go through and add rdoc comments to all the methods that developers will use. It's also customary to add `#:nodoc:` comments to those parts of the code that are not included in the public API.
 
 Once your comments are good to go, navigate to your plugin directory and run:
 

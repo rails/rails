@@ -214,4 +214,18 @@ module LocalCacheBehavior
     app = @cache.middleware.new(app)
     app.call({})
   end
+
+  def test_local_race_condition_protection
+    @cache.with_local_cache do
+      time = Time.now
+      @cache.write("foo", "bar", expires_in: 60)
+      Time.stub(:now, time + 61) do
+        result = @cache.fetch("foo", race_condition_ttl: 10) do
+          assert_equal "bar", @cache.read("foo")
+          "baz"
+        end
+        assert_equal "baz", result
+      end
+    end
+  end
 end

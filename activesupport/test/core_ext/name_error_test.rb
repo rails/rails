@@ -11,9 +11,7 @@ class NameErrorTest < ActiveSupport::TestCase
     assert_equal "NameErrorTest::SomeNameThatNobodyWillUse____Really", exc.missing_name
     assert exc.missing_name?(:SomeNameThatNobodyWillUse____Really)
     assert exc.missing_name?("NameErrorTest::SomeNameThatNobodyWillUse____Really")
-    if RUBY_VERSION >= "2.6"
-      assert_equal NameErrorTest, exc.receiver
-    end
+    assert_equal NameErrorTest, exc.receiver
   end
 
   def test_missing_method_should_ignore_missing_name

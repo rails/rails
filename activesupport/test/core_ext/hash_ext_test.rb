@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require_relative "../abstract_unit"
-require "active_support/core_ext/hash"
 require "bigdecimal"
+require "yaml"
+require "active_support/core_ext/hash"
 require "active_support/core_ext/string/access"
-require "active_support/ordered_hash"
 require "active_support/core_ext/object/conversions"
 require "active_support/core_ext/date/conversions"
 require "active_support/core_ext/object/deep_dup"
@@ -585,12 +585,16 @@ class HashToXmlTest < ActiveSupport::TestCase
   end
 
   def test_timezoned_attributes
-    xml = {
-      created_at: Time.utc(1999, 2, 2),
-      local_created_at: Time.utc(1999, 2, 2).in_time_zone("Eastern Time (US & Canada)")
-    }.to_xml(@xml_options)
-    assert_match %r{<created-at type="dateTime">1999-02-02T00:00:00Z</created-at>}, xml
-    assert_match %r{<local-created-at type="dateTime">1999-02-01T19:00:00-05:00</local-created-at>}, xml
+    # TODO: Remove assertion in Rails 7.1 and add ActiveSupport::TimeWithZone to XML type mapping
+    assert_deprecated("ActiveSupport::TimeWithZone.name has been deprecated") do
+      xml = {
+        created_at: Time.utc(1999, 2, 2),
+        local_created_at: Time.utc(1999, 2, 2).in_time_zone("Eastern Time (US & Canada)")
+      }.to_xml(@xml_options)
+
+      assert_match %r{<created-at type="dateTime">1999-02-02T00:00:00Z</created-at>}, xml
+      assert_match %r{<local-created-at type="dateTime">1999-02-01T19:00:00-05:00</local-created-at>}, xml
+    end
   end
 
   def test_multiple_records_from_xml_with_attributes_other_than_type_ignores_them_without_exploding

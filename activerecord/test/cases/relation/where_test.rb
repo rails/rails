@@ -33,6 +33,10 @@ module ActiveRecord
       assert_equal [authors(:bob)], Author.joins(:categories).where(categories: categories(:technology))
     end
 
+    def test_where_with_aliased_association
+      assert_equal [comments(:does_it_hurt)], Comment.where(entry: posts(:thinking))
+    end
+
     def test_type_cast_is_not_evaluated_at_relation_build_time
       posts = nil
 
@@ -420,6 +424,13 @@ module ActiveRecord
 
     def test_where_with_unsupported_arguments
       assert_raises(ArgumentError) { Author.where(42) }
+    end
+
+    def test_invert_where
+      author = authors(:david)
+      posts = author.posts.where.not(id: 1)
+
+      assert_equal 1, posts.invert_where.first.id
     end
   end
 end

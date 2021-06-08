@@ -1,25 +1,32 @@
 # frozen_string_literal: true
 
+require "active_model/validations/comparability"
 require "bigdecimal/util"
 
 module ActiveModel
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
-      CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,
-                 equal_to: :==, less_than: :<, less_than_or_equal_to: :<=,
-                 odd: :odd?, even: :even?, other_than: :!= }.freeze
+      include Comparability
 
-      RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
+      RANGE_CHECKS = { in: :in? }
+      NUMBER_CHECKS = { odd: :odd?, even: :even? }
+
+      RESERVED_OPTIONS = COMPARE_CHECKS.keys + NUMBER_CHECKS.keys + RANGE_CHECKS.keys + [:only_integer]
 
       INTEGER_REGEX = /\A[+-]?\d+\z/
 
       HEXADECIMAL_REGEX = /\A[+-]?0[xX]/
 
       def check_validity!
-        keys = CHECKS.keys - [:odd, :even]
-        options.slice(*keys).each do |option, value|
+        options.slice(*COMPARE_CHECKS.keys).each do |option, value|
           unless value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
             raise ArgumentError, ":#{option} must be a number, a symbol or a proc"
+          end
+        end
+
+        options.slice(*RANGE_CHECKS.keys).each do |option, value|
+          unless value.is_a?(Range)
+            raise ArgumentError, ":#{option} must be a range"
           end
         end
       end
@@ -37,23 +44,18 @@ module ActiveModel
 
         value = parse_as_number(value, precision, scale)
 
-        options.slice(*CHECKS.keys).each do |option, option_value|
-          case option
-          when :odd, :even
-            unless value.to_i.public_send(CHECKS[option])
+        options.slice(*RESERVED_OPTIONS).each do |option, option_value|
+          if NUMBER_CHECKS.include?(option)
+            unless value.to_i.public_send(NUMBER_CHECKS[option])
               record.errors.add(attr_name, option, **filtered_options(value))
             end
-          else
-            case option_value
-            when Proc
-              option_value = option_value.call(record)
-            when Symbol
-              option_value = record.send(option_value)
+          elsif RANGE_CHECKS.include?(option)
+            unless value.public_send(RANGE_CHECKS[option], option_value)
+              record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
-
-            option_value = parse_as_number(option_value, precision, scale)
-
-            unless value.public_send(CHECKS[option], option_value)
+          elsif COMPARE_CHECKS.include?(option)
+            option_value = option_as_number(record, option_value, precision, scale)
+            unless value.public_send(COMPARE_CHECKS[option], option_value)
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
           end
@@ -61,9 +63,15 @@ module ActiveModel
       end
 
     private
+      def option_as_number(record, option_value, precision, scale)
+        parse_as_number(option_value(record, option_value), precision, scale)
+      end
+
       def parse_as_number(raw_value, precision, scale)
         if raw_value.is_a?(Float)
           parse_float(raw_value, precision, scale)
+        elsif raw_value.is_a?(BigDecimal)
+          round(raw_value, scale)
         elsif raw_value.is_a?(Numeric)
           raw_value
         elsif is_integer?(raw_value)
@@ -74,7 +82,11 @@ module ActiveModel
       end
 
       def parse_float(raw_value, precision, scale)
-        (scale ? raw_value.truncate(scale) : raw_value).to_d(precision)
+        round(raw_value, scale).to_d(precision)
+      end
+
+      def round(raw_value, scale)
+        scale ? raw_value.round(scale) : raw_value
       end
 
       def is_number?(raw_value, precision, scale)
@@ -167,6 +179,7 @@ module ActiveModel
       #   supplied value.
       # * <tt>:odd</tt> - Specifies the value must be an odd number.
       # * <tt>:even</tt> - Specifies the value must be an even number.
+      # * <tt>:in</tt> - Check that the value is within a range.
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+ .

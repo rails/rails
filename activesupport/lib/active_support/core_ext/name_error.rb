@@ -53,13 +53,7 @@ class NameError
     UNBOUND_METHOD_MODULE_NAME = Module.instance_method(:name)
     private_constant :UNBOUND_METHOD_MODULE_NAME
 
-    if UnboundMethod.method_defined?(:bind_call)
-      def real_mod_name(mod)
-        UNBOUND_METHOD_MODULE_NAME.bind_call(mod)
-      end
-    else
-      def real_mod_name(mod)
-        UNBOUND_METHOD_MODULE_NAME.bind(mod).call
-      end
+    def real_mod_name(mod)
+      UNBOUND_METHOD_MODULE_NAME.bind_call(mod)
     end
 end

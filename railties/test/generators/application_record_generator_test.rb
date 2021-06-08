@@ -10,7 +10,7 @@ class ApplicationRecordGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "app/models/application_record.rb" do |record|
       assert_match(/class ApplicationRecord < ActiveRecord::Base/, record)
-      assert_match(/self\.abstract_class = true/, record)
+      assert_match(/primary_abstract_class/, record)
     end
   end
 end

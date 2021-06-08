@@ -23,7 +23,7 @@ module ActiveRecord
       def load(yaml)
         return object_class.new if object_class != Object && yaml.nil?
         return yaml unless yaml.is_a?(String) && yaml.start_with?("---")
-        obj = YAML.load(yaml)
+        obj = yaml_load(yaml)
 
         assert_valid_value(obj, action: "load")
         obj ||= object_class.new if object_class != Object
@@ -43,6 +43,16 @@ module ActiveRecord
           load(nil)
         rescue ArgumentError
           raise ArgumentError, "Cannot serialize #{object_class}. Classes passed to `serialize` must have a 0 argument constructor."
+        end
+
+        if YAML.respond_to?(:unsafe_load)
+          def yaml_load(payload)
+            YAML.unsafe_load(payload)
+          end
+        else
+          def yaml_load(payload)
+            YAML.load(payload)
+          end
         end
     end
   end

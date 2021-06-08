@@ -58,7 +58,7 @@ module ActionText
     end
 
     def render_attachments(**options, &block)
-      content = fragment.replace(ActionText::Attachment::SELECTOR) do |node|
+      content = fragment.replace(ActionText::Attachment.tag_name) do |node|
         block.call(attachment_for_node(node, **options))
       end
       self.class.new(content, canonicalize: false)
@@ -84,7 +84,11 @@ module ActionText
     end
 
     def to_rendered_html_with_layout
-      render partial: "action_text/content/layout", formats: :html, locals: { content: self }
+      render layout: "action_text/contents/content", partial: to_partial_path, formats: :html, locals: { content: self }
+    end
+
+    def to_partial_path
+      "action_text/contents/content"
     end
 
     def to_s
@@ -107,7 +111,7 @@ module ActionText
 
     private
       def attachment_nodes
-        @attachment_nodes ||= fragment.find_all(ActionText::Attachment::SELECTOR)
+        @attachment_nodes ||= fragment.find_all(ActionText::Attachment.tag_name)
       end
 
       def attachment_gallery_nodes

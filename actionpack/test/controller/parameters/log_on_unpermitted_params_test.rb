@@ -13,22 +13,21 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
   end
 
   test "logs on unexpected param" do
-    params = ActionController::Parameters.new(
-      book: { pages: 65 },
-      fishing: "Turnips")
+    request_params = { book: { pages: 65 }, fishing: "Turnips" }
+    context = { "action" => "my_action", "controller" => "my_controller" }
+    params = ActionController::Parameters.new(request_params, context)
 
-    assert_logged("Unpermitted parameter: :fishing") do
+    assert_logged("Unpermitted parameter: :fishing. Context: { action: my_action, controller: my_controller }") do
       params.permit(book: [:pages])
     end
   end
 
   test "logs on unexpected params" do
-    params = ActionController::Parameters.new(
-      book: { pages: 65 },
-      fishing: "Turnips",
-      car: "Mersedes")
+    request_params = { book: { pages: 65 }, fishing: "Turnips", car: "Mercedes" }
+    context = { "action" => "my_action", "controller" => "my_controller" }
+    params = ActionController::Parameters.new(request_params, context)
 
-    assert_logged("Unpermitted parameters: :fishing, :car") do
+    assert_logged("Unpermitted parameters: :fishing, :car. Context: { action: my_action, controller: my_controller }") do
       params.permit(book: [:pages])
     end
   end
@@ -37,7 +36,7 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(
       book: { pages: 65, title: "Green Cats and where to find then." })
 
-    assert_logged("Unpermitted parameter: :title") do
+    assert_logged("Unpermitted parameter: :title. Context: {  }") do
       params.permit(book: [:pages])
     end
   end
@@ -46,7 +45,7 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(
       book: { pages: 65, title: "Green Cats and where to find then.", author: "G. A. Dog" })
 
-    assert_logged("Unpermitted parameters: :title, :author") do
+    assert_logged("Unpermitted parameters: :title, :author. Context: {  }") do
       params.permit(book: [:pages])
     end
   end

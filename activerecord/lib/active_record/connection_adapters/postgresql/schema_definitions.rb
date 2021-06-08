@@ -177,7 +177,7 @@ module ActiveRecord
           define_column_methods :bigserial, :bit, :bit_varying, :cidr, :citext, :daterange,
             :hstore, :inet, :interval, :int4range, :int8range, :jsonb, :ltree, :macaddr,
             :money, :numrange, :oid, :point, :line, :lseg, :box, :path, :polygon, :circle,
-            :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml
+            :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml, :timestamptz
         end
       end
 
@@ -192,6 +192,10 @@ module ActiveRecord
         end
 
         private
+          def aliased_types(name, fallback)
+            fallback
+          end
+
           def integer_like_primary_key_type(type, options)
             if type == :bigint || options[:limit] == 8
               :bigserial

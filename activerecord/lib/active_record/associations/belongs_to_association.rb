@@ -9,8 +9,7 @@ module ActiveRecord
 
         case options[:dependent]
         when :destroy
-          target.destroy
-          raise ActiveRecord::Rollback unless target.destroyed?
+          raise ActiveRecord::Rollback unless target.destroy
         when :destroy_async
           id = owner.public_send(reflection.foreign_key.to_sym)
           primary_key_column = reflection.active_record_primary_key.to_sym
@@ -80,7 +79,7 @@ module ActiveRecord
             @updated = true
           end
 
-          replace_keys(record)
+          replace_keys(record, force: true)
 
           self.target = record
         end
@@ -108,8 +107,12 @@ module ActiveRecord
           reflection.counter_cache_column && owner.persisted?
         end
 
-        def replace_keys(record)
-          owner[reflection.foreign_key] = record ? record._read_attribute(primary_key(record.class)) : nil
+        def replace_keys(record, force: false)
+          target_key = record ? record._read_attribute(primary_key(record.class)) : nil
+
+          if force || owner._read_attribute(reflection.foreign_key) != target_key
+            owner[reflection.foreign_key] = target_key
+          end
         end
 
         def primary_key(klass)
@@ -122,7 +125,7 @@ module ActiveRecord
 
         def invertible_for?(record)
           inverse = inverse_reflection_for(record)
-          inverse && (inverse.has_one? || ActiveRecord::Base.has_many_inversing)
+          inverse && (inverse.has_one? || inverse.klass.has_many_inversing)
         end
 
         def stale_state

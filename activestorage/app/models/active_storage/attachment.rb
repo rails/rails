@@ -23,7 +23,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   def purge
     transaction do
       delete
-      record&.touch
+      record.touch if record&.persisted?
     end
     blob&.purge
   end
@@ -32,9 +32,22 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   def purge_later
     transaction do
       delete
-      record&.touch
+      record.touch if record&.persisted?
     end
     blob&.purge_later
+  end
+
+  def variant(transformations)
+    case transformations
+    when Symbol
+      variant_name = transformations
+      transformations = variants.fetch(variant_name) do
+        record_model_name = record.to_model.model_name.name
+        raise ArgumentError, "Cannot find variant :#{variant_name} for #{record_model_name}##{name}"
+      end
+    end
+
+    blob.variant(transformations)
   end
 
   private
@@ -52,6 +65,10 @@ class ActiveStorage::Attachment < ActiveStorage::Record
 
     def dependent
       record.attachment_reflections[name]&.options[:dependent]
+    end
+
+    def variants
+      record.attachment_reflections[name]&.variants
     end
 end
 

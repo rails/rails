@@ -104,6 +104,15 @@ module ActionDispatch
       end
 
       class Star < Unary # :nodoc:
+        attr_accessor :regexp
+
+        def initialize(left)
+          super(left)
+
+          # By default wildcard routes are non-greedy and must match something.
+          @regexp = /.+?/
+        end
+
         def star?; true; end
         def type; :STAR; end
 

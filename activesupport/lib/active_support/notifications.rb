@@ -178,7 +178,7 @@ module ActiveSupport
   #
   # Subscribers using a regexp or other pattern-matching object will remain subscribed
   # to all events that match their original pattern, unless those events match a string
-  # passed to `unsubscribe`:
+  # passed to +unsubscribe+:
   #
   #   subscriber = ActiveSupport::Notifications.subscribe(/render/) { }
   #   ActiveSupport::Notifications.unsubscribe('render_template.action_view')
@@ -196,6 +196,10 @@ module ActiveSupport
 
       def publish(name, *args)
         notifier.publish(name, *args)
+      end
+
+      def publish_event(event) # :nodoc;
+        notifier.publish_event(event)
       end
 
       def instrument(name, payload = {})
@@ -231,6 +235,12 @@ module ActiveSupport
       #   ActiveSupport::Notifications.subscribe(/render/) do |event|
       #     @event = event
       #   end
+      #
+      # Raises an error if invalid event name type is passed:
+      #
+      #  ActiveSupport::Notifications.subscribe(:render) {|*args| ...}
+      #  #=> ArgumentError (pattern must be specified as a String, Regexp or empty)
+      #
       def subscribe(pattern = nil, callback = nil, &block)
         notifier.subscribe(pattern, callback, monotonic: false, &block)
       end

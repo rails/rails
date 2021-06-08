@@ -22,6 +22,7 @@ ActiveRecord::Schema.define do
     t.datetime :modified_time, default: -> { "CURRENT_TIMESTAMP" }
     t.datetime :modified_time_function, default: -> { "now()" }
     t.datetime :fixed_time, default: "2004-01-01 00:00:00.000000-00"
+    t.timestamptz :fixed_time_with_time_zone, default: "2004-01-01 01:00:00+1"
     t.column :char1, "char(1)", default: "Y"
     t.string :char2, limit: 50, default: "a varchar field"
     t.text :char3, default: "a text field"
@@ -104,9 +105,25 @@ _SQL
     t.decimal :decimal_array_default, array: true, default: [1.23, 3.45]
   end
 
+  create_table :uuid_comments, force: true, id: false do |t|
+    t.uuid :uuid, primary_key: true, **uuid_default
+    t.string :content
+  end
+
+  create_table :uuid_entries, force: true, id: false do |t|
+    t.uuid :uuid, primary_key: true, **uuid_default
+    t.string :entryable_type, null: false
+    t.uuid :entryable_uuid, null: false
+  end
+
   create_table :uuid_items, force: true, id: false do |t|
     t.uuid :uuid, primary_key: true, **uuid_default
     t.string :title
+  end
+
+  create_table :uuid_messages, force: true, id: false do |t|
+    t.uuid :uuid, primary_key: true, **uuid_default
+    t.string :subject
   end
 
   if supports_partitioned_indexes?

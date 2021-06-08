@@ -238,37 +238,14 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     end
   end
 
-  def test_update_with_dirty_locking_column
-    person = Person.find(1)
-    person.first_name = "Douglas Adams"
-    person.lock_version = 42
-
-    changes = {
-      "first_name" => ["Michael", "Douglas Adams"],
-      "lock_version" => [0, 42],
-    }
-    assert_equal changes, person.changes
-
-    assert person.save!
-    assert_empty person.changes
-  end
-
   def test_explicit_update_lock_column_raise_error
     person = Person.find(1)
 
-    person2 = Person.find(1)
-    person2.lock_version = 42
-    person2.save!
-
     assert_raises(ActiveRecord::StaleObjectError) do
       person.first_name = "Douglas Adams"
-      person.lock_version = person2.lock_version
+      person.lock_version = 42
 
-      changes = {
-        "first_name" => ["Michael", "Douglas Adams"],
-        "lock_version" => [0, 43],
-      }
-      assert_equal changes, person.changes
+      assert_predicate person, :lock_version_changed?
 
       person.save
     end
@@ -363,6 +340,39 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "new title2", t2.title
   end
 
+  def test_update_with_lock_version_without_default_should_work_on_dirty_value_before_type_cast
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.lock_version = t1.lock_version
+
+    assert_equal 0, t1.lock_version
+    assert_equal 0, t1.lock_version_before_type_cast
+
+    assert_nothing_raised { t1.update!(title: "new title1") }
+    assert_equal 1, t1.lock_version
+    assert_equal "new title1", t1.title
+  end
+
+  def test_destroy_with_lock_version_without_default_should_work_on_dirty_value_before_type_cast
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.lock_version = t1.lock_version
+
+    assert_equal 0, t1.lock_version
+    assert_equal 0, t1.lock_version_before_type_cast
+
+    assert_nothing_raised { t1.destroy! }
+    assert_predicate t1, :destroyed?
+  end
+
   def test_lock_without_default_queries_count
     t1 = LockWithoutDefault.create(title: "title1")
 
@@ -455,7 +465,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   def test_quote_table_name
     ref = references(:michael_magician)
-    ref.favourite = !ref.favourite
+    ref.favorite = !ref.favorite
     assert ref.save
   end
 
@@ -540,7 +550,8 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   def test_yaml_dumping_with_lock_column
     t1 = LockWithoutDefault.new
-    t2 = YAML.load(YAML.dump(t1))
+    payload = YAML.dump(t1)
+    t2 = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
 
     assert_equal t1.attributes, t2.attributes
   end

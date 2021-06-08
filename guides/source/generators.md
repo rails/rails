@@ -361,14 +361,14 @@ escaped so that the generated output is valid ERB code.
 For example, the following escaped ERB tag would be needed in the template
 (note the extra `%`)...
 
-```ruby
-<%%= stylesheet_include_tag :application %>
+```erb
+<%%= stylesheet_link_tag :application %>
 ```
 
 ...to generate the following output:
 
-```ruby
-<%= stylesheet_include_tag :application %>
+```erb
+<%= stylesheet_link_tag :application %>
 ```
 
 Adding Generators Fallbacks
@@ -466,6 +466,7 @@ Whilst the final section of this guide doesn't cover how to generate the most aw
 
 Adding Command Line Arguments
 -----------------------------
+
 Rails generators can be easily modified to accept custom command line arguments. This functionality comes from [Thor](https://www.rubydoc.info/github/erikhuda/thor/master/Thor/Base/ClassMethods#class_option-instance_method):
 
 ```ruby
@@ -679,7 +680,6 @@ Runs the specified generator where the first argument is the generator name and 
 ```ruby
 generate "scaffold", "forums title:string description:text"
 ```
-
 
 ### `rake`
 

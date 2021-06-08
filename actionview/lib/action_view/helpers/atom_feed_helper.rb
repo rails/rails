@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "set"
-require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActionView
   # = Action View Atom Feed Helpers

@@ -4,6 +4,9 @@ require "cases/helper"
 require "models/entry"
 require "models/message"
 require "models/comment"
+require "models/uuid_entry"
+require "models/uuid_message"
+require "models/uuid_comment"
 
 class DelegatedTypeTest < ActiveRecord::TestCase
   fixtures :comments
@@ -11,6 +14,11 @@ class DelegatedTypeTest < ActiveRecord::TestCase
   setup do
     @entry_with_message = Entry.create! entryable: Message.new(subject: "Hello world!")
     @entry_with_comment = Entry.create! entryable: comments(:greetings)
+
+    if current_adapter?(:PostgreSQLAdapter)
+      @uuid_entry_with_message = UuidEntry.create! uuid: SecureRandom.uuid, entryable: UuidMessage.new(uuid: SecureRandom.uuid, subject: "Hello world!")
+      @uuid_entry_with_comment = UuidEntry.create! uuid: SecureRandom.uuid, entryable: UuidComment.new(uuid: SecureRandom.uuid, content: "comment")
+    end
   end
 
   test "delegated class" do
@@ -53,5 +61,15 @@ class DelegatedTypeTest < ActiveRecord::TestCase
 
     assert_equal @entry_with_comment.entryable_id, @entry_with_comment.comment_id
     assert_nil @entry_with_comment.message_id
+  end
+
+  test "association uuid" do
+    skip unless current_adapter?(:PostgreSQLAdapter)
+
+    assert_equal @uuid_entry_with_message.entryable_uuid, @uuid_entry_with_message.uuid_message_uuid
+    assert_nil @uuid_entry_with_message.uuid_comment_uuid
+
+    assert_equal @uuid_entry_with_comment.entryable_uuid, @uuid_entry_with_comment.uuid_comment_uuid
+    assert_nil @uuid_entry_with_comment.uuid_message_uuid
   end
 end

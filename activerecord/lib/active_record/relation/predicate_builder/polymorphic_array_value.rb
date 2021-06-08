@@ -9,11 +9,13 @@ module ActiveRecord
       end
 
       def queries
+        return [ associated_table.join_foreign_key => values ] if values.empty?
+
         type_to_ids_mapping.map do |type, ids|
-          {
-            associated_table.join_foreign_type => type,
-            associated_table.join_foreign_key => ids
-          }
+          query = {}
+          query[associated_table.join_foreign_type] = type if type
+          query[associated_table.join_foreign_key] = ids
+          query
         end
       end
 
@@ -23,7 +25,7 @@ module ActiveRecord
         def type_to_ids_mapping
           default_hash = Hash.new { |hsh, key| hsh[key] = [] }
           values.each_with_object(default_hash) do |value, hash|
-            hash[klass(value).polymorphic_name] << convert_to_id(value)
+            hash[klass(value)&.polymorphic_name] << convert_to_id(value)
           end
         end
 
@@ -46,6 +48,8 @@ module ActiveRecord
             value._read_attribute(primary_key(value))
           when Relation
             value.select(primary_key(value))
+          else
+            value
           end
         end
     end

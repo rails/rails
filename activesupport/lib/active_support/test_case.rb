@@ -75,7 +75,7 @@ module ActiveSupport
         workers = Concurrent.physical_processor_count if workers == :number_of_processors
         workers = ENV["PARALLEL_WORKERS"].to_i if ENV["PARALLEL_WORKERS"]
 
-        return if workers <= 1
+        return if workers <= 1 || ActiveSupport.test_parallelization_disabled
 
         executor = case with
                    when :processes

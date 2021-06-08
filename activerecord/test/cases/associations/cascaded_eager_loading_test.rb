@@ -22,7 +22,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
-    assert_equal 10, authors[0].posts.collect { |post| post.comments.size }.inject(0) { |sum, i| sum + i }
+    assert_equal 11, authors[0].posts.collect { |post| post.comments.size }.inject(0) { |sum, i| sum + i }
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_and_one_level
@@ -30,7 +30,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
-    assert_equal 10, authors[0].posts.collect { |post| post.comments.size }.inject(0) { |sum, i| sum + i }
+    assert_equal 11, authors[0].posts.collect { |post| post.comments.size }.inject(0) { |sum, i| sum + i }
     assert_equal 1, authors[0].categorizations.size
     assert_equal 2, authors[1].categorizations.size
   end
@@ -38,7 +38,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   def test_eager_association_loading_with_hmt_does_not_table_name_collide_when_joining_associations
     authors = Author.joins(:posts).eager_load(:comments).where(posts: { tags_count: 1 }).order(:id).to_a
     assert_equal 3, assert_queries(0) { authors.size }
-    assert_equal 10, assert_queries(0) { authors[0].comments.size }
+    assert_equal 11, assert_queries(0) { authors[0].comments.size }
   end
 
   def test_eager_association_loading_grafts_stashed_associations_to_correct_parent
@@ -82,7 +82,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
-    assert_equal 10, authors[0].posts.collect { |post| post.comments.size }.inject(0) { |sum, i| sum + i }
+    assert_equal 11, authors[0].posts.collect { |post| post.comments.size }.inject(0) { |sum, i| sum + i }
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_and_self_table_reference
@@ -101,7 +101,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_cascaded_three_levels_by_ping_pong
     firms = Firm.all.merge!(includes: { account: { firm: :account } }, order: "companies.id").to_a
-    assert_equal 2, firms.size
+    assert_equal 3, firms.size
     assert_equal firms.first.account, firms.first.account.firm.account
     assert_equal companies(:first_firm).account, assert_queries(0) { firms.first.account.firm.account }
     assert_equal companies(:first_firm).account.firm.account, assert_queries(0) { firms.first.account.firm.account }
@@ -184,7 +184,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     authors_relation = Author.all.merge!(includes: [:comments, { posts: :categorizations }], order: "authors.id")
     authors = authors_relation.to_a
     assert_equal 3, authors.size
-    assert_equal 10, authors[0].comments.size
+    assert_equal 11, authors[0].comments.size
     assert_equal 1, authors[1].comments.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size

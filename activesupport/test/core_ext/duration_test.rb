@@ -113,11 +113,11 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "3600 seconds",                    (1.day / 24).inspect
   end
 
-  def test_inspect_locale
+  def test_inspect_ignores_locale
     current_locale = I18n.default_locale
     I18n.default_locale = :de
     I18n.backend.store_translations(:de, support: { array: { last_word_connector: " und " } })
-    assert_equal "10 years, 1 month und 1 day", (10.years + 1.month + 1.day).inspect
+    assert_equal "10 years, 1 month, and 1 day", (10.years + 1.month + 1.day).inspect
   ensure
     I18n.default_locale = current_locale
   end
@@ -318,7 +318,7 @@ class DurationTest < ActiveSupport::TestCase
     Time.zone = nil
   end
 
-  def test_before_and_afer
+  def test_before_and_after
     t = Time.local(2000)
     assert_equal t + 1, 1.second.after(t)
     assert_equal t - 1, 1.second.before(t)
@@ -625,6 +625,7 @@ class DurationTest < ActiveSupport::TestCase
       ["P1Y1M1DT1H",    1.year + 1.month + 1.day + 1.hour],
       ["PT0S",          0.minutes                        ],
       ["PT-0.2S",       (-0.2).seconds                   ],
+      ["PT1000000S",    1_000_000.seconds                ],
     ]
     expectations.each do |expected_output, duration|
       assert_equal expected_output, duration.iso8601, expected_output.inspect
@@ -713,7 +714,8 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_durations_survive_yaml_serialization
-    d1 = YAML.load(YAML.dump(10.minutes))
+    payload = YAML.dump(10.minutes)
+    d1 = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
     assert_equal 600, d1.to_i
     assert_equal 660, (d1 + 60).to_i
   end
@@ -732,6 +734,22 @@ class DurationTest < ActiveSupport::TestCase
     end
 
     assert_equal "can't build an ActiveSupport::Duration from a NilClass", error.message
+  end
+
+  def test_variable
+    assert_not 12.seconds.variable?
+    assert_not 12.minutes.variable?
+    assert_not 12.hours.variable?
+
+    assert 12.days.variable?
+    assert 12.weeks.variable?
+    assert 12.months.variable?
+    assert 12.years.variable?
+
+    assert_not (12.hours + 12.minutes).variable?
+
+    assert (12.hours + 1.day).variable?
+    assert (1.day + 12.hours).variable?
   end
 
   private

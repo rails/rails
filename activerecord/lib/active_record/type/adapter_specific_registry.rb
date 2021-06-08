@@ -5,15 +5,40 @@ require "active_model/type/registry"
 module ActiveRecord
   # :stopdoc:
   module Type
-    class AdapterSpecificRegistry < ActiveModel::Type::Registry
+    class AdapterSpecificRegistry # :nodoc:
+      def initialize
+        @registrations = []
+      end
+
+      def initialize_copy(other)
+        @registrations = @registrations.dup
+        super
+      end
+
       def add_modifier(options, klass, **args)
         registrations << DecorationRegistration.new(options, klass, **args)
       end
 
-      private
-        def registration_klass
-          Registration
+      def register(type_name, klass = nil, **options, &block)
+        unless block_given?
+          block = proc { |_, *args| klass.new(*args) }
+          block.ruby2_keywords if block.respond_to?(:ruby2_keywords)
         end
+        registrations << Registration.new(type_name, block, **options)
+      end
+
+      def lookup(symbol, *args, **kwargs)
+        registration = find_registration(symbol, *args, **kwargs)
+
+        if registration
+          registration.call(self, symbol, *args, **kwargs)
+        else
+          raise ArgumentError, "Unknown type #{symbol.inspect}"
+        end
+      end
+
+      private
+        attr_reader :registrations
 
         def find_registration(symbol, *args, **kwargs)
           registrations
@@ -22,7 +47,7 @@ module ActiveRecord
         end
     end
 
-    class Registration
+    class Registration # :nodoc:
       def initialize(name, block, adapter: nil, override: nil)
         @name = name
         @block = block
@@ -89,7 +114,7 @@ module ActiveRecord
         end
     end
 
-    class DecorationRegistration < Registration
+    class DecorationRegistration < Registration # :nodoc:
       def initialize(options, klass, adapter: nil)
         @options = options
         @klass = klass
@@ -120,7 +145,7 @@ module ActiveRecord
     end
   end
 
-  class TypeConflictError < StandardError
+  class TypeConflictError < StandardError # :nodoc:
   end
   # :startdoc:
 end

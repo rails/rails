@@ -16,6 +16,9 @@ module ActionView
         # Do not escape templates of these mime types.
         class_attribute :escape_ignore_list, default: ["text/plain"]
 
+        # Strip trailing newlines from rendered output
+        class_attribute :strip_trailing_newlines, default: false
+
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
 
         def self.call(template, source)
@@ -44,6 +47,9 @@ module ActionView
 
           # Always make sure we return a String in the default_internal
           erb.encode!
+
+          # Strip trailing newlines from the template if enabled
+          erb.chomp! if strip_trailing_newlines
 
           options = {
             escape: (self.class.escape_ignore_list.include? template.type),

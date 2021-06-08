@@ -2,6 +2,7 @@
 
 require "active_support/callbacks"
 require "active_support/core_ext/enumerable"
+require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
@@ -162,6 +163,11 @@ module ActiveSupport
           singleton_class.delegate name, to: :instance
 
           send(name, *args, &block)
+        end
+        ruby2_keywords(:method_missing)
+
+        def respond_to_missing?(name, _)
+          super || instance.respond_to?(name)
         end
     end
 

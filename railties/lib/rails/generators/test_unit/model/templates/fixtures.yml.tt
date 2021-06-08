@@ -4,7 +4,7 @@
 <%= name %>:
 <% attributes.each do |attribute| -%>
   <%- if attribute.password_digest? -%>
-  password_digest: <%%= BCrypt::Password.create('secret') %>
+  password_digest: <%%= BCrypt::Password.create("secret") %>
   <%- elsif attribute.reference? -%>
   <%= yaml_key_value(attribute.column_name.delete_suffix("_id"), attribute.default || name) %>
   <%- elsif !attribute.virtual? -%>
@@ -18,7 +18,7 @@
 <% else -%>
 
 # This model initially had no columns defined. If you add columns to the
-# model remove the '{}' from the fixture names and add the columns immediately
+# model remove the "{}" from the fixture names and add the columns immediately
 # below each fixture, per the syntax in the comments below
 #
 one: {}

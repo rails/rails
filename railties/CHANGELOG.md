@@ -1,3 +1,53 @@
+*   Raise an error in generators if a field type is invalid.
+
+    *Petrik de Heus*
+
+*   `bin/rails tmp:clear` deletes also files and directories in `tmp/storage`.
+
+    *George Claghorn*
+
+*   Fix compatibility with `psych >= 4`.
+
+    Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
+    `Rails.application.config_for` now uses `YAML.unsafe_load` if available.
+
+    *Jean Boussier*
+
+*   Allow loading nested locales in engines.
+
+    *Gannon McGibbon*
+
+*   Ensure `Rails.application.config_for` always cast hashes to `ActiveSupport::OrderedOptions`.
+
+    *Jean Boussier*
+
+*   Remove Rack::Runtime from the default middleware stack and deprecate
+    referencing it in middleware operations without adding it back
+
+    *Hartley McGuire*
+
+*   Allow adding additional authorized hosts in development via `ENV['RAILS_DEVELOPMENT_HOSTS']`
+
+    *Josh Abernathy*, *Debbie Milburn*
+
+*   Add app concern and test keepfiles to generated engine plugins.
+
+    *Gannon McGibbon*
+
+*   Stop generating a license for in-app plugins.
+
+    *Gannon McGibbon*
+
+*   `rails app:update` no longer prompts you to overwrite files that are generally modified in the
+    course of developing a Rails app. See [#41083](https://github.com/rails/rails/pull/41083) for
+    the full list of changes.
+
+    *Alex Ghiculescu*
+
+*   Change default branch for new Rails projects and plugins to `main`.
+
+    *Prateek Choudhary*
+
 *   Add benchmark method that can be called from anywhere.
 
     This method is used as a quick way to measure & log the speed of some code.

@@ -6,7 +6,6 @@ require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/module/remove_method"
 require "active_support/core_ext/array/extract_options"
 require "action_controller/metal/exceptions"
-require "action_dispatch/http/request"
 require "action_dispatch/routing/endpoint"
 
 module ActionDispatch
@@ -597,14 +596,14 @@ module ActionDispatch
         if route.segment_keys.include?(:controller)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 6.2.
+            will be removed in Rails 7.0.
           MSG
         end
 
         if route.segment_keys.include?(:action)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 6.2.
+            will be removed in Rails 7.0.
           MSG
         end
 

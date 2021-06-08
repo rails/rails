@@ -23,7 +23,30 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
     end
   end
 
+  test "URL generation without ActiveStorage::Current.host set" do
+    ActiveStorage::Current.host = nil
+
+    error = assert_raises ArgumentError do
+      @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
+    end
+
+    assert_equal("Cannot generate URL for avatar.png using Disk service, please set ActiveStorage::Current.host.", error.message)
+  end
+
   test "headers_for_direct_upload generation" do
     assert_equal({ "Content-Type" => "application/json" }, @service.headers_for_direct_upload(@key, content_type: "application/json"))
+  end
+
+  test "root" do
+    assert_equal tmp_config.dig(:tmp, :root), @service.root
+  end
+
+  test "can change root" do
+    tmp_path_2 = File.join(Dir.tmpdir, "active_storage_2")
+    @service.root = tmp_path_2
+
+    assert_equal tmp_path_2, @service.root
+  ensure
+    @service.root = tmp_config.dig(:tmp, :root)
   end
 end

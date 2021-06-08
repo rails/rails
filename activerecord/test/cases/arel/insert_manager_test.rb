@@ -4,12 +4,6 @@ require_relative "helper"
 
 module Arel
   class InsertManagerTest < Arel::Spec
-    describe "new" do
-      it "takes an engine" do
-        Arel::InsertManager.new
-      end
-    end
-
     describe "insert" do
       it "can create a ValuesList node" do
         manager = Arel::InsertManager.new

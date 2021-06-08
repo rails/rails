@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/enumerable"
-
 require "date"
+
 module FakeRecord
   class Column < Struct.new(:name, :type)
   end
@@ -11,7 +11,7 @@ module FakeRecord
     attr_reader :tables
     attr_accessor :visitor
 
-    def initialize(visitor = nil)
+    def initialize
       @tables = %w{ users photos developers products}
       @columns = {
         "users" => [
@@ -33,7 +33,7 @@ module FakeRecord
         "users" => "id",
         "products" => "id"
       }
-      @visitor = visitor
+      @visitor = Arel::Visitors::ToSql.new(self)
     end
 
     def columns_hash(table_name)
@@ -89,15 +89,10 @@ module FakeRecord
   end
 
   class ConnectionPool
-    class Spec < Struct.new(:config)
-    end
-
-    attr_reader :spec, :connection
+    attr_reader :connection
 
     def initialize
-      @spec = Spec.new(adapter: "america")
       @connection = Connection.new
-      @connection.visitor = Arel::Visitors::ToSql.new(connection)
     end
 
     def with_connection

@@ -424,14 +424,6 @@ module ActiveRecord
       end
     end
 
-    def test_marshal_load_legacy_relation
-      path = File.expand_path(
-        "support/marshal_compatibility_fixtures/legacy_relation.dump",
-        TEST_ROOT
-      )
-      assert_equal 11, Marshal.load(File.read(path)).size
-    end
-
     test "no queries on empty IN" do
       assert_queries(0) do
         Post.where(id: []).load

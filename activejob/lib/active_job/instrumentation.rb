@@ -8,21 +8,28 @@ module ActiveJob
       around_enqueue do |_, block|
         scheduled_at ? instrument(:enqueue_at, &block) : instrument(:enqueue, &block)
       end
+    end
 
-      around_perform do |_, block|
-        instrument :perform_start
-        instrument :perform, &block
-      end
+    def perform_now
+      instrument(:perform) { super }
     end
 
     private
+      def _perform_job
+        instrument(:perform_start)
+        super
+      end
+
       def instrument(operation, payload = {}, &block)
         enhanced_block = ->(event_payload) do
-          block.call if block
+          value = block.call if block
+
           if defined?(@_halted_callback_hook_called) && @_halted_callback_hook_called
             event_payload[:aborted] = true
             @_halted_callback_hook_called = nil
           end
+
+          value
         end
 
         ActiveSupport::Notifications.instrument \

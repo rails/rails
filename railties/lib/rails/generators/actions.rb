@@ -268,14 +268,25 @@ module Rails
       #   route "root 'admin#index'", namespace: :admin
       def route(routing_code, namespace: nil)
         routing_code = Array(namespace).reverse.reduce(routing_code) do |code, ns|
-          "namespace :#{ns} do\n#{indent(code, 2)}\nend"
+          "namespace :#{ns} do\n#{optimize_indentation(code, 2)}end"
         end
 
         log :route, routing_code
-        sentinel = /\.routes\.draw do\s*\n/m
+
+        after_pattern = Array(namespace).each_with_index.reverse_each.reduce(nil) do |pattern, (ns, i)|
+          margin = "\\#{i + 1}[ ]{2}"
+          "(?:(?:^[ ]*\n|^#{margin}.*\n)*?^(#{margin})namespace :#{ns} do\n#{pattern})?"
+        end.then do |pattern|
+          /^([ ]*).+\.routes\.draw do[ ]*\n#{pattern}/
+        end
 
         in_root do
-          inject_into_file "config/routes.rb", optimize_indentation(routing_code, 2), after: sentinel, verbose: false, force: false
+          if existing = match_file("config/routes.rb", after_pattern)
+            base_indent, *, prev_indent = existing.captures.compact.map(&:length)
+            routing_code = optimize_indentation(routing_code, base_indent + 2).lines.grep_v(/^[ ]{,#{prev_indent}}\S/).join
+          end
+
+          inject_into_file "config/routes.rb", routing_code, after: after_pattern, verbose: false, force: false
         end
       end
 
@@ -323,8 +334,7 @@ module Rails
           end
         end
 
-        # Surround string with single quotes if there is no quotes.
-        # Otherwise fall back to double quotes
+        # Always returns value in double quotes.
         def quote(value) # :doc:
           if value.respond_to? :each_pair
             return value.map do |k, v|
@@ -333,11 +343,7 @@ module Rails
           end
           return value.inspect unless value.is_a? String
 
-          if value.include?("'")
-            value.inspect
-          else
-            "'#{value}'"
-          end
+          "\"#{value.tr("'", '"')}\""
         end
 
         # Returns optimized string with indentation
@@ -364,6 +370,10 @@ module Rails
           gsub_file path, /\n?\z/, options do |match|
             match.end_with?("\n") ? "" : "\n#{str}\n"
           end
+        end
+
+        def match_file(path, pattern)
+          File.read(path).match(pattern) if File.exist?(path)
         end
     end
   end

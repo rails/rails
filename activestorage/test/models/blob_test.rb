@@ -245,10 +245,25 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "purge doesn't raise when blob is not persisted" do
+    build_blob_after_unfurling.tap do |blob|
+      assert_nothing_raised { blob.purge }
+      assert blob.destroyed?
+    end
+  end
+
   test "uses service from blob when provided" do
     with_service("mirror") do
       blob = create_blob(filename: "funky.jpg", service_name: :local)
       assert_instance_of ActiveStorage::Service::DiskService, blob.service
+    end
+  end
+
+  test "doesn't create a valid blob if service setting is nil" do
+    with_service(nil) do
+      assert_raises(ActiveRecord::RecordInvalid) do
+        create_blob(filename: "funky.jpg")
+      end
     end
   end
 

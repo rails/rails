@@ -140,8 +140,39 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-  def test_camelize_with_lower_downcases_the_first_letter
+  def test_camelize_with_true_upcases_the_first_letter
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("Capital", true))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", true))
+  end
+
+  def test_camelize_with_upper_upcases_the_first_letter
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("Capital", :upper))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", :upper))
+  end
+
+  def test_camelize_with_false_downcases_the_first_letter
     assert_equal("capital", ActiveSupport::Inflector.camelize("Capital", false))
+    assert_equal("capital", ActiveSupport::Inflector.camelize("capital", false))
+  end
+
+  def test_camelize_with_nil_downcases_the_first_letter
+    assert_equal("capital", ActiveSupport::Inflector.camelize("Capital", nil))
+    assert_equal("capital", ActiveSupport::Inflector.camelize("capital", nil))
+  end
+
+  def test_camelize_with_lower_downcases_the_first_letter
+    assert_equal("capital", ActiveSupport::Inflector.camelize("Capital", :lower))
+    assert_equal("capital", ActiveSupport::Inflector.camelize("capital", :lower))
+  end
+
+  def test_camelize_with_any_other_arg_upcases_the_first_letter
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", :true))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("Capital", :true))
+
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", :false))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", :foo))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", 42))
+    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital"))
   end
 
   def test_camelize_with_underscores

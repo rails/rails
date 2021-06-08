@@ -21,7 +21,7 @@ module CacheStoreCoderBehavior
     end
   end
 
-  def test_coder_recieve_the_entry_on_write
+  def test_coder_receive_the_entry_on_write
     coder = SpyCoder.new
     @store = lookup_store(coder: coder)
     @store.write("foo", "bar")
@@ -31,7 +31,7 @@ module CacheStoreCoderBehavior
     assert_equal "bar", entry.value
   end
 
-  def test_coder_recieve_the_entry_on_read
+  def test_coder_receive_the_entry_on_read
     coder = SpyCoder.new
     @store = lookup_store(coder: coder)
     @store.write("foo", "bar")
@@ -42,7 +42,7 @@ module CacheStoreCoderBehavior
     assert_equal "bar", entry.value
   end
 
-  def test_coder_recieve_the_entry_on_read_multi
+  def test_coder_receive_the_entry_on_read_multi
     coder = SpyCoder.new
     @store = lookup_store(coder: coder)
     @store.write_multi({ "foo" => "bar", "egg" => "spam" })
@@ -57,7 +57,7 @@ module CacheStoreCoderBehavior
     assert_equal "spam", entry.value
   end
 
-  def test_coder_recieve_the_entry_on_write_multi
+  def test_coder_receive_the_entry_on_write_multi
     coder = SpyCoder.new
     @store = lookup_store(coder: coder)
     @store.write_multi({ "foo" => "bar", "egg" => "spam" })
@@ -71,7 +71,7 @@ module CacheStoreCoderBehavior
     assert_equal "spam", entry.value
   end
 
-  def test_coder_does_not_recieve_the_entry_on_read_miss
+  def test_coder_does_not_receive_the_entry_on_read_miss
     coder = SpyCoder.new
     @store = lookup_store(coder: coder)
     @store.read("foo")

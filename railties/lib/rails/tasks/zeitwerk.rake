@@ -54,11 +54,11 @@ namespace :zeitwerk do
     end
 
     require "active_support/core_ext/object/try"
-    eager_load_paths = Rails.configuration.eager_load_namespaces.map do |eln|
+    eager_load_paths = Rails.configuration.eager_load_namespaces.filter_map do |eln|
       # Quick regression fix for 6.0.3 to support namespaces that do not have
       # eager load paths, like the recently added i18n. I'll rewrite this task.
       eln.try(:config).try(:eager_load_paths)
-    end.compact.flatten
+    end.flatten
 
     not_checked = ActiveSupport::Dependencies.autoload_paths - eager_load_paths
     not_checked.select! { |dir| Dir.exist?(dir) }

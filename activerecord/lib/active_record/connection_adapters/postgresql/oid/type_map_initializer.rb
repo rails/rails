@@ -33,15 +33,27 @@ module ActiveRecord
             composites.each { |row| register_composite_type(row) }
           end
 
-          def query_conditions_for_initial_load
+          def query_conditions_for_known_type_names
             known_type_names = @store.keys.map { |n| "'#{n}'" }
-            known_type_types = %w('r' 'e' 'd')
-            <<~SQL % [known_type_names.join(", "), known_type_types.join(", ")]
+            <<~SQL % known_type_names.join(", ")
               WHERE
                 t.typname IN (%s)
-                OR t.typtype IN (%s)
-                OR t.typinput = 'array_in(cstring,oid,integer)'::regprocedure
-                OR t.typelem != 0
+            SQL
+          end
+
+          def query_conditions_for_known_type_types
+            known_type_types = %w('r' 'e' 'd')
+            <<~SQL % known_type_types.join(", ")
+              WHERE
+                t.typtype IN (%s)
+            SQL
+          end
+
+          def query_conditions_for_array_types
+            known_type_oids = @store.keys.reject { |k| k.is_a?(String) }
+            <<~SQL % [known_type_oids.join(", ")]
+              WHERE
+                t.typelem IN (%s)
             SQL
           end
 

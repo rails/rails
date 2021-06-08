@@ -134,7 +134,7 @@ def update
   if @book.update(book_params)
     redirect_to(@book)
   else
-    render :edit
+    render :edit, status: :unprocessable_entity
   end
 end
 ```
@@ -590,15 +590,19 @@ In this application:
 Similar to the Layout Inheritance logic, if a template or partial is not found in the conventional path, the controller will look for a template or partial to render in its inheritance chain. For example:
 
 ```ruby
-# in app/controllers/application_controller
+# app/controllers/application_controller.rb
 class ApplicationController < ActionController::Base
 end
+```
 
-# in app/controllers/admin_controller
+```ruby
+# app/controllers/admin_controller.rb
 class AdminController < ApplicationController
 end
+```
 
-# in app/controllers/admin/products_controller
+```ruby
+# app/controllers/admin/products_controller.rb
 class Admin::ProductsController < AdminController
   def index
   end
@@ -911,7 +915,7 @@ To include `http://example.com/main.css`:
 <%= stylesheet_link_tag "http://example.com/main.css" %>
 ```
 
-By default, the `stylesheet_link_tag` creates links with `media="screen" rel="stylesheet"`. You can override any of these defaults by specifying an appropriate option (`:media`, `:rel`):
+By default, the `stylesheet_link_tag` creates links with `rel="stylesheet"`. You can override this default by specifying an appropriate option (`:rel`):
 
 ```erb
 <%= stylesheet_link_tag "main_print", media: "print" %>
@@ -1013,7 +1017,7 @@ You can supply a path to the audio file if you like:
 <%= audio_tag "music/first_song.mp3" %>
 ```
 
-You can also supply a hash of additional options, such as `:id`, `:class` etc.
+You can also supply a hash of additional options, such as `:id`, `:class`, etc.
 
 Like the `video_tag`, the `audio_tag` has special options:
 
@@ -1075,7 +1079,7 @@ The result of rendering this page into the supplied layout would be this HTML:
 </html>
 ```
 
-The `content_for` method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting tags that load page-specific JavaScript or css files into the header of an otherwise generic layout.
+The `content_for` method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting tags that load page-specific JavaScript or CSS files into the header of an otherwise generic layout.
 
 ### Using Partials
 
@@ -1085,13 +1089,13 @@ Partial templates - usually just called "partials" - are another device for brea
 
 To render a partial as part of a view, you use the [`render`][view.render] method within the view:
 
-```ruby
+```html+erb
 <%= render "menu" %>
 ```
 
 This will render a file named `_menu.html.erb` at that point within the view being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
 
-```ruby
+```html+erb
 <%= render "shared/menu" %>
 ```
 
@@ -1209,27 +1213,27 @@ To pass a local variable to a partial in only specific cases use the `local_assi
 
 * `index.html.erb`
 
-  ```erb
-  <%= render user.articles %>
-  ```
+    ```erb
+    <%= render user.articles %>
+    ```
 
 * `show.html.erb`
 
-  ```erb
-  <%= render article, full: true %>
-  ```
+    ```erb
+    <%= render article, full: true %>
+    ```
 
 * `_article.html.erb`
 
-  ```erb
-  <h2><%= article.title %></h2>
+    ```erb
+    <h2><%= article.title %></h2>
 
-  <% if local_assigns[:full] %>
-    <%= simple_format article.body %>
-  <% else %>
-    <%= truncate article.body %>
-  <% end %>
-  ```
+    <% if local_assigns[:full] %>
+      <%= simple_format article.body %>
+    <% else %>
+      <%= truncate article.body %>
+    <% end %>
+    ```
 
 This way it is possible to use the partial without the need to declare all local variables.
 

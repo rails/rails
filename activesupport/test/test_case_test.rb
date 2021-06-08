@@ -286,6 +286,37 @@ class AssertionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_no_changes_with_from_option
+    assert_no_changes "@object.num", from: 0 do
+      # ...
+    end
+  end
+
+  def test_assert_no_changes_with_from_option_with_wrong_value
+    assert_raises Minitest::Assertion do
+      assert_no_changes "@object.num", from: -1 do
+        # ...
+      end
+    end
+  end
+
+  def test_assert_no_changes_with_from_option_with_nil
+    error = assert_raises Minitest::Assertion do
+      assert_no_changes "@object.num", from: nil do
+        @object.increment
+      end
+    end
+    assert_equal "Expected initial value of nil", error.message
+  end
+
+  def test_assert_no_changes_with_from_and_case_operator
+    token = SecureRandom.hex
+
+    assert_no_changes -> { token }, from: /\w{32}/ do
+      # ...
+    end
+  end
+
   def test_assert_no_changes_with_message
     error = assert_raises Minitest::Assertion do
       assert_no_changes "@object.num", "@object.num should not change" do
@@ -325,9 +356,9 @@ class SetupAndTeardownTest < ActiveSupport::TestCase
   teardown :foo, :sentinel
 
   def test_inherited_setup_callbacks
-    assert_equal [:reset_callback_record, :foo], self.class._setup_callbacks.map(&:raw_filter)
+    assert_equal [:reset_callback_record, :foo], self.class._setup_callbacks.map(&:filter)
     assert_equal [:foo], @called_back
-    assert_equal [:foo, :sentinel], self.class._teardown_callbacks.map(&:raw_filter)
+    assert_equal [:foo, :sentinel], self.class._teardown_callbacks.map(&:filter)
   end
 
   def setup
@@ -355,9 +386,9 @@ class SubclassSetupAndTeardownTest < SetupAndTeardownTest
   teardown :bar
 
   def test_inherited_setup_callbacks
-    assert_equal [:reset_callback_record, :foo, :bar], self.class._setup_callbacks.map(&:raw_filter)
+    assert_equal [:reset_callback_record, :foo, :bar], self.class._setup_callbacks.map(&:filter)
     assert_equal [:foo, :bar], @called_back
-    assert_equal [:foo, :sentinel, :bar], self.class._teardown_callbacks.map(&:raw_filter)
+    assert_equal [:foo, :sentinel, :bar], self.class._teardown_callbacks.map(&:filter)
   end
 
   private

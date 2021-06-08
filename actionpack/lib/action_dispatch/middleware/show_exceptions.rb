@@ -46,7 +46,9 @@ module ActionDispatch
         status  = wrapper.status_code
         request.set_header "action_dispatch.exception", wrapper.unwrapped_exception
         request.set_header "action_dispatch.original_path", request.path_info
+        request.set_header "action_dispatch.original_request_method", request.raw_request_method
         request.path_info = "/#{status}"
+        request.request_method = "GET"
         response = @exceptions_app.call(request.env)
         response[1]["X-Cascade"] == "pass" ? pass_response(status) : response
       rescue Exception => failsafe_error

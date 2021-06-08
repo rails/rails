@@ -244,6 +244,18 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal "clients", get(URI("http://clients.example.org/"))
   end
 
+  def test_format_symbol_constraints
+    rs.draw do
+      get "/api", constraints: { format: :json },
+                 to: lambda { |env| [200, {}, %w{json}] }
+      get "/api", constraints: { format: :xml },
+                 to: lambda { |env| [200, {}, %w{xml}] }
+    end
+
+    assert_equal "json", get(URI("http://www.example.org/api.json"))
+    assert_equal "xml", get(URI("http://clients.example.org/api.xml"))
+  end
+
   def test_lambda_constraints
     rs.draw do
       get "/", constraints: lambda { |req|

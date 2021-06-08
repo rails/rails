@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Inbound email handling framework."
   s.description = "Receive and process incoming emails in Rails applications."
 
-  s.required_ruby_version = ">= 2.5.0"
+  s.required_ruby_version = ">= 2.7.0"
 
   s.license  = "MIT"
 

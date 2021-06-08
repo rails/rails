@@ -242,14 +242,14 @@ module ActionController
       end
     end
 
-    # Performs parameters wrapping upon the request. Called automatically
-    # by the metal call stack.
-    def process_action(*)
-      _perform_parameter_wrapping if _wrapper_enabled?
-      super
-    end
-
     private
+      # Performs parameters wrapping upon the request. Called automatically
+      # by the metal call stack.
+      def process_action(*)
+        _perform_parameter_wrapping if _wrapper_enabled?
+        super
+      end
+
       # Returns the wrapper key which will be used to store wrapped parameters.
       def _wrapper_key
         _wrapper_options.name
@@ -281,7 +281,10 @@ module ActionController
         return false unless request.has_content_type?
 
         ref = request.content_mime_type.ref
+
         _wrapper_formats.include?(ref) && _wrapper_key && !request.parameters.key?(_wrapper_key)
+      rescue ActionDispatch::Http::Parameters::ParseError
+        false
       end
 
       def _perform_parameter_wrapping
@@ -295,8 +298,6 @@ module ActionController
 
         # This will display the wrapped hash in the log file.
         request.filtered_parameters.merge! wrapped_filtered_hash
-      rescue ActionDispatch::Http::Parameters::ParseError
-        # swallow parse error exception
       end
   end
 end

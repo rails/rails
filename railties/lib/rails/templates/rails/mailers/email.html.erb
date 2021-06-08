@@ -97,15 +97,17 @@
     <% end %>
 
     <dt>Format:</dt>
-    <% if @email.multipart? %>
+    <% if @email.html_part && @email.text_part %>
       <dd>
         <select id="part" onchange="refreshBody(false);">
           <option <%= request.format == Mime[:html] ? 'selected' : '' %> value="<%= part_query('text/html') %>">View as HTML email</option>
           <option <%= request.format == Mime[:text] ? 'selected' : '' %> value="<%= part_query('text/plain') %>">View as plain-text email</option>
         </select>
       </dd>
+    <% elsif @part %>
+      <dd id="mime_type" data-mime-type="<%= part_query(@part.mime_type) %>"><%= @part.mime_type == 'text/html' ? 'HTML email' : 'plain-text email' %></dd>
     <% else %>
-      <dd id="mime_type" data-mime-type="<%= part_query(@email.mime_type) %>"><%= @email.mime_type == 'text/html' ? 'HTML email' : 'plain-text email' %></dd>
+      <dd id="mime_type" data-mime-type=""></dd>
     <% end %>
 
     <% if I18n.available_locales.count > 1 %>

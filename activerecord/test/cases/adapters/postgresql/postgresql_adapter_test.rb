@@ -254,35 +254,33 @@ module ActiveRecord
         end
       end
 
-      if ActiveRecord::Base.connection.prepared_statements
-        def test_exec_with_binds
-          with_example_table do
-            string = @connection.quote("foo")
-            @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
+      def test_exec_with_binds
+        with_example_table do
+          string = @connection.quote("foo")
+          @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-            bind = Relation::QueryAttribute.new("id", 1, Type::Value.new)
-            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
+          bind = Relation::QueryAttribute.new("id", 1, Type::Value.new)
+          result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
 
-            assert_equal 1, result.rows.length
-            assert_equal 2, result.columns.length
+          assert_equal 1, result.rows.length
+          assert_equal 2, result.columns.length
 
-            assert_equal [[1, "foo"]], result.rows
-          end
+          assert_equal [[1, "foo"]], result.rows
         end
+      end
 
-        def test_exec_typecasts_bind_vals
-          with_example_table do
-            string = @connection.quote("foo")
-            @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
+      def test_exec_typecasts_bind_vals
+        with_example_table do
+          string = @connection.quote("foo")
+          @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-            bind = Relation::QueryAttribute.new("id", "1-fuu", Type::Integer.new)
-            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
+          bind = Relation::QueryAttribute.new("id", "1-fuu", Type::Integer.new)
+          result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
 
-            assert_equal 1, result.rows.length
-            assert_equal 2, result.columns.length
+          assert_equal 1, result.rows.length
+          assert_equal 2, result.columns.length
 
-            assert_equal [[1, "foo"]], result.rows
-          end
+          assert_equal [[1, "foo"]], result.rows
         end
       end
 

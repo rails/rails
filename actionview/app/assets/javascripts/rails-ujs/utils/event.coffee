@@ -54,7 +54,7 @@ Rails.stopEverything = (e) ->
 # element::
 #   parent element that will listen for events e.g. document
 # selector::
-#   css selector; or an object that has `selector` and `exclude` properties (see: Rails.matches)
+#   CSS selector; or an object that has `selector` and `exclude` properties (see: Rails.matches)
 # eventType::
 #   string representing the event e.g. 'submit', 'click'
 # handler::

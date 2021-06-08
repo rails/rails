@@ -162,7 +162,7 @@ module ActiveRecord
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>'Money'</tt>
       # <tt>has_many :clients</tt> returns <tt>'Client'</tt>
       def class_name
-        @class_name ||= -(options[:class_name]&.to_s || derive_class_name)
+        @class_name ||= -(options[:class_name] || derive_class_name).to_s
       end
 
       # Returns a list of scopes that should be applied for this Reflection
@@ -306,6 +306,12 @@ module ActiveRecord
         def primary_key(klass)
           klass.primary_key || raise(UnknownPrimaryKey.new(klass))
         end
+
+        def ensure_option_not_given_as_class!(option_name)
+          if options[option_name] && options[option_name].class == Class
+            raise ArgumentError, "A class was passed to `:#{option_name}` but we are expecting a string."
+          end
+        end
     end
 
     # Base class for AggregateReflection and AssociationReflection. Objects of
@@ -406,7 +412,24 @@ module ActiveRecord
         if polymorphic?
           raise ArgumentError, "Polymorphic associations do not support computing the class."
         end
-        active_record.send(:compute_type, name)
+
+        msg = <<-MSG.squish
+          Rails couldn't find a valid model for #{name} association.
+          Please provide the :class_name option on the association declaration.
+          If :class_name is already provided make sure is an ActiveRecord::Base subclass.
+        MSG
+
+        begin
+          klass = active_record.send(:compute_type, name)
+
+          unless klass < ActiveRecord::Base
+            raise ArgumentError, msg
+          end
+
+          klass
+        rescue NameError
+          raise NameError, msg
+        end
       end
 
       attr_reader :type, :foreign_type
@@ -417,9 +440,7 @@ module ActiveRecord
         @type = -(options[:foreign_type]&.to_s || "#{options[:as]}_type") if options[:as]
         @foreign_type = -(options[:foreign_type]&.to_s || "#{name}_type") if options[:polymorphic]
 
-        if options[:class_name] && options[:class_name].class == Class
-          raise ArgumentError, "A class was passed to `:class_name` but we are expecting a string."
-        end
+        ensure_option_not_given_as_class!(:class_name)
       end
 
       def association_scope_cache(klass, owner, &block)
@@ -644,7 +665,7 @@ module ActiveRecord
           elsif options[:as]
             "#{options[:as]}_id"
           else
-            active_record.name.foreign_key
+            active_record.model_name.to_s.foreign_key
           end
         end
 
@@ -739,6 +760,8 @@ module ActiveRecord
         @delegate_reflection = delegate_reflection
         @klass = delegate_reflection.options[:anonymous_class]
         @source_reflection_name = delegate_reflection.options[:source]
+
+        ensure_option_not_given_as_class!(:source_type)
       end
 
       def through_reflection?

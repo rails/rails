@@ -211,6 +211,24 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     @policy.require_sri_for
     assert_no_match %r{require-sri-for}, @policy.build
 
+    @policy.require_trusted_types_for :script
+    assert_match %r{require-trusted-types-for 'script'}, @policy.build
+
+    @policy.require_trusted_types_for
+    assert_no_match %r{require-trusted-types-for}, @policy.build
+
+    @policy.trusted_types :none
+    assert_match %r{trusted-types 'none'}, @policy.build
+
+    @policy.trusted_types "foo", "bar"
+    assert_match %r{trusted-types foo bar}, @policy.build
+
+    @policy.trusted_types "foo", "bar", :allow_duplicates
+    assert_match %r{trusted-types foo bar 'allow-duplicates'}, @policy.build
+
+    @policy.trusted_types
+    assert_no_match %r{trusted-types}, @policy.build
+
     @policy.upgrade_insecure_requests
     assert_match %r{upgrade-insecure-requests}, @policy.build
 

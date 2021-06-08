@@ -442,6 +442,19 @@ module ActiveRecord
       end
     end
 
+    def test_create_with_query_cache
+      @connection.enable_query_cache!
+
+      count = Post.count
+
+      @connection.create("INSERT INTO posts(title, body) VALUES ('', '')")
+
+      assert_equal count + 1, Post.count
+    ensure
+      reset_fixtures("posts")
+      @connection.disable_query_cache!
+    end
+
     def test_truncate
       assert_operator Post.count, :>, 0
 

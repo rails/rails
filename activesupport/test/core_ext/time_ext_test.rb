@@ -919,6 +919,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_at_with_in_option
+    assert_equal Time.new(1970, 1, 1, 0, 42, 17, "-08:00"), Time.at(31337, in: -28800)
+  end
+
   def test_at_with_time_with_zone_returns_local_time
     with_env_tz "US/Eastern" do
       twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["London"])

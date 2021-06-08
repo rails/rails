@@ -63,6 +63,13 @@ class FilterAttributesTest < ActiveRecord::TestCase
     assert_includes account.inspect, 'name: "slangis73"'
   end
 
+  test "proc filter_attributes don't prevent marshal dump" do
+    ActiveRecord::Base.filter_attributes = [ lambda { |key, value| value.reverse! if key == "name" } ]
+    account = Admin::Account.new(id: 123, name: "37signals")
+    account.inspect
+    assert_equal account, Marshal.load(Marshal.dump(account))
+  end
+
   test "filter_attributes could be overwritten by models" do
     Admin::Account.all.each do |account|
       assert_includes account.inspect, "name: [FILTERED]"
@@ -110,11 +117,7 @@ class FilterAttributesTest < ActiveRecord::TestCase
     actual = "".dup
     PP.pp(user, StringIO.new(actual))
 
-    if RUBY_VERSION >= "2.7"
-      assert_includes actual, 'name: "[FILTERED]"'
-    else
-      assert_includes actual, "name: [FILTERED]"
-    end
+    assert_includes actual, 'name: "[FILTERED]"'
     assert_equal 1, actual.scan("[FILTERED]").length
   end
 
@@ -134,11 +137,7 @@ class FilterAttributesTest < ActiveRecord::TestCase
     actual = "".dup
     PP.pp(user, StringIO.new(actual))
 
-    if RUBY_VERSION >= "2.7"
-      assert_includes actual, 'auth_token: "[FILTERED]"'
-    else
-      assert_includes actual, "auth_token: [FILTERED]"
-    end
+    assert_includes actual, 'auth_token: "[FILTERED]"'
     assert_includes actual, 'token: "[FILTERED]"'
   ensure
     User.remove_instance_variable(:@filter_attributes)

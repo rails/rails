@@ -68,8 +68,8 @@ module ActiveSupport
   # return the original value. But messages can be set to expire at a given
   # time with +:expires_in+ or +:expires_at+.
   #
-  #   @verifier.generate(parcel, expires_in: 1.month)
-  #   @verifier.generate(doowad, expires_at: Time.now.end_of_year)
+  #   @verifier.generate("parcel", expires_in: 1.month)
+  #   @verifier.generate("doowad", expires_at: Time.now.end_of_year)
   #
   # Then the messages can be verified and returned up to the expire time.
   # Thereafter, the +verified+ method returns +nil+ while +verify+ raises
@@ -78,8 +78,8 @@ module ActiveSupport
   # === Rotating keys
   #
   # MessageVerifier also supports rotating out old configurations by falling
-  # back to a stack of verifiers. Call +rotate+ to build and add a verifier to
-  # so either +verified+ or +verify+ will also try verifying with the fallback.
+  # back to a stack of verifiers. Call +rotate+ to build and add a verifier so
+  # either +verified+ or +verify+ will also try verifying with the fallback.
   #
   # By default any rotated verifiers use the values of the primary
   # verifier unless specified otherwise.

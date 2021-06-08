@@ -195,4 +195,27 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   test "includes a middleware" do
     assert_equal true, @stack.include?(ActionDispatch::MiddlewareStack::Middleware.new(BarMiddleware, nil, nil))
   end
+
+  test "referencing Rack::Runtime is deprecated" do
+    @stack.use ActionDispatch::MiddlewareStack::FakeRuntime
+
+    assert_deprecated(/Rack::Runtime is removed/) do
+      @stack.insert_after(Rack::Runtime, BazMiddleware)
+    end
+  end
+
+  test "referencing Rack::Runtime is not deprecated if added" do
+    assert_not_deprecated do
+      @stack.use Rack::Runtime
+      @stack.insert_before(Rack::Runtime, BazMiddleware)
+    end
+  end
+
+  test "referencing FakeRuntime throws an error" do
+    @stack.use ActionDispatch::MiddlewareStack::FakeRuntime
+
+    assert_raises RuntimeError do
+      @stack.insert_after ActionDispatch::MiddlewareStack::FakeRuntime, BazMiddleware
+    end
+  end
 end

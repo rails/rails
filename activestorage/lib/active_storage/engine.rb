@@ -143,5 +143,19 @@ module ActiveStorage
         ActiveRecord::Reflection.singleton_class.prepend(Reflection::ReflectionExtension)
       end
     end
+
+    initializer "active_storage.fixture_set" do
+      ActiveSupport.on_load(:active_record_fixture_set) do
+        ActiveStorage::FixtureSet.file_fixture_path ||= Rails.root.join(*[
+          ENV.fetch("FIXTURES_PATH") { File.join("test", "fixtures") },
+          ENV["FIXTURES_DIR"],
+          "files"
+        ].compact_blank)
+      end
+
+      ActiveSupport.on_load(:active_support_test_case) do
+        ActiveStorage::FixtureSet.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
+      end
+    end
   end
 end

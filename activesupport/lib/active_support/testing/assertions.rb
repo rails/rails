@@ -207,16 +207,30 @@ module ActiveSupport
       #     post :create, params: { status: { ok: true } }
       #   end
       #
+      # Provide the optional keyword argument :from to specify the expected
+      # initial value.
+      #
+      #   assert_no_changes -> { Status.all_good? }, from: true do
+      #     post :create, params: { status: { ok: true } }
+      #   end
+      #
       # An error message can be specified.
       #
       #   assert_no_changes -> { Status.all_good? }, 'Expected the status to be good' do
       #     post :create, params: { status: { ok: false } }
       #   end
-      def assert_no_changes(expression, message = nil, &block)
+      def assert_no_changes(expression, message = nil, from: UNTRACKED, &block)
         exp = expression.respond_to?(:call) ? expression : -> { eval(expression.to_s, block.binding) }
 
         before = exp.call
         retval = assert_nothing_raised(&block)
+
+        unless from == UNTRACKED
+          error = "Expected initial value of #{from.inspect}"
+          error = "#{message}.\n#{error}" if message
+          assert from === before, error
+        end
+
         after = exp.call
 
         error = "#{expression.inspect} changed"

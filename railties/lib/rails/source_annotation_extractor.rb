@@ -72,7 +72,7 @@ module Rails
     #
     # See <tt>#find_in</tt> for a list of file extensions that will be taken into account.
     #
-    # This class method is the single entry point for the `rails notes` command.
+    # This class method is the single entry point for the <tt>rails notes</tt> command.
     def self.enumerate(tag = nil, options = {})
       tag ||= Annotation.tags.join("|")
       extractor = new(tag)

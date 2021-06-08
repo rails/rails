@@ -63,11 +63,7 @@ module Rails
         numbered_destination = File.join(dir, ["%migration_number%", base].join("_"))
 
         file = create_migration numbered_destination, nil, config do
-          if ERB.instance_method(:initialize).parameters.assoc(:key) # Ruby 2.6+
-            ERB.new(::File.binread(source), trim_mode: "-", eoutvar: "@output_buffer").result(context)
-          else
-            ERB.new(::File.binread(source), nil, "-", "@output_buffer").result(context)
-          end
+          ERB.new(::File.binread(source), trim_mode: "-", eoutvar: "@output_buffer").result(context)
         end
         Rails::Generators.add_generated_file(file)
       end

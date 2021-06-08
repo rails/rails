@@ -537,20 +537,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, person_with_reader_and_post.size
   end
 
-  def test_no_arguments_to_query_methods_raise_errors
-    assert_raises(ArgumentError) { Topic.references() }
-    assert_raises(ArgumentError) { Topic.includes() }
-    assert_raises(ArgumentError) { Topic.preload() }
-    assert_raises(ArgumentError) { Topic.group() }
-    assert_raises(ArgumentError) { Topic.reorder() }
-    assert_raises(ArgumentError) { Topic.order() }
-    assert_raises(ArgumentError) { Topic.eager_load() }
-    assert_raises(ArgumentError) { Topic.reselect() }
-    assert_raises(ArgumentError) { Topic.unscope() }
-    assert_raises(ArgumentError) { Topic.joins() }
-    assert_raises(ArgumentError) { Topic.left_joins() }
-    assert_raises(ArgumentError) { Topic.optimizer_hints() }
-    assert_raises(ArgumentError) { Topic.annotate() }
+  %w( references includes preload eager_load group order reorder reselect unscope
+      joins left_joins left_outer_joins optimizer_hints annotate ).each do |method|
+    class_eval <<~RUBY
+      def test_no_arguments_to_#{method}_raise_errors
+        error = assert_raises(ArgumentError) { Topic.#{method}() }
+        assert_equal "The method .#{method}() must contain arguments.", error.message
+      end
+    RUBY
   end
 
   def test_blank_like_arguments_to_query_methods_dont_raise_errors
@@ -989,14 +983,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal first.heading, topic.heading
   end
 
-  def test_select_argument_error
-    assert_raises(ArgumentError) { Developer.select }
-  end
-
-  def test_select_argument_error_with_block
-    assert_raises(ArgumentError) { Developer.select(:id) { |d| d.id % 2 == 0 } }
-  end
-
   def test_count
     posts = Post.all
 
@@ -1276,6 +1262,34 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal author, comment.author
     assert_equal post, comment.post
+  end
+
+  def test_new_with_array
+    green_birds = Bird.where(color: "green").new([{ name: "parrot" }, { name: "canary" }])
+    assert_equal ["parrot", "canary"], green_birds.map(&:name)
+    assert_equal ["green", "green"], green_birds.map(&:color)
+    green_birds.each { |bird| assert_not_predicate bird, :persisted? }
+  end
+
+  def test_build_with_array
+    green_birds = Bird.where(color: "green").build([{ name: "parrot" }, { name: "canary" }])
+    assert_equal ["parrot", "canary"], green_birds.map(&:name)
+    assert_equal ["green", "green"], green_birds.map(&:color)
+    green_birds.each { |bird| assert_not_predicate bird, :persisted? }
+  end
+
+  def test_create_with_array
+    green_birds = Bird.where(color: "green").create([{ name: "parrot" }, { name: "canary" }])
+    assert_equal ["parrot", "canary"], green_birds.map(&:name)
+    assert_equal ["green", "green"], green_birds.map(&:color)
+    green_birds.each { |bird| assert_predicate bird, :persisted? }
+  end
+
+  def test_create_bang_with_array
+    green_birds = Bird.where(color: "green").create!([{ name: "parrot" }, { name: "canary" }])
+    assert_equal ["parrot", "canary"], green_birds.map(&:name)
+    assert_equal ["green", "green"], green_birds.map(&:color)
+    green_birds.each { |bird| assert_predicate bird, :persisted? }
   end
 
   def test_first_or_create
@@ -1775,7 +1789,7 @@ class RelationTest < ActiveRecord::TestCase
     sql_log = capture_sql do
       message = <<~MSG.squish
         `.reorder(nil)` with `.first` / `.first!` no longer
-        takes non-deterministic result in Rails 6.2.
+        takes non-deterministic result in Rails 7.0.
         To continue taking non-deterministic result, use `.take` / `.take!` instead.
       MSG
       assert_deprecated(message) do
@@ -2216,7 +2230,7 @@ class RelationTest < ActiveRecord::TestCase
     mary = authors(:mary)
 
     authors = Author.where(name: ["David", "Mary"].to_set)
-    assert_equal [david, mary], authors
+    assert_equal [david, mary], authors.order(:id)
   end
 
   test "#where with empty set" do

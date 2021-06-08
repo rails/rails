@@ -115,4 +115,16 @@ class SubscriberTest < ActiveSupport::TestCase
 
     assert_equal [], TestSubscriber.events
   end
+
+  def test_supports_publish_event
+    TestSubscriber.attach_to :doodle
+
+    original_event = ActiveSupport::Notifications::Event.new("open_party.doodle", Time.at(0), Time.at(10), "id", { foo: "bar" })
+
+    ActiveSupport::Notifications.publish_event(original_event)
+
+    assert_equal original_event, TestSubscriber.events.first
+  ensure
+    TestSubscriber.detach_from :doodle
+  end
 end

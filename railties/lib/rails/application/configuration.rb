@@ -2,7 +2,6 @@
 
 require "ipaddr"
 require "active_support/core_ext/kernel/reporting"
-require "active_support/core_ext/symbol/starts_ends_with"
 require "active_support/file_update_checker"
 require "active_support/configuration_file"
 require "rails/engine/configuration"
@@ -24,7 +23,7 @@ module Rails
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
                     :rake_eager_load
 
-      attr_reader :encoding, :api_only, :loaded_config_version, :autoloader
+      attr_reader :encoding, :api_only, :loaded_config_version
 
       def initialize(*)
         super
@@ -35,6 +34,7 @@ module Rails
         @filter_redirect                         = []
         @helpers_paths                           = []
         @hosts                                   = Array(([".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")] if Rails.env.development?))
+        @hosts.concat(ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)) if Rails.env.development?
         @host_authorization                      = {}
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
@@ -70,7 +70,6 @@ module Rails
         @credentials                             = ActiveSupport::OrderedOptions.new
         @credentials.content_path                = default_credentials_content_path
         @credentials.key_path                    = default_credentials_key_path
-        @autoloader                              = :classic
         @disable_sandbox                         = false
         @add_autoload_paths_to_load_path         = true
         @permissions_policy                      = nil
@@ -116,7 +115,7 @@ module Rails
 
           if respond_to?(:active_support)
             active_support.use_authenticated_message_encryption = true
-            active_support.hash_digest_class = ::Digest::SHA1
+            active_support.hash_digest_class = OpenSSL::Digest::SHA1
           end
 
           if respond_to?(:action_controller)
@@ -128,8 +127,6 @@ module Rails
           end
         when "6.0"
           load_defaults "5.2"
-
-          self.autoloader = :zeitwerk if RUBY_ENGINE == "ruby"
 
           if respond_to?(:action_view)
             action_view.default_enforce_utf8 = false
@@ -156,15 +153,9 @@ module Rails
         when "6.1"
           load_defaults "6.0"
 
-          self.autoloader = :zeitwerk if %w[ruby truffleruby].include?(RUBY_ENGINE)
-
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
             active_record.legacy_connection_handling = false
-          end
-
-          if respond_to?(:active_storage)
-            active_storage.track_variants = true
           end
 
           if respond_to?(:active_job)
@@ -183,9 +174,12 @@ module Rails
 
           if respond_to?(:action_view)
             action_view.form_with_generates_remote_forms = false
+            action_view.preload_links_header = true
           end
 
           if respond_to?(:active_storage)
+            active_storage.track_variants = true
+
             active_storage.queues.analysis = nil
             active_storage.queues.purge = nil
           end
@@ -200,8 +194,32 @@ module Rails
           end
 
           ActiveSupport.utc_to_local_returns_utc_offset_times = true
-        when "6.2"
+        when "7.0"
           load_defaults "6.1"
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.return_only_request_media_type_on_content_type = false
+          end
+
+          if respond_to?(:action_controller)
+            action_controller.silence_disabled_session_errors = false
+          end
+
+          if respond_to?(:action_view)
+            action_view.button_to_generates_button_tag = true
+            action_view.apply_stylesheet_media_default = false
+          end
+
+          if respond_to?(:active_support)
+            active_support.hash_digest_class = OpenSSL::Digest::SHA256
+            active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
+            active_support.remove_deprecated_time_with_zone_name = true
+            active_support.cache_format_version = 7.0
+          end
+
+          if respond_to?(:action_mailer)
+            action_mailer.smtp_timeout = 5
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -257,10 +275,13 @@ module Rails
         if path = paths["config/database"].existent.first
           require "rails/application/dummy_erb_compiler"
 
-          yaml = Pathname.new(path)
-          erb = DummyERB.new(yaml.read)
+          yaml = DummyERB.new(Pathname.new(path).read).result
 
-          YAML.load(erb.result) || {}
+          if YAML.respond_to?(:unsafe_load)
+            YAML.unsafe_load(yaml) || {}
+          else
+            YAML.load(yaml) || {}
+          end
         else
           {}
         end
@@ -350,18 +371,6 @@ module Rails
           @permissions_policy = ActionDispatch::PermissionsPolicy.new(&block)
         else
           @permissions_policy
-        end
-      end
-
-      def autoloader=(autoloader)
-        case autoloader
-        when :classic
-          @autoloader = autoloader
-        when :zeitwerk
-          require "zeitwerk"
-          @autoloader = autoloader
-        else
-          raise ArgumentError, "config.autoloader may be :classic or :zeitwerk, got #{autoloader.inspect} instead"
         end
       end
 

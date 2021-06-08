@@ -57,6 +57,17 @@ module ActionController #:nodoc:
   module RequestForgeryProtection
     extend ActiveSupport::Concern
 
+    class DisabledSessionError < StandardError
+      MESSAGE = <<~EOS.squish
+        Request forgery protection requires a working session store but your application has sessions disabled.
+        You need to either disable request forgery protection, or configure a working session store.
+      EOS
+
+      def initialize(message = MESSAGE)
+        super
+      end
+    end
+
     include AbstractController::Helpers
     include AbstractController::Callbacks
 
@@ -89,6 +100,11 @@ module ActionController #:nodoc:
       # Controls whether forgery protection is enabled by default.
       config_accessor :default_protect_from_forgery
       self.default_protect_from_forgery = false
+
+      # Controls whether trying to use forgery protection without a working session store
+      # issues a warning or raises an error.
+      config_accessor :silence_disabled_session_errors
+      self.silence_disabled_session_errors = true
 
       # Controls whether URL-safe CSRF tokens are generated.
       config_accessor :urlsafe_csrf_tokens, instance_writer: false
@@ -182,6 +198,10 @@ module ActionController #:nodoc:
 
             def exists?
               true
+            end
+
+            def enabled?
+              false
             end
           end
 
@@ -303,15 +323,15 @@ module ActionController #:nodoc:
         [form_authenticity_param, request.x_csrf_token]
       end
 
-      # Sets the token value for the current session.
-      def form_authenticity_token(form_options: {})
+      # Creates the authenticity token for the current request.
+      def form_authenticity_token(form_options: {}) # :doc:
         masked_authenticity_token(session, form_options: form_options)
       end
 
       # Creates a masked version of the authenticity token that varies
       # on each request. The masking is used to mitigate SSL attacks
       # like BREACH.
-      def masked_authenticity_token(session, form_options: {}) # :doc:
+      def masked_authenticity_token(session, form_options: {})
         action, method = form_options.values_at(:action, :method)
 
         raw_token = if per_form_csrf_tokens && action && method
@@ -438,7 +458,20 @@ module ActionController #:nodoc:
 
       # Checks if the controller allows forgery protection.
       def protect_against_forgery? # :doc:
-        allow_forgery_protection
+        allow_forgery_protection && ensure_session_is_enabled!
+      end
+
+      def ensure_session_is_enabled!
+        if !session.respond_to?(:enabled?) || session.enabled?
+          true
+        else
+          if silence_disabled_session_errors
+            ActiveSupport::Deprecation.warn(DisabledSessionError::MESSAGE)
+            false
+          else
+            raise DisabledSessionError
+          end
+        end
       end
 
       NULL_ORIGIN_MESSAGE = <<~MSG
@@ -469,7 +502,7 @@ module ActionController #:nodoc:
 
       def generate_csrf_token # :nodoc:
         if urlsafe_csrf_tokens
-          SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH, padding: false)
+          SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH)
         else
           SecureRandom.base64(AUTHENTICITY_TOKEN_LENGTH)
         end

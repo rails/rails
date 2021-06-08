@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/class/subclasses"
+require "active_support/testing/assertions"
 
 module ActiveJob
   # Provides helper methods for testing Active Job
@@ -8,6 +9,8 @@ module ActiveJob
     delegate :enqueued_jobs, :enqueued_jobs=,
       :performed_jobs, :performed_jobs=,
       to: :queue_adapter
+
+    include ActiveSupport::Testing::Assertions
 
     module TestQueueAdapter
       extend ActiveSupport::Concern

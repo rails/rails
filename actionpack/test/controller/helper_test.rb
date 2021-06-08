@@ -88,11 +88,7 @@ class HelpersTypoControllerTest < ActiveSupport::TestCase
   def test_helper_typo_error_message
     e = assert_raise(NameError) { HelpersTypoController.helper "admin/users" }
     # This message is better if autoloading.
-    if RUBY_VERSION >= "2.6"
-      assert_equal "uninitialized constant Admin::UsersHelper\nDid you mean?  Admin::UsersHelpeR", e.message
-    else
-      assert_equal "uninitialized constant Admin::UsersHelper", e.message
-    end
+    assert_equal "uninitialized constant Admin::UsersHelper\nDid you mean?  Admin::UsersHelpeR", e.message
   end
 end
 

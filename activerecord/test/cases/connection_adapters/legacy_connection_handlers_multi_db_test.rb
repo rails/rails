@@ -13,7 +13,9 @@ module ActiveRecord
       def setup
         @old_value = ActiveRecord::Base.legacy_connection_handling
         ActiveRecord::Base.legacy_connection_handling = true
-        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+        assert_deprecated do
+          ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+        end
 
         @handlers = { writing: ConnectionHandler.new, reading: ConnectionHandler.new }
         @rw_handler = @handlers[:writing]
@@ -224,23 +226,6 @@ module ActiveRecord
           ENV["RAILS_ENV"] = previous_env
         end
 
-        def test_switching_connections_with_database_and_role_raises
-          error = assert_raises(ArgumentError) do
-            assert_deprecated do
-              ActiveRecord::Base.connected_to(database: :readonly, role: :writing) { }
-            end
-          end
-          assert_equal "`connected_to` cannot accept a `database` argument with any other arguments.", error.message
-        end
-
-        def test_database_argument_is_deprecated
-          assert_deprecated do
-            ActiveRecord::Base.connected_to(database: { writing: { adapter: "sqlite3", database: "test/db/primary.sqlite3" } }) { }
-          end
-        ensure
-          ActiveRecord::Base.establish_connection(:arunit)
-        end
-
         def test_switching_connections_without_database_and_role_raises
           error = assert_raises(ArgumentError) do
             ActiveRecord::Base.connected_to { }
@@ -396,7 +381,9 @@ module ActiveRecord
       end
 
       def test_connection_handlers_are_per_thread_and_not_per_fiber
-        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler, reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new }
+        assert_deprecated do
+          ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler, reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new }
+        end
 
         reading_handler = ActiveRecord::Base.connection_handlers[:reading]
 
@@ -409,7 +396,9 @@ module ActiveRecord
       end
 
       def test_connection_handlers_swapping_connections_in_fiber
-        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler, reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new }
+        assert_deprecated do
+          ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler, reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new }
+        end
 
         reading_handler = ActiveRecord::Base.connection_handlers[:reading]
 

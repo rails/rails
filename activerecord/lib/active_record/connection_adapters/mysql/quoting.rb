@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/time_with_zone"
+
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
@@ -69,10 +71,23 @@ module ActiveRecord
         private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
 
         private
+          # Override +_type_cast+ we pass to mysql2 Date and Time objects instead
+          # of Strings since mysql2 is able to handle those classes more efficiently.
           def _type_cast(value)
             case value
-            when Date, Time then value
-            else super
+            when ActiveSupport::TimeWithZone
+              # We need to check explicitly for ActiveSupport::TimeWithZone because
+              # we need to transform it to Time objects but we don't want to
+              # transform Time objects to themselves.
+              if ActiveRecord::Base.default_timezone == :utc
+                value.getutc
+              else
+                value.getlocal
+              end
+            when Date, Time
+              value
+            else
+              super
             end
           end
       end

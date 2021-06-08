@@ -65,8 +65,8 @@ one per tab/device open to your connection).
 
 ### Pub/Sub
 
-[Pub/Sub](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern), or
-Publish-Subscribe, refers to a message queue paradigm whereby senders of
+[Pub/Sub](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) or
+Publish-Subscribe refers to a message queue paradigm whereby senders of
 information (publishers), send data to an abstract class of recipients
 (subscribers), without specifying individual recipients. Action Cable uses this
 approach to communicate between the server and many clients.
@@ -83,14 +83,14 @@ Each channel can be streaming zero or more broadcastings.
 
 For every WebSocket accepted by the server, a connection object is instantiated. This
 object becomes the parent of all the *channel subscriptions* that are created
-from there on. The connection itself does not deal with any specific application
+from thereon. The connection itself does not deal with any specific application
 logic beyond authentication and authorization. The client of a WebSocket
 connection is called the connection *consumer*. An individual user will create
 one consumer-connection pair per browser tab, window, or device they have open.
 
 Connections are instances of `ApplicationCable::Connection`, which extends
 [`ActionCable::Connection::Base`][]. In `ApplicationCable::Connection`, you
-authorize the incoming connection, and proceed to establish it if the user can
+authorize the incoming connection and proceed to establish it if the user can
 be identified.
 
 #### Connection Setup
@@ -188,7 +188,9 @@ Then you would create your own channel classes. For example, you could have a
 # app/channels/chat_channel.rb
 class ChatChannel < ApplicationCable::Channel
 end
+```
 
+```ruby
 # app/channels/appearance_channel.rb
 class AppearanceChannel < ApplicationCable::Channel
 end
@@ -256,7 +258,7 @@ The connection won't be established until you've also specified at least one sub
 you're interested in having.
 
 The consumer can optionally take an argument that specifies the URL to connect to. This
-can be a string, or a function that returns a string that will be called when the
+can be a string or a function that returns a string that will be called when the
 WebSocket is opened.
 
 ```js
@@ -266,7 +268,7 @@ createConsumer('https://ws.example.com/cable')
 // Use a function to dynamically generate the URL
 createConsumer(getWebSocketURL)
 
-function getWebSocketURL {
+function getWebSocketURL() {
   const token = localStorage.get('auth-token')
   return `https://ws.example.com/cable?token=${token}`
 }
@@ -324,7 +326,7 @@ Then, elsewhere in your Rails application, you can broadcast to such a room by
 calling [`broadcast`][]:
 
 ```ruby
-ActionCable.server.broadcast("chat_Best Room", body: "This Room is Best Room.")
+ActionCable.server.broadcast("chat_Best Room", { body: "This Room is Best Room." })
 ```
 
 If you have a stream that is related to a model, then the broadcasting name
@@ -371,7 +373,6 @@ these channel subscriptions based on an identifier sent by the cable consumer.
 
 ```js
 // app/javascript/channels/chat_channel.js
-// Assumes you've already requested the right to send web notifications
 import consumer from "./consumer"
 
 consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
@@ -398,7 +399,7 @@ consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
 
 ### Passing Parameters to Channels
 
-You can pass parameters from the client side to the server side when creating a
+You can pass parameters from the client-side to the server-side when creating a
 subscription. For example:
 
 ```ruby
@@ -444,8 +445,10 @@ consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
 # from a NewCommentJob.
 ActionCable.server.broadcast(
   "chat_#{room}",
-  sent_by: 'Paul',
-  body: 'This is a cool chat app.'
+  {
+    sent_by: 'Paul',
+    body: 'This is a cool chat app.'
+  }
 )
 ```
 
@@ -488,15 +491,15 @@ you subscribed to the channel.
 
 The following setup steps are common to both examples:
 
-  1. [Setup your connection](#connection-setup).
-  2. [Setup your parent channel](#parent-channel-setup).
+  1. [Set up your connection](#connection-setup).
+  2. [Set up your parent channel](#parent-channel-setup).
   3. [Connect your consumer](#connect-consumer).
 
 ### Example 1: User Appearances
 
 Here's a simple example of a channel that tracks whether a user is online or not
 and what page they're on. (This is useful for creating presence features like showing
-a green dot next to a user name if they're online).
+a green dot next to a username if they're online).
 
 Create the server-side appearance channel:
 
@@ -521,7 +524,7 @@ class AppearanceChannel < ApplicationCable::Channel
 end
 ```
 
-When a subscription is initiated the `subscribed` callback gets fired and we
+When a subscription is initiated the `subscribed` callback gets fired, and we
 take that opportunity to say "the current user has indeed appeared". That
 appear/disappear API could be backed by Redis, a database, or whatever else.
 
@@ -698,16 +701,17 @@ development:
   adapter: async
 
 test:
-  adapter: async
+  adapter: test
 
 production:
   adapter: redis
   url: redis://10.10.3.153:6381
   channel_prefix: appname_production
 ```
+
 #### Adapter Configuration
 
-Below is a list of the subscription adapters available for end users.
+Below is a list of the subscription adapters available for end-users.
 
 ##### Async Adapter
 
@@ -718,6 +722,25 @@ The async adapter is intended for development/testing and should not be used in 
 The Redis adapter requires users to provide a URL pointing to the Redis server.
 Additionally, a `channel_prefix` may be provided to avoid channel name collisions
 when using the same Redis server for multiple applications. See the [Redis PubSub documentation](https://redis.io/topics/pubsub#database-amp-scoping) for more details.
+
+The Redis adapter also supports SSL/TLS connections. The required SSL/TLS parameters can be passed in `ssl_params` key in the configuration yaml file.
+
+```
+production:
+  adapter: redis
+  url: rediss://10.10.3.153:tls_port
+  channel_prefix: appname_production
+  ssl_params: {
+    ca_file: "/path/to/ca.crt"
+  }
+```
+
+The options given to `ssl_params` are passed directly to the `OpenSSL::SSL::SSLContext#set_params` method and can be any valid attribute of the SSL context.
+Please refer to the [OpenSSL::SSL::SSLContext documentation](https://docs.ruby-lang.org/en/master/OpenSSL/SSL/SSLContext.html) for other available attributes.
+
+If you are using self-signed certificates for redis adapter behind a firewall and opt to skip certificate check, then the ssl `verify_mode` should be set as `OpenSSL::SSL::VERIFY_NONE`.
+
+WARNING: It is not recommended to use `VERIFY_NONE` in production unless you absolutely understand the security implications. In order to set this option for the Redis adapter, the config should be `ssl_params: { verify_mode: <%= OpenSSL::SSL::VERIFY_NONE %> }`.
 
 ##### PostgreSQL Adapter
 
@@ -765,18 +788,17 @@ config.action_cable.worker_pool_size = 4
 Also, note that your server must provide at least the same number of database
 connections as you have workers. The default worker pool size is set to 4, so
 that means you have to make at least 4 database connections available.
- You can change that in `config/database.yml` through the `pool` attribute.
+You can change that in `config/database.yml` through the `pool` attribute.
 
-### Client side logging
+### Client-side logging
 
-Client side logging is disabled by default. You can enable this by setting the `ActionCable.logger.enabled` to true.
+Client-side logging is disabled by default. You can enable this by setting the `ActionCable.logger.enabled` to true.
 
 ```ruby
 import * as ActionCable from '@rails/actioncable'
 
 ActionCable.logger.enabled = true
 ```
-
 
 ### Other Configurations
 
@@ -814,9 +836,9 @@ You can use `ActionCable.createConsumer()` to connect to the cable
 server if `action_cable_meta_tag` is invoked in the layout. Otherwise, A path is
 specified as first argument to `createConsumer` (e.g. `ActionCable.createConsumer("/websocket")`).
 
-For every instance of your server you create and for every worker your server
-spawns, you will also have a new instance of Action Cable, but the use of Redis
-keeps messages synced across connections.
+For every instance of your server, you create and for every worker your server
+spawns, you will also have a new instance of Action Cable, but the Redis or
+PostgreSQL adapter keeps messages synced across connections.
 
 ### Standalone
 

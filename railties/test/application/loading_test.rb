@@ -145,7 +145,7 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal ["ActiveRecord::InternalMetadata", "ActiveRecord::SchemaMigration"], ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq
   end
 
-  test "initialize cant be called twice" do
+  test "initialize can't be called twice" do
     require "#{app_path}/config/environment"
     assert_raise(RuntimeError) { Rails.application.initialize! }
   end

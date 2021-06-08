@@ -72,6 +72,22 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
+  def test_migration_context_with_default_schema_migration
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    migrator = ActiveRecord::MigrationContext.new(migrations_path)
+    migrator.up
+
+    assert_equal 3, migrator.current_version
+    assert_equal false, migrator.needs_migration?
+
+    migrator.down
+    assert_equal 0, migrator.current_version
+    assert_equal true, migrator.needs_migration?
+
+    ActiveRecord::SchemaMigration.create!(version: 3)
+    assert_equal true, migrator.needs_migration?
+  end
+
   def test_migration_version_matches_component_version
     assert_equal ActiveRecord::VERSION::STRING.to_f, ActiveRecord::Migration.current_version
   end
@@ -104,11 +120,11 @@ class MigrationTest < ActiveRecord::TestCase
   def test_any_migrations
     migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid", @schema_migration)
 
-    assert_predicate migrator, :any_migrations?
+    assert_predicate migrator.migrations, :any?
 
     migrator_empty = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/empty", @schema_migration)
 
-    assert_not_predicate migrator_empty, :any_migrations?
+    assert_not_predicate migrator_empty.migrations, :any?
   end
 
   def test_migration_version
@@ -325,7 +341,37 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_add_column_with_if_not_exists_set_to_true_still_raises_if_type_is_different
+  def test_add_column_with_casted_type_if_not_exists_set_to_true
+    migration_a = Class.new(ActiveRecord::Migration::Current) {
+      def version; 100 end
+      def migrate(x)
+        type = current_adapter?(:PostgreSQLAdapter) ? :char : :blob
+        add_column "people", "last_name", type
+      end
+    }.new
+
+    migration_b = Class.new(ActiveRecord::Migration::Current) {
+      def version; 101 end
+      def migrate(x)
+        type = current_adapter?(:PostgreSQLAdapter) ? :char : :blob
+        add_column "people", "last_name", type, if_not_exists: true
+      end
+    }.new
+
+    ActiveRecord::Migrator.new(:up, [migration_a], @schema_migration, 100).migrate
+    assert_column Person, :last_name, "migration_a should have created the last_name column on people"
+
+    assert_nothing_raised do
+      ActiveRecord::Migrator.new(:up, [migration_b], @schema_migration, 101).migrate
+    end
+  ensure
+    Person.reset_column_information
+    if Person.column_names.include?("last_name")
+      Person.connection.remove_column("people", "last_name")
+    end
+  end
+
+  def test_add_column_with_if_not_exists_set_to_true_does_not_raise_if_type_is_different
     migration_a = Class.new(ActiveRecord::Migration::Current) {
       def version; 100 end
       def migrate(x)
@@ -343,7 +389,7 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.new(:up, [migration_a], @schema_migration, 100).migrate
     assert_column Person, :last_name, "migration_a should have created the last_name column on people"
 
-    assert_raises do
+    assert_nothing_raised do
       ActiveRecord::Migrator.new(:up, [migration_b], @schema_migration, 101).migrate
     end
   ensure
@@ -1159,6 +1205,42 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       [:qualification, :experience].each { |c| assert_not column(c) }
       assert column(:qualification_experience)
+    end
+
+    def test_adding_timestamps
+      with_bulk_change_table do |t|
+        t.string :title
+      end
+
+      assert column(:title)
+
+      assert_queries(1) do
+        with_bulk_change_table do |t|
+          t.timestamps
+          t.remove :title
+        end
+      end
+
+      [:created_at, :updated_at].each { |c| assert column(c) }
+      assert_not column(:title)
+    end
+
+    def test_removing_timestamps
+      with_bulk_change_table do |t|
+        t.timestamps
+      end
+
+      [:created_at, :updated_at].each { |c| assert column(c) }
+
+      assert_queries(1) do
+        with_bulk_change_table do |t|
+          t.remove_timestamps
+          t.string :title
+        end
+      end
+
+      [:created_at, :updated_at].each { |c| assert_not column(c) }
+      assert column(:title)
     end
 
     def test_adding_indexes

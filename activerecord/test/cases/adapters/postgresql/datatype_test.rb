@@ -7,7 +7,7 @@ class PostgresqlTime < ActiveRecord::Base
   # Declare attributes to get rid from deprecation warnings on ActiveRecord 6.1
   attribute :time_interval,        :string
   attribute :scaled_time_interval, :interval
-end
+end if current_adapter?(:PostgreSQLAdapter)
 
 class PostgresqlOid < ActiveRecord::Base
 end

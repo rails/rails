@@ -49,6 +49,10 @@ module ActiveSupport
           @active_workers.size > 0
         end
 
+        def interrupt
+          @queue.clear
+        end
+
         def shutdown
           # Wait for initial queue to drain
           while @queue.length != 0

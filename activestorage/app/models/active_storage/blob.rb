@@ -49,7 +49,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   scope :unattached, -> { where.missing(:attachments) }
 
   after_initialize do
-    self.service_name ||= self.class.service.name
+    self.service_name ||= self.class.service&.name
   end
 
   after_update_commit :update_service_metadata, if: :content_type_previously_changed?
@@ -74,6 +74,14 @@ class ActiveStorage::Blob < ActiveStorage::Record
     # that was created ahead of the upload itself on form submission.
     #
     # The signed ID is also used to create stable URLs for the blob through the BlobsController.
+    def find_signed(id, record: nil, purpose: :blob_id)
+      super(id, purpose: purpose)
+    end
+
+    # Works like +find_signed+, but will raise an +ActiveSupport::MessageVerifier::InvalidSignature+
+    # exception if the +signed_id+ has either expired, has a purpose mismatch, is for another record,
+    # or has been tampered with. It will also raise an +ActiveRecord::RecordNotFound+ exception if
+    # the valid signed id can't find a record.
     def find_signed!(id, record: nil, purpose: :blob_id)
       super(id, purpose: purpose)
     end
@@ -143,7 +151,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
-  def signed_id(purpose: :blob_id)
+  def signed_id(purpose: :blob_id, expires_in: nil)
     super
   end
 
@@ -286,7 +294,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use #purge_later instead.
   def purge
     destroy
-    delete
+    delete if previously_persisted?
   rescue ActiveRecord::InvalidForeignKey
   end
 

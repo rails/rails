@@ -222,7 +222,7 @@ module ActionDispatch
         if forwarded = x_forwarded_host.presence
           forwarded.split(/,\s?/).last
         else
-          get_header("HTTP_HOST") || "#{server_name || server_addr}:#{get_header('SERVER_PORT')}"
+          get_header("HTTP_HOST") || "#{server_name}:#{get_header('SERVER_PORT')}"
         end
       end
 
@@ -258,12 +258,10 @@ module ActionDispatch
       #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.port # => 8080
       def port
-        @port ||= begin
-          if raw_host_with_port =~ /:(\d+)$/
-            $1.to_i
-          else
-            standard_port
-          end
+        @port ||= if raw_host_with_port =~ /:(\d+)$/
+          $1.to_i
+        else
+          standard_port
         end
       end
 

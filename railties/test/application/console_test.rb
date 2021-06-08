@@ -137,8 +137,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def test_sandbox
-    options = "--sandbox"
-    options += " -- --singleline --nocolorize" if RUBY_VERSION >= "2.7"
+    options = "--sandbox -- --singleline --nocolorize"
     spawn_console(options)
 
     write_prompt "Post.count", "=> 0"
@@ -166,8 +165,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def test_environment_option_and_irb_option
-    options = "-e test -- --verbose"
-    options += " --singleline --nocolorize" if RUBY_VERSION >= "2.7"
+    options = "-e test -- --verbose --singleline --nocolorize"
     spawn_console(options)
 
     write_prompt "a = 1", "a = 1"

@@ -51,10 +51,6 @@ class DriverTest < ActiveSupport::TestCase
     assert_equal ({ skip_image_loading: true }), driver.instance_variable_get(:@options)
   end
 
-  test "registerable? returns false if driver is rack_test" do
-    assert_not ActionDispatch::SystemTesting::Driver.new(:rack_test).send(:registerable?)
-  end
-
   test "define extra capabilities using chrome" do
     driver = ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome) do |option|
       option.add_argument("start-maximized")
@@ -69,7 +65,8 @@ class DriverTest < ActiveSupport::TestCase
         "args" => ["start-maximized"],
         "mobileEmulation" => { "deviceName" => "iphone 6" },
         "prefs" => { "detach" => true }
-      }
+      },
+      "browserName" => "chrome"
     }
     assert_equal expected, browser_options[:options].as_json
   end
@@ -88,7 +85,8 @@ class DriverTest < ActiveSupport::TestCase
         "args" => ["--headless", "start-maximized"],
         "mobileEmulation" => { "deviceName" => "iphone 6" },
         "prefs" => { "detach" => true }
-      }
+      },
+      "browserName" => "chrome"
     }
     assert_equal expected, browser_options[:options].as_json
   end
@@ -105,7 +103,8 @@ class DriverTest < ActiveSupport::TestCase
       "moz:firefoxOptions" => {
         "args" => ["--host=127.0.0.1"],
         "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
-      }
+      },
+      "browserName" => "firefox"
     }
     assert_equal expected, browser_options[:options].as_json
   end
@@ -122,7 +121,8 @@ class DriverTest < ActiveSupport::TestCase
       "moz:firefoxOptions" => {
         "args" => ["-headless", "--host=127.0.0.1"],
         "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
-      }
+      },
+      "browserName" => "firefox"
     }
     assert_equal expected, browser_options[:options].as_json
   end

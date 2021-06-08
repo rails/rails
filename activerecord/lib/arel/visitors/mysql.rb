@@ -58,6 +58,11 @@ module Arel # :nodoc: all
           infix_value o, collector, " NOT REGEXP "
         end
 
+        # no-op
+        def visit_Arel_Nodes_NullsFirst(o, collector)
+          visit o.expr, collector
+        end
+
         # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
         # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
         # these, we must use a subquery.

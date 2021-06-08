@@ -9,7 +9,6 @@ class TestControllerWithExtraEtags < ActionController::Base
     "test/hello_world.erb" => "Hello world!"
   )]
 
-  def self.controller_name; "test"; end
   def self.controller_path; "test"; end
 
   etag { nil  }
@@ -87,7 +86,7 @@ class TestController < ActionController::Base
   end
 
   def conditional_hello
-    if stale?(last_modified: Time.now.utc.beginning_of_day, etag: [:foo, 123])
+    if stale?(last_modified: Time.now.utc.beginning_of_day, etag: [:foo, 123], cache_control: { no_cache: true })
       render action: "hello_world"
     end
   end
@@ -96,6 +95,15 @@ class TestController < ActionController::Base
     record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
 
     if stale?(record)
+      render action: "hello_world"
+    end
+  end
+
+  def conditional_hello_with_array_of_records
+    record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
+    old_record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day.yesterday, "bar/123")
+
+    if stale?([record, old_record])
       render action: "hello_world"
     end
   end
@@ -208,7 +216,7 @@ class TestController < ActionController::Base
   before_action :handle_last_modified_and_etags, only: :conditional_hello_with_bangs
 
   def handle_last_modified_and_etags
-    fresh_when(last_modified: Time.now.utc.beginning_of_day, etag: [ :foo, 123 ])
+    fresh_when(last_modified: Time.now.utc.beginning_of_day, etag: [ :foo, 123 ], public: false, cache_control: { no_cache: true, public: true })
   end
 
   def head_created
@@ -493,6 +501,11 @@ class LastModifiedRenderTest < ActionController::TestCase
     assert_equal @last_modified, @response.headers["Last-Modified"]
   end
 
+  def test_responds_with_custom_cache_control_headers
+    get :conditional_hello
+    assert_equal "no-cache", @response.headers["Cache-Control"]
+  end
+
   def test_responds_with_last_modified_with_record
     get :conditional_hello_with_record
     assert_equal @last_modified, @response.headers["Last-Modified"]
@@ -517,6 +530,34 @@ class LastModifiedRenderTest < ActionController::TestCase
   def test_request_modified_with_record
     @request.if_modified_since = "Thu, 16 Jul 2008 00:00:00 GMT"
     get :conditional_hello_with_record
+    assert_equal 200, @response.status.to_i
+    assert_predicate @response.body, :present?
+    assert_equal @last_modified, @response.headers["Last-Modified"]
+  end
+
+  def test_responds_with_last_modified_with_array_of_records
+    get :conditional_hello_with_array_of_records
+    assert_equal @last_modified, @response.headers["Last-Modified"]
+  end
+
+  def test_request_not_modified_with_array_of_records
+    @request.if_modified_since = @last_modified
+    get :conditional_hello_with_array_of_records
+    assert_equal 304, @response.status.to_i
+    assert_predicate @response.body, :blank?
+    assert_equal @last_modified, @response.headers["Last-Modified"]
+  end
+
+  def test_request_not_modified_but_etag_differs_with_array_of_records
+    @request.if_modified_since = @last_modified
+    @request.if_none_match = '"234"'
+    get :conditional_hello_with_array_of_records
+    assert_response :success
+  end
+
+  def test_request_modified_with_array_of_records
+    @request.if_modified_since = "Thu, 16 Jul 2008 00:00:00 GMT"
+    get :conditional_hello_with_array_of_records
     assert_equal 200, @response.status.to_i
     assert_predicate @response.body, :present?
     assert_equal @last_modified, @response.headers["Last-Modified"]
@@ -565,6 +606,12 @@ class LastModifiedRenderTest < ActionController::TestCase
   def test_last_modified_works_with_less_than_too
     @request.if_modified_since = 5.years.ago.httpdate
     get :conditional_hello_with_bangs
+    assert_response :success
+  end
+
+  def test_last_modified_with_custom_cache_control_headers
+    get :conditional_hello_with_bangs
+    assert_equal "public, no-cache", @response.headers["Cache-Control"]
     assert_response :success
   end
 end

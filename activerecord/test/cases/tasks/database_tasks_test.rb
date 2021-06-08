@@ -185,6 +185,21 @@ module ActiveRecord
       end
     end
 
+    def test_register_task_precedence
+      klazz = Class.new do
+        def initialize(*arguments); end
+        def structure_dump(filename); end
+      end
+      instance = klazz.new
+
+      klazz.stub(:new, instance) do
+        assert_called_with(instance, :structure_dump, ["awesome-file.sql", nil]) do
+          ActiveRecord::Tasks::DatabaseTasks.register_task(/custom_mysql/, klazz)
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :custom_mysql }, "awesome-file.sql")
+        end
+      end
+    end
+
     def test_unregistered_task
       assert_raise(ActiveRecord::Tasks::DatabaseNotSupported) do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :bar }, "awesome-file.sql")
@@ -280,6 +295,26 @@ module ActiveRecord
       end
     ensure
       ENV["SCHEMA_CACHE"] = old_path
+    end
+  end
+
+  class DatabaseTasksDumpSchemaTest < ActiveRecord::TestCase
+    def test_ensure_db_dir
+      Dir.mktmpdir do |dir|
+        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
+          db_config = OpenStruct.new(name: "fake_db_config")
+          path = "#{dir}/fake_db_config_schema.rb"
+
+          FileUtils.rm_rf(dir)
+          assert_not File.file?(path)
+
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+
+          assert File.file?(path)
+        end
+      end
+    ensure
+      ActiveRecord::Base.clear_cache!
     end
   end
 
@@ -907,10 +942,11 @@ module ActiveRecord
   if current_adapter?(:SQLite3Adapter) && !in_memory_db?
     class DatabaseTasksMigrationTestCase < ActiveRecord::TestCase
       self.use_transactional_tests = false
+      class_attribute :folder_name, default: "valid"
 
       # Use a memory db here to avoid having to rollback at the end
       setup do
-        migrations_path = MIGRATIONS_ROOT + "/valid"
+        migrations_path = [MIGRATIONS_ROOT, folder_name].join("/")
         file = ActiveRecord::Base.connection.raw_connection.filename
         @conn = ActiveRecord::Base.establish_connection adapter: "sqlite3",
           database: ":memory:", migrations_paths: migrations_path
@@ -925,6 +961,13 @@ module ActiveRecord
         @conn.release_connection if @conn
         ActiveRecord::Base.establish_connection :arunit
       end
+
+      private
+        def capture_migration_output
+          capture(:stdout) do
+            ActiveRecord::Tasks::DatabaseTasks.migrate
+          end
+        end
     end
 
     class DatabaseTasksMigrateTest < DatabaseTasksMigrationTestCase
@@ -963,13 +1006,66 @@ module ActiveRecord
       ensure
         ENV["VERBOSE"], ENV["VERSION"] = verbose, version
       end
+    end
 
-      private
-        def capture_migration_output
-          capture(:stdout) do
-            ActiveRecord::Tasks::DatabaseTasks.migrate
-          end
-        end
+    class DatabaseTasksMigrateScopeTest < DatabaseTasksMigrationTestCase
+      self.folder_name = "scope"
+
+      def test_migrate_using_scope_and_verbose_mode
+        verbose, version, scope = ENV["VERBOSE"], ENV["VERSION"], ENV["SCOPE"]
+
+        # run up migration
+        ENV["VERSION"] = "2"
+        ENV["VERBOSE"] = "true"
+        ENV["SCOPE"] = "mysql"
+
+        output = capture_migration_output
+        assert_includes output, "migrating"
+        assert_not_includes output, "No migrations ran. (using mysql scope)"
+
+        # run no migration because 2 was already run
+        output = capture_migration_output
+        assert_includes output, "No migrations ran. (using mysql scope)"
+        assert_not_includes output, "migrating"
+      ensure
+        ENV["VERBOSE"], ENV["VERSION"], ENV["SCOPE"] = verbose, version, scope
+      end
+
+      def test_migrate_using_scope_and_non_verbose_mode
+        verbose, version, scope = ENV["VERBOSE"], ENV["VERSION"], ENV["SCOPE"]
+
+        # run up migration
+        ENV["VERSION"] = "2"
+        ENV["VERBOSE"] = "false"
+        ENV["SCOPE"] = "mysql"
+
+        assert_empty capture_migration_output
+
+        # run no migration because 2 was already run
+        assert_empty capture_migration_output
+      ensure
+        ENV["VERBOSE"], ENV["VERSION"], ENV["SCOPE"] = verbose, version, scope
+      end
+
+      def test_migrate_using_empty_scope_and_verbose_mode
+        verbose, version, scope = ENV["VERBOSE"], ENV["VERSION"], ENV["SCOPE"]
+
+        # run up migration
+        ENV["VERSION"] = "2"
+        ENV["VERBOSE"] = "true"
+        ENV["SCOPE"] = ""
+
+        output = capture_migration_output
+        assert_includes output, "migrating"
+        assert_not_includes output, "No migrations ran. (using mysql scope)"
+
+        # run no migration because 1 already ran and 2 is mysql scoped
+        output = capture_migration_output
+        assert_empty output
+        assert_not_includes output, "No migrations ran. (using mysql scope)"
+      ensure
+        ENV["VERBOSE"], ENV["VERSION"], ENV["SCOPE"] = verbose, version, scope
+      end
     end
 
     class DatabaseTasksMigrateStatusTest < DatabaseTasksMigrationTestCase
@@ -1486,21 +1582,110 @@ module ActiveRecord
     end
   end
 
-  class DatabaseTasksCheckSchemaFileDefaultsTest < ActiveRecord::TestCase
+  class DatabaseTasksCheckSchemaFileMethods < ActiveRecord::TestCase
+    setup do
+      @configurations = { "development" => { "database" => "my-db" } }
+    end
+
     def test_check_schema_file_defaults
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
-        assert_equal "/tmp/schema.rb", ActiveRecord::Tasks::DatabaseTasks.schema_file
-      end
-    end
-  end
-
-  class DatabaseTasksCheckSchemaFileSpecifiedFormatsTest < ActiveRecord::TestCase
-    { ruby: "schema.rb", sql: "structure.sql" }.each_pair do |fmt, filename|
-      define_method("test_check_schema_file_for_#{fmt}_format") do
-        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
-          assert_equal "/tmp/#{filename}", ActiveRecord::Tasks::DatabaseTasks.schema_file(fmt)
+        assert_deprecated do
+          assert_equal "/tmp/schema.rb", ActiveRecord::Tasks::DatabaseTasks.schema_file
         end
       end
     end
+
+    { ruby: "schema.rb", sql: "structure.sql" }.each_pair do |fmt, filename|
+      define_method("test_check_schema_file_for_#{fmt}_format") do
+        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
+          assert_deprecated do
+            assert_equal "/tmp/#{filename}", ActiveRecord::Tasks::DatabaseTasks.schema_file(fmt)
+          end
+        end
+      end
+    end
+
+    def test_check_dump_filename_defaults
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
+        with_stubbed_configurations do
+          assert_equal "/tmp/schema.rb", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "primary").name)
+        end
+      end
+    end
+
+    def test_check_dump_filename_with_schema_env
+      schema = ENV["SCHEMA"]
+      ENV["SCHEMA"] = "schema_path"
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
+        with_stubbed_configurations do
+          assert_equal "schema_path", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "primary").name)
+        end
+      end
+    ensure
+      ENV["SCHEMA"] = schema
+    end
+
+    { ruby: "schema.rb", sql: "structure.sql" }.each_pair do |fmt, filename|
+      define_method("test_check_dump_filename_for_#{fmt}_format") do
+        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
+          with_stubbed_configurations do
+            assert_equal "/tmp/#{filename}", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "primary").name, fmt)
+          end
+        end
+      end
+    end
+
+    def test_check_dump_filename_defaults_for_non_primary_databases
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
+        configurations = {
+          "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
+        }
+        with_stubbed_configurations(configurations) do
+          assert_equal "/tmp/secondary_schema.rb", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "secondary").name)
+        end
+      end
+    end
+
+    def test_check_dump_filename_with_schema_env_with_non_primary_databases
+      schema = ENV["SCHEMA"]
+      ENV["SCHEMA"] = "schema_path"
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
+        configurations = {
+          "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
+        }
+        with_stubbed_configurations(configurations) do
+          assert_equal "schema_path", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "secondary").name)
+        end
+      end
+    ensure
+      ENV["SCHEMA"] = schema
+    end
+
+    { ruby: "schema.rb", sql: "structure.sql" }.each_pair do |fmt, filename|
+      define_method("test_check_dump_filename_for_#{fmt}_format_with_non_primary_databases") do
+        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
+          configurations = {
+            "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
+          }
+          with_stubbed_configurations(configurations) do
+            assert_equal "/tmp/secondary_#{filename}", ActiveRecord::Tasks::DatabaseTasks.dump_filename(config_for("development", "secondary").name, fmt)
+          end
+        end
+      end
+    end
+
+    private
+      def config_for(env_name, name)
+        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
+      end
+
+      def with_stubbed_configurations(configurations = @configurations)
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = configurations
+
+        yield
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
   end
 end

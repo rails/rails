@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2020 David Heinemeier Hansson
+# Copyright (c) 2004-2021 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -43,6 +43,7 @@ module ActiveRecord
   autoload :CounterCache
   autoload :DynamicMatchers
   autoload :DelegatedType
+  autoload :Encryption
   autoload :Enum
   autoload :InternalMetadata
   autoload :Explain
@@ -67,7 +68,6 @@ module ActiveRecord
   autoload :SchemaMigration
   autoload :Scoping
   autoload :Serialization
-  autoload :StatementCache
   autoload :Store
   autoload :SignedId
   autoload :Suppressor
@@ -79,6 +79,7 @@ module ActiveRecord
   autoload :DestroyAssociationAsyncJob
 
   eager_autoload do
+    autoload :StatementCache
     autoload :ConnectionAdapters
 
     autoload :Aggregations
@@ -86,11 +87,13 @@ module ActiveRecord
     autoload :AttributeAssignment
     autoload :AttributeMethods
     autoload :AutosaveAssociation
+    autoload :AsynchronousQueriesTracker
 
     autoload :LegacyYamlAdapter
 
     autoload :Relation
     autoload :AssociationRelation
+    autoload :DisableJoinsAssociationRelation
     autoload :NullRelation
 
     autoload_under "relation" do
@@ -104,6 +107,7 @@ module ActiveRecord
     end
 
     autoload :Result
+    autoload :FutureResult
     autoload :TableMetadata
     autoload :Type
   end
@@ -172,6 +176,7 @@ module ActiveRecord
     ActiveRecord::Associations.eager_load!
     ActiveRecord::AttributeMethods.eager_load!
     ActiveRecord::ConnectionAdapters.eager_load!
+    ActiveRecord::Encryption.eager_load!
   end
 end
 

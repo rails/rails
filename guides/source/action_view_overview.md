@@ -147,6 +147,7 @@ end
 ```
 
 #### Jbuilder
+
 [Jbuilder](https://github.com/rails/jbuilder) is a gem that's
 maintained by the Rails team and included in the default Rails `Gemfile`.
 It's similar to Builder, but is used to generate JSON, instead of XML.

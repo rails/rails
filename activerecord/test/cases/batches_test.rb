@@ -306,6 +306,14 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_has_attribute_readers
+    enumerator = Post.no_comments.in_batches(of: 2, start: 42, finish: 84)
+    assert_equal Post.no_comments, enumerator.relation
+    assert_equal 2, enumerator.batch_size
+    assert_equal 42, enumerator.start
+    assert_equal 84, enumerator.finish
+  end
+
   def test_in_batches_should_yield_relation_if_block_given
     assert_queries(6) do
       Post.in_batches(of: 2) do |relation|

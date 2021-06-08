@@ -16,7 +16,6 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-
 Introduction
 ------------
 
@@ -473,14 +472,14 @@ default it contains:
 
 How files are autoloaded depends on `eager_load` and `cache_classes` config settings which typically vary in development, production, and test modes:
 
- * In **development**, you want quicker startup with incremental loading of application code.  So `eager_load` should be set to `false`, and Rails will autoload files as needed (see [Autoloading Algorithms](#autoloading-algorithms) below) -- and then reload them when they change (see [Constant Reloading](#constant-reloading) below).
- * In **production**, however, you want consistency and thread-safety and can live with a longer boot time. So `eager_load` is set to `true`, and then during boot (before the app is ready to receive requests) Rails loads all files in the `eager_load_paths`  and then turns off auto loading (NB: autoloading may be needed during eager loading). Not autoloading after boot is a `good thing`, as autoloading can cause the app to be have thread-safety problems.
- * In **test**, for speed of execution (of individual tests) `eager_load` is `false`, so Rails follows development behaviour.
+* In **development**, you want quicker startup with incremental loading of application code. So `eager_load` should be set to `false`, and Rails will autoload files as needed (see [Autoloading Algorithms](#autoloading-algorithms) below) -- and then reload them when they change (see [Constant Reloading](#constant-reloading) below).
+* In **production**, however, you want consistency and thread-safety and can live with a longer boot time. So `eager_load` is set to `true`, and then during boot (before the app is ready to receive requests) Rails loads all files in the `eager_load_paths` and then turns off auto loading (NB: autoloading may be needed during eager loading). Not autoloading after boot is a `good thing`, as autoloading can cause the app to have thread-safety problems.
+* In **test**, for speed of execution (of individual tests) `eager_load` is `false`, so Rails follows development behaviour.
 
 What is described above are the defaults with a newly generated Rails app.
 There are multiple ways this can be configured differently (see [Configuring
-Rails Applications](configuring.html#rails-general-configuration).). Before
-Rails 5 developers might configure `autoload_paths` to add in extra locations
+Rails Applications](configuring.html#rails-general-configuration)). In the past, before
+Rails 5, developers might configure `autoload_paths` to add in extra locations
 (e.g. `lib` which used to be an autoload path list years ago, but no longer
 is). However this is now discouraged for most purposes, as it is likely to
 lead to production-only errors. It is possible to add new locations to both
@@ -909,7 +908,9 @@ module Blog
     "blog_"
   end
 end
+```
 
+```ruby
 # app/models/blog/post.rb
 module Blog
   class Post < ApplicationRecord
@@ -949,11 +950,15 @@ these classes:
 # app/models/polygon.rb
 class Polygon < ApplicationRecord
 end
+```
 
+```ruby
 # app/models/triangle.rb
 class Triangle < Polygon
 end
+```
 
+```ruby
 # app/models/rectangle.rb
 class Rectangle < Polygon
 end
@@ -1039,7 +1044,7 @@ Files defining constants to be autoloaded should never be `require`d:
 require "user" # DO NOT DO THIS
 
 class UsersController < ApplicationController
-  ...
+  # ...
 end
 ```
 
@@ -1157,7 +1162,9 @@ module BellX1
   class FlightModel < FlightModel
   end
 end
+```
 
+```ruby
 # app/models/bell_x1/aircraft.rb
 module BellX1
   class Aircraft
@@ -1211,11 +1218,15 @@ Given
 # app/models/hotel.rb
 class Hotel
 end
+```
 
+```ruby
 # app/models/image.rb
 class Image
 end
+```
 
+```ruby
 # app/models/hotel/image.rb
 class Hotel
   class Image < Image
@@ -1267,7 +1278,9 @@ module Hotel
   class Services
   end
 end
+```
 
+```ruby
 # app/models/hotel/geo_location.rb
 module Hotel
   class GeoLocation

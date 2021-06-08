@@ -80,12 +80,15 @@ module ActiveRecord
       model.column_names.include?(column_name.to_s)
     end
 
-    def with_has_many_inversing
-      old = ActiveRecord::Base.has_many_inversing
-      ActiveRecord::Base.has_many_inversing = true
+    def with_has_many_inversing(model = ActiveRecord::Base)
+      old = model.has_many_inversing
+      model.has_many_inversing = true
       yield
     ensure
-      ActiveRecord::Base.has_many_inversing = old
+      model.has_many_inversing = old
+      if model != ActiveRecord::Base && !old
+        model.singleton_class.remove_method(:has_many_inversing) # reset the class_attribute
+      end
     end
 
     def reset_callbacks(klass, kind)
@@ -100,6 +103,18 @@ module ActiveRecord
       klass.subclasses.each do |subclass|
         subclass.send("_#{kind}_callbacks=", old_callbacks[subclass])
       end
+    end
+
+    def with_postgresql_datetime_type(type)
+      adapter = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+      adapter.remove_instance_variable(:@native_database_types) if adapter.instance_variable_defined?(:@native_database_types)
+      datetime_type_was = adapter.datetime_type
+      adapter.datetime_type = type
+      yield
+    ensure
+      adapter = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+      adapter.datetime_type = datetime_type_was
+      adapter.remove_instance_variable(:@native_database_types) if adapter.instance_variable_defined?(:@native_database_types)
     end
   end
 

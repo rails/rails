@@ -37,11 +37,15 @@ that are supported by the PostgreSQL adapter.
 create_table :documents do |t|
   t.binary 'payload'
 end
+```
 
+```ruby
 # app/models/document.rb
 class Document < ApplicationRecord
 end
+```
 
+```ruby
 # Usage
 data = File.read(Rails.root + "tmp/output.pdf")
 Document.create payload: data
@@ -61,11 +65,15 @@ create_table :books do |t|
 end
 add_index :books, :tags, using: 'gin'
 add_index :books, :ratings, using: 'gin'
+```
 
+```ruby
 # app/models/book.rb
 class Book < ApplicationRecord
 end
+```
 
+```ruby
 # Usage
 Book.create title: "Brave New World",
             tags: ["fantasy", "fiction"],
@@ -158,7 +166,7 @@ irb> Event.where("payload->>'kind' = ?", "user_renamed")
 * [type definition](https://www.postgresql.org/docs/current/static/rangetypes.html)
 * [functions and operators](https://www.postgresql.org/docs/current/static/functions-range.html)
 
-This type is mapped to Ruby [`Range`](https://ruby-doc.org/core-2.5.0/Range.html) objects.
+This type is mapped to Ruby [`Range`](https://ruby-doc.org/core-2.7.0/Range.html) objects.
 
 ```ruby
 # db/migrate/20130923065404_create_events.rb
@@ -210,11 +218,11 @@ CREATE TYPE full_address AS
 ```ruby
 # db/migrate/20140207133952_create_contacts.rb
 execute <<-SQL
- CREATE TYPE full_address AS
- (
-   city VARCHAR(90),
-   street VARCHAR(90)
- );
+  CREATE TYPE full_address AS
+  (
+    city VARCHAR(90),
+    street VARCHAR(90)
+  );
 SQL
 create_table :contacts do |t|
   t.column :address, :full_address
@@ -348,12 +356,16 @@ create_table :comments, id: :uuid do |t|
   # t.belongs_to :post, type: :uuid
   t.references :post, type: :uuid
 end
+```
 
+```ruby
 # app/models/post.rb
 class Post < ApplicationRecord
   has_many :comments
 end
+```
 
+```ruby
 # app/models/comment.rb
 class Comment < ApplicationRecord
   belongs_to :post
@@ -396,7 +408,7 @@ irb> user.save!
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-net-types.html)
 
 The types `inet` and `cidr` are mapped to Ruby
-[`IPAddr`](https://ruby-doc.org/stdlib-2.5.0/libdoc/ipaddr/rdoc/IPAddr.html)
+[`IPAddr`](https://ruby-doc.org/stdlib-2.7.0/libdoc/ipaddr/rdoc/IPAddr.html)
 objects. The `macaddr` type is mapped to normal text.
 
 ```ruby
@@ -436,10 +448,10 @@ A point is casted to an array containing `x` and `y` coordinates.
 
 ### Interval
 
-* [type definition](http://www.postgresql.org/docs/current/static/datatype-datetime.html#DATATYPE-INTERVAL-INPUT)
-* [functions and operators](http://www.postgresql.org/docs/current/static/functions-datetime.html)
+* [type definition](https://www.postgresql.org/docs/current/static/datatype-datetime.html#DATATYPE-INTERVAL-INPUT)
+* [functions and operators](https://www.postgresql.org/docs/current/static/functions-datetime.html)
 
-This type is mapped to [`ActiveSupport::Duration`](http://api.rubyonrails.org/classes/ActiveSupport/Duration.html) objects.
+This type is mapped to [`ActiveSupport::Duration`](https://api.rubyonrails.org/classes/ActiveSupport/Duration.html) objects.
 
 ```ruby
 # db/migrate/20200120000000_create_events.rb
@@ -502,11 +514,15 @@ create_table :documents do |t|
 end
 
 add_index :documents, "to_tsvector('english', title || ' ' || body)", using: :gin, name: 'documents_idx'
+```
 
+```ruby
 # app/models/document.rb
 class Document < ApplicationRecord
 end
+```
 
+```ruby
 # Usage
 Document.create(title: "Cats and Dogs", body: "are nice!")
 

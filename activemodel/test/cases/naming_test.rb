@@ -42,6 +42,10 @@ class NamingTest < ActiveModel::TestCase
   def test_i18n_key
     assert_equal :"post/track_back", @model_name.i18n_key
   end
+
+  def test_uncountable
+    assert_equal false, @model_name.uncountable?
+  end
 end
 
 class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
@@ -155,6 +159,24 @@ class NamingWithSuppliedModelNameTest < ActiveModel::TestCase
 
   def test_i18n_key
     assert_equal :"article", @model_name.i18n_key
+  end
+end
+
+class NamingWithSuppliedLocaleTest < ActiveModel::TestCase
+  def setup
+    ActiveSupport::Inflector.inflections(:cs) do |inflect|
+      inflect.plural(/(e)l$/i, '\1lé')
+    end
+
+    @model_name = ActiveModel::Name.new(Blog::Post, nil, "Uzivatel", :cs)
+  end
+
+  def test_singular
+    assert_equal "uzivatel", @model_name.singular
+  end
+
+  def test_plural
+    assert_equal "uzivatelé", @model_name.plural
   end
 end
 

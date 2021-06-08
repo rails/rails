@@ -53,6 +53,29 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_equal "2 updated", Topic.find(2).content
   end
 
+  def test_update_many_with_active_record_base_object
+    error = assert_raises(ArgumentError) do
+      Topic.update(Topic.first, "content" => "1 updated")
+    end
+
+    assert_equal "You are passing an instance of ActiveRecord::Base to `update`. " \
+    "Please pass the id of the object by calling `.id`.", error.message
+
+    assert_not_equal "1 updated", Topic.first.content
+  end
+
+  def test_update_many_with_array_of_active_record_base_objects
+    error = assert_raise(ArgumentError) do
+      Topic.update(Topic.first(2), content: "updated")
+    end
+
+    assert_equal "You are passing an array of ActiveRecord::Base instances to `update`. " \
+    "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`.", error.message
+
+    assert_not_equal "updated", Topic.first.content
+    assert_not_equal "updated", Topic.second.content
+  end
+
   def test_class_level_update_without_ids
     topics = Topic.all
     assert_equal 5, topics.length
@@ -296,12 +319,25 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal("New Topic", topic_reloaded.title)
   end
 
-  def test_save!
+  def test_save_valid_record
     topic = Topic.new(title: "New Topic")
     assert topic.save!
+  end
 
-    reply = WrongReply.new
-    assert_raise(ActiveRecord::RecordInvalid) { reply.save! }
+  def test_save_invalid_record
+    reply = WrongReply.new(title: "New reply")
+    error = assert_raise(ActiveRecord::RecordInvalid) { reply.save! }
+
+    assert_equal "Validation failed: Content Empty", error.message
+  end
+
+  def test_save_destroyed_object
+    topic = Topic.create!(title: "New Topic")
+    topic.destroy!
+
+    error = assert_raise(ActiveRecord::RecordNotSaved) { topic.save! }
+
+    assert_equal "Failed to save the record", error.message
   end
 
   def test_save_null_string_attributes
@@ -468,6 +504,51 @@ class PersistenceTest < ActiveRecord::TestCase
     topic_reloaded = Topic.find(topic.id)
     assert_equal("Another New Topic", topic_reloaded.title)
     assert_equal("David", topic_reloaded.author_name)
+  end
+
+  def test_update_attribute_after_update
+    klass = Class.new(Topic) do
+      def self.name; "Topic"; end
+      after_update :update_author, if: :saved_change_to_title?
+      def update_author
+        update_attribute("author_name", "David")
+      end
+    end
+    topic = klass.create(title: "New Topic")
+    topic.update(title: "Another Topic")
+
+    topic_reloaded = Topic.find(topic.id)
+    assert_equal("Another Topic", topic_reloaded.title)
+    assert_equal("David", topic_reloaded.author_name)
+  end
+
+  def test_update_attribute_in_before_validation_respects_callback_chain
+    klass = Class.new(Topic) do
+      def self.name; "Topic"; end
+
+      before_validation :set_author_name
+      after_create :track_create
+      after_update :call_once, if: :saved_change_to_author_name?
+
+      attr_reader :counter
+
+      def set_author_name
+        update_attribute :author_name, "David"
+      end
+
+      def track_create
+        call_once if saved_change_to_author_name?
+      end
+
+      def call_once
+        @counter ||= 0
+        @counter += 1
+      end
+    end
+
+    comment = klass.create(title: "New Topic", author_name: "Not David")
+
+    assert_equal 1, comment.counter
   end
 
   def test_update_attribute_does_not_run_sql_if_attribute_is_not_changed

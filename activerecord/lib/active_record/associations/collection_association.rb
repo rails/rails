@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   module Associations
     # = Active Record Association Collection
@@ -28,6 +30,8 @@ module ActiveRecord
     class CollectionAssociation < Association #:nodoc:
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader
+        ensure_klass_exists!
+
         if stale_target?
           reload
         end
@@ -118,21 +122,6 @@ module ActiveRecord
           concat_records(records)
         else
           transaction { concat_records(records) }
-        end
-      end
-
-      # Starts a transaction in the association class's database connection.
-      #
-      #   class Author < ActiveRecord::Base
-      #     has_many :books
-      #   end
-      #
-      #   Author.first.books.transaction do
-      #     # same effect as calling Book.transaction
-      #   end
-      def transaction(*args)
-        reflection.klass.transaction(*args) do
-          yield
         end
       end
 
@@ -286,7 +275,7 @@ module ActiveRecord
       end
 
       def target=(record)
-        return super unless ActiveRecord::Base.has_many_inversing
+        return super unless reflection.klass.has_many_inversing
 
         case record
         when Array
@@ -315,6 +304,10 @@ module ActiveRecord
       end
 
       private
+        def transaction(&block)
+          reflection.klass.transaction(&block)
+        end
+
         # We have some records loaded from the database (persisted) and some that are
         # in-memory (memory). The same record may be represented in the persisted array
         # and in the memory array.

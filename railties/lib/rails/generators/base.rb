@@ -324,21 +324,17 @@ module Rails
 
         # Sets the base_name taking into account the current class namespace.
         def self.base_name # :doc:
-          @base_name ||= begin
-            if base = name.to_s.split("::").first
-              base.underscore
-            end
+          @base_name ||= if base = name.to_s.split("::").first
+            base.underscore
           end
         end
 
         # Removes the namespaces and get the generator name. For example,
         # Rails::Generators::ModelGenerator will return "model" as generator name.
         def self.generator_name # :doc:
-          @generator_name ||= begin
-            if generator = name.to_s.split("::").last
-              generator.delete_suffix!("Generator")
-              generator.underscore
-            end
+          @generator_name ||= if generator = name.to_s.split("::").last
+            generator.delete_suffix!("Generator")
+            generator.underscore
           end
         end
 

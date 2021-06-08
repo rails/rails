@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
-require "chdir_helpers"
 
 module ApplicationTests
   module RakeTests
     class RakeRestartTest < ActiveSupport::TestCase
-      include ActiveSupport::Testing::Isolation, ChdirHelpers
+      include ActiveSupport::Testing::Isolation
 
       def setup
         build_app
@@ -17,7 +16,7 @@ module ApplicationTests
       end
 
       test "rails restart touches tmp/restart.txt" do
-        chdir(app_path) do
+        Dir.chdir(app_path) do
           rails "restart"
           assert File.exist?("tmp/restart.txt")
 
@@ -30,7 +29,7 @@ module ApplicationTests
       end
 
       test "rails restart should work even if tmp folder does not exist" do
-        chdir(app_path) do
+        Dir.chdir(app_path) do
           FileUtils.remove_dir("tmp")
           rails "restart"
           assert File.exist?("tmp/restart.txt")

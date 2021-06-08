@@ -25,7 +25,7 @@ module ActionCable
     #
     # An example broadcasting for this channel looks like so:
     #
-    #   ActionCable.server.broadcast "comments_for_45", author: 'DHH', content: 'Rails is just swell'
+    #   ActionCable.server.broadcast "comments_for_45", { author: 'DHH', content: 'Rails is just swell' }
     #
     # If you have a stream that is related to a model, then the broadcasting used can be generated from the model and channel.
     # The following example would subscribe to a broadcasting like <tt>comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE</tt>.
@@ -124,13 +124,11 @@ module ActionCable
         end.clear
       end
 
-      # Calls stream_for if record is present, otherwise calls reject.
-      # This method is intended to be called when you're looking
-      # for a record based on a parameter, if its found it will start
-      # streaming. If the record is nil then it will reject the connection.
-      def stream_or_reject_for(record)
-        if record
-          stream_for record
+      # Calls stream_for with the given <tt>model</tt> if it's present to start streaming,
+      # otherwise rejects the subscription.
+      def stream_or_reject_for(model)
+        if model
+          stream_for model
         else
           reject
         end

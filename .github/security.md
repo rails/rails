@@ -3,7 +3,7 @@
 ## Reporting a Vulnerability
 
 **Do not open up a GitHub issue if the bug is a security vulnerability in Rails**.
-Instead refer to our [security policy](https://rubyonrails.org/security/).
+Instead, refer to our [security policy](https://rubyonrails.org/security/).
 
 ## Supported Versions
 

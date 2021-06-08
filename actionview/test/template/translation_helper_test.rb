@@ -23,7 +23,8 @@ class TranslationHelperTest < ActiveSupport::TestCase
           found_yield_single_argument: { foo: "Foo" },
           found_yield_block: { foo: "Foo" },
           array: { foo: { bar: "Foo Bar" } },
-          default: { foo: "Foo" }
+          default: { foo: "Foo" },
+          partial: { foo: "Partial foo" }
         },
         foo: "Foo",
         hello: "<a>Hello World</a>",
@@ -40,7 +41,6 @@ class TranslationHelperTest < ActiveSupport::TestCase
     )
     view_paths = ActionController::Base.view_paths
     view_paths.each(&:clear_cache)
-    ActionView::LookupContext.fallbacks.each(&:clear_cache)
     @view = ::ActionView::Base.with_empty_template_cache.with_view_paths(view_paths, {})
   end
 
@@ -75,6 +75,16 @@ class TranslationHelperTest < ActiveSupport::TestCase
     key = Struct.new(:to_s).new("translations.foo")
     assert_equal "Foo", translate(key)
     assert_equal key, translate(:"translations.missing", default: key)
+  end
+
+  def test_returns_nil_for_nil_key_without_default
+    assert_nil translate(nil)
+  end
+
+  def test_returns_default_for_nil_key_with_default
+    assert_equal "Foo", translate(nil, default: "Foo")
+    assert_equal "Foo", translate(nil, default: :"translations.foo")
+    assert_predicate translate(nil, default: :"translations.html"), :html_safe?
   end
 
   def test_returns_missing_translation_message_without_span_wrap
@@ -148,11 +158,6 @@ class TranslationHelperTest < ActiveSupport::TestCase
     I18n.exception_handler = old_exception_handler
   end
 
-  def test_hash_default
-    default = { separator: ".", delimiter: "," }
-    assert_equal default, translate(:'special.number.format', default: default)
-  end
-
   def test_translation_returning_an_array
     expected = %w(foo bar)
     assert_equal expected, translate(:"translations.array")
@@ -164,6 +169,14 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_finds_translation_scoped_by_partial_yielding_single_argument_block
     assert_equal "Foo", view.render(template: "translations/templates/found_yield_single_argument").strip
+  end
+
+  def test_finds_lazy_translation_scoped_by_partial
+    assert_equal "Partial foo", view.render(template: "translations/templates/partial_lazy_translation").strip
+  end
+
+  def test_finds_lazy_translation_scoped_by_partial_with_block
+    assert_equal "Partial foo", view.render(template: "translations/templates/partial_lazy_translation_block").strip
   end
 
   def test_finds_translation_scoped_by_partial_yielding_translation_and_key
@@ -310,6 +323,27 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal "A Generic String", translation
   end
 
+  def test_translate_with_interpolated_string_default
+    translation = translate(:"translations.missing", default: "An %{kind} String", kind: "Interpolated")
+    assert_equal "An Interpolated String", translation
+  end
+
+  def test_translate_with_hash_default
+    hash = { one: "%{count} thing", other: "%{count} things" }
+    assert_equal hash, translate(:"translations.missing", default: hash)
+  end
+
+  def test_translate_with_hash_default_and_count
+    hash = { one: "%{count} thing", other: "%{count} things" }
+    assert_equal "1 thing", translate(:"translations.missing", default: hash, count: 1)
+    assert_equal "2 things", translate(:"translations.missing", default: hash, count: 2)
+  end
+
+  def test_translate_with_proc_default
+    translation = translate(:"translations.missing", default: Proc.new { "From Proc" })
+    assert_equal "From Proc", translation
+  end
+
   def test_translate_with_object_default
     translation = translate(:'translations.missing', default: 123)
     assert_equal 123, translation
@@ -368,11 +402,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_translate_does_not_change_options
     options = {}
-    if RUBY_VERSION >= "2.7"
-      translate(:'translations.missing', **options)
-    else
-      translate(:'translations.missing', options)
-    end
+    translate(:"translations.missing", **options)
     assert_equal({}, options)
   end
 end

@@ -3,7 +3,7 @@
 module ActiveRecord
   module Querying
     QUERYING_METHODS = [
-      :find, :find_by, :find_by!, :take, :take!, :first, :first!, :last, :last!,
+      :find, :find_by, :find_by!, :take, :take!, :sole, :find_sole_by, :first, :first!, :last, :last!,
       :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!,
       :forty_two, :forty_two!, :third_to_last, :third_to_last!, :second_to_last, :second_to_last!,
       :exists?, :any?, :many?, :none?, :one?,
@@ -13,11 +13,11 @@ module ActiveRecord
       :destroy_all, :delete_all, :update_all, :touch_all, :destroy_by, :delete_by,
       :find_each, :find_in_batches, :in_batches,
       :select, :reselect, :order, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
-      :where, :rewhere, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :readonly,
+      :where, :rewhere, :invert_where, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :readonly,
       :and, :or, :annotate, :optimizer_hints, :extending,
       :having, :create_with, :distinct, :references, :none, :unscope, :merge, :except, :only,
       :count, :average, :minimum, :maximum, :sum, :calculate,
-      :pluck, :pick, :ids, :strict_loading
+      :pluck, :pick, :ids, :strict_loading, :excluding, :without
     ].freeze # :nodoc:
     delegate(*QUERYING_METHODS, to: :all)
 
@@ -43,8 +43,18 @@ module ActiveRecord
     #
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
     #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
+    #
+    # Note that building your own SQL query string from user input may expose your application to
+    # injection attacks (https://guides.rubyonrails.org/security.html#sql-injection).
     def find_by_sql(sql, binds = [], preparable: nil, &block)
-      result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable)
+      _load_from_sql(_query_by_sql(sql, binds, preparable: preparable), &block)
+    end
+
+    def _query_by_sql(sql, binds = [], preparable: nil, async: false) # :nodoc:
+      connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable, async: async)
+    end
+
+    def _load_from_sql(result_set, &block) # :nodoc:
       column_types = result_set.column_types
 
       unless column_types.empty?

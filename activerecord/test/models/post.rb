@@ -3,6 +3,7 @@
 class Post < ActiveRecord::Base
   class CategoryPost < ActiveRecord::Base
     self.table_name = "categories_posts"
+    belongs_to :group, foreign_key: :category_id, class_name: "Category"
     belongs_to :category
     belongs_to :post
   end
@@ -29,6 +30,7 @@ class Post < ActiveRecord::Base
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :titled_with_an_apostrophe, -> { where("title LIKE '%''%'") }
   scope :ranked_by_comments, -> { order(table[:comments_count].desc) }
+  scope :ordered_by_post_id, -> { order("posts.post_id ASC") }
 
   scope :limit_by, lambda { |l| limit(l) }
   scope :locked, -> { lock }
@@ -39,6 +41,7 @@ class Post < ActiveRecord::Base
   belongs_to :author_with_posts, -> { includes(:posts) }, class_name: "Author", foreign_key: :author_id
   belongs_to :author_with_address, -> { includes(:author_address) }, class_name: "Author", foreign_key: :author_id
   belongs_to :author_with_select, -> { select(:id) }, class_name: "Author", foreign_key: :author_id
+  belongs_to :author_with_the_letter_a, -> { where("name LIKE '%a%'") }, class_name: "Author", foreign_key: :author_id
 
   def first_comment
     super.body
@@ -82,6 +85,8 @@ class Post < ActiveRecord::Base
       "hello"
     end
   end
+
+  has_many :comments_with_extending, -> { extending(NamedExtension) }, class_name: "Comment", foreign_key: "post_id"
 
   has_many :comments_with_extend_2, extend: [NamedExtension, NamedExtension2], class_name: "Comment", foreign_key: "post_id"
 
@@ -320,6 +325,10 @@ class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
 
   class << self
+    def scope_registry
+      ActiveRecord::Scoping::ScopeRegistry.instance
+    end
+
     def connection
       Post.connection
     end
@@ -366,4 +375,20 @@ class FakeKlass
   end
 
   inherited self
+end
+
+class Postesque < ActiveRecord::Base
+  belongs_to :author, class_name: "Author", foreign_key: :author_name, primary_key: :name
+  belongs_to :author_with_address, class_name: "Author", foreign_key: :author_id
+  belongs_to :author_with_the_letter_a, class_name: "Author", foreign_key: :author_id
+end
+
+class PostRecord < ActiveRecord::Base
+  has_many :comments
+
+  class << self
+    def model_name
+      ActiveModel::Name.new(self, nil, "Post")
+    end
+  end
 end

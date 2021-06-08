@@ -32,8 +32,8 @@
   # Form file input elements
   fileInputSelector: 'input[name][type=file]:not([disabled])'
 
-  # Link onClick disable selector with possible reenable after remote submission
+  # Link onClick disable selector with possible re-enable after remote submission
   linkDisableSelector: 'a[data-disable-with], a[data-disable]'
 
-  # Button onClick disable selector with possible reenable after remote submission
+  # Button onClick disable selector with possible re-enable after remote submission
   buttonDisableSelector: 'button[data-remote][data-disable-with], button[data-remote][data-disable]'

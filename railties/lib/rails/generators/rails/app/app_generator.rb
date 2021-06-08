@@ -73,6 +73,9 @@ module Rails
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run "git init", capture: options[:quiet], abort_on_failure: false
+        if user_default_branch.strip.empty?
+          `git symbolic-ref HEAD refs/heads/main`
+        end
       end
     end
 
@@ -104,9 +107,7 @@ module Rails
     end
 
     def yarn_when_updating
-      return if File.exist?("bin/yarn")
-
-      template "bin/yarn" do |content|
+      template "bin/yarn", force: true do |content|
         "#{shebang}\n" + content
       end
 
@@ -117,17 +118,17 @@ module Rails
       empty_directory "config"
 
       inside "config" do
-        template "routes.rb"
+        template "routes.rb" unless options[:updating]
         template "application.rb"
         template "environment.rb"
-        template "cable.yml" unless options[:skip_action_cable]
-        template "puma.rb"   unless options[:skip_puma]
+        template "cable.yml" unless options[:updating] || options[:skip_action_cable]
+        template "puma.rb"   unless options[:updating] || options[:skip_puma]
         template "spring.rb" if spring_install?
-        template "storage.yml" unless skip_active_storage?
+        template "storage.yml" unless options[:updating] || skip_active_storage?
 
         directory "environments"
         directory "initializers"
-        directory "locales"
+        directory "locales" unless options[:updating]
       end
     end
 
@@ -145,7 +146,6 @@ module Rails
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
       config
-      configru
 
       unless cookie_serializer_config_exist
         gsub_file "config/initializers/cookies_serializer.rb", /json(?!,)/, "marshal"
@@ -265,6 +265,11 @@ module Rails
     def config_target_version
       defined?(@config_target_version) ? @config_target_version : Rails::VERSION::STRING.to_f
     end
+
+    private
+      def user_default_branch
+        @user_default_branch ||= `git config init.defaultbranch`
+      end
   end
 
   module Generators
@@ -551,7 +556,7 @@ module Rails
 
       def delete_new_framework_defaults
         unless options[:update]
-          remove_file "config/initializers/new_framework_defaults_6_2.rb"
+          remove_file "config/initializers/new_framework_defaults_7_0.rb"
         end
       end
 
