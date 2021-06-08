@@ -285,7 +285,8 @@ module ActiveRecord
       #
       # ==== Parameters
       #
-      # * +id+ - This should be the id, an array of ids to be updated, or nothing or :all for all objects.
+      # * +id+ - This should be the id or an array of ids to be updated.
+      #   Optional argument, defaults to all records in the relation.
       # * +attributes+ - This should be a hash of attributes or an array of hashes.
       #
       # ==== Examples
