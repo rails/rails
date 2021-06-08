@@ -192,11 +192,17 @@ class TimeTravelTest < ActiveSupport::TestCase
       inner_expected_time = Time.new(2004, 10, 24, 1, 4, 44)
       travel_to outer_expected_time
 
+      assert_equal outer_expected_time, Time.now
+
       assert_nothing_raised do
         travel_to(inner_expected_time) do
           assert_equal inner_expected_time, Time.now
         end
       end
+
+      assert_equal outer_expected_time, Time.now
+    ensure
+      travel_back
     end
   end
 

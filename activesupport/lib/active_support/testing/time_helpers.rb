@@ -162,6 +162,7 @@ module ActiveSupport
           now = date_or_time.to_time.change(usec: 0)
         end
 
+        stubbed_time = Time.now if simple_stubs.stubbing(Time, :now)
         simple_stubs.stub_object(Time, :now) { at(now.to_i) }
         simple_stubs.stub_object(Date, :today) { jd(now.to_date.jd) }
         simple_stubs.stub_object(DateTime, :now) { jd(now.to_date.jd, now.hour, now.min, now.sec, Rational(now.utc_offset, 86400)) }
@@ -171,7 +172,11 @@ module ActiveSupport
             self.in_block = true
             yield
           ensure
-            travel_back
+            if stubbed_time
+              travel_to stubbed_time
+            else
+              travel_back
+            end
             self.in_block = false
           end
         end
