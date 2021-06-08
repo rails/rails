@@ -1,3 +1,9 @@
+*   Add `ActiveRecord::Base#attributes_for_database`
+
+    Returns attributes with values for assignment to the database.
+
+    *Chris Salzberg*
+
 *   Use an empty query to check if the PostgreSQL connection is still active
 
     An empty query is faster than `SELECT 1`.
