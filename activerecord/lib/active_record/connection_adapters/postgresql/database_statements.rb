@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/blank"
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -27,7 +29,9 @@ module ActiveRecord
         private_constant :READ_QUERY
 
         def write_query?(sql) # :nodoc:
-          !READ_QUERY.match?(sql)
+          cleaned_query = sql.gsub(%r{/\*(.*)\*/}, "").strip # remove comments
+
+          cleaned_query.present? && cleaned_query != ";" && !READ_QUERY.match?(cleaned_query)
         end
 
         # Executes an SQL statement, returning a PG::Result object on success
