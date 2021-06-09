@@ -18,7 +18,8 @@ module Rails
       def delete_css_file_generate_with_scaffold
         path = Rails.root.join('app', 'assets', 'stylesheets', 'scaffolds.scss')
         FileUtils.remove_file(path,force=true)
-        path.to_s.split("/").reverse.slice(0,4).reverse.join("/")
+        puts " "*6+"\e[31mremove\e[0m"+" "*4  + path.to_s.split("/").reverse.slice(0,4).reverse.join("/")
+        puts path
       end
 
       def perform(*)
@@ -28,7 +29,7 @@ module Rails
         require_application_and_environment!
         load_generators
         Rails::Generators.invoke generator, args, behavior: :revoke, destination_root: Rails::Command.root
-        puts " "*6+"\e[31mremove\e[0m"+" "*4+delete_css_file_generate_with_scaffold if generator == "scaffold"
+        return delete_css_file_generate_with_scaffold if generator == "scaffold"
       end
     end
   end
