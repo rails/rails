@@ -22,13 +22,6 @@ module ActiveRecord
       ##
       # :singleton-method:
       #
-      # Specifies if the methods calling database queries should be logged below
-      # their relevant queries. Defaults to false.
-      mattr_accessor :verbose_query_logs, instance_writer: false, default: false
-
-      ##
-      # :singleton-method:
-      #
       # Specifies the names of the queues used by background jobs.
       mattr_accessor :queues, instance_accessor: false, default: {}
 

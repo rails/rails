@@ -187,6 +187,14 @@ module ActiveRecord
 
   ##
   # :singleton-method:
+  #
+  # Specifies if the methods calling database queries should be logged below
+  # their relevant queries. Defaults to false.
+  singleton_class.attr_accessor :verbose_query_logs
+  self.verbose_query_logs = false
+
+  ##
+  # :singleton-method:
   # Specify a threshold for the size of query result sets. If the number of
   # records in the set exceeds the threshold, a warning is logged. This can
   # be used to identify queries which load thousands of records and

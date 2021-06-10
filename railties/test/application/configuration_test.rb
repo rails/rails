@@ -1672,7 +1672,7 @@ module ApplicationTests
     test "config.active_record.verbose_query_logs is false by default in development" do
       app "development"
 
-      assert_not ActiveRecord::Base.verbose_query_logs
+      assert_not ActiveRecord.verbose_query_logs
     end
 
     test "config.active_record.suppress_multiple_database_warning is false by default in development" do

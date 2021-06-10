@@ -62,7 +62,7 @@ module ActiveRecord
         console.level = Rails.logger.level
         Rails.logger.extend ActiveSupport::Logger.broadcast console
       end
-      ActiveRecord::Base.verbose_query_logs = false
+      ActiveRecord.verbose_query_logs = false
     end
 
     runner do
