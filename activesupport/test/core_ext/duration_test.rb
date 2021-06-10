@@ -625,6 +625,7 @@ class DurationTest < ActiveSupport::TestCase
       ["P1Y1M1DT1H",    1.year + 1.month + 1.day + 1.hour],
       ["PT0S",          0.minutes                        ],
       ["PT-0.2S",       (-0.2).seconds                   ],
+      ["PT1000000S",    1_000_000.seconds                ],
     ]
     expectations.each do |expected_output, duration|
       assert_equal expected_output, duration.iso8601, expected_output.inspect

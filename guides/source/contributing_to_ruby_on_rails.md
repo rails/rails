@@ -608,15 +608,15 @@ $ git push fork my_new_branch
 ### Issue a Pull Request
 
 Navigate to the Rails repository you just pushed to (e.g.
-https://github.com/your-user-name/rails) and click on "Pull Requests" seen in
-the right panel. On the next page, press "New pull request" in the upper right-hand corner.
+https://github.com/your-user-name/rails) and click on "Pull Requests" in the top bar (just above the code).
+On the next page, click "New pull request" in the upper right-hand corner.
 
-Click on "Edit", if you need to change the branches being compared (it compares
-"main" by default) and press "Click to create a pull request for this
-comparison".
+The pull request should target the base repository `rails/rails` and the branch `main`.
+The head repository will be your work (`your-user-name/rails`), and the branch will be
+whatever name you gave your branch. Click "create pull request" when you're ready.
 
 Ensure the changesets you introduced are included. Fill in some details about
-your potential patch, including a meaningful title. When finished, press "Send
+your potential patch, using the pull request template provided. When finished, click "Create
 pull request". The Rails core team will be notified about your submission.
 
 ### Get some Feedback
@@ -637,7 +637,7 @@ list](https://discuss.rubyonrails.org/c/rubyonrails-core) for this. You can also
 leave another comment on the pull request.
 
 While you're waiting for feedback on your pull request, open up a few other
-pull requests and give someone else some! I'm sure they'll appreciate it in
+pull requests and give someone else some! They'll appreciate it in
 the same way that you appreciate feedback on your patches.
 
 Note that your pull request may be marked as "Approved" by somebody who does not

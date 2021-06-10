@@ -901,7 +901,7 @@ module ActionMailer
       end
 
       def apply_defaults(headers)
-        default_values = self.class.default.transform_values do |value|
+        default_values = self.class.default.except(*headers.keys).transform_values do |value|
           compute_default(value)
         end
 

@@ -11,8 +11,8 @@ module ActiveRecord
       fixtures :people
 
       def setup
-        @old_value = ActiveRecord::Base.legacy_connection_handling
-        ActiveRecord::Base.legacy_connection_handling = true
+        @old_value = ActiveRecord.legacy_connection_handling
+        ActiveRecord.legacy_connection_handling = true
         assert_deprecated do
           ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
         end
@@ -29,7 +29,7 @@ module ActiveRecord
 
       def teardown
         clean_up_legacy_connection_handlers
-        ActiveRecord::Base.legacy_connection_handling = @old_value
+        ActiveRecord.legacy_connection_handling = @old_value
       end
 
       class SecondaryBase < ActiveRecord::Base

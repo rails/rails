@@ -833,6 +833,14 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Thanks for signing up this afternoon", mail.subject)
   end
 
+  test "proc default values are not evaluated when overridden" do
+    with_default BaseMailer, from: -> { flunk }, to: -> { flunk } do
+      email = BaseMailer.welcome(from: "overridden-from@example.com", to: "overridden-to@example.com")
+      assert_equal ["overridden-from@example.com"], email.from
+      assert_equal ["overridden-to@example.com"], email.to
+    end
+  end
+
   test "modifying the mail message with a before_action" do
     class BeforeActionMailer < ActionMailer::Base
       before_action :add_special_header!

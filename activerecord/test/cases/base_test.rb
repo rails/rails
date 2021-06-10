@@ -800,6 +800,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal false, Topic.find(1).previously_new_record?
   end
 
+  def test_previously_persisted_returns_boolean
+    assert_equal false, Topic.new.previously_persisted?
+    assert_equal false, Topic.new.destroy.previously_persisted?
+    assert_equal false, Topic.first.previously_persisted?
+    assert_equal true, Topic.first.destroy.previously_persisted?
+    assert_equal true, Topic.first.delete.previously_persisted?
+  end
+
   def test_dup
     topic = Topic.find(1)
     duped_topic = nil
@@ -1674,8 +1682,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "cannot call connected_to on subclasses of ActiveRecord::Base with legacy connection handling" do
-    old_value = ActiveRecord::Base.legacy_connection_handling
-    ActiveRecord::Base.legacy_connection_handling = true
+    old_value = ActiveRecord.legacy_connection_handling
+    ActiveRecord.legacy_connection_handling = true
 
     error = assert_raises(NotImplementedError) do
       Bird.connected_to(role: :reading) { }
@@ -1684,7 +1692,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "`connected_to` can only be called on ActiveRecord::Base with legacy connection handling.", error.message
   ensure
     clean_up_legacy_connection_handlers
-    ActiveRecord::Base.legacy_connection_handling = old_value
+    ActiveRecord.legacy_connection_handling = old_value
   end
 
   test "cannot call connected_to with role and shard on non-abstract classes" do
@@ -1736,25 +1744,25 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "#connecting_to doesn't work with legacy connection handling" do
-    old_value = ActiveRecord::Base.legacy_connection_handling
-    ActiveRecord::Base.legacy_connection_handling = true
+    old_value = ActiveRecord.legacy_connection_handling
+    ActiveRecord.legacy_connection_handling = true
 
     assert_raises NotImplementedError do
       SecondAbstractClass.connecting_to(role: :writing, prevent_writes: true)
     end
   ensure
-    ActiveRecord::Base.legacy_connection_handling = old_value
+    ActiveRecord.legacy_connection_handling = old_value
   end
 
   test "#connected_to_many doesn't work with legacy connection handling" do
-    old_value = ActiveRecord::Base.legacy_connection_handling
-    ActiveRecord::Base.legacy_connection_handling = true
+    old_value = ActiveRecord.legacy_connection_handling
+    ActiveRecord.legacy_connection_handling = true
 
     assert_raises NotImplementedError do
       ActiveRecord::Base.connected_to_many([SecondAbstractClass], role: :writing)
     end
   ensure
-    ActiveRecord::Base.legacy_connection_handling = old_value
+    ActiveRecord.legacy_connection_handling = old_value
   end
 
   test "#connected_to_many cannot be called on anything but ActiveRecord::Base" do

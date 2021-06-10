@@ -14,6 +14,7 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert_equal 480, metadata[:height]
     assert_equal [4, 3], metadata[:display_aspect_ratio]
     assert_equal 5.166648, metadata[:duration]
+    assert metadata[:audio]
     assert_not_includes metadata, :angle
   end
 
@@ -52,6 +53,7 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert_equal 640, metadata[:width]
     assert_equal 480, metadata[:height]
     assert_equal 5.229000, metadata[:duration]
+    assert metadata[:audio]
   end
 
   test "analyzing a video without a video stream" do
@@ -61,5 +63,12 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert_not_includes metadata, :width
     assert_not_includes metadata, :height
     assert_equal 1.022000, metadata[:duration]
+  end
+
+  test "analyzing a video without an audio stream" do
+    blob = create_file_blob(filename: "video_without_audio_stream.mp4", content_type: "video/mp4")
+    metadata = extract_metadata_from(blob)
+
+    assert_not metadata[:audio]
   end
 end

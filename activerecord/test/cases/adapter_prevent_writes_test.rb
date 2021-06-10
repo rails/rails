@@ -127,8 +127,8 @@ module ActiveRecord
 
   class AdapterPreventWritesLegacyTest < ActiveRecord::TestCase
     def setup
-      @old_value = ActiveRecord::Base.legacy_connection_handling
-      ActiveRecord::Base.legacy_connection_handling = true
+      @old_value = ActiveRecord.legacy_connection_handling
+      ActiveRecord.legacy_connection_handling = true
 
       @connection = ActiveRecord::Base.connection
       @connection_handler = ActiveRecord::Base.connection_handler
@@ -136,7 +136,7 @@ module ActiveRecord
 
     def teardown
       clean_up_legacy_connection_handlers
-      ActiveRecord::Base.legacy_connection_handling = @old_value
+      ActiveRecord.legacy_connection_handling = @old_value
     end
 
     def test_preventing_writes_predicate_legacy

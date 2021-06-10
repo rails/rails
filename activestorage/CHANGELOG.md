@@ -1,3 +1,18 @@
+*   Add metadata value for presence of audio channel in video blobs
+
+    The `metadata` attribute of video blobs has a new boolean key named `audio` that is set to
+    `true` if the file has an audio channel and `false` if it doesn't.
+
+    *Breno Gazzola*
+
+*   Adds analyzer for audio files.
+
+    *Breno Gazzola*
+
+*   Allow `expires_in` for ActiveStorage signed ids.
+
+    *aki77*
+
 *   Allow to purge an attachment when record is not persisted for `has_one_attached`
 
     *Jacopo Beschi*

@@ -1,3 +1,15 @@
+*   `package.json` now uses a strict version constraint for Rails JavaScript packages on new Rails apps.
+
+    *Zachary Scott*, *Alex Ghiculescu*
+
+*   Modified scaffold generator template so that running
+    `rails g scaffold Author` no longer generates tests called "creating
+    a Author", "updating a Author", and "destroying a Author"
+
+    Fixes #40744.
+
+    *Michael Duchemin*
+
 *   Raise an error in generators if a field type is invalid.
 
     *Petrik de Heus*

@@ -275,7 +275,7 @@ module ActiveRecord
       end
 
       def target=(record)
-        return super unless ActiveRecord::Base.has_many_inversing
+        return super unless reflection.klass.has_many_inversing
 
         case record
         when Array

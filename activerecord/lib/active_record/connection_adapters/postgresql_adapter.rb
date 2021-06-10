@@ -292,7 +292,7 @@ module ActiveRecord
       # Is this connection alive and ready for queries?
       def active?
         @lock.synchronize do
-          @connection.query "SELECT 1"
+          @connection.query ";"
         end
         true
       rescue PG::Error

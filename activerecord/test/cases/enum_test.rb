@@ -378,6 +378,14 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "published", @book.status
   end
 
+  test "attributes_for_database" do
+    assert_equal 2, @book.attributes_for_database["status"]
+
+    @book.status = "published"
+
+    assert_equal 2, @book.attributes_for_database["status"]
+  end
+
   test "invalid definition values raise an ArgumentError" do
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do

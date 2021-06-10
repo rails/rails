@@ -1541,8 +1541,8 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
     fixtures :dogs
 
     def setup
-      @old_value = ActiveRecord::Base.legacy_connection_handling
-      ActiveRecord::Base.legacy_connection_handling = true
+      @old_value = ActiveRecord.legacy_connection_handling
+      ActiveRecord.legacy_connection_handling = true
 
       @old_handler = ActiveRecord::Base.connection_handler
       @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
@@ -1565,7 +1565,7 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       ActiveRecord::Base.configurations = @prev_configs
       ActiveRecord::Base.connection_handler = @old_handler
       clean_up_legacy_connection_handlers
-      ActiveRecord::Base.legacy_connection_handling = false
+      ActiveRecord.legacy_connection_handling = false
     end
 
     def test_uses_writing_connection_for_fixtures

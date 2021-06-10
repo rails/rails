@@ -26,15 +26,15 @@ class GeneratorsTest < Rails::Generators::TestCase
   def test_invoke_when_generator_is_not_found
     name = :unknown
     output = capture(:stdout) { Rails::Generators.invoke name }
-    assert_match "Could not find generator '#{name}'", output
+    assert_match "Could not find generator '#{name}'.", output
     assert_match "`bin/rails generate --help`", output
-    assert_no_match "Maybe you meant", output
+    assert_no_match "Did you mean", output
   end
 
   def test_generator_suggestions
     name = :migrationz
     output = capture(:stdout) { Rails::Generators.invoke name }
-    assert_match 'Maybe you meant "migration"?', output
+    assert_match "Did you mean?  migration", output
   end
 
   def test_generator_suggestions_except_en_locale
@@ -44,7 +44,7 @@ class GeneratorsTest < Rails::Generators::TestCase
     I18n.default_locale = :ja
     name = :tas
     output = capture(:stdout) { Rails::Generators.invoke name }
-    assert_match 'Maybe you meant "task"?', output
+    assert_match "Did you mean?  task", output
   ensure
     I18n.available_locales = orig_available_locales
     I18n.default_locale = orig_default_locale

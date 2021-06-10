@@ -24,6 +24,10 @@ module ActionView
         self.class.controller_path = path
       end
 
+      def self.controller_name
+        "test"
+      end
+
       def initialize
         super
         self.class.controller_path = ""

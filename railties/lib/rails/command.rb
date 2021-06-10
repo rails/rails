@@ -10,7 +10,6 @@ module Rails
   module Command
     extend ActiveSupport::Autoload
 
-    autoload :Spellchecker
     autoload :Behavior
     autoload :Base
 
