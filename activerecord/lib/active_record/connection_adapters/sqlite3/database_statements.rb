@@ -26,7 +26,7 @@ module ActiveRecord
 
           log(sql, name) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.execute(sql)
+              connection.execute(sql)
             end
           end
         end
@@ -43,7 +43,7 @@ module ActiveRecord
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
               # Don't cache statements if they are not prepared
               unless prepare
-                stmt = @connection.prepare(sql)
+                stmt = connection.prepare(sql)
                 begin
                   cols = stmt.columns
                   unless without_prepared_statement?(binds)
@@ -54,7 +54,7 @@ module ActiveRecord
                   stmt.close
                 end
               else
-                stmt = @statements[sql] ||= @connection.prepare(sql)
+                stmt = @statements[sql] ||= connection.prepare(sql)
                 cols = stmt.columns
                 stmt.reset!
                 stmt.bind_params(type_casted_binds)
@@ -68,7 +68,7 @@ module ActiveRecord
 
         def exec_delete(sql, name = "SQL", binds = [])
           exec_query(sql, name, binds)
-          @connection.changes
+          connection.changes
         end
         alias :exec_update :exec_delete
 
@@ -76,22 +76,22 @@ module ActiveRecord
           raise TransactionIsolationError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted
           raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
 
-          Thread.current.thread_variable_set("read_uncommitted", @connection.get_first_value("PRAGMA read_uncommitted"))
-          @connection.read_uncommitted = true
+          Thread.current.thread_variable_set("read_uncommitted", connection.get_first_value("PRAGMA read_uncommitted"))
+          connection.read_uncommitted = true
           begin_db_transaction
         end
 
         def begin_db_transaction #:nodoc:
-          log("begin transaction", "TRANSACTION") { @connection.transaction }
+          log("begin transaction", "TRANSACTION") { connection.transaction }
         end
 
         def commit_db_transaction #:nodoc:
-          log("commit transaction", "TRANSACTION") { @connection.commit }
+          log("commit transaction", "TRANSACTION") { connection.commit }
           reset_read_uncommitted
         end
 
         def exec_rollback_db_transaction #:nodoc:
-          log("rollback transaction", "TRANSACTION") { @connection.rollback }
+          log("rollback transaction", "TRANSACTION") { connection.rollback }
           reset_read_uncommitted
         end
 
@@ -100,7 +100,7 @@ module ActiveRecord
             read_uncommitted = Thread.current.thread_variable_get("read_uncommitted")
             return unless read_uncommitted
 
-            @connection.read_uncommitted = read_uncommitted
+            connection.read_uncommitted = read_uncommitted
           end
 
           def execute_batch(statements, name = nil)
@@ -113,13 +113,13 @@ module ActiveRecord
 
             log(sql, name) do
               ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-                @connection.execute_batch2(sql)
+                connection.execute_batch2(sql)
               end
             end
           end
 
           def last_inserted_id(result)
-            @connection.last_insert_row_id
+            connection.last_insert_row_id
           end
 
           def build_fixture_statements(fixture_set)

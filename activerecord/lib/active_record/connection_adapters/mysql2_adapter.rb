@@ -19,12 +19,7 @@ module ActiveRecord
         config[:flags] |= Mysql2::Client::FOUND_ROWS
       end
 
-      ConnectionAdapters::Mysql2Adapter.new(
-        ConnectionAdapters::Mysql2Adapter.new_client(config),
-        logger,
-        nil,
-        config,
-      )
+      ConnectionAdapters::Mysql2Adapter.new(nil, logger, nil, config)
     end
   end
 
@@ -50,11 +45,10 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         superclass_config = config.reverse_merge(prepared_statements: false)
         super(connection, logger, connection_options, superclass_config)
-        configure_connection
       end
 
       def self.database_exists?(config)
-        !!ActiveRecord::Base.mysql2_connection(config)
+        !!ActiveRecord::Base.mysql2_connection(config).raw_connection
       rescue ActiveRecord::NoDatabaseError
         false
       end
@@ -100,7 +94,7 @@ module ActiveRecord
       #++
 
       def quote_string(string)
-        @connection.escape(string)
+        connection.escape(string)
       rescue Mysql2::Error => error
         raise translate_exception(error, message: error.message, sql: "<escape>", binds: [])
       end
@@ -110,7 +104,7 @@ module ActiveRecord
       #++
 
       def active?
-        @connection.ping
+        @connection&.ping
       end
 
       def reconnect!
@@ -124,12 +118,12 @@ module ActiveRecord
       # Otherwise, this method does nothing.
       def disconnect!
         super
-        @connection.close
+        @connection&.close
       end
 
       def discard! # :nodoc:
         super
-        @connection.automatic_close = false
+        @connection&.automatic_close = false
         @connection = nil
       end
 
@@ -137,6 +131,12 @@ module ActiveRecord
         def connect
           @connection = self.class.new_client(@config)
           configure_connection
+        rescue Mysql2::Error => error
+          if error.error_number == ER_BAD_DB_ERROR
+            raise ActiveRecord::NoDatabaseError
+          else
+            raise
+          end
         end
 
         def configure_connection
@@ -149,7 +149,7 @@ module ActiveRecord
         end
 
         def get_full_version
-          @connection.server_info[:version]
+          connection.server_info[:version]
         end
 
         def translate_exception(exception, message:, sql:, binds:)

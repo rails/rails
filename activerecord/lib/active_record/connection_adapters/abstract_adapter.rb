@@ -558,6 +558,7 @@ module ActiveRecord
       # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
       def verify!
+        return if @connection.nil?
         reconnect! unless active?
       end
 
@@ -569,7 +570,7 @@ module ActiveRecord
       # PostgreSQL's lo_* methods.
       def raw_connection
         disable_lazy_transactions!
-        @connection
+        connection
       end
 
       def default_uniqueness_comparison(attribute, value) # :nodoc:
@@ -628,6 +629,13 @@ module ActiveRecord
       end
 
       private
+        def connection
+          @connection || @lock.synchronize do
+            connect
+            @connection
+          end
+        end
+
         def type_map
           @type_map ||= Type::TypeMap.new.tap do |mapping|
             initialize_type_map(mapping)
