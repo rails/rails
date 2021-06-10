@@ -171,5 +171,28 @@ module ApplicationTests
       assert_equal 400, last_response.status
       assert_match "Invalid query parameters", last_response.body
     end
+
+    test "displays statement invalid template correctly" do
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            raise ActiveRecord::StatementInvalid
+          end
+        end
+      RUBY
+      app.config.action_dispatch.show_exceptions = true
+      app.config.consider_all_requests_local = true
+      app.config.action_dispatch.ignore_accept_header = false
+
+      get "/foo"
+      assert_equal 500, last_response.status
+      assert_match "<title>Action Controller: Exception caught</title>", last_response.body
+      assert_match "ActiveRecord::StatementInvalid", last_response.body
+
+      get "/foo", {}, { "HTTP_ACCEPT" => "text/plain", "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest" }
+      assert_equal 500, last_response.status
+      assert_equal "text/plain", last_response.media_type
+      assert_match "ActiveRecord::StatementInvalid", last_response.body
+    end
   end
 end
