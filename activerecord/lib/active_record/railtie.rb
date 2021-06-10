@@ -224,8 +224,15 @@ To keep using the current cache store, you can turn off cache versioning entirel
         configs.each do |k, v|
           next if k == :encryption
           setter = "#{k}="
-          next if ActiveRecord.respond_to?(setter)
-          send(setter, v)
+          # Some existing initializers might rely on Active Record configuration
+          # being copied from the config object to their actual destination when
+          # `ActiveRecord::Base` is loaded.
+          # So to preserve backward compatibility we copy the config a second time.
+          if ActiveRecord.respond_to?(setter)
+            ActiveRecord.send(setter, v)
+          else
+            send(setter, v)
+          end
         end
       end
     end

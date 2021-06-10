@@ -341,6 +341,10 @@ module ActiveRecord
         ActiveRecord.default_timezone
       end
 
+      def maintain_test_schema # :nodoc:
+        ActiveRecord.maintain_test_schema
+      end
+
       def reading_role # :nodoc:
         ActiveSupport::Deprecation.warn(<<~MSG)
           ActiveRecord::Base.reading_role is deprecated and will be removed in Rails 7.0.
