@@ -72,51 +72,6 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Specifies the format to use when dumping the database schema with Rails'
-      # Rakefile. If :sql, the schema is dumped as (potentially database-
-      # specific) SQL statements. If :ruby, the schema is dumped as an
-      # ActiveRecord::Schema file which can be loaded into any database that
-      # supports migrations. Use :ruby if you want to have different database
-      # adapters for, e.g., your development and test environments.
-      mattr_accessor :schema_format, instance_writer: false, default: :ruby
-
-      ##
-      # :singleton-method:
-      # Specifies if an error should be raised if the query has an order being
-      # ignored when doing batch queries. Useful in applications where the
-      # scope being ignored is error-worthy, rather than a warning.
-      mattr_accessor :error_on_ignored_order, instance_writer: false, default: false
-
-      ##
-      # :singleton-method:
-      # Specify whether or not to use timestamps for migration versions
-      mattr_accessor :timestamped_migrations, instance_writer: false, default: true
-
-      ##
-      # :singleton-method:
-      # Specify whether schema dump should happen at the end of the
-      # bin/rails db:migrate command. This is true by default, which is useful for the
-      # development environment. This should ideally be false in the production
-      # environment where dumping schema is rarely needed.
-      mattr_accessor :dump_schema_after_migration, instance_writer: false, default: true
-
-      ##
-      # :singleton-method:
-      # Specifies which database schemas to dump when calling db:schema:dump.
-      # If the value is :schema_search_path (the default), any schemas listed in
-      # schema_search_path are dumped. Use :all to dump all schemas regardless
-      # of schema_search_path, or a string of comma separated schemas for a
-      # custom list.
-      mattr_accessor :dump_schemas, instance_writer: false, default: :schema_search_path
-
-      ##
-      # :singleton-method:
-      # Show a warning when Rails couldn't parse your database.yml
-      # for multiple databases.
-      mattr_accessor :suppress_multiple_database_warning, instance_writer: false, default: false
-
-      ##
-      # :singleton-method:
       # Force enumeration of all columns in SELECT statements.
       # e.g. `SELECT first_name, last_name FROM ...` instead of `SELECT * FROM ...`
       # This avoids +PreparedStatementCacheExpired+ errors when a column is added

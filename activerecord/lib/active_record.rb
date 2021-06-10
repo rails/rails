@@ -204,6 +204,57 @@ module ActiveRecord
   singleton_class.attr_accessor :action_on_strict_loading_violation
   self.action_on_strict_loading_violation = :raise
 
+  ##
+  # :singleton-method:
+  # Specifies the format to use when dumping the database schema with Rails'
+  # Rakefile. If :sql, the schema is dumped as (potentially database-
+  # specific) SQL statements. If :ruby, the schema is dumped as an
+  # ActiveRecord::Schema file which can be loaded into any database that
+  # supports migrations. Use :ruby if you want to have different database
+  # adapters for, e.g., your development and test environments.
+  singleton_class.attr_accessor :schema_format
+  self.schema_format = :ruby
+
+  ##
+  # :singleton-method:
+  # Specifies if an error should be raised if the query has an order being
+  # ignored when doing batch queries. Useful in applications where the
+  # scope being ignored is error-worthy, rather than a warning.
+  singleton_class.attr_accessor :error_on_ignored_order
+  self.error_on_ignored_order = false
+
+  ##
+  # :singleton-method:
+  # Specify whether or not to use timestamps for migration versions
+  singleton_class.attr_accessor :timestamped_migrations
+  self.timestamped_migrations = true
+
+  ##
+  # :singleton-method:
+  # Specify whether schema dump should happen at the end of the
+  # bin/rails db:migrate command. This is true by default, which is useful for the
+  # development environment. This should ideally be false in the production
+  # environment where dumping schema is rarely needed.
+  singleton_class.attr_accessor :dump_schema_after_migration
+  self.dump_schema_after_migration = true
+
+  ##
+  # :singleton-method:
+  # Specifies which database schemas to dump when calling db:schema:dump.
+  # If the value is :schema_search_path (the default), any schemas listed in
+  # schema_search_path are dumped. Use :all to dump all schemas regardless
+  # of schema_search_path, or a string of comma separated schemas for a
+  # custom list.
+  singleton_class.attr_accessor :dump_schemas
+  self.dump_schemas = :schema_search_path
+
+  ##
+  # :singleton-method:
+  # Show a warning when Rails couldn't parse your database.yml
+  # for multiple databases.
+  singleton_class.attr_accessor :suppress_multiple_database_warning
+  self.suppress_multiple_database_warning = false
+
   def self.eager_load!
     super
     ActiveRecord::Locking.eager_load!
