@@ -45,6 +45,34 @@ module ApplicationTests
       assert_equal :de, I18n.default_locale
     end
 
+    test "views are generated with default language" do
+      require "rails/generators"
+      rails("generate", "controller", "home", "index")
+
+      require "rack/test"
+      extend Rack::Test::Methods
+      load_app
+
+      get "/home/index"
+      assert_includes last_response.body, "<html lang=\"en\">"
+    end
+
+    test "views are updated with default locale" do
+      require "rails/generators"
+      rails("generate", "controller", "home", "index")
+
+      add_to_config <<-RUBY
+        config.i18n.default_locale = :de
+      RUBY
+
+      require "rack/test"
+      extend Rack::Test::Methods
+      load_app
+
+      get "/home/index"
+      assert_includes last_response.body, "<html lang=\"de\">"
+    end
+
     # Load paths
     test "no config locales directory present should return empty load path" do
       FileUtils.rm_rf "#{app_path}/config/locales"

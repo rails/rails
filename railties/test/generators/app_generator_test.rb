@@ -1286,6 +1286,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "web-console", app_root
   end
 
+  def test_application_template_has_locale
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root]
+
+    assert_file "#{app_root}/app/views/layouts/application.html.erb" do |content|
+      assert_match(/I18n.locale/, content)
+    end
+  end
+
   private
     def stub_rails_application(root)
       Rails.application.config.root = root

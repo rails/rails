@@ -9,6 +9,10 @@
     Fixes #40744.
 
     *Michael Duchemin*
+    
+*   Set default language for `application.html.erb` to `I18n.locale`.
+
+    *Monica Mateiu*
 
 *   Raise an error in generators if a field type is invalid.
 
