@@ -1,4 +1,10 @@
-*   Add `ActiveRecord::Base#update!` that works like `ActiveRecord::Base#update` but raises exceptions.
+*   Add `ActiveRecord::Base.update!` that works like `ActiveRecord::Base.update` but raises exceptions.
+
+    This allows for the same behavior as the instance method `#update!` at a class level.
+
+    ```ruby
+    Person.update!(:all, state: "confirmed")
+    ```
 
     *Dorian Marié*
 
