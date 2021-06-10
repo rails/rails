@@ -195,6 +195,13 @@ module ActiveRecord
 
   ##
   # :singleton-method:
+  #
+  # Specifies the names of the queues used by background jobs.
+  singleton_class.attr_accessor :queues
+  self.queues = {}
+
+  ##
+  # :singleton-method:
   # Specify a threshold for the size of query result sets. If the number of
   # records in the set exceeds the threshold, a warning is logged. This can
   # be used to identify queries which load thousands of records and

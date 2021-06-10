@@ -22,12 +22,6 @@ module ActiveRecord
       ##
       # :singleton-method:
       #
-      # Specifies the names of the queues used by background jobs.
-      mattr_accessor :queues, instance_accessor: false, default: {}
-
-      ##
-      # :singleton-method:
-      #
       # Specifies the job used to destroy associations in the background
       class_attribute :destroy_association_async_job, instance_writer: false, instance_predicate: false, default: false
 
