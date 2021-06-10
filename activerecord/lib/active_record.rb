@@ -194,6 +194,9 @@ module ActiveRecord
   singleton_class.attr_accessor :warn_on_records_fetched_greater_than
   self.warn_on_records_fetched_greater_than = false
 
+  singleton_class.attr_accessor :application_record_class
+  self.application_record_class = nil
+
   def self.eager_load!
     super
     ActiveRecord::Locking.eager_load!

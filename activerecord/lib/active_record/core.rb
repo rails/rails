@@ -146,8 +146,6 @@ module ActiveRecord
 
       class_attribute :default_shard, instance_writer: false
 
-      mattr_accessor :application_record_class, instance_accessor: false, default: nil
-
       # Sets the async_query_executor for an application. By default the thread pool executor
       # set to +nil+ which will not run queries in the background. Applications must configure
       # a thread pool executor to use this feature. Options are:
@@ -185,8 +183,8 @@ module ActiveRecord
       end
 
       def self.application_record_class? # :nodoc:
-        if Base.application_record_class
-          self == Base.application_record_class
+        if ActiveRecord.application_record_class
+          self == ActiveRecord.application_record_class
         else
           if defined?(ApplicationRecord) && self == ApplicationRecord
             true
