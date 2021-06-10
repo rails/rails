@@ -1,3 +1,7 @@
+*   Add `update!` that works like `update` but raises exceptions
+
+    *Dorian Marié*
+
 *   Add `ActiveRecord::Base#attributes_for_database`
 
     Returns attributes with values for assignment to the database.
