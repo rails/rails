@@ -337,7 +337,7 @@ module ActiveRecord
         if id.is_a?(Array)
           if id.any?(ActiveRecord::Base)
             raise ArgumentError,
-              "You are passing an array of ActiveRecord::Base instances to `update`. " \
+              "You are passing an array of ActiveRecord::Base instances to `update!`. " \
               "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
           end
           id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
@@ -348,7 +348,7 @@ module ActiveRecord
         else
           if ActiveRecord::Base === id
             raise ArgumentError,
-              "You are passing an instance of ActiveRecord::Base to `update`. " \
+              "You are passing an instance of ActiveRecord::Base to `update!`. " \
               "Please pass the id of the object by calling `.id`."
           end
           object = find(id)
