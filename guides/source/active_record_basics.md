@@ -296,6 +296,12 @@ hand, you'd like to update several records in bulk, you may find the
 User.update_all "max_login_attempts = 3, must_change_password = 'true'"
 ```
 
+This is the same as if you wrote:
+
+```ruby
+User.update(:all, max_login_attempts: 3, must_change_password: true)
+```
+
 ### Delete
 
 Likewise, once retrieved an Active Record object can be destroyed which removes
