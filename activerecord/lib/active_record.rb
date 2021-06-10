@@ -179,6 +179,12 @@ module ActiveRecord
   singleton_class.attr_accessor :default_timezone
   self.default_timezone = :utc
 
+  singleton_class.attr_accessor :writing_role
+  self.writing_role = :writing
+
+  singleton_class.attr_accessor :reading_role
+  self.reading_role = :reading
+
   def self.eager_load!
     super
     ActiveRecord::Locking.eager_load!

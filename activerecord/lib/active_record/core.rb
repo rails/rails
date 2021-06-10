@@ -144,10 +144,6 @@ module ActiveRecord
       class_attribute :strict_loading_by_default, instance_accessor: false, default: false
       class_attribute :strict_loading_mode, instance_accessor: true, default: :all
 
-      mattr_accessor :writing_role, instance_accessor: false, default: :writing
-
-      mattr_accessor :reading_role, instance_accessor: false, default: :reading
-
       class_attribute :has_many_inversing, instance_accessor: false, default: false
 
       mattr_accessor :sqlite3_production_warning, instance_accessor: false, default: true
@@ -357,7 +353,7 @@ module ActiveRecord
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
-      self.default_role = writing_role
+      self.default_role = ActiveRecord.writing_role
       self.default_shard = :default
 
       def self.strict_loading_violation!(owner:, reflection:) # :nodoc:
@@ -457,6 +453,22 @@ module ActiveRecord
 
       def default_timezone # :nodoc:
         ActiveRecord.default_timezone
+      end
+
+      def reading_role # :nodoc:
+        ActiveSupport::Deprecation.warn(<<~MSG)
+          ActiveRecord::Base.reading_role is deprecated and will be removed in Rails 7.0.
+          Use `ActiveRecord.reading_role` instead.
+        MSG
+        ActiveRecord.reading_role
+      end
+
+      def writing_role # :nodoc:
+        ActiveSupport::Deprecation.warn(<<~MSG)
+          ActiveRecord::Base.writing_role is deprecated and will be removed in Rails 7.0.
+          Use `ActiveRecord.writing_role` instead.
+        MSG
+        ActiveRecord.writing_role
       end
 
       def initialize_generated_modules # :nodoc:
