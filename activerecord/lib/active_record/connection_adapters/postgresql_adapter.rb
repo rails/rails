@@ -696,7 +696,7 @@ module ActiveRecord
           materialize_transactions
           mark_transaction_written_if_write(sql)
 
-          # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
+          # make sure we carry over any changes to ActiveRecord.default_timezone that have been
           # made since we established the connection
           update_typemap_for_default_timezone
 
@@ -810,7 +810,7 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
           unless variables["timezone"]
-            if ActiveRecord::Base.default_timezone == :utc
+            if ActiveRecord.default_timezone == :utc
               variables["timezone"] = "UTC"
             elsif @local_tz
               variables["timezone"] = @local_tz

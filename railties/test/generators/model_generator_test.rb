@@ -274,14 +274,14 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_migration_without_timestamps
-    ActiveRecord::Base.timestamped_migrations = false
+    ActiveRecord.timestamped_migrations = false
     run_generator ["account"]
     assert_file "db/migrate/001_create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
 
     run_generator ["project"]
     assert_file "db/migrate/002_create_projects.rb", /class CreateProjects < ActiveRecord::Migration\[[0-9.]+\]/
   ensure
-    ActiveRecord::Base.timestamped_migrations = true
+    ActiveRecord.timestamped_migrations = true
   end
 
   def test_migration_with_configured_path

@@ -163,12 +163,12 @@ module ActiveRecord
       # will share a database connection with Active Record. It is the class
       # that connects to your primary database.
       def primary_abstract_class
-        if Base.application_record_class && Base.application_record_class.name != name
-          raise ArgumentError, "The `primary_abstract_class` is already set to #{Base.application_record_class.inspect}. There can only be one `primary_abstract_class` in an application."
+        if ActiveRecord.application_record_class && ActiveRecord.application_record_class.name != name
+          raise ArgumentError, "The `primary_abstract_class` is already set to #{ActiveRecord.application_record_class.inspect}. There can only be one `primary_abstract_class` in an application."
         end
 
         self.abstract_class = true
-        Base.application_record_class = self
+        ActiveRecord.application_record_class = self
       end
 
       # Returns the value to be stored in the inheritance column for STI.

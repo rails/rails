@@ -113,7 +113,7 @@ module ActiveRecord
       # if the value is a Time responding to usec.
       def quoted_date(value)
         if value.acts_like?(:time)
-          if ActiveRecord::Base.default_timezone == :utc
+          if ActiveRecord.default_timezone == :utc
             value = value.getutc if !value.utc?
           else
             value = value.getlocal

@@ -443,7 +443,7 @@ module ActiveRecord
 
       def async_enabled? # :nodoc:
         supports_concurrent_connections? &&
-          !Base.async_query_executor.nil? && !pool.async_executor.nil?
+          !ActiveRecord.async_query_executor.nil? && !pool.async_executor.nil?
       end
 
       # This is meant to be implemented by the adapters that support extensions

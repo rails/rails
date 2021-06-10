@@ -143,7 +143,7 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_tsrange_values
-    tz = ::ActiveRecord::Base.default_timezone
+    tz = ::ActiveRecord.default_timezone
     assert_equal Time.public_send(tz, 2010, 1, 1, 14, 30, 0)..Time.public_send(tz, 2011, 1, 1, 14, 30, 0), @first_range.ts_range
     assert_equal Time.public_send(tz, 2010, 1, 1, 14, 30, 0)...Time.public_send(tz, 2011, 1, 1, 14, 30, 0), @second_range.ts_range
     assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.ts_range)
@@ -205,13 +205,13 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_create_tsrange
-    tz = ::ActiveRecord::Base.default_timezone
+    tz = ::ActiveRecord.default_timezone
     assert_equal_round_trip(@new_range, :ts_range,
                             Time.public_send(tz, 2010, 1, 1, 14, 30, 0)...Time.public_send(tz, 2011, 2, 2, 14, 30, 0))
   end
 
   def test_update_tsrange
-    tz = ::ActiveRecord::Base.default_timezone
+    tz = ::ActiveRecord.default_timezone
     assert_equal_round_trip(@first_range, :ts_range,
                             Time.public_send(tz, 2010, 1, 1, 14, 30, 0)...Time.public_send(tz, 2011, 2, 2, 14, 30, 0))
     assert_nil_round_trip(@first_range, :ts_range,
@@ -219,7 +219,7 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_escaped_tsrange
-    tz = ::ActiveRecord::Base.default_timezone
+    tz = ::ActiveRecord.default_timezone
     assert_equal_round_trip(@first_range, :ts_range,
                             Time.public_send(tz, -1000, 1, 1, 14, 30, 0)...Time.public_send(tz, 2020, 2, 2, 14, 30, 0))
   end
@@ -259,13 +259,13 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_create_tsrange_preserve_usec
-    tz = ::ActiveRecord::Base.default_timezone
+    tz = ::ActiveRecord.default_timezone
     assert_equal_round_trip(@new_range, :ts_range,
                             Time.public_send(tz, 2010, 1, 1, 14, 30, 0, 125435)...Time.public_send(tz, 2011, 2, 2, 14, 30, 0, 225435))
   end
 
   def test_update_tsrange_preserve_usec
-    tz = ::ActiveRecord::Base.default_timezone
+    tz = ::ActiveRecord.default_timezone
     assert_equal_round_trip(@first_range, :ts_range,
                             Time.public_send(tz, 2010, 1, 1, 14, 30, 0, 142432)...Time.public_send(tz, 2011, 2, 2, 14, 30, 0, 224242))
     assert_nil_round_trip(@first_range, :ts_range,

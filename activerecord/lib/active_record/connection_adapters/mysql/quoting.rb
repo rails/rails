@@ -79,7 +79,7 @@ module ActiveRecord
               # We need to check explicitly for ActiveSupport::TimeWithZone because
               # we need to transform it to Time objects but we don't want to
               # transform Time objects to themselves.
-              if ActiveRecord::Base.default_timezone == :utc
+              if ActiveRecord.default_timezone == :utc
                 value.getutc
               else
                 value.getlocal

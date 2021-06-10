@@ -482,11 +482,11 @@ if current_adapter?(:PostgreSQLAdapter)
 
       private
         def with_dump_schemas(value, &block)
-          old_dump_schemas = ActiveRecord::Base.dump_schemas
-          ActiveRecord::Base.dump_schemas = value
+          old_dump_schemas = ActiveRecord.dump_schemas
+          ActiveRecord.dump_schemas = value
           yield
         ensure
-          ActiveRecord::Base.dump_schemas = old_dump_schemas
+          ActiveRecord.dump_schemas = old_dump_schemas
         end
 
         def with_structure_dump_flags(flags)
