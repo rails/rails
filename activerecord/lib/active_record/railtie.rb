@@ -198,6 +198,17 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+
+    SQLITE3_PRODUCTION_WARN = "You are running SQLite in production, this is generally not recommended."\
+      " You can disable this warning by setting \"config.active_record.sqlite3_production_warning=false\"."
+    initializer "active_record.sqlite3_production_warning" do
+      if config.active_record.delete(:sqlite3_production_warning) && Rails.env.production?
+        ActiveSupport.on_load(:active_record_sqlite3adapter) do
+          Rails.logger.warn(SQLITE3_PRODUCTION_WARN)
+        end
+      end
+    end
+
     initializer "active_record.set_configs" do |app|
       configs = app.config.active_record
 
@@ -229,16 +240,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
         self.configurations = Rails.application.config.database_configuration
 
         establish_connection
-      end
-    end
-
-    SQLITE3_PRODUCTION_WARN = "You are running SQLite in production, this is generally not recommended."\
-      " You can disable this warning by setting \"config.active_record.sqlite3_production_warning=false\"."
-    initializer "active_record.sqlite3_production_warning" do
-      if config.active_record.sqlite3_production_warning && Rails.env.production?
-        ActiveSupport.on_load(:active_record_sqlite3adapter) do
-          Rails.logger.warn(SQLITE3_PRODUCTION_WARN)
-        end
       end
     end
 

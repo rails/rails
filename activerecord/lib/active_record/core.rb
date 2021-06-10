@@ -138,8 +138,6 @@ module ActiveRecord
 
       class_attribute :has_many_inversing, instance_accessor: false, default: false
 
-      mattr_accessor :sqlite3_production_warning, instance_accessor: false, default: true
-
       class_attribute :default_connection_handler, instance_writer: false
 
       class_attribute :default_role, instance_writer: false

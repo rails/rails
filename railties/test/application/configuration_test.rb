@@ -3142,14 +3142,6 @@ module ApplicationTests
       assert_equal false, ActionDispatch::Request.return_only_media_type_on_content_type
     end
 
-    test "config.active_record.sqlite3_production_warning is on by default for new apps" do
-      restore_sqlite3_warning
-
-      app "development"
-
-      assert_equal true, ActiveRecord::Base.sqlite3_production_warning
-    end
-
     test "logs a warning when running SQLite3 in production" do
       restore_sqlite3_warning
       app_file "config/initializers/active_record.rb", <<~RUBY
