@@ -127,12 +127,6 @@ module ActiveRecord
 
       class_attribute :belongs_to_required_by_default, instance_accessor: false
 
-      ##
-      # :singleton-method:
-      # Set the application to log or raise when an association violates strict loading.
-      # Defaults to :raise.
-      mattr_accessor :action_on_strict_loading_violation, instance_accessor: false, default: :raise
-
       class_attribute :strict_loading_by_default, instance_accessor: false, default: false
       class_attribute :strict_loading_mode, instance_accessor: true, default: :all
 
@@ -345,7 +339,7 @@ module ActiveRecord
       self.default_shard = :default
 
       def self.strict_loading_violation!(owner:, reflection:) # :nodoc:
-        case action_on_strict_loading_violation
+        case ActiveRecord.action_on_strict_loading_violation
         when :raise
           message = "`#{owner}` is marked for strict_loading. The `#{reflection.klass}` association named `:#{reflection.name}` cannot be lazily loaded."
           raise ActiveRecord::StrictLoadingViolationError.new(message)

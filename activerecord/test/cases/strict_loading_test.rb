@@ -548,7 +548,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
   end
 
   def test_strict_loading_violation_raises_by_default
-    assert_equal :raise, ActiveRecord::Base.action_on_strict_loading_violation
+    assert_equal :raise, ActiveRecord.action_on_strict_loading_violation
 
     developer = Developer.first
     assert_not_predicate developer, :strict_loading?
@@ -562,9 +562,9 @@ class StrictLoadingTest < ActiveRecord::TestCase
   end
 
   def test_strict_loading_violation_can_log_instead_of_raise
-    old_value = ActiveRecord::Base.action_on_strict_loading_violation
-    ActiveRecord::Base.action_on_strict_loading_violation = :log
-    assert_equal :log, ActiveRecord::Base.action_on_strict_loading_violation
+    old_value = ActiveRecord.action_on_strict_loading_violation
+    ActiveRecord.action_on_strict_loading_violation = :log
+    assert_equal :log, ActiveRecord.action_on_strict_loading_violation
 
     developer = Developer.first
     assert_not_predicate developer, :strict_loading?
@@ -576,7 +576,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
       developer.audit_logs.to_a
     end
   ensure
-    ActiveRecord::Base.action_on_strict_loading_violation = old_value
+    ActiveRecord.action_on_strict_loading_violation = old_value
   end
 
   private

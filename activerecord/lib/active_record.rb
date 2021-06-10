@@ -197,6 +197,13 @@ module ActiveRecord
   singleton_class.attr_accessor :application_record_class
   self.application_record_class = nil
 
+  ##
+  # :singleton-method:
+  # Set the application to log or raise when an association violates strict loading.
+  # Defaults to :raise.
+  singleton_class.attr_accessor :action_on_strict_loading_violation
+  self.action_on_strict_loading_violation = :raise
+
   def self.eager_load!
     super
     ActiveRecord::Locking.eager_load!
