@@ -75,8 +75,8 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_is_applied_to_legacy_connections_in_all_handlers
-    old_value = ActiveRecord::Base.legacy_connection_handling
-    ActiveRecord::Base.legacy_connection_handling = true
+    old_value = ActiveRecord.legacy_connection_handling
+    ActiveRecord.legacy_connection_handling = true
 
     assert_deprecated do
       ActiveRecord::Base.connection_handlers = {
@@ -101,7 +101,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     mw.call({})
   ensure
     clean_up_legacy_connection_handlers
-    ActiveRecord::Base.legacy_connection_handling = old_value
+    ActiveRecord.legacy_connection_handling = old_value
   end
 
   def test_query_cache_is_applied_to_all_connections
@@ -126,8 +126,8 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   if Process.respond_to?(:fork) && !in_memory_db?
     def test_query_cache_with_multiple_handlers_and_forked_processes_legacy_handling
-      old_value = ActiveRecord::Base.legacy_connection_handling
-      ActiveRecord::Base.legacy_connection_handling = true
+      old_value = ActiveRecord.legacy_connection_handling
+      ActiveRecord.legacy_connection_handling = true
 
       assert_deprecated do
         ActiveRecord::Base.connection_handlers = {
@@ -190,7 +190,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       rd.close
     ensure
       clean_up_legacy_connection_handlers
-      ActiveRecord::Base.legacy_connection_handling = old_value
+      ActiveRecord.legacy_connection_handling = old_value
     end
 
     def test_query_cache_with_forked_processes
@@ -665,8 +665,8 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_clear_query_cache_is_called_on_all_legacy_connections
     skip "with in memory db, reading role won't be able to see database on writing role" if in_memory_db?
-    old_value = ActiveRecord::Base.legacy_connection_handling
-    ActiveRecord::Base.legacy_connection_handling = true
+    old_value = ActiveRecord.legacy_connection_handling
+    ActiveRecord.legacy_connection_handling = true
 
     assert_deprecated do
       ActiveRecord::Base.connection_handlers = {
@@ -704,7 +704,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   ensure
     unless in_memory_db?
       clean_up_legacy_connection_handlers
-      ActiveRecord::Base.legacy_connection_handling = old_value
+      ActiveRecord.legacy_connection_handling = old_value
     end
   end
 

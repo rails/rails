@@ -164,8 +164,6 @@ module ActiveRecord
 
       class_attribute :default_shard, instance_writer: false
 
-      mattr_accessor :legacy_connection_handling, instance_writer: false, default: true
-
       mattr_accessor :application_record_class, instance_accessor: false, default: nil
 
       # Sets the async_query_executor for an application. By default the thread pool executor
@@ -225,7 +223,7 @@ module ActiveRecord
       end
 
       def self.connection_handlers
-        if legacy_connection_handling
+        if ActiveRecord.legacy_connection_handling
         else
           raise NotImplementedError, "The new connection handling does not support accessing multiple connection handlers."
         end
@@ -234,7 +232,7 @@ module ActiveRecord
       end
 
       def self.connection_handlers=(handlers)
-        if legacy_connection_handling
+        if ActiveRecord.legacy_connection_handling
           ActiveSupport::Deprecation.warn(<<~MSG)
             Using legacy connection handling is deprecated. Please set
             `legacy_connection_handling` to `false` in your application.
@@ -270,7 +268,7 @@ module ActiveRecord
       #     ActiveRecord::Base.current_role #=> :reading
       #   end
       def self.current_role
-        if ActiveRecord::Base.legacy_connection_handling
+        if ActiveRecord.legacy_connection_handling
           connection_handlers.key(connection_handler) || default_role
         else
           connected_to_stack.reverse_each do |hash|
@@ -311,7 +309,7 @@ module ActiveRecord
       #     ActiveRecord::Base.current_preventing_writes #=> false
       #   end
       def self.current_preventing_writes
-        if legacy_connection_handling
+        if ActiveRecord.legacy_connection_handling
           connection_handler.prevent_writes
         else
           connected_to_stack.reverse_each do |hash|
