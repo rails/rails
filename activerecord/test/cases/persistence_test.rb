@@ -140,7 +140,7 @@ class PersistenceTest < ActiveRecord::TestCase
       Topic.update!(Topic.first, "content" => "1 updated")
     end
 
-    assert_equal "You are passing an instance of ActiveRecord::Base to `update`. " \
+    assert_equal "You are passing an instance of ActiveRecord::Base to `update!`. " \
     "Please pass the id of the object by calling `.id`.", error.message
 
     assert_not_equal "1 updated", Topic.first.content
@@ -151,7 +151,7 @@ class PersistenceTest < ActiveRecord::TestCase
       Topic.update!(Topic.first(2), content: "updated")
     end
 
-    assert_equal "You are passing an array of ActiveRecord::Base instances to `update`. " \
+    assert_equal "You are passing an array of ActiveRecord::Base instances to `update!`. " \
     "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`.", error.message
 
     assert_not_equal "updated", Topic.first.content
