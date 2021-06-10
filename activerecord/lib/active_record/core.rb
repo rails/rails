@@ -72,12 +72,6 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
-      # dates and times from the database. This is set to :utc by default.
-      mattr_accessor :default_timezone, instance_writer: false, default: :utc
-
-      ##
-      # :singleton-method:
       # Specifies the format to use when dumping the database schema with Rails'
       # Rakefile. If :sql, the schema is dumped as (potentially database-
       # specific) SQL statements. If :ruby, the schema is dumped as an
@@ -459,6 +453,10 @@ module ActiveRecord
 
       def find_by!(*args) # :nodoc:
         find_by(*args) || raise(RecordNotFound.new("Couldn't find #{name}", name))
+      end
+
+      def default_timezone # :nodoc:
+        ActiveRecord.default_timezone
       end
 
       def initialize_generated_modules # :nodoc:
