@@ -155,7 +155,7 @@ module ActiveRecord
     # above can be alternatively written this way:
     #
     #   # Find the first user named "Scarlett" or create a new one with a
-    #   # different last name.
+    #   # particular last name.
     #   User.find_or_create_by(first_name: 'Scarlett') do |user|
     #     user.last_name = 'Johansson'
     #   end
