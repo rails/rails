@@ -1,3 +1,30 @@
+*   The MySQL adapter now cast numbers and booleans bind parameters to to string for safety reasons.
+
+    When comparing a string and a number in a query, MySQL convert the string to a number. So for
+    instance `"foo" = 0`, will implicitly cast `"foo"` to `0` and will evaluate to `TRUE` which can
+    lead to security vulnerabilities.
+
+    Active Record already protect against that vulnerability when it knows the type of the column
+    being compared, however until now it was still vulnerable when using bind parameters:
+    
+    ```ruby
+    User.where("login_token = ?", 0).first
+    ```
+
+    Would perform:
+
+    ```sql
+    SELECT * FROM `users` WHERE `login_token` = 0 LIMIT 1;
+    ```
+
+    Now it will perform:
+
+    ```sql
+    SELECT * FROM `users` WHERE `login_token` = '0' LIMIT 1;
+    ```
+
+    *Jean Boussier*
+
 *   Fixture configurations (`_fixture`) are now strictly validated.
 
     If an error will be raised if that entry contains unknown keys while previously it

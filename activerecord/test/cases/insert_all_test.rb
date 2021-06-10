@@ -476,7 +476,7 @@ class InsertAllTest < ActiveRecord::TestCase
   def test_upsert_all_updates_using_provided_sql
     skip unless supports_insert_on_duplicate_update?
 
-    operator = sqlite? ? "MAX" : "GREATEST"
+    operator = current_adapter?(:SQLite3Adapter) ? "MAX" : "GREATEST"
 
     Book.upsert_all(
       [{ id: 1, status: 1 }, { id: 2, status: 1 }],
@@ -505,9 +505,5 @@ class InsertAllTest < ActiveRecord::TestCase
       ensure
         ActiveRecord::Base.logger = old_logger
       end
-    end
-
-    def sqlite?
-      ActiveRecord::Base.connection.adapter_name.match?(/sqlite/i)
     end
 end
