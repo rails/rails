@@ -1,4 +1,4 @@
-*   Add `update!` that works like `update` but raises exceptions
+*   Add `ActiveRecord::Base#update!` that works like `ActiveRecord::Base#update` but raises exceptions.
 
     *Dorian Marié*
 
