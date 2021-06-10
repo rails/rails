@@ -135,7 +135,7 @@ module ActiveRecord
     #     Dog.first # finds first Dog record stored on the shard one replica
     #   end
     def connected_to(role: nil, shard: nil, prevent_writes: false, &blk)
-      if legacy_connection_handling
+      if ActiveRecord.legacy_connection_handling
         if self != Base
           raise NotImplementedError, "`connected_to` can only be called on ActiveRecord::Base with legacy connection handling."
         end
@@ -176,7 +176,7 @@ module ActiveRecord
     def connected_to_many(*classes, role:, shard: nil, prevent_writes: false)
       classes = classes.flatten
 
-      if legacy_connection_handling
+      if ActiveRecord.legacy_connection_handling
         raise NotImplementedError, "connected_to_many is not available with legacy connection handling"
       end
 
@@ -200,7 +200,7 @@ module ActiveRecord
     # It is not recommended to use this method in a request since it
     # does not yield to a block like +connected_to+.
     def connecting_to(role: default_role, shard: default_shard, prevent_writes: false)
-      if legacy_connection_handling
+      if ActiveRecord.legacy_connection_handling
         raise NotImplementedError, "`connecting_to` is not available with `legacy_connection_handling`."
       end
 
@@ -221,7 +221,7 @@ module ActiveRecord
     # See +READ_QUERY+ for the queries that are blocked by this
     # method.
     def while_preventing_writes(enabled = true, &block)
-      if legacy_connection_handling
+      if ActiveRecord.legacy_connection_handling
         connection_handler.while_preventing_writes(enabled, &block)
       else
         connected_to(role: current_role, prevent_writes: enabled, &block)
@@ -239,7 +239,7 @@ module ActiveRecord
     end
 
     def lookup_connection_handler(handler_key) # :nodoc:
-      if ActiveRecord::Base.legacy_connection_handling
+      if ActiveRecord.legacy_connection_handling
         handler_key ||= ActiveRecord::Base.writing_role
         connection_handlers[handler_key] ||= ActiveRecord::ConnectionAdapters::ConnectionHandler.new
       else
@@ -249,7 +249,7 @@ module ActiveRecord
 
     # Clears the query cache for all connections associated with the current thread.
     def clear_query_caches_for_current_thread
-      if ActiveRecord::Base.legacy_connection_handling
+      if ActiveRecord.legacy_connection_handling
         ActiveRecord::Base.connection_handlers.each_value do |handler|
           clear_on_handler(handler)
         end
@@ -358,7 +358,7 @@ module ActiveRecord
       def with_role_and_shard(role, shard, prevent_writes)
         prevent_writes = true if role == reading_role
 
-        if ActiveRecord::Base.legacy_connection_handling
+        if ActiveRecord.legacy_connection_handling
           with_handler(role.to_sym) do
             connection_handler.while_preventing_writes(prevent_writes) do
               self.connected_to_stack << { shard: shard, klasses: [self] }

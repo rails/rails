@@ -169,6 +169,9 @@ module ActiveRecord
   autoload :TestDatabases, "active_record/test_databases"
   autoload :TestFixtures, "active_record/fixtures"
 
+  singleton_class.attr_accessor :legacy_connection_handling
+  self.legacy_connection_handling = true
+
   def self.eager_load!
     super
     ActiveRecord::Locking.eager_load!

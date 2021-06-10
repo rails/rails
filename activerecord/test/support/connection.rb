@@ -19,7 +19,7 @@ module ARTest
   end
 
   def self.connect
-    ActiveRecord::Base.legacy_connection_handling = false
+    ActiveRecord.legacy_connection_handling = false
     ActiveRecord::Base.async_query_executor = :global_thread_pool
     puts "Using #{connection_name}"
     ActiveRecord::Base.logger = ActiveSupport::Logger.new("debug.log", 0, 100 * 1024 * 1024)

@@ -200,11 +200,22 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     initializer "active_record.set_configs" do |app|
-      ActiveSupport.on_load(:active_record) do
-        configs = app.config.active_record
+      configs = app.config.active_record
 
+      configs.each do |k, v|
+        next if k == :encryption
+        setter = "#{k}="
+        if ActiveRecord.respond_to?(setter)
+          ActiveRecord.send(setter, v)
+        end
+      end
+
+      ActiveSupport.on_load(:active_record) do
         configs.each do |k, v|
-          send "#{k}=", v if k != :encryption
+          next if k == :encryption
+          setter = "#{k}="
+          next if ActiveRecord.respond_to?(setter)
+          send(setter, v)
         end
       end
     end
@@ -213,7 +224,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
     # and then establishes the connection.
     initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
-        if ActiveRecord::Base.legacy_connection_handling
+        if ActiveRecord.legacy_connection_handling
           self.connection_handlers = { writing_role => ActiveRecord::Base.default_connection_handler }
         end
         self.configurations = Rails.application.config.database_configuration

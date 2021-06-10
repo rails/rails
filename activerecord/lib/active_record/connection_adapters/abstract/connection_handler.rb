@@ -100,7 +100,7 @@ module ActiveRecord
       # See +READ_QUERY+ for the queries that are blocked by this
       # method.
       def while_preventing_writes(enabled = true)
-        unless ActiveRecord::Base.legacy_connection_handling
+        unless ActiveRecord.legacy_connection_handling
           raise NotImplementedError, "`while_preventing_writes` is only available on the connection_handler with legacy_connection_handling"
         end
 
@@ -143,7 +143,7 @@ module ActiveRecord
           payload[:config] = db_config.configuration_hash
         end
 
-        if ActiveRecord::Base.legacy_connection_handling
+        if ActiveRecord.legacy_connection_handling
           owner_to_pool_manager[pool_config.connection_specification_name] ||= LegacyPoolManager.new
         else
           owner_to_pool_manager[pool_config.connection_specification_name] ||= PoolManager.new
