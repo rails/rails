@@ -111,14 +111,6 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Specify a threshold for the size of query result sets. If the number of
-      # records in the set exceeds the threshold, a warning is logged. This can
-      # be used to identify queries which load thousands of records and
-      # potentially cause memory bloat.
-      mattr_accessor :warn_on_records_fetched_greater_than, instance_writer: false
-
-      ##
-      # :singleton-method:
       # Show a warning when Rails couldn't parse your database.yml
       # for multiple databases.
       mattr_accessor :suppress_multiple_database_warning, instance_writer: false, default: false

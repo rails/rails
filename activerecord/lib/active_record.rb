@@ -185,6 +185,15 @@ module ActiveRecord
   singleton_class.attr_accessor :reading_role
   self.reading_role = :reading
 
+  ##
+  # :singleton-method:
+  # Specify a threshold for the size of query result sets. If the number of
+  # records in the set exceeds the threshold, a warning is logged. This can
+  # be used to identify queries which load thousands of records and
+  # potentially cause memory bloat.
+  singleton_class.attr_accessor :warn_on_records_fetched_greater_than
+  self.warn_on_records_fetched_greater_than = false
+
   def self.eager_load!
     super
     ActiveRecord::Locking.eager_load!
