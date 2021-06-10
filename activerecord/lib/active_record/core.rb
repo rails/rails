@@ -78,42 +78,6 @@ module ActiveRecord
 
       class_attribute :default_shard, instance_writer: false
 
-      # Sets the async_query_executor for an application. By default the thread pool executor
-      # set to +nil+ which will not run queries in the background. Applications must configure
-      # a thread pool executor to use this feature. Options are:
-      #
-      #   * nil - Does not initialize a thread pool executor. Any async calls will be
-      #   run in the foreground.
-      #   * :global_thread_pool - Initializes a single +Concurrent::ThreadPoolExecutor+
-      #   that uses the +async_query_concurrency+ for the +max_threads+ value.
-      #   * :multi_thread_pool - Initializes a +Concurrent::ThreadPoolExecutor+ for each
-      #   database connection. The initializer values are defined in the configuration hash.
-      mattr_accessor :async_query_executor, instance_accessor: false, default: nil
-
-      def self.global_thread_pool_async_query_executor # :nodoc:
-        concurrency = global_executor_concurrency || 4
-        @@global_thread_pool_async_query_executor ||= Concurrent::ThreadPoolExecutor.new(
-          min_threads: 0,
-          max_threads: concurrency,
-          max_queue: concurrency * 4,
-          fallback_policy: :caller_runs
-        )
-      end
-
-      # Set the +global_executor_concurrency+. This configuration value can only be used
-      # with the global thread pool async query executor.
-      def self.global_executor_concurrency=(global_executor_concurrency)
-        if async_query_executor.nil? || async_query_executor == :multi_thread_pool
-          raise ArgumentError, "`global_executor_concurrency` cannot be set when using the executor is nil or set to multi_thead_pool. For multiple thread pools, please set the concurrency in your database configuration."
-        end
-
-        @@global_executor_concurrency = global_executor_concurrency
-      end
-
-      def self.global_executor_concurrency # :nodoc:
-        @@global_executor_concurrency ||= nil
-      end
-
       def self.application_record_class? # :nodoc:
         if ActiveRecord.application_record_class
           self == ActiveRecord.application_record_class

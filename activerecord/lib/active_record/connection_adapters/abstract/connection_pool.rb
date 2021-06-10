@@ -460,7 +460,7 @@ module ActiveRecord
 
       private
         def build_async_executor
-          case Base.async_query_executor
+          case ActiveRecord.async_query_executor
           when :multi_thread_pool
             if @db_config.max_threads > 0
               Concurrent::ThreadPoolExecutor.new(
@@ -471,7 +471,7 @@ module ActiveRecord
               )
             end
           when :global_thread_pool
-            Base.global_thread_pool_async_query_executor
+            ActiveRecord.global_thread_pool_async_query_executor
           end
         end
 
