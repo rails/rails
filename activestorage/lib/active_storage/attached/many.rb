@@ -27,7 +27,7 @@ module ActiveStorage
 
     # Returns all attached blobs.
     def blobs
-      change.present? ? change.blobs : record.public_send("#{name}_blobs")
+      change.present? ? change.attachables : record.public_send("#{name}_blobs")
     end
 
     # Attaches one or more +attachables+ to the record.

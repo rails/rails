@@ -759,6 +759,39 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "should attach two files when replace_on_assign_to_many is disabled with association setter and attach helper method" do
+    append_on_assign do
+      user = User.new(name: "Tina", highlights: [fixture_file_upload("image.gif")])
+      user.highlights.attach fixture_file_upload("racecar.jpg")
+      user.save
+
+      user.reload
+      assert_equal 2, user.highlights.count
+      assert_equal "image.gif", user.highlights.first.filename.to_s
+      assert_equal "racecar.jpg", user.highlights.second.filename.to_s
+      assert ActiveStorage::Blob.service.exist?(user.highlights.first.key)
+      assert ActiveStorage::Blob.service.exist?(user.highlights.second.key)
+    end
+  end
+
+  test "should attach three files when replace_on_assign_to_many is disabled with association setter method" do
+    append_on_assign do
+      user = User.new(name: "Tina", highlights: [fixture_file_upload("image.gif")])
+      user.highlights = [fixture_file_upload("racecar.jpg")]
+      user.highlights = [fixture_file_upload("report.pdf")]
+      user.save
+
+      user.reload
+      assert_equal 3, user.highlights.count
+      assert_equal "image.gif", user.highlights.first.filename.to_s
+      assert_equal "racecar.jpg", user.highlights.second.filename.to_s
+      assert_equal "report.pdf", user.highlights.third.filename.to_s
+      assert ActiveStorage::Blob.service.exist?(user.highlights.first.key)
+      assert ActiveStorage::Blob.service.exist?(user.highlights.second.key)
+      assert ActiveStorage::Blob.service.exist?(user.highlights.third.key)
+    end
+  end
+
   private
     def append_on_assign
       ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many
