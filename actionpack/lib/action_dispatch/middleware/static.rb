@@ -137,11 +137,8 @@ module ActionDispatch
       end
 
       def file_readable?(path)
-        file_stat = File.stat(File.join(@root, path.b))
-      rescue SystemCallError
-        false
-      else
-        file_stat.file? && file_stat.readable?
+        file_path = File.join(@root, path.b)
+        File.file?(file_path) && File.readable?(file_path)
       end
 
       def compressible?(content_type)
