@@ -9,7 +9,6 @@ class TestControllerWithExtraEtags < ActionController::Base
     "test/hello_world.erb" => "Hello world!"
   )]
 
-  def self.controller_name; "test"; end
   def self.controller_path; "test"; end
 
   etag { nil  }

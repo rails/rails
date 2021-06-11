@@ -203,7 +203,7 @@ module RailtiesTest
         load "rails/tasks/engine.rake"
       RUBY
 
-      add_to_config "ActiveRecord::Base.timestamped_migrations = false"
+      add_to_config "ActiveRecord.timestamped_migrations = false"
 
       boot_rails
 

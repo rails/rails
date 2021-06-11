@@ -116,7 +116,7 @@ module ActiveRecord
       def debug(progname = nil, &block)
         return unless super
 
-        if ActiveRecord::Base.verbose_query_logs
+        if ActiveRecord.verbose_query_logs
           log_query_source
         end
       end

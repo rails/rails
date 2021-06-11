@@ -1,3 +1,29 @@
+*   Add `ActiveRecord::Base.update!` that works like `ActiveRecord::Base.update` but raises exceptions.
+
+    This allows for the same behavior as the instance method `#update!` at a class level.
+
+    ```ruby
+    Person.update!(:all, state: "confirmed")
+    ```
+
+    *Dorian Marié*
+
+*   Add `ActiveRecord::Base#attributes_for_database`
+
+    Returns attributes with values for assignment to the database.
+
+    *Chris Salzberg*
+
+*   Use an empty query to check if the PostgreSQL connection is still active
+
+    An empty query is faster than `SELECT 1`.
+
+    *Heinrich Lee Yu*
+
+*   Add `ActiveRecord::Base#previously_persisted?`
+
+    Returns `true` if the object has been previously persisted but now it has been deleted.
+
 *   Deprecate `partial_writes` in favor of `partial_inserts` and `partial_updates`.
 
     This allows to have a different behavior on update and create.

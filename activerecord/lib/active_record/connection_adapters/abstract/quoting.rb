@@ -59,7 +59,7 @@ module ActiveRecord
       # Quotes a string, escaping any ' (single quote) and \ (backslash)
       # characters.
       def quote_string(s)
-        s.gsub('\\', '\&\&').gsub("'", "''") # ' (for ruby-mode)
+        s.gsub("\\", '\&\&').gsub("'", "''") # ' (for ruby-mode)
       end
 
       # Quotes the column name. Defaults to no quoting.
@@ -113,7 +113,7 @@ module ActiveRecord
       # if the value is a Time responding to usec.
       def quoted_date(value)
         if value.acts_like?(:time)
-          if ActiveRecord::Base.default_timezone == :utc
+          if ActiveRecord.default_timezone == :utc
             value = value.getutc if !value.utc?
           else
             value = value.getlocal

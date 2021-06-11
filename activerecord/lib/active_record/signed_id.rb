@@ -10,7 +10,7 @@ module ActiveRecord
       # :singleton-method:
       # Set the secret used for the signed id verifier instance when using Active Record outside of Rails.
       # Within Rails, this is automatically set using the Rails application key generator.
-      mattr_accessor :signed_id_verifier_secret, instance_writer: false
+      class_attribute :signed_id_verifier_secret, instance_writer: false
     end
 
     module ClassMethods

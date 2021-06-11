@@ -1396,13 +1396,13 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   end
 
   def clear
-    ActiveRecord::Base.timestamped_migrations = true
+    ActiveRecord.timestamped_migrations = true
     to_delete = Dir[@migrations_path + "/*.rb"] - @existing_migrations
     File.delete(*to_delete)
   end
 
   def test_copying_migrations_without_timestamps
-    ActiveRecord::Base.timestamped_migrations = false
+    ActiveRecord.timestamped_migrations = false
     @migrations_path = MIGRATIONS_ROOT + "/valid"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
@@ -1423,7 +1423,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   end
 
   def test_copying_migrations_without_timestamps_from_2_sources
-    ActiveRecord::Base.timestamped_migrations = false
+    ActiveRecord.timestamped_migrations = false
     @migrations_path = MIGRATIONS_ROOT + "/valid"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
@@ -1507,7 +1507,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   end
 
   def test_copying_migrations_preserving_magic_comments
-    ActiveRecord::Base.timestamped_migrations = false
+    ActiveRecord.timestamped_migrations = false
     @migrations_path = MIGRATIONS_ROOT + "/valid"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 

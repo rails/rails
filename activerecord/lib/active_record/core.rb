@@ -22,19 +22,6 @@ module ActiveRecord
       ##
       # :singleton-method:
       #
-      # Specifies if the methods calling database queries should be logged below
-      # their relevant queries. Defaults to false.
-      mattr_accessor :verbose_query_logs, instance_writer: false, default: false
-
-      ##
-      # :singleton-method:
-      #
-      # Specifies the names of the queues used by background jobs.
-      mattr_accessor :queues, instance_accessor: false, default: {}
-
-      ##
-      # :singleton-method:
-      #
       # Specifies the job used to destroy associations in the background
       class_attribute :destroy_association_async_job, instance_writer: false, instance_predicate: false, default: false
 
@@ -72,91 +59,18 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
-      # dates and times from the database. This is set to :utc by default.
-      mattr_accessor :default_timezone, instance_writer: false, default: :utc
-
-      ##
-      # :singleton-method:
-      # Specifies the format to use when dumping the database schema with Rails'
-      # Rakefile. If :sql, the schema is dumped as (potentially database-
-      # specific) SQL statements. If :ruby, the schema is dumped as an
-      # ActiveRecord::Schema file which can be loaded into any database that
-      # supports migrations. Use :ruby if you want to have different database
-      # adapters for, e.g., your development and test environments.
-      mattr_accessor :schema_format, instance_writer: false, default: :ruby
-
-      ##
-      # :singleton-method:
-      # Specifies if an error should be raised if the query has an order being
-      # ignored when doing batch queries. Useful in applications where the
-      # scope being ignored is error-worthy, rather than a warning.
-      mattr_accessor :error_on_ignored_order, instance_writer: false, default: false
-
-      ##
-      # :singleton-method:
-      # Specify whether or not to use timestamps for migration versions
-      mattr_accessor :timestamped_migrations, instance_writer: false, default: true
-
-      ##
-      # :singleton-method:
-      # Specify whether schema dump should happen at the end of the
-      # bin/rails db:migrate command. This is true by default, which is useful for the
-      # development environment. This should ideally be false in the production
-      # environment where dumping schema is rarely needed.
-      mattr_accessor :dump_schema_after_migration, instance_writer: false, default: true
-
-      ##
-      # :singleton-method:
-      # Specifies which database schemas to dump when calling db:schema:dump.
-      # If the value is :schema_search_path (the default), any schemas listed in
-      # schema_search_path are dumped. Use :all to dump all schemas regardless
-      # of schema_search_path, or a string of comma separated schemas for a
-      # custom list.
-      mattr_accessor :dump_schemas, instance_writer: false, default: :schema_search_path
-
-      ##
-      # :singleton-method:
-      # Specify a threshold for the size of query result sets. If the number of
-      # records in the set exceeds the threshold, a warning is logged. This can
-      # be used to identify queries which load thousands of records and
-      # potentially cause memory bloat.
-      mattr_accessor :warn_on_records_fetched_greater_than, instance_writer: false
-
-      ##
-      # :singleton-method:
-      # Show a warning when Rails couldn't parse your database.yml
-      # for multiple databases.
-      mattr_accessor :suppress_multiple_database_warning, instance_writer: false, default: false
-
-      ##
-      # :singleton-method:
       # Force enumeration of all columns in SELECT statements.
       # e.g. `SELECT first_name, last_name FROM ...` instead of `SELECT * FROM ...`
       # This avoids +PreparedStatementCacheExpired+ errors when a column is added
       # to the database while the app is running.
       class_attribute :enumerate_columns_in_select_statements, instance_accessor: false, default: false
 
-      mattr_accessor :maintain_test_schema, instance_accessor: false
-
       class_attribute :belongs_to_required_by_default, instance_accessor: false
-
-      ##
-      # :singleton-method:
-      # Set the application to log or raise when an association violates strict loading.
-      # Defaults to :raise.
-      mattr_accessor :action_on_strict_loading_violation, instance_accessor: false, default: :raise
 
       class_attribute :strict_loading_by_default, instance_accessor: false, default: false
       class_attribute :strict_loading_mode, instance_accessor: true, default: :all
 
-      mattr_accessor :writing_role, instance_accessor: false, default: :writing
-
-      mattr_accessor :reading_role, instance_accessor: false, default: :reading
-
-      mattr_accessor :has_many_inversing, instance_accessor: false, default: false
-
-      mattr_accessor :sqlite3_production_warning, instance_accessor: false, default: true
+      class_attribute :has_many_inversing, instance_accessor: false, default: false
 
       class_attribute :default_connection_handler, instance_writer: false
 
@@ -164,49 +78,9 @@ module ActiveRecord
 
       class_attribute :default_shard, instance_writer: false
 
-      mattr_accessor :legacy_connection_handling, instance_writer: false, default: true
-
-      mattr_accessor :application_record_class, instance_accessor: false, default: nil
-
-      # Sets the async_query_executor for an application. By default the thread pool executor
-      # set to +nil+ which will not run queries in the background. Applications must configure
-      # a thread pool executor to use this feature. Options are:
-      #
-      #   * nil - Does not initialize a thread pool executor. Any async calls will be
-      #   run in the foreground.
-      #   * :global_thread_pool - Initializes a single +Concurrent::ThreadPoolExecutor+
-      #   that uses the +async_query_concurrency+ for the +max_threads+ value.
-      #   * :multi_thread_pool - Initializes a +Concurrent::ThreadPoolExecutor+ for each
-      #   database connection. The initializer values are defined in the configuration hash.
-      mattr_accessor :async_query_executor, instance_accessor: false, default: nil
-
-      def self.global_thread_pool_async_query_executor # :nodoc:
-        concurrency = global_executor_concurrency || 4
-        @@global_thread_pool_async_query_executor ||= Concurrent::ThreadPoolExecutor.new(
-          min_threads: 0,
-          max_threads: concurrency,
-          max_queue: concurrency * 4,
-          fallback_policy: :caller_runs
-        )
-      end
-
-      # Set the +global_executor_concurrency+. This configuration value can only be used
-      # with the global thread pool async query executor.
-      def self.global_executor_concurrency=(global_executor_concurrency)
-        if async_query_executor.nil? || async_query_executor == :multi_thread_pool
-          raise ArgumentError, "`global_executor_concurrency` cannot be set when using the executor is nil or set to multi_thead_pool. For multiple thread pools, please set the concurrency in your database configuration."
-        end
-
-        @@global_executor_concurrency = global_executor_concurrency
-      end
-
-      def self.global_executor_concurrency # :nodoc:
-        @@global_executor_concurrency ||= nil
-      end
-
       def self.application_record_class? # :nodoc:
-        if Base.application_record_class
-          self == Base.application_record_class
+        if ActiveRecord.application_record_class
+          self == ActiveRecord.application_record_class
         else
           if defined?(ApplicationRecord) && self == ApplicationRecord
             true
@@ -225,7 +99,7 @@ module ActiveRecord
       end
 
       def self.connection_handlers
-        if legacy_connection_handling
+        if ActiveRecord.legacy_connection_handling
         else
           raise NotImplementedError, "The new connection handling does not support accessing multiple connection handlers."
         end
@@ -234,7 +108,7 @@ module ActiveRecord
       end
 
       def self.connection_handlers=(handlers)
-        if legacy_connection_handling
+        if ActiveRecord.legacy_connection_handling
           ActiveSupport::Deprecation.warn(<<~MSG)
             Using legacy connection handling is deprecated. Please set
             `legacy_connection_handling` to `false` in your application.
@@ -270,7 +144,7 @@ module ActiveRecord
       #     ActiveRecord::Base.current_role #=> :reading
       #   end
       def self.current_role
-        if ActiveRecord::Base.legacy_connection_handling
+        if ActiveRecord.legacy_connection_handling
           connection_handlers.key(connection_handler) || default_role
         else
           connected_to_stack.reverse_each do |hash|
@@ -311,7 +185,7 @@ module ActiveRecord
       #     ActiveRecord::Base.current_preventing_writes #=> false
       #   end
       def self.current_preventing_writes
-        if legacy_connection_handling
+        if ActiveRecord.legacy_connection_handling
           connection_handler.prevent_writes
         else
           connected_to_stack.reverse_each do |hash|
@@ -365,11 +239,11 @@ module ActiveRecord
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
-      self.default_role = writing_role
+      self.default_role = ActiveRecord.writing_role
       self.default_shard = :default
 
       def self.strict_loading_violation!(owner:, reflection:) # :nodoc:
-        case action_on_strict_loading_violation
+        case ActiveRecord.action_on_strict_loading_violation
         when :raise
           message = "`#{owner}` is marked for strict_loading. The `#{reflection.klass}` association named `:#{reflection.name}` cannot be lazily loaded."
           raise ActiveRecord::StrictLoadingViolationError.new(message)
@@ -461,6 +335,30 @@ module ActiveRecord
 
       def find_by!(*args) # :nodoc:
         find_by(*args) || raise(RecordNotFound.new("Couldn't find #{name}", name))
+      end
+
+      def default_timezone # :nodoc:
+        ActiveRecord.default_timezone
+      end
+
+      def maintain_test_schema # :nodoc:
+        ActiveRecord.maintain_test_schema
+      end
+
+      def reading_role # :nodoc:
+        ActiveSupport::Deprecation.warn(<<~MSG)
+          ActiveRecord::Base.reading_role is deprecated and will be removed in Rails 7.1.
+          Use `ActiveRecord.reading_role` instead.
+        MSG
+        ActiveRecord.reading_role
+      end
+
+      def writing_role # :nodoc:
+        ActiveSupport::Deprecation.warn(<<~MSG)
+          ActiveRecord::Base.writing_role is deprecated and will be removed in Rails 7.1.
+          Use `ActiveRecord.writing_role` instead.
+        MSG
+        ActiveRecord.writing_role
       end
 
       def initialize_generated_modules # :nodoc:

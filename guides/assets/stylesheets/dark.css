@@ -127,7 +127,7 @@
     background-position: 10px 10px;
   }
 
-  .info {
+  .info, #mainCol dd.kindle, #subCol dd.kindle {
     border: 1px solid #d5e9f6;
     background-color: #243440;
     color: #d5e9f6;
@@ -135,8 +135,6 @@
     background-size: 28px 28px;
     background-position: 10px 10px;
   }
-
-
 
   .clipboard-button {
     color: #ddd;

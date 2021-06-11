@@ -272,12 +272,11 @@ module Rails
           klass.start(args, config)
           run_after_generate_callback if config[:behavior] == :invoke
         else
-          options     = sorted_groups.flat_map(&:last)
-          suggestion  = Rails::Command::Spellchecker.suggest(namespace.to_s, from: options)
-          suggestion_msg = "Maybe you meant #{suggestion.inspect}?" if suggestion
+          options = sorted_groups.flat_map(&:last)
+          error   = Command::Base::CorrectableError.new("Could not find generator '#{namespace}'.", namespace, options)
 
           puts <<~MSG
-            Could not find generator '#{namespace}'. #{suggestion_msg}
+            #{error.message}
             Run `bin/rails generate --help` for more options.
           MSG
         end

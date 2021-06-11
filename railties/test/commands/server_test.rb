@@ -35,13 +35,15 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
   end
 
   def test_using_server_mistype
-    assert_match(/Could not find server "tin". Maybe you meant "thin"?/, run_command("--using", "tin"))
+    output = run_command("--using", "tin")
+    assert_match "Could not find server 'tin'", output
+    assert_match "Did you mean?  thin", output
   end
 
   def test_using_server_mistype_without_suggestion
     output = run_command("--using", "t")
-    assert_match(/Could not find server "t"/, output)
-    assert_no_match(/Maybe you meant/, output)
+    assert_match "Could not find server 't'", output
+    assert_no_match "Did you mean", output
   end
 
   def test_using_known_server_that_isnt_in_the_gemfile

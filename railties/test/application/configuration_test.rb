@@ -1660,24 +1660,24 @@ module ApplicationTests
 
       app "production"
 
-      assert_not ActiveRecord::Base.dump_schema_after_migration
+      assert_not ActiveRecord.dump_schema_after_migration
     end
 
     test "config.active_record.dump_schema_after_migration is true by default in development" do
       app "development"
 
-      assert ActiveRecord::Base.dump_schema_after_migration
+      assert ActiveRecord.dump_schema_after_migration
     end
 
     test "config.active_record.verbose_query_logs is false by default in development" do
       app "development"
 
-      assert_not ActiveRecord::Base.verbose_query_logs
+      assert_not ActiveRecord.verbose_query_logs
     end
 
     test "config.active_record.suppress_multiple_database_warning is false by default in development" do
       app "development"
-      assert_not ActiveRecord::Base.suppress_multiple_database_warning
+      assert_not ActiveRecord.suppress_multiple_database_warning
     end
 
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
@@ -2384,7 +2384,7 @@ module ApplicationTests
     test "active record job queue is set" do
       app "development"
 
-      assert_equal ActiveSupport::InheritableOptions.new(destroy: :active_record_destroy), ActiveRecord::Base.queues
+      assert_equal ActiveSupport::InheritableOptions.new(destroy: :active_record_destroy), ActiveRecord.queues
     end
 
     test "destroy association async job should be loaded in configs" do
@@ -3140,14 +3140,6 @@ module ApplicationTests
       app "development"
 
       assert_equal false, ActionDispatch::Request.return_only_media_type_on_content_type
-    end
-
-    test "config.active_record.sqlite3_production_warning is on by default for new apps" do
-      restore_sqlite3_warning
-
-      app "development"
-
-      assert_equal true, ActiveRecord::Base.sqlite3_production_warning
     end
 
     test "logs a warning when running SQLite3 in production" do

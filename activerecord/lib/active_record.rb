@@ -169,6 +169,150 @@ module ActiveRecord
   autoload :TestDatabases, "active_record/test_databases"
   autoload :TestFixtures, "active_record/fixtures"
 
+  singleton_class.attr_accessor :legacy_connection_handling
+  self.legacy_connection_handling = true
+
+  ##
+  # :singleton-method:
+  # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
+  # dates and times from the database. This is set to :utc by default.
+  singleton_class.attr_accessor :default_timezone
+  self.default_timezone = :utc
+
+  singleton_class.attr_accessor :writing_role
+  self.writing_role = :writing
+
+  singleton_class.attr_accessor :reading_role
+  self.reading_role = :reading
+
+  # Sets the async_query_executor for an application. By default the thread pool executor
+  # set to +nil+ which will not run queries in the background. Applications must configure
+  # a thread pool executor to use this feature. Options are:
+  #
+  #   * nil - Does not initialize a thread pool executor. Any async calls will be
+  #   run in the foreground.
+  #   * :global_thread_pool - Initializes a single +Concurrent::ThreadPoolExecutor+
+  #   that uses the +async_query_concurrency+ for the +max_threads+ value.
+  #   * :multi_thread_pool - Initializes a +Concurrent::ThreadPoolExecutor+ for each
+  #   database connection. The initializer values are defined in the configuration hash.
+  singleton_class.attr_accessor :async_query_executor
+  self.async_query_executor = nil
+
+  def self.global_thread_pool_async_query_executor # :nodoc:
+    concurrency = global_executor_concurrency || 4
+    @global_thread_pool_async_query_executor ||= Concurrent::ThreadPoolExecutor.new(
+      min_threads: 0,
+      max_threads: concurrency,
+      max_queue: concurrency * 4,
+      fallback_policy: :caller_runs
+    )
+  end
+
+  # Set the +global_executor_concurrency+. This configuration value can only be used
+  # with the global thread pool async query executor.
+  def self.global_executor_concurrency=(global_executor_concurrency)
+    if self.async_query_executor.nil? || self.async_query_executor == :multi_thread_pool
+      raise ArgumentError, "`global_executor_concurrency` cannot be set when using the executor is nil or set to multi_thead_pool. For multiple thread pools, please set the concurrency in your database configuration."
+    end
+
+    @global_executor_concurrency = global_executor_concurrency
+  end
+
+  def self.global_executor_concurrency # :nodoc:
+    @global_executor_concurrency ||= nil
+  end
+
+  singleton_class.attr_accessor :index_nested_attribute_errors
+  self.index_nested_attribute_errors = false
+
+  ##
+  # :singleton-method:
+  #
+  # Specifies if the methods calling database queries should be logged below
+  # their relevant queries. Defaults to false.
+  singleton_class.attr_accessor :verbose_query_logs
+  self.verbose_query_logs = false
+
+  ##
+  # :singleton-method:
+  #
+  # Specifies the names of the queues used by background jobs.
+  singleton_class.attr_accessor :queues
+  self.queues = {}
+
+  singleton_class.attr_accessor :maintain_test_schema
+  self.maintain_test_schema = nil
+
+  ##
+  # :singleton-method:
+  # Specify a threshold for the size of query result sets. If the number of
+  # records in the set exceeds the threshold, a warning is logged. This can
+  # be used to identify queries which load thousands of records and
+  # potentially cause memory bloat.
+  singleton_class.attr_accessor :warn_on_records_fetched_greater_than
+  self.warn_on_records_fetched_greater_than = false
+
+  singleton_class.attr_accessor :application_record_class
+  self.application_record_class = nil
+
+  ##
+  # :singleton-method:
+  # Set the application to log or raise when an association violates strict loading.
+  # Defaults to :raise.
+  singleton_class.attr_accessor :action_on_strict_loading_violation
+  self.action_on_strict_loading_violation = :raise
+
+  ##
+  # :singleton-method:
+  # Specifies the format to use when dumping the database schema with Rails'
+  # Rakefile. If :sql, the schema is dumped as (potentially database-
+  # specific) SQL statements. If :ruby, the schema is dumped as an
+  # ActiveRecord::Schema file which can be loaded into any database that
+  # supports migrations. Use :ruby if you want to have different database
+  # adapters for, e.g., your development and test environments.
+  singleton_class.attr_accessor :schema_format
+  self.schema_format = :ruby
+
+  ##
+  # :singleton-method:
+  # Specifies if an error should be raised if the query has an order being
+  # ignored when doing batch queries. Useful in applications where the
+  # scope being ignored is error-worthy, rather than a warning.
+  singleton_class.attr_accessor :error_on_ignored_order
+  self.error_on_ignored_order = false
+
+  ##
+  # :singleton-method:
+  # Specify whether or not to use timestamps for migration versions
+  singleton_class.attr_accessor :timestamped_migrations
+  self.timestamped_migrations = true
+
+  ##
+  # :singleton-method:
+  # Specify whether schema dump should happen at the end of the
+  # bin/rails db:migrate command. This is true by default, which is useful for the
+  # development environment. This should ideally be false in the production
+  # environment where dumping schema is rarely needed.
+  singleton_class.attr_accessor :dump_schema_after_migration
+  self.dump_schema_after_migration = true
+
+  ##
+  # :singleton-method:
+  # Specifies which database schemas to dump when calling db:schema:dump.
+  # If the value is :schema_search_path (the default), any schemas listed in
+  # schema_search_path are dumped. Use :all to dump all schemas regardless
+  # of schema_search_path, or a string of comma separated schemas for a
+  # custom list.
+  singleton_class.attr_accessor :dump_schemas
+  self.dump_schemas = :schema_search_path
+
+  ##
+  # :singleton-method:
+  # Show a warning when Rails couldn't parse your database.yml
+  # for multiple databases.
+  singleton_class.attr_accessor :suppress_multiple_database_warning
+  self.suppress_multiple_database_warning = false
+
   def self.eager_load!
     super
     ActiveRecord::Locking.eager_load!

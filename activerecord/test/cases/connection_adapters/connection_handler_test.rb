@@ -285,8 +285,8 @@ module ActiveRecord
       end
 
       def test_default_handlers_are_writing_and_reading
-        assert_equal :writing, ActiveRecord::Base.writing_role
-        assert_equal :reading, ActiveRecord::Base.reading_role
+        assert_equal :writing, ActiveRecord.writing_role
+        assert_equal :reading, ActiveRecord.reading_role
       end
 
       if Process.respond_to?(:fork)

@@ -16,7 +16,8 @@ module ActiveRecord
 
       private
         def last_scope_chain(reverse_chain, owner)
-          first_scope = [reverse_chain.shift, false, [owner.id]]
+          first_item = reverse_chain.shift
+          first_scope = [first_item, false, [owner._read_attribute(first_item.join_foreign_key)]]
 
           reverse_chain.inject(first_scope) do |(reflection, ordered, join_ids), next_reflection|
             key = reflection.join_primary_key

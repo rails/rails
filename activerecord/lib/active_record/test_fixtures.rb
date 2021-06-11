@@ -193,8 +193,8 @@ module ActiveRecord
       # need to share a connection pool so that the reading connection
       # can see data in the open transaction on the writing connection.
       def setup_shared_connection_pool
-        if ActiveRecord::Base.legacy_connection_handling
-          writing_handler = ActiveRecord::Base.connection_handlers[ActiveRecord::Base.writing_role]
+        if ActiveRecord.legacy_connection_handling
+          writing_handler = ActiveRecord::Base.connection_handlers[ActiveRecord.writing_role]
 
           ActiveRecord::Base.connection_handlers.values.each do |handler|
             if handler != writing_handler
@@ -221,7 +221,7 @@ module ActiveRecord
           handler.connection_pool_names.each do |name|
             pool_manager = handler.send(:owner_to_pool_manager)[name]
             pool_manager.shard_names.each do |shard_name|
-              writing_pool_config = pool_manager.get_pool_config(ActiveRecord::Base.writing_role, shard_name)
+              writing_pool_config = pool_manager.get_pool_config(ActiveRecord.writing_role, shard_name)
               @saved_pool_configs[name][shard_name] ||= {}
               pool_manager.role_names.each do |role|
                 next unless pool_config = pool_manager.get_pool_config(role, shard_name)
@@ -236,7 +236,7 @@ module ActiveRecord
       end
 
       def teardown_shared_connection_pool
-        if ActiveRecord::Base.legacy_connection_handling
+        if ActiveRecord.legacy_connection_handling
           @legacy_saved_pool_configs.each_pair do |handler, names|
             names.each_pair do |name, shards|
               shards.each_pair do |shard_name, pool_config|

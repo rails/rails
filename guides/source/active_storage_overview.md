@@ -35,8 +35,9 @@ files.
 
 ## Setup
 
-Active Storage uses two tables in your application’s database named
-`active_storage_blobs` and `active_storage_attachments`. After creating a new
+Active Storage uses three tables in your application’s database named
+`active_storage_blobs`, `active_storage_variant_records`
+and `active_storage_attachments`. After creating a new
 application (or upgrading your application to Rails 5.2), run
 `bin/rails active_storage:install` to generate a migration that creates these
 tables. Use `bin/rails db:migrate` to run the migration.
@@ -320,12 +321,18 @@ The [`has_one_attached`][] macro sets up a one-to-one mapping between records an
 files. Each record can have one file attached to it.
 
 For example, suppose your application has a `User` model. If you want each user to
-have an avatar, define the `User` model like this:
+have an avatar, define the `User` model as follows:
 
 ```ruby
 class User < ApplicationRecord
   has_one_attached :avatar
 end
+```
+
+or if you are using Rails 6.0+, you can run a model generator command like this:
+
+```ruby
+bin/rails generate model User avatar:attachment
 ```
 
 You can create a user with an avatar:
@@ -396,12 +403,18 @@ The [`has_many_attached`][] macro sets up a one-to-many relationship between rec
 and files. Each record can have many files attached to it.
 
 For example, suppose your application has a `Message` model. If you want each
-message to have many images, define the `Message` model like this:
+message to have many images, define the `Message` model as follows:
 
 ```ruby
 class Message < ApplicationRecord
   has_many_attached :images
 end
+```
+
+or if you are using Rails 6.0+, you can run a model generator command like this:
+
+```ruby
+bin/rails generate model Message images:attachments
 ```
 
 You can create a message with images:
@@ -546,6 +559,61 @@ jobs, Cronjobs, etc.), you can access the `rails_blob_path` like this:
 
 ```ruby
 Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: true)
+```
+
+### Proxy mode
+
+Optionally, files can be proxied instead. This means that your application servers will download file data from the storage service in response to requests. This can be useful for serving files from a CDN.
+
+You can configure Active Storage to use proxying by default:
+
+```ruby
+# config/initializers/active_storage.rb
+Rails.application.config.active_storage.resolve_model_to_route = :rails_storage_proxy
+```
+
+Or if you want to explicitly proxy specific attachments there are URL helpers you can use in the form of `rails_storage_proxy_path` and `rails_storage_proxy_url`.
+
+```erb
+<%= image_tag rails_storage_proxy_path(@user.avatar) %>
+```
+
+#### Putting a CDN in front of Active Storage
+
+Additionally, in order to use a CDN for Active Storage attachments, you will need to generate URLs with proxy mode so that they are served by your app and the CDN will cache the attachment without any extra configuration. This works out of the box because the default Active Storage proxy controller sets an HTTP header indicating to the CDN to cache the response.
+
+You should also make sure that the generated URLs use the CDN host instead of your app host. There are multiple ways to achieve this, but in general it involves tweaking your `config/routes.rb` file so that you can generate the proper URLs for the attachments and their variations. As an example, you could add this:
+
+```ruby
+# config/routes.rb
+direct :cdn_image do |model, options|
+  if model.respond_to?(:signed_id)
+    route_for(
+      :rails_service_blob_proxy,
+      model.signed_id,
+      model.filename,
+      options.merge(host: ENV['CDN_HOST'])
+    )
+  else
+    signed_blob_id = model.blob.signed_id
+    variation_key  = model.variation.key
+    filename       = model.blob.filename
+
+    route_for(
+      :rails_blob_representation_proxy,
+      signed_blob_id,
+      variation_key,
+      filename,
+      options.merge(host: ENV['CDN_HOST'])
+    )
+  end
+end
+```
+
+and then generate routes like this:
+
+```erb
+<%= cdn_image_url(user.avatar.variant(resize_to_limit: [128, 128])) %>
 ```
 
 Downloading Files

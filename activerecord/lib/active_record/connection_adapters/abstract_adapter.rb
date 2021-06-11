@@ -140,7 +140,7 @@ module ActiveRecord
       # will return true based on +current_preventing_writes+.
       def preventing_writes?
         return true if replica?
-        return ActiveRecord::Base.connection_handler.prevent_writes if ActiveRecord::Base.legacy_connection_handling
+        return ActiveRecord::Base.connection_handler.prevent_writes if ActiveRecord.legacy_connection_handling
         return false if connection_klass.nil?
 
         connection_klass.current_preventing_writes
@@ -443,7 +443,7 @@ module ActiveRecord
 
       def async_enabled? # :nodoc:
         supports_concurrent_connections? &&
-          !Base.async_query_executor.nil? && !pool.async_executor.nil?
+          !ActiveRecord.async_query_executor.nil? && !pool.async_executor.nil?
       end
 
       # This is meant to be implemented by the adapters that support extensions
