@@ -105,7 +105,7 @@ module ActiveRecord
 
         def remove_records(existing_records, records, method)
           super
-          delete_through_records(records)
+          delete_through_records(records, method)
         end
 
         def target_reflection_has_associated_record?
@@ -142,13 +142,28 @@ module ActiveRecord
               scope.each(&:_run_destroy_callbacks)
               count = scope.delete_all
             end
+          when :destroy_async
+            count = scope.count
+            association_class = scope.klass
+            primary_key_column = association_class.primary_key.to_sym
+            ids = scope.collect { |r| r.public_send(primary_key_column) }
+
+            enqueue_destroy_association(
+              owner_model_name: owner.class.to_s,
+              owner_id: owner.id,
+              association_class: association_class.to_s,
+              association_ids: ids,
+              association_primary_key_column: primary_key_column,
+              ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil),
+              ensuring_owner_destroyed: false
+            )
           when :nullify
             count = scope.update_all(source_reflection.foreign_key => nil)
           else
             count = scope.delete_all
           end
 
-          delete_through_records(records)
+          delete_through_records(records, method)
 
           if source_reflection.options[:counter_cache] && method != :destroy
             counter = source_reflection.counter_cache_column
@@ -196,7 +211,7 @@ module ActiveRecord
           end
         end
 
-        def delete_through_records(records)
+        def delete_through_records(records, method)
           records.each do |record|
             through_records = through_records_for(record)
 

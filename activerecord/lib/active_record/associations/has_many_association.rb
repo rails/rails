@@ -27,9 +27,7 @@ module ActiveRecord
           load_target.each { |t| t.destroyed_by_association = reflection }
           destroy_all
         when :destroy_async
-          load_target.each do |t|
-            t.destroyed_by_association = reflection
-          end
+          load_target.each { |t| t.destroyed_by_association = reflection }
 
           unless target.empty?
             association_class = target.first.class
@@ -117,8 +115,25 @@ module ActiveRecord
 
         # Deletes the records according to the <tt>:dependent</tt> option.
         def delete_records(records, method)
-          if method == :destroy
+          case method
+          when :destroy
             records.each(&:destroy!)
+            update_counter(-records.length) unless reflection.inverse_updates_counter_cache?
+          when :destroy_async
+            association_class = records.first.class
+            primary_key_column = association_class.primary_key.to_sym
+            ids = records.collect { |assoc| assoc.public_send(primary_key_column) }
+
+            enqueue_destroy_association(
+              owner_model_name: owner.class.to_s,
+              owner_id: owner.id,
+              association_class: reflection.klass.to_s,
+              association_ids: ids,
+              association_primary_key_column: primary_key_column,
+              ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil),
+              ensuring_owner_destroyed: false
+            )
+
             update_counter(-records.length) unless reflection.inverse_updates_counter_cache?
           else
             scope = self.scope.where(reflection.klass.primary_key => records)
