@@ -222,6 +222,9 @@ module ActiveRecord
     @global_executor_concurrency ||= nil
   end
 
+  singleton_class.attr_accessor :index_nested_attribute_errors
+  self.index_nested_attribute_errors = false
+
   ##
   # :singleton-method:
   #
