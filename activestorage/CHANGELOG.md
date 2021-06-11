@@ -1,3 +1,7 @@
+*   Adds analyzer for pdf files.
+
+    *Breno Gazzola*
+
 *   Add metadata value for presence of audio channel in video blobs
 
     The `metadata` attribute of video blobs has a new boolean key named `audio` that is set to

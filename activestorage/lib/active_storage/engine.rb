@@ -14,6 +14,9 @@ require "active_storage/previewer/video_previewer"
 require "active_storage/analyzer/image_analyzer"
 require "active_storage/analyzer/video_analyzer"
 require "active_storage/analyzer/audio_analyzer"
+require "active_storage/analyzer/pdf_analyzer"
+require "active_storage/analyzer/pdf_analyzer/poppler_pdf"
+require "active_storage/analyzer/pdf_analyzer/mu_pdf"
 
 require "active_storage/service/registry"
 
@@ -25,7 +28,7 @@ module ActiveStorage
 
     config.active_storage = ActiveSupport::OrderedOptions.new
     config.active_storage.previewers = [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
-    config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
+    config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer, ActiveStorage::Analyzer::PDFAnalyzer::PopplerPDF, ActiveStorage::Analyzer::PDFAnalyzer::MuPDF ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
 
