@@ -127,8 +127,7 @@ module ActiveRecord
     # <tt>attribute :foo, :string</tt>. Defaults to false.
 
     included do
-      mattr_accessor :primary_key_prefix_type, instance_writer: false
-
+      class_attribute :primary_key_prefix_type, instance_writer: false
       class_attribute :table_name_prefix, instance_writer: false, default: ""
       class_attribute :table_name_suffix, instance_writer: false, default: ""
       class_attribute :schema_migrations_table_name, instance_accessor: false, default: "schema_migrations"
