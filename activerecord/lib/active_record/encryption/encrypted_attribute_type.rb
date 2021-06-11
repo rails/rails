@@ -26,6 +26,10 @@ module ActiveRecord
         @previous_type = previous_type
       end
 
+      def cast(value)
+        value
+      end
+
       def deserialize(value)
         cast_type.deserialize decrypt(value)
       end
