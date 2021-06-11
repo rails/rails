@@ -347,7 +347,7 @@ module ActiveRecord
 
       def reading_role # :nodoc:
         ActiveSupport::Deprecation.warn(<<~MSG)
-          ActiveRecord::Base.reading_role is deprecated and will be removed in Rails 7.0.
+          ActiveRecord::Base.reading_role is deprecated and will be removed in Rails 7.1.
           Use `ActiveRecord.reading_role` instead.
         MSG
         ActiveRecord.reading_role
@@ -355,7 +355,7 @@ module ActiveRecord
 
       def writing_role # :nodoc:
         ActiveSupport::Deprecation.warn(<<~MSG)
-          ActiveRecord::Base.writing_role is deprecated and will be removed in Rails 7.0.
+          ActiveRecord::Base.writing_role is deprecated and will be removed in Rails 7.1.
           Use `ActiveRecord.writing_role` instead.
         MSG
         ActiveRecord.writing_role
