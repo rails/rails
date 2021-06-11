@@ -198,7 +198,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
-
     SQLITE3_PRODUCTION_WARN = "You are running SQLite in production, this is generally not recommended."\
       " You can disable this warning by setting \"config.active_record.sqlite3_production_warning=false\"."
     initializer "active_record.sqlite3_production_warning" do
