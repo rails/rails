@@ -27,7 +27,7 @@ module ActiveRecord
       end
 
       def cast(value)
-        value
+        cast_type.deserialize(cast_type.serialize(value))
       end
 
       def deserialize(value)
