@@ -8,13 +8,6 @@ class ActiveRecord::Encryption::KeyProviderCallsTest < ActiveRecord::EncryptionT
   test "calls #encryption_key only once when creating a record" do
     assert_equal 0, key_provider.encryption_key_calls
 
-    ActiveRecord::Encryption.configure(
-      key_provider: key_provider.new,
-      primary_key: "secret",
-      key_derivation_salt: "salt",
-      deterministic_key: nil
-    )
-
     create_book
 
     assert_equal 2, key_provider.encryption_key_calls
@@ -50,6 +43,6 @@ class ActiveRecord::Encryption::KeyProviderCallsTest < ActiveRecord::EncryptionT
     end
 
     class Book < ActiveRecord::Base
-      encrypts :name
+      encrypts :name, key_provider: MyKeyProvider.new
     end
 end
