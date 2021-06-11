@@ -97,11 +97,11 @@ First, the database name for the `primary` and `primary_replica` should be the s
 the same data. This is also the case for `animals` and `animals_replica`.
 
 Second, the username for the writers and replicas should be different, and the
-replica user's permissions should be set to only read and not write.
+replica user's database permissions should be set to only read and not write.
 
 When using a replica database, you need to add a `replica: true` entry to the replica in the
 `database.yml`. This is because Rails otherwise has no way of knowing which one is a replica
-and which one is the writer.
+and which one is the writer. Rails will not run certain tasks, such as migrations, against replicas.
 
 Lastly, for new writer databases, you need to set the `migrations_paths` to the directory
 where you will store migrations for that database. We'll look more at `migrations_paths`
@@ -327,6 +327,16 @@ Note that `connected_to` with a role will look up an existing connection and swi
 using the connection specification name. This means that if you pass an unknown role
 like `connected_to(role: :nonexistent)` you will get an error that says
 `ActiveRecord::ConnectionNotEstablished (No connection pool for 'ActiveRecord::Base' found for the 'nonexistent' role.)`
+
+If you want Rails to ensure any queries performed are read only, pass `prevent_writes: true`.
+This just prevents queries that look like writes from being sent to the database.
+You should also configure your replica database to run in readonly mode.
+
+```ruby
+ActiveRecord::Base.connected_to(role: :reading, prevent_writes: true) do
+  # Rails will check each query to ensure it's a read query
+end
+```
 
 ## Horizontal sharding
 
