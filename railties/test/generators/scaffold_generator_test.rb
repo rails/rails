@@ -229,7 +229,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
   def test_delete_css_file_generate_with_scaffold
     #Assets
     output = Rails::Command::DestroyCommand.new.delete_css_file_generate_with_scaffold
-    assert_equal "app/assets/stylesheets/scaffolds.scss",output.split(' ')[1,output.split(' ').size][0]
+    assert_equal "app/assets/stylesheets/scaffolds.scss",output
   end
 
   def test_scaffold_with_namespace_on_invoke
