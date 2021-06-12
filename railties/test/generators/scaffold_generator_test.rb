@@ -2,6 +2,7 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/rails/scaffold/scaffold_generator"
+require_relative "rails/commands/destroy/destroy_command"
 
 class ScaffoldGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -223,6 +224,12 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css", /.scaffold_record/
     assert_no_file "app/assets/stylesheets/product_lines.css"
+  end
+
+  def test_delete_css_file_generate_with_scaffold
+    #Assets
+    output = Rails::Command::DestroyCommand.new.delete_css_file_generate_with_scaffold
+    assert_equal "app/assets/stylesheets/scaffolds.scss",output.split(' ')[1,output.split(' ').size][0]
   end
 
   def test_scaffold_with_namespace_on_invoke
