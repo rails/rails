@@ -2,7 +2,7 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/rails/scaffold/scaffold_generator"
-require_relative "rails/command/destroy/destroy_assistance"
+require_relative "../../lib/rails/commands/destroy/destroy_assistance"
 
 class ScaffoldGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
