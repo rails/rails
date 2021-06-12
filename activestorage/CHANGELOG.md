@@ -1,3 +1,8 @@
+*   Add `with_all_variant_records` method to eager load all variant records on an attachment at once.
+    `with_attached_image` scope now eager loads variant records if using variant tracking.
+
+    *Alex Ghiculescu*
+
 *   Add metadata value for presence of audio channel in video blobs
 
     The `metadata` attribute of video blobs has a new boolean key named `audio` that is set to

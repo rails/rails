@@ -166,7 +166,13 @@ module ActiveStorage
         end
         has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
 
-        scope :"with_attached_#{name}", -> { includes("#{name}_attachments": :blob) }
+        scope :"with_attached_#{name}", -> {
+          if ActiveStorage.track_variants
+            includes("#{name}_attachments": { blob: :variant_records })
+          else
+            includes("#{name}_attachments": :blob)
+          end
+        }
 
         after_save { attachment_changes[name.to_s]&.save }
 
