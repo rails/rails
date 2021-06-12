@@ -27,7 +27,7 @@ class PrimaryClassTest < ActiveRecord::TestCase
     assert_predicate ApplicationRecord, :application_record_class?
     assert_predicate ApplicationRecord, :abstract_class?
   ensure
-    ActiveRecord::Base.application_record_class = nil
+    ActiveRecord.application_record_class = nil
     Object.send(:remove_const, :ApplicationRecord)
   end
 
@@ -46,7 +46,7 @@ class PrimaryClassTest < ActiveRecord::TestCase
     assert_not_predicate ActiveRecord::Base, :application_record_class?
     assert_not_predicate ActiveRecord::Base, :abstract_class?
   ensure
-    ActiveRecord::Base.application_record_class = nil
+    ActiveRecord.application_record_class = nil
   end
 
   def test_primary_abstract_class_cannot_be_reset
@@ -56,7 +56,7 @@ class PrimaryClassTest < ActiveRecord::TestCase
       PrimaryClassTest::AnotherAppRecord.primary_abstract_class
     end
   ensure
-    ActiveRecord::Base.application_record_class = nil
+    ActiveRecord.application_record_class = nil
   end
 
   def test_primary_abstract_class_is_used_over_application_record_if_set
@@ -75,7 +75,7 @@ class PrimaryClassTest < ActiveRecord::TestCase
     assert_not_predicate ActiveRecord::Base, :application_record_class?
     assert_not_predicate ActiveRecord::Base, :abstract_class?
   ensure
-    ActiveRecord::Base.application_record_class = nil
+    ActiveRecord.application_record_class = nil
     Object.send(:remove_const, :ApplicationRecord)
   end
 
@@ -96,7 +96,7 @@ class PrimaryClassTest < ActiveRecord::TestCase
     assert_not_predicate ApplicationRecord, :application_record_class?
     assert_predicate ApplicationRecord, :abstract_class?
   ensure
-    ActiveRecord::Base.application_record_class = nil
+    ActiveRecord.application_record_class = nil
     Object.send(:remove_const, :ApplicationRecord)
   end
 
@@ -110,7 +110,7 @@ class PrimaryClassTest < ActiveRecord::TestCase
       assert_predicate ApplicationRecord, :application_record_class?
       assert_equal ActiveRecord::Base.connection, ApplicationRecord.connection
     ensure
-      ActiveRecord::Base.application_record_class = nil
+      ActiveRecord.application_record_class = nil
       Object.send(:remove_const, :ApplicationRecord)
       ActiveRecord::Base.establish_connection :arunit
     end
@@ -125,7 +125,7 @@ class PrimaryClassTest < ActiveRecord::TestCase
       assert_predicate PrimaryClassTest::PrimaryAppRecord, :abstract_class?
       assert_equal ActiveRecord::Base.connection, PrimaryClassTest::PrimaryAppRecord.connection
     ensure
-      ActiveRecord::Base.application_record_class = nil
+      ActiveRecord.application_record_class = nil
       ActiveRecord::Base.establish_connection :arunit
     end
   end

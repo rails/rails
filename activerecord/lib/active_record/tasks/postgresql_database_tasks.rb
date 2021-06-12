@@ -50,13 +50,13 @@ module ActiveRecord
         set_psql_env
 
         search_path = \
-          case ActiveRecord::Base.dump_schemas
+          case ActiveRecord.dump_schemas
           when :schema_search_path
             configuration_hash[:schema_search_path]
           when :all
             nil
           when String
-            ActiveRecord::Base.dump_schemas
+            ActiveRecord.dump_schemas
           end
 
         args = ["--schema-only", "--no-privileges", "--no-owner", "--file", filename]

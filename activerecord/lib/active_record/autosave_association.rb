@@ -150,7 +150,6 @@ module ActiveRecord
 
     included do
       Associations::Builder::Association.extensions << AssociationBuilderExtension
-      mattr_accessor :index_nested_attribute_errors, instance_writer: false, default: false
     end
 
     module ClassMethods # :nodoc:
@@ -335,7 +334,7 @@ module ActiveRecord
 
         unless valid = record.valid?(context)
           if reflection.options[:autosave]
-            indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord::Base.index_nested_attribute_errors)
+            indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord.index_nested_attribute_errors)
 
             record.errors.group_by_attribute.each { |attribute, errors|
               attribute = normalize_reflection_attribute(indexed_attribute, reflection, index, attribute)

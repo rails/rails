@@ -136,7 +136,7 @@ module ActiveRecord
     action "Run pending migrations" do
       ActiveRecord::Tasks::DatabaseTasks.migrate
 
-      if ActiveRecord::Base.dump_schema_after_migration
+      if ActiveRecord.dump_schema_after_migration
         ActiveRecord::Tasks::DatabaseTasks.dump_schema(
           ActiveRecord::Base.connection_db_config
         )
@@ -632,7 +632,7 @@ module ActiveRecord
         all_configs = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env)
 
         needs_update = !all_configs.all? do |db_config|
-          Tasks::DatabaseTasks.schema_up_to_date?(db_config, ActiveRecord::Base.schema_format)
+          Tasks::DatabaseTasks.schema_up_to_date?(db_config, ActiveRecord.schema_format)
         end
 
         if needs_update
@@ -994,7 +994,7 @@ module ActiveRecord
 
     # Determines the version number of the next migration.
     def next_migration_number(number)
-      if ActiveRecord::Base.timestamped_migrations
+      if ActiveRecord.timestamped_migrations
         [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
       else
         SchemaMigration.normalize_migration_number(number)

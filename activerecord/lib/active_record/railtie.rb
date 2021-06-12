@@ -62,7 +62,7 @@ module ActiveRecord
         console.level = Rails.logger.level
         Rails.logger.extend ActiveSupport::Logger.broadcast console
       end
-      ActiveRecord::Base.verbose_query_logs = false
+      ActiveRecord.verbose_query_logs = false
     end
 
     runner do
@@ -72,7 +72,6 @@ module ActiveRecord
     initializer "active_record.initialize_timezone" do
       ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true
-        self.default_timezone = :utc
       end
     end
 
@@ -199,6 +198,16 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    SQLITE3_PRODUCTION_WARN = "You are running SQLite in production, this is generally not recommended."\
+      " You can disable this warning by setting \"config.active_record.sqlite3_production_warning=false\"."
+    initializer "active_record.sqlite3_production_warning" do
+      if config.active_record.delete(:sqlite3_production_warning) && Rails.env.production?
+        ActiveSupport.on_load(:active_record_sqlite3adapter) do
+          Rails.logger.warn(SQLITE3_PRODUCTION_WARN)
+        end
+      end
+    end
+
     initializer "active_record.set_configs" do |app|
       configs = app.config.active_record
 
@@ -214,8 +223,15 @@ To keep using the current cache store, you can turn off cache versioning entirel
         configs.each do |k, v|
           next if k == :encryption
           setter = "#{k}="
-          next if ActiveRecord.respond_to?(setter)
-          send(setter, v)
+          # Some existing initializers might rely on Active Record configuration
+          # being copied from the config object to their actual destination when
+          # `ActiveRecord::Base` is loaded.
+          # So to preserve backward compatibility we copy the config a second time.
+          if ActiveRecord.respond_to?(setter)
+            ActiveRecord.send(setter, v)
+          else
+            send(setter, v)
+          end
         end
       end
     end
@@ -225,21 +241,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
         if ActiveRecord.legacy_connection_handling
-          self.connection_handlers = { writing_role => ActiveRecord::Base.default_connection_handler }
+          self.connection_handlers = { ActiveRecord.writing_role => ActiveRecord::Base.default_connection_handler }
         end
         self.configurations = Rails.application.config.database_configuration
 
         establish_connection
-      end
-    end
-
-    SQLITE3_PRODUCTION_WARN = "You are running SQLite in production, this is generally not recommended."\
-      " You can disable this warning by setting \"config.active_record.sqlite3_production_warning=false\"."
-    initializer "active_record.sqlite3_production_warning" do
-      if config.active_record.sqlite3_production_warning && Rails.env.production?
-        ActiveSupport.on_load(:active_record_sqlite3adapter) do
-          Rails.logger.warn(SQLITE3_PRODUCTION_WARN)
-        end
       end
     end
 

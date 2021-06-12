@@ -184,7 +184,7 @@ module ActiveRecord
         raise NotImplementedError, "connected_to_many can only be called on ActiveRecord::Base."
       end
 
-      prevent_writes = true if role == reading_role
+      prevent_writes = true if role == ActiveRecord.reading_role
 
       connected_to_stack << { role: role, shard: shard, prevent_writes: prevent_writes, klasses: classes }
       yield
@@ -204,7 +204,7 @@ module ActiveRecord
         raise NotImplementedError, "`connecting_to` is not available with `legacy_connection_handling`."
       end
 
-      prevent_writes = true if role == reading_role
+      prevent_writes = true if role == ActiveRecord.reading_role
 
       self.connected_to_stack << { role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self] }
     end
@@ -240,7 +240,7 @@ module ActiveRecord
 
     def lookup_connection_handler(handler_key) # :nodoc:
       if ActiveRecord.legacy_connection_handling
-        handler_key ||= ActiveRecord::Base.writing_role
+        handler_key ||= ActiveRecord.writing_role
         connection_handlers[handler_key] ||= ActiveRecord::ConnectionAdapters::ConnectionHandler.new
       else
         ActiveRecord::Base.connection_handler
@@ -356,7 +356,7 @@ module ActiveRecord
       end
 
       def with_role_and_shard(role, shard, prevent_writes)
-        prevent_writes = true if role == reading_role
+        prevent_writes = true if role == ActiveRecord.reading_role
 
         if ActiveRecord.legacy_connection_handling
           with_handler(role.to_sym) do
