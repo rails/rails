@@ -1,3 +1,7 @@
+*   New `ActionController::ConditionalGet#no_store` method to set HTTP cache control `no-store` directive.
+
+    *Tadas Sasnauskas*
+
 *   Drop support for the `SERVER_ADDR` header
 
     Following up https://github.com/rack/rack/pull/1573 and https://github.com/rails/rails/pull/42349
