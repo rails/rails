@@ -724,35 +724,39 @@ module ActionController
 
     # Returns a new <tt>ActionController::Parameters</tt> instance with the
     # results of running +block+ once for every key. The values are unchanged.
-    def transform_keys(&block)
-      return to_enum(:transform_keys) unless block_given?
+    # An optional hash argument can be provided to map keys to new keys.
+    def transform_keys(*args, &block)
+      return to_enum(:transform_keys) if args.empty? && !block_given?
       new_instance_with_inherited_permitted_status(
-        @parameters.transform_keys(&block)
+        @parameters.transform_keys(*args, &block)
       )
     end
 
     # Performs keys transformation and returns the altered
     # <tt>ActionController::Parameters</tt> instance.
-    def transform_keys!(&block)
-      return to_enum(:transform_keys!) unless block_given?
-      @parameters.transform_keys!(&block)
+    def transform_keys!(*args, &block)
+      return to_enum(:transform_keys!) if args.empty? && !block_given?
+      @parameters.transform_keys!(*args, &block)
       self
     end
 
     # Returns a new <tt>ActionController::Parameters</tt> instance with the
     # results of running +block+ once for every key. This includes the keys
     # from the root hash and from all nested hashes and arrays. The values are unchanged.
-    def deep_transform_keys(&block)
+    # An optional hash argument can be provided to map keys to new keys.
+    def deep_transform_keys(*args, &block)
+      return to_enum(:deep_transform_keys) if args.empty? && !block_given?
       new_instance_with_inherited_permitted_status(
-        @parameters.deep_transform_keys(&block)
+        @parameters.deep_transform_keys(*args, &block)
       )
     end
 
     # Returns the <tt>ActionController::Parameters</tt> instance changing its keys.
     # This includes the keys from the root hash and from all nested hashes and arrays.
     # The values are unchanged.
-    def deep_transform_keys!(&block)
-      @parameters.deep_transform_keys!(&block)
+    def deep_transform_keys!(*args, &block)
+      return to_enum(:deep_transform_keys!) if args.empty? && !block_given?
+      @parameters.deep_transform_keys!(*args, &block)
       self
     end
 

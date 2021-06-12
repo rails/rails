@@ -101,6 +101,14 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     assert_not_predicate @params.slice!(:person), :permitted?
   end
 
+  test "transform_keys! returns transformed parameters" do
+    assert_equal ActionController::Parameters.new(
+      user: { age:       "32",
+              name:      { first: "David", last: "Heinemeier Hansson" },
+              addresses: [{ city: "Chicago", state: "Illinois" }] }
+    ), @params.transform_keys!(person: :user)
+  end
+
   test "transform_keys! retains permitted status" do
     @params.permit!
     assert_predicate @params.transform_keys! { |k| k }, :permitted?
@@ -117,6 +125,14 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
 
   test "transform_values! retains unpermitted status" do
     assert_not_predicate @params.transform_values! { |v| v }, :permitted?
+  end
+
+  test "deep_transform_keys! returns transformed parameters" do
+    assert_equal ActionController::Parameters.new(
+      user: { AGE:       "32",
+              NAME:      { FIRST: "David", LAST: "Heinemeier Hansson" },
+              locations: [{ CITY: "Chicago", STATE: "Illinois" }] }
+    ), @params.deep_transform_keys!(person: :user, addresses: :locations) { |k| k.upcase }
   end
 
   test "deep_transform_keys! retains permitted status" do
