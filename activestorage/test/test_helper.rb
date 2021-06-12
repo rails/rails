@@ -9,6 +9,7 @@ require "active_support/test_case"
 require "active_support/core_ext/object/try"
 require "active_support/testing/autorun"
 require "active_support/configuration_file"
+require "active_record/testing/query_assertions"
 require "active_storage/service/mirror_service"
 require "image_processing/mini_magick"
 
@@ -46,6 +47,8 @@ ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 ActiveStorage::FixtureSet.file_fixture_path = File.expand_path("fixtures/files", __dir__)
 
 class ActiveSupport::TestCase
+  include ActiveRecord::Testing::QueryAssertions
+
   self.file_fixture_path = ActiveStorage::FixtureSet.file_fixture_path
 
   include ActiveRecord::TestFixtures
@@ -58,23 +61,6 @@ class ActiveSupport::TestCase
 
   teardown do
     ActiveStorage::Current.reset
-  end
-
-  def assert_queries(expected_count)
-    ActiveRecord::Base.connection.materialize_transactions
-
-    queries = []
-    ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
-      queries << payload[:sql] unless %w[ SCHEMA TRANSACTION ].include?(payload[:name])
-    end
-
-    yield.tap do
-      assert_equal expected_count, queries.size, "#{queries.size} instead of #{expected_count} queries were executed. #{queries.inspect}"
-    end
-  end
-
-  def assert_no_queries(&block)
-    assert_queries(0, &block)
   end
 
   private
