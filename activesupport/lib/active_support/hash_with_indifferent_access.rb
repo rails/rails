@@ -429,6 +429,10 @@ module ActiveSupport
           end
         end
       end
+
+      def _deep_transform_keys_convert_argument(keys_hash)
+        super&.with_indifferent_access
+      end
   end
 end
 
