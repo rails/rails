@@ -4,9 +4,9 @@ require "base64"
 require "active_support/security_utils"
 
 module ActionController
-  # Makes it dead easy to do HTTP Basic, Digest and Token authentication.
+  # HTTP Basic, Digest and Token authentication.
   module HttpAuthentication
-    # Makes it dead easy to do HTTP \Basic authentication.
+    # HTTP \Basic authentication.
     #
     # === Simple \Basic example
     #
@@ -24,8 +24,8 @@ module ActionController
     #
     # === Advanced \Basic example
     #
-    # Here is a more advanced \Basic example where only Atom feeds and the XML API is protected by HTTP authentication,
-    # the regular HTML interface is protected by a session approach:
+    # Here is a more advanced \Basic example where only Atom feeds and the XML API are protected by HTTP authentication.
+    # The regular HTML interface is protected by a session approach:
     #
     #   class ApplicationController < ActionController::Base
     #     before_action :set_account, :authenticate
@@ -134,7 +134,7 @@ module ActionController
       end
     end
 
-    # Makes it dead easy to do HTTP \Digest authentication.
+    # HTTP \Digest authentication.
     #
     # === Simple \Digest example
     #
@@ -330,7 +330,7 @@ module ActionController
       end
     end
 
-    # Makes it dead easy to do HTTP Token authentication.
+    # HTTP Token authentication.
     #
     # Simple Token example:
     #
@@ -358,8 +358,8 @@ module ActionController
     #   end
     #
     #
-    # Here is a more advanced Token example where only Atom feeds and the XML API is protected by HTTP token authentication,
-    # the regular HTML interface is protected by a session approach:
+    # Here is a more advanced Token example where only Atom feeds and the XML API are protected by HTTP token authentication.
+    # The regular HTML interface is protected by a session approach:
     #
     #   class ApplicationController < ActionController::Base
     #     before_action :set_account, :authenticate
