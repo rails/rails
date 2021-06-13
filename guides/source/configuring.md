@@ -1066,6 +1066,13 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
     The default is `:rails_storage_redirect`.
 
+* `config.active_storage.video_preview_arguments` can be used to alter the way ffmpeg generates video preview images.
+
+    The default is `"-vf select=eq(n\,0)+eq(key\,1)+gt(scene\,0.015),loop=loop=-1:size=2,trim=start_frame=1 -frames:v 1 -f image2"`
+
+    1. `select=eq(n\,0)+eq(key\,1)+gt(scene\,0.015)`: Select the first video frame, plus keyframes, plus frames that meet the scene change threshold.
+    2. `loop=loop=-1:size=2,trim=start_frame=1`: To use the first video frame as a fallback when no other frames meet the criteria, loop the first (one or) two selected frames, then drop the first looped frame.
+
 ### Configuring Action Text
 
 * `config.action_text.attachment_tag_name` accepts a string for the HTML tag used to wrap attachments. Defaults to `"action-text-attachment"`.
@@ -1083,6 +1090,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_support.cache_format_version`: `7.0`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
 - `config.action_mailer.smtp_timeout`: `5`
+- `config.active_storage.video_preview_arguments`: `"-vf select=eq(n\,0)+eq(key\,1)+gt(scene\,0.015),loop=loop=-1:size=2,trim=start_frame=1 -frames:v 1 -f image2"`
 
 #### For '6.1', defaults from previous versions below and:
 
@@ -1162,6 +1170,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `true`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
 - `config.action_mailer.smtp_timeout`: `nil`
+- `config.active_storage.video_preview_arguments`: `"-y -vframes 1 -f image2"`
 
 ### Configuring a Database
 
