@@ -494,7 +494,7 @@ WARNING. When a transaction completes, the `after_commit` or `after_rollback` ca
 
 WARNING. The code executed within `after_commit` or `after_rollback` callbacks is itself not enclosed within a transaction.
 
-WARNING. Using both `after_create_commit` and `after_update_commit` in the same model will only allow the last callback defined to take effect, and will override all others.
+WARNING. Using both `after_create_commit` and `after_update_commit` with the same method name will only allow the last callback defined to take effect, as they both internally alias to `after_commit` which overrides previously defined callbacks with the same method name.
 
 ```ruby
 class User < ApplicationRecord
