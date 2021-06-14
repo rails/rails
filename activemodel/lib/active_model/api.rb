@@ -29,7 +29,7 @@ module ActiveModel
   #     attr_accessor :id, :name
   #
   #     def persisted?
-  #       self.id == 1
+  #       self.id.present?
   #     end
   #   end
   #
