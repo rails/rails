@@ -649,7 +649,7 @@ class DirtyTest < ActiveRecord::TestCase
         jon = Person.create! first_name: "Jon"
       end
 
-      assert ActiveRecord::SQLCounter.log_all.none? { |sql| sql.include?("followers_count") }
+      assert SQLCounter.log_all.none? { |sql| sql.include?("followers_count") }
 
       jon.reload
       assert_equal "Jon", jon.first_name

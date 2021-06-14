@@ -10,6 +10,8 @@ require "rails/test_help"
 require "rails/test_unit/reporter"
 Rails::TestUnitReporter.executable = "bin/test"
 
+require "active_record/testing/query_assertions"
+
 # Disable available locale checks to allow to add locale after initialized.
 I18n.enforce_available_locales = false
 
@@ -22,22 +24,7 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
 end
 
 class ActiveSupport::TestCase
-  def assert_queries(expected_count)
-    ActiveRecord::Base.connection.materialize_transactions
-
-    queries = []
-    ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
-      queries << payload[:sql] unless %w[ SCHEMA TRANSACTION ].include?(payload[:name])
-    end
-
-    yield.tap do
-      assert_equal expected_count, queries.size, "#{queries.size} instead of #{expected_count} queries were executed. #{queries.inspect}"
-    end
-  end
-
-  def assert_no_queries(&block)
-    assert_queries(0, &block)
-  end
+  include ActiveRecord::Testing::QueryAssertions
 
   private
     def create_file_blob(filename:, content_type:, metadata: nil)
