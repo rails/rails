@@ -60,6 +60,23 @@ class ActiveSupport::TestCase
     ActiveStorage::Current.reset
   end
 
+  def assert_queries(expected_count)
+    ActiveRecord::Base.connection.materialize_transactions
+
+    queries = []
+    ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      queries << payload[:sql] unless %w[ SCHEMA TRANSACTION ].include?(payload[:name])
+    end
+
+    yield.tap do
+      assert_equal expected_count, queries.size, "#{queries.size} instead of #{expected_count} queries were executed. #{queries.inspect}"
+    end
+  end
+
+  def assert_no_queries(&block)
+    assert_queries(0, &block)
+  end
+
   private
     def create_blob(key: nil, data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, service_name: nil, record: nil)
       ActiveStorage::Blob.create_and_upload! key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, service_name: service_name, record: record

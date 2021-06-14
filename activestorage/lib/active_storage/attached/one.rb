@@ -3,6 +3,19 @@
 module ActiveStorage
   # Representation of a single attachment to a model.
   class Attached::One < Attached
+    ##
+    # :method: purge
+    #
+    # Directly purges the attachment (i.e. destroys the blob and
+    # attachment and deletes the file on the service).
+    delegate :purge, to: :purge_one
+
+    ##
+    # :method: purge_later
+    #
+    # Purges the attachment through the queuing system.
+    delegate :purge_later, to: :purge_one
+
     delegate_missing_to :attachment, allow_nil: true
 
     # Returns the associated attachment record.
@@ -62,28 +75,13 @@ module ActiveStorage
       end
     end
 
-    # Directly purges the attachment (i.e. destroys the blob and
-    # attachment and deletes the file on the service).
-    def purge
-      if attached?
-        attachment.purge
-        write_attachment nil
-        reset_changes
-      end
-    end
-
-    # Purges the attachment through the queuing system.
-    def purge_later
-      if attached?
-        attachment.purge_later
-        write_attachment nil
-        reset_changes
-      end
-    end
-
     private
       def write_attachment(attachment)
         record.public_send("#{name}_attachment=", attachment)
+      end
+
+      def purge_one
+        Attached::Changes::PurgeOne.new(name, record, attachment)
       end
   end
 end
