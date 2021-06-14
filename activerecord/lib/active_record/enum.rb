@@ -190,7 +190,6 @@ module ActiveRecord
         end
 
         if inquirable
-          # def status() StringInquirer.new(self[:status]) end
           define_method("#{name}") { ActiveSupport::StringInquirer.new(self[name]) }
         end
 
