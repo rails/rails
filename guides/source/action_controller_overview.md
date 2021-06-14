@@ -65,7 +65,12 @@ The [Layouts and Rendering Guide](layouts_and_rendering.html) explains this in m
 
 Only public methods are callable as actions. It is a best practice to lower the visibility of methods (with `private` or `protected`) which are not intended to be actions, like auxiliary methods or filters.
 
+WARNING: Some method names are reserved by Action Controller. Accidentally redefining them as actions, or even as auxiliary methods, could result in `SystemStackError`. If you limit your controllers to only RESTful [Resource Routing][] actions you should not need to worry about this.
+
+NOTE: If you must use a reserved method as an action name, one workaround is to use a custom route to map the reserved method name to your non-reserved action method.
+
 [`ActionController::Base`]: https://api.rubyonrails.org/classes/ActionController/Base.html
+[Resource Routing]: https://guides.rubyonrails.org/routing.html#resource-routing-the-rails-default
 
 Parameters
 ----------
