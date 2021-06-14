@@ -114,7 +114,7 @@ Job Execution
 -------------
 
 For enqueuing and executing jobs in production you need to set up a queuing backend,
-that is to say you need to decide on a 3rd-party queuing library that Rails should use.
+that is to say, you need to decide on a 3rd-party queuing library that Rails should use.
 Rails itself only provides an in-process queuing system, which only keeps the jobs in RAM.
 If the process crashes or the machine is reset, then all outstanding jobs are lost with the
 default async backend. This may be fine for smaller apps or non-critical jobs, but most
@@ -144,7 +144,7 @@ module YourApp
 end
 ```
 
-You can also configure your backend on a per job basis:
+You can also configure your backend on a per-job basis:
 
 ```ruby
 class GuestsCleanupJob < ApplicationJob
@@ -176,7 +176,7 @@ Here is a noncomprehensive list of documentation:
 Queues
 ------
 
-Most of the adapters support multiple queues. With Active Job you can schedule
+Most of the adapters support multiple queues. With Active Job, you can schedule
 the job to run on a specific queue using [`queue_as`][]:
 
 ```ruby
@@ -210,7 +210,7 @@ end
 # on your staging environment
 ```
 
-You can also configure the prefix on a per job basis.
+You can also configure the prefix on a per-job basis.
 
 ```ruby
 class GuestsCleanupJob < ApplicationJob
@@ -493,7 +493,7 @@ If an exception from a job is not rescued, then the job is referred to as "faile
 
 ### Retrying or Discarding failed jobs
 
-A failed job will not be retried, unless configured otherwise.
+A failed job will not be retried unless configured otherwise.
 
 It's possible to retry or discard a failed job by using [`retry_on`] or
 [`discard_on`], respectively. For example:
