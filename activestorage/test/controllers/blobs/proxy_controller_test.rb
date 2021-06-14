@@ -24,4 +24,39 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     get rails_storage_proxy_url(create_blob(content_type: "application/zip"))
     assert_match(/^attachment; /, response.headers["Content-Disposition"])
   end
+
+  test "signed ID within expiration date" do
+    get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"), expires_in: 1.minute)
+    assert_response :success
+  end
+
+  test "Expired signed ID" do
+    url = rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"), expires_in: 1.minute)
+    travel 2.minutes
+    get url
+    assert_response :not_found
+  end
+end
+
+class ActiveStorage::Blobs::ExpiringProxyControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    @old_urls_expire_in = ActiveStorage.urls_expire_in
+    ActiveStorage.urls_expire_in = 1.minutes
+  end
+
+  teardown do
+    ActiveStorage.urls_expire_in = @old_urls_expire_in
+  end
+
+  test "signed ID within expiration date" do
+    get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"))
+    assert_response :success
+  end
+
+  test "Expired signed ID" do
+    url = rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"))
+    travel 2.minutes
+    get url
+    assert_response :not_found
+  end
 end
