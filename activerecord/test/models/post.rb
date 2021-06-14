@@ -310,6 +310,12 @@ class PostWithCommentWithDefaultScopeReferencesAssociation < ActiveRecord::Base
   has_one :first_comment, class_name: "CommentWithDefaultScopeReferencesAssociation", foreign_key: :post_id
 end
 
+class PostWithCommentWithDefaultScopeWhereNot < ActiveRecord::Base
+  self.inheritance_column = :disabled
+  self.table_name = "posts"
+  has_many :comment_with_default_scope_where_not, foreign_key: :post_id
+end
+
 class SerializedPost < ActiveRecord::Base
   serialize :title
 end

@@ -99,3 +99,7 @@ class CommentWithAfterCreateUpdate < Comment
     update(body: "bar")
   end
 end
+
+class CommentWithDefaultScopeWhereNot < Comment
+  default_scope -> { where.not(post_id: nil) }
+end

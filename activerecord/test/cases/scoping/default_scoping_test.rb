@@ -574,6 +574,14 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal comment, post.comment_with_default_scope_references_associations.to_a.first
   end
 
+  def test_default_scope_with_where_not
+    post = PostWithCommentWithDefaultScopeWhereNot.create!(title: "Hello World", body: "Here we go.")
+    comment = post.comment_with_default_scope_where_not.create!(body: "Great post.")
+    assert_not_deprecated do
+      assert_equal comment, post.comment_with_default_scope_where_not.to_a.first
+    end
+  end
+
   def test_default_scope_with_references_works_through_association
     post = PostWithCommentWithDefaultScopeReferencesAssociation.create!(title: "Hello World", body: "Here we go.")
     comment = post.comment_with_default_scope_references_associations.create!(body: "Great post.", developer_id: Developer.first.id)
