@@ -157,6 +157,23 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal authors, david_and_mary.or(david_and_bob)
   end
 
+  def test_merge_not_clause
+    david, mary, bob = authors(:david, :mary, :bob)
+
+    not_mary = Author.where.not(id: mary.id)
+    assert_equal [david, bob], not_mary
+
+    assert_deprecated do
+      assert_equal [david], Author.where(id: david).merge(not_mary)
+    end
+    assert_equal [david, bob], Author.where(id: david).merge(not_mary, rewhere: true)
+
+    assert_deprecated do
+      assert_equal [], Author.where(id: mary).merge(not_mary)
+    end
+    assert_equal [david, bob], Author.where(id: mary).merge(not_mary, rewhere: true)
+  end
+
   def test_merge_not_in_clause
     david, mary, bob = authors(:david, :mary, :bob)
 
