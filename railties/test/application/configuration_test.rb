@@ -2905,6 +2905,22 @@ module ApplicationTests
       assert_not_includes(output, "rails_direct_uploads")
     end
 
+    test "ActiveStorage.video_preview_arguments has a default" do
+      app "development"
+
+      assert_equal ActiveStorage.video_preview_arguments, "-y -vframes 1 -f image2"
+    end
+
+    test "ActiveStorage.video_preview_arguments can be configured" do
+      add_to_config <<-RUBY
+        config.active_storage.video_preview_arguments = "-y -vframes 1 -ss 00:00:05 -f image2"
+      RUBY
+
+      app "development"
+
+      assert_equal ActiveStorage.video_preview_arguments, "-y -vframes 1 -ss 00:00:05 -f image2"
+    end
+
     test "hosts include .localhost in development" do
       app "development"
       assert_includes Rails.application.config.hosts, ".localhost"
