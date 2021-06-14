@@ -80,8 +80,8 @@ module ActiveRecord
       #   example, specifying <tt>{ author: :avatar }</tt> will preload a
       #   book's author, as well as that author's avatar.
       #
-      # +:associations+ has the same format as the +:include+ option for
-      # <tt>ActiveRecord::Base.find</tt>. So +associations+ could look like this:
+      # +:associations+ has the same format as the +:include+ method in
+      # <tt>ActiveRecord::QueryMethods</tt>. So +associations+ could look like this:
       #
       #   :books
       #   [ :books, :author ]
