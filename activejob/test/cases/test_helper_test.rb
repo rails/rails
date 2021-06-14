@@ -2007,20 +2007,3 @@ class InheritedJobTest < ActiveJob::TestCase
     assert_instance_of ActiveJob::QueueAdapters::TestAdapter, InheritedJob.queue_adapter
   end
 end
-
-class QueueAdapterJobTest < ActiveJob::TestCase
-  def before_setup
-    @original_autoload_paths = ActiveSupport::Dependencies.autoload_paths
-    ActiveSupport::Dependencies.autoload_paths = %w(test/jobs)
-    super
-  end
-
-  def after_teardown
-    ActiveSupport::Dependencies.autoload_paths = @original_autoload_paths
-    super
-  end
-
-  def test_queue_adapter_is_test_adapter
-    assert_instance_of ActiveJob::QueueAdapters::TestAdapter, QueueAdapterJob.queue_adapter
-  end
-end
