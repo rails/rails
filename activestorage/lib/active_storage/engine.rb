@@ -91,6 +91,7 @@ module ActiveStorage
         ActiveStorage.web_image_content_types = app.config.active_storage.web_image_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
         ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
+        ActiveStorage.urls_expire_in = app.config.active_storage.urls_expire_in
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
 
