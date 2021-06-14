@@ -123,7 +123,7 @@ irb> person.to_param
 
 An object becomes dirty when it has gone through one or more changes to its
 attributes and has not been saved. `ActiveModel::Dirty` gives the ability to
-check whether an object has been changed or not. It also has attribute based
+check whether an object has been changed or not. It also has attribute-based
 accessor methods. Let's consider a Person class with attributes `first_name`
 and `last_name`:
 
@@ -185,7 +185,7 @@ irb> person.changes
 => {"first_name"=>[nil, "First Name"]}
 ```
 
-#### Attribute based accessor methods
+#### Attribute-based accessor methods
 
 Track whether the particular attribute has been changed or not.
 

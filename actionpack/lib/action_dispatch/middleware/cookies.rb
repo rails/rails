@@ -103,7 +103,7 @@ module ActionDispatch
   #   # This cookie will be deleted when the user's browser is closed.
   #   cookies[:user_name] = "david"
   #
-  #   # Cookie values are String based. Other data types need to be serialized.
+  #   # Cookie values are String-based. Other data types need to be serialized.
   #   cookies[:lat_lon] = JSON.generate([47.68, -122.37])
   #
   #   # Sets a cookie that expires in 1 hour.

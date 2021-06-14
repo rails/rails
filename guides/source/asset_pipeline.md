@@ -1023,7 +1023,7 @@ asset for up to a year. Since most CDNs also cache headers of the request, this
 the browser then knows that it can store this asset for a very long time before
 needing to re-request it.
 
-##### CDNs and URL based Cache Invalidation
+##### CDNs and URL-based Cache Invalidation
 
 Most CDNs will cache contents of an asset based on the complete URL. This means
 that a request to

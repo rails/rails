@@ -477,7 +477,7 @@
     *Eileen M. Uchitelle*
 
 *   `ActiveRecord::Calculations.calculate` called with `:average`
-    (aliased as `ActiveRecord::Calculations.average`) will now use column based
+    (aliased as `ActiveRecord::Calculations.average`) will now use column-based
     type casting. This means that floating-point number columns will now be
     aggregated as `Float` and decimal columns will be aggregated as `BigDecimal`.
 

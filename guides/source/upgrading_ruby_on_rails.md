@@ -1898,7 +1898,7 @@ this gem such as `whitelist_attributes` or `mass_assignment_sanitizer` options.
 
 * Rails 4.0 has deprecated `ActiveRecord::TestCase` in favor of `ActiveSupport::TestCase`.
 
-* Rails 4.0 has deprecated the old-style hash based finder API. This means that
+* Rails 4.0 has deprecated the old-style hash-based finder API. This means that
   methods which previously accepted "finder options" no longer do.  For example, `Book.find(:all, conditions: { name: '1984' })` has been deprecated in favor of `Book.where(name: '1984')`
 
 * All dynamic methods except for `find_by_...` and `find_by_...!` are deprecated.
