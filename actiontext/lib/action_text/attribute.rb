@@ -24,6 +24,7 @@ module ActionText
       #
       #   Message.all.with_rich_text_content # Avoids N+1 queries when you just want the body, not the attachments.
       #   Message.all.with_rich_text_content_and_embeds # Avoids N+1 queries when you just want the body and attachments.
+      #   Message.all.with_all_rich_text # Loads all rich text associations.
       #
       #  === Options
       #

@@ -7,6 +7,14 @@ require "active_support/core_ext/module/delegation"
 # on the attachments table prevents blobs from being purged if they’re still attached to any records.
 #
 # Attachments also have access to all methods from {ActiveStorage::Blob}[rdoc-ref:ActiveStorage::Blob].
+#
+# If you wish to preload attachments or blobs, you can use these scopes:
+#
+#   # preloads attachments, their corresponding blobs, and variant records (if using `ActiveStorage.track_variants`)
+#   User.all.with_attached_avatars
+#
+#   # preloads blobs and variant records (if using `ActiveStorage.track_variants`)
+#   User.first.avatars.with_all_variant_records
 class ActiveStorage::Attachment < ActiveStorage::Record
   self.table_name = "active_storage_attachments"
 
