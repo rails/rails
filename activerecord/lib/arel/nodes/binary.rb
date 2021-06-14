@@ -92,8 +92,6 @@ module Arel # :nodoc: all
     class NotEqual < Binary
       include FetchAttribute
 
-      def equality?; true; end
-
       def invert
         Arel::Nodes::Equality.new(left, right)
       end
