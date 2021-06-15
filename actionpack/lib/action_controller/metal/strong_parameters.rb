@@ -592,6 +592,41 @@ module ActionController
     #
     #   params.require(:person).permit(contact: [ :email, :phone ])
     #   # => <ActionController::Parameters {"contact"=><ActionController::Parameters {"email"=>"none@test.com", "phone"=>"555-1234"} permitted: true>} permitted: true>
+    #
+    # If your parameters specify multiple parameters indexed by a number,
+    # you can permit each set of parameters under the numeric key to be the same using the same syntax as permitting a single item.
+    #
+    #   params = ActionController::Parameters.new({
+    #     person: {
+    #       '0': {
+    #         email: "none@test.com",
+    #         phone: "555-1234"
+    #       },
+    #       '1': {
+    #         email: "nothing@test.com",
+    #         phone: "555-6789"
+    #       },
+    #     }
+    #   })
+    #   params.permit(person: [:email]).to_h
+    #   # => {"person"=>{"0"=>{"email"=>"none@test.com"}, "1"=>{"email"=>"nothing@test.com"}}}
+    #
+    # If you want to specify what keys you want from each numeric key, you can instead specify each one individually
+    #
+    #   params = ActionController::Parameters.new({
+    #     person: {
+    #       '0': {
+    #         email: "none@test.com",
+    #         phone: "555-1234"
+    #       },
+    #       '1': {
+    #         email: "nothing@test.com",
+    #         phone: "555-6789"
+    #       },
+    #     }
+    #   })
+    #   params.permit(person: { '0': [:email], '1': [:phone]}).to_h
+    #   # => {"person"=>{"0"=>{"email"=>"none@test.com"}, "1"=>{"phone"=>"555-6789"}}}
     def permit(*filters)
       params = self.class.new
 
@@ -952,12 +987,18 @@ module ActionController
         end
       end
 
-      def each_element(object, &block)
+      def specify_numeric_keys?(filter)
+        if filter.respond_to?(:keys)
+          filter.keys.any? { |key| /\A-?\d+\z/.match?(key) }
+        end
+      end
+
+      def each_element(object, filter, &block)
         case object
         when Array
           object.grep(Parameters).filter_map { |el| yield el }
         when Parameters
-          if object.nested_attributes?
+          if object.nested_attributes? && !specify_numeric_keys?(filter)
             object.each_nested_attribute(&block)
           else
             yield object
@@ -1070,7 +1111,7 @@ module ActionController
             end
           elsif non_scalar?(value)
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
-            params[key] = each_element(value) do |element|
+            params[key] = each_element(value, filter[key]) do |element|
               element.permit(*Array.wrap(filter[key]))
             end
           end
