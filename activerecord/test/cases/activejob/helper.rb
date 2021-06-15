@@ -10,6 +10,6 @@ require "active_job"
 ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 
-require_relative "../../../tools/test_common"
+require_relative "../../../../tools/test_common"
 
 ActiveRecord::Base.destroy_association_async_job = ActiveRecord::DestroyAssociationAsyncJob
