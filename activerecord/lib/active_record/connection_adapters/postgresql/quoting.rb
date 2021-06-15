@@ -4,6 +4,12 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module Quoting
+        QUOTED_STRING_DELIMITER = "'"
+
+        def quote(value, quoted_string_delimiter: QUOTED_STRING_DELIMITER)
+          super
+        end
+
         # Escapes binary strings for bytea input to the database.
         def escape_bytea(value)
           @connection.escape_bytea(value) if value
@@ -120,8 +126,16 @@ module ActiveRecord
             super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
           end
 
-          def _quote(value)
+          def _quote(value, quoted_string_delimiter: QUOTED_STRING_DELIMITER)
             case value
+            when String, ActiveSupport::Multibyte::Chars
+              if quoted_string_delimiter && quoted_string_delimiter != "'"
+                quote_delimiter = "$#{quoted_string_delimiter}$"
+                quoted_value = quote_string(value.to_s).gsub("''", "'")
+                "#{quote_delimiter}#{quoted_value}#{quote_delimiter}"
+              else
+                super
+              end
             when OID::Xml::Data
               "xml '#{quote_string(value.to_s)}'"
             when OID::Bit::Data

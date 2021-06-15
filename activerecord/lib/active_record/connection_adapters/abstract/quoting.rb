@@ -8,7 +8,7 @@ module ActiveRecord
     module Quoting
       # Quotes the column value to help prevent
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
-      def quote(value)
+      def quote(value, quoted_string_delimiter: nil)
         if value.is_a?(Base)
           ActiveSupport::Deprecation.warn(<<~MSG)
             Passing an Active Record object to `quote` directly is deprecated
@@ -17,7 +17,7 @@ module ActiveRecord
           value = value.id_for_database
         end
 
-        _quote(value)
+        _quote(value, quoted_string_delimiter: quoted_string_delimiter)
       end
 
       # Cast a +value+ to a type that the database understands. For example,
@@ -214,7 +214,7 @@ module ActiveRecord
           type_map.lookup(sql_type)
         end
 
-        def _quote(value)
+        def _quote(value, quoted_string_delimiter: nil)
           case value
           when String, Symbol, ActiveSupport::Multibyte::Chars
             "'#{quote_string(value.to_s)}'"
