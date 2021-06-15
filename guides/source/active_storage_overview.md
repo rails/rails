@@ -687,6 +687,48 @@ previewable files. You can also call these methods directly.
 [`representable?`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-representable-3F
 [`representation`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-representation
 
+### Lazy vs Immediate Loading
+
+By default, Active Storage will process representations lazily. This code:
+
+```ruby
+image_tag file.representation(resize_to_limit: [100, 100])
+```
+
+Will generate an `<img>` tag with the `src` pointing to the
+[`ActiveStorage::Representations::RedirectController`][]. The browser will
+make a request to that controller, which will return a `302` redirect to the
+file on the remote service (or in [proxy mode](#proxy-mode), return the file
+contents). Loading the file lazily allows features like
+[single use URLs](#public-access) to work without slowing down your initial page loads.
+
+This works fine for most cases.
+
+If you want to generate URLs for images immediately, you can call `.processed.url`:
+
+```ruby
+image_tag file.representation(resize_to_limit: [100, 100]).processed.url
+```
+
+The Active Storage variant tracker improves performance of this, by storing a
+record in the database if the requested representation has been processed before.
+Thus, the above code will only make an API call to the remote service (eg. S3)
+once, and once a variant is stored, will use that. The variant tracker runs
+automatically, but can be disabled through `config.active_storage.track_variants`.
+
+If you're rendering lots of images on a page, the above example could result
+in N+1 queries loading all the variant records. To avoid these N+1 queries,
+use the named scopes on [`ActiveStorage::Attachment`][].
+
+```ruby
+user.avatars.with_all_variant_records.each do |file|
+  image_tag file.representation(resize_to_limit: [100, 100]).processed.url
+end
+```
+
+[`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
+[`ActiveStorage::Attachment`]: https://api.rubyonrails.org/classes/ActiveStorage/Attachment.html
+
 ### Transforming Images
 
 Transforming images allows you to display the image at your choice of dimensions.
