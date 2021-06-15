@@ -134,7 +134,7 @@ module ActiveRecord
               end
             end
 
-            scope
+            cascade_strict_loading(scope)
           end
       end
     end

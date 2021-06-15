@@ -239,11 +239,11 @@ module ActiveRecord
               scope.merge!(preload_scope)
             end
 
-            if preload_scope && preload_scope.strict_loading_value
-              scope.strict_loading
-            else
-              scope
-            end
+            cascade_strict_loading(scope)
+          end
+
+          def cascade_strict_loading(scope)
+            preload_scope&.strict_loading_value ? scope.strict_loading : scope
           end
       end
     end
