@@ -16,6 +16,10 @@
 
     *Ryuta Kamizono*
 
+*   Type cast extra select for eager loading.
+
+    *Ryuta Kamizono*
+
 *   Prevent collection associations from being autosaved multiple times.
 
     Fixes #39173.
@@ -43,6 +47,14 @@
 
     *Austen Madden*
 
+*   Fix preloading for polymorphic association with custom scope.
+
+    *Ryuta Kamizono*
+
+*   Allow relations with different SQL comments in the `or` method.
+
+    *Takumi Shotoku*
+
 *   Resolve conflict between counter cache and optimistic locking.
 
     Bump an Active Record instance's lock version after updating its counter
@@ -54,9 +66,42 @@
 
     *Aaron Lipman*
 
+*   Fix through association with source/through scope which has joins.
+
+    *Ryuta Kamizono*
+
+*   Fix through association to respect source scope for includes/preload.
+
+    *Ryuta Kamizono*
+
+*   Fix eager load with Arel joins to maintain the original joins order.
+
+    *Ryuta Kamizono*
+
+*   Fix group by count with eager loading + order + limit/offset.
+
+    *Ryuta Kamizono*
+
+*   Fix left joins order when merging multiple left joins from different associations.
+
+    *Ryuta Kamizono*
+
 *   Fix index creation to preserve index comment in bulk change table on MySQL.
 
     *Ryuta Kamizono*
+
+*   Change `remove_foreign_key` to not check `:validate` option if database
+    doesn't support the feature.
+
+    *Ryuta Kamizono*
+
+*   Fix the result of aggregations to maintain duplicated "group by" fields.
+
+    *Ryuta Kamizono*
+
+*   Do not return duplicated records when using preload.
+
+    *Bogdan Gusiev*
 
 
 ## Rails 6.0.3.7 (May 05, 2021) ##
