@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "activejob/helper"
+require "cases/activejob/helper"
 
 require "models/book_destroy_async"
 require "models/essay_destroy_async"
