@@ -31,6 +31,8 @@ module ActiveRecord
       end
 
       def serialize(value)
+        value = force_encoding_if_needed(value)
+
         if serialize_with_oldest?
           serialize_with_oldest(value)
         else
@@ -49,12 +51,24 @@ module ActiveRecord
       end
 
       private
+        def force_encoding_if_needed(value)
+          if deterministic? && forced_encoding_for_deterministic_encryption && value && value.encoding != forced_encoding_for_deterministic_encryption
+            value.encode(forced_encoding_for_deterministic_encryption, invalid: :replace, undef: :replace)
+          else
+            value
+          end
+        end
+
+        def forced_encoding_for_deterministic_encryption
+          ActiveRecord::Encryption.config.forced_encoding_for_deterministic_encryption
+        end
+
         def previous_schemes_including_clean_text
           previous_schemes.including((clean_text_scheme if support_unencrypted_data?)).compact
         end
 
         def previous_types_without_clean_text
-          @previous_types_without_clean_text  ||= build_previous_types_for(previous_schemes)
+          @previous_types_without_clean_text ||= build_previous_types_for(previous_schemes)
         end
 
         def build_previous_types_for(schemes)

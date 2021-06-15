@@ -6,7 +6,7 @@ module ActiveRecord
     class Config
       attr_accessor :primary_key, :deterministic_key, :store_key_references, :key_derivation_salt,
                     :support_unencrypted_data, :encrypt_fixtures, :validate_column_size, :add_to_filter_parameters,
-                    :excluded_from_filter_parameters, :extend_queries, :previous_schemes
+                    :excluded_from_filter_parameters, :extend_queries, :previous_schemes, :forced_encoding_for_deterministic_encryption
 
       def initialize
         set_defaults
@@ -30,6 +30,7 @@ module ActiveRecord
           self.add_to_filter_parameters = true
           self.excluded_from_filter_parameters = []
           self.previous_schemes = []
+          self.forced_encoding_for_deterministic_encryption = Encoding::UTF_8
 
           # TODO: Setting to false for now as the implementation is a bit experimental
           self.extend_queries = false
