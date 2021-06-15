@@ -338,12 +338,12 @@ module ActiveRecord
       end
 
       def maintain_test_schema # :nodoc:
-        ActiveRecord.maintain_test_schema
+        ActiveRecord::Base.maintain_test_schema
       end
 
       %w(
         reading_role writing_role legacy_connection_handling default_timezone index_nested_attribute_errors
-        verbose_query_logs queues maintain_test_schema warn_on_records_fetched_greater_than
+        verbose_query_logs queues warn_on_records_fetched_greater_than
         application_record_class action_on_strict_loading_violation schema_format error_on_ignored_order
         timestamped_migrations dump_schema_after_migration dump_schemas suppress_multiple_database_warning
       ).each do |attr|
