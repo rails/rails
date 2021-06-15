@@ -651,7 +651,7 @@ module ActiveRecord
       end
 
       def maintain_test_schema! #:nodoc:
-        if ActiveRecord::Base.maintain_test_schema
+        if ActiveRecord.maintain_test_schema
           suppress_messages { load_schema_if_pending! }
         end
       end
