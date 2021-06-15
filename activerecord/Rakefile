@@ -189,7 +189,7 @@ end
   end
 
   # Make sure the adapter test evaluates the env setting task
-  task "test_#{adapter}" => ["#{adapter}:env", "test:#{adapter}", "test:integration:active_job:#{adapter}"]
+  task "test_#{adapter}" => ["#{adapter}:env", "test:#{adapter}", "test:integration:active_job:#{adapter}", "test:encryption:performance:#{adapter}"]
   task "isolated_test_#{adapter}" => ["#{adapter}:env", "test:isolated:#{adapter}"]
 end
 
