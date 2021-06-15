@@ -1,3 +1,5 @@
+## Rails 6.0.4 (June 15, 2021) ##
+
 *   Fixed issue in `ActiveSupport::Cache::RedisCacheStore` not passing options
     to `read_multi` causing `fetch_multi` to not work properly.
 

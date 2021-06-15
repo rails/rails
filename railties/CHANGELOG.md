@@ -1,3 +1,5 @@
+## Rails 6.0.4 (June 15, 2021) ##
+
 *   Allow relative paths with trailing slashes to be passed to `rails test`.
 
     *Eugene Kenny*

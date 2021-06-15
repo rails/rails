@@ -1,3 +1,5 @@
+## Rails 6.0.4 (June 15, 2021) ##
+
 *   SanitizeHelper.sanitized_allowed_attributes and SanitizeHelper.sanitized_allowed_tags
     call safe_list_sanitizer's class method
 

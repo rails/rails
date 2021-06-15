@@ -1,3 +1,5 @@
+## Rails 6.0.4 (June 15, 2021) ##
+
 *   Only warn about negative enums if a positive form that would cause conflicts exists.
 
     Fixes #39065.
