@@ -176,11 +176,7 @@ module ActiveRecord
 
         def build_encrypt_attribute_assignments
           Array(self.class.encrypted_attributes).index_with do |attribute_name|
-            if source_attribute_name = self.class.source_attribute_from_preserved_attribute(attribute_name)
-              self[source_attribute_name]
-            else
-              self[attribute_name]
-            end
+            self[attribute_name]
           end
         end
 

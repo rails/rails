@@ -101,7 +101,20 @@ class ActiveRecord::Encryption::EncryptableRecordApiTest < ActiveRecord::Encrypt
 
     book.encrypt
 
+    assert_equal "Dune", book.reload.name
+  end
+
+  test "re-encrypting will preserve case when :ignore_case option is used" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = true
+
+    book = create_unencrypted_book_ignoring_case name: "Dune"
+
+    ActiveRecord::Encryption.without_encryption { assert_equal "Dune", book.reload.name }
     assert_equal "Dune", book.name
+
+    2.times { book.encrypt }
+
+    assert_equal "Dune", book.reload.name
   end
 
   test "encrypt attributes encrypted with a previous encryption scheme" do
