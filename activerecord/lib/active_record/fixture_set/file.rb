@@ -41,7 +41,7 @@ module ActiveRecord
           @config_row ||= begin
             row = raw_rows.find { |fixture_name, _| fixture_name == "_fixture" }
             if row
-              row.last
+              validate_config_row(row.last)
             else
               { 'model_class': nil, 'ignore': nil }
             end
@@ -56,6 +56,20 @@ module ActiveRecord
           rescue RuntimeError => error
             raise Fixture::FormatError, error.message
           end
+        end
+
+        def validate_config_row(data)
+          unless Hash === data
+            raise Fixture::FormatError, "Invalid `_fixture` section: `_fixture` must be a hash: #{@file}"
+          end
+
+          begin
+            data.assert_valid_keys("model_class", "ignore")
+          rescue ArgumentError => error
+            raise Fixture::FormatError, "Invalid `_fixture` section: #{error.message}: #{@file}"
+          end
+
+          data
         end
 
         # Validate our unmarshalled data.

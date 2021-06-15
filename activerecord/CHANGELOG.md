@@ -1,3 +1,10 @@
+*   Fixture configurations (`_fixture`) are now strictly validated.
+
+    If an error will be raised if that entry contains unknown keys while previously it
+    would silently have no effects.
+
+    *Jean Boussier*
+
 *   Add `ActiveRecord::Base.update!` that works like `ActiveRecord::Base.update` but raises exceptions.
 
     This allows for the same behavior as the instance method `#update!` at a class level.
