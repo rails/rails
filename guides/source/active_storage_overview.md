@@ -713,6 +713,18 @@ The default processor for Active Storage is MiniMagick, but you can also use
 config.active_storage.variant_processor = :vips
 ```
 
+The two processors are not fully compatible, so when migrating an existing application 
+using MiniMagick to Vips, some changes have to be made if using options that are format
+specific:
+
+```rhtml
+<!-- MiniMagick -->
+<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, sampling_factor: "4:2:0", strip: true, interlace: "JPEG", colorspace: "sRGB", quality: 80) %>
+
+<!-- Vips -->
+<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 }) %>
+```
+
 [`variant`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-variant
 [Vips]: https://www.rubydoc.info/gems/ruby-vips/Vips/Image
 
