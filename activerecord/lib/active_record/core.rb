@@ -78,6 +78,8 @@ module ActiveRecord
 
       class_attribute :default_shard, instance_writer: false
 
+      mattr_accessor :maintain_test_schema, instance_accessor: false
+
       def self.application_record_class? # :nodoc:
         if ActiveRecord.application_record_class
           self == ActiveRecord.application_record_class
@@ -335,10 +337,6 @@ module ActiveRecord
 
       def find_by!(*args) # :nodoc:
         find_by(*args) || raise(RecordNotFound.new("Couldn't find #{name}", name))
-      end
-
-      def maintain_test_schema # :nodoc:
-        ActiveRecord::Base.maintain_test_schema
       end
 
       %w(

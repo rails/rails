@@ -240,9 +240,6 @@ module ActiveRecord
   singleton_class.attr_accessor :queues
   self.queues = {}
 
-  singleton_class.attr_accessor :maintain_test_schema
-  self.maintain_test_schema = nil
-
   ##
   # :singleton-method:
   # Specify a threshold for the size of query result sets. If the number of
