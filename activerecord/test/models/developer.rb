@@ -162,6 +162,12 @@ class DeveloperWithDefaultMentorScopeAllQueries < ActiveRecord::Base
   default_scope -> { where(mentor_id: 1) }, all_queries: true
 end
 
+class DeveloperWithDefaultNilableMentorScopeAllQueries < ActiveRecord::Base
+  self.table_name = "developers"
+  firm_id = nil # Could be something like Current.mentor_id
+  default_scope -> { where(firm_id: firm_id) if firm_id }, all_queries: true
+end
+
 class DeveloperWithIncludes < ActiveRecord::Base
   self.table_name = "developers"
   has_many :audit_logs, foreign_key: :developer_id
