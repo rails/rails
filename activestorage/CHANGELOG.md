@@ -1,5 +1,9 @@
+*   Deprecate usage of `purge` and `purge_later` from the association extension.
+
+    *Jacopo Beschi*
+
 *   Allow setting a `Cache-Control` on files uploaded to GCS.
-    
+
     ```yaml
     gcs:
       service: GCS

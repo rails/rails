@@ -155,13 +155,25 @@ module ActiveStorage
 
         has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy, strict_loading: strict_loading do
           def purge
+            deprecate(:purge)
             each(&:purge)
             reset
           end
 
           def purge_later
+            deprecate(:purge_later)
             each(&:purge_later)
             reset
+          end
+
+          private
+          def deprecate(action)
+            reflection_name = proxy_association.reflection.name
+            attached_name = reflection_name.to_s.partition("_").first
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Calling `#{action}` from `#{reflection_name}` is deprecated and will be removed in Rails 7.1.
+              To migrate to Rails 7.1's behavior call `#{action}` from `#{attached_name}` instead: `#{attached_name}.#{action}`.
+            MSG
           end
         end
         has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
