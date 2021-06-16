@@ -14,6 +14,10 @@ Rails.application.configure do
 
   # Full error reports are disabled and caching is turned on.
   config.consider_all_requests_local       = false
+
+  # Set the default url your application is reachable by e.g. https://www.example.com
+  config.application_url = false
+
   <%- unless options.api? -%>
   config.action_controller.perform_caching = true
   <%- end -%>

@@ -2,6 +2,13 @@
 
     *Hidde-Jan Jongsma*
 
+*   Adding `ActionDispatch::Http::URI` class.
+
+    It gives us a decorated stdlib `URI` object that is used for `Rails.application.url`.
+    In a first step to simplify the `ActionDispatch::Http::URL` module, all class methods from it are moved `ActionDispatch::Http::URI`.
+
+    *Tim Aßmann*
+
 *   Expand search field on `rails/info/routes` to also search **route name**, **http verb** and **controller#action**.
 
     *Jason Kotchoff*

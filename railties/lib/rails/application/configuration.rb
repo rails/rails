@@ -21,7 +21,7 @@ module Rails
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
-                    :rake_eager_load, :server_timing, :log_file_size
+                    :rake_eager_load, :server_timing, :log_file_size, :application_url
 
       attr_reader :encoding, :api_only, :loaded_config_version
 

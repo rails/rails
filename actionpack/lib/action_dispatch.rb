@@ -52,8 +52,9 @@ module ActionDispatch
     autoload_under "http" do
       autoload :ContentSecurityPolicy
       autoload :PermissionsPolicy
-      autoload :Request
       autoload :Response
+      autoload :URI
+      autoload :Request
     end
   end
 

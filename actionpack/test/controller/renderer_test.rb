@@ -209,9 +209,9 @@ class RendererTest < ActiveSupport::TestCase
     def with_force_ssl(force_ssl = true)
       # In a real app, an initializer will set `URL.secure_protocol = app.config.force_ssl`.
       original_secure_protocol = ActionDispatch::Http::URL.secure_protocol
-      ActionDispatch::Http::URL.secure_protocol = force_ssl
+      ActionDispatch::Http::URI.secure_protocol = force_ssl
       yield
     ensure
-      ActionDispatch::Http::URL.secure_protocol = original_secure_protocol
+      ActionDispatch::Http::URI.secure_protocol = original_secure_protocol
     end
 end

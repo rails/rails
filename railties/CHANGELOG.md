@@ -4,6 +4,32 @@
 
     *Jonathan Hefner*
 
+*   Add `Rails.application.url` and `config.application_url`
+
+    Before it you had to set static application-url in different places.
+
+    ```ruby
+    Rails.application.configure do
+      # Add top-level Rails.configuration.x.url for canonical reference
+      config.x.url = URI("https://myapplication.com")
+
+      # These options will be used as a starting point when generating URLs
+      config.action_controller.default_url_options = { host: 'myapplication.com', protocol: 'https' }
+      config.action_mailer.default_url_options     = { host: 'myapplication.com', protocol: 'https' }
+    end
+    ```
+
+    With this change, you only have to set it once.
+
+    ```ruby
+    Rails.application.configure do
+      # Add top-level Rails.application.url for canonical reference
+      config.application_url = "https://myapplication.com"
+    end
+    ```
+
+    *Tim Aßmann*
+
 *   Allow calling `bin/rails restart` outside of app directory.
 
     The following would previously fail with a "No Rakefile found" error.

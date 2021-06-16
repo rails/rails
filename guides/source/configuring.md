@@ -189,6 +189,10 @@ end
 Controls whether requests should be handled concurrently. This should only
 be set to `false` if application code is not thread safe. Defaults to `true`.
 
+#### `config.application_url`
+
+Sets the url for the application. This url can be used via `Rails.application.url`. It will also be used to set the `Rails.application.default_url_options`, unless they are set otherwise.
+
 #### `config.asset_host`
 
 Sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints built-in in browsers using different domain aliases. Shorter version of `config.action_controller.asset_host`.

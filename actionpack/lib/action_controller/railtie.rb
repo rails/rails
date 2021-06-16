@@ -65,8 +65,8 @@ module ActionController
       options.stylesheets_dir ||= paths["public/stylesheets"].first
 
       # Ensure readers methods get compiled.
-      options.asset_host        ||= app.config.asset_host
-      options.relative_url_root ||= app.config.relative_url_root
+      options.asset_host          ||= app.config.asset_host
+      options.relative_url_root   ||= app.config.relative_url_root
 
       ActiveSupport.on_load(:action_controller) do
         include app.routes.mounted_helpers

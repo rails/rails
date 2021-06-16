@@ -25,6 +25,10 @@ Rails.application.configure do
 
   # Show full error reports and disable caching.
   config.consider_all_requests_local       = true
+
+  # Set the default url your application is reachable by e.g. https://www.example.com
+  config.application_url = false
+
   config.action_controller.perform_caching = false
   config.cache_store = :null_store
 
