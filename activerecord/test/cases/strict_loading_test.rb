@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/developer"
+require "models/contract"
 require "models/company"
 require "models/computer"
 require "models/mentor"
@@ -248,6 +249,26 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
       assert_nothing_raised do
         dev.audit_logs.to_a
+      end
+    end
+  end
+
+  def test_strict_loading_with_has_many_through_cascade_down_to_middle_records
+    dev = Developer.first
+    firm = Firm.create!(name: "NASA")
+    contract = Contract.create!(developer: dev, firm: firm)
+    dev.contracts << contract
+    dev = Developer.strict_loading.includes(:firms).first
+
+    assert_predicate dev, :strict_loading?
+
+    [
+      proc { dev.firms.first.contracts.first },
+      proc { dev.contracts.first },
+      proc { dev.ship }
+    ].each do |block|
+      assert_raises ActiveRecord::StrictLoadingViolationError do
+        block.call
       end
     end
   end
