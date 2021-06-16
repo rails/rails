@@ -1,3 +1,9 @@
+*   Disable automatic write protection on replicas.
+
+    Write protection is no longer automatically enabled for replicas. Write protection should be enabled by the database user settings.
+
+    *Adam Hess*
+
 *   The MySQL adapter now cast numbers and booleans bind parameters to to string for safety reasons.
 
     When comparing a string and a number in a query, MySQL convert the string to a number. So for
@@ -6,7 +12,7 @@
 
     Active Record already protect against that vulnerability when it knows the type of the column
     being compared, however until now it was still vulnerable when using bind parameters:
-    
+
     ```ruby
     User.where("login_token = ?", 0).first
     ```

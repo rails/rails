@@ -135,7 +135,7 @@ module ActiveRecord
             assert_not ActiveRecord::Base.connected_to?(role: :writing, shard: :default)
             assert_not ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one)
             assert_not ActiveRecord::Base.connected_to?(role: :reading, shard: :shard_one)
-            assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+            assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
           end
 
           ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
@@ -153,7 +153,7 @@ module ActiveRecord
             assert_not ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one)
             assert_not ActiveRecord::Base.connected_to?(role: :writing, shard: :default)
             assert_not ActiveRecord::Base.connected_to?(role: :reading, shard: :default)
-            assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+            assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
           end
 
           ActiveRecord::Base.connected_to(role: :writing, shard: :shard_one) do
