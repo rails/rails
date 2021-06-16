@@ -60,11 +60,17 @@ module Rails
       initializers.tsort_each do |initializer|
         initializer.run(*args) if initializer.belongs_to?(group)
       end
+      clear_initializers
       @ran = true
     end
 
     def initializers
       @initializers ||= self.class.initializers_for(self)
+    end
+
+    def clear_initializers # :nodoc:
+      @initializers = nil
+      self.class.clear_initializers
     end
 
     module ClassMethods
@@ -79,6 +85,13 @@ module Rails
           initializers = initializers + klass.initializers
         end
         initializers
+      end
+
+      def clear_initializers # :nodoc:
+        @initializers = nil
+        if is_a?(Class) && superclass.respond_to?(:clear_initializers)
+          superclass.clear_initializers
+        end
       end
 
       def initializers_for(binding)

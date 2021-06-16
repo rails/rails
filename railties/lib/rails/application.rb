@@ -391,6 +391,16 @@ module Rails
       self
     end
 
+    def clear_initializers # :nodoc:
+      Bootstrap.clear_initializers
+      ordered_railties.flatten.each do |initializable|
+        next if initializable == self
+        initializable.clear_initializers
+      end
+      Finisher.clear_initializers
+      super
+    end
+
     def initializers #:nodoc:
       Bootstrap.initializers_for(self) +
       railties_initializers(super) +
