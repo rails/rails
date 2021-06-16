@@ -43,6 +43,13 @@ module ActiveRecord
         _type_cast(value)
       end
 
+      # Quote a value to be used as a bound parameter of unknown type. For example,
+      # MySQL might perform dangerous castings when comparing a string to a number,
+      # so this method will cast numbers to string.
+      def quote_bound_value(value)
+        _quote(value)
+      end
+
       # If you are having to call this function, you are likely doing something
       # wrong. The column does not have sufficient type information if the user
       # provided a custom type on the class level either explicitly (via

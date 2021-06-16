@@ -183,13 +183,13 @@ module ActiveRecord
           if value.respond_to?(:map) && !value.acts_like?(:string)
             values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
             if values.empty?
-              c.quote(nil)
+              c.quote_bound_value(nil)
             else
-              values.map! { |v| c.quote(v) }.join(",")
+              values.map! { |v| c.quote_bound_value(v) }.join(",")
             end
           else
             value = value.id_for_database if value.respond_to?(:id_for_database)
-            c.quote(value)
+            c.quote_bound_value(value)
           end
         end
 

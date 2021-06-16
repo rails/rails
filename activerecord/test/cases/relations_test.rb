@@ -473,7 +473,11 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_sanitized_order
     query = Tag.order([Arel.sql("field(id, ?)"), [1, 3, 2]]).to_sql
-    assert_match(/field\(id, 1,3,2\)/, query)
+    if current_adapter?(:Mysql2Adapter)
+      assert_match(/field\(id, '1','3','2'\)/, query)
+    else
+      assert_match(/field\(id, 1,3,2\)/, query)
+    end
 
     query = Tag.order([Arel.sql("field(id, ?)"), []]).to_sql
     assert_match(/field\(id, NULL\)/, query)
