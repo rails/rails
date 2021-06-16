@@ -66,3 +66,4 @@ Rails.delegate = (element, selector, eventType, handler) ->
     if target instanceof Element and handler.call(target, e) == false
       e.preventDefault()
       e.stopPropagation()
+  , true
