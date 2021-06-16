@@ -37,10 +37,6 @@ module ActiveRecord
         @state == :invalidated
       end
 
-      def uncommittable?
-        invalidated? || rolledback?
-      end
-
       def fully_completed?
         completed?
       end
@@ -59,17 +55,17 @@ module ActiveRecord
         @state = :fully_rolledback
       end
 
+      def invalidate!
+        @children&.each { |c| c.invalidate! }
+        @state = :invalidated
+      end
+
       def commit!
         @state = :committed
       end
 
       def full_commit!
         @state = :fully_committed
-      end
-
-      def invalidate!
-        @children.each { |c| c.invalidate! }
-        @state = :invalidated
       end
 
       def nullify!
@@ -166,10 +162,6 @@ module ActiveRecord
         ite&.each { |i| i.committed!(should_run_callbacks: false) }
       end
 
-      def invalidate
-        @state.invalidate!
-      end
-
       def full_rollback?; true; end
       def joinable?; @joinable; end
       def closed?; false; end
@@ -195,14 +187,11 @@ module ActiveRecord
       end
 
       def rollback
-        connection.rollback_to_savepoint(savepoint_name) if materialized? && !state.invalidated?
+        connection.rollback_to_savepoint(savepoint_name) if materialized?
         @state.rollback!
       end
 
       def commit
-        if state.invalidated?
-          raise ActiveRecord::StatementInvalid, "cannot commit after transaction invalidated"
-        end
         connection.release_savepoint(savepoint_name) if materialized?
         @state.commit!
       end
@@ -222,14 +211,11 @@ module ActiveRecord
       end
 
       def rollback
-        connection.rollback_db_transaction if materialized? && !state.invalidated?
+        connection.rollback_db_transaction if materialized?
         @state.full_rollback!
       end
 
       def commit
-        if state.invalidated?
-          raise ActiveRecord::StatementInvalid, "cannot commit after transaction invalidated"
-        end
         connection.commit_db_transaction if materialized?
         @state.full_commit!
       end
@@ -307,9 +293,6 @@ module ActiveRecord
       def commit_transaction
         @connection.lock.synchronize do
           transaction = @stack.last
-          if transaction.state.invalidated?
-            raise ActiveRecord::StatementInvalid, "cannot commit after transaction invalidated"
-          end
 
           begin
             transaction.before_commit_records
@@ -342,12 +325,13 @@ module ActiveRecord
             rollback_transaction
             after_failure_actions(transaction, error)
           end
+
           raise
         ensure
           if transaction
             if error
-              # @connection still holds an open transaction, so we must not
-              # put it back in the pool for reuse
+              # @connection still holds an open or invalid transaction, so we must not
+              # put it back in the pool for reuse.
               @connection.throw_away! unless transaction.state.rolledback?
             else
               if Thread.current.status == "aborting"

@@ -1,3 +1,7 @@
+*   Do not try to rollback transactions that failed due to a `ActiveRecord::TransactionRollbackError`.
+
+    *Jamie McCarthy*
+
 *   Active Record Encryption will now encode values as UTF-8 when using deterministic
     encryption. The encoding is part of the encrypted payload, so different encodings for
     different values result in different ciphertexts. This can break unique constraints and
