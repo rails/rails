@@ -334,7 +334,7 @@ module ActiveRecord
       end
 
       def find_by!(*args) # :nodoc:
-        find_by(*args) || raise(RecordNotFound.new("Couldn't find #{name}", name))
+        find_by(*args) || where(*args).raise_record_not_found_exception!
       end
 
       %w(
