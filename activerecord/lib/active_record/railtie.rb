@@ -211,11 +211,13 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.set_configs" do |app|
       configs = app.config.active_record
 
-      configs.each do |k, v|
-        next if k == :encryption
-        setter = "#{k}="
-        if ActiveRecord.respond_to?(setter)
-          ActiveRecord.send(setter, v)
+      config.after_initialize do
+        configs.each do |k, v|
+          next if k == :encryption
+          setter = "#{k}="
+          if ActiveRecord.respond_to?(setter)
+            ActiveRecord.send(setter, v)
+          end
         end
       end
 
