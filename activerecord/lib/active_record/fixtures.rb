@@ -689,7 +689,6 @@ module ActiveRecord
         table_name,
         model_class: model_class,
         fixtures: fixtures,
-        config: config,
       ).to_hash
     end
 
