@@ -175,6 +175,12 @@ Active Storage, with its included JavaScript library, supports uploading directl
 | `direct-upload:end` | `<input>` | `{id, file}` | A direct upload has ended. |
 | `direct-uploads:end` | `<form>` | None | All direct uploads have ended. |
 
+
+### Important Configurations
+
+By default your `has_many_attached` edits will erase and replace, this is usually not the expected behaviour when you want to add content as you go in an admin (or any other place).
+To change this just add `config.active_storage.replace_on_assign_to_many = false` to your config and now you can really edit your many contents on resources.
+
 ## License
 
 Active Storage is released under the [MIT License](https://opensource.org/licenses/MIT).
