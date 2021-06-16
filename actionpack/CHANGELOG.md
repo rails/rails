@@ -1,3 +1,12 @@
+*   Allow Capybara driver name overrides in `SystemTestCase::driven_by`
+
+    Allow users to prevent conflicts among drivers that use the same driver
+    type (selenium, poltergeist, webkit, rack test).
+
+    Fixes #42502
+
+    *Chris LaRose*
+
 *   Deleting an item from the Middleware stack will raise if the item is not found
 
     Previously, calling `config.middleware.delete(ItemNotInMiddleware)` would fail silently.
