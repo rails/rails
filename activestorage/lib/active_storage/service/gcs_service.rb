@@ -95,8 +95,14 @@ module ActiveStorage
           version = :v4
         end
 
-        generated_url = bucket.signed_url(key, method: "PUT", expires: expires_in, content_md5: checksum,
-headers: headers, version: version)
+        generated_url = bucket.signed_url(key,
+          content_md5: checksum,
+          expires: expires_in,
+          headers: headers,
+          method: "PUT",
+          version: version
+        )
+
         payload[:url] = generated_url
 
         generated_url
