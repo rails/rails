@@ -19,7 +19,7 @@ module ActiveStorage
         # binary and attachment when the file's content type requires it. The only way to force them is to
         # store them as object's metadata.
         content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
-        bucket.create_file(io, key, md5: checksum, content_type: content_type, content_disposition: content_disposition)
+        bucket.create_file(io, key, md5: checksum, cache_control: @config[:cache_control], content_type: content_type, content_disposition: content_disposition)
       rescue Google::Cloud::InvalidArgumentError
         raise ActiveStorage::IntegrityError
       end
@@ -84,7 +84,24 @@ module ActiveStorage
 
     def url_for_direct_upload(key, expires_in:, checksum:, **)
       instrument :url, key: key do |payload|
-        generated_url = bucket.signed_url key, method: "PUT", expires: expires_in, content_md5: checksum
+        headers = {}
+        version = :v2
+
+        if @config[:cache_control].present?
+          headers["Cache-Control"] = @config[:cache_control]
+          # v2 signing doesn't support non `x-goog-` headers. Only switch to v4 signing
+          # if necessary for back-compat; v4 limits the expiration of the URL to 7 days
+          # whereas v2 has no limit
+          version = :v4
+        end
+
+        generated_url = bucket.signed_url(key,
+          content_md5: checksum,
+          expires: expires_in,
+          headers: headers,
+          method: "PUT",
+          version: version
+        )
 
         payload[:url] = generated_url
 
@@ -95,7 +112,13 @@ module ActiveStorage
     def headers_for_direct_upload(key, checksum:, filename: nil, disposition: nil, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      { "Content-MD5" => checksum, "Content-Disposition" => content_disposition }
+      headers = { "Content-MD5" => checksum, "Content-Disposition" => content_disposition }
+
+      if @config[:cache_control].present?
+        headers["Cache-Control"] = @config[:cache_control]
+      end
+
+      headers
     end
 
     private
@@ -137,7 +160,7 @@ module ActiveStorage
       end
 
       def client
-        @client ||= Google::Cloud::Storage.new(**config.except(:bucket))
+        @client ||= Google::Cloud::Storage.new(**config.except(:bucket, :cache_control))
       end
   end
 end
