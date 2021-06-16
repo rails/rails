@@ -94,6 +94,7 @@ module ActiveStorage
         ActiveStorage.urls_expire_in = app.config.active_storage.urls_expire_in
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
+        ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
 
         ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false

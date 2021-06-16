@@ -162,6 +162,13 @@ processes have been updated you can set `config.active_support.cache_format_vers
 Rails 7.0 is able to read both formats so the cache won't be invalidated during the
 upgrade.
 
+### ActiveStorage video preview image generation
+
+Video preview image generation now uses FFmpeg's scene change detection to generate
+more meaningful preview images. Previously the first frame of the video would be used
+and that caused problems if the video faded in from black. This change requires
+FFmpeg v3.4+.
+
 Upgrading from Rails 6.0 to Rails 6.1
 -------------------------------------
 

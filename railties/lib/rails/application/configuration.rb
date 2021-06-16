@@ -220,6 +220,11 @@ module Rails
           if respond_to?(:action_mailer)
             action_mailer.smtp_timeout = 5
           end
+
+          if respond_to?(:active_storage)
+            active_storage.video_preview_arguments =
+              "-vf select=eq(n\,0)+eq(key\,1)+gt(scene\,0.015),loop=loop=-1:size=2,trim=start_frame=1 -frames:v 1 -f image2"
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

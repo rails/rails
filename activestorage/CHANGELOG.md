@@ -1,4 +1,15 @@
 
+*   The parameters sent to `ffmpeg` for generating a video preview image are now
+    configurable under `config.active_storage.video_preview_arguments`.
+
+    *Brendon Muir*
+
+*   The ActiveStorage video previewer will now use scene change detection to generate
+    better preview images (rather than the previous default of using the first frame
+    of the video). This change requires FFmpeg v3.4+.
+
+    *Jonathan Hefner*
+
 *   Add support for ActiveStorage expiring URLs.
 
     ```ruby

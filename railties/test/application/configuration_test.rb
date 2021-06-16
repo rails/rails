@@ -3019,6 +3019,22 @@ module ApplicationTests
       assert_not_includes(output, "rails_direct_uploads")
     end
 
+    test "ActiveStorage.video_preview_arguments uses the old arguments without Rails 7 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal ActiveStorage.video_preview_arguments,
+        "-y -vframes 1 -f image2"
+    end
+
+    test "ActiveStorage.video_preview_arguments uses the new arguments by default" do
+      app "development"
+
+      assert_equal ActiveStorage.video_preview_arguments,
+        "-vf select=eq(n\,0)+eq(key\,1)+gt(scene\,0.015),loop=loop=-1:size=2,trim=start_frame=1 -frames:v 1 -f image2"
+    end
+
     test "hosts include .localhost in development" do
       app "development"
       assert_includes Rails.application.config.hosts, ".localhost"
