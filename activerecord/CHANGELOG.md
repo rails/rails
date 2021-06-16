@@ -1,3 +1,13 @@
+*   Active Record Encryption will now encode values as UTF-8 when using deterministic
+    encryption. The encoding is part of the encrypted payload, so different encodings for
+    different values result in different ciphertexts. This can break unique constraints and
+    queries.
+
+    The new behavior is configurable via `active_record.encryption.forced_encoding_for_deterministic_encryption`
+    that is `Encoding::UTF_8` by default. It can be disabled by setting it to `nil`.
+
+    *Jorge Manrubia*
+
 *   Disable automatic write protection on replicas.
 
     Write protection is no longer automatically enabled for replicas. Write protection should be enabled by the database user settings.
