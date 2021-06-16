@@ -121,6 +121,7 @@ module Rails
     attr_reader :reloaders, :reloader, :executor
 
     delegate :default_url_options, :default_url_options=, to: :routes
+    delegate :url, to: :config
 
     INITIAL_VARIABLES = [:config, :railties, :routes_reloader, :reloaders,
                          :routes, :helpers, :app_env_config, :secrets] # :nodoc:

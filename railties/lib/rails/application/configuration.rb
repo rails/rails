@@ -21,7 +21,7 @@ module Rails
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
-                    :rake_eager_load
+                    :rake_eager_load, :application_url
 
       attr_reader :encoding, :api_only, :loaded_config_version
 
@@ -356,6 +356,10 @@ module Rails
 
       def annotations
         Rails::SourceAnnotationExtractor::Annotation
+      end
+
+      def url
+        ActionDispatch::Http::URI.build_from_string(@application_url)
       end
 
       def content_security_policy(&block)
