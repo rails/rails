@@ -235,6 +235,15 @@ google:
   bucket: ""
 ```
 
+Optionally provide a Cache-Control metadata to set on uploaded assets:
+
+```yaml
+google:
+  service: GCS
+  ...
+  cache_control: "public, max-age=3600"
+```
+
 Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
 
 ```ruby
@@ -822,6 +831,7 @@ Take care to allow:
   * `Content-Disposition` (except for Azure Storage)
   * `x-ms-blob-content-disposition` (for Azure Storage only)
   * `x-ms-blob-type` (for Azure Storage only)
+  * `Cache-Control` (for GCS, only if `cache_control` is set)
 
 No CORS configuration is required for the Disk service since it shares your app’s origin.
 

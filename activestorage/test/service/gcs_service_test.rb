@@ -57,6 +57,36 @@ if SERVICE_CONFIGURATIONS[:gcs]
       @service.delete key
     end
 
+    test "direct upload with cache control" do
+      config_with_cache_control = { gcs: service_config[:gcs].merge({ cache_control: "public, max-age=1800" }) }
+      service = ActiveStorage::Service.configure(:gcs, config_with_cache_control)
+
+      key      = SecureRandom.base58(24)
+      data     = "Some text"
+      checksum = Digest::MD5.base64digest(data)
+      url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      headers = service.headers_for_direct_upload(key, checksum: checksum, filename: ActiveStorage::Filename.new("test.txt"), disposition: :attachment)
+      assert_equal(headers["Cache-Control"], "public, max-age=1800")
+
+      headers.each do |k, v|
+        request.add_field k, v
+      end
+      request.add_field "Content-Type", ""
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
+      end
+
+      url = service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
+      response = Net::HTTP.get_response(URI(url))
+      assert_equal("public, max-age=1800", response["Cache-Control"])
+    ensure
+      service.delete(key)
+    end
+
     test "upload with content_type and content_disposition" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
@@ -83,6 +113,23 @@ if SERVICE_CONFIGURATIONS[:gcs]
       assert_match(/inline;.*test.html/, response["Content-Disposition"])
     ensure
       @service.delete key
+    end
+
+    test "upload with cache_control" do
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+
+      config_with_cache_control = { gcs: service_config[:gcs].merge({ cache_control: "public, max-age=1800" }) }
+      service = ActiveStorage::Service.configure(:gcs, config_with_cache_control)
+
+      service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data), content_type: "text/plain")
+
+      url = service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
+
+      response = Net::HTTP.get_response(URI(url))
+      assert_equal "public, max-age=1800", response["Cache-Control"]
+    ensure
+      service.delete key
     end
 
     test "update metadata" do

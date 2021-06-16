@@ -1,3 +1,12 @@
+*   Allow setting a `Cache-Control` on files uploaded to GCS.
+    
+    ```yaml
+    gcs:
+      service: GCS
+      ...
+      cache_control: "public, max-age=3600"
+    ``` 
+    *maleblond*
 
 *   The parameters sent to `ffmpeg` for generating a video preview image are now
     configurable under `config.active_storage.video_preview_arguments`.
