@@ -91,7 +91,7 @@ Usage
 
 ### Using Webpacker for JavaScript
 
-With Webpacker installed, any JavaScript file in the `app/javascripts/packs` directory will get compiled to its own pack file by default.
+With Webpacker installed, any JavaScript file in the `app/javascript/packs` directory will get compiled to its own pack file by default.
 
 So if you have a file called `app/javascript/packs/application.js`, Webpacker will create a pack called `application`, and you can add it to your Rails application with the code `<%= javascript_pack_tag "application" %>`. With that in place, in development, Rails will recompile the `application.js` file every time it changes, and you load a page that uses that pack. Typically, the file in the actual `packs` directory will be a manifest that mostly loads other files, but it can also have arbitrary JavaScript code.
 
