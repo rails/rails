@@ -55,7 +55,7 @@ Webpacker is installed by default in Rails 6.0 and up. You can install it with a
 
 |File                    |Location                |Explanation                                                                                         |
 |------------------------|------------------------|----------------------------------------------------------------------------------------------------|
-|JavaScript Folder       | `app/packs`       |A place for your front-end source                                                                   |
+|JavaScript Folder       | `app/packs`            |A place for your front-end source                                                                   |
 |Webpacker Configuration | `config/webpacker.yml` |Configure the Webpacker gem                                                                         |
 |Babel Configuration     | `babel.config.js`      |Configuration for the [Babel](https://babeljs.io) JavaScript Compiler                               |
 |PostCSS Configuration   | `postcss.config.js`    |Configuration for the [PostCSS](https://postcss.org) CSS Post-Processor                             |
