@@ -151,7 +151,7 @@ module Rails
     end
 
     def test_dummy_webpacker_assets
-      template "rails/javascripts.js",    "#{dummy_path}/app/packs/entrypoints/application.js", force: true
+      template "rails/javascripts.js", "#{dummy_path}/app/packs/entrypoints/application.js", force: true
     end
 
     def test_dummy_sprocket_assets
