@@ -6,9 +6,10 @@ module ActionDispatch
     module RegexpCache
       extend self
 
-      ANCHORED = {}
+      ANCHORED = ObjectSpace::WeakMap.new
 
       def anchored(source)
+        source = -source.to_s
         ANCHORED[source] ||= /\A#{source}\Z/
       end
     end
