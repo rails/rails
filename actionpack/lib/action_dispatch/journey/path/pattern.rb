@@ -83,7 +83,7 @@ module ActionDispatch
           end
 
           def accept(node)
-            %r{\A#{visit node}\Z}
+            RegexpCache.anchored(visit(node))
           end
 
           def visit_CAT(node)
@@ -185,7 +185,7 @@ module ActionDispatch
 
         def requirements_for_missing_keys_check
           @requirements_for_missing_keys_check ||= requirements.transform_values do |regex|
-            /\A#{regex}\Z/
+            RegexpCache.anchored(regex)
           end
         end
 
