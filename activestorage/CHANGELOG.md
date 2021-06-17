@@ -1,3 +1,18 @@
+*   Passing extra parameters in `ActiveStorage::Blob#url` to S3 Client
+
+    This allows calls of `ActiveStorage::Blob#url` to have more interaction with
+    the S3 Presigner, enabling, amongst other options, custom S3 domain URL
+    Generation.
+
+    ```ruby
+    blob = ActiveStorage::Blob.last
+
+    blob.url # => https://<bucket-name>.s3.<region>.amazonaws.com/<key>
+    blob.url(virtual_host: true) # => # => https://<bucket-name>/<key>
+    ```
+
+    *josegomezr*
+
 *   Allow setting a `Cache-Control` on files uploaded to GCS.
     
     ```yaml
