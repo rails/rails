@@ -288,9 +288,9 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal 'https://rails.test', Rails.configuration.application_url
+      assert_equal "https://rails.test", Rails.configuration.application_url
       assert_instance_of ActionDispatch::Http::URI, Rails.application.url
-      assert_equal 'https://rails.test', Rails.application.url.to_s
+      assert_equal "https://rails.test", Rails.application.url.to_s
     end
 
     test "Rails.public_path should be a Pathname" do
