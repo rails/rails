@@ -262,6 +262,30 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert book.name_previously_changed?
   end
 
+  test "forces UTF-8 encoding for deterministic attributes by default" do
+    book = EncryptedBook.create!(name: "Dune".encode("ASCII-8BIT"))
+    assert_equal Encoding::UTF_8, book.reload.name.encoding
+  end
+
+  test "forces encoding for deterministic attributes based on the configured option" do
+    ActiveRecord::Encryption.config.forced_encoding_for_deterministic_encryption = Encoding::US_ASCII
+
+    book = EncryptedBook.create!(name: "Dune".encode("ASCII-8BIT"))
+    assert_equal Encoding::US_ASCII, book.reload.name.encoding
+  end
+
+  test "forced encoding for deterministic attributes will replace invalid characters" do
+    book = EncryptedBook.create!(name: "Hello \x93\xfa".b)
+    assert_equal "Hello ��", book.reload.name
+  end
+
+  test "forced encoding for deterministic attributes can be disabled" do
+    ActiveRecord::Encryption.config.forced_encoding_for_deterministic_encryption = nil
+
+    book = EncryptedBook.create!(name: "Dune".encode("US-ASCII"))
+    assert_equal Encoding::US_ASCII, book.reload.name.encoding
+  end
+
   private
     class FailingKeyProvider
       def decryption_key(message) end

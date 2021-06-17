@@ -240,6 +240,24 @@ config.active_record.encryption.add_to_filter_parameters = false
 ```
 In case you want exclude specific columns from this automatic filtering, add them to `config.active_record.encryption.excluded_from_filter_parameters`.
 
+### Encoding
+
+The library will preserve the encoding for string values encrypted non-deterministically. 
+
+For values encrypted deterministically, by default, the library will force UTF-8 encoding. The reason is that encoding is stored along with the encrypted payload. This means that the same value with a different encoding will result in different ciphertexts when encrypted. You normally want to avoid this to keep queries and uniqueness constraints working, so the library will perform the conversion automatically on your behalf.
+
+You can configure the desired default encoding for deterministic encryption with:
+
+```ruby
+config.active_record.encryption.forced_encoding_for_deterministic_encryption = Encoding::US_ASCII
+```
+
+And you can disable this behavior and preserve the encoding in all cases with:
+
+```ruby
+config.active_record.encryption.forced_encoding_for_deterministic_encryption = nil
+```
+
 ## Key management
 
 Key management strategies are implemented by key providers. You can configure key providers globally or on a per-attribute basis.
@@ -404,6 +422,7 @@ The available config options are:
 | `primary_key`                                                 | The key or lists of keys that is used to derive root data-encryption keys. They way they are used depends on the key provider configured. It's preferred to configure it via a credential `active_record_encryption.primary_key`. |
 | `deterministic_key`                                          | The key or list of keys used for deterministic encryption. It's preferred to configure it via a credential `active_record_encryption.deterministic_key`. |
 | `key_derivation_salt`                                        | The salt used when deriving keys. It's preferred to configure it via a credential `active_record_encryption.key_derivation_salt`. |
+| `forced_encoding_for_deterministic_encryption` | The default encoding for attributes encrypted deterministically. You can disable forced encoding by setting this option to `nil`. It's `Encoding::UTF_8` by default. |
 
 NOTE: It's recommended to use Rails built-in credentials support to store keys. If you prefer to set them manually via config properties, make sure you don't commit them with your code (e.g: use environment variables).
 
