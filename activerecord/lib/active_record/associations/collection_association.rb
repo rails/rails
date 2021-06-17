@@ -75,6 +75,7 @@ module ActiveRecord
       def reset
         super
         @target = []
+        @replaced_targets = Set.new
         @association_ids = nil
       end
 
@@ -279,10 +280,7 @@ module ActiveRecord
       end
 
       def add_to_target(record, skip_callbacks: false, replace: false, &block)
-        if replace || association_scope.distinct_value
-          index = @target.index(record)
-        end
-        replace_on_target(record, index, skip_callbacks, &block)
+        replace_on_target(record, skip_callbacks, replace: replace || association_scope.distinct_value, &block)
       end
 
       def target=(record)
@@ -292,7 +290,7 @@ module ActiveRecord
         when Array
           super
         else
-          add_to_target(record, skip_callbacks: true, replace: true)
+          replace_on_target(record, true, replace: true, inversing: true)
         end
       end
 
@@ -425,7 +423,7 @@ module ActiveRecord
           common_records = intersection(new_target, original_target)
           common_records.each do |record|
             skip_callbacks = true
-            replace_on_target(record, @target.index(record), skip_callbacks)
+            replace_on_target(record, skip_callbacks, replace: true)
           end
         end
 
@@ -448,7 +446,11 @@ module ActiveRecord
           records
         end
 
-        def replace_on_target(record, index, skip_callbacks)
+        def replace_on_target(record, skip_callbacks, replace:, inversing: false)
+          if replace && (!record.new_record? || @replaced_targets.include?(record))
+            index = @target.index(record)
+          end
+
           catch(:abort) do
             callback(:before_add, record)
           end || return unless skip_callbacks
@@ -458,6 +460,8 @@ module ActiveRecord
           @_was_loaded = true
 
           yield(record) if block_given?
+
+          @replaced_targets << record if inversing || index
 
           if index
             target[index] = record
