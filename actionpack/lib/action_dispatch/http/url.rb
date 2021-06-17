@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/attribute_accessors"
-require 'byebug'
-require 'action_dispatch/http/uri'
+require "action_dispatch/http/uri"
 
 module ActionDispatch
   module Http

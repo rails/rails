@@ -358,10 +358,6 @@ module Rails
         Rails::SourceAnnotationExtractor::Annotation
       end
 
-      def url
-        ActionDispatch::Http::URI.build_from_string(@application_url)
-      end
-
       def content_security_policy(&block)
         if block_given?
           @content_security_policy = ActionDispatch::ContentSecurityPolicy.new(&block)
