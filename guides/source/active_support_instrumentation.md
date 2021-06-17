@@ -282,7 +282,7 @@ INFO. Additional keys may be added by the caller.
 
 | Key           | Value                                                                 |
 | ------------- | --------------------------------------------------------------------- |
-| `:key`        | The unpermitted keys                                                  |
+| `:keys`       | The unpermitted keys                                                  |
 | `:context`    | Hash with the following keys: :controller, :action, :params, :request |
 
 Action Dispatch
