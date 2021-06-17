@@ -13,7 +13,7 @@ const uglifyOptions = {
 }
 
 export default {
-  input: "app/javascript/activestorage/index.js",
+  input: "app/packs/activestorage/index.js",
   output: {
     file: "app/assets/javascripts/activestorage.js",
     format: "umd",

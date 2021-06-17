@@ -55,7 +55,7 @@ Webpacker is installed by default in Rails 6.0 and up. You can install it with a
 
 |File                    |Location                |Explanation                                                                                         |
 |------------------------|------------------------|----------------------------------------------------------------------------------------------------|
-|JavaScript Folder       | `app/javascript`       |A place for your front-end source                                                                   |
+|JavaScript Folder       | `app/packs`       |A place for your front-end source                                                                   |
 |Webpacker Configuration | `config/webpacker.yml` |Configure the Webpacker gem                                                                         |
 |Babel Configuration     | `babel.config.js`      |Configuration for the [Babel](https://babeljs.io) JavaScript Compiler                               |
 |PostCSS Configuration   | `postcss.config.js`    |Configuration for the [PostCSS](https://postcss.org) CSS Post-Processor                             |
@@ -91,9 +91,9 @@ Usage
 
 ### Using Webpacker for JavaScript
 
-With Webpacker installed, any JavaScript file in the `app/javascript/packs` directory will get compiled to its own pack file by default.
+With Webpacker installed, any JavaScript file in the `app/packs/entrypoints` directory will get compiled to its own pack file by default.
 
-So if you have a file called `app/javascript/packs/application.js`, Webpacker will create a pack called `application`, and you can add it to your Rails application with the code `<%= javascript_pack_tag "application" %>`. With that in place, in development, Rails will recompile the `application.js` file every time it changes, and you load a page that uses that pack. Typically, the file in the actual `packs` directory will be a manifest that mostly loads other files, but it can also have arbitrary JavaScript code.
+So if you have a file called `app/packs/entrypoints/application.js`, Webpacker will create a pack called `application`, and you can add it to your Rails application with the code `<%= javascript_pack_tag "application" %>`. With that in place, in development, Rails will recompile the `application.js` file every time it changes, and you load a page that uses that pack. Typically, the file in the actual `packs` directory will be a manifest that mostly loads other files, but it can also have arbitrary JavaScript code.
 
 The default pack created for you by Webpacker will link to Rails' default JavaScript packages if they have been included in the project:
 
@@ -110,11 +110,11 @@ ActiveStorage.start()
 
 You'll need to include a pack that requires these packages to use them in your Rails application.
 
-It is important to note that only webpack entry files should be placed in the `app/javascript/packs` directory; Webpack will create a separate dependency graph for each entry point, so a large number of packs will increase compilation overhead. The rest of your asset source code should live outside this directory though Webpacker does not place any restrictions or make any suggestions on how to structure your source code. Here is an example:
+It is important to note that only webpack entry files should be placed in the `app/packs/entrypoints` directory; Webpack will create a separate dependency graph for each entry point, so a large number of packs will increase compilation overhead. The rest of your asset source code should live outside this directory though Webpacker does not place any restrictions or make any suggestions on how to structure your source code. Here is an example:
 
 ```sh
-app/javascript:
-  ├── packs:
+app/packs:
+  ├── entrypoints:
   │   # only webpack entry files here
   │   └── application.js
   │   └── application.css
@@ -128,7 +128,7 @@ app/javascript:
 
 Typically, the pack file itself is largely a manifest that uses `import` or `require` to load the necessary files and may also do some initialization.
 
-If you want to change these directories, you can adjust the `source_path` (default `app/javascript`) and `source_entry_path` (default `packs`) in the `configuration/webpacker.yml` file.
+If you want to change these directories, you can adjust the `source_path` (default `app/packs`) and `source_entry_path` (default `entrypoints`) in the `configuration/webpacker.yml` file.
 
 Within source files, `import` statements are resolved relative to the file doing the import, so `import Bar from "./foo"` finds a `foo.js` file in the same directory as the current file, while `import Bar from "../src/foo"` finds a file in a sibling directory named `src`.
 
@@ -136,7 +136,7 @@ Within source files, `import` statements are resolved relative to the file doing
 
 Out of the box, Webpacker supports CSS and SCSS using the PostCSS processor.
 
-To include CSS code in your packs, first include your CSS files in your top-level pack file as though it was a JavaScript file. So if your CSS top-level manifest is in `app/javascript/styles/styles.scss`, you can import it with `import styles/styles`. This tells webpack to include your CSS file in the download. To actually load it in the page, include `<%= stylesheet_pack_tag "application" %>` in the view, where the `application` is the same pack name that you were using.
+To include CSS code in your packs, first include your CSS files in your top-level pack file as though it was a JavaScript file. So if your CSS top-level manifest is in `app/packs/styles/styles.scss`, you can import it with `import styles/styles`. This tells webpack to include your CSS file in the download. To actually load it in the page, include `<%= stylesheet_pack_tag "application" %>` in the view, where the `application` is the same pack name that you were using.
 
 If you are using a CSS framework, you can add it to Webpacker by following the instructions to load the framework as an NPM module using `yarn`, typically `yarn add <framework>`. The framework should have instructions on importing it into a CSS or SCSS file.
 
@@ -158,14 +158,14 @@ myImage.alt = "I'm a Webpacker-bundled image";
 document.body.appendChild(myImage);
 ```
 
-If you need to reference Webpacker static assets from a Rails view, the assets need to be explicitly required from Webpacker-bundled JavaScript files. Unlike Sprockets, Webpacker does not import your static assets by default. The default `app/javascript/packs/application.js` file has a template for importing files from a given directory, which you can uncomment for every directory you want to have static files in. The directories are relative to `app/javascript`. The template uses the directory `images`, but you can use anything in `app/javascript`:
+If you need to reference Webpacker static assets from a Rails view, the assets need to be explicitly required from Webpacker-bundled JavaScript files. Unlike Sprockets, Webpacker does not import your static assets by default. The default `app/packs/entrypoints/application.js` file has a template for importing files from a given directory, which you can uncomment for every directory you want to have static files in. The directories are relative to `app/packs`. The template uses the directory `images`, but you can use anything in `app/packs`:
 
 ```
 const images = require.context("../images", true)
 const imagePath = name => images(name, true)
 ```
 
-Static assets will be output into a directory under `public/packs/media`. For example, an image located and imported at `app/javascript/images/my-image.jpg` will be output at `public/packs/media/images/my-image-abcd1234.jpg`. To render an image tag for this image in a Rails view, use `image_pack_tag 'media/images/my-image.jpg`.
+Static assets will be output into a directory under `public/packs/media`. For example, an image located and imported at `app/packs/images/my-image.jpg` will be output at `public/packs/media/images/my-image-abcd1234.jpg`. To render an image tag for this image in a Rails view, use `image_pack_tag 'media/images/my-image.jpg`.
 
 The Webpacker ActionView helpers for static assets correspond to asset pipeline helpers according to the following table:
 
@@ -176,7 +176,7 @@ The Webpacker ActionView helpers for static assets correspond to asset pipeline 
 
 Also, the generic helper `asset_pack_path` takes the local location of a file and returns its Webpacker location for use in Rails views.
 
-You can also access the image by directly referencing the file from a CSS file in `app/javascript`.
+You can also access the image by directly referencing the file from a CSS file in `app/packs`.
 
 ### Webpacker in Rails Engines
 
@@ -205,7 +205,7 @@ Webpacker ships with two binstub files to run in development: `./bin/webpack` an
 
 By default, Webpacker compiles automatically on demand in development when a Rails page loads. This means that you don't have to run any separate processes, and compilation errors will be logged to the standard Rails log. You can change this by changing to `compile: false` in the `config/webpacker.yml` file. Running `bin/webpack` will force the compilation of your packs.
 
-If you want to use live code reloading or have enough JavaScript that on-demand compilation is too slow, you'll need to run `./bin/webpack-dev-server` or `ruby ./bin/webpack-dev-server`. This process will watch for changes in the `app/javascript/packs/*.js` files and automatically recompile and reload the browser to match.
+If you want to use live code reloading or have enough JavaScript that on-demand compilation is too slow, you'll need to run `./bin/webpack-dev-server` or `ruby ./bin/webpack-dev-server`. This process will watch for changes in the `app/packs/entrypoints/*.js` files and automatically recompile and reload the browser to match.
 
 Windows users will need to run these commands in a terminal separate from `bundle exec rails server`.
 

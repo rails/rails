@@ -35,7 +35,7 @@
   "scripts": {
     "prebuild": "yarn lint",
     "build": "rollup --config rollup.config.js",
-    "lint": "eslint app/javascript",
-    "prepublishOnly": "rm -rf src && cp -R app/javascript/activestorage src"
+    "lint": "eslint app/packs",
+    "prepublishOnly": "rm -rf src && cp -R app/packs/activestorage src"
   }
 }

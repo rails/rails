@@ -503,7 +503,7 @@ $ bin/rails runner 'puts ActiveSupport::Dependencies.autoload_paths'
 .../app/models/concerns
 .../activestorage/app/assets
 .../activestorage/app/controllers
-.../activestorage/app/javascript
+.../activestorage/app/packs
 .../activestorage/app/jobs
 .../activestorage/app/models
 .../actioncable/app/assets

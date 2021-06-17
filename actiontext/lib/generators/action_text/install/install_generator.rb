@@ -17,7 +17,7 @@ module ActionText
 
       def append_dependencies_to_package_file
         in_root do
-          if (app_javascript_pack_path = Pathname.new("app/javascript/packs/application.js")).exist?
+          if (app_javascript_pack_path = Pathname.new("app/packs/entrypoints/application.js")).exist?
             js_dependencies.each_key do |dependency|
               line = %[require("#{dependency}")]
 

@@ -1,4 +1,4 @@
-import * as ActionCable from "../../../../app/javascript/action_cable/index"
+import * as ActionCable from "../../../../app/packs/action_cable/index"
 
 const {module, test} = QUnit
 

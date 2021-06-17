@@ -200,7 +200,7 @@ module SharedGeneratorTests
     run_generator
 
     unless generator_class.name == "Rails::Generators::PluginGenerator"
-      assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
+      assert_file "#{application_path}/app/packs/entrypoints/application.js" do |content|
         assert_match(/^import \* as ActiveStorage from "@rails\/activestorage"/, content)
         assert_match(/^ActiveStorage.start\(\)/, content)
       end
@@ -232,7 +232,7 @@ module SharedGeneratorTests
 
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
-    assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
+    assert_file "#{application_path}/app/packs/entrypoints/application.js" do |content|
       assert_no_match(/activestorage/, content)
     end
 
@@ -262,7 +262,7 @@ module SharedGeneratorTests
 
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
-    assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
+    assert_file "#{application_path}/app/packs/entrypoints/application.js" do |content|
       assert_no_match(/activestorage/i, content)
     end
 
@@ -307,8 +307,8 @@ module SharedGeneratorTests
     run_generator [destination_root, "--skip-action-cable"]
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
     assert_no_file "#{application_path}/config/cable.yml"
-    assert_no_file "#{application_path}/app/javascript/consumer.js"
-    assert_no_directory "#{application_path}/app/javascript/channels"
+    assert_no_file "#{application_path}/app/packs/consumer.js"
+    assert_no_directory "#{application_path}/app/packs/channels"
     assert_no_directory "#{application_path}/app/channels"
     assert_file "Gemfile" do |content|
       assert_no_match(/redis/, content)
