@@ -1,3 +1,7 @@
+*   Do not try to rollback transactions that failed due to a `ActiveRecord::TransactionRollbackError`.
+
+    *Jamie McCarthy*
+
 *   Fix compatibility with `psych >= 4`.
 
     Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
