@@ -561,7 +561,7 @@ even if a `before_action` in your `ApplicationController` would otherwise
 require a login. If your files require a higher level of protection consider
 implementing your own authenticated
 [`ActiveStorage::Blobs::RedirectController`](ActiveStorage::Blobs::RedirectController) and
-[`ActiveStorage::Representations::RedirectController`](ActiveStorage::Blobs::RedirectController)
+[`ActiveStorage::Representations::RedirectController`](ActiveStorage::Representations::RedirectController)
 
 To create a download link, use the `rails_blob_{path|url}` helper. Using this
 helper allows you to set the disposition.
