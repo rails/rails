@@ -486,7 +486,7 @@ model test. To do that, provide a Hash containing at least an open IO object
 and a filename:
 
 ```ruby
-@message.image.attach(io: File.open('/path/to/file'), filename: 'file.pdf')
+@message.images.attach(io: File.open('/path/to/file'), filename: 'file.pdf')
 ```
 
 When possible, provide a content type as well. Active Storage attempts to
@@ -494,14 +494,14 @@ determine a file’s content type from its data. It falls back to the content
 type you provide if it can’t do that.
 
 ```ruby
-@message.image.attach(io: File.open('/path/to/file'), filename: 'file.pdf', content_type: 'application/pdf')
+@message.images.attach(io: File.open('/path/to/file'), filename: 'file.pdf', content_type: 'application/pdf')
 ```
 
 You can bypass the content type inference from the data by passing in
 `identify: false` along with the `content_type`.
 
 ```ruby
-@message.image.attach(
+@message.images.attach(
   io: File.open('/path/to/file'),
   filename: 'file.pdf',
   content_type: 'application/pdf',
