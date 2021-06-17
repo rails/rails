@@ -1,3 +1,7 @@
+*   Deprecate usage of `purge` and `purge_later` from the association extension.
+
+    *Jacopo Beschi*
+
 *   Passing extra parameters in `ActiveStorage::Blob#url` to S3 Client
 
     This allows calls of `ActiveStorage::Blob#url` to have more interaction with
@@ -14,13 +18,13 @@
     *josegomezr*
 
 *   Allow setting a `Cache-Control` on files uploaded to GCS.
-    
+
     ```yaml
     gcs:
       service: GCS
       ...
       cache_control: "public, max-age=3600"
-    ``` 
+    ```
     *maleblond*
 
 *   The parameters sent to `ffmpeg` for generating a video preview image are now

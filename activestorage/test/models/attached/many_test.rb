@@ -456,6 +456,28 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "purging from the attachments relation" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      @user.highlights.attach blobs
+      assert @user.highlights.attached?
+
+      message = <<-MSG.squish
+        Calling `purge` from `highlights_attachments` is deprecated and will be removed in Rails 7.1.
+        To migrate to Rails 7.1's behavior call `purge` from `highlights` instead: `highlights.purge`.
+      MSG
+      assert_deprecated(message) do
+        assert_changes -> { @user.updated_at } do
+          @user.highlights_attachments.purge
+        end
+      end
+      assert_not @user.highlights.attached?
+      assert_not ActiveStorage::Blob.exists?(blobs.first.id)
+      assert_not ActiveStorage::Blob.exists?(blobs.second.id)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.second.key)
+    end
+  end
+
   test "purging attachment with shared blobs" do
     [
       create_blob(filename: "funky.jpg"),
@@ -518,6 +540,31 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       perform_enqueued_jobs do
         assert_changes -> { @user.updated_at } do
           @user.highlights.purge_later
+        end
+      end
+
+      assert_not @user.highlights.attached?
+      assert_not ActiveStorage::Blob.exists?(blobs.first.id)
+      assert_not ActiveStorage::Blob.exists?(blobs.second.id)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.second.key)
+    end
+  end
+
+  test "purging later from the attachments relation" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      @user.highlights.attach blobs
+      assert @user.highlights.attached?
+
+      message = <<-MSG.squish
+        Calling `purge_later` from `highlights_attachments` is deprecated and will be removed in Rails 7.1.
+        To migrate to Rails 7.1's behavior call `purge_later` from `highlights` instead: `highlights.purge_later`.
+      MSG
+      assert_deprecated(message) do
+        perform_enqueued_jobs do
+          assert_changes -> { @user.updated_at } do
+            @user.highlights_attachments.purge_later
+          end
         end
       end
 
