@@ -16,11 +16,11 @@ module ActiveRecord
       @abort, Thread.abort_on_exception = Thread.abort_on_exception, false
       Thread.report_on_exception, @original_report_on_exception = false, Thread.report_on_exception
 
-      @connection = ActiveRecord::Base.connection
+      connection = ActiveRecord::Base.connection
 
-      @connection.transaction do
-        @connection.drop_table "samples", if_exists: true
-        @connection.create_table("samples") do |t|
+      connection.transaction do
+        connection.drop_table "samples", if_exists: true
+        connection.create_table("samples") do |t|
           t.integer "value"
         end
       end
@@ -29,7 +29,7 @@ module ActiveRecord
     end
 
     teardown do
-      @connection.drop_table "samples", if_exists: true
+      ActiveRecord::Base.connection.drop_table "samples", if_exists: true
 
       Thread.abort_on_exception = @abort
       Thread.report_on_exception = @original_report_on_exception
@@ -182,6 +182,7 @@ module ActiveRecord
         ActiveRecord::Base.connection.client_min_messages = "error"
         yield
       ensure
+        ActiveRecord::Base.clear_active_connections!
         ActiveRecord::Base.connection.client_min_messages = log_level
       end
   end
