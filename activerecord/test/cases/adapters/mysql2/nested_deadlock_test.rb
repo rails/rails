@@ -15,10 +15,10 @@ module ActiveRecord
       @abort, Thread.abort_on_exception = Thread.abort_on_exception, false
       Thread.report_on_exception, @original_report_on_exception = false, Thread.report_on_exception
 
-      @connection = ActiveRecord::Base.connection
-      @connection.clear_cache!
+      connection = ActiveRecord::Base.connection
+      connection.clear_cache!
 
-      @connection.create_table("samples", force: true) do |t|
+      connection.create_table("samples", force: true) do |t|
         t.integer "value"
       end
 
@@ -27,7 +27,7 @@ module ActiveRecord
 
     teardown do
       ActiveRecord::Base.clear_active_connections!
-      @connection.drop_table "samples", if_exists: true
+      ActiveRecord::Base.connection.drop_table "samples", if_exists: true
 
       Thread.abort_on_exception = @abort
       Thread.report_on_exception = @original_report_on_exception
