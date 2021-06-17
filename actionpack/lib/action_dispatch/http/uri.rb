@@ -63,7 +63,6 @@ module ActionDispatch
             parts = host.split(".")
             parts[0..-(tld_length + 2)]
           end
-
       end
 
       def initialize(uri)
