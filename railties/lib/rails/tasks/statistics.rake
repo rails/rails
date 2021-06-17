@@ -14,7 +14,7 @@ STATS_DIRECTORIES ||= [
   %w(Views              app/views),
   %w(JavaScripts        app/assets/javascripts),
   %w(Stylesheets        app/assets/stylesheets),
-  %w(JavaScript         app/packs),
+  %w(Packs              app/packs),
   %w(Libraries          lib/),
   %w(APIs               app/apis),
   %w(Controller\ tests  test/controllers),
