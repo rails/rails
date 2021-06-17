@@ -1,3 +1,8 @@
+*   The parameters sent to `ffmpeg` for generating a video preview image are now
+    configurable under `config.active_storage.video_preview_arguments`.
+
+    *Brendon Muir*
+
 *   Don't raise an error if the mime type is not recognized.
 
     Fixes #41777.

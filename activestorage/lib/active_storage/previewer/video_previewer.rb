@@ -28,7 +28,7 @@ module ActiveStorage
 
     private
       def draw_relevant_frame_from(file, &block)
-        draw self.class.ffmpeg_path, "-i", file.path, "-y", "-vframes", "1", "-f", "image2", "-", &block
+        draw self.class.ffmpeg_path, "-i", file.path, *Shellwords.split(ActiveStorage.video_preview_arguments), "-", &block
       end
   end
 end

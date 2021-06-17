@@ -1031,6 +1031,10 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
     The default is `:rails_storage_redirect`.
 
+* `config.active_storage.video_preview_arguments` can be used to alter the way ffmpeg generates video preview images.
+
+    The default is `"-y -vframes 1 -f image2"`
+
 ### Results of `config.load_defaults`
 
 `config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, `6.0` also gets the new defaults from every version before it.
@@ -1107,6 +1111,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_support.use_authenticated_message_encryption`: `false`
 - `config.active_support.hash_digest_class`: `::Digest::MD5`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
+- `config.active_storage.video_preview_arguments`: `"-y -vframes 1 -f image2"`
 
 ### Configuring a Database
 
