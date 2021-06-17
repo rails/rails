@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/attribute_accessors"
-require 'byebug'
-require 'uri/generic'
+require "uri/generic"
 
 module ActionDispatch
   module Http
     class URI
-      IP_HOST_REGEXP  = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
+      IP_HOST_REGEXP = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
 
       mattr_accessor :tld_length, default: 1
       attr :core_uri
@@ -71,17 +70,13 @@ module ActionDispatch
         @core_uri = uri
       end
 
-      def self.build_from_hash(scheme:, host:, path:, port:)
-        host = nil if host == ':' || host.blank?
-        new(::URI::Generic.build2(scheme: scheme, host: host, path: path))
-      end
-
       def self.build_from_faulty_string(url_string)
-        if ipv6 = url_string.match(/([https]*)[:\/]*((?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})(.*)/)
-          new(::URI::Generic.build2(scheme: ipv6[1], host: ipv6[2], path: ipv6[3]))
+        # IPv6 support in ruby URI is still limited. URI.parse does not yet support ipv6, only URI.build does handle it. 
+        if ipv6 = url_string.match(/([https]*)[:\/]*([\[]?(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}[\]]?):?([0-9]*)(.*)/)
+          new(::URI::Generic.build2(scheme: ipv6[1], host: ipv6[2], port: ipv6[3], path: ipv6[4]))
         else
           # handle other edge cases
-          url_string = "" if url_string == ':' 
+          url_string = "" if url_string == ":"
           new(::URI.parse(url_string)) rescue nil
         end
       end
@@ -116,7 +111,7 @@ module ActionDispatch
       def standard_port?
         port == standard_port
       end
-       
+
       # Returns a number \port suffix like 8080 if the \port number of this request
       # is not the default HTTP \port 80 or HTTPS \port 443.
       def optional_port
@@ -147,7 +142,7 @@ module ActionDispatch
       # such as 2 to catch <tt>"www"</tt> instead of <tt>"www.rubyonrails"</tt>
       # in "www.rubyonrails.co.uk".
       def subdomain(tld_length = @@tld_length)
-        self.class.extract_subdomains(host, tld_length).join('.')
+        self.class.extract_subdomains(host, tld_length).join(".")
       end
 
       def extract_domain_from(host, tld_length)
@@ -157,6 +152,5 @@ module ActionDispatch
       private
         attr_accessor :uri
     end
-
   end
 end
