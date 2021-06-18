@@ -58,7 +58,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
     end
 
     test "direct upload with cache control" do
-      config_with_cache_control = { gcs: service_config[:gcs].merge({ cache_control: "public, max-age=1800" }) }
+      config_with_cache_control = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ cache_control: "public, max-age=1800" }) }
       service = ActiveStorage::Service.configure(:gcs, config_with_cache_control)
 
       key      = SecureRandom.base58(24)
@@ -119,7 +119,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
 
-      config_with_cache_control = { gcs: service_config[:gcs].merge({ cache_control: "public, max-age=1800" }) }
+      config_with_cache_control = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ cache_control: "public, max-age=1800" }) }
       service = ActiveStorage::Service.configure(:gcs, config_with_cache_control)
 
       service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data), content_type: "text/plain")
