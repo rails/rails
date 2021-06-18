@@ -14,7 +14,14 @@
 
 *   Disable automatic write protection on replicas.
 
-    Write protection is no longer automatically enabled for replicas. Write protection should be enabled by the database user settings.
+    Write protection is no longer automatically enabled for replicas.
+    You can manually prevent writes in your app with
+    `while_preventing_writes`. To automatically disable all writes on
+    your replica, configure the database user you are using to connect
+    to your replica to prevent writes. How you configure this is
+    specific to which database adapter you are using, but it usually
+    involves only granting the database user permission to do `SELECT`
+    queries.
 
     *Adam Hess*
 
