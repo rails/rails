@@ -93,7 +93,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       { api: true, update: true }, { destination_root: destination_root, shell: @shell }
     quietly { generator.update_config_files }
 
-    assert_no_file "config/initializers/cookies_serializer.rb"
     assert_no_file "config/initializers/assets.rb"
     assert_no_file "config/initializers/content_security_policy.rb"
     assert_no_file "config/initializers/permissions_policy.rb"
@@ -136,7 +135,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         config/environments/production.rb
         config/environments/test.rb
         config/initializers
-        config/initializers/application_controller_renderer.rb
         config/initializers/backtrace_silencers.rb
         config/initializers/cors.rb
         config/initializers/filter_parameter_logging.rb
@@ -170,7 +168,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          app/views/layouts/application.html.erb
          bin/yarn
          config/initializers/assets.rb
-         config/initializers/cookies_serializer.rb
          config/initializers/content_security_policy.rb
          config/initializers/permissions_policy.rb
          lib/assets
