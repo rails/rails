@@ -36,7 +36,11 @@ module ActiveRecord
       end
 
       def set_pool_config(role, shard, pool_config)
-        @name_to_role_mapping[role][shard] = pool_config
+        if pool_config
+          @name_to_role_mapping[role][shard] = pool_config
+        else
+          raise ArgumentError, "The `pool_config` for the :#{role} role and :#{shard} shard was `nil`. Please check your configuration. If you want your writing role to be something other than `:writing` set `config.active_record.writing_role` in your application configuration. The same setting should be applied for the `reading_role` if applicable."
+        end
       end
     end
   end
