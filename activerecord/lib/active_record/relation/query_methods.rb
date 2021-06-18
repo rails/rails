@@ -933,7 +933,7 @@ module ActiveRecord
     # You can pass +nil+ to #create_with to reset attributes:
     #
     #   users = users.create_with(nil)
-    #   users.new.name # => 'Oscar'
+    #   users.new.name # => nil
     def create_with(value)
       spawn.create_with!(value)
     end
