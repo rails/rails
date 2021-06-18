@@ -5,7 +5,7 @@ require "env_helpers"
 require "rails/command"
 require "rails/commands/start/start_command"
 
-class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
+class Rails::Command::StartCommandTest < ActiveSupport::TestCase
   include EnvHelpers
 
   def test_environment_with_server_option
