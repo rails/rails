@@ -746,7 +746,7 @@ in N+1 queries loading all the variant records. To avoid these N+1 queries,
 use the named scopes on [`ActiveStorage::Attachment`][].
 
 ```ruby
-user.avatars.with_all_variant_records.each do |file|
+message.images.with_all_variant_records.each do |file|
   image_tag file.representation(resize_to_limit: [100, 100]).processed.url
 end
 ```
