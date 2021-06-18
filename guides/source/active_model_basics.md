@@ -206,7 +206,7 @@ irb> person.first_name_was
 => nil
 ```
 
-Track both previous and current value of the changed attribute. Returns an array
+Track both previous and current values of the changed attribute. Returns an array
 if changed, otherwise returns nil.
 
 ```irb
@@ -253,9 +253,9 @@ ActiveModel::StrictValidationFailed
 
 ### Naming
 
-`ActiveModel::Naming` adds a number of class methods which make naming and routing
+`ActiveModel::Naming` adds several class methods which make naming and routing
 easier to manage. The module defines the `model_name` class method which
-will define a number of accessors using some `ActiveSupport::Inflector` methods.
+will define several accessors using some `ActiveSupport::Inflector` methods.
 
 ```ruby
 class Person
@@ -486,7 +486,7 @@ Finished in 0.024899s, 240.9735 runs/s, 1204.8677 assertions/s.
 ```
 
 An object is not required to implement all APIs in order to work with
-Action Pack. This module only intends to provide guidance in case you want all
+Action Pack. This module only intends to guide in case you want all
 features out of the box.
 
 ### SecurePassword
