@@ -474,6 +474,16 @@ module RenderTestCases
     assert_equal "Before\npartial html\nYield!\nAfter\n", render
   end
 
+  def test_render_layout_with_block_and_collection_inside
+    render = @controller_view.render(layout: [ Post.new("Amazon"), Post.new("Yahoo") ]) { " is title !" }
+    assert_equal "Amazon is title !Yahoo is title !", render
+  end
+
+  def test_render_layout_with_block_and_collection_inside_with_locals
+    render = @controller_view.render(layout: [ Post.new("Amazon"), Post.new("Yahoo") ]) { |post| " #{post.title} !" }
+    assert_equal "Amazon Amazon !Yahoo Yahoo !", render
+  end
+
   def test_render_inline
     assert_equal "Hello, World!", @view.render(inline: "Hello, World!")
   end

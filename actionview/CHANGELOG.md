@@ -1,3 +1,11 @@
+*   Fix `render layout: @collection` with provided block
+
+    According to the documentation `render layout:` should
+    be able to render the provided collection. Previously, 
+    render failed with 'Missing partial'.
+
+    *Theo Delaune*, *Marcelo Lauxen*
+
 *   The `translate` helper now passes `default` values that aren't
     translation keys through `I18n.translate` for interpolation.
 
