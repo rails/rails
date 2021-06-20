@@ -2549,6 +2549,23 @@ module ApplicationTests
       assert_equal false, ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default
     end
 
+    test "ActionView::Helpers::AssetTagHelper.resize_active_storage_images is false by default" do
+      app "development"
+      assert_not ActionView::Helpers::AssetTagHelper.resize_active_storage_images
+    end
+
+    test "ActionView::Helpers::AssetTagHelper.resize_active_storage_images can be configured via config.action_view.resize_active_storage_images" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.action_view.resize_active_storage_images = true
+        end
+      RUBY
+
+      app "development"
+
+      assert ActionView::Helpers::AssetTagHelper.resize_active_storage_images
+    end
+
     test "stylesheet_link_tag sets the Link header by default" do
       app_file "app/controllers/pages_controller.rb", <<-RUBY
       class PagesController < ApplicationController

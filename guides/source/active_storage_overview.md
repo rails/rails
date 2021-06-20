@@ -877,6 +877,27 @@ specific:
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 }) %>
 ```
 
+A common pattern for image transformations is downsizing an image to the dimensions 
+it will be displayed at in an `img` tag (or twice that for HiDPI displays). For Active Storage
+images, the `image_tag` helper can handle this automatically by adding the following to
+`config/application.rb`
+
+```ruby
+config.action_view.resize_active_storage_images = true
+```
+
+This will allow `image_tag` to shrink (but not enlarge) images to twice value of the specified
+`width`, `height` or `size` attributes:
+
+```erb
+<!-- Without auto resizing -->
+<%= image_tag user.avatar.variant(resize_to_limit: [200, 200], size: 100 %>
+
+<!-- With auto resizing -->
+<%= image_tag user.avatar, size: 100 %>
+```
+
+
 [`variant`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-variant
 [Vips]: https://www.rubydoc.info/gems/ruby-vips/Vips/Image
 

@@ -1159,6 +1159,8 @@ Determines whether `button_to` will render `<button>` element, regardless of whe
 
 Determines whether `stylesheet_link_tag` will render `screen` as the default value for the attribute `media` when it's not provided.
 
+* `config.action_view.resize_active_storage_images` determines whether `image_tag` will automatically resize image blobs if a `width` or `height` is specified, using a 2x resolution. This defaults to `false`. 
+
 ### Configuring Action Mailbox
 
 `config.action_mailbox` provides the following configuration options:
