@@ -1,3 +1,19 @@
+*   Adds `resize_active_storage_images` option to allow `image_tag` to automatically
+    resize active storage images based on specified `width`, `height` or `size` and a 
+    default resolution of 2x.
+
+    Before:
+    ```erb
+    <%= image_tag user.avatar.variant(resize_to_limit: [400x400]), size: 200 %>
+    ```
+    
+    After:
+    ```erb
+    <%= image_tag user.avatar, size: 200 %>
+    ```
+    
+    *Breno Gazzola*
+
 *   Add `:country_code` option to `sms_to` for consistency with `phone_to`.
 
     *Jonathan Hefner*

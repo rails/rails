@@ -41,4 +41,81 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
     unresolvable_object = ActionView::Helpers::AssetTagHelper
     assert_raises(ArgumentError) { image_tag(unresolvable_object) }
   end
+
+  test "blob is resized if automatic resizing is enabled" do
+    with_automatic_resizing_of_active_storage_images do
+      variant = @blob.variant(resize_to_limit: [200, nil])
+      assert_dom_equal %(<img width="100" src="#{polymorphic_url variant}" />), image_tag(@blob, width: 100)
+
+      variant = @blob.variant(resize_to_limit: [nil, 200])
+      assert_dom_equal %(<img height="100" src="#{polymorphic_url variant}" />), image_tag(@blob, height: 100)
+    end
+  end
+
+  test "attachment is resized if automatic resizing is enabled" do
+    with_automatic_resizing_of_active_storage_images do
+      attachment = ActiveStorage::Attachment.new(blob: @blob)
+
+      variant = @blob.variant(resize_to_limit: [200, nil])
+      assert_dom_equal %(<img width="100" src="#{polymorphic_url variant}" />), image_tag(attachment, width: 100)
+
+      variant = @blob.variant(resize_to_limit: [nil, 200])
+      assert_dom_equal %(<img height="100" src="#{polymorphic_url variant}" />), image_tag(attachment, height: 100)
+    end
+  end
+
+  test "variant is not resized if automatic resizing is enabled" do
+    with_automatic_resizing_of_active_storage_images do
+      variant = @blob.variant(resize: "200x200")
+
+      assert_dom_equal %(<img src="#{polymorphic_url variant}" width="100" />), image_tag(variant, width: 100)
+      assert_dom_equal %(<img src="#{polymorphic_url variant}" height="100" />), image_tag(variant, height: 100)
+    end
+  end
+
+  test "source is not resized if its not variable" do
+    with_automatic_resizing_of_active_storage_images do
+      assert_dom_equal %(<img src="https://rubyonrails.org/images/imagine.png" width="100" />), image_tag("https://rubyonrails.org/images/imagine.png", width: 100)
+
+      invariable = create_file_blob filename: "icon.svg"
+      assert_dom_equal %(<img src="#{polymorphic_url invariable}" width="100" />), image_tag(invariable, width: 100)
+    end
+  end
+
+  test "source is resized using the size attribute" do
+    with_automatic_resizing_of_active_storage_images do
+      variant = @blob.variant(resize_to_limit: [200, 200])
+      assert_dom_equal %(<img src="#{polymorphic_url variant}" width="100" height="100" />), image_tag(@blob, size: 100)
+    end
+  end
+
+  test "source is resized if attributes are strings" do
+    with_automatic_resizing_of_active_storage_images do
+      variant = @blob.variant(resize_to_limit: [200, 200])
+      assert_dom_equal %(<img src="#{polymorphic_url variant}" width="100" height="100" />), image_tag(@blob, size: "100")
+
+      variant = @blob.variant(resize_to_limit: [200, nil])
+      assert_dom_equal %(<img src="#{polymorphic_url variant}" width="100" />), image_tag(@blob, width: "100")
+
+      variant = @blob.variant(resize_to_limit: [nil, 200])
+      assert_dom_equal %(<img src="#{polymorphic_url variant}" height="100" />), image_tag(@blob, height: "100")
+    end
+  end
+
+  test "source is not resized if attributes are percentages" do
+    with_automatic_resizing_of_active_storage_images do
+      assert_dom_equal %(<img src="#{polymorphic_url @blob}" width="100%" />), image_tag(@blob, width: "100%")
+      assert_dom_equal %(<img src="#{polymorphic_url @blob}" height="100%" />), image_tag(@blob, height: "100%")
+    end
+  end
+
+  private
+    def with_automatic_resizing_of_active_storage_images
+      original_resize_active_storage_images = ActionView::Helpers::AssetTagHelper.resize_active_storage_images
+      ActionView::Helpers::AssetTagHelper.resize_active_storage_images = true
+
+      yield
+    ensure
+      ActionView::Helpers::AssetTagHelper.resize_active_storage_images = original_resize_active_storage_images
+    end
 end
