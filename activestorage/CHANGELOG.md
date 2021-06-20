@@ -1,3 +1,10 @@
+*   Add metadata value for presence of video channel in video blobs
+
+    The `metadata` attribute of video blobs has a new boolean key named `video` that is set to
+    `true` if the file has an video channel and `false` if it doesn't.
+
+    *Breno Gazzola*
+
 *   Deprecate usage of `purge` and `purge_later` from the association extension.
 
     *Jacopo Beschi*
