@@ -1,3 +1,7 @@
+*   Use libvips instead of ImageMagick to analyze images when `active_storage.variant_processor = vips`  
+
+    *Breno Gazzola*
+
 *   Add metadata value for presence of video channel in video blobs
 
     The `metadata` attribute of video blobs has a new boolean key named `video` that is set to

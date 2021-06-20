@@ -2,7 +2,7 @@
 
 module ActiveStorage
   # This is an abstract base class for analyzers, which extract metadata from blobs. See
-  # ActiveStorage::Analyzer::ImageAnalyzer for an example of a concrete subclass.
+  # ActiveStorage::Analyzer::VideoAnalyzer for an example of a concrete subclass.
   class Analyzer
     attr_reader :blob
 
