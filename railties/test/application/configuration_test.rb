@@ -3032,7 +3032,8 @@ module ApplicationTests
       app "development"
 
       assert_equal ActiveStorage.video_preview_arguments,
-        "-vf select=eq(n\,0)+eq(key\,1)+gt(scene\,0.015),loop=loop=-1:size=2,trim=start_frame=1 -frames:v 1 -f image2"
+        "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1'" \
+        " -frames:v 1 -f image2"
     end
 
     test "hosts include .localhost in development" do
