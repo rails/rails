@@ -94,6 +94,7 @@ module ApplicationTests
 
         config.action_dispatch.signed_cookie_digest = "SHA512"
         config.action_dispatch.signed_cookie_salt = "sha512 salt"
+        config.action_dispatch.cookies_serializer = :marshal
 
         config.action_dispatch.cookies_rotations.tap do |cookies|
           cookies.rotate :signed, sha1_secret,   digest: "SHA1"
@@ -164,6 +165,7 @@ module ApplicationTests
         config.action_dispatch.use_authenticated_cookie_encryption = true
         config.action_dispatch.encrypted_cookie_cipher = "aes-256-gcm"
         config.action_dispatch.authenticated_encrypted_cookie_salt = "salt"
+        config.action_dispatch.cookies_serializer = :marshal
 
         config.action_dispatch.cookies_rotations.tap do |cookies|
           cookies.rotate :encrypted, first_secret
