@@ -291,7 +291,7 @@ As with other built-in key providers, you can provide a list of primary keys in 
 
 ### Custom key providers
 
-For more advanced key-management schemes, you can configure a custom key provider in a initializer:
+For more advanced key-management schemes, you can configure a custom key provider in an initializer:
 
 ```ruby
 ActiveRecord::Encryption.key_provider = MyKeyProvider.new
@@ -340,17 +340,17 @@ The key will be used internally to derive the key used to encrypt and decrypt th
 
 ### Rotating keys
 
-`active_record.encryption` can work with lists of keys, to support implementing key-rotation schemes:
+`active_record.encryption` can work with lists of keys to support implementing key-rotation schemes:
 
-- The **first key** will be used for encrypting new content.
-- All the keys will be tried when decrypting content, until one works.
+- The **last key** will be used for encrypting new content.
+- All the keys will be tried when decrypting content until one works.
 
 ```yml
 active_record
   encryption:
     primary_key:
-        - bc17e7b413fd4720716a7633027f8cc4 # Active, encrypts new content
         - a1cc4d7b9f420e40a337b9e68c5ecec6 # Previous keys can still decrypt existing content
+        - bc17e7b413fd4720716a7633027f8cc4 # Active, encrypts new content
     key_derivation_salt: a3226b97b3b2f8372d1fc6d497a0c0d3
 ```
 
