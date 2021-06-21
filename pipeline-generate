@@ -55,7 +55,7 @@ MAX_RUBY =
   end
 
 def available_tags_for_image(image)
-  uri = URI("https://registry.hub.docker.com/v1/repositories/#{image}/tags")
+  uri = URI("https://hub.docker.com/v1/repositories/#{image}/tags")
   json = Net::HTTP.get(uri)
   JSON.parse(json).map { |x| x["name"] }
 end
