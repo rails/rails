@@ -551,7 +551,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/"@rails\/ujs": "latest"/, content)
       assert_match(/"@rails\/activestorage": "latest"/, content)
       assert_match(/"@rails\/actioncable": "latest"/, content)
-      assert_match(/"turbolinks": "git:\/\/github.com\/turbolinks\/turbolinks.git#main"/, content)
+      assert_match(/"turbolinks": "turbolinks\/turbolinks#master"/, content)
     end
   end
 
