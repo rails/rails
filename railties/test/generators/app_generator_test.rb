@@ -1286,6 +1286,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "web-console", app_root
   end
 
+  def test_finish_message_printed_at_end
+    output = run_generator.split("\n").last
+    assert_match(/Successfully created a new Rails app/, output)
+  end
+
   private
     def stub_rails_application(root)
       Rails.application.config.root = root

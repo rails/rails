@@ -572,6 +572,10 @@ module Rails
         @after_bundle_callbacks.each(&:call)
       end
 
+      def finish_message
+        say "Successfully created a new Rails app! Take a look at https://guides.rubyonrails.org/getting_started.html for more info on next steps."
+      end
+
       def self.banner
         "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
