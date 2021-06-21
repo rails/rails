@@ -6,6 +6,7 @@ require "active_support/testing/method_call_assertions"
 
 class ActiveStorage::BlobTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
+  include ActiveJob::TestHelper
 
   test "unattached scope" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
@@ -229,12 +230,12 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_not ActiveStorage::Blob.service.exist?(blob.key)
   end
 
-  test "purge deletes variants from external service" do
+  test "purge deletes variants from external service with the purge_later" do
     blob = create_file_blob
     variant = blob.variant(resize: "100>").processed
 
     blob.purge
-    assert_not ActiveStorage::Blob.service.exist?(variant.key)
+    assert_enqueued_with(job: ActiveStorage::PurgeJob, args: [variant.image.blob])
   end
 
   test "purge does nothing when attachments exist" do
