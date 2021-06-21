@@ -79,7 +79,7 @@ module ActiveRecord
       def reset
         super
         @target = []
-        @replaced_targets = Set.new
+        @replaced_or_added_targets = Set.new
         @association_ids = nil
       end
 
@@ -440,7 +440,7 @@ module ActiveRecord
         end
 
         def replace_on_target(record, skip_callbacks, replace:, inversing: false)
-          if replace && (!record.new_record? || @replaced_targets.include?(record))
+          if replace && (!record.new_record? || @replaced_or_added_targets.include?(record))
             index = @target.index(record)
           end
 
@@ -454,7 +454,7 @@ module ActiveRecord
 
           yield(record) if block_given?
 
-          @replaced_targets << record if inversing || index
+          @replaced_or_added_targets << record if inversing || index || record.new_record?
 
           if index
             target[index] = record
