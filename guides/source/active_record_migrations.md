@@ -1097,3 +1097,11 @@ If you run the `bin/rails db:migrate:status` command, which displays the status
 (up or down) of each migration, you should see `********** NO FILE **********`
 displayed next to any deleted migration file which was once executed on a
 specific environment but can no longer be found in the `db/migrate/` directory.
+
+There's a caveat, though. Rake tasks to install migrations from engines are idempotent. Migrations present in the parent application due to a previous installation are skipped, and missing ones are copied with a new leading timestamp. If you deleted old engine migrations and ran the install task again, you'd get new files with new timestamps, and `db:migrate` would attempt to run them again.
+
+Thus, you generally want to preserve migrations coming from engines. They have a special comment like this:
+
+```
+# This migration comes from blorgh (originally 20210621082949)
+```
