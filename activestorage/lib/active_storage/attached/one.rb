@@ -16,6 +16,12 @@ module ActiveStorage
     # Purges the attachment through the queuing system.
     delegate :purge_later, to: :purge_one
 
+    ##
+    # :method: detach
+    #
+    # Deletes the attachment without purging it, leaving its blob in place.
+    delegate :detach, to: :detach_one
+
     delegate_missing_to :attachment, allow_nil: true
 
     # Returns the associated attachment record.
@@ -67,21 +73,13 @@ module ActiveStorage
       attachment.present?
     end
 
-    # Deletes the attachment without purging it, leaving its blob in place.
-    def detach
-      if attached?
-        attachment.delete
-        write_attachment nil
-      end
-    end
-
     private
-      def write_attachment(attachment)
-        record.public_send("#{name}_attachment=", attachment)
-      end
-
       def purge_one
         Attached::Changes::PurgeOne.new(name, record, attachment)
+      end
+
+      def detach_one
+        Attached::Changes::DetachOne.new(name, record, attachment)
       end
   end
 end
