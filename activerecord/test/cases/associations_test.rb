@@ -494,12 +494,8 @@ class PreloaderTest < ActiveRecord::TestCase
     david = authors(:david)
     david2 = Author.create!(name: "David")
     bob = authors(:bob)
-    comment1 = david.posts.first.comments.create!(
-      body: "Great post david!"
-    )
-    comment2 = david.posts.first.comments.create!(
-      body: "I don't agree david"
-    )
+    comment1 = david.posts.first.comments.create!(body: "Hi David!")
+    comment2 = david.posts.first.comments.create!(body: "This comment mentions david")
 
     assert_queries(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :comments_mentioning_author)
