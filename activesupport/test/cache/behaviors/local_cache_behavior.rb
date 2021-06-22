@@ -228,4 +228,11 @@ module LocalCacheBehavior
       end
     end
   end
+
+  def test_local_cache_should_read_and_write_false
+    @cache.with_local_cache do
+      assert @cache.write("foo", false)
+      assert_equal false, @cache.read("foo")
+    end
+  end
 end
