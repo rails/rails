@@ -1471,6 +1471,16 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  test "assigning an association doesn't result in duplicate objects" do
+    post = Post.create!(title: "title", body: "body")
+    post.comments = [post.comments.build(body: "body")]
+    post.save!
+
+    assert_equal 1, post.comments.size
+    assert_equal 1, Comment.where(post_id: post.id).count
+    assert_equal post.id, Comment.last.post.id
+  end
 end
 
 class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
