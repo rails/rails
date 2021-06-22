@@ -326,7 +326,7 @@ module Rails
         # since Turbolinks is deprecated, let's just always point to main.
         # expect this to be replaced with Hotwire at some point soon.
         if options.main? || options.edge?
-          "git://github.com/turbolinks/turbolinks.git#main"
+          "turbolinks/turbolinks#master"
         else
           "^5.2.0"
         end
