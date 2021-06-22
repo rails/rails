@@ -68,54 +68,66 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_match message, e.message
   end
 
-  def test_default_value_is_integer
-    assert_field_default_value :integer, 1
+  def test_assert_field_default_value_is_deprecated
+    assert_deprecated do
+      assert_field_default_value :integer, 1
+    end
   end
 
-  def test_default_value_is_float
-    assert_field_default_value :float, 1.5
+  def test_default_is_deprecated
+    assert_deprecated do
+      create_generated_attribute(:integer).default
+    end
   end
 
-  def test_default_value_is_decimal
-    assert_field_default_value :decimal, "9.99"
+  def test_example_value_is_integer
+    assert_field_example_value :integer, 1
   end
 
-  def test_default_value_is_datetime
+  def test_example_value_is_float
+    assert_field_example_value :float, 1.5
+  end
+
+  def test_example_value_is_decimal
+    assert_field_example_value :decimal, "9.99"
+  end
+
+  def test_example_value_is_datetime
     %w(datetime timestamp time).each do |attribute_type|
-      assert_field_default_value attribute_type, Time.now.to_s(:db)
+      assert_field_example_value attribute_type, Time.now.to_s(:db)
     end
   end
 
-  def test_default_value_is_date
-    assert_field_default_value :date, Date.today.to_s(:db)
+  def test_example_value_is_date
+    assert_field_example_value :date, Date.today.to_s(:db)
   end
 
-  def test_default_value_is_string
-    assert_field_default_value :string, "MyString"
+  def test_example_value_is_string
+    assert_field_example_value :string, "MyString"
   end
 
-  def test_default_value_for_type
+  def test_example_value_for_type
     att = Rails::Generators::GeneratedAttribute.parse("type:string")
-    assert_equal("", att.default)
+    assert_equal("", att.example_value)
   end
 
-  def test_default_value_is_text
-    assert_field_default_value :text, "MyText"
+  def test_example_value_is_text
+    assert_field_example_value :text, "MyText"
   end
 
-  def test_default_value_is_boolean
-    assert_field_default_value :boolean, false
+  def test_example_value_is_boolean
+    assert_field_example_value :boolean, false
   end
 
-  def test_default_value_is_nil
+  def test_example_value_is_nil
     %w(references belongs_to rich_text attachment attachments).each do |attribute_type|
-      assert_field_default_value attribute_type, nil
+      assert_field_example_value attribute_type, nil
     end
   end
 
-  def test_default_value_is_empty_string
+  def test_example_value_is_empty_string
     %w(digest token).each do |attribute_type|
-      assert_field_default_value attribute_type, ""
+      assert_field_example_value attribute_type, ""
     end
   end
 

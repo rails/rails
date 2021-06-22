@@ -111,20 +111,27 @@ module Rails
       end
 
       def default
-        @default ||= case type
-                     when :integer                     then 1
-                     when :float                       then 1.5
-                     when :decimal                     then "9.99"
-                     when :datetime, :timestamp, :time then Time.now.to_s(:db)
-                     when :date                        then Date.today.to_s(:db)
-                     when :string                      then name == "type" ? "" : "MyString"
-                     when :text                        then "MyText"
-                     when :boolean                     then false
-                     when :references, :belongs_to,
-                          :attachment, :attachments,
-                          :rich_text                   then nil
-                     else
-                       ""
+        ActiveSupport::Deprecation.warn <<~MSG.squish
+          Rails::Generators::GeneratedAttribute#default is deprecated and will be removed in 7.1.
+          Use #example_value instead."
+        MSG
+      end
+
+      def example_value
+        @example_value ||= case type
+                           when :integer                     then 1
+                           when :float                       then 1.5
+                           when :decimal                     then "9.99"
+                           when :datetime, :timestamp, :time then Time.now.to_s(:db)
+                           when :date                        then Date.today.to_s(:db)
+                           when :string                      then name == "type" ? "" : "MyString"
+                           when :text                        then "MyText"
+                           when :boolean                     then false
+                           when :references, :belongs_to,
+                                :attachment, :attachments,
+                                :rich_text                   then nil
+                           else
+                             ""
         end
       end
 
