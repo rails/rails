@@ -137,7 +137,7 @@ module ActiveRecord
   #
   # Now you can list a bunch of entries, call +Entry#title+, and polymorphism will provide you with the answer.
   #
-  # == Active Record Nested Attributes
+  # == Nested Attributes
   #
   # Enabling nested attributes on a delegated_type association allows you to
   # create the entry and message in one go:
