@@ -755,6 +755,15 @@ module Arel
             WITH expr1 AS (SELECT * FROM "bar"), expr2 AS (SELECT * FROM "baz") SELECT * FROM expr2
           }
         end
+
+        it "handles table strings" do
+          manager = Table.new(:foo).project(Arel.star).from(Arel.sql("expr2"))
+          manager.with('expr1 AS (SELECT * FROM "bar")', 'expr2 AS (SELECT * FROM "baz")')
+
+          _(compile(manager.ast)).must_be_like %{
+            WITH expr1 AS (SELECT * FROM "bar"), expr2 AS (SELECT * FROM "baz") SELECT * FROM expr2
+          }
+        end
       end
 
       describe "Nodes::WithRecursive" do

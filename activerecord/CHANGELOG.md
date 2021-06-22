@@ -1,3 +1,7 @@
+*   Allow construction of CTEs using strings, fixing #42561.
+
+    *J Smith*
+
 *   Adds support for `if_not_exists` to `add_foreign_key` and `if_exists` to `remove_foreign_key`.
 
     Applications can set their migrations to ignore exceptions raised when adding a foreign key

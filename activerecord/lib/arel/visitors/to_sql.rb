@@ -926,11 +926,17 @@ module Arel # :nodoc: all
             when Arel::Nodes::TableAlias
               name = child.name
               relation = child.relation
+            when String
+              collector << child
             end
 
-            collector << quote_table_name(name)
-            collector << " AS "
-            visit relation, collector
+            case child
+            when Arel::Nodes::As, Arel::Nodes::TableAlias
+              collector << quote_table_name(name)
+              collector << " AS "
+
+              visit relation, collector
+            end
           end
 
           collector
