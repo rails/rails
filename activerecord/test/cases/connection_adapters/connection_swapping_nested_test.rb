@@ -443,7 +443,6 @@ module ActiveRecord
 
           assert_raises(ArgumentError) { setup_shared_connection_pool }
         ensure
-          ActiveRecord.application_record_class = nil
           Object.send(:remove_const, :ApplicationRecord)
           ActiveRecord::Base.connection_handler = connection_handler
           ActiveRecord::Base.establish_connection :arunit
@@ -452,15 +451,14 @@ module ActiveRecord
         def test_setting_writing_role_is_used_over_writing
           connection_handler = ActiveRecord::Base.connection_handler
           ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-          old_role, ActiveRecord.writing_role = ActiveRecord.writing_role, :all
+          old_role, ActiveRecord::Base.writing_role = ActiveRecord::Base.writing_role, :all
           Object.const_set(:ApplicationRecord, ApplicationRecord)
 
           ApplicationRecord.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
 
           assert_nothing_raised { setup_shared_connection_pool }
         ensure
-          ActiveRecord.writing_role = old_role
-          ActiveRecord.application_record_class = nil
+          ActiveRecord::Base.writing_role = old_role
           Object.send(:remove_const, :ApplicationRecord)
           ActiveRecord::Base.connection_handler = connection_handler
           ActiveRecord::Base.establish_connection :arunit
