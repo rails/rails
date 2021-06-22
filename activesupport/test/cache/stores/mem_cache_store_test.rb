@@ -289,7 +289,7 @@ class OptimizedMemCacheStoreTest < MemCacheStoreTest
     super
   end
 
-  def forward_compatibility
+  def test_forward_compatibility
     previous_format = ActiveSupport::Cache.format_version
     ActiveSupport::Cache.format_version = 6.1
     @old_store = lookup_store
@@ -299,7 +299,7 @@ class OptimizedMemCacheStoreTest < MemCacheStoreTest
     assert_equal "bar", @cache.read("foo")
   end
 
-  def forward_compatibility
+  def test_backward_compatibility
     previous_format = ActiveSupport::Cache.format_version
     ActiveSupport::Cache.format_version = 6.1
     @old_store = lookup_store
