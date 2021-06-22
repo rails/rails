@@ -844,14 +844,20 @@ module ActiveSupport
         extend self
 
         def load(payload)
-          if payload.start_with?(MARK_70_UNCOMPRESSED)
+          if !payload.is_a?(String)
+            ActiveSupport::Cache::Store.logger&.warn %{Payload wasn't a string, was #{payload.class.name} - couldn't unmarshal, so returning nil."}
+
+            return nil
+          elsif payload.start_with?(MARK_70_UNCOMPRESSED)
             members = Marshal.load(payload.byteslice(1..-1))
           elsif payload.start_with?(MARK_70_COMPRESSED)
             members = Marshal.load(Zlib::Inflate.inflate(payload.byteslice(1..-1)))
           elsif payload.start_with?(MARK_61)
             return Marshal.load(payload)
           else
-            raise ArgumentError, %{Invalid cache prefix: #{payload.byteslice(0).inspect}, expected "\\x00" or "\\x01"}
+            ActiveSupport::Cache::Store.logger&.warn %{Invalid cache prefix: #{payload.byteslice(0).inspect}, expected "\\x00" or "\\x01"}
+
+            return nil
           end
           Entry.unpack(members)
         end
