@@ -198,7 +198,7 @@ module ActiveSupport
 
         def deserialize_entry(payload)
           entry = super
-          entry = Entry.new(entry, compress: false) if entry && !entry.is_a?(Entry)
+          entry = Entry.new(entry, compress: false) unless entry.nil? || entry.is_a?(Entry)
           entry
         end
 

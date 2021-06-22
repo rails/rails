@@ -211,6 +211,38 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_compressed(LARGE_OBJECT)
   end
 
+  def test_can_read_and_write_falsy_value
+    key = "test-with-false-value-through-public-api"
+
+    @cache.write(key, false)
+    assert_equal false, @cache.read(key)
+  end
+
+  def test_can_load_raw_values_from_dalli_store
+    key = "test-with-false-value-the-way-the-dalli-store-did"
+
+    @cache.instance_variable_get(:@data).with { |c| c.set(@cache.send(:normalize_key, key, nil), false, 0, compress: false) }
+    assert_equal false, @cache.read(key)
+  end
+
+  def test_can_read_and_write_falsy_value_with_local_cache
+    key = "test-with-false-value-through-public-api"
+
+    @cache.write(key, false)
+    @cache.with_local_cache do
+      assert_equal false, @cache.read(key)
+    end
+  end
+
+  def test_can_load_raw_values_from_dalli_store_with_local_cache
+    key = "test-with-false-value-the-way-the-dalli-store-did"
+
+    @cache.instance_variable_get(:@data).with { |c| c.set(@cache.send(:normalize_key, key, nil), false, 0, compress: false) }
+    @cache.with_local_cache do
+      assert_equal false, @cache.read(key)
+    end
+  end
+
   private
     def random_string(length)
       (0...length).map { (65 + rand(26)).chr }.join
