@@ -261,7 +261,7 @@ module ActiveRecord
       #   ], unique_by: :isbn)
       #
       #   Book.find_by(isbn: "1").title # => "Eloquent Ruby"
-      def upsert_all(attributes, on_duplicate: :update, returning: nil, unique_by: nil, update_sql: nil)
+      def upsert_all(attributes, on_duplicate: :update, returning: nil, unique_by: nil)
         InsertAll.new(self, attributes, on_duplicate: on_duplicate, returning: returning, unique_by: unique_by).execute
       end
 
