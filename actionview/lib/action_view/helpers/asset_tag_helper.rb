@@ -294,7 +294,7 @@ module ActionView
       #   # => <link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg" />
       #
       def preload_link_tag(source, options = {})
-        href = asset_path(source, skip_pipeline: options.delete(:skip_pipeline))
+        href = path_to_asset(source, skip_pipeline: options.delete(:skip_pipeline))
         extname = File.extname(source).downcase.delete(".")
         mime_type = options.delete(:type) || Template::Types[extname]&.to_s
         as_type = options.delete(:as) || resolve_link_as(extname, mime_type)
