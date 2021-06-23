@@ -607,6 +607,22 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     ActionDispatch::Request.ignore_accept_header = original_ignore_accept_header
   end
 
+  def test_with_false_validate_params_encoding
+    ActionDispatch::Request.stub(:validate_params_encoding, false) do
+      with_routing do |routes|
+        routes.draw do
+          ActiveSupport::Deprecation.silence do
+            post ":action" => FooController
+          end
+        end
+
+        post "/post", params: { foo: "%81E" }
+
+        assert_equal "%81E", request.filtered_parameters["foo"]
+      end
+    end
+  end
+
   private
     def with_default_headers(headers)
       original = ActionDispatch::Response.default_headers
