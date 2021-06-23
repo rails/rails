@@ -413,8 +413,9 @@ db_namespace = namespace :db do
       fixture_files = if ENV["FIXTURES"]
         ENV["FIXTURES"].split(",")
       else
-        # The use of String#[] here is to support namespaced fixtures.
-        Dir["#{fixtures_dir}/**/*.yml"].map { |f| f[(fixtures_dir.size + 1)..-5] }
+        files = Dir[File.join(fixtures_dir, "**/*.{yml}")]
+        files.reject! { |f| f.start_with?(File.join(fixtures_dir, "files")) }
+        files.map! { |f| f[fixtures_dir.to_s.size..-5].delete_prefix("/") }
       end
 
       ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_files)

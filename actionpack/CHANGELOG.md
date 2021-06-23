@@ -1,3 +1,7 @@
+*   Ignore file fixtures on `db:fixtures:load`
+
+    *Kevin Sjöberg*
+
 *   Fix ActionController::Live controller test deadlocks by removing the body buffer size limit for tests.
 
     *Dylan Thacker-Smith*
