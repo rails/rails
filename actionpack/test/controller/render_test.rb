@@ -66,6 +66,12 @@ module Namespaced
   end
 end
 
+class InheritedRenderTestController < ImplicitRenderTestController
+  def hello_world
+    fresh_when(etag: "abc")
+  end
+end
+
 class TestController < ActionController::Base
   protect_from_forgery
 
@@ -669,6 +675,28 @@ class NamespacedEtagRenderTest < ActionController::TestCase
     assert_response :not_modified
 
     modify_template("namespaced/implicit_render_test/hello_world") do
+      request.if_none_match = etag
+      get :hello_world
+      assert_response :ok
+      assert_not_equal etag, @response.etag
+    end
+  end
+end
+
+class InheritedEtagRenderTest < ActionController::TestCase
+  tests InheritedRenderTestController
+  include TemplateModificationHelper
+
+  def test_etag_reflects_template_digest
+    get :hello_world
+    assert_response :ok
+    assert_not_nil etag = @response.etag
+
+    request.if_none_match = etag
+    get :hello_world
+    assert_response :not_modified
+
+    modify_template("implicit_render_test/hello_world") do
       request.if_none_match = etag
       get :hello_world
       assert_response :ok
