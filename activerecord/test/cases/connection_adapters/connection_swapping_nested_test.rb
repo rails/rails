@@ -434,36 +434,6 @@ module ActiveRecord
           self.abstract_class = true
         end
 
-        def test_using_a_role_other_than_writing_raises
-          connection_handler = ActiveRecord::Base.connection_handler
-          ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-          Object.const_set(:ApplicationRecord, ApplicationRecord)
-
-          ApplicationRecord.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
-
-          assert_raises(ArgumentError) { setup_shared_connection_pool }
-        ensure
-          Object.send(:remove_const, :ApplicationRecord)
-          ActiveRecord::Base.connection_handler = connection_handler
-          ActiveRecord::Base.establish_connection :arunit
-        end
-
-        def test_setting_writing_role_is_used_over_writing
-          connection_handler = ActiveRecord::Base.connection_handler
-          ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-          old_role, ActiveRecord::Base.writing_role = ActiveRecord::Base.writing_role, :all
-          Object.const_set(:ApplicationRecord, ApplicationRecord)
-
-          ApplicationRecord.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
-
-          assert_nothing_raised { setup_shared_connection_pool }
-        ensure
-          ActiveRecord::Base.writing_role = old_role
-          Object.send(:remove_const, :ApplicationRecord)
-          ActiveRecord::Base.connection_handler = connection_handler
-          ActiveRecord::Base.establish_connection :arunit
-        end
-
         def test_application_record_prevent_writes_can_be_changed
           Object.const_set(:ApplicationRecord, ApplicationRecord)
 
