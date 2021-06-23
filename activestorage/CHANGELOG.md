@@ -85,6 +85,10 @@
 
     *Breno Gazzola*
 
+*   Respect Active Record's primary_key_type in Active Storage migrations
+
+    *fatkodima*
+
 *   Allow `expires_in` for ActiveStorage signed ids.
 
     *aki77*
