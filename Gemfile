@@ -95,7 +95,6 @@ gem "aws-sdk-sns", require: false
 gem "webmock"
 
 group :ujs do
-  gem "qunit-selenium"
   gem "webdrivers"
 end
 

@@ -349,9 +349,6 @@ GEM
     puma (5.3.2)
       nio4r (~> 2.0)
     que (0.14.3)
-    qunit-selenium (0.0.4)
-      selenium-webdriver
-      thor
     raabro (1.4.0)
     racc (1.5.2)
     rack (2.2.3)
@@ -568,7 +565,6 @@ DEPENDENCIES
   puma
   que
   queue_classic!
-  qunit-selenium
   racc (>= 1.4.6)
   rack-cache (~> 1.2)
   rails!
