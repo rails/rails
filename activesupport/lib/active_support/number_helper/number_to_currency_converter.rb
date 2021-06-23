@@ -11,9 +11,16 @@ module ActiveSupport
         number = self.number.to_s.strip
         format = options[:format]
 
-        if number.sub!(/^-/, "") &&
-           (options[:precision] != 0 || number.to_f > 0.5)
-          format = options[:negative_format]
+        if number.sub!(/^-/, "")
+          number_f = number.to_f.abs
+          if number_f == 0.0
+            # likely an alternate input format that failed to parse.
+            # see https://github.com/rails/rails/pull/39350
+            format = options[:negative_format]
+          else
+            number_f *= 10**options[:precision]
+            format = options[:negative_format] if number_f > 0.5
+          end
         end
 
         rounded_number = NumberToRoundedConverter.convert(number, options)
