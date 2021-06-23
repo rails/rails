@@ -926,7 +926,7 @@ module Arel # :nodoc: all
             when Arel::Nodes::TableAlias
               name = child.name
               relation = child.relation
-            when String
+            when Arel::Nodes::SqlLiteral
               collector << child
             end
 
