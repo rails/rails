@@ -19,7 +19,7 @@ module ActiveSupport
             format = options[:negative_format]
           else
             number_f *= 10**options[:precision]
-            format = options[:negative_format] if number_f > 0.5
+            format = options[:negative_format] if number_f >= 0.5
           end
         end
 

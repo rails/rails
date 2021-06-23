@@ -81,6 +81,7 @@ module ActiveSupport
           assert_equal("$0", number_helper.number_to_currency(-0.456789, precision: 0))
           assert_equal("$0.0", number_helper.number_to_currency(-0.0456789, precision: 1))
           assert_equal("$0.00", number_helper.number_to_currency(-0.00456789, precision: 2))
+          assert_equal("-$1", number_helper.number_to_currency(-0.5, precision: 0))
           assert_equal("$1,11", number_helper.number_to_currency("1,11"))
           assert_equal("$0,11", number_helper.number_to_currency("0,11"))
           assert_equal("$,11", number_helper.number_to_currency(",11"))
