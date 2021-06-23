@@ -1,3 +1,7 @@
+*   Fix ActionController::Live controller test deadlocks by removing the body buffer size limit for tests.
+
+    *Dylan Thacker-Smith*
+
 *   Add support for 'private, no-store' Cache-Control headers.
 
     Previously, 'no-store' was exclusive; no other directives could be specified.
