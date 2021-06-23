@@ -1,3 +1,9 @@
+*   MemCacheStore: convert any underlying value (including `false`) to an `Entry`.
+
+    See [#42559](https://github.com/rails/rails/pull/42559).
+
+    *Alex Ghiculescu*
+
 *   Fix bug in `number_with_precision` when using large `BigDecimal` values.
 
     Fixes #42302.
