@@ -523,7 +523,7 @@ add_belongs_to :taggings, :taggable, polymorphic: true
 ```
 
 The polymorphic option will create two columns on the taggings table which can
-be used for polymorphic assocations: `taggable_type` and `taggable_id`.
+be used for polymorphic associations: `taggable_type` and `taggable_id`.
 
 A foreign key can be created with the the `foreign_key` option.
 
