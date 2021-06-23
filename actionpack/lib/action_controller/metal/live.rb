@@ -127,6 +127,11 @@ module ActionController
     class Buffer < ActionDispatch::Response::Buffer #:nodoc:
       include MonitorMixin
 
+      class << self
+        attr_accessor :queue_size
+      end
+      @queue_size = 10
+
       # Ignore that the client has disconnected.
       #
       # If this value is `true`, calling `write` after the client
@@ -136,7 +141,7 @@ module ActionController
       attr_accessor :ignore_disconnect
 
       def initialize(response)
-        super(response, SizedQueue.new(10))
+        super(response, build_queue(self.class.queue_size))
         @error_callback = lambda { true }
         @cv = new_cond
         @aborted = false
@@ -218,6 +223,10 @@ module ActionController
             break unless str
             yield str
           end
+        end
+
+        def build_queue(queue_size)
+          queue_size ? SizedQueue.new(queue_size) : Queue.new
         end
     end
 

@@ -1,3 +1,7 @@
+*   Fix ActionController::Live controller test deadlocks by removing the body buffer size limit for tests.
+
+    *Dylan Thacker-Smith*
+
 *   New `ActionController::ConditionalGet#no_store` method to set HTTP cache control `no-store` directive.
 
     *Tadas Sasnauskas*
