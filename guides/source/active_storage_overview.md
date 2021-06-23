@@ -722,7 +722,7 @@ Active Storage supports representing a variety of files. You can call
 preview of a video or PDF. Before calling `representation`, check if the
 attachment can be represented by calling [`representable?`]. Some file formats
 can't be previewed by Active Storage out of the box (eg. Word documents); if
-`representable?` returns false you may want to [link to](#linking-to-files)
+`representable?` returns false you may want to [link to](#serving-files)
 the file instead.
 
 ```erb
