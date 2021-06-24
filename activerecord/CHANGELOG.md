@@ -2,6 +2,10 @@
 
     *Jamie McCarthy*
 
+*   Raise an error if `pool_config` is `nil` in `set_pool_config`.
+
+    *Eileen M. Uchitelle*
+
 *   Fix compatibility with `psych >= 4`.
 
     Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility
@@ -9,10 +13,85 @@
 
     *Jean Boussier*
 
+*   Support using replicas when using `rails dbconsole`.
+
+    *Christopher Thornton*
+
+*   Restore connection pools after transactional tests.
+
+    *Eugene Kenny*
+
+*   Change `upsert_all` to fails cleanly for MySQL when `:unique_by` is used.
+
+    *Bastian Bartmann*
+
+*   Fix user-defined `self.default_scope` to respect table alias.
+
+    *Ryuta Kamizono*
+
+*   Clear `@cache_keys` cache after `update_all`, `delete_all`, `destroy_all`.
+
+    *Ryuta Kamizono*
+
 *   Changed Arel predications `contains` and `overlaps` to use
     `quoted_node` so that PostgreSQL arrays are quoted properly.
 
     *Bradley Priest*
+
+*   Fix `merge` when the `where` clauses have string contents.
+
+    *Ryuta Kamizono*
+
+*   Fix rollback of parent destruction with nested `dependent: :destroy`.
+
+    *Jacopo Beschi*
+
+*   Fix binds logging for `"WHERE ... IN ..."` statements.
+
+    *Ricardo Díaz*
+
+*   Handle `false` in relation strict loading checks.
+
+    Previously when a model had strict loading set to true and then had a
+    relation set `strict_loading` to false the false wasn't considered when
+    deciding whether to raise/warn about strict loading.
+
+    ```
+    class Dog < ActiveRecord::Base
+      self.strict_loading_by_default = true
+
+      has_many :treats, strict_loading: false
+    end
+    ```
+
+    In the example, `dog.treats` would still raise even though
+    `strict_loading` was set to false. This is a bug effecting more than
+    Active Storage which is why I made this PR superceeding #41461. We need
+    to fix this for all applications since the behavior is a little
+    surprising. I took the test from ##41461 and the code suggestion from #41453
+    with some additions.
+
+    *Eileen M. Uchitelle*, *Radamés Roriz*
+
+*   Fix numericality validator without precision.
+
+    *Ryuta Kamizono*
+
+*   Fix aggregate attribute on Enum types.
+
+    *Ryuta Kamizono*
+
+*   Fix `CREATE INDEX` statement generation for PostgreSQL.
+
+    *eltongo*
+
+*   Fix where clause on enum attribute when providing array of strings.
+
+    *Ryuta Kamizono*
+
+*   Fix `unprepared_statement` to work it when nesting.
+
+    *Ryuta Kamizono*
 
 
 ## Rails 6.1.3.2 (May 05, 2021) ##

@@ -1,3 +1,8 @@
+*   Fix `ArgumentError` with ruby 3.0 on `RemoteConnection#disconnect`.
+
+    *Vladislav*
+
+
 ## Rails 6.1.3.2 (May 05, 2021) ##
 
 *   No changes.

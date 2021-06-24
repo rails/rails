@@ -3,6 +3,14 @@
 
     *Jonathan Hefner*
 
+*   Don't attach UJS form submission handlers to Turbo forms.
+
+    *David Heinemeier Hansson*
+
+*   Allow both `current_page?(url_hash)` and `current_page?(**url_hash)` on Ruby 2.7.
+
+    *Ryuta Kamizono*
+
 
 ## Rails 6.1.3.2 (May 05, 2021) ##
 

@@ -6,6 +6,27 @@
 
     *Dylan Thacker-Smith*
 
+*   Correctly place optional path parameter booleans.
+
+    Previously, if you specify a url parameter that is part of the path as false it would include that part
+    of the path as parameter for example:
+
+    ```
+    get "(/optional/:optional_id)/things" => "foo#foo", as: :things
+    things_path(optional_id: false) # => /things?optional_id=false
+    ```
+
+    After this change, true and false will be treated the same when used as optional path parameters. Meaning now:
+
+    ```
+    get '(this/:my_bool)/that' as: :that
+
+    that_path(my_bool: true) # => `/this/true/that`
+    that_path(my_bool: false) # => `/this/false/that`
+    ```
+
+    *Adam Hess*
+
 *   Add support for 'private, no-store' Cache-Control headers.
 
     Previously, 'no-store' was exclusive; no other directives could be specified.

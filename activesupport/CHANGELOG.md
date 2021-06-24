@@ -10,6 +10,22 @@
 
     *Federico Aldunate*, *Zachary Scott*
 
+*   Check byte size instead of length on `secure_compare`.
+
+    *Tietew*
+
+*   Fix `Time.at` to not lose `:in` option.
+
+    *Ryuta Kamizono*
+
+*   Require a path for `config.cache_store = :file_store`.
+
+    *Alex Ghiculescu*
+
+*   Avoid having to store complex object in the default translation file.
+
+    *Rafael Mendonça França*
+
 
 ## Rails 6.1.3.2 (May 05, 2021) ##
 
