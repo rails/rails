@@ -259,6 +259,7 @@ HEADER
 
             parts << "on_update: #{foreign_key.on_update.inspect}" if foreign_key.on_update
             parts << "on_delete: #{foreign_key.on_delete.inspect}" if foreign_key.on_delete
+            parts << "deferrable: #{foreign_key.deferrable.inspect}" if foreign_key.deferrable
 
             "  #{parts.join(', ')}"
           end
