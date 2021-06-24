@@ -176,19 +176,29 @@ class ActiveStorage::Blob < ActiveStorage::Record
     content_type.start_with?("image")
   end
 
-  # Returns true if the content_type of this blob is in the audio range, like audio/mpeg.
+  # Returns true if the content_type of this blob is in the audio range, like audio/mpeg or if its a Dash / HLS track.
   def audio?
-    content_type.start_with?("audio")
+    content_type.start_with?("audio") || hls? || dash?
   end
-
-  # Returns true if the content_type of this blob is in the video range, like video/mp4.
+  
+  # Returns true if the content_type of this blob is in the video range, like video/mp4 or if its a Dash / HLS track.
   def video?
-    content_type.start_with?("video")
+    content_type.start_with?("video") || hls? || dash?
   end
 
   # Returns true if the content_type of this blob is in the text range, like text/plain.
   def text?
     content_type.start_with?("text")
+  end
+  
+  # Returns true if the content_type is an HLS track.
+  def hls?
+    content_type.match?(%r{application/x-mpegurl|vnd.apple.mpegurl}i)
+  end
+    
+  # Returns true if the content_type is an Dash track.
+  def dash?
+    content_type.match?(%r{application/dash+xml}i)
   end
 
   # Returns the URL of the blob on the service. This returns a permanent URL for public files, and returns a
