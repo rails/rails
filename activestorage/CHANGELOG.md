@@ -1,3 +1,8 @@
+*   Deprecate `config.active_storage.replace_on_assign_to_many`. Future versions of Rails
+    will behave the same way as when the config is set to `true`.
+
+    *Santiago Bartesaghi*
+
 *   Remove deprecated methods: `build_after_upload`, `create_after_upload!` in favor of `create_and_upload!`,
     and `service_url` in favor of `url`.
 
