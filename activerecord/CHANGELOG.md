@@ -1,3 +1,13 @@
+*   Prevent polluting ENV during postgresql structure dump/load
+
+    Some configuration parameters were provided to pg_dump / psql via
+    environment variables which persisted beyond the command being run, and may
+    have caused subsequent commands and connections to fail. Tasks running
+    across multiple postgresql databases like `rails db:test:prepare` may have
+    been affected.
+
+    *Samuel Cochran*
+
 *   Set precision 6 by default for `datetime` columns
 
     By default, datetime columns will have microseconds precision instead of seconds precision.
