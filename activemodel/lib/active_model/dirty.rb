@@ -140,6 +140,11 @@ module ActiveModel
       @mutations_from_database = nil
     end
 
+    def as_json(options = {}) # :nodoc:
+      options[:except] = [options[:except], "mutations_from_database"].flatten
+      super(options)
+    end
+
     # Clears dirty data and moves +changes+ to +previous_changes+ and
     # +mutations_from_database+ to +mutations_before_last_save+ respectively.
     def changes_applied
