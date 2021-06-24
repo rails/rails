@@ -17,6 +17,7 @@ module ActionMailbox
     config.action_mailbox.incinerate = true
     config.action_mailbox.incinerate_after = 30.days
 
+    config.action_mailbox.amazon = ActiveSupport::OrderedOptions.new
     config.action_mailbox.queues = ActiveSupport::InheritableOptions.new \
       incineration: :action_mailbox_incineration, routing: :action_mailbox_routing
 
@@ -26,6 +27,7 @@ module ActionMailbox
         ActionMailbox.incinerate = app.config.action_mailbox.incinerate.nil? ? true : app.config.action_mailbox.incinerate
         ActionMailbox.incinerate_after = app.config.action_mailbox.incinerate_after || 30.days
         ActionMailbox.queues = app.config.action_mailbox.queues || {}
+        ActionMailbox.amazon = app.config.action_mailbox.amazon || {}
         ActionMailbox.ingress = app.config.action_mailbox.ingress
       end
     end

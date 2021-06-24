@@ -265,6 +265,41 @@ https://actionmailbox:PASSWORD@example.com/rails/action_mailbox/sendgrid/inbound
 
 NOTE: When configuring your SendGrid Inbound Parse webhook, be sure to check the box labeled **“Post the raw, full MIME message.”** Action Mailbox needs the raw MIME message to work.
 
+### Amazon
+
+[Configure SES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/receiving-email-notifications.html) to route emails through _SNS_. Take note of the topic unique reference (`TopicArn`).
+
+[Configure SNS](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/receiving-email-action-sns.html) to send notifications to `/rails/action_mailbox/amazon/inbound_emails`.
+The option _Enable raw message delivery_ should **not** be selected. See [documentation](https://docs.aws.amazon.com/sns/latest/dg/sns-large-payload-raw-message-delivery.html) for more details.
+
+If your application is found at https://example.com you would specify the fully-qualified URL https://example.com/rails/action_mailbox/amazon/inbound_emails
+
+Install the [aws-sdk-sns](https://rubygems.org/gems/aws-sdk-sns) gem:
+
+```ruby
+# Gemfile
+gem "aws-sdk-sns", "~> 1.9", require: false
+```
+
+Tell Action Mailbox to accept notifications from _Amazon_:
+
+```ruby
+# config/environments/production.rb
+config.action_mailbox.ingress = :amazon
+```
+
+Configure which _SNS_ topics will be accepted:
+
+```ruby
+# config/environments/production.rb
+config.action_mailbox.amazon.subscribed_topics = %w(
+  arn:aws:sns:eu-west-1:123456789001:example-topic-1
+  arn:aws:sns:us-east-1:123456789002:example-topic-2
+)
+```
+
+Your application is now ready to accept confirmation requests and email notifications.
+
 ## Examples
 
 Configure basic routing:

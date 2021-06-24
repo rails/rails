@@ -6,6 +6,16 @@ Rails.application.routes.draw do
     post "/relay/inbound_emails"    => "relay/inbound_emails#create",    as: :rails_relay_inbound_emails
     post "/sendgrid/inbound_emails" => "sendgrid/inbound_emails#create", as: :rails_sendgrid_inbound_emails
 
+    # Amazon requires that SNS topic subscriptions have been accepted before sending notifications.
+    post "/amazon/inbound_emails"   => "amazon/confirmations#create", as: :rails_amazon_confirmations,
+      constraints: lambda { |request|
+        ActionMailbox::Ingresses::Amazon::SnsMessageTypeConstraint.new("SubscriptionConfirmation").matches?(request)
+      }
+    post "/amazon/inbound_emails"   => "amazon/inbound_emails#create",    as: :rails_amazon_inbound_emails,
+      constraints: lambda { |request|
+        ActionMailbox::Ingresses::Amazon::SnsMessageTypeConstraint.new("Notification").matches?(request)
+      }
+
     # Mandrill checks for the existence of a URL with a HEAD request before it will create the webhook.
     get "/mandrill/inbound_emails"  => "mandrill/inbound_emails#health_check", as: :rails_mandrill_inbound_health_check
     post "/mandrill/inbound_emails" => "mandrill/inbound_emails#create",       as: :rails_mandrill_inbound_emails
