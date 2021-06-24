@@ -1,3 +1,8 @@
+*   `ActiveSupport::Inflector::Inflections#clear(:acronyms)` is now supported,
+    and `inflector.clear` / `inflector.clear(:all)` also clears acronyms.
+
+    *Alex Ghiculescu*, *Oliver Peate*
+
 *   Raise `ActiveSupport::EncryptedFile::MissingKeyError` when the
     `RAILS_MASTER_KEY` environment variable is blank (e.g. `""`).
 
