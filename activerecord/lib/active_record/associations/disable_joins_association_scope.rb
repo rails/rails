@@ -32,6 +32,12 @@ module ActiveRecord
 
         def add_constraints(reflection, key, join_ids, owner, ordered)
           scope = reflection.build_scope(reflection.aliased_table).where(key => join_ids)
+
+          relation = reflection.klass.scope_for_association
+          scope.merge!(
+            relation.except(:select, :create_with, :includes, :preload, :eager_load, :joins, :left_outer_joins)
+          )
+
           scope = reflection.constraints.inject(scope) do |memo, scope_chain_item|
             item = eval_scope(reflection, scope_chain_item, owner)
             scope.unscope!(*item.unscope_values)
