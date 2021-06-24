@@ -5,7 +5,7 @@ require "models/post"
 
 module ActiveRecord
   class RelationMutationTest < ActiveRecord::TestCase
-    (Relation::MULTI_VALUE_METHODS - [:extending, :order, :unscope, :select]).each do |method|
+    (Relation::MULTI_VALUE_METHODS - [:extending, :order, :default_order, :unscope, :select]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal [:foo], relation.public_send("#{method}_values")
@@ -36,6 +36,11 @@ module ActiveRecord
         assert relation.order!(obj)
         assert_equal [obj], relation.order_values
       end
+    end
+
+    test "#default_order!" do
+      assert relation.default_order!("name ASC").equal?(relation)
+      assert_equal ["name ASC"], relation.default_order_values
     end
 
     test "extending!" do

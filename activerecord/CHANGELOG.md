@@ -1,3 +1,24 @@
+*   Add `#default_order` query method and association option which can be used to order records when no other order is specified.
+
+    This extends the functionality offered by `#implicit_order_column` to scopes and associations.
+
+    Usage:
+
+    ```ruby
+    class Post < ApplicationRecord
+      has_many :comments, default_order: :likes
+      # .. or ..
+      has_many :comments, -> { default_order(:likes) }
+    end
+
+    post = Post.first
+
+    post.comments # comments ordered by `likes`
+    post.comments.order(:created_at) # comments ordered by `created_at`
+    ```
+
+    *Dan Ungureanu*
+
 *   Do not try to rollback transactions that failed due to a `ActiveRecord::TransactionRollbackError`.
 
     *Jamie McCarthy*
