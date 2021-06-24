@@ -240,7 +240,7 @@ module ActiveRecord
             if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
               record.strict_loading!
             else
-              record.strict_loading_mode = owner.strict_loading_mode
+              record.strict_loading!(false, mode: owner.strict_loading_mode)
             end
           end
         end
