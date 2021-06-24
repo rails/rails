@@ -64,17 +64,18 @@ rails_blob_representation_proxy GET  /rails/active_storage/representations/proxy
     MESSAGE
 
     assert_equal <<~MESSAGE, run_routes_command([ "-g", "POST" ])
-                                     Prefix Verb URI Pattern                                                         Controller#Action
-                                            POST /cart(.:format)                                                     cart#create
-              rails_postmark_inbound_emails POST /rails/action_mailbox/postmark/inbound_emails(.:format)             action_mailbox/ingresses/postmark/inbound_emails#create
-                 rails_relay_inbound_emails POST /rails/action_mailbox/relay/inbound_emails(.:format)                action_mailbox/ingresses/relay/inbound_emails#create
-              rails_sendgrid_inbound_emails POST /rails/action_mailbox/sendgrid/inbound_emails(.:format)             action_mailbox/ingresses/sendgrid/inbound_emails#create
-              rails_mandrill_inbound_emails POST /rails/action_mailbox/mandrill/inbound_emails(.:format)             action_mailbox/ingresses/mandrill/inbound_emails#create
-               rails_mailgun_inbound_emails POST /rails/action_mailbox/mailgun/inbound_emails/mime(.:format)         action_mailbox/ingresses/mailgun/inbound_emails#create
-                                            POST /rails/conductor/action_mailbox/inbound_emails(.:format)            rails/conductor/action_mailbox/inbound_emails#create
-      rails_conductor_inbound_email_sources POST /rails/conductor/action_mailbox/inbound_emails/sources(.:format)    rails/conductor/action_mailbox/inbound_emails/sources#create
-      rails_conductor_inbound_email_reroute POST /rails/conductor/action_mailbox/:inbound_email_id/reroute(.:format) rails/conductor/action_mailbox/reroutes#create
-                       rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                      active_storage/direct_uploads#create
+                                     Prefix Verb URI Pattern                                                            Controller#Action
+                                            POST /cart(.:format)                                                        cart#create
+              rails_postmark_inbound_emails POST /rails/action_mailbox/postmark/inbound_emails(.:format)                action_mailbox/ingresses/postmark/inbound_emails#create
+                 rails_relay_inbound_emails POST /rails/action_mailbox/relay/inbound_emails(.:format)                   action_mailbox/ingresses/relay/inbound_emails#create
+              rails_sendgrid_inbound_emails POST /rails/action_mailbox/sendgrid/inbound_emails(.:format)                action_mailbox/ingresses/sendgrid/inbound_emails#create
+              rails_mandrill_inbound_emails POST /rails/action_mailbox/mandrill/inbound_emails(.:format)                action_mailbox/ingresses/mandrill/inbound_emails#create
+               rails_mailgun_inbound_emails POST /rails/action_mailbox/mailgun/inbound_emails/mime(.:format)            action_mailbox/ingresses/mailgun/inbound_emails#create
+                                            POST /rails/conductor/action_mailbox/inbound_emails(.:format)               rails/conductor/action_mailbox/inbound_emails#create
+      rails_conductor_inbound_email_sources POST /rails/conductor/action_mailbox/inbound_emails/sources(.:format)       rails/conductor/action_mailbox/inbound_emails/sources#create
+      rails_conductor_inbound_email_reroute POST /rails/conductor/action_mailbox/:inbound_email_id/reroute(.:format)    rails/conductor/action_mailbox/reroutes#create
+   rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:inbound_email_id/incinerate(.:format) rails/conductor/action_mailbox/incinerates#create
+                       rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                         active_storage/direct_uploads#create
     MESSAGE
 
     assert_equal <<~MESSAGE, run_routes_command([ "-g", "basketballs" ])
@@ -187,6 +188,7 @@ rails_blob_representation_proxy GET  /rails/active_storage/representations/proxy
 new_rails_conductor_inbound_email_source GET    /rails/conductor/action_mailbox/inbound_emails/sources/new(.:format)                              rails/conductor/action_mailbox/inbound_emails/sources#new
    rails_conductor_inbound_email_sources POST   /rails/conductor/action_mailbox/inbound_emails/sources(.:format)                                  rails/conductor/action_mailbox/inbound_emails/sources#create
    rails_conductor_inbound_email_reroute POST   /rails/conductor/action_mailbox/:inbound_email_id/reroute(.:format)                               rails/conductor/action_mailbox/reroutes#create
+rails_conductor_inbound_email_incinerate POST   /rails/conductor/action_mailbox/:inbound_email_id/incinerate(.:format)                            rails/conductor/action_mailbox/incinerates#create
                       rails_service_blob GET    /rails/active_storage/blobs/redirect/:signed_id/*filename(.:format)                               active_storage/blobs/redirect#show
                 rails_service_blob_proxy GET    /rails/active_storage/blobs/proxy/:signed_id/*filename(.:format)                                  active_storage/blobs/proxy#show
                                          GET    /rails/active_storage/blobs/:signed_id/*filename(.:format)                                        active_storage/blobs/redirect#show
@@ -303,46 +305,51 @@ new_rails_conductor_inbound_email_source GET    /rails/conductor/action_mailbox/
       URI               | /rails/conductor/action_mailbox/:inbound_email_id/reroute(.:format)
       Controller#Action | rails/conductor/action_mailbox/reroutes#create
       --[ Route 19 ]-------------
+      Prefix            | rails_conductor_inbound_email_incinerate
+      Verb              | POST
+      URI               | /rails/conductor/action_mailbox/:inbound_email_id/incinerate(.:format)
+      Controller#Action | rails/conductor/action_mailbox/incinerates#create
+      --[ Route 20 ]-------------
       Prefix            | rails_service_blob
       Verb              | GET
       URI               | /rails/active_storage/blobs/redirect/:signed_id/*filename(.:format)
       Controller#Action | active_storage/blobs/redirect#show
-      --[ Route 20 ]-------------
+      --[ Route 21 ]-------------
       Prefix            | rails_service_blob_proxy
       Verb              | GET
       URI               | /rails/active_storage/blobs/proxy/:signed_id/*filename(.:format)
       Controller#Action | active_storage/blobs/proxy#show
-      --[ Route 21 ]-------------
+      --[ Route 22 ]-------------
       Prefix            | 
       Verb              | GET
       URI               | /rails/active_storage/blobs/:signed_id/*filename(.:format)
       Controller#Action | active_storage/blobs/redirect#show
-      --[ Route 22 ]-------------
+      --[ Route 23 ]-------------
       Prefix            | rails_blob_representation
       Verb              | GET
       URI               | /rails/active_storage/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format)
       Controller#Action | active_storage/representations/redirect#show
-      --[ Route 23 ]-------------
+      --[ Route 24 ]-------------
       Prefix            | rails_blob_representation_proxy
       Verb              | GET
       URI               | /rails/active_storage/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)
       Controller#Action | active_storage/representations/proxy#show
-      --[ Route 24 ]-------------
+      --[ Route 25 ]-------------
       Prefix            | 
       Verb              | GET
       URI               | /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)
       Controller#Action | active_storage/representations/redirect#show
-      --[ Route 25 ]-------------
+      --[ Route 26 ]-------------
       Prefix            | rails_disk_service
       Verb              | GET
       URI               | /rails/active_storage/disk/:encoded_key/*filename(.:format)
       Controller#Action | active_storage/disk#show
-      --[ Route 26 ]-------------
+      --[ Route 27 ]-------------
       Prefix            | update_rails_disk_service
       Verb              | PUT
       URI               | /rails/active_storage/disk/:encoded_token(.:format)
       Controller#Action | active_storage/disk#update
-      --[ Route 27 ]-------------
+      --[ Route 28 ]-------------
       Prefix            | rails_direct_uploads
       Verb              | POST
       URI               | /rails/active_storage/direct_uploads(.:format)
