@@ -62,6 +62,7 @@ class StubConnectionTest < ActionCable::Channel::TestCase
 
     assert_equal "John", subscription.username
     assert subscription.admin
+    assert_equal "John:true", connection.connection_identifier
   end
 end
 
