@@ -1,3 +1,7 @@
+*   Allow preloading of associations with instance dependent scopes
+
+    *John Hawthorn*, *John Crepezzi*, *Adam Hess*, *Eileen M. Uchitelle*, *Dinah Shi*
+
 *   Do not try to rollback transactions that failed due to a `ActiveRecord::TransactionRollbackError`.
 
     *Jamie McCarthy*

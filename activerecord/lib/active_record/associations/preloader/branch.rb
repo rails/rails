@@ -83,8 +83,19 @@ module ActiveRecord
         end
 
         def preloaders_for_reflection(reflection, reflection_records)
-          reflection_records.group_by { |record| record.association(reflection.name).klass }.map do |rhs_klass, rs|
-            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, associate_by_default)
+          reflection_records.group_by do |record|
+            klass = record.association(association).klass
+
+            if reflection.scope && reflection.scope.arity != 0
+              # For instance dependent scopes, the scope is potentially
+              # different for each record. To allow this we'll group each
+              # object separately into its own preloader
+              reflection_scope = reflection.join_scopes(klass.arel_table, klass.predicate_builder, klass, record).inject(&:merge!)
+            end
+
+            [klass, reflection_scope]
+          end.map do |(rhs_klass, reflection_scope), rs|
+            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default)
           end
         end
 
@@ -124,8 +135,6 @@ module ActiveRecord
           # and attach it to a relation. The class returned implements a `run` method
           # that accepts a preloader.
           def preloader_for(reflection)
-            reflection.check_preloadable!
-
             if reflection.options[:through]
               ThroughAssociation
             else

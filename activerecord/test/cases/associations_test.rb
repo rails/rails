@@ -461,6 +461,93 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_with_instance_dependent_scope
+    david = authors(:david)
+    david2 = Author.create!(name: "David")
+    bob = authors(:bob)
+    post = Post.create!(
+      author: david,
+      title: "test post",
+      body: "this post is about David"
+    )
+    post2 = Post.create!(
+      author: david,
+      title: "test post 2",
+      body: "this post is also about David"
+    )
+
+    assert_queries(2) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :posts_mentioning_author)
+      preloader.call
+    end
+
+    assert_predicate david.posts_mentioning_author, :loaded?
+    assert_predicate david2.posts_mentioning_author, :loaded?
+    assert_predicate bob.posts_mentioning_author, :loaded?
+
+    assert_equal [post, post2].sort, david.posts_mentioning_author.sort
+    assert_equal [], david2.posts_mentioning_author
+    assert_equal [], bob.posts_mentioning_author
+  end
+
+  def test_preload_with_instance_dependent_through_scope
+    david = authors(:david)
+    david2 = Author.create!(name: "David")
+    bob = authors(:bob)
+    comment1 = david.posts.first.comments.create!(body: "Hi David!")
+    comment2 = david.posts.first.comments.create!(body: "This comment mentions david")
+
+    assert_queries(2) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :comments_mentioning_author)
+      preloader.call
+    end
+
+    assert_predicate david.comments_mentioning_author, :loaded?
+    assert_predicate david2.comments_mentioning_author, :loaded?
+    assert_predicate bob.comments_mentioning_author, :loaded?
+
+    assert_equal [comment1, comment2].sort, david.comments_mentioning_author.sort
+    assert_equal [], david2.comments_mentioning_author
+    assert_equal [], bob.comments_mentioning_author
+  end
+
+  def test_preload_with_through_instance_dependent_scope
+    david = authors(:david)
+    david2 = Author.create!(name: "David")
+    bob = authors(:bob)
+    post = Post.create!(
+      author: david,
+      title: "test post",
+      body: "this post is about David"
+    )
+    Post.create!(
+      author: david,
+      title: "test post 2",
+      body: "this post is also about David"
+    )
+    post3 = Post.create!(
+      author: bob,
+      title: "test post 3",
+      body: "this post is about Bob"
+    )
+    comment1 = post.comments.create!(body: "hi!")
+    comment2 = post.comments.create!(body: "hello!")
+    comment3 = post3.comments.create!(body: "HI BOB!")
+
+    assert_queries(3) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :comments_on_posts_mentioning_author)
+      preloader.call
+    end
+
+    assert_predicate david.comments_on_posts_mentioning_author, :loaded?
+    assert_predicate david2.comments_on_posts_mentioning_author, :loaded?
+    assert_predicate bob.comments_on_posts_mentioning_author, :loaded?
+
+    assert_equal [comment1, comment2].sort, david.comments_on_posts_mentioning_author.sort
+    assert_equal [], david2.comments_on_posts_mentioning_author
+    assert_equal [comment3], bob.comments_on_posts_mentioning_author
+  end
+
   def test_some_already_loaded_associations
     item_discount = Discount.create(amount: 5)
     shipping_discount = Discount.create(amount: 20)

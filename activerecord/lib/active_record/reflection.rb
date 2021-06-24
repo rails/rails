@@ -194,9 +194,9 @@ module ActiveRecord
         klass_scope
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
+      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
         if scope
-          [scope_for(build_scope(table, predicate_builder, klass))]
+          [scope_for(build_scope(table, predicate_builder, klass), record)]
         else
           []
         end
@@ -483,18 +483,17 @@ module ActiveRecord
         check_validity_of_inverse!
       end
 
-      def check_preloadable!
+      def check_eager_loadable!
         return unless scope
 
         unless scope.arity == 0
           raise ArgumentError, <<-MSG.squish
             The association scope '#{name}' is instance dependent (the scope
-            block takes an argument). Preloading instance dependent scopes is
-            not supported.
+            block takes an argument). Eager loading instance dependent scopes
+            is not supported.
           MSG
         end
       end
-      alias :check_eager_loadable! :check_preloadable!
 
       def join_id_for(owner) # :nodoc:
         owner[join_foreign_key]
@@ -842,8 +841,8 @@ module ActiveRecord
         source_reflection.scopes + super
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
-        source_reflection.join_scopes(table, predicate_builder, klass) + super
+      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
+        source_reflection.join_scopes(table, predicate_builder, klass, record) + super
       end
 
       def has_scope?
@@ -1015,9 +1014,9 @@ module ActiveRecord
         @previous_reflection = previous_reflection
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
-        scopes = @previous_reflection.join_scopes(table, predicate_builder) + super
-        scopes << build_scope(table, predicate_builder, klass).instance_exec(nil, &source_type_scope)
+      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
+        scopes = @previous_reflection.join_scopes(table, predicate_builder, record) + super
+        scopes << build_scope(table, predicate_builder, klass).instance_exec(record, &source_type_scope)
       end
 
       def constraints
