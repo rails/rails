@@ -8,9 +8,11 @@ require "models/project"
 require "models/developer"
 require "models/company"
 require "models/computer"
+require "models/club"
+require "models/membership"
 
 class HasOneThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
-  fixtures :members, :organizations, :projects, :developers, :companies
+  fixtures :members, :organizations, :projects, :developers, :companies, :clubs, :memberships
 
   def setup
     @member = members(:groucho)
@@ -59,6 +61,25 @@ class HasOneThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
     assert_match(/INNER JOIN/, joins.first)
     no_joins.each do |nj|
       assert_no_match(/INNER JOIN/, nj)
+    end
+  end
+
+  def test_disable_joins_through_with_enum_type
+    joins = capture_sql { @member.club }
+    no_joins = capture_sql { @member.club_without_joins }
+
+    assert_equal 1, joins.size
+    assert_equal 2, no_joins.size
+
+    assert_match(/INNER JOIN/, joins.first)
+    no_joins.each do |nj|
+      assert_no_match(/INNER JOIN/, nj)
+    end
+
+    if current_adapter?(:Mysql2Adapter)
+      assert_match(/`memberships`.`type`/, no_joins.first)
+    else
+      assert_match(/"memberships"."type"/, no_joins.first)
     end
   end
 end

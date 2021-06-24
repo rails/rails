@@ -38,7 +38,11 @@ module ActiveRecord
         end
 
         def find_target
-          super.first
+          if disable_joins
+            scope.first
+          else
+            super.first
+          end
         end
 
         def replace(record)
