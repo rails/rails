@@ -1,3 +1,5 @@
+## Rails 6.1.4 (June 24, 2021) ##
+
 *   Ignore file fixtures on `db:fixtures:load`
 
     *Kevin Sjöberg*

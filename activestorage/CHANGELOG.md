@@ -1,3 +1,5 @@
+## Rails 6.1.4 (June 24, 2021) ##
+
 *   The parameters sent to `ffmpeg` for generating a video preview image are now
     configurable under `config.active_storage.video_preview_arguments`.
 

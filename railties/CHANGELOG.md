@@ -1,3 +1,5 @@
+## Rails 6.1.4 (June 24, 2021) ##
+
 *   Fix compatibility with `psych >= 4`.
 
     Starting in Psych 4.0.0 `YAML.load` behaves like `YAML.safe_load`. To preserve compatibility

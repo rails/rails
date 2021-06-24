@@ -1,3 +1,5 @@
+## Rails 6.1.4 (June 24, 2021) ##
+
 *   Do not try to rollback transactions that failed due to a `ActiveRecord::TransactionRollbackError`.
 
     *Jamie McCarthy*

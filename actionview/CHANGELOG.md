@@ -1,3 +1,5 @@
+## Rails 6.1.4 (June 24, 2021) ##
+
 *   The `translate` helper now passes `default` values that aren't
     translation keys through `I18n.translate` for interpolation.
 

@@ -1,3 +1,5 @@
+## Rails 6.1.4 (June 24, 2021) ##
+
 *   Fix `to_json` for `ActiveModel::Dirty` object.
 
     Exclude +mutations_from_database+ attribute from json as it lead to recursion.

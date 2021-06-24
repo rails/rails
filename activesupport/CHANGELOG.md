@@ -1,3 +1,5 @@
+## Rails 6.1.4 (June 24, 2021) ##
+
 *   MemCacheStore: convert any underlying value (including `false`) to an `Entry`.
 
     See [#42559](https://github.com/rails/rails/pull/42559).
