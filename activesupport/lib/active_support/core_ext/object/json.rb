@@ -49,6 +49,12 @@ end
   klass.prepend(ActiveSupport::ToJsonWithActiveSupportEncoder)
 end
 
+class Module
+  def as_json(options = nil) #:nodoc:
+    name
+  end
+end
+
 class Object
   def as_json(options = nil) #:nodoc:
     if respond_to?(:to_hash)

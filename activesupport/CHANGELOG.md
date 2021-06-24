@@ -1,3 +1,7 @@
+*   Allow serializing any module or class to JSON by name
+
+    *Tyler Rick*, *Zachary Scott*
+
 *   Raise `ActiveSupport::EncryptedFile::MissingKeyError` when the
     `RAILS_MASTER_KEY` environment variable is blank (e.g. `""`).
 
