@@ -118,7 +118,7 @@ module ActiveModel
       #     end
       #   end
       #
-      # Or with a block where self points to the current record to be validated:
+      # Or with a block where +self+ points to the current record to be validated:
       #
       #   class Comment
       #     include ActiveModel::Validations
