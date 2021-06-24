@@ -65,7 +65,7 @@ module ActionCable
 
       def connection_identifier
         unless defined? @connection_identifier
-          @connection_identifier = connection_gid identifiers.filter_map { |id| instance_variable_get("@#{id}") }
+          @connection_identifier = connection_gid identifiers.filter_map { |id| send(id.to_sym) if id }
         end
 
         @connection_identifier
