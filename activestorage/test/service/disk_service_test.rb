@@ -28,6 +28,10 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
     end
   end
 
+  test "disk?" do
+    assert_equal true, @service.disk?
+  end
+
   test "URL generation" do
     original_url_options = Rails.application.routes.default_url_options.dup
     Rails.application.routes.default_url_options.merge!(protocol: "http", host: "test.example.com", port: 3001)

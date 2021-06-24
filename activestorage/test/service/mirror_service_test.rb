@@ -57,6 +57,10 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
     end
   end
 
+  test "disk?" do
+    assert_equal true, @service.disk?
+  end
+
   test "mirroring a file from the primary service to secondary services where it doesn't exist" do
     key      = SecureRandom.base58(24)
     data     = "Something else entirely!"

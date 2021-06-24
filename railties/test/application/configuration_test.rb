@@ -3118,6 +3118,7 @@ module ApplicationTests
     test "ActiveStorage.draw_routes can be configured via config.active_storage.draw_routes" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
+          config.active_storage.service = :local
           config.active_storage.draw_routes = false
         end
       RUBY
@@ -3125,9 +3126,25 @@ module ApplicationTests
       output = rails("routes")
       assert_not_includes(output, "rails_service_blob")
       assert_not_includes(output, "rails_blob_representation")
-      assert_not_includes(output, "rails_disk_service")
-      assert_not_includes(output, "update_rails_disk_service")
       assert_not_includes(output, "rails_direct_uploads")
+      assert_includes(output, "rails_disk_service")
+      assert_includes(output, "update_rails_disk_service")
+    end
+
+    test "MirrorService with draw routes = false" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_storage.service = :mirror
+          config.active_storage.draw_routes = false
+        end
+      RUBY
+
+      output = rails("routes")
+      assert_not_includes(output, "rails_service_blob")
+      assert_not_includes(output, "rails_blob_representation")
+      assert_not_includes(output, "rails_direct_uploads")
+      assert_includes(output, "rails_disk_service")
+      assert_includes(output, "update_rails_disk_service")
     end
 
     test "ActiveStorage.video_preview_arguments uses the old arguments without Rails 7 defaults" do

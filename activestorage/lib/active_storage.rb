@@ -71,6 +71,10 @@ module ActiveStorage
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
+  def self.disk_service_enabled?
+    Blob.service.try(:disk?) || false
+  end
+
   module Transformers
     extend ActiveSupport::Autoload
 

@@ -1,3 +1,8 @@
+*   Allows rendering url helpers and routes for the disk service even when
+    `config.active_storage.draw_routes` is set to false.
+
+    *Stefanni Brasil and Thiago Araujo*
+
 *   Attachments can be deleted after their association is no longer defined.
 
     Fixes #42514
