@@ -1,3 +1,12 @@
+*   Fix duplicate quoting for check constraint expressions in schema dump when using MySQL
+
+    A check constraint with an expression, that already contains quotes, lead to an invalid schema
+    dump with the mysql2 adapter.
+
+    Fixes #42424.
+
+    *Felix Tscheulin*
+
 *   Do not try to rollback transactions that failed due to a `ActiveRecord::TransactionRollbackError`.
 
     *Jamie McCarthy*
