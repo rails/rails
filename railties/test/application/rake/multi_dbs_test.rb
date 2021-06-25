@@ -427,6 +427,30 @@ module ApplicationTests
         end
       end
 
+      test "db:migrate respects timestamp ordering across databases" do
+        require "#{app_path}/config/environment"
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/migrate/03_three_migration.rb", <<-MIGRATION
+          class ThreeMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        Dir.chdir(app_path) do
+          output = rails "db:migrate"
+          entries = output.scan(/^== (\d+).+migrated/).map(&:first).map(&:to_i)
+          assert_equal [1, 2, 3], entries
+        end
+      end
+
       test "db:migrate and db:schema:dump and db:schema:load works on all databases" do
         db_migrate_and_schema_dump_and_load
       end
