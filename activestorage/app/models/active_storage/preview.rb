@@ -66,9 +66,6 @@ class ActiveStorage::Preview
     end
   end
 
-  alias_method :service_url, :url
-  deprecate service_url: :url
-
   # Returns a combination key of the blob and the variation that together identifies a specific variant.
   def key
     if processed?
