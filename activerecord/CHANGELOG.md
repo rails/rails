@@ -1,3 +1,30 @@
+*   Read `has_one` through association target from memory for new records.
+
+    When reading an `has_one` through association for a new record and loading from DB
+    is not possible retrieves the association target from the in memory through association:
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      belongs_to :author
+    end
+
+    class Author < ActiveRecord::Base
+    end
+
+    class Reader < ActiveRecord::Base
+      has_one :book
+      has_one :author, through: :book
+    end
+
+    author = Author.new
+    book = Book.new(author: author)
+    reader = Reader.new(book: book)
+    reader.author
+    # => correctly returns `author`, previously returns `nil`.
+    ```
+
+    *Jacopo Beschi*
+
 *   Allow preloading of associations with instance dependent scopes
 
     *John Hawthorn*, *John Crepezzi*, *Adam Hess*, *Eileen M. Uchitelle*, *Dinah Shi*

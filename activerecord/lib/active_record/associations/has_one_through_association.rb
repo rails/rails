@@ -6,6 +6,14 @@ module ActiveRecord
     class HasOneThroughAssociation < HasOneAssociation #:nodoc:
       include ThroughAssociation
 
+      def reader
+        if load_target_from_memory?
+          self.target = find_target_from_memory
+        else
+          super
+        end
+      end
+
       private
         def replace(record, save = true)
           create_through_record(record, save)
@@ -39,6 +47,16 @@ module ActiveRecord
               through_proxy.create(attributes)
             end
           end
+        end
+
+        def load_target_from_memory?
+          !load_target? && !loaded? && owner.new_record?
+        end
+
+        # Recursively reads the through_associations and collects their values.
+        def find_target_from_memory
+          through_record = owner.association(reflection.through_reflection.name).reader
+          through_record&.association(source_reflection.name)&.reader
         end
     end
   end

@@ -445,4 +445,14 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   ensure
     CustomerCarrier.current_customer = nil
   end
+
+  def test_has_one_through_loads_target_from_memory
+    category = Category.new
+    club = Club.new(name: "LRUG", category: category)
+    current_membership = CurrentMembership.new(club: club)
+    new_member = Member.new(name: "Chris", current_membership: current_membership)
+
+    assert_equal club, new_member.club
+    assert_equal category, new_member.club_category
+  end
 end
