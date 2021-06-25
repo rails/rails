@@ -362,6 +362,15 @@ module AbstractController
         assert_equal({ id: "1" }.to_query, params[1])
       end
 
+      def test_params_option_strong_parameters
+        request_params = ActionController::Parameters.new({ domain: "foo", id: "1", other: "BAD" })
+        url = W.new.url_for(only_path: true, controller: "c", action: "a", params: request_params.permit(:domain, :id))
+        params = extract_params(url)
+        assert_equal("/c/a?domain=foo&id=1", url)
+        assert_equal({ domain: "foo" }.to_query, params[0])
+        assert_equal({ id: "1" }.to_query, params[1])
+      end
+
       def test_non_hash_params_option
         url = W.new.url_for(only_path: true, controller: "c", action: "a", params: "p")
         params = extract_params(url)
