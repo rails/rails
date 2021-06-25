@@ -336,7 +336,7 @@ module ActiveRecord
       end
 
       def test_datetime_doesnt_set_precision_on_create_table
-        migration = Class.new(ActiveRecord::Migration[4.2]) {
+        migration = Class.new(ActiveRecord::Migration[6.1]) {
           def migrate(x)
             create_table :more_testings do |t|
               t.datetime :published_at
@@ -352,7 +352,7 @@ module ActiveRecord
       end
 
       def test_datetime_doesnt_set_precision_on_change_table
-        create_migration = Class.new(ActiveRecord::Migration[4.2]) {
+        create_migration = Class.new(ActiveRecord::Migration[6.1]) {
           def migrate(x)
             create_table :more_testings do |t|
               t.datetime :published_at
@@ -360,7 +360,7 @@ module ActiveRecord
           end
         }.new
 
-        change_migration = Class.new(ActiveRecord::Migration[4.2]) {
+        change_migration = Class.new(ActiveRecord::Migration[6.1]) {
           def migrate(x)
             change_table :more_testings do |t|
               t.datetime :published_at, default: Time.now
@@ -376,7 +376,7 @@ module ActiveRecord
       end
 
       def test_datetime_doesnt_set_precision_on_add_column
-        migration = Class.new(ActiveRecord::Migration[4.2]) {
+        migration = Class.new(ActiveRecord::Migration[6.1]) {
           def migrate(x)
             add_column :testings, :published_at, :datetime, default: Time.now
           end
