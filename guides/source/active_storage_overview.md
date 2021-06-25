@@ -674,6 +674,14 @@ end
 <%= image_tag account_logo_path %>
 ```
 
+And then you might want to disable the Active Storage default routes with:
+
+```ruby
+config.active_storage.draw_routes = false
+```
+
+to prevent files being accessed with the publicly accessible URLs.
+
 [ActiveStorage::Blobs::RedirectController]: (https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/redirect_controller.rb)
 [ActiveStorage::Representations::RedirectController]: (https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/representations/redirect_controller.rb)
 
