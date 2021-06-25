@@ -184,6 +184,8 @@ module ActiveRecord
         raise NotImplementedError, "connected_to_many can only be called on ActiveRecord::Base."
       end
 
+      prevent_writes = true if role == ActiveRecord.reading_role
+
       connected_to_stack << { role: role, shard: shard, prevent_writes: prevent_writes, klasses: classes }
       yield
     ensure
@@ -201,6 +203,8 @@ module ActiveRecord
       if ActiveRecord.legacy_connection_handling
         raise NotImplementedError, "`connecting_to` is not available with `legacy_connection_handling`."
       end
+
+      prevent_writes = true if role == ActiveRecord.reading_role
 
       self.connected_to_stack << { role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self] }
     end
@@ -352,6 +356,8 @@ module ActiveRecord
       end
 
       def with_role_and_shard(role, shard, prevent_writes)
+        prevent_writes = true if role == ActiveRecord.reading_role
+
         if ActiveRecord.legacy_connection_handling
           with_handler(role.to_sym) do
             connection_handler.while_preventing_writes(prevent_writes) do
