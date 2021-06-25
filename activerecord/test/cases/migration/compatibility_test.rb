@@ -375,7 +375,19 @@ module ActiveRecord
         connection.drop_table :more_testings rescue nil
       end
 
-      def test_datetime_doesnt_set_precision_on_add_column
+      def test_datetime_doesnt_set_precision_on_add_column_5_0
+        migration = Class.new(ActiveRecord::Migration[5.0]) {
+          def migrate(x)
+            add_column :testings, :published_at, :datetime, default: Time.now
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+
+        assert connection.column_exists?(:testings, :published_at, **precision_implicit_default)
+      end
+
+      def test_datetime_doesnt_set_precision_on_add_column_6_1
         migration = Class.new(ActiveRecord::Migration[6.1]) {
           def migrate(x)
             add_column :testings, :published_at, :datetime, default: Time.now
