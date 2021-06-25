@@ -77,6 +77,8 @@ module ActiveRecord
             raise_on_type_mismatch!(record)
             set_inverse_instance(record)
             @updated = true
+          elsif target
+            remove_inverse_instance(target)
           end
 
           replace_keys(record, force: true)

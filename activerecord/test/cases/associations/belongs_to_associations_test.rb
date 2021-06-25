@@ -1205,6 +1205,19 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:another_firm), client.firm_with_condition
   end
 
+  def test_clearing_an_association_clears_the_associations_inverse
+    author = Author.create(name: "Jimmy Tolkien")
+    post = author.create_post(title: "The silly medallion", body: "")
+    assert_equal post, author.post
+    assert_equal author, post.author
+
+    author.update!(post: nil)
+    assert_nil author.post
+
+    post.update!(title: "The Silmarillion")
+    assert_nil author.post
+  end
+
   def test_destroying_child_with_unloaded_parent_and_foreign_key_and_touch_is_possible_with_has_many_inversing
     with_has_many_inversing do
       book     = Book.create!
