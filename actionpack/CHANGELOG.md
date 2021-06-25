@@ -1,3 +1,9 @@
+*   Remove IE6-7-8 file download related hack/fix from ActionController::DataStreaming module
+
+    Not hugely relevant due to age of those IE versions and it creates somewhat unexpected Cache-Control headers.
+
+    *Tadas Sasnauskas*
+
 *   Configuration setting to skip logging an uncaught exception backtrace when the exception is
     present in `rescued_responses`.
 
