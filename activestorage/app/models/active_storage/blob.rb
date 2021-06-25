@@ -180,7 +180,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   def audio?
     content_type.start_with?("audio") || hls? || dash?
   end
-  
+
   # Returns true if the content_type of this blob is in the video range, like video/mp4 or if its a Dash / HLS track.
   def video?
     content_type.start_with?("video") || hls? || dash?
