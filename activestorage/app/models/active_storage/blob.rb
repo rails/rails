@@ -196,7 +196,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     content_type.match?(%r{application/x-mpegurl|vnd\.apple\.mpegurl}i)
   end
     
-  # Returns true if the content_type is an Dash track.
+  # Returns true if the content_type is a Dash track.
   def dash?
     content_type.match?(%r{application/dash\+xml}i)
   end
