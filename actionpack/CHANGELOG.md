@@ -1,3 +1,13 @@
+*   Configuration setting to skip logging an uncaught exception backtrace when the exception is
+    present in `rescued_responses`.
+
+    It may be too noisy to get all backtraces logged for applications that manage uncaught
+    exceptions via `rescued_responses` and `exceptions_app`.
+    `config.action_dispatch.log_rescued_responses` (defaults to `true`) can be set to `false` in
+    this case, so that only exceptions not found in `rescued_responses` will be logged.
+
+    *Alexander Azarov*, *Mike Dalessio*
+
 *   Ignore file fixtures on `db:fixtures:load`
 
     *Kevin Sjöberg*

@@ -515,9 +515,9 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
     backtrace_cleaner.add_silencer { true }
 
-    env = { "action_dispatch.show_exceptions" => true,
-           "action_dispatch.logger" => Logger.new(output),
-           "action_dispatch.backtrace_cleaner" => backtrace_cleaner }
+    env = { "action_dispatch.show_exceptions"   => true,
+            "action_dispatch.logger"            => Logger.new(output),
+            "action_dispatch.backtrace_cleaner" => backtrace_cleaner }
 
     get "/", headers: env
     assert_operator((output.rewind && output.read).lines.count, :>, 10)
@@ -544,7 +544,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal 3, log.lines.count
   end
 
-  test "doesn't log the framework backtrace when error type is a invalid mine type" do
+  test "doesn't log the framework backtrace when error type is a invalid mime type" do
     @app = ProductionApp
 
     output = StringIO.new
@@ -564,6 +564,20 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_includes log, "ActionDispatch::Http::MimeNegotiation::InvalidType (ActionDispatch::Http::MimeNegotiation::InvalidType)"
     assert_equal 3, log.lines.count
+  end
+
+  test "skips logging when rescued" do
+    @app = DevelopmentApp
+
+    output = StringIO.new
+
+    env = { "action_dispatch.show_exceptions"       => true,
+            "action_dispatch.logger"                => Logger.new(output),
+            "action_dispatch.log_rescued_responses" => false }
+
+    get "/parameter_missing", headers: env
+    assert_response 400
+    assert_empty (output.rewind && output.read).lines
   end
 
   test "display backtrace when error type is SyntaxError" do
