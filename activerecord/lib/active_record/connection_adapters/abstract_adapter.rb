@@ -482,6 +482,10 @@ module ActiveRecord
         true
       end
 
+      def supports_database_schema?
+        false
+      end
+
       def async_enabled? # :nodoc:
         supports_concurrent_connections? &&
           !ActiveRecord.async_query_executor.nil? && !pool.async_executor.nil?

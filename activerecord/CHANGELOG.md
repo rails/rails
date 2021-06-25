@@ -1,3 +1,10 @@
+*   `eager_loading?` works when ordering tables with a schema prefix.
+
+    Some DBMS (e.g. PostgreSQL) allows to define multiple schemas per database.
+    `eager_loading?` now works when ordering using a table name which contains a schema prefix.
+
+    *Jacopo Beschi*
+
 *   Avoid validating a unique field if it has not changed and is backed by a unique index.
 
     Previously, when saving a record, ActiveRecord will perform an extra query to check for the uniqueness of

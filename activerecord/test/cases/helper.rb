@@ -84,6 +84,7 @@ end
   supports_insert_conflict_target?
   supports_optimizer_hints?
   supports_datetime_with_precision?
+  supports_database_schema?
 ].each do |method_name|
   define_method method_name do
     ActiveRecord::Base.connection.public_send(method_name)
