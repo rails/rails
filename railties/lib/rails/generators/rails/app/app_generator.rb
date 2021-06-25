@@ -628,6 +628,10 @@ module Rails
         end
       end
 
+      def self.valid_argument?(argument)
+        argument == "new"
+      end
+
       private
         def handle_version_request!(argument)
           if ["--version", "-v"].include?(argument)
@@ -638,7 +642,7 @@ module Rails
         end
 
         def handle_invalid_command!(argument, argv)
-          if argument == "new"
+          if self.class.valid_argument?(argument)
             yield
           else
             ["--help"] + argv.drop(1)
