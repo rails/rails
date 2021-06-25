@@ -613,6 +613,12 @@ module ActiveRecord
       def add_column(table_name, column_name, type, **options)
         return if options[:if_not_exists] == true && column_exists?(table_name, column_name)
 
+        if supports_datetime_with_precision?
+          if type == :datetime && !options.key?(:precision)
+            options[:precision] = 6
+          end
+        end
+
         at = create_alter_table table_name
         at.add_column(column_name, type, **options)
         execute schema_creation.accept at

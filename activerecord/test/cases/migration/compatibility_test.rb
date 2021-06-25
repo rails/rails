@@ -335,6 +335,58 @@ module ActiveRecord
         assert connection.index_exists?(:testings, [:gizmo_type, :gizmo_id], name: :index_testings_on_gizmo_type_and_gizmo_id)
       end
 
+      def test_datetime_doesnt_set_precision_on_create_table
+        migration = Class.new(ActiveRecord::Migration[4.2]) {
+          def migrate(x)
+            create_table :more_testings do |t|
+              t.datetime :published_at
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+
+        assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
+      ensure
+        connection.drop_table :more_testings rescue nil
+      end
+
+      def test_datetime_doesnt_set_precision_on_change_table
+        create_migration = Class.new(ActiveRecord::Migration[4.2]) {
+          def migrate(x)
+            create_table :more_testings do |t|
+              t.datetime :published_at
+            end
+          end
+        }.new
+
+        change_migration = Class.new(ActiveRecord::Migration[4.2]) {
+          def migrate(x)
+            change_table :more_testings do |t|
+              t.datetime :published_at, default: Time.now
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration).migrate
+
+        assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
+      ensure
+        connection.drop_table :more_testings rescue nil
+      end
+
+      def test_datetime_doesnt_set_precision_on_add_column
+        migration = Class.new(ActiveRecord::Migration[4.2]) {
+          def migrate(x)
+            add_column :testings, :published_at, :datetime, default: Time.now
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+
+        assert connection.column_exists?(:testings, :published_at, **precision_implicit_default)
+      end
+
       private
         def precision_implicit_default
           if current_adapter?(:Mysql2Adapter)
