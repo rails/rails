@@ -193,12 +193,12 @@ class ActiveStorage::Blob < ActiveStorage::Record
   
   # Returns true if the content_type is an HLS track.
   def hls?
-    content_type.match?(%r{application/x-mpegurl|vnd.apple.mpegurl}i)
+    content_type.match?(%r{application/x-mpegurl|vnd\.apple\.mpegurl}i)
   end
     
   # Returns true if the content_type is an Dash track.
   def dash?
-    content_type.match?(%r{application/dash+xml}i)
+    content_type.match?(%r{application/dash\+xml}i)
   end
 
   # Returns the URL of the blob on the service. This returns a permanent URL for public files, and returns a
