@@ -646,8 +646,10 @@ guess but permanent. Anyone that knows the blob URL will be able to access it,
 even if a `before_action` in your `ApplicationController` would otherwise
 require a login. If your files require a higher level of protection, you can
 implement your own authenticated controllers, based on the
-[`ActiveStorage::Blobs::RedirectController`](ActiveStorage::Blobs::RedirectController) and
-[`ActiveStorage::Representations::RedirectController`](ActiveStorage::Representations::RedirectController)
+[`ActiveStorage::Blobs::RedirectController`](ActiveStorage::Blobs::RedirectController),
+[`ActiveStorage::Blobs::ProxyController`](ActiveStorage::Blobs::ProxyController),
+[`ActiveStorage::Representations::RedirectController`](ActiveStorage::Representations::RedirectController) and
+[`ActiveStorage::Representations::ProxyController`](ActiveStorage::Representations::ProxyController)
 
 To only allow an account to access their own logo you could do the following:
 
@@ -683,7 +685,9 @@ config.active_storage.draw_routes = false
 to prevent files being accessed with the publicly accessible URLs.
 
 [ActiveStorage::Blobs::RedirectController]: (https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/redirect_controller.rb)
+[ActiveStorage::Blobs::ProxyController]: (https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/blobs/proxy_controller.rb)
 [ActiveStorage::Representations::RedirectController]: (https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/representations/redirect_controller.rb)
+[ActiveStorage::Representations::ProxyController]: (https://github.com/rails/rails/blob/main/activestorage/app/controllers/active_storage/representations/proxy_controller.rb)
 
 Downloading Files
 -----------------

@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 # Take a signed permanent reference for a blob and turn it into an expiring service URL for download.
-# Note: These URLs are publicly accessible. If you need to enforce access protection beyond the
-# security-through-obscurity factor of the signed blob references, you'll need to implement your own
-# authenticated redirection controller.
+#
+# WARNING: All Active Storage controllers are publicly accessible by default. The
+# generated URLs are hard to guess, but permanent by design. If your files
+# require a higher level of protection consider implementing
+# {Authenticated Controllers}[https://edgeguides.rubyonrails.org/active_storage_overview.html#authenticated-controllers].
 class ActiveStorage::Blobs::RedirectController < ActiveStorage::BaseController
   include ActiveStorage::SetBlob
 
