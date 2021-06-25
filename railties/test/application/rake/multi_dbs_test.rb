@@ -813,7 +813,7 @@ module ApplicationTests
         db_create_and_drop_namespace("primary", "db/development.sqlite3")
       end
 
-      test "a thing" do
+      test "when there is no primary config, the first is chosen as the default" do
         app_file "config/database.yml", <<-YAML
           development:
             default:
