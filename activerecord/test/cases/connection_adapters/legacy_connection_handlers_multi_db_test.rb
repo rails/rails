@@ -180,7 +180,7 @@ module ActiveRecord
             assert_equal :reading, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :reading)
             assert_not ActiveRecord::Base.connected_to?(role: :writing)
-            assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
+            assert_predicate ActiveRecord::Base.connection, :preventing_writes?
           end
 
           ActiveRecord::Base.connected_to(role: :writing) do

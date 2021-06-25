@@ -58,7 +58,7 @@ module ActiveRecord
           end
 
           def read_from_replica(&blk)
-            ActiveRecord::Base.connected_to(role: ActiveRecord.reading_role) do
+            ActiveRecord::Base.connected_to(role: ActiveRecord.reading_role, prevent_writes: true) do
               instrumenter.instrument("database_selector.active_record.read_from_replica") do
                 yield
               end

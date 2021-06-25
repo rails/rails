@@ -16,19 +16,6 @@
 
     *Jorge Manrubia*
 
-*   Disable automatic write protection on replicas.
-
-    Write protection is no longer automatically enabled for replicas.
-    You can manually prevent writes in your app with
-    `while_preventing_writes`. To automatically disable all writes on
-    your replica, configure the database user you are using to connect
-    to your replica to prevent writes. How you configure this is
-    specific to which database adapter you are using, but it usually
-    involves only granting the database user permission to do `SELECT`
-    queries.
-
-    *Adam Hess*
-
 *   The MySQL adapter now cast numbers and booleans bind parameters to to string for safety reasons.
 
     When comparing a string and a number in a query, MySQL convert the string to a number. So for

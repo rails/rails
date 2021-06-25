@@ -131,12 +131,15 @@ module ActiveRecord
 
       # Determines whether writes are currently being prevented.
       #
+      # Returns true if the connection is a replica.
+      #
       # If the application is using legacy handling, returns
       # true if +connection_handler.prevent_writes+ is set.
       #
       # If the application is using the new connection handling
       # will return true based on +current_preventing_writes+.
       def preventing_writes?
+        return true if replica?
         return ActiveRecord::Base.connection_handler.prevent_writes if ActiveRecord.legacy_connection_handling
         return false if connection_klass.nil?
 
