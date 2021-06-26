@@ -483,6 +483,14 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2005, 2, 28, 20, 22, 19), Time.local(2005, 2, 28, 15, 15, 10).advance(hours: 5, minutes: 7, seconds: 9)
     assert_equal Time.local(2005, 2, 28, 10, 8, 1), Time.local(2005, 2, 28, 15, 15, 10).advance(hours: -5, minutes: -7, seconds: -9)
     assert_equal Time.local(2013, 10, 17, 20, 22, 19), Time.local(2005, 2, 28, 15, 15, 10).advance(years: 7, months: 19, weeks: 2, days: 5, hours: 5, minutes: 7, seconds: 9)
+
+    assert_equal Time.new(2021, 5, 29, 0, 0, 0, "+03:00"), Time.new(2021, 5, 29, 0, 0, 0, ActiveSupport::TimeZone["Moscow"])
+    assert_equal Time.new(2021, 5, 29, 0, 0, 0, "+03:00").advance(seconds: 60), Time.new(2021, 5, 29, 0, 0, 0, ActiveSupport::TimeZone["Moscow"]).advance(seconds: 60)
+    assert_equal Time.new(2021, 5, 29, 0, 0, 0, "+03:00").advance(days: 3), Time.new(2021, 5, 29, 0, 0, 0, ActiveSupport::TimeZone["Moscow"]).advance(days: 3)
+
+    assert_equal Time.new(2021, 5, 29, 0, 0, 0, "+03:00"), ActiveSupport::TimeZone["Moscow"].local(2021, 5, 29, 0, 0, 0)
+    assert_equal Time.new(2021, 5, 29, 0, 0, 0, "+03:00").advance(seconds: 60), ActiveSupport::TimeZone["Moscow"].local(2021, 5, 29, 0, 0, 0).advance(seconds: 60)
+    assert_equal Time.new(2021, 5, 29, 0, 0, 0, "+03:00").advance(days: 3), ActiveSupport::TimeZone["Moscow"].local(2021, 5, 29, 0, 0, 0).advance(days: 3)
   end
 
   def test_utc_advance

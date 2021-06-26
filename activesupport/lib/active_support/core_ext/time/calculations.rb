@@ -159,6 +159,8 @@ class Time
       ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, new_offset)
     elsif utc?
       ::Time.utc(new_year, new_month, new_day, new_hour, new_min, new_sec)
+    elsif zone&.respond_to?(:utc_to_local)
+      ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, zone)
     elsif zone
       ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec)
     else
