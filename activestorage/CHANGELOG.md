@@ -7,7 +7,7 @@
 
 *   Fix Active Storage update task when running in an engine.
 
-    Justin Malčić*
+    *Justin Malčić*
 
 *   Don't raise an error if the mime type is not recognized.
 
