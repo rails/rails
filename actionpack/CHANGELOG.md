@@ -1,6 +1,6 @@
 *   Remove IE6-7-8 file download related hack/fix from ActionController::DataStreaming module
 
-    Not hugely relevant due to age of those IE versions and it creates somewhat unexpected Cache-Control headers.
+    Due to the age of those versions of IE this fix is no longer relevant, more importantly it creates an edge-case for unexpected Cache-Control headers.
 
     *Tadas Sasnauskas*
 
