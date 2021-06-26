@@ -469,6 +469,19 @@
     end
     ```
 
+    Active Record logs will also include timing info for the duration of how long
+    the main thread had to wait to access the result. This timing is useful to know
+    whether or not it's worth to load the query asynchronously.
+
+    ```
+    DEBUG -- :   Category Load (62.1ms)  SELECT * FROM `categories` LIMIT 50
+    DEBUG -- :   ASYNC Post Load (64ms) (db time 126.1ms)  SELECT * FROM `posts` LIMIT 100
+    ```
+
+    The duration in the first set of parens is how long the main thread was blocked
+    waiting for the results, and the second set of parens with "db time" is how long
+    the entire query took to execute.
+
     *Jean Boussier*
 
 *   Implemented `ActiveRecord::Relation#excluding` method.
