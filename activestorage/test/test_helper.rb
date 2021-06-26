@@ -125,6 +125,20 @@ class ActiveSupport::TestCase
     ensure
       ActiveStorage::Blob.service = previous_service
     end
+
+    def with_strict_loading_by_default(&block)
+      strict_loading_was = ActiveRecord::Base.strict_loading_by_default
+      ActiveRecord::Base.strict_loading_by_default = true
+      yield
+      ActiveRecord::Base.strict_loading_by_default = strict_loading_was
+    end
+
+    def without_variant_tracking(&block)
+      variant_tracking_was = ActiveStorage.track_variants
+      ActiveStorage.track_variants = false
+      yield
+      ActiveStorage.track_variants = variant_tracking_was
+    end
 end
 
 require "global_id"

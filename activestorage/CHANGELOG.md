@@ -1,8 +1,12 @@
+*   Add support of `strict_loading_by_default` to `ActiveStorage::Representations` controllers
+
+    *Anton Topchii*, *Andrew White*
+
 *   Allow to detach an attachment when record is not persisted
 
     *Jacopo Beschi*
 
-*   Use libvips instead of ImageMagick to analyze images when `active_storage.variant_processor = vips`  
+*   Use libvips instead of ImageMagick to analyze images when `active_storage.variant_processor = vips`
 
     *Breno Gazzola*
 

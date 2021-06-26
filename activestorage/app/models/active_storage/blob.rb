@@ -148,6 +148,14 @@ class ActiveStorage::Blob < ActiveStorage::Record
     def signed_id_verifier #:nodoc:
       @signed_id_verifier ||= ActiveStorage.verifier
     end
+
+    def scope_for_strict_loading #:nodoc:
+      if strict_loading_by_default? && ActiveStorage.track_variants
+        includes(variant_records: { image_attachment: :blob }, preview_image_attachment: :blob)
+      else
+        all
+      end
+    end
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
