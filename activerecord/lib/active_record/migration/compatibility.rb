@@ -48,6 +48,10 @@ module ActiveRecord
         end
 
         def add_column(table_name, column_name, type, **options)
+          if type == :datetime
+            options[:precision] ||= nil
+          end
+
           type = PostgreSQLCompat.compatible_timestamp_type(type, connection)
           super
         end
@@ -63,6 +67,11 @@ module ActiveRecord
         module TableDefinition
           def new_column_definition(name, type, **options)
             type = PostgreSQLCompat.compatible_timestamp_type(type, @conn)
+            super
+          end
+
+          def column(name, type, index: nil, **options)
+            options[:precision] ||= nil
             super
           end
         end
@@ -265,6 +274,8 @@ module ActiveRecord
           if type == :primary_key
             type = :integer
             options[:primary_key] = true
+          elsif type == :datetime
+            options[:precision] ||= nil
           end
           super
         end
@@ -295,11 +306,6 @@ module ActiveRecord
             options[:null] = true if options[:null].nil?
             super
           end
-
-          def column(name, type, index: nil, **options)
-            options[:precision] ||= nil
-            super
-          end
         end
 
         def add_reference(table_name, ref_name, **options)
@@ -326,14 +332,6 @@ module ActiveRecord
 
         def remove_index(table_name, column_name = nil, **options)
           options[:name] = index_name_for_remove(table_name, column_name, options)
-          super
-        end
-
-        def add_column(table_name, column_name, type, **options)
-          if type == :datetime
-            options[:precision] ||= nil
-          end
-
           super
         end
 
