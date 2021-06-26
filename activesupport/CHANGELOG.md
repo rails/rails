@@ -1,3 +1,12 @@
+*   `Time#change` and methods that call it (eg. `Time#advance`) will now
+    return a `Time` with the timezone argument provided, if the caller was
+    initialized with a timezone argument.
+
+    Fixes [#42467](https://github.com/rails/rails/issues/42467).
+
+    *Alex Ghiculescu*
+
+
 ## Rails 6.1.4 (June 24, 2021) ##
 
 *   MemCacheStore: convert any underlying value (including `false`) to an `Entry`.
