@@ -134,6 +134,14 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_equal blob, ActiveStorage::Blob.find_signed(signed_id)
   end
 
+  test "can destroy attachment without existing relation" do
+    blob = create_blob
+    @user.highlights.attach(blob)
+    attachment = @user.highlights.find_by(blob_id: blob.id)
+    attachment.update_attribute(:name, "old_highlights")
+    assert_nothing_raised { attachment.destroy }
+  end
+
   private
     def assert_blob_identified_before_owner_validated(owner, blob, content_type)
       validated_content_type = nil

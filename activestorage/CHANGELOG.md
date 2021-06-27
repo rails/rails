@@ -1,3 +1,9 @@
+*   Attachments can be deleted after their association is no longer defined.
+
+    Fixes #42514
+
+    *Don Sisco*
+
 *   Allow to detach an attachment when record is not persisted
 
     *Jacopo Beschi*
