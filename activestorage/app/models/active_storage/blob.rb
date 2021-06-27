@@ -183,7 +183,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   # Returns true if the content_type of this blob is in the video range, like video/mp4.
   def video?
-    content_type.start_with?("video")
+    content_type.start_with?("video") || content_type == "application/mp4"
   end
 
   # Returns true if the content_type of this blob is in the text range, like text/plain.

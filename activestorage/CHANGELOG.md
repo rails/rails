@@ -1,3 +1,9 @@
+*   Enable variants for custom media types.
+
+    Refer to the Active Storage Rails guide to register custom transformers.
+
+    *Sébastien Dubois*
+
 *   Allow to detach an attachment when record is not persisted
 
     *Jacopo Beschi*

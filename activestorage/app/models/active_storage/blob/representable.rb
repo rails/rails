@@ -28,7 +28,7 @@ module ActiveStorage::Blob::Representable
   # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::RepresentationsController
   # can then produce on-demand.
   #
-  # Raises ActiveStorage::InvariableError if ImageMagick cannot transform the blob. To determine whether a blob is
+  # Raises ActiveStorage::InvariableError if the blob cannot be transformed. To determine whether a blob is
   # variable, call ActiveStorage::Blob#variable?.
   def variant(transformations)
     if variable?
@@ -38,9 +38,14 @@ module ActiveStorage::Blob::Representable
     end
   end
 
-  # Returns true if ImageMagick can transform the blob (its content type is in +ActiveStorage.variable_content_types+).
+  # Returns true if a transformer is registered to accept the blob.
+  # By default, this will return true for images whose types are registered
+  # in config.active_storage.variable_content_types.
+  # To handle other image types, add them to variable_content_types.
+  # To handle other media types, register a custom variant transformer
+  # as described in the documentation.
   def variable?
-    ActiveStorage.variable_content_types.include?(content_type)
+    ActiveStorage.transformers.any? { |klass| klass.accept?(self) }
   end
 
 
