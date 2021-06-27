@@ -147,8 +147,7 @@ module ActiveRecord
           connection_handlers.key(connection_handler) || default_role
         else
           connected_to_stack.reverse_each do |hash|
-            return hash[:role] if hash[:role] && hash[:klasses].include?(Base)
-            return hash[:role] if hash[:role] && hash[:klasses].include?(connection_classes)
+            return hash[:role] if hash[:role] && (hash[:klasses].include?(Base) || hash[:klasses].include?(connection_classes))
           end
 
           default_role
@@ -166,8 +165,7 @@ module ActiveRecord
       #   end
       def self.current_shard
         connected_to_stack.reverse_each do |hash|
-          return hash[:shard] if hash[:shard] && hash[:klasses].include?(Base)
-          return hash[:shard] if hash[:shard] && hash[:klasses].include?(connection_classes)
+          return hash[:shard] if hash[:shard] && (hash[:klasses].include?(Base) || hash[:klasses].include?(connection_classes))
         end
 
         default_shard
@@ -188,8 +186,7 @@ module ActiveRecord
           connection_handler.prevent_writes
         else
           connected_to_stack.reverse_each do |hash|
-            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
-            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(connection_classes)
+            return hash[:prevent_writes] if !hash[:prevent_writes].nil? && (hash[:klasses].include?(Base) || hash[:klasses].include?(connection_classes))
           end
 
           false
