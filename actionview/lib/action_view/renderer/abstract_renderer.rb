@@ -158,7 +158,7 @@ module ActionView
 
       def extract_details(options) # :doc:
         details = nil
-        @lookup_context.registered_details.each do |key|
+        LookupContext.registered_details.each do |key|
           value = options[key]
 
           if value
