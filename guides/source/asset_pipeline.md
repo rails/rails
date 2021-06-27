@@ -1064,8 +1064,8 @@ config.assets.css_compressor = :sass
 
 ### JavaScript Compression
 
-Possible options for JavaScript compression are `:closure`, `:uglifier` and
-`:yui`. These require the use of the `closure-compiler`, `uglifier` or
+Possible options for JavaScript compression are `:terser`, `:closure`, `:uglifier` and
+`:yui`. These require the use of the `terser`, `closure-compiler`, `uglifier` or
 `yui-compressor` gems, respectively.
 
 Take the `uglifier` gem, for example.
