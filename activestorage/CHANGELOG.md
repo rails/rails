@@ -1,3 +1,7 @@
+*   Add support for byte range requests
+
+    *Tom Prats*
+
 *   Allow to detach an attachment when record is not persisted
 
     *Jacopo Beschi*
