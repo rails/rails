@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  mysql:
+    image: mysql:5.6
+    networks:
+      - rails
+    environment:
+      MYSQL_USER: rails
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - 3306:3306
+
+networks:
+  rails:
+    name: rails

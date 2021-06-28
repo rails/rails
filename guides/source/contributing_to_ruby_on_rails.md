@@ -418,12 +418,14 @@ For MySQL and PostgreSQL, it is sufficient to run:
 
 ```bash
 $ cd activerecord
+$ docker compose up -d mysql
 $ bundle exec rake db:mysql:build
 ```
 Or:
 
 ```bash
 $ cd activerecord
+$ docker compose up -d postgresql
 $ bundle exec rake db:postgresql:build
 ```
 
@@ -446,6 +448,7 @@ $ bundle exec rake test:postgresql
 Finally,
 
 ```bash
+$ docker compose up -d
 $ bundle exec rake test
 ```
 
