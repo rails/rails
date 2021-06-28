@@ -95,6 +95,7 @@ module ActionController
       instance.set_response! controller.make_response!(request)
       instance.render_to_string(*args)
     end
+    alias_method :render_to_string, :render # :nodoc:
 
     private
       def normalize_keys(env)

@@ -26,7 +26,7 @@ module ActionText
       private
         def trix_attachment_content
           if partial_path = attachable.try(:to_trix_content_attachment_partial_path)
-            ActionText::Content.renderer.render(partial: partial_path, object: self, as: model_name.element)
+            ActionText::Content.render(partial: partial_path, object: self, as: model_name.element)
           end
         end
     end
