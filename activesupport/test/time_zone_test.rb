@@ -365,11 +365,19 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.parse("2014-10-26T01:00:00")
   end
 
-  def test_iso8601_with_invalid_value_parseable_by_date__iso8601
+  def test_iso8601_with_ordinal_date_value
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+
+    twz = zone.iso8601("21087")
+    assert_equal Time.utc(2021, 3, 28, 0, 0, 0), twz.time
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_iso8601_with_invalid_ordinal_date_value
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
 
     exception = assert_raises(ArgumentError) do
-      zone.iso8601("12936")
+      zone.iso8601("21367")
     end
 
     assert_equal "invalid date", exception.message

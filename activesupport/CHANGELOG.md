@@ -1,3 +1,14 @@
+*   `TimeZone.iso8601` now accepts valid ordinal values similar to Ruby's `Date._iso8601` method.
+    A valid ordinal value will be converted to an instance of `TimeWithZone` using the `:year`
+    and `:yday` fragments returned from `Date._iso8601`.
+
+    ```ruby
+    twz = ActiveSupport::TimeZone["Eastern Time (US & Canada)"].iso8601("21087")
+    twz.to_a[0, 6] == [0, 0, 0, 28, 03, 2021]
+    ```
+
+    *Steve Laing*
+
 *   `Time#change` and methods that call it (eg. `Time#advance`) will now
     return a `Time` with the timezone argument provided, if the caller was
     initialized with a timezone argument.
