@@ -86,14 +86,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
       super(id, purpose: purpose)
     end
 
-    def build_after_upload(io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) #:nodoc:
-      new(filename: filename, content_type: content_type, metadata: metadata, service_name: service_name).tap do |blob|
-        blob.upload(io, identify: identify)
-      end
-    end
-
-    deprecate :build_after_upload
-
     def build_after_unfurling(key: nil, io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) #:nodoc:
       new(key: key, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name).tap do |blob|
         blob.unfurl(io, identify: identify)
@@ -114,9 +106,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
         blob.upload_without_unfurling(io)
       end
     end
-
-    alias_method :create_after_upload!, :create_and_upload!
-    deprecate create_after_upload!: :create_and_upload!
 
     # Returns a saved blob _without_ uploading a file to the service. This blob will point to a key where there is
     # no file yet. It's intended to be used together with a client-side upload, which will first create the blob
@@ -207,9 +196,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.url key, expires_in: expires_in, filename: ActiveStorage::Filename.wrap(filename || self.filename),
       content_type: content_type_for_serving, disposition: forced_disposition_for_serving || disposition, **options
   end
-
-  alias_method :service_url, :url
-  deprecate service_url: :url
 
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.

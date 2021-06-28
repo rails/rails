@@ -79,9 +79,6 @@ class ActiveStorage::Variant
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
 
-  alias_method :service_url, :url
-  deprecate service_url: :url
-
   # Downloads the file associated with this variant. If no block is given, the entire file is read into memory and returned.
   # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
   def download(&block)

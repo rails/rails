@@ -32,26 +32,6 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal data, blob.download
   end
 
-  test "create_after_upload! has the same effect as create_and_upload!" do
-    data = "Some other, even more funky file"
-    blob = assert_deprecated do
-      ActiveStorage::Blob.create_after_upload!(io: StringIO.new(data), filename: "funky.bin")
-    end
-
-    assert blob.persisted?
-    assert_equal data, blob.download
-  end
-
-  test "build_after_upload uploads to service but does not save the Blob" do
-    data = "A potentially overwriting file"
-    blob = assert_deprecated do
-      ActiveStorage::Blob.build_after_upload(io: StringIO.new(data), filename: "funky.bin")
-    end
-
-    assert_not blob.persisted?
-    assert_equal data, blob.download
-  end
-
   test "create_and_upload sets byte size and checksum" do
     data = "Hello world!"
     blob = create_blob data: data

@@ -29,9 +29,6 @@ class ActiveStorage::VariantWithRecord
 
   delegate :key, :url, :download, to: :image, allow_nil: true
 
-  alias_method :service_url, :url
-  deprecate service_url: :url
-
   private
     def transform_blob
       blob.open do |input|

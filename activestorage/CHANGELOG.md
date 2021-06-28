@@ -1,3 +1,8 @@
+*   Remove deprecated methods: `build_after_upload`, `create_after_upload!` in favor of `create_and_upload!`,
+    and `service_url` in favor of `url`.
+
+    *Santiago Bartesaghi*
+
 *   Add support of `strict_loading_by_default` to `ActiveStorage::Representations` controllers
 
     *Anton Topchii*, *Andrew White*
