@@ -147,7 +147,7 @@ module ActiveStorage
             else
               if Array(attachables).any?
                 attachment_changes["#{name}"] =
-                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs + attachables)
+                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs | attachables)
               end
             end
           end
