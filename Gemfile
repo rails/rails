@@ -23,7 +23,7 @@ gem "bcrypt", "~> 3.1.11", require: false
 
 # This needs to be with require false to avoid it being automatically loaded by
 # sprockets.
-gem "uglifier", ">= 1.3.0", require: false
+gem "terser", ">= 1.1.4", require: false
 
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
