@@ -163,6 +163,25 @@ module ActiveRecord
           end
         end
 
+        def associate_records_from_unscoped(unscoped_records)
+          return if unscoped_records.nil? || unscoped_records.empty?
+          return if !reflection_scope.empty_scope?
+          return if preload_scope && !preload_scope.empty_scope?
+          return if reflection.collection?
+
+          unscoped_records.each do |record|
+            owners = owners_by_key[convert_key(record[association_key_name])]
+            owners&.each_with_index do |owner, i|
+              association = owner.association(reflection.name)
+              association.target = record
+
+              if i == 0 # Set inverse on first owner
+                association.set_inverse_instance(record)
+              end
+            end
+          end
+        end
+
         private
           attr_reader :owners, :reflection, :preload_scope, :model
 
