@@ -785,6 +785,8 @@ Defaults to `'signed cookie'`.
 
 * `config.action_mailbox.queues.routing` accepts a symbol indicating the Active Job queue to use for routing jobs. When this option is `nil`, routing jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
+* `config.action_mailbox.storage_service` accepts a symbol indicating the Active Storage service to use for uploading emails. When this option is `nil`, emails are uploaded to the default Active Storage service (see `config.active_storage.service`).
+
 ### Configuring Action Mailer
 
 There are a number of settings available on `config.action_mailer`:

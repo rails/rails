@@ -35,7 +35,8 @@ module ActionMailbox::InboundEmail::MessageId
       end
 
       def create_and_upload_raw_email!(source)
-        ActiveStorage::Blob.create_and_upload! io: StringIO.new(source), filename: "message.eml", content_type: "message/rfc822"
+        ActiveStorage::Blob.create_and_upload! io: StringIO.new(source), filename: "message.eml", content_type: "message/rfc822",
+                                               service_name: ActionMailbox.storage_service
       end
   end
 end

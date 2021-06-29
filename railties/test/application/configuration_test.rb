@@ -2946,6 +2946,25 @@ module ApplicationTests
       assert_equal :another_queue, ActionMailbox.queues[:routing]
     end
 
+    test "ActionMailbox.storage_service is nil by default (default service)" do
+      app "development"
+      assert_nil(ActionMailbox.storage_service)
+    end
+
+    test "ActionMailbox.storage_service can be configured" do
+      add_to_config <<-RUBY
+        config.active_storage.service_configurations = {
+          email: {
+            root: "#{Dir.tmpdir}/email",
+            service: "Disk"
+          }
+        }
+        config.action_mailbox.storage_service = :email
+      RUBY
+      app "development"
+      assert_equal(:email, ActionMailbox.storage_service)
+    end
+
     test "ActionMailer::Base.delivery_job is ActionMailer::MailDeliveryJob by default" do
       app "development"
 
