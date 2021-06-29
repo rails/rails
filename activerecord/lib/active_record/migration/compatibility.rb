@@ -99,6 +99,11 @@ module ActiveRecord
             end
           end
           alias :belongs_to :references
+
+          def column(name, type, index: nil, **options)
+            options[:precision] ||= nil
+            super
+          end
         end
 
         def create_table(table_name, **options)
@@ -143,6 +148,11 @@ module ActiveRecord
       class V5_2 < V6_0
         module TableDefinition
           def timestamps(**options)
+            options[:precision] ||= nil
+            super
+          end
+
+          def column(name, type, index: nil, **options)
             options[:precision] ||= nil
             super
           end
