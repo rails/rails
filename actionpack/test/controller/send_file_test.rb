@@ -88,7 +88,9 @@ class SendFileTest < ActionController::TestCase
   def test_file_nostream
     @controller.options = { stream: false }
     response = nil
-    assert_nothing_raised { response = process("file") }
+    assert_deprecated("send_file is deprecated with no replacement and will be removed in 7.1.") do
+      assert_nothing_raised { response = process("file") }
+    end
     assert_not_nil response
     body = response.body
     assert_kind_of String, body
@@ -97,7 +99,9 @@ class SendFileTest < ActionController::TestCase
 
   def test_file_stream
     response = nil
-    assert_nothing_raised { response = process("file") }
+    assert_deprecated("send_file is deprecated with no replacement and will be removed in 7.1.") do
+      assert_nothing_raised { response = process("file") }
+    end
     assert_not_nil response
     assert_respond_to response.stream, :each
     assert_respond_to response.stream, :to_path
@@ -113,7 +117,9 @@ class SendFileTest < ActionController::TestCase
   def test_file_url_based_filename
     @controller.options = { url_based_filename: true }
     response = nil
-    assert_nothing_raised { response = process("file") }
+    assert_deprecated("send_file is deprecated with no replacement and will be removed in 7.1.") do
+      assert_nothing_raised { response = process("file") }
+    end
     assert_not_nil response
     assert_equal "attachment", response.headers["Content-Disposition"]
   end
@@ -131,8 +137,10 @@ class SendFileTest < ActionController::TestCase
     response = process("data")
     assert_equal "application/octet-stream", response.headers["Content-Type"]
 
-    response = process("file")
-    assert_equal "application/octet-stream", response.headers["Content-Type"]
+    assert_deprecated("send_file is deprecated with no replacement and will be removed in 7.1.") do
+      response = process("file")
+      assert_equal "application/octet-stream", response.headers["Content-Type"]
+    end
   end
 
   # Test that send_file_headers! is setting the correct HTTP headers.
@@ -198,61 +206,97 @@ class SendFileTest < ActionController::TestCase
     assert_nil @controller.headers["Content-Disposition"]
   end
 
+  def test_send_data_status
+    @controller.options = { stream: false, status: 500 }
+    assert_nothing_raised { assert_not_nil process("data") }
+    assert_equal 500, @response.status
+  end
+
+  def test_send_data_content_type
+    @controller.options = { stream: false, content_type: "application/x-ruby" }
+    assert_nothing_raised { assert_not_nil process("data") }
+    assert_equal "application/x-ruby", @response.content_type
+  end
+
+  def test_default_send_data_status
+    @controller.options = { stream: false }
+    assert_nothing_raised { assert_not_nil process("data") }
+    assert_equal 200, @response.status
+  end
+
   def test_send_file_from_before_action
     response = nil
-    assert_nothing_raised { response = process("file_from_before_action") }
-    assert_not_nil response
+    assert_deprecated("send_file is deprecated with no replacement and will be removed in 7.1.") do
+      assert_nothing_raised { response = process("file_from_before_action") }
+    end
 
+    assert_not_nil response
     assert_kind_of String, response.body
     assert_equal file_data, response.body
   end
 
-  %w(file data).each do |method|
-    define_method "test_send_#{method}_status" do
-      @controller.options = { stream: false, status: 500 }
-      assert_not_nil process(method)
-      assert_equal 500, @response.status
+  def test_send_file_status
+    @controller.options = { stream: false, status: 500 }
+    assert_deprecated("send_file is deprecated with no replacement and will be removed in 7.1.") do
+      assert_nothing_raised { assert_not_nil process("file") }
+    end
+    assert_equal 500, @response.status
+  end
+
+  def test_send_file_content_type
+    @controller.options = { stream: false, content_type: "application/x-ruby" }
+    response = nil
+
+    assert_deprecated("send_file is deprecated with no replacement and will be removed in 7.1.") do
+      assert_nothing_raised { response = process("file") }
     end
 
-    define_method "test_send_#{method}_content_type" do
-      @controller.options = { stream: false, content_type: "application/x-ruby" }
-      assert_nothing_raised { assert_not_nil process(method) }
-      assert_equal "application/x-ruby", @response.content_type
-    end
+    assert_not_nil response
+    assert_equal "application/x-ruby", @response.content_type
+  end
 
-    define_method "test_default_send_#{method}_status" do
-      @controller.options = { stream: false }
-      assert_nothing_raised { assert_not_nil process(method) }
-      assert_equal 200, @response.status
+  def test_default_send_file_status
+    @controller.options = { stream: false }
+    assert_deprecated("send_file is deprecated with no replacement and will be removed in 7.1.") do
+      assert_nothing_raised { assert_not_nil process("file") }
     end
+    assert_equal 200, @response.status
   end
 
   def test_send_file_with_action_controller_live
     @controller = SendFileWithActionControllerLive.new
     @controller.options = { content_type: "application/x-ruby" }
 
-    response = process("file")
-    assert_equal 200, response.status
+    assert_deprecated("send_file is deprecated with no replacement and will be removed in 7.1.") do
+      response = process("file")
+      assert_equal 200, response.status
+    end
   end
 
   def test_send_file_charset_with_type_options_key
     @controller = SendFileWithActionControllerLive.new
     @controller.options = { type: "text/calendar; charset=utf-8" }
-    response = process("file")
-    assert_equal "text/calendar; charset=utf-8", response.headers["Content-Type"]
+    assert_deprecated("send_file is deprecated with no replacement and will be removed in 7.1.") do
+      response = process("file")
+      assert_equal "text/calendar; charset=utf-8", response.headers["Content-Type"]
+    end
   end
 
   def test_send_file_charset_with_type_options_key_without_charset
     @controller = SendFileWithActionControllerLive.new
     @controller.options = { type: "image/png" }
-    response = process("file")
-    assert_equal "image/png", response.headers["Content-Type"]
+    assert_deprecated("send_file is deprecated with no replacement and will be removed in 7.1.") do
+      response = process("file")
+      assert_equal "image/png", response.headers["Content-Type"]
+    end
   end
 
   def test_send_file_charset_with_content_type_options_key
     @controller = SendFileWithActionControllerLive.new
     @controller.options = { content_type: "text/calendar" }
-    response = process("file")
-    assert_equal "text/calendar", response.headers["Content-Type"]
+    assert_deprecated("send_file is deprecated with no replacement and will be removed in 7.1.") do
+      response = process("file")
+      assert_equal "text/calendar", response.headers["Content-Type"]
+    end
   end
 end

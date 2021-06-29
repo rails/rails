@@ -359,6 +359,9 @@ module ActionDispatch # :nodoc:
 
     # Send the file stored at +path+ as the response body.
     def send_file(path)
+      ActiveSupport::Deprecation.warn(
+        "send_file is deprecated with no replacement and will be removed in 7.1."
+      )
       commit!
       @stream = FileBody.new(path)
     end
