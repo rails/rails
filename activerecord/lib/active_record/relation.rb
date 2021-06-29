@@ -560,8 +560,9 @@ module ActiveRecord
     # Destroys the records by instantiating each
     # record and calling its {#destroy}[rdoc-ref:Persistence#destroy] method.
     # Each object's callbacks are executed (including <tt>:dependent</tt> association options).
-    # Returns the collection of objects that were destroyed; each will be frozen, to
-    # reflect that no changes should be made (since they can't be persisted).
+    # Returns the collection of objects that were destroyed if
+    # +config.active_record.destroy_all_in_batches+ is set to +false+. Each
+    # will be frozen, to reflect that no changes should be made (since they can't be persisted).
     #
     # Note: Instantiation, callback execution, and deletion of each
     # record can be time consuming when you're removing many records at
@@ -573,8 +574,40 @@ module ActiveRecord
     # ==== Examples
     #
     #   Person.where(age: 0..18).destroy_all
-    def destroy_all
-      records.each(&:destroy).tap { reset }
+    #
+    # If +config.active_record.destroy_all_in_batches+ is set to +true+, it will ensure
+    # to perform the record's deletion in batches
+    # and destroy_all won't longer return the collection of the deleted records
+    #
+    # ==== Options
+    # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
+    # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
+    # * <tt>:batch_size</tt> - Specifies the size of the batch. Defaults to 1000.
+    # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
+    #   an order is present in the relation.
+    # * <tt>:order</tt> - Specifies the primary key order (can be :asc or :desc). Defaults to :asc.
+    #
+    # NOTE: These arguments are honoured only if +config.active_record.destroy_all_in_batches+ is set to +true+.
+    #
+    # ==== Examples
+    #
+    #   # Let's process from record 10_000 on, in batches of 2000.
+    #   Person.destroy_all(start: 10_000, batch_size: 2000)
+    #
+    def destroy_all(start: nil, finish: nil, batch_size: 1000, error_on_ignore: nil, order: :asc)
+      if ActiveRecord::Base.destroy_all_in_batches
+        batch_options = { of: batch_size, start: start, finish: finish, error_on_ignore: error_on_ignore, order: order }
+        in_batches(**batch_options).each_record(&:destroy).tap { reset }
+      else
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          As of Rails 7.1, destroy_all will no longer return the collection
+          of objects that were destroyed.
+          To transition to the new behaviour set the following in an
+          initializer:
+          Rails.application.config.active_record.destroy_all_in_batches = true
+        MSG
+        records.each(&:destroy).tap { reset }
+      end
     end
 
     # Deletes the records without instantiating the records

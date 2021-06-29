@@ -137,7 +137,7 @@ module ActiveRecord
           case method
           when :destroy
             if scope.klass.primary_key
-              count = scope.destroy_all.count(&:destroyed?)
+              count = scope.each(&:destroy).count(&:destroyed?)
             else
               scope.each(&:_run_destroy_callbacks)
               count = scope.delete_all

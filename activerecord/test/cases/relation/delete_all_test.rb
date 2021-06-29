@@ -12,18 +12,37 @@ class DeleteAllTest < ActiveRecord::TestCase
   def test_destroy_all
     davids = Author.where(name: "David")
 
+    assert_difference("Author.count", -1) do
+      davids.destroy_all
+    end
+  end
+
+  def test_destroy_all_no_longer_returns_a_collection
+    davids = Author.where(name: "David")
+
+    assert_nil davids.destroy_all
+  end
+
+  def test_destroy_all_deprecated_returns_collection
+    ActiveRecord::Base.destroy_all_in_batches = false
+    davids = Author.where(name: "David")
+
     # Force load
     assert_equal [authors(:david)], davids.to_a
     assert_predicate davids, :loaded?
 
-    assert_difference("Author.count", -1) do
-      destroyed = davids.destroy_all
-      assert_equal [authors(:david)], destroyed
-      assert_predicate destroyed.first, :frozen?
+    assert_deprecated do
+      assert_difference("Author.count", -1) do
+        destroyed = davids.destroy_all
+        assert_equal [authors(:david)], destroyed
+        assert_predicate destroyed.first, :frozen?
+      end
     end
 
     assert_equal [], davids.to_a
     assert_predicate davids, :loaded?
+  ensure
+    ActiveRecord::Base.destroy_all_in_batches = true
   end
 
   def test_delete_all
