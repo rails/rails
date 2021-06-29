@@ -15,7 +15,8 @@ module ActionView
   class LookupContext #:nodoc:
     attr_accessor :prefixes, :rendered_format
 
-    mattr_accessor :registered_details, default: []
+    singleton_class.attr_accessor :registered_details
+    self.registered_details = []
 
     def self.register_detail(name, &block)
       registered_details << name
@@ -176,7 +177,7 @@ module ActionView
         @detail_args_for_any ||= begin
           details = {}
 
-          registered_details.each do |k|
+          LookupContext.registered_details.each do |k|
             if k == :variants
               details[k] = :any
             else
@@ -238,7 +239,7 @@ module ActionView
     end
 
     def initialize_details(target, details)
-      registered_details.each do |k|
+      LookupContext.registered_details.each do |k|
         target[k] = details[k] || Accessors::DEFAULT_PROCS[k].call
       end
       target
