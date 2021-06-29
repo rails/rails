@@ -26,6 +26,38 @@ Rails generally stays close to the latest released Ruby version when it's releas
 
 It's a good idea to upgrade Ruby and Rails separately. Upgrade to the latest Ruby you can first, and then upgrade Rails.
 
+#### Ruby 3 breaking changes
+
+Ruby 3 introduces breaking changes to [keyword arguments](https://www.ruby-lang.org/en/news/2019/12/12/separation-of-positional-and-keyword-arguments-in-ruby-3-0/). Whilst we do our best in order to make sure the Rails API is compatible between supported Ruby versions sometimes this isn't possible, below you'll find some (but not all) examples of such issues.
+
+Passing the keyword argument as the last hash parameter is no longer working, you need to transform the hash parameter to keywords by using the double splat operator `**`:
+
+Before:
+
+```ruby
+class User < ApplicationRecord
+  def add_error
+    errors.add(:name, :invalid, { message: "ops there was an error." })
+  end
+end
+
+User.new.add_error
+# Works in Ruby <= 2.7, raises ArgumentError in Ruby 3
+```
+
+After:
+
+```ruby
+class User < ApplicationRecord
+  def add_error
+    errors.add(:name, :invalid, **{ message: "ops there was an error." })
+  end
+end
+
+User.new.add_error
+# Works correctly in Ruby 2.x and 3
+```
+
 ### The Upgrade Process
 
 When changing Rails versions, it's best to move slowly, one minor version at a time, in order to make good use of the deprecation warnings. Rails version numbers are in the form Major.Minor.Patch. Major and Minor versions are allowed to make changes to the public API, so this may cause errors in your application. Patch versions only include bug fixes, and don't change any public API.
