@@ -669,6 +669,11 @@ ActiveRecord::Schema.define do
     t.string   :name
   end
 
+  create_table :service_contracts, force: true do |t|
+    t.integer :car_id
+    t.datetime :expires_at
+  end
+
   create_table :movies, force: true, id: false do |t|
     t.primary_key :movieid
     t.string      :name

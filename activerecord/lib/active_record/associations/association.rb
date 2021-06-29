@@ -53,6 +53,7 @@ module ActiveRecord
         @target = nil
         @stale_state = nil
         @inversed = false
+        reset_scope
       end
 
       def reset_negative_cache # :nodoc:

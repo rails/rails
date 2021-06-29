@@ -12,6 +12,7 @@ class Car < ActiveRecord::Base
   has_many :awesome_bulbs, -> { awesome }, class_name: "Bulb"
 
   has_one :bulb
+  has_one :active_service_contract, -> { active }, class_name: "ServiceContract"
 
   has_many :tyres
   has_many :engines, dependent: :destroy, inverse_of: :my_car

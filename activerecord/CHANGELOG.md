@@ -1,3 +1,22 @@
+*   Association#reset also resets the cached `association_scope`
+
+    After loading a `has_one` association on an object then resetting the
+    association, calling save on the object has the effect of loading the
+    association again (as part of
+    `AutosaveAssocation#save_has_one_association`). When the association is
+    loaded in this way, the query to find the associated record was based on
+    the `association_scope` as evaluated originally. The conditions were
+    not _re_-evaluated, meaning they could be stale. If the scope includes
+    `Time.current`, for example, the cached `association_scope` would include
+    an old timestamp.
+
+    Now, when resetting an association, the `association_scope` is also reset.
+    hen the association is later reloaded, the scope is evaluated afresh.
+
+    Fixes #42637
+
+    *Ollie Haydon-Mulligan*
+
 *   Accept optional transaction args to `ActiveRecord::Locking::Pessimistic#with_lock`
 
     `#with_lock` now accepts transaction options like `requires_new:`,
