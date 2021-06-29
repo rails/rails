@@ -361,6 +361,18 @@ module Arel
           SELECT * FROM "replies"
         }
       end
+
+      it "should support Strings" do
+        users_top      = Table.new(:users_top)
+        comments       = Table.new(:comments)
+
+        select_manager = comments.project(Arel.star).with('"users_top" AS (SELECT "users"."id" FROM "users" WHERE "users"."karma" > 100)')
+                          .where(comments[:author_id].in(users_top.project(users_top[:id])))
+
+        _(select_manager.to_sql).must_be_like %{
+          WITH "users_top" AS (SELECT "users"."id" FROM "users" WHERE "users"."karma" > 100) SELECT * FROM "comments" WHERE "comments"."author_id" IN (SELECT "users_top"."id" FROM "users_top")
+        }
+      end
     end
 
     describe "ast" do

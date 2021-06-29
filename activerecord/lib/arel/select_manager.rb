@@ -226,7 +226,13 @@ module Arel # :nodoc: all
       else
         node_class = Nodes::With
       end
-      @ast.with = node_class.new(subqueries.flatten)
+      @ast.with = node_class.new(subqueries.flatten.map do |subquery|
+        if String === subquery
+          Arel.sql(subquery)
+        else
+          subquery
+        end
+      end)
 
       self
     end
