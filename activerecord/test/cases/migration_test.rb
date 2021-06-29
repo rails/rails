@@ -15,6 +15,12 @@ require MIGRATIONS_ROOT + "/rename/1_we_need_things"
 require MIGRATIONS_ROOT + "/rename/2_rename_things"
 require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
 
+class ValidPeopleHaveLastNames < ActiveRecord::Migration::Current
+  def change
+    drop_table :people
+  end
+end
+
 class BigNumber < ActiveRecord::Base
   unless current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
     attribute :value_of_e, :integer
@@ -106,6 +112,14 @@ class MigrationTest < ActiveRecord::TestCase
 
     ActiveRecord::SchemaMigration.create!(version: 3)
     assert_equal true, migrator.needs_migration?
+  end
+
+  def test_name_collision_across_dbs
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    migrator = ActiveRecord::MigrationContext.new(migrations_path)
+    migrator.up
+
+    assert_column Person, :last_name
   end
 
   def test_migration_detection_without_schema_migration_table
