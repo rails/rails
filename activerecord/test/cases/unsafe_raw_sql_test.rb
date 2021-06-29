@@ -171,7 +171,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
       Post.order("REPLACE(title, 'misc', 'zzzz')")
     end
 
-    assert_match(/Query method called with non-attribute argument\(s\):/, e.message)
+    assert_match(/Dangerous query method \(method whose arguments are used as raw SQL\) called with non-attribute argument\(s\):/, e.message)
   end
 
   test "pluck: allows string column name" do
@@ -269,6 +269,6 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
       Post.includes(:comments).pluck(:title, "REPLACE(title, 'misc', 'zzzz')")
     end
 
-    assert_match(/Query method called with non-attribute argument\(s\):/, e.message)
+    assert_match(/Dangerous query method \(method whose arguments are used as raw SQL\) called with non-attribute argument\(s\):/, e.message)
   end
 end
