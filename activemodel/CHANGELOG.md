@@ -79,6 +79,9 @@
     some edge cases won’t be covered, like `errors#first` will return `ActiveModel::Error` and manipulating
     `errors.messages` and `errors.details` hashes directly will have no effect. Moving forward,
     please convert those direct manipulations to use provided API methods instead.
+    Please note that `errors#add` now accepts `options` as keyword arguments instead of `Hash` which
+    introduced a change in Ruby 3 to [keyword arguments](https://www.ruby-lang.org/en/news/2019/12/12/separation-of-positional-and-keyword-arguments-in-ruby-3-0/).
+    arguments](https://www.ruby-lang.org/en/news/2019/12/12/separation-of-positional-and-keyword-arguments-in-ruby-3-0/).
 
     The list of deprecated methods and their planned future behavioral changes at the next major release are:
 
