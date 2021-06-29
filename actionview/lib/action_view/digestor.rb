@@ -46,7 +46,7 @@ module ActionView
 
         path = TemplatePath.parse(name)
 
-        if !interpolated && (template = find_template(finder, path.name, [path.prefix], partial, []))
+        if !interpolated && (template = find_template(finder, path.name, [path.prefix], partial))
           if node = seen[template.identifier] # handle cycles in the tree
             node
           else
@@ -68,9 +68,9 @@ module ActionView
       end
 
       private
-        def find_template(finder, name, prefixes, partial, keys)
+        def find_template(finder, name, prefixes, partial)
           finder.disable_cache do
-            finder.find_all(name, prefixes, partial, keys).first
+            finder.find_all(name, prefixes, partial, []).first
           end
         end
     end
