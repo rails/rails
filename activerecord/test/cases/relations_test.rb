@@ -1179,6 +1179,39 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_predicate posts.limit(1), :many?
   end
 
+  def test_none_one_and_many_with_groups
+    no_posts = Post.where(tags_count: 999).group(:tags_count)
+    assert_equal 0, no_posts.count.size
+    one_post = Post.where(tags_count: 3).group(:tags_count)
+    assert_equal 1, one_post.count.size
+    many_posts = Post.group(:tags_count)
+    assert_equal 3, many_posts.count.size
+
+    assert_predicate no_posts, :none?
+    assert_not_predicate one_post, :none?
+    assert_not_predicate many_posts, :none?
+
+    assert_not_predicate no_posts, :one?
+    assert_predicate one_post, :one?
+    assert_not_predicate many_posts, :one?
+
+    assert_not_predicate no_posts, :many?
+    assert_not_predicate one_post, :many?
+    assert_predicate many_posts, :many?
+  end
+
+  def test_one_with_groups
+    posts = Post.group(:tags_count)
+    assert_predicate posts, :many?
+    assert_not_predicate posts, :one?
+  end
+
+  def test_none_with_groups
+    posts = Post.group(:tags_count)
+    assert_predicate posts, :many?
+    assert_not_predicate posts, :one?
+  end
+
   def test_none?
     posts = Post.all
     assert_queries(1) do

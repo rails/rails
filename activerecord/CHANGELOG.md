@@ -1,3 +1,15 @@
+*   Adds support for `one?` and `many?` to handle grouped relations.
+
+    Both `one?` and `many?` defined on `ActiveRecord::Relation` use `count(:all)` which does not return an
+    Integer but a Hash when there is a `group` clause present. `one?` would compare the returned hash with `1`
+    and always return false, `many?` would raise a `TypeError`.
+
+    Now, `one?` and `many?` will return true if the relation contains one, c.q. more than one *group*.
+
+    Fixes #41870
+
+    *Michiel de Mare*
+
 *   Relation#destroy_all perform its work in batches
 
     Since destroy_all actually loads the entire relation and then iteratively destroys the records one by one,

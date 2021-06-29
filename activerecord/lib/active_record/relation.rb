@@ -296,14 +296,14 @@ module ActiveRecord
     def one?
       return super if block_given?
       return records.one? if limit_value || loaded?
-      limited_count == 1
+      (limited_count.is_a?(Hash) ? limited_count.size : limited_count) == 1
     end
 
     # Returns true if there is more than one record.
     def many?
       return super if block_given?
       return records.many? if limit_value || loaded?
-      limited_count > 1
+      (limited_count.is_a?(Hash) ? limited_count.size : limited_count) > 1
     end
 
     # Returns a stable cache key that can be used to identify this query.
