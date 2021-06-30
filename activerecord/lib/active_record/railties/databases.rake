@@ -94,9 +94,11 @@ db_namespace = namespace :db do
       original_db_config = ActiveRecord::Base.connection_db_config
       mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions(db_configs)
 
-      mapped_versions.sort.each do |version, db_config|
-        ActiveRecord::Base.establish_connection(db_config)
-        ActiveRecord::Tasks::DatabaseTasks.migrate(version)
+      mapped_versions.sort.each do |version, db_configs|
+        db_configs.each do |db_config|
+          ActiveRecord::Base.establish_connection(db_config)
+          ActiveRecord::Tasks::DatabaseTasks.migrate(version)
+        end
       end
     end
 

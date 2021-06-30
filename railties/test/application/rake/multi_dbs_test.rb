@@ -451,6 +451,42 @@ module ApplicationTests
         end
       end
 
+      test "migrations in different directories can have the same timestamp" do
+        require "#{app_path}/config/environment"
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+            def change
+	      create_table :posts do |t|
+		t.string :title
+
+		t.timestamps
+	      end
+            end
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+            def change
+	      create_table :dogs do |t|
+		t.string :name
+
+		t.timestamps
+	      end
+            end
+          end
+        MIGRATION
+
+        Dir.chdir(app_path) do
+          output = rails "db:migrate"
+          entries = output.scan(/^== (\d+).+migrated/).map(&:first).map(&:to_i)
+
+          assert_match(/dogs/, output)
+          assert_match(/posts/, output)
+          assert_equal [1, 1], entries
+        end
+      end
+
       test "db:migrate and db:schema:dump and db:schema:load works on all databases" do
         db_migrate_and_schema_dump_and_load
       end
