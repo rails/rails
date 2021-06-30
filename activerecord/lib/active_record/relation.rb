@@ -560,7 +560,7 @@ module ActiveRecord
     # Destroys the records by instantiating each
     # record and calling its {#destroy}[rdoc-ref:Persistence#destroy] method.
     # Each object's callbacks are executed (including <tt>:dependent</tt> association options).
-    # Returns the collection of objects that were destroyed if
+    # Returns the collection of records that were destroyed if
     # +config.active_record.destroy_all_in_batches+ is set to +false+. Each
     # will be frozen, to reflect that no changes should be made (since they can't be persisted).
     #
@@ -576,8 +576,8 @@ module ActiveRecord
     #   Person.where(age: 0..18).destroy_all
     #
     # If +config.active_record.destroy_all_in_batches+ is set to +true+, it will ensure
-    # to perform the record's deletion in batches
-    # and destroy_all won't longer return the collection of the deleted records
+    # to perform the deletion of records in batches
+    # and +destroy_all+ will no longer return the collection of destroyed records.
     #
     # ==== Options
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
@@ -647,7 +647,12 @@ module ActiveRecord
 
     # Finds and destroys all records matching the specified conditions.
     # This is short-hand for <tt>relation.where(condition).destroy_all</tt>.
-    # Returns the collection of objects that were destroyed.
+    # Returns the collection of records that were destroyed if
+    # +config.active_record.destroy_all_in_batches+ is set to +false+.
+    #
+    # If +config.active_record.destroy_all_in_batches+ is set to +true+, it will ensure
+    # to perform the deletion of records in batches
+    # and +destroy_by+ will no longer return the collection of destroyed records.
     #
     # If no record is found, returns empty array.
     #
