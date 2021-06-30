@@ -215,11 +215,21 @@ module LocalCacheBehavior
     app.call({})
   end
 
+  def test_expired_local_entry
+    @cache.with_local_cache do
+      @cache.write("foo", "bar", expires_in: 10)
+      @peek.write("foo", "baz", expires_in: 20)
+      assert_equal "bar", @cache.read("foo")
+      travel(15) do
+        assert_equal "baz", @cache.read("foo")
+      end
+    end
+  end
+
   def test_local_race_condition_protection
     @cache.with_local_cache do
-      time = Time.now
       @cache.write("foo", "bar", expires_in: 60)
-      Time.stub(:now, time + 61) do
+      travel(61) do
         result = @cache.fetch("foo", race_condition_ttl: 10) do
           assert_equal "bar", @cache.read("foo")
           "baz"

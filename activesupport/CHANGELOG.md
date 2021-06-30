@@ -1,3 +1,12 @@
+*   Fix `ActiveSupport::Cache` local cache strategy read of expired entries.
+
+    Previously if the local cache contained an expired entry, attempting to read it would
+    result in a cache miss regardless of the central cache content.
+
+    Now the expired entry is pruned from the local cache, and the central cache is read instead.
+
+    *Jean Boussier*
+
 *   `TimeZone.iso8601` now accepts valid ordinal values similar to Ruby's `Date._iso8601` method.
     A valid ordinal value will be converted to an instance of `TimeWithZone` using the `:year`
     and `:yday` fragments returned from `Date._iso8601`.
