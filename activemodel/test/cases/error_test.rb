@@ -176,6 +176,28 @@ class ErrorTest < ActiveModel::TestCase
     assert_equal "press the button", error.full_message
   end
 
+  test "full_message returns the given message when passed full_message option" do
+    error = ActiveModel::Error.new(Person.new, :name, full_message: "press the button")
+    assert_equal "press the button", error.full_message
+  end
+
+  test "full_message returns the given message when passed message_format option" do
+    error = ActiveModel::Error.new(Person.new, :name, message: "press the button", message_format: "%{message}")
+    assert_equal "press the button", error.full_message
+
+    error = ActiveModel::Error.new(Person.new, :name, message: "should be valid", message_format: "%{attribute} %{message}")
+    assert_equal "name should be valid", error.full_message
+
+    error = ActiveModel::Error.new(Person.new, :name, :blank, message_format: "%{attribute} %{message}")
+    assert_equal "name can't be blank", error.full_message
+
+    error = ActiveModel::Error.new(Person.new, :name, :blank, message_format: "%{message}")
+    assert_equal "can't be blank", error.full_message
+
+    error = ActiveModel::Error.new(Person.new, :name, :blank, message_format: "something hardcoded")
+    assert_equal "something hardcoded", error.full_message
+  end
+
   test "full_message returns the given message with the attribute name included" do
     error = ActiveModel::Error.new(Person.new, :name, :blank)
     assert_equal "name can't be blank", error.full_message
@@ -232,7 +254,9 @@ class ErrorTest < ActiveModel::TestCase
       allow_nil: false,
       allow_blank: false,
       strict: true,
-      message: "message"
+      message: "message",
+      message_format: "%{message}",
+      full_message: "message",
     )
 
     assert_equal(

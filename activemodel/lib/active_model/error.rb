@@ -8,11 +8,11 @@ module ActiveModel
   # Represents one single error
   class Error
     CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
-    MESSAGE_OPTIONS = [:message]
+    MESSAGE_OPTIONS = [:message, :full_message, :message_format]
 
     class_attribute :i18n_customize_full_message, default: false
 
-    def self.full_message(attribute, message, base) # :nodoc:
+    def self.full_message(attribute, message, base, message_format = nil) # :nodoc:
       return message if attribute == :base
 
       base_class = base.class
@@ -46,8 +46,14 @@ module ActiveModel
         defaults = []
       end
 
-      defaults << :"errors.format"
-      defaults << "%{attribute} %{message}"
+
+      if message_format
+        defaults << :"errors._hardcoded_format"
+        defaults << message_format
+      else
+        defaults << :"errors.format"
+        defaults << "%{attribute} %{message}"
+      end
 
       attr_name = attribute.tr(".", "_").humanize
       attr_name = base_class.human_attribute_name(attribute, {
@@ -106,6 +112,11 @@ module ActiveModel
       @raw_type = type
       @type = type || :invalid
       @options = options
+
+      if full_message = @options.delete(:full_message)
+        @options[:message] = full_message
+        @options[:message_format] ||= "%{message}"
+      end
     end
 
     def initialize_dup(other) # :nodoc:
@@ -156,7 +167,7 @@ module ActiveModel
     #   error.full_message
     #   # => "Name is too short (minimum is 5 characters)"
     def full_message
-      self.class.full_message(attribute, message, @base)
+      self.class.full_message(attribute, message, @base, @options[:message_format])
     end
 
     # See if error matches provided +attribute+, +type+ and +options+.

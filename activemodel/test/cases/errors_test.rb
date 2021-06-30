@@ -596,6 +596,12 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal "press the button", person.errors.full_message(:base, "press the button")
   end
 
+  test "full_message returns the given message when message_format is passed in" do
+    person = Person.new
+    assert_equal "cannot be blank", person.errors.full_message(:name, "cannot be blank", message_format: "%{message}")
+    assert_equal "cannot be blank", person.errors.full_message(:name_test, "cannot be blank", message_format: "%{message}")
+  end
+
   test "full_message returns the given message with the attribute name included" do
     person = Person.new
     assert_equal "name cannot be blank", person.errors.full_message(:name, "cannot be blank")
