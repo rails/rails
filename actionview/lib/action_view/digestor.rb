@@ -80,14 +80,14 @@ module ActionView
 
       def self.create(name, logical_name, template, partial)
         klass = partial ? Partial : Node
-        klass.new(name, logical_name, template, [])
+        klass.new(name, logical_name, template)
       end
 
-      def initialize(name, logical_name, template, children = [])
+      def initialize(name, logical_name, template)
         @name         = name
         @logical_name = logical_name
         @template     = template
-        @children     = children
+        @children     = []
       end
 
       def digest(finder, stack = [])
