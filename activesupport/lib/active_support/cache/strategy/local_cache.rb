@@ -146,7 +146,17 @@ module ActiveSupport
           end
 
           def fetch_entry(key, options = nil) # :nodoc:
-            @data.fetch(key) { @data[key] = Entry.build(yield) }
+            hit = true
+            entry = @data.fetch(key) do
+              hit = false
+              @data[key] = Entry.build(yield)
+            end
+
+            if hit && entry&.expired?
+              @data.delete(key)
+              entry = @data[key] = Entry.build(yield)
+            end
+            entry
           end
         end
 
