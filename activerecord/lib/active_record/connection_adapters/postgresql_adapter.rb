@@ -159,6 +159,7 @@ module ActiveRecord
         money:       { name: "money" },
         interval:    { name: "interval" },
         oid:         { name: "oid" },
+        enum:        {} # special type https://www.postgresql.org/docs/current/datatype-enum.html
       }
 
       OID = PostgreSQL::OID #:nodoc:
@@ -432,6 +433,36 @@ module ActiveRecord
 
       def extensions
         exec_query("SELECT extname FROM pg_extension", "SCHEMA").cast_values
+      end
+
+      def enum_types
+        query = <<~SQL
+          SELECT
+            type.typname AS name,
+            string_agg(enum.enumlabel, ',') AS value
+          FROM pg_enum AS enum
+          JOIN pg_type AS type
+            ON (type.oid = enum.enumtypid)
+          GROUP BY type.typname;
+        SQL
+        exec_query(query, "SCHEMA").cast_values
+      end
+
+      def create_enum(name, values)
+        sql_values = values.map { |s| "'#{s}'" }.join(", ")
+        query = <<~SQL
+          DO $$
+          BEGIN
+              IF NOT EXISTS (
+                SELECT 1 FROM pg_type t
+                WHERE t.typname = '#{name}'
+              ) THEN
+                  CREATE TYPE \"#{name}\" AS ENUM (#{sql_values});
+              END IF;
+          END
+          $$;
+        SQL
+        exec_query(query)
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL
