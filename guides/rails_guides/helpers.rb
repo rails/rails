@@ -5,7 +5,7 @@ require "yaml"
 module RailsGuides
   module Helpers
     def guide(name, url, options = {}, &block)
-      link = content_tag(:a, href: url) { name }
+      link = content_tag(:a, id: name.parameterize, href: url) { name }
       result = content_tag(:dt, link)
 
       if options[:work_in_progress]
