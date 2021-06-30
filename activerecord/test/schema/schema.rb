@@ -669,11 +669,6 @@ ActiveRecord::Schema.define do
     t.string   :name
   end
 
-  create_table :service_contracts, force: true do |t|
-    t.integer :car_id
-    t.datetime :expires_at
-  end
-
   create_table :movies, force: true, id: false do |t|
     t.primary_key :movieid
     t.string      :name
@@ -946,6 +941,11 @@ ActiveRecord::Schema.define do
       t.belongs_to :session, foreign_key: true
       t.belongs_to :seminar, foreign_key: true
     end
+  end
+
+  create_table :service_contracts, force: true do |t|
+    t.integer :car_id
+    t.datetime :expires_at
   end
 
   create_table :shape_expressions, force: true do |t|
