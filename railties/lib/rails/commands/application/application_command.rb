@@ -25,13 +25,7 @@ module Rails
       def perform(*args)
         Rails::Generators::AppGenerator.start \
           Rails::Generators::ARGVScrubber.new(args).prepare!
-        exit(1) if invalid_command?(args.first)
       end
-
-      private
-        def invalid_command?(argument)
-          argument.present? && !Rails::Generators::ARGVScrubber.valid_argument?(argument)
-        end
     end
   end
 end

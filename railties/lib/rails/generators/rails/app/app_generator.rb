@@ -600,8 +600,8 @@ module Rails
     end
 
     # This class handles preparation of the arguments before the AppGenerator is
-    # called. The class provides version or help information if they were
-    # requested, and also constructs the railsrc file (used for extra configuration
+    # called. The class provides help information if it was requested,
+    # and also constructs the railsrc file (used for extra configuration
     # options).
     #
     # This class should be called before the AppGenerator is required and started
@@ -612,7 +612,6 @@ module Rails
       end
 
       def prepare!
-        handle_version_request!(@argv.first)
         handle_invalid_command!(@argv.first, @argv) do
           handle_rails_rc!(@argv.drop(1))
         end
@@ -628,21 +627,9 @@ module Rails
         end
       end
 
-      def self.valid_argument?(argument)
-        argument == "new"
-      end
-
       private
-        def handle_version_request!(argument)
-          if ["--version", "-v"].include?(argument)
-            require "rails/version"
-            puts "Rails #{Rails::VERSION::STRING}"
-            exit(0)
-          end
-        end
-
         def handle_invalid_command!(argument, argv)
-          if self.class.valid_argument?(argument)
+          if argument == "new"
             yield
           else
             ["--help"] + argv.drop(1)

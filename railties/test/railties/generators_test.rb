@@ -28,7 +28,7 @@ module RailtiesTests
     end
 
     def rails(cmd)
-      `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails #{cmd}`
+      `#{rails_executable} #{cmd}`
     end
 
     def build_engine(is_mountable = false)

@@ -95,6 +95,12 @@ module TestHelpers
     end
   end
 
+  module Cli
+    def rails_executable
+      "#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails"
+    end
+  end
+
   module Generation
     # Build an application by invoking the generator and going through the whole stack.
     def build_app(options = {})
@@ -490,6 +496,7 @@ end
 
 class ActiveSupport::TestCase
   include TestHelpers::Paths
+  include TestHelpers::Cli
   include TestHelpers::Rack
   include TestHelpers::Generation
   include TestHelpers::Reload
@@ -500,6 +507,7 @@ end
 # Create a scope and build a fixture rails app
 Module.new do
   extend TestHelpers::Paths
+  extend TestHelpers::Cli
 
   def self.sh(cmd)
     output = `#{cmd}`
@@ -510,7 +518,7 @@ Module.new do
   FileUtils.rm_rf(app_template_path)
   FileUtils.mkdir_p(app_template_path)
 
-  sh "#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --skip-spring --skip-listen --no-rc --skip-webpack-install --quiet"
+  sh "#{rails_executable} new #{app_template_path} --skip-bundle --skip-spring --skip-listen --no-rc --skip-webpack-install --quiet"
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
     f.puts 'require "rails/all"'
   end

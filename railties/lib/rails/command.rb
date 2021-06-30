@@ -16,6 +16,7 @@ module Rails
     include Behavior
 
     HELP_MAPPINGS = %w(-h -? --help)
+    VERSION_MAPPINGS = %w(-v --version)
 
     class << self
       def hidden_commands # :nodoc:
@@ -38,7 +39,7 @@ module Rails
 
         command_name, namespace = "help", "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
         command_name, namespace, args = "application", "application", ["--help"] if rails_new_with_no_path?(args)
-        command_name, namespace = "version", "version" if %w( -v --version ).include?(command_name)
+        command_name, namespace = "version", "version" if VERSION_MAPPINGS.include?(command_name)
 
         original_argv = ARGV.dup
         ARGV.replace(args)
@@ -86,6 +87,21 @@ module Rails
 
       def print_commands # :nodoc:
         commands.each { |command| puts("  #{command}") }
+      end
+
+      def exec_outside_of_project_directory(argv)
+        case argv.first
+        when "plugin"
+          argv.shift
+          invoke :plugin, argv
+        when *VERSION_MAPPINGS
+          invoke :version
+        when nil, "new", *HELP_MAPPINGS
+          invoke :application, argv
+        else
+          invoke :application, ["--help"]
+          exit(1)
+        end
       end
 
       private
