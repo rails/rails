@@ -22,6 +22,7 @@ module ActionText
       def to_trix_attachment(content = trix_attachment_content)
         attributes = full_attributes.dup
         attributes["content"] = content if content
+        attributes["url"] = trix_attachable_url if previewable_attachable? && previewable?
         TrixAttachment.from_attributes(attributes)
       end
 
@@ -30,6 +31,10 @@ module ActionText
           if partial_path = attachable.try(:to_trix_content_attachment_partial_path)
             ActionText::Content.render(partial: partial_path, formats: :html, object: self, as: model_name.element)
           end
+        end
+
+        def trix_attachable_url
+          Rails.application.routes.url_helpers.rails_blob_url(self.preview_image.blob, only_path: true)
         end
     end
   end
