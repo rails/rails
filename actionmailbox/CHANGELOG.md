@@ -1,3 +1,19 @@
+*   Add ability to configure ActiveStorage service
+    for storing email raw source.
+
+    ```yml
+    # config/storage.yml
+    incoming_emails:
+      service: Disk
+      root: /secure/dir/for/emails/only
+    ```
+
+    ```ruby
+    config.action_mailbox.storage_service = :incoming_emails
+    ```
+
+    *Yurii Rashkovskii*
+
 *   Add ability to incinerate an inbound message through the conductor interface.
 
     *Santiago Bartesaghi*
