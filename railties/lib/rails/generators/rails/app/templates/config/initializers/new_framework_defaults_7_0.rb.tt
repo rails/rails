@@ -55,3 +55,6 @@
 
 # Enforce destroy in batches when calling ActiveRecord::Relation#destroy_all
 # Rails.application.config.active_record.destroy_all_in_batches = true
+
+# Raise when running tests if fixtures contained foreign key violations
+# Rails.application.config.active_record.verify_foreign_keys_for_fixtures = true

@@ -211,6 +211,10 @@ module ActiveRecord
         end
       end
 
+      def all_foreign_keys_valid? # :nodoc:
+        execute("PRAGMA foreign_key_check").blank?
+      end
+
       # SCHEMA STATEMENTS ========================================
 
       def primary_keys(table_name) # :nodoc:
