@@ -17,6 +17,7 @@ require "models/chef"
 require "models/department"
 require "models/club"
 require "models/membership"
+require "models/service_contract"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -872,5 +873,16 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
       car.build_special_bulb
       car.build_special_bulb
     end
+  end
+
+  def test_reset_then_save_loads_association_with_correct_scope
+    car = Car.create
+    car.create_active_service_contract
+    car.active_service_contract.update(expires_at: Time.current)
+    car.association(:active_service_contract).reset
+
+    car.save
+
+    assert_nil car.active_service_contract
   end
 end

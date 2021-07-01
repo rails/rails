@@ -44,7 +44,6 @@ module ActiveRecord
         @disable_joins = @reflection.options[:disable_joins] || false
 
         reset
-        reset_scope
       end
 
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
@@ -53,6 +52,7 @@ module ActiveRecord
         @target = nil
         @stale_state = nil
         @inversed = false
+        reset_scope
       end
 
       def reset_negative_cache # :nodoc:
@@ -64,7 +64,6 @@ module ActiveRecord
       def reload(force = false)
         klass.connection.clear_query_cache if force && klass
         reset
-        reset_scope
         load_target
         self unless target.nil?
       end

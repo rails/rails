@@ -1,3 +1,15 @@
+*   `Association#reset` also resets the association scope.
+
+    After loading a `has_one` association on an object and calling `reset`,
+    calling `save` would reload the association using a cached scope, which
+    could result in incorrect associated objects.
+
+    Now when resetting an association, the association's scope is also reset.
+
+    Fixes #42637
+
+    *Ollie Haydon-Mulligan*
+
 *   Relation#destroy_all perform its work in batches
 
     Since destroy_all actually loads the entire relation and then iteratively destroys the records one by one,

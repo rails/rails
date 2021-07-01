@@ -938,6 +938,11 @@ ActiveRecord::Schema.define do
     end
   end
 
+  create_table :service_contracts, force: true do |t|
+    t.integer :car_id
+    t.datetime :expires_at
+  end
+
   create_table :shape_expressions, force: true do |t|
     t.string  :paint_type
     t.integer :paint_id
