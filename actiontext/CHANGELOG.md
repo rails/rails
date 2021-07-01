@@ -1,3 +1,13 @@
+*   Introduces Action Text for API only application.
+
+    You can install Action Text for API only application using:
+
+    ```ruby
+      ./bin/rails action_text:install:api
+    ```
+
+    *Abhay Nikam*
+
 *   Add support for passing `form:` option to `rich_text_area_tag` and
     `rich_text_area` helpers to specify the `<input type="hidden" form="...">`
     value.

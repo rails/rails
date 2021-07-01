@@ -228,6 +228,28 @@ By default, all `ActiveRecord::Base` descendants mix-in
 
 [global-id]: https://github.com/rails/globalid#usage
 
+### API Applications
+
+Action Text in API only application helps in managing the
+rich text content with embedded attachments.
+
+You can install Action Text for API only application using:
+
+```bash
+$ ./bin/rails action_text:install:api
+```
+
+Action Text in API only application can only serve the raw HTML
+and processed Trix HTML. The [Trix editor](https://trix-editor.org)
+will handle formatting of Trix HTML in the editor.
+
+Your API response would look something like:
+
+```ruby
+json.title post.title
+json.content post.content.to_trix_html
+```
+
 ## Avoid N+1 queries
 
 If you wish to preload the dependent `ActionText::RichText` model, assuming your rich text field is named `content`, you can use the named scope:
