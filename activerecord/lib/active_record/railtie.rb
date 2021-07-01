@@ -150,11 +150,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
               next if current_version.nil?
 
               if cache.version != current_version
-                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
+                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.version}."
                 next
               end
             end
 
+            Rails.logger.info("Using schema cache file #{filename}")
             connection_pool.set_schema_cache(cache)
           end
         end
