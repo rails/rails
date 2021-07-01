@@ -338,6 +338,18 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_last_month
+    assert_equal Date.new(1998, 4, 10), Date.new(1998, 5, 10).last_month
+    assert_equal Date.new(2000, 9, 16), Date.new(2000, 10, 16).last_month
+    assert_equal Date.new(2021, 7, 1), Date.new(2021, 8, 1).last_month
+  end
+
+  def test_next_month
+    assert_equal Date.new(1998, 5, 10), Date.new(1998, 4, 10).next_month
+    assert_equal Date.new(2000, 10, 16), Date.new(2000, 9, 16).next_month
+    assert_equal Date.new(2021, 8, 1), Date.new(2021, 7, 1).next_month
+  end
+
   def test_future
     Date.stub(:current, Date.new(2000, 1, 1)) do
       assert_equal false, Date.new(1999, 12, 31).future?
