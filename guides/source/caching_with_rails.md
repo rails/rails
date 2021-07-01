@@ -120,6 +120,15 @@ All cached templates from previous renders will be fetched at once with much
 greater speed. Additionally, the templates that haven't yet been cached will be
 written to cache and multi fetched on the next render.
 
+Cache entries of a collection will not be invalidated when a new entry is added. You
+can pass the `invalidate_on_new_entry` option to `cached` to add it:
+
+```html+erb
+<%= render partial: 'products/product', collection: @products, cached: { invalidate_on_new_entry: true } %>
+```
+
+If one of the item present in `@products` is not present in the cache, all items of the collection will be re-rendered.
+
 ### Russian Doll Caching
 
 You may want to nest cached fragments inside other cached fragments. This is

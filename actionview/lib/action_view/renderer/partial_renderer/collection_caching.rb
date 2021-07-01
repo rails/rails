@@ -13,6 +13,26 @@ module ActionView
     end
 
     private
+      CACHE_OPTIONS_KEYS = [:cache_key_proc, :invalidate_on_new_entry].freeze
+
+      def extract_cache_options(options)
+        extracted_options = {}
+
+        case options
+        when Proc
+          extracted_options[:cache_key_proc] = options
+        when Hash
+          extracted_options = options.slice(*CACHE_OPTIONS_KEYS)
+        end
+
+        extracted_options[:cache_key_proc] = ->(i) { i } unless extracted_options[:cache_key_proc].respond_to?(:call)
+        extracted_options
+      end
+
+      def cache_options
+        @cache_options ||= extract_cache_options(@options[:cached])
+      end
+
       def will_cache?(options, view)
         options[:cached] && view.controller.respond_to?(:perform_caching) && view.controller.perform_caching
       end
@@ -37,6 +57,14 @@ module ActionView
         # Extract the items for the keys that are not found
         collection = keyed_collection.reject { |key, _| cached_partials.key?(key) }.values
 
+        # If new entries are available to the collection and cache invalidation on
+        # new entry is required, we clear the cache and set the collection as the
+        # initial one
+        if !collection.empty? && cache_options[:invalidate_on_new_entry]
+          collection = keyed_collection.values
+          cached_partials = {}
+        end
+
         rendered_partials = collection.empty? ? [] : yield(collection_iterator.from_collection(collection))
 
         index = 0
@@ -51,12 +79,8 @@ module ActionView
         end
       end
 
-      def callable_cache_key?
-        @options[:cached].respond_to?(:call)
-      end
-
       def collection_by_cache_keys(view, template, collection)
-        seed = callable_cache_key? ? @options[:cached] : ->(i) { i }
+        seed = cache_options[:cache_key_proc]
 
         digest_path = view.digest_path_from_template(template)
 
