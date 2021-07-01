@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "action_view/caching_registry"
+
 module ActionView
   # = Action View Cache Helper
   module Helpers #:nodoc:
@@ -165,13 +167,27 @@ module ActionView
       # expire the cache.
       def cache(name = {}, options = {}, &block)
         if controller.respond_to?(:perform_caching) && controller.perform_caching
-          name_options = options.slice(:skip_digest)
-          safe_concat(fragment_for(cache_fragment_name(name, **name_options), options, &block))
+          begin
+            caching_was = ActionView::CachingRegistry.is_caching
+            ActionView::CachingRegistry.is_caching = true
+
+            name_options = options.slice(:skip_digest)
+            safe_concat(fragment_for(cache_fragment_name(name, **name_options), options, &block))
+          ensure
+            ActionView::CachingRegistry.is_caching = caching_was
+          end
         else
           yield
         end
 
         nil
+      end
+
+      # Whether the current code path is being cached.
+      #
+      #   <% raise StandardError.new("Caching private data!") if caching? %>
+      def caching?
+        !!ActionView::CachingRegistry.is_caching
       end
 
       # Cache fragments of a view if +condition+ is true
