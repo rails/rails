@@ -713,6 +713,7 @@ module ActionView
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
+      # * <tt>:include_seconds</tt> - Include seconds and ms in the output timestamp format (true by default).
       # * Otherwise accepts the same options as text_field_tag.
       def time_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :time))
