@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/string/access"
-require "digest/sha2"
+require "openssl"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -1532,7 +1532,7 @@ module ActiveRecord
         def foreign_key_name(table_name, options)
           options.fetch(:name) do
             identifier = "#{table_name}_#{options.fetch(:column)}_fk"
-            hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
+            hashed_identifier = OpenSSL::Digest::SHA256.hexdigest(identifier).first(10)
 
             "fk_rails_#{hashed_identifier}"
           end
@@ -1560,7 +1560,7 @@ module ActiveRecord
           options.fetch(:name) do
             expression = options.fetch(:expression)
             identifier = "#{table_name}_#{expression}_chk"
-            hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
+            hashed_identifier = OpenSSL::Digest::SHA256.hexdigest(identifier).first(10)
 
             "chk_rails_#{hashed_identifier}"
           end

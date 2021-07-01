@@ -305,7 +305,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   private
     def compute_checksum_in_chunks(io)
-      Digest::MD5.new.tap do |checksum|
+      OpenSSL::Digest::MD5.new.tap do |checksum|
         while chunk = io.read(5.megabytes)
           checksum << chunk
         end

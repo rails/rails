@@ -1,3 +1,7 @@
+*   OpenSSL constants are now used for Digest computations.
+
+    *Dirkjan Bussink*
+
 *   The Action Cable client now includes safeguards to prevent a "thundering
     herd" of client reconnects after server connectivity loss:
 
