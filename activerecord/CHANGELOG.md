@@ -2,8 +2,6 @@
 
     *Dirkjan Bussink*
 
-*   Relation#destroy_all perform its work in batches
-
 *   Prevent double saves in autosave of cyclic associations
 
     Since destroy_all actually loads the entire relation and then iteratively destroys the records one by one,
