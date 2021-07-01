@@ -4,6 +4,7 @@ import Consumer, { createWebSocketURL } from "./consumer"
 import INTERNAL from "./internal"
 import Subscription from "./subscription"
 import Subscriptions from "./subscriptions"
+import SubscriptionGuarantor from "./subscription_guarantor"
 import adapters from "./adapters"
 import logger from "./logger"
 
@@ -14,6 +15,7 @@ export {
   INTERNAL,
   Subscription,
   Subscriptions,
+  SubscriptionGuarantor,
   adapters,
   createWebSocketURL,
   logger,

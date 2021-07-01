@@ -132,6 +132,7 @@ Connection.prototype.events = {
       case message_types.ping:
         return this.monitor.recordPing()
       case message_types.confirmation:
+        this.subscriptions.confirmSubscription(identifier)
         return this.subscriptions.notify(identifier, "connected")
       case message_types.rejection:
         return this.subscriptions.reject(identifier)
