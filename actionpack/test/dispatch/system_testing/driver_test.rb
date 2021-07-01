@@ -148,13 +148,11 @@ class DriverTest < ActiveSupport::TestCase
     ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
   end
 
-  test "does not preload if used driver is not :selenium" do
-    assert_not_called_on_instance_of(ActionDispatch::SystemTesting::Browser, :preload) do
-      ActionDispatch::SystemTesting::Driver.new(:rack_test, using: :chrome)
-    end
+  test "does not configure browser if driver is not :selenium" do
+    # sanity check
+    assert ActionDispatch::SystemTesting::Driver.new(:selenium).instance_variable_get(:@browser)
 
-    assert_not_called_on_instance_of(ActionDispatch::SystemTesting::Browser, :preload) do
-      ActionDispatch::SystemTesting::Driver.new(:poltergeist)
-    end
+    assert_nil ActionDispatch::SystemTesting::Driver.new(:rack_test).instance_variable_get(:@browser)
+    assert_nil ActionDispatch::SystemTesting::Driver.new(:poltergeist).instance_variable_get(:@browser)
   end
 end
