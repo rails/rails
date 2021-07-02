@@ -537,6 +537,16 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "bukkits.gemspec", /spec\.version\s+ = Bukkits::VERSION/
   end
 
+  def test_gemspec_uses_optimistic_rails_version_constraint
+    rails_version = "1.2.3.4.pre5"
+
+    Rails.stub(:gem_version, Gem::Version.new(rails_version)) do
+      run_generator
+    end
+
+    assert_file "bukkits.gemspec", /add_dependency "rails", ">= #{Regexp.escape rails_version}"/
+  end
+
   def test_usage_of_engine_commands
     run_generator [destination_root, "--full"]
     assert_file "bin/rails", /ENGINE_PATH = File\.expand_path\("\.\.\/lib\/bukkits\/engine", __dir__\)/
