@@ -47,4 +47,24 @@ class SecureRandomTest < ActiveSupport::TestCase
     assert_match(/^[a-z0-9]+$/, s1)
     assert_match(/^[a-z0-9]+$/, s2)
   end
+
+  def test_base64
+    s1 = SecureRandom.base64
+    s2 = SecureRandom.base64
+
+    assert_not_equal s1, s2
+    assert_equal 24, s1.length
+    assert_match(/^(?:[A-Za-z0-9+\/]{4}\n?)*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/, s2)
+    assert_match(/^(?:[A-Za-z0-9+\/]{4}\n?)*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/, s2)
+  end
+
+  def test_base64_with_length
+    s1 = SecureRandom.base64(24)
+    s2 = SecureRandom.base64(24)
+
+    assert_not_equal s1, s2
+    assert_equal 32, s1.length
+    assert_match(/^(?:[A-Za-z0-9+\/]{4}\n?)*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/, s1)
+    assert_match(/^(?:[A-Za-z0-9+\/]{4}\n?)*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/, s2)
+  end
 end
