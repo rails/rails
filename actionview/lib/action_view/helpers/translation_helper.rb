@@ -169,7 +169,7 @@ module ActionView
           end
         end
 
-        def missing_translation(key, options)
+        def missing_translation(key, **options)
           keys = I18n.normalize_keys(options[:locale] || I18n.locale, key, options[:scope])
 
           title = +"translation missing: #{keys.join(".")}"
