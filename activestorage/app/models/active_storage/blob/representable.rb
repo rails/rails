@@ -98,15 +98,7 @@ module ActiveStorage::Blob::Representable
 
   private
     def default_variant_transformations
-      { format: default_variant_format }
-    end
-
-    def default_variant_format
-      if web_image?
-        format || :png
-      else
-        :png
-      end
+      optimizer_class.new(self).transformations
     end
 
     def format
@@ -119,5 +111,9 @@ module ActiveStorage::Blob::Representable
 
     def variant_class
       ActiveStorage.track_variants ? ActiveStorage::VariantWithRecord : ActiveStorage::Variant
+    end
+
+    def optimizer_class
+      ActiveStorage.optimizers.detect { |klass| klass.accept?(format) }
     end
 end

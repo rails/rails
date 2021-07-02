@@ -1,3 +1,8 @@
+*   Adds `optimizers` to active storage, which allow transformations to be applied to all
+    representations of active storage blobs automatically, according to their format
+    
+    *Breno Gazzola*
+
 *   OpenSSL constants are now used for Digest computations.
 
     *Dirkjan Bussink*
