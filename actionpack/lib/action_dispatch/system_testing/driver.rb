@@ -45,7 +45,7 @@ module ActionDispatch
         end
 
         def register_selenium(app)
-          Capybara::Selenium::Driver.new(app, **{ browser: @browser.type }.merge(browser_options)).tap do |driver|
+          Capybara::Selenium::Driver.new(app, browser: @browser.type, **browser_options).tap do |driver|
             driver.browser.manage.window.size = Selenium::WebDriver::Dimension.new(*@screen_size)
           end
         end
@@ -61,7 +61,7 @@ module ActionDispatch
         end
 
         def register_rack_test(app)
-          Capybara::RackTest::Driver.new(app, { respect_data_method: true }.merge(@options))
+          Capybara::RackTest::Driver.new(app, respect_data_method: true, **@options)
         end
 
         def setup
