@@ -578,7 +578,7 @@ The schema dumper adds two additional configuration options:
     ```ruby
     config.action_dispatch.default_headers = {
       'X-Frame-Options' => 'SAMEORIGIN',
-      'X-XSS-Protection' => '1; mode=block',
+      'X-XSS-Protection' => '0',
       'X-Content-Type-Options' => 'nosniff',
       'X-Download-Options' => 'noopen',
       'X-Permitted-Cross-Domain-Policies' => 'none',
@@ -1101,6 +1101,16 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
 - `config.action_mailer.smtp_timeout`: `5`
 - `config.active_storage.video_preview_arguments`: `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
+- `config.action_dispatch.default_headers`:
+
+    {
+      "X-Frame-Options" => "SAMEORIGIN",
+      "X-XSS-Protection" => "0",
+      "X-Content-Type-Options" => "nosniff",
+      "X-Download-Options" => "noopen",
+      "X-Permitted-Cross-Domain-Policies" => "none",
+      "Referrer-Policy" => "strict-origin-when-cross-origin"
+    }
 
 #### For '6.1', defaults from previous versions below and:
 

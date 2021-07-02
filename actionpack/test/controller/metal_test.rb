@@ -15,7 +15,7 @@ class MetalControllerInstanceTests < ActiveSupport::TestCase
     ActionDispatch::Response.default_headers = {
       "X-Frame-Options" => "DENY",
       "X-Content-Type-Options" => "nosniff",
-      "X-XSS-Protection" => "1;"
+      "X-XSS-Protection" => "0"
     }
 
     response_headers = SimpleController.action("hello").call(

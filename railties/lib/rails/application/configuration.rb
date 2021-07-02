@@ -198,6 +198,14 @@ module Rails
           load_defaults "6.1"
 
           if respond_to?(:action_dispatch)
+            action_dispatch.default_headers = {
+              "X-Frame-Options" => "SAMEORIGIN",
+              "X-XSS-Protection" => "0",
+              "X-Content-Type-Options" => "nosniff",
+              "X-Download-Options" => "noopen",
+              "X-Permitted-Cross-Domain-Policies" => "none",
+              "Referrer-Policy" => "strict-origin-when-cross-origin"
+            }
             action_dispatch.return_only_request_media_type_on_content_type = false
           end
 
