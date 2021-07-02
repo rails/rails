@@ -398,6 +398,10 @@ module Rails
         end
       end
 
+      def rails_version_specifier(gem_version = Rails.gem_version)
+        [">= #{gem_version}"]
+      end
+
       def valid_const?
         if /-\d/.match?(original_name)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not contain a namespace starting with numeric characters."
