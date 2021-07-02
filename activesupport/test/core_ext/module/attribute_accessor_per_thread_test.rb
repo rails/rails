@@ -100,28 +100,28 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
         thread_cattr_reader "1nvalid"
       end
     end
-    assert_equal "invalid attribute name: 1nvalid", exception.message
+    assert_match "invalid attribute name: 1nvalid", exception.message
 
     exception = assert_raises NameError do
       Class.new do
         thread_cattr_writer "1nvalid"
       end
     end
-    assert_equal "invalid attribute name: 1nvalid", exception.message
+    assert_match "invalid attribute name: 1nvalid", exception.message
 
     exception = assert_raises NameError do
       Class.new do
         thread_mattr_reader "1valid_part"
       end
     end
-    assert_equal "invalid attribute name: 1valid_part", exception.message
+    assert_match "invalid attribute name: 1valid_part", exception.message
 
     exception = assert_raises NameError do
       Class.new do
         thread_mattr_writer "2valid_part"
       end
     end
-    assert_equal "invalid attribute name: 2valid_part", exception.message
+    assert_match "invalid attribute name: 2valid_part", exception.message
   end
 
   def test_should_return_same_value_by_class_or_instance_accessor
