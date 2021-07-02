@@ -896,7 +896,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     }
     assert_instance_of Topic, error.record
     assert_equal "hello", error.attribute
-    assert_equal "unknown attribute 'hello' for Topic.", error.message
+    assert_match "unknown attribute 'hello' for Topic.", error.message
   end
 
   test "method overrides in multi-level subclasses" do
