@@ -64,11 +64,11 @@ module GeneratorsTestHelper
     ActiveRecord::Base.configurations = original_configurations
   end
 
-  def copy_routes
+  def copy_routes(default_routes_folder: "config", default_routes_file: "routes.rb")
     routes = File.expand_path("../../lib/rails/generators/rails/app/templates/config/routes.rb.tt", __dir__)
-    destination = File.join(destination_root, "config")
+    destination = File.join(destination_root, default_routes_folder)
     FileUtils.mkdir_p(destination)
-    FileUtils.cp routes, File.join(destination, "routes.rb")
+    FileUtils.cp routes, File.join(destination, default_routes_file)
   end
 
   def copy_gemfile(*gemfile_entries)

@@ -116,6 +116,15 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_controller_route_are_added_to_routes_file
+    copy_routes(default_routes_folder: "config/routes", default_routes_file: "base.rb")
+    run_generator ["Message", "photos:attachments", "--routes-file", "config/routes/base.rb"]
+
+    assert_file "config/routes/base.rb" do |route|
+      assert_match(/resources :messages$/, route)
+    end
+  end
+
   def test_helper_are_invoked_with_a_pluralized_name
     run_generator
     assert_file "app/helpers/users_helper.rb", /module UsersHelper/

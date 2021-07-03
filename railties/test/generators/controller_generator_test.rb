@@ -75,6 +75,12 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_routes_file
+    copy_routes(default_routes_folder: "config/routes", default_routes_file: "base.rb")
+    run_generator ["account", "foo", "--routes-file", "config/routes/base.rb"]
+    assert_file "config/routes/base.rb", /^  get 'account\/foo'/
+  end
+
   def test_skip_routes_prevents_generating_tests_with_routes
     run_generator ["account", "foo", "--skip-routes"]
     assert_file "test/controllers/account_controller_test.rb" do |controller_test|
