@@ -7,8 +7,9 @@ module ActionView
   # TemplatePath makes it convenient to convert between separate name, prefix,
   # partial arguments and the virtual path.
   class TemplatePath
-    attr_reader :name, :prefix, :partial, :virtual
+    attr_reader :name, :prefix, :partial, :renderable, :virtual
     alias_method :partial?, :partial
+    alias_method :renderable?, :renderable
     alias_method :virtual_path, :virtual
 
     # Convert name, prefix, and partial into a virtual path string
@@ -24,6 +25,10 @@ module ActionView
 
     # Build a TemplatePath form a virtual path
     def self.parse(virtual)
+      if (renderable = virtual.start_with?(/[A-Z]/))
+        virtual = virtual.underscore
+      end
+
       if nameidx = virtual.rindex("/")
         prefix = virtual[0, nameidx]
         name = virtual.from(nameidx + 1)
@@ -34,7 +39,7 @@ module ActionView
       end
       partial = name.start_with?("_")
       name = name[1..] if partial
-      new name, prefix, partial, virtual
+      new name, prefix, partial, virtual, renderable
     end
 
     # Convert name, prefix, and partial into a TemplatePath
@@ -42,11 +47,12 @@ module ActionView
       new name, prefix, partial, virtual(name, prefix, partial)
     end
 
-    def initialize(name, prefix, partial, virtual)
-      @name    = name
-      @prefix  = prefix
-      @partial = partial
-      @virtual = virtual
+    def initialize(name, prefix, partial, virtual, renderable = false)
+      @name       = name
+      @prefix     = prefix
+      @partial    = partial
+      @virtual    = virtual
+      @renderable = renderable
     end
 
     alias :to_str :virtual

@@ -75,4 +75,13 @@ class TemplatePathTest < ActiveSupport::TestCase
     assert_equal "baz", path.name
     assert path.partial?
   end
+
+  def test_parse_renderable
+    path = ActionView::TemplatePath.parse("Arbitrary::Renderable")
+    assert_equal "arbitrary/renderable", path.virtual
+    assert_equal "arbitrary", path.prefix
+    assert_equal "renderable", path.name
+    assert_not path.partial?
+    assert path.renderable?
+  end
 end
