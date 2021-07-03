@@ -390,3 +390,52 @@ class TemplateDigestorTest < ActionView::TestCase
       File.delete("digestor/#{template_name}.html.erb")
     end
 end
+
+class RenderablesDigestorTest < TemplateDigestorTest
+  class RenderablesTracker < ActionView::DependencyTracker::ERBTracker
+    def dependencies
+      super + additional_custom_dependencies
+    end
+
+    def additional_custom_dependencies
+      [name.underscore]
+    end
+  end
+
+  def setup
+    super
+    ActionView::DependencyTracker.register_tracker :rb, RenderablesTracker
+  end
+
+  def teardown
+    super
+    ActionView::DependencyTracker.remove_tracker :rb
+  end
+
+  def test_digest_tree_with_renderable
+    digest("renderables/page")
+
+    assert_includes(finder.digest_cache.keys, "Renderables::RenderableExample")
+    assert_includes(finder.digest_cache.keys, "renderables/renderable_example")
+    assert_includes(finder.digest_cache.keys, "renderables/rails_partial")
+
+    finder.digest_cache.clear
+  end
+
+  def test_changes_in_renderable_class_affect_digest
+    assert_digest_difference("renderables/page") do
+      change_renderable_file("digestor/renderables/renderable_example.rb")
+    end
+  end
+
+  def test_changes_in_renderable_template_affect_digest
+    assert_digest_difference("renderables/page") do
+      change_renderable_file("digestor/renderables/renderable_example.html.erb")
+    end
+  end
+
+  private
+    def change_renderable_file(file)
+      File.open("#{@tmp_dir}/#{file}", "a") { |f| f.write("\n# Modified") }
+    end
+end

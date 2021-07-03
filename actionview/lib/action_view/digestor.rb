@@ -45,8 +45,9 @@ module ActionView
         interpolated = name.include?("#")
 
         path = TemplatePath.parse(name)
+        template = find_template(finder, path.name, [path.prefix], partial, path.renderable?)
 
-        if !interpolated && (template = find_template(finder, path.name, [path.prefix], partial))
+        if !interpolated && template
           if node = seen[template.identifier] # handle cycles in the tree
             node
           else
@@ -54,7 +55,7 @@ module ActionView
 
             deps = DependencyTracker.find_dependencies(name, template, finder.view_paths)
             deps.uniq { |n| n.gsub(%r|/_|, "/") }.each do |dep_file|
-              node.children << tree(dep_file, finder, true, seen)
+              node.children << tree(dep_file, finder, !path.renderable?, seen)
             end
             node
           end
@@ -68,9 +69,11 @@ module ActionView
       end
 
       private
-        def find_template(finder, name, prefixes, partial)
+        def find_template(finder, name, prefixes, partial, renderable)
+          options = renderable ? { formats: [:rb] } : {}
+
           finder.disable_cache do
-            finder.find_all(name, prefixes, partial, []).first
+            finder.find_all(name, prefixes, (partial && !renderable), [], options).first
           end
         end
     end
