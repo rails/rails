@@ -28,7 +28,7 @@ module ActionView
             path = TemplatePath.parse(name)
             root = tree(path.to_s, finder, path.partial?)
             dependencies.each do |injected_dep|
-              root.children << Injected.new(injected_dep, nil, nil)
+              root.children << Injected.new(injected_dep, nil)
             end if dependencies
             finder.digest_cache[cache_key] = root.digest(finder)
           end
@@ -41,7 +41,6 @@ module ActionView
 
       # Create a dependency tree for template named +name+.
       def tree(name, finder, partial = false, seen = {})
-        logical_name = name.gsub(%r|/_|, "/")
         interpolated = name.include?("#")
 
         path = TemplatePath.parse(name)
@@ -51,7 +50,7 @@ module ActionView
           if node = seen[template.identifier] # handle cycles in the tree
             node
           else
-            node = seen[template.identifier] = Node.create(name, logical_name, template, partial)
+            node = seen[template.identifier] = Node.create(name, template, partial)
 
             deps = DependencyTracker.find_dependencies(name, template, finder.view_paths)
             deps.uniq { |n| n.gsub(%r|/_|, "/") }.each do |dep_file|
@@ -64,7 +63,7 @@ module ActionView
             logger.error "  Couldn't find template for digesting: #{name}"
           end
 
-          seen[name] ||= Missing.new(name, logical_name, nil)
+          seen[name] ||= Missing.new(name, nil)
         end
       end
 
@@ -79,16 +78,15 @@ module ActionView
     end
 
     class Node
-      attr_reader :name, :logical_name, :template, :children
+      attr_reader :name, :template, :children
 
-      def self.create(name, logical_name, template, partial)
+      def self.create(name, template, partial)
         klass = partial ? Partial : Node
-        klass.new(name, logical_name, template)
+        klass.new(name, template)
       end
 
-      def initialize(name, logical_name, template)
+      def initialize(name, template)
         @name         = name
-        @logical_name = logical_name
         @template     = template
         @children     = []
       end
