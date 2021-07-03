@@ -480,6 +480,21 @@ ActiveRecord::Schema.define do
     t.string :where
   end
 
+  create_table :hmt_courses, force: true do |t|
+    t.timestamps null: false
+  end
+
+  create_table :hmt_enrolments, force: true do |t|
+    t.references :hmt_course
+    t.references :hmt_student
+
+    t.timestamps null: false
+  end
+
+  create_table :hmt_students, force: true do |t|
+    t.timestamps null: false
+  end
+
   create_table :guids, force: true do |t|
     t.column :key, :string
   end

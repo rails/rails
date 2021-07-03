@@ -1,3 +1,16 @@
+*   Allow auto-generation of timestamps for join tables in has_many :through
+    associations.
+
+    Previously, if you defined an association in a fixture that used a has_many
+    :through association, and the join table used timestamps, the timestamps
+    would not be automatically populated as they are for other fixtures. This
+    problem is exacerbated when (as it is by default) timestamp columns have a
+    not null constraint. The only way around it was to tediously define your
+    join records in a fixture file, and losing a degree of maintainability to
+    your fixtures.
+
+    *Mike Campbell*
+
 *   OpenSSL constants are now used for Digest computations.
 
     *Dirkjan Bussink*
