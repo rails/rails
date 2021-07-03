@@ -1,3 +1,12 @@
+*   Clear cached `has_one` association after setting `belongs_to` association to `nil`.
+
+    After setting a `belongs_to` relation to `nil` and updating an unrelated attribute on the owner,
+    the owner should still return `nil` on the `has_one` relation.
+
+    Fixes #42597.
+
+    *Michiel de Mare*
+
 *   OpenSSL constants are now used for Digest computations.
 
     *Dirkjan Bussink*
