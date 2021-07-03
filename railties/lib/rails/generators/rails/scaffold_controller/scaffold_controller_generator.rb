@@ -30,8 +30,8 @@ module Rails
       end
 
       hook_for :resource_route, required: true do |route|
-        default_routes_file = options[:routes_file] || "config/routes.rb"
-        invoke route, default_routes_file: default_routes_file unless options.skip_routes?
+        routes_file = options[:routes_file] || "config/routes.rb"
+        invoke route, [ controller_name ], { routes_file: routes_file } unless options.skip_routes?
       end
 
       hook_for :test_framework, as: :scaffold

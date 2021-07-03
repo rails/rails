@@ -16,7 +16,8 @@ module Rails
       #   end
       def add_resource_route
         return if options[:actions].present?
-        route "resources :#{file_name.pluralize}", namespace: regular_class_path
+        default_routes_file = options[:routes_file] || "config/routes.rb"
+        route "resources :#{file_name.pluralize}", namespace: regular_class_path, default_routes_file: default_routes_file
       end
     end
   end
