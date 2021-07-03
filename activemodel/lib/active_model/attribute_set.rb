@@ -7,7 +7,7 @@ require "active_model/attribute_set/yaml_encoder"
 
 module ActiveModel
   class AttributeSet # :nodoc:
-    delegate :each_value, :fetch, :except, to: :attributes
+    delegate :each_value, :fetch, :except, :slice!, to: :attributes
 
     def initialize(attributes)
       @attributes = attributes
@@ -92,6 +92,14 @@ module ActiveModel
     def map(&block)
       new_attributes = attributes.transform_values(&block)
       AttributeSet.new(new_attributes)
+    end
+
+    # Modify attributes such that:
+    # - Removes keys which doesn't exists in target_attributes
+    # - Adds keys which does exists only in target_attributes.
+    def adapt_to_target!(target_attributes)
+      attributes.slice!(*target_attributes.keys)
+      attributes.merge!(target_attributes.slice!(*keys))
     end
 
     def ==(other)

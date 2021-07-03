@@ -1,3 +1,32 @@
+*   Normalize virtual attributes on `ActiveRecord::Persistence#becomes`.
+
+    When source and target classes have a different set of attributes normalizes
+    attributes such that:
+      - Extra attributes from source are removed
+      - Extra attributes from target are kept
+
+    ```ruby
+    class Person < ApplicationRecord
+    end
+
+    class WebUser < Person
+      attribute :is_admin, :boolean
+      after_initialize :set_admin
+
+      def set_admin
+        write_attribute(:is_admin, email =~ /@ourcompany\.com$/)
+      end
+    end
+
+    person = Person.find_by(email: "email@ourcompany.com")
+    person.respond_to? :is_admin
+    # => false
+    person.becomes(User).is_admin?
+    # => true
+    ```
+
+    *Jacopo Beschi*, *Sampson Crowley*
+
 *   OpenSSL constants are now used for Digest computations.
 
     *Dirkjan Bussink*
