@@ -5,6 +5,7 @@ module Rails
     class ControllerGenerator < NamedBase # :nodoc:
       argument :actions, type: :array, default: [], banner: "action action"
       class_option :skip_routes, type: :boolean, desc: "Don't add routes to config/routes.rb."
+      class_option :routes_file, type: :string, desc: "Alternative file to add routes instead of config/routes.rb"
       class_option :helper, type: :boolean
       class_option :assets, type: :boolean
 
@@ -18,7 +19,8 @@ module Rails
         return if options[:skip_routes]
         return if actions.empty?
         routing_code = actions.map { |action| "get '#{file_name}/#{action}'" }.join("\n")
-        route routing_code, namespace: regular_class_path
+        default_routes_file = options[:routes_file] || "config/routes.rb"
+        route routing_code, namespace: regular_class_path, default_routes_file: default_routes_file
       end
 
       hook_for :template_engine, :test_framework, :helper, :assets do |generator|

@@ -16,6 +16,7 @@ module Rails
                          desc: "Generates API controller"
 
       class_option :skip_routes, type: :boolean, desc: "Don't add routes to config/routes.rb."
+      class_option :routes_file, type: :string, desc: "Alternative file to add routes instead of config/routes.rb"
 
       argument :attributes, type: :array, default: [], banner: "field:type field:type"
 
@@ -29,7 +30,8 @@ module Rails
       end
 
       hook_for :resource_route, required: true do |route|
-        invoke route unless options.skip_routes?
+        default_routes_file = options[:routes_file] || "config/routes.rb"
+        invoke route, default_routes_file: default_routes_file unless options.skip_routes?
       end
 
       hook_for :test_framework, as: :scaffold

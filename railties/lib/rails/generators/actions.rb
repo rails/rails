@@ -266,7 +266,7 @@ module Rails
       #
       #   route "root 'welcome#index'"
       #   route "root 'admin#index'", namespace: :admin
-      def route(routing_code, namespace: nil)
+      def route(routing_code, namespace: nil, default_routes_file: "config/routes.rb")
         routing_code = Array(namespace).reverse.reduce(routing_code) do |code, ns|
           "namespace :#{ns} do\n#{optimize_indentation(code, 2)}end"
         end
@@ -281,12 +281,12 @@ module Rails
         end
 
         in_root do
-          if existing = match_file("config/routes.rb", after_pattern)
+          if existing = match_file(default_routes_file, after_pattern)
             base_indent, *, prev_indent = existing.captures.compact.map(&:length)
             routing_code = optimize_indentation(routing_code, base_indent + 2).lines.grep_v(/^[ ]{,#{prev_indent}}\S/).join
           end
 
-          inject_into_file "config/routes.rb", routing_code, after: after_pattern, verbose: false, force: false
+          inject_into_file default_routes_file, routing_code, after: after_pattern, verbose: false, force: false
         end
       end
 
