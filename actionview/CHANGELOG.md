@@ -1,3 +1,7 @@
+*   Add `:country_code` option to `sms_to` for consistency with `phone_to`.
+
+    *Jonathan Hefner*
+
 *   OpenSSL constants are now used for Digest computations.
 
     *Dirkjan Bussink*
