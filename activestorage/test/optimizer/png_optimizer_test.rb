@@ -15,7 +15,7 @@ class ActiveStorage::Optimizer::PngOptimizerTest < ActiveSupport::TestCase
     end
   end
 
-  test "transforming a variable image" do
+  test "transforming with image magick" do
     optimize_variants_with(:mini_magick) do
       optimizer = ActiveStorage::Optimizer::PngOptimizer.new(nil)
 

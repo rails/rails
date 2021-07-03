@@ -11,16 +11,16 @@ class ActiveStorage::Optimizer::JpegOptimizerTest < ActiveSupport::TestCase
       optimizer = ActiveStorage::Optimizer::JpegOptimizer.new(nil)
 
       assert_equal "jpg", optimizer.transformations[:format]
-      assert_equal 80, optimizer.transformations[:saver][:quality]
+      assert_equal 85, optimizer.transformations[:saver][:quality]
     end
   end
 
-  test "transforming a variable image" do
+  test "transforming with image magick" do
     optimize_variants_with(:mini_magick) do
       optimizer = ActiveStorage::Optimizer::JpegOptimizer.new(nil)
 
       assert_equal "jpg", optimizer.transformations[:format]
-      assert_equal 80, optimizer.transformations[:saver][:quality]
+      assert_equal 85, optimizer.transformations[:saver][:quality]
     end
   end
 
