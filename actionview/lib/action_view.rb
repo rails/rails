@@ -33,8 +33,8 @@ module ActionView
   ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
 
   eager_autoload do
-    autoload :Base
-    autoload :Context
+    autoload :Base # read
+    autoload :Context # read
     autoload :Digestor
     autoload :Helpers
     autoload :LookupContext
@@ -70,7 +70,7 @@ module ActionView
     end
 
     autoload_at "action_view/flows" do
-      autoload :OutputFlow
+      autoload :OutputFlow # started
       autoload :StreamingFlow
     end
 
