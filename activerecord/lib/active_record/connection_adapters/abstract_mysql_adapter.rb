@@ -852,9 +852,12 @@ module ActiveRecord
         end
 
         def mismatched_foreign_key(message, sql:, binds:)
+          foreign_key_pat =
+            /Referencing column '(\w+)' and referenced/i =~ message ? $1 : '\w+'
+
           match = %r/
             (?:CREATE|ALTER)\s+TABLE\s*(?:`?\w+`?\.)?`?(?<table>\w+)`?.+?
-            FOREIGN\s+KEY\s*\(`?(?<foreign_key>\w+)`?\)\s*
+            FOREIGN\s+KEY\s*\(`?(?<foreign_key>#{foreign_key_pat})`?\)\s*
             REFERENCES\s*(`?(?<target_table>\w+)`?)\s*\(`?(?<primary_key>\w+)`?\)
           /xmi.match(sql)
 
