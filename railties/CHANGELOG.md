@@ -85,5 +85,9 @@
 
     *Gannon McGibbon*
 
+*   Add support for controller based generator to define the custom routes.rb file to inject the new routes to.
+
+    *Naveen Honest Raj*
+
 
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/railties/CHANGELOG.md) for previous changes.
