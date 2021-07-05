@@ -5,7 +5,7 @@ require "active_support/dependencies"
 
 module ActionDispatch
   class MiddlewareStack
-    class FakeRuntime
+    class FakeRuntime # :nodoc:
       def initialize(app)
         @app = app
       end
