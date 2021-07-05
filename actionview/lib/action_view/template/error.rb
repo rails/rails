@@ -53,7 +53,9 @@ module ActionView
       super out
     end
 
-    class Correction
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::Jaro)
+      include DidYouMean::Correctable
+
       Result = Struct.new(:path, :score)
 
       class Results
@@ -83,20 +85,14 @@ module ActionView
         end
       end
 
-      def initialize(error)
-        @error = error
-      end
-
       # Apps may have thousands of candidate templates so we attempt to
       # generate the suggestions as efficiently as possible.
       # First we split templates into prefixes and basenames, so that those can
       # be matched separately.
       def corrections
-        path = @error.path
-        prefixes = @error.prefixes
+        candidates = paths.flat_map(&:all_template_paths).uniq
 
-        candidates = @error.paths.flat_map(&:all_template_paths).uniq
-        if @error.partial
+        if partial
           candidates.select!(&:partial?)
         else
           candidates.reject!(&:partial?)
@@ -141,16 +137,12 @@ module ActionView
           end
         end
 
-        if @error.partial
+        if partial
           results.to_a.map { |res| res.sub(%r{_([^/]+)\z}, "\\1") }
         else
           results.to_a
         end
       end
-    end
-
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 
