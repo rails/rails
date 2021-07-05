@@ -3,6 +3,7 @@
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
     attr_reader :record, :association_name
+
     def initialize(record = nil, association_name = nil)
       @record           = record
       @association_name = association_name
@@ -17,9 +18,13 @@ module ActiveRecord
       include DidYouMean::Correctable
 
       def corrections
-        @corrections ||= begin
-          maybe_these = record&.class&.reflections&.keys
-          DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(association_name.to_s)
+        if record && association_name
+          @corrections ||= begin
+            maybe_these = record.class.reflections.keys
+            DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(association_name)
+          end
+        else
+          []
         end
       end
     end
@@ -27,6 +32,7 @@ module ActiveRecord
 
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
     attr_reader :reflection, :associated_class
+
     def initialize(reflection = nil, associated_class = nil)
       if reflection
         @reflection = reflection
