@@ -27,27 +27,12 @@ module ActionController
       super("param is missing or the value is empty: #{param}")
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.param && @error.keys
-          maybe_these = @error.keys
-
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.param.to_s, n)
-          }.reverse.first(4)
-        else
-          []
-        end
+        @corrections ||= DidYouMean::SpellChecker.new(dictionary: keys).correct(param.to_s)
       end
-    end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 

@@ -24,7 +24,7 @@ class Human < ActiveRecord::Base
     after_add: :add_called,
     inverse_of: :polymorphic_human
   # These are "broken" inverse_of associations for the purposes of testing
-  has_one :confused_face, class_name: "Face", inverse_of: :confused_human
+  has_one :confused_face, class_name: "Face", inverse_of: :cnffused_human
   has_many :secret_interests, class_name: "Interest", inverse_of: :secret_human
   has_one :mixed_case_monkey
 
