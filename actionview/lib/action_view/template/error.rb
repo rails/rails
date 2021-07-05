@@ -56,9 +56,9 @@ module ActionView
     if defined?(DidYouMean::Correctable) && defined?(DidYouMean::Jaro)
       include DidYouMean::Correctable
 
-      Result = Struct.new(:path, :score)
+      class Results # :nodoc:
+        Result = Struct.new(:path, :score)
 
-      class Results
         def initialize(size)
           @size = size
           @results = []

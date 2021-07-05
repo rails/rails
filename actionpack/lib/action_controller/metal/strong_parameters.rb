@@ -28,9 +28,9 @@ module ActionController
     end
 
     if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
-      include DidYouMean::Correctable
+      include DidYouMean::Correctable # :nodoc:
 
-      def corrections
+      def corrections # :nodoc:
         @corrections ||= DidYouMean::SpellChecker.new(dictionary: keys).correct(param.to_s)
       end
     end

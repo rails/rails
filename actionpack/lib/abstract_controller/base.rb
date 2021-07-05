@@ -9,17 +9,18 @@ require "active_support/core_ext/module/attr_internal"
 module AbstractController
   # Raised when a non-existing controller action is triggered.
   class ActionNotFound < StandardError
-    attr_reader :controller, :action
-    def initialize(message = nil, controller = nil, action = nil)
+    attr_reader :controller, :action # :nodoc:
+
+    def initialize(message = nil, controller = nil, action = nil) # :nodoc:
       @controller = controller
       @action = action
       super(message)
     end
 
     if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
-      include DidYouMean::Correctable
+      include DidYouMean::Correctable # :nodoc:
 
-      def corrections
+      def corrections # :nodoc:
         @corrections ||= DidYouMean::SpellChecker.new(dictionary: controller.class.action_methods).correct(action)
       end
     end
