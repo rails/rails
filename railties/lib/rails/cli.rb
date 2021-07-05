@@ -11,9 +11,4 @@ Signal.trap("INT") { puts; exit(1) }
 
 require "rails/command"
 
-if ARGV.first == "plugin"
-  ARGV.shift
-  Rails::Command.invoke :plugin, ARGV
-else
-  Rails::Command.invoke :application, ARGV
-end
+Rails::Command.exec_outside_of_project_directory(ARGV)

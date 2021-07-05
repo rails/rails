@@ -1,3 +1,7 @@
+*   Exit with non-zero status when `rails` is called with invalid parameters outside of project directory.
+
+    *endenis*
+
 *   `package.json` now uses a strict version constraint for Rails JavaScript packages on new Rails apps.
 
     *Zachary Scott*, *Alex Ghiculescu*

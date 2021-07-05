@@ -16,21 +16,6 @@ module Rails
 
       include EnvHelpers
 
-      def test_version
-        ["-v", "--version"].each do |str|
-          scrubber = ARGVScrubber.new [str]
-          output    = nil
-          exit_code = nil
-          scrubber.extend(Module.new {
-            define_method(:puts) { |string| output = string }
-            define_method(:exit) { |code| exit_code = code }
-          })
-          scrubber.prepare!
-          assert_equal "Rails #{Rails::VERSION::STRING}", output
-          assert_equal 0, exit_code
-        end
-      end
-
       def test_default_help
         argv = ["zomg", "how", "are", "you"]
         scrubber = ARGVScrubber.new argv

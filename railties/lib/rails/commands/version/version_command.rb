@@ -4,7 +4,8 @@ module Rails
   module Command
     class VersionCommand < Base # :nodoc:
       def perform
-        Rails::Command.invoke :application, [ "--version" ]
+        require "rails/version"
+        puts "Rails #{Rails::VERSION::STRING}"
       end
     end
   end
