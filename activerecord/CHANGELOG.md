@@ -1,3 +1,24 @@
+*   Assigning a readonly attribute is now a no-op. Previously it would assign but not persist.
+
+    For example:
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      attr_readonly :content
+    end
+    Post.create!(content: "cannot be updated")
+    post.content # "cannot be updated" (1)
+    post.content = "something else"
+    post.content # "cannot be updated" (2)
+    post.save!
+    post.reload
+    post.content # "cannot be updated" (3)
+    ```
+
+    Previously call 2 would have returned "something else" which was inconsistent with save behavior.
+
+    *Alex Ghiculescu*
+
 *   Add config option for ignoring tables when dumping the schema cache.
 
     Applications can now be configured to ignore certain tables when dumping the schema cache.

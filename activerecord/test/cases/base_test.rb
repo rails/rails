@@ -702,13 +702,53 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Set.new([ "title", "comments_count" ]), ReadonlyTitlePost.readonly_attributes
 
     post = ReadonlyTitlePost.create(title: "cannot change this", body: "changeable")
-    post.reload
     assert_equal "cannot change this", post.title
+    assert_equal "changeable", post.body
+    post = Post.find(post.id)
+    assert_equal "cannot change this", post.title
+    assert_equal "changeable", post.body
 
-    post.update(title: "try to change", body: "changed")
-    post.reload
+    post.title = "changed via write_attribute"
+    post.body = "changed via write_attribute"
     assert_equal "cannot change this", post.title
-    assert_equal "changed", post.body
+    assert_equal "changed via write_attribute", post.body
+
+    post.assign_attributes(body: "changed via assign_attributes", title: "changed via assign_attributes")
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via assign_attributes", post.body
+
+    post.update(title: "changed via update", body: "changed via update")
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via update", post.body
+    post = Post.find(post.id)
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via update", post.body
+  end
+
+  def test_readonly_attributes_on_a_new_record
+    assert_equal Set.new([ "title", "comments_count" ]), ReadonlyTitlePost.readonly_attributes
+
+    post = ReadonlyTitlePost.new(title: "can change this until you save", body: "changeable")
+    assert_equal "can change this until you save", post.title
+    assert_equal "changeable", post.body
+
+    post.title = "changed via write_attribute"
+    post.body = "changed via write_attribute"
+    assert_equal "changed via write_attribute", post.title
+    assert_equal "changed via write_attribute", post.body
+
+    post.assign_attributes(body: "changed via assign_attributes", title: "changed via assign_attributes")
+    assert_equal "changed via assign_attributes", post.title
+    assert_equal "changed via assign_attributes", post.body
+
+    post.save!
+
+    post.update(title: "changed via update", body: "changed via update")
+    assert_equal "changed via assign_attributes", post.title
+    assert_equal "changed via update", post.body
+    post = Post.find(post.id)
+    assert_equal "changed via assign_attributes", post.title
+    assert_equal "changed via update", post.body
   end
 
   def test_unicode_column_name
