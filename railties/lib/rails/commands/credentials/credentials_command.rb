@@ -26,6 +26,7 @@ module Rails
 
       def edit
         extract_environment_option_from_argument(default_environment: nil)
+        warn_if_environment_mismatch(method_name: :edit)
         require_application!
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
@@ -45,6 +46,7 @@ module Rails
 
       def show
         extract_environment_option_from_argument(default_environment: nil)
+        warn_if_environment_mismatch
         require_application!
 
         say credentials.read.presence || missing_credentials_message
@@ -113,6 +115,19 @@ module Rails
 
         def extract_environment_from_path(path)
           available_environments.find { |env| path.include? env } if path.end_with?(".yml.enc")
+        end
+
+        # Check for a mismatch between Rails::Command.environment and option set by --environment flag.
+        # This warning should only occur in non-development environments to avoid confusing the user
+        # when trying to perform this action against different environment modes.
+        def warn_if_environment_mismatch(method_name: :show)
+          if Rails::Command.environment != "development" && Rails::Command.environment != options[:environment]
+            say <<~WARN
+              You are accessing #{options[:environment]} credentials from the #{Rails::Command.environment} environment.
+              Did you mean to run `bin/rails credentials:#{method_name} --environment #{Rails::Command.environment}`?
+              For more information try `bin/rails credentials:help`.
+            WARN
+          end
         end
 
         def encryption_key_file_generator
