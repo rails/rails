@@ -1,3 +1,25 @@
+*   Assigning a readonly attribute is now a no-op, previously it would assign but not persist
+
+    For example:
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      attr_readonly :content
+    end
+
+    Post.create!(content: "cannot be updated")
+    post.content # "cannot be updated" (1)
+    post.content = "something else"
+    post.content # "cannot be updated" (2)
+    post.save!
+    post.reload
+    post.content # "cannot be updated" (3)
+    ```
+
+    Previously call 2 would have returned "something else" which was inconsistent.
+
+    *Alex Ghiculescu*
+
 *   Clear cached `has_one` association after setting `belongs_to` association to `nil`.
 
     After setting a `belongs_to` relation to `nil` and updating an unrelated attribute on the owner,

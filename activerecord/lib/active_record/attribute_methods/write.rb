@@ -39,6 +39,8 @@ module ActiveRecord
       # This method exists to avoid the expensive primary_key check internally, without
       # breaking compatibility with the write_attribute API
       def _write_attribute(attr_name, value) # :nodoc:
+        return if !new_record? && self.class.readonly_attribute?(attr_name)
+
         @attributes.write_from_user(attr_name, value)
       end
 
