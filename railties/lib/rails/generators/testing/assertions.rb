@@ -111,15 +111,23 @@ module Rails
           assert_equal(field_type, create_generated_attribute(attribute_type).field_type)
         end
 
-        # Asserts the given attribute type gets a proper default value:
+        # Asserts the given attribute type gets a proper example value:
         #
-        #   assert_field_default_value :string, "MyString"
-        def assert_field_default_value(attribute_type, value)
+        #   assert_field_example_value :string, "MyString"
+        def assert_field_example_value(attribute_type, value)
           if value.nil?
-            assert_nil(create_generated_attribute(attribute_type).default)
+            assert_nil(create_generated_attribute(attribute_type).example_value)
           else
-            assert_equal(value, create_generated_attribute(attribute_type).default)
+            assert_equal(value, create_generated_attribute(attribute_type).example_value)
           end
+        end
+
+        def assert_field_default_value(attribute_type, value) #:nodoc:
+          ActiveSupport::Deprecation.warn <<~MSG.squish
+            #assert_field_default_value is deprecated and will be removed in 7.1.
+            Use #assert_field_example_value instead.
+          MSG
+          assert_field_example_value(attribute_type, value)
         end
       end
     end
