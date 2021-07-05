@@ -223,23 +223,6 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_migration_with_attributes_and_with_wrong_index_declaration
-    run_generator ["product", "name:string", "supplier_id:integer:inex", "user_id:integer:unqu"]
-
-    assert_migration "db/migrate/create_products.rb" do |m|
-      assert_method :change, m do |up|
-        assert_match(/create_table :products/, up)
-        assert_match(/t\.string :name/, up)
-        assert_match(/t\.integer :supplier_id/, up)
-        assert_match(/t\.integer :user_id/, up)
-
-        assert_no_match(/add_index :products, :name/, up)
-        assert_no_match(/add_index :products, :supplier_id/, up)
-        assert_no_match(/add_index :products, :user_id/, up)
-      end
-    end
-  end
-
   def test_migration_with_missing_attribute_type_and_with_index
     run_generator ["product", "name:index", "supplier_id:integer:index", "year:integer"]
 
