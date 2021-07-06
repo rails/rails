@@ -5,15 +5,5 @@ env:
   MYSQL_PORT: 4000
 
 steps:
-  - command: "bundle config set --local path '.bundle' && bundle config mirror.https://rubygems.org https://gems.ruby-china.com  && bundle install"
-    label: "bundle install"
-    
-  - wait
-
-  - command: "bundle config set --local path '.bundle' && bundle config mirror.https://rubygems.org https://gems.ruby-china.com  && bundle install && cd activerecord && bundle exec rake db:mysql:build"
-    label: "build database"
-    
-  - wait
-  
-  - command: "bundle config set --local path '.bundle' && bundle config mirror.https://rubygems.org https://gems.ruby-china.com  && bundle install && cd activerecord && bundle exec rake test:mysql2"
-    label: "run mysql2 test"
+  - command: "tidb_activerecord_testing.sh"
+    label: "Run TiDB ActiveRecord testing"
