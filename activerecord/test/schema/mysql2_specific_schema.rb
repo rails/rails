@@ -62,21 +62,25 @@ ActiveRecord::Schema.define do
     t.binary :binary_column,    limit: 1
   end
 
-  execute "DROP PROCEDURE IF EXISTS ten"
+  if ENV['tidb']
+    puts "Skip PROCEDURE test"
+  else
+    execute "DROP PROCEDURE IF EXISTS ten"
 
-  execute <<~SQL
-    CREATE PROCEDURE ten() SQL SECURITY INVOKER
-    BEGIN
-      SELECT 10;
-    END
-  SQL
+    execute <<~SQL
+      CREATE PROCEDURE ten() SQL SECURITY INVOKER
+      BEGIN
+        SELECT 10;
+      END
+    SQL
 
-  execute "DROP PROCEDURE IF EXISTS topics"
+    execute "DROP PROCEDURE IF EXISTS topics"
 
-  execute <<~SQL
-    CREATE PROCEDURE topics(IN num INT) SQL SECURITY INVOKER
-    BEGIN
-      SELECT * FROM topics LIMIT num;
-    END
-  SQL
+    execute <<~SQL
+      CREATE PROCEDURE topics(IN num INT) SQL SECURITY INVOKER
+      BEGIN
+        SELECT * FROM topics LIMIT num;
+      END
+    SQL
+  end
 end
