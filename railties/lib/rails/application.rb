@@ -247,9 +247,11 @@ module Rails
         config, shared = all_configs[env.to_sym], all_configs[:shared]
 
         if shared
-          config = {} if config.nil?
-          if config.is_a?(Hash)
+          config = {} if config.nil? && shared.is_a?(Hash)
+          if config.is_a?(Hash) && shared.is_a?(Hash)
             config = shared.deep_merge(config)
+          elsif config.nil?
+            config = shared
           end
         end
 
