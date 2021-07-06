@@ -2057,6 +2057,32 @@ module ApplicationTests
       assert_equal %w( foo bar ), Rails.application.config.my_custom_config
     end
 
+    test "config_for works with only a shared root array" do
+      set_custom_config <<~RUBY
+        shared:
+          - foo
+          - bar
+      RUBY
+
+      app "development"
+
+      assert_equal %w( foo bar ), Rails.application.config.my_custom_config
+    end
+
+    test "config_for returns only the env array when shared is an array" do
+      set_custom_config <<~RUBY
+        development:
+          - baz
+        shared:
+          - foo
+          - bar
+      RUBY
+
+      app "development"
+
+      assert_equal %w( baz ), Rails.application.config.my_custom_config
+    end
+
     test "config_for uses the Pathname object if it is provided" do
       set_custom_config <<~RUBY, "Pathname.new(Rails.root.join('config/custom.yml'))"
         development:

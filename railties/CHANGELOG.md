@@ -1,3 +1,7 @@
+*   Fix `config_for` error when there's only a shared root array
+
+    *Loïc Delmaire*
+
 *   Raise an error in generators if an index type is invalid.
 
     *Petrik de Heus*
