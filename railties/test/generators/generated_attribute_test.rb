@@ -68,6 +68,38 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_match message, e.message
   end
 
+  def test_field_type_with_unclosed_options_brace_raises_error
+    e = assert_raise Rails::Generators::Error do
+      create_generated_attribute "integer{1", "age"
+    end
+    message = "Could not parse type 'integer{1'"
+    assert_match message, e.message
+  end
+
+  def test_field_type_with_unsupported_options_raises_error
+    e = assert_raise Rails::Generators::Error do
+      create_generated_attribute "integer{abc}", "age"
+    end
+    message = "Expected an integer option instead of 'abc' for type 'integer'"
+    assert_match message, e.message
+  end
+
+  def test_field_type_without_options_raises_error
+    e = assert_raise Rails::Generators::Error do
+      create_generated_attribute "boolean{1}", "name"
+    end
+    message = "Options not supported for type 'boolean'"
+    assert_match message, e.message
+  end
+
+  def test_field_type_with_unsupported_option_for_belongs_to_raises_error
+    e = assert_raise Rails::Generators::Error do
+      assert_equal create_generated_attribute("belongs_to{unknown}", "post").attr_options, 1
+    end
+    message = "Unknown option 'unknown' for type 'belongs_to'"
+    assert_match message, e.message
+  end
+
   def test_field_type_with_unknown_index_type_raises_error
     index_type = :unknown
     e = assert_raise Rails::Generators::Error do
