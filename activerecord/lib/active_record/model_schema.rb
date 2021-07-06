@@ -237,6 +237,21 @@ module ActiveRecord
         @table_name
       end
 
+      def insert_table_name
+        reset_table_name unless defined?(@table_name)
+        @insert_table_name || @table_name
+      end
+
+      def update_table_name
+        reset_table_name unless defined?(@table_name)
+        @update_table_name || @table_name
+      end
+
+      def delete_table_name
+        reset_table_name unless defined?(@table_name)
+        @delete_table_name || @table_name
+      end
+
       # Sets the table name explicitly. Example:
       #
       #   class Project < ActiveRecord::Base
@@ -255,6 +270,21 @@ module ActiveRecord
         @arel_table        = nil
         @sequence_name     = nil unless defined?(@explicit_sequence_name) && @explicit_sequence_name
         @predicate_builder = nil
+      end
+
+      def insert_table_name=(value)
+        @insert_table_name = value && value.to_s
+        @arel_table_insert = nil
+      end
+
+      def update_table_name=(value)
+        @update_table_name = value && value.to_s
+        @arel_table_insert = nil
+      end
+
+      def delete_table_name=(value)
+        @delete_table_name = value && value.to_s
+        @arel_table_insert = nil
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.

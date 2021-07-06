@@ -417,12 +417,13 @@ module ActiveRecord
           end
         end
 
-        im = Arel::InsertManager.new(arel_table)
+        table = arel_table(:insert)
+        im = Arel::InsertManager.new(table)
 
         if values.empty?
           im.insert(connection.empty_insert_statement_value(primary_key))
         else
-          im.insert(values.transform_keys { |name| arel_table[name] })
+          im.insert(values.transform_keys { |name| table[name] })
         end
 
         connection.insert(im, "#{self} Create", primary_key || false, primary_key_value)
@@ -439,8 +440,9 @@ module ActiveRecord
           constraints << current_scope.where_clause.ast
         end
 
-        um = Arel::UpdateManager.new(arel_table)
-        um.set(values.transform_keys { |name| arel_table[name] })
+        table = arel_table(:update)
+        um = Arel::UpdateManager.new(table)
+        um.set(values.transform_keys { |name| table[name] })
         um.wheres = constraints
 
         connection.update(um, "#{self} Update")
@@ -457,7 +459,7 @@ module ActiveRecord
           constraints << current_scope.where_clause.ast
         end
 
-        dm = Arel::DeleteManager.new(arel_table)
+        dm = Arel::DeleteManager.new(arel_table(:delete))
         dm.wheres = constraints
 
         connection.delete(dm, "#{self} Destroy")

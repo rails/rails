@@ -425,8 +425,17 @@ module ActiveRecord
       end
 
       # Returns an instance of <tt>Arel::Table</tt> loaded with the current table name.
-      def arel_table # :nodoc:
-        @arel_table ||= Arel::Table.new(table_name, klass: self)
+      def arel_table(operation = nil) # :nodoc:
+        case operation
+        when :update then
+          @arel_table_update ||= Arel::Table.new(update_table_name, klass: self)
+        when :delete then
+          @arel_table_delete ||= Arel::Table.new(delete_table_name, klass: self)
+        when :insert then
+          @arel_table_insert ||= Arel::Table.new(insert_table_name, klass: self)
+        else
+          @arel_table ||= Arel::Table.new(table_name, klass: self)
+        end
       end
 
       def arel_attribute(name, table = arel_table) # :nodoc:
@@ -459,7 +468,7 @@ module ActiveRecord
         end
 
         def table_metadata
-          TableMetadata.new(self, arel_table)
+          TableMetadata.new(self, arel_table(:metadata))
         end
     end
 
