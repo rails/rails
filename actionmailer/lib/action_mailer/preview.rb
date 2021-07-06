@@ -119,9 +119,7 @@ module ActionMailer
 
       private
         def load_previews
-          if preview_path
-            Dir["#{preview_path}/**/*_preview.rb"].sort.each { |file| require_dependency file }
-          end
+          Array.wrap(preview_path).each { |pp| Dir["#{pp}/**/*_preview.rb"].sort.each { |file| require_dependency file } }
         end
 
         def preview_path

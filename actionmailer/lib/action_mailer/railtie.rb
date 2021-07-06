@@ -66,8 +66,8 @@ module ActionMailer
     initializer "action_mailer.set_autoload_paths" do |app|
       options = app.config.action_mailer
 
-      if options.show_previews && options.preview_path
-        ActiveSupport::Dependencies.autoload_paths << options.preview_path
+      if options.show_previews
+        Array.wrap(options.preview_path).each { |preview_path| ActiveSupport::Dependencies.autoload_paths << preview_path }
       end
     end
 
