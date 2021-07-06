@@ -1,4 +1,4 @@
-*   Fix `config_for` error when there's only a shared root array
+*   Fix `config_for` error when there's only a shared root array.
 
     *Loïc Delmaire*
 
