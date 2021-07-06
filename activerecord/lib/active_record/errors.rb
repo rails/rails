@@ -100,7 +100,7 @@ module ActiveRecord
   end
 
   # Raised by {ActiveRecord::Base#destroy!}[rdoc-ref:Persistence#destroy!]
-  # when a call to {#destroy}[rdoc-ref:Persistence#destroy!]
+  # when a call to {#destroy}[rdoc-ref:Persistence#destroy]
   # would return false.
   #
   #   begin
