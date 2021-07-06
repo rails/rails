@@ -62,6 +62,9 @@ ActiveRecord::Schema.define do
     t.binary :binary_column,    limit: 1
   end
 
+  # Add a UNION to ensure read-only view
+  execute "CREATE OR REPLACE VIEW view_items AS SELECT * FROM items UNION SELECT LIMIT 0"
+
   execute "DROP PROCEDURE IF EXISTS ten"
 
   execute <<~SQL

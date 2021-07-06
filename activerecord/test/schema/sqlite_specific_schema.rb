@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 ActiveRecord::Schema.define do
+  execute "CREATE VIEW IF NOT EXISTS view_items AS SELECT * FROM items"
+
   create_table :defaults, force: true do |t|
     t.date :fixed_date, default: "2004-01-01"
     t.datetime :fixed_time, default: "2004-01-01 00:00:00"
