@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Place this in /etc/buildkite-agent/hooks/pre-command
+#
+# Needs to be `chown buildkite-agent` and `chmod +x`
+
+# RVM uses unbound variables and will fail without this
+set +u
+
+source /var/lib/buildkite-agent/.rvm/scripts/rvm
