@@ -27,6 +27,9 @@
     config.active_record.destroy_all_in_batches = true
     ```
 
+    The option is on by default for newly generated Rails apps. Can be set in
+    an initializer to prevent differences across environments.
+
     *Genadi Samokovarov*, *Roberto Miranda*
 
 *   Adds support for `if_not_exists` to `add_foreign_key` and `if_exists` to `remove_foreign_key`.
