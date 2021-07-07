@@ -20,7 +20,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.create_table :testings do |t|
             t.references :testing_parent, foreign_key: true
           end
-
+          skip "TiDB Issue: https://docs.pingcap.com/tidb/stable/constraints#notes"
           fk = @connection.foreign_keys("testings").first
           assert_equal "testings", fk.from_table
           assert_equal "testing_parents", fk.to_table
@@ -49,7 +49,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.create_table :testings do |t|
             t.references :testing_parent, foreign_key: { primary_key: :other_id }
           end
-
+          skip "TiDB Issue: https://docs.pingcap.com/tidb/stable/constraints#notes"
           fk = @connection.foreign_keys("testings").find { |k| k.to_table == "testing_parents" }
           assert_equal "other_id", fk.primary_key
         end
@@ -58,6 +58,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.create_table :testings do |t|
             t.references :parent, foreign_key: { to_table: :testing_parents }
           end
+          skip "TiDB Issue: https://docs.pingcap.com/tidb/stable/constraints#notes"
           fks = @connection.foreign_keys("testings")
           assert_equal([["testings", "testing_parents", "parent_id"]],
                        fks.map { |fk| [fk.from_table, fk.to_table, fk.column] })
@@ -92,7 +93,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.change_table :testings do |t|
             t.references :testing_parent, foreign_key: true
           end
-
+          skip "TiDB Issue: https://docs.pingcap.com/tidb/stable/constraints#notes"
           fk = @connection.foreign_keys("testings").first
           assert_equal "testings", fk.from_table
           assert_equal "testing_parents", fk.to_table
@@ -115,7 +116,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.change_table :testings do |t|
             t.references :testing_parent, foreign_key: { primary_key: :other_id }
           end
-
+          skip "TiDB Issue: https://docs.pingcap.com/tidb/stable/constraints#notes"
           fk = @connection.foreign_keys("testings").find { |k| k.to_table == "testing_parents" }
           assert_equal "other_id", fk.primary_key
         end
@@ -133,7 +134,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.create_table :testings do |t|
             t.references :testing_parent, index: true, foreign_key: true
           end
-
+          skip "TiDB Issue: https://docs.pingcap.com/tidb/stable/constraints#notes"
           assert_difference "@connection.foreign_keys('testings').size", -1 do
             @connection.remove_reference :testings, :testing_parent, foreign_key: true
           end
@@ -143,7 +144,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.create_table :testings do |t|
             t.references :testing_parent, index: true, foreign_key: true
           end
-
+          skip "TiDB Issue: https://docs.pingcap.com/tidb/stable/constraints#notes"
           assert_difference "@connection.foreign_keys('testings').size", -1 do
             @connection.remove_column :testings, :testing_parent_id
           end
@@ -156,7 +157,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.change_table :testing_parents do |t|
             t.references :testing, foreign_key: true
           end
-
+          skip "TiDB Issue: https://docs.pingcap.com/tidb/stable/constraints#notes"
           fk = @connection.foreign_keys("testing_parents").first
           assert_equal "testing_parents", fk.from_table
           assert_equal "testing", fk.to_table
@@ -183,6 +184,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           ActiveRecord::Base.table_name_prefix = "p_"
           migration = CreateDogsMigration.new
           silence_stream($stdout) { migration.migrate(:up) }
+          skip "TiDB Issue: https://docs.pingcap.com/tidb/stable/constraints#notes"
           assert_equal 1, @connection.foreign_keys("p_dogs").size
         ensure
           silence_stream($stdout) { migration.migrate(:down) }
@@ -193,6 +195,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           ActiveRecord::Base.table_name_suffix = "_s"
           migration = CreateDogsMigration.new
           silence_stream($stdout) { migration.migrate(:up) }
+          skip "TiDB Issue: https://docs.pingcap.com/tidb/stable/constraints#notes"
           assert_equal 1, @connection.foreign_keys("dogs_s").size
         ensure
           silence_stream($stdout) { migration.migrate(:down) }
@@ -204,7 +207,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             t.references :parent1, foreign_key: { to_table: :testing_parents }
             t.references :parent2, foreign_key: { to_table: :testing_parents }
           end
-
+          skip "TiDB Issue: https://docs.pingcap.com/tidb/stable/constraints#notes"
           fks = @connection.foreign_keys("testings").sort_by(&:column)
 
           fk_definitions = fks.map { |fk| [fk.from_table, fk.to_table, fk.column] }
@@ -217,11 +220,11 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             t.references :parent1, foreign_key: { to_table: :testing_parents }
             t.references :parent2, foreign_key: { to_table: :testing_parents }
           end
-
+          skip "TiDB Issue: https://docs.pingcap.com/tidb/stable/constraints#notes"
           assert_difference "@connection.foreign_keys('testings').size", -1 do
             @connection.remove_reference :testings, :parent1, foreign_key: { to_table: :testing_parents }
           end
-
+          
           fks = @connection.foreign_keys("testings").sort_by(&:column)
 
           fk_definitions = fks.map { |fk| [fk.from_table, fk.to_table, fk.column] }
