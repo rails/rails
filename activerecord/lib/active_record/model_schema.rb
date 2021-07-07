@@ -239,16 +239,19 @@ module ActiveRecord
 
       def insert_table_name
         reset_table_name unless defined?(@table_name)
+        @insert_table_name = nil unless defined?(@insert_table_name)
         @insert_table_name || @table_name
       end
 
       def update_table_name
         reset_table_name unless defined?(@table_name)
+        @update_table_name = nil unless defined?(@update_table_name)
         @update_table_name || @table_name
       end
 
       def delete_table_name
         reset_table_name unless defined?(@table_name)
+        @delete_table_name = nil unless defined?(@delete_table_name)
         @delete_table_name || @table_name
       end
 
@@ -279,12 +282,12 @@ module ActiveRecord
 
       def update_table_name=(value)
         @update_table_name = value && value.to_s
-        @arel_table_insert = nil
+        @arel_table_update = nil
       end
 
       def delete_table_name=(value)
         @delete_table_name = value && value.to_s
-        @arel_table_insert = nil
+        @arel_table_delete = nil
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.
