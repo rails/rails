@@ -1,3 +1,10 @@
+*   Deleting an item from the Middleware stack will raise if the item is not found
+
+    Previously, calling `config.middleware.delete(ItemNotInMiddleware)` would fail silently.
+    Now it will raise, same as `config.middleware.move(0, ItemNotInMiddleware)` does.
+
+    *Alex Ghiculescu*
+
 *   OpenSSL constants are now used for Digest computations.
 
     *Dirkjan Bussink*

@@ -105,6 +105,12 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     end
   end
 
+  test "delete requires the middleware to be in the stack" do
+    assert_raises RuntimeError do
+      @stack.delete(BazMiddleware)
+    end
+  end
+
   test "move preserves the arguments of the moved middleware" do
     @stack.use BazMiddleware, true, foo: "bar"
     @stack.move_before(FooMiddleware, BazMiddleware)
