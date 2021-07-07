@@ -11,4 +11,4 @@ echo "Bundle install"
 bundle install
 
 echo "Setup database for testing"
-cd activerecord && bundle exec rake db:mysql:build && bundle exec rake test:mysql2
+cd activerecord && bundle exec rake db:mysql:rebuild && bundle exec rake test:mysql2
