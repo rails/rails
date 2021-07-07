@@ -1,8 +1,10 @@
 # Be sure to restart your server when you modify this file.
 #
-# This file contains migration options to ease your Rails 7.0 upgrade.
+# This file eases your Rails 7.0 framework defaults upgrade.
 #
-# Once upgraded flip defaults one by one to migrate to the new default.
+# Uncomment each configuration one by one to switch to the new default.
+# Once your application is ready to run with all new defaults, you can remove
+# this file and set the `config.load_defaults` to `7.0`.
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 
