@@ -1,3 +1,13 @@
+*   Allow using [IAM](https://cloud.google.com/storage/docs/access-control/signed-urls) when signing URLs with GCS.
+
+    ```yaml
+    gcs:
+      service: GCS
+      ...
+      iam: true
+    ```
+    *RRethy*
+
 *   OpenSSL constants are now used for Digest computations.
 
     *Dirkjan Bussink*
