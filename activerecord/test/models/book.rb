@@ -32,4 +32,7 @@ class PublishedBook < ActiveRecord::Base
   enum :cover, { hard: "0", soft: "1" }, default: :hard
 
   validates_uniqueness_of :isbn
+
+  has_and_belongs_to_many :likes
+  has_many :authors_autosave, class_name: "Author", autosave: true
 end

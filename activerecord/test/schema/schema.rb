@@ -65,6 +65,7 @@ ActiveRecord::Schema.define do
     t.references :author_address_extra
     t.string :organization_id
     t.string :owned_essay_id
+    t.integer :published_book_id
   end
 
   create_table :author_addresses, force: true do |t|
@@ -557,6 +558,15 @@ ActiveRecord::Schema.define do
   end
 
   add_foreign_key :lessons_students, :students, on_delete: :cascade
+
+  create_table :likes, force: true do |t|
+    t.string :reason, :length => 250
+  end
+
+  create_table :books_likes, force: true do |t|
+    t.integer :published_book_id
+    t.integer :like_id
+  end
 
   create_table :lint_models, force: true
 

@@ -105,6 +105,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
           rhs_options[:foreign_key] = options[:association_foreign_key]
         end
 
+         if options.key? :autosave
+           rhs_options[:autosave] = options[:autosave]
+         end
+
         rhs_options
       end
   end
