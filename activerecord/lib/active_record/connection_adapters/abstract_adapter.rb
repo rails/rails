@@ -489,6 +489,11 @@ module ActiveRecord
         yield
       end
 
+      # Override to check all foreign key constraints in a database.
+      def all_foreign_keys_valid?
+        true
+      end
+
       # CONNECTION MANAGEMENT ====================================
 
       # Checks whether the connection to the database is still active. This includes

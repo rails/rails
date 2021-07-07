@@ -481,6 +481,13 @@ in controllers and views. This defaults to `false`.
 
 * `config.active_record.enumerate_columns_in_select_statements` when true, will always include column names in `SELECT` statements, and avoid wildcard `SELECT * FROM ...` queries. This avoids prepared statement cache errors when adding columns to a PostgreSQL database for example. Defaults to `false`.
 
+* `config.active_record.destroy_all_in_batches` ensures
+  ActiveRecord::Relation#destroy_all to perform the record's deletion in batches.
+  ActiveRecord::Relation#destroy_all won't longer return the collection of the deleted
+  records after enabling this option.
+
+* `config.active_record.verify_foreign_keys_for_fixtures` ensures all foreign key constraints are valid after fixtures are loaded in tests. Supported by PostgreSQL and SQLite only. Defaults to `false`.
+
 The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
@@ -510,11 +517,6 @@ The schema dumper adds two additional configuration options:
   dumped to db/schema.rb or not. By default, foreign key names starting with
   `fk_rails_` are not exported to the database schema dump.
   Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
-
-* `config.active_record.destroy_all_in_batches` ensures
-  ActiveRecord::Relation#destroy_all to perform the record's deletion in batches.
-  ActiveRecord::Relation#destroy_all won't longer return the collection of the deleted
-  records after enabling this option.
 
 ### Configuring Action Controller
 
@@ -1103,6 +1105,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.action_controller.silence_disabled_session_errors` : `false`
 - `config.action_mailer.smtp_timeout`: `5`
 - `config.active_storage.video_preview_arguments`: `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
+- `config.active_record.verify_foreign_keys_for_fixtures`: `true`
 
 #### For '6.1', defaults from previous versions below and:
 

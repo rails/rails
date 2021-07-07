@@ -2305,6 +2305,32 @@ module ApplicationTests
       assert_equal true, ActiveRecord::Base.has_many_inversing
     end
 
+    test "ActiveRecord.verify_foreign_keys_for_fixtures is true by default for new apps" do
+      app "development"
+
+      assert_equal true, ActiveRecord.verify_foreign_keys_for_fixtures
+    end
+
+    test "ActiveRecord.verify_foreign_keys_for_fixtures is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal false, ActiveRecord.verify_foreign_keys_for_fixtures
+    end
+
+    test "ActiveRecord.verify_foreign_keys_for_fixtures can be configured via config.active_record.verify_foreign_keys_for_fixtures" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.active_record.verify_foreign_keys_for_fixtures = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord.verify_foreign_keys_for_fixtures
+    end
+
     test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption is true by default for new apps" do
       app "development"
 
