@@ -1340,7 +1340,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_with_priority_zones_and_errors
     @firm = Firm.new("D")
     @firm.extend ActiveModel::Validations
-    assert_deprecated { @firm.errors[:time_zone] << "invalid" }
+    @firm.errors.add(:time_zone)
     zones = [ ActiveSupport::TimeZone.new("A"), ActiveSupport::TimeZone.new("D") ]
     html = time_zone_select("firm", "time_zone", zones)
     assert_dom_equal "<div class=\"field_with_errors\">" \
