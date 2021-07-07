@@ -1,3 +1,7 @@
+*   Truncate broadcast logging messages.
+
+    *J Smith*
+
 *   OpenSSL constants are now used for Digest computations.
 
     *Dirkjan Bussink*
