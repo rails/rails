@@ -79,7 +79,20 @@ module RenderTestCases
 
   def test_render_file_with_full_path_no_extension
     template_path = File.expand_path("../fixtures/test/hello_world", __dir__)
-    assert_raise(ArgumentError) { @view.render(file: template_path) }
+    e = assert_raise(ArgumentError) { @view.render(file: template_path) }
+    assert_match(/File (.+) does not exist/, e.message)
+  end
+
+  def test_render_file_with_invalid_full_path
+    template_path = File.expand_path("../fixtures/test/hello_world_invalid.erb", __dir__)
+    e = assert_raise(ArgumentError) { @view.render(file: template_path) }
+    assert_match(/File (.+) does not exist/, e.message)
+  end
+
+  def test_render_file_with_relative_path
+    template_path = "fixtures/test/hello_world.erb"
+    e = assert_raise(ArgumentError) { @view.render(file: template_path) }
+    assert_match(%r{`render file:` should be given the absolute path to a file. (.+) was given instead}, e.message)
   end
 
   # Test if :formats, :locale etc. options are passed correctly to the resolvers.
