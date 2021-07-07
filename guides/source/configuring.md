@@ -1098,7 +1098,9 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.active_support.cache_format_version`: `7.0`
+- `config.active_support.remove_deprecated_time_with_zone_name` : `true`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
+- `config.action_controller.silence_disabled_session_errors` : `false`
 - `config.action_mailer.smtp_timeout`: `5`
 - `config.active_storage.video_preview_arguments`: `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
 
