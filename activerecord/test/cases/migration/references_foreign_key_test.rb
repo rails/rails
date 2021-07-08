@@ -157,6 +157,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.change_table :testing_parents do |t|
             t.references :testing, foreign_key: true
           end
+          @connection.remove_reference :testing_parents, :testing, foreign_key: true
           skip "TiDB Issue: https://docs.pingcap.com/tidb/stable/constraints#notes"
           fk = @connection.foreign_keys("testing_parents").first
           assert_equal "testing_parents", fk.from_table

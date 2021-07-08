@@ -19,18 +19,21 @@ class Mysql2StoredProcedureTest < ActiveRecord::Mysql2TestCase
   # In MySQL 5.6, CLIENT_MULTI_RESULTS is enabled by default.
   # https://dev.mysql.com/doc/refman/5.6/en/call.html
   def test_multi_results
+    skip 'TiDB Issue procedure not support: https://docs.pingcap.com/tidb/stable/mysql-compatibility#unsupported-features'
     rows = @connection.select_rows("CALL ten();")
     assert_equal 10, rows[0][0].to_i, "ten() did not return 10 as expected: #{rows.inspect}"
     assert @connection.active?, "Bad connection use by 'Mysql2Adapter.select_rows'"
   end
 
   def test_multi_results_from_select_one
+    skip 'TiDB Issue procedure not support: https://docs.pingcap.com/tidb/stable/mysql-compatibility#unsupported-features'
     row = @connection.select_one("CALL topics(1);")
     assert_equal "David", row["author_name"]
     assert @connection.active?, "Bad connection use by 'Mysql2Adapter.select_one'"
   end
 
   def test_multi_results_from_find_by_sql
+    skip 'TiDB Issue procedure not support: https://docs.pingcap.com/tidb/stable/mysql-compatibility#unsupported-features'
     topics = Topic.find_by_sql "CALL topics(3);"
     assert_equal 3, topics.size
     assert @connection.active?, "Bad connection use by 'Mysql2Adapter.select'"
