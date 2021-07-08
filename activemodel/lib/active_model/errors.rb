@@ -604,7 +604,7 @@ module ActiveModel
       end
   end
 
-  class DeprecationHandlingMessageHash < SimpleDelegator
+  class DeprecationHandlingMessageHash < SimpleDelegator # :nodoc:
     def initialize(errors)
       @errors = errors
       super(prepare_content)
@@ -643,7 +643,7 @@ module ActiveModel
       end
   end
 
-  class DeprecationHandlingMessageArray < SimpleDelegator
+  class DeprecationHandlingMessageArray < SimpleDelegator # :nodoc:
     def initialize(content, errors, attribute)
       @errors = errors
       @attribute = attribute
@@ -665,7 +665,7 @@ module ActiveModel
     end
   end
 
-  class DeprecationHandlingDetailsHash < SimpleDelegator
+  class DeprecationHandlingDetailsHash < SimpleDelegator # :nodoc:
     def initialize(details)
       details.default = []
       details.freeze
