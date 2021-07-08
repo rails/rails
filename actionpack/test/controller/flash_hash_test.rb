@@ -42,8 +42,9 @@ module ActionDispatch
 
     def test_delete
       @hash["foo"] = "bar"
-      @hash.delete "foo"
+      value = @hash.delete "foo"
 
+      assert_equal "bar", value
       assert_not @hash.key?("foo")
       assert_nil @hash["foo"]
     end
