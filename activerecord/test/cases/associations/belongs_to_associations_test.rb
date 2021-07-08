@@ -1205,6 +1205,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:another_firm), client.firm_with_condition
   end
 
+  def test_assigning_nil_on_an_association_clears_the_associations_inverse
+    with_has_many_inversing do
+      book = Book.create!
+      citation = book.citations.create!
+
+      assert_same book, citation.book
+
+      assert_nothing_raised do
+        citation.book = nil
+        citation.save!
+      end
+    end
+  end
+
   def test_clearing_an_association_clears_the_associations_inverse
     author = Author.create(name: "Jimmy Tolkien")
     post = author.create_post(title: "The silly medallion", body: "")
