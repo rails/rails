@@ -276,6 +276,8 @@ module ActiveRecord
         return super unless reflection.klass.has_many_inversing
 
         case record
+        when nil
+          # It's not possible to remove the record from the inverse association.
         when Array
           super
         else
