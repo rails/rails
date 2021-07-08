@@ -1,3 +1,8 @@
+*   Deleting a key from `ActionDispatch::Flash::FlashHash` returns the deleted
+    value, the same way that `Hash#delete` would.
+
+    *Sean Doyle*
+
 *   Allow Capybara driver name overrides in `SystemTestCase::driven_by`
 
     Allow users to prevent conflicts among drivers that use the same driver

@@ -174,11 +174,16 @@ module ActionDispatch
         @flashes.key? name.to_s
       end
 
+      # Deletes the entry for the given key and returns its associated value.
+      #
+      #   flash[:alert] = "Something went wrong."
+      #   flash.delete :alert # => "Something went wrong."
+      #   flash[:alert] # => nil
+      #
       def delete(key)
         key = key.to_s
         @discard.delete key
         @flashes.delete key
-        self
       end
 
       def to_hash
