@@ -2461,6 +2461,34 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_field_id
+    form_for(@post) do |form|
+      concat form.fields_for(:comment_attributes, @comment) { |c|
+        concat c.field_id(:body)
+      }
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      "post_comment_attributes_body"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_field_id_with_index_override
+    form_for(@post) do |form|
+      concat form.fields_for(:comment_attributes, @comment, index: 1) { |c|
+        concat c.field_id(:body)
+      }
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      "post_comment_attributes_1_body"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_deep_nested_fields_for
     @comment.save
     form_for(:posts) do |f|
@@ -3240,6 +3268,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_fields_for_field_id
+    fields_for(:post, @post) do |fields|
+      assert_equal "post_title", fields.field_id(:title)
+    end
+  end
+
   def test_fields_for_with_index
     output_buffer = fields_for("post[]", @post) do |f|
       concat f.text_field(:title)
@@ -3256,6 +3290,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_fields_for_field_id_with_index_option
+    fields_for(:post, @post) do |fields|
+      assert_equal "post_5_title", fields.field_id(:title, index: 5)
+    end
+  end
+
   def test_fields_for_with_nil_index_option_override
     output_buffer = fields_for("post[]", @post, index: nil) do |f|
       concat f.text_field(:title)
@@ -3270,6 +3310,12 @@ class FormHelperTest < ActionView::TestCase
       "<input name='post[][secret]' checked='checked' type='checkbox' id='post__secret' value='1' />"
 
     assert_dom_equal expected, output_buffer
+  end
+
+  def test_fields_for_with_index_option_override_field_id
+    fields_for(:post, @post, index: 1) do |fields|
+      assert_equal "post_1_title", fields.field_id(:title)
+    end
   end
 
   def test_fields_for_with_index_option_override
