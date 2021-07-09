@@ -155,21 +155,21 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   end
 
   def test_should_save_associated_records_when_has_and_belongs_to_many_with_autosave
-    book = PublishedBook.new(name: 'Good title', isbn: "010101101")
-    author = Author.create!(name: 'Jhon')
-    book.authors_autosave  << author
+    book = PublishedBook.new(name: "Good title", isbn: "010101101")
+    author = Author.create!(name: "Jhon")
+    book.authors_autosave << author
     book.save!
 
-    like = Like.new(reason: 'Good content.')
+    like = Like.new(reason: "Good content.")
     book = PublishedBook.find(book.id)
     like.published_books << book
     author = book.authors_autosave[0]
-    author.name = 'Paul'
+    author.name = "Paul"
     assert_equal true, author.changed?
     assert_equal false, book.changed?
     like.save!
 
-    assert_equal author.reload.name, 'Paul'
+    assert_equal author.reload.name, "Paul"
   end
 
   def test_cyclic_autosaves_do_not_add_multiple_validations

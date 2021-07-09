@@ -560,7 +560,7 @@ ActiveRecord::Schema.define do
   add_foreign_key :lessons_students, :students, on_delete: :cascade
 
   create_table :likes, force: true do |t|
-    t.string :reason, :length => 250
+    t.string :reason, length: 250
   end
 
   create_table :books_likes, force: true do |t|
