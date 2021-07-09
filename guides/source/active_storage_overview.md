@@ -28,10 +28,9 @@ files to Active Record objects. It comes with a local disk-based service for
 development and testing and supports mirroring files to subordinate services for
 backups and migrations.
 
-Using Active Storage, an application can transform image uploads with
-[ImageMagick](https://www.imagemagick.org), generate image representations of
-non-image uploads like PDFs and videos, and extract metadata from arbitrary
-files.
+Using Active Storage, an application can transform image uploads or generate image 
+representations of non-image uploads like PDFs and videos, and extract metadata from 
+arbitrary files.
 
 ## Setup
 
@@ -721,10 +720,11 @@ Analyzing Files
 
 Active Storage analyzes files once they've been uploaded by queuing a job in Active Job. Analyzed files will store additional information in the metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling [`analyzed?`][] on it.
 
-Image analysis provides `width` and `height` attributes. Video analysis provides these, as well as `duration`, `angle`, and `display_aspect_ratio`.
-Audio analysis provides `duration` and `bit_rate` attributes.
+Image analysis provides `width` and `height` attributes. Video analysis provides these, as well as `duration`, `angle`, `display_aspect_ratio`, and `video` and `audio` booleans to indicate the presence of those channels. Audio analysis provides `duration` and `bit_rate` attributes.
 
-Analysis requires the `mini_magick` gem. Audio/Video analysis also requires the [FFmpeg](https://www.ffmpeg.org/) library, which you must include separately.
+Image analysis requires either the `mini_magick` gem and the ImageMagick library, or the `ruby-vips` gem and the libvips library. Note that the libraries are not included in the gems, and must be installed separately.
+
+Audio/Video analysis requires [FFmpeg](https://www.ffmpeg.org/), which must also be installed separately.
 
 [`analyzed?`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyzed-3F
 
