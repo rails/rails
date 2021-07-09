@@ -1096,13 +1096,13 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 #### For '7.0', defaults from previous versions below and:
 
 - `config.action_view.button_to_generates_button_tag`: `true`
-- `config.action_view.apply_stylesheet_media_default` : `false`
+- `config.action_view.apply_stylesheet_media_default`: `false`
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.active_support.cache_format_version`: `7.0`
-- `config.active_support.remove_deprecated_time_with_zone_name` : `true`
+- `config.active_support.remove_deprecated_time_with_zone_name`: `true`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
-- `config.action_controller.silence_disabled_session_errors` : `false`
+- `config.action_controller.silence_disabled_session_errors`: `false`
 - `config.action_mailer.smtp_timeout`: `5`
 - `config.active_storage.video_preview_arguments`: `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
 - `config.active_record.verify_foreign_keys_for_fixtures`: `true`
@@ -1168,7 +1168,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.action_view.form_with_generates_ids`: `false`
 - `config.action_view.preload_links_header`: `nil`
 - `config.action_view.button_to_generates_button_tag`: `false`
-- `config.action_view.apply_stylesheet_media_default` : `true`
+- `config.action_view.apply_stylesheet_media_default`: `true`
 - `config.active_job.retry_jitter`: `0.0`
 - `config.active_job.skip_after_callbacks_if_terminated`: `false`
 - `config.action_mailbox.queues.incineration`: `:action_mailbox_incineration`
