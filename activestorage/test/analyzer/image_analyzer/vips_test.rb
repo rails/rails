@@ -13,6 +13,7 @@ class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
 
       assert_equal 4104, metadata[:width]
       assert_equal 2736, metadata[:height]
+      assert metadata[:opaque]
     end
   end
 
@@ -33,6 +34,7 @@ class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
 
       assert_equal 792, metadata[:width]
       assert_equal 584, metadata[:height]
+      assert_not metadata[:opaque]
     end
   end
 

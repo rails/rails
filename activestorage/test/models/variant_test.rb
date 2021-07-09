@@ -211,6 +211,23 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal :png, blob.send(:default_variant_format)
   end
 
+  test "fallback format of a non web image blobs" do
+    blob = create_file_blob(filename: "racecar.tif", metadata: { opaque: false })
+    variant = blob.variant(resize: "50x50").processed
+    assert_match(/racecar\.png/, variant.url)
+
+    image = read_image(variant)
+    assert_equal "PNG", image.type
+
+
+    blob = create_file_blob(filename: "racecar.tif", metadata: { opaque: true })
+    variant = blob.variant(resize: "50x50").processed
+    assert_match(/racecar\.jpg/, variant.url)
+
+    image = read_image(variant)
+    assert_equal "JPEG", image.type
+  end
+
   private
     def process_variants_with(processor)
       previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, processor

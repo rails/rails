@@ -104,10 +104,13 @@ module ActiveStorage::Blob::Representable
     end
 
     def default_variant_format
+      opaque   = metadata.key?("opaque") ? metadata["opaque"] : false
+      fallback = opaque ? :jpg : :png
+
       if web_image?
-        format || :png
+        format || fallback
       else
-        :png
+        fallback
       end
     end
 

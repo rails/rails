@@ -36,6 +36,11 @@ module ActiveStorage
         false
       end
 
+      def opaque?(image)
+        return true unless image.has_alpha?
+        image[image.bands - 1].min == 255
+      end
+
       def valid_image?(image)
         image.avg
         true

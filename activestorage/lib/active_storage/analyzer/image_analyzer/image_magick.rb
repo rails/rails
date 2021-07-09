@@ -32,5 +32,12 @@ module ActiveStorage
       def rotated_image?(image)
         %w[ RightTop LeftBottom TopRight BottomLeft ].include?(image["%[orientation]"])
       end
+
+      def opaque?(image)
+        return true unless image.data["channelDepth"].key?("alpha")
+
+        value = /7.\d/.match?(image.data["version"]) ? 255 : 0
+        image.data["channelStatistics"]["alpha"]["mean"] == value
+      end
   end
 end

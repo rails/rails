@@ -17,9 +17,9 @@ module ActiveStorage
     def metadata
       read_image do |image|
         if rotated_image?(image)
-          { width: image.height, height: image.width }
+          { width: image.height, height: image.width, opaque: opaque?(image) }
         else
-          { width: image.width, height: image.height }
+          { width: image.width, height: image.height, opaque: opaque?(image) }
         end
       end
     end

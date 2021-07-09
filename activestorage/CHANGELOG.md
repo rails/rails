@@ -1,3 +1,11 @@
+*   Changes representations fallback format to JPEG if image is opaque.
+
+    An image will be considered opaque if it does not have an alpha channel or if its
+    alpha channel is not being used for transparency. This information will be extracted
+    by the image analyzer when the file is uploaded.
+
+    *Breno Gazzola*
+
 *   Attachments can be deleted after their association is no longer defined.
 
     Fixes #42514
