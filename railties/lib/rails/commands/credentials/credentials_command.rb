@@ -124,8 +124,8 @@ module Rails
           if Rails::Command.environment != "development" && Rails::Command.environment != options[:environment]
             say <<~WARN
               You are accessing #{options[:environment]} credentials from the #{Rails::Command.environment} environment.
-              Did you mean to run `rails credentials:#{method_name} --environment #{Rails::Command.environment}`?
-              For more information try `rails credentials:help`.
+              Did you mean to run `bin/rails credentials:#{method_name} --environment #{Rails::Command.environment}`?
+              For more information try `bin/rails credentials:help`.
             WARN
           end
         end

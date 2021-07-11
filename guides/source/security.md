@@ -1208,7 +1208,7 @@ WARNING: Keep your master key safe. Do not commit your master key.
 
 #### Accessing environment specific credentials
 
-In order to access environment specific credential file, run `bin/rails credentials:edit --environement=environment_name`
+In order to access the credentials file for a specific environment, use the `--environment=` option.
 
 For example, to edit a production credential file, you need to run:
 

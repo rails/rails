@@ -92,7 +92,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   test "edit command from a non-development environment trying to access another environment credentials" do
     switch_env("RAILS_ENV", "staging") do
       output = run_edit_command(environment: :production)
-      assert_match(/You are accessing production credentials from the staging environment\.\nDid you mean to run `rails credentials:edit --environment staging`\?\nFor more information try `rails credentials:help`/, output)
+      assert_match(/You are accessing production credentials from the staging environment\.\nDid you mean to run `bin\/rails credentials:edit --environment staging`\?\nFor more information try `bin\/rails credentials:help`/, output)
     end
   end
 
@@ -131,7 +131,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   test "show command from a non-development environment trying to access another environment credentials" do
     switch_env("RAILS_ENV", "staging") do
       output = run_show_command(environment: :production)
-      assert_match(/You are accessing production credentials from the staging environment\.\nDid you mean to run `rails credentials:show --environment staging`\?\nFor more information try `rails credentials:help`/, output)
+      assert_match(/You are accessing production credentials from the staging environment\.\nDid you mean to run `bin\/rails credentials:show --environment staging`\?\nFor more information try `bin\/rails credentials:help`/, output)
     end
   end
 
