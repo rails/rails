@@ -1083,6 +1083,14 @@ Controls whether or not templates should be reloaded on each request. Defaults t
 
 #### `config.action_view.field_error_proc`
 
+* `config.action_view.field_error_proc` provides an HTML generator for
+  displaying errors that come from Active Model. The block is evaluated within
+  the context of an Action View template. The default is
+
+    ```ruby
+    Proc.new { |html_tag, instance| content_tag :div, html_tag, class: "field_with_errors" }
+    ```
+
 Provides an HTML generator for displaying errors that come from Active Model. The default is
 
 ```ruby

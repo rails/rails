@@ -1,3 +1,12 @@
+*   Execute the `ActionView::Base.field_error_proc` within the context of the
+    `ActionView::Base` instance:
+
+    ```ruby
+    config.action_view.field_error_proc = proc { |html| content_tag(:div, html, class: "field_with_errors") }
+    ```
+
+    *Sean Doyle*
+
 *   Add `:day_format` option to `date_select`
 
         date_select("article", "written_on", day_format: ->(day) { day.ordinalize })
