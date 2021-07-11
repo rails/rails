@@ -513,11 +513,7 @@ module Rails
 
     # Eager loads the application code.
     def eager_load!
-      if Rails.autoloaders.zeitwerk_enabled?
-        Rails.autoloaders.each(&:eager_load)
-      else
-        super
-      end
+      Rails.autoloaders.each(&:eager_load)
     end
 
   protected

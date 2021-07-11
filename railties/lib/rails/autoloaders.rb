@@ -9,28 +9,22 @@ module Rails
       include Enumerable
 
       def main
-        if zeitwerk_enabled?
-          @main ||= Zeitwerk::Loader.new.tap do |loader|
-            loader.tag = "rails.main"
-            loader.inflector = ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector
-          end
+        @main ||= Zeitwerk::Loader.new.tap do |loader|
+          loader.tag = "rails.main"
+          loader.inflector = ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector
         end
       end
 
       def once
-        if zeitwerk_enabled?
-          @once ||= Zeitwerk::Loader.new.tap do |loader|
-            loader.tag = "rails.once"
-            loader.inflector = ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector
-          end
+        @once ||= Zeitwerk::Loader.new.tap do |loader|
+          loader.tag = "rails.once"
+          loader.inflector = ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector
         end
       end
 
       def each
-        if zeitwerk_enabled?
-          yield main
-          yield once
-        end
+        yield main
+        yield once
       end
 
       def logger=(logger)
