@@ -1,3 +1,14 @@
+*   Two change tracking methods are added for `belongs_to` associations.
+
+    The `association_changed?` method (assuming an association named `:association`) returns true
+    if a different associated object has been assigned and the foreign key will be updated in the
+    next save.
+
+    The `association_previously_changed?` method returns true if the previous save updated the
+    association to reference a different associated object.
+
+    *George Claghorn*
+
 *   Fix `eager_loading?` when ordering with `Hash` syntax
 
     `eager_loading?` is triggered correctly when using `order` with hash syntax
