@@ -179,15 +179,15 @@ end
 class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
   fixtures :companies, :accounts
 
-  def test_should_save_parent_but_not_invalid_child
+  def test_should_save_parent_and_invalid_child
     firm = Firm.new(name: "GlobalMegaCorp")
     assert_predicate firm, :valid?
 
     firm.build_account_using_primary_key
-    assert_not_predicate firm.build_account_using_primary_key, :valid?
+    assert_not_predicate firm.account_using_primary_key, :valid?
 
     assert firm.save
-    assert_not_predicate firm.account_using_primary_key, :persisted?
+    assert_predicate firm.account_using_primary_key, :persisted?
   end
 
   def test_save_fails_for_invalid_has_one
@@ -211,6 +211,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     assert_not_predicate firm.unvalidated_account, :valid?
     assert_predicate firm, :valid?
     assert firm.save
+    assert_predicate firm.unvalidated_account, :persisted?
   end
 
   def test_build_before_child_saved
@@ -301,15 +302,15 @@ end
 class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
   fixtures :companies, :posts, :tags, :taggings
 
-  def test_should_save_parent_but_not_invalid_child
+  def test_should_save_parent_and_invalid_child
     client = Client.new(name: "Joe (the Plumber)")
     assert_predicate client, :valid?
 
     client.build_firm
-    assert_not_predicate client.firm, :valid?
+    assert_predicate client.firm, :invalid?
 
     assert client.save
-    assert_not_predicate client.firm, :persisted?
+    assert_predicate client.firm, :persisted?
   end
 
   def test_save_fails_for_invalid_belongs_to
@@ -331,6 +332,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert_not_predicate log.unvalidated_developer, :valid?
     assert_predicate log, :valid?
     assert log.save
+    assert_predicate log.unvalidated_developer, :persisted?
   end
 
   def test_assignment_before_parent_saved
@@ -633,7 +635,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_predicate firm, :valid?
     assert_not_predicate client, :valid?
     assert firm.save
-    assert_not_predicate client, :persisted?
+    assert_predicate client, :persisted?
   end
 
   def test_valid_adding_with_validate_false

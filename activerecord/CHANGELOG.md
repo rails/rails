@@ -1,3 +1,11 @@
+*   Fix autosave associations when saving new records with validate: false.
+
+    When saving a new record autosave wasn't considering the reflection
+    validate option and always validating the association even when the
+    default value of validate was false or was set explicit to false.
+
+    *Marcelo Lauxen*
+
 *   Clear cached `has_one` association after setting `belongs_to` association to `nil`.
 
     After setting a `belongs_to` relation to `nil` and updating an unrelated attribute on the owner,
