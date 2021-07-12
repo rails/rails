@@ -567,7 +567,27 @@ module ApplicationTests
       output = run_test_command(file_name)
 
       assert_match %r{Finished in.*\n2 runs, 2 assertions}, output
+      assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
       assert_no_match "create_table(:users)", output
+    end
+
+    def test_avoid_paralleling_when_number_of_tests_if_below_threshold
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes, threshold: 100)
+
+      file_name = create_parallel_processes_test_file
+
+      app_file "db/schema.rb", <<-RUBY
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :users do |t|
+            t.string :name
+          end
+        end
+      RUBY
+
+      output = run_test_command(file_name)
+
+      assert_match %r{Running \d+ tests in a single process}, output
+      assert_no_match %r{Running \d+ tests in parallel using \d+ processes}, output
     end
 
     def test_parallel_is_disabled_when_single_file_is_run
@@ -1140,11 +1160,13 @@ module ApplicationTests
         RUBY
       end
 
-      def exercise_parallelization_regardless_of_machine_core_count(with:, force: true)
+      def exercise_parallelization_regardless_of_machine_core_count(with:, force: true, threshold: 0)
         file_content = ERB.new(<<-ERB, trim_mode: "-").result_with_hash(with: with.to_s, force: force)
           ENV["RAILS_ENV"] ||= "test"
           require_relative "../config/environment"
           require "rails/test_help"
+
+          ActiveSupport.test_parallelization_minimum_number_of_tests = #{threshold}
 
           class ActiveSupport::TestCase
             <%- if force -%>

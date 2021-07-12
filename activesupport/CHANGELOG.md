@@ -1,3 +1,17 @@
+*   Parallelize tests only when overhead is justified by the number of them
+
+    Running tests in parallel adds overhead in terms of database
+    setup and fixture loading. Now, Rails will only parallelize test executions when
+    there are enough tests to make it worth it.
+
+    This threshold is 50 by default, and is configurable via:
+
+    ```ruby
+    config.active_support.test_parallelization_minimum_number_of_tests = 100
+    ```
+
+    *Jorge Manrubia*
+
 *   OpenSSL constants are now used for Digest computations.
 
     *Dirkjan Bussink*
