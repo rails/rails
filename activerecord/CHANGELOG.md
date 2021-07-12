@@ -1,3 +1,17 @@
+*   Fix inconsistent counter cache behaviour when optimistic locking enabled
+
+    Previously if optimistic locking was enabled on a model which `belongs_to`
+    some associate model, with `counter_cache: true`, the counter cache column
+    on the associate record would not be updated when destroying the belonging
+    record.
+
+    Now the counter caching will be updated, as expected, whether using
+    optimistic locking or not on the belonging model.
+
+    Fixes #41655
+
+    *Unathi Chonco*
+
 *   Clear cached `has_one` association after setting `belongs_to` association to `nil`.
 
     After setting a `belongs_to` relation to `nil` and updating an unrelated attribute on the owner,
