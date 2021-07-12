@@ -13,6 +13,7 @@ module ActionView
     config.action_view.image_loading = nil
     config.action_view.image_decoding = nil
     config.action_view.apply_stylesheet_media_default = true
+    config.action_view.resize_active_storage_images = false
 
     config.eager_load_namespaces << ActionView
 
@@ -52,6 +53,7 @@ module ActionView
       ActionView::Helpers::AssetTagHelper.image_decoding = app.config.action_view.delete(:image_decoding)
       ActionView::Helpers::AssetTagHelper.preload_links_header = app.config.action_view.delete(:preload_links_header)
       ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default = app.config.action_view.delete(:apply_stylesheet_media_default)
+      ActionView::Helpers::AssetTagHelper.resize_active_storage_images = app.config.action_view.delete(:resize_active_storage_images)
     end
 
     config.after_initialize do |app|

@@ -25,6 +25,7 @@ module ActionView
       mattr_accessor :image_decoding
       mattr_accessor :preload_links_header
       mattr_accessor :apply_stylesheet_media_default
+      mattr_accessor :resize_active_storage_images
 
       # Returns an HTML script tag for each of the +sources+ provided.
       #
@@ -346,7 +347,9 @@ module ActionView
       end
 
       # Returns an HTML image tag for the +source+. The +source+ can be a full
-      # path, a file, or an Active Storage attachment.
+      # path, a file, or an Active Storage attachment. If automatic resizing
+      # of active storage images is enabled, it will shrink (but not enlarge)
+      # the attachment to twice the specified +width+, +height+ or +size+.
       #
       # ==== Options
       #
@@ -390,11 +393,19 @@ module ActionView
       #   # => <img src="/rails/active_storage/representations/.../tiger.jpg" />
       #   image_tag(user.avatar.variant(resize_to_limit: [100, 100]), size: '100')
       #   # => <img width="100" height="100" src="/rails/active_storage/representations/.../tiger.jpg" />
+      #
+      # If automatic resizing is enabled, the last example can be simplified:
+      #
+      #   image_tag(user.avatar, size: 100)
+      #   # => <img width="100" height="100" src="/rails/active_storage/representations/.../tiger.jpg"
       def image_tag(source, options = {})
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
         skip_pipeline = options.delete(:skip_pipeline)
 
+        options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
+
+        source = resize_image_source(source, options)
         options[:src] = resolve_image_source(source, skip_pipeline)
 
         if options[:srcset] && !options[:srcset].is_a?(String)
@@ -403,8 +414,6 @@ module ActionView
             "#{src_path} #{size}"
           end.join(", ")
         end
-
-        options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
 
         options[:loading] ||= image_loading if image_loading
         options[:decoding] ||= image_decoding if image_decoding
@@ -512,6 +521,26 @@ module ActionView
           end
         rescue NoMethodError => e
           raise ArgumentError, "Can't resolve image into URL: #{e}"
+        end
+
+        def resize_image_source(source, options)
+          return source unless resize_active_storage_images
+          return source unless source.respond_to?(:variable?) && source.variable?
+
+          width  = extract_resize_dimension(options[:width])
+          height = extract_resize_dimension(options[:height])
+
+          if width || height
+            source.variant(resize_to_limit: [width, height])
+          else
+            source
+          end
+        end
+
+        IMAGE_FIDELITY = 2
+
+        def extract_resize_dimension(value)
+          value.to_i * IMAGE_FIDELITY if /\A\d+\z/.match?(value.to_s)
         end
 
         def extract_dimensions(size)
