@@ -29,9 +29,6 @@ ARTest.connect
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name("type")
 
-# FIXME: Remove this in Rails 7.1 when it's no longer needed.
-ActiveRecord::Base.destroy_all_in_batches = true
-
 def current_adapter?(*types)
   types.any? do |type|
     ActiveRecord::ConnectionAdapters.const_defined?(type) &&

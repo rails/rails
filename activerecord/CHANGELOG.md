@@ -11,24 +11,6 @@
 
     *Dirkjan Bussink*
 
-*   Relation#destroy_all perform its work in batches
-
-    Since destroy_all actually loads the entire relation and then iteratively destroys the records one by one,
-    you can blow your memory gasket very easily. So let's do the right thing by default
-    and do this work in batches of 100 by default and allow you to specify
-    the batch size like so: #destroy_all(batch_size: 100).
-
-    Apps upgrading to 7.0 will get a deprecation warning. As of Rails 7.1, destroy_all will no longer
-    return the collection of records that were destroyed.
-
-    To transition to the new behaviour set the following in an initializer:
-
-    ```ruby
-    config.active_record.destroy_all_in_batches = true
-    ```
-
-    *Genadi Samokovarov*, *Roberto Miranda*
-
 *   Adds support for `if_not_exists` to `add_foreign_key` and `if_exists` to `remove_foreign_key`.
 
     Applications can set their migrations to ignore exceptions raised when adding a foreign key
