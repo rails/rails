@@ -1,3 +1,17 @@
+*   Rails can now verify foreign keys after loading fixtures in tests.
+
+    This will be the default for new apps in Rails 7. To opt in:
+    
+    ```ruby
+    config.active_record.verify_foreign_keys_for_fixtures = true
+    ```
+    
+    Tests will not run if there is a foreign key constraint violation in your fixture data.
+
+    The feature is supported by SQLite and PostgreSQL, other adapters can also add support for it.
+
+    *Alex Ghiculescu*
+
 *   Clear cached `has_one` association after setting `belongs_to` association to `nil`.
 
     After setting a `belongs_to` relation to `nil` and updating an unrelated attribute on the owner,
