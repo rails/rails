@@ -77,8 +77,6 @@ module ActiveRecord
 
       class_attribute :default_shard, instance_writer: false
 
-      class_attribute :destroy_all_in_batches, instance_accessor: false, default: false
-
       def self.application_record_class? # :nodoc:
         if ActiveRecord.application_record_class
           self == ActiveRecord.application_record_class
