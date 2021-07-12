@@ -1,4 +1,4 @@
-*   Improve error messages when file does not exist at filepath.
+*   Improve error messages when template file does not exist at absolute filepath.
 
     *Ted Whang*
 
