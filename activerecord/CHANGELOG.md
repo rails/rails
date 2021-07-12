@@ -1,3 +1,38 @@
+*   `.with` and `.with_recursive` query methods added. Construct common table
+     expressions with ease and get `ActiveRecord::Relation` back.
+
+    Before:
+
+    ```ruby
+    posts_with_comments_table = Arel::Table.new(:posts_with_comments)
+    posts_with_comments_expression = Post.where("comments_count > ?", 0).arel
+    Post.all.arel.with(Arel::Nodes::As.new(posts_with_comments_table, posts_with_comments_expression))
+    # => Arel::SelectManager
+
+    non_recursive_relation = Comment.select(:id, :parent_id).where(parent: nil)
+    recursive_relation = Comment.select(:id, :parent_id).joins("JOIN replies ON comments.parent_id = replies.id")
+    replies_table = Arel::Table.new(:replies)
+    union = non_recursive_relation.arel.union(recursive_relation.arel)
+    Post.all.arel.with(:recursive, Arel::Nodes::As.new(replies_table, union))
+    # => Arel::SelectManager
+    ```
+
+    After:
+
+    ```ruby
+    Post.with(:posts_with_comments, Post.where("comments_count > ?", 0))
+    # => ActiveRecord::Relation
+
+    non_recursive_relation = Comment.select(:id, :parent_id).where(parent: nil)
+    recursive_relation = Comment.select(:id, :parent_id).joins("JOIN replies ON comments.parent_id = replies.id")
+    Post.with_recursive(:replies, non_recursive_relation, recursive_relation)
+    # => ActiveRecord::Relation
+    ```
+
+    *Vlado Cingel*
+
+*   Support passing record to uniqueness validator `:conditions` callable:
+
 *   Clear cached `has_one` association after setting `belongs_to` association to `nil`.
 
     After setting a `belongs_to` relation to `nil` and updating an unrelated attribute on the owner,
