@@ -261,6 +261,8 @@ module ActionView
       # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
       #   be placed
       # * <tt>:params</tt> - \Hash of parameters to be rendered as hidden fields within the form.
+      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form. Override with a custom
+      #   authenticity token or pass false to skip the authenticity token field altogether.
       #
       # ==== Data attributes
       #
@@ -290,6 +292,11 @@ module ActionView
       #   #      <button type="submit">New</button>
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #      <input type="hidden" name="time" value="2021-04-08 14:06:09 -0500">
+      #   #    </form>"
+      #
+      #   <%= button_to "New", "https://example.com", authenticity_token: false %>
+      #   # => "<form class="button_to" method="post" action="https://example.com">
+      #   #      <button type="submit">External Resource</button>
       #   #    </form>"
       #
       #   <%= button_to [:make_happy, @user] do %>
@@ -358,6 +365,9 @@ module ActionView
 
         request_token_tag = if form_method == "post"
           request_method = method.empty? ? "post" : method
+          if remote && authenticity_token.blank?
+            authenticity_token = FormTagHelper.embed_authenticity_token_in_remote_forms
+          end
           token_tag(authenticity_token, form_options: { action: url, method: request_method })
         else
           ""

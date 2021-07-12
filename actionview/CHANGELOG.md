@@ -1,3 +1,15 @@
+*   Allow `ActionView::Helpers::UrlHelper#button_to` to render with a
+    custom authenticity token, or render without an authenticity
+    token when `authenticity_token: false` is passed.
+
+        <%= button_to "New", "https://example.com", authenticity_token: false %>
+        <%# => <form class="button_to" method="post" action="https://example.com">
+            =>   <button type="submit">External Resource</button>
+            => </form>
+        %>
+
+    *Jacopo Beschi*, *Jacob Herrington*
+
 *   Support `fields model: [@nested, @model]` the same way as `form_with model:
     [@nested, @model]`.
 

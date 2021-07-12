@@ -440,6 +440,42 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_button_to_with_custom_autenticity_token
+    self.request_forgery = true
+
+    assert_dom_equal(
+      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="form_token" value="custom_secret" autocomplete="off" /></form>},
+      button_to("Hello", "http://www.example.com", authenticity_token: "custom_secret")
+    )
+  ensure
+    self.request_forgery = false
+  end
+
+  def test_button_to_with_no_autenticity_token
+    self.request_forgery = true
+
+    assert_dom_equal(
+      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button></form>},
+      button_to("Hello", "http://www.example.com", authenticity_token: false)
+    )
+  ensure
+    self.request_forgery = false
+  end
+
+  def test_button_to_remote_fallbacks_to_embed_authenticity_token_in_remote_forms
+    original = ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms
+    ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = false
+    self.request_forgery = true
+
+    assert_dom_equal(
+      %{<form action="http://www.example.com" class="button_to" method="post" data-remote="true"><button type="submit">Hello</button></form>},
+      button_to("Hello", "http://www.example.com", remote: true)
+    )
+  ensure
+    ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
+    self.request_forgery = false
+  end
+
   def test_link_tag_with_straight_url
     assert_dom_equal %{<a href="http://www.example.com">Hello</a>}, link_to("Hello", "http://www.example.com")
   end
