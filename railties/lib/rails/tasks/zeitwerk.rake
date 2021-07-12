@@ -35,8 +35,6 @@ end
 namespace :zeitwerk do
   desc "Checks project structure for Zeitwerk compatibility"
   task check: :environment do
-    ensure_zeitwerk_mode[]
-
     begin
       eager_load[]
     rescue NameError => e
