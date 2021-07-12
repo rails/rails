@@ -124,7 +124,7 @@ module ActiveJob
       if block_given?
         original_jobs = enqueued_jobs_with(only: only, except: except, queue: queue)
 
-        assert_nothing_raised(&block)
+        _assert_nothing_raised_or_warn("assert_enqueued_jobs", &block)
 
         new_jobs = enqueued_jobs_with(only: only, except: except, queue: queue)
 
@@ -397,7 +397,7 @@ module ActiveJob
       if block_given?
         original_enqueued_jobs = enqueued_jobs.dup
 
-        assert_nothing_raised(&block)
+        _assert_nothing_raised_or_warn("assert_enqueued_with", &block)
 
         jobs = enqueued_jobs - original_enqueued_jobs
       else
@@ -591,7 +591,7 @@ module ActiveJob
         queue_adapter.queue = queue
         queue_adapter.at = at
 
-        assert_nothing_raised(&block)
+        _assert_nothing_raised_or_warn("perform_enqueued_jobs", &block)
       ensure
         queue_adapter.perform_enqueued_jobs = old_perform_enqueued_jobs
         queue_adapter.perform_enqueued_at_jobs = old_perform_enqueued_at_jobs
