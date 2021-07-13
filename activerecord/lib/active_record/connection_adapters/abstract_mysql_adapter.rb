@@ -185,13 +185,6 @@ module ActiveRecord
         end
       end
 
-      # CONNECTION MANAGEMENT ====================================
-
-      def clear_cache! # :nodoc:
-        reload_type_map
-        super
-      end
-
       #--
       # DATABASE STATEMENTS ======================================
       #++
@@ -568,56 +561,67 @@ module ActiveRecord
         end
       end
 
-      private
-        def initialize_type_map(m = type_map)
-          super
+      class << self
+        private
+          def initialize_type_map(m)
+            super
 
-          m.register_type(%r(char)i) do |sql_type|
-            limit = extract_limit(sql_type)
-            Type.lookup(:string, adapter: :mysql2, limit: limit)
+            m.register_type(%r(char)i) do |sql_type|
+              limit = extract_limit(sql_type)
+              Type.lookup(:string, adapter: :mysql2, limit: limit)
+            end
+
+            m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
+            m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
+            m.register_type %r(text)i,       Type::Text.new(limit: 2**16 - 1)
+            m.register_type %r(blob)i,       Type::Binary.new(limit: 2**16 - 1)
+            m.register_type %r(mediumtext)i, Type::Text.new(limit: 2**24 - 1)
+            m.register_type %r(mediumblob)i, Type::Binary.new(limit: 2**24 - 1)
+            m.register_type %r(longtext)i,   Type::Text.new(limit: 2**32 - 1)
+            m.register_type %r(longblob)i,   Type::Binary.new(limit: 2**32 - 1)
+            m.register_type %r(^float)i,     Type::Float.new(limit: 24)
+            m.register_type %r(^double)i,    Type::Float.new(limit: 53)
+
+            register_integer_type m, %r(^bigint)i,    limit: 8
+            register_integer_type m, %r(^int)i,       limit: 4
+            register_integer_type m, %r(^mediumint)i, limit: 3
+            register_integer_type m, %r(^smallint)i,  limit: 2
+            register_integer_type m, %r(^tinyint)i,   limit: 1
+
+            m.alias_type %r(year)i, "integer"
+            m.alias_type %r(bit)i,  "binary"
+
+            m.register_type %r(^enum)i, Type.lookup(:string, adapter: :mysql2)
+            m.register_type %r(^set)i,  Type.lookup(:string, adapter: :mysql2)
           end
 
-          m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
-          m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
-          m.register_type %r(text)i,       Type::Text.new(limit: 2**16 - 1)
-          m.register_type %r(blob)i,       Type::Binary.new(limit: 2**16 - 1)
-          m.register_type %r(mediumtext)i, Type::Text.new(limit: 2**24 - 1)
-          m.register_type %r(mediumblob)i, Type::Binary.new(limit: 2**24 - 1)
-          m.register_type %r(longtext)i,   Type::Text.new(limit: 2**32 - 1)
-          m.register_type %r(longblob)i,   Type::Binary.new(limit: 2**32 - 1)
-          m.register_type %r(^float)i,     Type::Float.new(limit: 24)
-          m.register_type %r(^double)i,    Type::Float.new(limit: 53)
-
-          register_integer_type m, %r(^bigint)i,    limit: 8
-          register_integer_type m, %r(^int)i,       limit: 4
-          register_integer_type m, %r(^mediumint)i, limit: 3
-          register_integer_type m, %r(^smallint)i,  limit: 2
-          register_integer_type m, %r(^tinyint)i,   limit: 1
-
-          m.register_type %r(^tinyint\(1\))i, Type::Boolean.new if emulate_booleans
-          m.alias_type %r(year)i, "integer"
-          m.alias_type %r(bit)i,  "binary"
-
-          m.register_type %r(^enum)i, Type.lookup(:string, adapter: :mysql2)
-          m.register_type %r(^set)i,  Type.lookup(:string, adapter: :mysql2)
-        end
-
-        def register_integer_type(mapping, key, **options)
-          mapping.register_type(key) do |sql_type|
-            if /\bunsigned\b/.match?(sql_type)
-              Type::UnsignedInteger.new(**options)
-            else
-              Type::Integer.new(**options)
+          def register_integer_type(mapping, key, **options)
+            mapping.register_type(key) do |sql_type|
+              if /\bunsigned\b/.match?(sql_type)
+                Type::UnsignedInteger.new(**options)
+              else
+                Type::Integer.new(**options)
+              end
             end
           end
-        end
 
-        def extract_precision(sql_type)
-          if /\A(?:date)?time(?:stamp)?\b/.match?(sql_type)
-            super || 0
-          else
-            super
+          def extract_precision(sql_type)
+            if /\A(?:date)?time(?:stamp)?\b/.match?(sql_type)
+              super || 0
+            else
+              super
+            end
           end
+      end
+
+      TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
+      TYPE_MAP_WITH_BOOLEAN = Type::TypeMap.new(TYPE_MAP).tap do |m|
+        m.register_type %r(^tinyint\(1\))i, Type::Boolean.new
+      end
+
+      private
+        def type_map
+          emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
         end
 
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
