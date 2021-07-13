@@ -280,8 +280,8 @@ module ActiveRecord
       #   people.update(group: "masters")
       #
       # Note: Updating a large number of records will run an UPDATE
-      # query for each record(duplicates will be merged together first),
-      # which may cause a performance issue.
+      # query for each record which may cause a performance issue.
+      # Duplicate ids will only be updated once, by merging all attributes.
       # When running callbacks is not needed for each record update,
       # it is preferred to use {update_all}[rdoc-ref:Relation#update_all]
       # for updating all records in a single query.
