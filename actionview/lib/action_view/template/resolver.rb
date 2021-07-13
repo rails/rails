@@ -122,16 +122,12 @@ module ActionView
 
     private
       def _find_all(name, prefix, partial, details, key, locals)
-        path = TemplatePath.build(name, prefix, partial)
         requested_details = key || TemplateDetails::Requested.new(**details)
-        query(path, requested_details, locals, cache: !!key)
-      end
-
-      def query(path, requested_details, locals, cache:)
-        cache = cache ? @unbound_templates : Concurrent::Map.new
+        cache = key ? @unbound_templates : Concurrent::Map.new
 
         unbound_templates =
-          cache.compute_if_absent(path.virtual) do
+          cache.compute_if_absent(TemplatePath.virtual(name, prefix, partial)) do
+            path = TemplatePath.build(name, prefix, partial)
             unbound_templates_from_path(path)
           end
 
