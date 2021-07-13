@@ -1,3 +1,7 @@
+*   Improve error messages when template file does not exist at absolute filepath.
+
+    *Ted Whang*
+
 *   Add `:country_code` option to `sms_to` for consistency with `phone_to`.
 
     *Jonathan Hefner*
