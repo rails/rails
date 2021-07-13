@@ -119,6 +119,8 @@ module ActiveRecord
 
         # Aborts a transaction.
         def exec_rollback_db_transaction # :nodoc:
+          @connection.cancel unless @connection.transaction_status == PG::PQTRANS_IDLE
+          @connection.block
           execute("ROLLBACK", "TRANSACTION")
         end
 
