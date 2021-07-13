@@ -58,7 +58,7 @@ module ActionView #:nodoc:
 
     private
       def _find_all(path, prefixes, args)
-        prefixes = [prefixes] if String === prefixes
+        prefixes = Array(prefixes)
         prefixes.each do |prefix|
           paths.each do |resolver|
             templates = resolver.find_all(path, prefix, *args)
