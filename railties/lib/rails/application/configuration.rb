@@ -229,6 +229,7 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.verify_foreign_keys_for_fixtures = true
+            active_record.partial_inserts = false
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
