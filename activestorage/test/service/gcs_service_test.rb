@@ -151,6 +151,40 @@ if SERVICE_CONFIGURATIONS[:gcs]
       assert_match(/storage\.googleapis\.com\/.*response-content-disposition=inline.*test\.txt.*response-content-type=text%2Fplain/,
         @service.url(@key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain"))
     end
+
+    if SERVICE_CONFIGURATIONS[:gcs].key?(:gsa_email)
+      test "direct upload with IAM signing" do
+        config_with_iam = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ iam: true }) }
+        service = ActiveStorage::Service.configure(:gcs, config_with_iam)
+
+        key      = SecureRandom.base58(24)
+        data     = "Some text"
+        checksum = Digest::MD5.base64digest(data)
+        url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+
+        uri = URI.parse(url)
+        request = Net::HTTP::Put.new(uri.request_uri)
+        request.body = data
+        request.add_field("Content-Type", "")
+        request.add_field("Content-MD5", checksum)
+        Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+          http.request request
+        end
+
+        assert_equal data, service.download(key)
+      ensure
+        service.delete key
+      end
+
+      test "url with IAM signing" do
+        config_with_iam = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ iam: true }) }
+        service = ActiveStorage::Service.configure(:gcs, config_with_iam)
+
+        key = SecureRandom.base58(24)
+        assert_match(/storage\.googleapis\.com\/.*response-content-disposition=inline.*test\.txt.*response-content-type=text%2Fplain/,
+          service.url(key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain"))
+      end
+    end
   end
 else
   puts "Skipping GCS Service tests because no GCS configuration was supplied"
