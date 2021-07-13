@@ -58,5 +58,5 @@
 
 # Disable partial inserts.
 # This default means that all columns will be referenced in INSERT queries
-# regardless of wether they have a default or not.
+# regardless of whether they have a default or not.
 # Rails.application.config.active_record.partial_inserts = false
