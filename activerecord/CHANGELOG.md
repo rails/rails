@@ -100,9 +100,9 @@
 
     *Jorge Manrubia*
 
-*   The MySQL adapter now cast numbers and booleans bind parameters to to string for safety reasons.
+*   The MySQL adapter now cast numbers and booleans bind parameters to string for safety reasons.
 
-    When comparing a string and a number in a query, MySQL convert the string to a number. So for
+    When comparing a string and a number in a query, MySQL converts the string to a number. So for
     instance `"foo" = 0`, will implicitly cast `"foo"` to `0` and will evaluate to `TRUE` which can
     lead to security vulnerabilities.
 
