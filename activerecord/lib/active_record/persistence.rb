@@ -287,8 +287,11 @@ module ActiveRecord
       # for updating all records in a single query.
       def update(id = :all, attributes)
         if id.is_a?(Array)
-          raise(ArgumentError, "the list of ids and the list of attributes do not have " \
-                "the same length.  id: #{id.size} attributes: #{attributes.size}") if id.size != attributes.size
+          if id.size != attributes.size
+            raise ArgumentError,
+                  "the list of ids and the list of attributes do not have " \
+                  "the same length. id: #{id.size} attributes: #{attributes.size}"
+          end
 
           merged_attributes = Hash.new { |hash, key| hash[key] = {} }
           id.size.times { |i| merged_attributes[id[i]].merge!(attributes[i]) }
