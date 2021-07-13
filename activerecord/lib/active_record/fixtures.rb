@@ -724,7 +724,7 @@ module ActiveRecord
       # If the file sets the +model_class+ and current instance value is not set,
       # it uses the file value.
       def read_fixture_files(path)
-        yaml_files = Dir["#{path}/{**,*}/*.yml"].select { |f|
+        yaml_files = Dir["#{path}/{**,*}/*.yml{,.erb}"].select { |f|
           ::File.file?(f)
         } + [yaml_file_path(path)]
 
@@ -740,6 +740,8 @@ module ActiveRecord
       end
 
       def yaml_file_path(path)
+        erb_path = "#{path}.yml.erb"
+        return erb_path if ::File.file?(erb_path)
         "#{path}.yml"
       end
   end
