@@ -8,6 +8,9 @@ module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::GCSService < Service
+    class MetadataServerError < ActiveStorage::Error; end
+    class MetadataServerNotFoundError < ActiveStorage::Error; end
+
     def initialize(public: false, **config)
       @config = config
       @public = public
@@ -190,7 +193,17 @@ module ActiveStorage
           request = Net::HTTP::Get.new(uri.request_uri)
           request["Metadata-Flavor"] = "Google"
 
-          http.request(request).body
+          begin
+            response = http.request(request)
+          rescue SocketError
+            raise MetadataServerNotFoundError
+          end
+
+          if response.is_a?(Net::HTTPSuccess)
+            response.body
+          else
+            raise MetadataServerError
+          end
         end
       end
 
