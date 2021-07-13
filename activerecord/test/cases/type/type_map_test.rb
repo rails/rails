@@ -173,6 +173,16 @@ module ActiveRecord
 
         assert_equal "int", mapping.lookup(1)
       end
+
+      def test_parent_fallback
+        boolean = Boolean.new
+
+        parent = TypeMap.new
+        parent.register_type(/boolean/i, boolean)
+
+        mapping = TypeMap.new(parent)
+        assert_equal mapping.lookup("boolean"), boolean
+      end
     end
   end
 end

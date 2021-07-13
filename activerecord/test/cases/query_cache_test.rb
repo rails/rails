@@ -606,7 +606,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       Task.find(1)
 
       # Preload the type cache again (so we don't have those queries issued during our assertions)
-      Task.connection.send(:reload_type_map)
+      Task.connection.send(:reload_type_map) if Task.connection.respond_to?(:reload_type_map, true)
 
       # Clear places where type information is cached
       Task.reset_column_information
