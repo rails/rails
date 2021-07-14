@@ -1548,7 +1548,14 @@ module ActiveRecord
       end
 
       def column_references(order_args)
-        references = order_args.grep(String)
+        references = order_args.flat_map do |arg|
+          case arg
+          when String
+            arg
+          when Hash
+            arg.keys
+          end
+        end
         references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
         references
       end
