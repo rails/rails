@@ -1,3 +1,16 @@
+*   Exclude additional flash types from `ActionController::Base.action_methods`.
+
+    Ensures that additional flash types defined on ActionController::Base subclasses
+    are not listed as actions on that controller.
+
+        class MyController < ApplicationController
+          add_flash_types :hype
+        end
+
+        MyController.action_methods.include?('hype') # => false
+
+    *Gavin Morrice*
+
 *   Deleting an item from the Middleware stack will raise if the item is not found
 
     Previously, calling `config.middleware.delete(ItemNotInMiddleware)` would fail silently.
