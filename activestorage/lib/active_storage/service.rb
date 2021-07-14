@@ -35,8 +35,8 @@ module ActiveStorage
   # can configure the service to use like this:
   #
   #   ActiveStorage::Blob.service = ActiveStorage::Service.configure(
-  #     :Disk,
-  #     root: Pathname("/foo/bar/storage")
+  #     :local,
+  #     { local: {service: "Disk",  root: Pathname("/tmp/foo/storage") } }
   #   )
   class Service
     extend ActiveSupport::Autoload
