@@ -88,6 +88,7 @@ module ActiveSupport
 
   cattr_accessor :test_order # :nodoc:
   cattr_accessor :test_parallelization_disabled, default: false # :nodoc:
+  cattr_accessor :test_parallelization_minimum_number_of_tests, default: 50 # :nodoc:
 
   def self.disable_test_parallelization!
     self.test_parallelization_disabled = true unless ENV["PARALLEL_WORKERS"]

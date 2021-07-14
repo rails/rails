@@ -569,6 +569,16 @@ end
 NOTE: With disabled transactional tests, you have to clean up any data tests
 create as changes are not automatically rolled back after the test completes.
 
+### Threshold to parallelize tests
+
+Running tests in parallel adds an overhead in terms of database setup and
+fixture loading. Because of this, Rails won't parallelize executions that involve
+fewer than 50 tests. You can configure this threshold in your `test.rb`:
+
+```ruby
+config.active_support.test_parallelization_minimum_number_of_tests = 100
+```
+
 The Test Database
 -----------------
 
