@@ -1,3 +1,9 @@
+*   Move the forcing of clear text encoding to the `ActiveRecord::Encryption::Encryptor`.
+
+    Fixes #42699.
+
+    *J Smith*
+
 *   `partial_inserts` is now disabled by default in new apps.
 
     This will be the default for new apps in Rails 7. To opt in:
