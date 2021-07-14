@@ -4,14 +4,17 @@ module ActiveRecord
   module Associations
     class Preloader
       class Batch #:nodoc:
-        def initialize(preloaders)
+        def initialize(preloaders, available_records:)
           @preloaders = preloaders.reject(&:empty?)
+          @available_records = available_records.flatten.group_by(&:class)
         end
 
         def call
           branches = @preloaders.flat_map(&:branches)
           until branches.empty?
             loaders = branches.flat_map(&:runnable_loaders)
+
+            loaders.each { |loader| loader.associate_records_from_unscoped(@available_records[loader.klass]) }
 
             already_loaded = loaders.select(&:data_available?)
             if already_loaded.any?
