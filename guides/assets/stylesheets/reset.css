@@ -15,7 +15,6 @@ table, caption, tbody, tfoot, thead, tr, th, td {
   margin: 0;
   padding: 0;
   border: 0;
-  outline: 0;
   font-size: 100%;
   background: transparent;
 }
@@ -24,12 +23,6 @@ body {line-height: 1; color: black; background: white;}
 a img {border:none;}
 ins {text-decoration: none;}
 del {text-decoration: line-through;}
-
-:focus {
-  -moz-outline:0;
-  outline:0;
-  outline-offset:0;
-}
 
 /* tables still need 'cellspacing="0"' in the markup */
 table {border-collapse: collapse; border-spacing: 0;}
