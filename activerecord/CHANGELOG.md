@@ -1,3 +1,10 @@
+*   `eager_loading?` works when ordering tables with a schema prefix.
+
+    Some DBMS (e.g. PostgreSQL) allows to define multiple schemas per database.
+    `eager_loading?` now works when ordering using a table name which contains a schema prefix.
+
+    *Jacopo Beschi*
+
 *   `partial_inserts` is now disabled by default in new apps.
 
     This will be the default for new apps in Rails 7. To opt in:

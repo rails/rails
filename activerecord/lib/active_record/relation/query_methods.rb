@@ -1549,7 +1549,13 @@ module ActiveRecord
 
       def column_references(order_args)
         references = order_args.grep(String)
-        references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
+        references_matcher = /
+          ^\W?
+          # schema.table | table
+          ((?:\w+\.\w+) | (?:\w+))
+          \W?\.
+        /x
+        references.map! { |arg| arg =~ references_matcher && $1 }.compact!
         references
       end
 
