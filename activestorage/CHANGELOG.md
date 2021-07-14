@@ -1,3 +1,10 @@
+*   Make `vips` the default variant processor for new apps.
+
+    See the upgrade guide for instructions on converting from `mini_magick` to `vips`. `mini_magick` is
+    not deprecated, existing apps can keep using it.
+
+    *Breno Gazzola*
+
 *   Allow using [IAM](https://cloud.google.com/storage/docs/access-control/signed-urls) when signing URLs with GCS.
 
     ```yaml

@@ -3121,6 +3121,20 @@ module ApplicationTests
         " -frames:v 1 -f image2"
     end
 
+    test "ActiveStorage.variant_processor uses mini_magick without Rails 7 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal :mini_magick, ActiveStorage.variant_processor
+    end
+
+    test "ActiveStorage.variant_processor uses vips by default" do
+      app "development"
+
+      assert_equal :vips, ActiveStorage.variant_processor
+    end
+
     test "hosts include .localhost in development" do
       app "development"
       assert_includes Rails.application.config.hosts, ".localhost"
