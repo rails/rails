@@ -143,6 +143,13 @@ module ActiveRecord
         assert_equal boolean, mapping.lookup("boolean")
       end
 
+      def test_parent_fallback_for_default_type
+        parent = klass.new
+        mapping = klass.new(parent)
+
+        assert_kind_of Value, mapping.lookup(:undefined)
+      end
+
       private
         def klass
           TypeMap
