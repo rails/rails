@@ -3,12 +3,12 @@
 module ActiveSupport
   module Testing
     class ParallelizeExecutor # :nodoc:
-      attr_reader :size, :parallelize_with, :parallel_executor
+      attr_reader :size, :parallelize_with, :threshold
 
-      def initialize(size:, with:)
+      def initialize(size:, with:, threshold: ActiveSupport.test_parallelization_threshold)
         @size = size
         @parallelize_with = with
-        @parallel_executor = build_parallel_executor
+        @threshold = threshold
       end
 
       def start
@@ -27,6 +27,10 @@ module ActiveSupport
       end
 
       private
+        def parallel_executor
+          @parallel_executor ||= build_parallel_executor
+        end
+
         def build_parallel_executor
           case parallelize_with
           when :processes
@@ -49,7 +53,7 @@ module ActiveSupport
         end
 
         def should_parallelize?
-          ENV["PARALLEL_WORKERS"] || tests_count > ActiveSupport.test_parallelization_minimum_number_of_tests
+          ENV["PARALLEL_WORKERS"] || tests_count > threshold
         end
 
         def tests_count
@@ -64,7 +68,7 @@ module ActiveSupport
           if should_parallelize?
             "Running #{tests_count} tests in parallel using #{parallel_executor.size} #{parallelize_with}"
           else
-            "Running #{tests_count} tests in a single process (parallelization threshold is #{ActiveSupport.test_parallelization_minimum_number_of_tests})"
+            "Running #{tests_count} tests in a single process (parallelization threshold is #{threshold})"
           end
         end
     end

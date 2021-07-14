@@ -2421,18 +2421,18 @@ module ApplicationTests
       assert_equal OpenSSL::Digest::SHA256, ActiveSupport::KeyGenerator.hash_digest_class
     end
 
-    test "ActiveSupport.test_parallelization_minimum_number_of_tests can be configured via config.active_support.test_parallelization_minimum_number_of_tests" do
+    test "ActiveSupport.test_parallelization_threshold can be configured via config.active_support.test_parallelization_threshold" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app_file "config/environments/test.rb", <<-RUBY
         Rails.application.configure do
-          config.active_support.test_parallelization_minimum_number_of_tests = 1234
+          config.active_support.test_parallelization_threshold = 1234
         end
       RUBY
 
       app "test"
 
-      assert_equal 1234, ActiveSupport.test_parallelization_minimum_number_of_tests
+      assert_equal 1234, ActiveSupport.test_parallelization_threshold
     end
 
     test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
