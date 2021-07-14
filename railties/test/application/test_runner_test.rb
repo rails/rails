@@ -571,7 +571,7 @@ module ApplicationTests
       assert_no_match "create_table(:users)", output
     end
 
-    def test_avoid_paralleling_when_number_of_tests_if_below_threshold
+    def test_avoid_parallelizing_when_number_of_tests_is_below_threshold
       exercise_parallelization_regardless_of_machine_core_count(with: :processes, threshold: 100)
 
       file_name = create_parallel_processes_test_file
