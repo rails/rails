@@ -1,3 +1,15 @@
+*   Fix `eager_loading?` when ordering with `Hash` syntax
+
+    `eager_loading?` is triggered correctly when using `order` with hash syntax
+    on an outer table.
+
+    ```ruby
+    Post.includes(:comments).order({ "comments.label": :ASC }).eager_loading?
+    => true
+    ```
+
+    *Jacopo Beschi*
+
 *   Move the forcing of clear text encoding to the `ActiveRecord::Encryption::Encryptor`.
 
     Fixes #42699.
