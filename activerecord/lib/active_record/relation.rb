@@ -296,15 +296,25 @@ module ActiveRecord
     def one?
       return super if block_given?
       return records.one? if limit_value || loaded?
-      limited_count == 1
+      group_safe_count(limited_count) == 1
     end
 
     # Returns true if there is more than one record.
     def many?
       return super if block_given?
       return records.many? if limit_value || loaded?
-      limited_count > 1
+      group_safe_count(limited_count) > 1
     end
+
+    # Counts the number of keys when count_result is a Hash
+    #
+    # This occurs when our query includes a group() section.
+    # The number of keys in this Hash matches the number of groups returned,
+    # the number of records in the result set, and the behavior of #length.
+    def group_safe_count(count_result)
+      count_result.is_a?(Hash) ? count_result.length : count_result
+    end
+    private :group_safe_count
 
     # Returns a stable cache key that can be used to identify this query.
     # The cache key is built with a fingerprint of the SQL query.
