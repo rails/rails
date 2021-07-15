@@ -1,3 +1,7 @@
+*   Respect the `dependent: :destroy_async` when replacing the association.
+
+    *Maciej Małecki*
+
 *   Move the forcing of clear text encoding to the `ActiveRecord::Encryption::Encryptor`.
 
     Fixes #42699.

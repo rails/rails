@@ -38,10 +38,11 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     end
   ensure
     Tag.delete_all
+    Tagging.delete_all
     BookDestroyAsync.delete_all
   end
 
-  test "destroying a scoped has_many through only deletes within the scope deleted" do
+  test "destroying a scoped has_many :through only deletes within the scope deleted" do
     tag = Tag.create!(name: "Der be treasure")
     tag2 = Tag.create!(name: "Der be rum")
     parent = BookDestroyAsyncWithScopedTags.create!
@@ -63,6 +64,29 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     Tag.delete_all
     Tagging.delete_all
     BookDestroyAsyncWithScopedTags.delete_all
+  end
+
+  test "replacing a has_many :through deletes missing records using a job" do
+    tag = Tag.create!(name: "Der be treasure")
+    tag2 = Tag.create!(name: "Der be rum")
+    book = BookDestroyAsync.create!(tags: [tag, tag2])
+
+    tag3 = Tag.create!(name: "Der be boat")
+    book.tags = [tag, tag3]
+    book.save!
+
+    assert_difference -> { Tagging.count }, -1 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+
+    assert tag.reload
+    assert tag2.reload
+    assert tag3.reload
+    assert book.tags == [tag, tag3]
+  ensure
+    Tag.delete_all
+    Tagging.delete_all
+    BookDestroyAsync.delete_all
   end
 
   test "enqueues the has_many through to be deleted with custom primary key" do
@@ -129,6 +153,25 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     BookDestroyAsync.delete_all
   end
 
+  test "has_one replacement" do
+    content = Content.create!(title: "hello")
+    book = BookDestroyAsync.create!(name: "Arr, matey!", content: content)
+
+    book.content = Content.new(title: "hi")
+    book.save!
+
+    assert_difference -> { Content.count }, -1 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+
+    assert_raises ActiveRecord::RecordNotFound do
+      content.reload
+    end
+  ensure
+    Content.delete_all
+    BookDestroyAsync.delete_all
+  end
+
 
   test "enqueues has_one to be deleted with custom primary key" do
     child = DlKeyedHasOne.create!
@@ -162,6 +205,30 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     BookDestroyAsync.delete_all
   end
 
+  test "has_many replacement" do
+    essay = EssayDestroyAsync.create!(name: "Der be treasure")
+    essay2 = EssayDestroyAsync.create!(name: "Der be rum")
+    book = BookDestroyAsync.create!(name: "Arr, matey!", essays: [essay, essay2])
+
+    essay3 = EssayDestroyAsync.create!(name: "Der be boat")
+    book.essays = [essay, essay3, EssayDestroyAsync.new(name: "Der be coat")]
+    book.save!
+
+    assert_difference -> { EssayDestroyAsync.count }, -1 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+
+    assert_raises ActiveRecord::RecordNotFound do
+      essay2.reload
+    end
+    assert essay.reload
+    assert essay3.reload
+    assert EssayDestroyAsync.find_by!(book_id: book.id, name: "Der be coat")
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
   test "has_many with STI parent class destroys all children class records" do
     book = BookDestroyAsync.create!
     LongEssayDestroyAsync.create!(book: book)
@@ -183,6 +250,25 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
 
     assert_difference -> { DlKeyedHasMany.count }, -1 do
       perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+  ensure
+    DlKeyedHasMany.delete_all
+    DestroyAsyncParent.delete_all
+  end
+
+  test "enqueues the has_many to be deleted with custom primary key on replacement" do
+    dl_keyed_has_many = DlKeyedHasMany.new
+    parent = DestroyAsyncParent.create!(dl_keyed_has_many: [dl_keyed_has_many])
+
+    parent.dl_keyed_has_many = []
+    parent.save!
+
+    assert_difference -> { DlKeyedHasMany.count }, -1 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+
+    assert_raises ActiveRecord::RecordNotFound do
+      dl_keyed_has_many.reload
     end
   ensure
     DlKeyedHasMany.delete_all
@@ -228,6 +314,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     end
   ensure
     Tag.delete_all
+    Tagging.delete_all
     DestroyAsyncParentSoftDelete.delete_all
   end
 
@@ -301,5 +388,6 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   end
 ensure
   Tag.delete_all
+  Tagging.delete_all
   BookDestroyAsync.delete_all
 end

@@ -61,7 +61,7 @@ module ActiveRecord
             save &&= owner.persisted?
 
             transaction_if(save) do
-              remove_target!(options[:dependent]) if target && !target.destroyed? && assigning_another_record
+              remove!(target, options[:dependent]) if target && !target.destroyed? && assigning_another_record
 
               if record
                 set_owner_attributes(record)
@@ -87,25 +87,42 @@ module ActiveRecord
           replace(record, false)
         end
 
-        def remove_target!(method)
+        def remove!(record, method)
           case method
           when :delete
-            target.delete
+            record.delete
           when :destroy
-            target.destroyed_by_association = reflection
-            if target.persisted?
-              target.destroy
+            record.destroyed_by_association = reflection
+            if record.persisted?
+              record.destroy
+            end
+          when :destroy_async
+            record.destroyed_by_association = reflection
+
+            if record.persisted?
+              primary_key_column = record.class.primary_key.to_sym
+              id = record.public_send(primary_key_column)
+
+              enqueue_destroy_association(
+                owner_model_name: owner.class.to_s,
+                owner_id: owner.id,
+                association_class: reflection.klass.to_s,
+                association_ids: [id],
+                association_primary_key_column: primary_key_column,
+                ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil),
+                ensuring_owner_destroyed: false
+              )
             end
           else
-            nullify_owner_attributes(target)
-            remove_inverse_instance(target)
+            nullify_owner_attributes(record)
+            remove_inverse_instance(record)
 
-            if target.persisted? && owner.persisted? && !target.save
-              set_owner_attributes(target)
+            if record.persisted? && owner.persisted? && !record.save
+              set_owner_attributes(record)
               raise RecordNotSaved.new(
                 "Failed to remove the existing associated #{reflection.name}. " \
                 "The record failed to save after its foreign key was set to nil.",
-                target
+                record
               )
             end
           end
