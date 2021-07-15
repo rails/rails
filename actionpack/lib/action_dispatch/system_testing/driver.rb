@@ -26,7 +26,7 @@ module ActionDispatch
 
       private
         def registerable?
-          [:selenium, :poltergeist, :webkit, :rack_test].include?(@name)
+          [:selenium, :cuprite, :rack_test].include?(@name)
         end
 
         def register
@@ -35,8 +35,7 @@ module ActionDispatch
           Capybara.register_driver @name do |app|
             case @name
             when :selenium then register_selenium(app)
-            when :poltergeist then register_poltergeist(app)
-            when :webkit then register_webkit(app)
+            when :cuprite then register_cuprite(app)
             when :rack_test then register_rack_test(app)
             end
           end
@@ -52,14 +51,8 @@ module ActionDispatch
           end
         end
 
-        def register_poltergeist(app)
-          Capybara::Poltergeist::Driver.new(app, @options.merge(window_size: @screen_size))
-        end
-
-        def register_webkit(app)
-          Capybara::Webkit::Driver.new(app, Capybara::Webkit::Configuration.to_hash.merge(@options)).tap do |driver|
-            driver.resize_window_to(driver.current_window_handle, *@screen_size)
-          end
+        def register_cuprite(app)
+          Capybara::Cuprite::Driver.new(app, @options.merge(window_size: @screen_size))
         end
 
         def register_rack_test(app)

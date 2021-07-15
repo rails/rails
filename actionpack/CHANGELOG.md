@@ -1,3 +1,11 @@
+*   Remove logic of `poltergeist` and `webkit` (capybara-webkit) driver registration for system testing. Add `cuprite` instead.
+
+    [Poltergeist](https://github.com/teampoltergeist/poltergeist) and [capybara-webkit](https://github.com/thoughtbot/capybara-webkit) are already not maintained. These usage in Rails are removed for avoiding confusing users.
+
+    [Cuprite](https://github.com/rubycdp/cuprite) is a good alternative to Poltergeist. Some guide descriptions are replaced from Poltergeist to Cuprite.
+
+    *Yusuke Iwaki*
+
 *   Add `Middleware#remove` to delete middleware or raise if not found.
 
     `Middleware#remove` works just like `Middleware#delete` but will
