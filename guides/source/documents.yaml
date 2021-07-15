@@ -119,9 +119,9 @@
       name: Active Support Core Extensions
       url: active_support_core_extensions.html
       description: >
-        Active Support provides Ruby language extensions, utilities, and other
-        transversal stuff. It enriches the Ruby language for the development of
-        Rails applications, and for the development of Ruby on Rails itself.
+        Active Support provides Ruby language extensions and utilities.
+        It enriches the Ruby language for the development of Rails
+        applications, and for the development of Ruby on Rails itself.
     -
       name: Action Mailer Basics
       url: action_mailer_basics.html
