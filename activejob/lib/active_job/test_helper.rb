@@ -389,8 +389,8 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil, &block)
-      expected = { job: job, args: args, at: at, queue: queue }.compact
+    def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil, priority: nil, &block)
+      expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
       potential_matches = []
 
@@ -479,8 +479,8 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, &block)
-      expected = { job: job, args: args, at: at, queue: queue }.compact
+    def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, priority: nil, &block)
+      expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
       potential_matches = []
 
