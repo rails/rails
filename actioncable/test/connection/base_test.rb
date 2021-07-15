@@ -6,7 +6,8 @@ require "active_support/core_ext/object/json"
 
 class ActionCable::Connection::BaseTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
-    attr_reader :websocket, :subscriptions, :message_buffer, :connected
+    attr_reader :websocket, :subscriptions, :message_buffer, :connected, :error_handled
+    rescue_from StandardError, with: :handle_error
 
     def connect
       @connected = true
@@ -18,6 +19,16 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
 
     def send_async(method, *args)
       send method, *args
+    end
+
+    def handle_error
+      @error_handled = true
+    end
+  end
+
+  class TestChannel < ActionCable::Channel::Base
+    def unsubscribed
+      raise "error when unsubscribed"
     end
   end
 
@@ -86,6 +97,19 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
 
       assert_not connection.connected
       assert_equal [], @server.connections
+    end
+  end
+
+  test "call rescue handler when an error raised on close" do
+    run_in_eventmachine do
+      connection = open_connection
+      id_options = {
+        channel: "ActionCable::Connection::BaseTest::TestChannel"
+      }
+      connection.subscriptions.add({"identifier" => ActiveSupport::JSON.encode(id_options)})
+
+      connection.send :handle_close
+      assert connection.error_handled
     end
   end
 

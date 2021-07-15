@@ -185,7 +185,11 @@ module ActionCable
 
           server.remove_connection(self)
 
-          subscriptions.unsubscribe_from_all
+          begin
+            subscriptions.unsubscribe_from_all
+          rescue Exception => e
+            rescue_with_handler(e) || raise
+          end
           unsubscribe_from_internal_channel
 
           disconnect if respond_to?(:disconnect)
