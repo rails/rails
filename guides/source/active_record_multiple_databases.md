@@ -202,6 +202,24 @@ Note that there is no command for creating the database users, and you'll need t
 to support the readonly users for your replicas. If you want to create just the animals
 database you can run `bin/rails db:create:animals`.
 
+## Connecting to Databases without Managing Schema and Migrations
+
+If you would like to connect to an external database without any database
+mangement tasks such as schema management, migrations, seeds, etc. you can set
+the per database config option `database_tasks: false`. By default it is
+set to true.
+
+```yaml
+production:
+  primary:
+    database: my_database
+    adapter: mysql2
+  animals:
+    database: my_animals_database
+    adapter: mysql2
+    database_tasks: false
+```
+
 ## Generators and Migrations
 
 Migrations for multiple databases should live in their own folders prefixed with the

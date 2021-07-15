@@ -48,7 +48,7 @@ module ActiveRecord
 
       unless include_replicas
         configs = configs.select do |db_config|
-          !db_config.replica?
+          db_config.database_tasks?
         end
       end
 
