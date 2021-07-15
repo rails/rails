@@ -1,3 +1,17 @@
+*   Add option to disable schema dumb per-database
+
+    Dumping the schema is on by default for all databases in an application. To turn it off for a
+    specific database use the `schema_dump` option:
+
+    ```yaml
+    # config/database.yml
+
+    production:
+      schema_dump: false
+    ```
+
+    *Luis Vasconcellos*, *Eileen M. Uchitelle*
+
 *   Fix `eager_loading?` when ordering with `Hash` syntax
 
     `eager_loading?` is triggered correctly when using `order` with hash syntax
