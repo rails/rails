@@ -61,7 +61,7 @@ module ActiveSupport
         end
 
         def execution_info
-          if should_parallelize?
+          if parallelized?
             "Running #{tests_count} tests in parallel using #{parallel_executor.size} #{parallelize_with}"
           else
             "Running #{tests_count} tests in a single process (parallelization threshold is #{ActiveSupport.test_parallelization_minimum_number_of_tests})"
