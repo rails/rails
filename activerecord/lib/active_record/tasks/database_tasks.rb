@@ -178,7 +178,11 @@ module ActiveRecord
         return if database_configs.count == 1
 
         database_configs.each do |db_config|
-          yield db_config.name
+          if db_config.database_tasks
+            yield db_config.name
+          else
+            next ### Skip registering and using this DB's tasks
+          end
         end
       end
 
