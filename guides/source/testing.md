@@ -1608,7 +1608,7 @@ end
 
 This assertion is quite powerful. For more advanced usage, refer to its [documentation](https://github.com/rails/rails-dom-testing/blob/master/lib/rails/dom/testing/assertions/selector_assertions.rb).
 
-#### Additional View-Based Assertions
+### Additional View-Based Assertions
 
 There are more assertions that are primarily used in testing views:
 
