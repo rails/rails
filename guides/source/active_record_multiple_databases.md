@@ -198,7 +198,10 @@ database you can run `bin/rails db:create:animals`.
 
 ## Connecting to Databases without Managing Schema and Migrations
 
-If you would like to connect to an external database without any database mangement tasks such as schema management, migrations, seeds, etc. you can use the per database config option `database_tasks: false` by default it is considered true.
+If you would like to connect to an external database without any database
+mangement tasks such as schema management, migrations, seeds, etc. you can use
+the per database config option `database_tasks: false` by default it is
+considered true.
 
 ```yaml
 production:

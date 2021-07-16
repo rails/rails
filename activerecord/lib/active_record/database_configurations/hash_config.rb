@@ -104,12 +104,8 @@ module ActiveRecord
         configuration_hash[:schema_cache_path]
       end
 
-      def database_tasks
-        if configuration_hash.has_key?(:database_tasks)
-          !!configuration_hash[:database_tasks]
-        else
-          true
-        end
+      def database_tasks?
+        !replica? && configuration_hash.fetch(:database_tasks, true)
       end
     end
   end
