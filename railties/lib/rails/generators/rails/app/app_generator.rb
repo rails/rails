@@ -492,14 +492,14 @@ module Rails
 
       def delete_js_folder_skipping_javascript
         if options[:skip_javascript] && !options[:minimal]
-          remove_dir "app/javascript"
+          remove_dir "app/packs"
         end
       end
 
       def delete_js_packs_when_minimal_skipping_webpack
         if options[:minimal] && options[:skip_webpack_install]
-          remove_dir "app/javascript/packs"
-          keep_file  "app/javascript"
+          remove_dir "app/packs/entrypoints"
+          keep_file  "app/packs"
         end
       end
 
@@ -534,7 +534,7 @@ module Rails
 
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
-          remove_dir "app/javascript/channels"
+          remove_dir "app/packs/channels"
           remove_dir "app/channels"
           remove_dir "test/channels"
         end

@@ -18,11 +18,11 @@ module Rails
 
         if options[:assets]
           if behavior == :invoke
-            template "javascript/index.js", "app/javascript/channels/index.js"
-            template "javascript/consumer.js", "app/javascript/channels/consumer.js"
+            template "javascript/index.js", "app/packs/channels/index.js"
+            template "javascript/consumer.js", "app/packs/channels/consumer.js"
           end
 
-          js_template "javascript/channel", File.join("app/javascript/channels", class_path, "#{file_name}_channel")
+          js_template "javascript/channel", File.join("app/packs/channels", class_path, "#{file_name}_channel")
         end
 
         generate_application_cable_files

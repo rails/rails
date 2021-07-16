@@ -1,5 +1,5 @@
 import { WebSocket as MockWebSocket, Server as MockServer } from "mock-socket"
-import * as ActionCable from "../../../../app/javascript/action_cable/index"
+import * as ActionCable from "../../../../app/packs/action_cable/index"
 import {defer, testURL} from "./index"
 
 export default function(name, options, callback) {

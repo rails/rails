@@ -14,11 +14,11 @@ DEFAULT_APP_FILES = %w(
   config.ru
   app/assets/config/manifest.js
   app/assets/images
-  app/javascript
-  app/javascript/channels
-  app/javascript/channels/consumer.js
-  app/javascript/channels/index.js
-  app/javascript/packs/application.js
+  app/packs
+  app/packs/channels
+  app/packs/channels/consumer.js
+  app/packs/channels/index.js
+  app/packs/entrypoints/application.js
   app/assets/stylesheets
   app/assets/stylesheets/application.css
   app/channels/application_cable/channel.rb
@@ -131,7 +131,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+"application", "data-turbolinks-track": "reload"/)
     assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+"application", "data-turbolinks-track": "reload"/)
     assert_file("app/assets/stylesheets/application.css")
-    assert_file("app/javascript/packs/application.js")
+    assert_file("app/packs/entrypoints/application.js")
   end
 
   def test_application_job_file_present
@@ -722,7 +722,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
 
-    assert_no_file "app/javascript"
+    assert_no_file "app/packs"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
       assert_match(/stylesheet_link_tag\s+"application" %>/, contents)
@@ -1077,7 +1077,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_no_match(/data-turbolinks-track/, content)
     end
-    assert_file "app/javascript/packs/application.js" do |content|
+    assert_file "app/packs/entrypoints/application.js" do |content|
       assert_no_match(/turbolinks/, content)
     end
   end

@@ -1791,7 +1791,7 @@ module ApplicationTests
       app "development"
       ActiveSupport::Dependencies.autoload_paths.each do |path|
         assert_not_operator path, :end_with?, "app/assets"
-        assert_not_operator path, :end_with?, "app/javascript"
+        assert_not_operator path, :end_with?, "app/packs"
       end
     end
 

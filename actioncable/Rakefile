@@ -37,7 +37,7 @@ namespace :assets do
     require "json"
     require "action_cable"
 
-    File.open(File.join(__dir__, "app/javascript/action_cable/internal.js").to_s, "w+") do |file|
+    File.open(File.join(__dir__, "app/packs/action_cable/internal.js").to_s, "w+") do |file|
       file.write("export default #{JSON.pretty_generate(ActionCable::INTERNAL)}\n")
     end
   end

@@ -37,7 +37,7 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   end
 
   test "loads JavaScript dependencies in application.js" do
-    application_js = Pathname("app/javascript/packs/application.js").expand_path(destination_root)
+    application_js = Pathname("app/packs/entrypoints/application.js").expand_path(destination_root)
     application_js.dirname.mkpath
     application_js.write("\n")
     run_generator_instance
