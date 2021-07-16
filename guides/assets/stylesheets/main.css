@@ -185,11 +185,16 @@ body {
   }
   .more-info:after {
     content: " |";
+    color: #8a8a8a;
   }
 
   .more-info:last-child:after {
     content: "";
   }
+
+  #topNav a, #footer a {
+    color: #F1938C;
+  }  
 }
 
 @media screen and (max-width: 1024px) {
