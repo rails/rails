@@ -1166,8 +1166,6 @@ module ApplicationTests
           require_relative "../config/environment"
           require "rails/test_help"
 
-          ActiveSupport.test_parallelization_minimum_number_of_tests = #{threshold}
-
           class ActiveSupport::TestCase
             <%- if force -%>
             # Force parallelization, even with single files
@@ -1175,7 +1173,7 @@ module ApplicationTests
             <%- end -%>
 
             # Run tests in parallel with specified workers
-            parallelize(workers: 2, with: :<%= with %>)
+            parallelize(workers: 2, with: :<%= with %>, threshold: #{threshold})
 
             # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
             fixtures :all

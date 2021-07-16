@@ -1,13 +1,23 @@
-*   Parallelize tests only when overhead is justified by the number of them
+*   Faster tests by parallelizing only when overhead is justified by the number
+    of them.
 
     Running tests in parallel adds overhead in terms of database
     setup and fixture loading. Now, Rails will only parallelize test executions when
     there are enough tests to make it worth it.
 
-    This threshold is 50 by default, and is configurable via:
+    This threshold is 50 by default, and is configurable via config setting in
+    your test.rb:
 
     ```ruby
-    config.active_support.test_parallelization_minimum_number_of_tests = 100
+    config.active_support.test_parallelization_threshold = 100
+    ```
+
+    It's also configurable at the test case level:
+
+    ```ruby
+    class ActiveSupport::TestCase
+        parallelize threshold: 100
+    end
     ```
 
     *Jorge Manrubia*

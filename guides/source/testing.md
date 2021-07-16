@@ -573,10 +573,20 @@ create as changes are not automatically rolled back after the test completes.
 
 Running tests in parallel adds an overhead in terms of database setup and
 fixture loading. Because of this, Rails won't parallelize executions that involve
-fewer than 50 tests. You can configure this threshold in your `test.rb`:
+fewer than 50 tests.
+
+You can configure this threshold in your `test.rb`:
 
 ```ruby
-config.active_support.test_parallelization_minimum_number_of_tests = 100
+config.active_support.test_parallelization_threshold = 100
+```
+
+And also when setting up parallelization at the test case level:
+
+```ruby
+class ActiveSupport::TestCase
+  parallelize threshold: 100
+end
 ```
 
 The Test Database
