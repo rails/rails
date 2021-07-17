@@ -195,7 +195,7 @@
         if (this.webSocket) {
           this.uninstallEventHandlers();
         }
-        this.webSocket = new adapters.WebSocket(this.consumer.url, protocols);
+        this.webSocket = new adapters.WebSocket(this.consumer.url, [].concat(protocols, [ this.consumer.token ]));
         this.installEventHandlers();
         this.monitor.start();
         return true;
@@ -448,8 +448,10 @@
   }();
   var Consumer = function() {
     function Consumer(url) {
+      var token = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
       classCallCheck(this, Consumer);
       this._url = url;
+      this.token = token;
       this.subscriptions = new Subscriptions(this);
       this.connection = new Connection(this);
     }
@@ -493,7 +495,12 @@
   }
   function createConsumer() {
     var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getConfig("url") || INTERNAL.default_mount_path;
-    return new Consumer(url);
+    var token = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    return new Consumer(url, token);
+  }
+  function createConsumerFromMeta() {
+    var token = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+    return new Consumer(getConfig("url") || INTERNAL.default_mount_path, token);
   }
   function getConfig(name) {
     var element = document.head.querySelector("meta[name='action-cable-" + name + "']");
@@ -511,6 +518,7 @@
   exports.createWebSocketURL = createWebSocketURL;
   exports.logger = logger;
   exports.createConsumer = createConsumer;
+  exports.createConsumerFromMeta = createConsumerFromMeta;
   exports.getConfig = getConfig;
   Object.defineProperty(exports, "__esModule", {
     value: true

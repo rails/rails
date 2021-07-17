@@ -24,6 +24,12 @@ module("ActionCable", () => {
       assert.equal(consumer.url, testURL)
     })
 
+    test("uses specified URL and token", assert => {
+      const consumer = ActionCable.createConsumer(testURL, "my.token.123")
+      assert.equal(consumer.url, testURL)
+      assert.equal(consumer.token, "my.token.123")
+    })
+
     test("uses default URL", assert => {
       const pattern = new RegExp(`${ActionCable.INTERNAL.default_mount_path}$`)
       const consumer = ActionCable.createConsumer()
@@ -52,6 +58,34 @@ module("ActionCable", () => {
 
       dynamicURL = `${testURL}foo`
       assert.equal(consumer.url, `${testURL}foo`)
+    })
+  })
+
+  module("#createConsumerFromMeta", () => {
+    test("without passing a token", assert => {
+      const element = document.createElement("meta")
+      element.setAttribute("name", "action-cable-url")
+      element.setAttribute("content", testURL)
+
+      document.head.appendChild(element)
+      const consumer = ActionCable.createConsumerFromMeta()
+      document.head.removeChild(element)
+
+      assert.equal(consumer.url, testURL)
+      assert.equal(consumer.token, null)
+    })
+
+    test("passing a token", assert => {
+      const element = document.createElement("meta")
+      element.setAttribute("name", "action-cable-url")
+      element.setAttribute("content", testURL)
+
+      document.head.appendChild(element)
+      const consumer = ActionCable.createConsumerFromMeta("my.token.123")
+      document.head.removeChild(element)
+
+      assert.equal(consumer.url, testURL)
+      assert.equal(consumer.token, "my.token.123")
     })
   })
 })

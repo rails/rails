@@ -19,8 +19,12 @@ export {
   logger,
 }
 
-export function createConsumer(url = getConfig("url") || INTERNAL.default_mount_path) {
-  return new Consumer(url)
+export function createConsumer(url = getConfig("url") || INTERNAL.default_mount_path, token = null) {
+  return new Consumer(url, token)
+}
+
+export function createConsumerFromMeta(token = null) {
+  return new Consumer(getConfig("url") || INTERNAL.default_mount_path, token)
 }
 
 export function getConfig(name) {
