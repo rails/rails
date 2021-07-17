@@ -51,7 +51,7 @@ class I18nValidationTest < ActiveRecord::TestCase
     test "validates_uniqueness_of on generated message #{name}" do
       Topic.validates_uniqueness_of :title, validation_options
       @topic.title = unique_topic.title
-      assert_called_with(ActiveModel::Error, :generate_message, [:title, :taken, @topic, generate_message_options.merge(value: "unique!")]) do
+      assert_called_with(ActiveModel::Error, :generate_message, [:title, :taken, @topic, generate_message_options.merge(value: "unique!", relation: Topic.where(title: "unique!"))]) do
         @topic.valid?
         @topic.errors.messages
       end
