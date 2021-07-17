@@ -212,6 +212,96 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(encrypted_content, run_diff_command(content_path))
   end
 
+  test "edit/show commands with environment option use custom paths when they are set" do
+    add_to_env_config("development", "config.credentials.key_path = 'config/credentials/custom.key'")
+    add_to_env_config("development", "config.credentials.content_path = 'config/credentials/custom.yml.enc'")
+
+    run_edit_command(environment: "development")
+
+    Dir.chdir(app_path) do
+      assert File.exist?("config/credentials/custom.key"), "Expected custom credentials key file to exist"
+      assert File.exist?("config/credentials/custom.yml.enc"), "Expected custom credentials content file to exist"
+    end
+    assert_match(/access_key_id: 123/, run_show_command(environment: "development"))
+  end
+
+  test "edit/show commands with no environment option still use default paths when dev and custom credentials exist" do
+    remove_file "config/master.key"
+    remove_file "config/credentials.yml.enc"
+    write_credentials_override("development")
+    write_credentials_override("custom")
+    add_to_env_config("development", "config.credentials.key_path = 'config/credentials/custom.key'")
+    add_to_env_config("development", "config.credentials.content_path = 'config/credentials/custom.yml.enc'")
+
+    run_edit_command
+
+    Dir.chdir(app_path) do
+      assert File.exist?("config/master.key"), "Expected master.key to exist"
+      assert File.exist?("config/credentials.yml.enc"), "Expected credentials.yml.enc to exist"
+    end
+    assert_match(/access_key_id: 123/, run_show_command)
+  end
+
+  test "edit/show commands with environment option use correct environment paths when development credentials exist" do
+    write_credentials_override("development")
+
+    run_edit_command(environment: "production")
+
+    Dir.chdir(app_path) do
+      assert File.exist?("config/credentials/production.key"), "Expected production key file to exist"
+      assert File.exist?("config/credentials/production.yml.enc"), "Expected production content file to exist"
+    end
+    assert_match(/access_key_id: 123/, run_show_command(environment: "production"))
+  end
+
+  test "edit/show commands with non-dev environment option use custom environment config" do
+    write_credentials_override("development")
+    add_to_env_config("production", "config.credentials.key_path = 'config/credentials/custom.key'")
+    add_to_env_config("production", "config.credentials.content_path = 'config/credentials/custom.yml.enc'")
+
+    run_edit_command(environment: "production")
+
+    Dir.chdir(app_path) do
+      assert File.exist?("config/credentials/custom.key"), "Expected custom credentials key file to exist"
+      assert File.exist?("config/credentials/custom.yml.enc"), "Expected custom credentials content file to exist"
+    end
+    assert_match(/access_key_id: 123/, run_show_command(environment: "production"))
+  end
+
+  test "edit/show commands use application config paths" do
+    add_to_config("config.credentials.key_path = 'config/credentials/custom.key'")
+    add_to_config("config.credentials.content_path = 'config/credentials/custom.yml.enc'")
+
+    run_edit_command
+    run_edit_command(environment: "production")
+
+    Dir.chdir(app_path) do
+      assert File.exist?("config/credentials/custom.key"), "Expected custom credentials key file to exist"
+      assert File.exist?("config/credentials/custom.yml.enc"), "Expected custom credentials content file to exist"
+      assert_not File.exist?("config/credentials/development.yml.enc"), "Expected development credentials not to exist"
+      assert_not File.exist?("config/credentials/production.yml.enc"), "Expected production credentials not to exist"
+    end
+    assert_match(/access_key_id: 123/, run_show_command)
+    assert_match(/access_key_id: 123/, run_show_command(environment: "production"))
+  end
+
+  test "edit/show commands use application config paths when dev credentials exist" do
+    write_credentials_override("development")
+    add_to_config("config.credentials.key_path = 'config/credentials/custom.key'")
+    add_to_config("config.credentials.content_path = 'config/credentials/custom.yml.enc'")
+
+    run_edit_command
+    run_edit_command(environment: "production")
+
+    Dir.chdir(app_path) do
+      assert File.exist?("config/credentials/custom.key"), "Expected custom credentials key file to exist"
+      assert File.exist?("config/credentials/custom.yml.enc"), "Expected custom credentials content file to exist"
+      assert_not File.exist?("config/credentials/production.yml.enc"), "Expected production credentials not to exist"
+    end
+    assert_match(/access_key_id: 123/, run_show_command)
+    assert_match(/access_key_id: 123/, run_show_command(environment: "production"))
+  end
+
   private
     def run_edit_command(editor: "cat", environment: nil, **options)
       switch_env("EDITOR", editor) do
@@ -228,5 +318,21 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     def run_diff_command(path = nil, enroll: nil, disenroll: nil, **options)
       args = [path, ("--enroll" if enroll), ("--disenroll" if disenroll)].compact
       rails "credentials:diff", args, **options
+    end
+
+    def write_credentials_override(name, with_key: true)
+      Dir.chdir(app_path) do
+        Dir.mkdir  "config/credentials" unless File.exist?("config/credentials")
+        File.write "config/credentials/#{name}.key", credentials_key if with_key
+
+        # secret_key_base: secret
+        # mystery: revealed
+        File.write "config/credentials/#{name}.yml.enc",
+          "vgvKu4MBepIgZ5VHQMMPwnQNsLlWD9LKmJHu3UA/8yj6x+3fNhz3DwL9brX7UA==--qLdxHP6e34xeTAiI--nrcAsleXuo9NqiEuhntAhw=="
+      end
+    end
+
+    def credentials_key
+      "2117e775dc2024d4f49ddf3aeb585919"
     end
 end
