@@ -135,11 +135,11 @@ module ActiveRecord
         end
 
         def add_column_options!(sql, options)
-          sql << " DEFAULT #{quote_default_expression(options[:default], options[:column])}" if options_include_default?(options)
           # must explicitly check for :null to allow change_column to work on migrations
           if options[:null] == false
             sql << " NOT NULL"
           end
+          sql << " DEFAULT #{quote_default_expression(options[:default], options[:column])}" if options_include_default?(options)
           if options[:auto_increment] == true
             sql << " AUTO_INCREMENT"
           end

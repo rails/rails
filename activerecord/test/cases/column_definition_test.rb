@@ -27,7 +27,7 @@ module ActiveRecord
 
       def test_should_specify_not_null_if_null_option_is_false
         column_def = ColumnDefinition.new("title", "string", limit: 20, default: "Hello", null: false)
-        assert_equal "title varchar(20) DEFAULT 'Hello' NOT NULL", @viz.accept(column_def)
+        assert_equal "title varchar(20) NOT NULL DEFAULT 'Hello'", @viz.accept(column_def)
       end
     end
   end
