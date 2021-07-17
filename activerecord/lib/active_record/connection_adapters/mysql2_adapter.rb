@@ -30,7 +30,11 @@ module ActiveRecord
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
-      ER_BAD_DB_ERROR = 1049
+      ER_BAD_DB_ERROR        = 1049
+      ER_ACCESS_DENIED_ERROR = 1045
+      ER_CONN_HOST_ERROR     = 2003
+      ER_UNKNOWN_HOST_ERROR  = 2005
+
       ADAPTER_NAME = "Mysql2"
 
       include MySQL::DatabaseStatements
@@ -40,7 +44,11 @@ module ActiveRecord
           Mysql2::Client.new(config)
         rescue Mysql2::Error => error
           if error.error_number == ConnectionAdapters::Mysql2Adapter::ER_BAD_DB_ERROR
-            raise ActiveRecord::NoDatabaseError
+            raise ActiveRecord::NoDatabaseError.db_error(config[:database])
+          elsif error.error_number == ConnectionAdapters::Mysql2Adapter::ER_ACCESS_DENIED_ERROR
+            raise ActiveRecord::DatabaseConnectionError.username_error(config[:username])
+          elsif [ConnectionAdapters::Mysql2Adapter::ER_CONN_HOST_ERROR, ConnectionAdapters::Mysql2Adapter::ER_UNKNOWN_HOST_ERROR].include?(error.error_number)
+            raise ActiveRecord::DatabaseConnectionError.hostname_error(config[:host])
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
