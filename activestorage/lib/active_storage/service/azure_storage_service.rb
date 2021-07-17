@@ -12,9 +12,19 @@ module ActiveStorage
   class Service::AzureStorageService < Service
     attr_reader :client, :container, :signer
 
-    def initialize(storage_account_name:, storage_access_key:, container:, public: false, **options)
-      @client = Azure::Storage::Blob::BlobService.create(storage_account_name: storage_account_name, storage_access_key: storage_access_key, **options)
-      @signer = Azure::Storage::Common::Core::Auth::SharedAccessSignature.new(storage_account_name, storage_access_key)
+    def initialize(container:, storage_account_name: nil, storage_blob_host: nil, storage_access_key: nil, storage_sas_token: nil, public: false, **options)
+      if storage_access_key && storage_account_name
+        @client = Azure::Storage::Blob::BlobService.create(storage_account_name: storage_account_name, storage_access_key: storage_access_key, **options)
+        @signer = Azure::Storage::Common::Core::Auth::SharedAccessSignature.new(storage_account_name, storage_access_key)
+      elsif storage_sas_token && storage_account_name
+        @client = Azure::Storage::Blob::BlobService.create(storage_account_name: storage_account_name, storage_sas_token: storage_sas_token)
+        @signer = @client.signer
+      elsif storage_sas_token && storage_blob_host
+        @client = Azure::Storage::Blob::BlobService.create(storage_blob_host: storage_blob_host, storage_sas_token: storage_sas_token)
+        @signer = @client.signer
+      else
+        raise Azure::Storage::Common::InvalidOptionsError
+      end
       @container = container
       @public = public
     end
