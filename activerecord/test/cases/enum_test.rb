@@ -964,4 +964,17 @@ class EnumTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.logger = old_logger
   end
+
+  test "enum can return a string inquirer instead of a string" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written], _inquirable: true
+    end
+
+    klass = klass.create!(status: 0)
+    assert klass.status.proposed?
+
+    klass.update!(status: 1)
+    assert klass.status.written?
+  end
 end
