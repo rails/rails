@@ -67,6 +67,12 @@ module ActiveRecord
         end
       end
 
+      def test_bad_connection_error_when_hostname_and_dbname_same_but_invalid
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          ActiveRecord::Base.postgresql_connection(host: "localhost1", dbname: "localhost1")
+        end
+      end
+
       def test_database_exists_returns_false_when_the_database_does_not_exist
         config = { database: "non_extant_database", adapter: "postgresql" }
         assert_not ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(config),

@@ -77,8 +77,8 @@ module ActiveRecord
         def new_client(conn_params)
           PG.connect(conn_params)
         rescue ::PG::Error => error
-          if conn_params && conn_params[:dbname] && error.message.include?(conn_params[:dbname])
-            raise ActiveRecord::NoDatabaseError
+          if conn_params && conn_params[:dbname] && error.message.include?("database \"#{conn_params[:dbname]}\" does not exist")
+            raise ActiveRecord::NoDatabaseError, error.message
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
