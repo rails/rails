@@ -863,11 +863,14 @@ You can find detailed instructions on how to test your mailers in the
 Intercepting and Observing Emails
 -------------------
 
-Action Mailer provides hooks into the Mail observer and interceptor methods. These allow you to register classes that are called during the mail delivery life cycle of every email sent.
+Action Mailer provides hooks into the Mail observer and interceptor methods. 
+These allow you to register classes that are called during the mail delivery life cycle of every email sent
+or from a specific mailer.
 
 ### Intercepting Emails
 
-Interceptors allow you to make modifications to emails before they are handed off to the delivery agents. An interceptor class must implement the `::delivering_email(message)` method which will be called before the email is sent.
+Interceptors allow you to make modifications to emails before they are handed off to the delivery agents.
+An interceptor class must implement the `::delivering_email(message)` method which will be called before the email is sent.
 
 ```ruby
 class SandboxEmailInterceptor
@@ -877,13 +880,45 @@ class SandboxEmailInterceptor
 end
 ```
 
-Before the interceptor can do its job you need to register it using the `interceptors` config option.
-You can do this in an initializer file like `config/initializers/mail_interceptors.rb`:
+Before the interceptor can do its job you need to register it.
+There are multiples ways to subscribe.
+
+To be called on every email sent:
+
+* Using the `interceptors` config option
 
 ```ruby
+# config/environments/staging.rb
+config.action_mailer.interceptors = [SandboxEmailInterceptor]
+```
+
+```ruby
+# config/initializers/mail_interceptors.rb
 Rails.application.configure do
   if Rails.env.staging?
     config.action_mailer.interceptors = %w[SandboxEmailInterceptor]
+  end
+end
+```
+
+* In `ApplicationMailer`
+
+```ruby
+# app/mailers/application_mailer.rb
+class ApplicationMailer < ActionMailer::Base
+  if Rails.env.staging?
+    register_interceptor SandboxEmailInterceptor
+  end
+end
+```
+
+To be called only for email sent from a specific mailer:
+
+```ruby
+# app/mailers/user_mailer.rb
+class UserMailer < ActionMailer::Base
+  if Rails.env.staging?
+    register_interceptor SandboxEmailInterceptor
   end
 end
 ```
@@ -895,7 +930,9 @@ for more information about custom Rails environments.
 
 ### Observing Emails
 
-Observers give you access to the email message after it has been sent. An observer class must implement the `:delivered_email(message)` method, which will be called after the email is sent.
+Observers give you access to the email message after it has been sent. 
+An observer class must implement the `::delivered_email(message)` method,
+which will be called after the email is sent.
 
 ```ruby
 class EmailDeliveryObserver
@@ -905,11 +942,38 @@ class EmailDeliveryObserver
 end
 ```
 
-Similar to interceptors, you must register observers using the `observers` config option.
-You can do this in an initializer file like `config/initializers/mail_observers.rb`:
+Similar to interceptors, you must register observers.
+
+To be called on every email sent:
+
+* Using the `observers` config option
 
 ```ruby
+# config/application.rb
+config.action_mailer.observers = [EmailDeliveryObserver]
+```
+
+```ruby
+# config/initializers/mail_observers.rb
 Rails.application.configure do
   config.action_mailer.observers = %w[EmailDeliveryObserver]
+end
+```
+
+* In `ApplicationMailer`
+
+```ruby
+# app/mailers/application_mailer.rb
+class ApplicationMailer < ActionMailer::Base
+  register_observer EmailDeliveryObserver
+end
+```
+
+To be called only for email sent from a specific mailer:
+
+```ruby
+# app/mailers/user_mailer.rb
+class UserMailer < ActionMailer::Base
+  register_observer EmailDeliveryObserver
 end
 ```

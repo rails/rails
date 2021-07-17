@@ -1100,7 +1100,8 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal [::MyMailInterceptor], ::Mail.class_variable_get(:@@delivery_interceptors)
+      assert_equal [::ActionMailer::MailRegister::BaseRegister], ::Mail.class_variable_get(:@@delivery_interceptors)
+      assert_equal [::MyMailInterceptor], ::ActionMailer::Base.mailers_interceptors.values.flat_map(&:to_a)
     end
 
     test "registers multiple interceptors with ActionMailer" do
@@ -1113,7 +1114,8 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal [::MyMailInterceptor, ::MyOtherMailInterceptor], ::Mail.class_variable_get(:@@delivery_interceptors)
+      assert_equal [::ActionMailer::MailRegister::BaseRegister], ::Mail.class_variable_get(:@@delivery_interceptors)
+      assert_equal [::MyMailInterceptor, ::MyOtherMailInterceptor], ::ActionMailer::Base.mailers_interceptors.values.flat_map(&:to_a)
     end
 
     test "registers preview interceptors with ActionMailer" do
@@ -1165,7 +1167,8 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal [::MyMailObserver], ::Mail.class_variable_get(:@@delivery_notification_observers)
+      assert_equal [::ActionMailer::MailRegister::BaseRegister], ::Mail.class_variable_get(:@@delivery_notification_observers)
+      assert_equal [::MyMailObserver], ::ActionMailer::Base.mailers_observers.values.flat_map(&:to_a)
     end
 
     test "registers multiple observers with ActionMailer" do
@@ -1178,7 +1181,8 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.class_variable_get(:@@delivery_notification_observers)
+      assert_equal [::ActionMailer::MailRegister::BaseRegister], ::Mail.class_variable_get(:@@delivery_notification_observers)
+      assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::ActionMailer::Base.mailers_observers.values.flat_map(&:to_a)
     end
 
     test "allows setting the queue name for the ActionMailer::DeliveryJob" do
