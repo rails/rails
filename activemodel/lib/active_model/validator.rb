@@ -83,15 +83,32 @@ module ActiveModel
   #     validates :title, presence: true, title: true
   #   end
   #
-  # It can be useful to access the class that is using that validator when there are prerequisites such
-  # as an +attr_accessor+ being present. This class is accessible via <tt>options[:class]</tt> in the constructor.
-  # To set up your validator override the constructor.
+  # You can access the class that is using a validator via <tt>options[:class]</tt> in the constructor, one use
+  # of which is to combine existing validators to compose a new validator:
   #
-  #   class MyValidator < ActiveModel::Validator
+  #   class MoneyValidator < ActiveModel::Validator
   #     def initialize(options={})
   #       super
-  #       options[:class].attr_accessor :custom_attribute
+  #       options[:attributes].each do |attr_name|
+  #         options[:class].validates attr_name, numericality: { only_integer: true }
+  #         options[:class].validates "#{attr_name}_currency", inclusion: { in: %w(USD CNY JPY) }
+  #       end
   #     end
+  #
+  #     def validate(_record)
+  #       # Method does nothing as all validation is currently delegated to validators in constructor.
+  #     end
+  #   end
+  #
+  # To use this custom validator:
+  #
+  #   class Product
+  #     include ActiveModel:Validations
+  #
+  #     validates :price, money: true
+  #     # Above line replaces these two lines:
+  #     # validates :price, numericality: { only_integer: true }
+  #     # validates :price_currency, inclusion: { in: %w(USD CNY JPY) }
   #   end
   class Validator
     attr_reader :options
