@@ -21,6 +21,19 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     assert_file "bin/yarn"
   end
 
+  test "aborts with error message when bin/yarn fails" do
+    yarn_command = generator.method(:yarn_command)
+    @yarn_command_stub = -> (command, config = {}) do
+      yarn_command.call(command, config.merge(env: { "PATH" => "" }))
+    end
+
+    error_message = capture(:stderr) do
+      assert_aborts { run_generator_instance }
+    end
+
+    assert_includes error_message, "Yarn executable was not detected in the system"
+  end
+
   test "installs JavaScript dependencies" do
     run_generator_instance
     yarn_commands = @yarn_commands.join("\n")
@@ -87,10 +100,18 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   private
     def run_generator_instance
       @yarn_commands = []
-      yarn_command_stub = -> (command, *) { @yarn_commands << command }
+      @yarn_command_stub ||= -> (command, *) { @yarn_commands << command }
 
-      generator.stub :yarn_command, yarn_command_stub do
+      generator.stub :yarn_command, @yarn_command_stub do
         with_database_configuration { super }
+      end
+    end
+
+    def assert_aborts
+      assert_throws :aborted do
+        generator.stub :abort, -> { throw :aborted } do
+          yield
+        end
       end
     end
 end
