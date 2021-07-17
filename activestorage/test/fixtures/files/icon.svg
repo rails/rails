@@ -1,13 +1,1 @@
-<!-- The XML declaration is intentionally omitted. -->
-<svg width="792px" height="584px" viewBox="0 0 792 584" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <path d="M9.51802657,28.724593 C9.51802657,18.2155955 18.1343454,9.60822622 28.6542694,9.60822622 L763.245541,9.60822622 C773.765465,9.60822622 782.381784,18.2155955 782.381784,28.724593 L782.381784,584 L792,584 L792,28.724593 C792,12.911054 779.075522,0 763.245541,0 L28.7544592,0 C12.9244782,0 0,12.911054 0,28.724593 L0,584 L9.61821632,584 C9.51802657,584 9.51802657,28.724593 9.51802657,28.724593 L9.51802657,28.724593 Z" id="Shape" opacity="0.3" fill="#CCCCCC"></path>
-    <circle id="Oval" fill="#FFCC33" cx="119.1" cy="147.2" r="33"></circle>
-    <circle id="Oval" fill="#3399FF" cx="119.1" cy="281.1" r="33"></circle>
-    <circle id="Oval" fill="#FF3333" cx="676.1" cy="376.8" r="33"></circle>
-    <circle id="Oval" fill="#FFCC33" cx="119.1" cy="477.2" r="33"></circle>
-    <rect id="Rectangle-path" opacity="0.75" fill="#CCCCCC" x="176.5" y="130.5" width="442.1" height="33.5"></rect>
-    <rect id="Rectangle-path" opacity="0.75" fill="#CCCCCC" x="176.5" y="183.1" width="442.1" height="33.5"></rect>
-    <rect id="Rectangle-path" opacity="0.75" fill="#CCCCCC" x="176.5" y="265.8" width="442.1" height="33.5"></rect>
-    <rect id="Rectangle-path" opacity="0.75" fill="#CCCCCC" x="176.5" y="363.4" width="442.1" height="33.5"></rect>
-    <rect id="Rectangle-path" opacity="0.75" fill="#CCCCCC" x="176.5" y="465.3" width="442.1" height="33.5"></rect>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="792" height="584" version="1.1" viewBox="0 0 792 584"><path id="Shape" fill="#CCC" d="M9.51802657,28.724593 C9.51802657,18.2155955 18.1343454,9.60822622 28.6542694,9.60822622 L763.245541,9.60822622 C773.765465,9.60822622 782.381784,18.2155955 782.381784,28.724593 L782.381784,584 L792,584 L792,28.724593 C792,12.911054 779.075522,0 763.245541,0 L28.7544592,0 C12.9244782,0 0,12.911054 0,28.724593 L0,584 L9.61821632,584 C9.51802657,584 9.51802657,28.724593 9.51802657,28.724593 L9.51802657,28.724593 Z" opacity=".3"/><circle id="Oval" cx="119.1" cy="147.2" r="33" fill="#FC3"/><circle id="Oval" cx="119.1" cy="281.1" r="33" fill="#39F"/><circle id="Oval" cx="676.1" cy="376.8" r="33" fill="#F33"/><circle id="Oval" cx="119.1" cy="477.2" r="33" fill="#FC3"/><rect id="Rectangle-path" width="442.1" height="33.5" x="176.5" y="130.5" fill="#CCC" opacity=".75"/><rect id="Rectangle-path" width="442.1" height="33.5" x="176.5" y="183.1" fill="#CCC" opacity=".75"/><rect id="Rectangle-path" width="442.1" height="33.5" x="176.5" y="265.8" fill="#CCC" opacity=".75"/><rect id="Rectangle-path" width="442.1" height="33.5" x="176.5" y="363.4" fill="#CCC" opacity=".75"/><rect id="Rectangle-path" width="442.1" height="33.5" x="176.5" y="465.3" fill="#CCC" opacity=".75"/></svg>
