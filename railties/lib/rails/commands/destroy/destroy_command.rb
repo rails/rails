@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/generators"
+require_relative "destroy_assistance"
 
 module Rails
   module Command
@@ -20,8 +21,9 @@ module Rails
 
         require_application_and_environment!
         load_generators
-
+        
         Rails::Generators.invoke generator, args, behavior: :revoke, destination_root: Rails::Command.root
+        return DestroyAssistance.delete_css_file_generate_with_scaffold if generator == "scaffold"  &&  args.first !="--help"
       end
     end
   end
