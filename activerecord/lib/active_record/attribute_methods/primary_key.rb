@@ -93,7 +93,7 @@ module ActiveRecord
               base_name.foreign_key
             else
               if ActiveRecord::Base != self && table_exists?
-                pk = connection.schema_cache.primary_keys(table_name)
+                pk = schema_cache.primary_keys(table_name)
                 suppress_composite_primary_key(pk)
               else
                 "id"

@@ -34,7 +34,7 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
 
   def test_error_message_when_connection_not_established
     error = assert_raise(ActiveRecord::ConnectionNotEstablished) do
-      TestRecord.find(1)
+      TestRecord.connection
     end
 
     assert_equal "No connection pool for 'ActiveRecord::Base' found.", error.message

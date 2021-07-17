@@ -392,7 +392,7 @@ module ActiveRecord
 
       # Indicates whether the table associated with this class exists
       def table_exists?
-        connection.schema_cache.data_source_exists?(table_name)
+        schema_cache.data_source_exists?(table_name)
       end
 
       def attributes_builder # :nodoc:
@@ -537,6 +537,22 @@ module ActiveRecord
         end
 
       private
+        class LazyConnectionProxy < SimpleDelegator # :nodoc:
+          private
+            def __getobj__
+              @connection ||= super.connection
+            end
+        end
+
+        def schema_cache
+          if cache = connection_pool.schema_cache
+            cache.connection = LazyConnectionProxy.new(self)
+            cache
+          else
+            connection.schema_cache
+          end
+        end
+
         def inherited(child_class)
           super
           child_class.initialize_load_schema_monitor
@@ -565,11 +581,11 @@ module ActiveRecord
             raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
           end
 
-          columns_hash = connection.schema_cache.columns_hash(table_name)
+          columns_hash = schema_cache.columns_hash(table_name)
           columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
           @columns_hash = columns_hash.freeze
           @columns_hash.each do |name, column|
-            type = connection.lookup_cast_type_from_column(column)
+            type = column.cast_type || connection.lookup_cast_type_from_column(column)
             type = _convert_type_from_options(type)
             warn_if_deprecated_type(column)
             define_attribute(
