@@ -298,7 +298,7 @@ module ActionDispatch
 
       private
         def _mock_session
-          @_mock_session ||= Rack::MockSession.new(@app, host)
+          @_mock_session ||= rack_mock_session
         end
 
         def build_full_uri(path, env)
@@ -350,6 +350,33 @@ module ActionDispatch
             include app.routes.mounted_helpers
           end
         }
+
+        case self.class.assertion_factory
+        when :capybara
+          klass.include(Module.new do
+            require "capybara/session"
+
+            def reset!
+              super
+              @capybara_session = nil
+            end
+
+            def rack_mock_session
+              capybara_session.driver.browser.rack_mock_session
+            end
+
+            def capybara_session
+              @capybara_session ||= ::Capybara::Session.new(:rack_test, @app)
+            end
+          end)
+        else
+          klass.include(Module.new do
+            def rack_mock_session
+              Rack::MockSession.new(@app, host)
+            end
+          end)
+        end
+
         klass.new(app)
       end
 
@@ -672,9 +699,38 @@ module ActionDispatch
       def app
         super || self.class.app
       end
+    end
 
-      def document_root_element
-        html_document.root
+    class_attribute :assertion_factory, default: :rails_dom_testing
+
+    def self.assert_with(name)
+      self.assertion_factory = name
+    end
+
+    setup do
+      case assertion_factory
+      when :capybara
+        extend(Module.new do
+          require "capybara/minitest"
+          include ::Capybara::Minitest::Assertions
+
+          def page
+            integration_session.capybara_session
+          end
+
+          def within(*arguments, **options, &block)
+            page.within(*arguments, **options, &block)
+          end
+        end)
+      else
+        extend(Module.new do
+          require "rails-dom-testing"
+          include Rails::Dom::Testing::Assertions
+
+          def document_root_element
+            html_document.root
+          end
+        end)
       end
     end
 
