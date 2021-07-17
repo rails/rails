@@ -37,8 +37,7 @@ module ActiveRecord
       def changed_in_place?(raw_old_value, value)
         return false if value.nil?
         raw_new_value = encoded(value)
-        raw_old_value.nil? != raw_new_value.nil? ||
-          subtype.changed_in_place?(raw_old_value, raw_new_value)
+        raw_old_value != raw_new_value
       end
 
       def accessor
