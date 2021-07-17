@@ -11,9 +11,13 @@ Signal.trap("INT") { puts; exit(1) }
 
 require "rails/command"
 
-if ARGV.first == "plugin"
+case ARGV.first
+when "plugin"
   ARGV.shift
   Rails::Command.invoke :plugin, ARGV
+when Rails::Command::HELP_MAPPINGS, "help", nil
+  ARGV.shift
+  Rails::Command.invoke :help, ARGV
 else
   Rails::Command.invoke :application, ARGV
 end

@@ -1062,7 +1062,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/webpacker.yml"
 
     output = Dir.chdir(destination_root) do
-      `bin/rails help`
+      `bin/rails -h`
     end
 
     assert_match(/The most common rails commands are:/, output)
