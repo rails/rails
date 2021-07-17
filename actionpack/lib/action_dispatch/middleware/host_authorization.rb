@@ -34,6 +34,10 @@ module ActionDispatch
         end
       end
 
+      def block?(host)
+        !allows?(host)
+      end
+
       private
         def sanitize_hosts(hosts)
           Array(hosts).map do |host|
@@ -62,7 +66,7 @@ module ActionDispatch
       request = Request.new(env)
 
       format = request.xhr? ? "text/plain" : "text/html"
-      template = DebugView.new(host: request.host)
+      template = DebugView.new(host: request.get_header("action_dispatch.blocked_host"))
       body = template.render(template: "rescues/blocked_host", layout: "rescues/layout")
 
       [403, {
@@ -93,10 +97,13 @@ module ActionDispatch
 
       request = Request.new(env)
 
-      if authorized?(request) || excluded?(request)
+      blocked_host = blocked_host_if_any(request)
+
+      if blocked_host.blank? || excluded?(request)
         mark_as_authorized(request)
         @app.call(env)
       else
+        mark_as_blocked(request, blocked_host)
         @response_app.call(env)
       end
     end
@@ -106,15 +113,23 @@ module ActionDispatch
       VALID_ORIGIN_HOST = /\A(#{HOSTNAME})(?::\d+)?\z/
       VALID_FORWARDED_HOST = /(?:\A|,[ ]?)(#{HOSTNAME})(?::\d+)?\z/
 
-      def authorized?(request)
-        origin_host = request.get_header("HTTP_HOST")&.slice(VALID_ORIGIN_HOST, 1) || ""
-        forwarded_host = request.x_forwarded_host&.slice(VALID_FORWARDED_HOST, 1) || ""
+      def blocked_host_if_any(request)
+        valid_origin_host = request.get_header("HTTP_HOST")&.slice(VALID_ORIGIN_HOST, 1) || ""
+        valid_forwarded_host = request.x_forwarded_host&.slice(VALID_FORWARDED_HOST, 1) || ""
 
-        @permissions.allows?(origin_host) && (forwarded_host.blank? || @permissions.allows?(forwarded_host))
+        if valid_origin_host.blank? || @permissions.block?(valid_origin_host)
+          request.get_header("HTTP_HOST")
+        elsif valid_forwarded_host.present? && @permissions.block?(valid_forwarded_host)
+          request.x_forwarded_host
+        end
       end
 
       def excluded?(request)
         @exclude && @exclude.call(request)
+      end
+
+      def mark_as_blocked(request, blocked_host)
+        request.set_header("action_dispatch.blocked_host", blocked_host)
       end
 
       def mark_as_authorized(request)

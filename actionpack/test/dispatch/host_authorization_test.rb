@@ -152,7 +152,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: 127.0.0.1", response.body
+    assert_match "Blocked host: www.example.com", response.body
   end
 
   test "does not consider IP addresses in X-FORWARDED-HOST spoofed when disabled" do
@@ -176,7 +176,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: localhost", response.body
+    assert_match "Blocked host: www.example.com", response.body
   end
 
   test "forwarded hosts should be permitted" do
