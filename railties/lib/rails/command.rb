@@ -47,6 +47,7 @@ module Rails
         if command && command.all_commands[command_name]
           command.perform(command_name, args, config)
         else
+          args = modify_args_for_rake(args, full_namespace)
           find_by_namespace("rake").perform(full_namespace, args, config)
         end
       ensure
@@ -106,6 +107,12 @@ module Rails
 
         def command_type # :doc:
           @command_type ||= "command"
+        end
+
+        def modify_args_for_rake(args, namespace)
+          args.flat_map do |arg|
+            HELP_MAPPINGS.include?(arg) ? ["--describe", namespace] : arg
+          end
         end
 
         def lookup_paths # :doc:
