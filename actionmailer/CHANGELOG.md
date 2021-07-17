@@ -1,3 +1,7 @@
+*   Add `locale` argument for `ActionMailer::Base#mail`.
+
+    *Christian Schmidt*
+
 *   Configures a default of 5 for both `open_timeout` and `read_timeout` for SMTP Settings.
 
     *André Luis Leal Cardoso Junior*

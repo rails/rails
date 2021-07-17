@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 class ParamsMailer < ActionMailer::Base
-  before_action { @inviter, @invitee = params[:inviter], params[:invitee] }
+  before_action { @inviter, @invitee, @locale = params[:inviter], params[:invitee], params[:locale] }
 
-  default to: Proc.new { @invitee }, from: -> { @inviter }
+  default to: Proc.new { @invitee }, from: -> { @inviter }, locale: -> { @locale }
 
   def invitation
-    mail(subject: "Welcome to the project!") do |format|
+    mail do |format|
       format.text { render plain: "So says #{@inviter}" }
     end
   end
