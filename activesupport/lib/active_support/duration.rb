@@ -259,14 +259,16 @@ module ActiveSupport
     # Adds another Duration or a Numeric to this Duration. Numeric values
     # are treated as seconds.
     def +(other)
+      new_parts = @parts.empty? ? { seconds: value } : @parts
       if Duration === other
-        parts = @parts.merge(other._parts) do |_key, value, other_value|
+        other_parts = other._parts.empty? ? { seconds: other.value } : other._parts
+        parts = new_parts.merge(other_parts) do |_key, value, other_value|
           value + other_value
         end
         Duration.new(value + other.value, parts, @variable || other.variable?)
       else
-        seconds = @parts.fetch(:seconds, 0) + other
-        Duration.new(value + other, @parts.merge(seconds: seconds), @variable)
+        seconds = new_parts.fetch(:seconds, 0) + other
+        Duration.new(value + other, new_parts.merge(seconds: seconds), @variable)
       end
     end
 

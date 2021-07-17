@@ -111,6 +111,12 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "0 seconds",                       (10 % 5.seconds).inspect
     assert_equal "10 minutes",                      (10.minutes + 0.seconds).inspect
     assert_equal "3600 seconds",                    (1.day / 24).inspect
+    assert_equal "361 seconds",                     (1.second + 1.hour/10).inspect
+    assert_equal "361 seconds",                     (1.hour/10 + 1.second).inspect
+    assert_equal "1 minute and 361 seconds",        (1.minute + 361).inspect
+    assert_equal "1 minute and 361 seconds",        (361 + 1.minute).inspect
+    assert_equal "361.5 seconds",                   (361 + 0.5.seconds).inspect
+    assert_equal "361.5 seconds",                   (0.5.seconds + 361).inspect
   end
 
   def test_inspect_ignores_locale
