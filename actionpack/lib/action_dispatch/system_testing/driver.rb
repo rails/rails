@@ -13,6 +13,8 @@ module ActionDispatch
           require "selenium/webdriver"
           @browser = Browser.new(options[:using])
           @browser.preload
+        else
+          @browser = nil
         end
       end
 
