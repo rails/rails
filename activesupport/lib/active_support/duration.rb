@@ -52,8 +52,9 @@ module ActiveSupport
 
       def -(other)
         if Duration === other
-          seconds   = value - other._parts.fetch(:seconds, 0)
-          new_parts = other._parts.transform_values(&:-@)
+          other_parts = other._parts.empty? ? { seconds: other.value } : other._parts
+          seconds   = value - other_parts.fetch(:seconds, 0)
+          new_parts = other_parts.transform_values(&:-@)
           new_parts = new_parts.merge(seconds: seconds)
           new_value = value - other.value
 

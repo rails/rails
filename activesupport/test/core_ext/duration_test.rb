@@ -492,6 +492,7 @@ class DurationTest < ActiveSupport::TestCase
 
     assert_equal({ days: -1, seconds: 10 }, (scalar - 1.day).parts)
     assert_equal({ days: 1, seconds: 10 }, (scalar - -1.day).parts)
+    assert_equal({ seconds: -350 }, (scalar - (1.hour / 10)).parts)
   end
 
   def test_scalar_multiply
