@@ -4,6 +4,7 @@ require "fileutils"
 require "active_support/notifications"
 require "active_support/dependencies"
 require "active_support/descendants_tracker"
+require "action_dispatch/http/uri"
 require "rails/secrets"
 
 module Rails
@@ -75,6 +76,16 @@ module Rails
 
       initializer :set_secrets_root, group: :all do
         Rails::Secrets.root = root
+      end
+
+      # Sets the Rails.application.url config
+      initializer :initialize_url, group: :all do
+        if config.application_url
+          Rails.application.url = ActionDispatch::Http::URI.build_from_string(config.application_url)
+          if Rails.application.default_url_options.blank?
+            Rails.application.default_url_options = { host: Rails.application.url.host, protocol: Rails.application.url.scheme }
+          end
+        end
       end
     end
   end

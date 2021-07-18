@@ -281,6 +281,18 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.root
     end
 
+    test "application url is set from config file and is available as URI object as Rails.application.url" do
+      add_to_config <<-RUBY
+        config.application_url = "https://rails.test"
+      RUBY
+
+      app "development"
+
+      assert_equal "https://rails.test", Rails.configuration.application_url
+      assert_instance_of ActionDispatch::Http::URI, Rails.application.url
+      assert_equal "https://rails.test", Rails.application.url.to_s
+    end
+
     test "Rails.public_path should be a Pathname" do
       add_to_config <<-RUBY
         config.paths["public"] = "somewhere"
