@@ -3244,20 +3244,20 @@ module ApplicationTests
       assert_equal false, ActionDispatch::Request.return_only_media_type_on_content_type
     end
 
-    test "ActionDispatch::DebugExceptions.log_rescued_responses is true by default" do
+    test "action_dispatch.log_rescued_responses is true by default" do
       app "development"
 
-      assert_equal true, ActionDispatch::DebugExceptions.log_rescued_responses
+      assert_equal true, Rails.application.env_config["action_dispatch.log_rescued_responses"]
     end
 
-    test "ActionDispatch::DebugExceptions.log_rescued_responses can be configured" do
+    test "action_dispatch.log_rescued_responses can be configured" do
       add_to_config <<-RUBY
         config.action_dispatch.log_rescued_responses = false
       RUBY
 
       app "development"
 
-      assert_equal false, ActionDispatch::DebugExceptions.log_rescued_responses
+      assert_equal false, Rails.application.env_config["action_dispatch.log_rescued_responses"]
     end
 
     test "logs a warning when running SQLite3 in production" do
