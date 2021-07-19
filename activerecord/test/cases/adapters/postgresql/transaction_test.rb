@@ -176,6 +176,25 @@ module ActiveRecord
       end
     end
 
+    test "raises Interrupt when canceling statement via interrupt" do
+      start_time = Time.now
+      thread = Thread.new do
+        Sample.transaction do
+          Sample.connection.execute("SELECT pg_sleep(10)")
+        end
+      rescue Exception => e
+        e
+      end
+
+      sleep(0.5)
+      thread.raise Interrupt
+      thread.join
+      duration = Time.now - start_time
+
+      assert_instance_of Interrupt, thread.value
+      assert_operator duration, :<, 5
+    end
+
     private
       def with_warning_suppression
         log_level = ActiveRecord::Base.connection.client_min_messages
