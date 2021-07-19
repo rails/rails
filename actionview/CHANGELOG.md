@@ -1,3 +1,11 @@
+*   Support rendering `<form>` elements _without_ `[action]` attributes by:
+
+    * `form_with url: false` or `form_with ..., html: { action: false }`
+    * `form_for ..., url: false` or `form_for ..., html: { action: false }`
+    * `form_tag false` or `form_tag ..., action: false`
+
+    *Sean Doyle*
+
 *   Improve error messages when template file does not exist at absolute filepath.
 
     *Ted Whang*
