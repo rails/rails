@@ -114,6 +114,25 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_no_queries { preloaded_clubs.each(&:membership) }
   end
 
+  def test_preload_multiple_times_same_through_relation_with_different_scope
+    club = Club.create!(name: "Aaron cool banana club")
+    Membership.create! club: club, member: Member.create!(name: "Aaron"), favorite: true
+    Membership.create! club: club, member: Member.create!(name: "Bob")
+
+    preloaded_club = Club.preload(:members, :favorites).find(club.id)
+    assert_no_queries { assert_equal 1, preloaded_club.favorites.size }
+  end
+
+  def test_preload_multiple_times_same_through_relation_with_same_scope
+    club = Club.create!(name: "Aaron cool banana club")
+    Membership.create! club: club, member: Member.create!(name: "Aaron"), favorite: true
+    Membership.create! club: club, member: Member.create!(name: "Bob")
+
+    assert_queries(3) do
+      assert_equal 2, Club.preload(:members, :members_alias).find(club.id).members.size
+    end
+  end
+
   def test_ordered_has_many_through
     person_prime = Class.new(ActiveRecord::Base) do
       def self.name; "Person"; end
