@@ -1,3 +1,7 @@
+*   Pass `service_name` param to `DirectUploadsController`
+
+    *Dmitry Tsepelev*
+
 *   Allow using [IAM](https://cloud.google.com/storage/docs/access-control/signed-urls) when signing URLs with GCS.
 
     ```yaml

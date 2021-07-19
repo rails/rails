@@ -1,14 +1,16 @@
 import { getMetaValue } from "./helpers"
 
 export class BlobRecord {
-  constructor(file, checksum, url) {
+  constructor(file, checksum, url, directUploadToken, attachmentName) {
     this.file = file
 
     this.attributes = {
       filename: file.name,
       content_type: file.type || "application/octet-stream",
       byte_size: file.size,
-      checksum: checksum
+      checksum: checksum,
+      direct_upload_token: directUploadToken,
+      attachment_name: attachmentName
     }
 
     this.xhr = new XMLHttpRequest
