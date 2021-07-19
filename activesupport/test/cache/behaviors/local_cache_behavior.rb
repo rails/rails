@@ -89,8 +89,8 @@ module LocalCacheBehavior
 
   def test_local_cache_fetch
     @cache.with_local_cache do
-      @cache.send(:local_cache).write "foo", "bar"
-      assert_equal "bar", @cache.send(:local_cache).fetch("foo")
+      @cache.send(:local_cache).write_entry "foo", "bar"
+      assert_equal "bar", @cache.send(:local_cache).fetch_entry("foo")
     end
   end
 

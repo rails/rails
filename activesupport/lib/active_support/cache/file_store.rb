@@ -72,19 +72,26 @@ module ActiveSupport
 
       private
         def read_entry(key, **options)
-          if File.exist?(key)
-            entry = deserialize_entry(File.binread(key))
+          if payload = read_serialized_entry(key, **options)
+            entry = deserialize_entry(payload)
             entry if entry.is_a?(Cache::Entry)
           end
-        rescue => e
-          logger.error("FileStoreError (#{e}): #{e.message}") if logger
+        end
+
+        def read_serialized_entry(key, **)
+          File.binread(key) if File.exist?(key)
+        rescue => error
+          logger.error("FileStoreError (#{error}): #{error.message}") if logger
           nil
         end
 
         def write_entry(key, entry, **options)
+          write_serialized_entry(key, serialize_entry(entry, **options), **options)
+        end
+
+        def write_serialized_entry(key, payload, **options)
           return false if options[:unless_exist] && File.exist?(key)
           ensure_cache_path(File.dirname(key))
-          payload = serialize_entry(entry, **options)
           File.atomic_write(key, cache_path) { |f| f.write(payload) }
           true
         end
@@ -95,9 +102,9 @@ module ActiveSupport
               File.delete(key)
               delete_empty_directories(File.dirname(key))
               true
-            rescue => e
+            rescue
               # Just in case the error was caused by another process deleting the file first.
-              raise e if File.exist?(key)
+              raise if File.exist?(key)
               false
             end
           end
