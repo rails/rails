@@ -130,6 +130,13 @@ module ActionDispatch
         assert_nil session.dig("one", :two)
       end
 
+      def test_inspect
+        session = Session.create(store, req, {})
+        session["foo"] = "bar"
+
+        assert_match(%r(#<ActionDispatch::Request::Session:0x[0-9a-f]+ {"foo"=>"bar"}>), session.inspect)
+      end
+
       private
         def store
           Class.new {

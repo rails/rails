@@ -1,3 +1,12 @@
+*   Show contents of session for ActionDispatch::Request::Session#inspect
+
+    This shortens inspect to show the class name and the contents.
+
+        session["foo"] = "bar"
+        session.inspect => "#<ActionDispatch::Request::Session:0x1234 {"foo"=>"bar"}>"
+
+    *Petrik de Heus*
+
 *   Exclude additional flash types from `ActionController::Base.action_methods`.
 
     Ensures that additional flash types defined on ActionController::Base subclasses

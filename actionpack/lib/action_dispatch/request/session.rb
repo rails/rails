@@ -210,11 +210,8 @@ module ActionDispatch
       end
 
       def inspect
-        if loaded?
-          super
-        else
-          "#<#{self.class}:0x#{(object_id << 1).to_s(16)} not yet loaded>"
-        end
+        contents = loaded? ? to_hash : "not yet loaded"
+        "#<#{self.class}:0x#{(object_id << 1).to_s(16)} #{contents}>"
       end
 
       def exists?
