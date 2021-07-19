@@ -72,8 +72,8 @@ module ActionDispatch
   # Headless browsers such as headless Chrome and headless Firefox are also supported.
   # You can use these browsers by setting the +:using+ argument to +:headless_chrome+ or +:headless_firefox+.
   #
-  # To use a headless driver, like Poltergeist, update your Gemfile to use
-  # Poltergeist instead of Selenium and then declare the driver name in the
+  # To use a headless driver, like Cuprite, update your Gemfile to use
+  # Cuprite instead of Selenium and then declare the driver name in the
   # +application_system_test_case.rb+ file. In this case, you would leave out
   # the +:using+ option because the driver is headless, but you can still use
   # +:screen_size+ to change the size of the browser screen, also you can use
@@ -81,10 +81,10 @@ module ActionDispatch
   # driver documentation to learn about supported options.
   #
   #   require "test_helper"
-  #   require "capybara/poltergeist"
+  #   require "capybara/cuprite"
   #
   #   class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  #     driven_by :poltergeist, screen_size: [1400, 1400], options:
+  #     driven_by :cuprite, screen_size: [1400, 1400], options:
   #       { js_errors: true }
   #   end
   #
@@ -140,7 +140,7 @@ module ActionDispatch
     #
     # Examples:
     #
-    #   driven_by :poltergeist
+    #   driven_by :cuprite
     #
     #   driven_by :selenium, screen_size: [800, 800]
     #
