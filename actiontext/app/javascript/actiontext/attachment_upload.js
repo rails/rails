@@ -13,8 +13,11 @@ export class AttachmentUpload {
 
   directUploadWillStoreFileWithXHR(xhr) {
     xhr.upload.addEventListener("progress", event => {
-      const progress = event.loaded / event.total * 100
+      const progress = Math.min(event.loaded / event.total * 100, 99.9)
       this.attachment.setUploadProgress(progress)
+    })
+    xhr.upload.addEventListener("load", event => {
+      this.attachment.setUploadProgress(100)
     })
   }
 
