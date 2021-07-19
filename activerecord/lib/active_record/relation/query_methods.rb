@@ -387,6 +387,23 @@ module ActiveRecord
       self
     end
 
+    # Allows to specify an order by a specific set of values. Depending on your
+    # adapter this will either use a CASE statement or a built-in function.
+    #
+    #   User.in_order_of(:id, [1, 5, 3])
+    #   # SELECT "users".* FROM "users" ORDER BY FIELD("users"."id", 1, 5, 3)
+    #
+    def in_order_of(column, values)
+      klass.disallow_raw_sql!([column], permit: connection.column_name_with_order_matcher)
+
+      references = column_references([column])
+      self.references_values |= references unless references.empty?
+
+      column = order_column(column.to_s) if column.is_a?(Symbol)
+
+      spawn.order!(connection.field_ordered_value(column, values))
+    end
+
     # Replaces any existing order defined on the relation with the specified order.
     #
     #   User.order('email DESC').reorder('id ASC') # generated SQL has 'ORDER BY id ASC'
