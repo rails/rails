@@ -14,7 +14,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
 
   test "generating a resized variation of a JPEG blob" do
     blob = create_file_blob(filename: "racecar.jpg")
-    variant = blob.variant(resize: "100x100")
+    variant = blob.variant(resize_to_limit: [100, 100])
 
     assert_difference -> { blob.variant_records.count }, +1 do
       variant.process
@@ -34,10 +34,10 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "racecar.jpg")
 
     assert_difference -> { blob.variant_records.count } do
-      blob.variant(resize: "100x100").process
+      blob.variant(resize_to_limit: [100, 100]).process
     end
 
-    variant = blob.variant(resize: "100x100")
+    variant = blob.variant(resize_to_limit: [100, 100])
 
     assert_no_difference -> { blob.variant_records.count } do
       variant.process
@@ -52,7 +52,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
 
   test "variant of a blob is on the same service" do
     blob = create_file_blob(filename: "racecar.jpg", service_name: "local_public")
-    variant = blob.variant(resize: "100x100").process
+    variant = blob.variant(resize_to_limit: [100, 100]).process
 
     assert_equal "local_public", variant.image.blob.service_name
   end
@@ -62,12 +62,12 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
 
     blob1 = directly_upload_file_blob(filename: "racecar.jpg")
     assert_difference -> { ActiveStorage::VariantRecord.count }, +1 do
-      blob1.representation(resize: "100x100").process
+      blob1.representation(resize_to_limit: [100, 100]).process
     end
 
     blob2 = directly_upload_file_blob(filename: "racecar_rotated.jpg")
     assert_difference -> { ActiveStorage::VariantRecord.count }, +1 do
-      blob2.representation(resize: "100x100").process
+      blob2.representation(resize_to_limit: [100, 100]).process
     end
 
     assert_no_difference -> { ActiveStorage::VariantRecord.count } do
@@ -84,7 +84,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
         # blob x 2
         # variant record x 2
         user.vlogs.map do |vlog|
-          vlog.representation(resize: "100x100").processed
+          vlog.representation(resize_to_limit: [100, 100]).processed
         end
       end
     end
@@ -98,7 +98,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
         # blob x 1
         # variant record x 1
         user.vlogs.includes(blob: :variant_records).map do |vlog|
-          vlog.representation(resize: "100x100").processed
+          vlog.representation(resize_to_limit: [100, 100]).processed
         end
       end
     end
@@ -112,7 +112,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
         # blob x 1
         # variant record x 1
         user.vlogs.with_all_variant_records.map do |vlog|
-          vlog.representation(resize: "100x100").processed
+          vlog.representation(resize_to_limit: [100, 100]).processed
         end
       end
     end
@@ -128,7 +128,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
         # variant record x 1
         User.where(id: user.id).with_attached_vlogs.map do |u|
           u.vlogs.map do |vlog|
-            vlog.representation(resize: "100x100").processed
+            vlog.representation(resize_to_limit: [100, 100]).processed
           end
         end
       end
