@@ -71,6 +71,18 @@ module ActiveStorage
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
+  def self.disk_service_enabled?
+    service = Blob.service
+    return false unless service
+
+    # TODO: refactor
+    if service.is_a? Service::MirrorService
+      service.primary.is_a? Service::DiskService || service.mirrors.any? { |mirror| mirror.is_a? Service::DiskService }
+    else 
+      service.is_a? Service::DiskService
+    end
+  end
+
   module Transformers
     extend ActiveSupport::Autoload
 

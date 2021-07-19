@@ -1,3 +1,8 @@
+*   Allows rendering url helpers and routes for the disk service even when
+    `config.active_storage.draw_routes` is set to false.
+
+    *Stefanni Brasil and Thiago Araujo*
+
 *   Allow using [IAM](https://cloud.google.com/storage/docs/access-control/signed-urls) when signing URLs with GCS.
 
     ```yaml
