@@ -61,6 +61,7 @@ module ActiveRecord
   autoload :ReadonlyAttributes
   autoload :RecordInvalid, "active_record/validations"
   autoload :Reflection
+  autoload :Returning
   autoload :RuntimeRegistry
   autoload :Sanitization
   autoload :Schema

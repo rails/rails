@@ -299,6 +299,7 @@ module ActiveRecord #:nodoc:
     include Core
     include Persistence
     include ReadonlyAttributes
+    include Returning
     include ModelSchema
     include Inheritance
     include Scoping
