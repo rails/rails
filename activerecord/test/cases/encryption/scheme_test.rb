@@ -45,6 +45,37 @@ class ActiveRecord::Encryption::SchemeTest < ActiveRecord::EncryptionTestCase
     end
   end
 
+  class MyKeyProvider
+    def encryption_key
+      ActiveRecord::Encryption::Key.new("0" * 32)
+    end
+
+    def decryption_keys(encrypted_message)
+      [ActiveRecord::Encryption::Key.new("0" * 32)]
+    end
+  end
+
+  test "doesn't validate key_derivation_salt is set if custom key provider provided" do
+    ActiveRecord::Encryption.configure(
+      key_provider: MyKeyProvider.new,
+      primary_key: nil,
+      key_derivation_salt: nil,
+      deterministic_key: nil
+    )
+
+    assert_nothing_raised do
+      declare_and_use_class
+    end
+
+  ensure
+    ActiveRecord::Encryption.context.key_provider = nil
+    ActiveRecord::Encryption.configure(
+      primary_key: nil,
+      key_derivation_salt: nil,
+      deterministic_key: nil
+    )
+  end
+
   private
     def assert_invalid_declaration(**options)
       assert_raises ActiveRecord::Encryption::Errors::Configuration do
