@@ -45,7 +45,13 @@ module ActionDispatch
             tmp_params[key] = val.force_encoding(::Encoding::UTF_8)
           }
 
-          req.path_parameters = tmp_params
+          # Validate path, querystring and request params
+          req.path_parameters = encode_parameters_and_validate(req, tmp_params, tmp_params, "path")
+          if req.get?
+            req.query_parameters = encode_parameters_and_validate(req, req.query_parameters, tmp_params, "query")
+          elsif req.post?
+            req.request_parameters = encode_parameters_and_validate(req, req.request_parameters, tmp_params, "request")
+          end
 
           status, headers, body = route.app.serve(req)
 
@@ -142,6 +148,19 @@ module ActionDispatch
           ensure
             req.request_method = "HEAD"
           end
+        end
+
+        def encode_parameters_and_validate(req, params, path_parameters, type)
+          params = Request::Utils.set_binary_encoding(
+            req,
+            params,
+            path_parameters[:controller],
+            path_parameters[:action]
+          )
+          Request::Utils.check_param_encoding(params)
+          params
+        rescue Rack::Utils::InvalidParameterError => e
+          raise ActionController::BadRequest.new("Invalid #{type} parameters: #{e.message}")
         end
     end
   end
