@@ -9,7 +9,7 @@ module ActiveModel
 
       def validate_each(record, attribute, value)
         unless include?(record, value)
-          record.errors.add(attribute, :inclusion, **options.except(:in, :within).merge!(value: value))
+          record.errors.add(attribute, :inclusion, **options.except(*RESERVED_OPTIONS).merge!(value: value))
         end
       end
     end
@@ -24,6 +24,7 @@ module ActiveModel
       #     validates_inclusion_of :format, in: %w( jpg gif png ), message: "extension %{value} is not included in the list"
       #     validates_inclusion_of :states, in: ->(person) { STATES[person.country] }
       #     validates_inclusion_of :karma, in: :available_karmas
+      #     validates_inclusion_of :karmas, in: %w( abe monkey ), all: true
       #   end
       #
       # Configuration options:
@@ -33,6 +34,8 @@ module ActiveModel
       #   with <tt>Range#cover?</tt>, otherwise with <tt>include?</tt>. When using
       #   a proc or lambda the instance under validation is passed as an argument.
       # * <tt>:within</tt> - A synonym(or alias) for <tt>:in</tt>
+      # * <tt>:all</tt> - If attribute is an <tt>Array</tt> validates the inclusion of
+      #   all the attribute items within the set of values provided with <tt>:in</tt>
       # * <tt>:message</tt> - Specifies a custom error message (default is: "is
       #   not included in the list").
       #
