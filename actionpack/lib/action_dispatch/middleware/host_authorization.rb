@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "action_dispatch/http/request"
-
 module ActionDispatch
   # This middleware guards from DNS rebinding attacks by explicitly permitting
   # the hosts a request can be sent to, and is passed the options set in
