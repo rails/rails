@@ -80,6 +80,18 @@ To find out more about different `rackup` options, you can run:
 $ rackup --help
 ```
 
+#### Prefix your app using `config.relative_url_root`
+
+When using `rackup` and you are deploying your app to a subdirectory, you need to use `map` to define the root url to your app when generating the `Rack::URLMap` structure.
+
+```ruby
+# Rails.root/config.ru
+
+map RelativeRoot::Application.config.relative_url_root || '/' do
+  run Rails.application
+end
+```
+
 ### Development and auto-reloading
 
 Middlewares are loaded once and are not monitored for changes. You will have to restart the server for changes to be reflected in the running application.
