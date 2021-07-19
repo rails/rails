@@ -1,3 +1,8 @@
+*   Deleting a key from `ActionDispatch::Flash::FlashHash` returns the deleted
+    value, the same way that `Hash#delete` would.
+
+    *Sean Doyle*
+
 *   Exclude additional flash types from `ActionController::Base.action_methods`.
 
     Ensures that additional flash types defined on ActionController::Base subclasses
