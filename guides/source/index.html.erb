@@ -14,11 +14,24 @@
     <% end -%>
     <dd class="work-in-progress">Guides marked with this icon are currently being worked on and will not be available in the Guides Index menu. While still useful, they may contain incomplete information and even errors. You can help by reviewing them and posting your comments and corrections.</dd>
   </dl>
+  <h3 class="chapter"><img src="images/chapters_icon.gif" alt="" />Guides</h3>
+  <ol class="chapters">
+    <% documents_by_section.each do |section| %>
+      <li><a href="#<%= section['name'].parameterize %>"><%= section['name'] %></a></li>
+      <ul>
+      <% section['documents'].each do |document| %>
+        <% unless document['work_in_progress'] %>
+          <li><a href="#<%= document['name'].parameterize %>"><%= document['name'] %></a></li>
+        <% end %>
+      <% end %>
+      </ul>
+    <% end %>
+  </ol>
 </div>
 <% end %>
 
 <% documents_by_section.each do |section| %>
-  <h3><%= section['name'] %></h3>
+  <h3 id="<%= section['name'].parameterize %>"><%= section['name'] %></h3>
   <dl>
     <% section['documents'].each do |document| %>
       <%= guide(document['name'], document['url'], work_in_progress: document['work_in_progress']) do %>
