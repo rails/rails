@@ -706,6 +706,22 @@ class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::T
       yield
     end
   end
+
+  def test_raised_exception_message_explains_why_it_occurred
+    forgery_protection_origin_check do
+      session[:_csrf_token] = @token
+      @controller.stub :form_authenticity_token, @token do
+        exception = assert_raises(ActionController::InvalidAuthenticityToken) do
+          @request.set_header "HTTP_ORIGIN", "http://bad.host"
+          post :index, params: { custom_authenticity_token: @token }
+        end
+        assert_match(
+          "HTTP Origin header (http://bad.host) didn't match request.base_url (http://test.host)",
+          exception.message
+        )
+      end
+    end
+  end
 end
 
 class PrependProtectForgeryBaseControllerTest < ActionController::TestCase
@@ -872,9 +888,10 @@ class PerFormTokensControllerTest < ActionController::TestCase
 
     # Set invalid URI in PATH_INFO
     @request.env["PATH_INFO"] = "/foo/bar<"
-    assert_raise ActionController::InvalidAuthenticityToken do
+    exception = assert_raises(ActionController::InvalidAuthenticityToken) do
       post :post_one, params: { custom_authenticity_token: form_token }
     end
+    assert_match "Can't verify CSRF token authenticity.", exception.message
   end
 
   def test_rejects_token_for_incorrect_path
