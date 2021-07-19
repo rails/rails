@@ -33,7 +33,13 @@ module ActiveStorage
       end
 
       def build_subchange_from(attachable)
-        ActiveStorage::Attached::Changes::CreateOneOfMany.new(name, record, attachable)
+        ActiveStorage::Attached::Changes::CreateOneOfMany.new(name, record, attachable, previous_attachments)
+      end
+
+      # Using a direct query instead of `record.public_send("#{name}_attachments")` because of a race condition
+      # where some attachments were missing due to them being memoized in a previous stage
+      def previous_attachments
+        @previous_attachments ||= ActiveStorage::Attachment.where(record: record, name: name)
       end
 
       def assign_associated_attachments
