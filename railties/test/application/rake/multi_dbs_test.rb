@@ -812,6 +812,112 @@ module ApplicationTests
         db_create_and_drop_namespace("primary", "db/development.sqlite3")
       end
 
+      test "schema generation when dump_schema_after_migration is true schema_dump is false" do
+        app_file "config/database.yml", <<~EOS
+          development:
+            primary:
+              adapter: sqlite3
+              database: dev_db
+              schema_dump: false
+            secondary:
+              adapter: sqlite3
+              database: secondary_dev_db
+              schema_dump: false
+        EOS
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+
+          assert_not File.exist?("db/schema.rb"), "should not dump schema when configured not to"
+          assert_not File.exist?("db/secondary_schema.rb"), "should not dump schema when configured not to"
+        end
+      end
+
+      test "schema generation when dump_schema_after_migration is false and schema_dump is true" do
+        add_to_config("config.active_record.dump_schema_after_migration = false")
+
+        app_file "config/database.yml", <<~EOS
+          development:
+            primary:
+              adapter: sqlite3
+              database: dev_db
+            secondary:
+              adapter: sqlite3
+              database: secondary_dev_db
+        EOS
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+
+          assert_not File.exist?("db/schema.rb"), "should not dump schema when configured not to"
+          assert_not File.exist?("db/secondary_schema.rb"), "should not dump schema when configured not to"
+        end
+      end
+
+      test "schema generation with schema dump only for primary" do
+        app_file "config/database.yml", <<~EOS
+          development:
+            primary:
+              adapter: sqlite3
+              database: primary_dev_db
+            secondary:
+              adapter: sqlite3
+              database: secondary_dev_db
+              schema_dump: false
+        EOS
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate:primary", "db:migrate:secondary"
+
+          assert File.exist?("db/schema.rb"), "should not dump schema when configured not to"
+          assert_not File.exist?("db/secondary_schema.rb"), "should not dump schema when configured not to"
+        end
+      end
+
+      test "schema generation with schema dump only for secondary" do
+        app_file "config/database.yml", <<~EOS
+          development:
+            primary:
+              adapter: sqlite3
+              database: primary_dev_db
+              schema_dump: false
+            secondary:
+              adapter: sqlite3
+              database: secondary_dev_db
+        EOS
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate:primary", "db:migrate:secondary"
+
+          assert_not File.exist?("db/schema.rb"), "should not dump schema when configured not to"
+          assert File.exist?("db/secondary_schema.rb"), "should dump schema when configured to"
+        end
+      end
+
+      test "schema generation when dump_schema_after_migration and schema_dump are true" do
+        app_file "config/database.yml", <<~EOS
+          development:
+            primary:
+              adapter: sqlite3
+              database: dev_db
+            secondary:
+              adapter: sqlite3
+              database: secondary_dev_db
+        EOS
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+
+          assert File.exist?("db/schema.rb"), "should dump schema when configured to"
+          assert File.exist?("db/secondary_schema.rb"), "should dump schema when configured to"
+        end
+      end
+
       test "db:create and db:drop don't raise errors when loading YAML containing multiple ERB statements on the same line" do
         app_file "config/database.yml", <<-YAML
           development:
