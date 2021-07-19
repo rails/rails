@@ -1,3 +1,8 @@
+*  `ActionCable.server.remote_connections.where(...).disconnect` now sends `disconnect` message
+   before closing the connection with the reconnection strategy specified (defaults to `true`).
+
+   *Vladimir Dementyev*
+
 *   Truncate broadcast logging messages.
 
     *J Smith*

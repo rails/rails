@@ -19,6 +19,11 @@ module ActionCable
   # This will disconnect all the connections established for
   # <tt>User.find(1)</tt>, across all servers running on all machines, because
   # it uses the internal channel that all of these servers are subscribed to.
+  #
+  # By default, server sends a "disconnect" message with "reconnect" flag set to true.
+  # You can override it by specifying the `reconnect` option:
+  #
+  #   ActionCable.server.remote_connections.where(current_user: User.find(1)).disconnect(reconnect: false)
   class RemoteConnections
     attr_reader :server
 
@@ -44,8 +49,8 @@ module ActionCable
         end
 
         # Uses the internal channel to disconnect the connection.
-        def disconnect
-          server.broadcast internal_channel, { type: "disconnect" }
+        def disconnect(reconnect: true)
+          server.broadcast internal_channel, { type: "disconnect", reconnect: reconnect }
         end
 
         # Returns all the identifiers that were applied to this connection.
