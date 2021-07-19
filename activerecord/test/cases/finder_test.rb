@@ -23,10 +23,12 @@ require "models/car"
 require "models/tyre"
 require "models/subscriber"
 require "models/non_primary_key"
+require "models/owner"
+require "models/pet"
 require "support/stubs/strong_parameters"
 
 class FinderTest < ActiveRecord::TestCase
-  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :author_addresses, :customers, :categories, :categorizations, :cars
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :author_addresses, :customers, :categories, :categorizations, :cars, :owners, :pets
 
   def test_find_by_id_with_hash
     assert_nothing_raised do
@@ -885,6 +887,16 @@ class FinderTest < ActiveRecord::TestCase
       Topic.delete_all
       Topic.last!
     end
+  end
+
+  def test_last_and_first_returns_the_right_data_even_without_loading_all_data_first
+    assert_equal 2, owners(:loretta).pets.count, "sanity check"
+    assert_equal ["pets.name desc"], owners(:loretta).pets.order_values
+
+    owner = owners(:loretta)
+    first_pet = owner.pets.first
+    last_pet = owner.pets.last
+    assert_not_equal first_pet.id, last_pet.id
   end
 
   def test_take_and_first_and_last_with_integer_should_use_sql_limit
