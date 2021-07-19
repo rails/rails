@@ -1,3 +1,26 @@
+*   Execute the `ActionView::Base.field_error_proc` within the context of the
+    `ActionView::Base` instance:
+
+    ```ruby
+    # before
+    config.action_view.field_error_proc = Proc.new { |html_tag, instance| <<~HTML.html_safe }
+      #{html_tag}
+      <span class="errors">#{instance.error_message.to_sentence}</span>
+    HTML
+
+    # after
+    config.action_view.field_error_proc = Proc.new { |html_tag, instance| render "errors", html_tag: html.html_safe, builder: instance }
+    ```
+
+    Then, elsewhere in `app/views/application/errors.html.erb`:
+
+    ```erb
+    <%= html_tag %>
+    <span class="errors"><%= instance.error_message.to_sentence %></span>
+    ```
+
+    *Sean Doyle*
+
 *   Improve error messages when template file does not exist at absolute filepath.
 
     *Ted Whang*
