@@ -53,7 +53,7 @@ class ActiveSupport::TestCase
   self.fixture_path = File.expand_path("fixtures", __dir__)
 
   setup do
-    ActiveStorage::Current.host = "https://example.com"
+    ActiveStorage::Current.url_options = { protocol: "https://", host: "example.com", port: nil }
   end
 
   teardown do

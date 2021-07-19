@@ -1,3 +1,8 @@
+*   Deprecate `ActiveStorage::Current.host` in favor of `ActiveStorage::Current.url_options` which accepts
+    a host, protocol and port.
+
+    *Santiago Bartesaghi*
+
 *   Allow using [IAM](https://cloud.google.com/storage/docs/access-control/signed-urls) when signing URLs with GCS.
 
     ```yaml
