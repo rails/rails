@@ -54,15 +54,21 @@ module Rails
         end
 
         def compute_tags(request) # :doc:
-          @taggers.collect do |tag|
-            case tag
-            when Proc
-              tag.call(request)
-            when Symbol
-              request.send(tag)
-            else
-              tag
-            end
+          if @taggers.respond_to?(:transform_values)
+            @taggers.transform_values { |tag| transformer(tag, request) }
+          else
+            @taggers.collect { |tag| transformer(tag, request) }
+          end
+        end
+
+        def transformer(tag, request)
+          case tag
+          when Proc
+            tag.call(request)
+          when Symbol
+            request.send(tag)
+          else
+            tag
           end
         end
 
