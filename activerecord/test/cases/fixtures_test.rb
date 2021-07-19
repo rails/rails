@@ -559,6 +559,10 @@ class FixturesTest < ActiveRecord::TestCase
   ensure
     ENV["DATABASE_URL"] = db_url_tmp
   end
+
+  def test_yml_erb_extension
+    ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, "developers")
+  end
 end
 
 class HasManyThroughFixture < ActiveRecord::TestCase

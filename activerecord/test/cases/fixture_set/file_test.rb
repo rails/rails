@@ -40,7 +40,7 @@ module ActiveRecord
       end
 
       def test_erb_processing
-        File.open(::File.join(FIXTURES_ROOT, "developers.yml")) do |fh|
+        File.open(::File.join(FIXTURES_ROOT, "developers.yml.erb")) do |fh|
           devs = Array.new(8) { |i| "dev_#{i + 3}" }
           assert_equal [], devs - fh.to_a.map(&:first)
         end
