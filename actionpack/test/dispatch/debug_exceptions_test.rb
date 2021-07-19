@@ -528,9 +528,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
     backtrace_cleaner.add_silencer { true }
 
-    env = { "action_dispatch.show_exceptions"   => true,
-            "action_dispatch.logger"            => Logger.new(output),
-            "action_dispatch.backtrace_cleaner" => backtrace_cleaner }
+    env = { "action_dispatch.show_exceptions"       => true,
+            "action_dispatch.logger"                => Logger.new(output),
+            "action_dispatch.log_rescued_responses" => true,
+            "action_dispatch.backtrace_cleaner"     => backtrace_cleaner }
 
     assert_raises ActionController::RoutingError do
       get "/pass", headers: env
@@ -550,9 +551,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     backtrace_cleaner.add_silencer { true }
 
     env = { "Accept" => "text/html,*",
-            "action_dispatch.show_exceptions"   => true,
-            "action_dispatch.logger"            => Logger.new(output),
-            "action_dispatch.backtrace_cleaner" => backtrace_cleaner }
+            "action_dispatch.show_exceptions"       => true,
+            "action_dispatch.logger"                => Logger.new(output),
+            "action_dispatch.log_rescued_responses" => true,
+            "action_dispatch.backtrace_cleaner"     => backtrace_cleaner }
 
     assert_raises ActionDispatch::Http::MimeNegotiation::InvalidType do
       get "/invalid_mimetype", headers: env
@@ -564,7 +566,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal 3, log.lines.count
   end
 
-  test "skips logging when rescued" do
+  test "skips logging when rescued and log_rescued_responses is false" do
     @app = DevelopmentApp
 
     output = StringIO.new
@@ -576,6 +578,20 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/parameter_missing", headers: env
     assert_response 400
     assert_empty (output.rewind && output.read).lines
+  end
+
+  test "does not skip logging when rescued and log_rescued_responses is true" do
+    @app = DevelopmentApp
+
+    output = StringIO.new
+
+    env = { "action_dispatch.show_exceptions"       => true,
+            "action_dispatch.logger"                => Logger.new(output),
+            "action_dispatch.log_rescued_responses" => true }
+
+    get "/parameter_missing", headers: env
+    assert_response 400
+    assert_not_empty (output.rewind && output.read).lines
   end
 
   test "display backtrace when error type is SyntaxError" do

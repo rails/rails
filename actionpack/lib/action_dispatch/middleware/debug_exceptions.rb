@@ -10,7 +10,6 @@ module ActionDispatch
   # This middleware is responsible for logging exceptions and
   # showing a debugging page in case the request is local.
   class DebugExceptions
-    cattr_accessor :log_rescued_responses, instance_accessor: false, default: true
     cattr_reader :interceptors, instance_accessor: false, default: []
 
     def self.register_interceptor(object = nil, &block)
@@ -180,8 +179,7 @@ module ActionDispatch
       end
 
       def log_rescued_responses?(request)
-        per_request = request.get_header("action_dispatch.log_rescued_responses")
-        per_request.nil? ? @@log_rescued_responses : per_request
+        request.get_header("action_dispatch.log_rescued_responses")
       end
   end
 end
