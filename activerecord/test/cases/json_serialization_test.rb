@@ -268,7 +268,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
       authors = [@david, @mary]
       encoded = ActiveSupport::JSON.encode(authors, except: [
         :name, :author_address_id, :author_address_extra_id,
-        :organization_id, :owned_essay_id
+        :organization_id, :owned_essay_id, :published_book_id
       ])
       assert_equal %([{"id":1},{"id":2}]), encoded
     end
