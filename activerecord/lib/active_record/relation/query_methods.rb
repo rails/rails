@@ -731,6 +731,21 @@ module ActiveRecord
       self
     end
 
+    # Checks whether the given relation is structurally compatible with this relation, to determine
+    # if it's possible to use the #and and #or methods without raising an error. Structurally
+    # compatible is defined as: they must be scoping the same model, and they must differ only by
+    # #where (if no #group has been defined) or #having (if a #group is present).
+    #
+    #    Post.where("id = 1").structurally_compatible?(Post.where("author_id = 3"))
+    #    # => true
+    #
+    #    Post.joins(:comments).structurally_compatible?(Post.where("id = 1"))
+    #    # => false
+    #
+    def structurally_compatible?(other)
+      structurally_incompatible_values_for(other).empty?
+    end
+
     # Returns a new relation, which is the logical intersection of this relation and the one passed
     # as an argument.
     #
