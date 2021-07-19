@@ -221,27 +221,41 @@ module ActiveRecord
         batch_limit = remaining if remaining < batch_limit
       end
 
-      relation = relation.reorder(batch_order(order)).limit(batch_limit)
-      relation = apply_limits(relation, start, finish, order)
-      relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
-      batch_relation = relation
+      relation = relation.reorder(batch_order(order))
 
+      limit_relation = relation.limit(batch_limit)
+      limit_relation = apply_finish_limit(limit_relation, finish, order) if finish
+      limit_relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
+
+      offset = nil
       loop do
-        if load
-          records = batch_relation.records
-          ids = records.map(&:id)
-          yielded_relation = where(primary_key => ids)
-          yielded_relation.load_records(records)
+        batch_relation = limit_relation
+        if offset
+          batch_relation = apply_offset_limit(batch_relation, offset, order)
+        elsif start
+          batch_relation = apply_start_limit(batch_relation, start, order)
+        end
+
+        ids = if load
+          batch_relation.records.map(&:id)
         else
-          ids = batch_relation.pluck(primary_key)
-          yielded_relation = where(primary_key => ids)
+          batch_relation.pluck(primary_key)
         end
 
         break if ids.empty?
 
-        primary_key_offset = ids.last
-        raise ArgumentError.new("Primary key not included in the custom select clause") unless primary_key_offset
+        yielded_relation = relation
+        if offset
+          yielded_relation = apply_offset_limit(yielded_relation, offset, order)
+        elsif start
+          yielded_relation = apply_start_limit(yielded_relation, start, order)
+        end
 
+        offset = ids.last
+        raise ArgumentError.new("Primary key not included in the custom select clause") unless offset
+
+        yielded_relation = apply_finish_limit(yielded_relation, offset, order)
+        yielded_relation.load_records(batch_relation.records) if load
         yield yielded_relation
 
         break if ids.length < batch_limit
@@ -254,13 +268,9 @@ module ActiveRecord
             # batch size.
             break
           elsif remaining < batch_limit
-            relation = relation.limit(remaining)
+            limit_relation = limit_relation.limit(remaining)
           end
         end
-
-        batch_relation = relation.where(
-          predicate_builder[primary_key, primary_key_offset, order == :desc ? :lt : :gt]
-        )
       end
     end
 
@@ -277,6 +287,10 @@ module ActiveRecord
 
       def apply_finish_limit(relation, finish, order)
         relation.where(predicate_builder[primary_key, finish, order == :desc ? :gteq : :lteq])
+      end
+
+      def apply_offset_limit(relation, start, order)
+        relation.where(predicate_builder[primary_key, start, order == :desc ? :lt : :gt])
       end
 
       def batch_order(order)
