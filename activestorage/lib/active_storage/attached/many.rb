@@ -47,12 +47,14 @@ module ActiveStorage
     #   document.images.attach(io: File.open("/path/to/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpeg")
     #   document.images.attach([ first_blob, second_blob ])
     def attach(*attachables)
-      if record.persisted? && !record.changed?
-        record.public_send("#{name}=", blobs + attachables.flatten)
-        record.save
-      else
-        record.public_send("#{name}=", (change&.attachables || blobs) + attachables.flatten)
+      if Array(attachables).any?
+        record.attachment_changes[name] = ActiveStorage::Attached::Changes::CreateMany.new(name,
+                                                                                           record,
+                                                                                           blobs + attachables.flatten,
+                                                                                           pending_upload: change&.try(:pending_upload))
       end
+
+      record.save if record.persisted? && !record.changed?
     end
 
     # Returns true if any attachments have been made.

@@ -132,6 +132,55 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
   end
 
+  test "attaching new blobs within a transaction, changed record one at a time" do
+    @user.highlights.attach fixture_file_upload("image.gif")
+
+    ActiveRecord::Base.transaction do
+      @user.highlights.attach fixture_file_upload("racecar.jpg")
+      @user.highlights.attach fixture_file_upload("video.mp4")
+    end
+
+    assert_equal "image.gif", @user.highlights.first.filename.to_s
+    assert_equal "racecar.jpg", @user.highlights.second.filename.to_s
+    assert_equal "video.mp4", @user.highlights.third.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.third.key)
+  end
+
+  test "attaching many new blobs within a transaction, changed record one at a time" do
+    ActiveRecord::Base.transaction do
+      @user.highlights.attach [fixture_file_upload("image.gif"), fixture_file_upload("racecar.jpg")]
+      @user.highlights.attach fixture_file_upload("video.mp4")
+    end
+
+    assert_equal "image.gif", @user.highlights.first.filename.to_s
+    assert_equal "racecar.jpg", @user.highlights.second.filename.to_s
+    assert_equal "video.mp4", @user.highlights.third.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.third.key)
+  end
+
+  test "attaching many new blobs within a transaction on a dirty record, changed record one at a time" do
+    @user.name = "Tina"
+
+    ActiveRecord::Base.transaction do
+      @user.highlights.attach fixture_file_upload("image.gif")
+      @user.highlights.attach fixture_file_upload("racecar.jpg")
+    end
+
+    @user.highlights.attach fixture_file_upload("video.mp4")
+    @user.save
+
+    assert_equal "image.gif", @user.highlights.first.filename.to_s
+    assert_equal "racecar.jpg", @user.highlights.second.filename.to_s
+    assert_equal "video.mp4", @user.highlights.third.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.third.key)
+  end
+
   test "attaching existing blobs to an existing record one at a time" do
     @user.highlights.attach create_blob(filename: "funky.jpg")
     @user.highlights.attach create_blob(filename: "town.jpg")
