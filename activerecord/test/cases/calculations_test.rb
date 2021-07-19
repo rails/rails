@@ -720,10 +720,30 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 7, Company.includes(:contracts).maximum(:developer_id)
   end
 
+  def test_maximum_with_auto_table_name_prefix_skip_join_includes
+    Company.create!(name: "test", rating: 9999)
+
+    queries = capture_sql do
+      assert_equal 9999, Company.includes(:contracts).maximum(:rating)
+    end
+    assert_equal 1, queries.length
+    assert_no_match(/JOIN/, queries.first)
+  end
+
   def test_minimum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
 
     assert_equal 7, Company.includes(:contracts).minimum(:developer_id)
+  end
+
+  def test_minimum_with_auto_table_name_prefix_skip_join_includes
+    Company.create!(name: "test", rating: -9999)
+
+    queries = capture_sql do
+      assert_equal (-9999), Company.includes(:contracts).minimum(:rating)
+    end
+    assert_equal 1, queries.length
+    assert_no_match(/JOIN/, queries.first)
   end
 
   def test_sum_with_not_auto_table_name_prefix_if_column_included

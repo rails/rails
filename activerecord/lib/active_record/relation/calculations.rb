@@ -136,7 +136,7 @@ module ActiveRecord
     #        ...
     #      end
     def calculate(operation, column_name)
-      if has_include?(column_name)
+      if has_include?(column_name) && !free_from_join_dependency?(operation, column_name)
         relation = apply_join_dependency
 
         if operation.to_s.downcase == "count"
@@ -250,6 +250,10 @@ module ActiveRecord
 
       def has_include?(column_name)
         eager_loading? || (includes_values.present? && column_name && column_name != :all)
+      end
+
+      def free_from_join_dependency?(operation, column_name)
+        %w[ minimum maximum ].include?(operation.to_s.downcase) && joins_values.blank? && references_values.blank? && @klass.attribute_names.include?(column_name.to_s)
       end
 
       def perform_calculation(operation, column_name)
