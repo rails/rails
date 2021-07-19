@@ -10,11 +10,6 @@ ActiveRecord::Migrator.migrations_paths << File.expand_path("../db/migrate", __d
 <% end -%>
 require "rails/test_help"
 
-<% unless engine? -%>
-require "rails/test_unit/reporter"
-Rails::TestUnitReporter.executable = "bin/test"
-<% end -%>
-
 <% unless options[:skip_active_record] -%>
 # Load fixtures from the engine
 if ActiveSupport::TestCase.respond_to?(:fixture_path=)

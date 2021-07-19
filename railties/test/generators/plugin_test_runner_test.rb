@@ -105,12 +105,6 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
       capture(:stderr) { run_test_command("test/models/warnings_test.rb -w") })
   end
 
-  def test_run_rake_test
-    create_test_file "foo"
-    result = Dir.chdir(plugin_path) { `rake test TEST=test/foo_test.rb` }
-    assert_match "1 runs, 1 assertions, 0 failures", result
-  end
-
   private
     def plugin_path
       "#{@destination_root}/bukkits"
