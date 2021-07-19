@@ -185,7 +185,7 @@ developers = Developer.find(:all, :group => "salary",
 
 MySQL supports a reconnect flag in its connections - if set to true, then the client will try reconnecting to the server before giving up in case of a lost connection. You can now set `reconnect = true` for your MySQL connections in `database.yml` to get this behavior from a Rails application. The default is `false`, so the behavior of existing applications doesn't change.
 
-* Lead Contributor: [Dov Murik](http://twitter.com/dubek)
+* Lead Contributor: [Dov Murik](https://twitter.com/dubek)
 * More information:
     * [Controlling Automatic Reconnection Behavior](http://dev.mysql.com/doc/refman/5.6/en/auto-reconnect.html)
     * [MySQL auto-reconnect revisited](http://groups.google.com/group/rubyonrails-core/browse_thread/thread/49d2a7e9c96cb9f4)

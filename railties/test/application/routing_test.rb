@@ -314,8 +314,8 @@ module ApplicationTests
     end
 
     {
-      "development" => ["baz", "http://www.apple.com", "/dashboard"],
-      "production"  => ["bar", "http://www.microsoft.com", "/profile"]
+      "development" => ["baz", "https://www.apple.com", "/dashboard"],
+      "production"  => ["bar", "https://www.microsoft.com", "/profile"]
     }.each do |mode, (expected_action, expected_url, expected_mapping)|
       test "reloads routes when configuration is changed in #{mode}" do
         controller :foo, <<-RUBY
@@ -359,7 +359,7 @@ module ApplicationTests
             get 'custom', to: 'foo#custom'
             get 'mapping', to: 'foo#mapping'
 
-            direct(:custom) { "http://www.microsoft.com" }
+            direct(:custom) { "https://www.microsoft.com" }
             resolve("User") { "/profile" }
           end
         RUBY
@@ -374,7 +374,7 @@ module ApplicationTests
         assert_equal "bar", last_response.body
 
         get "/custom"
-        assert_equal "http://www.microsoft.com", last_response.body
+        assert_equal "https://www.microsoft.com", last_response.body
 
         get "/mapping"
         assert_equal "/profile", last_response.body
@@ -385,7 +385,7 @@ module ApplicationTests
             get 'custom', to: 'foo#custom'
             get 'mapping', to: 'foo#mapping'
 
-            direct(:custom) { "http://www.apple.com" }
+            direct(:custom) { "https://www.apple.com" }
             resolve("User") { "/dashboard" }
           end
         RUBY
@@ -520,7 +520,7 @@ module ApplicationTests
           get 'bar', to: 'bar#index'
 
           get 'custom', to: 'foo#custom'
-          direct(:custom) { 'http://www.apple.com' }
+          direct(:custom) { 'https://www.apple.com' }
 
           get 'mapping', to: 'foo#mapping'
           resolve('User') { '/profile' }
@@ -538,8 +538,8 @@ module ApplicationTests
       assert_equal "/bar", Rails.application.routes.url_helpers.bar_path
 
       get "/custom"
-      assert_equal "http://www.apple.com", last_response.body
-      assert_equal "http://www.apple.com", Rails.application.routes.url_helpers.custom_url
+      assert_equal "https://www.apple.com", last_response.body
+      assert_equal "https://www.apple.com", Rails.application.routes.url_helpers.custom_url
 
       get "/mapping"
       assert_equal "/profile", last_response.body
@@ -566,7 +566,7 @@ module ApplicationTests
       get "/custom"
       assert_equal 404, last_response.status
       assert_raises NoMethodError do
-        assert_equal "http://www.apple.com", Rails.application.routes.url_helpers.custom_url
+        assert_equal "https://www.apple.com", Rails.application.routes.url_helpers.custom_url
       end
 
       get "/mapping"
@@ -614,7 +614,7 @@ module ApplicationTests
         Rails.application.routes.draw do
           get ':locale/foo', to: 'foo#index', as: 'foo'
           get 'users', to: 'foo#users', as: 'users'
-          direct(:microsoft) { 'http://www.microsoft.com' }
+          direct(:microsoft) { 'https://www.microsoft.com' }
           resolve('User') { '/profile' }
         end
       RUBY
@@ -622,14 +622,14 @@ module ApplicationTests
       get "/en/foo"
       assert_equal "foo", last_response.body
       assert_equal "/en/foo", Rails.application.routes.url_helpers.foo_path(locale: "en")
-      assert_equal "http://www.microsoft.com", Rails.application.routes.url_helpers.microsoft_url
+      assert_equal "https://www.microsoft.com", Rails.application.routes.url_helpers.microsoft_url
       assert_equal "/profile", Rails.application.routes.url_helpers.polymorphic_path(User.new)
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get ':locale/bar', to: 'bar#index', as: 'foo'
           get 'users', to: 'foo#users', as: 'users'
-          direct(:apple) { 'http://www.apple.com' }
+          direct(:apple) { 'https://www.apple.com' }
         end
       RUBY
 
@@ -641,11 +641,11 @@ module ApplicationTests
       get "/en/bar"
       assert_equal "bar", last_response.body
       assert_equal "/en/bar", Rails.application.routes.url_helpers.foo_path(locale: "en")
-      assert_equal "http://www.apple.com", Rails.application.routes.url_helpers.apple_url
+      assert_equal "https://www.apple.com", Rails.application.routes.url_helpers.apple_url
       assert_equal "/users", Rails.application.routes.url_helpers.polymorphic_path(User.new)
 
       assert_raises NoMethodError do
-        assert_equal "http://www.microsoft.com", Rails.application.routes.url_helpers.microsoft_url
+        assert_equal "https://www.microsoft.com", Rails.application.routes.url_helpers.microsoft_url
       end
     end
 
