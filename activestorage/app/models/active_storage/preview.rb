@@ -75,6 +75,10 @@ class ActiveStorage::Preview
     end
   end
 
+  # Downloads the file associated with this preview's variant.
+  # Raises ActiveStorage::Preview::UnprocessedError if the preview has not been processed yet.
+  #
+  # See ActiveStorage::Variant#download for more information.
   def download(&block)
     if processed?
       variant.download(&block)
