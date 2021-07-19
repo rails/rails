@@ -113,6 +113,33 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
     assert_equal expected_value, p.array_of_points
   end
 
+  def test_find_by_with_point_array
+    point = PostgresqlPoint.create! x: [10, 25.2]
+
+    assert_equal point, PostgresqlPoint.find_by(x: [10, 25.2])
+  end
+
+  def test_where_with_point_array
+    point = PostgresqlPoint.create! x: [10, 25.2]
+
+    assert_equal point, PostgresqlPoint.where(x: [10, 25.2]).first
+  end
+
+  def test_where_with_activerecord_point
+    point_1 = PostgresqlPoint.create! x: [10, 25.2]
+    point_2 = PostgresqlPoint.create! x: ActiveRecord::Point.new(10, 25.2)
+    PostgresqlPoint.create! x: [10, 25.3]
+
+    assert_equal [point_1, point_2], PostgresqlPoint.where(x: ActiveRecord::Point.new(10, 25.2)).to_a
+  end
+
+  def test_find_by_with_activerecord_point
+    point = PostgresqlPoint.create! x: [10, 25.2]
+    PostgresqlPoint.create! x: [10, 25.3]
+
+    assert_equal point, PostgresqlPoint.find_by(x: ActiveRecord::Point.new(10, 25.2))
+  end
+
   def test_legacy_column
     column = PostgresqlPoint.columns_hash["legacy_x"]
     assert_equal :point, column.type
