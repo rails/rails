@@ -1,4 +1,4 @@
-*   Add option to disable schema dumb per-database
+*   Add option to disable schema dump per-database
 
     Dumping the schema is on by default for all databases in an application. To turn it off for a
     specific database use the `schema_dump` option:
