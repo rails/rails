@@ -1,5 +1,14 @@
 # Documentation: https://github.com/jonathanhefner/verba-sequentur
 
+"non bug":
+  comment: >
+    This doesn't appear to be an bug with Rails itself. We reserve the
+    [issue tracker](https://guides.rubyonrails.org/contributing_to_ruby_on_rails.html#reporting-an-issue)
+    for issues only. For other questions or concerns about Rails, please use the 
+    [rubyonrails-talk](https://discuss.rubyonrails.org/c/rubyonrails-talk/7)
+    forum or [Stack Overflow](https://stackoverflow.com/questions/tagged/ruby-on-rails),
+    where a wider community can help you.
+
 "support request":
   comment: >
     This appears to be a request for technical support. We reserve the
