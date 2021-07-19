@@ -190,6 +190,31 @@ class ErrorTest < ActiveModel::TestCase
     }
   end
 
+  test "full_message returns the given message when passed full_message option" do
+    error = ActiveModel::Error.new(Person.new, :name, full_message: "press the button")
+    assert_equal "press the button", error.full_message
+    # Use a locale without errors.format
+    I18n.with_locale(:unknown) { assert_equal "press the button", error.full_message }
+  end
+
+  test "full_message returns the given message formatted when passed full_message_format option" do
+    error = ActiveModel::Error.new(Person.new, :name, message: "press the button", full_message_format: "%{message}")
+    assert_equal "press the button", error.full_message
+
+    error = ActiveModel::Error.new(Person.new, :name, :blank, full_message_format: "%{message}")
+    assert_equal "can't be blank", error.full_message
+
+    error = ActiveModel::Error.new(Person.new, :name, :blank, full_message_format: "%{attribute} %{message}")
+    assert_equal "name can't be blank", error.full_message
+
+    error = ActiveModel::Error.new(Person.new, :name, :blank, full_message_format: "hardcoded message")
+    assert_equal "hardcoded message", error.full_message
+
+    error = ActiveModel::Error.new(Person.new, :name, message: "press the button", full_message_format: "%{message}")
+    # Use a locale without errors.format
+    I18n.with_locale(:unknown) { assert_equal "press the button", error.full_message }
+  end
+
   test "equality by base attribute, type and options" do
     person = Person.new
 
@@ -232,7 +257,9 @@ class ErrorTest < ActiveModel::TestCase
       allow_nil: false,
       allow_blank: false,
       strict: true,
-      message: "message"
+      message: "message",
+      full_message_format: false,
+      full_message: "message",
     )
 
     assert_equal(
