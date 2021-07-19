@@ -38,14 +38,14 @@ class SecureCompareRotatorTest < ActiveSupport::TestCase
     @witness = nil
 
     assert_changes(:@witness, from: nil, to: true) do
-      assert_equal(true, wrapper.secure_compare!("and_another_one", on_rotation: -> { @witness = true }))
+      assert_equal(true, wrapper.secure_compare!("and_another_one", on_rotation: -> (_) { @witness = true }))
     end
   end
 
   test "#secure_compare! calls the on_rotation proc that given in constructor" do
     @witness = nil
 
-    wrapper = ActiveSupport::SecureCompareRotator.new("old_secret", on_rotation: -> { @witness = true })
+    wrapper = ActiveSupport::SecureCompareRotator.new("old_secret", on_rotation: -> (_) { @witness = true })
     wrapper.rotate("new_secret")
     wrapper.rotate("another_secret")
     wrapper.rotate("and_another_one")

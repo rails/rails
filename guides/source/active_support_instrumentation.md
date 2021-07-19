@@ -522,6 +522,18 @@ INFO. Cache stores may add their own keys
 }
 ```
 
+### rotation.active_support
+
+| Key            | Value                                             |
+| -------------- | ------------------------------------------------- |
+| `:cookie_name` | Name of the cookie on which the rotation occurred |
+
+```ruby
+{
+  cookie_name: "user_id",
+}
+```
+
 Active Job
 ----------
 

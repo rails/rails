@@ -146,6 +146,24 @@ class MessageVerifierTest < ActiveSupport::TestCase
 
     assert_equal "old", verifier.verified(old_message, purpose: :rotation)
   end
+
+  def test_notification_for_rotation
+    events = []
+
+    ActiveSupport::Notifications.subscribe "rotation.active_support" do |*args|
+      events << ActiveSupport::Notifications::Event.new(*args)
+    end
+
+    old_message = ActiveSupport::MessageVerifier.new("old", digest: "SHA1").generate("old")
+    verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA1")
+    verifier.rotate("old")
+    verifier.verified(old_message)
+
+    assert_equal 1, events.length
+    assert_equal "rotation.active_support", events[0].name
+  ensure
+    ActiveSupport::Notifications.unsubscribe("rotation.active_support")
+  end
 end
 
 class MessageVerifierMetadataTest < ActiveSupport::TestCase

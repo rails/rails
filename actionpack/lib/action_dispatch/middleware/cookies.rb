@@ -567,7 +567,10 @@ module ActionDispatch
 
         def deserialize(name)
           rotate = false
-          value  = yield -> { rotate = true }
+          value  = yield -> (notification_payload) {
+            notification_payload[:cookie_name] = name
+            rotate = true
+          }
 
           if value
             case
