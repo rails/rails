@@ -580,19 +580,24 @@ module ActiveRecord
       # you can also define callbacks that get triggered when you add an object to or remove an
       # object from an association collection.
       #
-      #   class Project
-      #     has_and_belongs_to_many :developers, after_add: :evaluate_velocity
+      #   class Firm < Company
+      #     has_many :clients, dependent: :destroy, after_add: :congratulate_client, after_remove: :log_after_remove
       #
-      #     def evaluate_velocity(developer)
+      #     def congratulate_client(record)
       #       ...
       #     end
-      #   end
+      #
+      #     def log_after_remove(record)
+      #       ...
+      #     end
       #
       # It's possible to stack callbacks by passing them as an array. Example:
       #
-      #   class Project
-      #     has_and_belongs_to_many :developers,
-      #                             after_add: [:evaluate_velocity, Proc.new { |p, d| p.shipping_date = Time.now}]
+      #   class Firm < Company
+      #     has_many :clients,
+      #              dependent: :destroy,
+      #              after_add: [:congratulate_client, Proc.new { |f, r| f.log << "after_adding#{r.id}" }],
+      #              after_remove: :log_after_remove
       #   end
       #
       # Possible callbacks are: +before_add+, +after_add+, +before_remove+ and +after_remove+.
@@ -602,6 +607,14 @@ module ActiveRecord
       #
       # Similarly, if any of the +before_remove+ callbacks throw an exception, the object
       # will not be removed from the collection.
+      #
+      # Note: In order to trigger remove callbacks use any of following:
+      #   * +firm.clients.destroy_all+
+      #   * +firm.clients.destroy(c)+
+      #
+      # Attempting to remove them using the following will *not* trigger callbacks:
+      #   * +firm.clients.delete_all+
+      #   * +firm.clients.delete(c)+
       #
       # == Association extensions
       #
@@ -1154,8 +1167,6 @@ module ActiveRecord
       # it returns the association rather than the records which have been deleted.
       #
       # === What gets deleted?
-      #
-      # There is a potential pitfall here: #has_and_belongs_to_many and #has_many <tt>:through</tt>
       # associations have records in join tables, as well as the associated records. So when we
       # call one of these deletion methods, what exactly should be deleted?
       #
