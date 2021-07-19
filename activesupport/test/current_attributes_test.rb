@@ -174,4 +174,23 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   test "respond_to? for methods that have not been called" do
     assert_equal true, Current.respond_to?("respond_to_test")
   end
+
+  test "CurrentAttributes use fiber-local variables" do
+    Session.current = 42
+    enumerator = Enumerator.new do |yielder|
+      yielder.yield Session.current
+    end
+    assert_nil enumerator.next
+  end
+
+  test "CurrentAttributes can use thread-local variables" do
+    ActiveSupport::CurrentAttributes._use_thread_variables = true
+    Session.current = 42
+    enumerator = Enumerator.new do |yielder|
+      yielder.yield Session.current
+    end
+    assert_equal 42, enumerator.next
+  ensure
+    ActiveSupport::CurrentAttributes._use_thread_variables = false
+  end
 end

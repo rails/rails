@@ -143,13 +143,23 @@ module ActiveSupport
         current_instances.clear
       end
 
+      def _use_thread_variables=(value) # :nodoc:
+        @@use_thread_variables = value
+      end
+      @@use_thread_variables = false
+
       private
         def generated_attribute_methods
           @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
         end
 
         def current_instances
-          Thread.current[:current_attributes_instances] ||= {}
+          if @@use_thread_variables
+            Thread.current.thread_variable_get(:current_attributes_instances) ||
+              Thread.current.thread_variable_set(:current_attributes_instances, {})
+          else
+            Thread.current[:current_attributes_instances] ||= {}
+          end
         end
 
         def current_instances_key
