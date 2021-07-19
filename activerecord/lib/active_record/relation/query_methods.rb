@@ -2,6 +2,7 @@
 
 require "active_record/relation/from_clause"
 require "active_record/relation/query_attribute"
+require "active_record/relation/queryable_table"
 require "active_record/relation/where_clause"
 require "active_model/forbidden_attributes_protection"
 require "active_support/core_ext/array/wrap"
@@ -669,6 +670,64 @@ module ActiveRecord
     def where!(opts, *rest) # :nodoc:
       self.where_clause += build_where_clause(opts, rest)
       self
+    end
+
+    # Receives a block with a queryable table as an argument and returns a new relation,
+    # which is the result of filtering the current relation according to the conditions returned
+    # by said block.
+    #
+    # #wharel allows the following conditions to filter:
+    #
+    # === Comparison operators =, !=, <, >, <=, >=, IN, NOT IN:
+    #
+    #    User.wharel { |user| user.age.eq(10) }
+    #    # SELECT `users`.* FROM `users` WHERE `users`.`age` = 10
+    #
+    #    User.wharel { |user| user.age.not_eq(10) }
+    #    # SELECT `users`.* FROM `users` WHERE `users`.`age` != 10
+    #
+    #    User.wharel { |user| user.age.lt(10) }
+    #    # SELECT `users`.* FROM `users` WHERE `users`.`age` < 10
+    #
+    #    User.wharel { |user| user.age.gt(10) }
+    #    SELECT `users`.* FROM `users` WHERE `users`.`age` > 10
+    #
+    #    User.wharel { |user| user.age.lteq(10) }
+    #    # SELECT `users`.* FROM `users` WHERE `users`.`age` <= 10
+    #
+    #    User.wharel { |user| user.age.gteq(10) }
+    #    # SELECT `users`.* FROM `users` WHERE `users`.`age` >= 10
+
+    #    User.wharel { |user| user.age.in([20, 16, 17]) }
+    #    # SELECT `users`.* FROM `users` WHERE `users`.`age` IN (20, 16, 17)
+    #
+    #    User.wharel { |user| user.age.not_in([20, 16, 17]) }
+    #    # SELECT `users`.* FROM `users` WHERE `users`.`age` NOT IN (20, 16, 17)
+    #
+    # === Pattern search (LIKE, NOT LIKE):
+    #
+    #    User.wharel { |user| user.name.matches("John%") }
+    #    # SELECT `users`.* FROM `users` WHERE `users`.`name` LIKE 'John%'
+    #
+    #    User.wharel { |user| user.name.does_no_match("Bob%") }
+    #    # SELECT `users`.* FROM `users` WHERE `users`.`name` NOT LIKE 'Bob%'
+    #
+    # === AND and OR operators:
+    #
+    #    User.wharel { |user| (user.age.gt(10).and(user.age.lt(10))).or(user.name.matches("John%")) }
+    #    # SELECT `users`.* FROM `users` WHERE `users`.`age` > 10 AND `users`.`age` < 20 OR `users`.`name` LIKE 'John%'
+    #
+    # === Joins
+    #
+    # If the relation is the result of a join, you may create a condition which uses any of the
+    # tables in the join. To access those tables you can traverse the relations on the block argument
+    # and use the operators listed above:
+    #
+    #    User.joins(:posts).wharel { |user| user.posts.tags_count.gt(10) }
+    #
+    def wharel(&block)
+      conditions = yield QueryableTable.new(self)
+      where(conditions.to_arel)
     end
 
     # Allows you to change a previously set where condition for a given attribute, instead of appending to that condition.
