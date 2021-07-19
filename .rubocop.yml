@@ -2,6 +2,7 @@ require:
   - rubocop-packaging
   - rubocop-performance
   - rubocop-rails
+  - ./rubocop/linters/digest_with_open_ssl.rb
 
 AllCops:
   TargetRubyVersion: 2.7
@@ -38,6 +39,8 @@ Rails/IndexBy:
 Rails/IndexWith:
   Enabled: true
 
+DigestWithOpenSSL:
+  Enabled: true
 # Prefer &&/|| over and/or.
 Style/AndOr:
   Enabled: true
