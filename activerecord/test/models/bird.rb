@@ -2,6 +2,7 @@
 
 class Bird < ActiveRecord::Base
   belongs_to :pirate
+  belongs_to :person, foreign_key: :pirate_id
   validates_presence_of :name
 
   accepts_nested_attributes_for :pirate
