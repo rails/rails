@@ -15,6 +15,12 @@ module ActiveSupport
           @in_flight = Concurrent::Map.new
         end
 
+        def prerecord(reporter, klass, method)
+          reporter.synchronize do
+            reporter.prerecord(klass, method)
+          end
+        end
+
         def record(reporter, result)
           raise DRb::DRbConnError if result.is_a?(DRb::DRbUnknown)
 

@@ -18,7 +18,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(failed_test)
     @reporter.report
 
-    assert_match %r{^rails test .*test/test_unit/reporter_test\.rb:\d+$}, @output.string
+    assert_match %r{^#{Rails::TestUnitReporter.executable} .*test/test_unit/reporter_test\.rb:\d+$}, @output.string
     assert_rerun_snippet_count 1
   end
 
@@ -64,7 +64,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(failed_test)
     @reporter.report
 
-    expect = %r{\AF\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nboo\n\nrails test test/test_unit/reporter_test\.rb:\d+\n\n\z}
+    expect = %r{\AF\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nboo\n\n#{Rails::TestUnitReporter.executable} test/test_unit/reporter_test\.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -72,7 +72,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(errored_test)
     @reporter.report
 
-    expect = %r{\AE\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    some_test.rb:4\n\nrails test .*test/test_unit/reporter_test\.rb:\d+\n\n\z}
+    expect = %r{\AE\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    some_test.rb:4\n\n#{Rails::TestUnitReporter.executable} .*test/test_unit/reporter_test\.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -81,7 +81,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     verbose.record(skipped_test)
     verbose.report
 
-    expect = %r{\ATestUnitReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nskipchurches, misstemples\n\nrails test test/test_unit/reporter_test\.rb:\d+\n\n\z}
+    expect = %r{\ATestUnitReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nskipchurches, misstemples\n\n#{Rails::TestUnitReporter.executable} test/test_unit/reporter_test\.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -152,7 +152,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
       colored = Rails::TestUnitReporter.new @output, color: true, output_inline: true
       colored.record(failed_test)
 
-      expected = %r{\e\[31mF\e\[0m\n\n\e\[31mFailure:\nTestUnitReporterTest::ExampleTest#woot \[test/test_unit/reporter_test.rb:\d+\]:\nboo\n\e\[0m\n\nrails test .*test/test_unit/reporter_test.rb:\d+\n\n}
+      expected = %r{\e\[31mF\e\[0m\n\n\e\[31mFailure:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nboo\n\e\[0m\n\n#{Rails::TestUnitReporter.executable} .*test/test_unit/reporter_test.rb:\d+\n\n}
       assert_match expected, @output.string
     end
   end
@@ -169,7 +169,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
 
   private
     def assert_rerun_snippet_count(snippet_count)
-      assert_equal snippet_count, @output.string.scan(%r{^rails test }).size
+      assert_equal snippet_count, @output.string.scan(%r{^#{Rails::TestUnitReporter.executable} }).size
     end
 
     def failed_test
