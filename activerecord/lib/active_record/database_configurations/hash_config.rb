@@ -103,6 +103,10 @@ module ActiveRecord
       def schema_cache_path
         configuration_hash[:schema_cache_path]
       end
+
+      def database_tasks?
+        !replica? && configuration_hash.fetch(:database_tasks, true)
+      end
     end
   end
 end

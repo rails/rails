@@ -102,6 +102,19 @@ module ActiveRecord
         config = HashConfig.new("default_env", "primary", idle_timeout: "0")
         assert_nil config.idle_timeout
       end
+
+      def test_database_tasks_defaults_to_true
+        config = HashConfig.new("default_env", "primary", {})
+        assert_equal config.database_tasks, true
+      end
+
+      def test_database_tasks_overrides_with_value
+        config = HashConfig.new("default_env", "primary", database_tasks: false)
+        assert_equal config.database_tasks, false
+
+        config = HashConfig.new("default_env", "primary", database_tasks: 'str')
+        assert_equal config.database_tasks, true
+      end
     end
   end
 end
