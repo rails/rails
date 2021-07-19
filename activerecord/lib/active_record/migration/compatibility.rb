@@ -86,17 +86,10 @@ module ActiveRecord
       end
 
       class V6_0 < V6_1
-        class ReferenceDefinition < ConnectionAdapters::ReferenceDefinition
-          def index_options(table_name)
-            as_options(index)
-          end
-        end
-
         module TableDefinition
           def references(*args, **options)
-            args.each do |ref_name|
-              ReferenceDefinition.new(ref_name, **options).add_to(self)
-            end
+            options[:_uses_legacy_reference_index_name] = true
+            super
           end
           alias :belongs_to :references
 
@@ -131,8 +124,8 @@ module ActiveRecord
         end
 
         def add_reference(table_name, ref_name, **options)
-          ReferenceDefinition.new(ref_name, **options)
-            .add_to(connection.update_table_definition(table_name, self))
+          options[:_uses_legacy_reference_index_name] = true
+          super
         end
         alias :add_belongs_to :add_reference
 
@@ -141,7 +134,7 @@ module ActiveRecord
             class << t
               prepend TableDefinition
             end
-            t
+            super
           end
       end
 
@@ -206,7 +199,7 @@ module ActiveRecord
             class << t
               prepend TableDefinition
             end
-            t
+            super
           end
 
           def command_recorder
