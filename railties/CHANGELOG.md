@@ -1,3 +1,14 @@
+*   Raise an error in generators if type options are invalid.
+
+    An error is now raised in bin/rails when trying to generate a model with an
+    invalid option for the attribute type.
+
+        started_at:date{1}   # raises "Options not supported for type 'date'."
+        name:string{foo}     # raises "Expected an integer option instead of 'foo' for type 'string'."
+        post:belongs_to{foo} # raises "Unknown option 'foo' for type 'belongs_to'."
+
+    *Petrik de Heus*
+
 *   Fix `config_for` error when there's only a shared root array.
 
     *Loïc Delmaire*

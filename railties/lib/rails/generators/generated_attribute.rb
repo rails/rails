@@ -74,23 +74,58 @@ module Rails
         end
 
         private
-          # parse possible attribute options like :limit for string/text/binary/integer, :precision/:scale for decimals or :polymorphic for references/belongs_to
-          # when declaring options curly brackets should be used
+          # Parse possible attribute options like :limit for
+          # string/text/binary/integer, :precision/:scale for decimals or
+          # :polymorphic for references/belongs_to.
+          # When declaring options curly brackets should be used.
           def parse_type_and_options(type)
-            case type
-            when /(string|text|binary|integer)\{(\d+)\}/
-              return $1, limit: $2.to_i
-            when /decimal\{(\d+)[,.-](\d+)\}/
-              return :decimal, precision: $1.to_i, scale: $2.to_i
-            when /(references|belongs_to)\{(.+)\}/
-              type = $1
-              provided_options = $2.split(/[,.-]/)
-              options = Hash[provided_options.map { |opt| [opt.to_sym, true] }]
-
-              return type, options
+            if type.blank?
+              return nil, {}
+            elsif (match = type.to_s.match(/^(\w+)(\{([\w,.-]+)\})?$/))
+              parsed_type    = match[1]
+              parsed_options = match[3].to_s.split(/[,.-]+/)
+              option_mapping = option_mappings(parsed_type) if parsed_options.present?
+              map_options(parsed_type, parsed_options, option_mapping)
             else
-              return type, {}
+              raise Error, "Could not parse type '#{type}'."
             end
+          end
+
+          # Return the mapping to be applied to the attribute options.
+          # For types which allow positional options it returns an Array.
+          # For types which allow named options it returns a Hash with the
+          # required value set.
+          def option_mappings(type)
+            case type.to_sym
+            when :string, :text, :binary, :integer
+              %i[limit]
+            when :decimal
+              %i[precision scale]
+            when :references, :belongs_to
+              { polymorphic: true }
+            else
+              raise Error, "Options not supported for type '#{type}'."
+            end
+          end
+
+          def map_options(type, option_values, mapping)
+            options = option_values.map.with_index { |option, index|
+              # First try the positional mapping, else use the named mapping
+              key = mapping[index] || option.to_sym
+              case key
+              when :limit, :precision, :scale
+                if option.match?(/^\d+$/)
+                  [key, Integer(option)]
+                else
+                  raise Error, "Expected an integer option instead of '#{option}' for type '#{type}'."
+                end
+              when :polymorphic
+                [key, mapping[key]]
+              else
+                raise Error, "Unknown option '#{key}' for type '#{type}'."
+              end
+            }.to_h
+            return type, options
           end
       end
 
