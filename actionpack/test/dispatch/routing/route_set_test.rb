@@ -149,6 +149,22 @@ module ActionDispatch
         assert_equal "/users/1.json", url_helpers.user_path(1, :json)
       end
 
+      test "escape new line for dynamic params" do
+        draw do
+          get "/wildcard/:dynamic_segment", to: SimpleApp.new("foo#index"), as: :dynamic
+        end
+
+        assert_equal "/wildcard/a%0Anewline", url_helpers.dynamic_path(dynamic_segment: "a\nnewline")
+      end
+
+      test "escape new line for wildcard params" do
+        draw do
+          get "/wildcard/*wildcard_segment", to: SimpleApp.new("foo#index"), as: :wildcard
+        end
+
+        assert_equal "/wildcard/a%0Anewline", url_helpers.wildcard_path(wildcard_segment: "a\nnewline")
+      end
+
       private
         def draw(&block)
           @set.draw(&block)
