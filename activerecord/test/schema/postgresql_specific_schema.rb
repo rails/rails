@@ -41,6 +41,9 @@ ActiveRecord::Schema.define do
     t.oid :obj_id
   end
 
+  # Add a UNION to ensure read-only view
+  execute "CREATE OR REPLACE VIEW view_items AS SELECT * FROM items UNION SELECT LIMIT 0"
+
   drop_table "postgresql_timestamp_with_zones", if_exists: true
   drop_table "postgresql_partitioned_table", if_exists: true
   drop_table "postgresql_partitioned_table_parent", if_exists: true

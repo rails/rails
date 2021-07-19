@@ -1259,4 +1259,24 @@ class PersistenceTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.remove_column(:topics, :foo)
     Topic.reset_column_information
   end
+
+  def test_update_table_with_other_table_name
+    item = ViewItem.create1(name: 'view item')
+    assert item.persisted?
+
+    item2 = ViewItem.find_by(id: item.id)
+    assert_equal item.name, item2.name
+
+    item3 = Item.find_by(id: item.id)
+    assert_equal item.name, item3.name
+
+    item.update!(name: 'view item changed')
+    assert_equal 'view item changed', item2.reload.name
+    assert_equal 'view item changed', item3.reload.name
+
+    item.destroy
+
+    item4 = ViewItem.find_by(id: item.id)
+    assert_equal nil, item4
+  end
 end
