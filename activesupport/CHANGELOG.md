@@ -1,3 +1,8 @@
+*   Invoking `Object#with_options` without a `&block` argument returns the
+    `ActiveSupport::OptionMerger` instance.
+
+    *Sean Doyle*
+
 *   Faster tests by parallelizing only when overhead is justified by the number
     of them.
 
