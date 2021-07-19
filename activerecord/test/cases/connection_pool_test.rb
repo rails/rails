@@ -739,6 +739,36 @@ module ActiveRecord
         assert_not_nil found_conn
       end
 
+      class DummyPool
+        def initialize(pool_config)
+        end
+
+        DUMMY_CONN = Object.new
+
+        def checkout
+          DUMMY_CONN
+        end
+      end
+
+      def test_pool_klass
+        config = @db_config.configuration_hash.merge(pool_class: DummyPool)
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config)
+
+        pool = pool_config.pool
+        assert_instance_of DummyPool, pool
+        assert_equal DummyPool::DUMMY_CONN, pool.checkout
+      end
+
+      def test_pool_klass_name
+        config = @db_config.configuration_hash.merge(pool_class: DummyPool.name)
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config)
+
+        pool = pool_config.pool
+        assert_instance_of DummyPool, pool
+      end
+
       private
         def with_single_connection_pool
           config = @db_config.configuration_hash.merge(pool: 1)
