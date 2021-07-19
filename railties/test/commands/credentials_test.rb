@@ -89,6 +89,12 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/secret_key_base/, output)
   end
 
+  test "edit command from a non-development environment trying to access another environment credentials" do
+    switch_env("RAILS_ENV", "staging") do
+      output = run_edit_command(environment: :production)
+      assert_match(/You are accessing production credentials from the staging environment\.\nDid you mean to run `bin\/rails credentials:edit --environment staging`\?\nFor more information try `bin\/rails credentials:help`/, output)
+    end
+  end
 
   test "show credentials" do
     assert_match(/access_key_id: 123/, run_show_command)
@@ -122,6 +128,12 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_no_match(/secret_key_base/, output)
   end
 
+  test "show command from a non-development environment trying to access another environment credentials" do
+    switch_env("RAILS_ENV", "staging") do
+      output = run_show_command(environment: :production)
+      assert_match(/You are accessing production credentials from the staging environment\.\nDid you mean to run `bin\/rails credentials:show --environment staging`\?\nFor more information try `bin\/rails credentials:help`/, output)
+    end
+  end
 
   test "diff enroll diffing" do
     assert_match(/\benrolled project/i, run_diff_command(enroll: true))
