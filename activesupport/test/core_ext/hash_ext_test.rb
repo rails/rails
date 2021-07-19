@@ -57,11 +57,17 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @upcase_array_of_hashes, @string_array_of_hashes.deep_transform_keys { |key| key.to_s.upcase }
     assert_equal @upcase_array_of_hashes, @symbol_array_of_hashes.deep_transform_keys { |key| key.to_s.upcase }
     assert_equal @upcase_array_of_hashes, @mixed_array_of_hashes.deep_transform_keys { |key| key.to_s.upcase }
+
+    assert_equal @nested_strings, @nested_symbols.deep_transform_keys(a: "a", b: "b", c: "c")
+    assert_equal @nested_mixed, @nested_symbols.deep_transform_keys(a: "a", c: "c")
+    assert_equal @nested_symbols, @nested_strings.deep_transform_keys("a" => :a, "b" => :b, "c" => :c)
+    assert_equal @nested_symbols, @nested_symbols.deep_transform_keys(non_existing: "foo", "a" => "bar")
+    assert_equal({ z: { "B" => { "C" => 3 } } }, @nested_symbols.deep_transform_keys(a: :z) { |key| key.to_s.upcase })
   end
 
   def test_deep_transform_keys_not_mutates
     transformed_hash = @nested_mixed.deep_dup
-    transformed_hash.deep_transform_keys { |key| key.to_s.upcase }
+    transformed_hash.deep_transform_keys("a" => :z) { |key| key.to_s.upcase }
     assert_equal @nested_mixed, transformed_hash
   end
 
@@ -72,12 +78,19 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @upcase_array_of_hashes, @string_array_of_hashes.deep_dup.deep_transform_keys! { |key| key.to_s.upcase }
     assert_equal @upcase_array_of_hashes, @symbol_array_of_hashes.deep_dup.deep_transform_keys! { |key| key.to_s.upcase }
     assert_equal @upcase_array_of_hashes, @mixed_array_of_hashes.deep_dup.deep_transform_keys! { |key| key.to_s.upcase }
+
+    assert_equal @nested_strings, @nested_symbols.deep_dup.deep_transform_keys!(a: "a", b: "b", c: "c")
+    assert_equal @nested_mixed, @nested_symbols.deep_dup.deep_transform_keys!(a: "a", c: "c")
+    assert_equal @nested_symbols, @nested_strings.deep_dup.deep_transform_keys!("a" => :a, "b" => :b, "c" => :c)
+    assert_equal @nested_symbols, @nested_symbols.deep_dup.deep_transform_keys!(non_existing: "foo")
+    assert_equal({ "z" => { "B" => { "C" => 3 } } },
+                 @nested_symbols.deep_dup.deep_transform_keys!(a: "z") { |key| key.to_s.upcase })
   end
 
   def test_deep_transform_keys_with_bang_mutates
     transformed_hash = @nested_mixed.deep_dup
-    transformed_hash.deep_transform_keys! { |key| key.to_s.upcase }
-    assert_equal @nested_upcase_strings, transformed_hash
+    transformed_hash.deep_transform_keys!("a" => :z) { |key| key.to_s.upcase }
+    assert_equal({ z: { "B" => { "C" => 3 } } }, transformed_hash)
     assert_equal({ "a" => { b: { "c" => 3 } } }, @nested_mixed)
   end
 

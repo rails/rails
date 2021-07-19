@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Hash
+  DEEP_TRANSFORM_KEYS_DEFAULT = Object.new
+  private_constant :DEEP_TRANSFORM_KEYS_DEFAULT
   # Returns a new hash with all keys converted to strings.
   #
   #   hash = { name: 'Rob', age: '28' }
@@ -57,20 +59,30 @@ class Hash
   # Returns a new hash with all keys converted by the block operation.
   # This includes the keys from the root hash and from all
   # nested hashes and arrays.
+  # An optional hash argument can be provided to map keys to new keys.
+  # Any key not given will be mapped using the provided block, or remain the same if no block is given.
   #
   #  hash = { person: { name: 'Rob', age: '28' } }
   #
   #  hash.deep_transform_keys{ |key| key.to_s.upcase }
   #  # => {"PERSON"=>{"NAME"=>"Rob", "AGE"=>"28"}}
-  def deep_transform_keys(&block)
-    _deep_transform_keys_in_object(self, &block)
+  #
+  #  hash.deep_transform_keys(person: :user, name: :nickname)
+  #  # => {:user=>{:nickname=>"Rob", :age=>"28"}}
+  def deep_transform_keys(keys_hash = DEEP_TRANSFORM_KEYS_DEFAULT, &block)
+    return to_enum(:deep_transform_keys) if keys_hash == DEEP_TRANSFORM_KEYS_DEFAULT && !block_given?
+    keys_hash = _deep_transform_keys_convert_argument(keys_hash)
+    _deep_transform_keys_in_object(self, keys_hash, &block)
   end
 
   # Destructively converts all keys by using the block operation.
   # This includes the keys from the root hash and from all
   # nested hashes and arrays.
-  def deep_transform_keys!(&block)
-    _deep_transform_keys_in_object!(self, &block)
+  # An optional hash argument can be provided to map keys to new keys.
+  def deep_transform_keys!(keys_hash = DEEP_TRANSFORM_KEYS_DEFAULT, &block)
+    return to_enum(:deep_transform_keys!) if keys_hash == DEEP_TRANSFORM_KEYS_DEFAULT && !block_given?
+    keys_hash = _deep_transform_keys_convert_argument(keys_hash)
+    _deep_transform_keys_in_object!(self, keys_hash, &block)
   end
 
   # Returns a new hash with all keys converted to strings.
@@ -113,31 +125,51 @@ class Hash
 
   private
     # Support methods for deep transforming nested hashes and arrays.
-    def _deep_transform_keys_in_object(object, &block)
+    def _deep_transform_keys_in_object(object, keys_hash, &block)
       case object
       when Hash
-        object.each_with_object(self.class.new) do |(key, value), result|
-          result[yield(key)] = _deep_transform_keys_in_object(value, &block)
+        object.each_with_object(self.class.new) do |(old_key, value), result|
+          new_key =
+            if keys_hash&.has_key?(old_key)
+              keys_hash[old_key]
+            elsif block_given?
+              yield(old_key)
+            else
+              old_key
+            end
+          result[new_key] = _deep_transform_keys_in_object(value, keys_hash, &block)
         end
       when Array
-        object.map { |e| _deep_transform_keys_in_object(e, &block) }
+        object.map { |e| _deep_transform_keys_in_object(e, keys_hash, &block) }
       else
         object
       end
     end
 
-    def _deep_transform_keys_in_object!(object, &block)
+    def _deep_transform_keys_in_object!(object, keys_hash, &block)
       case object
       when Hash
-        object.keys.each do |key|
-          value = object.delete(key)
-          object[yield(key)] = _deep_transform_keys_in_object!(value, &block)
+        object.keys.each do |old_key|
+          new_key =
+            if keys_hash&.has_key?(old_key)
+              keys_hash[old_key]
+            elsif block_given?
+              yield(old_key)
+            else
+              old_key
+            end
+          value = object.delete(old_key)
+          object[new_key] = _deep_transform_keys_in_object!(value, keys_hash, &block)
         end
         object
       when Array
-        object.map! { |e| _deep_transform_keys_in_object!(e, &block) }
+        object.map! { |e| _deep_transform_keys_in_object!(e, keys_hash, &block) }
       else
         object
       end
+    end
+
+    def _deep_transform_keys_convert_argument(keys_hash)
+      keys_hash != DEEP_TRANSFORM_KEYS_DEFAULT ? keys_hash.to_hash : nil
     end
 end
