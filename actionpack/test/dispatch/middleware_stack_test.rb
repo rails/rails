@@ -37,6 +37,24 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     end
   end
 
+  test "delete ignores middleware not in the stack" do
+    assert_no_difference "@stack.size" do
+      @stack.delete BazMiddleware
+    end
+  end
+
+  test "remove deletes the middleware" do
+    assert_difference "@stack.size", -1 do
+      @stack.remove FooMiddleware
+    end
+  end
+
+  test "remove requires the middleware to be in the stack" do
+    assert_raises RuntimeError do
+      @stack.remove BazMiddleware
+    end
+  end
+
   test "use should push middleware as class onto the stack" do
     assert_difference "@stack.size" do
       @stack.use BazMiddleware
@@ -102,12 +120,6 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   test "move requires the moved middleware to be in the stack" do
     assert_raises RuntimeError do
       @stack.move(0, BazMiddleware)
-    end
-  end
-
-  test "delete requires the middleware to be in the stack" do
-    assert_raises RuntimeError do
-      @stack.delete(BazMiddleware)
     end
   end
 
