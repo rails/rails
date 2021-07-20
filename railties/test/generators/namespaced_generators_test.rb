@@ -113,6 +113,30 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
     assert_no_migration "db/migrate/create_test_app_images"
   end
 
+  def test_migration_with_namespaced_foreign_key
+    run_generator ["Book", "author:belongs_to"]
+
+    assert_migration "db/migrate/create_test_app_books.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/t.belongs_to :author,.*\sforeign_key: {:to_table=>"test_app_authors"}/, change)
+      end
+    end
+  end
+
+  def test_migration_with_namespaced_foreign_key_without_pluralization
+    ActiveRecord::Base.pluralize_table_names = false
+
+    run_generator ["Book", "author:belongs_to"]
+
+    assert_migration "db/migrate/create_test_app_book.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/t.belongs_to :author,.*\sforeign_key: {:to_table=>"test_app_author"}/, change)
+      end
+    end
+  ensure
+    ActiveRecord::Base.pluralize_table_names = true
+  end
+
   def test_migration_with_nested_namespace
     run_generator ["Admin::Gallery::Image"]
     assert_no_migration "db/migrate/create_images"
