@@ -1,4 +1,4 @@
-*   Remove logic of `poltergeist` and `webkit` (capybara-webkit) driver registration for system testing. Add `cuprite` instead.
+*   Deprecate `poltergeist` and `webkit` (capybara-webkit) driver registration for system testing (they will be removed in Rails 7.1). Add `cuprite` instead.
 
     [Poltergeist](https://github.com/teampoltergeist/poltergeist) and [capybara-webkit](https://github.com/thoughtbot/capybara-webkit) are already not maintained. These usage in Rails are removed for avoiding confusing users.
 

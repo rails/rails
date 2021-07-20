@@ -9,6 +9,14 @@ module ActionDispatch
         @options = options[:options] || {}
         @capabilities = capabilities
 
+        if [:poltergeist, :webkit].include?(name)
+          ActiveSupport::Deprecation.warn <<~MSG.squish
+            Poltergeist and capybara-webkit are not maintained already.
+            Driver registration of :poltergeist or :webkit is deprecated and will be removed in Rails 7.1.
+            You can still use :selenium, and also :cuprite is available for alternative to Poltergeist.
+          MSG
+        end
+
         if name == :selenium
           require "selenium/webdriver"
           @browser = Browser.new(options[:using])
@@ -26,7 +34,7 @@ module ActionDispatch
 
       private
         def registerable?
-          [:selenium, :cuprite, :rack_test].include?(@name)
+          [:selenium, :poltergeist, :webkit, :cuprite, :rack_test].include?(@name)
         end
 
         def register
@@ -35,6 +43,8 @@ module ActionDispatch
           Capybara.register_driver @name do |app|
             case @name
             when :selenium then register_selenium(app)
+            when :poltergeist then register_poltergeist(app)
+            when :webkit then register_webkit(app)
             when :cuprite then register_cuprite(app)
             when :rack_test then register_rack_test(app)
             end
@@ -48,6 +58,16 @@ module ActionDispatch
         def register_selenium(app)
           Capybara::Selenium::Driver.new(app, browser: @browser.type, **browser_options).tap do |driver|
             driver.browser.manage.window.size = Selenium::WebDriver::Dimension.new(*@screen_size)
+          end
+        end
+
+        def register_poltergeist(app)
+          Capybara::Poltergeist::Driver.new(app, @options.merge(window_size: @screen_size))
+        end
+
+        def register_webkit(app)
+          Capybara::Webkit::Driver.new(app, Capybara::Webkit::Configuration.to_hash.merge(@options)).tap do |driver|
+            driver.resize_window_to(driver.current_window_handle, *@screen_size)
           end
         end
 
