@@ -199,7 +199,7 @@ module ActiveSupport
 
         message = Messages::Metadata.verify(decrypted_data, purpose)
         @serializer.load(message) if message
-      rescue OpenSSLCipherError, TypeError, ArgumentError
+      rescue OpenSSLCipherError, TypeError, ArgumentError, ::JSON::ParserError
         raise InvalidMessage
       end
 

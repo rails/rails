@@ -21,7 +21,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     @secret    = SecureRandom.random_bytes(32)
     @verifier  = ActiveSupport::MessageVerifier.new(@secret, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
     @encryptor = ActiveSupport::MessageEncryptor.new(@secret)
-    @data = { some: "data", now: Time.local(2010) }
+    @data = { "some" => "data", "now" => Time.local(2010) }
   end
 
   def test_encrypting_twice_yields_differing_cipher_text
@@ -167,7 +167,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     rotated = false
     message = encryptor.decrypt_and_verify(older_message, on_rotation: proc { rotated = true })
 
-    assert_equal({ encoded: "message" }, message)
+    assert_equal({ "encoded" => "message" }, message)
     assert rotated
   end
 
@@ -181,7 +181,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_changes(:rotated, from: false, to: true) do
       message = encryptor.decrypt_and_verify(older_message)
 
-      assert_equal({ encoded: "message" }, message)
+      assert_equal({ "encoded" => "message" }, message)
     end
   end
 
@@ -195,7 +195,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_changes(:rotated, from: false, to: "Yes") do
       message = encryptor.decrypt_and_verify(older_message, on_rotation: proc { rotated = "Yes" })
 
-      assert_equal({ encoded: "message" }, message)
+      assert_equal({ "encoded" => "message" }, message)
     end
   end
 
