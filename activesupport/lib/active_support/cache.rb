@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-
 require "zlib"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/array/wrap"
@@ -833,7 +832,7 @@ module ActiveSupport
           when 6.1
             Rails61Coder
           when 7.0
-            Rails70Coder
+            JSONCoder
           else
             raise ArgumentError, "Unknown ActiveSupport::Cache.format_version #{Cache.format_version.inspect}"
           end
@@ -849,11 +848,11 @@ module ActiveSupport
 
             return nil
           elsif payload.start_with?(MARK_70_UNCOMPRESSED)
-            members = Marshal.load(payload.byteslice(1..-1))
+            members = loaded(payload.byteslice(1..-1))
           elsif payload.start_with?(MARK_70_COMPRESSED)
-            members = Marshal.load(Zlib::Inflate.inflate(payload.byteslice(1..-1)))
+            members = loaded(Zlib::Inflate.inflate(payload.byteslice(1..-1)))
           elsif payload.start_with?(MARK_61)
-            return Marshal.load(payload)
+            return loaded(payload)
           else
             ActiveSupport::Cache::Store.logger&.warn %{Invalid cache prefix: #{payload.byteslice(0).inspect}, expected "\\x00" or "\\x01"}
 
@@ -861,6 +860,13 @@ module ActiveSupport
           end
           Entry.unpack(members)
         end
+
+        private
+          def loaded(payload)
+            Marshal.load(payload)
+          rescue TypeError
+            JSON.decode(payload, symbolize_names: true)
+          end
       end
 
       module Rails61Coder
@@ -895,6 +901,35 @@ module ActiveSupport
 
           MARK_70_UNCOMPRESSED + payload
         end
+      end
+
+
+      module JSONCoder
+        include Loader
+        extend self
+
+        def dump(entry)
+          MARK_70_UNCOMPRESSED + JSON.encode(entry.pack)
+        end
+
+        def dump_compressed(entry, threshold)
+          payload = JSON.encode(entry.pack)
+          if payload.bytesize >= threshold
+            compressed_payload = Zlib::Deflate.deflate(payload)
+            if compressed_payload.bytesize < payload.bytesize
+              return MARK_70_COMPRESSED + compressed_payload
+            end
+          end
+
+          MARK_70_UNCOMPRESSED + payload
+        end
+
+        private
+          def loaded(payload)
+            JSON.decode(payload, symbolize_names: true)
+          rescue ::JSON::ParserError
+            Marshal.load(payload)
+          end
       end
     end
 

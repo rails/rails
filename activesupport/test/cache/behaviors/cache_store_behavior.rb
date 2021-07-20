@@ -257,7 +257,6 @@ module CacheStoreBehavior
       incompressible = Random.bytes(1.kilobyte)
       break if incompressible.bytesize < Zlib::Deflate.deflate(incompressible).bytesize
     end
-
     assert_uncompressed(incompressible, compress: true, compress_threshold: 1)
   end
 
@@ -596,16 +595,16 @@ module CacheStoreBehavior
         assert_equal value, @cache.read("actual")
         assert_equal value, @cache.read("uncompressed")
       end
-
+      
       actual_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "actual", {}), **{})
       uncompressed_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "uncompressed", {}), **{})
-
+      
       actual_payload = @cache.send(:serialize_entry, actual_entry, **@cache.send(:merged_options, options))
       uncompressed_payload = @cache.send(:serialize_entry, uncompressed_entry, compress: false)
-
+      
       actual_size = actual_payload.bytesize
       uncompressed_size = uncompressed_payload.bytesize
-
+      
       if should_compress
         assert_operator actual_size, :<, uncompressed_size, "value should be compressed"
       else
