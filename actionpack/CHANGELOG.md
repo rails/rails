@@ -1,3 +1,10 @@
+*   Add `Middleware#remove` to delete middleware or raise if not found.
+
+    `Middleware#remove` works just like `Middleware#delete` but will
+    raise an error if the middleware isn't found.
+
+    *Alex Ghiculescu*, *Petrik de Heus*
+
 *   Exclude additional flash types from `ActionController::Base.action_methods`.
 
     Ensures that additional flash types defined on ActionController::Base subclasses
@@ -10,13 +17,6 @@
         MyController.action_methods.include?('hype') # => false
 
     *Gavin Morrice*
-
-*   Deleting an item from the Middleware stack will raise if the item is not found
-
-    Previously, calling `config.middleware.delete(ItemNotInMiddleware)` would fail silently.
-    Now it will raise, same as `config.middleware.move(0, ItemNotInMiddleware)` does.
-
-    *Alex Ghiculescu*
 
 *   OpenSSL constants are now used for Digest computations.
 
