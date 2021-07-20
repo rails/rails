@@ -29,6 +29,10 @@ module ActiveSupport
         end
       end
 
+      def load(json)
+        decode(json)
+      end
+
       # Returns the class of the error that will be raised when there is an
       # error in decoding JSON. Using this method means you won't directly
       # depend on the ActiveSupport's JSON implementation, in case it changes

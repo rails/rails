@@ -139,7 +139,7 @@ module ActiveSupport
       @cipher = cipher || self.class.default_cipher
       @digest = digest || "SHA1" unless aead_mode?
       @verifier = resolve_verifier
-      @serializer = serializer || Marshal
+      @serializer = serializer || JSON
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
