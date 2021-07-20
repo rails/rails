@@ -1,3 +1,7 @@
+*   Added ability to download `.eml` file for the email preview.
+
+    *Igor Kasyanchuk*
+
 *   Configures a default of 5 for both `open_timeout` and `read_timeout` for SMTP Settings.
 
     *André Luis Leal Cardoso Junior*
