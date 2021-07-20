@@ -87,6 +87,7 @@ module ActiveSupport
     prepend Messages::Rotator::Encryptor
 
     cattr_accessor :use_authenticated_message_encryption, instance_accessor: false, default: false
+    cattr_accessor :default_message_encryptor_serializer, instance_accessor: false, default: :marshal
 
     class << self
       def default_cipher # :nodoc:
@@ -142,14 +143,21 @@ module ActiveSupport
     #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-gcm'.
     # * <tt>:digest</tt> - String of digest to use for signing. Default is
     #   +SHA1+. Ignored when using an AEAD cipher like 'aes-256-gcm'.
-    # * <tt>:serializer</tt> - Object serializer to use. Default is +Marshal+.
+    # * <tt>:serializer</tt> - Object serializer to use. Default is +JSON+.
     def initialize(secret, sign_secret = nil, cipher: nil, digest: nil, serializer: nil)
       @secret = secret
       @sign_secret = sign_secret
       @cipher = cipher || self.class.default_cipher
       @digest = digest || "SHA1" unless aead_mode?
       @verifier = resolve_verifier
-      @serializer = serializer || Marshal
+      @serializer = serializer ||
+        if @@default_message_encryptor_serializer.equal?(:marshal)
+          Marshal
+        elsif @@default_message_encryptor_serializer.equal?(:hybrid)
+          JsonWithMarshalFallback
+        elsif @@default_message_encryptor_serializer.equal?(:json)
+          JSON
+        end
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
@@ -170,6 +178,14 @@ module ActiveSupport
     end
 
     private
+      def serialize(value)
+        @serializer.dump(value)
+      end
+
+      def deserialize(value)
+        @serializer.load(value)
+      end
+
       def _encrypt(value, **metadata_options)
         cipher = new_cipher
         cipher.encrypt
@@ -179,7 +195,7 @@ module ActiveSupport
         iv = cipher.random_iv
         cipher.auth_data = "" if aead_mode?
 
-        encrypted_data = cipher.update(Messages::Metadata.wrap(@serializer.dump(value), **metadata_options))
+        encrypted_data = cipher.update(Messages::Metadata.wrap(serialize(value), **metadata_options))
         encrypted_data << cipher.final
 
         encoded_encrypted_data = ::Base64.strict_encode64(encrypted_data)
@@ -214,8 +230,8 @@ module ActiveSupport
         decrypted_data << cipher.final
 
         message = Messages::Metadata.verify(decrypted_data, purpose)
-        @serializer.load(message) if message
-      rescue OpenSSLCipherError, TypeError, ArgumentError
+        deserialize(message) if message
+      rescue OpenSSLCipherError, TypeError, ArgumentError, ::JSON::ParserError
         raise InvalidMessage
       end
 

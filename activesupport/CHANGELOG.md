@@ -1,3 +1,9 @@
+*   Change default serialization format of `MessageEncryptor` from `Marshal` to `JSON` for Rails 7.1.
+
+    Existing apps are provided with an upgrade path to migrate to `JSON` as described in `guides/source/upgrading_ruby_on_rails.md`
+
+    *Zack Deveau* and *Martin Gingras*
+
 *   Add `ActiveSupport::TestCase#stub_const` to stub a constant for the duration of a yield.
 
     *DHH*

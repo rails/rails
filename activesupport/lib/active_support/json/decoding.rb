@@ -28,6 +28,7 @@ module ActiveSupport
           data
         end
       end
+      alias_method :load, :decode
 
       # Returns the class of the error that will be raised when there is an
       # error in decoding JSON. Using this method means you won't directly

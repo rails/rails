@@ -148,5 +148,32 @@ module ActiveSupport
         end
       end
     end
+
+    initializer "active_support.set_fallback_to_marshal_deserialization" do |app|
+      config.after_initialize do
+        unless app.config.active_support.fallback_to_marshal_deserialization.nil?
+          ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization =
+            app.config.active_support.fallback_to_marshal_deserialization
+        end
+      end
+    end
+
+    initializer "active_support.set_default_message_encryptor_serializer" do |app|
+      config.after_initialize do
+        unless app.config.active_support.default_message_encryptor_serializer.nil?
+          ActiveSupport::MessageEncryptor.default_message_encryptor_serializer =
+            app.config.active_support.default_message_encryptor_serializer
+        end
+      end
+    end
+
+    initializer "active_support.set_marshal_serialization" do |app|
+      config.after_initialize do
+        unless app.config.active_support.use_marshal_serialization.nil?
+          ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization =
+            app.config.active_support.use_marshal_serialization
+        end
+      end
+    end
   end
 end
