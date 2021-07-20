@@ -542,6 +542,18 @@ module ActionDispatch
       end
     end
 
+    class JsonWithMarshalFallback # :nodoc:
+      def self.load(value)
+        ActiveSupport::JSON.decode(value)
+      rescue JSON::ParserError => e
+        Marshal.load(value) rescue raise e
+      end
+
+      def self.dump(value)
+        ActiveSupport::JSON.encode(value)
+      end
+    end
+
     class JsonSerializer # :nodoc:
       def self.load(value)
         ActiveSupport::JSON.decode(value)
@@ -586,12 +598,12 @@ module ActionDispatch
         end
 
         def serializer
-          serializer = request.cookies_serializer || :marshal
+          serializer = request.cookies_serializer || :json
           case serializer
           when :marshal
             MarshalWithJsonFallback
           when :json, :hybrid
-            JsonSerializer
+            JsonWithMarshalFallback
           else
             serializer
           end

@@ -14,7 +14,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   Rotations = ActiveSupport::Messages::RotationConfiguration.new
 
   Encryptor = ActiveSupport::MessageEncryptor.new(
-    Generator.generate_key(SessionSalt, 32), cipher: "aes-256-gcm", serializer: Marshal
+    Generator.generate_key(SessionSalt, 32), cipher: "aes-256-gcm", serializer: JSON
   )
 
   class TestController < ActionController::Base
