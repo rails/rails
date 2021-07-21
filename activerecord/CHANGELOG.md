@@ -46,7 +46,7 @@
     This will be the default for new apps in Rails 7. To opt in:
 
     ```ruby
-    config.active_record.partial_inserts = false
+    config.active_record.partial_inserts = true
     ```
 
     If a migration remove the default value of a column, this option
