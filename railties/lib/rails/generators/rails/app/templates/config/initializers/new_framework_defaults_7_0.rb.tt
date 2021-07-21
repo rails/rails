@@ -44,6 +44,11 @@
 # and you have no plans to rollback.
 # Rails.application.config.active_support.cache_format_version = 7.0
 
+
+# Specify a serializer for the ActiveSupport::Cache
+# Valid options are :json, :marshal, and :hybrid.
+# Rails.application.config.active_support.cache_serializer = :marshal
+
 # Set both the `:open_timeout` and `:read_timeout` values for `:smtp` delivery method.
 # Rails.application.config.action_mailer.smtp_timeout = 5
 

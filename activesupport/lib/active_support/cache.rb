@@ -37,7 +37,7 @@ module ActiveSupport
     @format_version = 6.1
 
     class << self
-      attr_accessor :format_version
+      attr_accessor :format_version, :cache_serializer
 
       # Creates a new Store object according to the given options.
       #
@@ -832,7 +832,7 @@ module ActiveSupport
           when 6.1
             Rails61Coder
           when 7.0
-            JSONCoder
+            Rails70Coder
           else
             raise ArgumentError, "Unknown ActiveSupport::Cache.format_version #{Cache.format_version.inspect}"
           end
@@ -841,6 +841,14 @@ module ActiveSupport
 
       module Loader
         extend self
+
+        def dump(entry)
+          serialize(entry)
+        end
+
+        def dump_compressed(entry, threshold)
+          serialize(entry.compressed(threshold))
+        end
 
         def load(payload)
           if !payload.is_a?(String)
@@ -867,53 +875,27 @@ module ActiveSupport
           rescue TypeError
             JSON.decode(payload, symbolize_names: true)
           end
+
+          def serialize(payload)
+            Marshal.dump(payload)
+          end
       end
 
       module Rails61Coder
         include Loader
         extend self
-
-        def dump(entry)
-          Marshal.dump(entry)
-        end
-
-        def dump_compressed(entry, threshold)
-          Marshal.dump(entry.compressed(threshold))
-        end
       end
 
       module Rails70Coder
-        include Loader
+        prepend Loader
         extend self
 
         def dump(entry)
-          MARK_70_UNCOMPRESSED + Marshal.dump(entry.pack)
+          MARK_70_UNCOMPRESSED + serialize(entry.pack)
         end
 
         def dump_compressed(entry, threshold)
-          payload = Marshal.dump(entry.pack)
-          if payload.bytesize >= threshold
-            compressed_payload = Zlib::Deflate.deflate(payload)
-            if compressed_payload.bytesize < payload.bytesize
-              return MARK_70_COMPRESSED + compressed_payload
-            end
-          end
-
-          MARK_70_UNCOMPRESSED + payload
-        end
-      end
-
-
-      module JSONCoder
-        include Loader
-        extend self
-
-        def dump(entry)
-          MARK_70_UNCOMPRESSED + JSON.encode(entry.pack)
-        end
-
-        def dump_compressed(entry, threshold)
-          payload = JSON.encode(entry.pack)
+          payload = serialize(entry.pack)
           if payload.bytesize >= threshold
             compressed_payload = Zlib::Deflate.deflate(payload)
             if compressed_payload.bytesize < payload.bytesize
@@ -925,10 +907,22 @@ module ActiveSupport
         end
 
         private
+          def serialize(payload)
+            json_serializer? ? JSON.encode(payload) : Marshal.dump(payload)
+          rescue
+            super
+          end
+
           def loaded(payload)
+            return super if json_serializer?(payload)
+
             JSON.decode(payload, symbolize_names: true)
           rescue ::JSON::ParserError
             Marshal.load(payload)
+          end
+
+          def json_serializer?
+            Cache.cache_serializer == :json
           end
       end
     end

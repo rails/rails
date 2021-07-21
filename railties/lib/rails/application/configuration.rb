@@ -215,6 +215,7 @@ module Rails
             active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
             active_support.remove_deprecated_time_with_zone_name = true
             active_support.cache_format_version = 7.0
+            active_support.cache_serializer = :marshal
           end
 
           if respond_to?(:action_mailer)
