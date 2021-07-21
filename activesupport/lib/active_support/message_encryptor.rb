@@ -140,12 +140,7 @@ module ActiveSupport
       @cipher = cipher || self.class.default_cipher
       @digest = digest || "SHA1" unless aead_mode?
       @verifier = resolve_verifier
-      fallback_serializer = if ActiveSupport::MessageEncryptor.fallback_to_marshal_serialization
-        Marshal
-      else
-        ActiveSupport::JSON
-      end
-      @serializer = serializer || fallback_serializer
+      @serializer = serializer || JSON
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
@@ -166,6 +161,18 @@ module ActiveSupport
     end
 
     private
+      def serialize(value)
+        @serializer.dump(value)
+      end
+
+      def deserialize(value)
+        @serializer.load(value)
+      rescue ::JSON::ParserError
+        if self.class.fallback_to_marshal_serialization
+          Marshal.load(value)
+        end
+      end
+
       def _encrypt(value, **metadata_options)
         cipher = new_cipher
         cipher.encrypt
@@ -175,7 +182,7 @@ module ActiveSupport
         iv = cipher.random_iv
         cipher.auth_data = "" if aead_mode?
 
-        encrypted_data = cipher.update(Messages::Metadata.wrap(@serializer.dump(value), **metadata_options))
+        encrypted_data = cipher.update(Messages::Metadata.wrap(deserialize(value), **metadata_options))
         encrypted_data << cipher.final
 
         blob = "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
@@ -204,7 +211,7 @@ module ActiveSupport
         decrypted_data << cipher.final
 
         message = Messages::Metadata.verify(decrypted_data, purpose)
-        @serializer.load(message) if message
+        serialize(message) if message
       rescue OpenSSLCipherError, TypeError, ArgumentError, ::JSON::ParserError
         raise InvalidMessage
       end
