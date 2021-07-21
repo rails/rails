@@ -268,30 +268,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
-  def test_initial_object_mutation_after_fetch
-    if ActiveSupport::Cache.format_version == 6.1
-      skip "Local cache mutation can't be prevented on legacy MemCacheStore"
-    else
-      super
-    end
-  end
-
-  def test_initial_object_mutation_after_write
-    if ActiveSupport::Cache.format_version == 6.1
-      skip "Local cache mutation can't be prevented on legacy MemCacheStore"
-    else
-      super
-    end
-  end
-
-  def test_local_cache_of_read_returns_a_copy_of_the_entry
-    if ActiveSupport::Cache.format_version == 6.1
-      skip "Local cache mutation can't be prevented on legacy MemCacheStore"
-    else
-      super
-    end
-  end
-
   private
     def random_string(length)
       (0...length).map { (65 + rand(26)).chr }.join
