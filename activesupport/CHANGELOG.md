@@ -16,7 +16,7 @@
 
     ```ruby
     class ActiveSupport::TestCase
-        parallelize threshold: 100
+      parallelize threshold: 100
     end
     ```
 
@@ -45,7 +45,7 @@
 
     *Alex Ghiculescu*
 
-*   Allow serializing any module or class to JSON by name
+*   Allow serializing any module or class to JSON by name.
 
     *Tyler Rick*, *Zachary Scott*
 
@@ -76,7 +76,7 @@
 
     *Jean Boussier*
 
-*   Allow nested access to keys on `Rails.application.credentials`
+*   Allow nested access to keys on `Rails.application.credentials`.
 
     Previously only top level keys in `credentials.yml.enc` could be accessed with method calls. Now any key can.
 
@@ -84,11 +84,12 @@
 
     ```yml
     aws:
-       access_key_id: 123
-       secret_access_key: 345
+      access_key_id: 123
+      secret_access_key: 345
     ```
 
-    `Rails.application.credentials.aws.access_key_id` will now return the same thing as `Rails.application.credentials.aws[:access_key_id]`
+    `Rails.application.credentials.aws.access_key_id` will now return the same thing as
+    `Rails.application.credentials.aws[:access_key_id]`.
 
     *Alex Ghiculescu*
 
@@ -145,7 +146,7 @@
     # instead of %w[foo bar].sum
 
     [[1, 2], [3, 4, 5]].sum([])
-    #instead of [[1, 2], [3, 4, 5]].sum
+    # instead of [[1, 2], [3, 4, 5]].sum
     ```
 
     *Alberto Mota*
@@ -213,11 +214,11 @@
 
     *Nathaniel Woodthorpe*
 
-*   consume dalli’s `cache_nils` configuration as `ActiveSupport::Cache`'s `skip_nil` when using `MemCacheStore`.
+*   Consume dalli’s `cache_nils` configuration as `ActiveSupport::Cache`'s `skip_nil` when using `MemCacheStore`.
 
     *Ritikesh G*
 
-*   add `RedisCacheStore#stats` method similar to `MemCacheStore#stats`. Calls `redis#info` internally.
+*   Add `RedisCacheStore#stats` method similar to `MemCacheStore#stats`. Calls `redis#info` internally.
 
     *Ritikesh G*
 

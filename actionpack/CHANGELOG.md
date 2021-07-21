@@ -22,7 +22,7 @@
 
     *Dirkjan Bussink*
 
-*   Remove IE6-7-8 file download related hack/fix from ActionController::DataStreaming module
+*   Remove IE6-7-8 file download related hack/fix from ActionController::DataStreaming module.
 
     Due to the age of those versions of IE this fix is no longer relevant, more importantly it creates an edge-case for unexpected Cache-Control headers.
 
@@ -38,7 +38,7 @@
 
     *Alexander Azarov*, *Mike Dalessio*
 
-*   Ignore file fixtures on `db:fixtures:load`
+*   Ignore file fixtures on `db:fixtures:load`.
 
     *Kevin Sjöberg*
 
@@ -50,9 +50,9 @@
 
     *Tadas Sasnauskas*
 
-*   Drop support for the `SERVER_ADDR` header
+*   Drop support for the `SERVER_ADDR` header.
 
-    Following up https://github.com/rack/rack/pull/1573 and https://github.com/rails/rails/pull/42349
+    Following up https://github.com/rack/rack/pull/1573 and https://github.com/rails/rails/pull/42349.
 
     *Ricardo Díaz*
 
@@ -60,7 +60,7 @@
 
     *Gannon McGibbon*
 
-*   Add `cache_control: {}` option to `fresh_when` and `stale?`
+*   Add `cache_control: {}` option to `fresh_when` and `stale?`.
 
     Works as a shortcut to set `response.cache_control` with the above methods.
 
@@ -74,7 +74,7 @@
 
 *   Add support for 'require-trusted-types-for' and 'trusted-types' headers.
 
-    Fixes #42034
+    Fixes #42034.
 
     *lfalcao*
 
@@ -143,7 +143,7 @@
 
     *Janko Marohnić*
 
-*   Allow anything with `#to_str` (like `Addressable::URI`) as a `redirect_to` location
+*   Allow anything with `#to_str` (like `Addressable::URI`) as a `redirect_to` location.
 
     *ojab*
 
@@ -155,7 +155,7 @@
     as `RemoteIp` middleware behaves inconsistently depending on whether this is configured
     with a single value or an enumerable.
 
-    Fixes #40772
+    Fixes #40772.
 
     *Christian Sutter*
 
