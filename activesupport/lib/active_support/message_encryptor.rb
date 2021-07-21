@@ -140,7 +140,12 @@ module ActiveSupport
       @cipher = cipher || self.class.default_cipher
       @digest = digest || "SHA1" unless aead_mode?
       @verifier = resolve_verifier
-      @serializer || Marshal
+      fallback_serializer = if ActiveSupport::MessageEncryptor.fallback_to_marshal_serialization
+        Marshal
+      else
+        ActiveSupport::JSON
+      end
+      @serializer = serializer || fallback_serializer
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
