@@ -1,3 +1,20 @@
+*   Allow setting a logger to a subclass of `ActiveSupport::LogSubscriber`
+
+    Any subclass of `ActiveSupport::LogSubscriber` may have a custom logger set
+    to it, without altering the one set on the base class or any other
+    subclasses:
+
+    ```ruby
+    MySubscriber.logger = Logger.new('myfile.log')
+    ```
+
+    If not set, it still defaults to `ActiveSupport::LogSubscriber.logger`,
+    which in turn defaults to `Rails.logger` when in Rails.
+
+    Fixes [#42745](https://github.com/rails/rails/issues/42745).
+
+    *Sergio Nogueira Filho*
+
 *   Faster tests by parallelizing only when overhead is justified by the number
     of them.
 

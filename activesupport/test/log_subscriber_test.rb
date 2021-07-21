@@ -139,4 +139,14 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     assert_equal 1, @logger.logged(:error).size
     assert_match 'Could not log "puke.my_log_subscriber" event. RuntimeError: puke', @logger.logged(:error).last
   end
+
+  def test_event_is_sent_to_set_logger
+    logger = MockLogger.new
+    MyLogSubscriber.logger = logger
+    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
+    instrument "some_event.my_log_subscriber"
+    wait
+    assert_equal %w(some_event.my_log_subscriber), logger.logged(:info)
+    MyLogSubscriber.logger = nil
+  end
 end

@@ -81,7 +81,10 @@ module ActiveSupport
 
     class << self
       def logger
-        @logger ||= if defined?(Rails) && Rails.respond_to?(:logger)
+        return @logger if @logger
+        return superclass.logger if self != LogSubscriber
+
+        if defined?(Rails) && Rails.respond_to?(:logger)
           Rails.logger
         end
       end
@@ -104,7 +107,7 @@ module ActiveSupport
     end
 
     def logger
-      LogSubscriber.logger
+      self.class.logger
     end
 
     def start(name, id, payload)
