@@ -7,15 +7,15 @@ module LocalCacheBehavior
     end
     assert_equal @cache.class.name, events[0].payload[:store]
 
-    events = with_instrumentation "read" do
-      @cache.with_local_cache do
+    @cache.with_local_cache do
+      events = with_instrumentation "read" do
         @cache.read("foo")
         @cache.read("foo")
       end
-    end
 
-    expected = [@cache.class.name, "ActiveSupport::Cache::Strategy::LocalCache::LocalStore"]
-    assert_equal expected, events.map { |p| p.payload[:store] }
+      expected = [@cache.class.name, @cache.send(:local_cache).class.name]
+      assert_equal expected, events.map { |p| p.payload[:store] }
+    end
   end
 
   def test_local_writes_are_persistent_on_the_remote_cache

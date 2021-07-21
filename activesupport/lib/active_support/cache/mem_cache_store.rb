@@ -32,6 +32,43 @@ module ActiveSupport
 
       prepend Strategy::LocalCache
 
+      module DupLocalCache
+        class LocalStore < Strategy::LocalCache::LocalStore
+          def write_entry(_key, entry)
+            if entry.is_a?(Entry)
+              entry.dup_value!
+            end
+            super
+          end
+
+          def fetch_entry(key)
+            entry = @data.fetch(key) do
+              new_entry = yield
+              if entry.is_a?(Entry)
+                new_entry.dup_value!
+              end
+              @data[key] = new_entry
+            end
+            entry = entry.dup
+
+            if entry.is_a?(Entry)
+              entry.dup_value!
+            end
+
+            entry
+          end
+        end
+
+        def with_local_cache
+          if ActiveSupport::Cache.format_version == 6.1
+            use_temporary_local_cache(LocalStore.new) { yield }
+          else
+            super
+          end
+        end
+      end
+      prepend DupLocalCache
+
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
       # Creates a new Dalli::Client instance with specified addresses and options.
