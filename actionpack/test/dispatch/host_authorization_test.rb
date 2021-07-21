@@ -15,6 +15,18 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_match "Blocked host: www.example.com", response.body
   end
 
+  test "displays generic 403 page in production when blocking hosts" do
+    Rails.stub(:env, "production") do
+      @app = ActionDispatch::HostAuthorization.new(App, %w(only.com))
+
+      get "/"
+
+      assert_response :forbidden
+      assert_match "403 Forbidden", response.body
+      assert_no_match "Blocked host: www.example.com", response.body
+    end
+  end
+
   test "allows all requests if hosts is empty" do
     @app = ActionDispatch::HostAuthorization.new(App, nil)
 

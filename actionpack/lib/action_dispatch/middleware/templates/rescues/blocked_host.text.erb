@@ -1,5 +1,11 @@
-Blocked host: <%= @host %>
+<% if @env == "production" %>
+  403 Forbidden
 
-To allow requests to <%= @host %>, add the following to your environment configuration:
+  You do not have access to this resource.
+<% else %>
+  Blocked host: <%= @host %>
 
-  config.hosts << "<%= @host %>"
+  To allow requests to <%= @host %>, add the following to your environment configuration:
+
+    config.hosts << "<%= @host %>"
+<% end %>

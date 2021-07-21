@@ -1,7 +1,16 @@
-<header>
-  <h1>Blocked host: <%= @host %></h1>
-</header>
-<main role="main" id="container">
-  <h2>To allow requests to <%= @host %>, add the following to your environment configuration:</h2>
-  <pre>config.hosts &lt;&lt; "<%= @host %>"</pre>
-</main>
+<% if @env == "production" %>
+  <header>
+    <h1>403 Forbidden</h1>
+  </header>
+  <main role="main" id="container">
+    <h2>You do not have access to this resource.</h2>
+  </main>
+<% else %>
+  <header>
+    <h1>Blocked host: <%= @host %></h1>
+  </header>
+  <main role="main" id="container">
+    <h2>To allow requests to <%= @host %>, add the following to your environment configuration:</h2>
+    <pre>config.hosts &lt;&lt; "<%= @host %>"</pre>
+  </main>
+<% end %>

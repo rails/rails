@@ -62,7 +62,7 @@ module ActionDispatch
       request = Request.new(env)
 
       format = request.xhr? ? "text/plain" : "text/html"
-      template = DebugView.new(host: request.host)
+      template = DebugView.new(host: request.host, env: Rails.env)
       body = template.render(template: "rescues/blocked_host", layout: "rescues/layout")
 
       [403, {
