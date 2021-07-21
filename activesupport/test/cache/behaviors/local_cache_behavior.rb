@@ -89,8 +89,8 @@ module LocalCacheBehavior
 
   def test_local_cache_fetch
     @cache.with_local_cache do
-      @cache.send(:local_cache).write "foo", "bar"
-      assert_equal "bar", @cache.send(:local_cache).fetch("foo")
+      @cache.send(:local_cache).write_entry "foo", "bar"
+      assert_equal "bar", @cache.send(:local_cache).fetch_entry("foo")
     end
   end
 
@@ -150,7 +150,10 @@ module LocalCacheBehavior
       @cache.write("foo", 1, raw: true)
       @peek.write("foo", 2, raw: true)
       @cache.increment("foo")
-      assert_equal 3, @cache.read("foo", raw: true)
+
+      expected = @peek.read("foo", raw: true)
+      assert_equal 3, Integer(expected)
+      assert_equal expected, @cache.read("foo", raw: true)
     end
   end
 
@@ -158,8 +161,11 @@ module LocalCacheBehavior
     @cache.with_local_cache do
       @cache.write("foo", 1, raw: true)
       @peek.write("foo", 3, raw: true)
+
       @cache.decrement("foo")
-      assert_equal 2, @cache.read("foo", raw: true)
+      expected = @peek.read("foo", raw: true)
+      assert_equal 2, Integer(expected)
+      assert_equal expected, @cache.read("foo", raw: true)
     end
   end
 
