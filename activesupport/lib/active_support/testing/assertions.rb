@@ -253,7 +253,7 @@ module ActiveSupport
             warning = <<~MSG
               #{self.class} - #{name}: #{e.error.class} raised.
               If you expected this exception, use `assert_raises` as near to the code that raises as possible.
-              Other block based assertions (eg. `#{assertion}`) can be used, as long as `assert_raises` is inside their block.
+              Other block based assertions (e.g. `#{assertion}`) can be used, as long as `assert_raises` is inside their block.
             MSG
             tagged_logger.warn warning
           end

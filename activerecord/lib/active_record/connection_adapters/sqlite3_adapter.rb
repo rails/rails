@@ -182,7 +182,7 @@ module ActiveRecord
         NATIVE_DATABASE_TYPES
       end
 
-      # Returns the current database encoding format as a string, eg: 'UTF-8'
+      # Returns the current database encoding format as a string, e.g. 'UTF-8'
       def encoding
         @connection.encoding.to_s
       end

@@ -37,7 +37,7 @@
 
     *Steve Laing*
 
-*   `Time#change` and methods that call it (eg. `Time#advance`) will now
+*   `Time#change` and methods that call it (e.g. `Time#advance`) will now
     return a `Time` with the timezone argument provided, if the caller was
     initialized with a timezone argument.
 

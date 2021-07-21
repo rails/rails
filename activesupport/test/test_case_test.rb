@@ -363,7 +363,7 @@ class ExceptionsInsideAssertionsTest < ActiveSupport::TestCase
     expected = <<~MSG
       ExceptionsInsideAssertionsTest - test_warning_is_logged_if_caught_internally: ArgumentError raised.
       If you expected this exception, use `assert_raises` as near to the code that raises as possible.
-      Other block based assertions (eg. `assert_no_changes`) can be used, as long as `assert_raises` is inside their block.
+      Other block based assertions (e.g. `assert_no_changes`) can be used, as long as `assert_raises` is inside their block.
     MSG
     assert @out.string.include?(expected), @out.string
   end
@@ -388,7 +388,7 @@ class ExceptionsInsideAssertionsTest < ActiveSupport::TestCase
     expected = <<~MSG
       ExceptionsInsideAssertionsTest - test_fails_and_warning_is_logged_if_wrong_error_caught: ArgumentError raised.
       If you expected this exception, use `assert_raises` as near to the code that raises as possible.
-      Other block based assertions (eg. `assert_no_changes`) can be used, as long as `assert_raises` is inside their block.
+      Other block based assertions (e.g. `assert_no_changes`) can be used, as long as `assert_raises` is inside their block.
     MSG
     assert @out.string.include?(expected), @out.string
     assert error.message.include?("ArgumentError: ArgumentError")

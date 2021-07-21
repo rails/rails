@@ -57,7 +57,7 @@ module ActionController
     #
     #   redirect_to post_url(@post) and return
     #
-    # Passing user input directly into +redirect_to+ is considered dangerous (eg. `redirect_to(params[:location])`).
+    # Passing user input directly into +redirect_to+ is considered dangerous (e.g. `redirect_to(params[:location])`).
     # Always use regular expressions or a permitted list when redirecting to a user specified location.
     def redirect_to(options = {}, response_options = {})
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
