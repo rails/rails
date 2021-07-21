@@ -8,7 +8,6 @@ module ActiveSupport
     config.active_support = ActiveSupport::OrderedOptions.new
 
     config.eager_load_namespaces << ActiveSupport
-    config.active_support.fallback_to_marshal_serialization = true
 
     initializer "active_support.remove_deprecated_time_with_zone_name" do |app|
       if app.config.active_support.remove_deprecated_time_with_zone_name
@@ -25,6 +24,16 @@ module ActiveSupport
         end
       end
     end
+
+    initializer "active_support.set_fallback_to_marshal_serialization" do |app|
+      config.after_initialize do
+        unless app.config.active_support.fallback_to_marshal_serialization.nil?
+          ActiveSupport::MessageEncryptor.fallback_to_marshal_serialization =
+            app.config.active_support.fallback_to_marshal_serialization
+        end
+      end
+    end
+
 
     initializer "active_support.reset_all_current_attributes_instances" do |app|
       app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }

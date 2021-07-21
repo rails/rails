@@ -82,6 +82,7 @@ module ActiveSupport
     prepend Messages::Rotator::Encryptor
 
     cattr_accessor :use_authenticated_message_encryption, instance_accessor: false, default: false
+    cattr_accessor :fallback_to_marshal_serialization , instance_accessor: false, default: true
 
     class << self
       def default_cipher #:nodoc:
@@ -139,7 +140,7 @@ module ActiveSupport
       @cipher = cipher || self.class.default_cipher
       @digest = digest || "SHA1" unless aead_mode?
       @verifier = resolve_verifier
-      @serializer = serializer || JSON
+      @serializer || Marshal
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
