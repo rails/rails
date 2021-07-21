@@ -880,4 +880,11 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal({}, errors.messages)
     assert_equal({}, errors.details)
   end
+
+  test "inspect" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:base)
+
+    assert_equal(%(#<ActiveModel::Errors [#{errors.first.inspect}]>), errors.inspect)
+  end
 end

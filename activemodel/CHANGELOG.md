@@ -14,5 +14,8 @@
 
     *Lukas Pokorny*
 
+*   Make ActiveModel::Errors#inspect slimmer for readability
+
+    *lulalala*
 
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/activemodel/CHANGELOG.md) for previous changes.
