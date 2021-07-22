@@ -28,11 +28,23 @@ module DescendantsTrackerTestCases
   end
 
   def test_descendants_with_garbage_collected_classes
-    1.times do
+    # The Ruby GC (and most other GCs for that matter) are not fully precise.
+    # When GC is run, the whole stack is scanned to mark any object reference
+    # in registers. But some of these references might simply be leftovers from
+    # previous method calls waiting to be overridden, and there's no definite
+    # way to clear them. By executing this code in a distinct thread, we ensure
+    # that such references are on a stack that will be entirely garbage
+    # collected, effectively working around the problem.
+    Thread.new do
       child_klass = Class.new(Parent)
       assert_equal_sets [Child1, Grandchild1, Grandchild2, Child2, child_klass], Parent.descendants
+    end.join
+
+    # Calling `GC.start` 4 times should trigger a full GC run
+    4.times do
+      GC.start
     end
-    GC.start
+
     assert_equal_sets [Child1, Grandchild1, Grandchild2, Child2], Parent.descendants
   end
 
