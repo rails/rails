@@ -898,6 +898,8 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.cache_format_version` specifies which version of the cache serializer to use. Possible values are `6.1` and `7.0`.
 
+* `config.active_support.cache_serializer` specifies which format of the cache serializer to use. Possible values are `:marshal` and `:json`.
+
 * `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
 * `ActiveSupport::Cache::Store.logger` specifies the logger to use within cache store operations.
@@ -1100,6 +1102,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_support.key_generator_hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.active_support.hash_digest_class`: `OpenSSL::Digest::SHA256`
 - `config.active_support.cache_format_version`: `7.0`
+- `config.active_support.cache_serializer`: `:marshal`
 - `config.active_support.remove_deprecated_time_with_zone_name`: `true`
 - `config.action_dispatch.return_only_request_media_type_on_content_type`: `false`
 - `config.action_controller.silence_disabled_session_errors`: `false`
@@ -1186,6 +1189,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
 - `config.action_mailer.smtp_timeout`: `nil`
 - `config.active_storage.video_preview_arguments`: `"-y -vframes 1 -f image2"`
+- `config.active_support.cache_serializer = :marshal`
 
 ### Configuring a Database
 

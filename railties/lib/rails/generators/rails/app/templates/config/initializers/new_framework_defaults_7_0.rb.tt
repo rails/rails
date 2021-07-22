@@ -46,7 +46,7 @@
 
 
 # Specify a serializer for the ActiveSupport::Cache
-# Valid options are :json, :marshal, and :hybrid.
+# Valid options are `:marshal` and `:json`
 # Rails.application.config.active_support.cache_serializer = :marshal
 
 # Set both the `:open_timeout` and `:read_timeout` values for `:smtp` delivery method.

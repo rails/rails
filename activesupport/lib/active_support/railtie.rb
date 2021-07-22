@@ -116,8 +116,7 @@ module ActiveSupport
 
     initializer "active_support.cache_serializer" do |app|
       config.after_initialize do
-          ActiveSupport::Cache.cache_serializer = app.config.active_support.cache_serializer
-        end
+        ActiveSupport::Cache.cache_serializer = app.config.active_support.cache_serializer
       end
     end
   end

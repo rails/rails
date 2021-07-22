@@ -162,6 +162,20 @@ processes have been updated you can set `config.active_support.cache_format_vers
 Rails 7.0 is able to read both formats so the cache won't be invalidated during the
 upgrade.
 
+
+### New ActiveSupport::Cache serializer type format
+
+Allow to specify which serializer to use `:marshal` or `:json`.
+We recomend using `:json` format to avoid possible RCE(Remote Code Execution) during the `Marshal.load` calls
+To specify you must set `config.active_support.cache_serializer = :json`:
+
+```ruby
+# config/application.rb
+
+config.active_support.cache_serializer = :json
+```
+
+
 ### ActiveStorage video preview image generation
 
 Video preview image generation now uses FFmpeg's scene change detection to generate

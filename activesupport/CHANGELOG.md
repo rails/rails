@@ -1,3 +1,9 @@
+*   Allow to control serialization format for `ActiveSupport::Cache`  (`:marshal` or `:json`).
+
+    It can be enabled with `config.active_support.cache_serializer = :json`
+
+    *Oleksandr Kohulko*
+
 *   Faster tests by parallelizing only when overhead is justified by the number
     of them.
 

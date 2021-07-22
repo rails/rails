@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "zlib"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/array/wrap"
@@ -856,11 +857,11 @@ module ActiveSupport
 
             return nil
           elsif payload.start_with?(MARK_70_UNCOMPRESSED)
-            members = loaded(payload.byteslice(1..-1))
+            members = deserialize(payload.byteslice(1..-1))
           elsif payload.start_with?(MARK_70_COMPRESSED)
-            members = loaded(Zlib::Inflate.inflate(payload.byteslice(1..-1)))
+            members = deserialize(Zlib::Inflate.inflate(payload.byteslice(1..-1)))
           elsif payload.start_with?(MARK_61)
-            return loaded(payload)
+            return deserialize(payload)
           else
             ActiveSupport::Cache::Store.logger&.warn %{Invalid cache prefix: #{payload.byteslice(0).inspect}, expected "\\x00" or "\\x01"}
 
@@ -870,7 +871,7 @@ module ActiveSupport
         end
 
         private
-          def loaded(payload)
+          def deserialize(payload)
             Marshal.load(payload)
           rescue TypeError
             JSON.decode(payload, symbolize_names: true)
@@ -887,7 +888,7 @@ module ActiveSupport
       end
 
       module Rails70Coder
-        prepend Loader
+        include Loader
         extend self
 
         def dump(entry)
@@ -909,16 +910,14 @@ module ActiveSupport
         private
           def serialize(payload)
             json_serializer? ? JSON.encode(payload) : Marshal.dump(payload)
-          rescue
+          rescue EncodingError
             super
           end
 
-          def loaded(payload)
-            return super if json_serializer?(payload)
-
-            JSON.decode(payload, symbolize_names: true)
+          def deserialize(payload)
+            json_serializer? ? JSON.decode(payload, symbolize_names: true) : Marshal.load(payload)
           rescue ::JSON::ParserError
-            Marshal.load(payload)
+            super
           end
 
           def json_serializer?

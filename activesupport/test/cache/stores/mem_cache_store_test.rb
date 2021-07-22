@@ -319,8 +319,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 end
 
 class OptimizedMemCacheStoreTest < MemCacheStoreTest
+  include CacheStoreSerializerBehavior
+  
   def setup
     @previous_format = ActiveSupport::Cache.format_version
+    @previous_serializer = ActiveSupport::Cache.cache_serializer
     ActiveSupport::Cache.format_version = 7.0
     ActiveSupport::Cache.cache_serializer = :json
     super
@@ -346,28 +349,9 @@ class OptimizedMemCacheStoreTest < MemCacheStoreTest
     assert_equal "bar", @old_store.read("foo")
   end
 
-  def test_json_to_marshal_serializer_fallback_compatibility
-    previous_serializer = ActiveSupport::Cache.cache_serializer
-    ActiveSupport::Cache.cache_serializer = :marshal
-    @old_store = lookup_store
-    ActiveSupport::Cache.cache_serializer = previous_serializer
-
-    @old_store.write("foo", "bar")
-    assert_equal "bar", @cache.read("foo")
-  end
-
-  def test_marshal_to_json_serializer_fallback_compatibility
-    previous_serializer = ActiveSupport::Cache.cache_serializer
-    ActiveSupport::Cache.cache_serializer = :marshal
-    @old_store = lookup_store
-    ActiveSupport::Cache.cache_serializer = previous_serializer
-
-    @cache.write("foo", "bar")
-    assert_equal "bar", @old_store.read("foo")
-  end
-
   def teardown
     super
     ActiveSupport::Cache.format_version = @previous_format
+    ActiveSupport::Cache.cache_serializer = @previous_serializer
   end
 end
