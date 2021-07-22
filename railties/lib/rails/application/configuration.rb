@@ -231,6 +231,10 @@ module Rails
             active_record.verify_foreign_keys_for_fixtures = true
             active_record.partial_inserts = false
           end
+
+          if respond_to?(:action_controller)
+            action_controller.raise_on_open_redirects = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
