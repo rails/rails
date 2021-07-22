@@ -117,6 +117,10 @@ module ActiveSupport
   def self.utc_to_local_returns_utc_offset_times=(value)
     DateAndTime::Compatibility.utc_to_local_returns_utc_offset_times = value
   end
+
+  def self.current_attributes_use_thread_variables=(value)
+    CurrentAttributes._use_thread_variables = value
+  end
 end
 
 autoload :I18n, "active_support/i18n"
