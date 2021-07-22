@@ -2,5 +2,8 @@
 
     *André Luis Leal Cardoso Junior*
 
+*   Added ability to download `.eml` file for the email preview and resize view to verify responsive layout.
+
+    *Igor Kasyanchuk*
 
 Please check [6-1-stable](https://github.com/rails/rails/blob/6-1-stable/actionmailer/CHANGELOG.md) for previous changes.
