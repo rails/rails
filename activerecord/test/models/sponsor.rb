@@ -7,4 +7,7 @@ class Sponsor < ActiveRecord::Base
   belongs_to :thing, polymorphic: true, foreign_type: :sponsorable_type, foreign_key: :sponsorable_id
   belongs_to :sponsorable_with_conditions, -> { where name: "Ernie" }, polymorphic: true,
              foreign_type: "sponsorable_type", foreign_key: "sponsorable_id"
+
+  alias_attribute :primary_key_alias_for_sponsorable, :id
+  belongs_to :sponsorable_with_pk_alias, polymorphic: true, primary_key: :primary_key_alias_for_sponsorable
 end

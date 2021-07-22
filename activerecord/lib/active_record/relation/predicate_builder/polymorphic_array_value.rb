@@ -45,7 +45,7 @@ module ActiveRecord
         def convert_to_id(value)
           case value
           when Base
-            value._read_attribute(primary_key(value))
+            value.read_attribute(primary_key(value))
           when Relation
             value.select(primary_key(value))
           else

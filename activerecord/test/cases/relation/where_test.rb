@@ -13,6 +13,7 @@ require "models/comment"
 require "models/edge"
 require "models/essay"
 require "models/price_estimate"
+require "models/sponsor"
 require "models/topic"
 require "models/treasure"
 require "models/vertex"
@@ -216,6 +217,13 @@ module ActiveRecord
       actual = PriceEstimate.where(estimate_of: [treasure_1, treasure_2, car]).to_a.sort
 
       assert_equal expected, actual
+    end
+
+    def test_polymorphic_with_primary_key_alias
+      sponsor = Sponsor.new
+      sponsor.id = 1
+
+      assert_match(sponsor.id.to_s, Sponsor.where(sponsorable_with_pk_alias: sponsor).to_sql)
     end
 
     def test_polymorphic_nested_relation_where

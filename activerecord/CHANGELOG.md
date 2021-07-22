@@ -1,3 +1,46 @@
+*   Fix polymorphic queries with primary key alias
+
+    Before:
+
+    ```ruby
+    # with this schema
+    ActiveRecord::Schema.define do
+      create_table :users, force: true do |t|
+      end
+
+      create_table :profiles, force: true do |t|
+        t.string :user_id
+        t.string :user_type
+      end
+    end
+
+    # and an alias attribute to the primary key
+    class User < ActiveRecord::Base
+      alias_attribute :primary_key_for_profile, :id
+      has_one :profile
+    end
+
+    # and a polymorphic association
+    class Profile < ActiveRecord::Base
+      belongs_to :user, polymorphic: true, primary_key: :primary_key_for_profile
+    end
+
+    # this test fails
+    class BugTest < Minitest::Test
+      def test_profile
+        user = User.create!
+        profile = Profile.create!(user_type: 'User', user_id: user.id)
+        assert_match(user.id.to_s, Profile.where(user: user).to_sql)
+      end
+    end
+    ```
+
+    After this commit, `value.read_attribute(primary_key(value))` invoke the alias attribute and return the primary key value as expected.
+
+    Fixes #42345.
+
+    *Gabriel Amaral*
+
 *   Add config option for ignoring tables when dumping the schema cache.
 
     Applications can now be configured to ignore certain tables when dumping the schema cache.
