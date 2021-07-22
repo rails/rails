@@ -101,6 +101,12 @@ Oxford Comma
 Please use the [Oxford comma](https://en.wikipedia.org/wiki/Serial_comma)
 ("red, white, and blue", instead of "red, white and blue").
 
+Wrap at 80 Characters
+---------------------
+
+Please wrap the lines at around 80 characters. Longer lines are harder to read
+and make comparing documentation changes side-by-side more difficult.
+
 Example Code
 ------------
 
