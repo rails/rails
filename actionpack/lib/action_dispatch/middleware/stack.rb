@@ -130,7 +130,11 @@ module ActionDispatch
     ruby2_keywords(:swap)
 
     def delete(target)
-      middlewares.reject! { |m| m.name == target.name } || (raise "No such middleware to delete: #{target.inspect}")
+      middlewares.reject! { |m| m.name == target.name }
+    end
+
+    def remove(target)
+      delete(target) || (raise "No such middleware to remove: #{target.inspect}")
     end
 
     def move(target, source)

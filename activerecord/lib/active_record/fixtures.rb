@@ -35,7 +35,7 @@ module ActiveRecord
   #     name: Google
   #     url: http://www.google.com
   #
-  # This fixture file includes two fixtures. Each YAML fixture (ie. record) is given a name and
+  # This fixture file includes two fixtures. Each YAML fixture (i.e. record) is given a name and
   # is followed by an indented list of key/value pairs in the "key: value" format. Records are
   # separated by a blank line for your viewing pleasure.
   #

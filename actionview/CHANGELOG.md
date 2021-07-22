@@ -19,12 +19,14 @@
     `.css` extension appended to the stylesheet path.
 
     Before:
+
     ```ruby
     stylesheet_link_tag "style.less"
     # <link href="/stylesheets/style.less.scss" rel="stylesheet">
     ```
 
     After:
+
     ```ruby
     stylesheet_link_tag "style.less", extname: false, skip_pipeline: true, rel: "stylesheet/less"
     # <link href="/stylesheets/style.less" rel="stylesheet/less">

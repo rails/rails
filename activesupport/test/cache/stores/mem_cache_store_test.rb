@@ -5,26 +5,26 @@ require "active_support/cache"
 require_relative "../behaviors"
 require "dalli"
 
-# Emulates a latency on Dalli's back-end for the key latency to facilitate
-# connection pool testing.
-class SlowDalliClient < Dalli::Client
-  def get(key, options = {})
-    if /latency/.match?(key)
-      sleep 3
-      super
-    else
-      super
+class MemCacheStoreTest < ActiveSupport::TestCase
+  # Emulates a latency on Dalli's back-end for the key latency to facilitate
+  # connection pool testing.
+  class SlowDalliClient < Dalli::Client
+    def get(key, options = {})
+      if /latency/.match?(key)
+        sleep 3
+        super
+      else
+        super
+      end
     end
   end
-end
 
-class UnavailableDalliServer < Dalli::Server
-  def alive?
-    false
+  class UnavailableDalliServer < Dalli::Server
+    def alive?
+      false
+    end
   end
-end
 
-class MemCacheStoreTest < ActiveSupport::TestCase
   begin
     servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
     ss = Dalli::Client.new(servers).stats
@@ -329,6 +329,12 @@ class OptimizedMemCacheStoreTest < MemCacheStoreTest
     super
   end
 
+  def teardown
+    super
+    ActiveSupport::Cache.format_version = @previous_format
+    ActiveSupport::Cache.cache_serializer = @previous_serializer
+  end
+
   def test_forward_compatibility
     previous_format = ActiveSupport::Cache.format_version
     ActiveSupport::Cache.format_version = 6.1
@@ -347,11 +353,5 @@ class OptimizedMemCacheStoreTest < MemCacheStoreTest
 
     @cache.write("foo", "bar")
     assert_equal "bar", @old_store.read("foo")
-  end
-
-  def teardown
-    super
-    ActiveSupport::Cache.format_version = @previous_format
-    ActiveSupport::Cache.cache_serializer = @previous_serializer
   end
 end

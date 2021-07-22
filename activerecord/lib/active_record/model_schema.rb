@@ -501,7 +501,7 @@ module ActiveRecord
       #
       # The most common usage pattern for this method is probably in a migration,
       # when just after creating a table you want to populate it with some default
-      # values, eg:
+      # values, e.g.:
       #
       #  class CreateJobLevels < ActiveRecord::Migration[7.0]
       #    def up

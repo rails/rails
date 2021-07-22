@@ -12,7 +12,7 @@
 
 *   Modified scaffold generator template so that running
     `rails g scaffold Author` no longer generates tests called "creating
-    a Author", "updating a Author", and "destroying a Author"
+    a Author", "updating a Author", and "destroying a Author".
 
     Fixes #40744.
 
@@ -42,11 +42,11 @@
     *Jean Boussier*
 
 *   Remove Rack::Runtime from the default middleware stack and deprecate
-    referencing it in middleware operations without adding it back
+    referencing it in middleware operations without adding it back.
 
     *Hartley McGuire*
 
-*   Allow adding additional authorized hosts in development via `ENV['RAILS_DEVELOPMENT_HOSTS']`
+*   Allow adding additional authorized hosts in development via `ENV['RAILS_DEVELOPMENT_HOSTS']`.
 
     *Josh Abernathy*, *Debbie Milburn*
 

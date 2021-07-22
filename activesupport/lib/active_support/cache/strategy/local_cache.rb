@@ -34,119 +34,34 @@ module ActiveSupport
 
         # Simple memory backed cache. This cache is not thread safe and is intended only
         # for serving as a temporary memory cache for a single thread.
-        class LocalStore < Store
-          class Entry # :nodoc:
-            class << self
-              def build(cache_entry)
-                return if cache_entry.nil?
-                return cache_entry if cache_entry.compressed?
-
-                value = cache_entry.value
-                if value.is_a?(String)
-                  DupableEntry.new(cache_entry)
-                elsif !value || value == true || value.is_a?(Numeric)
-                  new(cache_entry)
-                else
-                  MutableEntry.new(cache_entry)
-                end
-              end
-            end
-
-            attr_reader :value, :version
-            attr_accessor :expires_at
-
-            def initialize(cache_entry)
-              @value = cache_entry.value
-              @expires_at = cache_entry.expires_at
-              @version = cache_entry.version
-            end
-
-            def local?
-              true
-            end
-
-            def compressed?
-              false
-            end
-
-            def mismatched?(version)
-              @version && version && @version != version
-            end
-
-            def expired?
-              expires_at && expires_at <= Time.now.to_f
-            end
-
-            def marshal_dump
-              raise NotImplementedError, "LocalStore::Entry should never be serialized"
-            end
-          end
-
-          class DupableEntry < Entry # :nodoc:
-            def initialize(_cache_entry)
-              super
-              unless @value.frozen?
-                @value = @value.dup.freeze
-              end
-            end
-
-            def value
-              @value.dup
-            end
-          end
-
-          class MutableEntry < Entry # :nodoc:
-            def initialize(cache_entry)
-              @payload = Marshal.dump(cache_entry.value)
-              @expires_at = cache_entry.expires_at
-              @version = cache_entry.version
-            end
-
-            def value
-              Marshal.load(@payload)
-            end
-          end
-
+        class LocalStore
           def initialize
-            super
             @data = {}
-          end
-
-          # Don't allow synchronizing since it isn't thread safe.
-          def synchronize # :nodoc:
-            yield
           end
 
           def clear(options = nil)
             @data.clear
           end
 
-          def read_entry(key, **options)
+          def read_entry(key)
             @data[key]
           end
 
-          def read_multi_entries(keys, **options)
-            values = {}
-
-            keys.each do |name|
-              entry = read_entry(name, **options)
-              values[name] = entry.value if entry
-            end
-
-            values
+          def read_multi_entries(keys)
+            @data.slice(*keys)
           end
 
-          def write_entry(key, entry, **options)
-            @data[key] = Entry.build(entry)
+          def write_entry(key, entry)
+            @data[key] = entry
             true
           end
 
-          def delete_entry(key, **options)
+          def delete_entry(key)
             !!@data.delete(key)
           end
 
-          def fetch_entry(key, options = nil) # :nodoc:
-            @data.fetch(key) { @data[key] = Entry.build(yield) }
+          def fetch_entry(key) # :nodoc:
+            @data.fetch(key) { @data[key] = yield }
           end
         end
 
@@ -184,19 +99,19 @@ module ActiveSupport
         def increment(name, amount = 1, **options) # :nodoc:
           return super unless local_cache
           value = bypass_local_cache { super }
-          write_cache_value(name, value, **options)
+          write_cache_value(name, value, raw: true, **options)
           value
         end
 
         def decrement(name, amount = 1, **options) # :nodoc:
           return super unless local_cache
           value = bypass_local_cache { super }
-          write_cache_value(name, value, **options)
+          write_cache_value(name, value, raw: true, **options)
           value
         end
 
         private
-          def read_entry(key, **options)
+          def read_serialized_entry(key, raw: false, **options)
             if cache = local_cache
               hit = true
               entry = cache.fetch_entry(key) do
@@ -213,7 +128,7 @@ module ActiveSupport
           def read_multi_entries(keys, **options)
             return super unless local_cache
 
-            local_entries = local_cache.read_multi_entries(keys, **options)
+            local_entries = local_cache.read_multi_entries(keys)
             missed_keys = keys - local_entries.keys
 
             if missed_keys.any?
@@ -223,35 +138,27 @@ module ActiveSupport
             end
           end
 
-          def write_entry(key, entry, **options)
-            if options[:unless_exist]
-              local_cache.delete_entry(key, **options) if local_cache
+          def write_serialized_entry(key, payload, **)
+            if return_value = super
+              local_cache.write_entry(key, payload) if local_cache
             else
-              local_cache.write_entry(key, entry, **options) if local_cache
+              local_cache.delete_entry(key) if local_cache
             end
-
-
-            if entry.local?
-              super(key, new_entry(entry.value, options), **options)
-            else
-              super
-            end
+            return_value
           end
 
-          def delete_entry(key, **options)
-            local_cache.delete_entry(key, **options) if local_cache
+          def delete_entry(key, **)
+            local_cache.delete_entry(key) if local_cache
             super
           end
 
           def write_cache_value(name, value, **options)
             name = normalize_key(name, options)
             cache = local_cache
-            cache.mute do
-              if value
-                cache.write(name, value, options)
-              else
-                cache.delete(name, **options)
-              end
+            if value
+              cache.write_entry(name, serialize_entry(new_entry(value, **options), **options))
+            else
+              cache.delete_entry(name)
             end
           end
 

@@ -66,6 +66,8 @@ module ActiveModel
         assert_not type.changed?(5.0, 5.0, "5.0")
         assert_not type.changed?(-5.0, -5.0, "-5.0")
         assert_not type.changed?(5.0, 5.0, "0.5e+1")
+        assert_not type.changed?(BigDecimal("0.0") / 0, BigDecimal("0.0") / 0, BigDecimal("0.0") / 0)
+        assert type.changed?(BigDecimal("0.0") / 0, 0.0 / 0.0, 0.0 / 0.0)
       end
 
       def test_scale_is_applied_before_precision_to_prevent_rounding_errors

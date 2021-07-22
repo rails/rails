@@ -1,16 +1,23 @@
+*   Fix dirty check for Float::NaN and BigDecimal::NaN.
+
+    Float::NaN and BigDecimal::NaN in Ruby are [special values](https://bugs.ruby-lang.org/issues/1720) 
+    and can't be compared with `==`.
+
+    *Marcelo Lauxen*
+
 *   Fix `to_json` for `ActiveModel::Dirty` object.
 
-    Exclude +mutations_from_database+ attribute from json as it lead to recursion.
+    Exclude `mutations_from_database` attribute from json as it lead to recursion.
 
     *Anil Maurya*
 
-*   Add `ActiveModel::AttributeSet#values_for_database`
+*   Add `ActiveModel::AttributeSet#values_for_database`.
 
     Returns attributes with values for assignment to the database.
 
     *Chris Salzberg*
 
-*   Fix delegation in ActiveModel::Type::Registry#lookup and ActiveModel::Type.lookup
+*   Fix delegation in ActiveModel::Type::Registry#lookup and ActiveModel::Type.lookup.
 
     Passing a last positional argument `{}` would be incorrectly considered as keyword argument.
 

@@ -769,7 +769,7 @@ Active Storage supports representing a variety of files. You can call
 [`representation`][] on an attachment to display an image variant, or a
 preview of a video or PDF. Before calling `representation`, check if the
 attachment can be represented by calling [`representable?`]. Some file formats
-can't be previewed by Active Storage out of the box (eg. Word documents); if
+can't be previewed by Active Storage out of the box (e.g. Word documents); if
 `representable?` returns false you may want to [link to](#serving-files)
 the file instead.
 
@@ -820,7 +820,7 @@ image_tag file.representation(resize_to_limit: [100, 100]).processed.url
 
 The Active Storage variant tracker improves performance of this, by storing a
 record in the database if the requested representation has been processed before.
-Thus, the above code will only make an API call to the remote service (eg. S3)
+Thus, the above code will only make an API call to the remote service (e.g. S3)
 once, and once a variant is stored, will use that. The variant tracker runs
 automatically, but can be disabled through `config.active_storage.track_variants`.
 
@@ -1361,7 +1361,7 @@ end
 ```
 
 If you're not running parallel tests, use `Minitest.after_run` or the equivalent for your test
-framework (eg. `after(:suite)` for RSpec):
+framework (e.g. `after(:suite)` for RSpec):
 
 ```ruby
 # test_helper.rb
