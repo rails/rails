@@ -19,6 +19,9 @@
     font: 12px "Lucida Grande", sans-serif;
     border-bottom: 1px solid #dedede;
     overflow: hidden;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
   }
 
   dl {
@@ -44,9 +47,45 @@
     content: "\00a0"; // &nbsp;
   }
 
+  #container {
+    margin: 0 auto;
+    height: 100%;
+    text-align: center;
+  }
+
+  #container p {
+    text-align: left;
+  }
+
   iframe {
     border: 0;
+    width: 600px;
+    transform: scale(1);
+    transition-duration: 0.2s;
+  }
+
+  #sourceCode {
     width: 100%;
+    height: 100%;
+  }
+
+  #controlView {
+    padding-bottom: 20px;
+    padding-right: 10px;
+  }
+
+  #controlView a {
+    text-decoration: none;
+    margin-right: 5px;
+    padding: 3px;
+    height: 35px;
+    display: inline-block;
+    border-radius: 50%;
+  }
+
+  #controlView a.active {
+    background: yellow;
+    padding: 3px;
   }
 </style>
 </head>
@@ -121,16 +160,33 @@
       </dd>
     <% end %>
   </dl>
+  <div id="controlView">
+    <a class="active controlItem" href="#" onclick="swithToDesktop(this); return false">
+      <img title="Desktop View" height="32" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDQ4IDQ4IiBoZWlnaHQ9IjQ4cHgiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDQ4IDQ4IiB3aWR0aD0iNDhweCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PGcgaWQ9IkV4cGFuZGVkIj48Zz48Zz48cGF0aCBkPSJNNDQsNDJINGMtMi4yMDYsMC00LTEuODc0LTQtNC4xNzdWOC4xNzdDMCw1Ljg3NCwxLjc5NCw0LDQsNGg0MGMyLjIwNiwwLDQsMS44NzQsNCw0LjE3N3YyOS42NDYgICAgIEM0OCw0MC4xMjYsNDYuMjA2LDQyLDQ0LDQyeiBNNCw2QzIuODk3LDYsMiw2Ljk3NywyLDguMTc3djI5LjY0NkMyLDM5LjAyMywyLjg5Nyw0MCw0LDQwaDQwYzEuMTAzLDAsMi0wLjk3NywyLTIuMTc3VjguMTc3ICAgICBDNDYsNi45NzcsNDUuMTAzLDYsNDQsNkg0eiIvPjwvZz48Zz48cGF0aCBkPSJNMzgsNDZIMTBjLTAuNTUyLDAtMS0wLjQ0OC0xLTFzMC40NDgtMSwxLTFoMjhjMC41NTIsMCwxLDAuNDQ4LDEsMVMzOC41NTIsNDYsMzgsNDZ6Ii8+PC9nPjxnPjxwYXRoIGQ9Ik0yNCw0NmMtMC41NTIsMC0xLTAuNDQ4LTEtMXYtNGMwLTAuNTUyLDAuNDQ4LTEsMS0xczEsMC40NDgsMSwxdjRDMjUsNDUuNTUyLDI0LjU1Miw0NiwyNCw0NnoiLz48L2c+PGc+PGNpcmNsZSBjeD0iMjQiIGN5PSIzNyIgcj0iMiIvPjwvZz48Zz48cmVjdCBoZWlnaHQ9IjIiIHdpZHRoPSI0NiIgeD0iMSIgeT0iMzIiLz48L2c+PC9nPjwvZz48L3N2Zz4="/>
+    </a>
+    <a class="controlItem" href="#" onclick="swithToMobile(this); return false">
+      <img title="Mobile View" height="32" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDQ4IDQ4IiBoZWlnaHQ9IjQ4cHgiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDQ4IDQ4IiB3aWR0aD0iNDhweCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PGcgaWQ9IkV4cGFuZGVkIj48Zz48Zz48cGF0aCBkPSJNMzUsNDhIMTNjLTIuNzU3LDAtNS0yLjI0My01LTVWNWMwLTIuNzU3LDIuMjQzLTUsNS01aDIyYzIuNzU3LDAsNSwyLjI0Myw1LDV2MzhDNDAsNDUuNzU3LDM3Ljc1Nyw0OCwzNSw0OHogTTEzLDIgICAgIGMtMS42NTQsMC0zLDEuMzQ2LTMsM3YzOGMwLDEuNjU0LDEuMzQ2LDMsMywzaDIyYzEuNjU0LDAsMy0xLjM0NiwzLTNWNWMwLTEuNjU0LTEuMzQ2LTMtMy0zSDEzeiIvPjwvZz48Zz48cGF0aCBkPSJNMzksMTBIOWMtMC41NTMsMC0xLTAuNDQ4LTEtMXMwLjQ0Ny0xLDEtMWgzMGMwLjU1MywwLDEsMC40NDgsMSwxUzM5LjU1MywxMCwzOSwxMHoiLz48L2c+PGc+PHBhdGggZD0iTTM5LDQwSDljLTAuNTUzLDAtMS0wLjQ0OC0xLTFzMC40NDctMSwxLTFoMzBjMC41NTMsMCwxLDAuNDQ4LDEsMVMzOS41NTMsNDAsMzksNDB6Ii8+PC9nPjxnPjxwYXRoIGQ9Ik0yNCw0MWMtMS4xMDQsMC0yLDAuODk2LTIsMnMwLjg5NiwyLDIsMnMyLTAuODk2LDItMlMyNS4xMDQsNDEsMjQsNDFMMjQsNDF6Ii8+PC9nPjxnPjxwYXRoIGQ9Ik0yOSw2SDE5Yy0wLjU1MywwLTEtMC40NDgtMS0xczAuNDQ3LTEsMS0xaDEwYzAuNTUzLDAsMSwwLjQ0OCwxLDFTMjkuNTUzLDYsMjksNnoiLz48L2c+PC9nPjwvZz48L3N2Zz4="/>
+    </a>
+    <a class="controlItem" href="#" onclick="swithToHTML(this); return false">
+      <img title="View Source" height="32" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjxzdmcgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMzIgMzIiIGhlaWdodD0iMzJweCIgaWQ9InN2ZzIiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDMyIDMyIiB3aWR0aD0iMzJweCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtbG5zOmlua3NjYXBlPSJodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy9uYW1lc3BhY2VzL2lua3NjYXBlIiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgaWQ9ImJhY2tncm91bmQiPjxyZWN0IGZpbGw9Im5vbmUiIGhlaWdodD0iMzIiIHdpZHRoPSIzMiIvPjwvZz48ZyBpZD0ic291cmNlY29kZSI+PHBvbHlnb24gcG9pbnRzPSIyMiwyMiAyMiwyNiAzMiwxNiAyMiw2IDIyLDEwIDI4LDE2ICAiLz48cG9seWdvbiBwb2ludHM9IjEwLDIyIDEwLDI2IDAsMTYgMTAsNiAxMCwxMCA0LDE2ICAiLz48cG9seWdvbiBwb2ludHM9IjEwLDIwIDE0LDIwIDIyLDEyIDE4LDEyICAiLz48L2c+PC9zdmc+"/>
+    </a>
+    <a href='#'>
+      <img title="Download EML file" height="34" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDUxMiA1MTIiIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEycHgiIHhtbDpzcGFjZT0icHJlc2VydmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPjxnPjxwb2x5Z29uIGZpbGw9IiMzNzQwNEQiIHBvaW50cz0iMTY1LjMwNywyNTQuOTgzIDE1MC42MzMsMjY5LjY1NyAyNTYuMTA4LDM3NS4xMzMgMzYxLjU4NCwyNjkuNjU3IDM0Ni45MDksMjU0Ljk4MyAgICAyNjYuNDg2LDMzNS40MDcgMjY2LjQ4Niw2Ljg5MiAyNDUuNzMxLDYuODkyIDI0NS43MzEsMzM1LjQwNyAgIi8+PHBvbHlnb24gZmlsbD0iIzM3NDA0RCIgcG9pbnRzPSIzMDcuOTk1LDExMC42NjQgMzA3Ljk5NSwxMzEuNDE5IDQ0Mi44OTksMTMxLjQxOSA0NDIuODk5LDQ4NC4yNDUgNjkuMzE4LDQ4NC4yNDUgNjkuMzE4LDEzMS40MTkgICAgMjA0LjIyMiwxMzEuNDE5IDIwNC4yMjIsMTEwLjY2NCA0OC41NjMsMTEwLjY2NCA0OC41NjMsNTA1IDQ2My42NTQsNTA1IDQ2My42NTQsMTEwLjY2NCAgIi8+PC9nPjwvc3ZnPg=="/>
+    </a>
+  </div>
 </header>
 
-<% if @part && @part.mime_type %>
-  <iframe seamless name="messageBody" src="?<%= part_query(@part.mime_type) %>"></iframe>
-<% else %>
-  <p>
-    You are trying to preview an email that does not have any content.
-    This is probably because the <em>mail</em> method has not been called in <em><%= @preview.preview_name %>#<%= @email_action %></em>.
-  </p>
-<% end %>
+<div id="container">
+  <% if @part && @part.mime_type %>
+    <iframe seamless name="messageBody" src="?<%= part_query(@part.mime_type) %>"></iframe>
+    <textarea id="sourceCode" style="display: none"></textarea>
+  <% else %>
+    <p>
+      You are trying to preview an email that does not have any content.
+      This is probably because the <em>mail</em> method has not been called in <em><%= @preview.preview_name %>#<%= @email_action %></em>.
+    </p>
+  <% end %>
+</div>
 
 <script>
   function refreshBody(reload) {
@@ -158,6 +214,44 @@
     } else if (history.replaceState) {
       window.history.replaceState({}, '', state_to_replace);
     }
+  }
+
+  function swithToDesktop(e) {
+    setFrameWidthTo('600px');
+    activateTab(e);
+  }
+
+  function swithToMobile(e) {
+    setFrameWidthTo('320px');
+    activateTab(e);
+  }
+
+  function activateTab(e) {
+    var elements = document.getElementsByClassName("controlItem");
+    for (var i=0, len=elements.length|0; i<len; i=i+1|0) {
+      elements[i].classList.remove("active");
+    }
+    e.classList.add("active");
+  }
+
+  function setFrameWidthTo(size, e) {
+    var iframe = document.getElementsByName("messageBody")[0];
+    var sourceCode = document.getElementById("sourceCode");
+    iframe.style.width = size;
+    iframe.style.display = "inline";
+    sourceCode.style.display = "none";
+  }
+
+  function swithToHTML(e) {
+    var iframe = document.getElementsByName("messageBody")[0];
+    var iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+    var sourceCode = document.getElementById("sourceCode");
+
+    iframe.style.display = "none";
+    sourceCode.value = iframeDocument.documentElement.innerHTML;
+    sourceCode.style.display = "block";
+
+    activateTab(e);
   }
 </script>
 
