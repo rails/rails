@@ -5,6 +5,7 @@ require "openssl"
 require "active_support/time"
 require "active_support/json"
 require_relative "metadata/shared_metadata_tests"
+require "byebug"
 
 class MessageEncryptorTest < ActiveSupport::TestCase
   class JSONSerializer

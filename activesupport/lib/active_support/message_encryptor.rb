@@ -182,7 +182,7 @@ module ActiveSupport
         iv = cipher.random_iv
         cipher.auth_data = "" if aead_mode?
 
-        encrypted_data = cipher.update(Messages::Metadata.wrap(deserialize(value), **metadata_options))
+        encrypted_data = cipher.update(Messages::Metadata.wrap(serialize(value), **metadata_options))
         encrypted_data << cipher.final
 
         blob = "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
@@ -211,8 +211,8 @@ module ActiveSupport
         decrypted_data << cipher.final
 
         message = Messages::Metadata.verify(decrypted_data, purpose)
-        serialize(message) if message
-      rescue OpenSSLCipherError, TypeError, ArgumentError, ::JSON::ParserError
+        deserialize(message) if message
+      rescue OpenSSLCipherError, TypeError, ArgumentError
         raise InvalidMessage
       end
 
