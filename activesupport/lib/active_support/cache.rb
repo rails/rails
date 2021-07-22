@@ -910,13 +910,13 @@ module ActiveSupport
         private
           def serialize(payload)
             json_serializer? ? JSON.encode(payload) : Marshal.dump(payload)
-          rescue EncodingError
+          rescue ::JSON::JSONError, EncodingError
             super
           end
 
           def deserialize(payload)
             json_serializer? ? JSON.decode(payload, symbolize_names: true) : Marshal.load(payload)
-          rescue ::JSON::ParserError
+          rescue ::JSON::JSONError
             super
           end
 

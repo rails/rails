@@ -2,31 +2,31 @@
 
 module CacheStoreCoderBehavior
   class SpyCoder
-    attr_reader :dumped_entries, :deserialize_entries, :serializer
+    attr_reader :dumped_entries, :loaded_entries, :serializer
 
     def initialize(serializer)
       @dumped_entries = []
-      @deserialize_entries = []
+      @loaded_entries = []
       @serializer = serializer
     end
 
     def dump(entry)
       @dumped_entries << entry
-      serialize(entry)
+      serialized(entry)
     end
 
     def load(payload)
-      entry = deserialize(payload)
-      @deserialize_entries << entry
+      entry = loaded(payload)
+      @loaded_entries << entry
       entry
     end
 
     private
-      def serialize(entry)
+      def serialized(entry)
         serializer == :json ? ActiveSupport::JSON.encode(entry.pack) : Marshal.dump(entry)
       end
       
-      def deserialize(payload)
+      def loaded(payload)
         return Marshal.load(payload) unless serializer == :json
         
         entry = ActiveSupport::JSON.decode(payload, symbolize_names: true)
@@ -55,8 +55,8 @@ module CacheStoreCoderBehavior
       @store = lookup_store(coder: coder)
       @store.write("foo", "bar")
       @store.read("foo")
-      assert_equal 1, coder.deserialize_entries.size
-      entry = coder.deserialize_entries.first
+      assert_equal 1, coder.loaded_entries.size
+      entry = coder.loaded_entries.first
       assert_instance_of ActiveSupport::Cache::Entry, entry
       assert_equal "bar", entry.value
     end
@@ -66,12 +66,12 @@ module CacheStoreCoderBehavior
       @store = lookup_store(coder: coder)
       @store.write_multi({ "foo" => "bar", "egg" => "spam" })
       @store.read_multi("foo", "egg")
-      assert_equal 2, coder.deserialize_entries.size
-      entry = coder.deserialize_entries.first
+      assert_equal 2, coder.loaded_entries.size
+      entry = coder.loaded_entries.first
       assert_instance_of ActiveSupport::Cache::Entry, entry
       assert_equal "bar", entry.value
 
-      entry = coder.deserialize_entries[1]
+      entry = coder.loaded_entries[1]
       assert_instance_of ActiveSupport::Cache::Entry, entry
       assert_equal "spam", entry.value
     end
@@ -94,7 +94,7 @@ module CacheStoreCoderBehavior
       coder = SpyCoder.new(serializer)
       @store = lookup_store(coder: coder)
       @store.read("foo")
-      assert_equal 0, coder.deserialize_entries.size
+      assert_equal 0, coder.loaded_entries.size
     end
   end
 end
