@@ -140,7 +140,7 @@ module ActiveModel
     end
 
     def as_json(options = {}) # :nodoc:
-      options[:except] = [options[:except], "mutations_from_database"].flatten
+      options[:except] = [*options[:except], "mutations_from_database", "mutations_before_last_save"]
       super(options)
     end
 
